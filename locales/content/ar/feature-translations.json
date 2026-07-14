@@ -64,8 +64,8 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "تبرّع الأشخاص التالون بوقتهم للمساعدة في توسيع نطاق وصول {product_name}:",
-    "source_hash": "85a766af"
+    "text": "تبرّع الأشخاص التالية أسماؤهم بوقتهم للمساعدة في توسيع نطاق وصول {product_name}:",
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "الترجمات",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "منذ عام 2012، وفّر {product_name} طريقة آمنة لمشاركة المعلومات الحساسة في جميع أنحاء العالم. ومع وجود مستخدمين في مناطق ليست الإنجليزية فيها اللغة الأساسية، تُعدّ الترجمات الدقيقة ضرورية لجعل التواصل الآمن في متناول الجميع.",
-    "source_hash": "87a6e9af"
+    "text": "منذ عام 2012، وفّر {product_name} طريقة آمنة لمشاركة المعلومات الحساسة في جميع أنحاء العالم. ومع وجود مستخدمين عبر مناطق ليست الإنجليزية لغتها الأساسية، تُعدّ الترجمات الدقيقة أساسية لجعل التواصل الآمن في متناول الجميع.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "ساعد في نشر الاتصال الآمن عالمياً",

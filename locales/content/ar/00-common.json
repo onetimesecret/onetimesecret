@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "المؤسسات",
-    "source_hash": "2730183d"
+    "text": "مساحات العمل",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "إعدادات المؤسسة",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "تأكد دائماً من أنك على الموقع الرسمي لـ {product_name}. ينشئ المحتالون أحياناً مواقع مزيّفة تبدو مطابقة تماماً لـ {product_name} لسرقة أسرارك. لتفادي هجمات التصيّد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة.",
-    "source_hash": "68ec20f8"
+    "text": "تأكّد دائماً من أنك على موقع {product_name} الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو مطابقة تماماً لموقع {product_name} بهدف سرقة أسرارك. لتجنّب هجمات التصيّد الاحتيالي، تحقّق من نطاق المنطقة في شريط العناوين قبل إنشاء روابط جديدة.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "أسعار بسيطة وشفافة",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "الأسرار الواردة",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "تحديث",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "جارٍ التحديث...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "تحقّق من بريدك الإلكتروني",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "إعداد DNS",
+    "source_hash": "6c63df31"
   }
 }

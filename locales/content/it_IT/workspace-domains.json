@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Abilitato",
-    "source_hash": "92c1cdfd"
+    "text": "Abilita",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Disabilitato",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Esegui l'upgrade per configurare",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Dominio personalizzato",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "L'hostname esatto che il tuo team utilizzerà, come {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "I tuoi link segreti si troveranno all'indirizzo",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Questo è l'intero dominio — dove dovrebbero trovarsi i link segreti?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Un sottodominio lascia intatto il resto di {domain}.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Consigliato",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Non c'è una scelta sbagliata — scegli quella che il tuo team riconoscerà.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Sottodomini più diffusi",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Oppure usa l'intero dominio",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Usa il mio dominio radice",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Questo punta l'intero {domain} verso di noi — il sito lì smette di risolvere — e richiede un record A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}” non è una terminazione di dominio riconosciuta — controlla eventuali errori di battitura (es. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Inserisci un hostname valido — lettere, numeri, singoli punti e trattini (es. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Inserisci un nome di dominio.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Continua con {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Predefinito dell'area di lavoro",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "Configurazione DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Punta il tuo dominio a questo server con un record CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "Configurazione DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Punta",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "a questo server aggiungendo il seguente record DNS presso il tuo provider.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Crea un record CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Crea un record ALIAS o ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "I domini apex (radice) non possono usare un record CNAME. Usa invece il record ALIAS o ANAME del tuo provider DNS, oppure punta un record A all'indirizzo IP del tuo server.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Homepage",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Cosa possono fare i visitatori sulla homepage del tuo dominio",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Pagina di destinazione privata",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "I visitatori vedono una pagina di destinazione privata senza alcun modulo interattivo",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Modulo di creazione segreti",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "I visitatori possono creare i propri link segreti",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Modulo Segreti in arrivo",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "I visitatori possono inviare segreti ai destinatari che hai configurato",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Richiede che i Segreti in arrivo siano abilitati con almeno un destinatario",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Configura i destinatari",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Pagina di destinazione privata",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Pubblico: i visitatori creano segreti",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Pubblico: i visitatori ti inviano segreti",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Segreti in arrivo non pronti — viene mostrata la pagina di destinazione privata",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "In arrivo",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Impostazioni della homepage salvate",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "La homepage di questo dominio presenta attualmente il modulo Segreti in arrivo. Disabilitando i Segreti in arrivo o rimuovendo tutti i destinatari la homepage passerà a una pagina di destinazione privata finché i Segreti in arrivo non saranno di nuovo pronti.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Accesso su questo dominio",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "L'accesso è disattivato per l'intera area di lavoro, quindi non è disponibile su nessun dominio. Le tue impostazioni qui vengono mantenute e diventano effettive quando l'accesso all'area di lavoro viene riabilitato.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Registrazioni su questo dominio",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Le registrazioni sono disattivate per l'intera area di lavoro, quindi non sono disponibili su nessun dominio. Le tue impostazioni qui vengono mantenute e diventano effettive quando le registrazioni all'area di lavoro vengono riabilitate.",
+    "source_hash": "49faefe4"
   }
 }

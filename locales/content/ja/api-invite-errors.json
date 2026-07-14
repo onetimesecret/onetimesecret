@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "この招待はすでに処理されています(%{status})",
-    "source_hash": "130c87e0"
+    "text": "この招待はすでに処理されています",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "招待の有効期限が切れています",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "すでにこの組織のメンバーです",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "この招待はすでに承諾されています",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "この招待はすでに辞退されています",
+    "source_hash": "96e0d626"
   }
 }

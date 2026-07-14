@@ -65,7 +65,7 @@
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
     "text": "A következő személyek áldozták idejüket arra, hogy bővítsék a(z) {product_name} elérhetőségét:",
-    "source_hash": "85a766af"
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Fordítások",
@@ -85,7 +85,7 @@
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
     "text": "2012 óta a(z) {product_name} biztonságos módot kínál bizalmas információk megosztására világszerte. Mivel a felhasználók olyan régiókban élnek, ahol nem az angol az elsődleges nyelv, a pontos fordítások elengedhetetlenek ahhoz, hogy a biztonságos kommunikáció mindenki számára elérhető legyen.",
-    "source_hash": "87a6e9af"
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Segítsen a biztonságos kommunikációnak globálissá válni",

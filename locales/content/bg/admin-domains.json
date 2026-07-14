@@ -1,0 +1,194 @@
+{
+  "web.admin.domains.retry": {
+    "text": "Повторен опит",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.addDomain.button": {
+    "text": "Добавяне на домейн",
+    "source_hash": "d86476ae"
+  },
+  "web.admin.domains.addDomain.title": {
+    "text": "Добавяне на потребителски домейн",
+    "source_hash": "592d3314"
+  },
+  "web.admin.domains.addDomain.forOrg": {
+    "text": "Добавяне на домейн за {org}.",
+    "source_hash": "f8b8c1ac"
+  },
+  "web.admin.domains.addDomain.domainLabel": {
+    "text": "Домейн",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.addDomain.domainPlaceholder": {
+    "text": "secrets.example.com",
+    "source_hash": "9ea4d0d6"
+  },
+  "web.admin.domains.addDomain.strategyLabel": {
+    "text": "Стратегия за валидиране",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.addDomain.createButton": {
+    "text": "Създаване",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.addDomain.created": {
+    "text": "{domain} беше създаден.",
+    "source_hash": "2263ec6a"
+  },
+  "web.admin.domains.addDomain.strategy.approximated": {
+    "text": "Approximated — проверка на собствеността на DNS, без проксиране.",
+    "source_hash": "79a7245c"
+  },
+  "web.admin.domains.addDomain.strategy.passthrough": {
+    "text": "Passthrough — насочвате DNS към проксито на тази инсталация.",
+    "source_hash": "9702d758"
+  },
+  "web.admin.domains.addDomain.strategy.external": {
+    "text": "External — DNS се управлява извън тази инсталация.",
+    "source_hash": "acaede35"
+  },
+  "web.admin.domains.addDomain.strategy.caddy_on_demand": {
+    "text": "Caddy on-demand — сертификатите се издават автоматично при първата заявка.",
+    "source_hash": "deb90ae6"
+  },
+  "web.admin.domains.addDomain.strategy.caddy": {
+    "text": "Caddy — сертификатите се издават автоматично при първата заявка.",
+    "source_hash": "a0f3c2dc"
+  },
+  "web.admin.domains.addDomain.strategy.unknown": {
+    "text": "Стратегия за валидиране за цялата инсталация.",
+    "source_hash": "4587f9cf"
+  },
+  "web.admin.domains.attach.cta": {
+    "text": "Прикачване на домейн към организация",
+    "source_hash": "736d74ce"
+  },
+  "web.admin.domains.attach.recordEyebrow": {
+    "text": "Работещ запис",
+    "source_hash": "2fadf983"
+  },
+  "web.admin.domains.attach.rosterError": {
+    "text": "Домейните на тази организация не можаха да бъдат заредени.",
+    "source_hash": "d3055fed"
+  },
+  "web.admin.domains.attach.noDomains": {
+    "text": "Все още няма домейни, прикачени към тази организация.",
+    "source_hash": "e9a25fc4"
+  },
+  "web.admin.domains.attach.openExternal": {
+    "text": "Отваряне на {domain} в нов раздел",
+    "source_hash": "c5fbdeaa"
+  },
+  "web.admin.domains.dns.heading": {
+    "text": "DNS записи за публикуване",
+    "source_hash": "e4efbe2b"
+  },
+  "web.admin.domains.dns.txtStep": {
+    "text": "1. Добавете TXT запис, за да докажете собствеността.",
+    "source_hash": "fdcfcfb0"
+  },
+  "web.admin.domains.dns.aStep": {
+    "text": "2. Добавете A запис, сочещ апекса към проксито.",
+    "source_hash": "aedbf197"
+  },
+  "web.admin.domains.dns.cnameStep": {
+    "text": "2. Добавете CNAME запис, сочещ поддомейна към проксито.",
+    "source_hash": "5c626f53"
+  },
+  "web.admin.domains.dns.propagationNote": {
+    "text": "Промените в DNS може да отнемат няколко минути, за да се разпространят, преди проверката да успее.",
+    "source_hash": "7caf70a7"
+  },
+  "web.admin.domains.dns.toggle": {
+    "text": "DNS детайли",
+    "source_hash": "ebf2d44e"
+  },
+  "web.admin.domains.dns.loadError": {
+    "text": "DNS детайлите не можаха да бъдат заредени.",
+    "source_hash": "4c33e23d"
+  },
+  "web.admin.domains.list.loadError": {
+    "text": "Домейните не можаха да бъдат заредени.",
+    "source_hash": "548deff8"
+  },
+  "web.admin.domains.orgPicker.title": {
+    "text": "Изберете организация",
+    "source_hash": "48326f52"
+  },
+  "web.admin.domains.orgPicker.searchLabel": {
+    "text": "Организация",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.orgPicker.searchPlaceholder": {
+    "text": "Object ID, external ID или имейл",
+    "source_hash": "bb5d0055"
+  },
+  "web.admin.domains.orgPicker.searchHint": {
+    "text": "Търсене по objid, extid или имейл адрес на член.",
+    "source_hash": "fdef7332"
+  },
+  "web.admin.domains.orgPicker.loadError": {
+    "text": "Организациите не можаха да бъдат търсени.",
+    "source_hash": "b9e45dcf"
+  },
+  "web.admin.domains.orgPicker.parseError": {
+    "text": "Резултатите за организациите не можаха да бъдат прочетени.",
+    "source_hash": "44e1b9fd"
+  },
+  "web.admin.domains.orgPicker.idle": {
+    "text": "Въведете стойност по-горе, за да търсите.",
+    "source_hash": "0352e6e6"
+  },
+  "web.admin.domains.orgPicker.noResults": {
+    "text": "Няма организации, съответстващи на „{term}“.",
+    "source_hash": "761db594"
+  },
+  "web.admin.domains.orgPicker.unnamedOrg": {
+    "text": "Организация без име",
+    "source_hash": "f218dc9d"
+  },
+  "web.admin.domains.orgPicker.domainCount": {
+    "text": "{count} домейна",
+    "source_hash": "cf548c8c"
+  },
+  "web.admin.domains.orgPicker.select": {
+    "text": "Избор",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.domains.verify.button": {
+    "text": "Потвърждаване",
+    "source_hash": "eea2745e"
+  },
+  "web.admin.domains.verify.confirmTitle": {
+    "text": "Да се потвърди ли домейнът?",
+    "source_hash": "07c4dc4f"
+  },
+  "web.admin.domains.verify.confirmDescription": {
+    "text": "Изпълняване на проверки за потвърждение на DNS и SSL за {domain}.",
+    "source_hash": "06797824"
+  },
+  "web.admin.domains.verify.failed": {
+    "text": "Потвърждението е неуспешно. Моля, опитайте отново.",
+    "source_hash": "3c8432b0"
+  },
+  "web.admin.domains.verify.success.verified": {
+    "text": "{domain} е потвърден.",
+    "source_hash": "802b5d1e"
+  },
+  "web.admin.domains.verify.success.resolving": {
+    "text": "{domain} се разрешава, но все още не е потвърден.",
+    "source_hash": "bc8aecad"
+  },
+  "web.admin.domains.verify.success.pending": {
+    "text": "{domain} е в очакване — DNS все още не се разрешава.",
+    "source_hash": "0d9f66d5"
+  },
+  "web.admin.domains.verify.success.unverified": {
+    "text": "{domain} не можа да бъде потвърден.",
+    "source_hash": "630da482"
+  },
+  "web.admin.domains.verify.success.done": {
+    "text": "Потвърждението за {domain} е завършено.",
+    "source_hash": "ed67e22d"
+  }
+}

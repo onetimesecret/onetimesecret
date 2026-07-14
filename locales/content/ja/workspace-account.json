@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 このトークンを安全に保管してください！アカウントへの完全なアクセス権を提供します。",
-    "source_hash": "8839aa4d"
+    "text": "このトークンは安全に保管してください。APIを通じてシークレットを作成・管理するために使用できます。",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "パスワードで確認",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "メールが正常に更新されました。新しいメールアドレスを認証するため、受信トレイを確認してください。",
-    "source_hash": "58de2536"
+    "text": "確認メールを送信しました。新しい受信トレイを確認し、確認リンクをクリックして変更を完了してください。",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "メールの更新に失敗しました。もう一度お試しください。",
@@ -476,8 +476,8 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "アプリケーションに{product_name}を統合する方法を学ぶ",
-    "source_hash": "6e8f910f"
+    "text": "{product_name}をアプリケーションに統合する方法を学べます",
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST APIリファレンス",

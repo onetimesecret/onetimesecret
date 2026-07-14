@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Din session er udløbet. Opdater venligst siden og prøv igen.",
-    "source_hash": "a7c3e901"
+    "text": "Din session er udløbet. Opdater siden, og prøv igen.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Login mislykkedes. Prøv venligst igen.",

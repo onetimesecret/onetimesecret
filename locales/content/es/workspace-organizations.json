@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organización",
-    "source_hash": "d764d425"
+    "text": "Espacio de trabajo",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organizaciones",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organizaciones",
-    "source_hash": "2730183d"
+    "text": "Espacios de trabajo",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Gestionar organizaciones",
-    "source_hash": "be0fe4c3"
+    "text": "Gestionar espacios de trabajo",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Nueva organización",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Aún no hay organizaciones",
-    "source_hash": "5b7a7cbd"
+    "text": "Aún no hay espacios de trabajo",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Las organizaciones proporcionan facturación y administración unificadas. Comienza creando tu primera organización.",
-    "source_hash": "deab4304"
+    "text": "Los espacios de trabajo proporcionan facturación y administración unificadas. Comienza creando tu primer espacio de trabajo.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Sin descripción proporcionada",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Crear primera organización",
-    "source_hash": "27bae486"
+    "text": "Crear el primer espacio de trabajo",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Crear una nueva organización",
-    "source_hash": "67cd5950"
+    "text": "Crear un nuevo espacio de trabajo",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Crear",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Error al crear la organización",
-    "source_hash": "f2204373"
+    "text": "No se pudo crear el espacio de trabajo",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Nombre de la organización",
-    "source_hash": "4cbd9073"
+    "text": "Nombre del espacio de trabajo",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "por ejemplo, Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Selecciona una organización",
-    "source_hash": "48326f52"
+    "text": "Selecciona un espacio de trabajo",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "El cambio de organización no está disponible en esta página",
-    "source_hash": "da0cf810"
+    "text": "El cambio de espacio de trabajo no está disponible en esta página",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organización no encontrada",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Equipo",
-    "source_hash": "5985039f"
+    "text": "Miembros",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Facturación",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Miembro",
-    "source_hash": "7c968fb7"
+    "text": "Miembro del equipo",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Administrador",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Las invitaciones de miembros del equipo requieren un plan con gestión de equipos. Mejora para añadir colaboradores a tu organización.",
-    "source_hash": "cf10d623"
+    "text": "Las invitaciones de miembros requieren un plan de pago. Mejora tu plan para añadir colaboradores a tu organización.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Sesión iniciada con otra cuenta",
-    "source_hash": "4a2f91c3"
+    "text": "Cuenta diferente con sesión iniciada",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Esta invitación es para {invitedEmail}. Actualmente has iniciado sesión como {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Continuar como {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d restantes",
@@ -1026,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Crear espacio de trabajo",
+    "source_hash": "c63c14cf"
   }
 }

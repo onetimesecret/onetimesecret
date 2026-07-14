@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Invitationen er allerede blevet %{status}",
-    "source_hash": "130c87e0"
+    "text": "Denne invitation er allerede behandlet",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Invitationen er udløbet",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Du er allerede medlem af denne organisation",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Denne invitation er allerede accepteret",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Denne invitation er allerede afvist",
+    "source_hash": "96e0d626"
   }
 }

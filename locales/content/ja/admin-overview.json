@@ -1,0 +1,94 @@
+{
+  "web.admin.overview.retry": {
+    "text": "再試行",
+    "source_hash": "942087cc"
+  },
+  "web.admin.overview.feedback.title": {
+    "text": "ユーザーフィードバック",
+    "source_hash": "cb7b24c6"
+  },
+  "web.admin.overview.feedback.total": {
+    "text": "過去30日間に{count}件",
+    "source_hash": "b6b9147c"
+  },
+  "web.admin.overview.feedback.today": {
+    "text": "今日",
+    "source_hash": "2b065c7c"
+  },
+  "web.admin.overview.feedback.yesterday": {
+    "text": "昨日",
+    "source_hash": "56618125"
+  },
+  "web.admin.overview.feedback.older": {
+    "text": "それ以前",
+    "source_hash": "03281c88"
+  },
+  "web.admin.overview.feedback.empty": {
+    "text": "この期間のフィードバックはありません",
+    "source_hash": "e09d594d"
+  },
+  "web.admin.overview.feedback.loadError": {
+    "text": "フィードバックを読み込めませんでした。",
+    "source_hash": "4011c408"
+  },
+  "web.admin.overview.stats.heading": {
+    "text": "プラットフォーム統計",
+    "source_hash": "77728e4d"
+  },
+  "web.admin.overview.stats.customers": {
+    "text": "顧客",
+    "source_hash": "aabe76f1"
+  },
+  "web.admin.overview.stats.secrets": {
+    "text": "アクティブなシークレット",
+    "source_hash": "8db4c552"
+  },
+  "web.admin.overview.stats.sessions": {
+    "text": "アクティブなセッション",
+    "source_hash": "61ad9909"
+  },
+  "web.admin.overview.stats.receipts": {
+    "text": "受信確認",
+    "source_hash": "60a627df"
+  },
+  "web.admin.overview.stats.secretsCreated": {
+    "text": "作成されたシークレット(累計)",
+    "source_hash": "bdb49794"
+  },
+  "web.admin.overview.stats.emailsSent": {
+    "text": "送信されたメール(累計)",
+    "source_hash": "1c9a7518"
+  },
+  "web.admin.overview.stats.loadError": {
+    "text": "プラットフォーム統計を読み込めませんでした。",
+    "source_hash": "5f13cf7a"
+  },
+  "web.admin.overview.trends.title": {
+    "text": "過去30日間",
+    "source_hash": "f8f03fb4"
+  },
+  "web.admin.overview.trends.signups": {
+    "text": "1日あたりのサインアップ数",
+    "source_hash": "8db399dc"
+  },
+  "web.admin.overview.trends.secretsCreated": {
+    "text": "1日あたりのシークレット作成数",
+    "source_hash": "d6852656"
+  },
+  "web.admin.overview.trends.today": {
+    "text": "今日",
+    "source_hash": "e0f4f767"
+  },
+  "web.admin.overview.trends.collectingNote": {
+    "text": "最初のデータポイントから収集しています。それ以前の日はゼロと表示されます。",
+    "source_hash": "269ee1eb"
+  },
+  "web.admin.overview.trends.sparklineAria": {
+    "text": "{label}:30日間のトレンド、今日{count}件",
+    "source_hash": "eb57a7b2"
+  },
+  "web.admin.overview.trends.loadError": {
+    "text": "トレンドを読み込めませんでした。",
+    "source_hash": "9cf97f63"
+  }
+}

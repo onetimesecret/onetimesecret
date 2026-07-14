@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se o e-mail de contato de cobrança for diferente do e-mail da sua conta {product_name}, use o e-mail de contato de cobrança da conta da nova região para manter os benefícios da sua assinatura.",
-    "source_hash": "dac1cc28"
+    "text": "Se o seu e-mail de contato de cobrança for diferente do e-mail da sua conta {product_name}, use o e-mail de contato de cobrança para a conta da nova região para manter os benefícios da sua assinatura.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Os benefícios da sua assinatura serão aplicados automaticamente a qualquer conta criada com seu endereço de e-mail de cobrança.",

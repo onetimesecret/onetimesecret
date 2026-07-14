@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Uporabite možnost Čarobna povezava za prijavo brez gesla. Ko se prijavite, lahko spremenite geslo v nastavitvah računa.",
-    "source_hash": "2a058600"
+    "text": "Zahtevate lahko povezavo za ponastavitev gesla in ustvarite novo geslo.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Račun začasno zaklenjen?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Vaša e-poštna domena ni pooblaščena za registracijo prek SSO. Obrnite se na svojega skrbnika.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Preverite svojo e-pošto",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Na vaš e-poštni naslov smo poslali povezavo za preverjanje.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Na ta naslov smo poslali povezavo za preverjanje — odprite e-poštno sporočilo in kliknite povezavo za aktivacijo računa.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Ne najdete? Preverite mapo z neželeno pošto.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Ste vnesli napačen naslov?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Začni znova",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Geslo",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Niste prejeli e-poštnega sporočila za preverjanje? Vnesite svoj e-poštni naslov za ponovno pošiljanje.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Ponovno pošlji e-pošto za preverjanje",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Če račun potrebuje preverjanje, je bilo poslano novo e-poštno sporočilo. Preverite mapo prejetih in mapo z neželeno pošto.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "E-poštnega sporočila za preverjanje ni bilo mogoče poslati. Preverite povezavo in poskusite znova.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Ponovno pošlji e-pošto",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Vaša e-pošta je bila preverjena — zdaj se lahko prijavite.",
+    "source_hash": "c8d4b5a8"
   }
 }

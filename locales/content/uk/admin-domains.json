@@ -1,0 +1,194 @@
+{
+  "web.admin.domains.retry": {
+    "text": "Повторити",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.addDomain.button": {
+    "text": "Додати домен",
+    "source_hash": "d86476ae"
+  },
+  "web.admin.domains.addDomain.title": {
+    "text": "Додати користувацький домен",
+    "source_hash": "592d3314"
+  },
+  "web.admin.domains.addDomain.forOrg": {
+    "text": "Додавання домену для {org}.",
+    "source_hash": "f8b8c1ac"
+  },
+  "web.admin.domains.addDomain.domainLabel": {
+    "text": "Домен",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.addDomain.domainPlaceholder": {
+    "text": "secrets.example.com",
+    "source_hash": "9ea4d0d6"
+  },
+  "web.admin.domains.addDomain.strategyLabel": {
+    "text": "Стратегія перевірки",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.addDomain.createButton": {
+    "text": "Створити",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.addDomain.created": {
+    "text": "{domain} створено.",
+    "source_hash": "2263ec6a"
+  },
+  "web.admin.domains.addDomain.strategy.approximated": {
+    "text": "Approximated — перевірка володіння через DNS, без проксіювання.",
+    "source_hash": "79a7245c"
+  },
+  "web.admin.domains.addDomain.strategy.passthrough": {
+    "text": "Passthrough — ви спрямовуєте DNS на проксі цього розгортання.",
+    "source_hash": "9702d758"
+  },
+  "web.admin.domains.addDomain.strategy.external": {
+    "text": "External — DNS керується поза межами цього розгортання.",
+    "source_hash": "acaede35"
+  },
+  "web.admin.domains.addDomain.strategy.caddy_on_demand": {
+    "text": "Caddy on-demand — сертифікати видаються автоматично за першим запитом.",
+    "source_hash": "deb90ae6"
+  },
+  "web.admin.domains.addDomain.strategy.caddy": {
+    "text": "Caddy — сертифікати видаються автоматично за першим запитом.",
+    "source_hash": "a0f3c2dc"
+  },
+  "web.admin.domains.addDomain.strategy.unknown": {
+    "text": "Стратегія перевірки для всього розгортання.",
+    "source_hash": "4587f9cf"
+  },
+  "web.admin.domains.attach.cta": {
+    "text": "Приєднати домен до організації",
+    "source_hash": "736d74ce"
+  },
+  "web.admin.domains.attach.recordEyebrow": {
+    "text": "Робочий запис",
+    "source_hash": "2fadf983"
+  },
+  "web.admin.domains.attach.rosterError": {
+    "text": "Не вдалося завантажити домени цієї організації.",
+    "source_hash": "d3055fed"
+  },
+  "web.admin.domains.attach.noDomains": {
+    "text": "До цієї організації ще не приєднано жодного домену.",
+    "source_hash": "e9a25fc4"
+  },
+  "web.admin.domains.attach.openExternal": {
+    "text": "Відкрити {domain} у новій вкладці",
+    "source_hash": "c5fbdeaa"
+  },
+  "web.admin.domains.dns.heading": {
+    "text": "DNS-записи для публікації",
+    "source_hash": "e4efbe2b"
+  },
+  "web.admin.domains.dns.txtStep": {
+    "text": "1. Додайте запис TXT, щоб підтвердити володіння.",
+    "source_hash": "fdcfcfb0"
+  },
+  "web.admin.domains.dns.aStep": {
+    "text": "2. Додайте запис A, що спрямовує кореневий домен (apex) на проксі.",
+    "source_hash": "aedbf197"
+  },
+  "web.admin.domains.dns.cnameStep": {
+    "text": "2. Додайте запис CNAME, що спрямовує піддомен на проксі.",
+    "source_hash": "5c626f53"
+  },
+  "web.admin.domains.dns.propagationNote": {
+    "text": "Поширення змін DNS може зайняти кілька хвилин, перш ніж підтвердження буде успішним.",
+    "source_hash": "7caf70a7"
+  },
+  "web.admin.domains.dns.toggle": {
+    "text": "Деталі DNS",
+    "source_hash": "ebf2d44e"
+  },
+  "web.admin.domains.dns.loadError": {
+    "text": "Не вдалося завантажити деталі DNS.",
+    "source_hash": "4c33e23d"
+  },
+  "web.admin.domains.list.loadError": {
+    "text": "Не вдалося завантажити домени.",
+    "source_hash": "548deff8"
+  },
+  "web.admin.domains.orgPicker.title": {
+    "text": "Виберіть організацію",
+    "source_hash": "48326f52"
+  },
+  "web.admin.domains.orgPicker.searchLabel": {
+    "text": "Організація",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.orgPicker.searchPlaceholder": {
+    "text": "Object ID, external ID або email",
+    "source_hash": "bb5d0055"
+  },
+  "web.admin.domains.orgPicker.searchHint": {
+    "text": "Пошук за objid, extid або email-адресою учасника.",
+    "source_hash": "fdef7332"
+  },
+  "web.admin.domains.orgPicker.loadError": {
+    "text": "Не вдалося виконати пошук організацій.",
+    "source_hash": "b9e45dcf"
+  },
+  "web.admin.domains.orgPicker.parseError": {
+    "text": "Не вдалося прочитати результати щодо організацій.",
+    "source_hash": "44e1b9fd"
+  },
+  "web.admin.domains.orgPicker.idle": {
+    "text": "Введіть значення вище, щоб виконати пошук.",
+    "source_hash": "0352e6e6"
+  },
+  "web.admin.domains.orgPicker.noResults": {
+    "text": "Жодна організація не відповідає «{term}».",
+    "source_hash": "761db594"
+  },
+  "web.admin.domains.orgPicker.unnamedOrg": {
+    "text": "Організація без назви",
+    "source_hash": "f218dc9d"
+  },
+  "web.admin.domains.orgPicker.domainCount": {
+    "text": "Доменів: {count}",
+    "source_hash": "cf548c8c"
+  },
+  "web.admin.domains.orgPicker.select": {
+    "text": "Вибрати",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.domains.verify.button": {
+    "text": "Підтвердити",
+    "source_hash": "eea2745e"
+  },
+  "web.admin.domains.verify.confirmTitle": {
+    "text": "Підтвердити домен?",
+    "source_hash": "07c4dc4f"
+  },
+  "web.admin.domains.verify.confirmDescription": {
+    "text": "Запустити перевірки DNS та SSL для {domain}.",
+    "source_hash": "06797824"
+  },
+  "web.admin.domains.verify.failed": {
+    "text": "Підтвердження не пройдено. Будь ласка, спробуйте ще раз.",
+    "source_hash": "3c8432b0"
+  },
+  "web.admin.domains.verify.success.verified": {
+    "text": "{domain} підтверджено.",
+    "source_hash": "802b5d1e"
+  },
+  "web.admin.domains.verify.success.resolving": {
+    "text": "{domain} визначається, але ще не підтверджено.",
+    "source_hash": "bc8aecad"
+  },
+  "web.admin.domains.verify.success.pending": {
+    "text": "{domain} очікує — DNS ще не визначається.",
+    "source_hash": "0d9f66d5"
+  },
+  "web.admin.domains.verify.success.unverified": {
+    "text": "Не вдалося підтвердити {domain}.",
+    "source_hash": "630da482"
+  },
+  "web.admin.domains.verify.success.done": {
+    "text": "Підтвердження {domain} завершено.",
+    "source_hash": "ed67e22d"
+  }
+}

@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "מוצר",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "קוד מקור",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "חיוב",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "אתה צופה בהודעה מאובטחת ששותפה אִתך באמצעות {product_name}. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו.",
-    "source_hash": "e0f1a10c"
+    "text": "אתה צופה בהודעה מאובטחת ששותפה איתך באמצעות {product_name}. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "האם אוכל לצפות בסוד זה שוב מאוחר יותר?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "בקר בדף הבית של {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "ניווט תחתון",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "אנא פנה לתמיכה לקבלת סיוע",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Colonels בלבד",
+    "source_hash": "3f1e2dbd"
   }
 }

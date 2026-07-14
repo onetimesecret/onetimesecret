@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "מופעל",
-    "source_hash": "92c1cdfd"
+    "text": "הפעל",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "מושבת",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "שדרג כדי להגדיר",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "דומיין מותאם אישית",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "שם המארח המדויק שהצוות שלך ישתמש בו, כמו {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "הקישורים לסודות שלך ימוקמו בכתובת",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "זהו כל הדומיין שלך — היכן צריכים למקם את הקישורים לסודות?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "תת-דומיין משאיר את שאר {domain} ללא שינוי.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "מומלץ",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "אין בחירה שגויה — בחר את זו שהצוות שלך יזהה.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "תת-דומיינים פופולריים",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "או השתמש בכל הדומיין שלך",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "השתמש בדומיין השורש שלי",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "פעולה זו מפנה את כל {domain} אלינו — האתר שם מפסיק להיפתר — ודורשת רשומת A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}” אינה סיומת דומיין מוכרת — בדוק אם יש שגיאת הקלדה (לדוגמה, {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "הזן שם מארח תקין — אותיות, מספרים, נקודות בודדות ומקפים (לדוגמה, {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "אנא הזן שם דומיין.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "המשך עם {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "ברירת מחדל של סביבת העבודה",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "הגדרת DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "הפנה את הדומיין שלך לשרת זה באמצעות רשומת CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "תצורת DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "הפנה את",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "לשרת זה על ידי הוספת רשומת ה-DNS הבאה אצל הספק שלך.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "צור רשומת CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "צור רשומת ALIAS או ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "דומיינים ברמת השורש (apex) אינם יכולים להשתמש ברשומת CNAME. במקום זאת, השתמש ברשומת ALIAS או ANAME של ספק ה-DNS שלך, או הפנה רשומת A לכתובת ה-IP של השרת שלך.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "דף בית",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "מה מבקרים יכולים לעשות בדף הבית של הדומיין שלך",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "דף נחיתה פרטי",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "מבקרים רואים דף נחיתה פרטי ללא טופס אינטראקטיבי",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "טופס יצירת סוד",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "מבקרים יכולים ליצור קישורים לסודות משלהם",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "טופס סודות נכנסים",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "מבקרים יכולים לשלוח סודות לנמענים שהגדרת",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "מחייב הפעלת סודות נכנסים עם נמען אחד לפחות",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "הגדר נמענים",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "דף נחיתה פרטי",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "ציבורי: מבקרים יוצרים סודות",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "ציבורי: מבקרים שולחים לך סודות",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "סודות נכנסים אינם מוכנים — מוצג דף נחיתה פרטי",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "נכנס",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "הגדרות דף הבית נשמרו",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "דף הבית של דומיין זה מציג כעת את טופס הסודות הנכנסים. השבתת סודות נכנסים או הסרת כל הנמענים תחליף את דף הבית לדף נחיתה פרטי עד שהסודות הנכנסים יהיו מוכנים שוב.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "התחברות בדומיין זה",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "ההתחברות מושבתת בכל סביבת העבודה, ולכן אינה זמינה בכל דומיין. ההגדרות שלך כאן נשמרות ונכנסות לתוקף כאשר ההתחברות לסביבת העבודה תופעל שוב.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "הרשמות בדומיין זה",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "ההרשמות מושבתות בכל סביבת העבודה, ולכן אינן זמינות בכל דומיין. ההגדרות שלך כאן נשמרות ונכנסות לתוקף כאשר ההרשמות לסביבת העבודה יופעלו שוב.",
+    "source_hash": "49faefe4"
   }
 }

@@ -1,0 +1,154 @@
+{
+  "web.admin.banner.title": {
+    "text": "Banner di trasmissione",
+    "source_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "Pubblica un annuncio a livello di sito mostrato a ogni visitatore, oppure rimuovi quello attuale.",
+    "source_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "Impossibile caricare il banner attuale.",
+    "source_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "Riprova",
+    "source_hash": "942087cc"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "Rimuovi banner",
+    "source_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "Rimuovere il banner di trasmissione?",
+    "source_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "Questo rimuove il banner attivo per ogni visitatore. Digita la parola di conferma per procedere.",
+    "source_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "Banner di trasmissione rimosso.",
+    "source_hash": "b0f52af4"
+  },
+  "web.admin.banner.current.title": {
+    "text": "Banner attuale",
+    "source_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "Nessun banner è attualmente impostato.",
+    "source_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "Stato",
+    "source_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "Attivo",
+    "source_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "Scadenza",
+    "source_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "Persistente (nessuna scadenza)",
+    "source_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "Scade tra {duration}",
+    "source_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.audience": {
+    "text": "Pubblico",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "Contenuto memorizzato",
+    "source_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "Il contenuto è HTML; il sito lo sanifica lasciando solo i link al momento della visualizzazione.",
+    "source_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "Modifica",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "Imposta un banner",
+    "source_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "Aggiorna il banner",
+    "source_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "Messaggio",
+    "source_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "Manutenzione programmata dom 02:00 UTC",
+    "source_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "L'HTML è consentito; il sito lo sanifica lasciando solo i link.",
+    "source_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "Scadenza automatica dopo (secondi)",
+    "source_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "Lascia vuoto per nessuna scadenza",
+    "source_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "Facoltativo. Il banner viene rimosso automaticamente dopo questo numero di secondi.",
+    "source_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "Pubblico",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "Quali pagine mostrano il banner. Le pagine su dominio personalizzato lo vedono solo se impostato su tutte le pagine.",
+    "source_hash": "28cc3018"
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "Tutto tranne le pagine dei destinatari",
+    "source_hash": "8575b3c0"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "Solo le pagine dell'area di lavoro",
+    "source_hash": "563e003e"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "Tutte le pagine (inclusi i domini personalizzati)",
+    "source_hash": "b9b74870"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "Pubblica banner",
+    "source_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "Aggiorna banner",
+    "source_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "Pubblicare il banner di trasmissione?",
+    "source_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "Questo banner sarà mostrato a ogni visitatore in tutto il sito finché non viene rimosso o scade.",
+    "source_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "Pubblica",
+    "source_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "Banner di trasmissione pubblicato.",
+    "source_hash": "55c06cab"
+  }
+}

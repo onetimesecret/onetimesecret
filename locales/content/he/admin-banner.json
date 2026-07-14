@@ -1,0 +1,154 @@
+{
+  "web.admin.banner.title": {
+    "text": "באנר שידור",
+    "source_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "פרסם הודעה בכל האתר המוצגת לכל מבקר, או נקה את ההודעה הנוכחית.",
+    "source_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "לא ניתן לטעון את הבאנר הנוכחי.",
+    "source_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "נסה שוב",
+    "source_hash": "942087cc"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "נקה באנר",
+    "source_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "לנקות את באנר השידור?",
+    "source_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "פעולה זו מסירה את הבאנר הפעיל עבור כל מבקר. הקלד את מילת האישור כדי להמשיך.",
+    "source_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "באנר השידור נוקה.",
+    "source_hash": "b0f52af4"
+  },
+  "web.admin.banner.current.title": {
+    "text": "באנר נוכחי",
+    "source_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "לא הוגדר באנר כרגע.",
+    "source_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "סטטוס",
+    "source_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "פעיל",
+    "source_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "תפוגה",
+    "source_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "קבוע (ללא תפוגה)",
+    "source_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "פג תוקף בעוד {duration}",
+    "source_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.audience": {
+    "text": "קהל",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "תוכן שמור",
+    "source_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "התוכן הוא HTML; האתר מסנן אותו לקישורים בלבד בעת הצגתו.",
+    "source_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "ערוך",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "הגדר באנר",
+    "source_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "עדכן את הבאנר",
+    "source_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "הודעה",
+    "source_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "תחזוקה מתוכננת יום א׳ 02:00 UTC",
+    "source_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "HTML מותר; האתר מסנן אותו לקישורים בלבד.",
+    "source_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "תפוגה אוטומטית לאחר (שניות)",
+    "source_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "השאר ריק ללא תפוגה",
+    "source_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "אופציונלי. הבאנר יוסר אוטומטית לאחר מספר שניות זה.",
+    "source_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "קהל",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "אילו דפים מציגים את הבאנר. דפי דומיין מותאם אישית רואים אותו רק כאשר מוגדר לכל הדפים.",
+    "source_hash": "28cc3018"
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "הכל למעט דפי נמענים",
+    "source_hash": "8575b3c0"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "דפי סביבת עבודה בלבד",
+    "source_hash": "563e003e"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "כל הדפים (כולל דומיינים מותאמים אישית)",
+    "source_hash": "b9b74870"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "פרסם באנר",
+    "source_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "עדכן באנר",
+    "source_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "לפרסם באנר שידור?",
+    "source_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "באנר זה יוצג לכל מבקר ברחבי האתר עד שינוקה או יפוג.",
+    "source_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "פרסם",
+    "source_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "באנר השידור פורסם.",
+    "source_hash": "55c06cab"
+  }
+}

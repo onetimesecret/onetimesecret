@@ -153,7 +153,7 @@
   },
   "web.regions.changing_regions_billing_note": {
     "text": "Als je e-mailadres voor facturatie afwijkt van het e-mailadres van je {product_name}-account, gebruik dan het e-mailadres voor facturatie voor het account in de nieuwe regio om de voordelen van je abonnement te behouden.",
-    "source_hash": "dac1cc28"
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Je abonnementsvoordelen worden automatisch toegepast op elk account dat is aangemaakt met je factuur-e-mailadres.",

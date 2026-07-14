@@ -1,0 +1,154 @@
+{
+  "web.admin.banner.title": {
+    "text": "Broadcast-Banner",
+    "source_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "Veröffentlichen Sie eine seitenweite Ankündigung, die jedem Besucher angezeigt wird, oder entfernen Sie die aktuelle.",
+    "source_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "Das aktuelle Banner konnte nicht geladen werden.",
+    "source_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "Erneut versuchen",
+    "source_hash": "942087cc"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "Banner entfernen",
+    "source_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "Broadcast-Banner entfernen?",
+    "source_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "Dadurch wird das aktive Banner für jeden Besucher entfernt. Geben Sie das Bestätigungswort ein, um fortzufahren.",
+    "source_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "Broadcast-Banner entfernt.",
+    "source_hash": "b0f52af4"
+  },
+  "web.admin.banner.current.title": {
+    "text": "Aktuelles Banner",
+    "source_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "Derzeit ist kein Banner festgelegt.",
+    "source_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "Status",
+    "source_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "Live",
+    "source_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "Ablauf",
+    "source_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "Dauerhaft (kein Ablauf)",
+    "source_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "Läuft in {duration} ab",
+    "source_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.audience": {
+    "text": "Zielgruppe",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "Gespeicherter Inhalt",
+    "source_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "Der Inhalt ist HTML; die Website bereinigt ihn bei der Anzeige auf reine Links.",
+    "source_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "Bearbeiten",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "Banner festlegen",
+    "source_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "Banner aktualisieren",
+    "source_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "Nachricht",
+    "source_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "Geplante Wartung So 02:00 UTC",
+    "source_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "HTML ist erlaubt; die Website bereinigt es auf reine Links.",
+    "source_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "Automatisch ablaufen nach (Sekunden)",
+    "source_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "Für keinen Ablauf leer lassen",
+    "source_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "Optional. Das Banner wird nach dieser Anzahl von Sekunden automatisch entfernt.",
+    "source_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "Zielgruppe",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "Welche Seiten das Banner anzeigen. Seiten benutzerdefinierter Bereiche sehen es nur, wenn „Alle Seiten“ eingestellt ist.",
+    "source_hash": "28cc3018"
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "Alles außer Empfängerseiten",
+    "source_hash": "8575b3c0"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "Nur Workspace-Seiten",
+    "source_hash": "563e003e"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "Alle Seiten (einschließlich benutzerdefinierter Bereiche)",
+    "source_hash": "b9b74870"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "Banner veröffentlichen",
+    "source_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "Banner aktualisieren",
+    "source_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "Broadcast-Banner veröffentlichen?",
+    "source_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "Dieses Banner wird jedem Besucher auf der gesamten Website angezeigt, bis es entfernt wird oder abläuft.",
+    "source_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "Veröffentlichen",
+    "source_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "Broadcast-Banner veröffentlicht.",
+    "source_hash": "55c06cab"
+  }
+}

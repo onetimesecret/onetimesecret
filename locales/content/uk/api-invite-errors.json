@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Запрошення вже %{status}",
-    "source_hash": "130c87e0"
+    "text": "Це запрошення вже оброблено",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Термін дії запрошення закінчився",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Ви вже є учасником цієї організації",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Це запрошення вже прийнято",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Це запрошення вже відхилено",
+    "source_hash": "96e0d626"
   }
 }

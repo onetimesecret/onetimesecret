@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Usa l'opzione Magic Link per accedere senza password. Una volta effettuato l'accesso, puoi cambiare la password nelle Impostazioni account.",
-    "source_hash": "2a058600"
+    "text": "Puoi richiedere un link per reimpostare la password e crearne una nuova.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Account temporaneamente bloccato?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Il tuo dominio email non è autorizzato per la registrazione tramite SSO. Contatta il tuo amministratore.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Controlla la tua email",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Abbiamo inviato un link di verifica al tuo indirizzo email.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Abbiamo inviato un link di verifica a questo indirizzo — apri l'email e clicca sul link per attivare il tuo account.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Non lo trovi? Controlla la cartella dello spam.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Hai inserito l'indirizzo sbagliato?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Ricomincia",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Password",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Non hai ricevuto l'email di verifica? Inserisci la tua email per inviarla di nuovo.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Invia di nuovo l'email di verifica",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Se un account necessita di verifica, è stata inviata una nuova email. Controlla la tua casella di posta e la cartella dello spam.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Impossibile inviare l'email di verifica. Controlla la tua connessione e riprova.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Invia di nuovo l'email",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "La tua email è stata verificata — ora puoi accedere.",
+    "source_hash": "c8d4b5a8"
   }
 }

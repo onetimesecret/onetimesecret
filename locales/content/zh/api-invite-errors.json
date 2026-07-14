@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "邀请已被%{status}",
-    "source_hash": "130c87e0"
+    "text": "此邀请已被处理",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "邀请已过期",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "您已是该组织的成员",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "此邀请已被接受",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "此邀请已被拒绝",
+    "source_hash": "96e0d626"
   }
 }

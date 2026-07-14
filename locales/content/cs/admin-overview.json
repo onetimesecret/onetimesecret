@@ -1,0 +1,94 @@
+{
+  "web.admin.overview.retry": {
+    "text": "Zkusit znovu",
+    "source_hash": "942087cc"
+  },
+  "web.admin.overview.feedback.title": {
+    "text": "Zpětná vazba uživatelů",
+    "source_hash": "cb7b24c6"
+  },
+  "web.admin.overview.feedback.total": {
+    "text": "Za posledních 30 dní: {count}",
+    "source_hash": "b6b9147c"
+  },
+  "web.admin.overview.feedback.today": {
+    "text": "Dnes",
+    "source_hash": "2b065c7c"
+  },
+  "web.admin.overview.feedback.yesterday": {
+    "text": "Včera",
+    "source_hash": "56618125"
+  },
+  "web.admin.overview.feedback.older": {
+    "text": "Starší",
+    "source_hash": "03281c88"
+  },
+  "web.admin.overview.feedback.empty": {
+    "text": "V tomto období žádná zpětná vazba",
+    "source_hash": "e09d594d"
+  },
+  "web.admin.overview.feedback.loadError": {
+    "text": "Nepodařilo se načíst zpětnou vazbu.",
+    "source_hash": "4011c408"
+  },
+  "web.admin.overview.stats.heading": {
+    "text": "Statistiky platformy",
+    "source_hash": "77728e4d"
+  },
+  "web.admin.overview.stats.customers": {
+    "text": "Zákazníci",
+    "source_hash": "aabe76f1"
+  },
+  "web.admin.overview.stats.secrets": {
+    "text": "Aktivní tajemství",
+    "source_hash": "8db4c552"
+  },
+  "web.admin.overview.stats.sessions": {
+    "text": "Aktivní relace",
+    "source_hash": "61ad9909"
+  },
+  "web.admin.overview.stats.receipts": {
+    "text": "Potvrzení",
+    "source_hash": "60a627df"
+  },
+  "web.admin.overview.stats.secretsCreated": {
+    "text": "Vytvořená tajemství (celkem)",
+    "source_hash": "bdb49794"
+  },
+  "web.admin.overview.stats.emailsSent": {
+    "text": "Odeslané e-maily (celkem)",
+    "source_hash": "1c9a7518"
+  },
+  "web.admin.overview.stats.loadError": {
+    "text": "Nepodařilo se načíst statistiky platformy.",
+    "source_hash": "5f13cf7a"
+  },
+  "web.admin.overview.trends.title": {
+    "text": "Posledních 30 dní",
+    "source_hash": "f8f03fb4"
+  },
+  "web.admin.overview.trends.signups": {
+    "text": "Registrace za den",
+    "source_hash": "8db399dc"
+  },
+  "web.admin.overview.trends.secretsCreated": {
+    "text": "Vytvořená tajemství za den",
+    "source_hash": "d6852656"
+  },
+  "web.admin.overview.trends.today": {
+    "text": "dnes",
+    "source_hash": "e0f4f767"
+  },
+  "web.admin.overview.trends.collectingNote": {
+    "text": "Sběr probíhá od prvního datového bodu — předchozí dny zobrazují nulu.",
+    "source_hash": "269ee1eb"
+  },
+  "web.admin.overview.trends.sparklineAria": {
+    "text": "{label}: 30denní trend, dnes {count}",
+    "source_hash": "eb57a7b2"
+  },
+  "web.admin.overview.trends.loadError": {
+    "text": "Nepodařilo se načíst trendy.",
+    "source_hash": "9cf97f63"
+  }
+}

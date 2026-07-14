@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "组织管理",
-    "source_hash": "2730183d"
+    "text": "工作区",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "组织设置",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "请始终确认您访问的是 {product_name} 官方网站。诈骗者有时会创建与 {product_name} 完全相同的虚假网站，以窃取您的机密内容。为避免网络钓鱼攻击，请在创建新链接前核对区域域名。",
-    "source_hash": "68ec20f8"
+    "text": "请始终确认您访问的是官方 {product_name} 网站。欺诈者有时会创建与 {product_name} 完全相同的虚假网站，以窃取您的机密内容。为避免网络钓鱼攻击，请在创建新链接前，先核对地址栏中的区域域名。",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "简单透明的定价",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "接收的内容",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "更新",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "更新中...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "查收您的邮箱",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS 设置",
+    "source_hash": "6c63df31"
   }
 }

@@ -1,0 +1,126 @@
+{
+  "web.admin.billing.title": {
+    "text": "결제 카탈로그",
+    "source_hash": "bfde7e68"
+  },
+  "web.admin.billing.description": {
+    "text": "구성된 요금제와 해당 이용 권한, 그리고 실시간 Stripe 동기화 카탈로그와의 편차를 읽기 전용으로 표시합니다.",
+    "source_hash": "05d5b332"
+  },
+  "web.admin.billing.retry": {
+    "text": "다시 시도",
+    "source_hash": "942087cc"
+  },
+  "web.admin.billing.loadError": {
+    "text": "결제 카탈로그를 불러올 수 없습니다.",
+    "source_hash": "c3110f77"
+  },
+  "web.admin.billing.localConfigWarning": {
+    "text": "Stripe 동기화 요금제 캐시가 비어 있어 실시간 요금제와 편차를 평가할 수 없습니다. 구성된 카탈로그(billing.yaml)만 표시합니다 — 개발 환경이거나 Stripe가 구성되지 않은 경우에 일반적입니다.",
+    "source_hash": "905d95f8"
+  },
+  "web.admin.billing.inSync": {
+    "text": "동기화됨",
+    "source_hash": "5701958c"
+  },
+  "web.admin.billing.driftCount": {
+    "text": "{count}개의 차이",
+    "source_hash": "166538f5"
+  },
+  "web.admin.billing.inSyncDetail": {
+    "text": "구성된 카탈로그가 실시간 요금제와 일치합니다. 편차가 감지되지 않았습니다.",
+    "source_hash": "57ab60a6"
+  },
+  "web.admin.billing.columns.planid": {
+    "text": "요금제 ID",
+    "source_hash": "1f0d4dc6"
+  },
+  "web.admin.billing.columns.name": {
+    "text": "이름",
+    "source_hash": "dcd1d522"
+  },
+  "web.admin.billing.columns.tier": {
+    "text": "등급",
+    "source_hash": "cb9e8664"
+  },
+  "web.admin.billing.columns.status": {
+    "text": "상태",
+    "source_hash": "920e413c"
+  },
+  "web.admin.billing.diff.title": {
+    "text": "요금제 차이: {planid}",
+    "source_hash": "bc86e5f7"
+  },
+  "web.admin.billing.diff.subtitle": {
+    "text": "구성된 카탈로그(billing.yaml)와 실시간 Stripe 동기화 요금제를 나란히 비교합니다.",
+    "source_hash": "d92e93ae"
+  },
+  "web.admin.billing.diff.config": {
+    "text": "구성됨 (billing.yaml)",
+    "source_hash": "6bf2ff04"
+  },
+  "web.admin.billing.diff.live": {
+    "text": "실시간 (Stripe 캐시)",
+    "source_hash": "4886945d"
+  },
+  "web.admin.billing.diff.absentConfig": {
+    "text": "이 요금제는 구성된 카탈로그에 존재하지 않습니다.",
+    "source_hash": "0b594c88"
+  },
+  "web.admin.billing.diff.absentLive": {
+    "text": "이 요금제는 실시간 Stripe 동기화 캐시에 존재하지 않습니다.",
+    "source_hash": "c53f31c3"
+  },
+  "web.admin.billing.plans.title": {
+    "text": "요금제",
+    "source_hash": "dfe8b2f0"
+  },
+  "web.admin.billing.plans.empty": {
+    "text": "카탈로그에서 요금제를 찾을 수 없습니다.",
+    "source_hash": "39db3c13"
+  },
+  "web.admin.billing.plans.viewDiff": {
+    "text": "차이 보기",
+    "source_hash": "0e5d6873"
+  },
+  "web.admin.billing.source.stripe": {
+    "text": "Stripe 캐시",
+    "source_hash": "b5577327"
+  },
+  "web.admin.billing.source.localConfig": {
+    "text": "로컬 구성",
+    "source_hash": "49de43d2"
+  },
+  "web.admin.billing.stats.configured": {
+    "text": "구성된 요금제",
+    "source_hash": "4fda4796"
+  },
+  "web.admin.billing.stats.live": {
+    "text": "실시간 요금제",
+    "source_hash": "faaa88d9"
+  },
+  "web.admin.billing.stats.source": {
+    "text": "출처",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.billing.stats.drift": {
+    "text": "편차",
+    "source_hash": "8b4c8240"
+  },
+  "web.admin.billing.status.in_sync": {
+    "text": "동기화됨",
+    "source_hash": "5701958c"
+  },
+  "web.admin.billing.status.only_config": {
+    "text": "구성에만 있음",
+    "source_hash": "15836cba"
+  },
+  "web.admin.billing.status.only_live": {
+    "text": "실시간에만 있음",
+    "source_hash": "8f4ed495"
+  },
+  "web.admin.billing.status.changed": {
+    "text": "변경됨",
+    "source_hash": "2a6141e4"
+  }
+}

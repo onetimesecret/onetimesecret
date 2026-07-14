@@ -28,8 +28,8 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Aperçu et personnalisation",
-    "source_hash": "215d3659"
+    "text": "Personnaliser et prévisualiser",
+    "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Passer à la vue du navigateur Safari",
@@ -88,8 +88,8 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Cliquez pour importer un logo. Dimensions recommandées : 128x128 pixels. Taille maximale : 1 Mo. Formats acceptés : PNG, JPG, SVG",
-    "source_hash": "a35452bf"
+    "text": "Cliquez pour gérer votre logo. Taille recommandée : 128 x 128 pixels. Taille de fichier maximale : 1 Mo. Formats pris en charge : PNG, JPG, SVG",
+    "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Téléverser un logo",
@@ -186,5 +186,225 @@
   "web.branding.keyhole_logo_icon": {
     "text": "Icône de trou de serrure représentant un partage sécurisé et privé",
     "source_hash": "c868ac60"
+  },
+  "web.branding.secondary_color": {
+    "text": "Couleur secondaire",
+    "source_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Couleur d'arrière-plan",
+    "source_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Couleur du texte",
+    "source_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Rayon de la bordure",
+    "source_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Police des titres",
+    "source_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Préréglages de thème",
+    "source_hash": "931eeb74"
+  },
+  "web.branding.logo": {
+    "text": "Logo",
+    "source_hash": "d707dc2f"
+  },
+  "web.branding.replace_logo": {
+    "text": "Remplacer",
+    "source_hash": "95e15439"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "Prévisualisez avant que vos changements soient publiés.",
+    "source_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Logo du domaine",
+    "source_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG ou SVG. Recommandé 128 x 128 px, jusqu'à 1 Mo.",
+    "source_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Enregistrer le logo",
+    "source_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Retirer le logo",
+    "source_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Choisir une image",
+    "source_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "ou glisser-déposer",
+    "source_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "Ce type de fichier n'est pas pris en charge. Veuillez choisir une image.",
+    "source_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "L'image est trop grande. La taille maximale est de {max}.",
+    "source_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "Ce logo sera retiré lorsque vous enregistrerez.",
+    "source_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "Une erreur s'est produite. Veuillez réessayer.",
+    "source_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Annuler",
+    "source_hash": "a8283ade"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Faible contraste texte/arrière-plan",
+    "source_hash": "1c676370"
+  },
+  "web.branding.path_simple": {
+    "text": "Simple",
+    "source_hash": "3fee95da"
+  },
+  "web.branding.path_match": {
+    "text": "Reproduire mon site",
+    "source_hash": "776679cf"
+  },
+  "web.branding.path_advanced": {
+    "text": "Avancé",
+    "source_hash": "9f088dbe"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "L'essentiel de votre marque.",
+    "source_hash": "7c9c0cca"
+  },
+  "web.branding.path_match_tag": {
+    "text": "Copiez les paramètres d'un site existant.",
+    "source_hash": "e4b0d1cd"
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Créez votre propre CSS Tailwind v4.",
+    "source_hash": "2405bb6d"
+  },
+  "web.branding.badge_default": {
+    "text": "Par défaut",
+    "source_hash": "21b111cb"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Bientôt disponible",
+    "source_hash": "4f7d6401"
+  },
+  "web.branding.your_brand": {
+    "text": "Votre marque",
+    "source_hash": "406265d3"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "Quelques choix rapides — nous nous occupons du reste.",
+    "source_hash": "dbc8ec33"
+  },
+  "web.branding.corners": {
+    "text": "Coins",
+    "source_hash": "1d3cc47e"
+  },
+  "web.branding.more_options": {
+    "text": "Plus d'options",
+    "source_hash": "bc79cdff"
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "Ceci est un aperçu en direct — vos changements ne seront pas visibles par les visiteurs tant que vous n'aurez pas enregistré.",
+    "source_hash": "cb4b82de"
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Indiquez-nous votre site Web et nous lirons ses couleurs et ses polices, puis comblerons l'écart en un clic.",
+    "source_hash": "42c34cc1"
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Modifiez directement les jetons {'@'}theme de Tailwind v4, ou collez votre propre feuille de style.",
+    "source_hash": "5a8473f5"
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Page du destinataire",
+    "source_hash": "de8aa19f"
+  },
+  "web.branding.preview_badge": {
+    "text": "Aperçu",
+    "source_hash": "324b134f"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Page d'accueil · activée",
+    "source_hash": "2edd85f1"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Page d'accueil · désactivée",
+    "source_hash": "15d87050"
+  },
+  "web.branding.preview_live": {
+    "text": "Aperçu en direct",
+    "source_hash": "f65ddc1f"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Partager un secret",
+    "source_hash": "5384461b"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Créer un lien secret",
+    "source_hash": "610fd42e"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Livraison sécurisée de messages seulement",
+    "source_hash": "dc24dec2"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Les visiteurs ne peuvent pas créer de secrets ici.",
+    "source_hash": "17361d81"
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Contenu de la page du destinataire",
+    "source_hash": "937733bd"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Langue et instructions de révélation affichées aux destinataires sur ce domaine.",
+    "source_hash": "04162b70"
+  },
+  "web.branding.tab_brand": {
+    "text": "Marque",
+    "source_hash": "090ed431"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Livraison",
+    "source_hash": "52bfe584"
+  },
+  "web.branding.delivery_language": {
+    "text": "Langue",
+    "source_hash": "a4fe6526"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Valeur par défaut pour les pages des destinataires et les courriels sur ce domaine. Les destinataires peuvent changer de langue sur la page.",
+    "source_hash": "bfbc5599"
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Instructions de révélation",
+    "source_hash": "7e1331f7"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Affichées sur la page du destinataire. Laissez vide pour utiliser le texte intégré dans la langue sélectionnée.",
+    "source_hash": "51b9811d"
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Avant la révélation",
+    "source_hash": "5ce82b01"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "Après la révélation",
+    "source_hash": "d5bfe7fd"
   }
 }

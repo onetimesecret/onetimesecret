@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Използвайте опцията Магическа връзка, за да влезете без парола. След като влезете, можете да промените паролата си в Настройки на акаунта.",
-    "source_hash": "2a058600"
+    "text": "Можете да заявите връзка за нулиране на паролата, за да създадете нова парола.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Акаунтът временно заключен?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Вашият имейл домейн не е оторизиран за регистрация чрез SSO. Моля, свържете се с вашия администратор.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Проверете имейла си",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Изпратихме връзка за потвърждение на вашия имейл адрес.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Изпратихме връзка за потвърждение на този адрес — отворете имейла и щракнете върху връзката, за да активирате акаунта си.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Не можете да я намерите? Проверете папката за спам.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Въведохте грешен адрес?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Започнете отначало",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Парола",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Не получихте имейла за потвърждение? Въведете имейла си, за да го изпратите отново.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Повторно изпращане на имейл за потвърждение",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Ако акаунт се нуждае от потвърждение, е изпратен нов имейл. Моля, проверете входящата си кутия и папката за спам.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Имейлът за потвърждение не можа да бъде изпратен. Моля, проверете връзката си и опитайте отново.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Повторно изпращане на имейл",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Вашият имейл е потвърден — вече можете да влезете.",
+    "source_hash": "c8d4b5a8"
   }
 }

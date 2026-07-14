@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Brug Magisk link-muligheden for at logge ind uden adgangskode. Når du er logget ind, kan du ændre din adgangskode under Kontoindstillinger.",
-    "source_hash": "2a058600"
+    "text": "Du kan anmode om et link til nulstilling af adgangskode for at oprette en ny adgangskode.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Konto midlertidigt låst?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Dit e-maildomæne er ikke godkendt til SSO-tilmelding. Kontakt din administrator.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Tjek din e-mail",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Vi har sendt et bekræftelseslink til din e-mailadresse.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Vi har sendt et bekræftelseslink til denne adresse — åbn e-mailen, og klik på linket for at aktivere din konto.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Kan du ikke finde det? Tjek din spammappe.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Indtastede du den forkerte adresse?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Start forfra",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Adgangskode",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Modtog du ikke bekræftelses-e-mailen? Indtast din e-mail for at sende den igen.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Send bekræftelses-e-mail igen",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Hvis en konto kræver bekræftelse, er der sendt en ny e-mail. Tjek din indbakke og spammappe.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Bekræftelses-e-mailen kunne ikke sendes. Tjek din forbindelse, og prøv igen.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Send e-mail igen",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Din e-mail er blevet bekræftet — du kan nu logge ind.",
+    "source_hash": "c8d4b5a8"
   }
 }

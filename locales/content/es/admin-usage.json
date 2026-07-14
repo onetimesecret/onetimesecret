@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Uso",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Exporta métricas de uso para un rango de fechas.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Fecha de inicio",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "Fecha de fin",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Obtener datos",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "No se pudieron cargar los datos de uso.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Reintentar",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "No hay datos para este rango",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Secretos por estado",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Secretos por día",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "Nuevos usuarios por día",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Descargar JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Descargar CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Fecha",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Recuento",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Secretos totales",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "Nuevos usuarios",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Promedio de secretos/día",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Promedio de usuarios/día",
+    "source_hash": "491f626d"
+  }
+}

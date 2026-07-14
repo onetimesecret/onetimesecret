@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "A sua sessão expirou. Atualize a página e tente novamente.",
-    "source_hash": "a7c3e901"
+    "text": "A tua sessão expirou. Atualiza a página e tenta novamente.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Início de sessão falhou. Por favor tenta novamente.",

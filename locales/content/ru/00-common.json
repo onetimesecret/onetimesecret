@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Организации",
-    "source_hash": "2730183d"
+    "text": "Рабочие пространства",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Настройки организации",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Всегда проверяйте, что находитесь на официальном сайте {product_name}. Мошенники иногда создают поддельные сайты, которые выглядят в точности как {product_name}, чтобы похитить ваши секреты. Чтобы избежать фишинговых атак, проверяйте региональный домен перед созданием новых ссылок.",
-    "source_hash": "68ec20f8"
+    "text": "Всегда проверяйте, что находитесь на официальном сайте {product_name}. Мошенники иногда создают поддельные сайты, которые выглядят в точности как {product_name}, чтобы похитить ваши секреты. Чтобы избежать фишинговых атак, проверяйте региональный домен в адресной строке перед созданием новых ссылок.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Простые и прозрачные тарифы",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Входящие секреты",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Обновить",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Обновление...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Проверьте электронную почту",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Настройка DNS",
+    "source_hash": "6c63df31"
   }
 }

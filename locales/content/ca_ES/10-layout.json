@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Producte",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Codi font",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Facturació",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Estàs veient un missatge segur que t'han compartit a través de {product_name}. Aquest contingut es mostra només una vegada i després s'elimina permanentment dels nostres servidors.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Puc veure aquest secret més tard?",
@@ -264,8 +264,8 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visita la pàgina d'inici de {product_name}",
-    "source_hash": "625556d2"
+    "text": "Visita la pàgina d'inici d'{product_name}",
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Navegació del peu de pàgina",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Contacta amb el servei d'assistència per obtenir ajuda",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Només colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 احتفظ بهذا الرمز آمناً! إنه يوفر وصولاً كاملاً إلى حسابك.",
-    "source_hash": "8839aa4d"
+    "text": "احتفظ بهذا الرمز آمناً. يمكن استخدامه لإنشاء الأسرار وإدارتها عبر واجهة API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "أكد بكلمة المرور الخاصة بك",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "تم تحديث البريد الإلكتروني بنجاح. يرجى التحقق من صندوق الوارد لتأكيد بريدك الإلكتروني الجديد.",
-    "source_hash": "58de2536"
+    "text": "تم إرسال بريد التحقق. يرجى التحقق من صندوق الوارد الجديد والنقر على رابط التأكيد لإتمام التغيير.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "فشل تحديث البريد الإلكتروني. يرجى المحاولة مرة أخرى.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "تعرّف على كيفية دمج {product_name} في تطبيقاتك",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "مرجع REST API",

@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "No se permiten correos electrónicos de destinatarios duplicados",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "secrets_mode no válido: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "El modo de secretos entrantes requiere el derecho incoming_secrets. Mejora tu plan.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Los secretos entrantes deben estar habilitados con al menos un destinatario antes de poder usarse como página de inicio.",
+    "source_hash": "556da6e2"
   }
 }

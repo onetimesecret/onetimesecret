@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "La invito jam estis %{status}",
-    "source_hash": "130c87e0"
+    "text": "Ĉi tiu invito jam estis prilaborita",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "La invito eksvalidiĝis",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Vi jam estas membro de ĉi tiu organizo",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Ĉi tiu invito jam estis akceptita",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Ĉi tiu invito jam estis rifuzita",
+    "source_hash": "96e0d626"
   }
 }

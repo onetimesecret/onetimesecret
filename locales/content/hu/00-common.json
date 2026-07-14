@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Szervezetek",
-    "source_hash": "2730183d"
+    "text": "Munkaterületek",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Szervezeti beállítások",
@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Mindig ellenőrizze, hogy a hivatalos {product_name} weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az {product_name}, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domain-t új linkek létrehozása előtt.",
-    "source_hash": "68ec20f8"
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Egyszerű, átlátható árazás",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Bejövő titkok",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Frissítés",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Frissítés...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Ellenőrizze az e-mailjeit",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS-beállítás",
+    "source_hash": "6c63df31"
   }
 }

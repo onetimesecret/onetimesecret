@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "セッションが期限切れになりました。ページを更新してもう一度お試しください。",
-    "source_hash": "a7c3e901"
+    "text": "セッションの有効期限が切れました。ページを更新してもう一度お試しください。",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "ログインに失敗しました。もう一度お試しください。",

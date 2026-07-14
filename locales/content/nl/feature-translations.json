@@ -64,8 +64,8 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "De volgende mensen hebben hun tijd gedoneerd om het bereik van {product_name} te helpen vergroten:",
-    "source_hash": "85a766af"
+    "text": "De volgende mensen hebben hun tijd gedoneerd om het bereik van {product_name} te vergroten:",
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Vertalingen",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Sinds 2012 biedt {product_name} een beveiligde manier om gevoelige informatie wereldwijd te delen. Met gebruikers in regio's waar Engels niet de hoofdtaal is, zijn nauwkeurige vertalingen essentieel om beveiligde communicatie voor iedereen toegankelijk te maken.",
-    "source_hash": "87a6e9af"
+    "text": "Sinds 2012 biedt {product_name} een beveiligde manier om wereldwijd gevoelige informatie te delen. Met gebruikers in regio's waar Engels niet de primaire taal is, zijn nauwkeurige vertalingen essentieel om beveiligde communicatie voor iedereen toegankelijk te maken.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Help beveiligde communicatie wereldwijd te verspreiden",

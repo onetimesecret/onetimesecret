@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Pozvánka již má stav: %{status}",
-    "source_hash": "130c87e0"
+    "text": "Tato pozvánka již byla zpracována",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Platnost pozvánky vypršela",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Již jsi členem této organizace",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Tato pozvánka již byla přijata",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Tato pozvánka již byla odmítnuta",
+    "source_hash": "96e0d626"
   }
 }

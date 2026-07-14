@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "使用情况",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "导出某个日期范围的使用指标。",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "开始日期",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "结束日期",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "获取数据",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "无法加载使用数据。",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "重试",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "此范围内无数据",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "按状态划分的内容",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "按天划分的内容",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "按天划分的新用户",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "下载 JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "下载 CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "日期",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "数量",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "内容总数",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "新用户",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "平均内容数/天",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "平均用户数/天",
+    "source_hash": "491f626d"
+  }
+}

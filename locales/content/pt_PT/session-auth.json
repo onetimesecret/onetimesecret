@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Utilize a opção Link Mágico para iniciar sessão sem palavra-passe. Após iniciar sessão, pode alterar a sua palavra-passe nas Definições da Conta.",
-    "source_hash": "2a058600"
+    "text": "Podes pedir um link de redefinição de palavra-passe para criar uma nova palavra-passe.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Conta temporariamente bloqueada?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "O teu domínio de e-mail não está autorizado para o registo via SSO. Contacta o teu administrador.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Verifica o teu e-mail",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Enviámos um link de verificação para o teu endereço de e-mail.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Enviámos um link de verificação para este endereço — abre o e-mail e clica no link para ativar a tua conta.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Não o encontras? Verifica a tua pasta de spam.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Introduziste o endereço errado?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Começar de novo",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Palavra-passe",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Não recebeste o e-mail de verificação? Introduz o teu e-mail para o reenviar.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Reenviar e-mail de verificação",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Se alguma conta precisar de verificação, foi enviado um novo e-mail. Verifica a tua caixa de entrada e a pasta de spam.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Não foi possível enviar o e-mail de verificação. Verifica a tua ligação e tenta novamente.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Reenviar e-mail",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "O teu e-mail foi verificado — já podes iniciar sessão.",
+    "source_hash": "c8d4b5a8"
   }
 }

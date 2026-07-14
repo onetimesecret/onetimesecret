@@ -140,12 +140,12 @@
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Không có tổ chức",
-    "source_hash": "12420110"
+    "text": "Không có không gian làm việc",
+    "source_hash": "c7f70723"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Tạo tổ chức để quản lý thanh toán và đăng ký",
-    "source_hash": "41e922d2"
+    "text": "Tạo một không gian làm việc để quản lý thanh toán và đăng ký của bạn",
+    "source_hash": "e0fd27a5"
   },
   "web.billing.overview.load_error": {
     "text": "Không thể tải thông tin thanh toán",
@@ -205,7 +205,7 @@
   },
   "web.billing.overview.entitlements.manage_org": {
     "text": "Quản lý tổ chức",
-    "source_hash": "be0fe4c3"
+    "source_hash": "f03a4985"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Quản lý nhóm",
@@ -220,8 +220,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Đăng nhập một lần",
-    "source_hash": "cf7cd744"
+    "text": "Đăng nhập một lần (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Hỗ trợ ưu tiên",
@@ -280,8 +280,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Đăng nhập một lần (SSO)",
-    "source_hash": "5db5c812"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   },
   "web.billing.features.priority_support": {
     "text": "Hỗ trợ ưu tiên",
@@ -577,7 +577,7 @@
   },
   "web.billing.invoices.draft": {
     "text": "Bản nháp",
-    "source_hash": "d2e16e61"
+    "source_hash": "ebf12ef4"
   },
   "web.billing.invoices.open": {
     "text": "Mở",

@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "ארגון",
-    "source_hash": "d764d425"
+    "text": "סביבת עבודה",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "ארגונים",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "ארגונים",
-    "source_hash": "2730183d"
+    "text": "סביבות עבודה",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "ניהול ארגונים",
-    "source_hash": "be0fe4c3"
+    "text": "ניהול סביבות עבודה",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "ארגון חדש",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "אין עדיין ארגונים",
-    "source_hash": "5b7a7cbd"
+    "text": "אין עדיין סביבות עבודה",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "ארגונים מספקים חיוב וניהול מאוחדים. התחל על ידי יצירת הארגון הראשון שלך.",
-    "source_hash": "deab4304"
+    "text": "סביבות עבודה מספקות חיובים וניהול מאוחדים. התחל על ידי יצירת סביבת העבודה הראשונה שלך.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "לא סופק תיאור",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "יצירת ארגון ראשון",
-    "source_hash": "27bae486"
+    "text": "צור סביבת עבודה ראשונה",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "יצירת ארגון חדש",
-    "source_hash": "67cd5950"
+    "text": "צור סביבת עבודה חדשה",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "צור",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "יצירת הארגון נכשלה",
-    "source_hash": "f2204373"
+    "text": "יצירת סביבת העבודה נכשלה",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "שם הארגון",
-    "source_hash": "4cbd9073"
+    "text": "שם סביבת העבודה",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "לדוגמה Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "בחר ארגון",
-    "source_hash": "48326f52"
+    "text": "בחר סביבת עבודה",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "החלפת ארגון לא זמינה בדף זה",
-    "source_hash": "da0cf810"
+    "text": "החלפת סביבת עבודה אינה זמינה בדף זה",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "הארגון לא נמצא",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "צוות",
-    "source_hash": "5985039f"
+    "text": "חברים",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "חיוב",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "חבר",
-    "source_hash": "7c968fb7"
+    "text": "חבר צוות",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "מנהל",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "הזמנות לחברי צוות דורשות תוכנית עם ניהול צוותים. שדרג כדי להוסיף משתפי פעולה לארגון שלך.",
-    "source_hash": "cf10d623"
+    "text": "הזמנת חברים מחייבת תוכנית בתשלום. שדרג כדי להוסיף משתפי פעולה לארגון שלך.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "מחובר עם חשבון אחר",
-    "source_hash": "4a2f91c3"
+    "text": "חשבון אחר מחובר",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "הזמנה זו מיועדת ל-{invitedEmail}. אתה מחובר כרגע כ-{currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "המשך בתור {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "נותרו {days} ימים",
@@ -1026,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "צור סביבת עבודה",
+    "source_hash": "c63c14cf"
   }
 }

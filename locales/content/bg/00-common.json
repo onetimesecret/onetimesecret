@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Организации",
-    "source_hash": "2730183d"
+    "text": "Работни области",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Настройки на организацията",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Винаги проверявайте дали се намирате на официалния уебсайт на {product_name}. Измамници понякога създават фалшиви уебсайтове, които изглеждат точно като {product_name}, за да откраднат вашите тайни. За да избегнете фишинг атаки, проверявайте регионалния домейн, преди да създавате нови връзки.",
-    "source_hash": "68ec20f8"
+    "text": "Винаги проверявайте дали се намирате на официалния уебсайт на {product_name}. Измамници понякога създават фалшиви уебсайтове, които изглеждат точно като {product_name}, за да откраднат вашите тайни. За да избегнете фишинг атаки, проверявайте домейна на региона в адресната лента, преди да създавате нови връзки.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Прости и прозрачни цени",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Входящи тайни",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Актуализиране",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Актуализиране...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Проверете имейла си",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Настройка на DNS",
+    "source_hash": "6c63df31"
   }
 }

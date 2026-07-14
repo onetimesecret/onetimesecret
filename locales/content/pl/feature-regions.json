@@ -153,7 +153,7 @@
   },
   "web.regions.changing_regions_billing_note": {
     "text": "Jeśli Twój adres e-mail do rozliczeń różni się od adresu e-mail konta {product_name}, użyj adresu e-mail do rozliczeń dla nowego konta w regionie, aby zachować korzyści z subskrypcji.",
-    "source_hash": "dac1cc28"
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Korzyści z Twojej subskrypcji zostaną automatycznie zastosowane do każdego konta utworzonego z Twoim adresem e-mail do rozliczeń.",

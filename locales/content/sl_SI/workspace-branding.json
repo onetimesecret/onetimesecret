@@ -28,8 +28,8 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Predogled in prilagoditev",
-    "source_hash": "215d3659"
+    "text": "Prilagodi in predoglej",
+    "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Preklopi na pogled brskalnika Safari",
@@ -88,8 +88,8 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Kliknite za nalaganje logotipa. Priporočena velikost: 128x128 slikovnih točk. Največja velikost datoteke: 1MB. Podprti formati: PNG, JPG, SVG",
-    "source_hash": "a35452bf"
+    "text": "Kliknite za upravljanje logotipa. Priporočena velikost: 128x128 slikovnih pik. Največja velikost datoteke: 1 MB. Podprte oblike: PNG, JPG, SVG",
+    "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Naloži logotip",
@@ -186,5 +186,225 @@
   "web.branding.keyhole_logo_icon": {
     "text": "Ikona ključavnice, ki predstavlja varno, zasebno deljenje",
     "source_hash": "c868ac60"
+  },
+  "web.branding.secondary_color": {
+    "text": "Sekundarna barva",
+    "source_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Barva ozadja",
+    "source_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Barva besedila",
+    "source_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Zaokroženost robov",
+    "source_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Pisava naslova",
+    "source_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Prednastavitve teme",
+    "source_hash": "931eeb74"
+  },
+  "web.branding.logo": {
+    "text": "Logotip",
+    "source_hash": "d707dc2f"
+  },
+  "web.branding.replace_logo": {
+    "text": "Zamenjaj",
+    "source_hash": "95e15439"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "Predoglejte si, preden vaše spremembe začnejo veljati.",
+    "source_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Logotip domene",
+    "source_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG ali SVG. Priporočeno 128x128 slikovnih pik, do 1 MB.",
+    "source_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Shrani logotip",
+    "source_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Odstrani logotip",
+    "source_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Izberite sliko",
+    "source_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "ali povlecite in spustite",
+    "source_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "Ta vrsta datoteke ni podprta. Izberite sliko.",
+    "source_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "Slika je prevelika. Največja velikost je {max}.",
+    "source_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "Ta logotip bo odstranjen ob shranjevanju.",
+    "source_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "Nekaj je šlo narobe. Poskusite znova.",
+    "source_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Razveljavi",
+    "source_hash": "a8283ade"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Nizek kontrast besedila/ozadja",
+    "source_hash": "1c676370"
+  },
+  "web.branding.path_simple": {
+    "text": "Preprosto",
+    "source_hash": "3fee95da"
+  },
+  "web.branding.path_match": {
+    "text": "Ujemaj se z mojim spletnim mestom",
+    "source_hash": "776679cf"
+  },
+  "web.branding.path_advanced": {
+    "text": "Napredno",
+    "source_hash": "9f088dbe"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Bistvo vaše znamke.",
+    "source_hash": "7c9c0cca"
+  },
+  "web.branding.path_match_tag": {
+    "text": "Kopirajte nastavitve z obstoječega spletnega mesta.",
+    "source_hash": "e4b0d1cd"
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Ustvarite svoj lasten CSS Tailwind v4.",
+    "source_hash": "2405bb6d"
+  },
+  "web.branding.badge_default": {
+    "text": "Privzeto",
+    "source_hash": "21b111cb"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Kmalu",
+    "source_hash": "4f7d6401"
+  },
+  "web.branding.your_brand": {
+    "text": "Vaša znamka",
+    "source_hash": "406265d3"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "Nekaj hitrih izbir — za ostalo poskrbimo mi.",
+    "source_hash": "dbc8ec33"
+  },
+  "web.branding.corners": {
+    "text": "Vogali",
+    "source_hash": "1d3cc47e"
+  },
+  "web.branding.more_options": {
+    "text": "Več možnosti",
+    "source_hash": "bc79cdff"
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "To je živi predogled — vaše spremembe obiskovalcem ne bodo vidne, dokler ne shranite.",
+    "source_hash": "cb4b82de"
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Usmerite nas na svoje spletno mesto in prebrali bomo njegove barve in pisave, nato pa razliko odpravili z enim klikom.",
+    "source_hash": "42c34cc1"
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Uredite žetone {'@'}theme za Tailwind v4 neposredno ali prilepite svojo slogovno datoteko.",
+    "source_hash": "5a8473f5"
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Stran prejemnika",
+    "source_hash": "de8aa19f"
+  },
+  "web.branding.preview_badge": {
+    "text": "Predogled",
+    "source_hash": "324b134f"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Domača stran · omogočena",
+    "source_hash": "2edd85f1"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Domača stran · onemogočena",
+    "source_hash": "15d87050"
+  },
+  "web.branding.preview_live": {
+    "text": "Živi predogled",
+    "source_hash": "f65ddc1f"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Deli skrivnost",
+    "source_hash": "5384461b"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Ustvari povezavo do skrivnosti",
+    "source_hash": "610fd42e"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Samo varna dostava sporočil",
+    "source_hash": "dc24dec2"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Obiskovalci tukaj ne morejo ustvarjati skrivnosti.",
+    "source_hash": "17361d81"
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Vsebina strani prejemnika",
+    "source_hash": "937733bd"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Jezik in navodila za razkritje, prikazana prejemnikom na tej domeni.",
+    "source_hash": "04162b70"
+  },
+  "web.branding.tab_brand": {
+    "text": "Znamka",
+    "source_hash": "090ed431"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Dostava",
+    "source_hash": "52bfe584"
+  },
+  "web.branding.delivery_language": {
+    "text": "Jezik",
+    "source_hash": "a4fe6526"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Privzeto za strani prejemnikov in e-poštna sporočila na tej domeni. Prejemniki lahko jezik zamenjajo na strani.",
+    "source_hash": "bfbc5599"
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Navodila za razkritje",
+    "source_hash": "7e1331f7"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Prikazano na strani prejemnika. Pustite prazno za uporabo vgrajenega besedila v izbranem jeziku.",
+    "source_hash": "51b9811d"
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Pred razkritjem",
+    "source_hash": "5ce82b01"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "Po razkritju",
+    "source_hash": "d5bfe7fd"
   }
 }

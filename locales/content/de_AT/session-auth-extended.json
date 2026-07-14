@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Ihre Sitzung ist abgelaufen. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",

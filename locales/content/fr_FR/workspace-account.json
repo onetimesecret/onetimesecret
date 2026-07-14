@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Conservez ce jeton en lieu sûr ! Il donne un accès complet à votre compte.",
-    "source_hash": "8839aa4d"
+    "text": "Conservez ce jeton en lieu sûr. Il peut être utilisé pour créer et gérer des secrets via l'API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Confirmez avec votre mot de passe",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail mis à jour avec succès. Veuillez vérifier votre boîte de réception pour confirmer votre nouvelle adresse e-mail.",
-    "source_hash": "58de2536"
+    "text": "E-mail de vérification envoyé. Veuillez vérifier votre nouvelle boîte de réception et cliquer sur le lien de confirmation pour finaliser la modification.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Échec de la mise à jour de l'e-mail. Veuillez réessayer.",
@@ -476,8 +476,8 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Apprenez à intégrer {product_name} dans vos applications",
-    "source_hash": "6e8f910f"
+    "text": "Découvrez comment intégrer {product_name} à vos applications",
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Référence de l'API REST",

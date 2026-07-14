@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Δεν επιτρέπονται διπλότυπες διευθύνσεις email παραληπτών",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "Μη έγκυρο secrets_mode: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "Η λειτουργία εισερχόμενων μυστικών απαιτεί το δικαίωμα incoming_secrets. Παρακαλούμε αναβαθμίστε το πρόγραμμά σας.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Τα εισερχόμενα μυστικά πρέπει να ενεργοποιηθούν με τουλάχιστον έναν παραλήπτη προτού μπορέσουν να χρησιμοποιηθούν ως αρχική σελίδα.",
+    "source_hash": "556da6e2"
   }
 }

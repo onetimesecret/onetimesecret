@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organização",
-    "source_hash": "d764d425"
+    "text": "Workspace",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organizações",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organizações",
-    "source_hash": "2730183d"
+    "text": "Workspaces",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Gerenciar Organizações",
-    "source_hash": "be0fe4c3"
+    "text": "Gerenciar Workspaces",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Nova Organização",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Nenhuma organização ainda",
-    "source_hash": "5b7a7cbd"
+    "text": "Nenhum Workspace ainda",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizações fornecem cobrança unificada e administração. Comece criando sua primeira organização.",
-    "source_hash": "deab4304"
+    "text": "Os Workspaces oferecem cobrança e administração unificadas. Comece criando seu primeiro Workspace.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Nenhuma descrição fornecida",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Criar Primeira Organização",
-    "source_hash": "27bae486"
+    "text": "Criar primeiro Workspace",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Criar uma nova organização",
-    "source_hash": "67cd5950"
+    "text": "Criar um novo Workspace",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Criar",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Falha ao criar organização",
-    "source_hash": "f2204373"
+    "text": "Falha ao criar o Workspace",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Nome da Organização",
-    "source_hash": "4cbd9073"
+    "text": "Nome do Workspace",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "ex. Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Selecione uma organização",
-    "source_hash": "48326f52"
+    "text": "Selecione um Workspace",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Alternância de organização não disponível nesta página",
-    "source_hash": "da0cf810"
+    "text": "A troca de Workspace não está disponível nesta página",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organização não encontrada",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Equipe",
-    "source_hash": "5985039f"
+    "text": "Membros",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Cobrança",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro",
-    "source_hash": "7c968fb7"
+    "text": "membro da equipe",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Admin",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Convites para membros da equipe requerem um plano com gerenciamento de equipes. Faça upgrade para adicionar colaboradores à sua organização.",
-    "source_hash": "cf10d623"
+    "text": "Convites de membros exigem um plano pago. Faça upgrade para adicionar colaboradores à sua organização.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Conectado com outra conta",
-    "source_hash": "4a2f91c3"
+    "text": "Conta diferente conectada",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Este convite é para {invitedEmail}. Você está conectado como {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Continuar como {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d restantes",
@@ -1026,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Criar Workspace",
+    "source_hash": "c63c14cf"
   }
 }

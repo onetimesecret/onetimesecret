@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Whakamahia te kōwhiringa Hononga Karakia hei takiuru me te kore kupuhipa. Kia takiuru ana, ka taea e koe te huri i tō kupuhipa i ngā Tautuhinga Pūkete.",
-    "source_hash": "2a058600"
+    "text": "Ka taea e koe te tono i tētahi hononga tautuhi anō kupuhipa hei waihanga kupuhipa hou.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Kua rakaina te pūkete mō te wā poto?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Kāore tō rohe īmēra i whakaaetia mō te rēhitatanga SSO. Tēnā whakapā atu ki tō kaiwhakahaere.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Tirohia tō īmēra",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Kua tukua e mātou he hononga manatoko ki tō wāhitau īmēra.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Kua tukua e mātou he hononga manatoko ki tēnei wāhitau — whakatuwherahia te īmēra, ka pāwhiri i te hononga hei whakahohe i tō pūkete.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Kāore e kitea? Tirohia tō kōpaki tāwaru.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "I whakauru koe i te wāhitau hē?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Tīmata anō",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Kupuhipa",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Kāore i tae te īmēra manatoko? Whakauruhia tō īmēra kia tukua anō.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Tuku Anō i te Īmēra Manatoko",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Mēnā me manatoko tētahi pūkete, kua tukua he īmēra hou. Tēnā, tirohia tō pouaka tae mai me tō kōpaki tāwaru.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Kāore i taea te tuku i te īmēra manatoko. Tēnā, tirohia tō hononga ka ngana anō.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Tuku anō īmēra",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Kua manatokona tō īmēra — ka taea e koe te takiuru ināianei.",
+    "source_hash": "c8d4b5a8"
   }
 }

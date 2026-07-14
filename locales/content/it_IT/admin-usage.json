@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Utilizzo",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Esporta le metriche di utilizzo per un intervallo di date.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Data di inizio",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "Data di fine",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Recupera dati",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "Impossibile caricare i dati di utilizzo.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Riprova",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "Nessun dato per questo intervallo",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Segreti per stato",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Segreti per giorno",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "Nuovi utenti per giorno",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Scarica JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Scarica CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Data",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Conteggio",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Segreti totali",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "Nuovi utenti",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Media segreti/giorno",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Media utenti/giorno",
+    "source_hash": "491f626d"
+  }
+}

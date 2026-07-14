@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organizzazioni",
-    "source_hash": "2730183d"
+    "text": "Aree di lavoro",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Impostazioni organizzazione",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre di trovarti sul sito ufficiale di {product_name}. A volte i truffatori creano siti web falsi identici a {product_name} per rubare i tuoi segreti. Per evitare gli attacchi di phishing, controlla il dominio della regione prima di creare nuovi link.",
-    "source_hash": "68ec20f8"
+    "text": "Verifica sempre di essere sul sito web ufficiale di {product_name}. I truffatori a volte creano siti web falsi che sembrano identici a {product_name} per rubare i tuoi segreti. Per evitare attacchi di phishing, verifica il dominio della regione nella barra degli indirizzi prima di creare nuovi link.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Prezzi semplici e trasparenti",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Segreti in arrivo",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Aggiorna",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Aggiornamento in corso...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Controlla la tua email",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Configurazione DNS",
+    "source_hash": "6c63df31"
   }
 }

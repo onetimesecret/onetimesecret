@@ -1,0 +1,154 @@
+{
+  "web.admin.banner.title": {
+    "text": "Pānui Pāpāho",
+    "source_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "Whakaputaina he pānui puta noa i te pae ka whakaaturia ki ia manuhiri, mukua rānei te mea o nāianei.",
+    "source_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "Kāore i taea te uta i te pānui o nāianei.",
+    "source_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "Ngana anō",
+    "source_hash": "942087cc"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "Muku pānui",
+    "source_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "Muku i te pānui pāpāho?",
+    "source_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "Ka tangohia tēnei i te pānui ora mō ia manuhiri. Patohia te kupu whakaū kia haere tonu.",
+    "source_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "Kua mukua te pānui pāpāho.",
+    "source_hash": "b0f52af4"
+  },
+  "web.admin.banner.current.title": {
+    "text": "Pānui o nāianei",
+    "source_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "Kāore he pānui kua tautuhia i tēnei wā.",
+    "source_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "Tūnga",
+    "source_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "Ora",
+    "source_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "Paunga",
+    "source_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "Pūmau (kāore he paunga)",
+    "source_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "Ka pau i roto i {duration}",
+    "source_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.audience": {
+    "text": "Hunga Mātaki",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "Ihirangi Penapena",
+    "source_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "He HTML te ihirangi; ka whakamā te pae ki ngā hononga anake i te wā e whakaaturia ana.",
+    "source_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "Whakatika",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "Tautuhi pānui",
+    "source_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "Whakahou i te pānui",
+    "source_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "Karere",
+    "source_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "Whakapainga whakaritea Rātapu 02:00 UTC",
+    "source_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "Ka whakaaetia te HTML; ka whakamā te pae ki ngā hononga anake.",
+    "source_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "Pau aunoa i muri (hēkona)",
+    "source_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "Waiho wātea kia kore ai he paunga",
+    "source_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "Kōwhiringa. Ka tangohia aunoatia te pānui i muri i tēnei maha o ngā hēkona.",
+    "source_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "Hunga Mātaki",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "Ko ēhea whārangi e whakaatu ana i te pānui. Ka kite noa ngā whārangi rohe-ritenga i te wā ka tautuhia ki ngā whārangi katoa.",
+    "source_hash": "28cc3018"
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "Ngā mea katoa engari ngā whārangi kaiwhiwhi",
+    "source_hash": "8575b3c0"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "Ngā whārangi Wāhi Mahi anake",
+    "source_hash": "563e003e"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "Ngā whārangi katoa (tae atu ki ngā rohe ritenga)",
+    "source_hash": "b9b74870"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "Whakaputa pānui",
+    "source_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "Whakahou pānui",
+    "source_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "Whakaputa i te pānui pāpāho?",
+    "source_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "Ka whakaaturia tēnei pānui ki ia manuhiri puta noa i te pae kia mukua, kia pau rānei.",
+    "source_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "Whakaputa",
+    "source_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "Kua whakaputaina te pānui pāpāho.",
+    "source_hash": "55c06cab"
+  }
+}
