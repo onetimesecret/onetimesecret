@@ -67,66 +67,119 @@ module Onetime
     $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
   end
 
+  # Name of the tracked default brand pack. Brand-pack resolution ALWAYS lands
+  # on a pack (v2, #3774): an unset BRAND_PACK resolves to this one, which holds
+  # the neutral asset set + a (commented, value-free) brand.yaml under
+  # public/branding/default/. #3774
+  DEFAULT_BRAND_PACK = 'default'
+
   # Neutral bundled brand-asset directory (public/web), resolved against the app
-  # root rather than CWD. Centralizes the location that was previously written as
-  # a CWD-relative 'public/web' literal; stays byte-identical when puma's working
-  # dir == HOME. For NEW code only — existing fallbacks keep their literal (see
-  # brand_asset_path below). #3739
+  # root rather than CWD. Retained as a last-ditch fallback for brand_asset_path
+  # (e.g. a legacy public/web runtime mount); the canonical neutral assets now
+  # live in the default brand pack (public/branding/default). #3739 / #3774
   def self.public_web_dir
     File.join(HOME, 'public', 'web')
   end
 
-  # Resolved absolute brand-asset overlay directory, or nil when no overlay is
-  # configured/present. Precedence (per #3739 design):
-  #   1. site.brand_assets_dir — an explicit path (e.g. a runtime mount). When
-  #      set & non-empty it WINS: absolute path used as-is, relative resolved
-  #      against HOME (not CWD — puma's working dir is not guaranteed). Returns
-  #      the dir only if it exists, else nil (does not fall through to a pack).
-  #   2. site.brand_pack — a pack NAME under public/branding/<name>.
-  #   3. nil.
-  def self.brand_overlay_dir
-    explicit = OT.conf.dig('site', 'brand_assets_dir')
-    unless explicit.to_s.strip.empty?
-      dir = File.absolute_path?(explicit) ? explicit : File.join(HOME, explicit)
+  # The two search roots a BRAND_PACK name is resolved against, in precedence
+  # order (first existing wins, #3774):
+  #   1. etc/branding/  — operator space. Nothing is tracked here in the repo;
+  #      it arrives at runtime (quadlet per-entry mounts of /etc/onetimesecret/,
+  #      systemd confext, a Docker/K8s volume). Checked first so an operator pack
+  #      shadows a vendor pack of the same name.
+  #   2. public/branding/  — vendor space. Ships the tracked `default` pack and
+  #      any generated packs baked into the image/repo.
+  # Both are resolved against HOME (not CWD — puma's working dir is not
+  # guaranteed). The `default` pack deliberately lives in the VENDOR root: a
+  # quadlet mount of a host branding/ dir lands wholesale over etc/branding, so a
+  # tracked etc/branding/default would be shadowed exactly when packs are in use.
+  def self.brand_pack_roots
+    @brand_pack_roots ||= [
+      File.join(HOME, 'etc', 'branding'),
+      File.join(HOME, 'public', 'branding'),
+    ].freeze
+  end
+
+  # Resolve a brand-pack NAME to its absolute directory across the two search
+  # roots (first existing wins), or nil when the name is unsafe or no root holds
+  # it. Pure — takes a name, reads no config — so it is shared by the runtime
+  # resolver (brand_overlay_dir) and the boot-time manifest loader
+  # (Config#apply_brand_manifest). #3774
+  def self.brand_pack_dir(name)
+    name = name.to_s.strip
+    return nil if name.empty?
+
+    # SECURITY: a pack is a NAME, not a path. It is joined directly into a
+    # filesystem path, so reject path separators and '..' to prevent traversal
+    # outside the search roots. #3739
+    return nil if name.match?(%r{[/\\]|\.\.})
+
+    brand_pack_roots.each do |root|
+      dir = File.join(root, name)
       return dir if Dir.exist?(dir)
-
-      # Configured but absent (e.g. a volume not yet mounted). Warn ONCE per
-      # distinct path — this resolver runs per favicon/manifest request, not just
-      # at boot — rather than silently serving neutral defaults. Does NOT fall
-      # through to a pack. #3739
-      if @warned_missing_brand_assets_dir != dir
-        OT.le "[brand_overlay_dir] site.brand_assets_dir=#{dir.inspect} configured but missing; serving neutral defaults"
-        @warned_missing_brand_assets_dir = dir
-      end
-      return nil
     end
-
-    pack = OT.conf.dig('site', 'brand_pack')
-    unless pack.to_s.strip.empty?
-      # SECURITY: brand_pack is a NAME, not a path. It is joined directly into a
-      # filesystem path, so reject path separators and '..' to prevent traversal
-      # outside public/branding/. #3739
-      return nil if pack.match?(%r{[/\\]|\.\.})
-
-      dir = File.join(HOME, 'public', 'branding', pack)
-      return dir if Dir.exist?(dir)
-    end
-
     nil
   end
 
-  # Overlay-first single-file resolver: returns the overlay copy of `name` when
-  # an overlay dir is configured and the file exists there, otherwise the neutral
-  # fallback. #3739
-  def self.brand_asset_path(name)
-    dir = brand_overlay_dir
-    if dir
-      overlay = File.join(dir, name)
-      return overlay if File.exist?(overlay)
+  # Resolve the active brand-pack directory from explicit config values (pure —
+  # does not read OT.conf, so it works at boot before OT.conf is installed).
+  # Resolution ALWAYS lands on a pack (#3774). Precedence:
+  #   1. brand_assets_dir — an explicit path (e.g. a runtime mount). When set &
+  #      non-empty it WINS: absolute used as-is, relative resolved against HOME.
+  #      Missing (e.g. a volume not yet mounted) → warn once, fall back to the
+  #      default pack so the install still serves neutral assets.
+  #   2. brand_pack — a pack NAME resolved across brand_pack_roots; an unset name
+  #      means DEFAULT_BRAND_PACK. A set-but-not-found name warns (listing the
+  #      searched roots) and falls back to the default pack.
+  #   3. the default pack. nil only if even that is absent (a broken checkout).
+  def self.resolve_brand_pack_dir(brand_assets_dir: nil, brand_pack: nil)
+    explicit = brand_assets_dir.to_s.strip
+    unless explicit.empty?
+      dir = File.absolute_path?(explicit) ? explicit : File.join(HOME, explicit)
+      return dir if Dir.exist?(dir)
+
+      if @warned_missing_brand_assets_dir != dir
+        OT.le "[brand_overlay_dir] brand_assets_dir=#{dir.inspect} configured but missing; falling back to the #{DEFAULT_BRAND_PACK.inspect} brand pack"
+        @warned_missing_brand_assets_dir = dir
+      end
+      return brand_pack_dir(DEFAULT_BRAND_PACK)
     end
 
-    # Byte-identical fallback: preserve this EXACT literal so no-pack responses
-    # stay identical to today. Do NOT swap this to public_web_dir. #3739
+    name = brand_pack.to_s.strip
+    name = DEFAULT_BRAND_PACK if name.empty?
+    dir  = brand_pack_dir(name)
+    return dir if dir
+
+    if name != DEFAULT_BRAND_PACK && @warned_missing_brand_pack != name
+      searched                   = brand_pack_roots.map { |r| File.join(r, name) }
+      OT.le "[brand_overlay_dir] brand_pack=#{name.inspect} not found (searched #{searched.inspect}); falling back to the #{DEFAULT_BRAND_PACK.inspect} brand pack"
+      @warned_missing_brand_pack = name
+    end
+    brand_pack_dir(DEFAULT_BRAND_PACK)
+  end
+
+  # Runtime-resolved absolute brand-pack directory, read from OT.conf. Always a
+  # real directory (the default pack when nothing is selected); nil only if the
+  # default pack itself is missing. #3774
+  def self.brand_overlay_dir
+    resolve_brand_pack_dir(
+      brand_assets_dir: OT.conf.dig('site', 'brand_assets_dir'),
+      brand_pack: OT.conf.dig('site', 'brand_pack'),
+    )
+  end
+
+  # Overlay-first single-file resolver for the route-served brand assets
+  # (favicon.ico, site.webmanifest). Tries the resolved pack (a selected pack or
+  # the default), then the default pack (in case a selected pack is partial),
+  # then the historical public/web location as a last-ditch safety net for a
+  # legacy runtime mount. #3774 collapse of the pre-#3739 public/web literal.
+  def self.brand_asset_path(name)
+    default_dir = brand_pack_dir(DEFAULT_BRAND_PACK)
+    [brand_overlay_dir, default_dir].compact.uniq.each do |dir|
+      candidate = File.join(dir, name)
+      return candidate if File.exist?(candidate)
+    end
+
     File.join(OT.conf.dig('site', 'public_dir') || 'public/web', name)
   end
 

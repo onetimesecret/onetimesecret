@@ -72,15 +72,22 @@ module Onetime
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
             require 'rack/static'
 
-            # Brand-pack overlay layer (#3739). Mounted BEFORE the base layer so
-            # it is outermost in Rack::Builder and matches first. Only the pack
-            # files that actually EXIST in the overlay dir are listed:
-            # Rack::Static matches by URL prefix, not file existence, so a listed
-            # URL with a missing file would 404 instead of falling through to the
-            # base public/web layer. Existence is resolved once at boot — changing
-            # packs (or adding overlay files) needs a restart.
+            # Brand-pack resolution ALWAYS lands on a pack (#3774). The base
+            # brand layer for BRAND_PACK_URLS now serves from the resolved DEFAULT
+            # pack (public/branding/default) instead of loose public/web files.
+            base_dir    = Onetime.brand_pack_dir(Onetime::DEFAULT_BRAND_PACK)
             overlay_dir = Onetime.brand_overlay_dir
-            if overlay_dir
+
+            # Selected-pack overlay layer (#3739). Mounted BEFORE the base layer
+            # so it is outermost in Rack::Builder and matches first. Only present
+            # when an operator SELECTED a pack distinct from the default — a
+            # partial selected pack then falls through to the default base for the
+            # files it omits. Only files that actually EXIST in the overlay dir
+            # are listed: Rack::Static matches by URL prefix, not file existence,
+            # so a listed URL with a missing file would 404 instead of falling
+            # through. Existence is resolved once at boot — changing packs (or
+            # adding overlay files) needs a restart.
+            if overlay_dir && base_dir && overlay_dir != base_dir
               overlay_urls = BRAND_PACK_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
               unless overlay_urls.empty?
                 Onetime.ld "[StaticFiles] Brand overlay active: #{overlay_dir} (#{overlay_urls.size} file(s))"
@@ -88,15 +95,18 @@ module Onetime
               end
             end
 
-            use Rack::Static,
-              urls: ['/dist', '/img', '/v3',
-                     # Favicon + mobile/social variety pack at the document root.
-                     # /favicon.ico and /site.webmanifest are intentionally
-                     # omitted: they are served by Core::Controllers::Page routes
-                     # so per-custom-domain icons, brand.favicon_url redirects,
-                     # and brand-aware manifest fields keep working.
-                     *BRAND_PACK_URLS],
-              root: 'public/web'
+            # Base brand layer: the resolved default pack (#3774). Defensive
+            # fall-back to the historical public/web location if the default pack
+            # is somehow absent (a broken checkout) so brand URLs never 404 hard.
+            # /favicon.ico and /site.webmanifest are intentionally NOT listed:
+            # they are served by Core::Controllers::Page routes so per-custom-
+            # domain icons, brand.favicon_url redirects, and brand-aware manifest
+            # fields keep working.
+            Onetime.ld "[StaticFiles] Base brand layer: #{base_dir || 'public/web (fallback)'}"
+            use Rack::Static, urls: BRAND_PACK_URLS, root: base_dir || 'public/web'
+
+            # App/build assets — never overlaid by a brand pack.
+            use Rack::Static, urls: ['/dist', '/img', '/v3'], root: 'public/web'
           end
 
           # All non-static requests pass through to the original application

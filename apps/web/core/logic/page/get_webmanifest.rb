@@ -10,10 +10,10 @@ module Core
     module Page
       # GetWebmanifest - Serve a brand-aware PWA web manifest.
       #
-      # Reads the on-disk neutral manifest (public/web/site.webmanifest, which is
-      # itself overridable via a brand pack overlay (BRAND_PACK /
-      # BRAND_ASSETS_DIR) or a runtime file mount) and overlays the site-level
-      # brand fields from OT.conf:
+      # Reads the on-disk neutral manifest from the resolved brand pack
+      # (Onetime.brand_asset_path('site.webmanifest') — the default pack
+      # public/branding/default, or a selected BRAND_PACK / BRAND_ASSETS_DIR pack)
+      # and overlays the site-level brand fields from OT.conf:
       #
       #   - name / short_name <- brand.product_name (when set)
       #   - theme_color       <- brand.primary_color (when set)

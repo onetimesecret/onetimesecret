@@ -1,0 +1,44 @@
+# public/branding/default/brand.yaml
+#
+# Brand pack manifest (v2, #3774) — identity scalars for the DEFAULT pack.
+#
+# A brand pack is the single unit of branding: the static assets in this
+# directory (favicon.ico, icon-*.png, site.webmanifest, …) plus, optionally,
+# the identity values below that go with them. When you select this pack's
+# directory (BRAND_PACK / BRAND_ASSETS_DIR), the manifest values are absorbed
+# into OT.conf['brand'] at boot.
+#
+# Precedence (lowest to highest):
+#     built-in defaults  <  pack brand.yaml  <  operator `brand:` config  <  BRAND_* env
+# So env always wins, and a value the operator set in their config file always
+# wins over this manifest. Keys are whitelisted to the BRAND_* identity set and
+# the file is read with YAML.safe_load — a pack can never reach site.host, SMTP
+# credentials, or any non-brand config.
+#
+# THIS default pack ships NEUTRAL: every key is deliberately COMMENTED OUT, so
+# YAML.safe_load(this file) is empty and an unconfigured install adds NO brand
+# values here. brand.* stays nil, and the frontend NEUTRAL_BRAND_DEFAULTS remain
+# the single authority for neutral rendering (#3049). A drift spec asserts this
+# file stays value-free — uncommenting a value is a deliberate change, not an
+# accident.
+#
+# To author your OWN pack, copy this directory to public/branding/<name>/ (or
+# etc/branding/<name>/), replace the assets, and uncomment + set the keys below.
+# Presets under scripts/branding/presets/*.mjs emit this file with real values.
+#
+# The commented keys below are exactly the manifest whitelist
+# (Onetime::Config::BRAND_MANIFEST_KEYS == BRAND_ENV keys):
+#
+# primary_color: "#3B82F6"                     # base hue for the generated palette
+# product_name: "Secure Links"                 # product name / manifest name / MFA issuer default
+# product_domain: "secure.example.com"         # canonical product domain
+# support_email: "support@example.com"         # support contact address
+# signature_name: "Support Team"               # email sign-off name
+# corner_style: "rounded"                      # rounded | square | pill
+# font_family: "sans"                          # sans | serif | mono
+# logo_url: "https://cdn.example.com/logo.svg" # masthead + email logo (absolute for email)
+# logo_alt: "Example logo"                     # logo alt text
+# favicon_url: "https://cdn.example.com/favicon.ico" # /favicon.ico 302 redirect
+# apple_touch_icon_url: "https://cdn.example.com/touch.png" # head apple-touch-icon
+# og_image_url: "https://cdn.example.com/card.png"          # og:image / twitter:image (absolute)
+# totp_issuer: "Secure Links"                  # MFA issuer label (falls back to product_name)

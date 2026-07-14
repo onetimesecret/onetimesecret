@@ -13,7 +13,8 @@ module Core
       # This logic class dynamically serves either:
       # 1. Custom favicon from the custom domain's icon field (if available)
       # 2. Custom favicon from the custom domain's logo field (fallback)
-      # 3. Default favicon from public/web/
+      # 3. Default favicon from the resolved brand pack (public/branding/<pack>,
+      #    default: public/branding/default) via Onetime.brand_asset_path
       #
       # For custom favicons, it checks for a cached resized version (32x32)
       # stored in the image hashkey's 'encoded_favicon' field. If not found,

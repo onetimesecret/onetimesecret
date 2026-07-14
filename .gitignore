@@ -63,8 +63,14 @@ public/doc
 # brand-neutral. Ignore the CONTENTS (not the dir) so the README stays tracked;
 # git cannot re-include a file whose parent directory is itself excluded (see
 # .vscode note above).
+#
+# The `default` pack (#3774) is the ONE tracked exception: it holds the neutral
+# asset set + a value-free brand.yaml and is the pack every unset BRAND_PACK
+# resolves to. Re-include the directory so git descends into it (its files are
+# not matched by the single-level `*` above, so they track normally).
 public/branding/*
 !public/branding/README.md
+!public/branding/default/
 !tests/data
 
 # Files

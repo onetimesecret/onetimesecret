@@ -3,8 +3,9 @@
 Generates the root-served brand-asset pack (`favicon.ico`, `favicon.svg`,
 `apple-touch-icon.png`, `icon-192/512.png`, `safari-pinned-tab.svg`,
 `site.webmanifest`, `social-preview.png`) from a single glyph + palette. The
-committed neutral pack in `public/web/` is produced here; so are the optional,
-_uncommitted_ brand packs that overlay it at runtime (#3739).
+committed neutral **default pack** in `public/branding/default/` is produced here
+(#3774); so are the optional, _uncommitted_ brand packs that overlay it at
+runtime (#3739).
 
 - `mark.mjs` — single source of truth for glyph geometry and the neutral
   palette. Reads generator-only `MARK_*` env vars (deliberately **not** the
@@ -30,24 +31,25 @@ identity.
 
 Each preset points its output at a **pack directory** under
 `public/branding/<name>/` via `MARK_OUT_PUBLIC_DIR`, plus a reviewable source-SVG
-copy under `src/assets/branding/<name>/`. It never writes to `public/web/`, so
-the committed neutral pack (and its CI guard) is untouched.
+copy under `src/assets/branding/<name>/`. A preset run also emits an active
+`brand.yaml` (colour + product name) into its pack (#3774). It never writes to
+`public/branding/default/`, so the committed neutral pack (and its CI guard) is
+untouched.
 
-## Packs live in `public/branding/<pack>/` — never committed
+## Packs live in `public/branding/<pack>/`
 
-Pack image files are **generator output and gitignored** (only
-`public/branding/README.md` is tracked) — a deliberate rule that keeps generated
-brand assets out of version control (#3048/#3049). This keeps the repo
-brand-neutral: the branding lives here as preset _code_, not as committed
-assets. Regenerate a pack on demand rather than checking it in.
-
-`default` is **not** a pack — it is the _absence_ of an overlay. With no pack
-selected, the neutral `public/web/` assets are served unchanged.
+The `default` pack IS tracked (#3774): it holds the neutral asset set + a
+value-free `brand.yaml` and is the pack every unset `BRAND_PACK` resolves to.
+Every OTHER pack's image files are **generator output and gitignored** (only
+`public/branding/README.md` and `public/branding/default/` are tracked) — a
+deliberate rule that keeps generated brand assets out of version control
+(#3048/#3049). The company packs (`maruhi`, `onetimesecret`) live here as preset
+_code_, not committed assets. Regenerate them on demand rather than checking in.
 
 ## Generating a pack
 
 ```bash
-pnpm run gen:favicons             # neutral pack → public/web/ (committed)
+pnpm run gen:favicons             # neutral pack → public/branding/default/ (tracked)
 pnpm run gen:favicons:maruhi      # example preset → public/branding/maruhi/
 ```
 
@@ -88,7 +90,7 @@ pack, select it at build time:
 docker build --build-arg BRAND_PACK=maruhi .
 ```
 
-The Dockerfile copies `public/branding/<pack>/` into `public/web/` during the
-build. It **fails the build** if `BRAND_PACK` names a pack that was never
-generated, so a typo or an ungenerated pack can't silently ship the neutral
-assets.
+The Dockerfile overlays `public/branding/<pack>/` onto `public/branding/default/`
+during the build, so the runtime serves it with no env var set. It **fails the
+build** if `BRAND_PACK` names a pack that was never generated, so a typo or an
+ungenerated pack can't silently ship the neutral assets.

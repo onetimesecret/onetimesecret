@@ -457,12 +457,19 @@ site:
     # Example: ["100.64.0.0/10", "10.0.0.0/8"]
     allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>
 
-  # Runtime brand-asset overlay (#3739). Selects a directory of replacement
-  # root-served brand assets (favicon.ico, icon-*.png, site.webmanifest, etc.)
-  # that overlays the neutral bundled set in public/web at runtime — no image
-  # rebuild. brand_assets_dir (an explicit path, e.g. a runtime mount) wins over
-  # brand_pack (a pack NAME resolved under public/branding/<name>). Unset =
-  # no overlay; the neutral public/web assets are served.
+  # Brand pack selection (#3739, v2 #3774). A brand pack is the single unit of
+  # branding: a directory of root-served assets (favicon.ico, icon-*.png,
+  # site.webmanifest, etc.) plus an optional brand.yaml identity manifest
+  # (colours, product name — absorbed into the brand: block below at boot, as a
+  # fallback beneath operator config and BRAND_* env).
+  #
+  # Resolution ALWAYS lands on a pack: an unset brand_pack resolves to the
+  # tracked `default` pack (public/branding/default, the neutral keyhole set).
+  # A brand_pack NAME is resolved across two search roots, first existing wins:
+  #   1. etc/branding/<name>     — operator space (runtime mounts / confext)
+  #   2. public/branding/<name>  — vendor space (tracked default + generated packs)
+  # brand_assets_dir (an explicit path, e.g. a runtime mount) wins over
+  # brand_pack; a missing path or unknown name falls back to the default pack.
   brand_pack: <%= ENV['BRAND_PACK']&.to_json %>
   brand_assets_dir: <%= ENV['BRAND_ASSETS_DIR']&.to_json %>
 
@@ -475,6 +482,13 @@ site:
 # nil. Onetime::Config#normalize_brand (run in after_load) stays the authority:
 # it re-reads the env vars, trims blanks to nil, and coerces button_text_light
 # to a real boolean; an env-set field always wins over a YAML-supplied one.
+#
+# Precedence for these identity scalars (lowest to highest, #3774):
+#   built-in defaults < brand pack brand.yaml < this brand: config < BRAND_* env
+# The pack manifest layer (Config#apply_brand_manifest) fills only keys this
+# block left nil, so an operator value here always wins over a pack, and env
+# always wins over both. The tracked default pack ships a value-free brand.yaml,
+# so an unconfigured install keeps every key nil (neutral posture, #3049).
 brand:
   primary_color: <%= ENV['BRAND_PRIMARY_COLOR']&.to_json %>
   product_name: <%= ENV['BRAND_PRODUCT_NAME']&.to_json %>

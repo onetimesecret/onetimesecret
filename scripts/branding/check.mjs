@@ -22,7 +22,9 @@ import { fileURLToPath } from 'node:url';
 import { squareIconSvg, maskIconSvg, webmanifest } from './mark.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PUBLIC_WEB = resolve(__dirname, '..', '..', 'public', 'web');
+// The neutral text assets live in the tracked DEFAULT brand pack (#3774), which
+// is where `pnpm run gen:favicons` now writes them.
+const DEFAULT_PACK = resolve(__dirname, '..', '..', 'public', 'branding', 'default');
 
 const expected = {
   'favicon.svg': squareIconSvg(512),
@@ -34,7 +36,7 @@ const drift = [];
 for (const [name, want] of Object.entries(expected)) {
   let got;
   try {
-    got = readFileSync(resolve(PUBLIC_WEB, name), 'utf8');
+    got = readFileSync(resolve(DEFAULT_PACK, name), 'utf8');
   } catch {
     drift.push(`${name}: missing on disk`);
     continue;

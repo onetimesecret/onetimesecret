@@ -521,6 +521,12 @@ module Onetime
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
       end
 
+      # Absorb the resolved brand pack's brand.yaml identity scalars (#3774) as a
+      # fallback layer BENEATH the operator brand: config and BRAND_* env. Must
+      # run before normalize_brand so env stays the top authority and so the
+      # logo_url sanitizers below cover manifest-sourced values too.
+      apply_brand_manifest(conf)
+
       # Normalize the brand block from BRAND_* env vars. Done here (in Ruby)
       # rather than via ERB/YAML interpolation so values with YAML-significant
       # characters — notably the leading '#' in primary_color hex — survive.
@@ -595,6 +601,14 @@ module Onetime
       'totp_issuer' => 'BRAND_TOTP_ISSUER',
     }.freeze
 
+    # Keys a pack's brand.yaml manifest is allowed to set (#3774). Deliberately
+    # identical to BRAND_ENV — the manifest is a lower-precedence source for the
+    # SAME identity scalars, never a way to reach other config (site.host, SMTP,
+    # …). button_text_light is intentionally excluded: it stays an env/YAML-only
+    # toggle. A drift spec asserts this set == BRAND_ENV keys == the keys the
+    # default pack's brand.yaml documents.
+    BRAND_MANIFEST_KEYS = BRAND_ENV.keys.freeze
+
     # Maps brand identity keys to their deprecated sources (#3612): the legacy
     # unprefixed env var and the legacy site.interface.ui.header.branding YAML
     # path. Consulted by normalize_brand only when the brand: authority (BRAND_*
@@ -641,6 +655,60 @@ module Onetime
     #
     # @param conf [Hash] the merged configuration (mutated in place)
     # @return [void]
+    # Absorb identity scalars from the resolved brand pack's brand.yaml (#3774).
+    # A pack is the single unit of branding: it carries both static assets and
+    # (optionally) the identity values that go with them, so `BRAND_PACK=acme`
+    # can ship colours + product name + icons as one unit instead of a pack plus
+    # a wall of BRAND_* vars that nothing keeps in agreement.
+    #
+    # Precedence: built-in defaults < pack brand.yaml < operator `brand:` config
+    # < BRAND_* env. This method fills only keys the operator's brand: config
+    # left nil, and runs before normalize_brand (which layers env on top), so the
+    # manifest is strictly a fallback. Env therefore stays the top authority and
+    # per-region overrides keep working.
+    #
+    # Safety: keys are whitelisted to BRAND_MANIFEST_KEYS and the file is read
+    # with YAML.safe_load, so a pack cannot set site.host, SMTP creds, or any
+    # non-brand config. The default pack (public/branding/default) ships a
+    # value-free, all-commented brand.yaml, so an unconfigured install adds NO
+    # brand values here — brand.* stays nil and the frontend neutral defaults
+    # remain the single authority for neutral rendering (#3049).
+    #
+    # @param conf [Hash] the merged configuration (mutated in place)
+    # @return [void]
+    def apply_brand_manifest(conf)
+      dir = Onetime.resolve_brand_pack_dir(
+        brand_assets_dir: conf.dig('site', 'brand_assets_dir'),
+        brand_pack: conf.dig('site', 'brand_pack'),
+      )
+      return if dir.nil?
+
+      path = File.join(dir, 'brand.yaml')
+      return unless File.exist?(path)
+
+      manifest = YAML.safe_load_file(path) || {}
+      unless manifest.is_a?(Hash)
+        OT.le "[apply_brand_manifest] #{path} is not a YAML mapping; ignoring" if defined?(OT)
+        return
+      end
+
+      brand = (conf['brand'] ||= {})
+      BRAND_MANIFEST_KEYS.each do |key|
+        # Below the operator brand: config — only fill a gap it left nil.
+        next unless brand[key].nil?
+
+        value = manifest[key]
+        value = value.strip if value.is_a?(String)
+        next if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+
+        brand[key] = value
+      end
+    rescue StandardError => ex
+      # A malformed pack manifest must never abort boot — it is an optional,
+      # lower-precedence source. Report and fall through to the other layers.
+      OT.le "[apply_brand_manifest] failed to load brand manifest: #{ex.class}: #{ex.message}" if defined?(OT)
+    end
+
     def normalize_brand(conf)
       brand = (conf['brand'] ||= {})
 

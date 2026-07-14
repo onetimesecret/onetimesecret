@@ -1064,6 +1064,72 @@ doctor_operator_assets() {
   fi
 }
 
+# Brand-pack resolution probe (#3774). An OUTCOME check, not a precondition:
+# it reports which pack the running config WOULD serve, mirroring
+# Onetime.resolve_brand_pack_dir — brand_assets_dir (explicit path) wins, else
+# BRAND_PACK is a name resolved across etc/branding then public/branding (first
+# existing wins), else the tracked `default` pack. Then it lists the canonical
+# file set present in the winner and any uncommented brand.yaml keys.
+doctor_brand_pack() {
+  local canonical="favicon.ico favicon.svg apple-touch-icon.png icon-192.png icon-512.png safari-pinned-tab.svg social-preview.png site.webmanifest"
+  local roots="etc/branding public/branding"
+  local resolved="" source=""
+
+  if [[ -n "${BRAND_ASSETS_DIR:-}" ]]; then
+    if [[ -d "$BRAND_ASSETS_DIR" ]]; then
+      resolved="$BRAND_ASSETS_DIR"; source="BRAND_ASSETS_DIR (explicit path)"
+    else
+      doc_warn "BRAND_ASSETS_DIR=$BRAND_ASSETS_DIR set but missing — falling back to default pack" \
+        "mount the volume, or unset BRAND_ASSETS_DIR"
+    fi
+  fi
+
+  if [[ -z "$resolved" ]]; then
+    local name="${BRAND_PACK:-default}" root dir
+    for root in $roots; do
+      dir="$root/$name"
+      if [[ -d "$dir" ]]; then resolved="$dir"; source="BRAND_PACK=$name via $root"; break; fi
+    done
+    if [[ -z "$resolved" && "$name" != "default" ]]; then
+      doc_warn "BRAND_PACK=$name not found (searched: etc/branding/$name public/branding/$name) — falling back to default pack" \
+        "generate it (pnpm run gen:favicons:$name) or fix the name"
+      name="default"
+      for root in $roots; do
+        if [[ -d "$root/$name" ]]; then resolved="$root/$name"; source="default pack via $root"; break; fi
+      done
+    fi
+  fi
+
+  if [[ -z "$resolved" ]]; then
+    doc_fail "No brand pack resolved — default pack public/branding/default missing" \
+      "restore public/branding/default (tracked) or run pnpm run gen:favicons"
+    return 0
+  fi
+
+  doc_ok "Brand pack resolves to $resolved [$source]"
+
+  local missing="" f
+  for f in $canonical; do
+    [[ -f "$resolved/$f" ]] || missing="$missing $f"
+  done
+  if [[ -n "$missing" ]]; then
+    doc_warn "Resolved pack missing canonical file(s):$missing" \
+      "partial packs fall through to the default pack for these"
+  else
+    doc_ok "Resolved pack carries the full canonical asset set (8 files)"
+  fi
+
+  if [[ -f "$resolved/brand.yaml" ]]; then
+    local keys
+    keys=$(grep -oE '^[a-z_]+:' "$resolved/brand.yaml" 2>/dev/null | tr -d ':' | tr '\n' ' ')
+    if [[ -n "$keys" ]]; then
+      doc_info "brand.yaml identity keys loaded: $keys"
+    else
+      doc_info "brand.yaml present but value-free (neutral — no keys set)"
+    fi
+  fi
+}
+
 doctor_run() {
   DOCTOR_OK=0 DOCTOR_WARN=0 DOCTOR_FAIL=0
   info "Doctor (context: $DOCTOR_CONTEXT) — each check diffs a pin/manifest or probes a live service"
@@ -1075,6 +1141,7 @@ doctor_run() {
   doctor_secret_verifier
   doctor_dev_tooling
   doctor_operator_assets
+  doctor_brand_pack
   echo "---"
   local summary="Doctor: $DOCTOR_OK ok, $DOCTOR_WARN warning(s), $DOCTOR_FAIL failure(s) [context: $DOCTOR_CONTEXT]"
   if (( DOCTOR_FAIL > 0 )); then
