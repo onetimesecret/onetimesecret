@@ -115,12 +115,14 @@ module Onetime
       def fetch(url, redirects_left:, allow_html:)
 
       # Resolve host A + AAAA via Resolv::DNS; validate EVERY address; fail-closed:
-      # raise BlockedTarget if ANY resolved IP is blocked. Returns validated primary IP string.
+      # raise BlockedTarget if ANY resolved IP is blocked. As built, returns ALL
+      # validated addresses IPv4-first; #fetch dials them in order, falling through
+      # on connect-level route errors (broken dual-stack resolves AAAA it can't route).
       def resolve_and_validate!(host)
         addrs = Resolv::DNS.open { |dns| dns.getaddresses(host) }   # [Resolv::IPv4|IPv6]
         raise BlockedTarget, "no A/AAAA for #{host}" if addrs.empty?
         addrs.each { |a| raise BlockedTarget, "blocked #{a}" if blocked_ip?(IPAddr.new(a.to_s)) }
-        addrs.first.to_s
+        addrs.map(&:to_s)  # v4 sorted ahead of v6
       end
 
       def blocked_ip?(ip)

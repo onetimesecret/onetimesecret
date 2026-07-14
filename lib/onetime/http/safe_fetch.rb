@@ -19,9 +19,12 @@ module Onetime
     #   1. accepts only https:// on port 443 (no scheme/port downgrade surface),
     #   2. resolves the host's A + AAAA records and rejects the request if ANY
     #      resolved address is private/link-local/loopback/metadata,
-    #   3. pins the TCP connect to the exact validated IP (http.ipaddr=) so no
+    #   3. pins each TCP connect to one exact validated IP (http.ipaddr=) so no
     #      second DNS resolution happens at connect time — closing the classic
-    #      validate-then-reresolve (DNS-rebinding) window,
+    #      validate-then-reresolve (DNS-rebinding) window. Addresses are dialed
+    #      IPv4-first, falling through the remaining validated addresses on
+    #      connect-level route errors (broken dual-stack hosts resolve AAAA
+    #      records they cannot route to),
     #   4. never lets Net::HTTP auto-follow redirects; each hop is re-checked
     #      and re-validated against the guard, with a redirect cap,
     #   5. enforces a byte ceiling both on the declared Content-Length AND while
@@ -50,6 +53,18 @@ module Onetime
 
       REDIRECT_CODES  = [301, 302, 303, 307, 308].freeze
       SUCCESS_CODES   = (200..299)
+
+      # Connect-time failures that justify dialing the next validated address.
+      # Deliberately excludes timeouts (mapped to retriable FetchTimeout — and
+      # falling through would spend a full extra @timeout per address) and all
+      # post-connect errors. These errnos surface from connect(2) in
+      # microseconds, so walking the list adds no meaningful wall-clock.
+      CONNECT_FALLBACK_ERRNOS = [
+        Errno::EHOSTUNREACH,  # no route to host (e.g. AAAA on a v6-broken network)
+        Errno::ENETUNREACH,   # no route to network (v4-only or v6-only client)
+        Errno::EADDRNOTAVAIL, # no usable local address for this family
+        Errno::ECONNREFUSED,  # this endpoint is down; another may serve
+      ].freeze
 
       DEFAULT_HEADERS = { 'user-agent' => 'OnetimeSecret-SafeFetch/1.0' }.freeze
 
@@ -115,25 +130,16 @@ module Onetime
 
       private
 
-      # Orchestrates one hop: scheme/port check → resolve+validate → pinned GET.
-      # On a redirect, re-enters itself with the (re-validated) target and a
-      # decremented counter. The Net timeout → FetchTimeout mapping wraps the
-      # transport seam here (not inside it) so both connect- and read-time
-      # timeouts are normalized on the real path.
+      # Orchestrates one hop: scheme/port check → resolve+validate → pinned GET
+      # against the validated address list. On a redirect, re-enters itself with
+      # the (re-validated) target and a decremented counter.
       def fetch(url, redirects_left:, allow_html:, deadline:)
-        uri          = build_uri(url)
+        uri        = build_uri(url)
         enforce_scheme_and_port!(uri)
         check_deadline!(deadline, uri)
-        validated_ip = resolve_and_validate!(uri.host)
+        candidates = resolve_and_validate!(uri.host)
 
-        outcome =
-          begin
-            with_pinned_response(uri, validated_ip) do |resp|
-              interpret_response(resp, uri, allow_html, deadline)
-            end
-          rescue ::Net::OpenTimeout, ::Net::ReadTimeout => ex
-            raise FetchTimeout, "timeout fetching #{uri}: #{ex.message}"
-          end
+        outcome = try_each_address(uri, candidates, allow_html, deadline)
 
         if outcome[0] == :redirect
           raise TooManyRedirects, "exceeded #{@max_redirects} redirects at #{uri}" if redirects_left <= 0
@@ -143,6 +149,29 @@ module Onetime
         end
 
         outcome[1] # the Result
+      end
+
+      # One hop, all validated addresses: dial each in order and return the
+      # first interpreted response. Every candidate already passed the SSRF
+      # guard and each dial stays pinned to one exact IP, so walking the list
+      # is a reachability fallback (poor-man's Happy Eyeballs), not a widening
+      # of the target set. When every address fails, the last errno propagates
+      # unchanged — terminal for the caller, same as pre-fallback behavior.
+      # The Net timeout → FetchTimeout mapping wraps the transport seam here
+      # (not inside it) so both connect- and read-time timeouts are normalized
+      # on the real path.
+      def try_each_address(uri, candidate_ips, allow_html, deadline)
+        last_error = nil
+        candidate_ips.each do |ip|
+          return with_pinned_response(uri, ip) do |resp|
+            interpret_response(resp, uri, allow_html, deadline)
+          end
+        rescue ::Net::OpenTimeout, ::Net::ReadTimeout => ex
+          raise FetchTimeout, "timeout fetching #{uri}: #{ex.message}"
+        rescue *CONNECT_FALLBACK_ERRNOS => ex
+          last_error = ex
+        end
+        raise last_error # never nil: resolve_and_validate! raises on empty
       end
 
       # Per-call monotonic wall-clock budget spanning ALL redirect hops and the
@@ -177,7 +206,10 @@ module Onetime
 
       # Resolve host A + AAAA, validate EVERY address, and fail closed: raise if
       # ANY resolved address is blocked (defeats one-public-one-private RRsets).
-      # Returns the validated primary IP string to pin the connect to.
+      # Returns ALL validated addresses ordered IPv4-first: resolvers commonly
+      # list AAAA ahead of A, and a machine with an IPv6 address but no IPv6
+      # route (broken dual-stack) would otherwise dial an unreachable v6 and
+      # never try a perfectly good v4.
       def resolve_and_validate!(host)
         addrs = resolve_addresses(host)
         raise BlockedTarget, "no A/AAAA records for #{host}" if addrs.empty?
@@ -185,7 +217,10 @@ module Onetime
         addrs.each do |addr|
           raise BlockedTarget, "blocked address #{addr} for #{host}" if blocked_ip?(addr)
         end
-        addrs.first
+
+        # Safe to parse: anything unparseable already failed closed in blocked_ip?.
+        v4, v6 = addrs.partition { |addr| IPAddr.new(addr).ipv4? }
+        v4 + v6
       end
 
       # Isolated for testability (overridden in the unit tryout to avoid real

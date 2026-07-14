@@ -12,7 +12,9 @@
 # Proves: metadata/loopback/link-local blocked (incl. v4-mapped and via
 # redirect), fail-closed on mixed RRsets and unparseable/encoded addresses,
 # https+443-only, redirect cap, timeout mapping, streamed + declared size caps,
-# SVG/foreign-type rejection, and PNG/ICO acceptance with magic-byte sniffing.
+# SVG/foreign-type rejection, PNG/ICO acceptance with magic-byte sniffing, and
+# IPv4-first address ordering with connect-level fallback through the validated
+# address list (broken dual-stack: EHOSTUNREACH on one family, not the other).
 #
 # Relied-on runtime: Ruby 3.4.9 (IPAddr rejects decimal/octal/hex-encoded IPv4
 # with InvalidAddressError → our rescue treats them as blocked); FastImage 2.4.1
@@ -59,6 +61,8 @@ end
 # SafeFetch with DNS + transport stubbed. dns maps host => [ip strings];
 # responses is a per-hop queue. A :timeout sentinel raises a real
 # Net::OpenTimeout so #fetch's real timeout→FetchTimeout mapping is exercised.
+# unreachable lists IPs whose dial raises Errno::EHOSTUNREACH (before touching
+# the response queue), and dialed records every pinned connect attempt in order.
 class StubFetch < SF
   DEFAULTS = {
     timeout: 5,
@@ -67,17 +71,24 @@ class StubFetch < SF
     allowed_content_types: %w[image/x-icon image/vnd.microsoft.icon image/png],
   }.freeze
 
-  def initialize(dns:, responses:, **opts)
+  attr_reader :dialed
+
+  def initialize(dns:, responses:, unreachable: [], **opts)
     super(**DEFAULTS.merge(opts))
-    @dns       = dns
-    @responses = Array(responses)
+    @dns         = dns
+    @responses   = Array(responses)
+    @unreachable = Array(unreachable)
+    @dialed      = []
   end
 
   def resolve_addresses(host)
     @dns.fetch(host) { [] }
   end
 
-  def with_pinned_response(_uri, _validated_ip)
+  def with_pinned_response(_uri, validated_ip)
+    @dialed << validated_ip
+    raise Errno::EHOSTUNREACH, "stubbed no route to #{validated_ip}" if @unreachable.include?(validated_ip)
+
     item = @responses.shift
     raise ::Net::OpenTimeout, 'stubbed connect timeout' if item == :timeout
     raise 'no stubbed response queued' if item.nil?
@@ -347,3 +358,41 @@ ClockFetch.new(
   responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
 ).get_image('https://a.test/favicon.ico').content_type
 #=> 'image/png'
+
+## Dual-stack RRset with AAAA listed first: the v4 address is dialed FIRST
+@order = StubFetch.new(
+  dns: { 'ds.test' => ['2606:4700:4700::1111', '93.184.216.34'] },
+  responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
+)
+@order.get_image('https://ds.test/favicon.ico')
+@order.dialed
+#=> ['93.184.216.34']
+
+## Connect fallback: first address unreachable → the next validated address is
+## dialed (still pinned) and serves the result
+@fall = StubFetch.new(
+  dns: { 'ds.test' => ['2606:4700:4700::1111', '93.184.216.34'] },
+  responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
+  unreachable: ['93.184.216.34'],
+)
+[@fall.get_image('https://ds.test/favicon.ico').content_type, @fall.dialed]
+#=> ['image/png', ['93.184.216.34', '2606:4700:4700::1111']]
+
+## Every validated address unreachable → the last errno propagates unchanged
+## (stays terminal for the worker's retry classification, as pre-fallback)
+classify do
+  StubFetch.new(
+    dns: { 'ds.test' => ['2606:4700:4700::1111', '93.184.216.34'] },
+    responses: [],
+    unreachable: ['2606:4700:4700::1111', '93.184.216.34'],
+  ).get_image('https://ds.test/favicon.ico')
+end
+#=> "unexpected:Errno::EHOSTUNREACH"
+
+## A timeout does NOT fall through to the next address: one dial, retriable
+@to = StubFetch.new(
+  dns: { 'ds.test' => ['2606:4700:4700::1111', '93.184.216.34'] },
+  responses: [:timeout],
+)
+[classify { @to.get_image('https://ds.test/favicon.ico') }, @to.dialed]
+#=> [:fetch_timeout, ['93.184.216.34']]
