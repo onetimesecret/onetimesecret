@@ -18,6 +18,8 @@
     "gen:favicons:test": "node --test 'scripts/branding/*.test.mjs'",
     "gen:favicons:maruhi": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset maruhi",
     "gen:favicons:onetimesecret": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset onetimesecret",
+    "gen:favicons:vshare": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset vshare",
+    "gen:favicons:linkdepot": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset linkdepot",
     "i18n:generate-types": "pnpm run locales:sync && tsx --tsconfig scripts/tsconfig.json scripts/generate-i18n-types.ts",
     "locales:generate": "python3 locales/scripts/i18n content compile --all ",
     "locales:generate:verbose": "python3 locales/scripts/i18n content compile --all -v",

@@ -165,7 +165,7 @@ RSpec.describe Onetime::Config do
         end
 
         it 'rejects a *.vue value supplied via brand: YAML' do
-          brand = normalized({ 'brand' => { 'logo_url' => 'LegacyLogo.vue' } }, {})
+          brand = normalized({ 'brand' => { 'logo_url' => 'SomeLogo.vue' } }, {})
           expect(brand['logo_url']).to be_nil
         end
 

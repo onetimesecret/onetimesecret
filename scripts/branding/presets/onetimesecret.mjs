@@ -14,8 +14,9 @@
 // reviewable source copy in src/assets/branding/onetimesecret/, so it never
 // touches the neutral defaults in public/web (#3048/#3049).
 //
-// The MARK_PATH below is the white "S" glyph extracted from
-// public/web/img/onetime-logo-v3-xl.svg and normalized to (0,0): the SVG-level
+// The MARK_PATH below is the white "S" glyph extracted from the historical
+// onetime-logo-v3-xl.svg (retired from public/web/img; in git history) and
+// normalized to (0,0): the SVG-level
 // translate was dropped and the path shifted by its own bbox min so it spans
 // [0,564]x[0,772] — exactly what mark.mjs's
 // markTransform expects. Regenerate it with scripts to avoid hand-editing.

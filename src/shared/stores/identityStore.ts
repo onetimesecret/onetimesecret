@@ -7,7 +7,6 @@ import {
 import {
   DEFAULT_LOGO_COMPONENT,
   NEUTRAL_BRAND_DEFAULTS,
-  RESOLVED_LOGO_COMPONENT,
   resolveProductName,
 } from '@/shared/constants/brand';
 import {
@@ -268,15 +267,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /**
    * Resolved logo source on the identity axis: the tenant's uploaded logo when
    * present, then the operator's install-wide logo (custom domains excepted,
-   * see installLogoUri), then the terminal component sentinel.
-   *
-   * The terminal is `RESOLVED_LOGO_COMPONENT` (the build-time
-   * `VITE_LOGO_COMPONENT` override, else the neutral `DefaultLogo`) on the
-   * install's own contexts, but stays the neutral `DEFAULT_LOGO_COMPONENT` on
-   * custom domains: `installLogoUri` is already null there, so without this
-   * guard the operator's chosen component would surface on a tenant domain that
-   * has no uploaded logo — the same leak `installLogoUri` guards against. The
-   * override thus never affects custom-domain logo display.
+   * see installLogoUri), then the neutral `DEFAULT_LOGO_COMPONENT` sentinel —
+   * the only bundled logo component, on every surface.
    *
    * Never null or empty, so a consumer can render a lockup without its own
    * "no logo" fallback.
@@ -294,7 +286,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     () =>
       logoUri.value ||
       installLogoUri.value ||
-      (isCustom.value ? DEFAULT_LOGO_COMPONENT : RESOLVED_LOGO_COMPONENT)
+      DEFAULT_LOGO_COMPONENT
   );
 
   // border_radius (#3646) supersedes corner_style when set: it resolves to the

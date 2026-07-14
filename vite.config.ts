@@ -21,27 +21,6 @@ import Inspector from 'vite-plugin-vue-inspector';
 // environment variables to the client-side code.
 const viteBaseUrl = process.env.VITE_BASE_URL;
 
-// Build-time masthead logo component override (VITE_LOGO_COMPONENT). Bare
-// component name selecting a bundled logo; the client resolves it via
-// RESOLVED_LOGO_COMPONENT (src/shared/constants/brand.ts). No allowlist — but
-// fail the build loudly if the name doesn't resolve to a real component, rather
-// than shipping a bundle that silently degrades to the neutral logo at runtime.
-(function validateLogoComponent() {
-  const name = process.env.VITE_LOGO_COMPONENT?.trim();
-  if (!name) return;
-  const file = resolve(
-    process.cwd(),
-    'src/shared/components/logos',
-    `${name.replace(/\.vue$/, '')}.vue`
-  );
-  if (!existsSync(file)) {
-    throw new Error(
-      `VITE_LOGO_COMPONENT='${name}' does not resolve to a component: ${file} not found. ` +
-        'Set it to the bare name of a .vue file in src/shared/components/logos/.'
-    );
-  }
-})();
-
 /**
  * Sentry Release Version - Single Source of Truth
  * ------------------------------------------------
