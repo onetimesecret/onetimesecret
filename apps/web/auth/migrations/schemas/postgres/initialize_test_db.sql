@@ -6,7 +6,7 @@
 --   psql -U postgres -d onetime_auth_test -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql
 --
 -- Used by:
---   - install-test.sh        (local development)
+--   - bin/setup --test       (local development)
 --   - .github/workflows/ci.yml
 --   - .github/workflows/migration-tests.yml
 --

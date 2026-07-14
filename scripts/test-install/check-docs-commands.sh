@@ -32,9 +32,6 @@ bad()  { printf 'DRIFT: %s\n' "$1" >&2; fail=1; }
 # file in the repo. If a rename lands without updating the docs, this trips.
 declare -a EXECUTABLES=(
   bin/setup
-  install.sh
-  install-dev.sh
-  install-test.sh
   bin/dev
   bin/ots
 )

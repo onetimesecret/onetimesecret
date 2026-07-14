@@ -5,11 +5,11 @@
 # SAME artifact a maintainer runs locally, so local and CI cannot diverge. Each
 # lane installs a documented path from zero inside a pinned base image:
 #
-#   baremetal  ruby:3.4.9-slim  — install.sh init succeeds + is idempotent
+#   baremetal  ruby:3.4.9-slim  — bin/setup --init succeeds + is idempotent
 #   posix      ruby:3.4.9-slim, empty locale — the fresh-server locale repro
-#   ruby-old   ruby:3.3-slim    — install.sh init MUST fail with the version gate
+#   ruby-old   ruby:3.3-slim    — bin/setup --init MUST fail with the version gate
 #
-# Plus a cheap bash-3.2 syntax gate (macOS ships bash 3.2; install.sh is the
+# Plus a cheap bash-3.2 syntax gate (macOS ships bash 3.2; bin/setup is the
 # bare-metal entrypoint that must parse there), and the real macOS lane
 # (testing-strategy §3.2b): bin/setup + bin/setup --test on a macos-15 runner
 # under /bin/bash — the only honest test of stock bash 3.2 + BSD userland
@@ -26,9 +26,6 @@ on:
     paths:
       - 'bin/setup'
       - 'scripts/setup/**'
-      - 'install.sh'
-      - 'install-dev.sh'
-      - 'install-test.sh'
       - 'Gemfile'
       - 'Gemfile.lock'
       - 'package.json'
@@ -47,7 +44,7 @@ permissions:
 
 jobs:
   clean-room:
-    name: "install.sh from zero (${{ matrix.lane }})"
+    name: "bin/setup --init from zero (${{ matrix.lane }})"
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
@@ -135,7 +132,6 @@ jobs:
           docker run --rm -i -v "$PWD:/src" -w /src bash:3.2 sh -c '
             set -e
             for f in bin/setup scripts/setup/lib.sh \
-                     install.sh install-dev.sh install-test.sh \
                      scripts/test-install/run.sh \
                      scripts/test-install/proof-of-life.sh \
                      scripts/test-install/secret-rotation.sh \

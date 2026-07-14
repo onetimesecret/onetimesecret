@@ -164,7 +164,7 @@ module Onetime
           raise Onetime::Problem,
             'Test/tryout boot MUST use the test datastore (Redis port 2121), ' \
             "got: #{redis_uri.empty? ? '<unset>' : redis_uri}. Enter test mode " \
-            '(install-test.sh / .test-mode) or run via `RACK_ENV=test`.'
+            '(bin/setup --test / .test-mode) or run via `RACK_ENV=test`.'
         end
       end
 

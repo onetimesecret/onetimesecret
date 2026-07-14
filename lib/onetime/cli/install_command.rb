@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# CLI commands for tracking install.sh lifecycle
+# CLI commands for tracking bin/setup --init lifecycle
 #
 # Usage:
 #   bin/ots install mark     Increment the init counter (call after init completes)
@@ -16,7 +16,7 @@ module Onetime
       COUNTER_KEY = 'onetime:install:init_count'
 
       class MarkCommand < Command
-        desc 'Record that install.sh init has completed (increments counter)'
+        desc 'Record that bin/setup --init has completed (increments counter)'
 
         def call(**)
           boot_application!
