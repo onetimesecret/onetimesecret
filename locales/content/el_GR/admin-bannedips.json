@@ -1,0 +1,114 @@
+{
+  "web.admin.bannedIps.title": {
+    "text": "Αποκλεισμένες IP",
+    "source_hash": "0ece5643"
+  },
+  "web.admin.bannedIps.description": {
+    "text": "Αποκλεισμός και άρση αποκλεισμού διευθύνσεων IP στην περίμετρο του ιστότοπου.",
+    "source_hash": "69c0c992"
+  },
+  "web.admin.bannedIps.currentIp": {
+    "text": "Η τρέχουσα IP σας",
+    "source_hash": "14ff3ec5"
+  },
+  "web.admin.bannedIps.actions.cancel": {
+    "text": "Ακύρωση",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.bannedIps.actions.ban": {
+    "text": "Αποκλεισμός μιας IP",
+    "source_hash": "9937d7fd"
+  },
+  "web.admin.bannedIps.actions.quickBan": {
+    "text": "Αποκλεισμός αυτής της IP",
+    "source_hash": "95720658"
+  },
+  "web.admin.bannedIps.ban.confirmTitle": {
+    "text": "Αποκλεισμός αυτής της διεύθυνσης IP;",
+    "source_hash": "512acd7b"
+  },
+  "web.admin.bannedIps.ban.confirmDescription": {
+    "text": "Αυτό αποκλείει την {ip} στην περίμετρο του ιστότοπου. Πληκτρολογήστε την IP για επιβεβαίωση.",
+    "source_hash": "d8f6142e"
+  },
+  "web.admin.bannedIps.ban.button": {
+    "text": "Αποκλεισμός IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.ban.success": {
+    "text": "Αποκλείστηκε η {ip}",
+    "source_hash": "97180685"
+  },
+  "web.admin.bannedIps.columns.ipAddress": {
+    "text": "Διεύθυνση IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.bannedIps.columns.reason": {
+    "text": "Αιτία",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.bannedIps.columns.bannedAt": {
+    "text": "Αποκλεισμός στις",
+    "source_hash": "dfbd120e"
+  },
+  "web.admin.bannedIps.columns.bannedBy": {
+    "text": "Αποκλεισμός από",
+    "source_hash": "9f47db0e"
+  },
+  "web.admin.bannedIps.columns.actions": {
+    "text": "Ενέργειες",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.bannedIps.form.title": {
+    "text": "Αποκλεισμός μιας διεύθυνσης IP",
+    "source_hash": "59961746"
+  },
+  "web.admin.bannedIps.form.ipLabel": {
+    "text": "Διεύθυνση IP ή CIDR",
+    "source_hash": "133d0819"
+  },
+  "web.admin.bannedIps.form.reasonLabel": {
+    "text": "Αιτία (προαιρετικά)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.bannedIps.form.reasonPlaceholder": {
+    "text": "π.χ. credential stuffing",
+    "source_hash": "828a15ae"
+  },
+  "web.admin.bannedIps.form.submit": {
+    "text": "Αποκλεισμός IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.list.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των αποκλεισμένων IP.",
+    "source_hash": "539f2e34"
+  },
+  "web.admin.bannedIps.list.retry": {
+    "text": "Επανάληψη",
+    "source_hash": "942087cc"
+  },
+  "web.admin.bannedIps.list.empty": {
+    "text": "Δεν υπάρχουν αυτήν τη στιγμή αποκλεισμένες IP",
+    "source_hash": "b72cc9c5"
+  },
+  "web.admin.bannedIps.stats.total": {
+    "text": "Σύνολο αποκλεισμένων",
+    "source_hash": "41059c94"
+  },
+  "web.admin.bannedIps.unban.confirmTitle": {
+    "text": "Άρση αυτού του αποκλεισμού;",
+    "source_hash": "88473e59"
+  },
+  "web.admin.bannedIps.unban.confirmDescription": {
+    "text": "Αυτό αίρει τον αποκλεισμό της {ip}. Πληκτρολογήστε την IP για επιβεβαίωση.",
+    "source_hash": "6bec3191"
+  },
+  "web.admin.bannedIps.unban.button": {
+    "text": "Άρση αποκλεισμού",
+    "source_hash": "25fb5989"
+  },
+  "web.admin.bannedIps.unban.success": {
+    "text": "Άρθηκε ο αποκλεισμός της {ip}",
+    "source_hash": "79192c36"
+  }
+}

@@ -62,7 +62,7 @@
   "email.welcome.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.welcome.postscript": {
     "text": "PS. Ten e-mail został wysłany na adres %{email_address}. Jeśli nie zakładałeś konta, możesz bezpiecznie zignorować tę wiadomość.",
@@ -102,7 +102,7 @@
   "email.password_request.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.password_request.postscript": {
     "text": "PS. Ten e-mail został wysłany na adres %{email_address}.",
@@ -147,7 +147,7 @@
   "email.magic_link.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.magic_link.postscript": {
     "text": "PS. Ten e-mail został wysłany na adres %{email_address}.",
@@ -232,7 +232,7 @@
   "email.secret_revealed.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Zarządzaj preferencjami powiadomień",
@@ -357,7 +357,7 @@
   "email.organization_invitation.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_invitation.postscript": {
     "text": "PS. Ten e-mail został wysłany na adres %{invited_email}. Jeśli nie spodziewałeś się tego zaproszenia, możesz bezpiecznie zignorować tę wiadomość.",
@@ -397,17 +397,17 @@
   "email.password_changed.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.subject": {
     "text": "Twój adres e-mail został zmieniony (%{display_domain})",
     "renderer": "erb",
-    "source_hash": "d68d2f4c"
+    "source_hash": "4386fc57"
   },
   "email.email_changed.title": {
     "text": "Twój adres e-mail został zmieniony",
     "renderer": "erb",
-    "source_hash": "62b07299"
+    "source_hash": "db70f965"
   },
   "email.email_changed.security_notice": {
     "text": "Jeśli nie dokonałeś tej zmiany, skontaktuj się natychmiast z pomocą techniczną, ponieważ Twoje konto może być zagrożone.",
@@ -417,7 +417,7 @@
   "email.email_changed.change_notice": {
     "text": "Adres e-mail na Twoim koncie %{product_name} został zmieniony.",
     "renderer": "erb",
-    "source_hash": "bb467ebc"
+    "source_hash": "7fc0e27c"
   },
   "email.email_changed.new_email_label": {
     "text": "Nowy adres e-mail:",
@@ -447,7 +447,7 @@
   "email.email_changed.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.postscript": {
     "text": "P.S. Ten e-mail został wysłany na adres %{email_address}, aby powiadomić Cię o zmianie adresu e-mail.",
@@ -497,7 +497,7 @@
   "email.email_change_requested.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Ten e-mail został wysłany na adres %{email_address}, ponieważ złożono żądanie zmiany adresu e-mail na Twoim koncie.",
@@ -552,7 +552,7 @@
   "email.email_change_confirmation.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_confirmation.postscript": {
     "text": "P.S. Ten e-mail został wysłany na adres %{email_address} w celu potwierdzenia zmiany adresu e-mail.",
@@ -582,7 +582,7 @@
   "email.mfa_enabled.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.mfa_disabled.subject": {
     "text": "Uwierzytelnianie dwuskładnikowe wyłączone (%{display_domain})",
@@ -607,7 +607,7 @@
   "email.mfa_disabled.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.new_login_alert.subject": {
     "text": "Nowe logowanie na Twoje konto (%{display_domain})",
@@ -652,7 +652,7 @@
   "email.new_login_alert.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.member_removed.subject": {
     "text": "Zostałeś usunięty z %{organization_name}",
@@ -672,7 +672,7 @@
   "email.member_removed.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.role_changed.subject": {
     "text": "Twoja rola w %{organization_name} została zmieniona",
@@ -692,7 +692,7 @@
   "email.role_changed.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_deleted.subject": {
     "text": "Organizacja \"%{organization_name}\" została usunięta",
@@ -712,7 +712,7 @@
   "email.organization_deleted.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.trial_expiring.subject": {
     "text": "Twój okres próbny %{product_name} wygasa za %{days_remaining} dni",
@@ -737,7 +737,7 @@
   "email.trial_expiring.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.subscription_changed.subject": {
     "text": "Twoja subskrypcja %{product_name} została zmieniona",
@@ -762,7 +762,7 @@
   "email.subscription_changed.signature": {
     "text": "Zespół pomocy technicznej",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.common.greeting": {
     "text": "Witaj,",

@@ -1,0 +1,210 @@
+{
+  "web.admin.sessions.title": {
+    "text": "Сесії",
+    "source_hash": "6fa3cbf4"
+  },
+  "web.admin.sessions.description": {
+    "text": "Перевіряйте, шукайте та відкликайте активні сесії для реагування на інциденти.",
+    "source_hash": "784a3a44"
+  },
+  "web.admin.sessions.anonymous": {
+    "text": "Анонімно",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.columns.sessionId": {
+    "text": "ID сесії",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.columns.authenticated": {
+    "text": "Автент.",
+    "source_hash": "8eb3ea9b"
+  },
+  "web.admin.sessions.columns.email": {
+    "text": "Email",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.columns.externalId": {
+    "text": "Зовнішній ID",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.columns.ipAddress": {
+    "text": "IP-адреса",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.columns.created": {
+    "text": "Автентифіковано о",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.columns.actions": {
+    "text": "Дії",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.sessions.columns.role": {
+    "text": "Роль",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.detail.yes": {
+    "text": "Так",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.sessions.detail.no": {
+    "text": "Ні",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.sessions.detail.none": {
+    "text": "Немає",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.sessions.detail.unknown": {
+    "text": "Невідомо",
+    "source_hash": "b764cdc0"
+  },
+  "web.admin.sessions.detail.noExpiry": {
+    "text": "Без терміну дії",
+    "source_hash": "fe06351d"
+  },
+  "web.admin.sessions.detail.expired": {
+    "text": "Термін дії сплив",
+    "source_hash": "424a2551"
+  },
+  "web.admin.sessions.detail.ttlSeconds": {
+    "text": "залишилось {seconds} с",
+    "source_hash": "3c9d75ce"
+  },
+  "web.admin.sessions.drawer.title": {
+    "text": "Сесія {id}",
+    "source_hash": "29dcbd66"
+  },
+  "web.admin.sessions.drawer.notFound": {
+    "text": "Сесію не знайдено",
+    "source_hash": "0969eab8"
+  },
+  "web.admin.sessions.drawer.notFoundDescription": {
+    "text": "Ця сесія більше не існує в Redis. Можливо, її термін дії сплив або її вже було відкликано.",
+    "source_hash": "11e3ef05"
+  },
+  "web.admin.sessions.drawer.loadError": {
+    "text": "Не вдалося завантажити цю сесію.",
+    "source_hash": "82ae90fb"
+  },
+  "web.admin.sessions.drawer.retry": {
+    "text": "Повторити",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.fields.sessionId": {
+    "text": "ID сесії",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.fields.key": {
+    "text": "Ключ Redis",
+    "source_hash": "0b196725"
+  },
+  "web.admin.sessions.fields.ttl": {
+    "text": "TTL",
+    "source_hash": "76f6014f"
+  },
+  "web.admin.sessions.fields.authenticated": {
+    "text": "Автентифіковано",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.fields.email": {
+    "text": "Email",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.fields.externalId": {
+    "text": "Зовнішній ID",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.fields.accountId": {
+    "text": "ID облікового запису",
+    "source_hash": "919bb4cb"
+  },
+  "web.admin.sessions.fields.role": {
+    "text": "Роль",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.fields.locale": {
+    "text": "Мова",
+    "source_hash": "ca3dc612"
+  },
+  "web.admin.sessions.fields.ipAddress": {
+    "text": "IP-адреса",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.fields.authenticatedAt": {
+    "text": "Автентифіковано о",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.fields.authenticatedBy": {
+    "text": "Ким автентифіковано",
+    "source_hash": "3ebbabfe"
+  },
+  "web.admin.sessions.fields.activeSessionId": {
+    "text": "ID активної сесії",
+    "source_hash": "f32b1158"
+  },
+  "web.admin.sessions.fields.userAgent": {
+    "text": "User Agent",
+    "source_hash": "62e01345"
+  },
+  "web.admin.sessions.fields.orgContext": {
+    "text": "Контекст організації",
+    "source_hash": "a596d9f2"
+  },
+  "web.admin.sessions.list.loadError": {
+    "text": "Не вдалося завантажити сесії.",
+    "source_hash": "00c678d9"
+  },
+  "web.admin.sessions.list.retry": {
+    "text": "Повторити",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.list.empty": {
+    "text": "Активних сесій не знайдено",
+    "source_hash": "e35312d6"
+  },
+  "web.admin.sessions.revoke.button": {
+    "text": "Відкликати",
+    "source_hash": "87e6d00b"
+  },
+  "web.admin.sessions.revoke.confirmTitle": {
+    "text": "Відкликати цю сесію?",
+    "source_hash": "0c6605c1"
+  },
+  "web.admin.sessions.revoke.confirmDescription": {
+    "text": "Це негайно завершує сесію користувача, видаляючи сесію {id}. Введіть ID сесії для підтвердження.",
+    "source_hash": "9e08b1b8"
+  },
+  "web.admin.sessions.revoke.success": {
+    "text": "Сесію відкликано",
+    "source_hash": "0af5e14d"
+  },
+  "web.admin.sessions.scan.summary": {
+    "text": "Показано {shown} автентифікованих · приховано {anonymous} анонімних · проскановано {scanned}",
+    "source_hash": "34cb67a4"
+  },
+  "web.admin.sessions.scan.capped": {
+    "text": "Сканування обмежено першими {scanned} ключами — автентифіковані сесії за межами цього вікна не відображаються. Щоб дістатися до конкретної сесії, перевірте її за ID.",
+    "source_hash": "fa418b4e"
+  },
+  "web.admin.sessions.search.placeholder": {
+    "text": "Пошук за email або зовнішнім ID",
+    "source_hash": "f2dc5c06"
+  },
+  "web.admin.sessions.sections.session": {
+    "text": "Сесія",
+    "source_hash": "6959b415"
+  },
+  "web.admin.sessions.sections.raw": {
+    "text": "Необроблені дані сесії",
+    "source_hash": "c9f11eb4"
+  },
+  "web.admin.sessions.status.authenticated": {
+    "text": "Автентифіковано",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.status.anonymous": {
+    "text": "Анонімно",
+    "source_hash": "e7a8aa2d"
+  }
+}

@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Tartsa biztonságban ezt a tokent! Teljes hozzáférést biztosít fiókjához.",
-    "source_hash": "8839aa4d"
+    "text": "Tartsa biztonságban ezt a tokent. Az API-n keresztül titkok létrehozására és kezelésére használható.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Erősítse meg jelszavával",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Az e-mail sikeresen frissítve. Kérjük, ellenőrizze postafiókját az új e-mail cím megerősítéséhez.",
-    "source_hash": "58de2536"
+    "text": "Ellenőrző e-mail elküldve. Kérjük, ellenőrizze az új postafiókját, és kattintson a megerősítő hivatkozásra a módosítás befejezéséhez.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Az e-mail frissítése sikertelen. Kérjük, próbálja újra.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "Tudja meg, hogyan integrálhatja a(z) {product_name} szolgáltatást az alkalmazásaiba",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API referencia",

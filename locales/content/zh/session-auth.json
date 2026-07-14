@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "使用魔法链接选项无需密码登录。登录后，您可以在账户设置中更改密码。",
-    "source_hash": "2a058600"
+    "text": "您可以请求一个密码重置链接来创建新密码。",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "账户被临时锁定？",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "您的邮箱域名未获授权使用 SSO 注册。请联系您的管理员。",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "查收您的邮箱",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "我们已向您的邮箱地址发送了一个验证链接。",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "我们已向此地址发送了一个验证链接——请打开邮件并点击链接以激活您的账户。",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "找不到？请检查您的垃圾邮件文件夹。",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "输入的地址有误？",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "重新开始",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "密码",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "没有收到验证邮件？请输入您的邮箱以重新发送。",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "重新发送验证邮件",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "如果某个账户需要验证，则已发送一封新邮件。请检查您的收件箱和垃圾邮件文件夹。",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "无法发送验证邮件。请检查您的网络连接后重试。",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "重新发送邮件",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "您的邮箱已验证——现在您可以登录了。",
+    "source_hash": "c8d4b5a8"
   }
 }

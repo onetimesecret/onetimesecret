@@ -1,0 +1,210 @@
+{
+  "web.admin.sessions.title": {
+    "text": "Sesiones",
+    "source_hash": "6fa3cbf4"
+  },
+  "web.admin.sessions.description": {
+    "text": "Inspecciona, busca y revoca las sesiones activas para responder a incidentes.",
+    "source_hash": "784a3a44"
+  },
+  "web.admin.sessions.anonymous": {
+    "text": "Anónimo",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.columns.sessionId": {
+    "text": "ID de sesión",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.columns.authenticated": {
+    "text": "Autenticación",
+    "source_hash": "8eb3ea9b"
+  },
+  "web.admin.sessions.columns.email": {
+    "text": "Correo electrónico",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.columns.externalId": {
+    "text": "ID externo",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.columns.ipAddress": {
+    "text": "Dirección IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.columns.created": {
+    "text": "Autenticado el",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.columns.actions": {
+    "text": "Acciones",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.sessions.columns.role": {
+    "text": "Rol",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.detail.yes": {
+    "text": "Sí",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.sessions.detail.no": {
+    "text": "No",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.sessions.detail.none": {
+    "text": "Ninguno",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.sessions.detail.unknown": {
+    "text": "Desconocido",
+    "source_hash": "b764cdc0"
+  },
+  "web.admin.sessions.detail.noExpiry": {
+    "text": "Sin caducidad",
+    "source_hash": "fe06351d"
+  },
+  "web.admin.sessions.detail.expired": {
+    "text": "Caducada",
+    "source_hash": "424a2551"
+  },
+  "web.admin.sessions.detail.ttlSeconds": {
+    "text": "{seconds}s restantes",
+    "source_hash": "3c9d75ce"
+  },
+  "web.admin.sessions.drawer.title": {
+    "text": "Sesión {id}",
+    "source_hash": "29dcbd66"
+  },
+  "web.admin.sessions.drawer.notFound": {
+    "text": "Sesión no encontrada",
+    "source_hash": "0969eab8"
+  },
+  "web.admin.sessions.drawer.notFoundDescription": {
+    "text": "Esta sesión ya no existe en Redis. Es posible que haya caducado o que ya se haya revocado.",
+    "source_hash": "11e3ef05"
+  },
+  "web.admin.sessions.drawer.loadError": {
+    "text": "No se pudo cargar esta sesión.",
+    "source_hash": "82ae90fb"
+  },
+  "web.admin.sessions.drawer.retry": {
+    "text": "Reintentar",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.fields.sessionId": {
+    "text": "ID de sesión",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.fields.key": {
+    "text": "Clave de Redis",
+    "source_hash": "0b196725"
+  },
+  "web.admin.sessions.fields.ttl": {
+    "text": "TTL",
+    "source_hash": "76f6014f"
+  },
+  "web.admin.sessions.fields.authenticated": {
+    "text": "Autenticado",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.fields.email": {
+    "text": "Correo electrónico",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.fields.externalId": {
+    "text": "ID externo",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.fields.accountId": {
+    "text": "ID de cuenta",
+    "source_hash": "919bb4cb"
+  },
+  "web.admin.sessions.fields.role": {
+    "text": "Rol",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.fields.locale": {
+    "text": "Idioma",
+    "source_hash": "ca3dc612"
+  },
+  "web.admin.sessions.fields.ipAddress": {
+    "text": "Dirección IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.fields.authenticatedAt": {
+    "text": "Autenticado el",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.fields.authenticatedBy": {
+    "text": "Autenticado por",
+    "source_hash": "3ebbabfe"
+  },
+  "web.admin.sessions.fields.activeSessionId": {
+    "text": "ID de sesión activa",
+    "source_hash": "f32b1158"
+  },
+  "web.admin.sessions.fields.userAgent": {
+    "text": "Agente de usuario",
+    "source_hash": "62e01345"
+  },
+  "web.admin.sessions.fields.orgContext": {
+    "text": "Contexto de organización",
+    "source_hash": "a596d9f2"
+  },
+  "web.admin.sessions.list.loadError": {
+    "text": "No se pudieron cargar las sesiones.",
+    "source_hash": "00c678d9"
+  },
+  "web.admin.sessions.list.retry": {
+    "text": "Reintentar",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.list.empty": {
+    "text": "No se encontraron sesiones activas",
+    "source_hash": "e35312d6"
+  },
+  "web.admin.sessions.revoke.button": {
+    "text": "Revocar",
+    "source_hash": "87e6d00b"
+  },
+  "web.admin.sessions.revoke.confirmTitle": {
+    "text": "¿Revocar esta sesión?",
+    "source_hash": "0c6605c1"
+  },
+  "web.admin.sessions.revoke.confirmDescription": {
+    "text": "Esto cierra la sesión del usuario inmediatamente al eliminar la sesión {id}. Escribe el ID de sesión para confirmar.",
+    "source_hash": "9e08b1b8"
+  },
+  "web.admin.sessions.revoke.success": {
+    "text": "Sesión revocada",
+    "source_hash": "0af5e14d"
+  },
+  "web.admin.sessions.scan.summary": {
+    "text": "Mostrando {shown} autenticadas · {anonymous} anónimas ocultas · {scanned} escaneadas",
+    "source_hash": "34cb67a4"
+  },
+  "web.admin.sessions.scan.capped": {
+    "text": "Escaneo limitado a las primeras {scanned} claves — las sesiones autenticadas más allá de esta ventana no se enumeran. Inspecciona una sesión específica por su ID para alcanzarla.",
+    "source_hash": "fa418b4e"
+  },
+  "web.admin.sessions.search.placeholder": {
+    "text": "Buscar por correo electrónico o ID externo",
+    "source_hash": "f2dc5c06"
+  },
+  "web.admin.sessions.sections.session": {
+    "text": "Sesión",
+    "source_hash": "6959b415"
+  },
+  "web.admin.sessions.sections.raw": {
+    "text": "Datos de sesión sin procesar",
+    "source_hash": "c9f11eb4"
+  },
+  "web.admin.sessions.status.authenticated": {
+    "text": "Autenticada",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.status.anonymous": {
+    "text": "Anónima",
+    "source_hash": "e7a8aa2d"
+  }
+}

@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Não são permitidos e-mails de destinatário duplicados",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "secrets_mode inválido: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "O modo de mensagens confidenciais recebidas requer o direito incoming_secrets. Faz upgrade do teu plano.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "As mensagens confidenciais recebidas têm de estar ativadas com pelo menos um destinatário antes de poderem ser usadas como página inicial.",
+    "source_hash": "556da6e2"
   }
 }

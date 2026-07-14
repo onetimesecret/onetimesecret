@@ -1,0 +1,154 @@
+{
+  "web.admin.banner.title": {
+    "text": "Общ банер",
+    "source_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "Публикувайте съобщение за целия сайт, показвано на всеки посетител, или изчистете текущото.",
+    "source_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "Текущият банер не можа да бъде зареден.",
+    "source_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "Повторен опит",
+    "source_hash": "942087cc"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "Изчистване на банера",
+    "source_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "Да се изчисти ли общият банер?",
+    "source_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "Това премахва активния банер за всеки посетител. Въведете думата за потвърждение, за да продължите.",
+    "source_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "Общият банер е изчистен.",
+    "source_hash": "b0f52af4"
+  },
+  "web.admin.banner.current.title": {
+    "text": "Текущ банер",
+    "source_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "В момента няма зададен банер.",
+    "source_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "Състояние",
+    "source_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "Активен",
+    "source_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "Изтичане",
+    "source_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "Постоянен (без изтичане)",
+    "source_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "Изтича след {duration}",
+    "source_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.audience": {
+    "text": "Аудитория",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "Съхранено съдържание",
+    "source_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "Съдържанието е HTML; сайтът го изчиства само до връзки при показване.",
+    "source_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "Редактиране",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "Задаване на банер",
+    "source_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "Актуализиране на банера",
+    "source_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "Съобщение",
+    "source_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "Планирана поддръжка нед. 02:00 UTC",
+    "source_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "HTML е разрешен; сайтът го изчиства само до връзки.",
+    "source_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "Автоматично изтичане след (секунди)",
+    "source_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "Оставете празно за без изтичане",
+    "source_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "По избор. Банерът се премахва автоматично след този брой секунди.",
+    "source_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "Аудитория",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "Кои страници показват банера. Страниците на потребителски домейни го виждат само когато е зададено за всички страници.",
+    "source_hash": "28cc3018"
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "Всичко освен страниците на получателите",
+    "source_hash": "8575b3c0"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "Само страниците на работната област",
+    "source_hash": "563e003e"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "Всички страници (включително потребителски домейни)",
+    "source_hash": "b9b74870"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "Публикуване на банера",
+    "source_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "Актуализиране на банера",
+    "source_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "Да се публикува ли общият банер?",
+    "source_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "Този банер ще бъде показван на всеки посетител в целия сайт, докато не бъде изчистен или изтече.",
+    "source_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "Публикуване",
+    "source_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "Общият банер е публикуван.",
+    "source_hash": "55c06cab"
+  }
+}

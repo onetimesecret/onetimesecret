@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "有効",
-    "source_hash": "92c1cdfd"
+    "text": "有効化",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "無効",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "アップグレードして設定",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "カスタムドメイン",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "チームが使用する正確なホスト名({example}など)。",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "シークレットリンクの公開先",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "それはドメイン全体です。シークレットリンクはどこに公開しますか?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "サブドメインを使えば、{domain}の残りの部分はそのまま維持されます。",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "推奨",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "間違った選択肢はありません。チームが認識しやすいものを選んでください。",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "人気のサブドメイン",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "またはドメイン全体を使用",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "ルートドメインを使用",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "これは{domain}全体を当社に向けます。そこのサイトは名前解決されなくなり、AまたはALIASレコードが必要です。",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "「.{0}」は認識されているドメインの末尾ではありません。入力ミスがないか確認してください(例:{1})。",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "有効なホスト名を入力してください。使用できるのは英字、数字、単一のドットとダッシュです(例:{0})。",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "ドメイン名を入力してください。",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "{0}で続行",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "ワークスペースのデフォルト",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS設定",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "CNAMEレコードでドメインをこのサーバーに向けます",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS設定",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "次のDNSレコードをプロバイダーで追加して、",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "をこのサーバーに向けてください。",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "CNAMEレコードを作成",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "ALIASまたはANAMEレコードを作成",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apex(ルート)ドメインはCNAMEレコードを使用できません。DNSプロバイダーのALIASまたはANAMEレコードを使用するか、サーバーのIPアドレスにAレコードを向けてください。",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "ホームページ",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "訪問者がドメインのホームページでできること",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "プライベートランディングページ",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "訪問者にはインタラクティブなフォームのないプライベートランディングページが表示されます",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "シークレット作成フォーム",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "訪問者は自分のシークレットリンクを作成できます",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "受信シークレットフォーム",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "訪問者は設定済みの受信者にシークレットを送信できます",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "受信シークレットを有効にし、少なくとも1人の受信者を設定する必要があります",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "受信者を設定",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "プライベートランディングページ",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "公開:訪問者がシークレットを作成",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "公開:訪問者があなたにシークレットを送信",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "受信の準備ができていません。プライベートランディングページを表示しています",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "受信",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "ホームページ設定を保存しました",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "このドメインのホームページは現在、受信シークレットフォームを表示しています。受信シークレットを無効にするか、すべての受信者を削除すると、受信が再び準備できるまで、ホームページはプライベートランディングページに切り替わります。",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "このドメインでのログイン",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "ログインはワークスペース全体で無効になっているため、すべてのドメインで利用できません。ここでの設定は保持され、ワークスペースのログインが再び有効になると適用されます。",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "このドメインでのサインアップ",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "サインアップはワークスペース全体で無効になっているため、すべてのドメインで利用できません。ここでの設定は保持され、ワークスペースのサインアップが再び有効になると適用されます。",
+    "source_hash": "49faefe4"
   }
 }

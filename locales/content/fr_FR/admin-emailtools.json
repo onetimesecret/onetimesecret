@@ -1,0 +1,550 @@
+{
+  "web.admin.emailtools.title": {
+    "text": "Outils d'e-mail",
+    "source_hash": "f9643d5a"
+  },
+  "web.admin.emailtools.description": {
+    "text": "Prévisualiser les modèles d'e-mail, envoyer un test de livraison et surveiller la délivrabilité — les diagnostics qui nécessitaient auparavant SSH.",
+    "source_hash": "be85c9e9"
+  },
+  "web.admin.emailtools.config.title": {
+    "text": "Configuration du serveur de messagerie",
+    "source_hash": "d2a71028"
+  },
+  "web.admin.emailtools.config.description": {
+    "text": "La configuration de messagerie permanente résolue au démarrage. Les identifiants ne sont jamais affichés — seulement leur présence.",
+    "source_hash": "f0e8a118"
+  },
+  "web.admin.emailtools.config.provider": {
+    "text": "Fournisseur de transport",
+    "source_hash": "4f0e5025"
+  },
+  "web.admin.emailtools.config.senderProvider": {
+    "text": "Fournisseur d'expédition",
+    "source_hash": "e881964f"
+  },
+  "web.admin.emailtools.config.senderDiffers": {
+    "text": "L'expéditeur diffère du transport",
+    "source_hash": "ab78e8f6"
+  },
+  "web.admin.emailtools.config.autoDetected": {
+    "text": "Détecté automatiquement",
+    "source_hash": "a69c7f9e"
+  },
+  "web.admin.emailtools.config.fromAddress": {
+    "text": "Adresse d'expéditeur",
+    "source_hash": "d465bcfa"
+  },
+  "web.admin.emailtools.config.fromName": {
+    "text": "Nom d'expéditeur",
+    "source_hash": "b28f93ea"
+  },
+  "web.admin.emailtools.config.host": {
+    "text": "Hôte SMTP",
+    "source_hash": "ab328f83"
+  },
+  "web.admin.emailtools.config.port": {
+    "text": "Port",
+    "source_hash": "72e9a59f"
+  },
+  "web.admin.emailtools.config.region": {
+    "text": "Région",
+    "source_hash": "d3a008ef"
+  },
+  "web.admin.emailtools.config.hasCredentials": {
+    "text": "Identifiants configurés",
+    "source_hash": "1c81633a"
+  },
+  "web.admin.emailtools.config.yes": {
+    "text": "Oui",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.emailtools.config.no": {
+    "text": "Non",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.emailtools.config.loggerWarning": {
+    "text": "Les e-mails ne sont pas livrés. Le fournisseur de transport est en mode sans envoi (logger, disabled ou none), aucun e-mail ne quitte donc ce serveur — les messages sortants sont écrits dans le journal de l'application ou abandonnés.",
+    "source_hash": "1883dfd5"
+  },
+  "web.admin.emailtools.deliverability.title": {
+    "text": "Délivrabilité",
+    "source_hash": "66b4d300"
+  },
+  "web.admin.emailtools.deliverability.description": {
+    "text": "Ce qui revient après l'envoi : rebonds, plaintes et liste de suppression qui protège votre réputation d'expéditeur.",
+    "source_hash": "e8363bb5"
+  },
+  "web.admin.emailtools.deliverability.retry": {
+    "text": "Réessayer",
+    "source_hash": "942087cc"
+  },
+  "web.admin.emailtools.deliverability.events.title": {
+    "text": "Événements récents",
+    "source_hash": "8ecce94d"
+  },
+  "web.admin.emailtools.deliverability.events.description": {
+    "text": "Le flux brut des rebonds et des plaintes, le plus récent en premier.",
+    "source_hash": "0e7a533b"
+  },
+  "web.admin.emailtools.deliverability.events.empty": {
+    "text": "Aucune donnée de rebond ou de plainte pour l'instant. Transmettez les retours de votre ESP via POST /api/colonel/email/deliverability/events (authentifié colonel — voir la documentation du point de terminaison pour le format d'enregistrement). Les rebonds durs SMTP synchrones sont enregistrés automatiquement.",
+    "source_hash": "a90f259c"
+  },
+  "web.admin.emailtools.deliverability.events.loadError": {
+    "text": "Impossible de charger les événements récents.",
+    "source_hash": "02244c61"
+  },
+  "web.admin.emailtools.deliverability.events.columns.time": {
+    "text": "Heure",
+    "source_hash": "33b93476"
+  },
+  "web.admin.emailtools.deliverability.events.columns.kind": {
+    "text": "Type",
+    "source_hash": "baaddf70"
+  },
+  "web.admin.emailtools.deliverability.events.columns.address": {
+    "text": "Adresse",
+    "source_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.events.columns.source": {
+    "text": "Source",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.events.columns.reason": {
+    "text": "Motif",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.bounce": {
+    "text": "rebond",
+    "source_hash": "4d6723e5"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.complaint": {
+    "text": "plainte",
+    "source_hash": "5d08b02d"
+  },
+  "web.admin.emailtools.deliverability.lookup.title": {
+    "text": "Recherche de destinataire",
+    "source_hash": "7569985b"
+  },
+  "web.admin.emailtools.deliverability.lookup.description": {
+    "text": "Vérifier si une adresse est supprimée, à la fois dans le magasin local et en direct chez le fournisseur de messagerie actif. Les deux sont indexés par la même adresse normalisée.",
+    "source_hash": "c341d614"
+  },
+  "web.admin.emailtools.deliverability.lookup.addressLabel": {
+    "text": "Adresse du destinataire",
+    "source_hash": "454d0391"
+  },
+  "web.admin.emailtools.deliverability.lookup.submit": {
+    "text": "Rechercher",
+    "source_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.lookup.local": {
+    "text": "Magasin local",
+    "source_hash": "c740d116"
+  },
+  "web.admin.emailtools.deliverability.lookup.provider": {
+    "text": "Fournisseur",
+    "source_hash": "472590ae"
+  },
+  "web.admin.emailtools.deliverability.lookup.suppressed": {
+    "text": "Supprimée",
+    "source_hash": "435c7831"
+  },
+  "web.admin.emailtools.deliverability.lookup.notSuppressed": {
+    "text": "Non supprimée",
+    "source_hash": "7b1544d7"
+  },
+  "web.admin.emailtools.deliverability.lookup.reason": {
+    "text": "Motif",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.lookup.source": {
+    "text": "Source",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.lookup.unavailable": {
+    "text": "La recherche en direct chez le fournisseur est indisponible ; le magasin local ci-dessus fait foi.",
+    "source_hash": "aebed0f2"
+  },
+  "web.admin.emailtools.deliverability.messages.title": {
+    "text": "Envois récents",
+    "source_hash": "522e089e"
+  },
+  "web.admin.emailtools.deliverability.messages.description": {
+    "text": "Les messages les plus récents enregistrés par le fournisseur de messagerie actif, le plus récent en premier. Récupérés en direct auprès du fournisseur — jamais stockés ici.",
+    "source_hash": "9970fa0a"
+  },
+  "web.admin.emailtools.deliverability.messages.empty": {
+    "text": "Aucun message récent renvoyé par le fournisseur.",
+    "source_hash": "a7ef4d79"
+  },
+  "web.admin.emailtools.deliverability.messages.notSupported": {
+    "text": "Un journal d'envoi n'est pas disponible sur le transport {provider}, qui n'offre pas d'API par message.",
+    "source_hash": "21e6b6f9"
+  },
+  "web.admin.emailtools.deliverability.messages.error": {
+    "text": "Impossible de charger le journal d'envoi depuis le fournisseur. Réessayez.",
+    "source_hash": "4f671e55"
+  },
+  "web.admin.emailtools.deliverability.messages.col.status": {
+    "text": "Statut",
+    "source_hash": "920e413c"
+  },
+  "web.admin.emailtools.deliverability.messages.col.subject": {
+    "text": "Objet",
+    "source_hash": "68971283"
+  },
+  "web.admin.emailtools.deliverability.messages.col.to": {
+    "text": "À",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.emailtools.deliverability.messages.col.created": {
+    "text": "Envoyé",
+    "source_hash": "c16bc82b"
+  },
+  "web.admin.emailtools.deliverability.messages.status.delivered": {
+    "text": "livré",
+    "source_hash": "373e0712"
+  },
+  "web.admin.emailtools.deliverability.messages.status.opened": {
+    "text": "ouvert",
+    "source_hash": "50236627"
+  },
+  "web.admin.emailtools.deliverability.messages.status.clicked": {
+    "text": "cliqué",
+    "source_hash": "d66440b2"
+  },
+  "web.admin.emailtools.deliverability.messages.status.pending": {
+    "text": "en attente",
+    "source_hash": "62a2fed3"
+  },
+  "web.admin.emailtools.deliverability.messages.status.queued": {
+    "text": "en file d'attente",
+    "source_hash": "d36be649"
+  },
+  "web.admin.emailtools.deliverability.messages.status.processed": {
+    "text": "traité",
+    "source_hash": "58190ffa"
+  },
+  "web.admin.emailtools.deliverability.messages.status.hard_bounced": {
+    "text": "rebond dur",
+    "source_hash": "b0aa6fd4"
+  },
+  "web.admin.emailtools.deliverability.messages.status.soft_bounced": {
+    "text": "rebond léger",
+    "source_hash": "ac844ff2"
+  },
+  "web.admin.emailtools.deliverability.messages.status.complained": {
+    "text": "plainte déposée",
+    "source_hash": "c26fe786"
+  },
+  "web.admin.emailtools.deliverability.messages.status.suppressed": {
+    "text": "supprimé",
+    "source_hash": "f63d5b6b"
+  },
+  "web.admin.emailtools.deliverability.messages.status.unsubscribed": {
+    "text": "désabonné",
+    "source_hash": "621e1970"
+  },
+  "web.admin.emailtools.deliverability.summary.loadError": {
+    "text": "Impossible de charger le résumé de délivrabilité.",
+    "source_hash": "0c16ef96"
+  },
+  "web.admin.emailtools.deliverability.suppressions.title": {
+    "text": "Liste de suppression",
+    "source_hash": "9f3e322f"
+  },
+  "web.admin.emailtools.deliverability.suppressions.description": {
+    "text": "Adresses que les e-mails sortants ignorent. Les entrées proviennent de l'ingestion des retours de l'ESP ou d'un import manuel ; en supprimer une reprend la livraison.",
+    "source_hash": "3651887e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchLabel": {
+    "text": "Adresse exacte",
+    "source_hash": "f4338ff8"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchPlaceholder": {
+    "text": "user{'@'}example.com",
+    "source_hash": "333f0f15"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchButton": {
+    "text": "Rechercher",
+    "source_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.clearButton": {
+    "text": "Effacer",
+    "source_hash": "83b12c22"
+  },
+  "web.admin.emailtools.deliverability.suppressions.empty": {
+    "text": "Aucune adresse supprimée pour l'instant. Elles apparaîtront ici au fur et à mesure de l'ingestion des retours de rebonds et de plaintes.",
+    "source_hash": "dd3f4d61"
+  },
+  "web.admin.emailtools.deliverability.suppressions.emptySearch": {
+    "text": "Aucune entrée de suppression pour {address}.",
+    "source_hash": "200c361e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.loadError": {
+    "text": "Impossible de charger la liste de suppression.",
+    "source_hash": "2a12c8ba"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.addressLabel": {
+    "text": "Ajouter une adresse",
+    "source_hash": "8be5aa33"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.button": {
+    "text": "Supprimer",
+    "source_hash": "60b19987"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmTitle": {
+    "text": "Supprimer cette adresse ?",
+    "source_hash": "40a0d2a6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmDescription": {
+    "text": "Les e-mails sortants vers {address} seront ignorés jusqu'à ce que la suppression soit retirée. Cela est enregistré comme une entrée manuelle.",
+    "source_hash": "e3d0d799"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.success": {
+    "text": "Adresse {address} supprimée.",
+    "source_hash": "e2cd2c3b"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.successExisting": {
+    "text": "L'adresse {address} était déjà supprimée ; entrée mise à jour.",
+    "source_hash": "0852101e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.error": {
+    "text": "Impossible de supprimer l'adresse.",
+    "source_hash": "dad9e000"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.address": {
+    "text": "Adresse",
+    "source_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.reason": {
+    "text": "Motif",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.source": {
+    "text": "Source",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.added": {
+    "text": "Ajoutée le",
+    "source_hash": "6b02e0d3"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.actions": {
+    "text": "Actions",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.button": {
+    "text": "Retirer",
+    "source_hash": "c3812fc4"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmTitle": {
+    "text": "Retirer cette suppression ?",
+    "source_hash": "0b0aec2e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmDescription": {
+    "text": "Les e-mails sortants vers {address} reprendront. Cette adresse a précédemment rebondi ou déposé une plainte — ne la retirez que si vous savez qu'elle est à nouveau joignable.",
+    "source_hash": "09442f9c"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.success": {
+    "text": "Suppression retirée pour {address}.",
+    "source_hash": "bfc0de36"
+  },
+  "web.admin.emailtools.deliverability.sync.title": {
+    "text": "Synchronisation des retours",
+    "source_hash": "d4056915"
+  },
+  "web.admin.emailtools.deliverability.sync.lastSynced": {
+    "text": "dernière synchronisation",
+    "source_hash": "5a99666b"
+  },
+  "web.admin.emailtools.deliverability.sync.imported": {
+    "text": "{count} importés",
+    "source_hash": "1bc18c45"
+  },
+  "web.admin.emailtools.deliverability.sync.neverRun": {
+    "text": "La synchronisation des retours du fournisseur n'a jamais été exécutée. Les données de rebonds et de plaintes ne sont pas importées automatiquement — configurez une synchronisation du fournisseur ou ingérez les retours via le point de terminaison des événements.",
+    "source_hash": "d19f5755"
+  },
+  "web.admin.emailtools.deliverability.sync.button": {
+    "text": "Synchroniser maintenant",
+    "source_hash": "885e8f48"
+  },
+  "web.admin.emailtools.deliverability.sync.success": {
+    "text": "Synchronisation {provider} terminée : {accepted} importés, {rejected} rejetés ({fetched} récupérés).",
+    "source_hash": "d36f5578"
+  },
+  "web.admin.emailtools.deliverability.sync.hint": {
+    "text": "Une synchronisation manuelle — l'import automatique nécessite toujours une tâche cron `ots email sync-feedback` planifiée.",
+    "source_hash": "7a509b75"
+  },
+  "web.admin.emailtools.deliverability.tiles.suppressed": {
+    "text": "Adresses supprimées",
+    "source_hash": "b31a245e"
+  },
+  "web.admin.emailtools.deliverability.tiles.bounces": {
+    "text": "Rebonds ({days} j)",
+    "source_hash": "3a4d0f09"
+  },
+  "web.admin.emailtools.deliverability.tiles.complaints": {
+    "text": "Plaintes ({days} j)",
+    "source_hash": "16ad856f"
+  },
+  "web.admin.emailtools.deliverability.tiles.skipped": {
+    "text": "Envois ignorés",
+    "source_hash": "391467f9"
+  },
+  "web.admin.emailtools.preview.title": {
+    "text": "Aperçu du modèle",
+    "source_hash": "df89bd92"
+  },
+  "web.admin.emailtools.preview.description": {
+    "text": "Générer un modèle avec ses données d'exemple. L'aperçu n'a aucun effet de bord — aucun e-mail n'est envoyé.",
+    "source_hash": "9b0e40f3"
+  },
+  "web.admin.emailtools.preview.templateLabel": {
+    "text": "Modèle",
+    "source_hash": "0575f29d"
+  },
+  "web.admin.emailtools.preview.formatLabel": {
+    "text": "Format",
+    "source_hash": "2f343666"
+  },
+  "web.admin.emailtools.preview.localeLabel": {
+    "text": "Langue",
+    "source_hash": "ca3dc612"
+  },
+  "web.admin.emailtools.preview.button": {
+    "text": "Aperçu",
+    "source_hash": "324b134f"
+  },
+  "web.admin.emailtools.providerStatus.title": {
+    "text": "Statut du fournisseur",
+    "source_hash": "231b7f03"
+  },
+  "web.admin.emailtools.providerStatus.rateUnavailable": {
+    "text": "Ce fournisseur n'expose aucun taux numérique de rebond ou de plainte ; le niveau de réputation ci-dessus est déduit uniquement du statut d'application et du quota d'envoi.",
+    "source_hash": "1e6b82e9"
+  },
+  "web.admin.emailtools.providerStatus.complaintsUnavailable": {
+    "text": "Lettermint ne signale pas les plaintes dans son API de statistiques ; le taux de plaintes est donc affiché comme « — » (non signalé) et non comme zéro. Le taux de rebond ci-dessus est complet.",
+    "source_hash": "72aaa845"
+  },
+  "web.admin.emailtools.providerStatus.unavailable": {
+    "text": "Le statut du fournisseur est temporairement indisponible.",
+    "source_hash": "8e69ff29"
+  },
+  "web.admin.emailtools.providerStatus.notSupported": {
+    "text": "Le statut du fournisseur en direct n'est pas disponible sur le transport {provider}.",
+    "source_hash": "125ed6eb"
+  },
+  "web.admin.emailtools.providerStatus.error": {
+    "text": "Impossible de joindre le fournisseur de messagerie pour obtenir le statut. Réessayez.",
+    "source_hash": "594ab7b1"
+  },
+  "web.admin.emailtools.providerStatus.quota.max24h": {
+    "text": "Limite d'envoi sur 24 h",
+    "source_hash": "e5ea4c3d"
+  },
+  "web.admin.emailtools.providerStatus.quota.sent24h": {
+    "text": "Envoyés (dernières 24 h)",
+    "source_hash": "d0c4fe45"
+  },
+  "web.admin.emailtools.providerStatus.quota.maxRate": {
+    "text": "Débit d'envoi maximal (par sec)",
+    "source_hash": "59e76cf8"
+  },
+  "web.admin.emailtools.providerStatus.rate.bounce": {
+    "text": "Taux de rebond",
+    "source_hash": "9eba32f0"
+  },
+  "web.admin.emailtools.providerStatus.rate.complaint": {
+    "text": "Taux de plaintes",
+    "source_hash": "430a23a9"
+  },
+  "web.admin.emailtools.providerStatus.stats.sent": {
+    "text": "Envoyés ({days} j)",
+    "source_hash": "e553b7e1"
+  },
+  "web.admin.emailtools.providerStatus.stats.delivered": {
+    "text": "Livrés",
+    "source_hash": "90611565"
+  },
+  "web.admin.emailtools.providerStatus.stats.hardBounced": {
+    "text": "Rebonds durs",
+    "source_hash": "c76631c0"
+  },
+  "web.admin.emailtools.providerStatus.stats.complaints": {
+    "text": "Plaintes pour spam",
+    "source_hash": "d48953cd"
+  },
+  "web.admin.emailtools.providerStatus.tier.healthy": {
+    "text": "Sain",
+    "source_hash": "7f1e323b"
+  },
+  "web.admin.emailtools.providerStatus.tier.probation": {
+    "text": "En cours d'examen",
+    "source_hash": "9e8a3b64"
+  },
+  "web.admin.emailtools.providerStatus.tier.shutdown": {
+    "text": "Envoi suspendu",
+    "source_hash": "52e6757c"
+  },
+  "web.admin.emailtools.test.title": {
+    "text": "Envoi de test",
+    "source_hash": "5fab5d67"
+  },
+  "web.admin.emailtools.test.description": {
+    "text": "Envoyer un e-mail de diagnostic en texte brut pour vérifier la connectivité de livraison. Prévisualisez-le d'abord, puis confirmez pour envoyer un véritable e-mail.",
+    "source_hash": "4130741c"
+  },
+  "web.admin.emailtools.test.toLabel": {
+    "text": "Destinataire",
+    "source_hash": "51fac985"
+  },
+  "web.admin.emailtools.test.toPlaceholder": {
+    "text": "you{'@'}example.com",
+    "source_hash": "cf0a9acc"
+  },
+  "web.admin.emailtools.test.enqueueLabel": {
+    "text": "Via la file d'attente des workers",
+    "source_hash": "97897017"
+  },
+  "web.admin.emailtools.test.previewButton": {
+    "text": "Aperçu (sans envoi)",
+    "source_hash": "747ced83"
+  },
+  "web.admin.emailtools.test.sendButton": {
+    "text": "Envoyer l'e-mail de test",
+    "source_hash": "46ebd7db"
+  },
+  "web.admin.emailtools.test.provider": {
+    "text": "Fournisseur",
+    "source_hash": "472590ae"
+  },
+  "web.admin.emailtools.test.host": {
+    "text": "Hôte d'origine",
+    "source_hash": "968925cb"
+  },
+  "web.admin.emailtools.test.from": {
+    "text": "De",
+    "source_hash": "21819769"
+  },
+  "web.admin.emailtools.test.subject": {
+    "text": "Objet",
+    "source_hash": "68971283"
+  },
+  "web.admin.emailtools.test.confirmTitle": {
+    "text": "Envoyer un véritable e-mail de test ?",
+    "source_hash": "64a16b62"
+  },
+  "web.admin.emailtools.test.confirmDescription": {
+    "text": "Cela envoie un e-mail réel à {to} via le serveur de messagerie configuré.",
+    "source_hash": "10114929"
+  },
+  "web.admin.emailtools.test.success": {
+    "text": "E-mail de test envoyé à {to}.",
+    "source_hash": "daa61a62"
+  }
+}

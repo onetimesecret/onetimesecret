@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Kua pau tō wātū. Whakahoutia te whārangi ka ngana anō.",
-    "source_hash": "a7c3e901"
+    "text": "Kua pau tō wātū. Tēnā, whakahouhia te whārangi ka ngana anō.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "I rahua te takiuru. Tēnā whakamātauria anō.",

@@ -1,0 +1,178 @@
+{
+  "web.admin.domaintoolbox.title": {
+    "text": "Caja de herramientas de dominios",
+    "source_hash": "5a9333db"
+  },
+  "web.admin.domaintoolbox.description": {
+    "text": "Diagnostica y repara las relaciones de dominios personalizados: busca huérfanos, sondea DNS/SSL, repara la propiedad y transfiere entre organizaciones.",
+    "source_hash": "778537aa"
+  },
+  "web.admin.domaintoolbox.retry": {
+    "text": "Reintentar",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domaintoolbox.preview": {
+    "text": "Vista previa",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domaintoolbox.fields.extid": {
+    "text": "ID externo del dominio",
+    "source_hash": "f52af6c5"
+  },
+  "web.admin.domaintoolbox.fields.extidPlaceholder": {
+    "text": "cd_… (extid del dominio)",
+    "source_hash": "bb9bf49a"
+  },
+  "web.admin.domaintoolbox.orphaned.title": {
+    "text": "Dominios huérfanos",
+    "source_hash": "ddcea596"
+  },
+  "web.admin.domaintoolbox.orphaned.description": {
+    "text": "Dominios personalizados sin organización propietaria. Usa Reparar para reasignar uno.",
+    "source_hash": "967268f5"
+  },
+  "web.admin.domaintoolbox.orphaned.empty": {
+    "text": "No se encontraron dominios huérfanos.",
+    "source_hash": "06ef9979"
+  },
+  "web.admin.domaintoolbox.orphaned.loadError": {
+    "text": "No se pudieron cargar los dominios huérfanos.",
+    "source_hash": "ca0e33bf"
+  },
+  "web.admin.domaintoolbox.orphaned.repairAction": {
+    "text": "Reparar",
+    "source_hash": "1196b6c5"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.domain": {
+    "text": "Dominio",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.state": {
+    "text": "Estado",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.verified": {
+    "text": "Verificado",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.created": {
+    "text": "Creado",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.actions": {
+    "text": "Acciones",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domaintoolbox.probe.title": {
+    "text": "Sondeo (DNS / SSL)",
+    "source_hash": "ec69a087"
+  },
+  "web.admin.domaintoolbox.probe.description": {
+    "text": "Realiza una solicitud HTTPS en vivo para confirmar que el dominio sirve tráfico e inspecciona su certificado TLS. Solo lectura.",
+    "source_hash": "1eecfa96"
+  },
+  "web.admin.domaintoolbox.probe.button": {
+    "text": "Sondear",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domaintoolbox.probe.healthLabel": {
+    "text": "Salud",
+    "source_hash": "55898449"
+  },
+  "web.admin.domaintoolbox.repair.title": {
+    "text": "Reparar relación",
+    "source_hash": "0053d07c"
+  },
+  "web.admin.domaintoolbox.repair.description": {
+    "text": "Corrige las inconsistencias de la relación con la organización para un dominio. Primero haz una vista previa, luego aplica.",
+    "source_hash": "18ca490b"
+  },
+  "web.admin.domaintoolbox.repair.orgIdLabel": {
+    "text": "Asignar organización (si está huérfano)",
+    "source_hash": "f95b010a"
+  },
+  "web.admin.domaintoolbox.repair.orgIdPlaceholder": {
+    "text": "id o extid de la organización",
+    "source_hash": "a87d634e"
+  },
+  "web.admin.domaintoolbox.repair.statusLabel": {
+    "text": "Estado",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domaintoolbox.repair.noIssues": {
+    "text": "No se encontraron problemas — las relaciones son coherentes.",
+    "source_hash": "e1a4c49d"
+  },
+  "web.admin.domaintoolbox.repair.applyButton": {
+    "text": "Aplicar reparaciones",
+    "source_hash": "3f92b29f"
+  },
+  "web.admin.domaintoolbox.repair.success": {
+    "text": "Reparaciones aplicadas correctamente.",
+    "source_hash": "24f25b9b"
+  },
+  "web.admin.domaintoolbox.repair.confirmTitle": {
+    "text": "¿Aplicar reparaciones de dominio?",
+    "source_hash": "9429998b"
+  },
+  "web.admin.domaintoolbox.repair.confirmDescription": {
+    "text": "Esto modificará el estado de propiedad/relación de {domain}. Vuelve a escribir el ID externo del dominio para confirmar.",
+    "source_hash": "426d267b"
+  },
+  "web.admin.domaintoolbox.reverify.button": {
+    "text": "Volver a verificar",
+    "source_hash": "0344860a"
+  },
+  "web.admin.domaintoolbox.reverify.success": {
+    "text": "Se completó la nueva verificación del dominio.",
+    "source_hash": "497a2348"
+  },
+  "web.admin.domaintoolbox.transfer.title": {
+    "text": "Transferir propiedad",
+    "source_hash": "3667f939"
+  },
+  "web.admin.domaintoolbox.transfer.description": {
+    "text": "Reasigna un dominio a una organización diferente. La acción de mayor alcance — haz la vista previa y confirma con cuidado.",
+    "source_hash": "d4e26e03"
+  },
+  "web.admin.domaintoolbox.transfer.toOrgLabel": {
+    "text": "Organización de destino",
+    "source_hash": "4e4486eb"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgLabel": {
+    "text": "Organización de origen (opcional)",
+    "source_hash": "3666815f"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
+    "text": "confirmar el propietario actual",
+    "source_hash": "cd9e769c"
+  },
+  "web.admin.domaintoolbox.transfer.from": {
+    "text": "De",
+    "source_hash": "21819769"
+  },
+  "web.admin.domaintoolbox.transfer.to": {
+    "text": "A",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domaintoolbox.transfer.orphaned": {
+    "text": "HUÉRFANO",
+    "source_hash": "54dc2166"
+  },
+  "web.admin.domaintoolbox.transfer.applyButton": {
+    "text": "Transferir dominio",
+    "source_hash": "9517aeb9"
+  },
+  "web.admin.domaintoolbox.transfer.success": {
+    "text": "Dominio transferido correctamente.",
+    "source_hash": "bbca9de9"
+  },
+  "web.admin.domaintoolbox.transfer.confirmTitle": {
+    "text": "¿Transferir la propiedad del dominio?",
+    "source_hash": "d306a15a"
+  },
+  "web.admin.domaintoolbox.transfer.confirmDescription": {
+    "text": "Esto reasigna la propiedad de {domain} a otra organización. Vuelve a escribir el ID externo del dominio para confirmar.",
+    "source_hash": "edefd97c"
+  }
+}

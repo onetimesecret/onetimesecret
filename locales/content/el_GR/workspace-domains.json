@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Ενεργοποιημένο",
-    "source_hash": "92c1cdfd"
+    "text": "Ενεργοποίηση",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Απενεργοποιημένο",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Αναβάθμιση για διαμόρφωση",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Προσαρμοσμένος τομέας",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Το ακριβές όνομα κεντρικού υπολογιστή που θα χρησιμοποιεί η ομάδα σας, όπως {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Οι σύνδεσμοι μυστικών σας θα βρίσκονται στο",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Αυτός είναι ολόκληρος ο τομέας σας — πού θα πρέπει να βρίσκονται οι σύνδεσμοι μυστικών;",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Ένας υποτομέας διατηρεί το υπόλοιπο του {domain} ανέπαφο.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Προτεινόμενο",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Δεν υπάρχει λάθος επιλογή — διαλέξτε όποια θα αναγνωρίσει η ομάδα σας.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Δημοφιλείς υποτομείς",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Ή χρησιμοποιήστε ολόκληρο τον τομέα σας",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Χρήση του ριζικού τομέα μου",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Αυτό κατευθύνει ολόκληρο το {domain} σε εμάς — ο ιστότοπος εκεί σταματά να αναλύεται — και χρειάζεται μια εγγραφή A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "Το «.{0}» δεν είναι αναγνωρισμένη κατάληξη τομέα — ελέγξτε για τυπογραφικό λάθος (π.χ. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Εισαγάγετε ένα έγκυρο όνομα κεντρικού υπολογιστή — γράμματα, αριθμούς, μεμονωμένες τελείες και παύλες (π.χ. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Παρακαλούμε εισαγάγετε ένα όνομα τομέα.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Συνέχεια με {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Προεπιλογή χώρου εργασίας",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "Ρύθμιση DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Κατευθύνετε τον τομέα σας σε αυτόν τον διακομιστή με μια εγγραφή CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "Διαμόρφωση DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Κατευθύνετε το",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "σε αυτόν τον διακομιστή προσθέτοντας την ακόλουθη εγγραφή DNS στον πάροχό σας.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Δημιουργήστε μια εγγραφή CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Δημιουργήστε μια εγγραφή ALIAS ή ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Οι τομείς apex (ριζικοί) δεν μπορούν να χρησιμοποιήσουν εγγραφή CNAME. Χρησιμοποιήστε αντ' αυτού την εγγραφή ALIAS ή ANAME του παρόχου DNS σας ή κατευθύνετε μια εγγραφή A στη διεύθυνση IP του διακομιστή σας.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Αρχική σελίδα",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Τι μπορούν να κάνουν οι επισκέπτες στην αρχική σελίδα του τομέα σας",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Ιδιωτική σελίδα προορισμού",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Οι επισκέπτες βλέπουν μια ιδιωτική σελίδα προορισμού χωρίς διαδραστική φόρμα",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Φόρμα δημιουργίας μυστικού",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Οι επισκέπτες μπορούν να δημιουργήσουν τους δικούς τους συνδέσμους μυστικών",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Φόρμα εισερχόμενων μυστικών",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Οι επισκέπτες μπορούν να στείλουν μυστικά στους διαμορφωμένους παραλήπτες σας",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Απαιτεί την ενεργοποίηση των εισερχόμενων μυστικών με τουλάχιστον έναν παραλήπτη",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Διαμόρφωση παραληπτών",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Ιδιωτική σελίδα προορισμού",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Δημόσια: οι επισκέπτες δημιουργούν μυστικά",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Δημόσια: οι επισκέπτες σάς στέλνουν μυστικά",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Τα εισερχόμενα δεν είναι έτοιμα — εμφανίζεται ιδιωτική σελίδα προορισμού",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Εισερχόμενα",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Οι ρυθμίσεις αρχικής σελίδας αποθηκεύτηκαν",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Η αρχική σελίδα αυτού του τομέα παρουσιάζει αυτήν τη στιγμή τη φόρμα εισερχόμενων μυστικών. Η απενεργοποίηση των εισερχόμενων μυστικών ή η αφαίρεση όλων των παραληπτών θα μεταβάλει την αρχική σελίδα σε ιδιωτική σελίδα προορισμού μέχρι να είναι ξανά έτοιμα τα εισερχόμενα.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Σύνδεση σε αυτόν τον τομέα",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Η σύνδεση είναι απενεργοποιημένη σε ολόκληρο τον χώρο εργασίας, επομένως δεν είναι διαθέσιμη σε κανέναν τομέα. Οι ρυθμίσεις σας εδώ διατηρούνται και τίθενται σε ισχύ όταν ενεργοποιηθεί ξανά η σύνδεση του χώρου εργασίας.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Εγγραφές σε αυτόν τον τομέα",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Οι εγγραφές είναι απενεργοποιημένες σε ολόκληρο τον χώρο εργασίας, επομένως δεν είναι διαθέσιμες σε κανέναν τομέα. Οι ρυθμίσεις σας εδώ διατηρούνται και τίθενται σε ισχύ όταν ενεργοποιηθούν ξανά οι εγγραφές του χώρου εργασίας.",
+    "source_hash": "49faefe4"
   }
 }

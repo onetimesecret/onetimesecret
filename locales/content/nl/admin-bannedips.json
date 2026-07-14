@@ -1,0 +1,114 @@
+{
+  "web.admin.bannedIps.title": {
+    "text": "Geblokkeerde IP's",
+    "source_hash": "0ece5643"
+  },
+  "web.admin.bannedIps.description": {
+    "text": "Blokkeer en deblokkeer IP-adressen aan de rand van de site.",
+    "source_hash": "69c0c992"
+  },
+  "web.admin.bannedIps.currentIp": {
+    "text": "Je huidige IP",
+    "source_hash": "14ff3ec5"
+  },
+  "web.admin.bannedIps.actions.cancel": {
+    "text": "Annuleren",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.bannedIps.actions.ban": {
+    "text": "Een IP blokkeren",
+    "source_hash": "9937d7fd"
+  },
+  "web.admin.bannedIps.actions.quickBan": {
+    "text": "Dit IP blokkeren",
+    "source_hash": "95720658"
+  },
+  "web.admin.bannedIps.ban.confirmTitle": {
+    "text": "Dit IP-adres blokkeren?",
+    "source_hash": "512acd7b"
+  },
+  "web.admin.bannedIps.ban.confirmDescription": {
+    "text": "Dit blokkeert {ip} aan de rand van de site. Typ het IP om te bevestigen.",
+    "source_hash": "d8f6142e"
+  },
+  "web.admin.bannedIps.ban.button": {
+    "text": "IP blokkeren",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.ban.success": {
+    "text": "{ip} geblokkeerd",
+    "source_hash": "97180685"
+  },
+  "web.admin.bannedIps.columns.ipAddress": {
+    "text": "IP-adres",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.bannedIps.columns.reason": {
+    "text": "Reden",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.bannedIps.columns.bannedAt": {
+    "text": "Geblokkeerd op",
+    "source_hash": "dfbd120e"
+  },
+  "web.admin.bannedIps.columns.bannedBy": {
+    "text": "Geblokkeerd door",
+    "source_hash": "9f47db0e"
+  },
+  "web.admin.bannedIps.columns.actions": {
+    "text": "Acties",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.bannedIps.form.title": {
+    "text": "Een IP-adres blokkeren",
+    "source_hash": "59961746"
+  },
+  "web.admin.bannedIps.form.ipLabel": {
+    "text": "IP-adres of CIDR",
+    "source_hash": "133d0819"
+  },
+  "web.admin.bannedIps.form.reasonLabel": {
+    "text": "Reden (optioneel)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.bannedIps.form.reasonPlaceholder": {
+    "text": "bijv. credential stuffing",
+    "source_hash": "828a15ae"
+  },
+  "web.admin.bannedIps.form.submit": {
+    "text": "IP blokkeren",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.list.loadError": {
+    "text": "Kon geblokkeerde IP's niet laden.",
+    "source_hash": "539f2e34"
+  },
+  "web.admin.bannedIps.list.retry": {
+    "text": "Opnieuw proberen",
+    "source_hash": "942087cc"
+  },
+  "web.admin.bannedIps.list.empty": {
+    "text": "Er zijn momenteel geen IP's geblokkeerd",
+    "source_hash": "b72cc9c5"
+  },
+  "web.admin.bannedIps.stats.total": {
+    "text": "Totaal geblokkeerd",
+    "source_hash": "41059c94"
+  },
+  "web.admin.bannedIps.unban.confirmTitle": {
+    "text": "Deze blokkade opheffen?",
+    "source_hash": "88473e59"
+  },
+  "web.admin.bannedIps.unban.confirmDescription": {
+    "text": "Dit deblokkeert {ip}. Typ het IP om te bevestigen.",
+    "source_hash": "6bec3191"
+  },
+  "web.admin.bannedIps.unban.button": {
+    "text": "Deblokkeren",
+    "source_hash": "25fb5989"
+  },
+  "web.admin.bannedIps.unban.success": {
+    "text": "{ip} gedeblokkeerd",
+    "source_hash": "79192c36"
+  }
+}

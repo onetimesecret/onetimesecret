@@ -1,0 +1,114 @@
+{
+  "web.admin.bannedIps.title": {
+    "text": "IP bannies",
+    "source_hash": "0ece5643"
+  },
+  "web.admin.bannedIps.description": {
+    "text": "Bannir et débannir des adresses IP au périmètre du site.",
+    "source_hash": "69c0c992"
+  },
+  "web.admin.bannedIps.currentIp": {
+    "text": "Votre IP actuelle",
+    "source_hash": "14ff3ec5"
+  },
+  "web.admin.bannedIps.actions.cancel": {
+    "text": "Annuler",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.bannedIps.actions.ban": {
+    "text": "Bannir une IP",
+    "source_hash": "9937d7fd"
+  },
+  "web.admin.bannedIps.actions.quickBan": {
+    "text": "Bannir cette IP",
+    "source_hash": "95720658"
+  },
+  "web.admin.bannedIps.ban.confirmTitle": {
+    "text": "Bannir cette adresse IP ?",
+    "source_hash": "512acd7b"
+  },
+  "web.admin.bannedIps.ban.confirmDescription": {
+    "text": "Cela bloque {ip} au périmètre du site. Saisissez l'IP pour confirmer.",
+    "source_hash": "d8f6142e"
+  },
+  "web.admin.bannedIps.ban.button": {
+    "text": "Bannir l'IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.ban.success": {
+    "text": "{ip} banni",
+    "source_hash": "97180685"
+  },
+  "web.admin.bannedIps.columns.ipAddress": {
+    "text": "Adresse IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.bannedIps.columns.reason": {
+    "text": "Motif",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.bannedIps.columns.bannedAt": {
+    "text": "Banni le",
+    "source_hash": "dfbd120e"
+  },
+  "web.admin.bannedIps.columns.bannedBy": {
+    "text": "Banni par",
+    "source_hash": "9f47db0e"
+  },
+  "web.admin.bannedIps.columns.actions": {
+    "text": "Actions",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.bannedIps.form.title": {
+    "text": "Bannir une adresse IP",
+    "source_hash": "59961746"
+  },
+  "web.admin.bannedIps.form.ipLabel": {
+    "text": "Adresse IP ou CIDR",
+    "source_hash": "133d0819"
+  },
+  "web.admin.bannedIps.form.reasonLabel": {
+    "text": "Motif (facultatif)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.bannedIps.form.reasonPlaceholder": {
+    "text": "p. ex. bourrage d'identifiants",
+    "source_hash": "828a15ae"
+  },
+  "web.admin.bannedIps.form.submit": {
+    "text": "Bannir l'IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.list.loadError": {
+    "text": "Impossible de charger les IP bannies.",
+    "source_hash": "539f2e34"
+  },
+  "web.admin.bannedIps.list.retry": {
+    "text": "Réessayer",
+    "source_hash": "942087cc"
+  },
+  "web.admin.bannedIps.list.empty": {
+    "text": "Aucune IP n'est actuellement bannie",
+    "source_hash": "b72cc9c5"
+  },
+  "web.admin.bannedIps.stats.total": {
+    "text": "Total banni",
+    "source_hash": "41059c94"
+  },
+  "web.admin.bannedIps.unban.confirmTitle": {
+    "text": "Retirer ce bannissement ?",
+    "source_hash": "88473e59"
+  },
+  "web.admin.bannedIps.unban.confirmDescription": {
+    "text": "Cela débloque {ip}. Saisissez l'IP pour confirmer.",
+    "source_hash": "6bec3191"
+  },
+  "web.admin.bannedIps.unban.button": {
+    "text": "Débannir",
+    "source_hash": "25fb5989"
+  },
+  "web.admin.bannedIps.unban.success": {
+    "text": "{ip} débanni",
+    "source_hash": "79192c36"
+  }
+}

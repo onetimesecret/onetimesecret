@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organizacija",
-    "source_hash": "d764d425"
+    "text": "Delovni prostor",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organizacije",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organizacije",
-    "source_hash": "2730183d"
+    "text": "Delovni prostori",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Upravljaj organizacije",
-    "source_hash": "be0fe4c3"
+    "text": "Upravljaj delovne prostore",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Nova organizacija",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Še ni organizacij",
-    "source_hash": "5b7a7cbd"
+    "text": "Še ni delovnih prostorov",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizacije omogočajo enotno obračunavanje in administracijo. Začnite z ustvarjanjem prve organizacije.",
-    "source_hash": "deab4304"
+    "text": "Delovni prostori zagotavljajo poenoteno obračunavanje in upravljanje. Začnite z ustvarjanjem svojega prvega delovnega prostora.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Opis ni na voljo",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Ustvarite prvo organizacijo",
-    "source_hash": "27bae486"
+    "text": "Ustvari prvi delovni prostor",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Ustvarite novo organizacijo",
-    "source_hash": "67cd5950"
+    "text": "Ustvarite nov delovni prostor",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Ustvari",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Ustvarjanje organizacije ni uspelo",
-    "source_hash": "f2204373"
+    "text": "Delovnega prostora ni bilo mogoče ustvariti",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Ime organizacije",
-    "source_hash": "4cbd9073"
+    "text": "Ime delovnega prostora",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "npr. Podjetje d.o.o.",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Izberite organizacijo",
-    "source_hash": "48326f52"
+    "text": "Izberite delovni prostor",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Preklapljanje organizacij ni na voljo na tej strani",
-    "source_hash": "da0cf810"
+    "text": "Preklapljanje med delovnimi prostori na tej strani ni na voljo",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organizacija ni najdena",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Ekipa",
-    "source_hash": "5985039f"
+    "text": "Člani",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Obračunavanje",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Član",
-    "source_hash": "7c968fb7"
+    "text": "Član ekipe",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Skrbnik",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Povabila članov ekipe zahtevajo paket z upravljanjem ekip. Nadgradite za dodajanje sodelavcev v vašo organizacijo.",
-    "source_hash": "cf10d623"
+    "text": "Povabila članov zahtevajo plačljiv paket. Nadgradite za dodajanje sodelavcev v vašo organizacijo.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Prijavljeni z drugim računom",
-    "source_hash": "4a2f91c3"
+    "text": "Prijavljen je drug račun",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "To povabilo je za {invitedEmail}. Trenutno ste prijavljeni kot {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Nadaljuj kot {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "še {days}d",
@@ -1026,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Ustvari delovni prostor",
+    "source_hash": "c63c14cf"
   }
 }

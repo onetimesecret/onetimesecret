@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Οργανισμοί",
-    "source_hash": "2730183d"
+    "text": "Χώροι εργασίας",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Ρυθμίσεις οργανισμού",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του {product_name}. Οι απατεώνες δημιουργούν ορισμένες φορές ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το {product_name} για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγχετε τον τομέα πριν δημιουργήσετε νέους συνδέσμους.",
-    "source_hash": "68ec20f8"
+    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του {product_name}. Οι απατεώνες ενίοτε δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το {product_name} για να κλέψουν τα μυστικά σας. Για να αποφύγετε τις επιθέσεις phishing, επαληθεύστε τον τομέα της περιοχής στη γραμμή διευθύνσεων πριν δημιουργήσετε νέους συνδέσμους.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Απλή, διαφανής τιμολόγηση",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Εισερχόμενα μυστικά",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Ενημέρωση",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Ενημέρωση...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Ελέγξτε το email σας",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Ρύθμιση DNS",
+    "source_hash": "6c63df31"
   }
 }

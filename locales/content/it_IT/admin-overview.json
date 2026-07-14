@@ -1,0 +1,94 @@
+{
+  "web.admin.overview.retry": {
+    "text": "Riprova",
+    "source_hash": "942087cc"
+  },
+  "web.admin.overview.feedback.title": {
+    "text": "Feedback degli utenti",
+    "source_hash": "cb7b24c6"
+  },
+  "web.admin.overview.feedback.total": {
+    "text": "{count} negli ultimi 30 giorni",
+    "source_hash": "b6b9147c"
+  },
+  "web.admin.overview.feedback.today": {
+    "text": "Oggi",
+    "source_hash": "2b065c7c"
+  },
+  "web.admin.overview.feedback.yesterday": {
+    "text": "Ieri",
+    "source_hash": "56618125"
+  },
+  "web.admin.overview.feedback.older": {
+    "text": "Meno recenti",
+    "source_hash": "03281c88"
+  },
+  "web.admin.overview.feedback.empty": {
+    "text": "Nessun feedback in questo periodo",
+    "source_hash": "e09d594d"
+  },
+  "web.admin.overview.feedback.loadError": {
+    "text": "Impossibile caricare i feedback.",
+    "source_hash": "4011c408"
+  },
+  "web.admin.overview.stats.heading": {
+    "text": "Statistiche della piattaforma",
+    "source_hash": "77728e4d"
+  },
+  "web.admin.overview.stats.customers": {
+    "text": "Clienti",
+    "source_hash": "aabe76f1"
+  },
+  "web.admin.overview.stats.secrets": {
+    "text": "Segreti attivi",
+    "source_hash": "8db4c552"
+  },
+  "web.admin.overview.stats.sessions": {
+    "text": "Sessioni attive",
+    "source_hash": "61ad9909"
+  },
+  "web.admin.overview.stats.receipts": {
+    "text": "Ricevute",
+    "source_hash": "60a627df"
+  },
+  "web.admin.overview.stats.secretsCreated": {
+    "text": "Segreti creati (totale)",
+    "source_hash": "bdb49794"
+  },
+  "web.admin.overview.stats.emailsSent": {
+    "text": "Email inviate (totale)",
+    "source_hash": "1c9a7518"
+  },
+  "web.admin.overview.stats.loadError": {
+    "text": "Impossibile caricare le statistiche della piattaforma.",
+    "source_hash": "5f13cf7a"
+  },
+  "web.admin.overview.trends.title": {
+    "text": "Ultimi 30 giorni",
+    "source_hash": "f8f03fb4"
+  },
+  "web.admin.overview.trends.signups": {
+    "text": "Registrazioni al giorno",
+    "source_hash": "8db399dc"
+  },
+  "web.admin.overview.trends.secretsCreated": {
+    "text": "Segreti creati al giorno",
+    "source_hash": "d6852656"
+  },
+  "web.admin.overview.trends.today": {
+    "text": "oggi",
+    "source_hash": "e0f4f767"
+  },
+  "web.admin.overview.trends.collectingNote": {
+    "text": "Raccolta dati dal primo punto rilevato — i giorni precedenti mostrano zero.",
+    "source_hash": "269ee1eb"
+  },
+  "web.admin.overview.trends.sparklineAria": {
+    "text": "{label}: andamento a 30 giorni, {count} oggi",
+    "source_hash": "eb57a7b2"
+  },
+  "web.admin.overview.trends.loadError": {
+    "text": "Impossibile caricare gli andamenti.",
+    "source_hash": "9cf97f63"
+  }
+}

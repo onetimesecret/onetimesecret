@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "השתמש באפשרות קישור הקסם כדי להתחבר ללא סיסמה. לאחר ההתחברות, תוכל לשנות את הסיסמה שלך בהגדרות החשבון.",
-    "source_hash": "2a058600"
+    "text": "באפשרותך לבקש קישור לאיפוס סיסמה כדי ליצור סיסמה חדשה.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "החשבון ננעל זמנית?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "דומיין הדוא״ל שלך אינו מורשה להרשמה באמצעות SSO. אנא פנה למנהל המערכת שלך.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "בדוק את הדוא״ל שלך",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "שלחנו קישור אימות לכתובת הדוא״ל שלך.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "שלחנו קישור אימות לכתובת זו — פתח את הדוא״ל ולחץ על הקישור כדי להפעיל את החשבון שלך.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "לא מוצא אותו? בדוק את תיקיית הספאם שלך.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "הזנת כתובת שגויה?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "התחל מחדש",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "סיסמה",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "לא קיבלת את דוא״ל האימות? הזן את הדוא״ל שלך כדי לשלוח אותו מחדש.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "שלח מחדש דוא״ל אימות",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "אם חשבון זקוק לאימות, נשלח דוא״ל חדש. אנא בדוק את תיבת הדואר הנכנס ותיקיית הספאם שלך.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "לא ניתן היה לשלוח את דוא״ל האימות. אנא בדוק את החיבור שלך ונסה שוב.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "שלח דוא״ל מחדש",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "הדוא״ל שלך אומת — כעת באפשרותך להתחבר.",
+    "source_hash": "c8d4b5a8"
   }
 }

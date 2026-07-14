@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si el teu correu de contacte de facturació és diferent del correu del teu compte d'{product_name}, utilitza el correu de contacte de facturació per al compte de la nova regió per mantenir els avantatges de la subscripció.",
-    "source_hash": "dac1cc28"
+    "text": "Si el teu correu electrònic de contacte de facturació difereix del correu electrònic del teu compte de {product_name}, fes servir el correu electrònic de contacte de facturació per al compte de la nova regió per mantenir els avantatges de la teva subscripció.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Els avantatges de la teva subscripció s'aplicaran automàticament a qualsevol compte creat amb la teva adreça de correu de facturació.",

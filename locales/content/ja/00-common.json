@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "組織",
-    "source_hash": "2730183d"
+    "text": "ワークスペース",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "組織設定",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "常に公式の{product_name}ウェブサイトにアクセスしていることを確認してください。詐欺師は、シークレットを盗むために{product_name}とまったく同じように見える偽のウェブサイトを作成することがあります。フィッシング攻撃を回避するため、新しいリンクを作成する前にリージョンのドメインを確認してください。",
-    "source_hash": "68ec20f8"
+    "text": "常に公式の{product_name}ウェブサイトにアクセスしていることを確認してください。詐欺師は、シークレットを盗むために{product_name}とまったく同じように見える偽のウェブサイトを作成することがあります。フィッシング攻撃を防ぐため、新しいリンクを作成する前に、アドレスバーでリージョンのドメインを確認してください。",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "シンプルで透明な料金",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "受信シークレット",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "更新",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "更新中...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "メールをご確認ください",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS設定",
+    "source_hash": "6c63df31"
   }
 }

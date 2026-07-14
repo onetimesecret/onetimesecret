@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organizzazione",
-    "source_hash": "d764d425"
+    "text": "Area di lavoro",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organizzazioni",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organizzazioni",
-    "source_hash": "2730183d"
+    "text": "Aree di lavoro",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Gestisci organizzazioni",
-    "source_hash": "be0fe4c3"
+    "text": "Gestisci aree di lavoro",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Nuova organizzazione",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Nessuna organizzazione ancora",
-    "source_hash": "5b7a7cbd"
+    "text": "Ancora nessuna area di lavoro",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Le organizzazioni forniscono fatturazione e amministrazione unificate. Inizia creando la tua prima organizzazione.",
-    "source_hash": "deab4304"
+    "text": "Le aree di lavoro offrono fatturazione e amministrazione unificate. Inizia creando la tua prima area di lavoro.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Nessuna descrizione fornita",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Crea la prima organizzazione",
-    "source_hash": "27bae486"
+    "text": "Crea la prima area di lavoro",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Crea una nuova organizzazione",
-    "source_hash": "67cd5950"
+    "text": "Crea una nuova area di lavoro",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Crea",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Impossibile creare l'organizzazione",
-    "source_hash": "f2204373"
+    "text": "Creazione dell'area di lavoro non riuscita",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Nome organizzazione",
-    "source_hash": "4cbd9073"
+    "text": "Nome dell'area di lavoro",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "es. Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Seleziona un'organizzazione",
-    "source_hash": "48326f52"
+    "text": "Seleziona un'area di lavoro",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Cambio organizzazione non disponibile in questa pagina",
-    "source_hash": "da0cf810"
+    "text": "Il cambio di area di lavoro non è disponibile in questa pagina",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organizzazione non trovata",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
-    "source_hash": "5985039f"
+    "text": "Membri",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Fatturazione",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro",
-    "source_hash": "7c968fb7"
+    "text": "Membro del team",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Amministratore",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Gli inviti ai membri del team richiedono un piano con gestione team. Aggiorna per aggiungere collaboratori alla tua organizzazione.",
-    "source_hash": "cf10d623"
+    "text": "Gli inviti dei membri richiedono un piano a pagamento. Esegui l'upgrade per aggiungere collaboratori alla tua area di lavoro.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Connesso con un altro account",
-    "source_hash": "4a2f91c3"
+    "text": "È connesso un account diverso",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Questo invito è per {invitedEmail}. Sei attualmente connesso come {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Continua come {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}g rimanenti",
@@ -1026,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Crea area di lavoro",
+    "source_hash": "c63c14cf"
   }
 }

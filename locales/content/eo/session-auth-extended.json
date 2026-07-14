@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Via seanco eksvalidiĝis. Bonvolu refreŝigi la paĝon kaj reprovi.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Ensaluto malsukcesis. Bonvolu reprovi.",

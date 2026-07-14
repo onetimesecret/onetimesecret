@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "製品",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "ソースコード",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "請求",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "{product_name}を通じてあなたに共有された安全なメッセージを表示しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。",
-    "source_hash": "e0f1a10c"
+    "text": "{product_name}を通じて共有された安全なメッセージを表示しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "このシークレットを後で再度表示できますか?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "{product_name}のホームページにアクセス",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "フッターナビゲーション",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "サポートが必要な場合はサポートにお問い合わせください",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Colonel専用",
+    "source_hash": "3f1e2dbd"
   }
 }

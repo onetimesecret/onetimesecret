@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "조직",
-    "source_hash": "d764d425"
+    "text": "워크스페이스",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "조직",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "조직",
-    "source_hash": "2730183d"
+    "text": "워크스페이스",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "조직 관리",
-    "source_hash": "be0fe4c3"
+    "text": "워크스페이스 관리",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "새 조직",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "아직 조직이 없습니다",
-    "source_hash": "5b7a7cbd"
+    "text": "아직 워크스페이스가 없습니다",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "조직은 통합 결제 및 관리를 제공합니다. 첫 번째 조직을 만들어 시작하세요.",
-    "source_hash": "deab4304"
+    "text": "워크스페이스는 통합 결제 및 관리 기능을 제공합니다. 첫 워크스페이스를 생성하여 시작하세요.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "설명이 제공되지 않았습니다",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "첫 번째 조직 생성",
-    "source_hash": "27bae486"
+    "text": "첫 워크스페이스 생성",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "새 조직 생성",
-    "source_hash": "67cd5950"
+    "text": "새 워크스페이스 생성",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "생성",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "조직 생성 실패",
-    "source_hash": "f2204373"
+    "text": "워크스페이스 생성에 실패했습니다",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "조직 이름",
-    "source_hash": "4cbd9073"
+    "text": "워크스페이스 이름",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "예: Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "조직 선택",
-    "source_hash": "48326f52"
+    "text": "워크스페이스 선택",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "이 페이지에서는 조직 전환을 사용할 수 없습니다",
-    "source_hash": "da0cf810"
+    "text": "이 페이지에서는 워크스페이스 전환을 사용할 수 없습니다",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "조직을 찾을 수 없습니다",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "팀",
-    "source_hash": "5985039f"
+    "text": "구성원",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "결제",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "멤버",
-    "source_hash": "7c968fb7"
+    "text": "팀 구성원",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "관리자",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "팀 멤버 초대는 팀 관리가 포함된 요금제가 필요합니다. 조직에 협력자를 추가하려면 업그레이드하세요.",
-    "source_hash": "cf10d623"
+    "text": "구성원 초대에는 유료 요금제가 필요합니다. 조직에 협업자를 추가하려면 업그레이드하세요.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -557,7 +557,7 @@
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "다른 계정으로 로그인됨",
-    "source_hash": "4a2f91c3"
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "이 초대는 {invitedEmail} 대상입니다. 현재 {currentEmail}(으)로 로그인되어 있습니다.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "{email}(으)로 계속",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}일 남음",
@@ -1026,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "워크스페이스 생성",
+    "source_hash": "c63c14cf"
   }
 }

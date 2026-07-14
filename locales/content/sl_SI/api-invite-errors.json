@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Povabilo je bilo že %{status}",
-    "source_hash": "130c87e0"
+    "text": "To povabilo je bilo že obdelano",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Povabilo je poteklo",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Ste že član te organizacije",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "To povabilo je bilo že sprejeto",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "To povabilo je bilo že zavrnjeno",
+    "source_hash": "96e0d626"
   }
 }

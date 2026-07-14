@@ -1,0 +1,178 @@
+{
+  "web.admin.domaintoolbox.title": {
+    "text": "域名工具箱",
+    "source_hash": "5a9333db"
+  },
+  "web.admin.domaintoolbox.description": {
+    "text": "诊断和修复自定义域名关系：扫描孤立项、探测 DNS/SSL、修复所有权，以及在组织之间转移。",
+    "source_hash": "778537aa"
+  },
+  "web.admin.domaintoolbox.retry": {
+    "text": "重试",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domaintoolbox.preview": {
+    "text": "预览",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domaintoolbox.fields.extid": {
+    "text": "域名外部 ID",
+    "source_hash": "f52af6c5"
+  },
+  "web.admin.domaintoolbox.fields.extidPlaceholder": {
+    "text": "cd_…（域名 extid）",
+    "source_hash": "bb9bf49a"
+  },
+  "web.admin.domaintoolbox.orphaned.title": {
+    "text": "孤立的域名",
+    "source_hash": "ddcea596"
+  },
+  "web.admin.domaintoolbox.orphaned.description": {
+    "text": "没有所属组织的自定义域名。使用修复功能可重新分配。",
+    "source_hash": "967268f5"
+  },
+  "web.admin.domaintoolbox.orphaned.empty": {
+    "text": "未找到孤立的域名。",
+    "source_hash": "06ef9979"
+  },
+  "web.admin.domaintoolbox.orphaned.loadError": {
+    "text": "无法加载孤立的域名。",
+    "source_hash": "ca0e33bf"
+  },
+  "web.admin.domaintoolbox.orphaned.repairAction": {
+    "text": "修复",
+    "source_hash": "1196b6c5"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.domain": {
+    "text": "域名",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.state": {
+    "text": "状态",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.verified": {
+    "text": "已验证",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.created": {
+    "text": "创建时间",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.actions": {
+    "text": "操作",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domaintoolbox.probe.title": {
+    "text": "探测（DNS / SSL）",
+    "source_hash": "ec69a087"
+  },
+  "web.admin.domaintoolbox.probe.description": {
+    "text": "发起一次实时 HTTPS 请求，以确认该域名正在提供流量，并检查其 TLS 证书。只读。",
+    "source_hash": "1eecfa96"
+  },
+  "web.admin.domaintoolbox.probe.button": {
+    "text": "探测",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domaintoolbox.probe.healthLabel": {
+    "text": "健康状况",
+    "source_hash": "55898449"
+  },
+  "web.admin.domaintoolbox.repair.title": {
+    "text": "修复关系",
+    "source_hash": "0053d07c"
+  },
+  "web.admin.domaintoolbox.repair.description": {
+    "text": "修复域名的组织关系不一致问题。请先预览，然后应用。",
+    "source_hash": "18ca490b"
+  },
+  "web.admin.domaintoolbox.repair.orgIdLabel": {
+    "text": "分配组织（如为孤立项）",
+    "source_hash": "f95b010a"
+  },
+  "web.admin.domaintoolbox.repair.orgIdPlaceholder": {
+    "text": "组织 id 或 extid",
+    "source_hash": "a87d634e"
+  },
+  "web.admin.domaintoolbox.repair.statusLabel": {
+    "text": "状态",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domaintoolbox.repair.noIssues": {
+    "text": "未发现问题——关系一致。",
+    "source_hash": "e1a4c49d"
+  },
+  "web.admin.domaintoolbox.repair.applyButton": {
+    "text": "应用修复",
+    "source_hash": "3f92b29f"
+  },
+  "web.admin.domaintoolbox.repair.success": {
+    "text": "修复已成功应用。",
+    "source_hash": "24f25b9b"
+  },
+  "web.admin.domaintoolbox.repair.confirmTitle": {
+    "text": "应用域名修复？",
+    "source_hash": "9429998b"
+  },
+  "web.admin.domaintoolbox.repair.confirmDescription": {
+    "text": "此操作将修改 {domain} 的所有权/关系状态。请重新输入域名外部 ID 以确认。",
+    "source_hash": "426d267b"
+  },
+  "web.admin.domaintoolbox.reverify.button": {
+    "text": "重新验证",
+    "source_hash": "0344860a"
+  },
+  "web.admin.domaintoolbox.reverify.success": {
+    "text": "域名重新验证已完成。",
+    "source_hash": "497a2348"
+  },
+  "web.admin.domaintoolbox.transfer.title": {
+    "text": "转移所有权",
+    "source_hash": "3667f939"
+  },
+  "web.admin.domaintoolbox.transfer.description": {
+    "text": "将域名重新分配给其他组织。这是影响范围最大的操作——请仔细预览并确认。",
+    "source_hash": "d4e26e03"
+  },
+  "web.admin.domaintoolbox.transfer.toOrgLabel": {
+    "text": "目标组织",
+    "source_hash": "4e4486eb"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgLabel": {
+    "text": "来源组织（可选）",
+    "source_hash": "3666815f"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
+    "text": "断言当前所有者",
+    "source_hash": "cd9e769c"
+  },
+  "web.admin.domaintoolbox.transfer.from": {
+    "text": "从",
+    "source_hash": "21819769"
+  },
+  "web.admin.domaintoolbox.transfer.to": {
+    "text": "至",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domaintoolbox.transfer.orphaned": {
+    "text": "已孤立",
+    "source_hash": "54dc2166"
+  },
+  "web.admin.domaintoolbox.transfer.applyButton": {
+    "text": "转移域名",
+    "source_hash": "9517aeb9"
+  },
+  "web.admin.domaintoolbox.transfer.success": {
+    "text": "域名已成功转移。",
+    "source_hash": "bbca9de9"
+  },
+  "web.admin.domaintoolbox.transfer.confirmTitle": {
+    "text": "转移域名所有权？",
+    "source_hash": "d306a15a"
+  },
+  "web.admin.domaintoolbox.transfer.confirmDescription": {
+    "text": "此操作将把 {domain} 的所有权重新分配给另一个组织。请重新输入域名外部 ID 以确认。",
+    "source_hash": "edefd97c"
+  }
+}

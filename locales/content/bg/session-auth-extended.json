@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Сесията ви е изтекла. Моля, опреснете страницата и опитайте отново.",
-    "source_hash": "a7c3e901"
+    "text": "Вашата сесия е изтекла. Моля, опреснете страницата и опитайте отново.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Влизането е неуспешно. Моля, опитайте отново.",

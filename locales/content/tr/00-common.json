@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Kuruluşlar",
-    "source_hash": "2730183d"
+    "text": "Çalışma Alanları",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Kuruluş Ayarları",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Her zaman resmi {product_name} web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için {product_name}'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce bölge alan adını kontrol edin.",
-    "source_hash": "68ec20f8"
+    "text": "Her zaman resmi {product_name} web sitesinde olduğunuzdan emin olun. Dolandırıcılar bazen gizli mesajlarınızı çalmak için {product_name} sitesine birebir benzeyen sahte web siteleri oluşturabilir. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce adres çubuğunuzdaki bölgenin alan adını doğrulayın.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Basit, Şeffaf Fiyatlandırma",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Gelen Gizli Mesajlar",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Güncelle",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Güncelleniyor...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "E-postanızı Kontrol Edin",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS Kurulumu",
+    "source_hash": "6c63df31"
   }
 }

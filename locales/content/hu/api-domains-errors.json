@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Ismétlődő címzett e-mail-címek nem engedélyezettek",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "Érvénytelen secrets_mode: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "A bejövő titkok mód az incoming_secrets jogosultságot igényli. Kérjük, frissítse a csomagját.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "A bejövő titkokat legalább egy címzettel engedélyezni kell, mielőtt kezdőlapként használhatók lennének.",
+    "source_hash": "556da6e2"
   }
 }

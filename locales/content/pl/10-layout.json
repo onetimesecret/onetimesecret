@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Produkt",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Kod źródłowy",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Płatności",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Wyświetlasz bezpieczną wiadomość, która została Ci udostępniona przez {product_name}. Ta treść jest wyświetlana tylko raz, a następnie trwale usuwana z naszych serwerów.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Czy mogę wyświetlić ten sekret ponownie później?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Odwiedź stronę główną {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Nawigacja stopki",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Skontaktuj się z pomocą techniczną, aby uzyskać wsparcie",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Tylko dla Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

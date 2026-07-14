@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Ús",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Exporta les mètriques d'ús per a un interval de dates.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Data d'inici",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "Data de finalització",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Obtén les dades",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "No s'han pogut carregar les dades d'ús.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Torna-ho a provar",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "Cap dada per a aquest interval",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Secrets per estat",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Secrets per dia",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "Usuaris nous per dia",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Baixa el JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Baixa el CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Data",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Recompte",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Total de secrets",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "Usuaris nous",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Mitjana de secrets/dia",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Mitjana d'usuaris/dia",
+    "source_hash": "491f626d"
+  }
+}

@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si votre courriel de contact de facturation diffère du courriel de votre compte {product_name}, utilisez le courriel de contact de facturation du compte de la nouvelle région pour conserver les avantages de votre abonnement.",
-    "source_hash": "dac1cc28"
+    "text": "Si votre courriel de contact de facturation diffère du courriel de votre compte {product_name}, utilisez le courriel de contact de facturation pour le compte de la nouvelle région afin de conserver les avantages de votre abonnement.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Vos avantages d'abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse courriel de facturation.",

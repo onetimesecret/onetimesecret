@@ -1,0 +1,66 @@
+{
+  "web.admin.kit.confirmDialog.typePrompt": {
+    "text": "如需确认，请在下方输入 {token}",
+    "source_hash": "282445b6"
+  },
+  "web.admin.kit.confirmDialog.inputLabel": {
+    "text": "确认文本",
+    "source_hash": "8edc1113"
+  },
+  "web.admin.kit.confirmDialog.mismatchHint": {
+    "text": "输入的文本必须完全匹配才能继续。",
+    "source_hash": "f0cc7389"
+  },
+  "web.admin.kit.dataTable.empty": {
+    "text": "未找到记录",
+    "source_hash": "6e2ea637"
+  },
+  "web.admin.kit.dataTable.sortBy": {
+    "text": "按{column}排序",
+    "source_hash": "55fb1bf9"
+  },
+  "web.admin.kit.filterBar.search": {
+    "text": "搜索",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.kit.filterBar.searchPlaceholder": {
+    "text": "搜索…",
+    "source_hash": "7336265a"
+  },
+  "web.admin.kit.filterBar.clearFilters": {
+    "text": "清除筛选",
+    "source_hash": "7179ea00"
+  },
+  "web.admin.kit.filterBar.all": {
+    "text": "全部",
+    "source_hash": "a52ace42"
+  },
+  "web.admin.kit.jsonViewer.expandAll": {
+    "text": "全部展开",
+    "source_hash": "a3e586be"
+  },
+  "web.admin.kit.jsonViewer.collapseAll": {
+    "text": "全部折叠",
+    "source_hash": "25f7b372"
+  },
+  "web.admin.kit.jsonViewer.empty": {
+    "text": "无数据",
+    "source_hash": "3b41ba9c"
+  },
+  "web.admin.kit.jsonViewer.copyLabel": {
+    "text": "复制 JSON",
+    "source_hash": "7708c6e2"
+  },
+  "web.admin.kit.revealEmail.reveal": {
+    "text": "显示邮箱地址",
+    "source_hash": "f6272277"
+  },
+  "web.admin.kit.revealEmail.hide": {
+    "text": "隐藏邮箱地址",
+    "source_hash": "9755e870"
+  },
+  "web.admin.kit.revealEmail.copy": {
+    "text": "复制邮箱地址",
+    "source_hash": "61b94846"
+  }
+}

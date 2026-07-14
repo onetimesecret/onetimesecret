@@ -28,8 +28,8 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Antaŭrigardi kaj personecigi",
-    "source_hash": "215d3659"
+    "text": "Personecigi kaj antaŭrigardi",
+    "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Ŝanĝu al Safari retumila vido",
@@ -88,8 +88,8 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Klaku por alŝuti emblemon. Rekomendita grandeco: 128x128 pikseloj. Maksimuma dosiergrandeco: 1MB. Subtenataj formatoj: PNG, JPG, SVG",
-    "source_hash": "a35452bf"
+    "text": "Klaku por administri vian emblemon. Rekomendita grandeco: 128x128 rastrumeroj. Maksimuma dosiergrandeco: 1MB. Subtenataj formatoj: PNG, JPG, SVG",
+    "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Alŝutu logon",
@@ -186,5 +186,225 @@
   "web.branding.keyhole_logo_icon": {
     "text": "Ŝlosiltrua piktogramo reprezentanta sekuran, privatan kunhavigon",
     "source_hash": "c868ac60"
+  },
+  "web.branding.secondary_color": {
+    "text": "Duaranga koloro",
+    "source_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Fona koloro",
+    "source_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Teksta koloro",
+    "source_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Rando-radiuso",
+    "source_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Titola tiparo",
+    "source_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Etosaj antaŭagordoj",
+    "source_hash": "931eeb74"
+  },
+  "web.branding.logo": {
+    "text": "Emblemo",
+    "source_hash": "d707dc2f"
+  },
+  "web.branding.replace_logo": {
+    "text": "Anstataŭigi",
+    "source_hash": "95e15439"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "Antaŭrigardu antaŭ ol viaj ŝanĝoj ekvivos.",
+    "source_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Domajna emblemo",
+    "source_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG aŭ SVG. Rekomendita 128x128px, ĝis 1MB.",
+    "source_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Konservi emblemon",
+    "source_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Forigi emblemon",
+    "source_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Elektu bildon",
+    "source_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "aŭ trenu kaj demetu",
+    "source_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "Tiu dosiertipo ne estas subtenata. Bonvolu elekti bildon.",
+    "source_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "Bildo estas tro granda. Maksimuma grandeco estas {max}.",
+    "source_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "Ĉi tiu emblemo estos forigita kiam vi konservos.",
+    "source_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "Io misfunkciis. Bonvolu reprovi.",
+    "source_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Malfari",
+    "source_hash": "a8283ade"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Malalta kontrasto de teksto/fono",
+    "source_hash": "1c676370"
+  },
+  "web.branding.path_simple": {
+    "text": "Simpla",
+    "source_hash": "3fee95da"
+  },
+  "web.branding.path_match": {
+    "text": "Kongrui kun mia retejo",
+    "source_hash": "776679cf"
+  },
+  "web.branding.path_advanced": {
+    "text": "Progresinta",
+    "source_hash": "9f088dbe"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Viaj markaj esencaĵoj.",
+    "source_hash": "7c9c0cca"
+  },
+  "web.branding.path_match_tag": {
+    "text": "Kopiu agordojn de ekzistanta retejo.",
+    "source_hash": "e4b0d1cd"
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Kreu vian propran Tailwind v4 CSS.",
+    "source_hash": "2405bb6d"
+  },
+  "web.branding.badge_default": {
+    "text": "Defaŭlta",
+    "source_hash": "21b111cb"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Baldaŭ venonta",
+    "source_hash": "4f7d6401"
+  },
+  "web.branding.your_brand": {
+    "text": "Via marko",
+    "source_hash": "406265d3"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "Kelkaj rapidaj elektoj — ni traktas la ceteron.",
+    "source_hash": "dbc8ec33"
+  },
+  "web.branding.corners": {
+    "text": "Anguloj",
+    "source_hash": "1d3cc47e"
+  },
+  "web.branding.more_options": {
+    "text": "Pliaj opcioj",
+    "source_hash": "bc79cdff"
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "Ĉi tio estas viva antaŭrigardo — viaj ŝanĝoj ne estos videblaj al vizitantoj ĝis vi konservos.",
+    "source_hash": "cb4b82de"
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Direktu nin al via retejo kaj ni legos ĝiajn kolorojn kaj tiparojn, poste fermos la breĉon per unu klako.",
+    "source_hash": "42c34cc1"
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Redaktu la Tailwind v4 {'@'}theme-ĵetonojn rekte, aŭ algluu vian propran stilfolion.",
+    "source_hash": "5a8473f5"
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Ricevanto-paĝo",
+    "source_hash": "de8aa19f"
+  },
+  "web.branding.preview_badge": {
+    "text": "Antaŭrigardo",
+    "source_hash": "324b134f"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Ĉefpaĝo · ŝaltita",
+    "source_hash": "2edd85f1"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Ĉefpaĝo · malŝaltita",
+    "source_hash": "15d87050"
+  },
+  "web.branding.preview_live": {
+    "text": "Viva antaŭrigardo",
+    "source_hash": "f65ddc1f"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Kunhavigi sekreton",
+    "source_hash": "5384461b"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Krei sekretan ligilon",
+    "source_hash": "610fd42e"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Nur sekura mesaĝo-livero",
+    "source_hash": "dc24dec2"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Vizitantoj ne povas krei sekretojn ĉi tie.",
+    "source_hash": "17361d81"
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Enhavo de ricevanto-paĝo",
+    "source_hash": "937733bd"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Lingvo kaj malkaŝaj instrukcioj montrataj al ricevantoj sur ĉi tiu domajno.",
+    "source_hash": "04162b70"
+  },
+  "web.branding.tab_brand": {
+    "text": "Marko",
+    "source_hash": "090ed431"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Livero",
+    "source_hash": "52bfe584"
+  },
+  "web.branding.delivery_language": {
+    "text": "Lingvo",
+    "source_hash": "a4fe6526"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Defaŭlta por ricevanto-paĝoj kaj retmesaĝoj sur ĉi tiu domajno. Ricevantoj povas ŝanĝi lingvon sur la paĝo.",
+    "source_hash": "bfbc5599"
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Malkaŝaj instrukcioj",
+    "source_hash": "7e1331f7"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Montrata sur la ricevanto-paĝo. Lasu malplena por uzi la enkonstruitan tekston en la elektita lingvo.",
+    "source_hash": "51b9811d"
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Antaŭ malkaŝo",
+    "source_hash": "5ce82b01"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "Post malkaŝo",
+    "source_hash": "d5bfe7fd"
   }
 }

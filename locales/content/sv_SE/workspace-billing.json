@@ -140,12 +140,12 @@
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Inga organisationer",
-    "source_hash": "12420110"
+    "text": "Inga arbetsytor",
+    "source_hash": "c7f70723"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Skapa en organisation för att hantera din fakturering och prenumeration",
-    "source_hash": "41e922d2"
+    "text": "Skapa en arbetsyta för att hantera din fakturering och prenumeration",
+    "source_hash": "e0fd27a5"
   },
   "web.billing.overview.load_error": {
     "text": "Det gick inte att läsa in faktureringsinformation",
@@ -204,8 +204,8 @@
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_org": {
-    "text": "Hantera organisationer",
-    "source_hash": "be0fe4c3"
+    "text": "Hantera organisation",
+    "source_hash": "f03a4985"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Hantera team",
@@ -220,8 +220,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Enkel inloggning",
-    "source_hash": "cf7cd744"
+    "text": "Enkel inloggning (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Prioriterad support",
@@ -280,8 +280,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Enkel inloggning (SSO)",
-    "source_hash": "5db5c812"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   },
   "web.billing.features.priority_support": {
     "text": "Prioriterad support",
@@ -577,7 +577,7 @@
   },
   "web.billing.invoices.draft": {
     "text": "Utkast",
-    "source_hash": "d2e16e61"
+    "source_hash": "ebf12ef4"
   },
   "web.billing.invoices.open": {
     "text": "Öppen",

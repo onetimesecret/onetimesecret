@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Nếu email liên hệ thanh toán của bạn khác với email tài khoản {product_name}, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì các quyền lợi đăng ký của bạn.",
-    "source_hash": "dac1cc28"
+    "text": "Nếu email liên hệ thanh toán của bạn khác với email tài khoản {product_name}, hãy dùng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì các quyền lợi đăng ký của bạn.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Quyền lợi đăng ký của bạn sẽ tự động áp dụng cho bất kỳ tài khoản nào được tạo bằng địa chỉ email thanh toán.",

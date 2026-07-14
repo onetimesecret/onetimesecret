@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Aktiverad",
-    "source_hash": "92c1cdfd"
+    "text": "Aktivera",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Inaktiverad",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Uppgradera för att konfigurera",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Anpassad domän",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Det exakta värdnamnet ditt team kommer att använda, som {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Dina hemlighetslänkar kommer att finnas på",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Det är hela din domän – var ska hemlighetslänkarna finnas?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "En underdomän lämnar resten av {domain} orörd.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Rekommenderas",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Det finns inget felaktigt val – välj det ditt team känner igen.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Populära underdomäner",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Eller använd hela din domän",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Använd min rotdomän",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Detta pekar hela {domain} mot oss – webbplatsen där slutar matcha – och kräver en A / ALIAS-post.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "”.{0}” är inte en känd domänändelse – kontrollera om det finns ett stavfel (t.ex. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Ange ett giltigt värdnamn – bokstäver, siffror, enkla punkter och bindestreck (t.ex. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Ange ett domännamn.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Fortsätt med {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Arbetsytans standard",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS-konfiguration",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Peka din domän mot den här servern med en CNAME-post",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS-konfiguration",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Peka",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "mot den här servern genom att lägga till följande DNS-post hos din leverantör.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Skapa en CNAME-post",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Skapa en ALIAS- eller ANAME-post",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apex-domäner (rot) kan inte använda en CNAME-post. Använd i stället din DNS-leverantörs ALIAS- eller ANAME-post, eller peka en A-post mot din servers IP-adress.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Startsida",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Vad besökare kan göra på din domäns startsida",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Privat landningssida",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Besökare ser en privat landningssida utan interaktivt formulär",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Formulär för att skapa hemligheter",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Besökare kan skapa sina egna hemlighetslänkar",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Formulär för inkommande hemligheter",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Besökare kan skicka hemligheter till dina konfigurerade mottagare",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Kräver att inkommande hemligheter är aktiverade med minst en mottagare",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Konfigurera mottagare",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Privat landningssida",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Offentlig: besökare skapar hemligheter",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Offentlig: besökare skickar hemligheter till dig",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Inkommande inte klar – visar privat landningssida",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Inkommande",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Startsidans inställningar har sparats",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Den här domänens startsida visar för närvarande formuläret för inkommande hemligheter. Att inaktivera inkommande hemligheter eller ta bort alla mottagare byter startsidan till en privat landningssida tills inkommande är klar igen.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Inloggning på den här domänen",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Inloggning är avstängd för hela arbetsytan, så den är inte tillgänglig på någon domän. Dina inställningar här behålls och träder i kraft när inloggning för arbetsytan aktiveras igen.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Registreringar på den här domänen",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Registreringar är avstängda för hela arbetsytan, så de är inte tillgängliga på någon domän. Dina inställningar här behålls och träder i kraft när registreringar för arbetsytan aktiveras igen.",
+    "source_hash": "49faefe4"
   }
 }

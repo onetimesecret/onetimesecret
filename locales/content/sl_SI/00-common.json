@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organizacije",
-    "source_hash": "2730183d"
+    "text": "Delovni prostori",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Nastavitve organizacije",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vedno preverite, ali ste na uradnem spletnem mestu {product_name}. Goljufi včasih ustvarijo lažna spletna mesta, ki so videti popolnoma enaka kot {product_name}, da bi vam ukradli skrivnosti. Da se izognete napadom z lažnim predstavljanjem, pred ustvarjanjem novih povezav preverite domeno regije.",
-    "source_hash": "68ec20f8"
+    "text": "Vedno preverite, ali ste na uradnem spletnem mestu {product_name}. Goljufi včasih ustvarijo lažna spletna mesta, ki so videti povsem enaka {product_name}, da bi ukradli vaše skrivnosti. Da bi se izognili napadom lažnega predstavljanja, pred ustvarjanjem novih povezav preverite domeno regije v naslovni vrstici.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Preprosto, transparentno oblikovanje cen",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Dohodne skrivnosti",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Posodobi",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Posodabljanje ...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Preverite svojo e-pošto",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Nastavitev DNS",
+    "source_hash": "6c63df31"
   }
 }

@@ -1,0 +1,194 @@
+{
+  "web.admin.domains.retry": {
+    "text": "Επανάληψη",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.addDomain.button": {
+    "text": "Προσθήκη τομέα",
+    "source_hash": "d86476ae"
+  },
+  "web.admin.domains.addDomain.title": {
+    "text": "Προσθήκη προσαρμοσμένου τομέα",
+    "source_hash": "592d3314"
+  },
+  "web.admin.domains.addDomain.forOrg": {
+    "text": "Προσθήκη τομέα για {org}.",
+    "source_hash": "f8b8c1ac"
+  },
+  "web.admin.domains.addDomain.domainLabel": {
+    "text": "Τομέας",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.addDomain.domainPlaceholder": {
+    "text": "secrets.example.com",
+    "source_hash": "9ea4d0d6"
+  },
+  "web.admin.domains.addDomain.strategyLabel": {
+    "text": "Στρατηγική επικύρωσης",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.addDomain.createButton": {
+    "text": "Δημιουργία",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.addDomain.created": {
+    "text": "Ο τομέας {domain} δημιουργήθηκε.",
+    "source_hash": "2263ec6a"
+  },
+  "web.admin.domains.addDomain.strategy.approximated": {
+    "text": "Approximated — έλεγχος ιδιοκτησίας DNS, χωρίς μεσολάβηση (proxy).",
+    "source_hash": "79a7245c"
+  },
+  "web.admin.domains.addDomain.strategy.passthrough": {
+    "text": "Passthrough — δρομολογείτε το DNS στον διακομιστή μεσολάβησης (proxy) αυτής της εγκατάστασης.",
+    "source_hash": "9702d758"
+  },
+  "web.admin.domains.addDomain.strategy.external": {
+    "text": "External — το DNS διαχειρίζεται εκτός αυτής της εγκατάστασης.",
+    "source_hash": "acaede35"
+  },
+  "web.admin.domains.addDomain.strategy.caddy_on_demand": {
+    "text": "Caddy on-demand — τα πιστοποιητικά εκδίδονται αυτόματα κατά το πρώτο αίτημα.",
+    "source_hash": "deb90ae6"
+  },
+  "web.admin.domains.addDomain.strategy.caddy": {
+    "text": "Caddy — τα πιστοποιητικά εκδίδονται αυτόματα κατά το πρώτο αίτημα.",
+    "source_hash": "a0f3c2dc"
+  },
+  "web.admin.domains.addDomain.strategy.unknown": {
+    "text": "Στρατηγική επικύρωσης για ολόκληρη την εγκατάσταση.",
+    "source_hash": "4587f9cf"
+  },
+  "web.admin.domains.attach.cta": {
+    "text": "Σύνδεση τομέα με οργανισμό",
+    "source_hash": "736d74ce"
+  },
+  "web.admin.domains.attach.recordEyebrow": {
+    "text": "Εγγραφή εργασίας",
+    "source_hash": "2fadf983"
+  },
+  "web.admin.domains.attach.rosterError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των τομέων αυτού του οργανισμού.",
+    "source_hash": "d3055fed"
+  },
+  "web.admin.domains.attach.noDomains": {
+    "text": "Δεν έχουν συνδεθεί ακόμη τομείς με αυτόν τον οργανισμό.",
+    "source_hash": "e9a25fc4"
+  },
+  "web.admin.domains.attach.openExternal": {
+    "text": "Άνοιγμα του {domain} σε νέα καρτέλα",
+    "source_hash": "c5fbdeaa"
+  },
+  "web.admin.domains.dns.heading": {
+    "text": "Εγγραφές DNS προς δημοσίευση",
+    "source_hash": "e4efbe2b"
+  },
+  "web.admin.domains.dns.txtStep": {
+    "text": "1. Προσθέστε μια εγγραφή TXT για να αποδείξετε την ιδιοκτησία.",
+    "source_hash": "fdcfcfb0"
+  },
+  "web.admin.domains.dns.aStep": {
+    "text": "2. Προσθέστε μια εγγραφή A που δείχνει τον τομέα apex στον διακομιστή μεσολάβησης (proxy).",
+    "source_hash": "aedbf197"
+  },
+  "web.admin.domains.dns.cnameStep": {
+    "text": "2. Προσθέστε μια εγγραφή CNAME που δείχνει τον υποτομέα στον διακομιστή μεσολάβησης (proxy).",
+    "source_hash": "5c626f53"
+  },
+  "web.admin.domains.dns.propagationNote": {
+    "text": "Οι αλλαγές DNS ενδέχεται να χρειαστούν μερικά λεπτά για να διαδοθούν πριν επιτύχει η επαλήθευση.",
+    "source_hash": "7caf70a7"
+  },
+  "web.admin.domains.dns.toggle": {
+    "text": "Λεπτομέρειες DNS",
+    "source_hash": "ebf2d44e"
+  },
+  "web.admin.domains.dns.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των λεπτομερειών DNS.",
+    "source_hash": "4c33e23d"
+  },
+  "web.admin.domains.list.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των τομέων.",
+    "source_hash": "548deff8"
+  },
+  "web.admin.domains.orgPicker.title": {
+    "text": "Επιλέξτε έναν οργανισμό",
+    "source_hash": "48326f52"
+  },
+  "web.admin.domains.orgPicker.searchLabel": {
+    "text": "Οργανισμός",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.orgPicker.searchPlaceholder": {
+    "text": "Object ID, external ID ή email",
+    "source_hash": "bb5d0055"
+  },
+  "web.admin.domains.orgPicker.searchHint": {
+    "text": "Αναζήτηση κατά objid, extid ή τη διεύθυνση email ενός μέλους.",
+    "source_hash": "fdef7332"
+  },
+  "web.admin.domains.orgPicker.loadError": {
+    "text": "Δεν ήταν δυνατή η αναζήτηση οργανισμών.",
+    "source_hash": "b9e45dcf"
+  },
+  "web.admin.domains.orgPicker.parseError": {
+    "text": "Δεν ήταν δυνατή η ανάγνωση των αποτελεσμάτων οργανισμού.",
+    "source_hash": "44e1b9fd"
+  },
+  "web.admin.domains.orgPicker.idle": {
+    "text": "Εισαγάγετε μια τιμή παραπάνω για αναζήτηση.",
+    "source_hash": "0352e6e6"
+  },
+  "web.admin.domains.orgPicker.noResults": {
+    "text": "Κανένας οργανισμός δεν αντιστοιχεί στο «{term}».",
+    "source_hash": "761db594"
+  },
+  "web.admin.domains.orgPicker.unnamedOrg": {
+    "text": "Οργανισμός χωρίς όνομα",
+    "source_hash": "f218dc9d"
+  },
+  "web.admin.domains.orgPicker.domainCount": {
+    "text": "{count} τομείς",
+    "source_hash": "cf548c8c"
+  },
+  "web.admin.domains.orgPicker.select": {
+    "text": "Επιλογή",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.domains.verify.button": {
+    "text": "Επαλήθευση",
+    "source_hash": "eea2745e"
+  },
+  "web.admin.domains.verify.confirmTitle": {
+    "text": "Επαλήθευση τομέα;",
+    "source_hash": "07c4dc4f"
+  },
+  "web.admin.domains.verify.confirmDescription": {
+    "text": "Εκτέλεση ελέγχων επαλήθευσης DNS και SSL για τον τομέα {domain}.",
+    "source_hash": "06797824"
+  },
+  "web.admin.domains.verify.failed": {
+    "text": "Η επαλήθευση απέτυχε. Παρακαλώ δοκιμάστε ξανά.",
+    "source_hash": "3c8432b0"
+  },
+  "web.admin.domains.verify.success.verified": {
+    "text": "Ο τομέας {domain} είναι επαληθευμένος.",
+    "source_hash": "802b5d1e"
+  },
+  "web.admin.domains.verify.success.resolving": {
+    "text": "Ο τομέας {domain} αναλύεται αλλά δεν έχει επαληθευτεί ακόμη.",
+    "source_hash": "bc8aecad"
+  },
+  "web.admin.domains.verify.success.pending": {
+    "text": "Ο τομέας {domain} εκκρεμεί — το DNS δεν αναλύεται ακόμη.",
+    "source_hash": "0d9f66d5"
+  },
+  "web.admin.domains.verify.success.unverified": {
+    "text": "Ο τομέας {domain} δεν ήταν δυνατό να επαληθευτεί.",
+    "source_hash": "630da482"
+  },
+  "web.admin.domains.verify.success.done": {
+    "text": "Η επαλήθευση ολοκληρώθηκε για τον τομέα {domain}.",
+    "source_hash": "ed67e22d"
+  }
+}

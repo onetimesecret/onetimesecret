@@ -64,8 +64,8 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "以下人员贡献了他们的时间，帮助扩大 {product_name} 的覆盖范围：",
-    "source_hash": "85a766af"
+    "text": "以下人士贡献了他们的时间，帮助扩大 {product_name} 的影响力：",
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "翻译",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "自2012年以来，{product_name} 为全球用户提供了安全分享敏感信息的方式。在非英语为主要语言的地区拥有大量用户，准确的翻译对于让每个人都能使用安全通信至关重要。",
-    "source_hash": "87a6e9af"
+    "text": "自 2012 年以来，{product_name} 一直为全球用户提供一种安全的方式来分享敏感信息。由于用户遍布英语并非主要语言的各个地区，准确的翻译对于让每个人都能使用安全通信至关重要。",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "帮助安全通信走向全球",

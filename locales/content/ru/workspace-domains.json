@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Включено",
-    "source_hash": "92c1cdfd"
+    "text": "Включить",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Отключено",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Перейдите на более высокий план для настройки",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Пользовательский домен",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Точное имя хоста, которое будет использовать ваша команда, например {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Ваши секретные ссылки будут размещены на",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Это весь ваш домен — где должны размещаться секретные ссылки?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Поддомен оставляет остальную часть {domain} нетронутой.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Рекомендуется",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Неправильного выбора нет — выберите тот, который узнает ваша команда.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Популярные поддомены",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Или используйте весь домен",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Использовать корневой домен",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Это направляет весь {domain} на нас — сайт по этому адресу перестаёт разрешаться — и требует записи A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "«.{0}» — нераспознанное окончание домена — проверьте на опечатку (например, {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Введите корректное имя хоста — буквы, цифры, одиночные точки и дефисы (например, {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Пожалуйста, введите имя домена.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Продолжить с {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "По умолчанию для рабочего пространства",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "Настройка DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Направьте свой домен на этот сервер с помощью CNAME-записи",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "Настройка DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Направьте",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "на этот сервер, добавив следующую DNS-запись у вашего провайдера.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Создайте CNAME-запись",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Создайте запись ALIAS или ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Апекс-домены (корневые) не могут использовать CNAME-запись. Вместо этого используйте запись ALIAS или ANAME вашего DNS-провайдера либо направьте A-запись на IP-адрес вашего сервера.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Главная страница",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Что посетители могут делать на главной странице вашего домена",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Частная целевая страница",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Посетители видят частную целевую страницу без интерактивной формы",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Форма создания секрета",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Посетители могут создавать свои собственные секретные ссылки",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Форма входящих секретов",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Посетители могут отправлять секреты вашим настроенным получателям",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Требует, чтобы входящие секреты были включены хотя бы с одним получателем",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Настроить получателей",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Частная целевая страница",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Публичная: посетители создают секреты",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Публичная: посетители отправляют вам секреты",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Входящие не готовы — показывается частная целевая страница",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Входящие",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Настройки главной страницы сохранены",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Главная страница этого домена сейчас показывает форму входящих секретов. Отключение входящих секретов или удаление всех получателей переключит главную страницу на частную целевую страницу, пока входящие снова не будут готовы.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Вход на этом домене",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Вход отключён для всего рабочего пространства, поэтому он недоступен на каждом домене. Ваши настройки здесь сохраняются и вступают в силу, когда вход в рабочее пространство снова будет включён.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Регистрации на этом домене",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Регистрации отключены для всего рабочего пространства, поэтому они недоступны на каждом домене. Ваши настройки здесь сохраняются и вступают в силу, когда регистрации в рабочем пространстве снова будут включены.",
+    "source_hash": "49faefe4"
   }
 }

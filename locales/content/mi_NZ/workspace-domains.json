@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Kua Whakahohea",
-    "source_hash": "92c1cdfd"
+    "text": "Whakahohe",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Kua Monokia",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Whakapiki kia whirihora",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Rohe ritenga",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Te ingoa kaihautū tōtika ka whakamahia e tō kapa, pēnei i {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Ka noho ō hononga huna ki",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Koinā tō rohe katoa — ki hea ngā hononga huna noho ai?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Ka waiho te rohe-iti i te toenga o {domain} kia pā-kore.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Tūtohua",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Kāore he kōwhiringa hē — tīpakohia te mea ka mōhio tō kapa.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Ngā rohe-iti rongonui",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Whakamahia rānei tō rohe katoa",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Whakamahia taku rohe pakiaka",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Ka tohu tēnei i te katoa o {domain} ki a mātou — ka mutu te whakatau o te pae i reira — me whai i tētahi tuhinga A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "Ehara “.{0}” i te mutunga rohe e mōhiotia ana — tirohia mō te hapa (hei tauira, {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Whakauruhia he ingoa kaihautū whaimana — ngā reta, tau, ira takitahi me ngā tākupu (hei tauira, {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Tēnā, whakauruhia he ingoa rohe.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Haere tonu me {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Taunoa Wāhi Mahi",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "Whakaritenga DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Tohua tō rohe ki tēnei tūmau mā tētahi tuhinga CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "Whirihoranga DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Tohua",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "ki tēnei tūmau mā te tāpiri i te tuhinga DNS e whai ake nei me tō kaiwhakarato.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Waihanga i tētahi tuhinga CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Waihanga i tētahi tuhinga ALIAS, ANAME rānei",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Kāore e taea e ngā rohe tihi (pakiaka) te whakamahi tuhinga CNAME. Engari, whakamahia te tuhinga ALIAS, ANAME rānei a tō kaiwhakarato DNS, tohua rānei he tuhinga A ki te wāhitau IP o tō tūmau.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Whārangi kāinga",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Ngā mea ka taea e ngā manuhiri i tō whārangi kāinga rohe",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Whārangi taunga tūmataiti",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Ka kite ngā manuhiri i tētahi whārangi taunga tūmataiti, kāore he puka pāhekoheko",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Puka waihanga karere huna",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Ka taea e ngā manuhiri te waihanga i ā rātou ake hononga huna",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Puka karere huna tae mai",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Ka taea e ngā manuhiri te tuku karere huna ki ō kaiwhiwhi kua whirihorahia",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Me whakahohe te karere huna tae mai me te kaiwhiwhi kotahi neke atu",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Whirihora kaiwhiwhi",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Whārangi taunga tūmataiti",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Tūmatanui: ka waihanga ngā manuhiri i ngā karere huna",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Tūmatanui: ka tukua e ngā manuhiri he karere huna ki a koe",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Kāore anō te tae mai kia rite — e whakaatu ana i te whārangi taunga tūmataiti",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Tae Mai",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Kua tiakina ngā tautuhinga whārangi kāinga",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Kei te whakaatu te whārangi kāinga o tēnei rohe i te puka karere huna tae mai i tēnei wā. Ki te monokia te karere huna tae mai, ki te tangohia rānei ngā kaiwhiwhi katoa, ka huri te whārangi kāinga ki tētahi whārangi taunga tūmataiti kia rite anō te tae mai.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Takiuru i tēnei rohe",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Kua whakawetohia te takiuru puta noa i te Wāhi Mahi, nā reira kāore e wātea ana i ia rohe. Ka puritia ō tautuhinga ki konei, ka mana ina whakahohea anō te takiuru Wāhi Mahi.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Ngā rēhitatanga i tēnei rohe",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Kua whakawetohia ngā rēhitatanga puta noa i te Wāhi Mahi, nā reira kāore e wātea ana i ia rohe. Ka puritia ō tautuhinga ki konei, ka mana ina whakahohea anō ngā rēhitatanga Wāhi Mahi.",
+    "source_hash": "49faefe4"
   }
 }

@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "매직 링크 옵션을 사용하여 비밀번호 없이 로그인하세요. 로그인 후 계정 설정에서 비밀번호를 변경할 수 있습니다.",
-    "source_hash": "2a058600"
+    "text": "새 비밀번호를 만들기 위해 비밀번호 재설정 링크를 요청할 수 있습니다.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "계정이 일시적으로 잠겼나요?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "회원님의 이메일 도메인은 SSO 가입이 허용되지 않습니다. 관리자에게 문의하세요.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "이메일을 확인하세요",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "귀하의 이메일 주소로 인증 링크를 보냈습니다.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "이 주소로 인증 링크를 보냈습니다 — 이메일을 열고 링크를 클릭하여 계정을 활성화하세요.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "찾을 수 없나요? 스팸 폴더를 확인하세요.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "잘못된 주소를 입력하셨나요?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "다시 시작",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "비밀번호",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "인증 이메일을 받지 못하셨나요? 다시 보내려면 이메일을 입력하세요.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "인증 이메일 다시 보내기",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "인증이 필요한 계정이 있으면 새 이메일이 발송되었습니다. 받은 편지함과 스팸 폴더를 확인하세요.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "인증 이메일을 보낼 수 없습니다. 연결 상태를 확인한 후 다시 시도하세요.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "이메일 다시 보내기",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "이메일이 인증되었습니다 — 이제 로그인할 수 있습니다.",
+    "source_hash": "c8d4b5a8"
   }
 }

@@ -1,0 +1,178 @@
+{
+  "web.admin.domaintoolbox.title": {
+    "text": "صندوق أدوات النطاقات",
+    "source_hash": "5a9333db"
+  },
+  "web.admin.domaintoolbox.description": {
+    "text": "تشخيص وإصلاح علاقات النطاقات المخصّصة: فحص النطاقات المعزولة، واختبار DNS/SSL، وإصلاح الملكية، والنقل بين المؤسسات.",
+    "source_hash": "778537aa"
+  },
+  "web.admin.domaintoolbox.retry": {
+    "text": "إعادة المحاولة",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domaintoolbox.preview": {
+    "text": "معاينة",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domaintoolbox.fields.extid": {
+    "text": "المعرّف الخارجي للنطاق",
+    "source_hash": "f52af6c5"
+  },
+  "web.admin.domaintoolbox.fields.extidPlaceholder": {
+    "text": "cd_… (extid النطاق)",
+    "source_hash": "bb9bf49a"
+  },
+  "web.admin.domaintoolbox.orphaned.title": {
+    "text": "النطاقات المعزولة",
+    "source_hash": "ddcea596"
+  },
+  "web.admin.domaintoolbox.orphaned.description": {
+    "text": "النطاقات المخصّصة التي لا تملكها أي مؤسسة. استخدم الإصلاح لإعادة تعيين أحدها.",
+    "source_hash": "967268f5"
+  },
+  "web.admin.domaintoolbox.orphaned.empty": {
+    "text": "لم يتم العثور على نطاقات معزولة.",
+    "source_hash": "06ef9979"
+  },
+  "web.admin.domaintoolbox.orphaned.loadError": {
+    "text": "تعذّر تحميل النطاقات المعزولة.",
+    "source_hash": "ca0e33bf"
+  },
+  "web.admin.domaintoolbox.orphaned.repairAction": {
+    "text": "إصلاح",
+    "source_hash": "1196b6c5"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.domain": {
+    "text": "النطاق",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.state": {
+    "text": "الحالة",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.verified": {
+    "text": "تم التحقق",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.created": {
+    "text": "تاريخ الإنشاء",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.actions": {
+    "text": "الإجراءات",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domaintoolbox.probe.title": {
+    "text": "اختبار (DNS / SSL)",
+    "source_hash": "ec69a087"
+  },
+  "web.admin.domaintoolbox.probe.description": {
+    "text": "إجراء طلب HTTPS مباشر للتأكد من أن النطاق يخدم حركة المرور وفحص شهادة TLS الخاصة به. للقراءة فقط.",
+    "source_hash": "1eecfa96"
+  },
+  "web.admin.domaintoolbox.probe.button": {
+    "text": "اختبار",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domaintoolbox.probe.healthLabel": {
+    "text": "الحالة الصحية",
+    "source_hash": "55898449"
+  },
+  "web.admin.domaintoolbox.repair.title": {
+    "text": "إصلاح العلاقة",
+    "source_hash": "0053d07c"
+  },
+  "web.admin.domaintoolbox.repair.description": {
+    "text": "إصلاح تعارضات علاقة المؤسسة لنطاق ما. عاين أولاً، ثم طبّق.",
+    "source_hash": "18ca490b"
+  },
+  "web.admin.domaintoolbox.repair.orgIdLabel": {
+    "text": "تعيين مؤسسة (إذا كان معزولاً)",
+    "source_hash": "f95b010a"
+  },
+  "web.admin.domaintoolbox.repair.orgIdPlaceholder": {
+    "text": "معرّف المؤسسة أو extid",
+    "source_hash": "a87d634e"
+  },
+  "web.admin.domaintoolbox.repair.statusLabel": {
+    "text": "الحالة",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domaintoolbox.repair.noIssues": {
+    "text": "لم يتم العثور على مشكلات — العلاقات متسقة.",
+    "source_hash": "e1a4c49d"
+  },
+  "web.admin.domaintoolbox.repair.applyButton": {
+    "text": "تطبيق الإصلاحات",
+    "source_hash": "3f92b29f"
+  },
+  "web.admin.domaintoolbox.repair.success": {
+    "text": "تم تطبيق الإصلاحات بنجاح.",
+    "source_hash": "24f25b9b"
+  },
+  "web.admin.domaintoolbox.repair.confirmTitle": {
+    "text": "تطبيق إصلاحات النطاق؟",
+    "source_hash": "9429998b"
+  },
+  "web.admin.domaintoolbox.repair.confirmDescription": {
+    "text": "سيؤدي هذا إلى تعديل حالة الملكية/العلاقة لـ {domain}. أعد كتابة المعرّف الخارجي للنطاق للتأكيد.",
+    "source_hash": "426d267b"
+  },
+  "web.admin.domaintoolbox.reverify.button": {
+    "text": "إعادة التحقق",
+    "source_hash": "0344860a"
+  },
+  "web.admin.domaintoolbox.reverify.success": {
+    "text": "اكتملت إعادة التحقق من النطاق.",
+    "source_hash": "497a2348"
+  },
+  "web.admin.domaintoolbox.transfer.title": {
+    "text": "نقل الملكية",
+    "source_hash": "3667f939"
+  },
+  "web.admin.domaintoolbox.transfer.description": {
+    "text": "إعادة تعيين نطاق إلى مؤسسة مختلفة. الإجراء الأوسع تأثيراً — عاين وأكّد بعناية.",
+    "source_hash": "d4e26e03"
+  },
+  "web.admin.domaintoolbox.transfer.toOrgLabel": {
+    "text": "المؤسسة الوجهة",
+    "source_hash": "4e4486eb"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgLabel": {
+    "text": "المؤسسة المصدر (اختياري)",
+    "source_hash": "3666815f"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
+    "text": "تأكيد المالك الحالي",
+    "source_hash": "cd9e769c"
+  },
+  "web.admin.domaintoolbox.transfer.from": {
+    "text": "من",
+    "source_hash": "21819769"
+  },
+  "web.admin.domaintoolbox.transfer.to": {
+    "text": "إلى",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domaintoolbox.transfer.orphaned": {
+    "text": "معزول",
+    "source_hash": "54dc2166"
+  },
+  "web.admin.domaintoolbox.transfer.applyButton": {
+    "text": "نقل النطاق",
+    "source_hash": "9517aeb9"
+  },
+  "web.admin.domaintoolbox.transfer.success": {
+    "text": "تم نقل النطاق بنجاح.",
+    "source_hash": "bbca9de9"
+  },
+  "web.admin.domaintoolbox.transfer.confirmTitle": {
+    "text": "نقل ملكية النطاق؟",
+    "source_hash": "d306a15a"
+  },
+  "web.admin.domaintoolbox.transfer.confirmDescription": {
+    "text": "يؤدي هذا إلى إعادة تعيين ملكية {domain} إلى مؤسسة أخرى. أعد كتابة المعرّف الخارجي للنطاق للتأكيد.",
+    "source_hash": "edefd97c"
+  }
+}

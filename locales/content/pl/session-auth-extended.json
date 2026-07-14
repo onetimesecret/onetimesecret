@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Twoja sesja wygasła. Odśwież stronę i spróbuj ponownie.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Logowanie nie powiodło się. Spróbuj ponownie.",

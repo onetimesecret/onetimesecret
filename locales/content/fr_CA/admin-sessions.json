@@ -1,0 +1,210 @@
+{
+  "web.admin.sessions.title": {
+    "text": "Sessions",
+    "source_hash": "6fa3cbf4"
+  },
+  "web.admin.sessions.description": {
+    "text": "Inspectez, recherchez et révoquez les sessions actives pour la réponse aux incidents.",
+    "source_hash": "784a3a44"
+  },
+  "web.admin.sessions.anonymous": {
+    "text": "Anonyme",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.columns.sessionId": {
+    "text": "ID de session",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.columns.authenticated": {
+    "text": "Auth",
+    "source_hash": "8eb3ea9b"
+  },
+  "web.admin.sessions.columns.email": {
+    "text": "Courriel",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.columns.externalId": {
+    "text": "ID externe",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.columns.ipAddress": {
+    "text": "Adresse IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.columns.created": {
+    "text": "Authentifié le",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.columns.actions": {
+    "text": "Actions",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.sessions.columns.role": {
+    "text": "Rôle",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.detail.yes": {
+    "text": "Oui",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.sessions.detail.no": {
+    "text": "Non",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.sessions.detail.none": {
+    "text": "Aucun",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.sessions.detail.unknown": {
+    "text": "Inconnu",
+    "source_hash": "b764cdc0"
+  },
+  "web.admin.sessions.detail.noExpiry": {
+    "text": "Sans expiration",
+    "source_hash": "fe06351d"
+  },
+  "web.admin.sessions.detail.expired": {
+    "text": "Expiré",
+    "source_hash": "424a2551"
+  },
+  "web.admin.sessions.detail.ttlSeconds": {
+    "text": "{seconds} s restantes",
+    "source_hash": "3c9d75ce"
+  },
+  "web.admin.sessions.drawer.title": {
+    "text": "Session {id}",
+    "source_hash": "29dcbd66"
+  },
+  "web.admin.sessions.drawer.notFound": {
+    "text": "Session introuvable",
+    "source_hash": "0969eab8"
+  },
+  "web.admin.sessions.drawer.notFoundDescription": {
+    "text": "Cette session n'existe plus dans Redis. Elle a peut-être expiré ou déjà été révoquée.",
+    "source_hash": "11e3ef05"
+  },
+  "web.admin.sessions.drawer.loadError": {
+    "text": "Impossible de charger cette session.",
+    "source_hash": "82ae90fb"
+  },
+  "web.admin.sessions.drawer.retry": {
+    "text": "Réessayer",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.fields.sessionId": {
+    "text": "ID de session",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.fields.key": {
+    "text": "Clé Redis",
+    "source_hash": "0b196725"
+  },
+  "web.admin.sessions.fields.ttl": {
+    "text": "TTL",
+    "source_hash": "76f6014f"
+  },
+  "web.admin.sessions.fields.authenticated": {
+    "text": "Authentifié",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.fields.email": {
+    "text": "Courriel",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.fields.externalId": {
+    "text": "ID externe",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.fields.accountId": {
+    "text": "ID de compte",
+    "source_hash": "919bb4cb"
+  },
+  "web.admin.sessions.fields.role": {
+    "text": "Rôle",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.fields.locale": {
+    "text": "Langue",
+    "source_hash": "ca3dc612"
+  },
+  "web.admin.sessions.fields.ipAddress": {
+    "text": "Adresse IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.fields.authenticatedAt": {
+    "text": "Authentifié le",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.fields.authenticatedBy": {
+    "text": "Authentifié par",
+    "source_hash": "3ebbabfe"
+  },
+  "web.admin.sessions.fields.activeSessionId": {
+    "text": "ID de session active",
+    "source_hash": "f32b1158"
+  },
+  "web.admin.sessions.fields.userAgent": {
+    "text": "Agent utilisateur",
+    "source_hash": "62e01345"
+  },
+  "web.admin.sessions.fields.orgContext": {
+    "text": "Contexte de l'organisation",
+    "source_hash": "a596d9f2"
+  },
+  "web.admin.sessions.list.loadError": {
+    "text": "Impossible de charger les sessions.",
+    "source_hash": "00c678d9"
+  },
+  "web.admin.sessions.list.retry": {
+    "text": "Réessayer",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.list.empty": {
+    "text": "Aucune session active trouvée",
+    "source_hash": "e35312d6"
+  },
+  "web.admin.sessions.revoke.button": {
+    "text": "Révoquer",
+    "source_hash": "87e6d00b"
+  },
+  "web.admin.sessions.revoke.confirmTitle": {
+    "text": "Révoquer cette session ?",
+    "source_hash": "0c6605c1"
+  },
+  "web.admin.sessions.revoke.confirmDescription": {
+    "text": "Cela déconnecte immédiatement l'utilisateur en supprimant la session {id}. Saisissez l'ID de session pour confirmer.",
+    "source_hash": "9e08b1b8"
+  },
+  "web.admin.sessions.revoke.success": {
+    "text": "Session révoquée",
+    "source_hash": "0af5e14d"
+  },
+  "web.admin.sessions.scan.summary": {
+    "text": "Affichage de {shown} authentifiées · {anonymous} anonymes masquées · {scanned} analysées",
+    "source_hash": "34cb67a4"
+  },
+  "web.admin.sessions.scan.capped": {
+    "text": "Analyse limitée aux {scanned} premières clés — les sessions authentifiées au-delà de cette fenêtre ne sont pas listées. Inspectez une session précise par son ID pour l'atteindre.",
+    "source_hash": "fa418b4e"
+  },
+  "web.admin.sessions.search.placeholder": {
+    "text": "Rechercher par courriel ou ID externe",
+    "source_hash": "f2dc5c06"
+  },
+  "web.admin.sessions.sections.session": {
+    "text": "Session",
+    "source_hash": "6959b415"
+  },
+  "web.admin.sessions.sections.raw": {
+    "text": "Données de session brutes",
+    "source_hash": "c9f11eb4"
+  },
+  "web.admin.sessions.status.authenticated": {
+    "text": "Authentifié",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.status.anonymous": {
+    "text": "Anonyme",
+    "source_hash": "e7a8aa2d"
+  }
+}

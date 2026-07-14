@@ -1,0 +1,178 @@
+{
+  "web.admin.domaintoolbox.title": {
+    "text": "Alan Adı Araç Kutusu",
+    "source_hash": "5a9333db"
+  },
+  "web.admin.domaintoolbox.description": {
+    "text": "Özel alan adı ilişkilerini teşhis edin ve onarın: sahipsizleri tarayın, DNS/SSL denetleyin, sahipliği onarın ve kuruluşlar arasında aktarın.",
+    "source_hash": "778537aa"
+  },
+  "web.admin.domaintoolbox.retry": {
+    "text": "Yeniden Dene",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domaintoolbox.preview": {
+    "text": "Önizleme",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domaintoolbox.fields.extid": {
+    "text": "Alan adı harici kimliği",
+    "source_hash": "f52af6c5"
+  },
+  "web.admin.domaintoolbox.fields.extidPlaceholder": {
+    "text": "cd_… (alan adı extid)",
+    "source_hash": "bb9bf49a"
+  },
+  "web.admin.domaintoolbox.orphaned.title": {
+    "text": "Sahipsiz alan adları",
+    "source_hash": "ddcea596"
+  },
+  "web.admin.domaintoolbox.orphaned.description": {
+    "text": "Sahip kuruluşu olmayan özel alan adları. Birini yeniden atamak için Onar'ı kullanın.",
+    "source_hash": "967268f5"
+  },
+  "web.admin.domaintoolbox.orphaned.empty": {
+    "text": "Sahipsiz alan adı bulunamadı.",
+    "source_hash": "06ef9979"
+  },
+  "web.admin.domaintoolbox.orphaned.loadError": {
+    "text": "Sahipsiz alan adları yüklenemedi.",
+    "source_hash": "ca0e33bf"
+  },
+  "web.admin.domaintoolbox.orphaned.repairAction": {
+    "text": "Onar",
+    "source_hash": "1196b6c5"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.domain": {
+    "text": "Alan Adı",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.state": {
+    "text": "Durum",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.verified": {
+    "text": "Doğrulandı",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.created": {
+    "text": "Oluşturulma",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.actions": {
+    "text": "İşlemler",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domaintoolbox.probe.title": {
+    "text": "Denetle (DNS / SSL)",
+    "source_hash": "ec69a087"
+  },
+  "web.admin.domaintoolbox.probe.description": {
+    "text": "Alan adının trafiği sunduğunu doğrulamak için canlı bir HTTPS isteği yapın ve TLS sertifikasını inceleyin. Salt okunur.",
+    "source_hash": "1eecfa96"
+  },
+  "web.admin.domaintoolbox.probe.button": {
+    "text": "Denetle",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domaintoolbox.probe.healthLabel": {
+    "text": "Sağlık",
+    "source_hash": "55898449"
+  },
+  "web.admin.domaintoolbox.repair.title": {
+    "text": "İlişkiyi onar",
+    "source_hash": "0053d07c"
+  },
+  "web.admin.domaintoolbox.repair.description": {
+    "text": "Bir alan adı için kuruluş ilişkisi tutarsızlıklarını düzeltin. Önce önizleyin, ardından uygulayın.",
+    "source_hash": "18ca490b"
+  },
+  "web.admin.domaintoolbox.repair.orgIdLabel": {
+    "text": "Kuruluş ata (sahipsizse)",
+    "source_hash": "f95b010a"
+  },
+  "web.admin.domaintoolbox.repair.orgIdPlaceholder": {
+    "text": "kuruluş kimliği veya extid",
+    "source_hash": "a87d634e"
+  },
+  "web.admin.domaintoolbox.repair.statusLabel": {
+    "text": "Durum",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domaintoolbox.repair.noIssues": {
+    "text": "Sorun bulunamadı — ilişkiler tutarlı.",
+    "source_hash": "e1a4c49d"
+  },
+  "web.admin.domaintoolbox.repair.applyButton": {
+    "text": "Onarımları uygula",
+    "source_hash": "3f92b29f"
+  },
+  "web.admin.domaintoolbox.repair.success": {
+    "text": "Onarımlar başarıyla uygulandı.",
+    "source_hash": "24f25b9b"
+  },
+  "web.admin.domaintoolbox.repair.confirmTitle": {
+    "text": "Alan adı onarımları uygulansın mı?",
+    "source_hash": "9429998b"
+  },
+  "web.admin.domaintoolbox.repair.confirmDescription": {
+    "text": "Bu işlem, {domain} için sahiplik/ilişki durumunu değiştirir. Onaylamak için alan adı harici kimliğini yeniden yazın.",
+    "source_hash": "426d267b"
+  },
+  "web.admin.domaintoolbox.reverify.button": {
+    "text": "Yeniden doğrula",
+    "source_hash": "0344860a"
+  },
+  "web.admin.domaintoolbox.reverify.success": {
+    "text": "Alan adı yeniden doğrulaması tamamlandı.",
+    "source_hash": "497a2348"
+  },
+  "web.admin.domaintoolbox.transfer.title": {
+    "text": "Sahipliği aktar",
+    "source_hash": "3667f939"
+  },
+  "web.admin.domaintoolbox.transfer.description": {
+    "text": "Bir alan adını farklı bir kuruluşa yeniden atayın. En yüksek etki alanına sahip işlem — dikkatlice önizleyin ve onaylayın.",
+    "source_hash": "d4e26e03"
+  },
+  "web.admin.domaintoolbox.transfer.toOrgLabel": {
+    "text": "Hedef kuruluş",
+    "source_hash": "4e4486eb"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgLabel": {
+    "text": "Kaynak kuruluş (isteğe bağlı)",
+    "source_hash": "3666815f"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
+    "text": "mevcut sahibi doğrula",
+    "source_hash": "cd9e769c"
+  },
+  "web.admin.domaintoolbox.transfer.from": {
+    "text": "Kimden",
+    "source_hash": "21819769"
+  },
+  "web.admin.domaintoolbox.transfer.to": {
+    "text": "Kime",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domaintoolbox.transfer.orphaned": {
+    "text": "SAHİPSİZ",
+    "source_hash": "54dc2166"
+  },
+  "web.admin.domaintoolbox.transfer.applyButton": {
+    "text": "Alan adını aktar",
+    "source_hash": "9517aeb9"
+  },
+  "web.admin.domaintoolbox.transfer.success": {
+    "text": "Alan adı başarıyla aktarıldı.",
+    "source_hash": "bbca9de9"
+  },
+  "web.admin.domaintoolbox.transfer.confirmTitle": {
+    "text": "Alan adı sahipliği aktarılsın mı?",
+    "source_hash": "d306a15a"
+  },
+  "web.admin.domaintoolbox.transfer.confirmDescription": {
+    "text": "Bu işlem, {domain} sahipliğini başka bir kuruluşa yeniden atar. Onaylamak için alan adı harici kimliğini yeniden yazın.",
+    "source_hash": "edefd97c"
+  }
+}

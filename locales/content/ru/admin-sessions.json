@@ -1,0 +1,210 @@
+{
+  "web.admin.sessions.title": {
+    "text": "Сессии",
+    "source_hash": "6fa3cbf4"
+  },
+  "web.admin.sessions.description": {
+    "text": "Изучайте, ищите и отзывайте активные сессии для реагирования на инциденты.",
+    "source_hash": "784a3a44"
+  },
+  "web.admin.sessions.anonymous": {
+    "text": "Анонимно",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.columns.sessionId": {
+    "text": "ID сессии",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.columns.authenticated": {
+    "text": "Аутентификация",
+    "source_hash": "8eb3ea9b"
+  },
+  "web.admin.sessions.columns.email": {
+    "text": "Электронная почта",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.columns.externalId": {
+    "text": "Внешний ID",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.columns.ipAddress": {
+    "text": "IP-адрес",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.columns.created": {
+    "text": "Время аутентификации",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.columns.actions": {
+    "text": "Действия",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.sessions.columns.role": {
+    "text": "Роль",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.detail.yes": {
+    "text": "Да",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.sessions.detail.no": {
+    "text": "Нет",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.sessions.detail.none": {
+    "text": "Нет",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.sessions.detail.unknown": {
+    "text": "Неизвестно",
+    "source_hash": "b764cdc0"
+  },
+  "web.admin.sessions.detail.noExpiry": {
+    "text": "Без срока",
+    "source_hash": "fe06351d"
+  },
+  "web.admin.sessions.detail.expired": {
+    "text": "Истёк",
+    "source_hash": "424a2551"
+  },
+  "web.admin.sessions.detail.ttlSeconds": {
+    "text": "Осталось {seconds} с",
+    "source_hash": "3c9d75ce"
+  },
+  "web.admin.sessions.drawer.title": {
+    "text": "Сессия {id}",
+    "source_hash": "29dcbd66"
+  },
+  "web.admin.sessions.drawer.notFound": {
+    "text": "Сессия не найдена",
+    "source_hash": "0969eab8"
+  },
+  "web.admin.sessions.drawer.notFoundDescription": {
+    "text": "Эта сессия больше не существует в Redis. Возможно, срок её действия истёк или она уже была отозвана.",
+    "source_hash": "11e3ef05"
+  },
+  "web.admin.sessions.drawer.loadError": {
+    "text": "Не удалось загрузить эту сессию.",
+    "source_hash": "82ae90fb"
+  },
+  "web.admin.sessions.drawer.retry": {
+    "text": "Повторить",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.fields.sessionId": {
+    "text": "ID сессии",
+    "source_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.fields.key": {
+    "text": "Ключ Redis",
+    "source_hash": "0b196725"
+  },
+  "web.admin.sessions.fields.ttl": {
+    "text": "TTL",
+    "source_hash": "76f6014f"
+  },
+  "web.admin.sessions.fields.authenticated": {
+    "text": "Аутентифицирован",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.fields.email": {
+    "text": "Электронная почта",
+    "source_hash": "969ccbd3"
+  },
+  "web.admin.sessions.fields.externalId": {
+    "text": "Внешний ID",
+    "source_hash": "69da56ba"
+  },
+  "web.admin.sessions.fields.accountId": {
+    "text": "ID аккаунта",
+    "source_hash": "919bb4cb"
+  },
+  "web.admin.sessions.fields.role": {
+    "text": "Роль",
+    "source_hash": "14736a2e"
+  },
+  "web.admin.sessions.fields.locale": {
+    "text": "Локаль",
+    "source_hash": "ca3dc612"
+  },
+  "web.admin.sessions.fields.ipAddress": {
+    "text": "IP-адрес",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.fields.authenticatedAt": {
+    "text": "Время аутентификации",
+    "source_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.fields.authenticatedBy": {
+    "text": "Кем аутентифицирован",
+    "source_hash": "3ebbabfe"
+  },
+  "web.admin.sessions.fields.activeSessionId": {
+    "text": "ID активной сессии",
+    "source_hash": "f32b1158"
+  },
+  "web.admin.sessions.fields.userAgent": {
+    "text": "User Agent",
+    "source_hash": "62e01345"
+  },
+  "web.admin.sessions.fields.orgContext": {
+    "text": "Контекст организации",
+    "source_hash": "a596d9f2"
+  },
+  "web.admin.sessions.list.loadError": {
+    "text": "Не удалось загрузить сессии.",
+    "source_hash": "00c678d9"
+  },
+  "web.admin.sessions.list.retry": {
+    "text": "Повторить",
+    "source_hash": "942087cc"
+  },
+  "web.admin.sessions.list.empty": {
+    "text": "Активные сессии не найдены",
+    "source_hash": "e35312d6"
+  },
+  "web.admin.sessions.revoke.button": {
+    "text": "Отозвать",
+    "source_hash": "87e6d00b"
+  },
+  "web.admin.sessions.revoke.confirmTitle": {
+    "text": "Отозвать эту сессию?",
+    "source_hash": "0c6605c1"
+  },
+  "web.admin.sessions.revoke.confirmDescription": {
+    "text": "Это немедленно завершит работу пользователя, удалив сессию {id}. Введите ID сессии для подтверждения.",
+    "source_hash": "9e08b1b8"
+  },
+  "web.admin.sessions.revoke.success": {
+    "text": "Сессия отозвана",
+    "source_hash": "0af5e14d"
+  },
+  "web.admin.sessions.scan.summary": {
+    "text": "Показано {shown} аутентифицированных · {anonymous} анонимных скрыто · {scanned} просканировано",
+    "source_hash": "34cb67a4"
+  },
+  "web.admin.sessions.scan.capped": {
+    "text": "Сканирование ограничено первыми {scanned} ключами — аутентифицированные сессии за пределами этого окна не показаны. Чтобы получить конкретную сессию, изучите её по ID.",
+    "source_hash": "fa418b4e"
+  },
+  "web.admin.sessions.search.placeholder": {
+    "text": "Поиск по email или внешнему ID",
+    "source_hash": "f2dc5c06"
+  },
+  "web.admin.sessions.sections.session": {
+    "text": "Сессия",
+    "source_hash": "6959b415"
+  },
+  "web.admin.sessions.sections.raw": {
+    "text": "Необработанные данные сессии",
+    "source_hash": "c9f11eb4"
+  },
+  "web.admin.sessions.status.authenticated": {
+    "text": "Аутентифицирован",
+    "source_hash": "6ab694cf"
+  },
+  "web.admin.sessions.status.anonymous": {
+    "text": "Анонимный",
+    "source_hash": "e7a8aa2d"
+  }
+}

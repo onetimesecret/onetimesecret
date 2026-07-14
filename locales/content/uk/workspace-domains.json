@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Увімкнено",
-    "source_hash": "92c1cdfd"
+    "text": "Увімкнути",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Вимкнено",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Оновіть, щоб налаштувати",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Користувацький домен",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Точне ім'я хоста, яке використовуватиме Ваша команда, наприклад {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Ваші таємні посилання розміщуватимуться за адресою",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Це весь Ваш домен — де мають розміщуватися таємні посилання?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Піддомен залишає решту {domain} недоторканою.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Рекомендовано",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Немає неправильного вибору — оберіть той, який Ваша команда впізнає.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Популярні піддомени",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Або використайте весь Ваш домен",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Використати мій кореневий домен",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Це спрямовує весь {domain} на нас — сайт за цією адресою перестає визначатися — і потребує запису A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "«.{0}» не є розпізнаним закінченням домену — перевірте, чи немає помилки (напр. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Введіть дійсне ім'я хоста — літери, цифри, поодинокі крапки та дефіси (напр. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Будь ласка, введіть назву домену.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Продовжити з {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "За замовчуванням для робочої області",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "Налаштування DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Спрямуйте Ваш домен на цей сервер за допомогою запису CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "Конфігурація DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Спрямуйте",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "на цей сервер, додавши наведений нижче DNS-запис у Вашого постачальника.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Створіть запис CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Створіть запис ALIAS або ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Кореневі (apex) домени не можуть використовувати запис CNAME. Замість цього використовуйте запис ALIAS або ANAME Вашого постачальника DNS, або спрямуйте запис A на IP-адресу Вашого сервера.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Головна сторінка",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Що відвідувачі можуть робити на головній сторінці Вашого домену",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Приватна цільова сторінка",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Відвідувачі бачать приватну цільову сторінку без інтерактивної форми",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Форма створення таємниці",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Відвідувачі можуть створювати власні таємні посилання",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Форма вхідних таємниць",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Відвідувачі можуть надсилати таємниці Вашим налаштованим одержувачам",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Потребує ввімкнення вхідних таємниць принаймні з одним одержувачем",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Налаштувати одержувачів",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Приватна цільова сторінка",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Публічно: відвідувачі створюють таємниці",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Публічно: відвідувачі надсилають Вам таємниці",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Вхідні не готові — показується приватна цільова сторінка",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Вхідні",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Налаштування головної сторінки збережено",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Головна сторінка цього домену наразі показує форму вхідних таємниць. Вимкнення вхідних таємниць або видалення всіх одержувачів перемкне головну сторінку на приватну цільову сторінку, доки вхідні знову не будуть готові.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Вхід на цьому домені",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Вхід вимкнено для всієї робочої області, тому він недоступний на кожному домені. Ваші налаштування тут зберігаються та набувають чинності, коли вхід для робочої області буде знову ввімкнено.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Реєстрація на цьому домені",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Реєстрацію вимкнено для всієї робочої області, тому вона недоступна на кожному домені. Ваші налаштування тут зберігаються та набувають чинності, коли реєстрацію для робочої області буде знову ввімкнено.",
+    "source_hash": "49faefe4"
   }
 }

@@ -1,0 +1,178 @@
+{
+  "web.admin.domaintoolbox.title": {
+    "text": "Εργαλειοθήκη τομέων",
+    "source_hash": "5a9333db"
+  },
+  "web.admin.domaintoolbox.description": {
+    "text": "Διαγνώστε και επιδιορθώστε τις σχέσεις προσαρμοσμένων τομέων: σαρώστε ορφανά, ελέγξτε DNS/SSL, επιδιορθώστε την ιδιοκτησία και μεταφέρετε μεταξύ οργανισμών.",
+    "source_hash": "778537aa"
+  },
+  "web.admin.domaintoolbox.retry": {
+    "text": "Επανάληψη",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domaintoolbox.preview": {
+    "text": "Προεπισκόπηση",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domaintoolbox.fields.extid": {
+    "text": "Εξωτερικό ID τομέα",
+    "source_hash": "f52af6c5"
+  },
+  "web.admin.domaintoolbox.fields.extidPlaceholder": {
+    "text": "cd_… (extid τομέα)",
+    "source_hash": "bb9bf49a"
+  },
+  "web.admin.domaintoolbox.orphaned.title": {
+    "text": "Ορφανοί τομείς",
+    "source_hash": "ddcea596"
+  },
+  "web.admin.domaintoolbox.orphaned.description": {
+    "text": "Προσαρμοσμένοι τομείς χωρίς οργανισμό-κάτοχο. Χρησιμοποιήστε την Επιδιόρθωση για να αναθέσετε ξανά έναν.",
+    "source_hash": "967268f5"
+  },
+  "web.admin.domaintoolbox.orphaned.empty": {
+    "text": "Δεν βρέθηκαν ορφανοί τομείς.",
+    "source_hash": "06ef9979"
+  },
+  "web.admin.domaintoolbox.orphaned.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των ορφανών τομέων.",
+    "source_hash": "ca0e33bf"
+  },
+  "web.admin.domaintoolbox.orphaned.repairAction": {
+    "text": "Επιδιόρθωση",
+    "source_hash": "1196b6c5"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.domain": {
+    "text": "Τομέας",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.state": {
+    "text": "Κατάσταση",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.verified": {
+    "text": "Επαληθευμένος",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.created": {
+    "text": "Δημιουργήθηκε",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.actions": {
+    "text": "Ενέργειες",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domaintoolbox.probe.title": {
+    "text": "Ανίχνευση (DNS / SSL)",
+    "source_hash": "ec69a087"
+  },
+  "web.admin.domaintoolbox.probe.description": {
+    "text": "Κάντε ένα ζωντανό αίτημα HTTPS για να επιβεβαιώσετε ότι ο τομέας εξυπηρετεί κίνηση και ελέγξτε το πιστοποιητικό TLS του. Μόνο για ανάγνωση.",
+    "source_hash": "1eecfa96"
+  },
+  "web.admin.domaintoolbox.probe.button": {
+    "text": "Ανίχνευση",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domaintoolbox.probe.healthLabel": {
+    "text": "Υγεία",
+    "source_hash": "55898449"
+  },
+  "web.admin.domaintoolbox.repair.title": {
+    "text": "Επιδιόρθωση σχέσης",
+    "source_hash": "0053d07c"
+  },
+  "web.admin.domaintoolbox.repair.description": {
+    "text": "Διορθώστε τις ασυνέπειες στη σχέση οργανισμού για έναν τομέα. Κάντε πρώτα προεπισκόπηση και έπειτα εφαρμόστε.",
+    "source_hash": "18ca490b"
+  },
+  "web.admin.domaintoolbox.repair.orgIdLabel": {
+    "text": "Ανάθεση οργανισμού (εάν είναι ορφανός)",
+    "source_hash": "f95b010a"
+  },
+  "web.admin.domaintoolbox.repair.orgIdPlaceholder": {
+    "text": "org id ή extid",
+    "source_hash": "a87d634e"
+  },
+  "web.admin.domaintoolbox.repair.statusLabel": {
+    "text": "Κατάσταση",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domaintoolbox.repair.noIssues": {
+    "text": "Δεν βρέθηκαν προβλήματα — οι σχέσεις είναι συνεπείς.",
+    "source_hash": "e1a4c49d"
+  },
+  "web.admin.domaintoolbox.repair.applyButton": {
+    "text": "Εφαρμογή επιδιορθώσεων",
+    "source_hash": "3f92b29f"
+  },
+  "web.admin.domaintoolbox.repair.success": {
+    "text": "Οι επιδιορθώσεις εφαρμόστηκαν με επιτυχία.",
+    "source_hash": "24f25b9b"
+  },
+  "web.admin.domaintoolbox.repair.confirmTitle": {
+    "text": "Εφαρμογή επιδιορθώσεων τομέα;",
+    "source_hash": "9429998b"
+  },
+  "web.admin.domaintoolbox.repair.confirmDescription": {
+    "text": "Αυτό θα τροποποιήσει την κατάσταση ιδιοκτησίας/σχέσης για τον τομέα {domain}. Πληκτρολογήστε ξανά το εξωτερικό ID του τομέα για επιβεβαίωση.",
+    "source_hash": "426d267b"
+  },
+  "web.admin.domaintoolbox.reverify.button": {
+    "text": "Επανεπαλήθευση",
+    "source_hash": "0344860a"
+  },
+  "web.admin.domaintoolbox.reverify.success": {
+    "text": "Η επανεπαλήθευση του τομέα ολοκληρώθηκε.",
+    "source_hash": "497a2348"
+  },
+  "web.admin.domaintoolbox.transfer.title": {
+    "text": "Μεταφορά ιδιοκτησίας",
+    "source_hash": "3667f939"
+  },
+  "web.admin.domaintoolbox.transfer.description": {
+    "text": "Αναθέστε ξανά έναν τομέα σε διαφορετικό οργανισμό. Ενέργεια με τη μεγαλύτερη εμβέλεια επιπτώσεων — κάντε προεπισκόπηση και επιβεβαιώστε προσεκτικά.",
+    "source_hash": "d4e26e03"
+  },
+  "web.admin.domaintoolbox.transfer.toOrgLabel": {
+    "text": "Οργανισμός προορισμού",
+    "source_hash": "4e4486eb"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgLabel": {
+    "text": "Οργανισμός προέλευσης (προαιρετικά)",
+    "source_hash": "3666815f"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
+    "text": "επιβεβαίωση τρέχοντος κατόχου",
+    "source_hash": "cd9e769c"
+  },
+  "web.admin.domaintoolbox.transfer.from": {
+    "text": "Από",
+    "source_hash": "21819769"
+  },
+  "web.admin.domaintoolbox.transfer.to": {
+    "text": "Προς",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domaintoolbox.transfer.orphaned": {
+    "text": "ΟΡΦΑΝΟΣ",
+    "source_hash": "54dc2166"
+  },
+  "web.admin.domaintoolbox.transfer.applyButton": {
+    "text": "Μεταφορά τομέα",
+    "source_hash": "9517aeb9"
+  },
+  "web.admin.domaintoolbox.transfer.success": {
+    "text": "Ο τομέας μεταφέρθηκε με επιτυχία.",
+    "source_hash": "bbca9de9"
+  },
+  "web.admin.domaintoolbox.transfer.confirmTitle": {
+    "text": "Μεταφορά ιδιοκτησίας τομέα;",
+    "source_hash": "d306a15a"
+  },
+  "web.admin.domaintoolbox.transfer.confirmDescription": {
+    "text": "Αυτό αναθέτει ξανά την ιδιοκτησία του τομέα {domain} σε άλλον οργανισμό. Πληκτρολογήστε ξανά το εξωτερικό ID του τομέα για επιβεβαίωση.",
+    "source_hash": "edefd97c"
+  }
+}

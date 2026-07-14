@@ -1,0 +1,114 @@
+{
+  "web.admin.bannedIps.title": {
+    "text": "已封禁的 IP",
+    "source_hash": "0ece5643"
+  },
+  "web.admin.bannedIps.description": {
+    "text": "在站点边界封禁和解封 IP 地址。",
+    "source_hash": "69c0c992"
+  },
+  "web.admin.bannedIps.currentIp": {
+    "text": "您当前的 IP",
+    "source_hash": "14ff3ec5"
+  },
+  "web.admin.bannedIps.actions.cancel": {
+    "text": "取消",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.bannedIps.actions.ban": {
+    "text": "封禁 IP",
+    "source_hash": "9937d7fd"
+  },
+  "web.admin.bannedIps.actions.quickBan": {
+    "text": "封禁此 IP",
+    "source_hash": "95720658"
+  },
+  "web.admin.bannedIps.ban.confirmTitle": {
+    "text": "封禁此 IP 地址？",
+    "source_hash": "512acd7b"
+  },
+  "web.admin.bannedIps.ban.confirmDescription": {
+    "text": "此操作将在站点边界屏蔽 {ip}。请输入该 IP 以确认。",
+    "source_hash": "d8f6142e"
+  },
+  "web.admin.bannedIps.ban.button": {
+    "text": "封禁 IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.ban.success": {
+    "text": "已封禁 {ip}",
+    "source_hash": "97180685"
+  },
+  "web.admin.bannedIps.columns.ipAddress": {
+    "text": "IP 地址",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.bannedIps.columns.reason": {
+    "text": "原因",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.bannedIps.columns.bannedAt": {
+    "text": "封禁时间",
+    "source_hash": "dfbd120e"
+  },
+  "web.admin.bannedIps.columns.bannedBy": {
+    "text": "封禁人",
+    "source_hash": "9f47db0e"
+  },
+  "web.admin.bannedIps.columns.actions": {
+    "text": "操作",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.bannedIps.form.title": {
+    "text": "封禁 IP 地址",
+    "source_hash": "59961746"
+  },
+  "web.admin.bannedIps.form.ipLabel": {
+    "text": "IP 地址或 CIDR",
+    "source_hash": "133d0819"
+  },
+  "web.admin.bannedIps.form.reasonLabel": {
+    "text": "原因（可选）",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.bannedIps.form.reasonPlaceholder": {
+    "text": "例如：撞库攻击",
+    "source_hash": "828a15ae"
+  },
+  "web.admin.bannedIps.form.submit": {
+    "text": "封禁 IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.list.loadError": {
+    "text": "无法加载已封禁的 IP。",
+    "source_hash": "539f2e34"
+  },
+  "web.admin.bannedIps.list.retry": {
+    "text": "重试",
+    "source_hash": "942087cc"
+  },
+  "web.admin.bannedIps.list.empty": {
+    "text": "当前没有被封禁的 IP",
+    "source_hash": "b72cc9c5"
+  },
+  "web.admin.bannedIps.stats.total": {
+    "text": "封禁总数",
+    "source_hash": "41059c94"
+  },
+  "web.admin.bannedIps.unban.confirmTitle": {
+    "text": "解除此封禁？",
+    "source_hash": "88473e59"
+  },
+  "web.admin.bannedIps.unban.confirmDescription": {
+    "text": "此操作将解除对 {ip} 的屏蔽。请输入该 IP 以确认。",
+    "source_hash": "6bec3191"
+  },
+  "web.admin.bannedIps.unban.button": {
+    "text": "解封",
+    "source_hash": "25fb5989"
+  },
+  "web.admin.bannedIps.unban.success": {
+    "text": "已解封 {ip}",
+    "source_hash": "79192c36"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "web.admin.kit.confirmDialog.typePrompt": {
+    "text": "A megerősítéshez írja be alább a következőt: {token}",
+    "source_hash": "282445b6"
+  },
+  "web.admin.kit.confirmDialog.inputLabel": {
+    "text": "Megerősítő szöveg",
+    "source_hash": "8edc1113"
+  },
+  "web.admin.kit.confirmDialog.mismatchHint": {
+    "text": "A folytatáshoz a beírt szövegnek pontosan egyeznie kell.",
+    "source_hash": "f0cc7389"
+  },
+  "web.admin.kit.dataTable.empty": {
+    "text": "Nem található rekord",
+    "source_hash": "6e2ea637"
+  },
+  "web.admin.kit.dataTable.sortBy": {
+    "text": "Rendezés a(z) {column} szerint",
+    "source_hash": "55fb1bf9"
+  },
+  "web.admin.kit.filterBar.search": {
+    "text": "Keresés",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.kit.filterBar.searchPlaceholder": {
+    "text": "Keresés…",
+    "source_hash": "7336265a"
+  },
+  "web.admin.kit.filterBar.clearFilters": {
+    "text": "Szűrők törlése",
+    "source_hash": "7179ea00"
+  },
+  "web.admin.kit.filterBar.all": {
+    "text": "Mind",
+    "source_hash": "a52ace42"
+  },
+  "web.admin.kit.jsonViewer.expandAll": {
+    "text": "Összes kibontása",
+    "source_hash": "a3e586be"
+  },
+  "web.admin.kit.jsonViewer.collapseAll": {
+    "text": "Összes összecsukása",
+    "source_hash": "25f7b372"
+  },
+  "web.admin.kit.jsonViewer.empty": {
+    "text": "Nincs adat",
+    "source_hash": "3b41ba9c"
+  },
+  "web.admin.kit.jsonViewer.copyLabel": {
+    "text": "JSON másolása",
+    "source_hash": "7708c6e2"
+  },
+  "web.admin.kit.revealEmail.reveal": {
+    "text": "E-mail-cím felfedése",
+    "source_hash": "f6272277"
+  },
+  "web.admin.kit.revealEmail.hide": {
+    "text": "E-mail-cím elrejtése",
+    "source_hash": "9755e870"
+  },
+  "web.admin.kit.revealEmail.copy": {
+    "text": "E-mail-cím másolása",
+    "source_hash": "61b94846"
+  }
+}

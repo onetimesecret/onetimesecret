@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "שימוש",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "ייצא מדדי שימוש עבור טווח תאריכים.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "תאריך התחלה",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "תאריך סיום",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "שלוף נתונים",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "לא ניתן לטעון נתוני שימוש.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "נסה שוב",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "אין נתונים עבור טווח זה",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "סודות לפי מצב",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "סודות לפי יום",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "משתמשים חדשים לפי יום",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "הורד JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "הורד CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "תאריך",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "כמות",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "סך הסודות",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "משתמשים חדשים",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "ממוצע סודות ליום",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "ממוצע משתמשים ליום",
+    "source_hash": "491f626d"
+  }
+}

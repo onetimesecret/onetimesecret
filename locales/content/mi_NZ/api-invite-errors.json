@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Kua %{status} kētia te tono",
-    "source_hash": "130c87e0"
+    "text": "Kua tukatukatia kētia tēnei tono",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Kua pau te tono",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "He mema kē koe nō tēnei whakahaere",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Kua whakaaetia kētia tēnei tono",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Kua whakakāhoretia kētia tēnei tono",
+    "source_hash": "96e0d626"
   }
 }

@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Din session har gått ut. Uppdatera sidan och försök igen.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Inloggningen misslyckades. Vänligen försök igen.",

@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "제품",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "소스 코드",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "결제",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "{product_name}을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 한 번만 표시된 후 서버에서 영구적으로 삭제됩니다.",
-    "source_hash": "e0f1a10c"
+    "text": "{product_name}을(를) 통해 공유된 안전한 메시지를 보고 계십니다. 이 콘텐츠는 한 번만 표시된 후 저희 서버에서 영구적으로 삭제됩니다.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "이 비밀 메시지를 나중에 다시 볼 수 있나요?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "{product_name} 홈페이지 방문",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "푸터 탐색",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "도움이 필요하시면 지원팀에 문의해 주세요",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Colonel 전용",
+    "source_hash": "3f1e2dbd"
   }
 }

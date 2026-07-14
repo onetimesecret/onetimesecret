@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Fatura iletişim e-postanız {product_name} hesap e-postanızdan farklıysa, abonelik avantajlarınızı korumak için yeni bölge hesabında fatura iletişim e-postasını kullanın.",
-    "source_hash": "dac1cc28"
+    "text": "Faturalandırma iletişim e-postanız {product_name} hesap e-postanızdan farklıysa, abonelik avantajlarınızı korumak için yeni bölge hesabı için faturalandırma iletişim e-postasını kullanın.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Abonelik avantajlarınız, fatura e-posta adresinizle oluşturulan tüm hesaplara otomatik olarak uygulanır.",

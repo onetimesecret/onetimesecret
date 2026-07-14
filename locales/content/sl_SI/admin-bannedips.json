@@ -1,0 +1,114 @@
+{
+  "web.admin.bannedIps.title": {
+    "text": "Prepovedani naslovi IP",
+    "source_hash": "0ece5643"
+  },
+  "web.admin.bannedIps.description": {
+    "text": "Prepovejte in odpravite prepoved naslovov IP na obodu spletnega mesta.",
+    "source_hash": "69c0c992"
+  },
+  "web.admin.bannedIps.currentIp": {
+    "text": "Vaš trenutni naslov IP",
+    "source_hash": "14ff3ec5"
+  },
+  "web.admin.bannedIps.actions.cancel": {
+    "text": "Prekliči",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.bannedIps.actions.ban": {
+    "text": "Prepovej naslov IP",
+    "source_hash": "9937d7fd"
+  },
+  "web.admin.bannedIps.actions.quickBan": {
+    "text": "Prepovej ta naslov IP",
+    "source_hash": "95720658"
+  },
+  "web.admin.bannedIps.ban.confirmTitle": {
+    "text": "Prepovej ta naslov IP?",
+    "source_hash": "512acd7b"
+  },
+  "web.admin.bannedIps.ban.confirmDescription": {
+    "text": "To blokira {ip} na obodu spletnega mesta. Za potrditev vnesite naslov IP.",
+    "source_hash": "d8f6142e"
+  },
+  "web.admin.bannedIps.ban.button": {
+    "text": "Prepovej IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.ban.success": {
+    "text": "Prepovedan {ip}",
+    "source_hash": "97180685"
+  },
+  "web.admin.bannedIps.columns.ipAddress": {
+    "text": "Naslov IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.admin.bannedIps.columns.reason": {
+    "text": "Razlog",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.bannedIps.columns.bannedAt": {
+    "text": "Prepovedano ob",
+    "source_hash": "dfbd120e"
+  },
+  "web.admin.bannedIps.columns.bannedBy": {
+    "text": "Prepovedal",
+    "source_hash": "9f47db0e"
+  },
+  "web.admin.bannedIps.columns.actions": {
+    "text": "Dejanja",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.bannedIps.form.title": {
+    "text": "Prepovej naslov IP",
+    "source_hash": "59961746"
+  },
+  "web.admin.bannedIps.form.ipLabel": {
+    "text": "Naslov IP ali CIDR",
+    "source_hash": "133d0819"
+  },
+  "web.admin.bannedIps.form.reasonLabel": {
+    "text": "Razlog (neobvezno)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.bannedIps.form.reasonPlaceholder": {
+    "text": "npr. polnjenje poverilnic",
+    "source_hash": "828a15ae"
+  },
+  "web.admin.bannedIps.form.submit": {
+    "text": "Prepovej IP",
+    "source_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.list.loadError": {
+    "text": "Prepovedanih naslovov IP ni bilo mogoče naložiti.",
+    "source_hash": "539f2e34"
+  },
+  "web.admin.bannedIps.list.retry": {
+    "text": "Poskusi znova",
+    "source_hash": "942087cc"
+  },
+  "web.admin.bannedIps.list.empty": {
+    "text": "Trenutno ni prepovedan noben naslov IP",
+    "source_hash": "b72cc9c5"
+  },
+  "web.admin.bannedIps.stats.total": {
+    "text": "Skupaj prepovedanih",
+    "source_hash": "41059c94"
+  },
+  "web.admin.bannedIps.unban.confirmTitle": {
+    "text": "Odstrani to prepoved?",
+    "source_hash": "88473e59"
+  },
+  "web.admin.bannedIps.unban.confirmDescription": {
+    "text": "To odblokira {ip}. Za potrditev vnesite naslov IP.",
+    "source_hash": "6bec3191"
+  },
+  "web.admin.bannedIps.unban.button": {
+    "text": "Odpravi prepoved",
+    "source_hash": "25fb5989"
+  },
+  "web.admin.bannedIps.unban.success": {
+    "text": "Prepoved za {ip} odpravljena",
+    "source_hash": "79192c36"
+  }
+}

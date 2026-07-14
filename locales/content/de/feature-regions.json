@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Wenn deine Abrechnungskontakt-E-Mail von der E-Mail-Adresse deines {product_name}-Kontos abweicht, verwende die Abrechnungskontakt-E-Mail für das Konto der neuen Region, um deine Abonnementvorteile zu behalten.",
-    "source_hash": "dac1cc28"
+    "text": "Wenn deine Abrechnungskontakt-E-Mail von der E-Mail deines {product_name}-Kontos abweicht, verwende die Abrechnungskontakt-E-Mail für das neue Regionskonto, um deine Abonnementvorteile zu behalten.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Deine Abonnementvorteile gelten automatisch für jedes Konto, das mit deiner Rechnungs-E-Mail-Adresse erstellt wurde.",

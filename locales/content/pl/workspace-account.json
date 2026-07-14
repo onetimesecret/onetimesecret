@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Chroń ten token! Zapewnia on pełny dostęp do Twojego konta.",
-    "source_hash": "8839aa4d"
+    "text": "Zachowaj ten token w bezpiecznym miejscu. Można go użyć do tworzenia sekretów i zarządzania nimi za pośrednictwem API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Potwierdź swoim hasłem",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail zaktualizowany pomyślnie. Sprawdź swoją skrzynkę odbiorczą, aby zweryfikować nowy adres e-mail.",
-    "source_hash": "58de2536"
+    "text": "Wiadomość weryfikacyjna została wysłana. Sprawdź swoją nową skrzynkę odbiorczą i kliknij link potwierdzający, aby dokończyć zmianę.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Nie udało się zaktualizować e-maila. Spróbuj ponownie.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "Dowiedz się, jak zintegrować {product_name} ze swoimi aplikacjami",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Dokumentacja REST API",
