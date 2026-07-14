@@ -22,6 +22,7 @@ export const CUSTOM_DOMAIN_SAFE_DUMP_FIELDS = [
   'txt_validation_host',
   'txt_validation_value',
   'brand',
+  'icon',
   'status',
   'vhost',
   'verified',

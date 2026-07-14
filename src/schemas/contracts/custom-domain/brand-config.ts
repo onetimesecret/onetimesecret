@@ -311,6 +311,39 @@ export const imagePropsCanonical = z
   })
   .partial();
 
+/**
+ * Domain-record icon projection (#3780).
+ *
+ * A deliberately narrow view of the icon hashkey that rides on the custom
+ * domain record (backend `safe_dump`). It carries provenance + light metadata
+ * but NEVER the base64 `encoded` bytes — those are large and served separately
+ * via the image endpoint ({@link imagePropsCanonical}). Every field is a string
+ * because the backend reads them straight off the Redis hashkey with no numeric
+ * coercion, which is exactly why the numeric dimensions (width/height/bytes/
+ * ratio) from `imagePropsCanonical` are intentionally omitted here — declaring
+ * them as `z.number()` would reject the stringified values the wire carries.
+ *
+ * `favicon_source` gates the workspace "Refresh favicon" button: a
+ * 'user_upload' icon can never be clobbered by a forced fetch
+ * (FetchDomainFavicon#overwrite_guard), so the control is disabled for it.
+ * Absent/null (older payloads, no icon) leaves the button enabled and the
+ * backend overwrite-guard remains the real protection.
+ *
+ * @category Contracts
+ */
+export const domainIconMetaCanonical = z
+  .object({
+    /** Stored filename (e.g. favicon.ico). */
+    filename: z.string().nullish(),
+
+    /** MIME content type (e.g. image/png). */
+    content_type: z.string().nullish(),
+
+    /** Provenance: 'user_upload' | 'auto_fetch' | null (legacy untagged). */
+    favicon_source: z.string().nullish(),
+  })
+  .partial();
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
@@ -320,3 +353,6 @@ export type BrandSettingsCanonical = z.infer<typeof brandSettingsCanonical>;
 
 /** TypeScript type for image properties. */
 export type ImagePropsCanonical = z.infer<typeof imagePropsCanonical>;
+
+/** TypeScript type for the domain-record icon projection. */
+export type DomainIconMetaCanonical = z.infer<typeof domainIconMetaCanonical>;
