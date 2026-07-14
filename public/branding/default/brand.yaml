@@ -42,3 +42,6 @@
 # apple_touch_icon_url: "https://cdn.example.com/touch.png" # head apple-touch-icon
 # og_image_url: "https://cdn.example.com/card.png"          # og:image / twitter:image (absolute)
 # totp_issuer: "Secure Links"                  # MFA issuer label (falls back to product_name)
+# The default behaviour calculates this to true or false based on the primary_color's
+# luminance, but if you can override explicitly here.
+# button_text_light: false
