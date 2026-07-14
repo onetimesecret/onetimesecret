@@ -660,10 +660,10 @@ RSpec.describe Onetime::Config do
       end
     end
 
-    # ADR-024: a deployment artifact (production container image, no Vite
+    # ADR-025: a deployment artifact (production container image, no Vite
     # toolchain) booted in development frontend mode would proxy /dist/* to a
     # Vite server it cannot reach, silently 500-ing every asset. Refuse to boot.
-    context 'development frontend mode without a Vite toolchain (ADR-024)' do
+    context 'development frontend mode without a Vite toolchain (ADR-025)' do
       let(:dev_config) do
         {
           'site' => { 'secret' => 'anyvaluewilldo' },
