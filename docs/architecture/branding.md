@@ -83,8 +83,8 @@ field. No defaults shipped.
 | `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute)       |
 | `BRAND_TOTP_ISSUER`          | MFA issuer label (falls back to product name)      |
 | `BRAND_SIGNATURE_NAME`       | email sign-off (see Special cases)                 |
-| `BRAND_PACK`                 | static-asset pack NAME → `public/branding/<name>`  |
-| `BRAND_ASSETS_DIR`           | static-asset pack PATH (wins over `BRAND_PACK`)    |
+| `BRAND_PACK`                 | pack NAME → `etc/branding/` then `public/branding/` (unset ⇒ `default`) |
+| `BRAND_ASSETS_DIR`           | explicit pack PATH (wins over `BRAND_PACK`)        |
 
 `BRAND_PACK` / `BRAND_ASSETS_DIR` are the two exceptions to the "populates
 `OT.conf['brand']`" rule above: they populate `site.brand_pack` /
@@ -154,32 +154,75 @@ module scope.
 
 ## Static icon assets
 
-The favicon/social-icon pack is a parallel concern: static files in
-`public/web/` (not resolved strings), generated brand-neutral from one keyhole
-glyph by `scripts/branding/`. Override precedence mirrors the colour chain:
+The favicon/social-icon pack is a parallel concern: static files in a **brand
+pack** directory (not resolved strings), generated brand-neutral from one
+keyhole glyph by `scripts/branding/`. Since v2 (#3774) resolution ALWAYS lands
+on a pack — the tracked neutral `default` pack (`public/branding/default/`)
+unless an operator selects another. Override precedence mirrors the colour
+chain:
 
 ```
 per-domain icon (Redis)
   ↓ BRAND_FAVICON_URL (302 redirect)
-  ↓ brand pack overlay (BRAND_PACK / BRAND_ASSETS_DIR, #3739)
-  ↓ neutral public/web default
+  ↓ selected brand pack (BRAND_PACK / BRAND_ASSETS_DIR, #3739)
+  ↓ default brand pack (public/branding/default, #3774)
 ```
 
-A `public/web` runtime mount (Docker/K8s volume) still works and lands in the
-`public/web` rung; a pack overlay is checked ahead of it for the files it
-provides.
+A selected pack may be partial: files it omits fall through to the `default`
+pack. A legacy `public/web` runtime mount still resolves as a last-ditch
+fallback in `brand_asset_path`.
 
-**Runtime overlay (#3739).** `BRAND_PACK` (a pack _name_ under
-`public/branding/<name>`) or `BRAND_ASSETS_DIR` (an explicit _path_, e.g. a
-mounted volume; wins over `BRAND_PACK`) select a replacement pack that overlays
-`public/web` at runtime — no rebuild. It is applied at three chokepoints, all
-routed through the shared `Onetime.brand_asset_path(name)` / `brand_overlay_dir`
-helpers (`lib/onetime.rb`):
+**Two search roots (#3774).** A `BRAND_PACK` _name_ is resolved across two roots,
+first existing wins:
 
-1. **Static middleware** (`StaticFiles`) — an extra `Rack::Static` layer ahead
-   of the `public/web` one, listing only the overlay files that actually exist
-   (`Rack::Static` matches by URL prefix, not file existence). The stack is
-   built once at boot, so changing packs needs a restart.
+1. `etc/branding/<name>` — operator space. Nothing is tracked here in the repo;
+   it arrives at runtime (quadlet per-entry mounts of `/etc/onetimesecret/`,
+   systemd confext, a Docker/K8s volume). Checked first so an operator pack
+   shadows a vendor pack of the same name.
+2. `public/branding/<name>` — vendor space. Ships the tracked `default` pack and
+   any generated packs baked into the image/repo.
+
+The `default` pack deliberately lives in the VENDOR root: a quadlet mount of a
+host `branding/` dir lands wholesale over `etc/branding`, so a tracked
+`etc/branding/default` would be shadowed exactly when packs are in use.
+
+### Brand pack manifest (#3774)
+
+A pack is the single unit of branding: the static assets above **plus** an
+optional `brand.yaml` carrying the identity scalars (colours, product name,
+etc.) that go with them, so `BRAND_PACK=acme` ships icons + colours + name as
+one unit instead of a pack plus a wall of `BRAND_*` vars that nothing keeps in
+agreement. Precedence (lowest to highest):
+
+```
+built-in defaults  <  pack brand.yaml  <  operator `brand:` config  <  BRAND_* env
+```
+
+`Config#apply_brand_manifest` (run in `after_load`, before `normalize_brand`)
+`YAML.safe_load`s the resolved pack's `brand.yaml` and fills only the keys the
+operator's `brand:` config left nil; env then layers on top. Keys are whitelisted
+to `BRAND_MANIFEST_KEYS` (== `BRAND_ENV` keys), so a pack can never reach
+`site.host`, SMTP creds, or any non-brand config. The tracked `default` pack
+ships a **value-free, all-commented** `brand.yaml`, so an unconfigured install
+adds no brand values — `brand.*` stays nil and the frontend `NEUTRAL_BRAND_DEFAULTS`
+remain the single authority for neutral rendering (#3049). Drift specs assert the
+default manifest stays value-free and that its documented key set equals the
+whitelist.
+
+**Runtime overlay (#3739 / #3774).** `BRAND_PACK` (a pack _name_ resolved across
+the two roots above) or `BRAND_ASSETS_DIR` (an explicit _path_, e.g. a mounted
+volume; wins over `BRAND_PACK`) select a replacement pack. It is applied at three
+chokepoints, all routed through the shared `Onetime.brand_asset_path(name)` /
+`brand_overlay_dir` / `brand_pack_dir(name)` helpers (`lib/onetime.rb`):
+
+1. **Static middleware** (`StaticFiles`) — the base brand layer serves
+   `BRAND_PACK_URLS` from the resolved `default` pack (was `public/web`, #3774);
+   a selected pack distinct from `default` mounts an extra `Rack::Static` layer
+   ahead of it, listing only the overlay files that actually exist
+   (`Rack::Static` matches by URL prefix, not file existence, so a partial pack
+   falls through to the default base). App/build assets (`/dist`, `/img`, `/v3`)
+   still serve from `public/web` and are never overlaid. The stack is built once
+   at boot, so changing packs needs a restart.
 2. **`GetFavicon`** — `serve_default_favicon` resolves `favicon.ico`
    overlay-first before the `public/web` fallback.
 3. **`GetWebmanifest`** — `load_base_manifest` resolves `site.webmanifest`

@@ -13,7 +13,9 @@ Shipping the onetimesecret.com brand as the default would be a
 trust/impersonation hazard for self-hosted installs, so every deployment
 (including onetimesecret.com itself) overrides it with its own brand.
 
-Assets live at the document root (`public/web/`):
+Assets are served at the document root from a **brand pack** — the tracked
+neutral `default` pack (`public/branding/default/`, #3774) unless an operator
+selects another. The neutral set:
 
 | Asset             | File                            | Referenced as                            |
 | ----------------- | ------------------------------- | ---------------------------------------- |
@@ -33,10 +35,11 @@ For `/favicon.ico`, highest to lowest:
    wins for that domain (`apps/web/core/logic/page/get_favicon.rb`).
 2. **Site-level override** — `BRAND_FAVICON_URL` (302 redirect) or a replacement
    file.
-3. **Pack overlay** — `BRAND_PACK` / `BRAND_ASSETS_DIR` point a directory of
-   replacement assets at the document root, overlaying the neutral set at
+3. **Pack overlay** — `BRAND_PACK` / `BRAND_ASSETS_DIR` select a pack of
+   replacement assets served at the document root, overlaying the default at
    runtime (#3739). See [Runtime overlay](#runtime-overlay-self-managed).
-4. **Neutral bundled default** — `public/web/favicon.ico`.
+4. **Default pack** — `public/branding/default/favicon.ico` (the pack every
+   unset `BRAND_PACK` resolves to, #3774).
 
 The rest of the pack follows the same site-level-override → pack-overlay →
 neutral-default model, minus the per-domain layer.
@@ -77,14 +80,16 @@ derived from the product name.
 
 **Option B — bake a pack at build.** Generate a pack under
 [`public/branding/<name>/`](../../public/branding/), then build with
-`--build-arg BRAND_PACK=<name>`; the `Dockerfile` copies it flat into
-`public/web/` (and fails the build if the pack was never generated). The right
-choice for assets with no URL override (`favicon.svg`, `safari-pinned-tab.svg`,
-`icon-192/512.png`). The same pack works at runtime with no rebuild — see the
-"Runtime overlay" section below.
+`--build-arg BRAND_PACK=<name>`; the `Dockerfile` overlays it onto the default
+pack (`public/branding/default/`, so an unset runtime `BRAND_PACK` serves it) and
+fails the build if the pack was never generated. The right choice for assets with
+no URL override (`favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png`). The
+same pack works at runtime with no rebuild — see the "Runtime overlay" section
+below.
 
-**Option C — drop-in files at runtime.** Mount replacements over
-`public/web/...` (Docker/K8s volume). No rebuild.
+**Option C — drop-in files at runtime.** Mount a replacement pack directory
+(Docker/K8s volume) and point `BRAND_ASSETS_DIR` at it, or mount into
+`etc/branding/<name>/`. No rebuild.
 
 **Option D — per-custom-domain.** Customers upload their own icon/logo per
 domain via the domains API; takes precedence over everything above.
@@ -102,14 +107,21 @@ BRAND_PACK=maruhi bin/dev            # serves public/branding/maruhi/
 BRAND_ASSETS_DIR=/mnt/brand bin/dev  # serves an explicit directory (for mounts)
 ```
 
-- **`BRAND_PACK`** is a bare pack _name_ resolved to `public/branding/<name>/`
-  — generator output, see [`scripts/branding/`](../../scripts/branding/). Path
-  separators are rejected (it is a name, not a path).
+- **`BRAND_PACK`** is a bare pack _name_ resolved across two search roots, first
+  existing wins: `etc/branding/<name>/` (operator space — runtime mounts /
+  confext) then `public/branding/<name>/` (vendor space — the tracked `default`
+  plus generator output, see [`scripts/branding/`](../../scripts/branding/)).
+  Path separators are rejected (it is a name, not a path). Unset resolves to
+  `default`; an unknown name falls back to `default` (and warns).
 - **`BRAND_ASSETS_DIR`** is an explicit _path_, intended for a mounted volume
   (Docker/K8s) at e.g. `/mnt/brand`. When both are set, the explicit directory
-  **wins** over the pack name.
-- A pack may be partial: any file absent from the overlay falls through to the
-  neutral `public/web/` default.
+  **wins** over the pack name; a missing path falls back to `default`.
+- A pack also carries an optional `brand.yaml` identity manifest (colours,
+  product name) absorbed into `OT.conf['brand']` at boot, beneath your `BRAND_*`
+  env — so a pack ships assets **and** their identity as one unit. See
+  [branding.md](../architecture/branding.md#brand-pack-manifest-3774).
+- A pack may be partial: any file absent from the selected pack falls through to
+  the `default` pack.
 - The overlay stack is built once at boot, so **changing packs (or adding files
   to a selected pack) requires a restart**.
 
@@ -144,11 +156,14 @@ Select the generated pack with `--build-arg BRAND_PACK=<name>` to bake it in
 diverge from `mark.mjs`, so use env overrides to produce *your own* pack, not to
 re-skin the committed neutral defaults.
 
-A custom `MARK_*` run still writes to `public/web`/`src/assets/branding` by
-default, which would dirty the protected neutral files. Redirect it with
+A neutral `pnpm run gen:favicons` run writes to the tracked default pack
+(`public/branding/default/`) and `src/assets/branding/`. A custom `MARK_*` run
+would dirty those protected neutral files, so redirect it with
 `MARK_OUT_PUBLIC_DIR` / `MARK_OUT_SRC_DIR` — each is resolved against the repo
 root when relative, or used as-is when absolute (handy for a throwaway or CI
-directory outside the tree). The generator prints the resolved destination:
+directory outside the tree). A preset run also emits an active `brand.yaml`
+(colour + product name) into the pack; the neutral default keeps its value-free
+template. The generator prints the resolved destination:
 
 ```bash
 MARK_OUT_PUBLIC_DIR=public/branding/acme MARK_OUT_SRC_DIR=/tmp/mark-src \

@@ -61,7 +61,7 @@ const OG_GRADIENT_DARK = process.env.MARK_OG_GRADIENT_DARK || '#1E3A8A';
 
 // Web manifest text. Neutral defaults are deliberately generic (the runtime
 // /site.webmanifest route overlays the real brand.product_name when configured).
-const PRODUCT_NAME = process.env.MARK_PRODUCT_NAME || 'Secure Links';
+export const PRODUCT_NAME = process.env.MARK_PRODUCT_NAME || 'Secure Links';
 const SHORT_NAME = process.env.MARK_SHORT_NAME || PRODUCT_NAME;
 
 // Optional licensing/credit line for a swapped-in glyph. When set, it is emitted

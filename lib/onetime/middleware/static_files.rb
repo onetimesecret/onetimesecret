@@ -72,15 +72,22 @@ module Onetime
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
             require 'rack/static'
 
-            # Brand-pack overlay layer (#3739). Mounted BEFORE the base layer so
-            # it is outermost in Rack::Builder and matches first. Only the pack
-            # files that actually EXIST in the overlay dir are listed:
-            # Rack::Static matches by URL prefix, not file existence, so a listed
-            # URL with a missing file would 404 instead of falling through to the
-            # base public/web layer. Existence is resolved once at boot — changing
-            # packs (or adding overlay files) needs a restart.
+            # Brand-pack resolution ALWAYS lands on a pack (#3774). The base
+            # brand layer for BRAND_PACK_URLS now serves from the resolved DEFAULT
+            # pack (public/branding/default) instead of loose public/web files.
+            base_dir    = Onetime.brand_pack_dir(Onetime::DEFAULT_BRAND_PACK)
             overlay_dir = Onetime.brand_overlay_dir
-            if overlay_dir
+
+            # Selected-pack overlay layer (#3739). Mounted BEFORE the base layer
+            # so it is outermost in Rack::Builder and matches first. Only present
+            # when an operator SELECTED a pack distinct from the default — a
+            # partial selected pack then falls through to the default base for the
+            # files it omits. Only files that actually EXIST in the overlay dir
+            # are listed: Rack::Static matches by URL prefix, not file existence,
+            # so a listed URL with a missing file would 404 instead of falling
+            # through. Existence is resolved once at boot — changing packs (or
+            # adding overlay files) needs a restart.
+            if overlay_dir && base_dir && overlay_dir != base_dir
               overlay_urls = BRAND_PACK_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
               unless overlay_urls.empty?
                 Onetime.ld "[StaticFiles] Brand overlay active: #{overlay_dir} (#{overlay_urls.size} file(s))"
@@ -88,15 +95,27 @@ module Onetime
               end
             end
 
+            # Base brand layer: the resolved default pack (#3774). No public/web
+            # fallback — the default pack is tracked and drift-guarded, so if it
+            # is somehow absent (a broken checkout) the layer is simply skipped
+            # and brand URLs fall through to the app rather than serving stale
+            # public/web files. /favicon.ico and /site.webmanifest are
+            # intentionally NOT listed: they are served by Core::Controllers::Page
+            # routes so per-custom-domain icons, brand.favicon_url redirects, and
+            # brand-aware manifest fields keep working.
+            if base_dir
+              Onetime.ld "[StaticFiles] Base brand layer: #{base_dir}"
+              use Rack::Static, urls: BRAND_PACK_URLS, root: base_dir
+            else
+              Onetime.le '[StaticFiles] default brand pack not found; brand assets will 404'
+            end
+
+            # App/build assets — never overlaid by a brand pack; these DO live in
+            # public/web (Vite build output + committed images). Root against HOME
+            # rather than CWD (puma's working dir is not guaranteed).
             use Rack::Static,
-              urls: ['/dist', '/img', '/v3',
-                     # Favicon + mobile/social variety pack at the document root.
-                     # /favicon.ico and /site.webmanifest are intentionally
-                     # omitted: they are served by Core::Controllers::Page routes
-                     # so per-custom-domain icons, brand.favicon_url redirects,
-                     # and brand-aware manifest fields keep working.
-                     *BRAND_PACK_URLS],
-              root: 'public/web'
+              urls: ['/dist', '/img', '/v3'],
+              root: File.join(Onetime::HOME, 'public', 'web')
           end
 
           # All non-static requests pass through to the original application

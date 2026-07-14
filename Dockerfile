@@ -150,39 +150,45 @@ RUN set -eux && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-# Build-time brand PACK overlay (trust signal, #3739).
+# Build-time brand PACK overlay (trust signal, #3739 / #3774).
 #
-# The repo ships brand-NEUTRAL favicon/icon/social defaults. public/branding/<pack>/
-# is a COMPLETE generated brand pack (favicon.ico, icon-*.png, favicon.svg,
-# safari-pinned-tab.svg, site.webmanifest, social-preview.png). It is gitignored
+# The repo ships a brand-NEUTRAL default pack (public/branding/default: the
+# keyhole favicon/icon/social set + a value-free brand.yaml). A named pack
+# public/branding/<pack>/ is a COMPLETE generated brand pack (favicon.ico,
+# icon-*.png, favicon.svg, safari-pinned-tab.svg, site.webmanifest,
+# social-preview.png, and optionally brand.yaml). Named packs are gitignored
 # generator output (pnpm run gen:favicons:<pack>) — absent from OSS/CI builds, so
 # this is a no-op unless a pack was generated AND selected with
 # --build-arg BRAND_PACK=<name>, never overlaying our company brand onto
 # self-hosted builds. The pack arrives in the image via `COPY public ./public`
-# above (public/branding is not .dockerignore'd) and is copied over public/web/
-# after the Vite build. Baking is optional: the same selection also works live at
-# runtime via BRAND_PACK / BRAND_ASSETS_DIR (site.brand_pack /
-# site.brand_assets_dir). Fails loudly if a pack is selected but not present, so
-# a typo/ungenerated pack can't silently ship neutral assets.
+# above (public/branding is not .dockerignore'd).
+#
+# v2 bake (#3774): brand resolution always lands on a pack, and an unset runtime
+# BRAND_PACK resolves to `default`. So baking overlays the selected pack ONTO the
+# default pack — the runtime then serves it with no env var set. Baking is
+# optional: the same selection also works live at runtime via BRAND_PACK /
+# BRAND_ASSETS_DIR (site.brand_pack / site.brand_assets_dir). Fails loudly if a
+# pack is selected but not present, so a typo/ungenerated pack can't silently
+# ship neutral assets.
 ARG BRAND_PACK=
 RUN set -eux && \
-    if [ -n "${BRAND_PACK}" ]; then \
+    if [ -n "${BRAND_PACK}" ] && [ "${BRAND_PACK}" != "default" ]; then \
       case "${BRAND_PACK}" in \
         *..*|*/*|*\\*) \
           echo "ERROR: BRAND_PACK must be a simple pack name (no '/', '\\', or '..'): ${BRAND_PACK}" >&2 && exit 1 ;; \
       esac && \
       if [ -d "public/branding/${BRAND_PACK}" ] && \
          [ -n "$(find "public/branding/${BRAND_PACK}" -type f 2>/dev/null)" ]; then \
-        cp -R "public/branding/${BRAND_PACK}/." public/web/ && \
-        chmod -R a+rX public/web && \
-        echo "NOTICE: applied brand pack overlay: ${BRAND_PACK}" >&2 ; \
+        cp -R "public/branding/${BRAND_PACK}/." public/branding/default/ && \
+        chmod -R a+rX public/branding/default && \
+        echo "NOTICE: baked brand pack over default: ${BRAND_PACK}" >&2 ; \
       else \
         echo "ERROR: BRAND_PACK=${BRAND_PACK} set but public/branding/${BRAND_PACK} is empty or missing." >&2 && \
         echo "Generate it first (e.g. pnpm run gen:favicons:${BRAND_PACK})." >&2 && \
         exit 1 ; \
       fi ; \
     else \
-      echo "NOTICE: no BRAND_PACK build arg; using neutral defaults" >&2 ; \
+      echo "NOTICE: no BRAND_PACK build arg; using neutral default pack" >&2 ; \
     fi
 
 ##
