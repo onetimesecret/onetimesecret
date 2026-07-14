@@ -129,10 +129,12 @@ module Onetime
         # favicon fetching works without RabbitMQ for dev/testing.
         #
         # @param domain_id [String] CustomDomain identifier
+        # @param force [Boolean] Re-fetch even when an auto_fetch icon already
+        #   exists (manual refresh, #3780). Default false.
         # @return [Boolean] true if published to queue or processed synchronously
         # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
-        def enqueue_favicon_fetch(domain_id)
-          new.enqueue_favicon_fetch(domain_id)
+        def enqueue_favicon_fetch(domain_id, force: false)
+          new.enqueue_favicon_fetch(domain_id, force: force)
         end
       end
 
@@ -356,22 +358,26 @@ module Onetime
       # is unavailable, raises so the controller can return an error.
       #
       # @param domain_id [String] CustomDomain identifier
+      # @param force [Boolean] Re-fetch even when an auto_fetch icon already
+      #   exists (manual refresh, #3780). Default false.
       # @return [Boolean] true if published to queue or processed synchronously
       # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
-      def enqueue_favicon_fetch(domain_id)
+      def enqueue_favicon_fetch(domain_id, force: false)
         unless jobs_enabled?
           logger.info 'Jobs disabled, fetching favicon synchronously',
-            domain_id: domain_id
+            domain_id: domain_id,
+            force: force
 
           require 'onetime/operations/fetch_domain_favicon'
 
-          Onetime::Operations::FetchDomainFavicon.new(domain_id: domain_id).call
+          Onetime::Operations::FetchDomainFavicon.new(domain_id: domain_id, force: force).call
 
           return true
         end
 
         message = {
           domain_id: domain_id,
+          force: force,
           requested_at: Time.now.utc.iso8601,
         }
 
