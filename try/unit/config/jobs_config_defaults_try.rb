@@ -23,12 +23,21 @@
 
 require_relative '../../support/test_helpers'
 
-# Guarantee a clean environment: strip any JOBS_* overrides so the assertions
-# reflect the defaults file's ERB fallbacks, not a leaked CI/shell value.
-ENV.keys.grep(/\AJOBS_/).each { |key| ENV.delete(key) }
-
+# Guarantee a clean environment for the single defaults load below: strip any
+# JOBS_* overrides so the assertions reflect the defaults file's ERB fallbacks,
+# not a leaked CI/shell value. Tryouts share one Ruby process, so capture the
+# original values and restore them (via ensure, even if the load raises) —
+# otherwise this setup would mutate process-global ENV for every other tryout.
+@saved_jobs_env = ENV.select { |key, _| key.start_with?('JOBS_') }
 @defaults_path = File.expand_path(File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml'))
-@jobs = Onetime::Config.load(@defaults_path)['jobs']
+begin
+  @saved_jobs_env.each_key { |key| ENV.delete(key) }
+  @jobs = Onetime::Config.load(@defaults_path)['jobs']
+ensure
+  # Restore now that @jobs is materialized; the assertions below read @jobs,
+  # never ENV, so isolation is preserved.
+  @saved_jobs_env.each { |key, value| ENV[key] = value }
+end
 
 
 ## Loads the jobs block from the defaults file
