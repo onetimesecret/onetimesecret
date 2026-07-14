@@ -153,6 +153,15 @@ module Onetime
 
         current_state = domain.verification_state
 
+        # Auto-fetch the domain's favicon on the transition INTO :verified. Fires
+        # only when the domain first reaches :verified — not on every re-verify of
+        # an already-verified domain — so periodic domain_refresh runs don't re-queue.
+        # This path covers both the API verify and the scheduled domain_refresh_job,
+        # since both route through verify_single. (#3780)
+        if current_state == :verified && previous_state != :verified
+          enqueue_favicon_fetch(domain)
+        end
+
         Result.new(
           domain: domain,
           previous_state: previous_state,
@@ -328,6 +337,25 @@ module Onetime
           domain: domain.display_domain,
           error: ex.message
         false
+      end
+
+      # Enqueue a background favicon fetch for a freshly-verified domain.
+      #
+      # Gated by the jobs.favicon_fetch.enabled feature flag (default off) and
+      # fully isolated: any failure here is logged and swallowed so it can never
+      # break verification. When jobs are disabled the Publisher runs the fetch
+      # operation inline; either way this call must not raise.
+      #
+      # @param domain [Onetime::CustomDomain]
+      def enqueue_favicon_fetch(domain)
+        return unless OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
+
+        Onetime::Jobs::Publisher.enqueue_favicon_fetch(domain.identifier)
+      rescue StandardError => ex
+        logger.error 'Failed to enqueue favicon fetch',
+          domain: domain&.display_domain,
+          error: ex.message,
+          error_class: ex.class.name
       end
 
       # @return [SemanticLogger::Logger] Logger instance
