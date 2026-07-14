@@ -84,6 +84,10 @@ export type DomainsStore = {
   fetchLogo: (extid: string) => Promise<ImageProps>;
   removeLogo: (extid: string) => Promise<void>;
 
+  uploadIcon: (extid: string, file: File) => Promise<void>;
+  fetchIcon: (extid: string) => Promise<ImageProps>;
+  removeIcon: (extid: string) => Promise<void>;
+
   refreshRecords: (options?: RefreshRecordsOptions) => Promise<void>;
   getBrandSettings: (extid: string) => Promise<BrandSettings>;
   updateDomainBrand: (
@@ -256,6 +260,51 @@ export const useDomainsStore = defineStore('domains', () => {
 
   async function removeLogo(extid: string) {
     await $api.delete(`/api/domains/${extid}/logo`);
+  }
+
+  // Favicon (icon) upload trio (#3780). Mirrors the logo trio above against the
+  // /:extid/icon endpoints. Uploading here stamps favicon_source='user_upload'
+  // server-side, which the workspace refresh button reads to disable itself (a
+  // forced fetch can't overwrite a user upload). These live beside
+  // refreshFavicon rather than in brandStore because the favicon lifecycle is
+  // owned here.
+  async function uploadIcon(extid: string, file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await $api.post(`/api/domains/${extid}/icon`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    // Validate upload response
+    const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to upload favicon. Please try again.');
+    }
+    return result.data.record;
+  }
+
+  async function fetchIcon(extid: string): Promise<ImageProps | null> {
+    try {
+      const response = await $api.get(`/api/domains/${extid}/icon`);
+      // Use the existing schema to validate the response
+      const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load favicon. Please try again.');
+      }
+      return result.data.record;
+    } catch (error: unknown) {
+      // Handle 404 or other expected errors silently
+      if ((error as AxiosError).response?.status === 404) {
+        console.debug(`[domainsStore] No favicon found for extid: ${extid}`);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async function removeIcon(extid: string) {
+    await $api.delete(`/api/domains/${extid}/icon`);
   }
 
   /**
@@ -550,6 +599,10 @@ export const useDomainsStore = defineStore('domains', () => {
     uploadLogo,
     fetchLogo,
     removeLogo,
+
+    uploadIcon,
+    fetchIcon,
+    removeIcon,
 
     // Homepage config
     getHomepageConfig,

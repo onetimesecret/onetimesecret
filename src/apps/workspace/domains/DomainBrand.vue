@@ -1,7 +1,8 @@
 <!-- src/apps/workspace/domains/DomainBrand.vue -->
 
 <script setup lang="ts">
-  import BrandEditor from '@/apps/workspace/components/dashboard/brand/BrandEditor.vue';
+  import BrandPreviewColumn from '@/apps/workspace/components/dashboard/brand/BrandPreviewColumn.vue';
+  import SimpleBrandPanel from '@/apps/workspace/components/dashboard/brand/SimpleBrandPanel.vue';
   import DeliveryPanel from '@/apps/workspace/components/dashboard/DeliveryPanel.vue';
   import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
   import { createError } from '@/schemas/errors';
@@ -31,6 +32,7 @@
     error,
     brandSettings,
     logoImage,
+    faviconImage,
     previewI18n,
     hasUnsavedChanges,
     isInitialized,
@@ -39,6 +41,8 @@
     handleLogoUpload,
     removeLogo,
     refreshFavicon,
+    handleFaviconUpload,
+    removeFavicon,
   } = useBranding(props.extid);
 
   const {
@@ -68,18 +72,24 @@
     () => customDomainRecord.value?.icon?.favicon_source ?? undefined
   );
 
-  // Domain-settings tabs. Brand = the three-path editor; Delivery = the
+  // Domain-settings tabs. Brand = the Simple brand panel; Delivery = the
   // recipient-facing language + reveal instructions (companion tab). Both tabs
   // edit the same brandSettings record and persist via the shared header Save,
   // so switching between them never loses work. Held here (inside the
   // isInitialized content block) rather than keyed on isLoading, so a Save —
-  // which flips isLoading — never resets the active tab. Mirrors the activePath
-  // guard inside BrandEditor.
+  // which flips isLoading — never resets the active tab.
   const tabs = [
     { id: 'brand', labelKey: 'web.branding.tab_brand' },
     { id: 'delivery', labelKey: 'web.branding.tab_delivery' },
   ] as const;
   const activeTab = ref<'brand' | 'delivery'>('brand');
+
+  // Reveal state of the persistent preview column, page-held so the Delivery
+  // tab can drive it: focusing the post-reveal instructions field flips the
+  // preview to the revealed state (and the pre-reveal field flips it back), so
+  // the text being edited is the text on screen. The preview's own toggle
+  // writes back through v-model:revealed.
+  const previewRevealed = ref(false);
 
   // Add loading guard
   watch(
@@ -195,23 +205,46 @@
           </button>
         </div>
 
-        <!-- Brand tab: three-path editor + fixed preview -->
-        <BrandEditor
-          v-if="activeTab === 'brand'"
-          v-model="brandSettings"
-          :logo-image="logoImage"
-          :preview-i18n="previewI18n"
-          :on-logo-upload="handleLogoUpload"
-          :on-logo-remove="removeLogo"
-          :on-refresh-favicon="refreshFavicon"
-          :favicon-source="faviconSource" />
+        <!-- One page-level grid for both tabs: the left column swaps by tab
+             while a single BrandPreviewColumn instance persists on the right
+             (delivery locale + reveal instructions render on the recipient
+             page too, and reveal state survives tab switches). The three-path
+             switcher is hidden until Match/Advanced are built — only Simple
+             ships — so SimpleBrandPanel mounts directly and BrandEditor /
+             BrandPathSwitcher / the teasers sit unused. -->
+        <div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+          <!-- Brand tab: the Simple path panel -->
+          <SimpleBrandPanel
+            v-if="activeTab === 'brand'"
+            v-model="brandSettings"
+            :logo-image="logoImage"
+            :on-logo-upload="handleLogoUpload"
+            :on-logo-remove="removeLogo"
+            :favicon-image="faviconImage"
+            :on-favicon-upload="handleFaviconUpload"
+            :on-favicon-remove="removeFavicon"
+            :on-refresh-favicon="refreshFavicon"
+            :favicon-source="faviconSource" />
 
-        <!-- Delivery tab: recipient-facing language + reveal instructions -->
-        <DeliveryPanel
-          v-else
-          v-model="brandSettings"
-          :i18n-enabled="i18n_enabled"
-          :preview-i18n="previewI18n" />
+          <!-- Delivery tab: recipient-facing language + reveal instructions.
+               Focus in an instruction field flips the preview to the matching
+               reveal state. -->
+          <DeliveryPanel
+            v-else
+            v-model="brandSettings"
+            :i18n-enabled="i18n_enabled"
+            :preview-i18n="previewI18n"
+            @instructions-focus="(field) => (previewRevealed = field === 'post')" />
+
+          <BrandPreviewColumn
+            v-model:revealed="previewRevealed"
+            :brand-settings="brandSettings"
+            :logo-image="logoImage"
+            :on-logo-upload="handleLogoUpload"
+            :on-logo-remove="removeLogo"
+            secret-identifier="abcd"
+            :preview-i18n="previewI18n" />
+        </div>
       </div>
 
       <!-- Loading Overlay -->

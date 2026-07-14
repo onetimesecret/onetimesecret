@@ -2,9 +2,12 @@
 
 <script setup lang="ts">
   /**
-   * The fixed preview column. Stays put (sticky) while the left path panel swaps,
+   * The fixed preview column. Stays put (sticky) while the left panel swaps,
    * and shows the recipient page (the branded secret-link view, via SecretPreview)
-   * from the edited tokens.
+   * from the edited tokens. A single instance in DomainBrand serves both tabs,
+   * since delivery locale + reveal instructions also shape the recipient page;
+   * v-model:revealed lets the page drive the sample's reveal state (focus-follow
+   * from the Delivery instruction fields).
    *
    * Treated as a preview, not a live interface: the card carries a dashed frame
    * and a persistent "Preview" tag, so it reads as a sample of the recipient
@@ -34,6 +37,10 @@
     secretIdentifier: string;
     previewI18n: Composer;
   }>();
+
+  // Pass-through reveal state: syncs with the parent when bound, plain local
+  // state otherwise (SecretPreview's toggle writes back through it either way).
+  const revealed = defineModel<boolean>('revealed', { default: false });
 
   const primary = computed(() => props.brandSettings.primary_color ?? 'var(--color-brand-500)');
   const stripeStyle = computed(() => ({ background: primary.value }));
@@ -74,6 +81,7 @@
            upload modal still layers above it cleanly. -->
       <div class="relative">
         <SecretPreview
+          v-model:revealed="revealed"
           :domain-branding="brandSettings"
           :logo-image="logoImage"
           :preview-i18n="previewI18n"

@@ -14,8 +14,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Reconfigured per-test (mockResolvedValueOnce / mockRejectedValueOnce) to drive
 // the save success/failure paths.
 const mockUpdateSettings = vi.fn();
-// Shared handle so favicon-refresh assertions can inspect the store call.
+// Shared handles so favicon assertions can inspect the store calls (#3780).
 const mockRefreshFavicon = vi.fn();
+const mockUploadIcon = vi.fn();
+const mockFetchIcon = vi.fn();
+const mockRemoveIcon = vi.fn();
 
 const mockBrandStore = vi.fn(() => ({
   getSettings: (domainId: string) => {
@@ -30,6 +33,9 @@ const mockBrandStore = vi.fn(() => ({
     }
     return mockDefaultBranding;
   }),
+  // initialize() fetches the logo off the brand store (the icon comes from the
+  // domains store — see below). Resolve null so the init path is clean.
+  fetchLogo: vi.fn(async () => null),
   updateSettings: mockUpdateSettings,
 }));
 
@@ -47,6 +53,10 @@ vi.mock('@/shared/stores/domainsStore', () => ({
     domains: [{ extid: 'domain-1', display_domain: 'domain-1.example.com' }],
     fetchList: vi.fn(),
     refreshFavicon: mockRefreshFavicon,
+    // Favicon (icon) lifecycle lives on the domains store (#3780).
+    uploadIcon: mockUploadIcon,
+    fetchIcon: mockFetchIcon,
+    removeIcon: mockRemoveIcon,
   }),
 }));
 
@@ -201,6 +211,84 @@ describe('useBranding', () => {
       );
       // Truthy success signal (wrap() resolves undefined on failure).
       expect(result).toBe(true);
+    });
+  });
+
+  describe('handleFaviconUpload (#3780)', () => {
+    it('uploads via the store, sets faviconImage, and returns the record (modal close signal)', async () => {
+      const record = { encoded: 'QUJD', content_type: 'image/x-icon', filename: 'favicon.ico' };
+      mockUploadIcon.mockResolvedValueOnce(record);
+      const file = new File(['ABC'], 'favicon.ico', { type: 'image/x-icon' });
+
+      const { handleFaviconUpload, faviconImage } = useBranding('domain-1');
+      const result = await handleFaviconUpload(file);
+
+      expect(mockUploadIcon).toHaveBeenCalledWith('domain-1', file);
+      // Local preview is updated to the uploaded icon.
+      expect(faviconImage.value).toEqual(record);
+      // ImageUploadModal reads a truthy return as "committed, close" — the record.
+      expect(result).toEqual(record);
+    });
+  });
+
+  describe('removeFavicon (#3780)', () => {
+    it('removes the icon, clears faviconImage, re-enqueues an auto-fetch, and returns true', async () => {
+      mockRemoveIcon.mockResolvedValueOnce(undefined);
+      mockRefreshFavicon.mockResolvedValueOnce(undefined);
+
+      const { removeFavicon, faviconImage } = useBranding('domain-1');
+      // Seed a current favicon so we can prove the remove clears it.
+      faviconImage.value = { encoded: 'QUJD', content_type: 'image/x-icon' } as never;
+
+      const result = await removeFavicon();
+
+      expect(mockRemoveIcon).toHaveBeenCalledWith('domain-1');
+      expect(faviconImage.value).toBeNull();
+      // Removing a user upload clears its provenance; re-enqueue a background
+      // fetch so the domain isn't left iconless (the crux of removeFavicon).
+      expect(mockRefreshFavicon).toHaveBeenCalledWith('domain-1');
+      // Truthy success signal for ImageUploadModal.
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('initialize favicon load (#3780)', () => {
+    // initialize() is fire-and-forget (wrap() is not awaited by the caller);
+    // flush the microtask chain (fetchSettings → fetchLogo → fetchIcon) before
+    // asserting.
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('loads faviconImage from the domains store via fetchIcon', async () => {
+      const record = { encoded: 'QUJD', content_type: 'image/png', filename: 'favicon.png' };
+      mockFetchIcon.mockResolvedValueOnce(record);
+
+      const { initialize, faviconImage } = useBranding('domain-1');
+      initialize();
+      await flush();
+
+      expect(mockFetchIcon).toHaveBeenCalledWith('domain-1');
+      expect(faviconImage.value).toEqual(record);
+    });
+
+    it('swallows a 404 from fetchIcon (no icon yet) and leaves faviconImage null', async () => {
+      mockFetchIcon.mockRejectedValueOnce(Object.assign(new Error('not found'), { status: 404 }));
+
+      const { initialize, faviconImage } = useBranding('domain-1');
+      initialize();
+      await flush();
+
+      expect(mockFetchIcon).toHaveBeenCalledWith('domain-1');
+      expect(faviconImage.value).toBeNull();
+    });
+
+    it('swallows a 403 from fetchIcon (entitlement missing) and leaves faviconImage null', async () => {
+      mockFetchIcon.mockRejectedValueOnce(Object.assign(new Error('forbidden'), { status: 403 }));
+
+      const { initialize, faviconImage } = useBranding('domain-1');
+      initialize();
+      await flush();
+
+      expect(faviconImage.value).toBeNull();
     });
   });
 

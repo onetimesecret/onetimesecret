@@ -38,6 +38,7 @@
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
+  import BrandFaviconField from './BrandFaviconField.vue';
   import BrandLogoField from './BrandLogoField.vue';
 
   const { t } = useI18n();
@@ -47,6 +48,12 @@
     logoImage?: ImageProps | null;
     onLogoUpload: (file: File) => Promise<unknown>;
     onLogoRemove: () => Promise<unknown>;
+    // Current favicon (uploaded or auto-fetched) for the upload field's preview.
+    faviconImage?: ImageProps | null;
+    // Upload / remove a custom favicon (#3780). Commit immediately via
+    // ImageUploadModal's CTA, like the logo callbacks.
+    onFaviconUpload: (file: File) => Promise<unknown>;
+    onFaviconRemove: () => Promise<unknown>;
     // Enqueue a forced favicon re-fetch from the domain (#3780). Queued/async.
     onRefreshFavicon: () => Promise<unknown>;
     // Icon provenance from the domain record. A forced fetch cannot overwrite a
@@ -129,14 +136,21 @@
         :on-logo-remove="onLogoRemove" />
     </div>
 
-    <!-- Favicon. A forced re-fetch from the domain (#3780). Async: the POST only
-         queues the fetch; the icon lands later via a background worker. Disabled
-         for a user-uploaded icon — a forced fetch cannot overwrite it. -->
+    <!-- Favicon. Two coexisting affordances (#3780): BrandFaviconField uploads a
+         custom icon (commits immediately via the ImageUploadModal CTA), and the
+         refresh button below forces a background re-fetch from the domain.
+         Async: the refresh POST only queues the fetch; the icon lands later via
+         a background worker. An uploaded icon stamps 'user_upload' provenance,
+         which disables the refresh button — a forced fetch cannot overwrite it.
+         BrandFaviconField renders its own "Favicon" header, so there's no
+         separate header here. -->
     <div class="mt-3.5">
-      <div class="text-xs font-semibold text-gray-700 dark:text-gray-300">
-        {{ t('web.branding.favicon') }}
-      </div>
-      <div class="mt-1.5 flex flex-col items-start gap-1.5">
+      <BrandFaviconField
+        :favicon-image="faviconImage"
+        :on-favicon-upload="onFaviconUpload"
+        :on-favicon-remove="onFaviconRemove" />
+
+      <div class="mt-3 flex flex-col items-start gap-1.5">
         <button
           type="button"
           data-testid="domain-favicon-refresh"

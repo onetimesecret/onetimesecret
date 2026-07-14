@@ -80,11 +80,11 @@
     "content_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Use your phone to scan the QR code",
+    "text": "e.g. Use your phone to scan the QR code",
     "content_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contact onboarding{'@'}example.com with any questions",
+    "text": "e.g. Contact onboarding{'@'}example.com with any questions",
     "content_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -166,6 +166,30 @@
   "web.branding.refresh_favicon_user_upload_hint": {
     "text": "You've uploaded a custom favicon, so a fetched icon won't replace it.",
     "content_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Upload favicon"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Replace"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Remove favicon"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG or SVG. Uploading replaces the fetched icon."
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Domain favicon"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Domain favicon"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG or SVG. Up to 256KB. Replaces the auto-fetched icon."
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Save favicon"
   },
   "web.branding.image_upload_choose": {
     "text": "Choose an image",
@@ -340,7 +364,7 @@
     "content_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "This is a live preview — your changes won't be visible to visitors until you save.",
+    "text": "This is a live preview — your changes won't be visible to visitors until you click Update.",
     "content_hash": "cb4b82de"
   },
   "web.branding.coming_soon_match_blurb": {

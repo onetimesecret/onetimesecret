@@ -2,6 +2,11 @@
 
 <script setup lang="ts">
   /**
+   * PARKED (2026-07-14, no page consumer): the path switcher is hidden until
+   * Match/Advanced are built — DomainBrand mounts SimpleBrandPanel and
+   * BrandPreviewColumn directly at page level. Re-mount this (and move the
+   * grid back down) when a second path ships.
+   *
    * Three-path brand editor. A path switcher over a two-column layout: the left
    * panel swaps by path (Simple = functional; Match / Advanced = "coming soon"
    * teasers) while the preview column on the right stays fixed.
@@ -34,6 +39,12 @@
       // wrapped-handler failure) — ImageUploadModal keys close/keep-open on it.
       onLogoUpload: (file: File) => Promise<unknown>;
       onLogoRemove: () => Promise<unknown>;
+      // Current favicon (uploaded or auto-fetched) for the upload field preview.
+      faviconImage?: ImageProps | null;
+      // Upload / remove a custom favicon (#3780) — same close/keep-open contract
+      // as the logo callbacks (ImageUploadModal keys on the resolved value).
+      onFaviconUpload: (file: File) => Promise<unknown>;
+      onFaviconRemove: () => Promise<unknown>;
       // Enqueue a forced favicon re-fetch (#3780). Queued/async — resolves a
       // truthy success flag (or undefined on a wrapped-handler failure).
       onRefreshFavicon: () => Promise<unknown>;
@@ -43,7 +54,7 @@
       previewI18n: Composer;
       secretIdentifier?: string;
     }>(),
-    { secretIdentifier: 'abcd', logoImage: null, faviconSource: null }
+    { secretIdentifier: 'abcd', logoImage: null, faviconImage: null, faviconSource: null }
   );
 
   const emit = defineEmits<{
@@ -68,6 +79,9 @@
           :logo-image="logoImage"
           :on-logo-upload="onLogoUpload"
           :on-logo-remove="onLogoRemove"
+          :favicon-image="faviconImage"
+          :on-favicon-upload="onFaviconUpload"
+          :on-favicon-remove="onFaviconRemove"
           :on-refresh-favicon="onRefreshFavicon"
           :favicon-source="faviconSource"
           @update:model-value="(value) => emit('update:modelValue', value)" />

@@ -1,100 +1,103 @@
 <!-- src/apps/workspace/components/dashboard/SecretPreview.vue -->
 
 <script setup lang="ts">
-import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
-import { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import ImageUploadModal from '@/shared/components/modals/ImageUploadModal.vue';
-import { useLogoImage } from '@/shared/composables/useLogoImage';
-import {
-CornerStyle,
-borderRadiusToCss,
-cornerStyleClasses,
-fontFamilyClasses,
-resolveBodyFontClass,
-resolveHeadingFontClass
-} from '@/shared/utils/brand-helpers';
-import { computed, ref } from 'vue';
-import { Composer, useI18n } from 'vue-i18n';
+  import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
+  import { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ImageUploadModal from '@/shared/components/modals/ImageUploadModal.vue';
+  import { useLogoImage } from '@/shared/composables/useLogoImage';
+  import {
+    CornerStyle,
+    borderRadiusToCss,
+    cornerStyleClasses,
+    fontFamilyClasses,
+    resolveBodyFontClass,
+    resolveHeadingFontClass,
+  } from '@/shared/utils/brand-helpers';
+  import { computed, ref } from 'vue';
+  import { Composer, useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-// The Tailwind @theme token that `rounded-brand` reads (border-radius: var(...)).
-// Named so rootStyle scopes it by reference, not a repeated string literal.
-const RADIUS_BRAND_VAR = '--radius-brand';
+  // The Tailwind @theme token that `rounded-brand` reads (border-radius: var(...)).
+  // Named so rootStyle scopes it by reference, not a repeated string literal.
+  const RADIUS_BRAND_VAR = '--radius-brand';
 
-const props = defineProps<{
-  domainBranding: BrandSettings;
-  logoImage?: ImageProps | null;
-  onLogoUpload: (file: File) => Promise<unknown>;
-  onLogoRemove: () => Promise<unknown>;
-  secretIdentifier: string;
-  previewI18n: Composer;
-}>();
+  const props = defineProps<{
+    domainBranding: BrandSettings;
+    logoImage?: ImageProps | null;
+    onLogoUpload: (file: File) => Promise<unknown>;
+    onLogoRemove: () => Promise<unknown>;
+    secretIdentifier: string;
+    previewI18n: Composer;
+  }>();
 
-// Logo validity + data-URL derivation shared with the Simple form's
-// BrandLogoField (useLogoImage), so the two upload entry points can't drift.
-const { isValidLogo, logoSrc } = useLogoImage(() => props.logoImage);
+  // Logo validity + data-URL derivation shared with the Simple form's
+  // BrandLogoField (useLogoImage), so the two upload entry points can't drift.
+  const { isValidLogo, logoSrc } = useLogoImage(() => props.logoImage);
 
-// Clicking the preview logo opens the shared staging modal (same as the Simple
-// form's control) — the commit happens on the modal's confirm, not on pick.
-const isLogoModalOpen = ref(false);
+  // Clicking the preview logo opens the shared staging modal (same as the Simple
+  // form's control) — the commit happens on the modal's confirm, not on pick.
+  const isLogoModalOpen = ref(false);
 
-const isRevealed = ref(false);
-const textareaPlaceholder = computed(() => props.previewI18n.t('web.secrets.sample_secret_content_this_could_be_sensitive_data'));
+  // Bindable (v-model:revealed) so the page can follow focus in the Delivery
+  // instruction fields; unbound consumers get plain local toggle state.
+  const isRevealed = defineModel<boolean>('revealed', { default: false });
+  const textareaPlaceholder = computed(() =>
+    props.previewI18n.t('web.secrets.sample_secret_content_this_could_be_sensitive_data')
+  );
 
-const ariaLabelText = computed(() =>
-  isRevealed.value
-    ? props.previewI18n.t('web.secrets.hide_secret_message')
-    : props.previewI18n.t('web.secrets.view_secret_message')
-)
+  const ariaLabelText = computed(() =>
+    isRevealed.value
+      ? props.previewI18n.t('web.secrets.hide_secret_message')
+      : props.previewI18n.t('web.secrets.view_secret_message')
+  );
 
-const toggleReveal = () => {
-  isRevealed.value = !isRevealed.value;
-};
+  const toggleReveal = () => {
+    isRevealed.value = !isRevealed.value;
+  };
 
-// Mirror identityStore.cornerClass: border_radius (#3646) supersedes corner_style
-// when set. The recipient page backs `rounded-brand` with <html>'s injected
-// --radius-brand; the preview can't use that (it's the operator's theme, not the
-// edited domain), so it scopes --radius-brand locally via rootStyle below. Guard
-// matches identityStore (`!= null && !== ''`) so an invalid-but-present radius
-// falls back to the @theme default there too.
-const cornerClass = computed(() => {
-  const radius = props.domainBranding?.border_radius;
-  if (radius != null && radius !== '') return 'rounded-brand';
-  const style = props.domainBranding?.corner_style as CornerStyle | undefined;
-  return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
-});
+  // Mirror identityStore.cornerClass: border_radius (#3646) supersedes corner_style
+  // when set. The recipient page backs `rounded-brand` with <html>'s injected
+  // --radius-brand; the preview can't use that (it's the operator's theme, not the
+  // edited domain), so it scopes --radius-brand locally via rootStyle below. Guard
+  // matches identityStore (`!= null && !== ''`) so an invalid-but-present radius
+  // falls back to the @theme default there too.
+  const cornerClass = computed(() => {
+    const radius = props.domainBranding?.border_radius;
+    if (radius != null && radius !== '') return 'rounded-brand';
+    const style = props.domainBranding?.corner_style as CornerStyle | undefined;
+    return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
+  });
 
-// The preview shows sans when the domain is unset because the dashboard page
-// font differs from the recipient page ('' would inherit the dashboard font).
-const fontFamilyClass = computed(
-  () => resolveBodyFontClass(props.domainBranding) || fontFamilyClasses.sans
-);
+  // The preview shows sans when the domain is unset because the dashboard page
+  // font differs from the recipient page ('' would inherit the dashboard font).
+  const fontFamilyClass = computed(
+    () => resolveBodyFontClass(props.domainBranding) || fontFamilyClasses.sans
+  );
 
-const headingFontClass = computed(
-  () => resolveHeadingFontClass(props.domainBranding) || fontFamilyClasses.sans
-);
+  const headingFontClass = computed(
+    () => resolveHeadingFontClass(props.domainBranding) || fontFamilyClasses.sans
+  );
 
-// Expanded vocabulary (#3646). The preview renders an arbitrary domain's
-// settings (not the editing admin's injected palette). Scope this domain's
-// border_radius to a local --radius-brand so every `rounded-brand` descendant
-// (logo, content box, textarea, button, and BaseSecretDisplay's content
-// wrapper) resolves to THIS domain's radius — matching the recipient page.
-// Applied on the wrapper that holds both the relocated logo AND the card, so
-// the logo above the card inherits the same radius (custom properties cascade).
-const rootStyle = computed<Record<string, string>>(() => {
-  const css = borderRadiusToCss(props.domainBranding?.border_radius);
-  const style: Record<string, string> = {};
-  if (css) style[RADIUS_BRAND_VAR] = css;
-  return style;
-});
+  // Expanded vocabulary (#3646). The preview renders an arbitrary domain's
+  // settings (not the editing admin's injected palette). Scope this domain's
+  // border_radius to a local --radius-brand so every `rounded-brand` descendant
+  // (logo, content box, textarea, button, and BaseSecretDisplay's content
+  // wrapper) resolves to THIS domain's radius — matching the recipient page.
+  // Applied on the wrapper that holds both the relocated logo AND the card, so
+  // the logo above the card inherits the same radius (custom properties cascade).
+  const rootStyle = computed<Record<string, string>>(() => {
+    const css = borderRadiusToCss(props.domainBranding?.border_radius);
+    const style: Record<string, string> = {};
+    if (css) style[RADIUS_BRAND_VAR] = css;
+    return style;
+  });
 
-const actionButtonStyle = computed<Record<string, string>>(() => ({
-  backgroundColor: props.domainBranding.primary_color ?? 'var(--color-brand-500)',
-  color: (props.domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
-}));
-
+  const actionButtonStyle = computed<Record<string, string>>(() => ({
+    backgroundColor: props.domainBranding.primary_color ?? 'var(--color-brand-500)',
+    color: (props.domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
+  }));
 </script>
 
 <template>
@@ -167,9 +170,7 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
           v-if="isRevealed"
           readonly
           :class="[cornerClass]"
-          class="w-full resize-none border-0 bg-transparent
-              font-mono text-xs text-gray-700
-              focus:ring-0 sm:text-base dark:text-gray-300"
+          class="min-h-32 w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 sm:text-base dark:text-gray-300"
           rows="3"
           :aria-label="t('web.secrets.sample_secret_content')"
           :value="textareaPlaceholder"></textarea>
@@ -196,7 +197,11 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
           :aria-expanded="isRevealed"
           aria-controls="secretContent"
           :aria-label="ariaLabelText">
-          {{ isRevealed ? previewI18n.t('web.secrets.hide_secret') : previewI18n.t('web.COMMON.click_to_continue') }}
+          {{
+            isRevealed
+              ? previewI18n.t('web.secrets.hide_secret')
+              : previewI18n.t('web.COMMON.click_to_continue')
+          }}
         </button>
       </template>
     </BaseSecretDisplay>
@@ -204,36 +209,36 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
 </template>
 
 <style scoped>
-.line-clamp-6 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-button:hover {
-  filter: brightness(110%);
-}
-
-textarea {
-  resize: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .animate-wiggle {
-    animation: wiggle 2s ease-in-out infinite;
-  }
-}
-
-@keyframes wiggle {
-  0%,
-  100% {
-    transform: rotate(-5deg);
+  .line-clamp-6 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  50% {
-    transform: rotate(5deg);
+  button:hover {
+    filter: brightness(110%);
   }
-}
+
+  textarea {
+    resize: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-wiggle {
+      animation: wiggle 2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(-5deg);
+    }
+
+    50% {
+      transform: rotate(5deg);
+    }
+  }
 </style>

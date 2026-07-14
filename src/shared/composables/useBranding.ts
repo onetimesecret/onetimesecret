@@ -45,6 +45,7 @@ export function useBranding(domainId?: string) {
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
   const logoImage = ref<ImageProps | null>(null);
+  const faviconImage = ref<ImageProps | null>(null);
 
   /**
    * Resolve extid from either an extid or display_domain.
@@ -122,6 +123,20 @@ export function useBranding(domainId?: string) {
       try {
         const logo = await store.fetchLogo(extid);
         logoImage.value = logo;
+      } catch (err) {
+        const status = (err as AxiosError).status;
+        if (status !== 404 && status !== 403) {
+          throw err;
+        }
+      }
+
+      // Same quiet 404/403 handling for the favicon (#3780). The icon endpoint
+      // serves whatever is stored — an auto-fetched or a user-uploaded icon —
+      // so the upload field can preview and replace the current one.
+      // 404 = no icon stored yet, 403 = entitlement missing.
+      try {
+        const favicon = await domainsStore.fetchIcon(extid);
+        faviconImage.value = favicon;
       } catch (err) {
         const status = (err as AxiosError).status;
         if (status !== 404 && status !== 403) {
@@ -266,11 +281,57 @@ export function useBranding(domainId?: string) {
       return true;
     });
 
+  // Upload a custom favicon (#3780). Mirrors handleLogoUpload but targets the
+  // icon endpoint (domainsStore, where the favicon lifecycle lives). The upload
+  // stamps favicon_source='user_upload' server-side, which disables the forced
+  // refresh button. wrap() toasts + resolves undefined on failure, so a truthy
+  // return is ImageUploadModal's "committed, close" signal.
+  const handleFaviconUpload = async (file: File) =>
+    wrap(async () => {
+      if (!domainId) throw createError('Domain is required to upload favicon', 'human', 'error');
+      // Ensure domains are loaded before resolving
+      if (!domainsStore.domains?.length) {
+        await domainsStore.fetchList();
+      }
+      const extid = resolveExtid(domainId);
+      if (!extid) throw createError('Could not resolve domain for favicon upload', 'human', 'error');
+      const uploadedIcon = await domainsStore.uploadIcon(extid, file);
+      // Update local state with new favicon
+      faviconImage.value = uploadedIcon;
+      // Truthy success signal for ImageUploadModal — see handleLogoUpload.
+      return uploadedIcon;
+    });
+
+  // Remove the stored favicon, then re-enqueue an auto-fetch (#3780). Removing a
+  // user-uploaded icon clears its 'user_upload' provenance, so we kick off a
+  // fresh fetch rather than leaving the domain iconless — the forced refresh's
+  // queued toast covers the "coming shortly" state. refreshFavicon is itself
+  // wrapped (toasts + never rejects), so a failed re-enqueue can't undo the
+  // successful removal. Mirrors removeLogo otherwise.
+  const removeFavicon = async () =>
+    wrap(async () => {
+      if (!domainId) throw createError('Domain is required to remove favicon', 'human', 'error');
+      // Ensure domains are loaded before resolving
+      if (!domainsStore.domains?.length) {
+        await domainsStore.fetchList();
+      }
+      const extid = resolveExtid(domainId);
+      if (!extid) throw createError('Could not resolve domain for favicon removal', 'human', 'error');
+      await domainsStore.removeIcon(extid);
+      // Clear local favicon state
+      faviconImage.value = null;
+      // Re-enqueue an auto-fetch so the domain gets an icon again.
+      await refreshFavicon();
+      // Truthy success signal for ImageUploadModal — see removeLogo.
+      return true;
+    });
+
   return {
     isLoading,
     error,
     brandSettings,
     logoImage,
+    faviconImage,
     previewI18n: composer,
     displayLocale,
     primaryColor,
@@ -281,5 +342,7 @@ export function useBranding(domainId?: string) {
     handleLogoUpload,
     removeLogo,
     refreshFavicon,
+    handleFaviconUpload,
+    removeFavicon,
   };
 }

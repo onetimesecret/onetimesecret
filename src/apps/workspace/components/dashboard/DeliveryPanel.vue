@@ -9,9 +9,11 @@
    * path the old inline "Recipient page content" section used — locale and the
    * two instruction fields all live on BrandSettings).
    *
-   * No live preview here by design (the mockup shows none). The reveal
-   * instructions DO render on the recipient page via SecretPreview on the Brand
-   * tab — that surface is the preview.
+   * The parent keeps BrandPreviewColumn mounted alongside this panel: locale
+   * and reveal instructions render on the recipient page, so edits here show
+   * in the preview live, same as on the Brand tab. Focusing an instruction
+   * field emits `instructions-focus` so the page can flip the preview to the
+   * matching reveal state — the text being edited is the text on screen.
    */
   import LanguageSelector from '@/apps/workspace/components/dashboard/LanguageSelector.vue';
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
@@ -28,6 +30,7 @@
 
   const emit = defineEmits<{
     (e: 'update:modelValue', value: BrandSettings): void;
+    (e: 'instructions-focus', field: 'pre' | 'post'): void;
   }>();
 
   const update = <K extends keyof BrandSettings>(key: K, value: BrandSettings[K]) => {
@@ -81,6 +84,7 @@
             type="text"
             maxlength="500"
             :value="modelValue.instructions_pre_reveal ?? ''"
+            @focus="emit('instructions-focus', 'pre')"
             @input="(e) => onInstruction('instructions_pre_reveal', e)"
             :placeholder="t('web.branding.example_pre_reveal_instructions')"
             class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
@@ -95,6 +99,7 @@
             type="text"
             maxlength="500"
             :value="modelValue.instructions_post_reveal ?? ''"
+            @focus="emit('instructions-focus', 'post')"
             @input="(e) => onInstruction('instructions_post_reveal', e)"
             :placeholder="t('web.branding.example_post_reveal_instructions')"
             class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
