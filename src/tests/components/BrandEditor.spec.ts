@@ -66,16 +66,23 @@ describe('BrandPathSwitcher', () => {
 });
 
 describe('SimpleBrandPanel', () => {
-  const mountPanel = (settings: Partial<BrandSettings> = {}) =>
+  const mountPanel = (settings: Partial<BrandSettings> = {}, faviconSource: string | null = null) =>
     mount(SimpleBrandPanel, {
       props: {
         modelValue: baseSettings(settings),
         logoImage: null,
         onLogoUpload: vi.fn(),
         onLogoRemove: vi.fn(),
+        onRefreshFavicon: vi.fn().mockResolvedValue(undefined),
+        faviconSource,
       },
       global: { stubs: leafStubs },
     });
+
+  // The favicon refresh control is the only button whose label echoes this key
+  // (corner buttons carry borderRadiusDisplayMap English labels).
+  const findRefreshButton = (wrapper: ReturnType<typeof mountPanel>) =>
+    wrapper.findAll('button').find((b) => b.text().includes('web.branding.refresh_favicon'));
 
   it('writes border_radius when a corner is picked (Square→none, Extra Rounded→xl)', async () => {
     const wrapper = mountPanel({ border_radius: 'md' });
@@ -126,6 +133,44 @@ describe('SimpleBrandPanel', () => {
     expect(values).toEqual(['humanist', 'serif', 'sans', 'mono', 'system']);
     expect((select.element as HTMLSelectElement).value).toBe('humanist');
   });
+
+  // #3780 — manual "Refresh favicon from domain" control.
+  it('renders the refresh-favicon button and fires onRefreshFavicon on click', async () => {
+    const onRefreshFavicon = vi.fn().mockResolvedValue(undefined);
+    const wrapper = mount(SimpleBrandPanel, {
+      props: {
+        modelValue: baseSettings(),
+        logoImage: null,
+        onLogoUpload: vi.fn(),
+        onLogoRemove: vi.fn(),
+        onRefreshFavicon,
+        faviconSource: null,
+      },
+      global: { stubs: leafStubs },
+    });
+
+    const button = wrapper.findAll('button').find((b) =>
+      b.text().includes('web.branding.refresh_favicon')
+    );
+    expect(button?.exists()).toBe(true);
+
+    await button!.trigger('click');
+    expect(onRefreshFavicon).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the button enabled for an empty or auto-fetched icon', () => {
+    expect(
+      (findRefreshButton(mountPanel({}, null))!.element as HTMLButtonElement).disabled
+    ).toBe(false);
+    expect(
+      (findRefreshButton(mountPanel({}, 'auto_fetch'))!.element as HTMLButtonElement).disabled
+    ).toBe(false);
+  });
+
+  it('disables the button when the favicon was user-uploaded (a forced fetch cannot overwrite it)', () => {
+    const button = findRefreshButton(mountPanel({}, 'user_upload'));
+    expect((button!.element as HTMLButtonElement).disabled).toBe(true);
+  });
 });
 
 describe('BrandEditor', () => {
@@ -136,6 +181,7 @@ describe('BrandEditor', () => {
         logoImage: null,
         onLogoUpload: vi.fn(),
         onLogoRemove: vi.fn(),
+        onRefreshFavicon: vi.fn().mockResolvedValue(undefined),
         previewI18n,
         secretIdentifier: 'abcd',
       },

@@ -47,6 +47,11 @@
     logoImage?: ImageProps | null;
     onLogoUpload: (file: File) => Promise<unknown>;
     onLogoRemove: () => Promise<unknown>;
+    // Enqueue a forced favicon re-fetch from the domain (#3780). Queued/async.
+    onRefreshFavicon: () => Promise<unknown>;
+    // Icon provenance from the domain record. A forced fetch cannot overwrite a
+    // user-uploaded icon, so the refresh button is disabled for 'user_upload'.
+    faviconSource?: string | null;
   }>();
 
   const emit = defineEmits<{
@@ -98,6 +103,11 @@
   const fontChoices = computed<FontFamilyType[]>(() =>
     uiFontOptions.includes(bodyFont.value) ? uiFontOptions : [bodyFont.value, ...uiFontOptions]
   );
+
+  // A forced re-fetch cannot overwrite a user-uploaded icon (backend
+  // overwrite-guard), so the refresh control is disabled for 'user_upload' and
+  // explains why. Empty / 'auto_fetch' provenance leaves it enabled.
+  const isUserUploadedFavicon = computed(() => props.faviconSource === 'user_upload');
 </script>
 
 <template>
@@ -117,6 +127,40 @@
         :logo-image="logoImage"
         :on-logo-upload="onLogoUpload"
         :on-logo-remove="onLogoRemove" />
+    </div>
+
+    <!-- Favicon. A forced re-fetch from the domain (#3780). Async: the POST only
+         queues the fetch; the icon lands later via a background worker. Disabled
+         for a user-uploaded icon — a forced fetch cannot overwrite it. -->
+    <div class="mt-3.5">
+      <div class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+        {{ t('web.branding.favicon') }}
+      </div>
+      <div class="mt-1.5 flex flex-col items-start gap-1.5">
+        <button
+          type="button"
+          :disabled="isUserUploadedFavicon"
+          @click="onRefreshFavicon()"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3
+            py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors
+            hover:border-gray-400 focus:ring-1 focus:ring-brand-500 focus:outline-none
+            disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800
+            dark:text-gray-200">
+          <OIcon
+            collection="mdi"
+            name="refresh"
+            class="size-4"
+            aria-hidden="true" />
+          {{ t('web.branding.refresh_favicon') }}
+        </button>
+        <span class="text-[11px] text-gray-400">
+          {{
+            isUserUploadedFavicon
+              ? t('web.branding.refresh_favicon_user_upload_hint')
+              : t('web.branding.refresh_favicon_hint')
+          }}
+        </span>
+      </div>
     </div>
 
     <!-- Brand color -->

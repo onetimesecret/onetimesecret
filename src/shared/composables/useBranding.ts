@@ -247,6 +247,25 @@ export function useBranding(domainId?: string) {
       return true;
     });
 
+  // Enqueue a forced favicon re-fetch from the domain (#3780). Mirrors
+  // removeLogo. The store POST returns a queued success immediately; the new
+  // icon lands later via the background worker, so we toast the queued state
+  // and let a later reload surface the fetched icon. wrap() toasts + resolves
+  // undefined on failure, so a truthy return is the success signal.
+  const refreshFavicon = async () =>
+    wrap(async () => {
+      if (!domainId) throw createError('Domain is required to refresh favicon', 'human', 'error');
+      // Ensure domains are loaded before resolving
+      if (!domainsStore.domains?.length) {
+        await domainsStore.fetchList();
+      }
+      const extid = resolveExtid(domainId);
+      if (!extid) throw createError('Could not resolve domain for favicon refresh', 'human', 'error');
+      await domainsStore.refreshFavicon(extid);
+      notifications.show(t('web.branding.refresh_favicon_queued'), 'success', 'top');
+      return true;
+    });
+
   return {
     isLoading,
     error,
@@ -261,5 +280,6 @@ export function useBranding(domainId?: string) {
     saveBranding,
     handleLogoUpload,
     removeLogo,
+    refreshFavicon,
   };
 }

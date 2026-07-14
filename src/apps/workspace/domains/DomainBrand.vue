@@ -38,6 +38,7 @@
     saveBranding,
     handleLogoUpload,
     removeLogo,
+    refreshFavicon,
   } = useBranding(props.extid);
 
   const {
@@ -57,6 +58,15 @@
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 
   const isSaveDisabled = computed(() => isLoading.value || !hasUnsavedChanges.value);
+
+  // #3780: gate the "Refresh favicon" button. A forced fetch cannot overwrite a
+  // user-uploaded icon (backend overwrite-guard), so the control is only
+  // meaningful when the icon is empty or was auto-fetched. favicon_source rides
+  // on the domain record's icon hashkey; absent (older payloads) → undefined →
+  // button stays enabled and the backend guard remains the real protection.
+  const faviconSource = computed<string | null | undefined>(
+    () => customDomainRecord.value?.icon?.favicon_source ?? undefined
+  );
 
   // Domain-settings tabs. Brand = the three-path editor; Delivery = the
   // recipient-facing language + reveal instructions (companion tab). Both tabs
@@ -192,7 +202,9 @@
           :logo-image="logoImage"
           :preview-i18n="previewI18n"
           :on-logo-upload="handleLogoUpload"
-          :on-logo-remove="removeLogo" />
+          :on-logo-remove="removeLogo"
+          :on-refresh-favicon="refreshFavicon"
+          :favicon-source="faviconSource" />
 
         <!-- Delivery tab: recipient-facing language + reveal instructions -->
         <DeliveryPanel

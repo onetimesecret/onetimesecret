@@ -77,6 +77,7 @@ export type DomainsStore = {
   fetchList: () => Promise<void>;
   getDomain: (extid: string) => Promise<CustomDomain>;
   verifyDomain: (extid: string) => Promise<CustomDomain>;
+  refreshFavicon: (extid: string) => Promise<void>;
   deleteDomain: (extid: string) => Promise<void>;
 
   uploadLogo: (extid: string, file: File) => Promise<void>;
@@ -201,6 +202,21 @@ export const useDomainsStore = defineStore('domains', () => {
       throw new Error('Unable to verify domain. Please try again.');
     }
     return result.data;
+  }
+
+  /**
+   * Enqueue a forced favicon re-fetch for a domain (#3780).
+   *
+   * ASYNC: the endpoint returns a queued success immediately
+   * (`{ record: null, details: { msg } }`) — the new icon lands later via the
+   * background favicon worker. Unlike verifyDomain, the response carries no
+   * domain record to parse, so this mirrors verifyDomain's `$api.post` call but
+   * resolves void; callers show a "refreshing/queued" state and re-fetch rather
+   * than reading image bytes here. The backend overwrite-guard still protects a
+   * user-uploaded icon, so a forced refresh cannot clobber one.
+   */
+  async function refreshFavicon(extid: string) {
+    await $api.post(`/api/domains/${extid}/icon/refresh`);
   }
 
   async function uploadLogo(extid: string, file: File) {
@@ -525,6 +541,7 @@ export const useDomainsStore = defineStore('domains', () => {
     deleteDomain,
     getDomain,
     verifyDomain,
+    refreshFavicon,
 
     updateDomainBrand,
     getBrandSettings,

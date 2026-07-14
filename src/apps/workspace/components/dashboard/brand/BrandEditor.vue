@@ -34,10 +34,16 @@
       // wrapped-handler failure) — ImageUploadModal keys close/keep-open on it.
       onLogoUpload: (file: File) => Promise<unknown>;
       onLogoRemove: () => Promise<unknown>;
+      // Enqueue a forced favicon re-fetch (#3780). Queued/async — resolves a
+      // truthy success flag (or undefined on a wrapped-handler failure).
+      onRefreshFavicon: () => Promise<unknown>;
+      // Icon provenance from the domain record; drives the refresh button's
+      // disabled state ('user_upload' cannot be overwritten by a forced fetch).
+      faviconSource?: string | null;
       previewI18n: Composer;
       secretIdentifier?: string;
     }>(),
-    { secretIdentifier: 'abcd', logoImage: null }
+    { secretIdentifier: 'abcd', logoImage: null, faviconSource: null }
   );
 
   const emit = defineEmits<{
@@ -62,6 +68,8 @@
           :logo-image="logoImage"
           :on-logo-upload="onLogoUpload"
           :on-logo-remove="onLogoRemove"
+          :on-refresh-favicon="onRefreshFavicon"
+          :favicon-source="faviconSource"
           @update:model-value="(value) => emit('update:modelValue', value)" />
 
         <ComingSoonPanel

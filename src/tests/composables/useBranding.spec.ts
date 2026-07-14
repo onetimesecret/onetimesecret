@@ -6,6 +6,7 @@ import {
 } from '@/tests/fixtures/domainBranding.fixture';
 import { useBranding } from '@/shared/composables/useBranding';
 import { DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/constants/brand';
+import { useNotificationsStore } from '@/shared/stores';
 import { createPinia, setActivePinia } from 'pinia';
 import { nextTick } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,6 +14,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Reconfigured per-test (mockResolvedValueOnce / mockRejectedValueOnce) to drive
 // the save success/failure paths.
 const mockUpdateSettings = vi.fn();
+// Shared handle so favicon-refresh assertions can inspect the store call.
+const mockRefreshFavicon = vi.fn();
 
 const mockBrandStore = vi.fn(() => ({
   getSettings: (domainId: string) => {
@@ -43,6 +46,7 @@ vi.mock('@/shared/stores/domainsStore', () => ({
   useDomainsStore: () => ({
     domains: [{ extid: 'domain-1', display_domain: 'domain-1.example.com' }],
     fetchList: vi.fn(),
+    refreshFavicon: mockRefreshFavicon,
   }),
 }));
 
@@ -177,6 +181,26 @@ describe('useBranding', () => {
       // The preview must snap back to the last-saved color, not linger on the
       // rejected edit (which would masquerade as a successful save).
       expect(brandSettings.value.primary_color).toBe('#123456');
+    });
+  });
+
+  describe('refreshFavicon (#3780)', () => {
+    it('resolves the extid, enqueues via the store, and toasts the queued state', async () => {
+      mockRefreshFavicon.mockResolvedValueOnce(undefined);
+      const notifications = useNotificationsStore();
+      const showSpy = vi.spyOn(notifications, 'show');
+
+      const { refreshFavicon } = useBranding('domain-1');
+      const result = await refreshFavicon();
+
+      expect(mockRefreshFavicon).toHaveBeenCalledWith('domain-1');
+      expect(showSpy).toHaveBeenCalledWith(
+        'web.branding.refresh_favicon_queued',
+        'success',
+        'top'
+      );
+      // Truthy success signal (wrap() resolves undefined on failure).
+      expect(result).toBe(true);
     });
   });
 

@@ -479,6 +479,30 @@ describe('domainsStore', () => {
     });
   });
 
+  describe('Favicon refresh (#3780)', () => {
+    it('POSTs a forced re-fetch to the icon/refresh endpoint', async () => {
+      const extid = 'dm-ext-123';
+      // The endpoint returns a queued success (no domain record); the store
+      // resolves void and never parses the body.
+      axiosMock.onPost(`/api/domains/${extid}/icon/refresh`).reply(200, {
+        record: null,
+        details: { msg: 'Favicon refresh queued' },
+      });
+
+      await expect(store.refreshFavicon(extid)).resolves.toBeUndefined();
+
+      expect(axiosMock.history.post).toHaveLength(1);
+      expect(axiosMock.history.post[0].url).toBe(`/api/domains/${extid}/icon/refresh`);
+    });
+
+    it('propagates HTTP errors so the caller (wrap) can toast', async () => {
+      const extid = 'dm-ext-403';
+      axiosMock.onPost(`/api/domains/${extid}/icon/refresh`).reply(403);
+
+      await expect(store.refreshFavicon(extid)).rejects.toThrow();
+    });
+  });
+
   describe('Homepage configuration (putHomepageConfig)', () => {
     const extid = 'dm-hp-1';
 

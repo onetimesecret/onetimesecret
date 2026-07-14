@@ -147,6 +147,21 @@
     "text": "Remove logo",
     "content_hash": "f1c1afa4"
   },
+  "web.branding.favicon": {
+    "text": "Favicon"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Refresh favicon from domain"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Fetch the favicon from your domain again. The new icon appears shortly."
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Refreshing favicon — the new icon will appear shortly."
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "You've uploaded a custom favicon, so a fetched icon won't replace it."
+  },
   "web.branding.image_upload_choose": {
     "text": "Choose an image",
     "content_hash": "ceed9fd5"
