@@ -1,0 +1,56 @@
+# public/branding/vshare/brand.yaml
+#
+# Brand pack manifest (v2, #3774) — identity scalars for the "VaultShare" pack.
+#
+# A SAMPLE general-purpose brand identity for the brand-pack system, unrelated
+# to Onetime Secret's own identity (unlike `maruhi` / `onetimesecret`, which
+# regenerate the company's historical marks). Demonstrates that an operator can
+# fully re-skin the product: name, mark, and palette, together as one pack.
+# The static assets in this directory are generated from the `vshare` preset
+# (scripts/branding/presets/vshare.mjs); the scalars below are the matching
+# identity values. Regenerate with `pnpm run gen:favicons:vshare`.
+#
+# Precedence (lowest to highest):
+#     built-in defaults  <  pack brand.yaml  <  operator `brand:` config  <  BRAND_* env
+# So an operator can still override any value here via their config file or a
+# BRAND_* env var. Keys are whitelisted to BRAND_MANIFEST_KEYS and the file is
+# read with YAML.safe_load — a pack can never reach site.host, SMTP creds, or
+# any non-brand config.
+
+# Core identity ---------------------------------------------------------------
+primary_color: "#4F46E5"                # deep indigo — base hue for the palette
+product_name: "VaultShare"
+product_domain: "vaultshare.example.com"    # sample domain — replace for a real deployment
+support_email: "support@vaultshare.example.com"
+signature_name: "VaultShare"
+
+# Style -----------------------------------------------------------------------
+corner_style: "rounded"                 # rounded | square | pill
+font_family: "sans"                     # sans | serif | mono
+
+# MFA -------------------------------------------------------------------------
+totp_issuer: "VaultShare"               # MFA issuer label (falls back to product_name)
+
+# Logo ------------------------------------------------------------------------
+# The masthead does NOT auto-consume the pack's favicon assets — it renders the
+# neutral keyhole (tinted by primary_color) unless brand.logo_url is set. Point
+# it at this pack's root-served, overlaid asset so the lock mark shows in-app.
+# When BRAND_PACK=vshare is active, /favicon.svg resolves to this pack's tile
+# (BRAND_PACK_URLS overlay, static_files.rb).
+#
+# This root-relative path renders in the web UI and is deliberately OMITTED
+# from outbound email (email needs an absolute http(s) URL and degrades to a
+# text-only header — Config#normalize_brand logs a boot notice). To brand email
+# too, override brand.logo_url with an absolute URL via config or BRAND_LOGO_URL.
+logo_url: "/favicon.svg"
+logo_alt: "VaultShare logo"
+
+# Other asset URLs (optional) -------------------------------------------------
+# favicon.ico, apple-touch-icon.png, icon-*.png and social-preview.png are
+# already served from THIS directory (root-overlaid when the pack is active),
+# so these keys stay unset. Set them only to point at an external CDN / absolute
+# URL.
+#
+# favicon_url: "https://vaultshare.example.com/favicon.ico"
+# apple_touch_icon_url: "https://vaultshare.example.com/branding/vshare/apple-touch-icon.png"
+# og_image_url: "https://vaultshare.example.com/branding/vshare/social-preview.png"

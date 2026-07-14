@@ -8,7 +8,7 @@ assets and the identity values that go with them, together. Introduced by the
 runtime brand-asset overlay ([#3739](https://github.com/onetimesecret/onetimesecret/issues/3739))
 and consolidated into packs in v2 ([#3774](https://github.com/onetimesecret/onetimesecret/issues/3774)).
 
-## `default` is a tracked pack — everything else is gitignored
+## `default`, `vshare`, and `linkdepot` are tracked packs — everything else is gitignored
 
 ```
 public/branding/
@@ -16,18 +16,23 @@ public/branding/
 ├── default/           # tracked (#3774): the neutral keyhole pack
 │   ├── favicon.ico … site.webmanifest   # neutral asset set
 │   └── brand.yaml                        # value-free manifest (all keys commented)
-├── maruhi/            # gitignored generator output
+├── vshare/             # tracked: sample brand identity ("VaultShare")
+├── linkdepot/          # tracked: sample brand identity ("LinkDepot")
+├── maruhi/             # gitignored generator output
 │   └── …
-└── <other-pack>/      # gitignored
+└── <other-pack>/       # gitignored
 ```
 
-Only this README **and the `default/` pack** are tracked. Every other pack is
-**generator output and gitignored** — a deliberate rule that keeps the repo
-brand-neutral (see #3048/#3049). The company's own marks (`maruhi`,
-`onetimesecret`) are presets you regenerate on demand, never committed assets —
-as are `vshare` ("VaultShare") and `linkdepot` ("LinkDepot"), two sample
-general-purpose brand identities (unrelated to Onetime Secret) that demonstrate
-the pack system with their own name, mark, and palette.
+Only this README, the `default/` pack, and the two sample packs (`vshare/`,
+`linkdepot/`) are tracked. Every other pack is **generator output and
+gitignored** — a deliberate rule that keeps the repo brand-neutral (see
+#3048/#3049). The company's own marks (`maruhi`, `onetimesecret`) are presets
+you regenerate on demand, never committed assets. `vshare` ("VaultShare") and
+`linkdepot` ("LinkDepot") are different: general-purpose sample brand
+identities, unrelated to Onetime Secret, that demonstrate the pack system with
+their own name, mark, and palette — committing them costs nothing in
+brand-neutrality since they carry no Onetime Secret identity, and it means the
+sample is always available without a generator run.
 
 **`default` IS the neutral pack** (v2, #3774). Brand-pack resolution ALWAYS lands
 on a pack: an unset `BRAND_PACK` resolves to `default`, which holds the neutral
