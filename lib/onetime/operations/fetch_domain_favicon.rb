@@ -137,13 +137,16 @@ module Onetime
           record_success(custom_domain)
           logger.info 'Favicon fetched and stored',
             domain_id: @domain_id,
+            domain: custom_domain.display_domain,
             content_type: image.content_type,
             final_url: image.final_url,
             bytes: image.body.bytesize
           success_result(image)
         else
           record_none_found(custom_domain)
-          logger.info 'Favicon fetch found no usable icon', domain_id: @domain_id
+          logger.info 'Favicon fetch found no usable icon',
+            domain_id: @domain_id,
+            domain: custom_domain.display_domain
           none_found_result
         end
       rescue Onetime::Http::SafeFetch::FetchTimeout => ex
@@ -151,6 +154,7 @@ module Onetime
         # requeues for a RabbitMQ retry (do NOT stamp a terminal status).
         logger.warn 'Favicon fetch timed out (retriable)',
           domain_id: @domain_id,
+          domain: custom_domain&.display_domain,
           error: ex.message
         raise
       rescue StandardError => ex
@@ -158,6 +162,7 @@ module Onetime
         record_failure(custom_domain, ex) if custom_domain
         logger.error 'Favicon fetch failed',
           domain_id: @domain_id,
+          domain: custom_domain&.display_domain,
           error: ex.message,
           error_class: ex.class.name
         raise

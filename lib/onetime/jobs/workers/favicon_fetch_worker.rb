@@ -77,9 +77,15 @@ module Onetime
         def work_with_params(msg, delivery_info, metadata)
           store_envelope(delivery_info, metadata)
 
+          # Assigned inside the block but declared here: block-locals are
+          # invisible to the method-level rescues, which tag their logs with it.
+          domain_id = nil
+
           with_trace_context do
             data = parse_message(msg)
             return unless data # parse_message handles reject on error
+
+            domain_id = data[:domain_id]
 
             # Handle ping test messages (from: bin/ots queue ping)
             if data[:domain_id] == 'ping.test'
@@ -102,11 +108,10 @@ module Onetime
               return ack!
             end
 
-            domain_id = data[:domain_id]
             # Strict boolean: only an explicit JSON `true` forces. `data[:force] ||
             # false` would treat any truthy payload (e.g. the string "false") as a
             # force, letting a malformed message clobber the skip-existing guard.
-            force     = data[:force] == true # Phase 2 manual refresh sets this
+            force = data[:force] == true # Phase 2 manual refresh sets this
             log_debug "Fetching favicon: #{domain_id} (force: #{force}, metadata: #{message_metadata})"
 
             # Delegate to the operation. Retry transient timeouts in-process; the
@@ -144,13 +149,14 @@ module Onetime
           # lifecycle at PROCESSING (no terminal stamp), so requeue for a
           # broker-level retry rather than DLQ'ing.
           log_info 'Favicon fetch timed out, requeueing for retry',
+            domain_id: domain_id,
             error: ex.message,
             metadata: message_metadata
           requeue!
         rescue StandardError => ex
           # Unexpected — the operation already stamped status=FAILED before
           # re-raising, so we just send the message to the DLQ.
-          log_error 'Unexpected error fetching favicon', ex
+          log_error 'Unexpected error fetching favicon', ex, domain_id: domain_id
           reject! # Send to DLQ
         end
 

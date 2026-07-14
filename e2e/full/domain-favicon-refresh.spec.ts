@@ -176,6 +176,69 @@ test.describe('Domain favicon refresh (#3780)', () => {
     // The queued success surfaces as a polite status toast (NotificationCard).
     await expect(page.locator('[role="status"]').first()).toBeVisible();
   });
+
+  // 1x1 transparent PNG — small, valid, FastImage-measurable, and on the icon
+  // allowlist (image/png). Used as the uploaded favicon payload.
+  const ONE_BY_ONE_PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+    'base64'
+  );
+
+  test('TC-FAV-004: uploading a favicon commits synchronously and the two controls coexist', async ({
+    page,
+  }) => {
+    // The upload counterpart to the refresh button (#3780). Unlike the queued
+    // refresh (TC-FAV-003), the upload is a SYNCHRONOUS store write: the POST
+    // /icon returns the stored record immediately, so the preview flip is
+    // deterministic here and does NOT depend on the background worker.
+    const org = await getFirstOrganization(page);
+    test.skip(!org, 'Test requires at least 1 organization');
+
+    const domain = await getFirstDomain(page, org!.extid);
+    test.skip(!domain, 'Test requires at least 1 domain');
+
+    // Reuse the entitlement gate: if the refresh button mounted, the whole
+    // Simple panel (including the upload field) did too.
+    const refreshButton = await gotoBrandRefreshButton(page, org!, domain!);
+    test.skip(!refreshButton, 'Brand editor unavailable — requires the custom_branding entitlement');
+
+    const uploadButton = page.getByTestId('domain-favicon-upload');
+
+    // Coexistence: BOTH the new upload field and the existing refresh control
+    // are present on the Simple brand path.
+    await expect(uploadButton).toBeVisible();
+    await expect(refreshButton!).toBeVisible();
+
+    // Open the staged-upload modal, pick the PNG, and commit.
+    await uploadButton.click();
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+
+    await dialog.locator('input[type="file"]').setInputFiles({
+      name: 'favicon.png',
+      mimeType: 'image/png',
+      buffer: ONE_BY_ONE_PNG,
+    });
+
+    // The confirm CTA enables only once a file is staged.
+    const saveButton = dialog.getByRole('button', { name: /save favicon/i });
+    await expect(saveButton).toBeEnabled();
+
+    const uploadPost = page.waitForResponse(
+      (res) => /\/domains\/[^/]+\/icon$/.test(res.url()) && res.request().method() === 'POST',
+      { timeout: 15000 }
+    );
+
+    await saveButton.click();
+
+    const response = await uploadPost;
+    expect(response.ok(), `icon upload POST should succeed, got ${response.status()}`).toBe(true);
+
+    // On success the modal closes and the field flips Upload → Replace, proving
+    // the preview reflects the newly-stored icon (no worker round-trip needed).
+    await expect(dialog).toBeHidden();
+    await expect(uploadButton).toContainText(/replace favicon/i);
+  });
 });
 
 /**
@@ -188,4 +251,5 @@ test.describe('Domain favicon refresh (#3780)', () => {
  * | TC-FAV-001 | Refresh-favicon control renders on the Brand page         | Medium   | Automated  |
  * | TC-FAV-002 | Button disabled-state agrees with the provenance hint     | High     | Automated  |
  * | TC-FAV-003 | Clicking an enabled refresh queues a fetch (POST + toast) | High     | Automated  |
+ * | TC-FAV-004 | Uploading a favicon commits synchronously; controls coexist | High   | Automated  |
  */
