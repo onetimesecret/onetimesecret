@@ -96,11 +96,18 @@ VISUAL_ENV=(
   AUTH_SIGNUP=true
   AUTH_SIGNIN=true
   # Canonical-install branding + i18n. Unpinned, a bare env (CI) renders the
-  # neutral "Secure Links" fallback with no header logo and no language
+  # neutral "Secure Links" fallback with no product name and no language
   # toggle, while a dev shell renders whatever its BRAND_* exports say —
   # either way the baselines stop being reproducible elsewhere.
+  #
+  # No BRAND_LOGO_URL: the masthead resolves through the neutral `default`
+  # brand pack (#3774), whose brand.yaml is value-free, so brand.logo_url stays
+  # nil and the header renders the neutral DefaultLogo (keyhole + product name)
+  # — exactly what a stock install shows. (Pre-#3774 this pinned the loose
+  # OTS asset img/onetime-logo-v3-xl.svg, retired with the brand-pack
+  # consolidation; a served masthead logo now comes only from an operator's
+  # absolute brand.logo_url, which the neutral suite deliberately does not set.)
   "BRAND_PRODUCT_NAME=Onetime Secret"
-  BRAND_LOGO_URL=img/onetime-logo-v3-xl.svg
   "BRAND_PRIMARY_COLOR=#3B82F6"
   BRAND_CORNER_STYLE=square
   BRAND_FONT_FAMILY=serif
