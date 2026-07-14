@@ -122,6 +122,12 @@ module DomainsAPI::Logic
         _image_field['ratio']        = ratio
         _image_field['bytes']        = @bytes
 
+        # Tag the source so the favicon fetch worker never clobbers a user
+        # upload, and drop the stale derived favicon cache on re-upload so
+        # GetFavicon regenerates from the new bytes (#3780).
+        _image_field['favicon_source'] = 'user_upload'
+        _image_field.remove_field('encoded_favicon')
+
         success_data
       end
 

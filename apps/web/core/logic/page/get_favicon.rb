@@ -30,6 +30,10 @@ module Core
 
         FAVICON_SIZE = 32 # 32x32 pixels
 
+        # ICO images are served as-is: browsers render .ico natively and
+        # ChunkyPNG can't decode/resize ICO, so we skip the PNG resize path (#3780).
+        ICO_CONTENT_TYPES = %w[image/x-icon image/vnd.microsoft.icon].freeze
+
         def process_params
           # Get domain strategy from auth metadata (set by DomainStrategy middleware,
           # passed through auth strategy via build_metadata)
@@ -87,6 +91,13 @@ module Core
           # Get the image hashkey based on source (icon or logo)
           image_hash = image_source == :icon ? custom_domain.icon : custom_domain.logo
 
+          # ICO images pass through unmodified — no ChunkyPNG resize, no
+          # encoded_favicon cache (browsers render .ico natively, #3780).
+          if ICO_CONTENT_TYPES.include?(image_hash['content_type'].to_s)
+            serve_ico_favicon(image_hash)
+            return
+          end
+
           # Check if we have a cached favicon-sized version
           cached_favicon = image_hash['encoded_favicon']
 
@@ -107,6 +118,17 @@ module Core
 
           @content_type   = 'image/png' # Resized favicons are always PNG
           @content_length = icon_data.bytesize.to_s
+        end
+
+        def serve_ico_favicon(image_hash)
+          # Decode the original ICO bytes and serve them without resizing.
+          @icon_data      = Base64.strict_decode64(image_hash['encoded'])
+          @content_type   = 'image/x-icon'
+          @content_length = icon_data.bytesize.to_s
+          OT.ld "[GetFavicon] Serving ICO favicon for #{custom_domain.display_domain} (source: #{image_source})"
+        rescue ArgumentError => ex
+          OT.le "[GetFavicon] Corrupted ICO favicon for #{custom_domain.display_domain} (source: #{image_source}): #{ex.message}, serving default"
+          serve_default_favicon
         end
 
         def generate_and_cache_favicon(image_hash)

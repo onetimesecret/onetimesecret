@@ -96,6 +96,14 @@ module Onetime
     field :updated
     field :_original_value
 
+    # Auto-fetch favicon lifecycle/outcome (#3780). Written by the fetch
+    # worker via save_fields, kept off the icon hashkey so status updates
+    # don't race the icon image write.
+    field :favicon_fetch_status # JobLifecycle string (PENDING/PROCESSING/COMPLETED/FAILED)
+    field :favicon_fetched # outcome bool: true once an icon was actually stored
+    field :favicon_fetch_error # last failure message
+    field :favicon_fetch_completed_at # epoch seconds of the last terminal outcome
+
     hashkey :brand
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
