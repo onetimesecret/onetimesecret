@@ -854,7 +854,7 @@ module Onetime
         conf['development']['allow_nil_global_secret'] = false
       end
 
-      # ADR-024: development frontend mode (RACK_ENV=development) makes the app
+      # ADR-025: development frontend mode (RACK_ENV=development) makes the app
       # proxy /dist/* to a Vite dev server. That is a source-editing workflow and
       # needs the frontend build toolchain, which only a source checkout has. A
       # deployment artifact — notably the production container image, whose
@@ -863,7 +863,7 @@ module Onetime
       # loudly instead of serving a container that silently 500s every asset.
       if conf.dig('development', 'enabled') && !frontend_dev_workflow_available?
         raise OT::ConfigError, <<~MSG.chomp
-          development.enabled is true (RACK_ENV=#{ENV['RACK_ENV'].inspect}) but this build has no Vite frontend toolchain — it is a deployment artifact (e.g. the production container image) that serves pre-built assets and cannot host or proxy a Vite dev server (ADR-024).
+          development.enabled is true (RACK_ENV=#{ENV['RACK_ENV'].inspect}) but this build has no Vite frontend toolchain — it is a deployment artifact (e.g. the production container image) that serves pre-built assets and cannot host or proxy a Vite dev server (ADR-025).
             Fix one of:
               - Containers: serve the assets baked at build time — unset RACK_ENV or set RACK_ENV=production.
               - Frontend dev: run on the host where the toolchain lives (bin/dev), not the shipped image.
@@ -904,7 +904,7 @@ module Onetime
     # True when this process can participate in the Vite dev-server workflow:
     # either the frontend build toolchain is present (a source checkout) or the
     # operator has explicitly opted into an external-Vite topology. Used to reject
-    # development frontend mode on a deployment artifact at boot (ADR-024).
+    # development frontend mode on a deployment artifact at boot (ADR-025).
     #
     # @return [Boolean]
     def frontend_dev_workflow_available?

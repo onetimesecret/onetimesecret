@@ -891,7 +891,7 @@ jobs:
   # This ensures plan data remains available even if Stripe webhooks fail.
   # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
   # Skips gracefully if no Stripe API key is configured (standalone mode).
-  plan_cache_refresh_enabled: <%= ENV['JOBS_PLAN_CACHE_REFRESH_ENABLED'] == 'true' || false %>
+  plan_cache_refresh_enabled: false
 
   # Catalog Retry Job
   # Retries webhook events that were blocked by the Stripe circuit breaker.
@@ -899,13 +899,13 @@ jobs:
   # price.created, etc.) are queued for retry rather than failing. This job
   # processes those queued events once the circuit breaker closes.
   # Runs every 2 minutes when enabled; skips if circuit is still open.
-  catalog_retry_enabled: <%= ENV['JOBS_CATALOG_RETRY_ENABLED'] == 'true' || false %>
+  catalog_retry_enabled: false
 
   # DLQ Email Consumer Job
   # Processes failed email messages from the dead-letter queue.
   # Runs on a schedule to inspect DLQ messages and re-publish recoverable
   # failures or log permanent failures for investigation.
-  dlq_consumer_enabled: <%= ENV['JOBS_DLQ_CONSUMER_ENABLED'] != 'false' %>
+  dlq_consumer_enabled: true
 
   # Domain refresh job
   # Periodically refreshes cached vhost/resolving status for custom domains
@@ -913,29 +913,29 @@ jobs:
   # visiting the verify page. See issue #3080.
   # Skips gracefully when no custom domains are registered.
   domain_refresh:
-    enabled: <%= ENV['JOBS_DOMAIN_REFRESH_ENABLED'] == 'true' || false %>
+    enabled: false
     # How often to refresh (rufus-scheduler interval)
-    check_interval: <%= ENV['JOBS_DOMAIN_REFRESH_INTERVAL'] || '30m' %>
+    check_interval: '30m'
     # Maximum domains processed per run (rate limiting)
-    batch_size: <%= ENV['JOBS_DOMAIN_REFRESH_BATCH_SIZE']&.to_i || 200 %>
+    batch_size: 200
     # Seconds between Approximated API calls within a run
-    rate_limit: <%= ENV['JOBS_DOMAIN_REFRESH_RATE_LIMIT']&.to_f || 0.5 %>
+    rate_limit: 0.5
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:
     # Enable/disable expiration warning emails
-    enabled: <%= ENV['JOBS_EXPIRATION_WARNINGS_ENABLED'] == 'true' || false %>
+    enabled: false
     # How often to scan for expiring secrets (rufus-scheduler interval)
-    check_interval: <%= ENV['JOBS_EXPIRATION_CHECK_INTERVAL'] || '1h' %>
+    check_interval: '1h'
     # Send warning N hours before secret expires
-    warning_hours: <%= ENV['JOBS_EXPIRATION_WARNING_HOURS']&.to_i || 24 %>
+    warning_hours: 24
     # Only warn for secrets with TTL greater than this (hours)
     # Prevents spamming for short-lived secrets
-    min_ttl_hours: <%= ENV['JOBS_EXPIRATION_MIN_TTL_HOURS']&.to_i || 48 %>
+    min_ttl_hours: 48
     # Maximum warnings to process per job run (rate limiting)
     # Prevents queue overflow; remaining secrets processed in next run
-    batch_size: <%= ENV['JOBS_EXPIRATION_BATCH_SIZE']&.to_i || 100 %>
+    batch_size: 100
 
   # Data maintenance jobs
   # Scheduled jobs for Redis data consistency checks and repairs.
@@ -943,46 +943,46 @@ jobs:
   # reviewing audit reports over multiple cycles.
   maintenance:
     # Master toggle — disables all maintenance jobs when false
-    enabled: <%= ENV['JOBS_MAINTENANCE_ENABLED'] == 'true' || false %>
+    enabled: false
 
     # Phase 1: Remove phantom members from sorted sets (hourly)
     phantom_cleanup:
-      enabled: <%= ENV['JOBS_PHANTOM_CLEANUP_ENABLED'] == 'true' || false %>
-      interval: <%= ENV['JOBS_PHANTOM_CLEANUP_INTERVAL'] || '1h' %>
-      batch_size: <%= ENV['JOBS_PHANTOM_CLEANUP_BATCH_SIZE']&.to_i || 500 %>
-      auto_repair: <%= ENV['JOBS_PHANTOM_CLEANUP_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      interval: '1h'
+      batch_size: 500
+      auto_repair: false
 
     # Phase 2: Read-only data consistency audit (every 6h)
     data_audit:
-      enabled: <%= ENV['JOBS_DATA_AUDIT_ENABLED'] == 'true' || false %>
-      interval: <%= ENV['JOBS_DATA_AUDIT_INTERVAL'] || '6h' %>
-      sample_size: <%= ENV['JOBS_DATA_AUDIT_SAMPLE_SIZE']&.to_i || 100 %>
+      enabled: false
+      interval: '6h'
+      sample_size: 100
 
     # Phase 3: GC stale participation sorted set members (daily 5 AM)
     participation_gc:
-      enabled: <%= ENV['JOBS_PARTICIPATION_GC_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_PARTICIPATION_GC_CRON'] || '0 5 * * *' %>
-      batch_size: <%= ENV['JOBS_PARTICIPATION_GC_BATCH_SIZE']&.to_i || 500 %>
-      auto_repair: <%= ENV['JOBS_PARTICIPATION_GC_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      cron: '0 5 * * *'
+      batch_size: 500
+      auto_repair: false
 
     # Phase 4: Reconcile unique indexes (daily 4 AM)
     index_rebuild:
-      enabled: <%= ENV['JOBS_INDEX_REBUILD_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_INDEX_REBUILD_CRON'] || '0 4 * * *' %>
-      auto_repair: <%= ENV['JOBS_INDEX_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      cron: '0 4 * * *'
+      auto_repair: false
 
     # Phase 5: Rebuild instances sorted sets (weekly Sunday 3 AM)
     instances_rebuild:
-      enabled: <%= ENV['JOBS_INSTANCES_REBUILD_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
-      auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      cron: '0 3 * * 0'
+      auto_repair: false
 
     # Familia model housekeeping chores (nightly 2 AM)
     # Iterates models that declare `feature :housekeeping` and runs every
     # registered chore. Disable when no chores are active.
     housekeeping:
-      enabled: <%= ENV['JOBS_HOUSEKEEPING_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_HOUSEKEEPING_CRON'] || '0 2 * * *' %>
+      enabled: false
+      cron: '0 2 * * *'
 
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
