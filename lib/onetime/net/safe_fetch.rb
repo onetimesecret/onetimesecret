@@ -59,9 +59,14 @@ module Onetime
         224.0.0.0/4 240.0.0.0/4
       ].map { |cidr| IPAddr.new(cidr) }.freeze
 
+      # ::/96 is the deprecated IPv4-compatible block (subsumes ::, ::1, and
+      # e.g. ::127.0.0.1). 2002::/16 (6to4) and the 64:ff9b* NAT64 ranges are
+      # blocked wholesale — no legitimate favicon host lives on a translation
+      # address, so we don't bother decoding the embedded IPv4. ::ffff:0:0/96 is
+      # the separate v4-MAPPED block (unwrapped to v4 in #blocked_ip?).
       BLOCKED_V6 = %w[
-        ::1/128 ::/128 fc00::/7 fe80::/10 ff00::/8
-        ::ffff:0:0/96 64:ff9b::/96 2001:db8::/32
+        ::/96 fc00::/7 fe80::/10 ff00::/8 ::ffff:0:0/96
+        64:ff9b::/96 64:ff9b:1::/48 2002::/16 2001:db8::/32
       ].map { |cidr| IPAddr.new(cidr) }.freeze
 
       # Magic-byte sniff family → the MIME we permit and canonicalize to. The
@@ -94,7 +99,7 @@ module Onetime
       # @raise [BlockedTarget, TooManyRedirects, ResponseTooLarge,
       #   DisallowedContentType, FetchTimeout, Error]
       def get_image(url)
-        fetch(url, redirects_left: @max_redirects, allow_html: false)
+        fetch(url, redirects_left: @max_redirects, allow_html: false, deadline: new_deadline)
       end
 
       # Fetch text (favicon discovery HTML). Same SSRF guard and byte cap; no
@@ -103,7 +108,7 @@ module Onetime
       # @return [String]
       # @raise (see #get_image)
       def get_html(url)
-        fetch(url, redirects_left: @max_redirects, allow_html: true).body
+        fetch(url, redirects_left: @max_redirects, allow_html: true, deadline: new_deadline).body
       end
 
       private
@@ -113,15 +118,16 @@ module Onetime
       # decremented counter. The Net timeout → FetchTimeout mapping wraps the
       # transport seam here (not inside it) so both connect- and read-time
       # timeouts are normalized on the real path.
-      def fetch(url, redirects_left:, allow_html:)
+      def fetch(url, redirects_left:, allow_html:, deadline:)
         uri          = build_uri(url)
         enforce_scheme_and_port!(uri)
+        check_deadline!(deadline, uri)
         validated_ip = resolve_and_validate!(uri.host)
 
         outcome =
           begin
             with_pinned_response(uri, validated_ip) do |resp|
-              interpret_response(resp, uri, allow_html)
+              interpret_response(resp, uri, allow_html, deadline)
             end
           rescue ::Net::OpenTimeout, ::Net::ReadTimeout => ex
             raise FetchTimeout, "timeout fetching #{uri}: #{ex.message}"
@@ -131,10 +137,28 @@ module Onetime
           raise TooManyRedirects, "exceeded #{@max_redirects} redirects at #{uri}" if redirects_left <= 0
 
           target = absolutize(uri, outcome[1])
-          return fetch(target, redirects_left: redirects_left - 1, allow_html: allow_html)
+          return fetch(target, redirects_left: redirects_left - 1, allow_html: allow_html, deadline: deadline)
         end
 
         outcome[1] # the Result
+      end
+
+      # Per-call monotonic wall-clock budget spanning ALL redirect hops and the
+      # streamed body read — bounds how long one get_image/get_html can pin a
+      # worker thread (slowloris trickle × redirect fan-out). Worst-case overshoot
+      # is deadline + one hop @timeout: we deliberately leave the socket timeouts
+      # at @timeout (rather than shrinking to remaining-budget) to keep the
+      # with_pinned_response test seam signature stable.
+      def new_deadline
+        monotonic_now + (@timeout * (@max_redirects + 1))
+      end
+
+      def monotonic_now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+
+      def check_deadline!(deadline, context)
+        raise FetchTimeout, "exceeded total fetch budget (#{context})" if monotonic_now > deadline
       end
 
       def build_uri(url)
@@ -205,7 +229,7 @@ module Onetime
 
       # Classify one response: [:redirect, location] or [:done, Result]. Reads
       # the body (capped) only for the terminal (success) case.
-      def interpret_response(resp, uri, allow_html)
+      def interpret_response(resp, uri, allow_html, deadline)
         code = resp.code.to_i
 
         if REDIRECT_CODES.include?(code)
@@ -217,7 +241,7 @@ module Onetime
 
         raise Error, "unexpected HTTP status #{code} from #{uri}" unless SUCCESS_CODES.include?(code)
 
-        body = read_capped_body(resp)
+        body = read_capped_body(resp, deadline)
         return [:done, Result.new(body: body, content_type: resp.content_type, final_url: uri.to_s)] if allow_html
 
         mime = validate_image_type!(body)
@@ -226,12 +250,13 @@ module Onetime
 
       # Enforce the byte ceiling on the declared length AND during the streamed
       # read, so a lying/absent Content-Length cannot smuggle an oversize body.
-      def read_capped_body(resp)
+      def read_capped_body(resp, deadline)
         declared = resp.content_length
         raise ResponseTooLarge, "declared #{declared} bytes exceeds #{@max_bytes}" if declared && declared > @max_bytes
 
         buffer = String.new(encoding: Encoding::BINARY)
         resp.read_body do |chunk|
+          check_deadline!(deadline, 'reading body') # trip a slow drip before it exhausts the buffer cap
           buffer << chunk
           raise ResponseTooLarge, "response body exceeds #{@max_bytes} bytes" if buffer.bytesize > @max_bytes
         end

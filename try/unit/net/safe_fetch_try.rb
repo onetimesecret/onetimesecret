@@ -28,18 +28,18 @@ PNG_BYTES = ("\x89PNG\r\n\x1a\n".b + "\x00\x00\x00\rIHDR".b +
              "\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\x00\x00\x00".b + "\x1f\xf3\xffa".b).freeze
 ICO_BYTES = ("\x00\x00\x01\x00\x01\x00\x10\x10\x00\x00\x01\x00\x20\x00".b + ("\x00" * 32).b).freeze
 SVG_BYTES = %(<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>).b.freeze
-GIF_BYTES = ("GIF89a".b + ("\x00" * 20).b).freeze
+GIF_BYTES = ('GIF89a'.b + ("\x00" * 20).b).freeze
 
 # Minimal stand-in for Net::HTTPResponse: exposes only what interpret_response
 # and read_capped_body consume. content_length: :auto == honest byte count;
 # pass an Integer to fake a lying Content-Length, or nil to omit it.
 class FakeResponse
-  attr_reader :code
+  attr_reader :code, :content_length
 
   def initialize(code:, headers: {}, chunks: [], content_length: :auto)
-    @code    = code.to_s
-    @headers = headers.transform_keys { |k| k.to_s.downcase }
-    @chunks  = chunks
+    @code           = code.to_s
+    @headers        = headers.transform_keys { |k| k.to_s.downcase }
+    @chunks         = chunks
     @content_length = content_length == :auto ? chunks.sum(&:bytesize) : content_length
   end
 
@@ -51,10 +51,8 @@ class FakeResponse
     @headers['content-type']
   end
 
-  attr_reader :content_length
-
-  def read_body
-    @chunks.each { |chunk| yield chunk }
+  def read_body(&)
+    @chunks.each(&)
   end
 end
 
@@ -63,8 +61,10 @@ end
 # Net::OpenTimeout so #fetch's real timeout→FetchTimeout mapping is exercised.
 class StubFetch < SF
   DEFAULTS = {
-    timeout: 5, max_bytes: 102_400, max_redirects: 3,
-    allowed_content_types: %w[image/x-icon image/vnd.microsoft.icon image/png]
+    timeout: 5,
+    max_bytes: 102_400,
+    max_redirects: 3,
+    allowed_content_types: %w[image/x-icon image/vnd.microsoft.icon image/png],
   }.freeze
 
   def initialize(dns:, responses:, **opts)
@@ -83,6 +83,20 @@ class StubFetch < SF
     raise 'no stubbed response queued' if item.nil?
 
     yield item
+  end
+end
+
+# StubFetch with a scripted monotonic clock, to exercise the wall-clock deadline
+# without real time. new_deadline consumes the first tick; each check_deadline!
+# consumes the next. total_budget = timeout * (max_redirects + 1) = 5 * 4 = 20.
+class ClockFetch < StubFetch
+  def initialize(clock:, **)
+    super(**)
+    @clock = clock
+  end
+
+  def monotonic_now
+    @clock.shift || 1_000_000.0
   end
 end
 
@@ -106,8 +120,8 @@ rescue StandardError => ex
   "unexpected:#{ex.class}"
 end
 
-def image_response(chunks:, content_type: 'application/octet-stream', **opts)
-  FakeResponse.new(code: 200, headers: { 'content-type' => content_type }, chunks: chunks, **opts)
+def image_response(chunks:, content_type: 'application/octet-stream', **)
+  FakeResponse.new(code: 200, headers: { 'content-type' => content_type }, chunks: chunks, **)
 end
 
 def redirect_to(location, code: 302)
@@ -159,7 +173,7 @@ classify { StubFetch.new(dns: { 'a.test' => ['93.184.216.34'] }, responses: []).
 classify do
   StubFetch.new(
     dns: { 'start.test' => ['93.184.216.34'], 'meta.test' => ['169.254.169.254'] },
-    responses: [redirect_to('https://meta.test/')]
+    responses: [redirect_to('https://meta.test/')],
   ).get_image('https://start.test/favicon.ico')
 end
 #=> :blocked_target
@@ -168,7 +182,7 @@ end
 classify do
   StubFetch.new(
     dns: { 'start.test' => ['93.184.216.34'] },
-    responses: [redirect_to('http://evil.test/')]
+    responses: [redirect_to('http://evil.test/')],
   ).get_image('https://start.test/favicon.ico')
 end
 #=> :blocked_target
@@ -178,7 +192,7 @@ classify do
   StubFetch.new(
     dns: { 'a.test' => ['93.184.216.34'], 'b.test' => ['93.184.216.34'] },
     responses: [redirect_to('https://b.test/'), redirect_to('https://c.test/')],
-    max_redirects: 1
+    max_redirects: 1,
   ).get_image('https://a.test/favicon.ico')
 end
 #=> :too_many_redirects
@@ -192,7 +206,7 @@ classify do
   StubFetch.new(
     dns: { 'a.test' => ['93.184.216.34'] },
     responses: [image_response(chunks: ['x'], content_type: 'image/png', content_length: 99_999)],
-    max_bytes: 10
+    max_bytes: 10,
   ).get_image('https://a.test/favicon.ico')
 end
 #=> :response_too_large
@@ -201,8 +215,8 @@ end
 classify do
   StubFetch.new(
     dns: { 'a.test' => ['93.184.216.34'] },
-    responses: [image_response(chunks: ['aaaaaa', 'bbbbbb'], content_type: 'image/png', content_length: nil)],
-    max_bytes: 10
+    responses: [image_response(chunks: %w[aaaaaa bbbbbb], content_type: 'image/png', content_length: nil)],
+    max_bytes: 10,
   ).get_image('https://a.test/favicon.ico')
 end
 #=> :response_too_large
@@ -211,7 +225,7 @@ end
 classify do
   StubFetch.new(
     dns: { 'a.test' => ['93.184.216.34'] },
-    responses: [image_response(chunks: [SVG_BYTES], content_type: 'image/svg+xml')]
+    responses: [image_response(chunks: [SVG_BYTES], content_type: 'image/svg+xml')],
   ).get_image('https://a.test/favicon.svg')
 end
 #=> :disallowed_content_type
@@ -220,7 +234,7 @@ end
 classify do
   StubFetch.new(
     dns: { 'a.test' => ['93.184.216.34'] },
-    responses: [image_response(chunks: [GIF_BYTES], content_type: 'image/gif')]
+    responses: [image_response(chunks: [GIF_BYTES], content_type: 'image/gif')],
   ).get_image('https://a.test/favicon.gif')
 end
 #=> :disallowed_content_type
@@ -228,7 +242,7 @@ end
 ## Valid PNG is accepted; content_type is the SNIFFED mime, body is byte-exact
 @png = StubFetch.new(
   dns: { 'a.test' => ['93.184.216.34'] },
-  responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')]
+  responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
 ).get_image('https://a.test/favicon.ico')
 [@png.content_type, @png.body == PNG_BYTES, @png.final_url]
 #=> ['image/png', true, 'https://a.test/favicon.ico']
@@ -236,7 +250,7 @@ end
 ## Valid ICO is accepted; magic-byte sniff overrides a lying Content-Type header
 @ico = StubFetch.new(
   dns: { 'a.test' => ['93.184.216.34'] },
-  responses: [image_response(chunks: [ICO_BYTES], content_type: 'application/octet-stream')]
+  responses: [image_response(chunks: [ICO_BYTES], content_type: 'application/octet-stream')],
 ).get_image('https://a.test/favicon.ico')
 [@ico.content_type, @ico.body == ICO_BYTES]
 #=> ['image/x-icon', true]
@@ -244,7 +258,7 @@ end
 ## A permitted redirect is followed; final_url reflects the terminal hop
 @redir = StubFetch.new(
   dns: { 'good.test' => ['93.184.216.34'], 'cdn.test' => ['93.184.216.34'] },
-  responses: [redirect_to('https://cdn.test/icon.png'), image_response(chunks: [PNG_BYTES], content_type: 'image/png')]
+  responses: [redirect_to('https://cdn.test/icon.png'), image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
 ).get_image('https://good.test/favicon.ico')
 [@redir.content_type, @redir.final_url]
 #=> ['image/png', 'https://cdn.test/icon.png']
@@ -252,8 +266,11 @@ end
 ## get_html applies the same guard and returns the raw body string
 StubFetch.new(
   dns: { 'a.test' => ['93.184.216.34'] },
-  responses: [FakeResponse.new(code: 200, headers: { 'content-type' => 'text/html' },
-                               chunks: ['<html><link rel="icon" href="/f.ico"></html>'])]
+  responses: [FakeResponse.new(
+    code: 200,
+    headers: { 'content-type' => 'text/html' },
+    chunks: ['<html><link rel="icon" href="/f.ico"></html>'],
+  )],
 ).get_html('https://a.test/').include?('link rel="icon"')
 #=> true
 
@@ -279,3 +296,54 @@ end
 f = StubFetch.new(dns: {}, responses: [])
 [f.send(:blocked_ip?, '2130706433'), f.send(:blocked_ip?, '0x7f000001')]
 #=> [true, true]
+
+## IPv6 6to4 (2002::/16) embedding a metadata/private v4 is blocked
+f = StubFetch.new(dns: {}, responses: [])
+[f.send(:blocked_ip?, '2002:a9fe:a9fe::'), f.send(:blocked_ip?, '2002:0a00:0001::')]
+#=> [true, true]
+
+## IPv6 v4-compatible (::/96) and RFC 8215 local-NAT64 (64:ff9b:1::/48) are blocked
+f = StubFetch.new(dns: {}, responses: [])
+[f.send(:blocked_ip?, '::127.0.0.1'), f.send(:blocked_ip?, '64:ff9b:1::7f00:1')]
+#=> [true, true]
+
+## A public IPv6 (Cloudflare 2606:4700:4700::1111) still passes the guard
+StubFetch.new(dns: {}, responses: []).send(:blocked_ip?, '2606:4700:4700::1111')
+#=> false
+
+## Redirect to a 6to4-encoded metadata host is blocked at re-validation of the new hop
+classify do
+  StubFetch.new(
+    dns: { 'start.test' => ['93.184.216.34'], 'sixto4.test' => ['2002:a9fe:a9fe::'] },
+    responses: [redirect_to('https://sixto4.test/')],
+  ).get_image('https://start.test/favicon.ico')
+end
+#=> :blocked_target
+
+## Deadline exceeded at the first hop → FetchTimeout before any fetch work
+classify do
+  ClockFetch.new(
+    clock: [0.0, 100.0], # deadline = 0 + 20; first check at 100 > 20
+    dns: { 'a.test' => ['93.184.216.34'] },
+    responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
+  ).get_image('https://a.test/favicon.ico')
+end
+#=> :fetch_timeout
+
+## Deadline exceeded mid body-read (slow drip) → FetchTimeout during read_capped_body
+classify do
+  ClockFetch.new(
+    clock: [0.0, 1.0, 100.0], # deadline 20; hop check at 1 (ok); body-read check at 100 (trips)
+    dns: { 'a.test' => ['93.184.216.34'] },
+    responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
+  ).get_image('https://a.test/favicon.ico')
+end
+#=> :fetch_timeout
+
+## A fetch that stays within budget still returns the Result (no false trip)
+ClockFetch.new(
+  clock: [0.0, 1.0, 2.0], # all < deadline 20
+  dns: { 'a.test' => ['93.184.216.34'] },
+  responses: [image_response(chunks: [PNG_BYTES], content_type: 'image/png')],
+).get_image('https://a.test/favicon.ico').content_type
+#=> 'image/png'
