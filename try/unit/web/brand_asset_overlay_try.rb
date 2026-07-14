@@ -225,6 +225,11 @@ clear_overlay
 Onetime.brand_asset_path('site.webmanifest') == File.join(DEFAULT_PACK, 'site.webmanifest')
 #=> true
 
+## a file present in NO pack falls back to the default-pack path (never public/web, #3774)
+clear_overlay
+Onetime.brand_asset_path('nonexistent-brand-asset.xyz') == File.join(DEFAULT_PACK, 'nonexistent-brand-asset.xyz')
+#=> true
+
 # ============================================================================
 # 4. GetFavicon#serve_default_favicon — overlay / neutral / redirect precedence
 # ============================================================================

@@ -638,23 +638,6 @@ module Onetime
       'prominent' => 'prominent',
     }.freeze
 
-    # Normalize the brand block, reading BRAND_* env vars directly so values
-    # containing YAML-significant characters (e.g. the '#' of a hex color)
-    # are not mangled by the ERB/YAML layer. An env var that is set always
-    # wins; when unset, the value already present from YAML is left intact so
-    # operators can still set brand keys directly in their config file.
-    #
-    # Identity keys with a legacy source (LEGACY_BRAND_FALLBACKS) fall back to
-    # the deprecated env var / header.branding path when the brand: authority
-    # leaves them nil. Sentinel component values (e.g. the legacy LOGO_URL
-    # default 'DefaultLogo.vue') are never adopted — they are frontend-only
-    # markers, not asset URLs, and would break consumers like email templates.
-    #
-    # All resolution happens here, before the config is deep-frozen, so
-    # consumers only ever read final values (never re-derive fallbacks).
-    #
-    # @param conf [Hash] the merged configuration (mutated in place)
-    # @return [void]
     # Absorb identity scalars from the resolved brand pack's brand.yaml (#3774).
     # A pack is the single unit of branding: it carries both static assets and
     # (optionally) the identity values that go with them, so `BRAND_PACK=acme`
@@ -697,9 +680,16 @@ module Onetime
         # Below the operator brand: config — only fill a gap it left nil.
         next unless brand[key].nil?
 
+        # Identity scalars are strings (colours, names, URLs). A bare YAML value
+        # parses to its native type — `product_name: 42` -> Integer,
+        # `primary_color: true` -> boolean — and normalize_brand only sanitizes
+        # strings, so a non-string would sail through to the frozen config,
+        # emails, and the bootstrap payload. Accept strings only. #3774
         value = manifest[key]
-        value = value.strip if value.is_a?(String)
-        next if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+        next unless value.is_a?(String)
+
+        value = value.strip
+        next if value.empty?
 
         brand[key] = value
       end
@@ -709,6 +699,23 @@ module Onetime
       OT.le "[apply_brand_manifest] failed to load brand manifest: #{ex.class}: #{ex.message}" if defined?(OT)
     end
 
+    # Normalize the brand block, reading BRAND_* env vars directly so values
+    # containing YAML-significant characters (e.g. the '#' of a hex color)
+    # are not mangled by the ERB/YAML layer. An env var that is set always
+    # wins; when unset, the value already present from YAML is left intact so
+    # operators can still set brand keys directly in their config file.
+    #
+    # Identity keys with a legacy source (LEGACY_BRAND_FALLBACKS) fall back to
+    # the deprecated env var / header.branding path when the brand: authority
+    # leaves them nil. Sentinel component values (e.g. the legacy LOGO_URL
+    # default 'DefaultLogo.vue') are never adopted — they are frontend-only
+    # markers, not asset URLs, and would break consumers like email templates.
+    #
+    # All resolution happens here, before the config is deep-frozen, so
+    # consumers only ever read final values (never re-derive fallbacks).
+    #
+    # @param conf [Hash] the merged configuration (mutated in place)
+    # @return [void]
     def normalize_brand(conf)
       brand = (conf['brand'] ||= {})
 

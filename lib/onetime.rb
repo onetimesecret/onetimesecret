@@ -73,14 +73,6 @@ module Onetime
   # public/branding/default/. #3774
   DEFAULT_BRAND_PACK = 'default'
 
-  # Neutral bundled brand-asset directory (public/web), resolved against the app
-  # root rather than CWD. Retained as a last-ditch fallback for brand_asset_path
-  # (e.g. a legacy public/web runtime mount); the canonical neutral assets now
-  # live in the default brand pack (public/branding/default). #3739 / #3774
-  def self.public_web_dir
-    File.join(HOME, 'public', 'web')
-  end
-
   # The two search roots a BRAND_PACK name is resolved against, in precedence
   # order (first existing wins, #3774):
   #   1. etc/branding/  — operator space. Nothing is tracked here in the repo;
@@ -170,9 +162,12 @@ module Onetime
 
   # Overlay-first single-file resolver for the route-served brand assets
   # (favicon.ico, site.webmanifest). Tries the resolved pack (a selected pack or
-  # the default), then the default pack (in case a selected pack is partial),
-  # then the historical public/web location as a last-ditch safety net for a
-  # legacy runtime mount. #3774 collapse of the pre-#3739 public/web literal.
+  # the default), then the default pack (in case a selected pack is partial). No
+  # public/web fallback (#3774): the default pack is the canonical home, so when
+  # nothing carries the file this returns the default-pack path even if absent —
+  # callers already handle a missing file (GetFavicon serves an empty body;
+  # GetWebmanifest falls back to NEUTRAL_FALLBACK). A drift spec guards the
+  # default pack's file set so canonical assets are always present.
   def self.brand_asset_path(name)
     default_dir = brand_pack_dir(DEFAULT_BRAND_PACK)
     [brand_overlay_dir, default_dir].compact.uniq.each do |dir|
@@ -180,7 +175,8 @@ module Onetime
       return candidate if File.exist?(candidate)
     end
 
-    File.join(OT.conf.dig('site', 'public_dir') || 'public/web', name)
+    canonical = default_dir || File.join(brand_pack_roots.last, DEFAULT_BRAND_PACK)
+    File.join(canonical, name)
   end
 
   require_relative 'onetime/class_methods'

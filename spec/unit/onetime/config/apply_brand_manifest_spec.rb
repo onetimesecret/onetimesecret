@@ -70,6 +70,15 @@ RSpec.describe Onetime::Config do
       expect(brand['support_email']).to be_nil
     end
 
+    it 'rejects non-string scalars so only strings reach the config' do
+      # Bare YAML parses to native types; identity scalars must be strings.
+      write_manifest("product_name: 42\nprimary_color: true\ntotp_issuer: Acme\n")
+      brand = applied(conf_with(brand: {}))
+      expect(brand['product_name']).to be_nil
+      expect(brand['primary_color']).to be_nil
+      expect(brand['totp_issuer']).to eq('Acme') # a real string still lands
+    end
+
     it 'is a no-op when the pack has no brand.yaml' do
       brand = applied(conf_with(brand: { 'product_name' => 'Keep' }))
       expect(brand).to eq('product_name' => 'Keep')

@@ -1121,7 +1121,9 @@ doctor_brand_pack() {
 
   if [[ -f "$resolved/brand.yaml" ]]; then
     local keys
-    keys=$(grep -oE '^[a-z_]+:' "$resolved/brand.yaml" 2>/dev/null | tr -d ':' | tr '\n' ' ')
+    # `|| true`: the value-free default brand.yaml has zero uncommented keys, so
+    # grep exits 1 — which under `set -euo pipefail` would abort the script.
+    keys=$(grep -oE '^[a-z_]+:' "$resolved/brand.yaml" 2>/dev/null | tr -d ':' | tr '\n' ' ') || true
     if [[ -n "$keys" ]]; then
       doc_info "brand.yaml identity keys loaded: $keys"
     else

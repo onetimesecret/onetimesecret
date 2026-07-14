@@ -95,18 +95,27 @@ module Onetime
               end
             end
 
-            # Base brand layer: the resolved default pack (#3774). Defensive
-            # fall-back to the historical public/web location if the default pack
-            # is somehow absent (a broken checkout) so brand URLs never 404 hard.
-            # /favicon.ico and /site.webmanifest are intentionally NOT listed:
-            # they are served by Core::Controllers::Page routes so per-custom-
-            # domain icons, brand.favicon_url redirects, and brand-aware manifest
-            # fields keep working.
-            Onetime.ld "[StaticFiles] Base brand layer: #{base_dir || 'public/web (fallback)'}"
-            use Rack::Static, urls: BRAND_PACK_URLS, root: base_dir || 'public/web'
+            # Base brand layer: the resolved default pack (#3774). No public/web
+            # fallback — the default pack is tracked and drift-guarded, so if it
+            # is somehow absent (a broken checkout) the layer is simply skipped
+            # and brand URLs fall through to the app rather than serving stale
+            # public/web files. /favicon.ico and /site.webmanifest are
+            # intentionally NOT listed: they are served by Core::Controllers::Page
+            # routes so per-custom-domain icons, brand.favicon_url redirects, and
+            # brand-aware manifest fields keep working.
+            if base_dir
+              Onetime.ld "[StaticFiles] Base brand layer: #{base_dir}"
+              use Rack::Static, urls: BRAND_PACK_URLS, root: base_dir
+            else
+              Onetime.le '[StaticFiles] default brand pack not found; brand assets will 404'
+            end
 
-            # App/build assets — never overlaid by a brand pack.
-            use Rack::Static, urls: ['/dist', '/img', '/v3'], root: 'public/web'
+            # App/build assets — never overlaid by a brand pack; these DO live in
+            # public/web (Vite build output + committed images). Root against HOME
+            # rather than CWD (puma's working dir is not guaranteed).
+            use Rack::Static,
+              urls: ['/dist', '/img', '/v3'],
+              root: File.join(Onetime::HOME, 'public', 'web')
           end
 
           # All non-static requests pass through to the original application
