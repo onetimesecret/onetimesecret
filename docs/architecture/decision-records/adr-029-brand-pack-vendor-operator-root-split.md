@@ -74,7 +74,8 @@ set; if that spec is deleted, this decision should be considered reopened.
 - Tracking issue: #3774. Prior art: #3739/#3770 (asset overlay).
 - `public/branding/` is gitignored from #3770; `default/` needs a
   `!public/branding/default/` carve-out.
-- Enforcing spec: default-pack file-set == canonical list.
+- Enforcing spec: default-pack file-set == canonical list (lands with the
+  #3774 implementation; not yet in tree as of acceptance).
 - Doctor probes the *outcome*, not preconditions: which root won resolution,
   which manifest keys loaded, which overlay URLs will serve from the pack.
   Pack-not-found errors list the searched roots.

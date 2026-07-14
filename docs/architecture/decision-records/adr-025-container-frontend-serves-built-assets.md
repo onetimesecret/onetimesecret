@@ -1,7 +1,7 @@
 ---
-id: "024"
+id: "025"
 status: proposed
-title: "ADR-024: Container Frontend Serves Built Assets — Vite Dev Mode Is a Host Concern"
+title: "ADR-025: Container Frontend Serves Built Assets — Vite Dev Mode Is a Host Concern"
 ---
 
 ## Status

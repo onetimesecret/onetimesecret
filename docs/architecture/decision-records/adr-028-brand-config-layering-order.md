@@ -69,6 +69,7 @@ built-in defaults < pack brand.yaml < operator config brand: < BRAND_* env
 ## Implementation Notes
 
 - Tracking issue: #3774. Prior art: #3612 (brand block normalization).
-- Enforcing spec: manifest-whitelist == `BRAND_ENV` == documented keys.
+- Enforcing spec: manifest-whitelist == `BRAND_ENV` == documented keys (lands
+  with the #3774 implementation; not yet in tree as of acceptance).
 - Referenced from a one-line comment at `OT.brand_overlay_dir`
   (`lib/onetime.rb`).

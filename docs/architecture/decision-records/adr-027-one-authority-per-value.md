@@ -42,4 +42,4 @@ Keeping the backend silent is what
 
 - [ADR-026](adr-026-brand-nil-means-unconfigured.md) — nil means unconfigured
 - [ADR-028](adr-028-brand-config-layering-order.md) — brand config layering order
-- Schema architecture notes — "one authority per projection"
+- [Schema target architecture](../../specs/schemata/schema-target-architecture.md) — "one authority per projection"

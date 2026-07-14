@@ -60,4 +60,5 @@ Where the actual neutral rendering values live is
 
 - Tracking issue: #3774. Prior art: #3612 (brand block normalization), #3049
   (no-values-in-YAML invariant).
-- Enforcing spec: default-manifest-parses-empty.
+- Enforcing spec: default-manifest-parses-empty (lands with the #3774
+  implementation; not yet in tree as of acceptance).

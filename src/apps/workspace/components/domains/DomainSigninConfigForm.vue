@@ -33,7 +33,7 @@
    *
    * Everything auto-saves (PUT is full-replacement); there is no Save button.
    *
-   * Materialize-on-touch (ADR-025): while the domain follows workspace
+   * Materialize-on-touch (ADR-024): while the domain follows workspace
    * defaults the form shows the SEEDED inherited state, and any click on a
    * mode or method — even one matching what is already shown — persists an
    * explicit override (the composable forces `enabled: true` on every save).
@@ -61,7 +61,7 @@
     isConfigured: boolean;
     /**
      * True while the domain follows workspace defaults (no explicit override,
-     * ADR-025). The form then shows the seeded inherited state, and clicking a
+     * ADR-024). The form then shows the seeded inherited state, and clicking a
      * mode/method that matches it must still save (materialize the pin) — the
      * no-change early-returns are bypassed.
      */
@@ -277,7 +277,7 @@
     if (!props.formState.signin_enabled) patch.signin_enabled = true;
     if (Object.keys(patch).length === 0) {
       // Nothing changes value-wise; while following workspace defaults the
-      // click still materializes the pin (ADR-025) — an empty patch saves the
+      // click still materializes the pin (ADR-024) — an empty patch saves the
       // seeded snapshot verbatim as an explicit override.
       if (!props.workspaceDefault) return;
       emit('auto-save', {}, 'restrict_to');
