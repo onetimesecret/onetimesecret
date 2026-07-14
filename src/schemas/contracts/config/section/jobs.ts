@@ -43,6 +43,14 @@ const jobsExpirationWarningsSchema = z.object({
   batch_size: z.number().optional(),
 });
 
+const jobsFaviconFetchSchema = z.object({
+  enabled: z.boolean().optional(),
+  timeout: z.number().optional(),
+  max_response_bytes: z.number().optional(),
+  max_redirects: z.number().optional(),
+  allowed_content_types: z.array(z.string()).optional(),
+});
+
 const jobsPhantomCleanupSchema = z.object({
   enabled: z.boolean().optional(),
   interval: z.string().optional(),
@@ -102,6 +110,7 @@ const jobsSchema = z.object({
   dlq_consumer_enabled: z.boolean().optional(),
   domain_refresh: jobsDomainRefreshSchema.optional(),
   expiration_warnings: jobsExpirationWarningsSchema.optional(),
+  favicon_fetch: jobsFaviconFetchSchema.optional(),
   maintenance: jobsMaintenanceSchema.optional(),
 });
 
@@ -111,6 +120,7 @@ export {
   jobsSchedulerSchema,
   jobsDomainRefreshSchema,
   jobsExpirationWarningsSchema,
+  jobsFaviconFetchSchema,
   jobsMaintenanceSchema,
   workerConfigSchema,
 };

@@ -937,6 +937,27 @@ jobs:
     # Prevents queue overflow; remaining secrets processed in next run
     batch_size: 100
 
+  # Auto-fetch custom-domain favicon from the live domain
+  # Discovers and downloads a favicon for verified custom domains under an
+  # SSRF guard, then populates custom_domain.icon. See issue #3780.
+  # HTTPS-only; user-uploaded icons are never overwritten.
+  favicon_fetch:
+    # Feature flag — default OFF
+    enabled: false
+    # Seconds per HTTP fetch (connect + read)
+    timeout: 5
+    # Response size ceiling in bytes (100 KB), streamed-enforced
+    max_response_bytes: 102400
+    # Maximum redirects followed, each re-validated against the SSRF guard
+    max_redirects: 3
+    # Allowed image content types. SVG is intentionally excluded (script/XXE
+    # risk) and rejected at fetch time. This array REPLACES on override
+    # (deep_merge) — restate it in full to change the set.
+    allowed_content_types:
+      - image/x-icon
+      - image/vnd.microsoft.icon
+      - image/png
+
   # Data maintenance jobs
   # Scheduled jobs for Redis data consistency checks and repairs.
   # All jobs ship with auto_repair: false — enable only after

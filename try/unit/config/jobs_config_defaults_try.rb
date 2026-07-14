@@ -29,7 +29,7 @@ require_relative '../../support/test_helpers'
 # original values and restore them (via ensure, even if the load raises) —
 # otherwise this setup would mutate process-global ENV for every other tryout.
 @saved_jobs_env = ENV.select { |key, _| key.start_with?('JOBS_') }
-@defaults_path = File.expand_path(File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml'))
+@defaults_path  = File.expand_path(File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml'))
 begin
   @saved_jobs_env.each_key { |key| ENV.delete(key) }
   @jobs = Onetime::Config.load(@defaults_path)['jobs']
@@ -38,7 +38,6 @@ ensure
   # never ENV, so isolation is preserved.
   @saved_jobs_env.each { |key, value| ENV[key] = value }
 end
-
 
 ## Loads the jobs block from the defaults file
 @jobs.class
@@ -59,6 +58,10 @@ end
 ## expiration_warnings block matches inlined defaults
 @jobs['expiration_warnings']
 #=> {"enabled"=>false, "check_interval"=>"1h", "warning_hours"=>24, "min_ttl_hours"=>48, "batch_size"=>100}
+
+## favicon_fetch block matches inlined defaults
+@jobs['favicon_fetch']
+#=> {"enabled"=>false, "timeout"=>5, "max_response_bytes"=>102400, "max_redirects"=>3, "allowed_content_types"=>["image/x-icon", "image/vnd.microsoft.icon", "image/png"]}
 
 ## maintenance master toggle is off by default
 @jobs['maintenance']['enabled']
