@@ -24,7 +24,10 @@ public/branding/
 Only this README **and the `default/` pack** are tracked. Every other pack is
 **generator output and gitignored** — a deliberate rule that keeps the repo
 brand-neutral (see #3048/#3049). The company's own marks (`maruhi`,
-`onetimesecret`) are presets you regenerate on demand, never committed assets.
+`onetimesecret`) are presets you regenerate on demand, never committed assets —
+as are `vshare` ("VaultShare") and `linkdepot` ("LinkDepot"), two sample
+general-purpose brand identities (unrelated to Onetime Secret) that demonstrate
+the pack system with their own name, mark, and palette.
 
 **`default` IS the neutral pack** (v2, #3774). Brand-pack resolution ALWAYS lands
 on a pack: an unset `BRAND_PACK` resolves to `default`, which holds the neutral
@@ -68,6 +71,8 @@ Packs are produced by the branding presets under `scripts/branding/presets/*.mjs
 ```bash
 pnpm run gen:favicons             # regenerate the neutral default/ pack (tracked)
 pnpm run gen:favicons:maruhi      # example preset → public/branding/maruhi/
+pnpm run gen:favicons:vshare      # sample general-purpose preset → public/branding/vshare/
+pnpm run gen:favicons:linkdepot   # sample general-purpose preset → public/branding/linkdepot/
 ```
 
 A preset run also emits an active `brand.yaml` (colour + product name) into its

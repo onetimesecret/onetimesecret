@@ -24,10 +24,13 @@ For the runtime side (selecting/serving a pack, chokepoints, helpers) see
 
 A **preset** is a named data file at `presets/<name>.mjs` that default-exports a
 `{ MARK_*: value }` object — a set of overrides applied as env defaults, not a
-fork of the generator. One code path produces every pack. `maruhi` and `current`
-are example presets (each an operator's own branding); the OSS repo itself ships
-only the neutral default and treats these as sample overlays, not the product
-identity.
+fork of the generator. One code path produces every pack. `maruhi` and
+`onetimesecret` regenerate the company's own historical marks; `vshare`
+("VaultShare") and `linkdepot` ("LinkDepot") are sample **general-purpose**
+brand identities with no connection to Onetime Secret, showing that a pack can
+be a fully independent product name/mark/palette. The OSS repo itself ships
+only the neutral default and treats all of these as sample overlays, not the
+product identity.
 
 Each preset points its output at a **pack directory** under
 `public/branding/<name>/` via `MARK_OUT_PUBLIC_DIR`, plus a reviewable source-SVG
@@ -51,6 +54,8 @@ _code_, not committed assets. Regenerate them on demand rather than checking in.
 ```bash
 pnpm run gen:favicons             # neutral pack → public/branding/default/ (tracked)
 pnpm run gen:favicons:maruhi      # example preset → public/branding/maruhi/
+pnpm run gen:favicons:vshare      # sample general-purpose preset → public/branding/vshare/
+pnpm run gen:favicons:linkdepot   # sample general-purpose preset → public/branding/linkdepot/
 ```
 
 `gen:favicons:<preset>` runs `generate-favicons.mjs --preset <name>`. The
