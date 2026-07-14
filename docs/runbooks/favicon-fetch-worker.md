@@ -24,7 +24,7 @@ To exercise any path end-to-end against the real queue you need both
   (`lib/onetime/jobs/workers/favicon_fetch_worker.rb`)
 - Unit of work: `Onetime::Operations::FetchDomainFavicon`
   (`lib/onetime/operations/fetch_domain_favicon.rb`), fetching via
-  `Onetime::Net::SafeFetch`
+  `Onetime::Http::SafeFetch`
 - Enqueue chokepoint: `Onetime::Jobs::Publisher.enqueue_favicon_fetch(domain_id, force:)`
   (`lib/onetime/jobs/publisher.rb`)
 

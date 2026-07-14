@@ -21,10 +21,10 @@ I have everything I need. Gems confirmed present: `nokogiri 1.19.4`, `fastimage 
 
 | Path | Purpose |
 |---|---|
-| `lib/onetime/net/safe_fetch.rb` | `Onetime::Net::SafeFetch` — the SSRF-guarded HTTP fetcher (pre-resolve + validate, IP-pinned connect, per-hop re-validation, redirect cap, timeouts, streamed size cap, content-type + magic-byte checks, SVG rejection). Section 3. |
+| `lib/onetime/http/safe_fetch.rb` | `Onetime::Http::SafeFetch` — the SSRF-guarded HTTP fetcher (pre-resolve + validate, IP-pinned connect, per-hop re-validation, redirect cap, timeouts, streamed size cap, content-type + magic-byte checks, SVG rejection). Section 3. |
 | `lib/onetime/operations/fetch_domain_favicon.rb` | `Onetime::Operations::FetchDomainFavicon` — the unit of work shared by the worker AND the jobs-disabled inline fallback. Discovers (`/favicon.ico`, then Nokogiri `<link rel=icon>`), fetches via SafeFetch, normalizes, applies the overwrite guard, writes the `icon` hash + lifecycle/outcome fields. Mirrors `ValidateSenderDomain`'s role (Map 2 `enqueue_domain_validation` inline call). |
 | `lib/onetime/jobs/workers/favicon_fetch_worker.rb` | `Onetime::Jobs::Workers::FaviconFetchWorker` — thin Sneakers wrapper. Copy the **single-status** shape of `dns_record_check_worker.rb:73-121` (Map 1), not the dual-worker `DomainValidationWorker`. Delegates to the operation. |
-| `try/unit/net/safe_fetch_try.rb` | SSRF unit tryout (blocks 169.254.169.254 / 127.0.0.1 incl. via redirect; redirect cap; timeout; max-size; SVG reject; ICO accept). |
+| `try/unit/http/safe_fetch_try.rb` | SSRF unit tryout (blocks 169.254.169.254 / 127.0.0.1 incl. via redirect; redirect cap; timeout; max-size; SVG reject; ICO accept). |
 | `try/unit/operations/fetch_domain_favicon_try.rb` | Operation tryout: populates `icon`, overwrite guard, no-favicon = COMPLETED-false, error = FAILED. |
 | `spec/lib/onetime/jobs/workers/favicon_fetch_worker_spec.rb` | Worker RSpec: idempotency dup no-op, transient retry, hard-failure DLQ, ping.test, `--check` drift via `QueueDeclarator.validate_worker!`. |
 
@@ -50,7 +50,7 @@ No change needed to: `worker_command.rb` (auto-discovery via glob L361 + `Object
 
 **Wave 1 — four independent tracks (parallelize):**
 
-- **A. SSRF module** — `lib/onetime/net/safe_fetch.rb` + `try/unit/net/safe_fetch_try.rb`. Security-critical, pure Ruby, no other deps. **Agent: ruby-dev.** (Start first; longest pole.)
+- **A. SSRF module** — `lib/onetime/http/safe_fetch.rb` + `try/unit/http/safe_fetch_try.rb`. Security-critical, pure Ruby, no other deps. **Agent: ruby-dev.** (Start first; longest pole.)
 - **B. Queue topology + Publisher** — `queues/config.rb` (QUEUES + DEAD_LETTER_CONFIG) then `publisher.rb` enqueue methods. `sneakers_options_for` must resolve before the worker file loads (Map 1 gotcha #3), so config lands before Wave 2. **Agent: backend-dev.**
 - **C. Storage + serving** — `custom_domain.rb` fields; `update_domain_image.rb` `favicon_source` stamp + cache clear; `get_favicon.rb` ICO serve fix. **Agent: backend-dev.**
 - **D. Config surface** — `config.defaults.yaml` block + `jobs.ts` Zod + `jobs_config_defaults_try.rb`. The 4-place checklist (`config.rb:13-26`). **Agent: backend-dev.**
@@ -72,7 +72,7 @@ Critical path: **A → E → F/G → H.** B, C, D run fully in parallel with A.
 
 ---
 
-## 3. SSRF module design — `Onetime::Net::SafeFetch`
+## 3. SSRF module design — `Onetime::Http::SafeFetch`
 
 Building blocks: **`Resolv::DNS`** for A/AAAA resolution (Map 5 `base_strategy.rb:152-172` retry/cache pattern), **`IPAddr`** for CIDR membership (Map 5 `detect_host.rb:240-263` shape — but the range list is **replaced**, not reused), **`Net::HTTP`** with `#ipaddr=` for the IP-pinned connect (Map 5 `probe.rb:103-116` timeout/TLS skeleton), **`FastImage`** for magic-byte type sniffing (already a dep).
 
