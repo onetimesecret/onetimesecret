@@ -112,20 +112,22 @@ module Onetime
             scheduler_logger.error ex.backtrace.first(5).join("\n") if OT.debug?
           end
 
-          # Eligible = lacks an auto_fetch favicon AND under the attempt cap AND
-          # not a fresh in-flight processing AND its backoff window has elapsed.
+          # Eligible = has NO stored icon AND under the attempt cap AND not a
+          # fresh in-flight processing AND its backoff window has elapsed.
           def eligible?(d, now)
             return false if d.favicon_fetched == true # icon already stored
 
-            # Mirror FetchDomainFavicon's overwrite guard EXACTLY: a present icon
-            # that isn't auto_fetch (a user upload, or a legacy untagged upload
-            # with a filename but no favicon_source) is never clobbered by a fetch,
-            # so enqueuing it just makes the operation skip WITHOUT stamping backoff
-            # — a domain that would be re-enqueued every single night forever.
-            icon = d.icon
-            if !icon['filename'].to_s.empty? && (icon['favicon_source'].to_s != 'auto_fetch')
-              return false
-            end
+            # Any domain that already has a stored icon is ineligible. The nightly
+            # job enqueues a force:false fetch, and FetchDomainFavicon's
+            # overwrite_guard skips over ANY existing icon (user upload, legacy
+            # untagged, AND an existing auto_fetch icon) WITHOUT stamping backoff.
+            # Re-enqueuing such a domain therefore churns it every night forever.
+            # The subtle case this closes: a force refresh that finds nothing runs
+            # record_none_found, which sets favicon_fetched=false but leaves the
+            # stale auto_fetch icon in place — so favicon_fetched alone (line above)
+            # does NOT catch it; the filename check does. Only the force manual
+            # refresh path (which bypasses eligible?) may re-fetch over an icon.
+            return false unless d.icon['filename'].to_s.empty?
 
             return false if d.favicon_fetch_attempts.to_i >= max_attempts # permanent stop
 

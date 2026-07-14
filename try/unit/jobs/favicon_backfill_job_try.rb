@@ -66,6 +66,9 @@ end
   check_eligible(DomainStub.new(favicon_source: 'user_upload',
                                 favicon_filename: 'logo.png')),                 # user upload protected
   check_eligible(DomainStub.new(favicon_filename: 'old.ico')),                  # legacy untagged icon: no churn
+  check_eligible(DomainStub.new(favicon_filename: 'favicon.png',
+                                favicon_source: 'auto_fetch',
+                                favicon_fetch_next_at: NOW - 10)),              # stale auto_fetch icon (force none-found reset favicon_fetched): no churn
   check_eligible(DomainStub.new(favicon_fetch_attempts: 6)),                    # at attempt cap
   check_eligible(DomainStub.new(favicon_fetch_attempts: 5)),                    # under cap
   check_eligible(DomainStub.new(favicon_fetch_status: Lifecycle::PROCESSING,
@@ -76,7 +79,7 @@ end
   check_eligible(DomainStub.new(favicon_fetch_next_at: NOW + 10_000)),          # backoff pending
   check_eligible(DomainStub.new(favicon_fetch_next_at: NOW - 10)),              # backoff elapsed
 ]
-#=> [true, false, false, false, false, true, false, true, true, false, true]
+#=> [true, false, false, false, false, false, true, false, true, true, false, true]
 
 ## scheduling requires BOTH the backfill flag AND the worker flag
 [
