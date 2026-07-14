@@ -11,9 +11,9 @@
 //   pnpm run gen:favicons:linkdepot          # = --preset linkdepot
 //
 // Data-only bundle of MARK_* overrides for the shared generator — NOT a second
-// implementation. Writes to public/branding/linkdepot/ (gitignored runtime
-// pack) plus a reviewable source copy in src/assets/branding/linkdepot/, so it
-// never touches the neutral defaults in public/web (#3048/#3049).
+// implementation. Writes to public/branding/linkdepot/ (a tracked sample pack)
+// plus a reviewable source copy in src/assets/branding/linkdepot/, so it never
+// touches the neutral defaults in public/web (#3048/#3049).
 //
 // MARK_PATH is the "link-solid" glyph from Heroicons (MIT), unmodified (native
 // 24x24 viewBox).

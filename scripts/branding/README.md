@@ -34,20 +34,23 @@ product identity.
 
 Each preset points its output at a **pack directory** under
 `public/branding/<name>/` via `MARK_OUT_PUBLIC_DIR`, plus a reviewable source-SVG
-copy under `src/assets/branding/<name>/`. A preset run also emits an active
-`brand.yaml` (colour + product name) into its pack (#3774). It never writes to
-`public/branding/default/`, so the committed neutral pack (and its CI guard) is
-untouched.
+copy under `src/assets/branding/<name>/`. A preset run also writes a starter
+`brand.yaml` (colour + product name) into its pack the first time, and preserves
+an existing one on re-runs (#3774) so hand-added identity keys survive. It never
+writes to `public/branding/default/`, so the committed neutral pack (and its CI
+guard) is untouched.
 
 ## Packs live in `public/branding/<pack>/`
 
 The `default` pack IS tracked (#3774): it holds the neutral asset set + a
 value-free `brand.yaml` and is the pack every unset `BRAND_PACK` resolves to.
-Every OTHER pack's image files are **generator output and gitignored** (only
-`public/branding/README.md` and `public/branding/default/` are tracked) — a
-deliberate rule that keeps generated brand assets out of version control
-(#3048/#3049). The company packs (`maruhi`, `onetimesecret`) live here as preset
-_code_, not committed assets. Regenerate them on demand rather than checking in.
+The `vshare` and `linkdepot` **sample** packs are also tracked — their generated
+assets and hand-authored `brand.yaml` are committed as reference implementations
+of a fully re-skinned pack. Every other pack's image files are **generator
+output and gitignored** — a deliberate rule that keeps ad-hoc generated brand
+assets out of version control (#3048/#3049). The company packs (`maruhi`,
+`onetimesecret`) live here as preset _code_, not committed assets. Regenerate
+them on demand rather than checking in.
 
 ## Generating a pack
 

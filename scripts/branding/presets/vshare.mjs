@@ -11,7 +11,7 @@
 //   pnpm run gen:favicons:vshare          # = --preset vshare
 //
 // Data-only bundle of MARK_* overrides for the shared generator — NOT a second
-// implementation. Writes to public/branding/vshare/ (gitignored runtime pack)
+// implementation. Writes to public/branding/vshare/ (a tracked sample pack)
 // plus a reviewable source copy in src/assets/branding/vshare/, so it never
 // touches the neutral defaults in public/web (#3048/#3049).
 //
