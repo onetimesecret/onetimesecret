@@ -1,8 +1,8 @@
-# try/unit/net/safe_fetch_try.rb
+# try/unit/http/safe_fetch_try.rb
 #
 # frozen_string_literal: true
 
-# SSRF-guard unit coverage for Onetime::Net::SafeFetch (#3780).
+# SSRF-guard unit coverage for Onetime::Http::SafeFetch (#3780).
 #
 # Hermetic: DNS (Resolv) and transport (Net::HTTP) are stubbed via subclass
 # seams, so NO real network is touched and no OT.boot! / Redis / encryption is
@@ -19,9 +19,9 @@
 # (magic-byte type sniff from a StringIO).
 
 require_relative '../../support/test_helpers'
-require_relative '../../../lib/onetime/net/safe_fetch'
+require_relative '../../../lib/onetime/http/safe_fetch'
 
-SF = Onetime::Net::SafeFetch
+SF = Onetime::Http::SafeFetch
 
 # Sample payloads (verified magic-byte families: :png, :ico, :svg, :gif).
 PNG_BYTES = ("\x89PNG\r\n\x1a\n".b + "\x00\x00\x00\rIHDR".b +

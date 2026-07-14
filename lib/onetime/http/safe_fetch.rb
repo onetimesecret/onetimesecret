@@ -1,4 +1,4 @@
-# lib/onetime/net/safe_fetch.rb
+# lib/onetime/http/safe_fetch.rb
 #
 # frozen_string_literal: true
 
@@ -11,7 +11,7 @@ require 'stringio'
 require 'fastimage'
 
 module Onetime
-  module Net
+  module Http
     # SSRF-guarded HTTP fetcher for pulling third-party assets (e.g. a custom
     # domain's favicon, #3780) from arbitrary, attacker-influenced URLs.
     #
@@ -29,8 +29,10 @@ module Onetime
     #   6. validates the payload by magic bytes (FastImage), accepting only PNG
     #      and ICO and explicitly rejecting SVG/XML.
     #
-    # NOTE: nested inside Onetime::Net, so the stdlib is referenced as ::Net to
-    # avoid resolving to this module.
+    # NOTE: lives under Onetime::Http (NOT Onetime::Net) on purpose — a module
+    # named Net here would shadow the stdlib `Net` for every bare `Net::` under
+    # the Onetime namespace and break unrelated callers (e.g. Operations::
+    # Domains::Probe). The stdlib is still referenced as ::Net below for clarity.
     class SafeFetch
       Result = Struct.new(:body, :content_type, :final_url, keyword_init: true)
 
@@ -199,7 +201,9 @@ module Onetime
       def blocked_ip?(addr)
         ip = IPAddr.new(addr.to_s)
         ip = ip.native if ip.ipv6? && ip.ipv4_mapped? # unwrap ::ffff:a.b.c.d → v4
-        return true if ip.link_local? # belt-and-suspenders (169.254/16, fe80::/10)
+        # 169.254.0.0/16 and fe80::/10 are already in BLOCKED_V4/BLOCKED_V6; this
+        # is a redundant early-out on IPAddr's own predicate, not extra coverage.
+        return true if ip.link_local?
 
         (ip.ipv4? ? BLOCKED_V4 : BLOCKED_V6).any? { |net| net.include?(ip) }
       rescue IPAddr::InvalidAddressError
