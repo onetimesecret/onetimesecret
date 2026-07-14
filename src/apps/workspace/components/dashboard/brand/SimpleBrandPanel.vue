@@ -139,6 +139,7 @@
       <div class="mt-1.5 flex flex-col items-start gap-1.5">
         <button
           type="button"
+          data-testid="domain-favicon-refresh"
           :disabled="isUserUploadedFavicon"
           @click="onRefreshFavicon()"
           class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3
@@ -153,7 +154,9 @@
             aria-hidden="true" />
           {{ t('web.branding.refresh_favicon') }}
         </button>
-        <span class="text-[11px] text-gray-400">
+        <span
+          data-testid="domain-favicon-hint"
+          class="text-[11px] text-gray-400">
           {{
             isUserUploadedFavicon
               ? t('web.branding.refresh_favicon_user_upload_hint')
