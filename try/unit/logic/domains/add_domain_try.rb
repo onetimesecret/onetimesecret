@@ -316,6 +316,52 @@ rescue Onetime::Forbidden => e
 end
 #=> true
 
+# -----------------------------------------------------------------------------
+# Favicon auto-fetch on add (#3780 BE2): AddDomain#process enqueues a favicon
+# fetch when jobs.favicon_fetch.enabled is true, wrapped so a raising fetch
+# never breaks domain creation. Jobs are disabled in test mode, so the Publisher
+# runs FetchDomainFavicon inline — we stub it to raise FetchTimeout, the
+# transient error the inline branch would otherwise surface unrescued.
+# -----------------------------------------------------------------------------
+
+## Setup: stub the inline favicon fetch to record invocation and raise FetchTimeout
+require 'onetime/operations/fetch_domain_favicon'
+require 'onetime/net/safe_fetch'
+@favicon_fetch_calls = []
+favicon_calls = @favicon_fetch_calls
+Onetime::Operations::FetchDomainFavicon.define_singleton_method(:new) do |**_kwargs|
+  stub = Object.new
+  stub.define_singleton_method(:call) do
+    favicon_calls << :called
+    raise Onetime::Net::SafeFetch::FetchTimeout, "stubbed timeout"
+  end
+  stub
+end
+(OT.conf['jobs'] ||= {})['favicon_fetch'] ||= {}
+@favicon_fetch_calls.length
+#=> 0
+
+## Flag ON: a raising inline favicon fetch is rescued - domain is still created
+OT.conf['jobs']['favicon_fetch']['enabled'] = true
+@fav_domain = "favicon-#{@timestamp}.example.com"
+@logic_fav = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, { 'domain' => @fav_domain })
+@logic_fav.raise_concerns
+@fav_result = @logic_fav.process
+# process returned success_data (a Hash) instead of propagating FetchTimeout,
+# the domain persisted, and the inline fetch was invoked exactly once.
+[@fav_result.is_a?(Hash), @logic_fav.custom_domain.display_domain, @logic_fav.custom_domain.exists?, @favicon_fetch_calls.length]
+#=> [true, @fav_domain, true, 1]
+
+## Flag OFF: favicon fetch is never attempted (gate short-circuits before the Publisher)
+@favicon_fetch_calls.clear
+OT.conf['jobs']['favicon_fetch']['enabled'] = false
+@fav_domain_off = "favicon-off-#{@timestamp}.example.com"
+@logic_fav_off = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, { 'domain' => @fav_domain_off })
+@logic_fav_off.raise_concerns
+@fav_result_off = @logic_fav_off.process
+[@fav_result_off.is_a?(Hash), @logic_fav_off.custom_domain.exists?, @favicon_fetch_calls.length]
+#=> [true, true, 0]
+
 ## Role-gate cleanup
 @logic_admin.custom_domain.destroy! if @logic_admin&.custom_domain&.exists?
 @member_membership.destroy! if @member_membership&.exists?
@@ -329,6 +375,8 @@ end
 @org3.destroy! if @org3&.exists?
 
 # Teardown
+@logic_fav.custom_domain.destroy! if @logic_fav&.custom_domain&.exists?
+@logic_fav_off.custom_domain.destroy! if @logic_fav_off&.custom_domain&.exists?
 @logic4.custom_domain.destroy! if @logic4&.custom_domain&.exists?
 @logic1.custom_domain.destroy! if @logic1&.custom_domain&.exists?
 @org2.destroy! if @org2&.exists?
