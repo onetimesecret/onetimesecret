@@ -41,8 +41,12 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to have_key('migration.customer.batch')
     end
 
-    it 'has 9 queues total' do
-      expect(queues.size).to eq(9)
+    it 'defines domain.favicon.fetch queue' do
+      expect(queues).to have_key('domain.favicon.fetch')
+    end
+
+    it 'has 10 queues total' do
+      expect(queues.size).to eq(10)
     end
   end
 
@@ -173,13 +177,18 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(dead_letter_config).to be_frozen
     end
 
-    it 'has 6 entries' do
-      expect(dead_letter_config.size).to eq(6)
+    it 'has 7 entries' do
+      expect(dead_letter_config.size).to eq(7)
     end
 
     it "contains 'dlx.email.message' with queue 'dlq.email.message'" do
       expect(dead_letter_config).to have_key('dlx.email.message')
       expect(dead_letter_config['dlx.email.message'][:queue]).to eq('dlq.email.message')
+    end
+
+    it "contains 'dlx.domain.favicon' with queue 'dlq.domain.favicon'" do
+      expect(dead_letter_config).to have_key('dlx.domain.favicon')
+      expect(dead_letter_config['dlx.domain.favicon'][:queue]).to eq('dlq.domain.favicon')
     end
 
     it "contains 'dlx.notifications.alert' with queue 'dlq.notifications.alert'" do

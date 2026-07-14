@@ -22,7 +22,7 @@ require_relative '../../support/test_helpers'
 require_relative '../../../lib/onetime/operations/fetch_domain_favicon'
 
 FDF = Onetime::Operations::FetchDomainFavicon
-SF  = Onetime::Net::SafeFetch
+SF  = Onetime::Http::SafeFetch
 
 # The terminal recorders now dig jobs.favicon_backfill for the backoff curve
 # (#3780 Phase 3). These tryouts don't boot, so OT.conf is nil — stub the subtree
@@ -73,7 +73,7 @@ end
 # assert whether (and which) status fields were persisted.
 class FakeDomain
   attr_accessor :favicon_fetch_status, :favicon_fetched, :favicon_fetch_error, :favicon_fetch_completed_at,
-                :favicon_fetch_attempts, :favicon_fetch_next_at
+                :favicon_fetch_started_at, :favicon_fetch_attempts, :favicon_fetch_next_at
   attr_reader :icon, :display_domain, :saved_fields
 
   def initialize(display_domain:, icon: {}, favicon_fetched: nil)

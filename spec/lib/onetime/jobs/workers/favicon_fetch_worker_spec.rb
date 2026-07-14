@@ -178,6 +178,19 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
           .to have_received(:new).with(domain_id: domain_id, force: true)
         expect(worker.acked?).to be true
       end
+
+      it 'coerces a non-boolean force to false (strict boolean, not truthiness)' do
+        # A malformed payload carrying the string "false" (or any truthy
+        # non-boolean) must NOT be treated as a force that clobbers the
+        # skip-existing-icon guard — only an explicit JSON true forces.
+        malformed = JSON.generate(domain_id: domain_id, force: 'false')
+
+        worker.work_with_params(malformed, delivery_info, metadata)
+
+        expect(Onetime::Operations::FetchDomainFavicon)
+          .to have_received(:new).with(domain_id: domain_id, force: false)
+        expect(worker.acked?).to be true
+      end
     end
 
     context 'ping test' do
@@ -228,7 +241,7 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
         calls = 0
         allow(operation).to receive(:call) do
           calls += 1
-          raise Onetime::Net::SafeFetch::FetchTimeout, 'slow endpoint' if calls < 3
+          raise Onetime::Http::SafeFetch::FetchTimeout, 'slow endpoint' if calls < 3
 
           success_result
         end
@@ -244,7 +257,7 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
         calls = 0
         allow(operation).to receive(:call) do
           calls += 1
-          raise Onetime::Net::SafeFetch::FetchTimeout, 'always slow'
+          raise Onetime::Http::SafeFetch::FetchTimeout, 'always slow'
         end
 
         worker.work_with_params(message, delivery_info, metadata)

@@ -8,7 +8,7 @@ require 'uri'
 require 'nokogiri'
 require 'fastimage'
 
-require_relative '../net/safe_fetch'
+require_relative '../http/safe_fetch'
 require_relative '../jobs/workers/job_lifecycle'
 
 module Onetime
@@ -102,7 +102,7 @@ module Onetime
 
       # @param domain_id [String] CustomDomain identifier (objid == domainid)
       # @param force [Boolean] re-fetch even when an auto_fetch icon already exists
-      # @param fetcher [Onetime::Net::SafeFetch, nil] injectable override (tests)
+      # @param fetcher [Onetime::Http::SafeFetch, nil] injectable override (tests)
       # @param custom_domain [Onetime::CustomDomain, nil] injectable override (tests)
       def initialize(domain_id:, force: false, fetcher: nil, custom_domain: nil)
         @domain_id     = domain_id
@@ -114,7 +114,7 @@ module Onetime
       # Executes the fetch. See the class comment for the raise-vs-return contract.
       #
       # @return [Result]
-      # @raise [Onetime::Net::SafeFetch::FetchTimeout] transient — worker requeues
+      # @raise [Onetime::Http::SafeFetch::FetchTimeout] transient — worker requeues
       # @raise [StandardError] unexpected — worker rejects to DLQ (status=FAILED)
       def call
         custom_domain = resolve_domain
@@ -146,7 +146,7 @@ module Onetime
           logger.info 'Favicon fetch found no usable icon', domain_id: @domain_id
           none_found_result
         end
-      rescue Onetime::Net::SafeFetch::FetchTimeout => ex
+      rescue Onetime::Http::SafeFetch::FetchTimeout => ex
         # Transient — leave the lifecycle at PROCESSING and re-raise so the worker
         # requeues for a RabbitMQ retry (do NOT stamp a terminal status).
         logger.warn 'Favicon fetch timed out (retriable)',
@@ -217,9 +217,9 @@ module Onetime
       # "no icon here" and return nil; FetchTimeout is re-raised as retriable.
       def try_fetch(url)
         fetcher.get_image(url)
-      rescue Onetime::Net::SafeFetch::FetchTimeout
+      rescue Onetime::Http::SafeFetch::FetchTimeout
         raise
-      rescue Onetime::Net::SafeFetch::Error => ex
+      rescue Onetime::Http::SafeFetch::Error => ex
         logger.debug 'Favicon candidate not usable',
           domain_id: @domain_id,
           url: url,
@@ -235,9 +235,9 @@ module Onetime
         base = "https://#{display_domain}/"
         html = fetcher.get_html(base)
         parse_icon_links(html, base).take(MAX_CANDIDATES)
-      rescue Onetime::Net::SafeFetch::FetchTimeout
+      rescue Onetime::Http::SafeFetch::FetchTimeout
         raise
-      rescue Onetime::Net::SafeFetch::Error => ex
+      rescue Onetime::Http::SafeFetch::Error => ex
         logger.debug 'Favicon HTML discovery failed',
           domain_id: @domain_id,
           domain: display_domain,
@@ -309,8 +309,14 @@ module Onetime
       end
 
       def mark_processing(custom_domain)
-        custom_domain.favicon_fetch_status = JobLifecycle::PROCESSING
-        custom_domain.save_fields(:favicon_fetch_status)
+        # Stamp a start time so the nightly backfill can tell a genuinely
+        # in-flight run (fresh) from an abandoned one (a DLQ'd FetchTimeout leaves
+        # status=PROCESSING with no terminal stamp). Without this the freshness
+        # window has nothing to measure against and every PROCESSING domain looks
+        # stale, so in-flight jobs get re-enqueued as duplicates (#3780).
+        custom_domain.favicon_fetch_status     = JobLifecycle::PROCESSING
+        custom_domain.favicon_fetch_started_at = Familia.now.to_i
+        custom_domain.save_fields(:favicon_fetch_status, :favicon_fetch_started_at)
       end
 
       def record_success(custom_domain)
@@ -396,7 +402,7 @@ module Onetime
       end
 
       def fetcher
-        @fetcher ||= Onetime::Net::SafeFetch.new(
+        @fetcher ||= Onetime::Http::SafeFetch.new(
           timeout: OT.conf.dig('jobs', 'favicon_fetch', 'timeout') || DEFAULT_TIMEOUT,
           max_bytes: OT.conf.dig('jobs', 'favicon_fetch', 'max_response_bytes') || DEFAULT_MAX_BYTES,
           max_redirects: OT.conf.dig('jobs', 'favicon_fetch', 'max_redirects') || DEFAULT_MAX_REDIRECTS,
@@ -433,10 +439,13 @@ module Onetime
       end
 
       # Guard skip: no write, no persisted status change; outcome unchanged.
+      # Report the ACTUAL persisted status (whatever a prior run left, or nil for
+      # an untouched domain) rather than a fabricated COMPLETED — the guard wrote
+      # nothing, so claiming COMPLETED would mislead the worker log and metrics.
       def skipped_result(custom_domain)
         Result.new(
           domain_id: @domain_id,
-          status: JobLifecycle::COMPLETED,
+          status: custom_domain.favicon_fetch_status,
           favicon_fetched: custom_domain.favicon_fetched,
           favicon_source: custom_domain.icon['favicon_source'],
           content_type: nil,

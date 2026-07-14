@@ -102,6 +102,7 @@ module Onetime
     field :favicon_fetch_status # JobLifecycle string (PENDING/PROCESSING/COMPLETED/FAILED)
     field :favicon_fetched # outcome bool: true once an icon was actually stored
     field :favicon_fetch_error # last failure message
+    field :favicon_fetch_started_at # epoch seconds a PROCESSING run began (stale-in-flight window)
     field :favicon_fetch_completed_at # epoch seconds of the last terminal outcome
     field :favicon_fetch_attempts # count of terminal non-success attempts (backoff #3780)
     field :favicon_fetch_next_at # epoch seconds; earliest eligible re-fetch time (backoff #3780)

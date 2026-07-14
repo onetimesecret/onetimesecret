@@ -5,7 +5,7 @@
 require_relative 'base_worker'
 require_relative '../queues/config'
 require_relative '../queues/declarator'
-require_relative '../../net/safe_fetch'
+require_relative '../../http/safe_fetch'
 require_relative '../../operations/fetch_domain_favicon'
 
 #
@@ -36,7 +36,7 @@ require_relative '../../operations/fetch_domain_favicon'
 # The operation RETURNS a Result for every outcome the worker should ack, and
 # RAISES only for the two cases the worker must escalate:
 #
-#   1. Transient (Onetime::Net::SafeFetch::FetchTimeout) — the operation leaves
+#   1. Transient (Onetime::Http::SafeFetch::FetchTimeout) — the operation leaves
 #      the lifecycle at PROCESSING (no terminal stamp) and re-raises. We retry
 #      in-process a couple of times, then requeue! for RabbitMQ-level retry.
 #   2. Unexpected (any other StandardError) — the operation stamps status=FAILED
@@ -103,7 +103,10 @@ module Onetime
             end
 
             domain_id = data[:domain_id]
-            force     = data[:force] || false # Phase 2 manual refresh sets this
+            # Strict boolean: only an explicit JSON `true` forces. `data[:force] ||
+            # false` would treat any truthy payload (e.g. the string "false") as a
+            # force, letting a malformed message clobber the skip-existing guard.
+            force     = data[:force] == true # Phase 2 manual refresh sets this
             log_debug "Fetching favicon: #{domain_id} (force: #{force}, metadata: #{message_metadata})"
 
             # Delegate to the operation. Retry transient timeouts in-process; the
@@ -114,7 +117,7 @@ module Onetime
             with_retry(
               max_retries: 2,
               base_delay: 2.0,
-              retriable: ->(ex) { ex.is_a?(Onetime::Net::SafeFetch::FetchTimeout) },
+              retriable: ->(ex) { ex.is_a?(Onetime::Http::SafeFetch::FetchTimeout) },
             ) do
               result = Onetime::Operations::FetchDomainFavicon.new(
                 domain_id: domain_id,
@@ -136,7 +139,7 @@ module Onetime
 
             ack!
           end
-        rescue Onetime::Net::SafeFetch::FetchTimeout => ex
+        rescue Onetime::Http::SafeFetch::FetchTimeout => ex
           # Transient — in-process retries exhausted. The operation left the
           # lifecycle at PROCESSING (no terminal stamp), so requeue for a
           # broker-level retry rather than DLQ'ing.

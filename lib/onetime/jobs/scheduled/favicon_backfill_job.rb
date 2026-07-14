@@ -117,17 +117,27 @@ module Onetime
           def eligible?(d, now)
             return false if d.favicon_fetched == true # icon already stored
 
-            src = d.icon['favicon_source'].to_s
-            return false if !src.empty? && src != 'auto_fetch' # user_upload/legacy — guard would skip anyway
+            # Mirror FetchDomainFavicon's overwrite guard EXACTLY: a present icon
+            # that isn't auto_fetch (a user upload, or a legacy untagged upload
+            # with a filename but no favicon_source) is never clobbered by a fetch,
+            # so enqueuing it just makes the operation skip WITHOUT stamping backoff
+            # — a domain that would be re-enqueued every single night forever.
+            icon = d.icon
+            if !icon['filename'].to_s.empty? && (icon['favicon_source'].to_s != 'auto_fetch')
+              return false
+            end
+
             return false if d.favicon_fetch_attempts.to_i >= max_attempts # permanent stop
 
-            # PROCESSING counts as in-flight ONLY while fresh. A DLQ'd FetchTimeout
-            # leaves status='processing' with no completed_at (to_i => 0), so
-            # now - 0 exceeds the threshold and the abandoned job is re-enqueued.
-            # The rare cost is a duplicate enqueue for a domain actively fetching
-            # at scan time; the operation's overwrite guard makes that a no-op.
+            # PROCESSING counts as in-flight ONLY while fresh, measured from the
+            # start stamp set in mark_processing. A DLQ'd FetchTimeout leaves
+            # status='processing' with no *terminal* stamp, but started_at is set,
+            # so once it ages past STUCK_PROCESSING_S the abandoned run becomes
+            # eligible again while a genuinely in-flight run stays protected.
+            # started_at.to_i => 0 for a pre-field domain also reads as stale.
             if d.favicon_fetch_status == JobLifecycle::PROCESSING
-              fresh = (now - d.favicon_fetch_completed_at.to_i) < STUCK_PROCESSING_S
+              started = d.favicon_fetch_started_at.to_i
+              fresh   = started.positive? && (now - started) < STUCK_PROCESSING_S
               return false if fresh
             end
 

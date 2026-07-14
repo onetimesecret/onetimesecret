@@ -104,14 +104,14 @@ OT.conf['jobs']['favicon_fetch']['enabled'] = true
 [@result_ok[:record], @result_ok[:details][:msg]]
 #=> [nil, "Favicon refresh queued for #{@domain.display_domain}"]
 
-## Case 2: feature flag OFF -> no fetch, but still returns success_data
+## Case 2: feature flag OFF -> no fetch; success_data reports "unavailable"
 OT.conf['jobs']['favicon_fetch']['enabled'] = false
 @count_before = @fdf_calls.size
 @logic_off = build_refresh(@extid, @strategy_result)
 @logic_off.raise_concerns
 @off_result = @logic_off.process
 [@fdf_calls.size - @count_before, @off_result[:details][:msg]]
-#=> [0, "Favicon refresh queued for #{@domain.display_domain}"]
+#=> [0, 'Favicon refresh is unavailable right now']
 
 # Re-enable the flag for the remaining cases (they raise before process anyway).
 OT.conf['jobs']['favicon_fetch']['enabled'] = true
@@ -207,6 +207,22 @@ end
 @pub2.enqueue_favicon_fetch('domdefault')
 @msg2[:payload][:force]
 #=> false
+
+## Case 10: an inline enqueue failure must NOT escape process as a 500 (#3782
+## review). Swap the stub to raise; RefreshDomainFavicon#process rescues it and
+## returns success_data reporting "unavailable" rather than propagating the error.
+# (flag is still ON from Case 2's re-enable; run last so the raising stub can't
+# leak into the force-threading cases above.)
+@fdf.define_singleton_method(:new) do |**_kwargs|
+  probe = Object.new
+  probe.define_singleton_method(:call) { raise Onetime::Http::SafeFetch::FetchTimeout, 'inline timeout' }
+  probe
+end
+@logic_raise  = build_refresh(@extid, @strategy_result)
+@logic_raise.raise_concerns
+@raise_result = @logic_raise.process
+[@raise_result[:record], @raise_result[:details][:msg]]
+#=> [nil, 'Favicon refresh is unavailable right now']
 
 # --- Cleanup ---
 @fdf.singleton_class.send(:remove_method, :new) # restore inherited Class#new

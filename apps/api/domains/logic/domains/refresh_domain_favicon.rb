@@ -45,24 +45,42 @@ module DomainsAPI::Logic
       end
 
       def process
+        @queued = false
+
         # Flag-gate on jobs.favicon_fetch.enabled, mirroring verify_domain.rb.
         # When jobs are disabled the Publisher runs an inline synchronous
         # DNS+HTTPS fetch on the request thread; the gate keeps the manual
         # button consistent with the auto path (dead when the worker is off).
         if OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
-          Onetime::Jobs::Publisher.enqueue_favicon_fetch(@custom_domain.identifier, force: true)
+          begin
+            Onetime::Jobs::Publisher.enqueue_favicon_fetch(@custom_domain.identifier, force: true)
+            @queued = true
+          rescue StandardError => ex
+            # The Publisher's jobs-disabled branch runs FetchDomainFavicon inline
+            # and can raise FetchTimeout/StandardError; a broker outage can raise
+            # on the publish path too. add_domain/verify_domain isolate the same
+            # enqueue — do the same here so clicking "Refresh favicon" degrades to
+            # a not-queued response instead of a 500.
+            OT.le "[#{self.class}] Favicon enqueue failed for #{@custom_domain.display_domain}: #{ex.class} #{ex.message}"
+          end
         end
 
         success_data
       end
 
       def success_data
-        OT.ld "[#{self.class}] Favicon refresh queued for #{@custom_domain.display_domain}"
+        if @queued
+          OT.ld "[#{self.class}] Favicon refresh queued for #{@custom_domain.display_domain}"
+          msg = "Favicon refresh queued for #{@custom_domain.display_domain}"
+        else
+          # Feature flag off, or the enqueue failed: don't claim it was queued.
+          OT.ld "[#{self.class}] Favicon refresh unavailable for #{@custom_domain.display_domain}"
+          msg = 'Favicon refresh is unavailable right now'
+        end
+
         {
           record: nil,
-          details: {
-            msg: "Favicon refresh queued for #{@custom_domain.display_domain}",
-          },
+          details: { msg: msg },
         }
       end
 

@@ -22,7 +22,7 @@ require_relative '../../support/test_helpers'
 require_relative '../../../lib/onetime/operations/fetch_domain_favicon'
 
 FetchOp = Onetime::Operations::FetchDomainFavicon
-Safe    = Onetime::Net::SafeFetch
+Safe    = Onetime::Http::SafeFetch
 DAY_S   = 86_400
 
 # Stub OT.conf (attr_reader :conf) with only the subtree the backoff helpers dig.
@@ -62,7 +62,8 @@ end
 # save_fields lists so tests can assert which fields were persisted.
 class BackoffDomain
   attr_accessor :favicon_fetch_status, :favicon_fetched, :favicon_fetch_error,
-                :favicon_fetch_completed_at, :favicon_fetch_attempts, :favicon_fetch_next_at
+                :favicon_fetch_completed_at, :favicon_fetch_started_at,
+                :favicon_fetch_attempts, :favicon_fetch_next_at
   attr_reader :icon, :display_domain, :saved_fields
 
   def initialize(display_domain: 'a.test', icon: {})

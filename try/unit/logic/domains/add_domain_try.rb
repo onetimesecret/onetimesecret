@@ -326,14 +326,14 @@ end
 
 ## Setup: stub the inline favicon fetch to record invocation and raise FetchTimeout
 require 'onetime/operations/fetch_domain_favicon'
-require 'onetime/net/safe_fetch'
+require 'onetime/http/safe_fetch'
 @favicon_fetch_calls = []
 favicon_calls = @favicon_fetch_calls
 Onetime::Operations::FetchDomainFavicon.define_singleton_method(:new) do |**_kwargs|
   stub = Object.new
   stub.define_singleton_method(:call) do
     favicon_calls << :called
-    raise Onetime::Net::SafeFetch::FetchTimeout, "stubbed timeout"
+    raise Onetime::Http::SafeFetch::FetchTimeout, "stubbed timeout"
   end
   stub
 end
