@@ -24,6 +24,16 @@ require_relative '../../../lib/onetime/operations/fetch_domain_favicon'
 FDF = Onetime::Operations::FetchDomainFavicon
 SF  = Onetime::Net::SafeFetch
 
+# The terminal recorders now dig jobs.favicon_backfill for the backoff curve
+# (#3780 Phase 3). These tryouts don't boot, so OT.conf is nil — stub the subtree
+# the recorders read and restore it at the end so sibling tryouts are unaffected.
+@orig_conf = OT.instance_variable_get(:@conf)
+OT.instance_variable_set(:@conf, {
+  'jobs' => {
+    'favicon_backfill' => { 'base_days' => 1, 'cap_days' => 30, 'max_attempts' => 6 },
+  },
+})
+
 # Valid 16x16 PNG header (FastImage sniffs :png, size [16, 16]) and a 16x16 ICO.
 PNG_BYTES = ("\x89PNG\r\n\x1a\n".b + "\x00\x00\x00\rIHDR".b +
              "\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\x00\x00\x00".b + "\x1f\xf3\xffa".b).freeze
@@ -62,7 +72,8 @@ end
 # In-memory stand-in for CustomDomain. Records save_fields calls so tests can
 # assert whether (and which) status fields were persisted.
 class FakeDomain
-  attr_accessor :favicon_fetch_status, :favicon_fetched, :favicon_fetch_error, :favicon_fetch_completed_at
+  attr_accessor :favicon_fetch_status, :favicon_fetched, :favicon_fetch_error, :favicon_fetch_completed_at,
+                :favicon_fetch_attempts, :favicon_fetch_next_at
   attr_reader :icon, :display_domain, :saved_fields
 
   def initialize(display_domain:, icon: {}, favicon_fetched: nil)
@@ -268,3 +279,8 @@ end
 @missing_res = FDF.new(domain_id: 'nonexistent-id').call
 [@missing_res.not_found, @missing_res.success?, @missing_res.status, @missing_res.favicon_fetched]
 #=> [true, true, nil, nil]
+
+## Restore the process-global OT.conf for sibling tryouts
+OT.instance_variable_set(:@conf, @orig_conf)
+OT.instance_variable_get(:@conf).equal?(@orig_conf)
+#=> true

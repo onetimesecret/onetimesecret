@@ -63,6 +63,10 @@ end
 @jobs['favicon_fetch']
 #=> {"enabled"=>false, "timeout"=>5, "max_response_bytes"=>102400, "max_redirects"=>3, "allowed_content_types"=>["image/x-icon", "image/vnd.microsoft.icon", "image/png"]}
 
+## favicon_backfill block matches inlined defaults (#3780 nightly scan)
+@jobs['favicon_backfill']
+#=> {"enabled"=>false, "cron"=>"0 3 * * *", "batch_size"=>500, "max_attempts"=>6, "base_days"=>1, "cap_days"=>30}
+
 ## maintenance master toggle is off by default
 @jobs['maintenance']['enabled']
 #=> false

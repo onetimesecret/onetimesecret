@@ -314,37 +314,85 @@ module Onetime
       end
 
       def record_success(custom_domain)
+        # Success clears the backoff so a later re-probe (e.g. force) starts fresh.
         custom_domain.favicon_fetch_status       = JobLifecycle::COMPLETED
         custom_domain.favicon_fetched            = true
         custom_domain.favicon_fetch_error        = nil
         custom_domain.favicon_fetch_completed_at = Familia.now.to_i
+        custom_domain.favicon_fetch_attempts     = 0
+        custom_domain.favicon_fetch_next_at      = nil
         custom_domain.save_fields(
-          :favicon_fetch_status, :favicon_fetched, :favicon_fetch_error, :favicon_fetch_completed_at
+          :favicon_fetch_status,
+          :favicon_fetched,
+          :favicon_fetch_error,
+          :favicon_fetch_completed_at,
+          :favicon_fetch_attempts,
+          :favicon_fetch_next_at,
         )
       end
 
       def record_none_found(custom_domain)
+        # None-found is a terminal non-success: advance the backoff so the nightly
+        # scan re-probes later (a site may add a favicon), stopping at the cap.
+        attempts                                 = custom_domain.favicon_fetch_attempts.to_i + 1
         custom_domain.favicon_fetch_status       = JobLifecycle::COMPLETED
         custom_domain.favicon_fetched            = false
         custom_domain.favicon_fetch_error        = nil
         custom_domain.favicon_fetch_completed_at = Familia.now.to_i
+        custom_domain.favicon_fetch_attempts     = attempts
+        schedule_next_favicon_fetch(custom_domain, attempts)
         custom_domain.save_fields(
-          :favicon_fetch_status, :favicon_fetched, :favicon_fetch_error, :favicon_fetch_completed_at
+          :favicon_fetch_status,
+          :favicon_fetched,
+          :favicon_fetch_error,
+          :favicon_fetch_completed_at,
+          :favicon_fetch_attempts,
+          :favicon_fetch_next_at,
         )
       end
 
       def record_failure(custom_domain, ex)
+        attempts                                 = custom_domain.favicon_fetch_attempts.to_i + 1
         custom_domain.favicon_fetch_status       = JobLifecycle::FAILED
         custom_domain.favicon_fetch_error        = ex.message
         custom_domain.favicon_fetch_completed_at = Familia.now.to_i
+        custom_domain.favicon_fetch_attempts     = attempts
+        schedule_next_favicon_fetch(custom_domain, attempts)
         custom_domain.save_fields(
-          :favicon_fetch_status, :favicon_fetch_error, :favicon_fetch_completed_at
+          :favicon_fetch_status,
+          :favicon_fetch_error,
+          :favicon_fetch_completed_at,
+          :favicon_fetch_attempts,
+          :favicon_fetch_next_at,
         )
       rescue StandardError => ex
         # Never let a status-write failure mask the original error.
         logger.error 'Failed to persist favicon FAILED status',
           domain_id: @domain_id,
           error: ex.message
+      end
+
+      # Set favicon_fetch_next_at to the backoff time for this attempt, UNLESS the
+      # attempt cap is reached — at the cap we leave next_at untouched (permanent
+      # stop; the nightly scan gates on attempts, so the stale value is inert and
+      # only a manual force re-probes past here).
+      def schedule_next_favicon_fetch(custom_domain, attempts)
+        return if attempts >= favicon_backfill_max_attempts
+
+        custom_domain.favicon_fetch_next_at = compute_next_favicon_fetch_at(attempts)
+      end
+
+      # Backoff curve (#3780): base_days doubled per attempt, capped at cap_days,
+      # measured forward from now. Config lives in jobs.favicon_backfill, which is
+      # absent from the in-code DEFAULTS hash, so every read digs with a fallback.
+      def compute_next_favicon_fetch_at(attempts)
+        base_days = OT.conf.dig('jobs', 'favicon_backfill', 'base_days') || 1
+        cap_days  = OT.conf.dig('jobs', 'favicon_backfill', 'cap_days') || 30
+        Familia.now.to_i + ([base_days * (2**(attempts - 1)), cap_days].min * 86_400)
+      end
+
+      def favicon_backfill_max_attempts
+        OT.conf.dig('jobs', 'favicon_backfill', 'max_attempts') || 6
       end
 
       def fetcher

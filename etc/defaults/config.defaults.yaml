@@ -958,6 +958,24 @@ jobs:
       - image/vnd.microsoft.icon
       - image/png
 
+  # Nightly favicon backfill scan (#3780)
+  # Paginates the full custom-domain set and enqueues a favicon fetch for each
+  # domain still missing an auto-fetched icon whose backoff window has elapsed.
+  # Requires BOTH this flag AND favicon_fetch.enabled (the worker must consume).
+  favicon_backfill:
+    # Feature flag — default OFF
+    enabled: false
+    # Scan schedule (cron); nightly at 03:00 by default
+    cron: '0 3 * * *'
+    # Domains loaded+scanned per page while paginating the full set
+    batch_size: 500
+    # Stop retrying a domain after this many terminal non-success attempts
+    max_attempts: 6
+    # Backoff base in days (doubles each attempt: 1, 2, 4, 8, ...)
+    base_days: 1
+    # Backoff ceiling in days (the doubling never schedules further out than this)
+    cap_days: 30
+
   # Data maintenance jobs
   # Scheduled jobs for Redis data consistency checks and repairs.
   # All jobs ship with auto_repair: false — enable only after

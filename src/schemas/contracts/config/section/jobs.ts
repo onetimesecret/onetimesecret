@@ -51,6 +51,15 @@ const jobsFaviconFetchSchema = z.object({
   allowed_content_types: z.array(z.string()).optional(),
 });
 
+const jobsFaviconBackfillSchema = z.object({
+  enabled: z.boolean().optional(),
+  cron: z.string().optional(),
+  batch_size: z.number().optional(),
+  max_attempts: z.number().optional(),
+  base_days: z.number().optional(),
+  cap_days: z.number().optional(),
+});
+
 const jobsPhantomCleanupSchema = z.object({
   enabled: z.boolean().optional(),
   interval: z.string().optional(),
@@ -111,6 +120,7 @@ const jobsSchema = z.object({
   domain_refresh: jobsDomainRefreshSchema.optional(),
   expiration_warnings: jobsExpirationWarningsSchema.optional(),
   favicon_fetch: jobsFaviconFetchSchema.optional(),
+  favicon_backfill: jobsFaviconBackfillSchema.optional(),
   maintenance: jobsMaintenanceSchema.optional(),
 });
 
@@ -121,6 +131,7 @@ export {
   jobsDomainRefreshSchema,
   jobsExpirationWarningsSchema,
   jobsFaviconFetchSchema,
+  jobsFaviconBackfillSchema,
   jobsMaintenanceSchema,
   workerConfigSchema,
 };
