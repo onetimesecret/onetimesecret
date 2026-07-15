@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Η συνεδρία σας έχει λήξει. Παρακαλώ ανανεώστε τη σελίδα και δοκιμάστε ξανά.",
-    "source_hash": "a7c3e901"
+    "text": "Η συνεδρία σας έληξε. Παρακαλούμε ανανεώστε τη σελίδα και δοκιμάστε ξανά.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Η σύνδεση απέτυχε. Παρακαλώ προσπαθήστε ξανά.",
@@ -723,9 +723,6 @@
     "text": "Παραμείνετε συνδεδεμένοι",
     "source_hash": "b0a1ca80"
   },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
   "web.auth.sessions.session_singular": {
     "text": "συνεδρία",
     "source_hash": "3f3af1ec"
@@ -733,8 +730,5 @@
   "web.auth.sessions.session_plural": {
     "text": "συνεδρίες",
     "source_hash": "1225ae6c"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "User's logged-in devices/browsers management page"
   }
 }

@@ -4,8 +4,9 @@
 # Full production deployment: Caddy TLS proxy, App, Valkey, RabbitMQ,
 # background workers, and scheduler.
 #
-# App uses pre-built images from Docker Hub. To pin a version:
-#   OTS_IMAGE_TAG=v0.24.6 docker compose up
+# App uses pre-built images from Docker Hub, pinned by default to the same
+# release the root README documents. Override with:
+#   OTS_IMAGE_TAG=latest docker compose up
 #
 # Caddy proxy requires building (plugins: ratelimit, security, transform-encoder):
 #   docker compose build proxy
@@ -26,7 +27,7 @@ services:
     container_name: onetime-proxy
     depends_on:
       app:
-        condition: service_started
+        condition: service_healthy
     environment:
       - DOMAIN=${DOMAIN:-localhost}
       - CERTIFICATE_EMAIL=${CERTIFICATE_EMAIL:-admin@example.com}
@@ -51,7 +52,9 @@ services:
       - caddy-config:/config
 
   app:
-    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
+    # Default tag is kept in lockstep with the README quick-start pin.
+    # Bump both together at release time (see docker/README.md).
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.25.11}
     container_name: onetime-app
     depends_on:
       maindb:
@@ -62,7 +65,7 @@ services:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
-      - SECRET=${SECRET:?SECRET must be set — run ./install.sh}
+      - SECRET=${SECRET:?SECRET must be set in .env — add one with 'echo "SECRET=$$(openssl rand -hex 32)" >> .env' (see README)}
       - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTH_SECRET=${AUTH_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-full}
@@ -70,7 +73,10 @@ services:
       - ACCOUNT_ID_SECRET=${ACCOUNT_ID_SECRET:-}
       - FEDERATION_SECRET=${FEDERATION_SECRET:-}
       - IDENTIFIER_SECRET=${IDENTIFIER_SECRET:-}
-      - PUBLIC_DIR=/var/www/public
+      # false (default): worker/scheduler stay idle and email is sent
+      # synchronously from the web process. true: the app publishes jobs
+      # to RabbitMQ and worker-email consumes them. See docker/README.md.
+      - JOBS_ENABLED=${JOBS_ENABLED:-false}
     entrypoint: ['./bin/entrypoint.sh']
     stdin_open: true
     tty: true
@@ -85,7 +91,20 @@ services:
       - '3000'
     restart: unless-stopped
     volumes:
-      - ../../data:/app/data
+      # Shared named volume for /app/data — the sqlite auth database
+      # (auth.db) is a single file that app, worker-email, and scheduler
+      # must all see. To use a host directory instead, replace with
+      # '../../data:/app/data' on all three services; on Linux, first run
+      # `sudo chown -R 1001:1001 ./data` (the container runs as uid 1001).
+      - app-data:/app/data
+    # Readiness contract (see docker-compose.simple.yml for rationale). Lets the
+    # proxy depend on the app being healthy, not just started.
+    healthcheck:
+      test: ['CMD', 'bin/healthcheck.sh']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   maindb:
     image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
@@ -152,7 +171,7 @@ services:
       start_period: 30s
 
   worker-email:
-    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.25.11}
     container_name: onetime-worker-email
     depends_on:
       maindb:
@@ -166,13 +185,17 @@ services:
       - VALKEY_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      - JOBS_ENABLED=${JOBS_ENABLED:-false}
+    # Top-level CLI command ('ots worker', not 'ots jobs worker'). --queues
+    # filters on the exact Sneakers queue name (worker_command.rb
+    # determine_workers), not a short alias — EmailWorker's is
+    # 'email.message.send' (email_worker.rb from_queue QUEUE_NAME).
     command:
       [
         './bin/ots',
-        'jobs',
         'worker',
         '--queues',
-        'email',
+        'email.message.send',
         '--concurrency',
         '5',
         '--environment',
@@ -187,10 +210,11 @@ services:
       - onetime-network
     restart: unless-stopped
     volumes:
-      - ../../data:/app/data
+      # Shared with the app service (see comment there).
+      - app-data:/app/data
 
   scheduler:
-    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.25.11}
     container_name: onetime-scheduler
     depends_on:
       maindb:
@@ -204,7 +228,10 @@ services:
       - VALKEY_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
-    command: ['./bin/ots', 'jobs', 'scheduler', '--environment', 'production']
+      - JOBS_ENABLED=${JOBS_ENABLED:-false}
+    # Top-level CLI command ('ots scheduler', not 'ots jobs scheduler').
+    # Scheduled jobs additionally require JOBS_SCHEDULER_ENABLED=true.
+    command: ['./bin/ots', 'scheduler', '--environment', 'production']
     logging:
       driver: 'json-file'
       options:
@@ -214,7 +241,8 @@ services:
       - onetime-network
     restart: unless-stopped
     volumes:
-      - ../../data:/app/data
+      # Shared with the app service (see comment there).
+      - app-data:/app/data
 
 networks:
   onetime-network:
@@ -222,6 +250,8 @@ networks:
     name: onetime-network
 
 volumes:
+  app-data:
+    name: onetime_app_data
   maindb-data:
     name: onetime_maindb_data
   rabbitmq-data:

@@ -77,30 +77,16 @@
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Back button -->
-    <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-      <div class="mb-4">
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          @click="handleBack">
-          <OIcon
-            collection="heroicons"
-            name="arrow-left"
-            class="size-5"
-            aria-hidden="true" />
-          {{ t('web.COMMON.back') }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Header Section -->
+    <!-- Header Section. Back folded into the header row (opt-in affordance),
+         so there's no separate Back row above it. -->
     <div class="sticky top-0 z-30">
       <DomainHeader
         :domain="domain"
         :has-unsaved-changes="false"
         :orgid="props.orgid"
-        external-path="/" />
+        external-path="/"
+        back-visible
+        @back="handleBack" />
     </div>
 
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

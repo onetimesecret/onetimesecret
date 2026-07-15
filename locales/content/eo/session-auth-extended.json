@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Via seanco eksvalidiĝis. Bonvolu refreŝigi la paĝon kaj reprovi.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Ensaluto malsukcesis. Bonvolu reprovi.",
@@ -710,12 +710,6 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Reakirkodoj",
     "source_hash": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SEKURECOKRITIKA: Mesaĝoj malhelpas informrevelon. Vidu src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Administra paĝo por ensalutitaj aparatoj/folumiloj de uzanto"
   },
   "web.auth.google": {
     "text": "Google",

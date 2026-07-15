@@ -1,0 +1,32 @@
+<%# Body content only. Shared shell, header, and footer come from layout.html.erb. -%>
+<!-- Title -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
+  <p style="margin: 0;"><%= t('email.trial_expiring.title') %></p>
+</div>
+
+<!-- Body -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
+  <p><%= h(t('email.trial_expiring.body', product_name: product_name, days_remaining: days_remaining)) %></p>
+
+  <table border="0" cellpadding="0" cellspacing="0" style="margin: 16px 0; background-color: #f5f5f5; border-radius: 4px; width: 100%;">
+    <tr>
+      <td style="padding: 12px 16px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
+        <strong><%= h(plan_name) %></strong><br />
+        <%= h(trial_ends_at_formatted) %>
+      </td>
+    </tr>
+  </table>
+
+  <% if upgrade_url %>
+  <div style="margin: 24px 0;">
+    <a href="<%= upgrade_url %>" style="display: inline-block; padding: 12px 24px; background-color: <%= brand_color %>; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
+      <%= t('email.trial_expiring.upgrade_button') %>
+    </a>
+  </div>
+  <% end %>
+</div>
+
+<!-- Signature -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
+  <p style="margin: 0;"><%= h(signature_name || t('email.trial_expiring.signature')) %></p>
+</div>

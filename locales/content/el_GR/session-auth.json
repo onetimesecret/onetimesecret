@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Χρησιμοποιήστε την επιλογή Σύνδεσμος σύνδεσης για να συνδεθείτε χωρίς κωδικό πρόσβασης. Αφού συνδεθείτε, μπορείτε να αλλάξετε τον κωδικό πρόσβασής σας στις Ρυθμίσεις λογαριασμού.",
-    "source_hash": "2a058600"
+    "text": "Μπορείτε να ζητήσετε έναν σύνδεσμο επαναφοράς κωδικού πρόσβασης για να δημιουργήσετε νέο κωδικό πρόσβασης.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Ο λογαριασμός κλειδώθηκε προσωρινά;",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "Λογαριασμός SSO",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Επαναφορά κωδικού",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Ο τομέας email σας δεν έχει εξουσιοδότηση για εγγραφή μέσω SSO. Επικοινωνήστε με τον διαχειριστή σας.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Ελέγξτε το email σας",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Στείλαμε έναν σύνδεσμο επαλήθευσης στη διεύθυνση email σας.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Στείλαμε έναν σύνδεσμο επαλήθευσης σε αυτήν τη διεύθυνση — ανοίξτε το email και κάντε κλικ στον σύνδεσμο για να ενεργοποιήσετε τον λογαριασμό σας.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Δεν μπορείτε να το βρείτε; Ελέγξτε τον φάκελο ανεπιθύμητης αλληλογραφίας.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Εισαγάγατε λάθος διεύθυνση;",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Ξεκινήστε από την αρχή",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Κωδικός πρόσβασης",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Δεν λάβατε το email επαλήθευσης; Εισαγάγετε το email σας για να το στείλουμε ξανά.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Επαναποστολή email επαλήθευσης",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Εάν ένας λογαριασμός χρειάζεται επαλήθευση, στάλθηκε ένα νέο email. Παρακαλούμε ελέγξτε τα εισερχόμενά σας και τον φάκελο ανεπιθύμητης αλληλογραφίας.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Δεν ήταν δυνατή η αποστολή του email επαλήθευσης. Παρακαλούμε ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Επαναποστολή email",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Το email σας επαληθεύτηκε — μπορείτε τώρα να συνδεθείτε.",
+    "source_hash": "c8d4b5a8"
   }
 }

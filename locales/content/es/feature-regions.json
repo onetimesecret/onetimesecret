@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si tu correo de contacto de facturación difiere de tu correo de cuenta de {product_name}, usa el correo de contacto de facturación para la nueva cuenta regional y así mantener los beneficios de tu suscripción.",
-    "source_hash": "dac1cc28"
+    "text": "Si tu correo electrónico de contacto de facturación difiere del correo electrónico de tu cuenta de {product_name}, usa el correo electrónico de contacto de facturación para la cuenta de la nueva región para mantener los beneficios de tu suscripción.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Los beneficios de tu suscripción se aplicarán automáticamente a cualquier cuenta creada con tu dirección de correo de facturación.",

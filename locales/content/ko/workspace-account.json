@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 이 토큰을 안전하게 보관하세요! 계정에 대한 전체 접근 권한을 제공합니다.",
-    "source_hash": "8839aa4d"
+    "text": "이 토큰을 안전하게 보관하세요. API를 통해 비밀 메시지를 생성하고 관리하는 데 사용할 수 있습니다.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "비밀번호로 확인",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "이메일이 성공적으로 업데이트되었습니다. 새 이메일 주소를 인증하려면 받은 편지함을 확인해 주세요.",
-    "source_hash": "58de2536"
+    "text": "인증 이메일이 발송되었습니다. 새 받은 편지함을 확인하고 확인 링크를 클릭하여 변경을 완료하세요.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "이메일 업데이트 실패. 다시 시도해 주세요.",
@@ -476,8 +476,8 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "{product_name}을 애플리케이션에 통합하는 방법을 알아보세요",
-    "source_hash": "6e8f910f"
+    "text": "{product_name}을(를) 애플리케이션에 통합하는 방법을 알아보세요",
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API 참조",

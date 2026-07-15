@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "产品",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "源代码",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "账单",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "您正在查看通过 {product_name} 与您分享的安全内容。该内容仅显示一次，随后会从我们的服务器上永久删除。",
-    "source_hash": "e0f1a10c"
+    "text": "您正在查看通过 {product_name} 与您分享的一条安全消息。该内容仅显示一次，随后将从我们的服务器上永久删除。",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "我可以稍后再次查看此内容吗？",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "访问 {product_name} 主页",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "页脚导航",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "请联系支持团队寻求帮助",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "仅限 Colonel",
+    "source_hash": "3f1e2dbd"
   }
 }

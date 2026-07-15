@@ -5,8 +5,9 @@
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "scripts": {
+    "setup": "./bin/setup",
     "prebuild": "pnpm run locales:sync && pnpm run schemas:json:generate",
-    "build": "vite build --config vite.config.ts",
+    "build": "vite build --config vite.config.ts && VITE_BUILD_TARGET=admin vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
     "schemas:rhales:generate": "bundle exec rake rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas",
     "schemas:rhales:stats": "bundle exec rake rhales:schema:stats TEMPLATES_DIR=./apps/web/core/templates",
@@ -16,11 +17,14 @@
     "gen:favicons:check": "node scripts/branding/check.mjs",
     "gen:favicons:test": "node --test 'scripts/branding/*.test.mjs'",
     "gen:favicons:maruhi": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset maruhi",
+    "gen:favicons:onetimesecret": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset onetimesecret",
+    "gen:favicons:vshare": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset vshare",
+    "gen:favicons:linkdepot": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs --preset linkdepot",
     "i18n:generate-types": "pnpm run locales:sync && tsx --tsconfig scripts/tsconfig.json scripts/generate-i18n-types.ts",
     "locales:generate": "python3 locales/scripts/i18n content compile --all ",
     "locales:generate:verbose": "python3 locales/scripts/i18n content compile --all -v",
     "locales:hashes": "python3 locales/scripts/i18n content hashes",
-    "locales:hashes:dry-run": "python3 locales/scripts/i18n content hashes --dry-run",
+    "locales:hashes:apply": "python3 locales/scripts/i18n content hashes --apply",
     "locales:sync": "python3 locales/scripts/i18n content compile --all ",
     "openapi:generate": "tsx --tsconfig scripts/tsconfig.json scripts/openapi/generate-openapi.ts",
     "generate:sentry-patterns": "tsx --tsconfig scripts/tsconfig.json scripts/generate-sentry-scrub-patterns.ts",
@@ -122,10 +126,10 @@
     "test:rspec:apps:web:billing": "bundle exec rake spec:apps:web_billing",
     "test:rspec:apps:web:core": "bundle exec rake spec:apps:web_core",
     "test:rspec:apps:internal:acme": "bundle exec rake spec:apps:internal_acme",
-    "test:tryouts": "bundle exec try",
+    "test:tryouts": "RACK_ENV=test bundle exec try",
     "test:tryouts:agent": "pnpm test:tryouts --agent",
     "test:tryouts:failures": "pnpm test:tryouts --stack --fails --debug",
-    "test:tryouts:clean": "pnpm valkey:clean && pnpm test:tryouts ",
+    "test:tryouts:clean": "pnpm test:database:clean && pnpm test:tryouts",
     "test:unit": "pnpm test",
     "test:unit:coverage": "pnpm test:coverage",
     "test:all": "pnpm test:rspec:all && pnpm test:tryouts:agent && pnpm test:unit",
@@ -223,7 +227,7 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-playwright": "^2.10.4",
-    "eslint-plugin-tailwindcss": "4.0.0-beta.0",
+    "eslint-plugin-tailwindcss": "4.0.4",
     "eslint-plugin-vue": "^10.9.1",
     "flatted": "^3.4.2",
     "fs-extra": "^11.3.4",
@@ -262,10 +266,5 @@
     "vue-router-mock": "^2.0.2",
     "vue-tsc": "^3.3.2"
   },
-  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg==",
-  "lint-staged": {
-    "*.{ts,vue,mjs}": [
-      "eslint --quiet --config eslint.config.ts --cache --cache-location ./node_modules/.cache/eslint --fix"
-    ]
-  }
+  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg=="
 }

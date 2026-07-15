@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Προϊόν",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Πηγαίος κώδικας",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Χρεώσεις",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Βλέπετε ένα ασφαλές μήνυμα που σας κοινοποιήθηκε μέσω του {product_name}. Αυτό το περιεχόμενο εμφανίζεται μόνο μία φορά και στη συνέχεια διαγράφεται οριστικά από τους διακομιστές μας.",
-    "source_hash": "e0f1a10c"
+    "text": "Προβάλλετε ένα ασφαλές μήνυμα που κοινοποιήθηκε σε εσάς μέσω του {product_name}. Αυτό το περιεχόμενο εμφανίζεται μόνο μία φορά και στη συνέχεια διαγράφεται οριστικά από τους διακομιστές μας.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Μπορώ να δω αυτό το μυστικό ξανά αργότερα;",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Επισκεφθείτε την αρχική σελίδα του {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Πλοήγηση υποσέλιδου",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Επικοινωνήστε με την υποστήριξη για βοήθεια",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Μόνο για Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Non sono consentiti indirizzi email destinatari duplicati",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "secrets_mode non valido: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "La modalità Segreti in arrivo richiede il diritto incoming_secrets. Esegui l'upgrade del tuo piano.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "I Segreti in arrivo devono essere abilitati con almeno un destinatario prima di poter essere usati come homepage.",
+    "source_hash": "556da6e2"
   }
 }

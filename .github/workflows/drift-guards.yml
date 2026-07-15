@@ -1,0 +1,39 @@
+# .github/workflows/drift-guards.yml
+#
+# Cheap (grep/sed-only, seconds) drift guards that must run on every PR
+# (install-onboarding C9). They also run inside validate-config.yml, but that
+# workflow is workflow_dispatch-only — these two checks are the ratchets that
+# keep manifests honest, so they get an always-on lane:
+#
+#   check-version-pins.sh    Docker image tags + devcontainer toolchain match
+#                            .ruby-version/.node-version (VER series, C8 note)
+#   check-env-reference.sh   every consumed env var is documented in
+#                            .env.reference or explicitly ignored (QS-11)
+#
+# No path filter: check-env-reference.sh scans ENV reads across lib/, apps/,
+# etc/ — nearly any code change can introduce a new variable, and the whole
+# job costs seconds.
+---
+name: Drift guards
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift-guards:
+    name: version pins + env reference
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Assert Docker/devcontainer tags match version pin files
+        run: bash scripts/check-version-pins.sh
+
+      - name: Assert .env.reference documents every consumed env var
+        run: bash scripts/check-env-reference.sh

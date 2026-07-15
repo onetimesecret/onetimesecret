@@ -44,12 +44,7 @@ module InviteAPI::Logic
         # Check if invitation is still pending
         return if @invitation.pending?
 
-        raise_form_error(
-          error_key: 'api.invite.errors.invitation_already_processed',
-          args: { status: @invitation.status },
-          field: :token,
-          error_type: :invalid,
-        )
+        raise_already_processed(@invitation)
 
         # NOTE: We allow declining expired invitations since the user
         # is explicitly rejecting it. No harm in processing the decline.

@@ -77,7 +77,7 @@ watch(isOpen, (newValue) => {
 </script>
 
 <template>
-  <div class="group relative">
+  <div class="group relative inline-block">
     <HoverTooltip>{{ t('web.COMMON.language') }}</HoverTooltip>
     <!-- prettier-ignore-attribute class -->
     <button
@@ -97,12 +97,15 @@ watch(isOpen, (newValue) => {
       <OIcon
         collection="heroicons"
         name="language"
-        class="size-5"
+        class="size-5 shrink-0"
         aria-hidden="true" />
+      <span class="min-w-0 flex-1 truncate text-left text-base font-normal text-gray-900 dark:text-gray-100">
+        {{ modelValue ? (supportedLocalesWithNames[modelValue] || modelValue) : t('web.COMMON.language') }}
+      </span>
       <OIcon
         collection="mdi"
         :name="isOpen ? 'chevron-up' : 'chevron-down'"
-        class="size-5"
+        class="size-5 shrink-0"
         aria-hidden="true" />
     </button>
 
@@ -120,7 +123,7 @@ watch(isOpen, (newValue) => {
         role="listbox"
         :aria-activedescendant="modelValue"
         tabindex="0"
-        class="absolute right-0 z-50
+        class="absolute left-0 z-50
                mt-2 w-56
                rounded-lg bg-white
                shadow-lg

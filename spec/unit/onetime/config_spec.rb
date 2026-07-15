@@ -659,5 +659,65 @@ RSpec.describe Onetime::Config do
         }.not_to raise_error
       end
     end
+
+    # ADR-025: a deployment artifact (production container image, no Vite
+    # toolchain) booted in development frontend mode would proxy /dist/* to a
+    # Vite server it cannot reach, silently 500-ing every asset. Refuse to boot.
+    context 'development frontend mode without a Vite toolchain (ADR-025)' do
+      let(:dev_config) do
+        {
+          'site' => { 'secret' => 'anyvaluewilldo' },
+          'development' => { 'enabled' => true },
+          'mail' => { 'truemail' => {} },
+        }
+      end
+
+      it 'refuses to boot when the frontend toolchain is unavailable' do
+        allow(described_class).to receive(:frontend_dev_workflow_available?).and_return(false)
+
+        expect {
+          described_class.after_load(dev_config)
+        }.to raise_error(OT::Problem, /no Vite frontend toolchain/)
+      end
+
+      it 'boots when the frontend toolchain is available (host dev)' do
+        allow(described_class).to receive(:frontend_dev_workflow_available?).and_return(true)
+
+        expect {
+          described_class.after_load(dev_config)
+        }.not_to raise_error
+      end
+
+      it 'does not fire when development frontend mode is off (deployment default)' do
+        allow(described_class).to receive(:frontend_dev_workflow_available?).and_return(false)
+        config = dev_config.merge('development' => { 'enabled' => false })
+
+        expect {
+          described_class.after_load(config)
+        }.not_to raise_error
+      end
+    end
+
+    describe '.frontend_dev_workflow_available?' do
+      it 'is true when the Vite toolchain binary exists' do
+        stub_const('ENV', { 'ONETIME_HOME' => '/app' })
+        allow(File).to receive(:exist?).with('/app/node_modules/.bin/vite').and_return(true)
+
+        expect(described_class.frontend_dev_workflow_available?).to be(true)
+      end
+
+      it 'is false when the toolchain is absent and no override is set' do
+        stub_const('ENV', { 'ONETIME_HOME' => '/app' })
+        allow(File).to receive(:exist?).with('/app/node_modules/.bin/vite').and_return(false)
+
+        expect(described_class.frontend_dev_workflow_available?).to be(false)
+      end
+
+      it 'is true when ONETIME_ALLOW_DEV_FRONTEND opts into an external Vite' do
+        stub_const('ENV', { 'ONETIME_HOME' => '/app', 'ONETIME_ALLOW_DEV_FRONTEND' => 'true' })
+
+        expect(described_class.frontend_dev_workflow_available?).to be(true)
+      end
+    end
   end
 end

@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Η πρόσκληση είναι ήδη %{status}",
-    "source_hash": "130c87e0"
+    "text": "Αυτή η πρόσκληση έχει ήδη επεξεργαστεί",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Η πρόσκληση έχει λήξει",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Είστε ήδη μέλος αυτού του οργανισμού",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Αυτή η πρόσκληση έχει ήδη γίνει αποδεκτή",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Αυτή η πρόσκληση έχει ήδη απορριφθεί",
+    "source_hash": "96e0d626"
   }
 }

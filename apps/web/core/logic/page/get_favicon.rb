@@ -13,7 +13,8 @@ module Core
       # This logic class dynamically serves either:
       # 1. Custom favicon from the custom domain's icon field (if available)
       # 2. Custom favicon from the custom domain's logo field (fallback)
-      # 3. Default favicon from public/web/
+      # 3. Default favicon from the resolved brand pack (public/branding/<pack>,
+      #    default: public/branding/default) via Onetime.brand_asset_path
       #
       # For custom favicons, it checks for a cached resized version (32x32)
       # stored in the image hashkey's 'encoded_favicon' field. If not found,
@@ -28,6 +29,10 @@ module Core
         attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default, :image_source, :redirect_url
 
         FAVICON_SIZE = 32 # 32x32 pixels
+
+        # ICO images are served as-is: browsers render .ico natively and
+        # ChunkyPNG can't decode/resize ICO, so we skip the PNG resize path (#3780).
+        ICO_CONTENT_TYPES = %w[image/x-icon image/vnd.microsoft.icon].freeze
 
         def process_params
           # Get domain strategy from auth metadata (set by DomainStrategy middleware,
@@ -86,6 +91,13 @@ module Core
           # Get the image hashkey based on source (icon or logo)
           image_hash = image_source == :icon ? custom_domain.icon : custom_domain.logo
 
+          # ICO images pass through unmodified — no ChunkyPNG resize, no
+          # encoded_favicon cache (browsers render .ico natively, #3780).
+          if ICO_CONTENT_TYPES.include?(image_hash['content_type'].to_s)
+            serve_ico_favicon(image_hash)
+            return
+          end
+
           # Check if we have a cached favicon-sized version
           cached_favicon = image_hash['encoded_favicon']
 
@@ -106,6 +118,17 @@ module Core
 
           @content_type   = 'image/png' # Resized favicons are always PNG
           @content_length = icon_data.bytesize.to_s
+        end
+
+        def serve_ico_favicon(image_hash)
+          # Decode the original ICO bytes and serve them without resizing.
+          @icon_data      = Base64.strict_decode64(image_hash['encoded'])
+          @content_type   = 'image/x-icon'
+          @content_length = icon_data.bytesize.to_s
+          OT.ld "[GetFavicon] Serving ICO favicon for #{custom_domain.display_domain} (source: #{image_source})"
+        rescue ArgumentError => ex
+          OT.le "[GetFavicon] Corrupted ICO favicon for #{custom_domain.display_domain} (source: #{image_source}): #{ex.message}, serving default"
+          serve_default_favicon
         end
 
         def generate_and_cache_favicon(image_hash)
@@ -155,8 +178,8 @@ module Core
         end
 
         def serve_default_favicon
-          # Read default favicon from public directory
-          favicon_path = File.join(OT.conf.dig('site', 'public_dir') || 'public/web', 'favicon.ico')
+          # Read default favicon from public directory (overlay-first, #3739)
+          favicon_path = Onetime.brand_asset_path('favicon.ico')
 
           if File.exist?(favicon_path)
             @icon_data      = File.binread(favicon_path)

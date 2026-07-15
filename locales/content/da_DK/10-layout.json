@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Produkt",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Kildekode",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Fakturering",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Du ser en sikker besked, der blev delt med dig via {product_name}. Dette indhold vises kun én gang og bliver derefter permanent slettet fra vores servere.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Kan jeg se denne besked igen senere?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Besøg {product_name}-hjemmesiden",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Sidefodnavigation",
@@ -340,11 +340,15 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "Workspace",
+    "text": "Arbejdsområde",
     "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
     "text": "Kontakt venligst support for at få hjælp",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Kun Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

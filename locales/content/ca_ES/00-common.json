@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organitzacions",
-    "source_hash": "2730183d"
+    "text": "Espais de treball",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Configuració de l'organització",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre que estàs al lloc web oficial de {product_name}. De vegades, els estafadors creen llocs web falsos que semblen exactament {product_name} per robar-te els secrets. Per evitar atacs de pesca de credencials, comprova el domini de la regió abans de crear nous enllaços.",
-    "source_hash": "b588f5b2"
+    "text": "Verifica sempre que estàs al lloc web oficial de {product_name}. De vegades els estafadors creen llocs web falsos que semblen exactament {product_name} per robar-te els secrets. Per evitar atacs de pesca de credencials, verifica el domini de la regió a la barra d'adreces abans de crear nous enllaços.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Preus simples i transparents",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Secrets entrants",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Actualitza",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "S'està actualitzant...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Comprova el teu correu electrònic",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Configuració de DNS",
+    "source_hash": "6c63df31"
   }
 }

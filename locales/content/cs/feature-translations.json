@@ -65,7 +65,7 @@
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
     "text": "Následující lidé věnovali svůj čas, aby pomohli rozšířit dosah {product_name}:",
-    "source_hash": "85a766af"
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Překlady",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Od roku 2012 poskytuje {product_name} bezpečný způsob, jak sdílet citlivé informace po celém světě. Vzhledem k uživatelům v regionech, kde angličtina není hlavním jazykem, jsou přesné překlady nezbytné k tomu, aby byla bezpečná komunikace dostupná všem.",
-    "source_hash": "87a6e9af"
+    "text": "Od roku 2012 poskytuje {product_name} bezpečný způsob sdílení citlivých informací po celém světě. S uživateli napříč regiony, kde angličtina není hlavním jazykem, jsou přesné překlady zásadní pro to, aby bezpečná komunikace byla přístupná všem.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Pomozte bezpečné komunikaci rozšířit se do celého světa",

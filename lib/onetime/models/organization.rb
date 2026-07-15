@@ -191,6 +191,11 @@ module Onetime
     # Auto-generated: org.add_domains_instance(domain) / org.remove_domains_instance(domain)
 
     def add_domain(domain)
+      # Accept either a CustomDomain object or its identifier string — the CLI/
+      # toolbox transfer path passes the domainid string, while model callers pass
+      # the object (see Operations::Domains::Transfer). Resolve to an object first.
+      domain = resolve_domain(domain)
+
       # Prevent domains from belonging to multiple organizations
       existing_org = domain.organization_instances.first
       if existing_org && existing_org.objid != org_id
@@ -201,7 +206,17 @@ module Onetime
     end
 
     def remove_domain(domain)
-      domain.remove_from_organization_domains(self)
+      resolve_domain(domain).remove_from_organization_domains(self)
+    end
+
+    # Coerce a domain argument (object or identifier string) into a CustomDomain.
+    def resolve_domain(domain)
+      return domain unless domain.is_a?(String)
+
+      resolved = CustomDomain.find_by_identifier(domain)
+      raise Onetime::Problem, "Custom domain not found: #{domain}" unless resolved
+
+      resolved
     end
 
     def list_domains

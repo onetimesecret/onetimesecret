@@ -140,12 +140,12 @@
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Sin organizaciones",
-    "source_hash": "12420110"
+    "text": "Sin espacios de trabajo",
+    "source_hash": "c7f70723"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Crea una organización para gestionar tu facturación y suscripción",
-    "source_hash": "41e922d2"
+    "text": "Crea un espacio de trabajo para gestionar tu facturación y suscripción",
+    "source_hash": "e0fd27a5"
   },
   "web.billing.overview.load_error": {
     "text": "Error al cargar la información de facturación",
@@ -204,8 +204,8 @@
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_org": {
-    "text": "Gestionar organizaciones",
-    "source_hash": "be0fe4c3"
+    "text": "Gestionar organización",
+    "source_hash": "f03a4985"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Gestionar equipos",
@@ -220,8 +220,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Inicio de sesión único",
-    "source_hash": "cf7cd744"
+    "text": "Inicio de sesión único (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Soporte prioritario",
@@ -280,8 +280,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Inicio de sesión único (SSO)",
-    "source_hash": "5db5c812"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   },
   "web.billing.features.priority_support": {
     "text": "Soporte prioritario",
@@ -577,7 +577,7 @@
   },
   "web.billing.invoices.draft": {
     "text": "Borrador",
-    "source_hash": "d2e16e61"
+    "source_hash": "ebf12ef4"
   },
   "web.billing.invoices.open": {
     "text": "Abierta",

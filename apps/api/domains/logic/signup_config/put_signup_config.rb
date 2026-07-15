@@ -102,6 +102,7 @@ module DomainsAPI
           {
             user_id: cust.extid,
             record: serialize_signup_config(@signup_config),
+            details: signup_override_details(@signup_config),
           }
         end
 

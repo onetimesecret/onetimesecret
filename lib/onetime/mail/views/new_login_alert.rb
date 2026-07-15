@@ -59,10 +59,20 @@ module Onetime
         end
 
         def login_at_formatted
-          time = Time.parse(login_at.to_s)
-          time.strftime('%B %d, %Y at %H:%M UTC')
-        rescue ArgumentError
-          login_at.to_s
+          parsed_login_at&.strftime('%B %d, %Y at %H:%M UTC') || login_at.to_s
+        end
+
+        # Calendar date of the sign-in, e.g. "January 15, 2024". Split from
+        # the time so email.new_login_alert.body can interpolate %{date} and
+        # %{time} separately; falls back to the raw value when unparseable.
+        def login_at_date
+          parsed_login_at&.strftime('%B %d, %Y') || login_at.to_s
+        end
+
+        # Wall-clock time of the sign-in, e.g. "10:30 UTC". Empty when the
+        # timestamp can't be parsed so the body copy degrades gracefully.
+        def login_at_time
+          parsed_login_at&.strftime('%H:%M UTC') || ''
         end
 
         def security_settings_path
@@ -79,6 +89,16 @@ module Onetime
 
         private
 
+        # Parsed sign-in timestamp, or nil when the value isn't a valid time.
+        # Memoized so the formatted/date/time helpers parse only once.
+        def parsed_login_at
+          return @parsed_login_at if defined?(@parsed_login_at)
+
+          @parsed_login_at = Time.parse(login_at.to_s)
+        rescue ArgumentError
+          @parsed_login_at = nil
+        end
+
         def template_binding
           computed_data = data.merge(
             device_info: device_info,
@@ -86,6 +106,8 @@ module Onetime
             ip_address: ip_address,
             login_at: login_at,
             login_at_formatted: login_at_formatted,
+            login_at_date: login_at_date,
+            login_at_time: login_at_time,
             security_settings_path: security_settings_path,
             support_path: support_path,
             baseuri: baseuri,

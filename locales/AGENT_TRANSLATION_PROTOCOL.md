@@ -2,8 +2,9 @@
 
 > **Audience: a single automated background translator agent draining one
 > locale.** This is the machine-executable spec the orchestration slash commands
-> (`/d:translate-parallel-agents`, `/d:start-translation-session`,
-> `/d:translate-workflow`) point their `saas-translator` agents at. It is
+> (`translate-parallel-agents`, `start-translation-session`,
+> `translate-workflow` — vendored in `locales/slash_commands/`, installed under a
+> command namespace such as `/i18n:`) point their `saas-translator` agents at. It is
 > self-contained and executable by reference: an agent given a locale and this
 > file has everything it needs to drain that locale's task queue.
 >
@@ -17,8 +18,10 @@
 
 One agent, one locale, one job: translate every pending value and write it back
 to the task DB, then stop. The agent does **not** export, sync, commit, create
-branches, or record glossary decisions — those are human steps in
-`TRANSLATION_PROTOCOL.md`.
+branches, or **write** glossary decisions to the DB — those are human/orchestrator
+steps in `TRANSLATION_PROTOCOL.md`. It **does** surface glossary *candidates* in
+its final report (see [Glossary candidates](#glossary-candidates-report-dont-write)),
+which the orchestrator reviews and inserts after the drain.
 
 Run everything from the repo root. The scripts need no environment setup (the
 project uses direnv via `.envrc`; there is no `source .env.sh`).
@@ -53,6 +56,20 @@ translation-rules) as the resolved artifact.
 - **binding rules** — constraints that must hold for every translation.
 - **declined decisions** — choices that were considered and rejected; do not
   reintroduce them.
+
+### Register check (run locally)
+
+Catch politeness-level violations (e.g. formal forms in an informal-locked
+locale) before review — same engine as the `validate-register` CI gate. Needs
+the resolved governance above.
+
+```bash
+# exit 0 = clean; 1 = lists each hit
+python3 .translation-rules/lib/resolver/lint_content.py \
+  --resolved generated/i18n/.resolved/<locale>.json \
+  --content-root . \
+  "locales/content/<locale>/*.json"
+```
 
 ## Per-task cycle (one writer per locale, claim-free)
 
@@ -94,7 +111,7 @@ Loop this until the queue is dry:
    ```bash
    python3 locales/scripts/i18n tasks next <LOCALE> --stats
    ```
-   shows **0 pending**.
+   shows `pending: 0`.
 
 ## Translation rules
 
@@ -123,9 +140,35 @@ corrected object and re-running:
 python3 locales/scripts/i18n tasks update <ID> --file /tmp/trans_<LOCALE>.json --validate
 ```
 
+## Glossary candidates (report, don't write)
+
+Do **not** `INSERT INTO glossary`. The task DB is one file shared by every
+parallel locale agent, and the shared committable tables are the
+orchestrator's to write — concurrent agent writes are the boundary this
+protocol exists to hold.
+
+Instead, while translating, note the renderings you settled on for recurring
+domain/brand terms (secret, passphrase, burn, reveal, email, …) — especially
+any that are **not** already fixed by the bound `glossary` in
+`generated/i18n/.resolved/<LOCALE>.json`. Report them in your **final message**
+as a short list, one per line:
+
+```
+GLOSSARY CANDIDATES (<LOCALE>):
+- <en term> → <chosen rendering> — <one-line reason / sense>
+```
+
+The orchestrator reviews these and inserts the accepted ones after the drain.
+This is the drain-time counterpart to the QC path
+(`TRANSLATION_PROTOCOL.md` → "Glossary Updates from QC"); between the two,
+agent-drained locales still accrue glossary entries. Emit the header even with
+no candidates (`GLOSSARY CANDIDATES (<LOCALE>): none`) so the orchestrator knows
+you considered it.
+
 ## Out of scope for agents
 
 Do **not** export (`tasks export`), do **not** sync (`pnpm run locales:sync` /
-`content compile`), and do **not** commit or create branches. Those are human
-steps documented in `TRANSLATION_PROTOCOL.md`. The agent's job ends when the
-locale shows 0 pending and the audit is clean.
+`content compile`), do **not** commit or create branches, and do **not** write
+the glossary/committable DB tables. Those are human/orchestrator steps
+documented in `TRANSLATION_PROTOCOL.md`. The agent's job ends when the locale
+shows `pending: 0`, the audit is clean, and the glossary candidates are reported.

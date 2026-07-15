@@ -77,11 +77,16 @@ export type DomainsStore = {
   fetchList: () => Promise<void>;
   getDomain: (extid: string) => Promise<CustomDomain>;
   verifyDomain: (extid: string) => Promise<CustomDomain>;
+  refreshFavicon: (extid: string) => Promise<void>;
   deleteDomain: (extid: string) => Promise<void>;
 
   uploadLogo: (extid: string, file: File) => Promise<void>;
   fetchLogo: (extid: string) => Promise<ImageProps>;
   removeLogo: (extid: string) => Promise<void>;
+
+  uploadIcon: (extid: string, file: File) => Promise<void>;
+  fetchIcon: (extid: string) => Promise<ImageProps>;
+  removeIcon: (extid: string) => Promise<void>;
 
   refreshRecords: (options?: RefreshRecordsOptions) => Promise<void>;
   getBrandSettings: (extid: string) => Promise<BrandSettings>;
@@ -203,6 +208,21 @@ export const useDomainsStore = defineStore('domains', () => {
     return result.data;
   }
 
+  /**
+   * Enqueue a forced favicon re-fetch for a domain (#3780).
+   *
+   * ASYNC: the endpoint returns a queued success immediately
+   * (`{ record: null, details: { msg } }`) — the new icon lands later via the
+   * background favicon worker. Unlike verifyDomain, the response carries no
+   * domain record to parse, so this mirrors verifyDomain's `$api.post` call but
+   * resolves void; callers show a "refreshing/queued" state and re-fetch rather
+   * than reading image bytes here. The backend overwrite-guard still protects a
+   * user-uploaded icon, so a forced refresh cannot clobber one.
+   */
+  async function refreshFavicon(extid: string) {
+    await $api.post(`/api/domains/${extid}/icon/refresh`);
+  }
+
   async function uploadLogo(extid: string, file: File) {
     const formData = new FormData();
     formData.append('image', file);
@@ -240,6 +260,51 @@ export const useDomainsStore = defineStore('domains', () => {
 
   async function removeLogo(extid: string) {
     await $api.delete(`/api/domains/${extid}/logo`);
+  }
+
+  // Favicon (icon) upload trio (#3780). Mirrors the logo trio above against the
+  // /:extid/icon endpoints. Uploading here stamps favicon_source='user_upload'
+  // server-side, which the workspace refresh button reads to disable itself (a
+  // forced fetch can't overwrite a user upload). These live beside
+  // refreshFavicon rather than in brandStore because the favicon lifecycle is
+  // owned here.
+  async function uploadIcon(extid: string, file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await $api.post(`/api/domains/${extid}/icon`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    // Validate upload response
+    const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to upload favicon. Please try again.');
+    }
+    return result.data.record;
+  }
+
+  async function fetchIcon(extid: string): Promise<ImageProps | null> {
+    try {
+      const response = await $api.get(`/api/domains/${extid}/icon`);
+      // Use the existing schema to validate the response
+      const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load favicon. Please try again.');
+      }
+      return result.data.record;
+    } catch (error: unknown) {
+      // Handle 404 or other expected errors silently
+      if ((error as AxiosError).response?.status === 404) {
+        console.debug(`[domainsStore] No favicon found for extid: ${extid}`);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async function removeIcon(extid: string) {
+    await $api.delete(`/api/domains/${extid}/icon`);
   }
 
   /**
@@ -525,6 +590,7 @@ export const useDomainsStore = defineStore('domains', () => {
     deleteDomain,
     getDomain,
     verifyDomain,
+    refreshFavicon,
 
     updateDomainBrand,
     getBrandSettings,
@@ -533,6 +599,10 @@ export const useDomainsStore = defineStore('domains', () => {
     uploadLogo,
     fetchLogo,
     removeLogo,
+
+    uploadIcon,
+    fetchIcon,
+    removeIcon,
 
     // Homepage config
     getHomepageConfig,

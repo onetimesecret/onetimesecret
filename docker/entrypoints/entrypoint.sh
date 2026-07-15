@@ -31,11 +31,6 @@ set -e
 
 # Enable immediate output for better debugging
 export RUBY_UNBUFFERED=1
-if [ "$STDOUT_SYNC" = "1" ] || [ "$ONETIME_DEBUG" = "1" ]; then
-  # Force stdout/stderr to be unbuffered for real-time logging
-  stdbuf -oL -eL bash -c 'exec "$@"' -- "$@" &
-  wait $!
-fi
 
 # Set PORT to the existing value or default to 3000
 PORT=${PORT:-3000}
@@ -79,45 +74,6 @@ fi
 # Leave nothing but footprints
 unset datestamp location basename
 
-# Check for migration requirements
-# This migration is required for users with custom etc/config.yaml files
-if [ -f "etc/config.yaml" ] && [ -f "migrate/20250727-1523_standardize_config_symbols_to_strings.rb" ]; then
-  # Check if migration is needed by looking for symbol keys in config
-  if grep -q "^[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" etc/config.yaml 2>/dev/null; then
-    # Get version from package.json
-    VERSION=$(grep '"version":' package.json | head -1 | cut -d'"' -f4)
-    cat >&2 <<EOF
-
-===============================================================================
- SETTINGS MIGRATION REQUIRED - Onetime Secret v${VERSION:-current}
-===============================================================================
-
-Your custom config file (etc/config.yaml) needs to be updated for v${VERSION:-this version}.
-
-This migration converts YAML symbol keys (:key:) to string keys (key:).
-
-TO RUN THE MIGRATION:
-
-  1. Stop this container
-  2. Run the migration:
-     docker run --rm -v "\$(pwd)/etc:/app/etc" onetimesecret \\
-       bin/ots migrate 20250727-1523_standardize_config_symbols_to_strings.rb --run
-  3. Restart your container
-
-FOR MORE HELP:
-  - See the v${VERSION:-current} release notes
-  - Run migration with --dry-run to preview changes
-  - Backup your config file before running migration
-
-===============================================================================
-
-EOF
-    >&2 echo "ERROR: Migration required before starting. Container will exit in 10 seconds..."
-    sleep 10
-    exit 1
-  fi
-fi
-
 # Run bundler again so that new dependencies added to the
 # Gemfile are installed at up time (i.e. avoids a rebuild).
 # Check if BUNDLE_INSTALL is set to "true" (case-insensitive)
@@ -126,12 +82,6 @@ if [[ "${BUNDLE_INSTALL,,}" == "true" ]]; then
   >&2 bundle install
 else
   >&2 echo "INFO: Skipping bundle install. Use BUNDLE_INSTALL=true to run it."
-fi
-
-if [ -d "/mnt/public" ]; then
-  # By default the static web assets are available at /mnt/public/web
-  # in the container and /var/www/public on the host.
-  cp -r public/web /mnt/public/
 fi
 
 # Test Redis connectivity early to fail fast
@@ -188,5 +138,5 @@ if [ $# -eq 0 ]; then
   # Environment variables override config file settings where applicable
   RUBY_YJIT_ENABLE=1 RUBY_UNBUFFERED=1 exec stdbuf -oL -eL bundle exec puma -C etc/puma.rb
 else
-  exec bundle exec "$@"
+  exec stdbuf -oL -eL bundle exec "$@"
 fi

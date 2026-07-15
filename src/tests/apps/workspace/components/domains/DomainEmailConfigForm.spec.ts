@@ -116,6 +116,12 @@ describe('DomainEmailConfigForm', () => {
       },
     });
 
+  // The primary Save button now lives in the page header (DomainHeader). The
+  // form no longer renders it; instead it emits `can-save` whenever save-ability
+  // changes (valid + dirty + not busy). Assert on the latest emitted value.
+  const lastCanSave = (w: VueWrapper): boolean | undefined =>
+    w.emitted('can-save')?.at(-1)?.[0] as boolean | undefined;
+
   // ─────────────────────────────────────────────────────────────────────────
   // Sender identity fields
   // ─────────────────────────────────────────────────────────────────────────
@@ -360,46 +366,32 @@ describe('DomainEmailConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   describe('Button states', () => {
-    it('save button is disabled when no unsaved changes', () => {
+    it('can-save is false when there are no unsaved changes', () => {
       wrapper = mountComponent({
         formState: configuredFormState,
         hasUnsavedChanges: false,
       });
 
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(lastCanSave(wrapper)).toBe(false);
     });
 
-    it('save button is disabled when isSaving is true', () => {
+    it('can-save is false when isSaving is true', () => {
       wrapper = mountComponent({
         formState: configuredFormState,
         hasUnsavedChanges: true,
         isSaving: true,
       });
 
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(lastCanSave(wrapper)).toBe(false);
     });
 
-    it('save button shows saving text when isSaving is true', () => {
-      wrapper = mountComponent({
-        formState: configuredFormState,
-        hasUnsavedChanges: true,
-        isSaving: true,
-      });
-
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.text()).toContain('web.COMMON.saving');
-    });
-
-    it('save button shows default text when not saving', () => {
+    it('can-save is true when there are valid unsaved changes', () => {
       wrapper = mountComponent({
         formState: configuredFormState,
         hasUnsavedChanges: true,
       });
 
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.text()).toContain('web.domains.email.save_changes');
+      expect(lastCanSave(wrapper)).toBe(true);
     });
 
     it('discard button is hidden when no unsaved changes', () => {
@@ -775,8 +767,7 @@ describe('DomainEmailConfigForm', () => {
         hasUnsavedChanges: true,
       });
 
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(lastCanSave(wrapper)).toBe(false);
     });
 
     it('split mode getter normalizes from_address with multiple @ signs', () => {
@@ -801,8 +792,7 @@ describe('DomainEmailConfigForm', () => {
       expect((fromAddressInput.element as HTMLInputElement).value).toBe('bad');
 
       // Form is valid because the extracted local part is non-empty and has no @
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeUndefined();
+      expect(lastCanSave(wrapper)).toBe(true);
     });
 
     it('save button is enabled when split mode local part is valid', () => {
@@ -818,8 +808,7 @@ describe('DomainEmailConfigForm', () => {
         hasUnsavedChanges: true,
       });
 
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeUndefined();
+      expect(lastCanSave(wrapper)).toBe(true);
     });
 
     // The following four cases exercise the emailSchema.safeParse path introduced
@@ -842,8 +831,7 @@ describe('DomainEmailConfigForm', () => {
 
       // getter splits on first @, yielding 'hello world'; composed address
       // 'hello world@example.com' fails z.string().email()
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(lastCanSave(wrapper)).toBe(false);
     });
 
     it('save button is disabled when split mode local part has a leading dot', () => {
@@ -860,8 +848,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       // composed address '.hello@example.com' fails z.string().email()
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(lastCanSave(wrapper)).toBe(false);
     });
 
     it('save button is disabled when split mode local part has consecutive dots', () => {
@@ -878,8 +865,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       // composed address 'he..llo@example.com' fails z.string().email()
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(lastCanSave(wrapper)).toBe(false);
     });
 
     it('save button is disabled when split mode local part has a trailing dot', () => {
@@ -896,8 +882,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       // composed address 'hello.@example.com' fails z.string().email()
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(lastCanSave(wrapper)).toBe(false);
     });
   });
 });

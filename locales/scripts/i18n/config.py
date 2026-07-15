@@ -42,6 +42,16 @@ GENERATED_DIR: Path = Path(
     os.environ.get("I18N_GENERATED_DIR", LOCALES_DIR.parent / "generated" / "locales")
 )
 
+# Resolved per-locale governance, derived on demand (not vendored) by
+# locales/scripts/derive-governance.sh into generated/i18n/.resolved/<locale>.json.
+# Sibling of GENERATED_DIR under the same generated/ root, so it tracks the
+# I18N_GENERATED_DIR override. Carries the BOUND glossary (senses[*].target) that
+# `validate glossary` checks translations against — distinct from the committable
+# DB `glossary` table (local decisions). Absent until derive-governance.sh runs.
+RESOLVED_DIR: Path = Path(
+    os.environ.get("I18N_RESOLVED_DIR", GENERATED_DIR.parent / "i18n" / ".resolved")
+)
+
 # Working database for translation workflows.
 DB_DIR: Path = Path(os.environ.get("I18N_DB_DIR", LOCALES_DIR / "db"))
 SCHEMA_FILE: Path = DB_DIR / "schema.sql"

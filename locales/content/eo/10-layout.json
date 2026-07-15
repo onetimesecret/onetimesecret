@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Produkto",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Fontkodo",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Fakturado",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Vi rigardas sekuran mesaĝon kiu estis kunhavigita kun vi per {product_name}. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj.",
-    "source_hash": "e0f1a10c"
+    "text": "Vi rigardas sekuran mesaĝon, kiu estis kunhavigita kun vi per {product_name}. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Ĉu mi povas vidi ĉi tiun sekreton denove poste?",
@@ -264,8 +264,8 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Vizitu la hejmpaĝon de {product_name}",
-    "source_hash": "625556d2"
+    "text": "Vizitu la ĉefpaĝon de {product_name}",
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Piedteksta navigado",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Bonvolu kontakti subtenon por helpo",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Nur Colonel-oj",
+    "source_hash": "3f1e2dbd"
   }
 }

@@ -14,6 +14,7 @@ query/export/import logic. Path and table constants come from
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import json
 import sqlite3
@@ -111,6 +112,53 @@ Examples:
     )
     import_parser.set_defaults(func=_import)
 
+    # session subcommand — record/inspect translation rounds in session_log
+    session_parser = gsub.add_parser(
+        "session",
+        help="Record a translation round in the session_log table",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    # record the current round (defaults: locale=multi, date/timestamps=now)
+    i18n db session add --tasks 6090 --notes "29-locale drain; audits clean"
+    i18n db session list
+
+Note: 'add' writes to the DB only. Follow with 'i18n db export session_log'
+to persist the row into db/session_log.sql for commit.
+        """,
+    )
+    ssub = session_parser.add_subparsers(dest="session_cmd", required=True)
+
+    add_parser = ssub.add_parser("add", help="Insert a session_log row")
+    add_parser.add_argument(
+        "--locale", default="multi",
+        help="Locale code, or 'multi' for a multi-locale round (default: multi)",
+    )
+    add_parser.add_argument(
+        "--tasks", type=int, default=0,
+        help="Number of translation tasks completed this session (default: 0)",
+    )
+    add_parser.add_argument(
+        "--notes", default="",
+        help="Verbatim session notes (not summarized)",
+    )
+    add_parser.add_argument(
+        "--date", default=None,
+        help="ISO date, e.g. 2026-07-13 (default: today)",
+    )
+    add_parser.add_argument(
+        "--started", default=None,
+        help="ISO start timestamp (default: now)",
+    )
+    add_parser.add_argument(
+        "--ended", default=None,
+        help="ISO end timestamp (default: now)",
+    )
+    add_parser.set_defaults(func=_session_add)
+
+    list_parser = ssub.add_parser("list", help="List session_log rows")
+    list_parser.set_defaults(func=_session_list)
+
 
 # --- handlers -------------------------------------------------------------
 
@@ -175,6 +223,40 @@ def _import(args) -> int:
     return 0
 
 
+def _session_add(args) -> int:
+    try:
+        add_session(
+            locale=args.locale,
+            task_count=args.tasks,
+            notes=args.notes,
+            date=args.date,
+            started_at=args.started,
+            ended_at=args.ended,
+        )
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _session_list(args) -> int:
+    try:
+        query(
+            "SELECT id, date, locale, task_count, notes "
+            "FROM session_log ORDER BY id"
+        )
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
 # --- ported logic ---------------------------------------------------------
 
 
@@ -222,7 +304,7 @@ def query(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python store.py init' to create it."
+            "Run 'i18n db init' to create it."
         )
 
     with get_connection() as conn:
@@ -265,7 +347,7 @@ def export_tables(table: Optional[str] = None) -> None:
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python store.py init' to create it."
+            "Run 'i18n db init' to create it."
         )
 
     tables_to_export = [table] if table else COMMITTABLE_TABLES
@@ -299,7 +381,7 @@ def export_tables(table: Optional[str] = None) -> None:
             lines = [
                 f"-- Exported from {tbl} table",
                 f"-- {count} rows",
-                f"-- Generated: {__import__('datetime').datetime.now().isoformat()}",
+                f"-- Generated: {datetime.datetime.now(datetime.timezone.utc).isoformat()}",
                 "",
                 f"DELETE FROM {tbl};",
                 "",
@@ -328,6 +410,69 @@ def export_tables(table: Optional[str] = None) -> None:
 
     # Generate checksums for exported files
     _generate_checksums()
+
+
+def add_session(
+    locale: str = "multi",
+    task_count: int = 0,
+    notes: str = "",
+    date: Optional[str] = None,
+    started_at: Optional[str] = None,
+    ended_at: Optional[str] = None,
+) -> int:
+    """Insert a row into the session_log table.
+
+    Records one round of translation work. Timestamps and date default to
+    the current time when omitted. Writes to the DB only — run
+    ``i18n db export session_log`` afterward to persist the row to
+    ``db/session_log.sql`` for commit.
+
+    Returns:
+        The autoincrement id of the inserted row.
+    """
+    if not DB_FILE.exists():
+        raise FileNotFoundError(
+            f"Database not found: {DB_FILE}\n"
+            "Run 'i18n db init' to create it."
+        )
+
+    # Default to UTC to match SQLite's datetime('now') on session_log.created_at.
+    now = datetime.datetime.now(datetime.timezone.utc)
+    date = date or now.date().isoformat()
+    started_at = started_at or now.isoformat()
+    ended_at = ended_at or now.isoformat()
+
+    # Fail early on malformed input rather than storing bad data.
+    try:
+        datetime.date.fromisoformat(date)
+        datetime.datetime.fromisoformat(started_at)
+        datetime.datetime.fromisoformat(ended_at)
+    except ValueError as e:
+        raise RuntimeError(
+            f"Invalid ISO date/timestamp: {e} "
+            "(--date=YYYY-MM-DD, --started/--ended=ISO 8601)"
+        ) from e
+
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO session_log "
+                "(date, locale, started_at, ended_at, task_count, notes) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (date, locale, started_at, ended_at, task_count, notes),
+            )
+            conn.commit()
+            new_id = cursor.lastrowid
+    except sqlite3.Error as e:
+        raise RuntimeError(f"SQL error: {e}") from e
+
+    print(
+        f"session_log: added row id={new_id} "
+        f"({date}, {locale}, {task_count} tasks)"
+    )
+    print("Next: run 'i18n db export session_log' to persist to db/session_log.sql")
+    return new_id
 
 
 def _generate_checksums() -> None:
@@ -359,7 +504,7 @@ def import_tables(file_path: Optional[str] = None, verify: bool = True) -> None:
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python store.py init' to create it."
+            "Run 'i18n db init' to create it."
         )
 
     if file_path:
@@ -430,15 +575,20 @@ def _print_table(rows: list[dict], description: tuple) -> None:
     # Get column names
     columns = [col[0] for col in description]
 
+    def _cell(row, col):
+        # Collapse embedded whitespace (newlines, tabs) so a verbatim
+        # multi-line value (e.g. session_log.notes) stays on one row and
+        # aligned instead of breaking the table.
+        val = " ".join(str(row.get(col, "")).split())
+        if len(val) > 50:
+            val = val[:47] + "..."
+        return val
+
     # Calculate column widths
     widths = {col: len(col) for col in columns}
     for row in rows:
         for col in columns:
-            val = str(row.get(col, ""))
-            # Truncate long values for display
-            if len(val) > 50:
-                val = val[:47] + "..."
-            widths[col] = max(widths[col], len(val))
+            widths[col] = max(widths[col], len(_cell(row, col)))
 
     # Print header
     header = " | ".join(col.ljust(widths[col]) for col in columns)
@@ -448,12 +598,7 @@ def _print_table(rows: list[dict], description: tuple) -> None:
 
     # Print rows
     for row in rows:
-        line_parts = []
-        for col in columns:
-            val = str(row.get(col, ""))
-            if len(val) > 50:
-                val = val[:47] + "..."
-            line_parts.append(val.ljust(widths[col]))
+        line_parts = [_cell(row, col).ljust(widths[col]) for col in columns]
         print(" | ".join(line_parts))
 
     print(f"\n({len(rows)} rows)")

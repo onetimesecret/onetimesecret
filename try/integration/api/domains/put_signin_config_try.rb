@@ -310,16 +310,13 @@ end
 @get_result[:record][:sso_enabled]
 #=> true
 
-## GET returns 404 when no signin config exists
+## GET returns nil record when no signin config exists (ADR-024: unconfigured is 200, not 404)
 @domain_no_config = Onetime::CustomDomain.create!("psc-noconfig-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
-begin
-  @logic_get_missing = build_get(extid: @domain_no_config.extid)
-  @logic_get_missing.raise_concerns
-  'unexpected_success'
-rescue Onetime::RecordNotFound
-  'not_found'
-end
-#=> 'not_found'
+@logic_get_missing = build_get(extid: @domain_no_config.extid)
+@logic_get_missing.raise_concerns
+@missing_result = @logic_get_missing.process
+[@missing_result[:record], @missing_result[:details].nil?]
+#=> [nil, false]
 
 ## DELETE removes existing signin config
 @domain_del = Onetime::CustomDomain.create!("psc-del-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)

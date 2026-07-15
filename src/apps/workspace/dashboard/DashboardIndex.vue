@@ -6,7 +6,17 @@
   import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
   import { loggingService } from '@/services/logging.service';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { storeToRefs } from 'pinia';
   import { computed, ref } from 'vue';
+
+  // Resolve the active brand color so the CTA tracks the same source as the
+  // logo (identityStore.primaryColor → --color-brand-500). Mirrors
+  // HomepageContent.vue: without this the button falls back to
+  // WorkspaceSecretForm's neutral-blue default, so a branded install shows a
+  // brand-colored logo above a neutral-blue "Create Link" button.
+  const identityStore = useProductIdentity();
+  const { primaryColor } = storeToRefs(identityStore);
 
   // Form ref for accessing exposed state
   const secretFormRef = ref<InstanceType<typeof WorkspaceSecretForm> | null>(null);
@@ -59,6 +69,7 @@
     <WorkspaceSecretForm
       ref="secretFormRef"
       class="mb-10"
+      :primary-color="primaryColor"
       @created="handleSecretCreated" />
 
     <RecentSecretsTable

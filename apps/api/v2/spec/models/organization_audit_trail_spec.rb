@@ -4,6 +4,7 @@
 
 require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require 'onetime/security/request_context'
 
 # Audit-fidelity coverage for the organization audit trail (#3633).
 #
@@ -124,6 +125,90 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(raw).not_to include(receipt.identifier)
     end
 
+    # Network context capture (#3640, ADR-022). The fetch path threads a
+    # privacy-safe context hash into record_access_event, which forwards it to
+    # the trail. These specs pin that the AGREED representation lands -- masked
+    # partial IP, partial UA, keyed correlation hash -- and, critically, that a
+    # raw IP or full UA can NEVER reach the stored event.
+    describe 'network context fan-out' do
+      # Represents what the capture layer produces: already-reduced values.
+      let(:context) do
+        {
+          'net_ip_partial' => '203.0.113.0',
+          'net_ua_partial' => 'Mozilla/*.* Chrome/*.*.*.*',
+          'net_ip_hash' => 'd5cc375856c803a88c2aed517a5ae82244be6819a7ac0c11e08deeb679ecff39',
+        }
+      end
+
+      before { link_to_org!(receipt, org) }
+
+      it 'carries the masked partial IP, partial UA, and keyed hash into the trail' do
+        receipt.record_access_event('secret_get', context: context)
+
+        event = org.audit_events_page.first
+        expect(event['kind']).to eq('secret_get')
+        expect(event['net_ip_partial']).to eq('203.0.113.0')
+        expect(event['net_ua_partial']).to eq('Mozilla/*.* Chrome/*.*.*.*')
+        expect(event['net_ip_hash']).to eq(context['net_ip_hash'])
+        # Alongside the existing shortid context, not instead of it.
+        expect(event['receipt']).to eq(receipt.shortid)
+      end
+
+      it 'keeps the shortid-only context intact when no network context is given' do
+        receipt.record_access_event('status_get')
+
+        event = org.audit_events_page.first
+        expect(event).to include('receipt', 'secret', 'kind', 'at')
+        expect(event.keys).not_to include('net_ip_partial', 'net_ua_partial', 'net_ip_hash')
+      end
+
+      # NO-REGRESSION GUARD (primary privacy safety net): a raw dotted-quad IP
+      # or a full user-agent string must NEVER appear in any recorded event
+      # attribute. Even if a caller hands record_access_event a context built
+      # from raw values, only the masked representation may be persisted -- so
+      # here we build the context through the real capture helper from RAW
+      # inputs and assert the raw values are absent from the stored trail.
+      it 'never persists a raw IP or full UA anywhere in the recorded event' do
+        raw_ip   = '203.0.113.42'
+        raw_ipv6 = '2001:db8:1234:5678:9abc:def0:1234:5678'
+        full_ua  = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' \
+                   '(KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+
+        [raw_ip, raw_ipv6].each do |ip|
+          real_context = Onetime::Security::RequestContext.capture(ip: ip, user_agent: full_ua)
+          receipt.record_access_event('secret_get', context: real_context)
+        end
+
+        raw = org.audit_events.membersraw.join
+
+        # No raw dotted-quad IPv4, no full IPv6, no full UA, no version token.
+        expect(raw).not_to include(raw_ip)
+        expect(raw).not_to include(raw_ipv6)
+        expect(raw).not_to include(full_ua)
+        expect(raw).not_to include('119.0.0.0')
+
+        # Belt and suspenders: scan every stored attribute value directly.
+        org.audit_events_page(limit: 200).each do |event|
+          event.each_value do |value|
+            expect(value.to_s).not_to include(raw_ip)
+            expect(value.to_s).not_to include(raw_ipv6)
+            expect(value.to_s).not_to include(full_ua)
+          end
+        end
+      end
+
+      it 'records a stable, keyed correlation hash across two events from the same source' do
+        real_context = Onetime::Security::RequestContext.capture(
+          ip: '203.0.113.42', user_agent: 'UA/1.0',
+        )
+        2.times { receipt.record_access_event('status_get', context: real_context) }
+
+        hashes = org.audit_events_page.map { |e| e['net_ip_hash'] }
+        expect(hashes.uniq.size).to eq(1)
+        expect(hashes.first).to match(/\A[0-9a-f]{64}\z/)
+      end
+    end
+
     it 'writes nowhere and raises nothing for receipts without org context' do
       expect { receipt.record_access_event('status_get') }.not_to raise_error
       expect(org.audit_event_count).to eq(0)
@@ -207,6 +292,126 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       kinds = org.audit_events_page.map { |e| e['kind'] }
       expect(kinds).to eq(['revealed'])
+    end
+  end
+
+  # Actor attribution on lifecycle events (#3639). The revealed/burned events
+  # must carry WHO acted; the discriminator is computed at the request-scoped
+  # logic layer and threaded through the atomic consume cascade. These model
+  # specs pin the trail-facing half of that contract:
+  #   * record_org_audit_event forwards arbitrary string-keyed event_attrs;
+  #   * revealed!/burned! record the threaded actor exactly once (CAS-gated);
+  #   * a missing actor context fails safe to 'anonymous' (never 'creator');
+  #   * the full Secret -> Receipt -> Org cascade carries the actor down.
+  describe 'actor attribution on lifecycle events (#3639)' do
+    before { link_to_org!(receipt, org) }
+
+    it 'record_org_audit_event forwards extra string-keyed attrs into the event' do
+      receipt.record_org_audit_event('revealed', 'actor' => 'creator', 'actor_id' => 'abcd1234')
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
+    end
+
+    it 'threads the actor through revealed! into the trail' do
+      receipt.revealed!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
+    end
+
+    it 'threads the actor through burned! into the trail' do
+      receipt.burned!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'beef5678' })
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('burned')
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq('beef5678')
+    end
+
+    it 'defaults a missing actor context to anonymous on revealed! (never misattributed)' do
+      receipt.revealed! # v1 / account-verification path: no request context
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    it 'defaults a blank actor to anonymous on burned! (never misattributed)' do
+      receipt.burned!(actor_context: { 'actor' => '' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+    end
+
+    # Privacy no-regression guards for lifecycle_audit_attrs normalization.
+    # These pin the three ways an actor context is reduced before it is stored,
+    # so a future change can't silently start leaking identity into the trail.
+    it 'never attaches an actor_id to an anonymous event, even if one is supplied' do
+      # An anonymous actor has no identity to record; an id riding along on the
+      # context must be dropped, not stored against 'anonymous'.
+      receipt.revealed!(actor_context: { 'actor' => 'anonymous', 'actor_id' => 'abcd1234' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    it 'fails an unrecognized actor safe to anonymous and drops its id' do
+      # An actor label outside the known set is never recorded verbatim: it
+      # fails safe to anonymous (never misattributed to the creator) and any
+      # id it carried is dropped with it.
+      receipt.revealed!(actor_context: { 'actor' => 'root', 'actor_id' => 'abcd1234' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    it 'clamps an over-long actor_id to the 8-char shortid policy' do
+      # Defense in depth: even if a caller supplies an unreduced objid/custid,
+      # the trail stores only the 8-char shortid -- a full identifier (which
+      # could be a capability token) can never leak in.
+      receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234efgh5678' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
+    end
+
+    it 'records the threaded actor exactly once; a race-loser records nothing' do
+      loser = Onetime::Receipt.load(receipt.identifier)
+
+      expect(receipt.revealed!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })).to be true
+      # The loser lost the CAS: it neither transitions nor appends an event.
+      expect(loser.revealed!(actor_context: { 'actor' => 'authenticated_other' })).to be_falsey
+
+      events = org.audit_events_page
+      expect(events.map { |e| e['kind'] }).to eq(['revealed'])
+      expect(events.first['actor']).to eq('creator')
+    end
+
+    it 'carries the actor down the full Secret -> Receipt -> Org reveal cascade' do
+      expect(secret.reveal!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'beef5678' }))
+        .to eq('a secret value')
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq('beef5678')
+    end
+
+    it 'carries the actor down the full Secret -> Receipt -> Org burn cascade' do
+      expect(secret.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })).to be true
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('burned')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
     end
   end
 

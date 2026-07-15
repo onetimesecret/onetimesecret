@@ -62,7 +62,7 @@
   "email.welcome.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.welcome.postscript": {
     "text": "P.S. Questa email è stata inviata a %{email_address}. Se non hai creato un account, puoi ignorare questo messaggio.",
@@ -102,7 +102,7 @@
   "email.password_request.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.password_request.postscript": {
     "text": "P.S. Questa email è stata inviata a %{email_address}.",
@@ -147,7 +147,7 @@
   "email.magic_link.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.magic_link.postscript": {
     "text": "P.S. Questa email è stata inviata a %{email_address}.",
@@ -232,7 +232,7 @@
   "email.secret_revealed.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Gestisci preferenze di notifica",
@@ -315,7 +315,7 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support",
+    "text": "Team di supporto di Onetime Secret",
     "renderer": "erb",
     "source_hash": "f6a6c90f"
   },
@@ -357,7 +357,7 @@
   "email.organization_invitation.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. Questa email è stata inviata a %{invited_email}. Se non aspettavi questo invito, puoi ignorare questo messaggio.",
@@ -397,17 +397,17 @@
   "email.password_changed.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.subject": {
     "text": "Il tuo indirizzo email è stato modificato (%{display_domain})",
     "renderer": "erb",
-    "source_hash": "d68d2f4c"
+    "source_hash": "4386fc57"
   },
   "email.email_changed.title": {
     "text": "Il tuo indirizzo email è stato modificato",
     "renderer": "erb",
-    "source_hash": "62b07299"
+    "source_hash": "db70f965"
   },
   "email.email_changed.security_notice": {
     "text": "Se non hai effettuato questa modifica, contatta immediatamente il supporto poiché il tuo account potrebbe essere stato compromesso.",
@@ -417,7 +417,7 @@
   "email.email_changed.change_notice": {
     "text": "L'indirizzo email del tuo account %{product_name} è stato modificato.",
     "renderer": "erb",
-    "source_hash": "bb467ebc"
+    "source_hash": "7fc0e27c"
   },
   "email.email_changed.new_email_label": {
     "text": "Nuova email:",
@@ -447,7 +447,7 @@
   "email.email_changed.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.postscript": {
     "text": "P.S. Questa email è stata inviata a %{email_address} per informarti di una modifica dell'indirizzo email.",
@@ -497,7 +497,7 @@
   "email.email_change_requested.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Questa email è stata inviata a %{email_address} perché è stata richiesta una modifica dell'indirizzo email del tuo account.",
@@ -552,7 +552,7 @@
   "email.email_change_confirmation.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_confirmation.postscript": {
     "text": "P.S. Questa email è stata inviata a %{email_address} per confermare una modifica dell'indirizzo email.",
@@ -582,7 +582,7 @@
   "email.mfa_enabled.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.mfa_disabled.subject": {
     "text": "Autenticazione a due fattori disattivata (%{display_domain})",
@@ -607,7 +607,7 @@
   "email.mfa_disabled.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.new_login_alert.subject": {
     "text": "Nuovo accesso al tuo account (%{display_domain})",
@@ -652,7 +652,7 @@
   "email.new_login_alert.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.member_removed.subject": {
     "text": "Sei stato rimosso da %{organization_name}",
@@ -672,7 +672,7 @@
   "email.member_removed.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.role_changed.subject": {
     "text": "Il tuo ruolo è stato modificato in %{organization_name}",
@@ -692,7 +692,7 @@
   "email.role_changed.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_deleted.subject": {
     "text": "L'organizzazione \"%{organization_name}\" è stata eliminata",
@@ -712,72 +712,7 @@
   "email.organization_deleted.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
-  },
-  "email.payment_receipt.subject": {
-    "text": "Ricevuta di pagamento per %{product_name}",
-    "renderer": "erb",
-    "source_hash": "a1b5cc04"
-  },
-  "email.payment_receipt.title": {
-    "text": "Ricevuta di pagamento",
-    "renderer": "erb",
-    "source_hash": "7e677ab8"
-  },
-  "email.payment_receipt.body": {
-    "text": "Grazie per il tuo pagamento. Ecco i dettagli del pagamento:",
-    "renderer": "erb",
-    "source_hash": "a1fb6502"
-  },
-  "email.payment_receipt.amount_label": {
-    "text": "Importo:",
-    "renderer": "erb",
-    "source_hash": "cdf45632"
-  },
-  "email.payment_receipt.date_label": {
-    "text": "Data:",
-    "renderer": "erb",
-    "source_hash": "b51489bd"
-  },
-  "email.payment_receipt.plan_label": {
-    "text": "Piano:",
-    "renderer": "erb",
-    "source_hash": "c6c28dbb"
-  },
-  "email.payment_receipt.invoice_link": {
-    "text": "Visualizza fattura",
-    "renderer": "erb",
-    "source_hash": "36008943"
-  },
-  "email.payment_receipt.signature": {
-    "text": "Team di supporto",
-    "renderer": "erb",
-    "source_hash": "f58154f7"
-  },
-  "email.payment_failed.subject": {
-    "text": "Pagamento non riuscito per %{product_name}",
-    "renderer": "erb",
-    "source_hash": "77f18a23"
-  },
-  "email.payment_failed.title": {
-    "text": "Pagamento non riuscito",
-    "renderer": "erb",
-    "source_hash": "a287ab86"
-  },
-  "email.payment_failed.body": {
-    "text": "Non siamo riusciti a elaborare il tuo pagamento per %{product_name}. Aggiorna il metodo di pagamento per evitare l'interruzione del servizio.",
-    "renderer": "erb",
-    "source_hash": "6496ef22"
-  },
-  "email.payment_failed.update_payment_button": {
-    "text": "Aggiorna metodo di pagamento",
-    "renderer": "erb",
-    "source_hash": "926406b1"
-  },
-  "email.payment_failed.signature": {
-    "text": "Team di supporto",
-    "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.trial_expiring.subject": {
     "text": "Il tuo periodo di prova %{product_name} scade tra %{days_remaining} giorni",
@@ -802,7 +737,7 @@
   "email.trial_expiring.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.subscription_changed.subject": {
     "text": "Il tuo abbonamento %{product_name} è stato modificato",
@@ -827,7 +762,7 @@
   "email.subscription_changed.signature": {
     "text": "Team di supporto",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.common.greeting": {
     "text": "Ciao,",

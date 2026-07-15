@@ -4,6 +4,15 @@ Create customer accounts and generate Basic Auth API tokens from the CLI for dev
 
 ## Quick Start
 
+For a browser-login account with sample secrets, use the seed task
+(idempotent; defaults to `dev@example.com` / `devpassword`):
+
+```bash
+bundle exec rake dev:seed
+```
+
+For API credentials:
+
 ```bash
 # Create a test account and get curl-ready API credentials
 bin/ots apitoken test@example.com --create
@@ -12,8 +21,8 @@ bin/ots apitoken test@example.com --create
 #   API Token: k3j8f...
 #   Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==
 #
-#   curl -u 'test@example.com:k3j8f...' https://localhost:3000/api/v2/account
-#   curl -H 'Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==' https://localhost:3000/api/v2/account
+#   curl -u 'test@example.com:k3j8f...' https://localhost:3000/api/account
+#   curl -H 'Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==' https://localhost:3000/api/account
 ```
 
 ## API Token Management
@@ -81,7 +90,7 @@ Available plan IDs are defined in `etc/billing.yaml` under the `plans:` key (e.g
 The REST API accepts credentials via the standard `Authorization: Basic` header. The value is `base64(email:apitoken)`.
 
 ```
-GET /api/v2/account HTTP/1.1
+GET /api/account HTTP/1.1
 Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==
 ```
 

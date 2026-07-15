@@ -71,6 +71,37 @@ module InviteAPI
         invitation.status
       end
 
+      # Raise the "already processed" form error with a status-specific,
+      # fully-translatable message key. The invitation status ('accepted' /
+      # 'active' / 'declined') is a raw backend enum, so it must never be
+      # interpolated into a single "already been %{status}" frame — that leaks
+      # an untranslated English token and assumes a word order many languages
+      # can't honour. Each status maps to its own complete sentence key; any
+      # unexpected status falls back to the generic "processed" key.
+      def raise_already_processed(invitation)
+        opts = { field: :token, error_type: :invalid }
+        case invitation.status
+        when 'accepted', 'active'
+          raise_form_error(
+            'This invitation has already been accepted',
+            error_key: 'api.invite.errors.invitation_already_accepted',
+            **opts,
+          )
+        when 'declined'
+          raise_form_error(
+            'This invitation has already been declined',
+            error_key: 'api.invite.errors.invitation_already_declined',
+            **opts,
+          )
+        else
+          raise_form_error(
+            'This invitation has already been processed',
+            error_key: 'api.invite.errors.invitation_already_processed',
+            **opts,
+          )
+        end
+      end
+
       # Serialize brand settings for public API response (guest-safe)
       def serialize_brand_public(brand_settings, custom_domain)
         return nil unless brand_settings && custom_domain

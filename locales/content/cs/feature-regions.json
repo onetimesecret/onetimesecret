@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu {product_name}, použij pro účet v novém regionu fakturační kontaktní e-mail, aby zůstaly zachovány výhody tvého předplatného.",
-    "source_hash": "dac1cc28"
+    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu {product_name}, použij pro účet v novém regionu fakturační kontaktní e-mail, abys zachoval výhody svého předplatného.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Výhody tvého předplatného se automaticky uplatní na jakýkoli účet vytvořený s tvou fakturační e-mailovou adresou.",

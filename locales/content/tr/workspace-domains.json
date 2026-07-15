@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Etkinleştirildi",
-    "source_hash": "92c1cdfd"
+    "text": "Etkinleştir",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Devre Dışı",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Yapılandırmak için yükseltin",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Özel alan adı",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Ekibinizin kullanacağı tam ana bilgisayar adı, {example} gibi.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Gizli mesaj bağlantılarınız şurada yer alacak:",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Bu, tüm alan adınız — gizli mesaj bağlantıları nerede yer almalı?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Bir alt alan adı, {domain} adresinin geri kalanını dokunulmadan bırakır.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Önerilen",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Yanlış seçim yok — ekibinizin tanıyacağı hangisiyse onu seçin.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Popüler alt alan adları",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Veya tüm alan adınızı kullanın",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Kök alan adımı kullan",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Bu, {domain} adresinin tamamını bize yönlendirir — oradaki site artık çözümlenmez — ve bir A / ALIAS kaydı gerektirir.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}” tanınan bir alan adı sonu değil — bir yazım hatası olup olmadığını kontrol edin (örn. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Geçerli bir ana bilgisayar adı girin — harfler, rakamlar, tek noktalar ve tireler (örn. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Lütfen bir alan adı girin.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "{0} ile devam et",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Çalışma alanı varsayılanı",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS Kurulumu",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Alan adınızı bir CNAME kaydıyla bu sunucuya yönlendirin",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS yapılandırması",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Şunu yönlendirin:",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "sağlayıcınızda aşağıdaki DNS kaydını ekleyerek bu sunucuya.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Bir CNAME kaydı oluşturun",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Bir ALIAS veya ANAME kaydı oluşturun",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apex (kök) alan adları CNAME kaydı kullanamaz. Bunun yerine DNS sağlayıcınızın ALIAS veya ANAME kaydını kullanın ya da bir A kaydını sunucunuzun IP adresine yönlendirin.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Ana Sayfa",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Ziyaretçilerin alan adı ana sayfanızda neler yapabileceği",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Özel açılış sayfası",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Ziyaretçiler, etkileşimli form içermeyen özel bir açılış sayfası görür",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Gizli mesaj oluşturma formu",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Ziyaretçiler kendi gizli mesaj bağlantılarını oluşturabilir",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Gelen gizli mesajlar formu",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Ziyaretçiler, yapılandırdığınız alıcılara gizli mesaj gönderebilir",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Gelen gizli mesajların en az bir alıcıyla etkinleştirilmesini gerektirir",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Alıcıları yapılandır",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Özel açılış sayfası",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Herkese açık: ziyaretçiler gizli mesaj oluşturur",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Herkese açık: ziyaretçiler size gizli mesaj gönderir",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Gelen hazır değil — özel açılış sayfası gösteriliyor",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Gelen",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Ana sayfa ayarları kaydedildi",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Bu alan adının ana sayfası şu anda gelen gizli mesajlar formunu sunuyor. Gelen gizli mesajları devre dışı bırakmak veya tüm alıcıları kaldırmak, gelen yeniden hazır olana kadar ana sayfayı özel bir açılış sayfasına geçirir.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Bu alan adında oturum açma",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Oturum açma, çalışma alanı genelinde kapatılmış, bu nedenle her alan adında kullanılamaz. Buradaki ayarlarınız korunur ve çalışma alanı oturum açma yeniden etkinleştirildiğinde geçerli olur.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Bu alan adında kayıtlar",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Kayıtlar, çalışma alanı genelinde kapatılmış, bu nedenle her alan adında kullanılamaz. Buradaki ayarlarınız korunur ve çalışma alanı kayıtları yeniden etkinleştirildiğinde geçerli olur.",
+    "source_hash": "49faefe4"
   }
 }

@@ -34,11 +34,10 @@ require 'simplecov' if ENV['COVERAGE'] == 'true'
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
-# Set test database URL - use port 2121 to avoid conflicts with development Redis
-# This MUST be set before config.test.yaml is loaded via ERB, since it checks:
-#   ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
-#
-# Values from .env file would otherwise leak into tests. For tests, always use port 2121 explicitly.
+# Test database URL: spec/config.test.yaml hardcodes redis://127.0.0.1:2121/0
+# (port 2121 avoids conflicts with development Redis on 6379). It is not
+# overridable via VALKEY_URL/REDIS_URL; see [#2128] which centralized the
+# test Redis URL in config instead of env vars scattered across spec helpers.
 
 require 'rspec'
 require 'yaml'

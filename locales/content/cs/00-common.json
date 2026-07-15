@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organizace",
-    "source_hash": "2730183d"
+    "text": "Pracovní prostory",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Nastavení organizace",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vždy si ověř, že jsi na oficiálním webu {product_name}. Podvodníci někdy vytvářejí falešné weby, které vypadají úplně stejně jako {product_name}, aby ti ukradli tajemství. Abys předešel phishingovým útokům, před vytvořením nových odkazů zkontroluj doménu regionu.",
-    "source_hash": "b588f5b2"
+    "text": "Vždy si ověř, že jsi na oficiálním webu {product_name}. Podvodníci někdy vytvářejí falešné weby, které vypadají úplně stejně jako {product_name}, aby ukradli tvá tajemství. Abys předešel phishingovým útokům, ověř si v adresním řádku doménu regionu, než vytvoříš nové odkazy.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Jednoduchý a transparentní ceník",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Příchozí tajemství",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Aktualizovat",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Aktualizuji...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Zkontroluj svůj e-mail",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Nastavení DNS",
+    "source_hash": "6c63df31"
   }
 }

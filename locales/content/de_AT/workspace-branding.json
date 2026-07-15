@@ -28,8 +28,8 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Vorschau & Anpassen",
-    "source_hash": "215d3659"
+    "text": "Anpassen & Vorschau",
+    "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Zu Safari-Browseransicht wechseln",
@@ -88,8 +88,8 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Klicken Sie, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG",
-    "source_hash": "a35452bf"
+    "text": "Klicken Sie, um Ihr Logo zu verwalten. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1 MB. Unterstützte Formate: PNG, JPG, SVG",
+    "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Logo hochladen",
@@ -145,15 +145,15 @@
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Bereitgestellt von {product_name}",
-    "source_hash": "d8e9f0a1"
+    "source_hash": "1f393117"
   },
   "web.branding.low_contrast_warning": {
     "text": "Niedriger Kontrast",
-    "source_hash": "a1b2c3d4"
+    "source_hash": "2d6e7516"
   },
   "web.branding.contrast_ratio_label": {
     "text": "Kontrastverhältnis",
-    "source_hash": "e5f6a7b8"
+    "source_hash": "d521a5be"
   },
   "web.branding.heading_logo": {
     "text": "{0}-Logo",
@@ -186,5 +186,225 @@
   "web.branding.keyhole_logo_icon": {
     "text": "Schlüsselloch-Symbol, das sicheres, privates Teilen darstellt",
     "source_hash": "c868ac60"
+  },
+  "web.branding.secondary_color": {
+    "text": "Sekundärfarbe",
+    "source_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Hintergrundfarbe",
+    "source_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Textfarbe",
+    "source_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Eckenradius",
+    "source_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Überschriftenschrift",
+    "source_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Design-Voreinstellungen",
+    "source_hash": "931eeb74"
+  },
+  "web.branding.logo": {
+    "text": "Logo",
+    "source_hash": "d707dc2f"
+  },
+  "web.branding.replace_logo": {
+    "text": "Ersetzen",
+    "source_hash": "95e15439"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "Vorschau, bevor Ihre Änderungen live gehen.",
+    "source_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Bereich-Logo",
+    "source_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG oder SVG. Empfohlen 128x128px, bis zu 1 MB.",
+    "source_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Logo speichern",
+    "source_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Logo entfernen",
+    "source_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Bild auswählen",
+    "source_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "oder per Drag & Drop",
+    "source_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "Dieser Dateityp wird nicht unterstützt. Bitte wählen Sie ein Bild.",
+    "source_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "Das Bild ist zu groß. Die maximale Größe beträgt {max}.",
+    "source_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "Dieses Logo wird beim Speichern entfernt.",
+    "source_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    "source_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Rückgängig",
+    "source_hash": "a8283ade"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Geringer Text-/Hintergrundkontrast",
+    "source_hash": "1c676370"
+  },
+  "web.branding.path_simple": {
+    "text": "Einfach",
+    "source_hash": "3fee95da"
+  },
+  "web.branding.path_match": {
+    "text": "Meine Website nachahmen",
+    "source_hash": "776679cf"
+  },
+  "web.branding.path_advanced": {
+    "text": "Erweitert",
+    "source_hash": "9f088dbe"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Ihre Marken-Grundlagen.",
+    "source_hash": "7c9c0cca"
+  },
+  "web.branding.path_match_tag": {
+    "text": "Einstellungen von einer bestehenden Website übernehmen.",
+    "source_hash": "e4b0d1cd"
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Erstellen Sie Ihr eigenes Tailwind-v4-CSS.",
+    "source_hash": "2405bb6d"
+  },
+  "web.branding.badge_default": {
+    "text": "Standard",
+    "source_hash": "21b111cb"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Demnächst",
+    "source_hash": "4f7d6401"
+  },
+  "web.branding.your_brand": {
+    "text": "Ihre Marke",
+    "source_hash": "406265d3"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "Ein paar schnelle Entscheidungen — den Rest übernehmen wir.",
+    "source_hash": "dbc8ec33"
+  },
+  "web.branding.corners": {
+    "text": "Ecken",
+    "source_hash": "1d3cc47e"
+  },
+  "web.branding.more_options": {
+    "text": "Weitere Optionen",
+    "source_hash": "bc79cdff"
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "Dies ist eine Live-Vorschau — Ihre Änderungen sind für Besucher erst nach dem Speichern sichtbar.",
+    "source_hash": "cb4b82de"
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Geben Sie uns Ihre Website an, und wir lesen ihre Farben und Schriften aus und schließen dann die Lücke mit einem Klick.",
+    "source_hash": "42c34cc1"
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Bearbeiten Sie die Tailwind-v4-{'@'}theme-Tokens direkt oder fügen Sie Ihr eigenes Stylesheet ein.",
+    "source_hash": "5a8473f5"
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Empfängerseite",
+    "source_hash": "de8aa19f"
+  },
+  "web.branding.preview_badge": {
+    "text": "Vorschau",
+    "source_hash": "324b134f"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Startseite · aktiviert",
+    "source_hash": "2edd85f1"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Startseite · deaktiviert",
+    "source_hash": "15d87050"
+  },
+  "web.branding.preview_live": {
+    "text": "Live-Vorschau",
+    "source_hash": "f65ddc1f"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Ein Geheimnis teilen",
+    "source_hash": "5384461b"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Geheimen Link erstellen",
+    "source_hash": "610fd42e"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Nur sichere Nachrichtenzustellung",
+    "source_hash": "dc24dec2"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Besucher können hier keine Geheimnisse erstellen.",
+    "source_hash": "17361d81"
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Inhalt der Empfängerseite",
+    "source_hash": "937733bd"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Sprache und Anweisungen zum Anzeigen, die Empfängern auf diesem Bereich angezeigt werden.",
+    "source_hash": "04162b70"
+  },
+  "web.branding.tab_brand": {
+    "text": "Marke",
+    "source_hash": "090ed431"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Zustellung",
+    "source_hash": "52bfe584"
+  },
+  "web.branding.delivery_language": {
+    "text": "Sprache",
+    "source_hash": "a4fe6526"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Standard für Empfängerseiten und E-Mails auf diesem Bereich. Empfänger können die Sprache auf der Seite wechseln.",
+    "source_hash": "bfbc5599"
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Anweisungen zum Anzeigen",
+    "source_hash": "7e1331f7"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Wird auf der Empfängerseite angezeigt. Leer lassen, um den integrierten Text in der ausgewählten Sprache zu verwenden.",
+    "source_hash": "51b9811d"
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Vor dem Anzeigen",
+    "source_hash": "5ce82b01"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "Nach dem Anzeigen",
+    "source_hash": "d5bfe7fd"
   }
 }

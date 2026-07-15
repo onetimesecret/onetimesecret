@@ -174,6 +174,13 @@
     { immediate: true }
   );
 
+  // On a custom domain the form can only ever target that one domain, so the
+  // "Creating links for <domain>" badge is noise. Only surface it where the
+  // domain context is an actual choice (the workspace multi-domain case).
+  const showDomainContext = computed(
+    () => isContextActive.value && domainStrategy.value !== 'custom'
+  );
+
   // Focus management when switching between Create Link and Generate Password modes
   const generatePasswordSection = ref<HTMLElement | null>(null);
 </script>
@@ -192,10 +199,16 @@
       class="space-y-6"
       data-testid="secret-form">
       <!-- prettier-ignore-attribute class -->
+      <!--
+        Card radius is fixed (rounded-lg), NOT the brand cornerClass. A large
+        brand radius (now capped at xl / 64px since the 9999px `full` preset was
+        removed) still reads as an over-rounded blob on this large container. The
+        corner token belongs on the controls inside (inputs, select, button),
+        matching BaseSecretDisplay's fixed-card / branded-controls split.
+      -->
       <div
         ref="div1"
-        :class="[cornerClass]"
-        class="overflow-visible border border-gray-200/50
+        class="overflow-visible rounded-lg border border-gray-200/50
           bg-gradient-to-br from-white to-gray-50/30
           shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)]
           backdrop-blur-sm
@@ -222,9 +235,9 @@
           </span>
 
           <!-- Generate Password Text -->
+          <!-- Fixed rounded-lg (large container); see the outer card note above. -->
           <div
             v-show="selectedAction === 'generate-password'"
-            :class="[cornerClass]"
             class="relative overflow-hidden rounded-lg border border-brand-200/50 bg-gradient-to-br from-brand-50/80 to-purple-50/40 shadow-[0_4px_20px_rgb(0,0,0,0.08)] backdrop-blur-sm dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20 dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc"
@@ -481,7 +494,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <!-- Domain Context Indicator -->
               <div
-                v-if="isContextActive"
+                v-if="showDomainContext"
                 class="order-1 flex items-center gap-2 text-sm sm:order-1">
                 <span class="text-gray-600 dark:text-gray-400">
                   {{ t('web.LABELS.creating_links_for') }}

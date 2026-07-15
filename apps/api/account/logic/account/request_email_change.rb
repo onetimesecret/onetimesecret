@@ -143,7 +143,7 @@ module AccountAPI::Logic
             fallback: :sync,
           )
         rescue StandardError => ex
-          auth_logger.error "[request-email-change] Failed to send confirmation email", exception: ex
+          auth_logger.error '[request-email-change] Failed to send confirmation email', exception: ex
         end
 
         # Send notification email to the OLD address (request-time, present tense)
@@ -158,7 +158,7 @@ module AccountAPI::Logic
             fallback: :async_thread,
           )
         rescue StandardError => ex
-          auth_logger.error "[request-email-change] Failed to send notification email", exception: ex
+          auth_logger.error '[request-email-change] Failed to send notification email', exception: ex
         end
       end
 
@@ -179,10 +179,10 @@ module AccountAPI::Logic
       def verify_password_full_mode(password)
         Auth::Config.valid_login_and_password?(login: cust.email, password: password)
       rescue Rodauth::InternalRequestError => ex
-        auth_logger.error "[request-email-change] Rodauth verification failed", exception: ex
+        auth_logger.error '[request-email-change] Rodauth verification failed', exception: ex
         false
       rescue StandardError => ex
-        auth_logger.error "[request-email-change] Password verification error", exception: ex
+        auth_logger.error '[request-email-change] Password verification error', exception: ex
         false
       end
 

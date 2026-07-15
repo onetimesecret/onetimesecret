@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Producto",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Código fuente",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Facturación",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Estás viendo un mensaje seguro que se compartió contigo a través de {product_name}. Este contenido se muestra una sola vez y luego se elimina permanentemente de nuestros servidores.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "¿Puedo ver este secreto de nuevo más tarde?",
@@ -264,8 +264,8 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visitar la página de inicio de {product_name}",
-    "source_hash": "625556d2"
+    "text": "Visita la página de inicio de {product_name}",
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Navegación del pie de página",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Contacta con soporte para obtener ayuda",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Solo Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

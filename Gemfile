@@ -10,7 +10,7 @@
 #   normal maintenance until: TBD
 #   end of life: 2028-03 (est)
 #
-ruby '>= 3.3.6'
+ruby file: '.ruby-version'
 
 source 'https://rubygems.org/'
 
@@ -19,7 +19,7 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.5'
-gem 'rhales', '~> 0.6.2'
+gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 # Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix

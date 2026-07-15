@@ -122,6 +122,20 @@ module Onetime
         def enqueue_dns_record_check(domain_id)
           new.enqueue_dns_record_check(domain_id)
         end
+
+        # Enqueue a custom-domain favicon fetch for async processing
+        #
+        # Falls back to synchronous fetch if jobs are disabled, ensuring
+        # favicon fetching works without RabbitMQ for dev/testing.
+        #
+        # @param domain_id [String] CustomDomain identifier
+        # @param force [Boolean] Re-fetch even when an auto_fetch icon already
+        #   exists (manual refresh, #3780). Default false.
+        # @return [Boolean] true if published to queue or processed synchronously
+        # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+        def enqueue_favicon_fetch(domain_id, force: false)
+          new.enqueue_favicon_fetch(domain_id, force: force)
+        end
       end
 
       def initialize
@@ -334,6 +348,44 @@ module Onetime
           domain_id: domain_id,
           message_id: message_id,
           queue: 'domain.dns.check'
+        true
+      end
+
+      # Enqueue a custom-domain favicon fetch for async processing
+      #
+      # Falls back to synchronous fetch if jobs are disabled, enabling
+      # development/testing without RabbitMQ. If jobs ARE enabled but RabbitMQ
+      # is unavailable, raises so the controller can return an error.
+      #
+      # @param domain_id [String] CustomDomain identifier
+      # @param force [Boolean] Re-fetch even when an auto_fetch icon already
+      #   exists (manual refresh, #3780). Default false.
+      # @return [Boolean] true if published to queue or processed synchronously
+      # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+      def enqueue_favicon_fetch(domain_id, force: false)
+        unless jobs_enabled?
+          logger.info 'Jobs disabled, fetching favicon synchronously',
+            domain_id: domain_id,
+            force: force
+
+          require 'onetime/operations/fetch_domain_favicon'
+
+          Onetime::Operations::FetchDomainFavicon.new(domain_id: domain_id, force: force).call
+
+          return true
+        end
+
+        message = {
+          domain_id: domain_id,
+          force: force,
+          requested_at: Time.now.utc.iso8601,
+        }
+
+        message_id = publish('domain.favicon.fetch', message)
+        logger.info 'Enqueued favicon fetch',
+          domain_id: domain_id,
+          message_id: message_id,
+          queue: 'domain.favicon.fetch'
         true
       end
 

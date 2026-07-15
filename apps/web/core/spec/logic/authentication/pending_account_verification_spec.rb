@@ -24,7 +24,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     let(:pending_customer) do
       customer = double('Customer')
       allow(customer).to receive(:passphrase?).with(test_password).and_return(true)
-      allow(customer).to receive_messages(objid: 'cust_pending123', custid: test_email, email: test_email, extid: 'ur_pending123', verified: 'false', obscure_email: 'pe***@example.com', role: :customer, anonymous?: false, pending?: true, argon2_hash?: true, passphrase: '$argon2id$...')
+      allow(customer).to receive_messages(objid: 'cust_pending123', custid: test_email, email: test_email, extid: 'ur_pending123', verified: 'false', obscure_email: 'pe***@example.com', role: :customer, anonymous?: false, pending?: true, suspended?: false, argon2_hash?: true, passphrase: '$argon2id$...')
       allow(customer).to receive(:reset_secret=)
       allow(customer).to receive(:save)
       customer

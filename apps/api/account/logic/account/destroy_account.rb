@@ -24,7 +24,7 @@ module AccountAPI::Logic
 
         @raised_concerns_was_called = true
 
-        if @confirmation&.empty?
+        if @confirmation && @confirmation.empty?
           raise_form_error 'Password confirmation is required.', field: 'confirmation', error_type: 'required'
         else
           OT.info "[destroy-account] Passphrase check attempt cid/#{cust.objid} r/#{cust.role} ipa/#{session_sid}"

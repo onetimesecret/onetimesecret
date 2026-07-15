@@ -153,7 +153,7 @@
   },
   "web.regions.changing_regions_billing_note": {
     "text": "Ha a számlázási kapcsolattartó e-mail-címe eltér a(z) {product_name} fiókjához tartozó e-mail-címtől, használja az új régió fiókjához tartozó számlázási kapcsolattartó e-mail-címet az előfizetése előnyeinek megtartásához.",
-    "source_hash": "dac1cc28"
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Az előfizetési előnyök automatikusan érvényesek minden olyan fiókra, amelyet a számlázási e-mail címével hoztak létre.",

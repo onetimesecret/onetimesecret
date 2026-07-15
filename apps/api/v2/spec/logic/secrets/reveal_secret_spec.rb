@@ -4,6 +4,7 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../support/actor_attribution_helpers'
 
 # Security regression coverage for the double-reveal race.
 #
@@ -18,6 +19,8 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 # (raise_concerns, which handles guest-gating/entitlements/rate-limits, is out
 # of scope here).
 RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
+  include ActorAttributionSpecHelpers
+
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
@@ -99,6 +102,70 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       expect(logic.show_secret).to be false
       expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
+    end
+  end
+
+  # Actor attribution on reveal (#3639). "Who revealed it" is the first
+  # question an auditor asks; the revealed event must carry the actor
+  # discriminator computed from the request's customer. The ownership test
+  # mirrors the fetch-side telemetry EXACTLY, including the anonymous guard
+  # that keeps a guest link (owner_id nil) revealed by an anonymous caller
+  # (objid nil) from matching nil == nil and being misattributed to "creator".
+  context 'actor attribution (#3639)' do
+    it 'records actor=creator when the authenticated owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(owner_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+    end
+
+    it 'records actor=authenticated_other when an authenticated non-owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      other_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(other_objid), # authenticated, but not the owner
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+    end
+
+    # THE privacy pin: an anonymous reveal of a guest link (secret owner_id nil,
+    # caller objid nil) must be 'anonymous' and NEVER 'creator', even though
+    # owner?(cust) would match nil == nil without the anonymous_user? guard.
+    it 'records actor=anonymous for an anonymous reveal of a guest link (never creator)' do
+      org = link_receipt_to_org!(receipt) # default pair is a guest secret (owner_id nil)
+
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).not_to eq('creator')
+      expect(event).not_to have_key('actor_id')
     end
   end
 
@@ -260,6 +327,79 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
         expect(reloaded.verified?).to be true
         expect(reloaded.verified_by).to eq('email')
       end
+    end
+  end
+  # C10/QS-6: SECRET lifecycle safety.
+  #
+  # Fast-fail: when the boot-time verifier flagged a key mismatch, a
+  # reveal-intent request must be refused in raise_concerns -- before any
+  # atomic claim -- so no secret is consumed by a decrypt that cannot
+  # succeed. Rollback: when a single ciphertext fails to decrypt anyway
+  # (predates an adopted rotation), reveal! returns the claim and the typed
+  # error propagates; the secret survives.
+  context 'when the running SECRET does not match the datastore (C10)' do
+    around do |example|
+      previous_state = Onetime.secret_verifier_state
+      example.run
+    ensure
+      Onetime.secret_verifier_state = previous_state
+    end
+
+    def build_gated_logic(params)
+      logic = build_logic(params)
+      # raise_concerns also gates guest routes / entitlements / rate limits;
+      # neutralize those so the assertion isolates the verifier fast-fail.
+      allow(logic).to receive(:require_guest_route_enabled!)
+      allow(logic).to receive(:require_entitlement!)
+      logic
+    end
+
+    it 'fast-fails a reveal-intent request in raise_concerns without taking the claim' do
+      Onetime.secret_verifier_state = :mismatch
+      logic = build_gated_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::SecretUndecryptable)
+
+      # No CAS was taken: the secret is untouched and still viewable.
+      reloaded = Onetime::Secret.load(secret.identifier)
+      expect(reloaded.state).to eq('new')
+      expect(reloaded.viewable?).to be true
+    end
+
+    it 'does not gate metadata-only requests (continue absent)' do
+      Onetime.secret_verifier_state = :mismatch
+      logic = build_gated_logic({ 'identifier' => secret.identifier })
+      logic.process_params
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'does not gate reveals when the verifier matches' do
+      Onetime.secret_verifier_state = :ok
+      logic = build_gated_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'rolls the claim back when the ciphertext itself cannot be decrypted' do
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+
+      allow(logic.secret).to receive(:decrypted_secret_value)
+        .and_raise(Familia::EncryptionError, 'wrong key')
+
+      expect { logic.process }.to raise_error(Onetime::SecretUndecryptable)
+
+      # The claim was returned: record, ciphertext, and viewability survive.
+      reloaded = Onetime::Secret.load(secret.identifier)
+      expect(reloaded).not_to be_nil
+      expect(reloaded.state).to eq('new')
+      expect(reloaded.viewable?).to be true
+
+      # And with the key restored, a fresh request reveals exactly once.
+      expect(reloaded.reveal!).to eq('a secret value')
     end
   end
 end

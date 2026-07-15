@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS translation_tasks (
         CHECK(status IN ('pending', 'in_progress', 'completed', 'skipped')),
     keys_json TEXT NOT NULL,          -- JSON: {"submit": "Submit", "cancel": "Cancel"}
     translations_json TEXT,           -- JSON: {"submit": "Sendi", "cancel": "Nuligi"} or NULL
+    source_hashes_json TEXT,          -- JSON: {"submit": "9da7aece", ...} en content_hash per
+                                      -- leaf, snapshotted AT creation. export stamps each onto the
+                                      -- target key's source_hash so staleness (en moved after
+                                      -- translation) is detectable. NULL for pre-column rows and
+                                      -- for leaves whose en key has no content_hash yet.
     notes TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),

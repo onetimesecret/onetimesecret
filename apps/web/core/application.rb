@@ -79,12 +79,16 @@ module Core
       end
     end
 
-    Onetime.production? do
-      # Serve static frontend assets in production mode
-      # While reverse proxies often handle static files in production,
-      # this provides a fallback entitlement for simpler deployments.
-      use Onetime::Middleware::StaticFiles
-    end
+    # Serve static frontend assets (Rack::Static over an allowlist of asset
+    # paths, gated by site.middleware.static_files). While reverse proxies
+    # often handle static files in production, this provides a fallback for
+    # simpler deployments. Mounted in EVERY environment, not just production:
+    # the dynamically served /site.webmanifest references /icon-192.png and
+    # /icon-512.png, and when the Rack app is hit directly outside production
+    # (no Vite publicDir, no reverse proxy) those icons 404ed on every page
+    # (QA 2026-07-07). The middleware claims only its allowlisted paths, so
+    # all other requests pass through unchanged.
+    use Onetime::Middleware::StaticFiles
 
     warmup do
       # Expensive initialization tasks go here

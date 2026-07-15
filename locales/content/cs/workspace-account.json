@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Uchovej tento token v bezpečí! Poskytuje plný přístup k tvému účtu.",
-    "source_hash": "8839aa4d"
+    "text": "Uchovávej tento token v bezpečí. Lze jej použít k vytváření a správě tajemství přes API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Potvrď svým heslem",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail úspěšně aktualizován. Zkontroluj prosím svou schránku pro ověření nové e-mailové adresy.",
-    "source_hash": "58de2536"
+    "text": "Ověřovací e-mail odeslán. Zkontroluj prosím svou novou doručenou poštu a kliknutím na potvrzovací odkaz dokonči změnu.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Nepodařilo se aktualizovat e-mail. Zkus to prosím znovu.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "Zjisti, jak integrovat {product_name} do svých aplikací",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Reference REST API",

@@ -127,8 +127,8 @@ module Onetime
         puts "API Token: #{token}"
         puts "Authorization: Basic #{encoded}"
         puts
-        puts "curl -u '#{email}:#{token}' #{base_url}/api/v2/account"
-        puts "curl -H 'Authorization: Basic #{encoded}' #{base_url}/api/v2/account"
+        puts "curl -u '#{email}:#{token}' #{base_url}/api/account"
+        puts "curl -H 'Authorization: Basic #{encoded}' #{base_url}/api/account"
 
         if billing_enabled?
           puts

@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Parola olmadan giriş yapmak için Sihirli Bağlantı seçeneğini kullanın. Giriş yaptıktan sonra Hesap Ayarlarında parolanızı değiştirebilirsiniz.",
-    "source_hash": "2a058600"
+    "text": "Yeni bir parola oluşturmak için bir parola sıfırlama bağlantısı talep edebilirsiniz.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Hesap geçici olarak kilitlendi mi?",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "SSO Hesabı",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Parolayı sıfırla",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "E-posta alan adınız SSO ile kayıt için yetkili değil. Lütfen yöneticinizle iletişime geçin.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "E-postanızı kontrol edin",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "E-posta adresinize bir doğrulama bağlantısı gönderdik.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Bu adrese bir doğrulama bağlantısı gönderdik — hesabınızı etkinleştirmek için e-postayı açın ve bağlantıya tıklayın.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Bulamıyor musunuz? Spam klasörünüzü kontrol edin.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Yanlış adres mi girdiniz?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Baştan başla",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Parola",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Doğrulama e-postasını almadınız mı? Yeniden göndermek için e-postanızı girin.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Doğrulama E-postasını Yeniden Gönder",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Bir hesabın doğrulanması gerekiyorsa, yeni bir e-posta gönderildi. Lütfen gelen kutunuzu ve spam klasörünüzü kontrol edin.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Doğrulama e-postası gönderilemedi. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "E-postayı yeniden gönder",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "E-postanız doğrulandı — artık oturum açabilirsiniz.",
+    "source_hash": "c8d4b5a8"
   }
 }

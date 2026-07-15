@@ -83,7 +83,6 @@ module AccountAPI::Logic
             OT.info "[account-exists-verified] Silent success for #{@cust.obscure_email}"
           else
             OT.info "[account-exists-unverified] Resending verification for #{@cust.obscure_email}"
-            # TODO: Re-enable when email verification is active
             send_verification_email
           end
 
@@ -126,8 +125,11 @@ module AccountAPI::Logic
 
           # Send verification email for new accounts (unless autoverify is enabled)
           unless @autoverify
-            # TODO: Disable mail verification temporarily on feature/1787-dual-auth-modes branch
-            send_verification_email
+            delivered = send_verification_email
+            unless delivered
+              OT.lw "[signup] Verification email failed for #{cust.obscure_email} — account is unverified and cannot sign in. " \
+                    'Fix emailer config (EMAILER_MODE/SMTP_HOST), set AUTH_AUTOVERIFY=true, or run: bin/ots customers verify EMAIL'
+            end
           end
         end
 

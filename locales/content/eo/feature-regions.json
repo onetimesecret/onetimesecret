@@ -153,7 +153,7 @@
   },
   "web.regions.changing_regions_billing_note": {
     "text": "Se via faktura kontakta retpoŝto diferencas de via {product_name}-konta retpoŝto, uzu la fakturan kontaktan retpoŝton por la nova regiona konto por konservi viajn abonajn avantaĝojn.",
-    "source_hash": "dac1cc28"
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Viaj abonaj avantaĝoj aŭtomate aplikiĝos al ĉiu konto kreita per via faktura retpoŝta adreso.",

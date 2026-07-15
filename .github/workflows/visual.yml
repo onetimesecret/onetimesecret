@@ -1,0 +1,238 @@
+# ==============================================================================
+# Visual regression lane (PR 2 of docs/specs/qa/visual-regressions/)
+# ==============================================================================
+# Compares the noauth pages (home, secret, receipt, burn, incoming, notfound)
+# across canonical + two branded custom domains against the committed
+# *-linux.png baselines in e2e/visual/*.spec.ts-snapshots/.
+#
+# Same artifact locally and in CI: bin/visual. It boots `bin/ots server`
+# (RACK_ENV=production, DOMAINS_ENABLED=true, AUTHENTICATION_MODE=full —
+# all pinned inside the script; mode changes rendering, see bin/visual),
+# seeds fixtures via `rake qa:visual:seed`, and runs the visual Playwright
+# projects inside the pinned mcr.microsoft.com/playwright container so the
+# comparison happens on the exact browser build + font stack the baselines
+# were generated with. Never run the visual projects bare on the runner:
+# host font rendering drifts from the container image's.
+#
+# Full auth mode here uses the boot-migrated sqlite authdb (AUTH_DATABASE_URL
+# unset — same path compose-smoke guards). The DB engine does not affect
+# rendering, only the auth MODE does; no Postgres sidecar needed.
+# ==============================================================================
+name: Visual regression
+
+on:
+  pull_request:
+    paths:
+      # The suite itself
+      - 'e2e/visual/**'
+      - 'e2e/playwright.config.ts'
+      - 'bin/visual'
+      - 'lib/tasks/qa_visual.rake'
+      # Anything that changes what the pages render
+      - 'src/**'
+      - 'templates/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - '.github/workflows/visual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write  # sticky diff-summary comment (upserted on the PR)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    name: bin/visual (compare against committed linux baselines)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      valkey:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        with:
+          bundler-cache: false  # bin/setup runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      # Same preflight contract as the bare-metal boot lane: gems,
+      # node_modules, generated/locales, generated/schemas, seeded etc/.
+      - name: Run bin/setup
+        run: bin/setup
+
+      # bin/visual deliberately does NOT auto-build (an unnoticed stale
+      # build could mask what you meant to compare); CI always builds fresh.
+      - name: Build frontend assets
+        run: pnpm run build
+
+      # bin/visual's env guards expect a direnv-loaded shell; CI provides the
+      # equivalent env explicitly. Provision it ONCE, into $GITHUB_ENV, so the
+      # compare pass and the archive pass below share it. SECRET in particular
+      # MUST be stable across both passes: they run against the one persistent
+      # Valkey service, and the first boot adopts the C10 secret-verifier for
+      # whatever SECRET it saw. A second, different `openssl rand` SECRET for
+      # the archive pass makes that boot's verifier report :mismatch, and
+      # RevealSecret's fast-fail (continue && verifier == :mismatch) then 503s
+      # every reveal — the archive pass's freshly-seeded secrets are encrypted
+      # with the new SECRET and would decrypt fine, but the stale verifier
+      # refuses them before the attempt. One SECRET keeps the verifier :ok.
+      # SECRET is ephemeral (production-mode boot requires one; nothing
+      # persists past the job); ACCOUNT_ID_SECRET is derived from it in
+      # bin/visual.
+      - name: Provision ephemeral visual-lane env
+        run: |
+          {
+            echo "OTS_ENV_LOADED=1"
+            echo "SECRET=$(openssl rand -hex 32)"
+            echo "REDIS_URL=redis://127.0.0.1:6379/0"
+          } >> "$GITHUB_ENV"
+
+      - name: Run visual regression suite
+        id: visual
+        # CONTAINER_RUNTIME auto-detects docker; on linux bin/visual runs the
+        # Playwright container with --network host and resolves the fixture
+        # hosts (*.example.com/org) to 127.0.0.1.
+        run: bin/visual
+
+      # PR-artifact half of the dual-artifact archive (PR 3 of the spec).
+      # A fresh render of the full matrix, uploaded on green so reviewers can
+      # eyeball exactly what this PR's pages look like without checking out
+      # the branch. Same directory format the release workflow
+      # (visual-archive.yml) pushes to ghcr.io, so any two sets are
+      # directory-diffable. A second bin/visual invocation re-boots and
+      # re-seeds — required anyway, because the compare pass consumed the
+      # destructive cells (reveal destroys, first receipt view stamps).
+      - name: Render archive set
+        if: success()
+        # Reuses the SAME SECRET/REDIS_URL provisioned above (see that step's
+        # comment): a fresh SECRET here would trip the secret-verifier and 503
+        # every reveal against the shared Valkey.
+        run: bin/visual --archive e2e/visual/.artifacts/render
+
+      - name: Upload rendered set
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-render-${{ github.event.pull_request.head.sha || github.sha }}
+          path: e2e/visual/.artifacts/render/
+          retention-days: 30
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: visual-playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
+
+      # The diff triptychs (expected/actual/diff PNGs) live here — this is
+      # the artifact you actually open when the lane goes red.
+      - name: Upload visual diffs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: visual-test-results
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Server log on failure
+        if: failure()
+        run: |
+          echo "=== tmp/visual-server.log (last 100 lines) ==="
+          tail -n 100 tmp/visual-server.log || true
+
+      # Upsert one sticky comment on the PR summarizing the run. On failure it
+      # lists the changed shots (globbed from the diff PNGs Playwright wrote)
+      # and links to the artifacts; on success it flips the same comment to a
+      # pass marker so a fixed PR doesn't leave a stale red comment behind.
+      # The PNGs themselves stay in the artifact zip — GitHub can't host them
+      # inline without a screenshots branch, which we deliberately avoid.
+      - name: Comment visual summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          SUITE_OUTCOME: ${{ steps.visual.outcome }}
+          JOB_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const MARKER = '<!-- visual-regression-report -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const failed = process.env.SUITE_OUTCOME === 'failure';
+
+            // Collect the diff PNGs Playwright emitted (…-diff.png under test-results).
+            const shots = [];
+            const root = 'e2e/test-results';
+            const walk = (dir) => {
+              let entries = [];
+              try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+              for (const e of entries) {
+                const p = path.join(dir, e.name);
+                if (e.isDirectory()) walk(p);
+                else if (e.name.endsWith('-diff.png')) shots.push(p);
+              }
+            };
+            walk(root);
+
+            let body;
+            if (!failed && process.env.JOB_STATUS !== 'success') {
+              // Comparison passed but a later step (archive render/upload)
+              // failed — never post a green comment on a red lane.
+              body = `${MARKER}\n### ⚠️ Visual comparison passed, but the lane failed\nAll shots matched the committed linux baselines; a post-comparison step (archive render/upload) failed. · [run](${runUrl})`;
+            } else if (!failed) {
+              body = `${MARKER}\n### ✅ Visual regression passed\nAll shots matched the committed linux baselines. · [run](${runUrl})`;
+            } else {
+              const list = shots.length
+                ? shots.map((s) => `- \`${path.relative(root, s).replace(/-diff\.png$/, '')}\``).join('\n')
+                : '_No diff PNGs were written — the lane likely failed before comparison (boot/seed/build). Check the run log._';
+              body = [
+                `${MARKER}`,
+                `### ❌ Visual regression failed — ${shots.length} shot(s) changed`,
+                '',
+                list,
+                '',
+                `The expected/actual/diff triptychs are in the **\`visual-test-results\`** artifact (7-day retention).`,
+                `Download → [run summary](${runUrl}) · report → **\`visual-playwright-report\`** artifact.`,
+              ].join('\n');
+            }
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((c) => c.body && c.body.includes(MARKER));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

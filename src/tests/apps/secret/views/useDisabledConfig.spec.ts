@@ -12,6 +12,7 @@
 import { useDisabledConfig } from '@/apps/secret/views/disabled/useDisabledConfig';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
+import type { CornerStyle, FontFamily } from '@/shared/utils/brand-helpers';
 import { submitSsoLogin } from '@/shared/utils/sso';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -34,6 +35,15 @@ interface SetupOptions {
   brandDescription?: string | null;
   primaryColor?: string;
   logoUri?: string | null;
+  /** Brand font_family as saved in the raw domain_branding hash. Omitted =
+   *  key absent (operator never chose a font). */
+  fontFamily?: FontFamily;
+  /** Brand heading_font as saved in the raw hash. Omitted = key absent. */
+  headingFont?: FontFamily;
+  /** Brand corner_style as saved in the raw hash. Omitted = key absent. */
+  cornerStyle?: CornerStyle;
+  /** Brand border_radius (#3646) as saved in the raw hash. Omitted = absent. */
+  borderRadius?: string;
   // Bootstrap config
   siteHost?: string;
   billingEnabled?: boolean;
@@ -66,8 +76,26 @@ interface SetupOptions {
 function setup(opts: SetupOptions = {}) {
   setActivePinia(createPinia());
 
+  // Raw per-domain branding payload (the sparse Redis hash). Carries only the
+  // keys the operator explicitly saved — useDisabledConfig reads set-ness from
+  // this raw payload, not from the parsed identity brand (whose schema
+  // defaults would make font/corners look chosen on every domain).
+  const rawBranding =
+    opts.fontFamily === undefined &&
+    opts.headingFont === undefined &&
+    opts.cornerStyle === undefined &&
+    opts.borderRadius === undefined
+      ? null
+      : {
+          ...(opts.fontFamily ? { font_family: opts.fontFamily } : {}),
+          ...(opts.headingFont ? { heading_font: opts.headingFont } : {}),
+          ...(opts.cornerStyle ? { corner_style: opts.cornerStyle } : {}),
+          ...(opts.borderRadius ? { border_radius: opts.borderRadius } : {}),
+        };
+
   const bootstrap = useBootstrapStore();
   bootstrap.$patch({
+    domain_branding: rawBranding,
     site_host: opts.siteHost ?? 'onetimesecret.com',
     billing_enabled: opts.billingEnabled ?? false,
     authentication: {
@@ -133,8 +161,12 @@ function setup(opts: SetupOptions = {}) {
               description: opts.brandDescription,
               primary_color: opts.primaryColor ?? '#dc4a22',
               button_text_light: true,
-              corner_style: 'rounded',
-              font_family: 'sans',
+              // Mirror the schema parse of rawBranding: font_family and
+              // corner_style fall back to their schema defaults when unsaved.
+              corner_style: opts.cornerStyle ?? 'rounded',
+              font_family: opts.fontFamily ?? 'sans',
+              heading_font: opts.headingFont ?? null,
+              border_radius: opts.borderRadius ?? null,
               instructions_pre_reveal: '',
               instructions_post_reveal: '',
               instructions_reveal: '',
@@ -336,6 +368,73 @@ describe('useDisabledConfig', () => {
       // falls through to displayName. Documenting actual behaviour.
       expect(config.props.isBranded).toBe(true);
       expect(config.props.workspaceName).toBeTruthy();
+    });
+  });
+
+  describe('brand font and corner classes', () => {
+    it('delivers null classes on the canonical site (no brand payload)', () => {
+      const { config } = setup();
+      expect(config.props.fontFamilyClass).toBeNull();
+      expect(config.props.headingFontClass).toBeNull();
+      expect(config.props.cornerClass).toBeNull();
+    });
+
+    it('delivers null classes when the domain never saved font or corner keys', () => {
+      // The parsed identity brand carries the schema defaults ('sans' /
+      // 'rounded') here — set-ness must come from the raw payload, so the
+      // variants keep their own display defaults (font-brand, rounded-xl).
+      const { config } = setup({ domainStrategy: 'custom', brandDescription: 'Acme' });
+      expect(config.props.fontFamilyClass).toBeNull();
+      expect(config.props.headingFontClass).toBeNull();
+      expect(config.props.cornerClass).toBeNull();
+    });
+
+    it('maps a saved font_family to its utility class', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme',
+        fontFamily: 'mono',
+      });
+      expect(config.props.fontFamilyClass).toBe('font-mono');
+    });
+
+    it('maps a saved heading_font to its utility class', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme',
+        headingFont: 'serif',
+      });
+      expect(config.props.headingFontClass).toBe('font-serif');
+    });
+
+    it('backfills headingFontClass from font_family when heading_font is unsaved', () => {
+      // Mirrors the identityStore ladder: a domain that chose a body font
+      // expects its headings to follow.
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme',
+        fontFamily: 'mono',
+      });
+      expect(config.props.headingFontClass).toBe('font-mono');
+    });
+
+    it('maps a saved corner_style to its utility class', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme',
+        cornerStyle: 'square',
+      });
+      expect(config.props.cornerClass).toBe('rounded-none');
+    });
+
+    it('resolves a saved border_radius to rounded-brand, superseding corner_style', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme',
+        cornerStyle: 'square',
+        borderRadius: 'md',
+      });
+      expect(config.props.cornerClass).toBe('rounded-brand');
     });
   });
 

@@ -62,7 +62,7 @@
   "email.welcome.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.welcome.postscript": {
     "text": "P.S. Denne e-mail blev sendt til %{email_address}. Hvis du ikke har oprettet en konto, kan du trygt ignorere denne meddelelse.",
@@ -102,7 +102,7 @@
   "email.password_request.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.password_request.postscript": {
     "text": "P.S. Denne e-mail blev sendt til %{email_address}.",
@@ -147,7 +147,7 @@
   "email.magic_link.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.magic_link.postscript": {
     "text": "P.S. Denne e-mail blev sendt til %{email_address}.",
@@ -232,7 +232,7 @@
   "email.secret_revealed.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Administrer notifikationspræferencer",
@@ -315,7 +315,7 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support",
+    "text": "Onetime Secret-support",
     "renderer": "erb",
     "source_hash": "f6a6c90f"
   },
@@ -357,7 +357,7 @@
   "email.organization_invitation.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. Denne e-mail blev sendt til %{invited_email}. Hvis du ikke forventede denne invitation, kan du trygt ignorere denne meddelelse.",
@@ -397,17 +397,17 @@
   "email.password_changed.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.subject": {
     "text": "Din e-mailadresse er blevet ændret (%{display_domain})",
     "renderer": "erb",
-    "source_hash": "d68d2f4c"
+    "source_hash": "4386fc57"
   },
   "email.email_changed.title": {
     "text": "Din e-mailadresse er blevet ændret",
     "renderer": "erb",
-    "source_hash": "62b07299"
+    "source_hash": "db70f965"
   },
   "email.email_changed.security_notice": {
     "text": "Hvis du ikke har foretaget denne ændring, kontakt venligst support med det samme, da din konto kan være kompromitteret.",
@@ -417,7 +417,7 @@
   "email.email_changed.change_notice": {
     "text": "E-mailadressen på din %{product_name}-konto er blevet ændret.",
     "renderer": "erb",
-    "source_hash": "bb467ebc"
+    "source_hash": "7fc0e27c"
   },
   "email.email_changed.new_email_label": {
     "text": "Ny e-mail:",
@@ -447,7 +447,7 @@
   "email.email_changed.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.postscript": {
     "text": "P.S. Denne e-mail blev sendt til %{email_address} for at informere dig om en ændring af e-mailadresse.",
@@ -497,7 +497,7 @@
   "email.email_change_requested.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Denne e-mail blev sendt til %{email_address}, fordi der blev anmodet om en ændring af e-mailadresse for din konto.",
@@ -552,7 +552,7 @@
   "email.email_change_confirmation.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_confirmation.postscript": {
     "text": "P.S. Denne e-mail blev sendt til %{email_address} for at bekræfte en ændring af e-mailadresse.",
@@ -582,7 +582,7 @@
   "email.mfa_enabled.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.mfa_disabled.subject": {
     "text": "To-faktor-godkendelse deaktiveret (%{display_domain})",
@@ -607,7 +607,7 @@
   "email.mfa_disabled.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.new_login_alert.subject": {
     "text": "Nyt login på din konto (%{display_domain})",
@@ -652,7 +652,7 @@
   "email.new_login_alert.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.member_removed.subject": {
     "text": "Du er blevet fjernet fra %{organization_name}",
@@ -672,7 +672,7 @@
   "email.member_removed.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.role_changed.subject": {
     "text": "Din rolle er blevet ændret i %{organization_name}",
@@ -692,7 +692,7 @@
   "email.role_changed.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_deleted.subject": {
     "text": "Organisationen \"%{organization_name}\" blev slettet",
@@ -712,72 +712,7 @@
   "email.organization_deleted.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
-  },
-  "email.payment_receipt.subject": {
-    "text": "Betalingskvittering for %{product_name}",
-    "renderer": "erb",
-    "source_hash": "a1b5cc04"
-  },
-  "email.payment_receipt.title": {
-    "text": "Betalingskvittering",
-    "renderer": "erb",
-    "source_hash": "7e677ab8"
-  },
-  "email.payment_receipt.body": {
-    "text": "Tak for din betaling. Her er dine betalingsoplysninger:",
-    "renderer": "erb",
-    "source_hash": "a1fb6502"
-  },
-  "email.payment_receipt.amount_label": {
-    "text": "Beløb:",
-    "renderer": "erb",
-    "source_hash": "cdf45632"
-  },
-  "email.payment_receipt.date_label": {
-    "text": "Dato:",
-    "renderer": "erb",
-    "source_hash": "b51489bd"
-  },
-  "email.payment_receipt.plan_label": {
-    "text": "Abonnement:",
-    "renderer": "erb",
-    "source_hash": "c6c28dbb"
-  },
-  "email.payment_receipt.invoice_link": {
-    "text": "Se faktura",
-    "renderer": "erb",
-    "source_hash": "36008943"
-  },
-  "email.payment_receipt.signature": {
-    "text": "Supportteamet",
-    "renderer": "erb",
-    "source_hash": "f58154f7"
-  },
-  "email.payment_failed.subject": {
-    "text": "Betaling mislykkedes for %{product_name}",
-    "renderer": "erb",
-    "source_hash": "77f18a23"
-  },
-  "email.payment_failed.title": {
-    "text": "Betaling mislykkedes",
-    "renderer": "erb",
-    "source_hash": "a287ab86"
-  },
-  "email.payment_failed.body": {
-    "text": "Vi kunne ikke behandle din betaling for %{product_name}. Opdater venligst din betalingsmetode for at undgå afbrydelse af tjenesten.",
-    "renderer": "erb",
-    "source_hash": "6496ef22"
-  },
-  "email.payment_failed.update_payment_button": {
-    "text": "Opdater betalingsmetode",
-    "renderer": "erb",
-    "source_hash": "926406b1"
-  },
-  "email.payment_failed.signature": {
-    "text": "Supportteamet",
-    "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.trial_expiring.subject": {
     "text": "Din %{product_name}-prøveperiode udløber om %{days_remaining} dage",
@@ -802,7 +737,7 @@
   "email.trial_expiring.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.subscription_changed.subject": {
     "text": "Dit %{product_name}-abonnement er blevet ændret",
@@ -827,7 +762,7 @@
   "email.subscription_changed.signature": {
     "text": "Supportteamet",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.common.greeting": {
     "text": "Hej,",

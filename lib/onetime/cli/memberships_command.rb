@@ -28,10 +28,16 @@ module Onetime
         puts format('%d active memberships, %d pending invitations', active_count, pending_count)
         puts
         puts 'Usage:'
+        puts '  bin/ots memberships add ORG CUSTOMER [--role R]  # Add a member (materializes entitlements)'
+        puts '  bin/ots memberships set-role ORG CUSTOMER ROLE   # Change a member\'s role'
+        puts '  bin/ots memberships remove ORG CUSTOMER          # Remove a member'
         puts '  bin/ots memberships doctor --all            # Check all memberships'
         puts '  bin/ots memberships doctor --org EXTID      # Check memberships for one org'
         puts '  bin/ots memberships doctor --all --repair   # Auto-repair issues'
         puts '  bin/ots memberships doctor --all --json     # JSON output'
+        puts
+        puts 'ORG = organization extid; CUSTOMER = email, extid, or Rodauth account id.'
+        puts 'ROLE = one of: owner, admin, member.'
         puts
         puts 'Integrity checks:'
         puts '  1. organization_objid points to existing org (CRITICAL)'

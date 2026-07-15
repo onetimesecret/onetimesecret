@@ -1,0 +1,550 @@
+{
+  "web.admin.emailtools.title": {
+    "text": "Εργαλεία email",
+    "source_hash": "f9643d5a"
+  },
+  "web.admin.emailtools.description": {
+    "text": "Κάντε προεπισκόπηση προτύπων email, στείλτε μια δοκιμή παράδοσης και παρακολουθήστε τη δυνατότητα παράδοσης — τα διαγνωστικά που προηγουμένως απαιτούσαν SSH.",
+    "source_hash": "be85c9e9"
+  },
+  "web.admin.emailtools.config.title": {
+    "text": "Διαμόρφωση αποστολέα αλληλογραφίας",
+    "source_hash": "d2a71028"
+  },
+  "web.admin.emailtools.config.description": {
+    "text": "Η μόνιμη διαμόρφωση αλληλογραφίας που επιλύεται κατά την εκκίνηση. Τα διαπιστευτήρια δεν εμφανίζονται ποτέ — μόνο εάν υπάρχουν.",
+    "source_hash": "f0e8a118"
+  },
+  "web.admin.emailtools.config.provider": {
+    "text": "Πάροχος μεταφοράς",
+    "source_hash": "4f0e5025"
+  },
+  "web.admin.emailtools.config.senderProvider": {
+    "text": "Πάροχος αποστολέα",
+    "source_hash": "e881964f"
+  },
+  "web.admin.emailtools.config.senderDiffers": {
+    "text": "Ο αποστολέας διαφέρει από τη μεταφορά",
+    "source_hash": "ab78e8f6"
+  },
+  "web.admin.emailtools.config.autoDetected": {
+    "text": "Αυτόματος εντοπισμός",
+    "source_hash": "a69c7f9e"
+  },
+  "web.admin.emailtools.config.fromAddress": {
+    "text": "Διεύθυνση αποστολέα",
+    "source_hash": "d465bcfa"
+  },
+  "web.admin.emailtools.config.fromName": {
+    "text": "Όνομα αποστολέα",
+    "source_hash": "b28f93ea"
+  },
+  "web.admin.emailtools.config.host": {
+    "text": "Διακομιστής SMTP",
+    "source_hash": "ab328f83"
+  },
+  "web.admin.emailtools.config.port": {
+    "text": "Θύρα",
+    "source_hash": "72e9a59f"
+  },
+  "web.admin.emailtools.config.region": {
+    "text": "Περιοχή",
+    "source_hash": "d3a008ef"
+  },
+  "web.admin.emailtools.config.hasCredentials": {
+    "text": "Διαμορφωμένα διαπιστευτήρια",
+    "source_hash": "1c81633a"
+  },
+  "web.admin.emailtools.config.yes": {
+    "text": "Ναι",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.emailtools.config.no": {
+    "text": "Όχι",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.emailtools.config.loggerWarning": {
+    "text": "Η αλληλογραφία δεν παραδίδεται. Ο πάροχος μεταφοράς έχει οριστεί σε λειτουργία μη αποστολής (logger, disabled ή none), επομένως κανένα email δεν φεύγει από αυτόν τον διακομιστή — τα εξερχόμενα μηνύματα γράφονται στο αρχείο καταγραφής της εφαρμογής ή απορρίπτονται.",
+    "source_hash": "1883dfd5"
+  },
+  "web.admin.emailtools.deliverability.title": {
+    "text": "Δυνατότητα παράδοσης",
+    "source_hash": "66b4d300"
+  },
+  "web.admin.emailtools.deliverability.description": {
+    "text": "Τι επιστρέφει μετά την αποστολή: επιστροφές (bounces), παράπονα και η λίστα αποκλεισμού που προστατεύει τη φήμη του αποστολέα σας.",
+    "source_hash": "e8363bb5"
+  },
+  "web.admin.emailtools.deliverability.retry": {
+    "text": "Επανάληψη",
+    "source_hash": "942087cc"
+  },
+  "web.admin.emailtools.deliverability.events.title": {
+    "text": "Πρόσφατα συμβάντα",
+    "source_hash": "8ecce94d"
+  },
+  "web.admin.emailtools.deliverability.events.description": {
+    "text": "Η ακατέργαστη ροή επιστροφών και παραπόνων, με τις νεότερες πρώτα.",
+    "source_hash": "0e7a533b"
+  },
+  "web.admin.emailtools.deliverability.events.empty": {
+    "text": "Δεν υπάρχουν ακόμη δεδομένα επιστροφών ή παραπόνων. Διοχετεύστε τα σχόλια του ESP σας μέσω POST /api/colonel/email/deliverability/events (με έλεγχο ταυτότητας colonel — δείτε την τεκμηρίωση του τελικού σημείου για τη μορφή εγγραφής). Οι σύγχρονες οριστικές επιστροφές SMTP (hard bounces) καταγράφονται αυτόματα.",
+    "source_hash": "a90f259c"
+  },
+  "web.admin.emailtools.deliverability.events.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των πρόσφατων συμβάντων.",
+    "source_hash": "02244c61"
+  },
+  "web.admin.emailtools.deliverability.events.columns.time": {
+    "text": "Ώρα",
+    "source_hash": "33b93476"
+  },
+  "web.admin.emailtools.deliverability.events.columns.kind": {
+    "text": "Τύπος",
+    "source_hash": "baaddf70"
+  },
+  "web.admin.emailtools.deliverability.events.columns.address": {
+    "text": "Διεύθυνση",
+    "source_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.events.columns.source": {
+    "text": "Πηγή",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.events.columns.reason": {
+    "text": "Αιτία",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.bounce": {
+    "text": "επιστροφή",
+    "source_hash": "4d6723e5"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.complaint": {
+    "text": "παράπονο",
+    "source_hash": "5d08b02d"
+  },
+  "web.admin.emailtools.deliverability.lookup.title": {
+    "text": "Αναζήτηση παραλήπτη",
+    "source_hash": "7569985b"
+  },
+  "web.admin.emailtools.deliverability.lookup.description": {
+    "text": "Ελέγξτε εάν μια διεύθυνση είναι αποκλεισμένη, τόσο στην τοπική αποθήκη όσο και ζωντανά στον ενεργό πάροχο αλληλογραφίας. Και τα δύο ευρετηριάζονται με την ίδια κανονικοποιημένη διεύθυνση.",
+    "source_hash": "c341d614"
+  },
+  "web.admin.emailtools.deliverability.lookup.addressLabel": {
+    "text": "Διεύθυνση παραλήπτη",
+    "source_hash": "454d0391"
+  },
+  "web.admin.emailtools.deliverability.lookup.submit": {
+    "text": "Αναζήτηση",
+    "source_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.lookup.local": {
+    "text": "Τοπική αποθήκη",
+    "source_hash": "c740d116"
+  },
+  "web.admin.emailtools.deliverability.lookup.provider": {
+    "text": "Πάροχος",
+    "source_hash": "472590ae"
+  },
+  "web.admin.emailtools.deliverability.lookup.suppressed": {
+    "text": "Αποκλεισμένη",
+    "source_hash": "435c7831"
+  },
+  "web.admin.emailtools.deliverability.lookup.notSuppressed": {
+    "text": "Μη αποκλεισμένη",
+    "source_hash": "7b1544d7"
+  },
+  "web.admin.emailtools.deliverability.lookup.reason": {
+    "text": "Αιτία",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.lookup.source": {
+    "text": "Πηγή",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.lookup.unavailable": {
+    "text": "Η ζωντανή αναζήτηση παρόχου δεν είναι διαθέσιμη· η παραπάνω τοπική αποθήκη είναι έγκυρη.",
+    "source_hash": "aebed0f2"
+  },
+  "web.admin.emailtools.deliverability.messages.title": {
+    "text": "Πρόσφατες αποστολές",
+    "source_hash": "522e089e"
+  },
+  "web.admin.emailtools.deliverability.messages.description": {
+    "text": "Τα πιο πρόσφατα μηνύματα που κατέγραψε ο ενεργός πάροχος αλληλογραφίας, με τα νεότερα πρώτα. Αντλούνται ζωντανά από τον πάροχο — δεν αποθηκεύονται ποτέ εδώ.",
+    "source_hash": "9970fa0a"
+  },
+  "web.admin.emailtools.deliverability.messages.empty": {
+    "text": "Ο πάροχος δεν επέστρεψε πρόσφατα μηνύματα.",
+    "source_hash": "a7ef4d79"
+  },
+  "web.admin.emailtools.deliverability.messages.notSupported": {
+    "text": "Δεν υπάρχει διαθέσιμο αρχείο καταγραφής αποστολών στη μεταφορά {provider}, η οποία δεν προσφέρει API ανά μήνυμα.",
+    "source_hash": "21e6b6f9"
+  },
+  "web.admin.emailtools.deliverability.messages.error": {
+    "text": "Δεν ήταν δυνατή η φόρτωση του αρχείου καταγραφής αποστολών από τον πάροχο. Δοκιμάστε ξανά.",
+    "source_hash": "4f671e55"
+  },
+  "web.admin.emailtools.deliverability.messages.col.status": {
+    "text": "Κατάσταση",
+    "source_hash": "920e413c"
+  },
+  "web.admin.emailtools.deliverability.messages.col.subject": {
+    "text": "Θέμα",
+    "source_hash": "68971283"
+  },
+  "web.admin.emailtools.deliverability.messages.col.to": {
+    "text": "Προς",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.emailtools.deliverability.messages.col.created": {
+    "text": "Στάλθηκε",
+    "source_hash": "c16bc82b"
+  },
+  "web.admin.emailtools.deliverability.messages.status.delivered": {
+    "text": "παραδόθηκε",
+    "source_hash": "373e0712"
+  },
+  "web.admin.emailtools.deliverability.messages.status.opened": {
+    "text": "ανοίχτηκε",
+    "source_hash": "50236627"
+  },
+  "web.admin.emailtools.deliverability.messages.status.clicked": {
+    "text": "έγινε κλικ",
+    "source_hash": "d66440b2"
+  },
+  "web.admin.emailtools.deliverability.messages.status.pending": {
+    "text": "σε εκκρεμότητα",
+    "source_hash": "62a2fed3"
+  },
+  "web.admin.emailtools.deliverability.messages.status.queued": {
+    "text": "σε ουρά",
+    "source_hash": "d36be649"
+  },
+  "web.admin.emailtools.deliverability.messages.status.processed": {
+    "text": "επεξεργάστηκε",
+    "source_hash": "58190ffa"
+  },
+  "web.admin.emailtools.deliverability.messages.status.hard_bounced": {
+    "text": "οριστική επιστροφή",
+    "source_hash": "b0aa6fd4"
+  },
+  "web.admin.emailtools.deliverability.messages.status.soft_bounced": {
+    "text": "προσωρινή επιστροφή",
+    "source_hash": "ac844ff2"
+  },
+  "web.admin.emailtools.deliverability.messages.status.complained": {
+    "text": "παράπονο",
+    "source_hash": "c26fe786"
+  },
+  "web.admin.emailtools.deliverability.messages.status.suppressed": {
+    "text": "αποκλείστηκε",
+    "source_hash": "f63d5b6b"
+  },
+  "web.admin.emailtools.deliverability.messages.status.unsubscribed": {
+    "text": "κατάργηση εγγραφής",
+    "source_hash": "621e1970"
+  },
+  "web.admin.emailtools.deliverability.summary.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση της σύνοψης δυνατότητας παράδοσης.",
+    "source_hash": "0c16ef96"
+  },
+  "web.admin.emailtools.deliverability.suppressions.title": {
+    "text": "Λίστα αποκλεισμού",
+    "source_hash": "9f3e322f"
+  },
+  "web.admin.emailtools.deliverability.suppressions.description": {
+    "text": "Διευθύνσεις που παραλείπει η εξερχόμενη αλληλογραφία. Οι καταχωρήσεις προέρχονται από την εισαγωγή σχολίων ESP ή από χειροκίνητη εισαγωγή· η αφαίρεση μιας καταχώρησης επαναφέρει την παράδοση.",
+    "source_hash": "3651887e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchLabel": {
+    "text": "Ακριβής διεύθυνση",
+    "source_hash": "f4338ff8"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchPlaceholder": {
+    "text": "user{'@'}example.com",
+    "source_hash": "333f0f15"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchButton": {
+    "text": "Αναζήτηση",
+    "source_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.clearButton": {
+    "text": "Εκκαθάριση",
+    "source_hash": "83b12c22"
+  },
+  "web.admin.emailtools.deliverability.suppressions.empty": {
+    "text": "Δεν υπάρχουν ακόμη αποκλεισμένες διευθύνσεις. Θα εμφανιστούν εδώ καθώς εισάγονται σχόλια επιστροφών και παραπόνων.",
+    "source_hash": "dd3f4d61"
+  },
+  "web.admin.emailtools.deliverability.suppressions.emptySearch": {
+    "text": "Δεν υπάρχει καταχώρηση αποκλεισμού για το {address}.",
+    "source_hash": "200c361e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση της λίστας αποκλεισμού.",
+    "source_hash": "2a12c8ba"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.addressLabel": {
+    "text": "Προσθήκη διεύθυνσης",
+    "source_hash": "8be5aa33"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.button": {
+    "text": "Αποκλεισμός",
+    "source_hash": "60b19987"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmTitle": {
+    "text": "Αποκλεισμός αυτής της διεύθυνσης;",
+    "source_hash": "40a0d2a6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmDescription": {
+    "text": "Η εξερχόμενη αλληλογραφία προς το {address} θα παραλείπεται έως ότου αφαιρεθεί ο αποκλεισμός. Αυτό καταγράφεται ως χειροκίνητη καταχώρηση.",
+    "source_hash": "e3d0d799"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.success": {
+    "text": "Η διεύθυνση {address} αποκλείστηκε.",
+    "source_hash": "e2cd2c3b"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.successExisting": {
+    "text": "Η διεύθυνση {address} ήταν ήδη αποκλεισμένη· η καταχώρηση ενημερώθηκε.",
+    "source_hash": "0852101e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.error": {
+    "text": "Δεν ήταν δυνατός ο αποκλεισμός της διεύθυνσης.",
+    "source_hash": "dad9e000"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.address": {
+    "text": "Διεύθυνση",
+    "source_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.reason": {
+    "text": "Αιτία",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.source": {
+    "text": "Πηγή",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.added": {
+    "text": "Προστέθηκε",
+    "source_hash": "6b02e0d3"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.actions": {
+    "text": "Ενέργειες",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.button": {
+    "text": "Αφαίρεση",
+    "source_hash": "c3812fc4"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmTitle": {
+    "text": "Αφαίρεση αυτού του αποκλεισμού;",
+    "source_hash": "0b0aec2e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmDescription": {
+    "text": "Η εξερχόμενη αλληλογραφία προς το {address} θα συνεχιστεί. Αυτή η διεύθυνση είχε προηγουμένως επιστροφή ή παράπονο — αφαιρέστε την μόνο εάν γνωρίζετε ότι είναι ξανά παραδοτέα.",
+    "source_hash": "09442f9c"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.success": {
+    "text": "Ο αποκλεισμός αφαιρέθηκε για το {address}.",
+    "source_hash": "bfc0de36"
+  },
+  "web.admin.emailtools.deliverability.sync.title": {
+    "text": "Συγχρονισμός σχολίων",
+    "source_hash": "d4056915"
+  },
+  "web.admin.emailtools.deliverability.sync.lastSynced": {
+    "text": "τελευταίος συγχρονισμός",
+    "source_hash": "5a99666b"
+  },
+  "web.admin.emailtools.deliverability.sync.imported": {
+    "text": "{count} εισήχθησαν",
+    "source_hash": "1bc18c45"
+  },
+  "web.admin.emailtools.deliverability.sync.neverRun": {
+    "text": "Ο συγχρονισμός σχολίων του παρόχου δεν έχει εκτελεστεί ποτέ. Τα δεδομένα επιστροφών και παραπόνων δεν εισάγονται αυτόματα — διαμορφώστε έναν συγχρονισμό παρόχου ή εισαγάγετε σχόλια μέσω του τελικού σημείου συμβάντων.",
+    "source_hash": "d19f5755"
+  },
+  "web.admin.emailtools.deliverability.sync.button": {
+    "text": "Συγχρονισμός τώρα",
+    "source_hash": "885e8f48"
+  },
+  "web.admin.emailtools.deliverability.sync.success": {
+    "text": "Ο συγχρονισμός {provider} ολοκληρώθηκε: {accepted} εισήχθησαν, {rejected} απορρίφθηκαν ({fetched} ανακτήθηκαν).",
+    "source_hash": "d36f5578"
+  },
+  "web.admin.emailtools.deliverability.sync.hint": {
+    "text": "Ένας χειροκίνητος συγχρονισμός — η αυτόματη εισαγωγή εξακολουθεί να απαιτεί ένα προγραμματισμένο cron `ots email sync-feedback`.",
+    "source_hash": "7a509b75"
+  },
+  "web.admin.emailtools.deliverability.tiles.suppressed": {
+    "text": "Αποκλεισμένες διευθύνσεις",
+    "source_hash": "b31a245e"
+  },
+  "web.admin.emailtools.deliverability.tiles.bounces": {
+    "text": "Επιστροφές ({days} ημ.)",
+    "source_hash": "3a4d0f09"
+  },
+  "web.admin.emailtools.deliverability.tiles.complaints": {
+    "text": "Παράπονα ({days} ημ.)",
+    "source_hash": "16ad856f"
+  },
+  "web.admin.emailtools.deliverability.tiles.skipped": {
+    "text": "Αποστολές που παραλείφθηκαν",
+    "source_hash": "391467f9"
+  },
+  "web.admin.emailtools.preview.title": {
+    "text": "Προεπισκόπηση προτύπου",
+    "source_hash": "df89bd92"
+  },
+  "web.admin.emailtools.preview.description": {
+    "text": "Αποδώστε ένα πρότυπο με τα δείγματα δεδομένων του. Η προεπισκόπηση δεν έχει παρενέργειες — δεν αποστέλλεται κανένα email.",
+    "source_hash": "9b0e40f3"
+  },
+  "web.admin.emailtools.preview.templateLabel": {
+    "text": "Πρότυπο",
+    "source_hash": "0575f29d"
+  },
+  "web.admin.emailtools.preview.formatLabel": {
+    "text": "Μορφή",
+    "source_hash": "2f343666"
+  },
+  "web.admin.emailtools.preview.localeLabel": {
+    "text": "Τοπική ρύθμιση",
+    "source_hash": "ca3dc612"
+  },
+  "web.admin.emailtools.preview.button": {
+    "text": "Προεπισκόπηση",
+    "source_hash": "324b134f"
+  },
+  "web.admin.emailtools.providerStatus.title": {
+    "text": "Κατάσταση παρόχου",
+    "source_hash": "231b7f03"
+  },
+  "web.admin.emailtools.providerStatus.rateUnavailable": {
+    "text": "Αυτός ο πάροχος δεν εκθέτει αριθμητικό ποσοστό επιστροφών ή παραπόνων· η βαθμίδα φήμης παραπάνω προκύπτει μόνο από την κατάσταση επιβολής και το όριο αποστολής.",
+    "source_hash": "1e6b82e9"
+  },
+  "web.admin.emailtools.providerStatus.complaintsUnavailable": {
+    "text": "Το Lettermint δεν αναφέρει παράπονα στο stats API του, επομένως το ποσοστό παραπόνων εμφανίζεται ως «—» (δεν αναφέρθηκε), όχι μηδέν. Το ποσοστό επιστροφών παραπάνω είναι πλήρες.",
+    "source_hash": "72aaa845"
+  },
+  "web.admin.emailtools.providerStatus.unavailable": {
+    "text": "Η κατάσταση παρόχου είναι προσωρινά μη διαθέσιμη.",
+    "source_hash": "8e69ff29"
+  },
+  "web.admin.emailtools.providerStatus.notSupported": {
+    "text": "Η ζωντανή κατάσταση παρόχου δεν είναι διαθέσιμη στη μεταφορά {provider}.",
+    "source_hash": "125ed6eb"
+  },
+  "web.admin.emailtools.providerStatus.error": {
+    "text": "Δεν ήταν δυνατή η επικοινωνία με τον πάροχο αλληλογραφίας για την κατάσταση. Δοκιμάστε ξανά.",
+    "source_hash": "594ab7b1"
+  },
+  "web.admin.emailtools.providerStatus.quota.max24h": {
+    "text": "Όριο αποστολής 24 ωρών",
+    "source_hash": "e5ea4c3d"
+  },
+  "web.admin.emailtools.providerStatus.quota.sent24h": {
+    "text": "Στάλθηκαν (τελευταίες 24 ώρες)",
+    "source_hash": "d0c4fe45"
+  },
+  "web.admin.emailtools.providerStatus.quota.maxRate": {
+    "text": "Μέγιστος ρυθμός αποστολής (ανά δευτ.)",
+    "source_hash": "59e76cf8"
+  },
+  "web.admin.emailtools.providerStatus.rate.bounce": {
+    "text": "Ποσοστό επιστροφών",
+    "source_hash": "9eba32f0"
+  },
+  "web.admin.emailtools.providerStatus.rate.complaint": {
+    "text": "Ποσοστό παραπόνων",
+    "source_hash": "430a23a9"
+  },
+  "web.admin.emailtools.providerStatus.stats.sent": {
+    "text": "Στάλθηκαν ({days} ημ.)",
+    "source_hash": "e553b7e1"
+  },
+  "web.admin.emailtools.providerStatus.stats.delivered": {
+    "text": "Παραδόθηκαν",
+    "source_hash": "90611565"
+  },
+  "web.admin.emailtools.providerStatus.stats.hardBounced": {
+    "text": "Οριστικές επιστροφές",
+    "source_hash": "c76631c0"
+  },
+  "web.admin.emailtools.providerStatus.stats.complaints": {
+    "text": "Παράπονα spam",
+    "source_hash": "d48953cd"
+  },
+  "web.admin.emailtools.providerStatus.tier.healthy": {
+    "text": "Υγιής",
+    "source_hash": "7f1e323b"
+  },
+  "web.admin.emailtools.providerStatus.tier.probation": {
+    "text": "Υπό εξέταση",
+    "source_hash": "9e8a3b64"
+  },
+  "web.admin.emailtools.providerStatus.tier.shutdown": {
+    "text": "Αποστολή σε παύση",
+    "source_hash": "52e6757c"
+  },
+  "web.admin.emailtools.test.title": {
+    "text": "Δοκιμαστική αποστολή",
+    "source_hash": "5fab5d67"
+  },
+  "web.admin.emailtools.test.description": {
+    "text": "Στείλτε ένα διαγνωστικό email απλού κειμένου για να επαληθεύσετε τη συνδεσιμότητα παράδοσης. Κάντε πρώτα προεπισκόπηση και έπειτα επιβεβαιώστε για να στείλετε ένα πραγματικό email.",
+    "source_hash": "4130741c"
+  },
+  "web.admin.emailtools.test.toLabel": {
+    "text": "Παραλήπτης",
+    "source_hash": "51fac985"
+  },
+  "web.admin.emailtools.test.toPlaceholder": {
+    "text": "you{'@'}example.com",
+    "source_hash": "cf0a9acc"
+  },
+  "web.admin.emailtools.test.enqueueLabel": {
+    "text": "Μέσω ουράς worker",
+    "source_hash": "97897017"
+  },
+  "web.admin.emailtools.test.previewButton": {
+    "text": "Προεπισκόπηση (χωρίς αποστολή)",
+    "source_hash": "747ced83"
+  },
+  "web.admin.emailtools.test.sendButton": {
+    "text": "Αποστολή δοκιμαστικού email",
+    "source_hash": "46ebd7db"
+  },
+  "web.admin.emailtools.test.provider": {
+    "text": "Πάροχος",
+    "source_hash": "472590ae"
+  },
+  "web.admin.emailtools.test.host": {
+    "text": "Διακομιστής προέλευσης",
+    "source_hash": "968925cb"
+  },
+  "web.admin.emailtools.test.from": {
+    "text": "Από",
+    "source_hash": "21819769"
+  },
+  "web.admin.emailtools.test.subject": {
+    "text": "Θέμα",
+    "source_hash": "68971283"
+  },
+  "web.admin.emailtools.test.confirmTitle": {
+    "text": "Αποστολή πραγματικού δοκιμαστικού email;",
+    "source_hash": "64a16b62"
+  },
+  "web.admin.emailtools.test.confirmDescription": {
+    "text": "Αυτό αποστέλλει ένα ζωντανό email στο {to} μέσω του διαμορφωμένου αποστολέα αλληλογραφίας.",
+    "source_hash": "10114929"
+  },
+  "web.admin.emailtools.test.success": {
+    "text": "Το δοκιμαστικό email στάλθηκε στο {to}.",
+    "source_hash": "daa61a62"
+  }
+}

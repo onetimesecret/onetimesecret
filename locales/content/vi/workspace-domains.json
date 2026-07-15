@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Đã bật",
-    "source_hash": "92c1cdfd"
+    "text": "Bật",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Đã tắt",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Nâng cấp để cấu hình",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Tên miền tùy chỉnh",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Tên máy chủ chính xác mà nhóm của bạn sẽ dùng, như {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Các liên kết bí mật của bạn sẽ nằm tại",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Đó là toàn bộ tên miền của bạn — các liên kết bí mật nên nằm ở đâu?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Một tên miền phụ giữ nguyên phần còn lại của {domain}.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Được khuyến nghị",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Không có lựa chọn sai — hãy chọn bất kỳ tên nào nhóm của bạn dễ nhận ra.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Tên miền phụ phổ biến",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Hoặc dùng toàn bộ tên miền của bạn",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Dùng tên miền gốc của tôi",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Thao tác này trỏ toàn bộ {domain} về chúng tôi — trang web ở đó ngừng phân giải — và cần một bản ghi A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}” không phải là phần kết thúc tên miền được nhận diện — hãy kiểm tra lỗi chính tả (ví dụ: {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Nhập một tên máy chủ hợp lệ — chữ cái, chữ số, dấu chấm và dấu gạch đơn (ví dụ: {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Vui lòng nhập một tên miền.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Tiếp tục với {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Mặc định không gian làm việc",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "Thiết lập DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Trỏ tên miền của bạn về máy chủ này bằng một bản ghi CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "Cấu hình DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Trỏ",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "về máy chủ này bằng cách thêm bản ghi DNS sau với nhà cung cấp của bạn.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Tạo một bản ghi CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Tạo một bản ghi ALIAS hoặc ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Tên miền gốc (apex) không thể dùng bản ghi CNAME. Thay vào đó, hãy dùng bản ghi ALIAS hoặc ANAME của nhà cung cấp DNS, hoặc trỏ một bản ghi A về địa chỉ IP của máy chủ của bạn.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Trang chủ",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Những gì khách truy cập có thể làm trên trang chủ tên miền của bạn",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Trang đích riêng tư",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Khách truy cập thấy một trang đích riêng tư không có biểu mẫu tương tác",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Biểu mẫu tạo bí mật",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Khách truy cập có thể tạo liên kết bí mật của riêng họ",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Biểu mẫu bí mật đến",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Khách truy cập có thể gửi bí mật đến những người nhận bạn đã cấu hình",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Yêu cầu bật bí mật đến với ít nhất một người nhận",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Cấu hình người nhận",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Trang đích riêng tư",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Công khai: khách truy cập tạo bí mật",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Công khai: khách truy cập gửi bí mật cho bạn",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Bí mật đến chưa sẵn sàng — đang hiển thị trang đích riêng tư",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Đến",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Đã lưu cài đặt trang chủ",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Trang chủ của tên miền này hiện đang trình bày biểu mẫu bí mật đến. Việc tắt bí mật đến hoặc gỡ bỏ tất cả người nhận sẽ chuyển trang chủ sang một trang đích riêng tư cho đến khi bí mật đến sẵn sàng trở lại.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Đăng nhập trên tên miền này",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Đăng nhập đã bị tắt trên toàn không gian làm việc, nên nó không khả dụng trên mọi tên miền. Cài đặt của bạn ở đây được giữ lại và có hiệu lực khi đăng nhập của không gian làm việc được bật lại.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Đăng ký trên tên miền này",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Đăng ký đã bị tắt trên toàn không gian làm việc, nên không khả dụng trên mọi tên miền. Cài đặt của bạn ở đây được giữ lại và có hiệu lực khi đăng ký của không gian làm việc được bật lại.",
+    "source_hash": "49faefe4"
   }
 }

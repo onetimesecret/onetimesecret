@@ -69,6 +69,11 @@ module Onetime
           auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.domain.validation' },
         },
+        'domain.favicon.fetch' => {
+          durable: true,
+          auto_delete: false,
+          arguments: { 'x-dead-letter-exchange' => 'dlx.domain.favicon' },
+        },
         'migration.customer.batch' => {
           durable: true,
           auto_delete: false,
@@ -110,6 +115,10 @@ module Onetime
         },
         'dlx.domain.validation' => {
           queue: 'dlq.domain.validation',
+          arguments: {},
+        },
+        'dlx.domain.favicon' => {
+          queue: 'dlq.domain.favicon',
           arguments: {},
         },
         'dlx.migration.customer' => {

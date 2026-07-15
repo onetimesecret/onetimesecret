@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "تمت معالجة الدعوة بالفعل: %{status}",
-    "source_hash": "130c87e0"
+    "text": "تمت معالجة هذه الدعوة بالفعل",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "انتهت صلاحية الدعوة",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "أنت بالفعل عضو في هذه المؤسسة",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "تم قبول هذه الدعوة بالفعل",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "تم رفض هذه الدعوة بالفعل",
+    "source_hash": "96e0d626"
   }
 }

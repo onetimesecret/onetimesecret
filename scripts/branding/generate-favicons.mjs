@@ -10,9 +10,9 @@
 // This script renders a generic "keyhole" mark (OFL-licensed glyph, the same
 // one used by KeyholeIcon.vue) into the full set of files referenced by the
 // HTML head. Operators override per deployment via BRAND_* env vars (URL
-// overrides) or by dropping replacement files into the brand directory
-// (docker/public/ at build time, or public/web at runtime) — see
-// docs/product/branding-favicon.md.
+// overrides), by selecting a generated pack (BRAND_PACK / BRAND_ASSETS_DIR at
+// runtime, or --build-arg BRAND_PACK at build time), or by mounting replacement
+// files over public/web at runtime — see docs/product/branding-favicon.md.
 //
 // SINGLE SOURCE OF TRUTH
 // ----------------------
@@ -25,7 +25,8 @@
 // -----
 //   cd scripts/branding
 //   npm install          # installs the isolated sharp + png-to-ico deps
-//   npm run generate     # writes assets into ../../public/web and ../../src/assets/branding
+//   npm run generate     # writes the neutral default pack into
+//                        # ../../public/branding/default and ../../src/assets/branding
 //
 // This folder is intentionally isolated from the root pnpm workspace so the
 // heavy native `sharp` dependency never enters the application bundle or the
@@ -47,13 +48,13 @@
 //     `--preset <name>` (or MARK_PRESET=<name>). The OTS "maruhi" mark ships as
 //     one — see `pnpm run gen:favicons:maruhi`.
 //
-// A custom/preset run writes to public/web + src/assets/branding by default,
-// which would overwrite the committed neutral defaults. Point it elsewhere with
-// MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR — each is resolved against the repo root
-// when relative, or used as-is when absolute (handy for a throwaway/CI dir). A
-// preset typically sets these itself.
+// A neutral run writes to public/branding/default + src/assets/branding; a
+// custom/preset run would overwrite those committed neutral defaults, so point
+// it elsewhere with MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR — each is resolved
+// against the repo root when relative, or used as-is when absolute (handy for a
+// throwaway/CI dir). A preset typically sets these itself.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -91,18 +92,41 @@ if (presetName) {
   }
 }
 
-// Resolved after the preset, so a preset can target its own output dirs. A
-// custom/preset run must NOT overwrite the committed neutral defaults — redirect
-// it with MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR (paths relative to the repo root).
-const PUBLIC_WEB = process.env.MARK_OUT_PUBLIC_DIR
+// Resolved after the preset, so a preset can target its own output dirs. The
+// neutral (no-preset) run writes the tracked DEFAULT pack under
+// public/branding/default (#3774) — the pack every unset BRAND_PACK resolves to.
+// A custom/preset run must NOT overwrite it — redirect with MARK_OUT_PUBLIC_DIR /
+// MARK_OUT_SRC_DIR (paths relative to the repo root; a preset sets these itself).
+const PACK_DIR = process.env.MARK_OUT_PUBLIC_DIR
   ? resolve(REPO_ROOT, process.env.MARK_OUT_PUBLIC_DIR)
-  : resolve(REPO_ROOT, 'public', 'web');
+  : resolve(REPO_ROOT, 'public', 'branding', 'default');
 const SRC_BRANDING = process.env.MARK_OUT_SRC_DIR
   ? resolve(REPO_ROOT, process.env.MARK_OUT_SRC_DIR)
   : resolve(REPO_ROOT, 'src', 'assets', 'branding');
 
 // Dynamic import: must come AFTER applyPreset so mark.mjs reads the preset's env.
-const { squareIconSvg, maskIconSvg, ogImageSvg, webmanifest } = await import('./mark.mjs');
+const { squareIconSvg, maskIconSvg, ogImageSvg, webmanifest, PRIMARY_COLOUR, PRODUCT_NAME } =
+  await import('./mark.mjs');
+
+// A pack's brand.yaml identity manifest (#3774): the colour + product name that
+// go with the assets, absorbed into OT.conf['brand'] at boot. Written only for a
+// PRESET run, and only as a STARTER when the pack has no brand.yaml yet — an
+// existing manifest is preserved on re-runs (see main()), so hand-added keys
+// (logo_url, support_email, …) survive regeneration. The neutral DEFAULT pack
+// keeps its hand-authored, value-free brand.yaml (a drift spec asserts it stays
+// empty), so this generator never writes brand values into the tracked default.
+function brandManifestYaml(preset) {
+  const esc = (s) => String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return (
+    `# public/branding/${preset}/brand.yaml\n` +
+    `# Starter manifest written by scripts/branding/generate-favicons.mjs (preset: ${preset}).\n` +
+    `# Identity scalars for this pack, absorbed into OT.conf['brand'] at boot (#3774).\n` +
+    `# Precedence: pack brand.yaml < operator \`brand:\` config < BRAND_* env.\n` +
+    `# Add more identity keys (support_email, logo_url, …) by hand — regeneration preserves this file.\n` +
+    `primary_color: "${esc(PRIMARY_COLOUR)}"\n` +
+    `product_name: "${esc(PRODUCT_NAME)}"\n`
+  );
+}
 
 function write(path, contents) {
   mkdirSync(dirname(path), { recursive: true });
@@ -132,31 +156,45 @@ async function main() {
   write(resolve(SRC_BRANDING, 'og-image-source.svg'), ogSvg);
 
   // Served SVGs (modern browsers prefer these; no rasterization needed).
-  write(resolve(PUBLIC_WEB, 'favicon.svg'), faviconSvg);
-  write(resolve(PUBLIC_WEB, 'safari-pinned-tab.svg'), maskSvg);
+  write(resolve(PACK_DIR, 'favicon.svg'), faviconSvg);
+  write(resolve(PACK_DIR, 'safari-pinned-tab.svg'), maskSvg);
 
   // Raster icons.
   const png16 = await pngFromSvg(faviconSvg, 16);
   const png32 = await pngFromSvg(faviconSvg, 32);
   const png48 = await pngFromSvg(faviconSvg, 48);
-  write(resolve(PUBLIC_WEB, 'apple-touch-icon.png'), await pngFromSvg(faviconSvg, 180));
-  write(resolve(PUBLIC_WEB, 'icon-192.png'), await pngFromSvg(faviconSvg, 192));
-  write(resolve(PUBLIC_WEB, 'icon-512.png'), await pngFromSvg(faviconSvg, 512));
+  write(resolve(PACK_DIR, 'apple-touch-icon.png'), await pngFromSvg(faviconSvg, 180));
+  write(resolve(PACK_DIR, 'icon-192.png'), await pngFromSvg(faviconSvg, 192));
+  write(resolve(PACK_DIR, 'icon-512.png'), await pngFromSvg(faviconSvg, 512));
 
   // Legacy multi-size .ico for old browsers / bookmarks.
-  write(resolve(PUBLIC_WEB, 'favicon.ico'), await pngToIco([png16, png32, png48]));
+  write(resolve(PACK_DIR, 'favicon.ico'), await pngToIco([png16, png32, png48]));
 
   // Social card.
   write(
-    resolve(PUBLIC_WEB, 'social-preview.png'),
+    resolve(PACK_DIR, 'social-preview.png'),
     await sharp(Buffer.from(ogSvg), { density: 192 }).png().toBuffer()
   );
 
   // PWA manifest.
-  write(resolve(PUBLIC_WEB, 'site.webmanifest'), webmanifest());
+  write(resolve(PACK_DIR, 'site.webmanifest'), webmanifest());
+
+  // brand.yaml identity manifest — preset runs only (#3774). The neutral default
+  // pack's brand.yaml is hand-authored and value-free; never overwrite it here.
+  // Write a STARTER manifest only when the pack has none yet; preserve an
+  // existing brand.yaml untouched so hand-added keys (logo_url, support_email, …)
+  // survive regeneration — a bare re-run must not silently drop a pack's logo.
+  if (presetName) {
+    const brandYamlPath = resolve(PACK_DIR, 'brand.yaml');
+    if (existsSync(brandYamlPath)) {
+      console.log(`  kept ${brandYamlPath.replace(REPO_ROOT + '/', '')} (preserved hand-authored manifest)`);
+    } else {
+      write(brandYamlPath, brandManifestYaml(presetName));
+    }
+  }
 
   console.log('Done.');
-  console.log(`  Pack:   ${PUBLIC_WEB}`);
+  console.log(`  Pack:   ${PACK_DIR}`);
   console.log(`  Source: ${SRC_BRANDING}`);
 }
 

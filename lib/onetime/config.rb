@@ -105,6 +105,15 @@ module Onetime
             'autoverify' => false,
             'allowed_signup_domains' => [],
           },
+          # Colonel admin surfaces network posture. allowed_cidrs empty (default)
+          # = AdminNetworkIsolation middleware is a no-op; both /colonel and
+          # /api/colonel stay reachable, gated only by the two app-layer auth
+          # layers. Set to private CIDRs on cloud to require an in-network
+          # (VPN/private) origin as defense-in-depth. See
+          # lib/onetime/middleware/admin_network_isolation.rb.
+          'admin' => {
+            'allowed_cidrs' => [],
+          },
         },
         'features' => {
           'regions' => { 'enabled' => false },
@@ -144,6 +153,16 @@ module Onetime
           # env var is detected: 'strict' raises OT::ConfigError, 'warn'
           # logs and continues, 'silent' ignores. See DEPRECATIONS.
           'deprecated_config_mode' => 'strict',
+        },
+        'experimental' => {
+          # Opt-in, not-yet-stable feature flags. Each flag is safe to disable
+          # at any time (rollback is a config flip); flags graduate out of this
+          # section once stable. Present here as a defensive default so the key
+          # always resolves even when a deployment's YAML omits the section.
+          #
+          # Currently empty: the Colonel admin-console cutover flag was retired
+          # once the rebuilt console became the sole admin frontend. See
+          # docs/specs/colonel-ui/50-cutover-hardening.md.
         },
       }
 
@@ -502,6 +521,12 @@ module Onetime
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
       end
 
+      # Absorb the resolved brand pack's brand.yaml identity scalars (#3774) as a
+      # fallback layer BENEATH the operator brand: config and BRAND_* env. Must
+      # run before normalize_brand so env stays the top authority and so the
+      # logo_url sanitizers below cover manifest-sourced values too.
+      apply_brand_manifest(conf)
+
       # Normalize the brand block from BRAND_* env vars. Done here (in Ruby)
       # rather than via ERB/YAML interpolation so values with YAML-significant
       # characters — notably the leading '#' in primary_color hex — survive.
@@ -576,6 +601,14 @@ module Onetime
       'totp_issuer' => 'BRAND_TOTP_ISSUER',
     }.freeze
 
+    # Keys a pack's brand.yaml manifest is allowed to set (#3774). Deliberately
+    # identical to BRAND_ENV — the manifest is a lower-precedence source for the
+    # SAME identity scalars, never a way to reach other config (site.host, SMTP,
+    # …). button_text_light is intentionally excluded: it stays an env/YAML-only
+    # toggle. A drift spec asserts this set == BRAND_ENV keys == the keys the
+    # default pack's brand.yaml documents.
+    BRAND_MANIFEST_KEYS = BRAND_ENV.keys.freeze
+
     # Maps brand identity keys to their deprecated sources (#3612): the legacy
     # unprefixed env var and the legacy site.interface.ui.header.branding YAML
     # path. Consulted by normalize_brand only when the brand: authority (BRAND_*
@@ -604,6 +637,67 @@ module Onetime
       'show_name' => 'show_name',
       'prominent' => 'prominent',
     }.freeze
+
+    # Absorb identity scalars from the resolved brand pack's brand.yaml (#3774).
+    # A pack is the single unit of branding: it carries both static assets and
+    # (optionally) the identity values that go with them, so `BRAND_PACK=acme`
+    # can ship colours + product name + icons as one unit instead of a pack plus
+    # a wall of BRAND_* vars that nothing keeps in agreement.
+    #
+    # Precedence: built-in defaults < pack brand.yaml < operator `brand:` config
+    # < BRAND_* env. This method fills only keys the operator's brand: config
+    # left nil, and runs before normalize_brand (which layers env on top), so the
+    # manifest is strictly a fallback. Env therefore stays the top authority and
+    # per-region overrides keep working.
+    #
+    # Safety: keys are whitelisted to BRAND_MANIFEST_KEYS and the file is read
+    # with YAML.safe_load, so a pack cannot set site.host, SMTP creds, or any
+    # non-brand config. The default pack (public/branding/default) ships a
+    # value-free, all-commented brand.yaml, so an unconfigured install adds NO
+    # brand values here — brand.* stays nil and the frontend neutral defaults
+    # remain the single authority for neutral rendering (#3049).
+    #
+    # @param conf [Hash] the merged configuration (mutated in place)
+    # @return [void]
+    def apply_brand_manifest(conf)
+      dir = Onetime.resolve_brand_pack_dir(
+        brand_assets_dir: conf.dig('site', 'brand_assets_dir'),
+        brand_pack: conf.dig('site', 'brand_pack'),
+      )
+      return if dir.nil?
+
+      path = File.join(dir, 'brand.yaml')
+      return unless File.exist?(path)
+
+      manifest = YAML.safe_load_file(path) || {}
+      unless manifest.is_a?(Hash)
+        OT.le "[apply_brand_manifest] #{path} is not a YAML mapping; ignoring" if defined?(OT)
+        return
+      end
+
+      brand = (conf['brand'] ||= {})
+      BRAND_MANIFEST_KEYS.each do |key|
+        # Below the operator brand: config — only fill a gap it left nil.
+        next unless brand[key].nil?
+
+        # Identity scalars are strings (colours, names, URLs). A bare YAML value
+        # parses to its native type — `product_name: 42` -> Integer,
+        # `primary_color: true` -> boolean — and normalize_brand only sanitizes
+        # strings, so a non-string would sail through to the frozen config,
+        # emails, and the bootstrap payload. Accept strings only. #3774
+        value = manifest[key]
+        next unless value.is_a?(String)
+
+        value = value.strip
+        next if value.empty?
+
+        brand[key] = value
+      end
+    rescue StandardError => ex
+      # A malformed pack manifest must never abort boot — it is an optional,
+      # lower-precedence source. Report and fall through to the other layers.
+      OT.le "[apply_brand_manifest] failed to load brand manifest: #{ex.class}: #{ex.message}" if defined?(OT)
+    end
 
     # Normalize the brand block, reading BRAND_* env vars directly so values
     # containing YAML-significant characters (e.g. the '#' of a hex color)
@@ -767,6 +861,23 @@ module Onetime
         conf['development']['allow_nil_global_secret'] = false
       end
 
+      # ADR-025: development frontend mode (RACK_ENV=development) makes the app
+      # proxy /dist/* to a Vite dev server. That is a source-editing workflow and
+      # needs the frontend build toolchain, which only a source checkout has. A
+      # deployment artifact — notably the production container image, whose
+      # Dockerfile prunes node_modules — has no toolchain and cannot host or reach
+      # a Vite server, so the proxy surfaces as a per-request 500. Refuse to boot
+      # loudly instead of serving a container that silently 500s every asset.
+      if conf.dig('development', 'enabled') && !frontend_dev_workflow_available?
+        raise OT::ConfigError, <<~MSG.chomp
+          development.enabled is true (RACK_ENV=#{ENV['RACK_ENV'].inspect}) but this build has no Vite frontend toolchain — it is a deployment artifact (e.g. the production container image) that serves pre-built assets and cannot host or proxy a Vite dev server (ADR-025).
+            Fix one of:
+              - Containers: serve the assets baked at build time — unset RACK_ENV or set RACK_ENV=production.
+              - Frontend dev: run on the host where the toolchain lives (bin/dev), not the shipped image.
+            Deliberately proxying to an external Vite? Set ONETIME_ALLOW_DEV_FRONTEND=true to bypass this guard.
+        MSG
+      end
+
       allow_nil     = conf.dig('development', 'allow_nil_global_secret') || false
       global_secret = conf.dig('site', 'secret') || nil
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
@@ -795,6 +906,19 @@ module Onetime
       unless conf['mail'].key?('truemail')
         raise OT::ConfigError, 'No TrueMail config found'
       end
+    end
+
+    # True when this process can participate in the Vite dev-server workflow:
+    # either the frontend build toolchain is present (a source checkout) or the
+    # operator has explicitly opted into an external-Vite topology. Used to reject
+    # development frontend mode on a deployment artifact at boot (ADR-025).
+    #
+    # @return [Boolean]
+    def frontend_dev_workflow_available?
+      return true if %w[1 true yes].include?(ENV['ONETIME_ALLOW_DEV_FRONTEND'].to_s.strip.downcase)
+
+      home = ENV.fetch('ONETIME_HOME', '.')
+      File.exist?(File.join(home, 'node_modules', '.bin', 'vite'))
     end
 
     # Detects deprecated configuration keys and environment variables.

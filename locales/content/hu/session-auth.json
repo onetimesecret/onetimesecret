@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Használja a Mágikus hivatkozás opciót a jelszó nélküli bejelentkezéshez. Bejelentkezés után módosíthatja jelszavát a Fiókbeállításokban.",
-    "source_hash": "2a058600"
+    "text": "Kérhet egy jelszó-visszaállítási hivatkozást új jelszó létrehozásához.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Fiókja ideiglenesen zárolva van?",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "SSO-fiók",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Jelszó visszaállítása",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Az Ön e-mail-doménje nem jogosult az SSO-regisztrációra. Kérjük, forduljon az adminisztrátorhoz.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Ellenőrizze az e-mailjeit",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Ellenőrző hivatkozást küldtünk az e-mail-címére.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Ellenőrző hivatkozást küldtünk erre a címre — nyissa meg az e-mailt, és kattintson a hivatkozásra a fiókja aktiválásához.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Nem találja? Ellenőrizze a spam mappáját.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Rossz címet adott meg?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Kezdje elölről",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Jelszó",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Nem kapta meg az ellenőrző e-mailt? Adja meg az e-mail-címét az újraküldéshez.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Ellenőrző e-mail újraküldése",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Ha egy fióknak ellenőrzésre van szüksége, új e-mailt küldtünk. Kérjük, ellenőrizze a postafiókját és a spam mappáját.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Nem sikerült elküldeni az ellenőrző e-mailt. Kérjük, ellenőrizze a kapcsolatát, és próbálja újra.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "E-mail újraküldése",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Az e-mail-címe ellenőrizve — most már bejelentkezhet.",
+    "source_hash": "c8d4b5a8"
   }
 }

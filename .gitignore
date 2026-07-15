@@ -5,7 +5,6 @@
 *.txt
 .*.json
 .byebug*
-.ruby-version
 spoom_*
 .commit_hash.txt
 *.sublime-*
@@ -20,7 +19,6 @@ pnpm-debug.log*
 .certs/
 .claude
 .continue/
-.devcontainer
 .gemini*
 .history
 .interface-design
@@ -32,11 +30,17 @@ pnpm-debug.log*
 .pytest_cache/
 .ruby-lsp/
 .serena
-.vscode/
+# Ignore personal editor settings but SHARE the project-level config files.
+# Must ignore dir CONTENTS (.vscode/*), not the dir (.vscode/) — git cannot
+# re-include a file whose parent directory is itself excluded.
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 .cache/
 .temp/
-.zed/
+.zed/*
+!.zed/settings.json
 .appendonlydir/
 .bundle/
 .rspec
@@ -54,6 +58,25 @@ coverage/
 dist/
 public/web/dist/
 public/doc
+# Runtime brand-asset packs (#3739): public/branding/<pack>/ is generator
+# output (pnpm run gen:favicons:<pack>), never committed — the repo stays
+# brand-neutral. Ignore the CONTENTS (not the dir) so the README stays tracked;
+# git cannot re-include a file whose parent directory is itself excluded (see
+# .vscode note above).
+#
+# The `default` pack (#3774) is a tracked exception: it holds the neutral
+# asset set + a value-free brand.yaml and is the pack every unset BRAND_PACK
+# resolves to. `vshare` and `linkdepot` are also tracked: sample general-purpose
+# brand identities (unrelated to Onetime Secret) that demonstrate the pack
+# system without compromising repo brand-neutrality. Re-include the directories
+# so git descends into them (their files are not matched by the single-level
+# `*` above, so they track normally). The company's own marks (`maruhi`,
+# `onetimesecret`) stay generator-only and gitignored.
+public/branding/*
+!public/branding/README.md
+!public/branding/default/
+!public/branding/vshare/
+!public/branding/linkdepot/
 !tests/data
 
 # Files
@@ -120,6 +143,9 @@ blob-report/
 playwright/.cache/
 # Saved authenticated session (e2e/global.setup.ts) - never commit
 e2e/.auth/
+e2e/visual/.artifacts/
+# Backstop against committing macOS baselines (Linux baselines only)
+e2e/visual/**/*-darwin.png
 *.egg-info/
 
 # Local direnv overlay markers in test lanes (tests/lanes/README.md)
@@ -130,3 +156,7 @@ tests/lanes/**/.overlays
 !tests/lanes/**/.envrc
 !tests/lanes/base.env
 !tests/lanes/overlays/*.env
+
+# Per-run i18n PR-review artifacts (pr-per-locale.sh). Not committed here; may
+# move to the translation-rules repo as an audit trail. See locales/BATCH_OPERATIONS.md.
+locales/reviews/

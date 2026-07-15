@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Χρήση",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Εξαγωγή μετρήσεων χρήσης για ένα εύρος ημερομηνιών.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Ημερομηνία έναρξης",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "Ημερομηνία λήξης",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Ανάκτηση δεδομένων",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των δεδομένων χρήσης.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Επανάληψη",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "Δεν υπάρχουν δεδομένα για αυτό το εύρος",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Μυστικά ανά κατάσταση",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Μυστικά ανά ημέρα",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "Νέοι χρήστες ανά ημέρα",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Λήψη JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Λήψη CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Ημερομηνία",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Πλήθος",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Συνολικά μυστικά",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "Νέοι χρήστες",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Μ.ό. μυστικών/ημέρα",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Μ.ό. χρηστών/ημέρα",
+    "source_hash": "491f626d"
+  }
+}

@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organisationer",
-    "source_hash": "2730183d"
+    "text": "Workspaces",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Organisationsindstillinger",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Bekræft altid, at du er på det officielle {product_name}-websted. Bedragere opretter undertiden falske websteder, der ligner {product_name} fuldstændig, for at stjæle dine beskeder. For at undgå phishingangreb skal du tjekke regionsdomænet, før du opretter nye links.",
-    "source_hash": "b588f5b2"
+    "text": "Bekræft altid, at du er på det officielle {product_name}-websted. Bedragere opretter nogle gange falske websteder, der ligner {product_name} til forveksling, for at stjæle dine beskeder. For at undgå phishingangreb skal du bekræfte regionens domæne i din adresselinje, før du opretter nye links.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Enkle, gennemsigtige priser",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Indkommende beskeder",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Opdater",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Opdaterer...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Tjek din e-mail",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS-opsætning",
+    "source_hash": "6c63df31"
   }
 }

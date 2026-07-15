@@ -123,8 +123,41 @@ module Onetime
         notify_enabled
       ].freeze
 
-      FONTS   = %w[sans serif mono].freeze
+      # Curated font allowlist. Expands the original sans/serif/mono trio with
+      # self-hosted (slab = Zilla Slab) and system-stack families. Every value
+      # here must have a matching CSS font-family stack on the frontend
+      # (src/shared/utils/brand-helpers.ts fontFamilyStacks) and a compiled
+      # `--font-brand-*` default in @theme static. No custom/free-form fonts are
+      # accepted — this stays a closed allowlist to keep the XSS boundary intact.
+      FONTS   = %w[sans serif mono system slab rounded humanist geometric].freeze
+
+      # Legacy 3-value corner vocabulary. Retained for back-compat; border_radius
+      # (below) is the richer replacement and takes precedence when both are set.
       CORNERS = %w[rounded square pill].freeze
+
+      # Border-radius vocabulary. `border_radius` accepts EITHER one of these
+      # named presets OR an integer number of pixels in 0..RADIUS_MAX. Both map
+      # to a single `--radius-brand` CSS variable on the frontend, so no custom
+      # CSS surface is opened. Presets keep the zero-typing path; the numeric
+      # form lifts the old 3-value corner_style ceiling.
+      #
+      # `full` (9999px pill) is intentionally omitted: the brand corner token is
+      # applied to large content containers (secret reveal/display boxes), where
+      # a pill radius renders as a giant oval that clips the secret. The bounded
+      # ceiling here is `xl` (1rem) plus the 0..64px numeric range.
+      RADII      = %w[none sm md lg xl].freeze
+      RADIUS_MAX = 64
+
+      # Expanded color vocabulary (#3646): non-primary hex color fields. Each is
+      # format-validated like primary_color. WCAG contrast is NOT gated on save
+      # (product decision 2026-07) — only hex format is enforced here.
+      EXTRA_COLOR_FIELDS = [:secondary_color, :background_color, :text_color].freeze
+
+      # WCAG AA minimums (contrast ratio). 3:1 for large text / UI components,
+      # 4.5:1 for normal body text. Retained for the contrast_ratio primitive
+      # and consumers that compute contrast advisories; NOT enforced on save.
+      WCAG_AA_LARGE  = 3.0
+      WCAG_AA_NORMAL = 4.5
     end
 
     # Per-domain (tenant, Redis-stored) brand settings. Deliberately NOT a
@@ -136,6 +169,9 @@ module Onetime
     BrandSettings = Data.define(
       :logo,
       :primary_color,
+      :secondary_color,
+      :background_color,
+      :text_color,
       :product_name,
       :product_domain,
       :support_email,
@@ -149,7 +185,9 @@ module Onetime
       :instructions_post_reveal,
       :button_text_light,
       :font_family,
+      :heading_font,
       :corner_style,
+      :border_radius,
       :locale,
       :default_ttl,
       :passphrase_required,
@@ -205,9 +243,15 @@ module Onetime
         normalized = hash.transform_keys(&:to_sym).slice(*members)
 
         validate_color_field!(normalized)
-        validate_color_accessibility!(normalized)
+        validate_extra_color_fields!(normalized)
+        # WCAG contrast is intentionally NOT enforced on save (product decision
+        # 2026-07): a low-contrast color must not block saving. Hex-format
+        # validation above still applies. A non-blocking contrast advisory may
+        # return in the UI later.
         validate_font_field!(normalized)
+        validate_heading_font_field!(normalized)
         validate_corner_style_field!(normalized)
+        validate_border_radius_field!(normalized)
         validate_url_fields!(normalized)
         validate_ttl_field!(normalized)
       end
@@ -221,22 +265,19 @@ module Onetime
       end
 
       # @api private
-      def self.validate_color_accessibility!(normalized)
-        return unless normalized.key?(:primary_color) && !normalized[:primary_color].nil?
+      #
+      # Format validation for the expanded color vocabulary (secondary, surface
+      # background, and body text). Each reuses the same hex validator as
+      # primary_color. WCAG contrast is not enforced on save (product decision
+      # 2026-07) — only hex format is checked.
+      def self.validate_extra_color_fields!(normalized)
+        BrandSettingsConstants::EXTRA_COLOR_FIELDS.each do |field|
+          next unless normalized.key?(field) && !normalized[field].nil?
+          next if valid_color?(normalized[field])
 
-        color          = normalized[:primary_color]
-        white_contrast = contrast_ratio(color, '#FFFFFF')
-
-        # WCAG AA requires 3:1 for large text, 4.5:1 for normal text
-        # We validate against white background (primary UI use case)
-        min_contrast = 3.0 # Large text minimum
-
-        return if white_contrast >= min_contrast
-
-        raise Onetime::Problem,
-          "Color #{color} fails WCAG AA accessibility - contrast #{white_contrast.round(2)}:1 with white " \
-          '(minimum 3:1 for large text, 4.5:1 for normal text). ' \
-          'Try a darker shade or use an online contrast checker.'
+          label = field.to_s.tr('_', ' ')
+          raise Onetime::Problem, "Invalid #{label} format - must be hex code (e.g. #FF0000)"
+        end
       end
 
       # @api private
@@ -248,11 +289,29 @@ module Onetime
       end
 
       # @api private
+      def self.validate_heading_font_field!(normalized)
+        return unless normalized.key?(:heading_font) && !normalized[:heading_font].nil?
+        return if valid_font?(normalized[:heading_font])
+
+        raise Onetime::Problem, "Invalid heading font - must be one of: #{BrandSettingsConstants::FONTS.join(', ')}"
+      end
+
+      # @api private
       def self.validate_corner_style_field!(normalized)
         return unless normalized.key?(:corner_style) && !normalized[:corner_style].nil?
         return if valid_corner_style?(normalized[:corner_style])
 
         raise Onetime::Problem, "Invalid corner style - must be one of: #{BrandSettingsConstants::CORNERS.join(', ')}"
+      end
+
+      # @api private
+      def self.validate_border_radius_field!(normalized)
+        return unless normalized.key?(:border_radius) && !normalized[:border_radius].nil?
+        return if valid_border_radius?(normalized[:border_radius])
+
+        raise Onetime::Problem,
+          "Invalid border radius - must be a preset (#{BrandSettingsConstants::RADII.join(', ')}) " \
+          "or a whole number of pixels 0-#{BrandSettingsConstants::RADIUS_MAX}"
       end
 
       # @api private
@@ -366,6 +425,24 @@ module Onetime
         BrandSettingsConstants::CORNERS.include?(style.to_s.downcase)
       end
 
+      # Validates a border-radius value: either a named preset (RADII) or a
+      # whole number of pixels in 0..RADIUS_MAX. Accepts integers and numeric
+      # strings ("12") so HTTP params (always strings) validate the same as
+      # programmatic input.
+      #
+      # @param value [String, Integer, nil] Border radius to validate
+      # @return [Boolean] true if valid border radius
+      def self.valid_border_radius?(value)
+        return false if value.nil?
+
+        str = value.to_s.strip.downcase
+        return true if BrandSettingsConstants::RADII.include?(str)
+        return false unless str.match?(/\A\d+\z/)
+
+        px = str.to_i
+        px.between?(0, BrandSettingsConstants::RADIUS_MAX)
+      end
+
       # Validates a URL string for logo/favicon fields.
       # Accepts https:// URLs or relative paths starting with /.
       # Enforces max length of 2048 chars to prevent abuse.
@@ -412,8 +489,10 @@ module Onetime
     end
 
     # Re-export constants at BrandSettings level for convenient access
-    BrandSettings::DEFAULTS = BrandSettingsConstants::DEFAULTS
-    BrandSettings::FONTS    = BrandSettingsConstants::FONTS
-    BrandSettings::CORNERS  = BrandSettingsConstants::CORNERS
+    BrandSettings::DEFAULTS   = BrandSettingsConstants::DEFAULTS
+    BrandSettings::FONTS      = BrandSettingsConstants::FONTS
+    BrandSettings::CORNERS    = BrandSettingsConstants::CORNERS
+    BrandSettings::RADII      = BrandSettingsConstants::RADII
+    BrandSettings::RADIUS_MAX = BrandSettingsConstants::RADIUS_MAX
   end
 end

@@ -83,6 +83,19 @@ const middlewareSchema = z.object({
 });
 
 /**
+ * Admin (Colonel) configuration
+ *
+ * Network-level posture for the Colonel admin surfaces (/colonel + /api/colonel).
+ * allowed_cidrs is an optional CIDR allowlist enforced by the
+ * AdminNetworkIsolation Rack middleware. Empty/unset = no-op (self-hosted
+ * default); populated = requests from outside the allowlist get a 404.
+ * Defaults belong in `shapes/config/section/site.ts`.
+ */
+const siteAdminSchema = z.object({
+  allowed_cidrs: z.array(z.string()).optional(),
+});
+
+/**
  * Secret options - passphrase settings
  */
 const passphraseSchema = z.object({
@@ -130,6 +143,11 @@ const siteSchema = z.object({
   host: z.string().optional(),
   ssl: z.boolean().optional(),
   secret: z.string().nullable().optional(),
+  /**
+   * Boot-time SECRET verifier policy (C10/QS-6).
+   * @sync lib/onetime/secret_verifier.rb — MODES
+   */
+  secret_verifier_mode: z.enum(['warn', 'enforce', 'off']).optional(),
   interface: z.any().optional(), // Defined in ui.ts for mutable config
   secret_options: siteSecretOptionsSchema.optional(),
   authentication: siteAuthenticationSchema.optional(),
@@ -137,12 +155,14 @@ const siteSchema = z.object({
   session: sessionConfigSchema.optional(),
   middleware: middlewareSchema.optional(),
   security: securitySchema.optional(),
+  admin: siteAdminSchema.optional(),
 });
 
 export type SessionConfig = z.infer<typeof sessionConfigSchema>;
 export type MiddlewareConfig = z.infer<typeof middlewareSchema>;
 export type CspConfig = z.infer<typeof cspSchema>;
 export type SecurityConfig = z.infer<typeof securitySchema>;
+export type SiteAdminConfig = z.infer<typeof siteAdminSchema>;
 
 export {
   siteSchema,
@@ -154,4 +174,5 @@ export {
   middlewareSchema,
   securitySchema,
   cspSchema,
+  siteAdminSchema,
 };

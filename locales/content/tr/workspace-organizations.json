@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Kuruluş",
-    "source_hash": "d764d425"
+    "text": "Çalışma Alanı",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Kuruluşlar",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Kuruluşlar",
-    "source_hash": "2730183d"
+    "text": "Çalışma Alanları",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Kuruluşları Yönet",
-    "source_hash": "be0fe4c3"
+    "text": "Çalışma Alanlarını Yönet",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Yeni Kuruluş",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Henüz kuruluş yok",
-    "source_hash": "5b7a7cbd"
+    "text": "Henüz çalışma alanı yok",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Kuruluşlar birleşik faturalandırma ve yönetim sağlar. İlk kuruluşunuzu oluşturarak başlayın.",
-    "source_hash": "deab4304"
+    "text": "Çalışma alanları, birleşik faturalandırma ve yönetim sağlar. İlk çalışma alanınızı oluşturarak başlayın.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Açıklama sağlanmadı",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "İlk Kuruluşu Oluşturun",
-    "source_hash": "27bae486"
+    "text": "İlk Çalışma Alanını Oluştur",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Yeni bir kuruluş oluşturun",
-    "source_hash": "67cd5950"
+    "text": "Yeni bir çalışma alanı oluştur",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Oluştur",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Kuruluş oluşturulamadı",
-    "source_hash": "f2204373"
+    "text": "Çalışma alanı oluşturulamadı",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Kuruluş Adı",
-    "source_hash": "4cbd9073"
+    "text": "Çalışma Alanı Adı",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "örn. ABC Şirketi",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Bir kuruluş seçin",
-    "source_hash": "48326f52"
+    "text": "Bir çalışma alanı seçin",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Bu sayfada kuruluş değiştirme kullanılamıyor",
-    "source_hash": "da0cf810"
+    "text": "Bu sayfada çalışma alanı değiştirme kullanılamaz",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Kuruluş bulunamadı",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Takım",
-    "source_hash": "5985039f"
+    "text": "Üyeler",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Faturalandırma",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Üye",
-    "source_hash": "7c968fb7"
+    "text": "Ekip Üyesi",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Yönetici",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Takım üyesi davetleri, takım yönetimi içeren bir plan gerektirir. Kuruluşunuza işbirlikçiler eklemek için yükseltin.",
-    "source_hash": "cf10d623"
+    "text": "Üye davetleri ücretli bir plan gerektirir. Kuruluşunuza iş arkadaşları eklemek için planınızı yükseltin.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Farklı bir hesapla giriş yapılmış",
-    "source_hash": "4a2f91c3"
+    "text": "Farklı bir hesapla oturum açıldı",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Bu davet {invitedEmail} için. Şu anda {currentEmail} olarak giriş yapmış durumdasınız.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "{email} olarak devam et",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}g kaldı",
@@ -662,10 +662,6 @@
   "api.organizations.invitations.errors.accept_organization_gone": {
     "text": "Kuruluş artık mevcut değil",
     "source_hash": "a5df7d22"
-  },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Davet zaten %{status}",
-    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Davetin süresi doldu",
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Çalışma Alanı Oluştur",
+    "source_hash": "c63c14cf"
   }
 }

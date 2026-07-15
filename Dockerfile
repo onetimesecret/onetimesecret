@@ -5,7 +5,7 @@
 # ONETIME SECRET - DOCKER IMAGE
 #
 # Multi-stage build optimized for production deployment.
-# See docs/docker.md for detailed usage instructions.
+# See docker/README.md for detailed usage instructions.
 #
 # For general project information, see README.md.
 #
@@ -46,7 +46,7 @@
 #         --detach \
 #         onetimesecret
 #
-# The app will be at http://localhost:3000. For more, see docs/docker.md.
+# The app will be at http://localhost:3000. For more, see docker/README.md.
 #
 #     # Double-check the persistent storage for redis
 #     $ docker exec onetime-maindb ls -la /data
@@ -77,7 +77,7 @@ WORKDIR ${APP_DIR}
 ENV NODE_PATH=${APP_DIR}/node_modules
 
 # Copy dependency manifests
-COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .ruby-version Gemfile Gemfile.lock package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install Ruby dependencies
 # BUNDLE_WITHOUT excludes dev/test/optional gems from production image
@@ -150,27 +150,46 @@ RUN set -eux && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-# Build-time branding overlay (trust signal).
+# Build-time brand PACK overlay (trust signal, #3739 / #3774).
 #
-# The repo ships brand-NEUTRAL favicon/icon/social defaults. To bake a brand
-# into the image without modifying tracked files, drop replacement assets
-# (favicon.ico, favicon.svg, apple-touch-icon.png, icon-192.png, icon-512.png,
-# safari-pinned-tab.svg, site.webmanifest, social-preview.png, ...) into
-# docker/public/ before building. The directory is named for where the files
-# land — they are copied into public/web/ after the Vite build. It is empty
-# (.gitkeep only) in the OSS repo, so this step is a no-op by default and never
-# overlays our company brand onto self-hosted builds.
-COPY docker/public/ /tmp/branding/
+# The repo ships a brand-NEUTRAL default pack (public/branding/default: the
+# keyhole favicon/icon/social set + a value-free brand.yaml). A named pack
+# public/branding/<pack>/ is a COMPLETE generated brand pack (favicon.ico,
+# icon-*.png, favicon.svg, safari-pinned-tab.svg, site.webmanifest,
+# social-preview.png, and optionally brand.yaml). Named packs are gitignored
+# generator output (pnpm run gen:favicons:<pack>) — absent from OSS/CI builds, so
+# this is a no-op unless a pack was generated AND selected with
+# --build-arg BRAND_PACK=<name>, never overlaying our company brand onto
+# self-hosted builds. The pack arrives in the image via `COPY public ./public`
+# above (public/branding is not .dockerignore'd).
+#
+# v2 bake (#3774): brand resolution always lands on a pack, and an unset runtime
+# BRAND_PACK resolves to `default`. So baking overlays the selected pack ONTO the
+# default pack — the runtime then serves it with no env var set. Baking is
+# optional: the same selection also works live at runtime via BRAND_PACK /
+# BRAND_ASSETS_DIR (site.brand_pack / site.brand_assets_dir). Fails loudly if a
+# pack is selected but not present, so a typo/ungenerated pack can't silently
+# ship neutral assets.
+ARG BRAND_PACK=
 RUN set -eux && \
-    rm -f /tmp/branding/.gitkeep && \
-    if [ -n "$(find /tmp/branding -type f 2>/dev/null)" ]; then \
-      cp -R /tmp/branding/. public/web/ && \
-      chmod -R a+rX public/web && \
-      echo "NOTICE: applied docker/public overlay" >&2 ; \
+    if [ -n "${BRAND_PACK}" ] && [ "${BRAND_PACK}" != "default" ]; then \
+      case "${BRAND_PACK}" in \
+        *..*|*/*|*\\*) \
+          echo "ERROR: BRAND_PACK must be a simple pack name (no '/', '\\', or '..'): ${BRAND_PACK}" >&2 && exit 1 ;; \
+      esac && \
+      if [ -d "public/branding/${BRAND_PACK}" ] && \
+         [ -n "$(find "public/branding/${BRAND_PACK}" -type f 2>/dev/null)" ]; then \
+        cp -R "public/branding/${BRAND_PACK}/." public/branding/default/ && \
+        chmod -R a+rX public/branding/default && \
+        echo "NOTICE: baked brand pack over default: ${BRAND_PACK}" >&2 ; \
+      else \
+        echo "ERROR: BRAND_PACK=${BRAND_PACK} set but public/branding/${BRAND_PACK} is empty or missing." >&2 && \
+        echo "Generate it first (e.g. pnpm run gen:favicons:${BRAND_PACK})." >&2 && \
+        exit 1 ; \
+      fi ; \
     else \
-      echo "NOTICE: no docker/public overlay; using neutral defaults" >&2 ; \
-    fi && \
-    rm -rf /tmp/branding
+      echo "NOTICE: no BRAND_PACK build arg; using neutral default pack" >&2 ; \
+    fi
 
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
@@ -256,10 +275,10 @@ COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
-COPY --chown=appuser:appuser install.sh ./
+COPY --chown=appuser:appuser scripts/setup ./scripts/setup
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
-COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./
 
 # Copy S6 service definitions (as root for proper ownership)
 COPY --chown=root:root docker/s6/services /etc/s6-overlay/s6-rc.d
@@ -292,7 +311,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/healthcheck.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh && \
+    # Ship /app/data owned by appuser so a named volume mounted there
+    # self-initializes with uid 1001 ownership (sqlite auth.db in full
+    # auth mode — see docker/README.md "Data Persistence"). Without this,
+    # Docker creates the mount point root-owned and the app cannot write.
+    install -d -o appuser -g appuser data
 
 EXPOSE 3000
 
@@ -367,10 +391,10 @@ COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
-COPY --chown=appuser:appuser install.sh ./
+COPY --chown=appuser:appuser scripts/setup ./scripts/setup
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
-COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./
 
 # Set production environment
 ENV RACK_ENV=production \
@@ -396,7 +420,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/healthcheck.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh && \
+    # Ship /app/data owned by appuser so a named volume mounted there
+    # self-initializes with uid 1001 ownership (sqlite auth.db in full
+    # auth mode — see docker/README.md "Data Persistence"). Without this,
+    # Docker creates the mount point root-owned and the app cannot write.
+    install -d -o appuser -g appuser data
 
 EXPOSE 3000
 

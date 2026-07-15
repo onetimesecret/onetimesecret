@@ -1,0 +1,9 @@
+<%= t('email.mfa_enabled.title') %>
+
+<%= t('email.mfa_enabled.body', product_name: product_name, date: enabled_at_formatted) %>
+
+<%= t('email.mfa_enabled.security_notice') %>
+
+<%= baseuri %><%= security_settings_path %>
+
+<%= signature_name || t('email.mfa_enabled.signature') %>

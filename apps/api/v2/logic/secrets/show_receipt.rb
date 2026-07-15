@@ -161,7 +161,15 @@ module V2::Logic
               is_generated  = receipt.kind.to_s == 'generate'
               display_ttl   = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
               within_window = display_ttl.positive? && receipt_age < display_ttl
-              if is_generated && within_window && receipt.claim_secret_value_display!
+              # C10 fast-fail: a mismatched SECRET can't decrypt anything, and
+              # decrypt raises *after* claim_secret_value_display! burns the
+              # one-shot slot — leaving the generated value permanently
+              # unshowable. Gate the claim on verifier state (it is last in the
+              # &&, so a mismatch short-circuits before the slot is consumed),
+              # keeping the reveal intact per the non-destructive contract.
+              if is_generated && within_window &&
+                 Onetime.secret_verifier_state != :mismatch &&
+                 receipt.claim_secret_value_display!
                 OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} One-time reveal of generated secret to creator (age: #{receipt_age}s)"
                 @secret_value = secret.decrypted_secret_value
               end

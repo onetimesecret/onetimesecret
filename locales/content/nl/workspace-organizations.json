@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organisatie",
-    "source_hash": "d764d425"
+    "text": "Werkruimte",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organisaties",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organisaties",
-    "source_hash": "2730183d"
+    "text": "Werkruimtes",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Organisaties beheren",
-    "source_hash": "be0fe4c3"
+    "text": "Werkruimtes beheren",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Nieuwe organisatie",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Nog geen organisaties",
-    "source_hash": "5b7a7cbd"
+    "text": "Nog geen werkruimtes",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisaties bieden geünificeerde facturering en administratie. Begin met het aanmaken van je eerste organisatie.",
-    "source_hash": "deab4304"
+    "text": "Werkruimtes bieden geünificeerde facturatie en administratie. Begin met het aanmaken van je eerste werkruimte.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Geen beschrijving opgegeven",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Eerste organisatie aanmaken",
-    "source_hash": "27bae486"
+    "text": "Eerste werkruimte aanmaken",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Maak een nieuwe organisatie aan",
-    "source_hash": "67cd5950"
+    "text": "Maak een nieuwe werkruimte aan",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Aanmaken",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Organisatie aanmaken mislukt",
-    "source_hash": "f2204373"
+    "text": "Werkruimte aanmaken mislukt",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Organisatienaam",
-    "source_hash": "4cbd9073"
+    "text": "Werkruimtenaam",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "bijv. Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Selecteer een organisatie",
-    "source_hash": "48326f52"
+    "text": "Selecteer een werkruimte",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organisatiewisseling niet beschikbaar op deze pagina",
-    "source_hash": "da0cf810"
+    "text": "Werkruimtewisseling niet beschikbaar op deze pagina",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organisatie niet gevonden",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
-    "source_hash": "5985039f"
+    "text": "Leden",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Facturering",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Lid",
-    "source_hash": "7c968fb7"
+    "text": "Teamlid",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Beheerder",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teamleduitnodigingen vereisen een plan met teambeheer. Upgrade om medewerkers aan je organisatie toe te voegen.",
-    "source_hash": "cf10d623"
+    "text": "Leden uitnodigen vereist een betaald plan. Upgrade om medewerkers aan je organisatie toe te voegen.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Ingelogd met een ander account",
-    "source_hash": "4a2f91c3"
+    "text": "Ander account ingelogd",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Deze uitnodiging is voor {invitedEmail}. Je bent momenteel ingelogd als {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Doorgaan als {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "Nog {days}d",
@@ -855,10 +855,6 @@
     "text": "Organisatie bestaat niet meer",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Uitnodiging is al %{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Uitnodiging is verlopen",
     "source_hash": "7186297b"
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Werkruimte aanmaken",
+    "source_hash": "c63c14cf"
   }
 }

@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organizações",
-    "source_hash": "2730183d"
+    "text": "Espaços de trabalho",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Definições da organização",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre se estás no site oficial do {product_name}. Os burlões criam por vezes sites falsos que parecem exatamente iguais ao {product_name} para roubar as tuas mensagens confidenciais. Para evitares ataques de phishing, confirma o domínio da região antes de criares novos links.",
-    "source_hash": "b588f5b2"
+    "text": "Verifica sempre se estás no site oficial do {product_name}. Os burlões criam por vezes sites falsos que parecem exatamente iguais ao {product_name} para roubar as tuas mensagens confidenciais. Para evitar ataques de phishing, verifica o domínio da região na barra de endereço antes de criares novos links.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Preços simples e transparentes",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Mensagens confidenciais recebidas",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Atualizar",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "A atualizar...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Verifica o teu e-mail",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Configuração de DNS",
+    "source_hash": "6c63df31"
   }
 }

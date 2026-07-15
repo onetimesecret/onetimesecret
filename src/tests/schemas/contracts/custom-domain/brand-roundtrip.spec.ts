@@ -280,7 +280,18 @@ describe('FontFamily enum', () => {
   });
 
   it('exposes the expected canonical value set', () => {
-    expect([...fontFamilyValues].sort()).toEqual(['mono', 'sans', 'serif']);
+    // Expanded curated allowlist (#3646): original sans/serif/mono plus
+    // self-hosted (slab) and system font stacks.
+    expect([...fontFamilyValues].sort()).toEqual([
+      'geometric',
+      'humanist',
+      'mono',
+      'rounded',
+      'sans',
+      'serif',
+      'slab',
+      'system',
+    ]);
   });
 });
 
@@ -299,6 +310,131 @@ describe('CornerStyle enum', () => {
 
   it('exposes the expected canonical value set', () => {
     expect([...cornerStyleValues].sort()).toEqual(['pill', 'rounded', 'square']);
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Extended brand tokens (#3646): secondary_color, background_color, text_color,
+// heading_font, full-range border_radius.
+//
+// These 5 fields ride the v3 lane and had zero round-trip coverage here —
+// fullCanonical() omits them. C2 (schema hygiene) adds it so the frontend
+// contract for the extended tokens is pinned alongside the backend C3 tryouts.
+// -----------------------------------------------------------------------------
+
+describe('extended color tokens (secondary/background/text_color)', () => {
+  const colorFields = [
+    'secondary_color',
+    'background_color',
+    'text_color',
+  ] as const;
+
+  it.each(colorFields)('%s normalizes 6-digit hex to uppercase', (field) => {
+    const result = brandSettingsCanonical.parse({ [field]: '#ff4400' });
+    expect((result as Record<string, unknown>)[field]).toBe('#FF4400');
+  });
+
+  it.each(colorFields)('%s expands 3-digit hex to 6-digit uppercase', (field) => {
+    const result = brandSettingsCanonical.parse({ [field]: '#f0a' });
+    expect((result as Record<string, unknown>)[field]).toBe('#FF00AA');
+  });
+
+  it.each(colorFields)('%s rejects a malformed hex', (field) => {
+    const parsed = brandSettingsCanonical.safeParse({ [field]: 'not-a-hex' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it.each(colorFields)('%s accepts null and undefined', (field) => {
+    expect(
+      (brandSettingsCanonical.parse({ [field]: null }) as Record<string, unknown>)[field]
+    ).toBeNull();
+    expect(
+      (brandSettingsCanonical.parse({}) as Record<string, unknown>)[field]
+    ).toBeUndefined();
+  });
+
+  it.each(colorFields)('%s survives a JSON round-trip (normalized)', (field) => {
+    const first = brandSettingsCanonical.parse({ [field]: '#1133ff' });
+    const reparsed = brandSettingsCanonical.parse(JSON.parse(JSON.stringify(first)));
+    expect((reparsed as Record<string, unknown>)[field]).toBe('#1133FF');
+  });
+});
+
+describe('heading_font (enum nullish)', () => {
+  it.each(fontFamilyValues)('accepts valid value %s', (value) => {
+    const result = brandSettingsCanonical.parse({ heading_font: value });
+    expect(result.heading_font).toBe(value);
+  });
+
+  it('rejects an unknown value', () => {
+    const parsed = brandSettingsCanonical.safeParse({ heading_font: 'comic-sans' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('accepts null (inherit body font) and undefined', () => {
+    expect(brandSettingsCanonical.parse({ heading_font: null }).heading_font).toBeNull();
+    expect(brandSettingsCanonical.parse({}).heading_font).toBeUndefined();
+  });
+});
+
+describe('border_radius (preset | 0-64 px, string or number)', () => {
+  it.each(['none', 'sm', 'md', 'lg', 'xl'])('accepts preset %s', (preset) => {
+    const result = brandSettingsCanonical.parse({ border_radius: preset });
+    expect(result.border_radius).toBe(preset);
+  });
+
+  it.each([0, 22, 64])('accepts numeric px %s', (px) => {
+    const result = brandSettingsCanonical.parse({ border_radius: px });
+    expect(result.border_radius).toBe(px);
+  });
+
+  it('accepts a numeric px encoded as a string (v2 wire)', () => {
+    const result = brandSettingsCanonical.parse({ border_radius: '22' });
+    expect(result.border_radius).toBe('22');
+  });
+
+  it.each([65, 100, -1])('rejects out-of-range px %s', (px) => {
+    const parsed = brandSettingsCanonical.safeParse({ border_radius: px });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects a non-integer px', () => {
+    const parsed = brandSettingsCanonical.safeParse({ border_radius: '22.5' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects an unknown preset', () => {
+    const parsed = brandSettingsCanonical.safeParse({ border_radius: 'huge' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects the removed `full` (pill) preset', () => {
+    // `full` (9999px) was dropped: applied to large content boxes it renders as
+    // a giant oval that clips the secret. `xl` is the rounded ceiling.
+    const parsed = brandSettingsCanonical.safeParse({ border_radius: 'full' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('accepts null and undefined', () => {
+    expect(brandSettingsCanonical.parse({ border_radius: null }).border_radius).toBeNull();
+    expect(brandSettingsCanonical.parse({}).border_radius).toBeUndefined();
+  });
+});
+
+describe('all five extended tokens together — round-trip', () => {
+  it('serializes through JSON and re-parses preserving all five', () => {
+    const input = {
+      secondary_color: '#10B981',
+      background_color: '#0F172A',
+      text_color: '#F8FAFC',
+      heading_font: 'slab',
+      border_radius: 12,
+    };
+    const first = brandSettingsCanonical.parse(input);
+    const reparsed = brandSettingsCanonical.parse(JSON.parse(JSON.stringify(first)));
+    // Subset match: the schema also fills defaults for the legacy fields
+    // (font_family, corner_style, locale, …); we only pin the five tokens.
+    expect(reparsed).toMatchObject(input);
   });
 });
 

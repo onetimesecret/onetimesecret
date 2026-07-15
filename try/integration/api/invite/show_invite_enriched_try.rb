@@ -241,12 +241,7 @@ OT.conf['features']['domains'] = {
 OT.conf['development'] ||= {}
 OT.conf['development']['domain_context_enabled'] = true
 # Force runtime features update
-current_features = Onetime::Runtime.features
-Onetime::Runtime.features = Onetime::Runtime::Features.new(
-  domains_enabled: true,
-  global_banner: current_features.global_banner,
-  fortunes: current_features.fortunes,
-)
+Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: true)
 # Rebuild test app with new config
 @test = Object.new
 @test.extend Rack::Test::Methods

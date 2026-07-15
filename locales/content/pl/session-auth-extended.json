@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Twoja sesja wygasła. Odśwież stronę i spróbuj ponownie.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Logowanie nie powiodło się. Spróbuj ponownie.",
@@ -723,9 +723,6 @@
     "text": "Pozostań zalogowany",
     "source_hash": "b0a1ca80"
   },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
   "web.auth.sessions.session_singular": {
     "text": "sesja",
     "source_hash": "3f3af1ec"
@@ -733,8 +730,5 @@
   "web.auth.sessions.session_plural": {
     "text": "sesje",
     "source_hash": "1225ae6c"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "User's logged-in devices/browsers management page"
   }
 }

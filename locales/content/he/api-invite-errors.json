@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "ההזמנה כבר %{status}",
-    "source_hash": "130c87e0"
+    "text": "הזמנה זו כבר עובדה",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "תוקף ההזמנה פג",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "אתה כבר חבר בארגון זה",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "הזמנה זו כבר התקבלה",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "הזמנה זו כבר נדחתה",
+    "source_hash": "96e0d626"
   }
 }

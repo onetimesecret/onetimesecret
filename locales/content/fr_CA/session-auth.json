@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Utilisez l'option Lien magique pour vous connecter sans mot de passe. Une fois connecté, vous pourrez modifier votre mot de passe dans les Paramètres du compte.",
-    "source_hash": "2a058600"
+    "text": "Vous pouvez demander un lien de réinitialisation de mot de passe pour créer un nouveau mot de passe.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Compte temporairement verrouillé ?",
@@ -395,9 +395,6 @@
   "web.help.contact_support": {
     "text": "Contacter le soutien",
     "source_hash": "f8d47b82"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Processus de vérification par courriel après l'inscription"
   },
   "web.auth.account.sso_linked": {
     "text": "Compte SSO",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Le domaine de votre courriel n'est pas autorisé pour l'inscription par SSO. Veuillez communiquer avec votre administrateur.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Vérifiez votre courriel",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Nous avons envoyé un lien de vérification à votre adresse courriel.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Nous avons envoyé un lien de vérification à cette adresse — ouvrez le courriel et cliquez sur le lien pour activer votre compte.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Vous ne le trouvez pas ? Vérifiez votre dossier de pourriel.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Vous avez saisi la mauvaise adresse ?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Recommencer",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Mot de passe",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Vous n'avez pas reçu le courriel de vérification ? Saisissez votre courriel pour le renvoyer.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Renvoyer le courriel de vérification",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Si un compte nécessite une vérification, un nouveau courriel a été envoyé. Veuillez vérifier votre boîte de réception et votre dossier de pourriel.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Impossible d'envoyer le courriel de vérification. Veuillez vérifier votre connexion et réessayer.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Renvoyer le courriel",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Votre courriel a été vérifié — vous pouvez maintenant vous connecter.",
+    "source_hash": "c8d4b5a8"
   }
 }

@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Sử dụng tùy chọn Liên kết ma thuật để đăng nhập mà không cần mật khẩu. Sau khi đăng nhập, bạn có thể đổi mật khẩu trong Cài đặt tài khoản.",
-    "source_hash": "2a058600"
+    "text": "Bạn có thể yêu cầu một liên kết đặt lại mật khẩu để tạo mật khẩu mới.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Tài khoản bị khóa tạm thời?",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "Tài khoản SSO",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Đặt lại mật khẩu",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Tên miền email của bạn không được phép đăng ký bằng SSO. Vui lòng liên hệ quản trị viên của bạn.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Kiểm tra email của bạn",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Chúng tôi đã gửi một liên kết xác minh đến địa chỉ email của bạn.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Chúng tôi đã gửi một liên kết xác minh đến địa chỉ này — hãy mở email và nhấp vào liên kết để kích hoạt tài khoản của bạn.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Không tìm thấy? Hãy kiểm tra thư mục spam của bạn.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Nhập nhầm địa chỉ?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Bắt đầu lại",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Mật khẩu",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Chưa nhận được email xác minh? Nhập email của bạn để gửi lại.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Gửi lại email xác minh",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Nếu một tài khoản cần xác minh, một email mới đã được gửi. Vui lòng kiểm tra hộp thư đến và thư mục spam của bạn.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Không thể gửi email xác minh. Vui lòng kiểm tra kết nối và thử lại.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Gửi lại email",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Email của bạn đã được xác minh — bây giờ bạn có thể đăng nhập.",
+    "source_hash": "c8d4b5a8"
   }
 }

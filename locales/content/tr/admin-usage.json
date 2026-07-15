@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Kullanım",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Bir tarih aralığı için kullanım ölçümlerini dışa aktarın.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Başlangıç Tarihi",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "Bitiş Tarihi",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Verileri Getir",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "Kullanım verileri yüklenemedi.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Yeniden Dene",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "Bu aralık için veri yok",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Duruma Göre Gizli Mesajlar",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Güne Göre Gizli Mesajlar",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "Güne Göre Yeni Kullanıcılar",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "JSON İndir",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "CSV İndir",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Tarih",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Sayı",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Toplam Gizli Mesaj",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "Yeni Kullanıcılar",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Ort. Gizli Mesaj/Gün",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Ort. Kullanıcı/Gün",
+    "source_hash": "491f626d"
+  }
+}

@@ -479,6 +479,96 @@ describe('domainsStore', () => {
     });
   });
 
+  describe('Favicon refresh (#3780)', () => {
+    it('POSTs a forced re-fetch to the icon/refresh endpoint', async () => {
+      const extid = 'dm-ext-123';
+      // The endpoint returns a queued success (no domain record); the store
+      // resolves void and never parses the body.
+      axiosMock.onPost(`/api/domains/${extid}/icon/refresh`).reply(200, {
+        record: null,
+        details: { msg: 'Favicon refresh queued' },
+      });
+
+      await expect(store.refreshFavicon(extid)).resolves.toBeUndefined();
+
+      expect(axiosMock.history.post).toHaveLength(1);
+      expect(axiosMock.history.post[0].url).toBe(`/api/domains/${extid}/icon/refresh`);
+    });
+
+    it('propagates HTTP errors so the caller (wrap) can toast', async () => {
+      const extid = 'dm-ext-403';
+      axiosMock.onPost(`/api/domains/${extid}/icon/refresh`).reply(403);
+
+      await expect(store.refreshFavicon(extid)).rejects.toThrow();
+    });
+  });
+
+  describe('Favicon upload (#3780)', () => {
+    // The icon (favicon) trio mirrors the logo trio against the /:extid/icon
+    // endpoints. Uploading stamps favicon_source='user_upload' server-side; the
+    // store just posts the multipart body and returns the imageProps-parsed
+    // record. fetchIcon is the quiet-404 read; removeIcon is a plain DELETE.
+    const extid = 'dm-ext-icon';
+    const iconRecord = {
+      encoded: 'QUJD',
+      content_type: 'image/x-icon',
+      filename: 'favicon.ico',
+      width: 32,
+      height: 32,
+      ratio: 1,
+      bytes: 1234,
+    };
+
+    it('uploadIcon POSTs a multipart body (field "image") to the icon endpoint and returns the parsed record', async () => {
+      axiosMock.onPost(`/api/domains/${extid}/icon`).reply(200, { record: iconRecord });
+      const file = new File(['ABC'], 'favicon.ico', { type: 'image/x-icon' });
+
+      const record = await store.uploadIcon(extid, file);
+
+      expect(axiosMock.history.post).toHaveLength(1);
+      const req = axiosMock.history.post[0];
+      expect(req.url).toBe(`/api/domains/${extid}/icon`);
+      // Multipart: the picked file rides under the `image` field name (the same
+      // field the logo endpoint uses — the backend UpdateDomainImage reads it).
+      expect(req.data).toBeInstanceOf(FormData);
+      expect((req.data as FormData).get('image')).toBe(file);
+      expect(String((req.headers as Record<string, unknown>)?.['Content-Type'] ?? '')).toContain(
+        'multipart/form-data'
+      );
+      // Parsed through responseSchemas.imageProps → returns just the record.
+      expect(record).toMatchObject({ content_type: 'image/x-icon', filename: 'favicon.ico' });
+    });
+
+    it('fetchIcon returns the parsed record on a 200', async () => {
+      axiosMock.onGet(`/api/domains/${extid}/icon`).reply(200, { record: iconRecord });
+
+      const record = await store.fetchIcon(extid);
+
+      expect(record).toMatchObject({ content_type: 'image/x-icon', filename: 'favicon.ico' });
+      expect(axiosMock.history.get[0].url).toBe(`/api/domains/${extid}/icon`);
+    });
+
+    it('fetchIcon returns null (quietly) on a 404 — no icon stored yet', async () => {
+      axiosMock.onGet(`/api/domains/${extid}/icon`).reply(404);
+
+      await expect(store.fetchIcon(extid)).resolves.toBeNull();
+    });
+
+    it('fetchIcon rethrows non-404 errors (e.g. 500) so the caller can surface them', async () => {
+      axiosMock.onGet(`/api/domains/${extid}/icon`).reply(500);
+
+      await expect(store.fetchIcon(extid)).rejects.toThrow();
+    });
+
+    it('removeIcon issues a DELETE to the icon endpoint', async () => {
+      axiosMock.onDelete(`/api/domains/${extid}/icon`).reply(200);
+
+      await expect(store.removeIcon(extid)).resolves.toBeUndefined();
+      expect(axiosMock.history.delete).toHaveLength(1);
+      expect(axiosMock.history.delete[0].url).toBe(`/api/domains/${extid}/icon`);
+    });
+  });
+
   describe('Homepage configuration (putHomepageConfig)', () => {
     const extid = 'dm-hp-1';
 

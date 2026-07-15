@@ -16,14 +16,14 @@ import {
   DEFAULT_DISABLED_HOMEPAGE_VARIANT,
   disabledHomepageVariantSchema,
 } from '@/schemas/contracts/disabled-homepage';
-import type { Features } from '@/schemas/contracts/bootstrap';
+import type { BootstrapPayload, Features } from '@/schemas/contracts/bootstrap';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import type { SsoProvider } from '@/utils/features';
 import { submitSsoLogin } from '@/shared/utils/sso';
 import { storeToRefs } from 'pinia';
-import { computed, type ComputedRef } from 'vue';
+import { computed, type ComputedRef, type Ref } from 'vue';
 
 /**
  * Read a one-off variant override from the current URL.
@@ -64,6 +64,24 @@ export interface DisabledHomepageProps {
   monogramInitial: string;
   /** Custom brand color (hex). Defaults to OTS orange when unbranded. */
   primaryColor: string;
+  /**
+   * Brand font utility class (font_family). Null when the domain hasn't
+   * chosen a font, so variants keep their own display default (font-brand)
+   * instead of inheriting identityStore's empty-string fallback.
+   */
+  fontFamilyClass: string | null;
+  /**
+   * Brand heading-font utility class (heading_font, backfilled by
+   * font_family per the identityStore ladder). Null when the domain chose
+   * neither, so variants keep their own heading default (font-brand).
+   */
+  headingFontClass: string | null;
+  /**
+   * Brand corner utility class (border_radius / corner_style). Null when the
+   * domain hasn't chosen a corner shape, so variants keep their own default
+   * radii instead of identityStore's DEFAULT_CORNER_CLASS fallback.
+   */
+  cornerClass: string | null;
   /** Tenant-uploaded logo URL; falls back to monogram when null. */
   logoUri: string | null;
   /** Domain the visitor sees in the URL bar. */
@@ -135,6 +153,43 @@ function resolveSsoOneClickProvider(
 }
 
 /**
+ * Brand font/corner classes for the variants: honor an explicit operator
+ * choice, deliver null when unset so variants keep their own display defaults
+ * (font-brand, rounded-xl).
+ *
+ * Set-ness is read from the RAW `domain_branding` payload (the sparse Redis
+ * hash — keys exist only when the operator saved them), NOT the parsed
+ * identityStore brand: the schema defaults font_family/corner_style to
+ * 'sans'/'rounded' at parse time, which would read as an explicit choice on
+ * every deployment. The class value itself still resolves through
+ * identityStore so validation and fallback rules stay in one place.
+ */
+function useBrandStyleClasses(
+  domainBranding: Ref<BootstrapPayload['domain_branding']>,
+  identityStore: ReturnType<typeof useProductIdentity>
+) {
+  const fontFamilyClass = computed(() =>
+    domainBranding.value?.font_family ? identityStore.fontFamilyClass || null : null
+  );
+  // heading_font OR font_family counts as an explicit choice: the
+  // identityStore ladder backfills heading_font from font_family, and a
+  // domain that picked a body font expects its headings to follow.
+  const headingFontClass = computed(() =>
+    domainBranding.value?.heading_font || domainBranding.value?.font_family
+      ? identityStore.headingFontClass || null
+      : null
+  );
+  const hasCornerPreference = computed(() => {
+    const raw = domainBranding.value;
+    return (raw?.border_radius != null && raw.border_radius !== '') || !!raw?.corner_style;
+  });
+  const cornerClass = computed(() =>
+    hasCornerPreference.value ? identityStore.cornerClass : null
+  );
+  return { fontFamilyClass, headingFontClass, cornerClass };
+}
+
+/**
  * Validate a resolved variant id against the enum, collapsing every invalid
  * case (null, undefined, empty string, unknown/legacy id) to the default.
  *
@@ -148,14 +203,24 @@ function coerceDisabledVariant(candidate: unknown): DisabledHomepageVariant {
   return parsed.success ? parsed.data : DEFAULT_DISABLED_HOMEPAGE_VARIANT;
 }
 
+// Composition root by design (see DisabledHomepageProps): every variant input
+// is derived here so the variants stay purely presentational.
+// eslint-disable-next-line max-lines-per-function
 export function useDisabledConfig(): DisabledHomepageBindings {
   const identityStore = useProductIdentity();
   const { isCustom, primaryColor, logoUri, displayName, displayDomain, brand, siteHost } =
     storeToRefs(identityStore);
 
   const bootstrapStore = useBootstrapStore();
-  const { authentication, billing_enabled, disabled_homepage, features, homepage_config, ui } =
-    storeToRefs(bootstrapStore);
+  const {
+    authentication,
+    billing_enabled,
+    disabled_homepage,
+    domain_branding,
+    features,
+    homepage_config,
+    ui,
+  } = storeToRefs(bootstrapStore);
 
   const csrfStore = useCsrfStore();
 
@@ -170,6 +235,11 @@ export function useDisabledConfig(): DisabledHomepageBindings {
 
   const monogramInitial = computed(() =>
     (workspaceName.value || displayDomain.value || 'A').trim().charAt(0).toUpperCase()
+  );
+
+  const { fontFamilyClass, headingFontClass, cornerClass } = useBrandStyleClasses(
+    domain_branding,
+    identityStore
   );
 
   // The "What is this link?" affordance points at an operator-configured
@@ -253,6 +323,9 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     get workspaceName() { return workspaceName.value; },
     get monogramInitial() { return monogramInitial.value; },
     get primaryColor() { return primaryColor.value; },
+    get fontFamilyClass() { return fontFamilyClass.value; },
+    get headingFontClass() { return headingFontClass.value; },
+    get cornerClass() { return cornerClass.value; },
     get logoUri() { return logoUri.value; },
     get displayDomain() { return displayDomain.value; },
     get showSignin() { return showSignin.value; },

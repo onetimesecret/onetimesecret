@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "조직",
-    "source_hash": "2730183d"
+    "text": "워크스페이스",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "조직 설정",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "항상 공식 {product_name} 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 {product_name}과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요.",
-    "source_hash": "b588f5b2"
+    "text": "항상 공식 {product_name} 웹사이트에 접속했는지 확인하세요. 사기꾼은 때때로 여러분의 비밀 메시지를 훔치기 위해 {product_name}과 똑같이 보이는 가짜 웹사이트를 만들기도 합니다. 피싱 공격을 방지하려면 새 링크를 생성하기 전에 주소 표시줄에서 해당 지역의 도메인을 확인하세요.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "간단하고 투명한 요금제",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "수신 비밀 메시지",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "업데이트",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "업데이트 중...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "이메일을 확인하세요",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS 설정",
+    "source_hash": "6c63df31"
   }
 }

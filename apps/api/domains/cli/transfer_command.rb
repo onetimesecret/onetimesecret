@@ -3,12 +3,16 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require 'onetime/operations/domains/transfer'
 
 module Onetime
   module CLI
     # Transfer domain
     class DomainsTransferCommand < Command
       include DomainsHelpers
+
+      # Audit actor recorded for CLI-initiated mutations (see repair command).
+      CLI_ACTOR = 'cli'
 
       desc 'Transfer domain between organizations'
 
@@ -35,35 +39,43 @@ module Onetime
         domain = load_domain_by_name(domain_name)
         return unless domain
 
-        from_org_id = from_org || domain.org_id
-
-        # Load organizations
+        # Resolve the destination (required) and, when explicitly given, the source
+        # org for the ownership assertion. load_organization prints + returns nil on
+        # a miss, preserving the CLI's error output.
         to_org_obj = load_organization(to_org)
         return unless to_org_obj
 
         from_org_obj = nil
-        if from_org_id.to_s.empty?
-          puts 'Note: Domain is currently orphaned (no organization)'
-        else
-          from_org_obj = load_organization(from_org_id)
+        if from_org
+          from_org_obj = load_organization(from_org)
           return unless from_org_obj
-
-          # Verify current ownership
-          unless domain.org_id.to_s == from_org_id.to_s
-            puts "Error: Domain org_id (#{domain.org_id}) does not match --from-org (#{from_org_id})"
-            return
-          end
         end
 
-        # Display transfer details
+        # Dry-run to compute the transfer plan (from/to details, ownership check).
+        plan = Onetime::Operations::Domains::Transfer.new(
+          domain: domain,
+          to_org: to_org_obj,
+          from_org: from_org_obj,
+          actor: CLI_ACTOR,
+          dry_run: true,
+        ).call
+
+        if plan.status == :mismatch
+          puts "Error: Domain org_id (#{domain.org_id}) does not match --from-org (#{from_org})"
+          return
+        end
+
+        # Display transfer details from the plan.
+        puts 'Note: Domain is currently orphaned (no organization)' if domain.org_id.to_s.empty?
+
         puts 'Transfer Details:'
         puts "  Domain:               #{domain_name}"
-        if from_org_obj
-          puts "  From Organization:    #{from_org_obj.display_name || 'N/A'} (#{from_org_obj.org_id})"
-        else
+        if plan.from_org_id.to_s.empty?
           puts '  From Organization:    ORPHANED'
+        else
+          puts "  From Organization:    #{plan.from_org_name || 'N/A'} (#{plan.from_org_id})"
         end
-        puts "  To Organization:      #{to_org_obj.display_name || 'N/A'} (#{to_org_obj.org_id})"
+        puts "  To Organization:      #{plan.to_org_name || 'N/A'} (#{plan.to_org_id})"
         puts
 
         unless force
@@ -75,33 +87,23 @@ module Onetime
           end
         end
 
-        # Perform transfer
+        # Perform the transfer — the op mutates + records exactly one audit event.
         begin
-          # Remove from old organization's collection if exists
-          if from_org_obj
-            from_org_obj.remove_domain(domain.domainid)
-            puts "  Removed from #{from_org_obj.display_name || from_org_obj.org_id}"
+          result = Onetime::Operations::Domains::Transfer.new(
+            domain: domain,
+            to_org: to_org_obj,
+            from_org: from_org_obj,
+            actor: CLI_ACTOR,
+            dry_run: false,
+          ).call
+
+          unless result.from_org_id.to_s.empty?
+            puts "  Removed from #{result.from_org_name || result.from_org_id}"
           end
+          puts "  Added to #{result.to_org_name || result.to_org_id}"
+          puts '  Updated org_id field'
 
-          # TODO: Make this atomic - add_domain should handle both org_id update and collection add
-          # Update domain's org_id
-          domain.org_id  = to_org
-          domain.updated = OT.now.to_i
-          domain.save
-
-          # Add to new organization's collection
-          begin
-            to_org_obj.add_domain(domain.domainid)
-            puts "  Added to #{to_org_obj.display_name || to_org_obj.org_id}"
-            puts '  Updated org_id field'
-          rescue StandardError => ex
-            # Rollback: restore original org_id if collection add fails
-            domain.org_id = from_org_id
-            domain.save
-            raise "Failed to add domain to organization collection: #{ex.message}"
-          end
-
-          OT.info "[CLI] Domain transfer: #{domain_name} from #{from_org_id || 'orphaned'} to #{to_org}"
+          OT.info "[CLI] Domain transfer: #{domain_name} from #{result.from_org_id.to_s.empty? ? 'orphaned' : result.from_org_id} to #{to_org}"
           puts
           puts 'Transfer complete'
         rescue StandardError => ex

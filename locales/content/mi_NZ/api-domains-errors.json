@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Kāore e whakaaetia ngā īmēra kaiwhiwhi tārua",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "secrets_mode muhu: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "Me whai te aratau karere huna tae mai i te whaimana incoming_secrets. Tēnā, whakapikihia tō mahere.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Me whakahohe te karere huna tae mai me te kaiwhiwhi kotahi neke atu i mua i te whakamahi hei whārangi kāinga.",
+    "source_hash": "556da6e2"
   }
 }

@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Tu sesión ha expirado. Por favor, actualiza la página e inténtalo de nuevo.",
-    "source_hash": "a7c3e901"
+    "text": "Tu sesión ha caducado. Actualiza la página e inténtalo de nuevo.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "El inicio de sesión falló. Por favor, intenta de nuevo.",
@@ -710,12 +710,6 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Códigos de recuperación",
     "source_hash": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SEGURIDAD CRÍTICA: Los mensajes previenen la divulgación de información. Ver src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Página de gestión de dispositivos/navegadores con sesión iniciada"
   },
   "web.auth.google": {
     "text": "Google",

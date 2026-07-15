@@ -1,0 +1,154 @@
+{
+  "web.admin.banner.title": {
+    "text": "브로드캐스트 배너",
+    "source_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "모든 방문자에게 표시되는 사이트 전체 공지를 게시하거나 현재 공지를 삭제합니다.",
+    "source_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "현재 배너를 불러올 수 없습니다.",
+    "source_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "다시 시도",
+    "source_hash": "942087cc"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "배너 삭제",
+    "source_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "브로드캐스트 배너를 삭제하시겠습니까?",
+    "source_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "모든 방문자에게 표시되는 실시간 배너가 제거됩니다. 진행하려면 확인 단어를 입력하세요.",
+    "source_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "브로드캐스트 배너가 삭제되었습니다.",
+    "source_hash": "b0f52af4"
+  },
+  "web.admin.banner.current.title": {
+    "text": "현재 배너",
+    "source_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "현재 설정된 배너가 없습니다.",
+    "source_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "상태",
+    "source_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "게시 중",
+    "source_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "만료",
+    "source_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "지속 (만료 없음)",
+    "source_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "{duration} 후 만료",
+    "source_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.audience": {
+    "text": "대상",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "저장된 콘텐츠",
+    "source_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "콘텐츠는 HTML이며, 표시될 때 사이트에서 링크만 남기고 정리합니다.",
+    "source_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "편집",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "배너 설정",
+    "source_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "배너 업데이트",
+    "source_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "메시지",
+    "source_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "일요일 02:00 UTC 예정된 유지 보수",
+    "source_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "HTML을 사용할 수 있습니다. 사이트에서 링크만 남기고 정리합니다.",
+    "source_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "자동 만료 시간 (초)",
+    "source_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "만료가 없으면 비워 두세요",
+    "source_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "선택 사항입니다. 이 시간(초)이 지나면 배너가 자동으로 제거됩니다.",
+    "source_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "대상",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "배너를 표시할 페이지입니다. 사용자 지정 도메인 페이지는 모든 페이지로 설정된 경우에만 표시됩니다.",
+    "source_hash": "28cc3018"
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "수신자 페이지를 제외한 모든 페이지",
+    "source_hash": "8575b3c0"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "워크스페이스 페이지만",
+    "source_hash": "563e003e"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "모든 페이지 (사용자 지정 도메인 포함)",
+    "source_hash": "b9b74870"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "배너 게시",
+    "source_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "배너 업데이트",
+    "source_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "브로드캐스트 배너를 게시하시겠습니까?",
+    "source_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "이 배너는 삭제되거나 만료될 때까지 사이트 전체의 모든 방문자에게 표시됩니다.",
+    "source_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "게시",
+    "source_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "브로드캐스트 배너가 게시되었습니다.",
+    "source_hash": "55c06cab"
+  }
+}

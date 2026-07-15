@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organizo",
-    "source_hash": "d764d425"
+    "text": "Laborspaco",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organizoj",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organizoj",
-    "source_hash": "2730183d"
+    "text": "Laborspacoj",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Administru organizojn",
-    "source_hash": "be0fe4c3"
+    "text": "Administri laborspacojn",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Nova organizo",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Ankoraŭ neniuj organizoj",
-    "source_hash": "5b7a7cbd"
+    "text": "Ankoraŭ neniuj laborspacoj",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizoj provizas unuigitan fakturado kaj administradon. Komencu kreante vian unuan organizon.",
-    "source_hash": "deab4304"
+    "text": "Laborspacoj provizas unuigitan fakturadon kaj administradon. Komencu kreante vian unuan laborspacon.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Neniu priskribo provizita",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Kreu unuan organizon",
-    "source_hash": "27bae486"
+    "text": "Krei unuan laborspacon",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Kreu novan organizon",
-    "source_hash": "67cd5950"
+    "text": "Krei novan laborspacon",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Krei",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Malsukcesis krei organizon",
-    "source_hash": "f2204373"
+    "text": "Malsukcesis krei laborspacon",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Organiznomo",
-    "source_hash": "4cbd9073"
+    "text": "Nomo de laborspaco",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "ekz. Acme Korporacio",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Elektu organizon",
-    "source_hash": "48326f52"
+    "text": "Elektu laborspacon",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organizoŝanĝado ne disponebla sur ĉi tiu paĝo",
-    "source_hash": "da0cf810"
+    "text": "Ŝanĝo de laborspaco ne disponebla sur ĉi tiu paĝo",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organizo ne trovita",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Teamo",
-    "source_hash": "5985039f"
+    "text": "Membroj",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Fakturado",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro",
-    "source_hash": "7c968fb7"
+    "text": "Teamano",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Administranto",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teamanaj invitoj bezonas planon kun team-administrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo.",
-    "source_hash": "cf10d623"
+    "text": "Invitoj de membroj postulas pagitan planon. Altniveligu por aldoni kunlaborantojn al via organizo.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Alia konto ensalutita",
-    "source_hash": "4a2f91c3"
+    "text": "Alia konto ensalutinta",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Ĉi tiu invito estas por {invitedEmail}. Vi estas nuntempe ensalutinta kiel {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Daŭrigi kiel {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}t restantaj",
@@ -855,10 +855,6 @@
     "text": "La organizo ne plu ekzistas",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "La invito jam estis %{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "La invito eksvalidiĝis",
     "source_hash": "7186297b"
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Krei laborspacon",
+    "source_hash": "c63c14cf"
   }
 }

@@ -29,7 +29,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from ..config import CONTENT_DIR, SOURCE_LOCALE, iter_locale_dirs
+from ..config import CONTENT_DIR, RESOLVED_DIR, SOURCE_LOCALE, iter_locale_dirs
+from ..io import load_json_file, walk_keys
 
 # ---------------------------------------------------------------------------
 # Shared variable patterns (identical in both legacy scripts)
@@ -969,6 +970,237 @@ def _variables_handler(args) -> int:
 
 
 # ===========================================================================
+# Subcommand: validate glossary (bound-glossary divergence, advisory)
+# ===========================================================================
+
+# What counts as "the term appears" in the English source. A glossary term is an
+# English word (secret, burn, email); match it whole-word, case-insensitive, so
+# "secret" does not fire on "secretary".
+def _term_regex(term: str) -> re.Pattern:
+    return re.compile(rf"\b{re.escape(term)}\b", re.IGNORECASE)
+
+
+def load_bound_glossary(locale: str) -> dict[str, list[str]] | None:
+    """Load the BOUND glossary for ``locale`` from the resolved governance file.
+
+    Returns ``{en_term: [rendering, ...]}`` drawn from each entry's
+    ``senses[*].target`` (plus a top-level ``target`` if present) — the binding
+    renderings a translation is expected to use. Distinct from the committable DB
+    ``glossary`` table (local decisions); this is the upstream authority agents
+    honor, derived on demand by ``derive-governance.sh``.
+
+    Returns ``None`` when the resolved file is absent (governance not derived, or
+    the locale is ungoverned at the pin) so the caller can skip cleanly.
+    """
+    resolved = RESOLVED_DIR / f"{locale}.json"
+    if not resolved.exists():
+        return None
+
+    try:
+        with open(resolved, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+    glossary = data.get("glossary")
+    if not isinstance(glossary, dict):
+        return {}
+
+    bound: dict[str, list[str]] = {}
+    for term, info in glossary.items():
+        if not isinstance(info, dict):
+            continue
+        en_term = info.get("en") or term
+        renderings: list[str] = []
+        senses = info.get("senses")
+        if isinstance(senses, dict):
+            for sense in senses.values():
+                if isinstance(sense, dict) and sense.get("target"):
+                    renderings.append(sense["target"])
+        if info.get("target"):
+            renderings.append(info["target"])
+        # Keep only non-empty string renderings, and MERGE into any existing
+        # entry: two glossary keys can share one `en` (e.g. secret_noun +
+        # secret_adjective both en="secret"), and overwriting would drop one
+        # sense's renderings and manufacture spurious divergences. Preserve
+        # first-seen order, de-dup across the merge.
+        existing = bound.setdefault(en_term, [])
+        for r in renderings:
+            if isinstance(r, str) and r.strip() and r not in existing:
+                existing.append(r)
+        if not existing:
+            del bound[en_term]
+    return bound
+
+
+def audit_glossary_locale(
+    locale: str, bound: dict[str, list[str]]
+) -> list[dict[str, Any]]:
+    """Flag translated keys whose source uses a bound term but whose translation
+    contains none of that term's bound renderings.
+
+    Heuristic and advisory: rendering match is a case-insensitive substring
+    (citation form), so morphology/inflection can produce false positives —
+    every finding is a prompt for human judgment, not a hard failure. Only keys
+    with a live en source string and a non-empty, non-skipped translation are
+    considered.
+    """
+    findings: list[dict[str, Any]] = []
+    term_patterns = {term: _term_regex(term) for term in bound}
+
+    locale_dir = CONTENT_DIR / locale
+    source_dir = CONTENT_DIR / SOURCE_LOCALE
+    if not locale_dir.exists():
+        return findings
+
+    for locale_file in sorted(locale_dir.glob("*.json")):
+        en_file = source_dir / locale_file.name
+        if not en_file.exists():
+            continue
+
+        # Entry-aware (walk_keys reads only `text`, drops skip/empty/metadata),
+        # so keys are the real dotted paths — not flatten_json's `<key>.text` /
+        # `<key>.source_hash` sub-fields, which would misfire on metadata.
+        # load_json_file uses a context manager (no leaked descriptors).
+        en_data = dict(walk_keys(load_json_file(en_file)))
+        locale_data = dict(walk_keys(load_json_file(locale_file)))
+
+        for key, source_text in en_data.items():
+            if should_skip_key_pr(key):
+                continue
+            translation = locale_data.get(key, "")
+            if not translation:
+                continue
+
+            translation_cf = translation.casefold()
+            for term, pattern in term_patterns.items():
+                if not pattern.search(source_text):
+                    continue
+                renderings = bound[term]
+                if any(r.casefold() in translation_cf for r in renderings):
+                    continue
+                findings.append(
+                    {
+                        "file": locale_file.name,
+                        "key": key,
+                        "term": term,
+                        "expected": renderings,
+                        "source_text": source_text,
+                        "locale_text": translation,
+                    }
+                )
+
+    return findings
+
+
+def _glossary_handler(args) -> int:
+    """Handler for ``validate glossary`` (bound-glossary divergence)."""
+    if args.locale:
+        locales = [args.locale]
+    else:
+        locales = [d.name for d in iter_locale_dirs(include_source=False)]
+
+    total = 0
+    checked = 0
+    skipped: list[str] = []
+
+    for locale in locales:
+        bound = load_bound_glossary(locale)
+        if bound is None:
+            skipped.append(locale)
+            continue
+        checked += 1
+        if not bound:
+            continue
+
+        findings = audit_glossary_locale(locale, bound)
+        total += len(findings)
+
+        if findings:
+            print(f"\n{locale}: {len(findings)} possible divergence(s)")
+            for f in findings:
+                print(f"  {f['file']} · {f['key']}")
+                print(f"    term:     {f['term']} → expected {f['expected']}")
+                print(f'    en:       "{f["source_text"]}"')
+                print(f'    {locale}: "{f["locale_text"]}"')
+
+    if skipped:
+        print(
+            f"\nSkipped (no resolved governance — run derive-governance.sh): "
+            f"{', '.join(sorted(skipped))}",
+            file=sys.stderr,
+        )
+    if checked == 0:
+        print(
+            "No resolved governance found for any target locale; nothing checked.",
+            file=sys.stderr,
+        )
+
+    print(f"\nTOTAL: {total} possible glossary divergence(s) across {checked} locale(s)")
+    # Advisory by default (heuristic → false positives). --strict gates for CI:
+    # fail on any divergence, and also fail when NOTHING could be checked (no
+    # resolved governance) — a gate that verifies nothing must not read green.
+    if args.strict and (total or checked == 0):
+        return 1
+    return 0
+
+
+# ===========================================================================
+# validate hashes  (en source content_hash freshness gate)
+# ===========================================================================
+
+
+def _hashes_handler(args) -> int:
+    """Verify every en source key's ``content_hash`` matches its ``text``.
+
+    Mirrors the invariant maintained by ``content hashes``
+    (:func:`_hashes_add_to_source`): every entry with non-empty ``text`` in
+    ``locales/content/en/*.json`` must carry ``content_hash`` equal to
+    ``sha256(text.strip())[:8]``. A stale or missing hash means the stamping
+    step lagged a source edit — run ``content hashes`` to repair.
+    """
+    from .content import _hashes_compute_hash
+
+    source_dir = CONTENT_DIR / SOURCE_LOCALE
+    mismatched: list[tuple[str, str, str, str]] = []  # file, key, stored, computed
+    missing: list[tuple[str, str, str]] = []  # file, key, computed
+    checked = 0
+
+    for json_file in sorted(source_dir.glob("*.json")):
+        data = load_json_file(json_file)
+        for key_path, entry in data.items():
+            if not isinstance(entry, dict):
+                continue
+            text = entry.get("text", "")
+            if not isinstance(text, str) or not text:
+                continue
+            checked += 1
+            computed = _hashes_compute_hash(text)
+            stored = entry.get("content_hash")
+            if not stored:
+                missing.append((json_file.name, key_path, computed))
+            elif stored != computed:
+                mismatched.append((json_file.name, key_path, stored, computed))
+
+    for file_name, key, stored, computed in mismatched:
+        print(f"STALE   {file_name} · {key}: stored {stored} != computed {computed}")
+    for file_name, key, computed in missing:
+        print(f"MISSING {file_name} · {key}: no content_hash (computed {computed})")
+
+    print(
+        f"\nChecked {checked} en source key(s): "
+        f"{len(mismatched)} stale, {len(missing)} missing content_hash"
+    )
+    if mismatched or missing:
+        print(
+            "Fix: python3 locales/scripts/i18n content hashes",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
+# ===========================================================================
 # Registration
 # ===========================================================================
 
@@ -1067,3 +1299,52 @@ def register(subparsers) -> None:
         help="Exclude keys starting with PREFIX (e.g., web.COMMON)",
     )
     variables.set_defaults(func=_variables_handler)
+
+    # ----- validate glossary -----
+    glossary = gsub.add_parser(
+        "glossary",
+        help="Flag translations diverging from bound glossary renderings",
+        description=(
+            "Advisory check: for each translated key whose English source uses a "
+            "bound glossary term, verify the translation contains one of that "
+            "term's bound renderings (senses[*].target from "
+            "generated/i18n/.resolved/<locale>.json). Heuristic — substring match "
+            "on the citation form, so inflection can yield false positives; "
+            "findings are prompts for review, not hard errors."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Requires resolved governance (run locales/scripts/derive-governance.sh first).
+Locales without it are skipped with a warning.
+
+Examples:
+  %(prog)s de              # check one locale
+  %(prog)s                 # check every governed target locale
+  %(prog)s de --strict     # exit non-zero if any divergence (CI gate)
+""",
+    )
+    glossary.add_argument(
+        "locale",
+        nargs="?",
+        help="Target locale code (e.g., 'de'). Omit to check all governed locales.",
+    )
+    glossary.add_argument(
+        "--strict",
+        action="store_true",
+        help="Exit non-zero when divergences are found (default: advisory, exit 0).",
+    )
+    glossary.set_defaults(func=_glossary_handler)
+
+    # ----- validate hashes -----
+    hashes = gsub.add_parser(
+        "hashes",
+        help="Verify en source content_hash values match the current text",
+        description=(
+            "CI gate: recompute sha256(text.strip())[:8] for every en source "
+            "key with non-empty text and compare against its stored "
+            "content_hash. Exits non-zero listing stale or missing hashes; "
+            "repair with 'content hashes'."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    hashes.set_defaults(func=_hashes_handler)

@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "請求先メールアドレスが{product_name}アカウントのメールアドレスと異なる場合、サブスクリプション特典を維持するために、新しいリージョンのアカウントには請求先メールアドレスを使用してください。",
-    "source_hash": "dac1cc28"
+    "text": "請求先の連絡用メールアドレスが{product_name}アカウントのメールアドレスと異なる場合は、サブスクリプションの特典を維持するために、新しいリージョンのアカウントで請求先の連絡用メールアドレスを使用してください。",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "サブスクリプション特典は、請求先メールアドレスで作成されたすべてのアカウントに自動的に適用されます。",

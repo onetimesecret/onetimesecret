@@ -1,7 +1,6 @@
 // src/shared/stores/systemSettingsStore.ts
 
-import { systemSettingsSchema } from '@/schemas/api/account/responses/colonel';
-import { type SystemSettingsDetails } from '@/schemas/contracts/config';
+import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { responseSchemas } from '@/schemas/api/internal/responses';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
