@@ -15,15 +15,20 @@
 #   - ConfigSerializer.resolve_restrict_to
 #   - ConfigSerializer.resolve_signin (features.signin display gate)
 #
+# Custom-domain polarity: sign-in on a custom domain is OFF by default and
+# only opens when the domain owner explicitly enables a SigninConfig. The
+# operator's own surfaces (canonical / subdomain) keep following the global
+# default. The controller distinguishes them via env['onetime.domain_strategy'].
+#
 # Covers:
-#   1. No SigninConfig record -> falls back to global
-#   2. SigninConfig exists, enabled=false (master switch off) -> falls back to global
-#   3. SigninConfig exists, enabled=true, signin_enabled=true -> allows signin
+#   1. No SigninConfig record -> custom OFF (opt-in); canonical follows global
+#   2. SigninConfig exists, enabled=false (master switch off) -> custom OFF; canonical follows global
+#   3. SigninConfig exists, enabled=true, signin_enabled=true -> allows signin (global permitting)
 #   4. SigninConfig exists, enabled=true, signin_enabled=false -> blocks signin
 #   5. Default reconciliation: new SigninConfig conservative defaults
 #   6. Serializer visibility gates
 #   7. ConfigSerializer resolve_restrict_to domain override
-#   11. ConfigSerializer resolve_signin AND semantics (#3415)
+#   11. ConfigSerializer resolve_signin: custom-domain default-OFF + SSO carve-out (#3415)
 #
 # Run:
 #   try try/integration/domain_auth_enforcement_try.rb --agent
@@ -58,8 +63,14 @@ SigninGateController = Class.new do
 
   attr_accessor :req, :res, :injected_signin_config, :injected_auth_settings
 
-  def initialize(signin_config:, auth_settings:)
-    env = { 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/', 'SERVER_NAME' => 'test', 'SERVER_PORT' => '443' }
+  # domain_strategy defaults to :custom because this file exercises the
+  # custom-domain enforcement path. Pass :canonical to assert the operator's
+  # own surfaces still follow the global default.
+  def initialize(signin_config:, auth_settings:, domain_strategy: :custom)
+    env = {
+      'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/', 'SERVER_NAME' => 'test', 'SERVER_PORT' => '443',
+      'onetime.domain_strategy' => domain_strategy
+    }
     @req = Rack::Request.new(env)
     @res = Rack::Response.new
     @injected_signin_config = signin_config
@@ -88,41 +99,60 @@ GLOBAL_SIGNIN_OFF = { 'enabled' => true, 'signin' => false }
 # Global settings where auth master switch is off
 GLOBAL_AUTH_OFF   = { 'enabled' => false, 'signin' => true }
 
+# site.authentication shapes for the ConfigSerializer#resolve_signin display
+# gate (view_vars['site']), mirroring the GLOBAL_* controller shapes above.
+# Constants (not @ivars) so they resolve inside every test block in shared mode.
+SITE_SIGNIN_ON  = { 'authentication' => { 'enabled' => true, 'signin' => true } }
+SITE_SIGNIN_OFF = { 'authentication' => { 'enabled' => true, 'signin' => false } }
+SITE_AUTH_OFF   = { 'authentication' => { 'enabled' => false, 'signin' => true } }
+
 # ===================================================================
-# 1. No SigninConfig record -> falls back to global
+# 1. No SigninConfig record
+#    -> custom domain OFF (opt-in); canonical follows global
 # ===================================================================
 
-## No SigninConfig: returns global signin value (true)
+## Custom domain, no SigninConfig: OFF even though global signin is on (opt-in)
 ctrl = SigninGateController.new(signin_config: nil, auth_settings: GLOBAL_SIGNIN_ON)
 ctrl.signin_enabled?
-#=> true
+#=> false
 
-## No SigninConfig: returns global signin value (false) when global disables signin
+## Custom domain, no SigninConfig: OFF when global disables signin too
 ctrl = SigninGateController.new(signin_config: nil, auth_settings: GLOBAL_SIGNIN_OFF)
 ctrl.signin_enabled?
 #=> false
 
-## No SigninConfig: returns false when global auth master switch is off
+## Custom domain, no SigninConfig: OFF when global auth master switch is off
 ctrl = SigninGateController.new(signin_config: nil, auth_settings: GLOBAL_AUTH_OFF)
 ctrl.signin_enabled?
 #=> false
 
+## Canonical, no SigninConfig: follows global (true) — operator surface unchanged
+ctrl = SigninGateController.new(signin_config: nil, auth_settings: GLOBAL_SIGNIN_ON, domain_strategy: :canonical)
+ctrl.signin_enabled?
+#=> true
+
+## Canonical, no SigninConfig: follows global (false) when global disables signin
+ctrl = SigninGateController.new(signin_config: nil, auth_settings: GLOBAL_SIGNIN_OFF, domain_strategy: :canonical)
+ctrl.signin_enabled?
+#=> false
+
 # ===================================================================
-# 2. SigninConfig exists, enabled=false (master switch off) -> falls back to global
+# 2. SigninConfig exists, enabled=false (master switch off)
+#    -> custom domain OFF (not opted in); canonical follows global
 # ===================================================================
 
-## Master switch off: falls back to global even when config.signin_enabled=true
+## Custom domain, master switch off: OFF even when config.signin_enabled=true (not opted in)
 @domain_ms = Onetime::CustomDomain.create!("dae-ms-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_ms = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_ms.identifier,
   enabled: false,
   signin_enabled: true,
 )
-ctrl = SigninGateController.new(signin_config: @config_ms, auth_settings: GLOBAL_SIGNIN_OFF)
+ctrl = SigninGateController.new(signin_config: @config_ms, auth_settings: GLOBAL_SIGNIN_ON)
 ctrl.signin_enabled?
 #=> false
 
-## Master switch off: falls back to global (true) ignoring config.signin_enabled=false
+## Custom domain, master switch off: OFF regardless of global (global on here)
 @domain_ms2 = Onetime::CustomDomain.create!("dae-ms2-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_ms2 = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_ms2.identifier,
@@ -130,6 +160,11 @@ ctrl.signin_enabled?
   signin_enabled: false,
 )
 ctrl = SigninGateController.new(signin_config: @config_ms2, auth_settings: GLOBAL_SIGNIN_ON)
+ctrl.signin_enabled?
+#=> false
+
+## Canonical, master switch off: falls back to global (true) — operator surface unchanged
+ctrl = SigninGateController.new(signin_config: @config_ms2, auth_settings: GLOBAL_SIGNIN_ON, domain_strategy: :canonical)
 ctrl.signin_enabled?
 #=> true
 
@@ -213,11 +248,11 @@ ctrl2.signin_enabled?
 # 6. Serializer visibility gates (class << self methods)
 # ===================================================================
 
-## effective_signin_enabled? returns true when no SigninConfig exists
+## effective_signin_enabled? defaults OFF when no SigninConfig exists (custom-domain opt-in)
 Core::Views::DomainSerializer.send(:effective_signin_enabled?, 'nonexistent_domain_id')
-#=> true
+#=> false
 
-## effective_signin_enabled? returns true when SigninConfig exists but master switch off
+## effective_signin_enabled? stays OFF when SigninConfig exists but master switch off (not opted in)
 @domain_vis1 = Onetime::CustomDomain.create!("dae-vis1-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_vis1 = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_vis1.identifier,
@@ -225,7 +260,7 @@ Core::Views::DomainSerializer.send(:effective_signin_enabled?, 'nonexistent_doma
   signin_enabled: false,
 )
 Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis1.identifier)
-#=> true
+#=> false
 
 ## effective_signin_enabled? returns false when SigninConfig enabled and signin disabled
 @domain_vis2 = Onetime::CustomDomain.create!("dae-vis2-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
@@ -247,19 +282,31 @@ Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis2.iden
 Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis3.identifier)
 #=> true
 
-## effective_signup_enabled? returns true when no SignupConfig exists
+## effective_signup_enabled? defaults OFF when no SignupConfig exists (custom-domain opt-in)
 Core::Views::DomainSerializer.send(:effective_signup_enabled?, 'nonexistent_domain_id')
-#=> true
+#=> false
 
-## effective_signup_enabled? returns false when SignupConfig disables signup
+## effective_signup_enabled? returns false when an enabled SignupConfig disables signup
 @domain_vis4 = Onetime::CustomDomain.create!("dae-vis4-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_vis4 = Onetime::CustomDomain::SignupConfig.create!(
   domain_id: @domain_vis4.identifier,
   validation_strategy: 'passthrough',
+  enabled: true,
   signup_enabled: false,
 )
 Core::Views::DomainSerializer.send(:effective_signup_enabled?, @domain_vis4.identifier)
 #=> false
+
+## effective_signup_enabled? returns true when an enabled SignupConfig opts in (and global permits)
+@domain_vis5 = Onetime::CustomDomain.create!("dae-vis5-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_vis5 = Onetime::CustomDomain::SignupConfig.create!(
+  domain_id: @domain_vis5.identifier,
+  validation_strategy: 'passthrough',
+  enabled: true,
+  signup_enabled: true,
+)
+Core::Views::DomainSerializer.send(:effective_signup_enabled?, @domain_vis5.identifier)
+#=> true
 
 # ===================================================================
 # 7. ConfigSerializer resolve_restrict_to domain override
@@ -488,43 +535,65 @@ Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain
 #=> [true, true]
 
 # ===================================================================
-# 11. ConfigSerializer resolve_signin (features.signin, AND semantics)
+# 11. ConfigSerializer resolve_signin (features.signin display gate)
 # ===================================================================
 #
-# resolve_signin is the DISPLAY gate for per-domain sign-in disable
-# (#3415): it feeds features.signin in the bootstrap so the public
-# /signin page can render a friendly "not available" notice instead
-# of the auth form. Global signin comes from site.authentication
-# (AUTH_ENABLED + AUTH_SIGNIN) via view_vars['site'], so each case
-# passes it explicitly — no singleton stubbing needed. AND semantics:
-# a domain may DISABLE sign-in but can never enable it when sign-in
-# is globally off.
+# resolve_signin feeds features.signin in the bootstrap so the public
+# /signin page can render a friendly "not available" notice instead of
+# the auth form. It must agree with the runtime route gate
+# (Base#signin_enabled?):
+#   - Canonical / subdomain: follow the global default; an enabled
+#     per-domain SigninConfig narrows via AND semantics (#3415).
+#   - Custom domain: default OFF (opt-in) for password/email, with an SSO
+#     carve-out so a domain that enabled SSO (SsoConfig) without a
+#     SigninConfig still renders its provider buttons.
+# Global signin comes from site.authentication (AUTH_ENABLED + AUTH_SIGNIN)
+# via view_vars['site']; tenant_domain? keys off view_vars['domain_strategy'].
 
-@site_signin_on  = { 'authentication' => { 'enabled' => true, 'signin' => true } }
-@site_signin_off = { 'authentication' => { 'enabled' => true, 'signin' => false } }
-@site_auth_off   = { 'authentication' => { 'enabled' => false, 'signin' => true } }
-
-## resolve_signin: global on + no domain context => true
-Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => @site_signin_on })
+## Canonical: global on + no domain context => true
+Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_SIGNIN_ON })
 #=> true
 
-## resolve_signin: global signin off + no domain context => false
-Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => @site_signin_off })
+## Canonical: global signin off + no domain context => false
+Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_SIGNIN_OFF })
 #=> false
 
-## resolve_signin: global auth master off + no domain context => false
-Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => @site_auth_off })
+## Canonical: global auth master off + no domain context => false
+Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_AUTH_OFF })
 #=> false
 
-## resolve_signin: domain with no SigninConfig => global (true)
+## Canonical: domain with no SigninConfig follows global (true)
 @domain_si_a = Onetime::CustomDomain.create!("dae-si-a-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
-  { 'site' => @site_signin_on, 'display_domain' => @domain_si_a.display_domain },
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_a.display_domain },
 )
 #=> true
 
-## resolve_signin: global on + master ON + signin_enabled false => false (domain disables)
+## Custom domain, no SigninConfig, no SSO => false (default OFF, opt-in)
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_a.display_domain, 'domain_strategy' => :custom },
+)
+#=> false
+
+## Custom domain, no SigninConfig but SSO configured => true (SSO carve-out keeps the page)
+@domain_si_sso = Onetime::CustomDomain.create!("dae-si-sso-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_si = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_si_sso.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO SI',
+  enabled: true,
+  issuer: 'https://idp-si.example.com',
+  client_id: 'client-si',
+)
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_sso.display_domain, 'domain_strategy' => :custom },
+)
+#=> true
+
+## Custom domain, enabled SigninConfig with signin_enabled=false => false (explicit disable, #3415)
 @domain_si_b = Onetime::CustomDomain.create!("dae-si-b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_si_b = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_si_b.identifier,
@@ -533,11 +602,11 @@ Core::Views::ConfigSerializer.send(
 )
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
-  { 'site' => @site_signin_on, 'display_domain' => @domain_si_b.display_domain },
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_b.display_domain, 'domain_strategy' => :custom },
 )
 #=> false
 
-## resolve_signin: global on + master ON + signin_enabled true => true
+## Custom domain, enabled SigninConfig with signin_enabled=true => true (global permitting)
 @domain_si_c = Onetime::CustomDomain.create!("dae-si-c-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_si_c = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_si_c.identifier,
@@ -546,18 +615,18 @@ Core::Views::ConfigSerializer.send(
 )
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
-  { 'site' => @site_signin_on, 'display_domain' => @domain_si_c.display_domain },
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_c.display_domain, 'domain_strategy' => :custom },
 )
 #=> true
 
-## resolve_signin: global OFF + master ON + signin_enabled true => false (domain cannot widen)
+## Custom domain, enabled config signin_enabled=true but global OFF => false (cannot widen)
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
-  { 'site' => @site_signin_off, 'display_domain' => @domain_si_c.display_domain },
+  { 'site' => SITE_SIGNIN_OFF, 'display_domain' => @domain_si_c.display_domain, 'domain_strategy' => :custom },
 )
 #=> false
 
-## resolve_signin: master OFF + signin_enabled false => global (true; config ignored)
+## Custom domain, master switch off (config ignored), no SSO => false (opt-in default)
 @domain_si_d = Onetime::CustomDomain.create!("dae-si-d-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_si_d = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_si_d.identifier,
@@ -566,7 +635,14 @@ Core::Views::ConfigSerializer.send(
 )
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
-  { 'site' => @site_signin_on, 'display_domain' => @domain_si_d.display_domain },
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_d.display_domain, 'domain_strategy' => :custom },
+)
+#=> false
+
+## Canonical: same master-off config falls back to global (true) — operator surface unchanged
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_d.display_domain },
 )
 #=> true
 
