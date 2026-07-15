@@ -1,62 +1,31 @@
 <!-- src/apps/secret/components/layout/BrandedMastHead.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import BrandedHero from '@/apps/secret/components/branded/BrandedHero.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { isSsoEnabled, isOrgsSsoEnabled } from '@/utils/features';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed } from 'vue';
   import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
   const bootstrapStore = useBootstrapStore();
-  const { authentication, homepage_config } = storeToRefs(bootstrapStore);
+  const { homepage_config } = storeToRefs(bootstrapStore);
 
   /**
-   * Per-domain gate for the auth nav links. Defaults to disabled — the links
-   * stay hidden unless the domain's homepage_config explicitly opts in
-   * (signup_enabled/signin_enabled === true). A missing homepage_config (or a
-   * missing field) reads as disabled. The frontend still ANDs the system
-   * authentication flags with these domain-level toggles — the domain owner
-   * can only narrow, never broaden.
+   * Show the Create Account / Sign In links based on the RESOLVED per-domain
+   * auth availability computed by the backend. Custom domains default OFF:
+   * DomainSerializer#effective_* only reports true when the domain owner has
+   * explicitly enabled sign-in / sign-up via SigninConfig / SignupConfig (the
+   * /domains/:id/signin + /signup settings pages), and the global kill switch
+   * (AUTH_ENABLED / AUTH_SIGNUP / AUTH_SIGNIN) can still force it off. The
+   * frontend only DISPLAYS that resolved truth — it never re-derives it. A
+   * missing homepage_config (canonical/subdomain request, or a legacy record)
+   * reads as disabled.
    */
-  const domainSignupEnabled = computed(() => homepage_config.value?.signup_enabled === true);
-  const domainSigninEnabled = computed(() => homepage_config.value?.signin_enabled === true);
-
-  /**
-   * Show Sign In link when signin route is available AND the domain hasn't
-   * disabled it AND either:
-   * - Platform authentication is enabled (authentication.enabled), OR
-   * - Platform-level SSO is configured (features.sso.enabled), OR
-   * - Domain-level SSO is enabled (features.organizations.sso_enabled)
-   *
-   * This ensures custom domains with SSO see the sign-in link even when
-   * platform-level AUTH_ENABLED=false.
-   */
-  const showSignIn = computed(() => {
-    const hasSigninRoute = authentication.value?.signin === true;
-    const platformAuthEnabled = authentication.value?.enabled === true;
-    const platformSsoEnabled = isSsoEnabled();
-    const domainSsoEnabled = isOrgsSsoEnabled();
-
-    return hasSigninRoute
-      && domainSigninEnabled.value
-      && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
-  });
-
-  /**
-   * Sign Up requires platform authentication — SSO users are provisioned
-   * through their identity provider, not the platform signup flow, so we
-   * mirror the canonical MastHead gating here rather than the broader SSO
-   * gating used for Sign In.
-   */
-  const showSignUp = computed(() =>
-    authentication.value?.enabled === true
-    && authentication.value?.signup === true
-    && domainSignupEnabled.value
-  );
+  const showSignUp = computed(() => homepage_config.value?.signup_enabled === true);
+  const showSignIn = computed(() => homepage_config.value?.signin_enabled === true);
 
   interface Props extends LayoutProps {
     headertext: string;
@@ -76,7 +45,7 @@
     <!-- Auth Links (Sign Up / Sign In for custom domain users) -->
     <nav
       v-if="showSignUp || showSignIn"
-      class="absolute right-4 top-4 flex items-center gap-2"
+      class="absolute top-4 right-4 flex items-center gap-2"
       role="navigation"
       :aria-label="t('web.layout.main_navigation')">
       <router-link

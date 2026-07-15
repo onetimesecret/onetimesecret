@@ -3,11 +3,14 @@
 // Guards three behaviours of the custom-domain masthead:
 //   1. Logo accessibility: the logo image must carry a meaningful alt (the
 //      brand/workspace display name) rather than an empty alt.
-//   2. Auth nav links default OFF: the Create Account / Sign In links only
-//      render when the domain's homepage_config explicitly opts in
-//      (signup_enabled/signin_enabled === true). A null homepage_config or a
-//      false flag keeps them hidden — recipients and employees arriving via a
-//      shared link should not see account chrome unless an operator enabled it.
+//   2. Auth nav links display resolved availability: the Create Account /
+//      Sign In links render when the backend-resolved
+//      homepage_config.signup_enabled / signin_enabled is === true. Custom
+//      domains default OFF: the backend (DomainSerializer) only reports true
+//      when the domain owner has explicitly opted in via SignupConfig /
+//      SigninConfig, with the global auth kill switch still able to force it
+//      off; this component only displays that value. A null homepage_config
+//      (canonical/subdomain) or a false flag keeps the links hidden.
 //   3. Heading font: the h1 renders through BrandedHero and carries the
 //      heading font token (heading_font), not the body font_family.
 
@@ -18,8 +21,9 @@ import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 import BrandedMastHead from '@/apps/secret/components/layout/BrandedMastHead.vue';
 
-// Neutralise the SSO feature helpers so showSignIn depends purely on the
-// platform auth flags and the domain-level homepage_config toggle under test.
+// Neutralise the SSO feature helpers. BrandedMastHead no longer reads them
+// directly (resolution moved to the backend, ADR-024), but transitive imports
+// may; stubbing keeps the component under test isolated to homepage_config.
 vi.mock('@/utils/features', () => ({
   isSsoEnabled: () => false,
   isOrgsSsoEnabled: () => false,
@@ -136,8 +140,9 @@ describe('BrandedMastHead auth nav links (default-off)', () => {
     if (wrapper) wrapper.unmount();
   });
 
-  // Platform auth is fully enabled in every case below so the domain-level
-  // homepage_config toggle is the only variable under test.
+  // homepage_config now carries the backend-resolved value, so it is the only
+  // variable under test. authOn is retained for realism but no longer affects
+  // the links (the component reads homepage_config only).
   const authOn = { enabled: true, signin: true, signup: true };
 
   const config = (overrides: Partial<NonNullable<HomepageConfigState>>) => ({
