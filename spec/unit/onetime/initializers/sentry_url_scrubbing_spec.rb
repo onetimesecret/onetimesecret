@@ -412,6 +412,275 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       expect(result.request.url).to eq('[SCRUBBING_FAILED]')
       expect(result.contexts['request']).not_to have_key('url')
     end
+
+    # A2: the Referer header carries the previous page URL, which on OTS can
+    # embed a secret identifier. It must be scrubbed like request.url.
+    context 'Referer header scrubbing' do
+      it "redacts a route identifier carried in the 'Referer' header" do
+        identifier = 'a' * 62
+        request = mock_request_class.new(
+          url: 'https://example.com/api/v1/status',
+          headers: { 'Referer' => "https://example.com/secret/#{identifier}" }
+        )
+        event = mock_event_class.new(request: request, contexts: {})
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.request.headers['Referer']).to eq('https://example.com/secret/[REDACTED]')
+      end
+
+      it "redacts a lowercase 'referer' header defensively" do
+        request = mock_request_class.new(
+          url: 'https://example.com/api/v1/status',
+          headers: { 'referer' => 'https://example.com/colonel/admin_path' }
+        )
+        event = mock_event_class.new(request: request, contexts: {})
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.request.headers['referer']).to eq('https://example.com/colonel/[REDACTED]')
+      end
+
+      it 'preserves a non-sensitive Referer unchanged' do
+        request = mock_request_class.new(
+          url: 'https://example.com/api/v1/status',
+          headers: { 'Referer' => 'https://example.com/dashboard' }
+        )
+        event = mock_event_class.new(request: request, contexts: {})
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.request.headers['Referer']).to eq('https://example.com/dashboard')
+      end
+
+      it 'handles a missing Referer header gracefully' do
+        request = mock_request_class.new(
+          url: 'https://example.com/api/v1/status',
+          headers: { 'User-Agent' => 'test' }
+        )
+        event = mock_event_class.new(request: request, contexts: {})
+
+        expect { described_class.scrub_event_urls(event) }.not_to raise_error
+      end
+
+      it 'redacts the Referer header when scrubbing raises (fail-closed)' do
+        allow(described_class).to receive(:scrub_url).and_raise(StandardError, 'boom')
+
+        identifier = 'a' * 62
+        request = mock_request_class.new(
+          url: 'https://example.com/api/v1/status',
+          headers: { 'Referer' => "https://example.com/secret/#{identifier}" }
+        )
+        event = mock_event_class.new(request: request, contexts: {})
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.request.headers['Referer']).to eq('[SCRUBBING_FAILED]')
+      end
+    end
+  end
+
+  describe '.scrub_query_string' do
+    it 'redacts sensitive param values in a bare query string' do
+      result = described_class.scrub_query_string('key=abc123&ttl=3600')
+      expect(result).to eq('key=[REDACTED]&ttl=3600')
+    end
+
+    it 'redacts every sensitive param name (key/secret/token/passphrase)' do
+      result = described_class.scrub_query_string('key=a&secret=b&token=c&passphrase=d')
+      expect(result).to eq('key=[REDACTED]&secret=[REDACTED]&token=[REDACTED]&passphrase=[REDACTED]')
+    end
+
+    it 'preserves benign params' do
+      result = described_class.scrub_query_string('ttl=3600&lang=en')
+      expect(result).to eq('ttl=3600&lang=en')
+    end
+
+    it 'handles nil and empty input' do
+      expect(described_class.scrub_query_string(nil)).to be_nil
+      expect(described_class.scrub_query_string('')).to eq('')
+    end
+  end
+
+  describe '.scrub_text' do
+    let(:id_62) { 'a' * 62 }
+    let(:id_31) { 'b' * 31 }
+
+    it 'redacts email addresses' do
+      result = described_class.scrub_text('contact user@example.com for help')
+      expect(result).to eq('contact [EMAIL_REDACTED] for help')
+    end
+
+    it 'redacts a 62-char v0.24 identifier' do
+      result = described_class.scrub_text("secret #{id_62} leaked")
+      expect(result).to eq('secret [REDACTED] leaked')
+    end
+
+    it 'redacts a 31-char legacy v0.23 identifier' do
+      result = described_class.scrub_text("legacy #{id_31} here")
+      expect(result).to eq('legacy [REDACTED] here')
+    end
+
+    it 'redacts an identifier abutting a word char via word boundary' do
+      # A 62-char run immediately followed by a word char is a 63+ run, so the
+      # {62} alternative does not match at a \b — the run survives.
+      result = described_class.scrub_text("#{id_62}x")
+      expect(result).to eq("#{id_62}x")
+    end
+
+    it 'redacts an identifier that abuts punctuation (word boundary holds)' do
+      result = described_class.scrub_text("id=#{id_62}.")
+      expect(result).to eq('id=[REDACTED].')
+    end
+
+    it 'does not redact a 63+ char run' do
+      run = 'a' * 63
+      result = described_class.scrub_text("val #{run} end")
+      expect(result).to eq("val #{run} end")
+    end
+
+    it 'scrubs sensitive URL paths embedded in text' do
+      identifier = 'a' * 62
+      result = described_class.scrub_text("failed GET https://example.com/secret/#{identifier}")
+      expect(result).to eq('failed GET https://example.com/secret/[REDACTED]')
+    end
+
+    it 'handles nil and empty input' do
+      expect(described_class.scrub_text(nil)).to be_nil
+      expect(described_class.scrub_text('')).to eq('')
+    end
+
+    it 'returns [SCRUBBING_FAILED] when an internal pass raises (fail-closed)' do
+      allow(described_class).to receive(:scrub_url).and_raise(StandardError, 'boom')
+      result = described_class.scrub_text('some text with user@example.com')
+      expect(result).to eq('[SCRUBBING_FAILED]')
+    end
+  end
+
+  describe '.scrub_transaction_event' do
+    let(:txn_event_class) do
+      Class.new do
+        attr_accessor :request, :contexts, :transaction, :spans
+
+        def initialize(transaction: nil, spans: nil)
+          @request = nil
+          @contexts = {}
+          @transaction = transaction
+          @spans = spans || []
+        end
+      end
+    end
+
+    it 'scrubs the transaction name' do
+      identifier = 'a' * 62
+      event = txn_event_class.new(transaction: "GET /secret/#{identifier}")
+
+      result = described_class.scrub_transaction_event(event)
+
+      expect(result.transaction).to eq('GET /secret/[REDACTED]')
+    end
+
+    it "scrubs span data['url'] and data['http.query']" do
+      identifier = 'a' * 62
+      span = {
+        description: "GET https://example.com/secret/#{identifier}",
+        data: {
+          'url' => "https://example.com/secret/#{identifier}",
+          'http.query' => 'key=abc123&ttl=3600'
+        }
+      }
+      event = txn_event_class.new(transaction: 'GET /', spans: [span])
+
+      result = described_class.scrub_transaction_event(event)
+      scrubbed = result.spans.first
+
+      expect(scrubbed[:data]['url']).to eq('https://example.com/secret/[REDACTED]')
+      expect(scrubbed[:data]['http.query']).to eq('key=[REDACTED]&ttl=3600')
+      expect(scrubbed[:description]).to eq('GET https://example.com/secret/[REDACTED]')
+    end
+
+    it 'returns nil (drops the event) when scrubbing raises (fail-closed)' do
+      allow(described_class).to receive(:scrub_url).and_raise(StandardError, 'boom')
+      identifier = 'a' * 62
+      event = txn_event_class.new(transaction: "GET /secret/#{identifier}")
+
+      # scrub_event_urls swallows the error and fails closed, so force the raise
+      # in the span loop instead.
+      span = { data: { 'url' => "https://example.com/secret/#{identifier}" } }
+      event.spans = [span]
+
+      expect(described_class.scrub_transaction_event(event)).to be_nil
+    end
+  end
+
+  describe '.scrub_event_messages' do
+    let(:single_exception_class) do
+      Class.new do
+        attr_accessor :value
+
+        def initialize(value)
+          @value = value
+        end
+      end
+    end
+
+    let(:exception_interface_class) do
+      Class.new do
+        attr_accessor :values
+
+        def initialize(values)
+          @values = values
+        end
+      end
+    end
+
+    let(:message_event_class) do
+      Class.new do
+        attr_accessor :exception, :message
+
+        def initialize(exception: nil, message: nil)
+          @exception = exception
+          @message = message
+        end
+      end
+    end
+
+    it 'scrubs the standalone message' do
+      event = message_event_class.new(message: 'error for user@example.com')
+
+      result = described_class.scrub_event_messages(event)
+
+      expect(result.message).to eq('error for [EMAIL_REDACTED]')
+    end
+
+    it 'scrubs exception values' do
+      identifier = 'a' * 62
+      exception = exception_interface_class.new(
+        [single_exception_class.new("not found: /secret/#{identifier}")]
+      )
+      event = message_event_class.new(exception: exception)
+
+      result = described_class.scrub_event_messages(event)
+
+      expect(result.exception.values.first.value).to eq('not found: /secret/[REDACTED]')
+    end
+
+    it 'redacts message and exception values when scrubbing raises (fail-closed)' do
+      allow(described_class).to receive(:scrub_text).and_raise(StandardError, 'boom')
+
+      exception = exception_interface_class.new(
+        [single_exception_class.new('sensitive exception text')]
+      )
+      event = message_event_class.new(
+        exception: exception,
+        message: 'sensitive message text'
+      )
+
+      result = described_class.scrub_event_messages(event)
+
+      expect(result.message).to eq('[SCRUBBING_FAILED]')
+      expect(result.exception.values.first.value).to eq('[SCRUBBING_FAILED]')
+    end
   end
 
   describe '.scrub_url fail-closed behavior' do

@@ -18,6 +18,7 @@ import {
   httpContextIntegration,
   linkedErrorsIntegration,
   makeFetchTransport,
+  setCurrentClient,
 } from '@sentry/browser';
 import {
   type Breadcrumb,
@@ -41,7 +42,11 @@ export {
 export const SENTRY_KEY = Symbol('sentry');
 
 // Import functions for local use (patterns are re-exported above for external consumers)
-import { scrubSensitiveStrings, scrubUrlWithPatterns } from './diagnostics/scrubbers';
+import {
+  scrubQueryStringValues,
+  scrubSensitiveStrings,
+  scrubUrlWithPatterns,
+} from './diagnostics/scrubbers';
 
 /**
  * Two-layer URL scrubbing for a single URL string:
@@ -60,6 +65,78 @@ import { scrubSensitiveStrings, scrubUrlWithPatterns } from './diagnostics/scrub
 function scrubUrlValuesThenPatterns(url: string, sortedValues: string[]): string {
   const valueScrubbed = sortedValues.length > 0 ? scrubUrlWithValues(url, sortedValues) : url;
   return scrubUrlWithPatterns(valueScrubbed);
+}
+
+/**
+ * Collects the route-param VALUES to redact for the router's *current* route,
+ * honoring the `sentryScrubParams` opt-out. Shared by both the error and the
+ * transaction scrub entrypoints so the param-value layer is applied
+ * identically to both event kinds.
+ *
+ * Layer-1 (param-value) scrubbing is opt-out-governed: `sentryScrubParams:
+ * false` yields no values. The always-on pattern net inside
+ * `scrubUrlValuesThenPatterns` runs regardless of the return value here.
+ */
+function collectCurrentRouteValues(router: Router): string[] {
+  const currentRoute = router.currentRoute.value;
+  const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
+  if (sentryScrubParams === false) {
+    return [];
+  }
+  const params = currentRoute.params as Record<string, string | string[]>;
+  if (params && Object.keys(params).length > 0) {
+    return collectValuesToRedact(params, sentryScrubParams);
+  }
+  return [];
+}
+
+/**
+ * SINGLE shared scrub entrypoint for the fields common to error and
+ * transaction events. Invoked from BOTH `createBeforeSendHandler` and
+ * `createBeforeSendTransactionHandler` so a field can never be scrubbed in one
+ * handler and silently forgotten in the other.
+ *
+ * Covers:
+ *   - request.url — two-layer (param values + pattern net)
+ *   - request.headers Referer — httpContextIntegration attaches
+ *     document.referrer here; a referrer is a full URL and can carry secret
+ *     identifiers/emails, so it goes through the same URL scrubber. Header name
+ *     casing varies by transport (Referer / referer), so every case-insensitive
+ *     match is scrubbed.
+ *   - transaction — parameterized route names (`/secret/:secretKey`) pass
+ *     through untouched; raw pageload names get the net.
+ *
+ * Event-kind-specific fields (error breadcrumbs, transaction spans) are handled
+ * by the respective callers, not here.
+ */
+function scrubRefererHeader(
+  headers: Record<string, string> | undefined,
+  sortedValues: string[]
+): void {
+  if (!headers) {
+    return;
+  }
+  for (const name of Object.keys(headers)) {
+    const value = headers[name];
+    if (name.toLowerCase() === 'referer' && typeof value === 'string') {
+      headers[name] = scrubUrlValuesThenPatterns(value, sortedValues);
+    }
+  }
+}
+
+function scrubCommonEventFields(
+  event: ErrorEvent | TransactionEvent,
+  sortedValues: string[]
+): void {
+  if (event.request?.url) {
+    event.request.url = scrubUrlValuesThenPatterns(event.request.url, sortedValues);
+  }
+
+  scrubRefererHeader(event.request?.headers, sortedValues);
+
+  if (event.transaction) {
+    event.transaction = scrubUrlValuesThenPatterns(event.transaction, sortedValues);
+  }
 }
 
 /**
@@ -176,32 +253,12 @@ function createBeforeSendHandler(router: Router) {
     // Scrub exception messages and standalone messages (regex-based)
     scrubEventMessages(event);
 
-    // Scrub sensitive route params from URLs based on route metadata.
-    const currentRoute = router.currentRoute.value;
-    const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
+    // Collect route-param values for the current route (opt-out-governed).
+    const sortedValues = collectCurrentRouteValues(router);
 
-    // Layer 1 — path-param VALUE scrubbing — is opt-out-governed: collect the
-    // resolved param values only when the route neither opts out nor lacks
-    // params. Layer 2 (the pattern net inside scrubUrlValuesThenPatterns) runs
-    // regardless, so an email in a query string is redacted even here. The
-    // exception-message scrub above already ran unconditionally.
-    let sortedValues: string[] = [];
-    if (sentryScrubParams !== false) {
-      const params = currentRoute.params as Record<string, string | string[]>;
-      if (params && Object.keys(params).length > 0) {
-        sortedValues = collectValuesToRedact(params, sentryScrubParams);
-      }
-    }
-
-    // Scrub event.request?.url
-    if (event.request?.url) {
-      event.request.url = scrubUrlValuesThenPatterns(event.request.url, sortedValues);
-    }
-
-    // Scrub event.transaction
-    if (event.transaction) {
-      event.transaction = scrubUrlValuesThenPatterns(event.transaction, sortedValues);
-    }
+    // Scrub the fields shared with transaction events (request.url, Referer
+    // header, transaction) through the single shared entrypoint.
+    scrubCommonEventFields(event, sortedValues);
 
     // Scrub breadcrumb URLs
     if (event.breadcrumbs) {
@@ -245,18 +302,21 @@ function createBeforeSendHandler(router: Router) {
  * parameterizes the transaction name, but the initial pageload name and span
  * URLs are raw, so everything gets the pattern net here.
  *
+ * Runs the SAME shared entrypoint as `createBeforeSendHandler`, including the
+ * route-param VALUE layer (D2), so a value scrubbed on error events is scrubbed
+ * on transaction events too. Route context is taken from the router's current
+ * route, which is valid at transaction flush time (transactions flush on
+ * navigation/pageload completion, when `currentRoute` reflects the destination).
+ *
  * @internal Tested via the options captured by the BrowserClient mock,
  * same as createBeforeSendHandler.
  */
-function createBeforeSendTransactionHandler() {
+function createBeforeSendTransactionHandler(router: Router) {
   return (event: TransactionEvent): TransactionEvent | null => {
-    if (event.transaction) {
-      event.transaction = scrubUrlWithPatterns(event.transaction);
-    }
+    const sortedValues = collectCurrentRouteValues(router);
 
-    if (event.request?.url) {
-      event.request.url = scrubUrlWithPatterns(event.request.url);
-    }
+    // Shared entrypoint: request.url, Referer header, transaction name.
+    scrubCommonEventFields(event, sortedValues);
 
     if (!event.spans) {
       return event;
@@ -276,6 +336,12 @@ function createBeforeSendTransactionHandler() {
         if (typeof value === 'string') {
           span.data[key] = scrubUrlWithPatterns(value);
         }
+      }
+      // http.query is stored as a bare query string, not a URL — scrub it as
+      // one (sensitive param values by name, then the ID/email nets).
+      const query = span.data['http.query'];
+      if (typeof query === 'string') {
+        span.data['http.query'] = scrubQueryStringValues(query);
       }
     }
 
@@ -400,7 +466,7 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     beforeSend: createBeforeSendHandler(router),
 
     // Scrub URLs from performance events (beforeSend does not run for these)
-    beforeSendTransaction: createBeforeSendTransactionHandler(),
+    beforeSendTransaction: createBeforeSendTransactionHandler(router),
 
     // Scrub sensitive URLs from breadcrumbs at capture time
     beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
@@ -419,6 +485,21 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   const scope = new Scope();
   scope.setClient(client);
 
+  // Bind this client to the global current scope as well.
+  //
+  // This app uses an isolated Scope (above) for manual captures and tags, but
+  // the integrations resolve their client via `getClient()` off the *current*
+  // scope — not our isolated one. Without this binding:
+  //   - browserApiErrorsIntegration cannot report the async-callback errors it
+  //     wraps (timers, event listeners, XHR) — they are silently dropped.
+  //   - browserTracingIntegration never records transactions, so
+  //     beforeSendTransaction (and its scrubbing) never runs.
+  // `setCurrentClient` points the current scope at the same client, so both
+  // integrations resolve a real client and every event still passes through
+  // this client's beforeSend/beforeSendTransaction scrubbers. Called before
+  // client.init() to mirror Sentry's own initAndBind ordering.
+  setCurrentClient(client);
+
   // Set default service tag for all events from this frontend app
   // @see https://github.com/onetimesecret/onetimesecret/issues/2964
   scope.setTag('service', 'web');
@@ -434,13 +515,14 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // parameterized path (e.g. /secret/:secretKey), never the resolved URL.
   // Inherently free of secret identifiers, so nothing to scrub.
   //
-  // Why here and not via browserTracingIntegration: this app uses the
-  // isolated-client pattern (own BrowserClient + Scope, no global init).
-  // The router instrumentation names transactions on the *global* current
-  // scope, which events captured through this isolated scope never see —
-  // leaving `transaction` empty on every error event. afterEach fires on the
-  // initial navigation as well, so pageload errors are covered once routing
-  // resolves.
+  // Why here and not solely via browserTracingIntegration: manual captures go
+  // through the isolated Scope above. The router instrumentation names
+  // transactions on the *current* scope, which the isolated scope does not
+  // share, so error events captured through the isolated scope would otherwise
+  // have an empty `transaction`. (setCurrentClient binds the client so the
+  // integrations run, but it does not merge the two scopes' transaction name.)
+  // afterEach fires on the initial navigation as well, so pageload errors are
+  // covered once routing resolves.
   router.afterEach((to) => {
     const parameterized = to.matched.at(-1)?.path ?? to.path;
     scope.setTransactionName(parameterized);

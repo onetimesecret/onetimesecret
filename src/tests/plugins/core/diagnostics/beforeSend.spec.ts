@@ -453,6 +453,59 @@ describe('beforeSend handler', () => {
       );
     });
 
+    // -----------------------------------------------------------------------
+    // A3 — request.headers.Referer scrubbing. httpContextIntegration attaches
+    // document.referrer as request.headers.Referer; it is a full URL and can
+    // carry secret identifiers/emails, so it must go through the URL scrubber.
+    // -----------------------------------------------------------------------
+    it('scrubs a secret identifier in the Referer header', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: {
+          headers: { Referer: 'https://example.com/secret/abc123def456' },
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.headers?.Referer).toBe('https://example.com/secret/[REDACTED]');
+    });
+
+    it('scrubs a lowercase referer header variant', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: {
+          headers: { referer: 'https://example.com/reveal?token=abc123' },
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.headers?.referer).toBe('https://example.com/reveal?token=[REDACTED]');
+    });
+
+    it('scrubs the route-param value in the Referer header (value layer)', () => {
+      setupWithRouter({
+        params: { secretKey: 'abc123' },
+        meta: {},
+      });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: {
+          headers: { Referer: 'https://example.com/page/abc123' },
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.headers?.Referer).toBe('https://example.com/page/[REDACTED]');
+    });
+
     it('removes secret property if present on event', () => {
       setupWithRouter({
         params: {},
@@ -599,5 +652,88 @@ describe('beforeSendTransaction handler', () => {
     );
     // Parameterized route names pass through untouched
     expect(result.transaction).toBe('/secret/:secretKey');
+  });
+
+  // A4 — span http.query is a bare query string; sensitive param values must
+  // be redacted by name (and the id/email nets applied to the remainder).
+  it('scrubs sensitive params in span http.query data', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      spans: [
+        {
+          description: 'GET /reveal',
+          data: { 'http.query': 'token=abc123&email=user@example.com&interval=month' },
+        },
+      ],
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.spans?.[0].data?.['http.query']).toBe(
+      'token=[REDACTED]&email=[EMAIL_REDACTED]&interval=month'
+    );
+  });
+
+  // A3 — Referer header scrubbing runs in the transaction handler too, via the
+  // shared entrypoint.
+  it('scrubs a secret identifier in the Referer header on transaction events', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      request: { headers: { Referer: 'https://example.com/secret/abc123def456' } },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.request?.headers?.Referer).toBe('https://example.com/secret/[REDACTED]');
+  });
+
+  // D2 — the transaction handler runs the route-param VALUE layer, not just the
+  // pattern net. A benign-looking id that only route metadata knows is
+  // sensitive must still be redacted from transaction events.
+  it('runs the route-param value layer on transaction request.url (D2)', () => {
+    setupWithRouter({
+      params: { secretKey: 'abc123' },
+      meta: {},
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      // /page/abc123 is not a known sensitive path; only the route param
+      // value 'abc123' marks it sensitive. The pattern net alone would miss it.
+      request: { url: 'https://example.com/page/abc123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.request?.url).toBe('https://example.com/page/[REDACTED]');
+  });
+
+  it('honors sentryScrubParams: false for the transaction value layer', () => {
+    setupWithRouter({
+      params: { adminId: 'admin123' },
+      meta: { sentryScrubParams: false },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/colonel/:adminId',
+      request: { url: 'https://example.com/page/admin123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // Value layer opted out; /page/ is not a known sensitive path, so it stays.
+    expect(result.request?.url).toBe('https://example.com/page/admin123');
   });
 });

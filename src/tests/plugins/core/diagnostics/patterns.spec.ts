@@ -80,18 +80,48 @@ describe('VERIFIABLE_ID_PATTERN', () => {
     expect(id62.match(VERIFIABLE_ID_PATTERN)).toBeTruthy();
   });
 
-  it('does not match shorter identifiers', () => {
+  it('matches 31-character legacy (v0.23) identifiers', () => {
+    const id31 = 'a'.repeat(31);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect(id31.match(VERIFIABLE_ID_PATTERN)).toBeTruthy();
+  });
+
+  it('does not match 61-char identifiers (length-exact)', () => {
     const id61 = 'a'.repeat(61);
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
     expect(id61.match(VERIFIABLE_ID_PATTERN)).toBeNull();
   });
 
-  it('does not match longer identifiers as a single match', () => {
+  it('does not match 32-char values (trace IDs) or 40-char (commit hashes)', () => {
+    // Word-boundary + exact-length anchoring lets ops-useful values survive.
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect('a'.repeat(32).match(VERIFIABLE_ID_PATTERN)).toBeNull();
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect('a'.repeat(40).match(VERIFIABLE_ID_PATTERN)).toBeNull();
+  });
+
+  it('does not match a 63-char blob (no word boundary at an exact-length cut)', () => {
+    // Previously (unanchored) this matched the first 62 chars. With `\b`
+    // anchoring a longer contiguous word-char run no longer matches, because
+    // neither the 62- nor 31-char alternative ends on a word boundary.
     const id63 = 'a'.repeat(63);
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
-    // Will match the first 62 chars, but the match itself is 62 chars
-    const matches = id63.match(VERIFIABLE_ID_PATTERN);
-    expect(matches?.[0].length).toBe(62);
+    expect(id63.match(VERIFIABLE_ID_PATTERN)).toBeNull();
+  });
+
+  it('matches a 62-char id delimited by non-word characters', () => {
+    const id62 = 'a'.repeat(62);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    const matches = `/path/${id62}/tail`.match(VERIFIABLE_ID_PATTERN);
+    expect(matches?.[0]).toBe(id62);
+  });
+
+  it('is case-insensitive by design (frontend divergence from backend)', () => {
+    // Frontend scrubs data of unknown provenance and errs toward
+    // over-redaction; backend IDENTIFIER_TEXT_PATTERN stays case-sensitive.
+    const mixed = 'A'.repeat(31);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect(mixed.match(VERIFIABLE_ID_PATTERN)).toBeTruthy();
   });
 });
 

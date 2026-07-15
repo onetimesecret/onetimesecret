@@ -285,12 +285,21 @@ module Onetime
           # Legacy v0.23 identifiers are 31 chars; this allows both old and new.
           MIN_IDENTIFIER_LENGTH = 20
 
+          # Header names carrying full URLs that must be scrubbed like request.url.
+          # sentry-ruby formats Rack's HTTP_REFERER into the capitalized "Referer"
+          # (see Sentry::RequestInterface#filter_and_format_headers). We also match
+          # the lowercase 'referer' defensively in case a caller populates headers
+          # directly.
+          URL_BEARING_HEADERS = %w[Referer referer].freeze
+
           # Scrub sensitive data from URLs in Sentry events
           #
-          # Handles three URL locations:
+          # Handles four URL locations:
           # 1. event.request.url - Standard Sentry request data
           # 2. event.contexts['request']['url'] - Custom context set by error middleware
           # 3. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
+          # 4. event.request.headers['Referer'] - Referer carries the previous URL,
+          #    which can embed a secret identifier (e.g. /secret/<id>)
           #
           # @param event [Sentry::Event] The event to scrub
           # @return [Sentry::Event] The scrubbed event
@@ -330,6 +339,12 @@ module Onetime
               end
             end
 
+            # Scrub URL-bearing request headers (Referer). The Referer carries
+            # the previous page URL, which on OTS can embed a secret identifier
+            # (e.g. https://host/secret/<id>). Scrub it through the same path
+            # scrubber used for request.url.
+            scrub_url_bearing_headers(event.request&.headers)
+
             event
           rescue StandardError => ex
             # Fail-closed: redact URLs on error to prevent leaking sensitive data
@@ -344,7 +359,43 @@ module Onetime
                event.contexts['request']['url']
               event.contexts['request']['url'] = '[SCRUBBING_FAILED]'
             end
+            redact_url_bearing_headers(event.request&.headers)
             event
+          end
+
+          # Scrub URL-bearing request headers (e.g. Referer) in place through
+          # the path scrubber. No-op unless headers is a Hash.
+          #
+          # @param headers [Hash, nil] event.request.headers
+          # @return [void]
+          def scrub_url_bearing_headers(headers)
+            return unless headers.is_a?(Hash)
+
+            URL_BEARING_HEADERS.each do |header_name|
+              next unless headers[header_name].is_a?(String)
+
+              original_hdr = headers[header_name]
+              scrubbed_hdr = scrub_url(original_hdr)
+              next if scrubbed_hdr == original_hdr
+
+              headers[header_name] = scrubbed_hdr
+              OT.ld "[sentry] Scrubbed request.headers['#{header_name}']"
+            end
+          end
+
+          # Fail-closed redaction for URL-bearing request headers. No-op unless
+          # headers is a Hash.
+          #
+          # @param headers [Hash, nil] event.request.headers
+          # @return [void]
+          def redact_url_bearing_headers(headers)
+            return unless headers.is_a?(Hash)
+
+            URL_BEARING_HEADERS.each do |header_name|
+              next unless headers[header_name].is_a?(String)
+
+              headers[header_name] = '[SCRUBBING_FAILED]'
+            end
           end
 
           # Scrub sensitive data from transaction (performance) events
@@ -477,9 +528,23 @@ module Onetime
 
             event
           rescue StandardError => ex
+            # Fail-closed: redact the message and exception values rather than
+            # shipping potentially-sensitive content unscrubbed. Mirrors the
+            # fail-closed behavior of scrub_event_urls/scrub_text.
             # NOTE: intentionally not logging ex.message as it may contain the
-            # very content we failed to scrub
+            # very content we failed to scrub.
             OT.ld "[sentry] Message scrubbing failed: #{ex.class}"
+            exception = event.respond_to?(:exception) ? event.exception : nil
+            if exception.respond_to?(:values)
+              Array(exception.values).each do |single|
+                next unless single.respond_to?(:value) && single.value.is_a?(String)
+
+                single.value = '[SCRUBBING_FAILED]'
+              end
+            end
+            if event.respond_to?(:message) && event.message.is_a?(String) && !event.message.empty?
+              event.message = '[SCRUBBING_FAILED]'
+            end
             event
           end
 
@@ -511,7 +576,14 @@ module Onetime
           # Verifiable identifiers in free text. Word-boundary anchored and
           # length-exact so trace IDs (32 hex) and commit hashes (40 hex) —
           # which are ops-useful — survive. 62 = v0.24 identifiers, 31 = legacy
-          # v0.23. Mirrors VERIFIABLE_ID_PATTERN in scrubbers.ts.
+          # v0.23.
+          #
+          # INTENTIONAL DIVERGENCE from the frontend VERIFIABLE_ID_PATTERN in
+          # src/plugins/core/diagnostics/scrubbers.ts. The backend pattern is
+          # anchored + case-sensitive ([0-9a-z] only) to deliberately preserve
+          # 32/40-char lowercase-hex ops/trace IDs and commit hashes. The
+          # frontend is case-insensitive. Do NOT "fix" this asymmetry by making
+          # the two patterns identical — the difference is by design.
           IDENTIFIER_TEXT_PATTERN = /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/
 
           private

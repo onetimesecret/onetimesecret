@@ -9,10 +9,33 @@ import { describe, it, expect } from 'vitest';
 import {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
+  scrubSensitiveQueryParams,
+  scrubQueryStringValues,
   EMAIL_PATTERN,
   SENSITIVE_PATH_PATTERN,
+  SENSITIVE_QUERY_PARAMS,
   VERIFIABLE_ID_PATTERN,
 } from '@/plugins/core/diagnostics/scrubbers';
+
+// ---------------------------------------------------------------------------
+// C1 shared identifier test-vector set.
+//
+// One canonical set of verifiable-identifier vectors, exercised by the pattern
+// and scrubber tests below. The frontend pattern is
+//   /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/gi   (case-INSENSITIVE, by design)
+// mirroring the backend IDENTIFIER_TEXT_PATTERN
+//   /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/     (case-SENSITIVE)
+// with the deliberate, documented case divergence. Lengths and `\b` anchoring
+// are shared.
+// ---------------------------------------------------------------------------
+const ID_VECTORS = {
+  id62: 'a'.repeat(62), // current (v0.24) — redacted
+  id31: 'b'.repeat(31), // legacy (v0.23) — redacted
+  id62mixed: 'A1b2C3'.padEnd(62, 'z'), // case-insensitive frontend — redacted
+  traceId32: 'c'.repeat(32), // ops-useful — survives
+  commitHash40: 'd'.repeat(40), // ops-useful — survives
+  short6: 'abc123', // too short — survives
+} as const;
 
 describe('scrubbers', () => {
   describe('scrubSensitiveStrings', () => {
@@ -172,5 +195,126 @@ describe('scrubbers', () => {
       expect(result).not.toContain(' REDACTED]');
       expect(result).not.toContain('[REDACTED][');
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// A1 — sensitive query-parameter VALUE redaction by name
+// ---------------------------------------------------------------------------
+describe('scrubSensitiveQueryParams (A1)', () => {
+  it('exports the backend-mirrored param name list', () => {
+    expect([...SENSITIVE_QUERY_PARAMS]).toEqual(['key', 'secret', 'token', 'passphrase']);
+  });
+
+  it('redacts the value of each sensitive param, preserving the name', () => {
+    expect(scrubSensitiveQueryParams('key=abc123')).toBe('key=[REDACTED]');
+    expect(scrubSensitiveQueryParams('secret=abc123')).toBe('secret=[REDACTED]');
+    expect(scrubSensitiveQueryParams('token=abc123')).toBe('token=[REDACTED]');
+    expect(scrubSensitiveQueryParams('passphrase=abc123')).toBe('passphrase=[REDACTED]');
+  });
+
+  it('matches the param name case-insensitively', () => {
+    expect(scrubSensitiveQueryParams('Token=abc123')).toBe('Token=[REDACTED]');
+    expect(scrubSensitiveQueryParams('KEY=abc123')).toBe('KEY=[REDACTED]');
+  });
+
+  it('preserves benign params verbatim', () => {
+    expect(scrubSensitiveQueryParams('product=identity&interval=month')).toBe(
+      'product=identity&interval=month'
+    );
+  });
+
+  it('redacts only the sensitive param in a mixed query', () => {
+    expect(scrubSensitiveQueryParams('product=identity&token=abc123&interval=month')).toBe(
+      'product=identity&token=[REDACTED]&interval=month'
+    );
+  });
+
+  it('preserves empty trailing segments (round-trips a=1&)', () => {
+    expect(scrubSensitiveQueryParams('a=1&')).toBe('a=1&');
+  });
+
+  it('leaves valueless flags untouched', () => {
+    expect(scrubSensitiveQueryParams('token')).toBe('token');
+  });
+
+  it('handles null/undefined/empty gracefully', () => {
+    expect(scrubSensitiveQueryParams(null as unknown as string)).toBe(null);
+    expect(scrubSensitiveQueryParams('')).toBe('');
+  });
+});
+
+describe('scrubUrlWithPatterns query-param redaction (A1)', () => {
+  it('redacts a sensitive param value inside a full URL', () => {
+    expect(scrubUrlWithPatterns('https://example.com/reveal?token=abc123')).toBe(
+      'https://example.com/reveal?token=[REDACTED]'
+    );
+  });
+
+  it('redacts a sensitive param and preserves the fragment', () => {
+    expect(scrubUrlWithPatterns('/reveal?secret=abc123#section')).toBe(
+      '/reveal?secret=[REDACTED]#section'
+    );
+  });
+
+  it('leaves benign query params intact', () => {
+    expect(scrubUrlWithPatterns('/pricing?product=identity&interval=month')).toBe(
+      '/pricing?product=identity&interval=month'
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// A4 — span http.query (bare query string) scrubbing
+// ---------------------------------------------------------------------------
+describe('scrubQueryStringValues (A4)', () => {
+  it('redacts sensitive param values by name', () => {
+    expect(scrubQueryStringValues('token=abc123&foo=bar')).toBe('token=[REDACTED]&foo=bar');
+  });
+
+  it('applies the email net to non-sensitive params', () => {
+    expect(scrubQueryStringValues('email=user@example.com')).toBe('email=[EMAIL_REDACTED]');
+  });
+
+  it('applies the verifiable-id net to non-sensitive params', () => {
+    expect(scrubQueryStringValues(`ref=${ID_VECTORS.id62}`)).toBe('ref=[REDACTED]');
+  });
+
+  it('handles null/undefined/empty gracefully', () => {
+    expect(scrubQueryStringValues(null as unknown as string)).toBe(null);
+    expect(scrubQueryStringValues('')).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// C1 — shared identifier test-vector set applied through the string scrubber
+// ---------------------------------------------------------------------------
+describe('C1 identifier vectors via scrubSensitiveStrings', () => {
+  it('redacts the 62-char (current) identifier', () => {
+    expect(scrubSensitiveStrings(`id ${ID_VECTORS.id62} end`)).toBe('id [REDACTED] end');
+  });
+
+  it('redacts the 31-char (legacy v0.23) identifier', () => {
+    expect(scrubSensitiveStrings(`id ${ID_VECTORS.id31} end`)).toBe('id [REDACTED] end');
+  });
+
+  it('redacts a mixed-case identifier (frontend case-insensitive)', () => {
+    expect(scrubSensitiveStrings(`id ${ID_VECTORS.id62mixed} end`)).toBe('id [REDACTED] end');
+  });
+
+  it('preserves a 32-char trace id (ops-useful)', () => {
+    expect(scrubSensitiveStrings(`trace ${ID_VECTORS.traceId32} end`)).toBe(
+      `trace ${ID_VECTORS.traceId32} end`
+    );
+  });
+
+  it('preserves a 40-char commit hash (ops-useful)', () => {
+    expect(scrubSensitiveStrings(`sha ${ID_VECTORS.commitHash40} end`)).toBe(
+      `sha ${ID_VECTORS.commitHash40} end`
+    );
+  });
+
+  it('preserves a short 6-char token', () => {
+    expect(scrubSensitiveStrings(`x ${ID_VECTORS.short6} y`)).toBe(`x ${ID_VECTORS.short6} y`);
   });
 });

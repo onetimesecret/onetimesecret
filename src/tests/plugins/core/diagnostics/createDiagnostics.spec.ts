@@ -18,6 +18,7 @@ const {
   mockSetClient,
   mockClientInit,
   mockSetTransactionName,
+  mockSetCurrentClient,
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
@@ -27,6 +28,7 @@ const {
   const mockClientInit = vi.fn();
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
   const mockSetTransactionName = vi.fn();
+  const mockSetCurrentClient = vi.fn();
   const mockGetBootstrapValue = vi.fn();
 
   class MockBrowserClient {
@@ -45,6 +47,7 @@ const {
     mockSetClient,
     mockClientInit,
     mockSetTransactionName,
+    mockSetCurrentClient,
     mockGetBootstrapValue,
     MockBrowserClient,
     MockScope,
@@ -61,6 +64,7 @@ vi.mock('@sentry/browser', async (importOriginal) => {
     ...actual,
     BrowserClient: MockBrowserClient,
     Scope: MockScope,
+    setCurrentClient: mockSetCurrentClient,
   };
 });
 
@@ -238,6 +242,23 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     expect(mockSetClient).toHaveBeenCalled();
     expect(mockClientInit).toHaveBeenCalled();
+  });
+
+  // B1/B2 — binds the client to the current scope so browserApiErrors and
+  // browserTracing integrations resolve a real client (async errors captured,
+  // transactions produced). See enableDiagnostics.ts setCurrentClient note.
+  it('binds the client to the current scope via setCurrentClient', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router: createMockRouter(),
+    });
+
+    expect(mockSetCurrentClient).toHaveBeenCalledTimes(1);
+    // Same client instance that scope.setClient received.
+    expect(mockSetCurrentClient.mock.calls[0][0]).toBe(mockSetClient.mock.calls[0][0]);
   });
 
   it('names transactions from the matched route record path on navigation', () => {

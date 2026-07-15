@@ -31,12 +31,35 @@ export const SENSITIVE_PATH_PATTERN =
   /\/(secret|private|receipt|incoming|invite|confirm)\/([a-zA-Z0-9]+)/gi;
 
 /**
- * Fallback pattern for 62-character verifiable identifiers.
- * These are base62-encoded IDs that could appear in unexpected paths.
+ * Fallback pattern for verifiable identifiers appearing in unexpected paths
+ * or free text. Matches both the current 62-char base62 IDs (v0.24) and the
+ * legacy 31-char IDs (v0.23). Word-boundary anchored (`\b`) and length-exact
+ * so ops-useful values of other lengths — trace IDs (32 hex), commit hashes
+ * (40 hex) — survive untouched.
+ *
+ * DOCUMENTED DIVERGENCE FROM BACKEND (by design, not drift):
+ *   Frontend: /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/gi  (case-INSENSITIVE)
+ *   Backend:  /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/     (case-SENSITIVE)
+ *     — lib/onetime/initializers/setup_diagnostics.rb IDENTIFIER_TEXT_PATTERN
+ *
+ * The backend stays strict (lowercase-only) because it controls its own
+ * identifier generation and wants to avoid redacting mixed-case ops tokens.
+ * The frontend is deliberately case-insensitive: it scrubs data from browser
+ * URLs/messages of unknown provenance, so it errs toward over-redaction. The
+ * `\b` anchoring and exact lengths are shared; only the case flag differs.
  *
  * @internal Exported for testing
  */
-export const VERIFIABLE_ID_PATTERN = /[0-9a-z]{62}/gi;
+export const VERIFIABLE_ID_PATTERN = /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/gi;
+
+/**
+ * Query-parameter names whose VALUES carry secrets and must be redacted.
+ * Mirrors the backend SENSITIVE_QUERY_PARAMS list.
+ *   — lib/onetime/initializers/setup_diagnostics.rb SENSITIVE_QUERY_PARAMS
+ *
+ * @internal Exported for testing
+ */
+export const SENSITIVE_QUERY_PARAMS = ['key', 'secret', 'token', 'passphrase'] as const;
 
 /**
  * Pattern for email addresses.
@@ -142,12 +165,86 @@ function extractAndScrubPath(input: string): string {
 }
 
 /**
+ * Redacts the VALUES of sensitive query parameters within a raw query string,
+ * preserving the parameter names. Operates on the portion after `?` and before
+ * any `#` fragment, i.e. NOT a full URL. Used both by `scrubUrlWithPatterns`
+ * (via `scrubUrlQueryParamNames`) and directly for span `http.query` data,
+ * which Sentry stores as a bare query string.
+ *
+ * Matching is case-insensitive on the parameter NAME only (mirrors the backend
+ * `SENSITIVE_QUERY_PARAMS.include?(key.downcase)`). Empty trailing segments are
+ * preserved by keeping the raw split, so `a=1&` round-trips.
+ *
+ * @param query - Raw query string, e.g. `key=abc&foo=bar` (no leading `?`)
+ * @returns The query string with sensitive param values replaced by [REDACTED]
+ */
+export function scrubSensitiveQueryParams(query: string): string {
+  if (!query || typeof query !== 'string') {
+    return query;
+  }
+
+  const sensitive = SENSITIVE_QUERY_PARAMS as readonly string[];
+  return query
+    .split('&')
+    .map((param) => {
+      const eq = param.indexOf('=');
+      if (eq === -1) {
+        return param;
+      }
+      const name = param.slice(0, eq);
+      if (sensitive.includes(name.toLowerCase())) {
+        return `${name}=[REDACTED]`;
+      }
+      return param;
+    })
+    .join('&');
+}
+
+/**
+ * Scrubs a bare query string (Sentry span `http.query` data): first redacts
+ * sensitive param values by name (A1), then applies the verifiable-ID and
+ * email pattern nets to anything remaining. Distinct from
+ * `scrubUrlWithPatterns`, which expects a URL/path, not a bare query string.
+ *
+ * @param query - Raw query string, e.g. `token=abc&email=user@x.com`
+ * @returns The scrubbed query string
+ */
+export function scrubQueryStringValues(query: string): string {
+  if (!query || typeof query !== 'string') {
+    return query;
+  }
+  let result = scrubSensitiveQueryParams(query);
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
+  result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
+  return result;
+}
+
+/**
+ * Applies `scrubSensitiveQueryParams` to the query portion of a full URL or
+ * bare path, preserving the base and any `#fragment`. String-based (not `URL`)
+ * to avoid re-encoding param values and to mirror the backend's manual split.
+ */
+function scrubUrlQueryParamNames(url: string): string {
+  const qIndex = url.indexOf('?');
+  if (qIndex === -1) {
+    return url;
+  }
+  const base = url.slice(0, qIndex);
+  const rest = url.slice(qIndex + 1);
+  const hashIndex = rest.indexOf('#');
+  const query = hashIndex === -1 ? rest : rest.slice(0, hashIndex);
+  const fragment = hashIndex === -1 ? '' : rest.slice(hashIndex);
+  return `${base}?${scrubSensitiveQueryParams(query)}${fragment}`;
+}
+
+/**
  * Scrubs sensitive identifiers from a URL path using regex patterns.
  * Used for HTTP breadcrumbs where we don't have route context.
  *
  * Scrubs:
  * - Known sensitive paths (/secret/, /private/, /receipt/, /incoming/, /invite/, /confirm/)
- * - 62-char verifiable IDs
+ * - Sensitive query-param VALUES by name (?key=, ?secret=, ?token=, ?passphrase=)
+ * - 62-char and 31-char verifiable IDs
  * - Email addresses in query strings (e.g., ?email=user@example.com)
  *
  * @param url - The URL string to scrub
@@ -166,10 +263,13 @@ export function scrubUrlWithPatterns(url: string): string {
   // Second pass: fallback for paths not covered by generated patterns
   result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
 
-  // Third pass: scrub any remaining 62-char verifiable IDs
+  // Third pass: redact sensitive query-param values by name (?token=... etc.)
+  result = scrubUrlQueryParamNames(result);
+
+  // Fourth pass: scrub any remaining 62/31-char verifiable IDs
   result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
 
-  // Fourth pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
+  // Fifth pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
   result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
 
   return result;
