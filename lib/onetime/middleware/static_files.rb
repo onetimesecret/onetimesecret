@@ -23,8 +23,8 @@ module Onetime
     #
     class StaticFiles
       # Root-served brand-pack asset URLs that can be overlaid by a brand pack
-      # (site.brand_pack / site.brand_assets_dir, #3739). /dist, /img, /v3 are
-      # app/build assets and are NEVER overlaid.
+      # (site.brand_pack / site.brand_assets_dir, #3739). /dist is the app build
+      # output and is NEVER overlaid.
       BRAND_PACK_URLS = %w[
         /favicon.svg /safari-pinned-tab.svg /apple-touch-icon.png
         /icon-192.png /icon-512.png /social-preview.png
@@ -110,11 +110,13 @@ module Onetime
               Onetime.le '[StaticFiles] default brand pack not found; brand assets will 404'
             end
 
-            # App/build assets — never overlaid by a brand pack; these DO live in
-            # public/web (Vite build output + committed images). Root against HOME
-            # rather than CWD (puma's working dir is not guaranteed).
+            # App/build assets — never overlaid by a brand pack. Only /dist
+            # (Vite build output) remains in public/web; the legacy /img and /v3
+            # image trees were retired once brand assets moved to the brand pack
+            # (public/branding/<pack>). Root against HOME rather than CWD (puma's
+            # working dir is not guaranteed).
             use Rack::Static,
-              urls: ['/dist', '/img', '/v3'],
+              urls: ['/dist'],
               root: File.join(Onetime::HOME, 'public', 'web')
           end
 

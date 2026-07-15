@@ -877,7 +877,7 @@ jobs:
       prefetch: <%= ENV['EMAIL_WORKER_PREFETCH']&.to_i || 10 %>
     notifications:
       threads: <%= ENV['NOTIFICATION_WORKER_THREADS']&.to_i || 2 %>
-      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 10 %>
+      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 5 %>
     billing:
       threads: <%= ENV['BILLING_WORKER_THREADS']&.to_i || 2 %>
       prefetch: <%= ENV['BILLING_WORKER_PREFETCH']&.to_i || 5 %>

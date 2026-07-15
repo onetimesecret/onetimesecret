@@ -73,6 +73,15 @@ module Core
 
         private
 
+        # Re-reads and re-parses the on-disk manifest per request by design; do
+        # NOT memoize at boot. The resolved path IS constant per deployment (it
+        # derives only from global OT.conf brand_pack/brand_assets_dir, not from
+        # the request or custom domain), so a boot-time cache is technically
+        # sound — but not worth it: this endpoint is cold (browser-cached, 1h CDN
+        # max-age; see controller), so the saved syscall+parse is unmeasurable,
+        # while per-request re-read keeps a swapped BRAND_ASSETS_DIR volume live
+        # without a restart. Any future cache MUST dup before the process overlay
+        # mutates name/short_name/theme_color (same trap as the rescue branch).
         def load_base_manifest
           path = Onetime.brand_asset_path('site.webmanifest')
           JSON.parse(File.read(path))
