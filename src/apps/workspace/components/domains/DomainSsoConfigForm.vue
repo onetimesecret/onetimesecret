@@ -138,17 +138,31 @@ const showDomainFilter = computed(() => false);
  * "Grant org-wide access" is withheld from the UI pending further testing
  * (targeted for after v0.26.0) — but only for domains that don't already use
  * it. A config loaded with grant_org_scope=true keeps its toggle so the grant
- * stays revocable: hiding it outright would strand an unrevokable org-wide
+ * stays revocable: hiding it outright would strand an irrevocable org-wide
  * grant that every save re-persists (configToFormState seeds it and saveConfig
  * always re-sends it). New/default configs (grant_org_scope=false) never see
- * the control. The latch keeps it visible for the whole edit session even after
- * the admin flips it off, so it doesn't vanish mid-edit.
+ * the control.
+ *
+ * The latch keeps it visible for the whole edit session even after the admin
+ * flips it off, so it doesn't vanish mid-edit. It is scoped per domain: this
+ * instance is reused across domains (no :key in SsoCredentialsModal), so when
+ * domainExtId changes the latch is recomputed from the incoming
+ * grant_org_scope. A fresh domain with grant_org_scope=false therefore clears a
+ * latch left true by a previously-loaded domain, rather than inheriting it.
  */
 const showGrantOrgScope = ref(false);
 watch(
-  () => props.formState.grant_org_scope,
-  (granted) => {
-    if (granted) showGrantOrgScope.value = true;
+  () => [props.domainExtId, props.formState.grant_org_scope] as const,
+  ([domainExtId, granted], previous) => {
+    const domainChanged = !previous || domainExtId !== previous[0];
+    if (domainChanged) {
+      // New domain loaded (or initial mount): recompute the latch from the
+      // incoming config so a false grant clears any latch a prior domain left.
+      showGrantOrgScope.value = granted;
+    } else if (granted) {
+      // Same domain, admin (re-)granted mid-edit: keep the toggle visible.
+      showGrantOrgScope.value = true;
+    }
   },
   { immediate: true }
 );

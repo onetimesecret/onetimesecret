@@ -665,7 +665,7 @@ describe('DomainSsoConfigForm', () => {
 
     // A config that ALREADY has grant_org_scope=true keeps its toggle so the
     // grant stays revocable. Hiding it for these domains would strand an
-    // unrevokable org-wide grant that every save re-persists (the toggle is the
+    // irrevocable org-wide grant that every save re-persists (the toggle is the
     // only control; configToFormState/saveConfig always round-trip the value).
     it('renders the toggle when the loaded config already grants org scope', async () => {
       wrapper = await mountComponent({
@@ -690,6 +690,52 @@ describe('DomainSsoConfigForm', () => {
       expect(emitted).toBeTruthy();
       const lastEmit = emitted![emitted!.length - 1][0] as SsoConfigFormState;
       expect(lastEmit.grant_org_scope).toBe(false);
+    });
+
+    // The latch is per-domain: SsoCredentialsModal reuses this instance without
+    // a :key, so navigating domains must not carry a prior domain's granted
+    // toggle over to a fresh grant_org_scope=false domain (that would re-expose
+    // the withheld control and let an admin inadvertently enable an org-wide
+    // grant this change intends to keep unavailable).
+    it('resets the latch when the domain changes (instance reused without :key)', async () => {
+      // Domain A already grants org scope → toggle is visible.
+      wrapper = await mountComponent({
+        domainExtId: 'dm_grants',
+        formState: { ...mockExistingFormState, grant_org_scope: true },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+
+      // Admin navigates to Domain B (same instance) whose config does NOT grant
+      // org scope. The latch must reset so the withheld toggle is gone.
+      await wrapper.setProps({
+        domainExtId: 'dm_no_grant',
+        formState: { ...mockExistingFormState, grant_org_scope: false },
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    });
+
+    // The whole reason the control latches (rather than tracking grant_org_scope
+    // directly): while editing ONE domain, flipping the grant off must not make
+    // the toggle vanish mid-edit — the admin still needs to flip it back on or
+    // save the revocation. Only a domain CHANGE resets the latch.
+    it('keeps the toggle visible after a same-domain mid-edit flip-off', async () => {
+      wrapper = await mountComponent({
+        domainExtId: 'dm_grants',
+        formState: { ...mockExistingFormState, grant_org_scope: true },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+
+      // Same domainExtId; admin flips the grant off (only formState changes).
+      await wrapper.setProps({
+        formState: { ...mockExistingFormState, grant_org_scope: false },
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
     });
   });
 
