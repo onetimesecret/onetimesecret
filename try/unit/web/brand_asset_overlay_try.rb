@@ -27,6 +27,7 @@
 require 'json'
 require 'tmpdir'
 require 'fileutils'
+require 'rack/mock'
 require_relative '../../support/test_helpers'
 
 OT.boot! :test, false
@@ -121,6 +122,23 @@ def run_webmanifest
   logic.process
   logic
 end
+
+# --- END-TO-END fixture: the REAL StaticFiles stack (section 8) ------------
+# Built HERE in the setup region because tryouts only persists ivars set before
+# the first test. The stack snapshots config at construction, so enable the
+# middleware and select the logo overlay now, build it, then restore the
+# baseline so sections 1-7 still see no overlay.
+@e2e_overlay = Dir.mktmpdir('ots-overlay-e2e')
+File.write(File.join(@e2e_overlay, 'brand-logo.svg'), 'LOGO-OVERLAY-SVG')
+# Inner app: a sentinel 404 so a fall-through (no pack layer served the URL) is
+# unambiguous in the assertions.
+@e2e_app = ->(_env) { [404, { 'content-type' => 'text/plain' }, ['APP-FALLTHROUGH']] }
+@orig_mw = OT.conf['site']['middleware']
+OT.conf['site']['middleware'] = { 'static_files' => true }
+set_overlay(assets_dir: @e2e_overlay, pack: nil)
+@e2e_client = Rack::MockRequest.new(Onetime::Middleware::StaticFiles.new(@e2e_app))
+OT.conf['site']['middleware'] = @orig_mw
+clear_overlay
 
 # TRYOUTS
 
@@ -342,11 +360,32 @@ BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(DEFAULT_PACK, u)) }
 
 clear_overlay
 
+# ============================================================================
+# 8. END-TO-END: issue real GETs through the REAL StaticFiles stack (built in
+#    the setup region above as @e2e_client). Proves the SERVED behaviour, not a
+#    copy of the selection expression (#3774). The overlay carries brand-logo.svg
+#    only; the inner app returns a sentinel 404 so a fall-through is unambiguous.
+# ============================================================================
+
+## GET /brand-logo.svg serves the overlay file itself (200 + its exact bytes)
+res = @e2e_client.get('/brand-logo.svg')
+[res.status, res.body]
+#=> [200, 'LOGO-OVERLAY-SVG']
+
+## GET /brand-logo.png is NOT served (the pack omits it) — falls through to the app
+res = @e2e_client.get('/brand-logo.png')
+[res.status, res.body]
+#=> [404, 'APP-FALLTHROUGH']
+
+## a mandatory asset still serves from the default base layer alongside the logo overlay
+@e2e_client.get('/favicon.svg').status
+#=> 200
+
 # Teardown — restore the no-overlay baseline and remove fixtures.
 OT.conf['brand']                    = @orig_brand
 OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
 OT.conf['site']['brand_pack']       = @orig_pack
 [@overlay_favicon, @overlay_manifest, @overlay_bad_manifest,
- @overlay_empty, @overlay_partial, @overlay_logo].each { |d| FileUtils.remove_entry(d) rescue nil }
+ @overlay_empty, @overlay_partial, @overlay_logo, @e2e_overlay].each { |d| FileUtils.remove_entry(d) rescue nil }
 [@etc_pack_dir, @public_pack_dir, @vendor_only_dir].each { |d| FileUtils.remove_entry(d) rescue nil }
 FileUtils.remove_entry(File.join(Onetime::HOME, 'etc', 'branding')) if Dir.exist?(File.join(Onetime::HOME, 'etc', 'branding')) && Dir.empty?(File.join(Onetime::HOME, 'etc', 'branding'))
