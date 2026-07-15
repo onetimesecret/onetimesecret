@@ -65,3 +65,25 @@ Auth = Core::Logic::Authentication
 ## Migrated password has encryption mode '2'
 @bcrypt_cust.passphrase_encryption
 #=> '2'
+
+## Pending-verification login message echoes the email address, not the objid (QS-13)
+@pending_email = generate_unique_test_email("pending_login")
+@pending_cust = Customer.create!(email: @pending_email)
+@pending_cust.update_passphrase(@testpass)
+@pending_cust.verified = false
+@pending_cust.role = 'customer'
+@pending_cust.save
+strategy_result = MockStrategyResult.new(session: {})
+logic = Auth::AuthenticateSession.new(strategy_result, { 'login' => @pending_email, 'password' => @testpass }, 'en')
+logic.raise_concerns
+captured = StringIO.new
+original_stderr = $stderr
+$stderr = captured
+begin
+  logic.process
+ensure
+  $stderr = original_stderr
+end
+msg_line = captured.string.lines.find { |line| line.include?('sent to') }
+[msg_line&.include?(@pending_email), msg_line&.include?(@pending_cust.objid)]
+#=> [true, false]

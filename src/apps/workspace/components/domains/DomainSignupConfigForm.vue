@@ -7,17 +7,24 @@
  * Presentational component that receives signup config state via props
  * and emits events for actions. Parent (DomainSignup.vue) manages state
  * via useSignupConfig composable.
+ *
+ * The explicit-override flag (`enabled`) has no control here (ADR-024):
+ * saving is the explicit configuration action — the composable forces
+ * `enabled: true` on every PUT — and deleting the config is the way back
+ * to inheriting workspace defaults. The signup-enabled select edits the
+ * override VALUE (ANDed with the global capability; it can narrow, never
+ * widen).
  */
-import { useI18n } from 'vue-i18n';
-import { computed, ref, watch } from 'vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import {
   SIGNUP_STRATEGY_METADATA,
   type CustomDomainSignupConfig,
   type SignupValidationStrategy,
 } from '@/schemas/shapes/domains/signup-config';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { SignupConfigFormState } from '@/shared/composables/useSignupConfig';
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -43,6 +50,8 @@ const emit = defineEmits<{
   (e: 'delete'): void;
   (e: 'discard'): void;
   (e: 'update:formState', value: SignupConfigFormState): void;
+  /** Whether a save is currently possible — drives the header's Save button. */
+  (e: 'can-save', value: boolean): void;
 }>();
 
 const { t } = useI18n();
@@ -126,6 +135,15 @@ const handleSave = () => {
   emit('save');
 };
 
+// The primary Save button now lives in the page header, so surface whether a
+// save is possible — same gating the in-form submit used (valid + not busy;
+// signup can save a fresh default config, so it's not gated on unsaved changes)
+// — and let the page relay it to DomainHeader's `save-disabled`.
+const canSave = computed(
+  () => isFormValid.value && !props.isSaving && !props.isDeleting
+);
+watch(canSave, (value) => emit('can-save', value), { immediate: true });
+
 const handleDelete = () => {
   if (props.isDeleting) return;
   emit('delete');
@@ -179,9 +197,10 @@ watch(newDomain, () => {
       :heading="false" />
 
     <!-- Form -->
-    <form v-else
-@submit.prevent="handleSave"
-class="space-y-6">
+    <form
+      v-else
+      @submit.prevent="handleSave"
+      class="space-y-6">
       <!-- Strategy Selection -->
       <fieldset>
         <legend class="text-sm font-medium text-gray-900 dark:text-white">
@@ -306,12 +325,12 @@ class="space-y-6">
               aria-describedby="signup-allowed-domains-hint signup-domain-input-error"
               :aria-invalid="!!domainInputError"
               @keydown.enter.prevent="addDomain"
-              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
           </div>
           <button
             type="button"
             @click="addDomain"
-            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.COMMON.add') }}
           </button>
         </div>
@@ -353,8 +372,12 @@ class="space-y-6">
             :value="String(formState.signup_enabled)"
             @change="updateField('signup_enabled', ($event.target as HTMLSelectElement).value === 'true')"
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="true">{{ t('web.COMMON.enabled') }}</option>
-            <option value="false">{{ t('web.COMMON.disabled') }}</option>
+            <option value="true">
+              {{ t('web.COMMON.enabled') }}
+            </option>
+            <option value="false">
+              {{ t('web.COMMON.disabled') }}
+            </option>
           </select>
         </div>
 
@@ -378,131 +401,65 @@ class="space-y-6">
             :value="String(formState.autoverify)"
             @change="updateField('autoverify', ($event.target as HTMLSelectElement).value === 'true')"
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="true">{{ t('web.COMMON.enabled') }}</option>
-            <option value="false">{{ t('web.COMMON.disabled') }}</option>
+            <option value="true">
+              {{ t('web.COMMON.enabled') }}
+            </option>
+            <option value="false">
+              {{ t('web.COMMON.disabled') }}
+            </option>
           </select>
         </div>
       </fieldset>
 
-      <!-- Enabled Toggle -->
-      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div>
-          <label
-            for="signup-enabled"
-            class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ t('web.domains.signup.enabled_label') }}
-          </label>
-          <p
-            id="signup-enabled-hint"
-            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.domains.signup.enabled_hint') }}
-          </p>
-        </div>
-        <button
-          id="signup-enabled"
-          type="button"
-          role="switch"
-          :aria-checked="formState.enabled"
-          aria-describedby="signup-enabled-hint"
-          @click="updateField('enabled', !formState.enabled)"
-          :class="[
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
-            formState.enabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
-          ]">
-          <span class="sr-only">{{ t('web.domains.signup.enabled_label') }}</span>
-          <span
-            :class="[
-              'pointer-events-none relative inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-              formState.enabled ? 'translate-x-5' : 'translate-x-0',
-            ]">
-            <span
-              :class="[
-                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formState.enabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
-              ]"
-              aria-hidden="true">
-              <OIcon
-                collection="heroicons"
-                name="x-mark"
-                class="size-3 text-gray-400" />
-            </span>
-            <span
-              :class="[
-                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formState.enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
-              ]"
-              aria-hidden="true">
-              <OIcon
-                collection="heroicons"
-                name="check"
-                class="size-3 text-brand-600" />
-            </span>
-          </span>
-        </button>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
-        <!-- Left: Delete + Discard -->
-        <div class="flex items-center gap-3">
-          <template v-if="isEditing && !showDeleteConfirm">
-            <button
-              type="button"
-              @click="showDeleteConfirm = true"
-              :disabled="isDeleting || isSaving"
-              class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
-              <OIcon
-                collection="heroicons"
-                name="trash"
-                class="size-4"
-                aria-hidden="true" />
-              {{ t('web.domains.signup.delete_config') }}
-            </button>
-          </template>
-
-          <div v-if="showDeleteConfirm" class="flex items-center gap-2">
-            <span class="text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.domains.signup.delete_confirm') }}
-            </span>
-            <button
-              type="button"
-              @click="handleDelete"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
-              {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
-            </button>
-            <button
-              type="button"
-              @click="showDeleteConfirm = false"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-              {{ t('web.COMMON.word_cancel') }}
-            </button>
-          </div>
-
+      <!-- Secondary actions: Delete + Discard. The primary Save ("Update")
+           lives in the page header (opt-in DomainHeader affordance); this row
+           only appears when there's a saved config to delete or an edit to
+           discard. -->
+      <div
+        v-if="isEditing || hasUnsavedChanges || showDeleteConfirm"
+        class="flex items-center gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <template v-if="isEditing && !showDeleteConfirm">
           <button
-            v-if="hasUnsavedChanges && !showDeleteConfirm"
             type="button"
-            @click="emit('discard')"
-            :disabled="isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-            {{ t('web.domains.email.discard_changes') }}
+            @click="showDeleteConfirm = true"
+            :disabled="isDeleting || isSaving"
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-red-300 ring-inset hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+            <OIcon
+              collection="heroicons"
+              name="trash"
+              class="size-4"
+              aria-hidden="true" />
+            {{ t('web.domains.signup.delete_config') }}
+          </button>
+        </template>
+
+        <div v-if="showDeleteConfirm" class="flex items-center gap-2">
+          <span class="text-sm text-gray-600 dark:text-gray-400">
+            {{ t('web.domains.signup.delete_confirm') }}
+          </span>
+          <button
+            type="button"
+            @click="handleDelete"
+            :disabled="isDeleting"
+            class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
+            {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
+          </button>
+          <button
+            type="button"
+            @click="showDeleteConfirm = false"
+            :disabled="isDeleting"
+            class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            {{ t('web.COMMON.word_cancel') }}
           </button>
         </div>
 
-        <!-- Right: Save button -->
         <button
-          type="submit"
-          :disabled="!isFormValid || isSaving || isDeleting"
-          class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-          <OIcon
-            v-if="isSaving"
-            collection="heroicons"
-            name="arrow-path"
-            class="size-4 animate-spin motion-reduce:animate-none"
-            aria-hidden="true" />
-          <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
-          <span v-else>{{ isEditing ? t('web.COMMON.save_changes') : t('web.domains.signup.save_config') }}</span>
+          v-if="hasUnsavedChanges && !showDeleteConfirm"
+          type="button"
+          @click="emit('discard')"
+          :disabled="isSaving"
+          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+          {{ t('web.domains.email.discard_changes') }}
         </button>
       </div>
     </form>

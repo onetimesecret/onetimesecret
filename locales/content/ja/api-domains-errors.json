@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "受信者のメールアドレスを重複して指定することはできません",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "無効なsecrets_mode:%{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "受信シークレットモードにはincoming_secretsエンタイトルメントが必要です。プランをアップグレードしてください。",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "受信シークレットは、ホームページとして使用する前に、少なくとも1人の受信者を設定して有効にする必要があります。",
+    "source_hash": "556da6e2"
   }
 }

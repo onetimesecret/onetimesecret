@@ -79,7 +79,7 @@ verify:
   - api: GET /api/invite/{{token}}
     assert:
       status: declined
-  - api: GET /api/v2/account/mfa/status
+  - api: GET /api/account/mfa/status
     assert:
       mfa_enabled: true
       has_recovery_codes: false

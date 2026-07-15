@@ -64,8 +64,8 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Những người sau đây đã dành thời gian để giúp mở rộng phạm vi tiếp cận của {product_name}:",
-    "source_hash": "85a766af"
+    "text": "Những người sau đã dành thời gian của họ để giúp mở rộng phạm vi tiếp cận của {product_name}:",
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Bản dịch",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Từ năm 2012, {product_name} đã cung cấp cách an toàn để chia sẻ thông tin nhạy cảm trên toàn thế giới. Với người dùng ở các khu vực mà tiếng Anh không phải là ngôn ngữ chính, các bản dịch chính xác là điều cần thiết để giao tiếp an toàn trở nên dễ tiếp cận với mọi người.",
-    "source_hash": "87a6e9af"
+    "text": "Từ năm 2012, {product_name} đã cung cấp một cách an toàn để chia sẻ thông tin nhạy cảm trên toàn thế giới. Với người dùng ở khắp các khu vực nơi tiếng Anh không phải là ngôn ngữ chính, bản dịch chính xác là điều thiết yếu để giúp mọi người đều có thể giao tiếp an toàn.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Giúp giao tiếp an toàn lan tỏa toàn cầu",

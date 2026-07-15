@@ -257,6 +257,41 @@ last_response.status
 #=> 403
 
 # ----------------------------------------------------------------
+# Audit trail (CONTRACT 4 / D4) + extid-first org resolution (#32)
+# ----------------------------------------------------------------
+
+## Grant via the org's PUBLIC extid resolves the org and returns 200 (extid-first)
+post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
+  { entitlement: 'audit_probe_one' }.to_json,
+  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+[last_response.status, JSON.parse(last_response.body)['record']['action']]
+#=> [200, 'granted']
+
+## A grant records exactly one AdminAuditEvent with the colonel actor + org target
+@before_count = Onetime::AdminAuditEvent.count
+post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
+  { entitlement: 'audit_probe_two' }.to_json,
+  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+@evt = Onetime::AdminAuditEvent.recent(1).first
+[
+  Onetime::AdminAuditEvent.count - @before_count,
+  @evt['verb'],
+  @evt['actor'] == @colonel.extid,
+  @evt['target'] == @org.extid,
+  @evt['result'],
+  @evt['detail'],
+]
+#=> [1, 'organization.entitlement.grant', true, true, 'success', { 'entitlement' => 'audit_probe_two' }]
+
+## Clear records an audit event with the clear verb and an empty detail
+delete "/api/colonel/organizations/#{@org.extid}/entitlements/overrides",
+  {},
+  { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
+@evt = Onetime::AdminAuditEvent.recent(1).first
+[last_response.status, @evt['verb'], @evt['target'] == @org.extid, @evt['detail']]
+#=> [200, 'organization.entitlement.clear', true, {}]
+
+# ----------------------------------------------------------------
 # Teardown
 # ----------------------------------------------------------------
 @org.destroy!       rescue nil

@@ -1,0 +1,55 @@
+# ==============================================================================
+# Devcontainer smoke test (install-onboarding C8, testing-strategy §5)
+# ==============================================================================
+# Builds the devcontainer exactly as VS Code / Codespaces would (compose stack,
+# features, onCreate + postCreate = bin/setup) and then runs the documented
+# test lane inside it. The Rails/velocitas pattern: PR runs catch config
+# breakage; the weekly cron catches upstream image/feature rot with no commits
+# (Codespaces prebuild failures notify quietly — this workflow is the alarm).
+#
+# Deliberate: no GHCR image push. devcontainers/ci's imageName/cacheFrom
+# caching does not work reliably with compose-based devcontainers
+# (devcontainers/ci#302); the only build-time layers here are two small
+# features (node, pnpm), so the rebuild cost is minutes, not tens of minutes.
+# ==============================================================================
+name: Devcontainer
+
+on:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - 'bin/setup'
+      - 'scripts/setup/**'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.ruby-version'
+      - '.node-version'
+      - '.github/workflows/devcontainer-ci.yml'
+  schedule:
+    # Weekly: upstream base-image/feature rot surfaces as a red scheduled run.
+    - cron: '29 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  devcontainer:
+    name: bin/setup inside the devcontainer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # `devcontainer up` runs onCreateCommand (redis-server, python3, volume
+      # ownership) and postCreateCommand (bin/setup — the contributor path),
+      # then runCmd executes the documented test lane in the same container.
+      - name: Build devcontainer and run the documented test lane
+        uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca # v0.3
+        with:
+          runCmd: |
+            bin/setup --test
+            pnpm run test:rspec:fast

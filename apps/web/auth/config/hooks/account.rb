@@ -227,8 +227,34 @@ module Auth::Config::Hooks
           else
             # Standard signup: provision the default organization and team so
             # the user has a workspace to land in after email verification.
+            #
+            # SECURITY: a standard email/password account is NOT email-verified
+            # at this point (the verification email hasn't even been sent). Defer
+            # claiming any PendingFederatedSubscription until the user verifies,
+            # so an attacker cannot register a paying subscriber's email in this
+            # region and steal their federated subscription at signup time. The
+            # deferred claim runs from after_verify_account below.
+            #
+            # When verify_account is disabled for this deployment there is no
+            # verification step to defer to, so we preserve the immediate-claim
+            # behavior (require_verification: false) rather than never claiming.
+            #
+            # RESIDUAL: in that verify-disabled config the immediate claim
+            # happens with NO proof of email ownership — an attacker who knows a
+            # subscriber's email could register it here and claim their pending
+            # federated subscription. We deliberately do not gate on verified?
+            # here (the Redis customer.verified flag never becomes true without
+            # verify_account, so gating would disable federated claims entirely);
+            # CreateDefaultWorkspace instead emits a loud security-audit log for
+            # each such unverified immediate claim. See
+            # CreateDefaultWorkspace#apply_pending_federation! and #initialize.
+            require_verification = Onetime.auth_config.verify_account_enabled?
+
             Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
-              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+              Auth::Operations::CreateDefaultWorkspace.new(
+                customer: customer,
+                require_verification: require_verification,
+              ).call
             end
           end
 
@@ -301,6 +327,21 @@ module Auth::Config::Hooks
               verified_by: 'email',
               rodauth_already_synced: true,
             ).call
+          end
+
+          # Claim any pending federated subscription now that the email is
+          # verified (issue: federated benefit theft via unverified signup).
+          # CreateDefaultWorkspace defers this claim on the standard signup path;
+          # here we apply it to the workspace created at signup. Idempotent and a
+          # safe no-op when nothing is pending or it was already claimed. Re-fetch
+          # the customer so verified? reflects the state just persisted above.
+          Onetime::ErrorHandler.safe_execute('claim_pending_federation', extid: account[:external_id]) do
+            next unless account[:external_id]
+
+            verified_customer = Onetime::Customer.find_by_extid(account[:external_id])
+            next unless verified_customer
+
+            Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(verified_customer)
           end
 
           # Surface pending plan intent for checkout redirect (issue #3126)
@@ -412,6 +453,21 @@ module Auth::Config::Hooks
         # sync metadata to the customer record.
         Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
           Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+        end
+
+        # Best-effort security notification that the password changed. Never
+        # let a delivery problem surface as a password-change failure.
+        Onetime::ErrorHandler.safe_execute('password_changed_email', account_id: account_id) do
+          recipient = Onetime::Customer.find_by_email(account[:email])
+          Onetime::Jobs::Publisher.enqueue_email(
+            :password_changed,
+            {
+              email_address: account[:email],
+              changed_at: Time.now.utc.iso8601,
+              locale: recipient&.locale || OT.default_locale,
+            },
+            fallback: :async_thread,
+          )
         end
       end
 

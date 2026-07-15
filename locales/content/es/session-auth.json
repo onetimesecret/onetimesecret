@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Usa la opción de Enlace Mágico para iniciar sesión sin contraseña. Una vez que hayas iniciado sesión, puedes cambiar tu contraseña en Configuración de la cuenta.",
-    "source_hash": "2a058600"
+    "text": "Puedes solicitar un enlace para restablecer la contraseña y crear una nueva contraseña.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "¿Cuenta bloqueada temporalmente?",
@@ -395,9 +395,6 @@
   "web.help.contact_support": {
     "text": "Contactar con soporte",
     "source_hash": "f8d47b82"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Flujo de verificación de correo electrónico después del registro"
   },
   "web.auth.account.sso_linked": {
     "text": "Cuenta SSO",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Tu dominio de correo electrónico no está autorizado para registrarse mediante SSO. Contacta con tu administrador.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Revisa tu correo electrónico",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Enviamos un enlace de verificación a tu dirección de correo electrónico.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Enviamos un enlace de verificación a esta dirección — abre el correo electrónico y haz clic en el enlace para activar tu cuenta.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "¿No lo encuentras? Revisa tu carpeta de spam.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "¿Introdujiste la dirección equivocada?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Empezar de nuevo",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Contraseña",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "¿No recibiste el correo electrónico de verificación? Introduce tu correo electrónico para reenviarlo.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Reenviar correo electrónico de verificación",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Si una cuenta necesita verificación, se ha enviado un nuevo correo electrónico. Revisa tu bandeja de entrada y tu carpeta de spam.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "No se pudo enviar el correo electrónico de verificación. Comprueba tu conexión e inténtalo de nuevo.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Reenviar correo",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Tu correo electrónico ha sido verificado — ya puedes iniciar sesión.",
+    "source_hash": "c8d4b5a8"
   }
 }

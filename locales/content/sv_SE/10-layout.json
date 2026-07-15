@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Produkt",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Källkod",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Fakturering",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du tittar på ett säkert meddelande som har delats med dig via {product_name}. Det här innehållet visas endast en gång och raderas sedan permanent från våra servrar.",
-    "source_hash": "e0f1a10c"
+    "text": "Du visar ett säkert meddelande som delades med dig via {product_name}. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Kan jag visa denna hemlighet igen senare?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Besök {product_name}s startsida",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Sidfotnavigering",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Kontakta supporten för hjälp",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Endast Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

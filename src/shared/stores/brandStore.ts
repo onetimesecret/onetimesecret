@@ -125,8 +125,13 @@ export const useBrandStore = defineStore('brand', () => {
 function isEqual(a: BrandSettings, b: BrandSettings): boolean {
   const keys: (keyof BrandSettings)[] = [
     'primary_color',
+    'secondary_color',
+    'background_color',
+    'text_color',
     'font_family',
+    'heading_font',
     'corner_style',
+    'border_radius',
     'button_text_light',
     'instructions_pre_reveal',
     'instructions_post_reveal',

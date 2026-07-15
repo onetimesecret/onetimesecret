@@ -8,7 +8,16 @@ site:
   # Be sure to create and store a backup in a secure offsite
   # location. Changing the secret can lead to unforeseen issues
   # like not being able to decrypt existing secrets.
+  # See docs/runbooks/secret-rotation.md before touching it.
   secret: <%= ENV['SECRET'] || nil %>
+  # Boot-time SECRET verifier (QS-6). The app stores an HKDF-derived
+  # verifier in the datastore and checks it on every boot, so a changed
+  # SECRET (or a datastore from another install) is detected instead of
+  # silently making existing secrets undecryptable.
+  #   warn    - log loudly on mismatch, keep booting (default)
+  #   enforce - refuse to boot on mismatch
+  #   off     - skip the check (escape hatch for multi-tenant datastores)
+  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>
   # API and UI Configuration
   interface:
     ui:
@@ -421,6 +430,49 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
+  # Admin (Colonel) Configuration
+  # Network-level posture for the Colonel admin surfaces.
+  admin:
+    # Optional network isolation for the Colonel admin surfaces (/colonel shell
+    # and /api/colonel API). When set to a non-empty list of CIDR ranges, any
+    # request whose trusted-proxy-resolved client IP falls OUTSIDE the allowlist
+    # receives a 404 (indistinguishable-from-absent, not a 403) on both
+    # surfaces. This is defense-in-depth ON TOP OF the two app-layer auth layers
+    # (role=colonel at the router + verify_one_of_roles!(colonel:true) in each
+    # logic class), which still enforce beneath it.
+    #
+    # Empty/unset (default): NO-OP. Both surfaces stay reachable and the auth
+    # layers are the sole gate — the correct posture for self-hosted
+    # single-container installs, which cannot require a VPN. Set this on cloud
+    # deployments to private ranges only (e.g. a Tailscale/VPN CGNAT range like
+    # 100.64.0.0/10, or an office RFC1918 range). Self-hosted operators who want
+    # isolation without app config can instead front the surfaces with a reverse
+    # proxy (see docs/operations/admin-network-isolation.md).
+    #
+    # IMPORTANT: resolution uses the trusted-proxy-aware client IP, so behind a
+    # reverse proxy you must also configure site.network.trusted_proxy or every
+    # request resolves to the proxy hop. A raw X-Forwarded-For header cannot
+    # bypass the allowlist.
+    #
+    # Example: ["100.64.0.0/10", "10.0.0.0/8"]
+    allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>
+
+  # Brand pack selection (#3739, v2 #3774). A brand pack is the single unit of
+  # branding: a directory of root-served assets (favicon.ico, icon-*.png,
+  # site.webmanifest, etc.) plus an optional brand.yaml identity manifest
+  # (colours, product name — absorbed into the brand: block below at boot, as a
+  # fallback beneath operator config and BRAND_* env).
+  #
+  # Resolution ALWAYS lands on a pack: an unset brand_pack resolves to the
+  # tracked `default` pack (public/branding/default, the neutral keyhole set).
+  # A brand_pack NAME is resolved across two search roots, first existing wins:
+  #   1. etc/branding/<name>     — operator space (runtime mounts / confext)
+  #   2. public/branding/<name>  — vendor space (tracked default + generated packs)
+  # brand_assets_dir (an explicit path, e.g. a runtime mount) wins over
+  # brand_pack; a missing path or unknown name falls back to the default pack.
+  brand_pack: <%= ENV['BRAND_PACK']&.to_json %>
+  brand_assets_dir: <%= ENV['BRAND_ASSETS_DIR']&.to_json %>
+
 # Brand block. Each BRAND_* env var is interpolated as a JSON-quoted scalar
 # (`&.to_json`) so the value survives the YAML layer intact. Without quoting, an
 # operator value with YAML-significant characters — a leading '#' (hex color),
@@ -430,6 +482,13 @@ site:
 # nil. Onetime::Config#normalize_brand (run in after_load) stays the authority:
 # it re-reads the env vars, trims blanks to nil, and coerces button_text_light
 # to a real boolean; an env-set field always wins over a YAML-supplied one.
+#
+# Precedence for these identity scalars (lowest to highest, #3774):
+#   built-in defaults < brand pack brand.yaml < this brand: config < BRAND_* env
+# The pack manifest layer (Config#apply_brand_manifest) fills only keys this
+# block left nil, so an operator value here always wins over a pack, and env
+# always wins over both. The tracked default pack ships a value-free brand.yaml,
+# so an unconfigured install keeps every key nil (neutral posture, #3049).
 brand:
   primary_color: <%= ENV['BRAND_PRIMARY_COLOR']&.to_json %>
   product_name: <%= ENV['BRAND_PRODUCT_NAME']&.to_json %>
@@ -818,7 +877,7 @@ jobs:
       prefetch: <%= ENV['EMAIL_WORKER_PREFETCH']&.to_i || 10 %>
     notifications:
       threads: <%= ENV['NOTIFICATION_WORKER_THREADS']&.to_i || 2 %>
-      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 10 %>
+      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 5 %>
     billing:
       threads: <%= ENV['BILLING_WORKER_THREADS']&.to_i || 2 %>
       prefetch: <%= ENV['BILLING_WORKER_PREFETCH']&.to_i || 5 %>
@@ -832,7 +891,8 @@ jobs:
   # This ensures plan data remains available even if Stripe webhooks fail.
   # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
   # Skips gracefully if no Stripe API key is configured (standalone mode).
-  plan_cache_refresh_enabled: <%= ENV['JOBS_PLAN_CACHE_REFRESH_ENABLED'] == 'true' || false %>
+  plan_cache_refresh:
+    enabled: true
 
   # Catalog Retry Job
   # Retries webhook events that were blocked by the Stripe circuit breaker.
@@ -840,13 +900,15 @@ jobs:
   # price.created, etc.) are queued for retry rather than failing. This job
   # processes those queued events once the circuit breaker closes.
   # Runs every 2 minutes when enabled; skips if circuit is still open.
-  catalog_retry_enabled: <%= ENV['JOBS_CATALOG_RETRY_ENABLED'] == 'true' || false %>
+  catalog_retry:
+    enabled: true
 
   # DLQ Email Consumer Job
   # Processes failed email messages from the dead-letter queue.
   # Runs on a schedule to inspect DLQ messages and re-publish recoverable
   # failures or log permanent failures for investigation.
-  dlq_consumer_enabled: <%= ENV['JOBS_DLQ_CONSUMER_ENABLED'] != 'false' %>
+  dlq_consumer:
+    enabled: true
 
   # Domain refresh job
   # Periodically refreshes cached vhost/resolving status for custom domains
@@ -854,29 +916,68 @@ jobs:
   # visiting the verify page. See issue #3080.
   # Skips gracefully when no custom domains are registered.
   domain_refresh:
-    enabled: <%= ENV['JOBS_DOMAIN_REFRESH_ENABLED'] == 'true' || false %>
+    enabled: true
     # How often to refresh (rufus-scheduler interval)
-    check_interval: <%= ENV['JOBS_DOMAIN_REFRESH_INTERVAL'] || '30m' %>
+    check_interval: '30m'
     # Maximum domains processed per run (rate limiting)
-    batch_size: <%= ENV['JOBS_DOMAIN_REFRESH_BATCH_SIZE']&.to_i || 200 %>
+    batch_size: 200
     # Seconds between Approximated API calls within a run
-    rate_limit: <%= ENV['JOBS_DOMAIN_REFRESH_RATE_LIMIT']&.to_f || 0.5 %>
+    rate_limit: 0.5
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:
     # Enable/disable expiration warning emails
-    enabled: <%= ENV['JOBS_EXPIRATION_WARNINGS_ENABLED'] == 'true' || false %>
+    enabled: false
     # How often to scan for expiring secrets (rufus-scheduler interval)
-    check_interval: <%= ENV['JOBS_EXPIRATION_CHECK_INTERVAL'] || '1h' %>
+    check_interval: '1h'
     # Send warning N hours before secret expires
-    warning_hours: <%= ENV['JOBS_EXPIRATION_WARNING_HOURS']&.to_i || 24 %>
+    warning_hours: 24
     # Only warn for secrets with TTL greater than this (hours)
     # Prevents spamming for short-lived secrets
-    min_ttl_hours: <%= ENV['JOBS_EXPIRATION_MIN_TTL_HOURS']&.to_i || 48 %>
+    min_ttl_hours: 48
     # Maximum warnings to process per job run (rate limiting)
     # Prevents queue overflow; remaining secrets processed in next run
-    batch_size: <%= ENV['JOBS_EXPIRATION_BATCH_SIZE']&.to_i || 100 %>
+    batch_size: 100
+
+  # Auto-fetch custom-domain favicon from the live domain
+  # Discovers and downloads a favicon for verified custom domains under an
+  # SSRF guard, then populates custom_domain.icon. See issue #3780.
+  # HTTPS-only; user-uploaded icons are never overwritten.
+  favicon_fetch:
+    # Feature flag — default ON (see #3780)
+    enabled: true
+    # Seconds per HTTP fetch (connect + read)
+    timeout: 5
+    # Response size ceiling in bytes (100 KB), streamed-enforced
+    max_response_bytes: 102400
+    # Maximum redirects followed, each re-validated against the SSRF guard
+    max_redirects: 3
+    # Allowed image content types. SVG is intentionally excluded (script/XXE
+    # risk) and rejected at fetch time. This array REPLACES on override
+    # (deep_merge) — restate it in full to change the set.
+    allowed_content_types:
+      - image/x-icon
+      - image/vnd.microsoft.icon
+      - image/png
+
+  # Nightly favicon backfill scan (#3780)
+  # Paginates the full custom-domain set and enqueues a favicon fetch for each
+  # domain still missing an auto-fetched icon whose backoff window has elapsed.
+  # Requires BOTH this flag AND favicon_fetch.enabled (the worker must consume).
+  favicon_backfill:
+    # Feature flag — default OFF
+    enabled: false
+    # Scan schedule (cron); nightly at 03:00 by default
+    cron: '0 3 * * *'
+    # Domains loaded+scanned per page while paginating the full set
+    batch_size: 500
+    # Stop retrying a domain after this many terminal non-success attempts
+    max_attempts: 6
+    # Backoff base in days (doubles each attempt: 1, 2, 4, 8, ...)
+    base_days: 1
+    # Backoff ceiling in days (the doubling never schedules further out than this)
+    cap_days: 30
 
   # Data maintenance jobs
   # Scheduled jobs for Redis data consistency checks and repairs.
@@ -884,46 +985,46 @@ jobs:
   # reviewing audit reports over multiple cycles.
   maintenance:
     # Master toggle — disables all maintenance jobs when false
-    enabled: <%= ENV['JOBS_MAINTENANCE_ENABLED'] == 'true' || false %>
+    enabled: false
 
     # Phase 1: Remove phantom members from sorted sets (hourly)
     phantom_cleanup:
-      enabled: <%= ENV['JOBS_PHANTOM_CLEANUP_ENABLED'] == 'true' || false %>
-      interval: <%= ENV['JOBS_PHANTOM_CLEANUP_INTERVAL'] || '1h' %>
-      batch_size: <%= ENV['JOBS_PHANTOM_CLEANUP_BATCH_SIZE']&.to_i || 500 %>
-      auto_repair: <%= ENV['JOBS_PHANTOM_CLEANUP_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      interval: '1h'
+      batch_size: 500
+      auto_repair: false
 
     # Phase 2: Read-only data consistency audit (every 6h)
     data_audit:
-      enabled: <%= ENV['JOBS_DATA_AUDIT_ENABLED'] == 'true' || false %>
-      interval: <%= ENV['JOBS_DATA_AUDIT_INTERVAL'] || '6h' %>
-      sample_size: <%= ENV['JOBS_DATA_AUDIT_SAMPLE_SIZE']&.to_i || 100 %>
+      enabled: false
+      interval: '6h'
+      sample_size: 100
 
     # Phase 3: GC stale participation sorted set members (daily 5 AM)
     participation_gc:
-      enabled: <%= ENV['JOBS_PARTICIPATION_GC_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_PARTICIPATION_GC_CRON'] || '0 5 * * *' %>
-      batch_size: <%= ENV['JOBS_PARTICIPATION_GC_BATCH_SIZE']&.to_i || 500 %>
-      auto_repair: <%= ENV['JOBS_PARTICIPATION_GC_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      cron: '0 5 * * *'
+      batch_size: 500
+      auto_repair: false
 
     # Phase 4: Reconcile unique indexes (daily 4 AM)
     index_rebuild:
-      enabled: <%= ENV['JOBS_INDEX_REBUILD_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_INDEX_REBUILD_CRON'] || '0 4 * * *' %>
-      auto_repair: <%= ENV['JOBS_INDEX_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      cron: '0 4 * * *'
+      auto_repair: false
 
     # Phase 5: Rebuild instances sorted sets (weekly Sunday 3 AM)
     instances_rebuild:
-      enabled: <%= ENV['JOBS_INSTANCES_REBUILD_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
-      auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+      enabled: false
+      cron: '0 3 * * 0'
+      auto_repair: false
 
     # Familia model housekeeping chores (nightly 2 AM)
     # Iterates models that declare `feature :housekeeping` and runs every
     # registered chore. Disable when no chores are active.
     housekeeping:
-      enabled: <%= ENV['JOBS_HOUSEKEEPING_ENABLED'] == 'true' || false %>
-      cron: <%= ENV['JOBS_HOUSEKEEPING_CRON'] || '0 2 * * *' %>
+      enabled: false
+      cron: '0 2 * * *'
 
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
@@ -1168,3 +1269,15 @@ compatibility:
   #   warn:             log a migration message and continue
   #   silent:           ignore
   deprecated_config_mode: <%= ENV['DEPRECATED_CONFIG_MODE'] || 'strict' %>
+
+# Experimental features
+#
+# Opt-in, not-yet-stable capabilities. Each flag gates a feature that is safe to
+# disable at any time — rollback is a config flip. Flags graduate out of this
+# section once stable.
+#
+# Currently empty: the Colonel admin-console cutover flag was retired once the
+# rebuilt console became the sole admin frontend
+# (docs/specs/colonel-ui/50-cutover-hardening.md). Kept as an extension point
+# for future flags.
+experimental: {}

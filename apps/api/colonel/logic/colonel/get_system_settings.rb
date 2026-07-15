@@ -36,11 +36,14 @@ module ColonelAPI
           # Authentication config (under site.authentication)
           @config_sections[:authentication] = site_config['authentication'] || {}
 
-          # Emailer config (SMTP settings - top-level 'emailer' key)
-          @config_sections[:emailer] = Onetime.conf['emailer'] || {}
+          # Emailer config (SMTP settings - top-level 'emailer' key). Carries
+          # user/pass — deep_copy then recursively mask credential-bearing keys
+          # so no secret crosses the wire (host/port/region/from stay visible).
+          @config_sections[:emailer] = mask_secrets(deep_copy(Onetime.conf['emailer'] || {}))
 
-          # Mail config (TrueMail validation - top-level 'mail' key)
-          @config_sections[:mail] = Onetime.conf['mail'] || {}
+          # Mail config (TrueMail validation - top-level 'mail' key). Can carry a
+          # verification-API key/token — mask the same way.
+          @config_sections[:mail] = mask_secrets(deep_copy(Onetime.conf['mail'] || {}))
 
           # Diagnostics (top-level 'diagnostics' key)
           # Include full diagnostics config, masking sensitive data
@@ -86,6 +89,32 @@ module ColonelAPI
           return '****' if key.length <= 4
 
           ('*' * (key.length - 4)) + key[-4..]
+        end
+
+        # Keys whose VALUE is a credential and must be masked. Matches user,
+        # pass(word), *secret*, *key*, *token*. Non-secret config (host, port,
+        # region, from, from_name, domain, tls, mode) stays visible.
+        SECRET_KEY_PATTERN = /user|pass|secret|key|token|password/i
+        private_constant :SECRET_KEY_PATTERN
+
+        # Recursively mask every credential-bearing string value in a (already
+        # deep-copied) config section, keying off the FIELD NAME. Non-string
+        # values under a secret key (e.g. a nested hash) are recursed into.
+        def mask_secrets(obj)
+          case obj
+          when Hash
+            obj.each_with_object({}) do |(k, v), acc|
+              acc[k] = if k.to_s.match?(SECRET_KEY_PATTERN) && v.is_a?(String)
+                         mask_key(v)
+                       else
+                         mask_secrets(v)
+                       end
+            end
+          when Array
+            obj.map { |v| mask_secrets(v) }
+          else
+            obj
+          end
         end
 
         def success_data

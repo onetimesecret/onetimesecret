@@ -20,6 +20,7 @@
 # - OT.database_pool        -> OT::Runtime.infrastructure.database_pool
 # - OT.d9s_enabled          -> OT::Runtime.infrastructure.d9s_enabled
 # - OT.global_banner        -> OT::Runtime.features.global_banner
+# - OT.global_banner_scope  -> OT::Runtime.features.global_banner_scope
 #
 module Onetime
   # Security runtime state accessors
@@ -72,5 +73,9 @@ module Onetime
   # Features runtime state accessors
   def self.global_banner
     Runtime.features.global_banner
+  end
+
+  def self.global_banner_scope
+    Runtime.features.global_banner_scope
   end
 end

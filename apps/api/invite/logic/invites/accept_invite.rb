@@ -48,15 +48,7 @@ module InviteAPI::Logic
         end
 
         # Check if invitation is still pending
-        unless @invitation.pending?
-          raise_form_error(
-            "Invitation has already been #{@invitation.status}",
-            error_key: 'api.invite.errors.invitation_already_processed',
-            args: { status: @invitation.status },
-            field: :token,
-            error_type: :invalid,
-          )
-        end
+        raise_already_processed(@invitation) unless @invitation.pending?
 
         # Check if invitation has expired
         if @invitation.expired?

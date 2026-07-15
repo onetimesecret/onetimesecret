@@ -140,12 +140,12 @@
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Sense organitzacions",
-    "source_hash": "12420110"
+    "text": "Cap espai de treball",
+    "source_hash": "c7f70723"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Crea una organització per gestionar la teva facturació i subscripció",
-    "source_hash": "41e922d2"
+    "text": "Crea un espai de treball per gestionar la teva facturació i subscripció",
+    "source_hash": "e0fd27a5"
   },
   "web.billing.overview.load_error": {
     "text": "No s'ha pogut carregar la informació de facturació",
@@ -204,8 +204,8 @@
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_org": {
-    "text": "Gestionar organitzacions",
-    "source_hash": "be0fe4c3"
+    "text": "Gestionar l'organització",
+    "source_hash": "f03a4985"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Gestionar equips",
@@ -220,8 +220,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Inici de sessió únic",
-    "source_hash": "cf7cd744"
+    "text": "Inici de sessió únic (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Suport prioritari",
@@ -280,8 +280,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Inici de sessió únic (SSO)",
-    "source_hash": "5db5c812"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   },
   "web.billing.features.priority_support": {
     "text": "Suport prioritari",
@@ -577,7 +577,7 @@
   },
   "web.billing.invoices.draft": {
     "text": "Esborrany",
-    "source_hash": "d2e16e61"
+    "source_hash": "ebf12ef4"
   },
   "web.billing.invoices.open": {
     "text": "Oberta",

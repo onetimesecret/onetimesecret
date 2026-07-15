@@ -1,0 +1,49 @@
+// .devcontainer/devcontainer.json
+//
+// Compose-based devcontainer (install-onboarding C8 / D5, testing-strategy §5).
+//
+// The keystone property (Mastodon's pattern): postCreateCommand runs bin/setup,
+// so EVERY devcontainer/Codespace launch is a fresh execution of the documented
+// contributor path — the setup script cannot silently rot. devcontainer-ci.yml
+// re-proves it weekly and on PRs that touch the setup path.
+//
+// This is the guaranteed path, not the only path — never mandatory (spec ND1).
+{
+  "name": "Onetime Secret",
+  "dockerComposeFile": "compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/onetimesecret",
+
+  // Toolchain: Ruby comes from the base image (tag tracks .ruby-version);
+  // the Node major tracks .node-version. Features can't read pin files, so
+  // these are duplicated by necessity — keep them in lockstep with the pins.
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers-extra/features/pnpm:2": {},
+  },
+
+  // redis-server: `bin/setup --test` starts its own throwaway datastore on
+  // :2121 inside this container, same as on bare metal (the valkey sidecar
+  // on :6379 is the persistent DEV datastore). python3: locales:sync.
+  // libsodium23: rbnacl's FFI binding needs it at runtime for Familia's
+  // encrypted fields (RbNaCl::Hash.blake2b) — the app image installs the
+  // same package (Dockerfile), but this devcontainer's upstream Rails base
+  // image doesn't ship it, so it must be installed here too or encrypted
+  // field writes raise NameError: uninitialized constant RbNaCl::Hash.
+  // The chown makes the node_modules named volume (compose.yaml) writable.
+  "onCreateCommand": "sudo chown vscode:vscode node_modules && sudo apt-get update && sudo apt-get install -y --no-install-recommends redis-server python3 libsodium23",
+
+  "postCreateCommand": "bin/setup",
+
+  "forwardPorts": [3000, 5173],
+  "portsAttributes": {
+    "3000": { "label": "Onetime Secret (puma)" },
+    "5173": { "label": "Vite dev server" },
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["Shopify.ruby-lsp", "Vue.volar"],
+    },
+  },
+}

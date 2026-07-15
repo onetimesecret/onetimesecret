@@ -64,8 +64,8 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Aşağıdaki kişiler {product_name} ürününün erişimini genişletmek için zamanlarını bağışladılar:",
-    "source_hash": "85a766af"
+    "text": "Aşağıdaki kişiler, {product_name} hizmetinin erişimini genişletmeye yardımcı olmak için zamanlarını gönüllü olarak ayırdı:",
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Çeviriler",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "2012 yılından bu yana {product_name}, dünya genelinde hassas bilgileri güvenli bir şekilde paylaşma imkanı sunmaktadır. İngilizcenin ana dil olmadığı bölgelerdeki kullanıcılarımız için doğru çeviriler, güvenli iletişimin herkes için erişilebilir olmasında büyük önem taşımaktadır.",
-    "source_hash": "87a6e9af"
+    "text": "2012'den bu yana {product_name}, dünya çapında hassas bilgileri paylaşmanın güvenli bir yolunu sundu. Ana dili İngilizce olmayan bölgelerdeki kullanıcılarla birlikte, güvenli iletişimi herkes için erişilebilir kılmada doğru çeviriler çok önemlidir.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Güvenli İletişimi Küresel Hale Getirmeye Yardımcı Olun",

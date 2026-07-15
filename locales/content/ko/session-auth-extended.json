@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "세션이 만료되었습니다. 페이지를 새로고침한 후 다시 시도해 주세요.",
-    "source_hash": "a7c3e901"
+    "text": "세션이 만료되었습니다. 페이지를 새로 고친 후 다시 시도하세요.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "로그인 실패. 다시 시도해 주세요.",
@@ -710,12 +710,6 @@
   "web.auth.recovery_codes.link_title": {
     "text": "복구 코드",
     "source_hash": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ 보안 중요: 정보 노출을 방지하는 메시지입니다. src/locales/SECURITY-TRANSLATION-GUIDE.md를 참조하세요"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "사용자의 로그인된 기기/브라우저 관리 페이지"
   },
   "web.auth.google": {
     "text": "Google",

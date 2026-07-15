@@ -23,6 +23,9 @@ import {
   jobsSchema,
   jobsWorkersSchema,
   jobsSchedulerSchema,
+  jobsPlanCacheRefreshSchema,
+  jobsCatalogRetrySchema,
+  jobsDlqConsumerSchema,
   jobsDomainRefreshSchema,
   jobsExpirationWarningsSchema,
   jobsMaintenanceSchema,
@@ -34,6 +37,9 @@ export {
   jobsSchema,
   jobsWorkersSchema,
   jobsSchedulerSchema,
+  jobsPlanCacheRefreshSchema,
+  jobsCatalogRetrySchema,
+  jobsDlqConsumerSchema,
   jobsDomainRefreshSchema,
   jobsExpirationWarningsSchema,
   jobsMaintenanceSchema,
@@ -53,6 +59,18 @@ const jobsWorkersShape = augment(jobsWorkersSchema, {
 
 const jobsSchedulerShape = augment(jobsSchedulerSchema, {
   enabled: (b) => b.default(false),
+});
+
+const jobsPlanCacheRefreshShape = augment(jobsPlanCacheRefreshSchema, {
+  enabled: (b) => b.default(false),
+});
+
+const jobsCatalogRetryShape = augment(jobsCatalogRetrySchema, {
+  enabled: (b) => b.default(false),
+});
+
+const jobsDlqConsumerShape = augment(jobsDlqConsumerSchema, {
+  enabled: (b) => b.default(true),
 });
 
 const jobsDomainRefreshShape = augment(jobsDomainRefreshSchema, {
@@ -128,9 +146,9 @@ const jobsShape = augment(jobsSchema, {
     billing: () => workerConfigShape.default({ threads: 2, prefetch: 5 }),
   },
   scheduler: { enabled: (b) => b.default(false) },
-  plan_cache_refresh_enabled: (b) => b.default(false),
-  catalog_retry_enabled: (b) => b.default(false),
-  dlq_consumer_enabled: (b) => b.default(true),
+  plan_cache_refresh: () => jobsPlanCacheRefreshShape.default({ enabled: false }),
+  catalog_retry: () => jobsCatalogRetryShape.default({ enabled: false }),
+  dlq_consumer: () => jobsDlqConsumerShape.default({ enabled: true }),
   domain_refresh: {
     enabled: (b) => b.default(false),
     check_interval: (s) => s.default('30m'),
@@ -159,6 +177,9 @@ export {
   jobsShape,
   jobsWorkersShape,
   jobsSchedulerShape,
+  jobsPlanCacheRefreshShape,
+  jobsCatalogRetryShape,
+  jobsDlqConsumerShape,
   jobsDomainRefreshShape,
   jobsExpirationWarningsShape,
   jobsMaintenanceShape,

@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Продукт",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Изходен код",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Фактуриране",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Разглеждате защитено съобщение, което беше споделено с вас чрез {product_name}. Това съдържание се показва само веднъж и след това се изтрива перманентно от нашите сървъри.",
-    "source_hash": "e0f1a10c"
+    "text": "Разглеждате защитено съобщение, което е споделено с вас чрез {product_name}. Това съдържание се показва само веднъж и след това се изтрива перманентно от нашите сървъри.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Мога ли да прегледам тази тайна отново по-късно?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Посетете началната страница на {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Навигация в долния колонтитул",
@@ -340,11 +340,15 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "Работна област",
+    "text": "Работно пространство",
     "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
     "text": "Моля, свържете се с поддръжката за съдействие",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Само за Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

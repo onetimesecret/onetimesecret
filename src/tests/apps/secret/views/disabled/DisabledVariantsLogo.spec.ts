@@ -4,9 +4,9 @@
 // homepage variants (V1 + Minimal):
 //   configured custom-domain logo -> branded monogram -> NEUTRAL keyhole mark
 //
-// The neutral fallback must be the keyhole (KeyholeIcon) and NOT the maruhi
-// (MonotoneJapaneseSecretButtonIcon, the 秘 mark), which is OTS-company-only
-// branding and must never leak into unbranded/private-label contexts.
+// The neutral fallback must be the keyhole (KeyholeIcon). The OTS-company-only
+// maruhi (秘) mark was removed from the codebase entirely so it can no longer
+// leak into unbranded/private-label contexts.
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
@@ -14,13 +14,10 @@ import { createTestI18n } from '@tests/setup';
 import DisabledMinimal from '@/apps/secret/views/disabled/variants/DisabledMinimal.vue';
 import DisabledV1 from '@/apps/secret/views/disabled/variants/DisabledV1.vue';
 
-// Render the two candidate marks as identifiable stubs so we can assert which
-// one the fallback picked.
+// Render the neutral mark as an identifiable stub so we can assert the
+// fallback picked it.
 vi.mock('@/shared/components/icons/KeyholeIcon.vue', () => ({
   default: { name: 'KeyholeIcon', template: '<svg data-testid="keyhole-mark" />' },
-}));
-vi.mock('@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue', () => ({
-  default: { name: 'MonotoneMaruhi', template: '<svg data-testid="maruhi-mark" />' },
 }));
 
 const baseProps = {
@@ -59,11 +56,10 @@ describe.each([
   ['DisabledMinimal', DisabledMinimal],
   ['DisabledV1', DisabledV1],
 ])('%s centred-mark fallback', (_name, Component) => {
-  it('renders the neutral keyhole mark (not the maruhi) when unbranded with no logo', () => {
+  it('renders the neutral keyhole mark when unbranded with no logo', () => {
     const wrapper = mountVariant(Component, { isBranded: false, logoUri: null });
 
     expect(wrapper.find('[data-testid="keyhole-mark"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="maruhi-mark"]').exists()).toBe(false);
   });
 
   it('renders the uploaded custom-domain logo when logoUri is set', () => {
@@ -84,7 +80,6 @@ describe.each([
 
     expect(wrapper.text()).toContain('A');
     expect(wrapper.find('[data-testid="keyhole-mark"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="maruhi-mark"]').exists()).toBe(false);
   });
 });
 

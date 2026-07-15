@@ -11,9 +11,9 @@
 # Application Structure:
 # ```
 # /
-# ├── config.ru         # Main Rack configuration
-# ├── apps/             # API (v1, v2, v3) and web applications
-# └── lib/              # Core libraries, models, and app registry
+# |-- config.ru         # Main Rack configuration
+# |-- apps/             # API (v1, v2, v3) and web applications
+# `-- lib/              # Core libraries, models, and app registry
 # ```
 #
 
@@ -49,7 +49,7 @@ begin
     exit 87
   end
 rescue Interrupt
-  # Clean exit on SIGINT during boot — no backtrace needed.
+  # Clean exit on SIGINT during boot - no backtrace needed.
   # This prevents Puma from printing "Unable to load application" with a
   # stack trace when the process manager sends SIGINT (e.g., another
   # service failed to start).

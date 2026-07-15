@@ -10,6 +10,13 @@ module Onetime
   module CLI
     module Customers
       module Shared
+        # Audit actor recorded for mutations initiated from the CLI. The CLI has
+        # no authenticated colonel session, so admin audit events raised by ops
+        # invoked here are attributed to this sentinel rather than to an operator
+        # identity (which the shell does not carry). Kept as a plain, non-secret
+        # public tag — never an internal objid.
+        CLI_ACTOR = 'cli'
+
         # Approximate durations for human-readable time thresholds.
         # Not calendar-precise (no leap years, 30-day months) but
         # sufficient for bucket boundaries and CLI duration parsing.

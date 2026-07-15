@@ -8,6 +8,7 @@
 // Architecture: contract -> shape -> API
 
 import { z } from 'zod';
+
 import { customDomainEmailConfigCanonical } from '../email-config';
 
 // Re-export sub-contracts
@@ -15,13 +16,19 @@ export {
   brandSettingsCanonical,
   fontFamilyValues,
   cornerStyleValues,
+  borderRadiusPresets,
+  BORDER_RADIUS_MAX_PX,
+  isValidBorderRadius,
   imagePropsCanonical,
+  domainIconMetaCanonical,
 } from './brand-config';
 export type {
   BrandSettingsCanonical,
   FontFamily,
   CornerStyle,
+  BorderRadiusPreset,
   ImagePropsCanonical,
+  DomainIconMetaCanonical,
 } from './brand-config';
 
 export { homepageConfigCanonical } from './homepage-config';
@@ -31,9 +38,9 @@ export { apiConfigCanonical } from './api-config';
 export type { ApiConfigCanonical } from './api-config';
 
 // Import for use in customDomainCanonical
-import { brandSettingsCanonical } from './brand-config';
-import { homepageConfigCanonical } from './homepage-config';
 import { apiConfigCanonical } from './api-config';
+import { brandSettingsCanonical, domainIconMetaCanonical } from './brand-config';
+import { homepageConfigCanonical } from './homepage-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Domain status enum
@@ -233,6 +240,13 @@ export const customDomainCanonical = z.object({
 
   /** Brand appearance settings. */
   brand: brandSettingsCanonical.nullable(),
+
+  /**
+   * Stored favicon/icon metadata + provenance (#3780). NOT the encoded bytes —
+   * those are served separately via the image endpoint. Null when no icon is
+   * stored. `favicon_source` gates the workspace "Refresh favicon" button.
+   */
+  icon: domainIconMetaCanonical.nullable().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────
   // SSO status (computed from CustomDomain::SsoConfig lookup)

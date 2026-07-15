@@ -71,6 +71,8 @@ module OrganizationAPI::Logic
                 "colonel_override=#{cust.role?(:colonel)} org=#{@organization.extid} " \
                 "timestamp=#{Time.now.utc.iso8601}"
 
+        notify_member_removed
+
         success_data
       end
 
@@ -82,6 +84,26 @@ module OrganizationAPI::Logic
       end
 
       protected
+
+      # Best-effort notification to the member who was removed. The membership
+      # record is gone by now, but the Customer (@target_member) is untouched,
+      # so its email/locale remain valid. A delivery failure must never fail
+      # the removal.
+      def notify_member_removed
+        Onetime::Jobs::Publisher.enqueue_email(
+          :member_removed,
+          {
+            email_address: @target_member.email,
+            organization_name: @organization.display_name,
+            removed_by: cust.email,
+            removed_at: Time.now.utc.iso8601,
+            locale: @target_member.locale || OT.default_locale,
+          },
+          fallback: :async_thread,
+        )
+      rescue StandardError => ex
+        OT.le "[RemoveMember] Failed to send member_removed email: #{ex.message}"
+      end
 
       # Load actor's membership to determine their permissions
       def load_actor_membership(organization)

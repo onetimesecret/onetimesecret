@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Uzu la Magian Ligilon por ensaluti sen pasvorto. Post ensaluto, vi povas ŝanĝi vian pasvorton en Kontaj Agordoj.",
-    "source_hash": "2a058600"
+    "text": "Vi povas peti ligilon por restarigi pasvorton por krei novan pasvorton.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Ĉu konto provizore ŝlosita?",
@@ -395,9 +395,6 @@
   "web.help.contact_support": {
     "text": "Kontakti Subtenon",
     "source_hash": "f8d47b82"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Retpoŝta konfirmfluo post registriĝo"
   },
   "web.auth.account.sso_linked": {
     "text": "SSO-konto",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Via retpoŝta domajno ne estas rajtigita por SSO-registriĝo. Bonvolu kontakti vian administranton.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Kontrolu vian retpoŝton",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Ni sendis konfirmligilon al via retpoŝtadreso.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Ni sendis konfirmligilon al ĉi tiu adreso — malfermu la retmesaĝon kaj klaku la ligilon por aktivigi vian konton.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Ne trovas ĝin? Kontrolu vian spam-dosierujon.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Enigis malĝustan adreson?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Rekomenci",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Pasvorto",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Ĉu vi ne ricevis la konfirman retmesaĝon? Enigu vian retpoŝton por resendi ĝin.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Resendi konfirman retmesaĝon",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Se konto bezonas konfirmon, nova retmesaĝo estis sendita. Bonvolu kontroli vian enirkeston kaj spam-dosierujon.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Ne eblis sendi la konfirman retmesaĝon. Bonvolu kontroli vian konekton kaj reprovi.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Resendi retmesaĝon",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Via retpoŝto estis konfirmita — vi nun povas ensaluti.",
+    "source_hash": "c8d4b5a8"
   }
 }

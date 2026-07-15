@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Deine Sitzung ist abgelaufen. Bitte lade die Seite neu und versuche es erneut.",
-    "source_hash": "a7c3e901"
+    "text": "Deine Sitzung ist abgelaufen. Bitte aktualisiere die Seite und versuche es erneut.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
@@ -710,12 +710,6 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Wiederherstellungscodes",
     "source_hash": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SICHERHEITSKRITISCH: Nachrichten verhindern Informationsoffenlegung. Siehe src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Verwaltungsseite für angemeldete Geräte/Browser des Benutzers"
   },
   "web.auth.google": {
     "text": "Google",

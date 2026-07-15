@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Скористайтеся опцією «Магічне посилання», щоб увійти без пароля. Після входу Ви можете змінити пароль у налаштуваннях облікового запису.",
-    "source_hash": "2a058600"
+    "text": "Ви можете запросити посилання для скидання пароля, щоб створити новий пароль.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Обліковий запис тимчасово заблоковано?",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "Обліковий запис SSO",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Скинути пароль",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Ваш домен електронної пошти не авторизований для реєстрації через SSO. Будь ласка, зверніться до Вашого адміністратора.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Перевірте свою електронну пошту",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Ми надіслали посилання для підтвердження на Вашу email-адресу.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Ми надіслали посилання для підтвердження на цю адресу — відкрийте лист і натисніть посилання, щоб активувати Ваш обліковий запис.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Не можете його знайти? Перевірте папку зі спамом.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Ввели неправильну адресу?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Почати спочатку",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Пароль",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Не отримали лист для підтвердження? Введіть свою email-адресу, щоб надіслати його повторно.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Надіслати лист для підтвердження повторно",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Якщо обліковий запис потребує підтвердження, новий лист надіслано. Будь ласка, перевірте свою вхідну пошту та папку зі спамом.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Не вдалося надіслати лист для підтвердження. Будь ласка, перевірте з'єднання та спробуйте ще раз.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Надіслати лист повторно",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Вашу електронну пошту підтверджено — тепер Ви можете увійти.",
+    "source_hash": "c8d4b5a8"
   }
 }

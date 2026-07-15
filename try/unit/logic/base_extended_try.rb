@@ -101,3 +101,33 @@ ret = [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'aut
 OT.instance_variable_set(:@conf, old_conf)
 ret
 #=> ['true', 'true', 'true']
+
+## send_verification_email returns false when mail delivery fails (DX-6)
+sess = {}
+strategy_result = MockStrategyResult.new(session: sess, user: nil)
+logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
+logic.raise_concerns
+logic.process
+original_deliver = Onetime::Mail::Mailer.method(:deliver)
+Onetime::Mail::Mailer.define_singleton_method(:deliver) do |*_args, **_kwargs|
+  raise StandardError, 'SMTP unreachable (tryout stub)'
+end
+ret = logic.send(:send_verification_email, customer: logic.cust)
+Onetime::Mail::Mailer.define_singleton_method(:deliver, original_deliver)
+ret
+#=> false
+
+## send_verification_email returns true when mail delivery succeeds (DX-6)
+sess = {}
+strategy_result = MockStrategyResult.new(session: sess, user: nil)
+logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
+logic.raise_concerns
+logic.process
+original_deliver = Onetime::Mail::Mailer.method(:deliver)
+Onetime::Mail::Mailer.define_singleton_method(:deliver) do |*_args, **_kwargs|
+  :delivered
+end
+ret = logic.send(:send_verification_email, customer: logic.cust)
+Onetime::Mail::Mailer.define_singleton_method(:deliver, original_deliver)
+ret
+#=> true

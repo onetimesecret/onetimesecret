@@ -1,0 +1,7 @@
+<%= t('email.subscription_changed.title') %>
+
+<%= t('email.subscription_changed.body', product_name: product_name, old_plan: old_plan, new_plan: new_plan) %>
+
+<%= t('email.subscription_changed.effective_date', date: effective_date_formatted) %>
+
+<%= signature_name || t('email.subscription_changed.signature') %>

@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Организация",
-    "source_hash": "d764d425"
+    "text": "Работна област",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Организации",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Организации",
-    "source_hash": "2730183d"
+    "text": "Работни области",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Управление на организации",
-    "source_hash": "be0fe4c3"
+    "text": "Управление на работните области",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Нова организация",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Все още няма организации",
-    "source_hash": "5b7a7cbd"
+    "text": "Все още няма работни области",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Организациите осигуряват унифицирано фактуриране и администрация. Започнете, като създадете първата си организация.",
-    "source_hash": "deab4304"
+    "text": "Работните области осигуряват унифицирано фактуриране и администриране. Започнете, като създадете първата си работна област.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Няма предоставено описание",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Създайте първата организация",
-    "source_hash": "27bae486"
+    "text": "Създаване на първа работна област",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Създайте нова организация",
-    "source_hash": "67cd5950"
+    "text": "Създаване на нова работна област",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Създай",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Неуспешно създаване на организация",
-    "source_hash": "f2204373"
+    "text": "Неуспешно създаване на работна област",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Име на организацията",
-    "source_hash": "4cbd9073"
+    "text": "Име на работната област",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "напр. Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Изберете организация",
-    "source_hash": "48326f52"
+    "text": "Изберете работна област",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Превключването на организация не е налично на тази страница",
-    "source_hash": "da0cf810"
+    "text": "Превключването на работни области не е налично на тази страница",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Организацията не е намерена",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Екип",
-    "source_hash": "5985039f"
+    "text": "Членове",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Фактуриране",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Член",
-    "source_hash": "7c968fb7"
+    "text": "Член на екипа",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Администратор",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Каненето на членове на екипа изисква план с управление на екипи. Надградете, за да добавите сътрудници към организацията си.",
-    "source_hash": "cf10d623"
+    "text": "Поканите за членове изискват платен план. Надстройте, за да добавите сътрудници към вашата организация.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Влезли сте с друг акаунт",
-    "source_hash": "4a2f91c3"
+    "text": "Влязъл е различен акаунт",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Тази покана е за {invitedEmail}. В момента сте влезли като {currentEmail}.",
     "source_hash": "78a6f301"
   },
   "web.organizations.invitations.continue_as_invited_email": {
-    "text": "Продължи като {email}",
-    "source_hash": "6c9a1d4e"
+    "text": "Продължете като {email}",
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}д оставащи",
@@ -662,10 +662,6 @@
   "api.organizations.invitations.errors.accept_organization_gone": {
     "text": "Организацията вече не съществува",
     "source_hash": "a5df7d22"
-  },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Поканата вече е %{status}",
-    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Поканата е изтекла",
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Създаване на работна област",
+    "source_hash": "c63c14cf"
   }
 }

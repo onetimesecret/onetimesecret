@@ -24,18 +24,24 @@
 #     Example: pre-commit run rubocop --config .pre-push-config.yaml
 #
 # Included Checks:
-#   - Full codebase linting (Rubocop, ESLint)
-#   - YAML/JSON validation
-#   - TypeScript type checking
-#   - Code style enforcement
-#   - Security vulnerability scanning
+#   - YAML/JSON/TOML validation + line-ending / case / shebang hygiene
+#   - Incremental TypeScript type checking (vue-tsc, warmed by .tsbuildinfo)
+#
+# NOT here (moved to CI, the enforced gate):
+#   - Full ESLint (`pnpm run lint`) — an exact duplicate of CI's
+#     `T1 · TypeScript Lint` job. It ran type-aware over all ~1,100 src/ files
+#     on EVERY push, minutes of work, blocking WIP pushes for no added safety.
+#
+# Skip on WIP branches:
+#   git push --no-verify                 # skip all pre-push hooks
+#   SKIP=typescript-check-full git push  # skip only the type-check
 #
 # Related Files:
 #   - .pre-commit-config.yaml: Lightweight pre-commit checks
 #   - Documentation: https://pre-commit.com
 #
-# Note: These intensive checks run before pushing to catch issues early
-# but allow faster local development with lighter pre-commit hooks.
+# Note: This is a skippable safety-net that surfaces type errors a few minutes
+# before CI would. CI + required status checks remain the actual gate.
 
 # Run all checks to see complete picture before pushing
 fail_fast: false
@@ -50,7 +56,9 @@ default_stages: [pre-push]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    # Aligned with .pre-commit-config.yaml (was v4.6.0) so both configs share
+    # one cached hook environment instead of maintaining two.
+    rev: v6.0.0
     hooks:
       - id: check-yaml
         name: Validate YAML files
@@ -68,9 +76,9 @@ repos:
       - id: check-json
         name: Validate JSON files
         files: \.json$
-        # tsconfig*.json files are JSONC (TypeScript permits comments); the
-        # broken.json fixture is an intentionally-malformed test input.
-        exclude: '(^|/)tsconfig[^/]*\.json$|^src/tests/i18n/fixtures/invalid/syntax/broken\.json$'
+        # tsconfig*.json, devcontainer.json, and editor .vscode/.zed JSON are JSONC
+        # (comments permitted); the broken.json fixture is an intentionally-malformed input.
+        exclude: '(^|/)tsconfig[^/]*\.json$|^\.devcontainer/devcontainer\.json$|^\.(vscode|zed)/[^/]*\.json$|^src/tests/i18n/fixtures/invalid/syntax/broken\.json$'
 
       - id: mixed-line-ending
         name: Check line endings
@@ -88,24 +96,20 @@ repos:
       - id: forbid-submodules
         name: Check for submodules
 
-  # Project ESLint via pnpm (with caching and auto-fix)
-  - repo: local
-    hooks:
-      - id: pnpm-lint
-        stages: [pre-push]
-        name: pnpm lint
-        entry: pnpm run lint
-        language: system
-        pass_filenames: false
-        always_run: true
+  # NOTE: the full `pnpm run lint` pre-push hook was removed — it duplicated
+  # CI's `T1 · TypeScript Lint` job (see header). ESLint now runs per-staged-file
+  # in pre-commit and full in CI; there is nothing left for pre-push to add.
 
-  # Full TypeScript type checking
-  # See comment in tsconfig.json for configuration details
+  # Incremental TypeScript type checking — the one real safety-net here.
+  # `pnpm run type-check` is vue-tsc --noEmit; tsconfig.json sets
+  # "incremental": true + .tsbuildinfo, so a warm run only re-checks what
+  # changed (typically 5-20s vs minutes cold). This is the type gate ESLint no
+  # longer provides. `files:` limits it to pushes that touch TS/Vue sources.
   - repo: local
     hooks:
       - id: typescript-check-full
         stages: [pre-push]
-        name: TypeScript Type Check
+        name: TypeScript Type Check (incremental)
         entry: pnpm run type-check
         language: system
         pass_filenames: false

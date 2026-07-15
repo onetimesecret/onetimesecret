@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Če se vaš e-poštni naslov za obračunavanje razlikuje od e-poštnega naslova računa {product_name}, uporabite e-poštni naslov za obračunavanje za novi regijski račun, da ohranite ugodnosti naročnine.",
-    "source_hash": "dac1cc28"
+    "text": "Če se vaš kontaktni e-poštni naslov za obračunavanje razlikuje od e-poštnega naslova vašega računa {product_name}, uporabite kontaktni e-poštni naslov za obračunavanje za račun nove regije, da ohranite ugodnosti naročnine.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Ugodnosti vaše naročnine se bodo samodejno uporabile za vsak račun, ustvarjen z vašim e-poštnim naslovom za obračun.",

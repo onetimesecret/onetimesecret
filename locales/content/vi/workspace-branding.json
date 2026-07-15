@@ -28,8 +28,8 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Xem trước & Tùy chỉnh",
-    "source_hash": "215d3659"
+    "text": "Tùy chỉnh & xem trước",
+    "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Chuyển sang chế độ xem trình duyệt Safari",
@@ -88,8 +88,8 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Nhấp để tải lên logo. Kích thước đề xuất: 128x128 pixel. Kích thước tệp tối đa: 1MB. Định dạng được hỗ trợ: PNG, JPG, SVG",
-    "source_hash": "a35452bf"
+    "text": "Nhấp để quản lý logo của bạn. Kích thước khuyến nghị: 128x128 pixel. Kích thước tệp tối đa: 1MB. Định dạng hỗ trợ: PNG, JPG, SVG",
+    "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Tải lên logo",
@@ -145,15 +145,15 @@
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Được cung cấp bởi {product_name}",
-    "source_hash": "d8e9f0a1"
+    "source_hash": "1f393117"
   },
   "web.branding.low_contrast_warning": {
     "text": "Độ tương phản thấp",
-    "source_hash": "a1b2c3d4"
+    "source_hash": "2d6e7516"
   },
   "web.branding.contrast_ratio_label": {
     "text": "Tỷ lệ tương phản",
-    "source_hash": "e5f6a7b8"
+    "source_hash": "d521a5be"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}",
@@ -186,5 +186,225 @@
   "web.branding.keyhole_logo_icon": {
     "text": "Biểu tượng lỗ khóa đại diện cho chia sẻ an toàn, riêng tư",
     "source_hash": "c868ac60"
+  },
+  "web.branding.secondary_color": {
+    "text": "Màu phụ",
+    "source_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Màu nền",
+    "source_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Màu chữ",
+    "source_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Bo góc viền",
+    "source_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Phông chữ tiêu đề",
+    "source_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Chủ đề dựng sẵn",
+    "source_hash": "931eeb74"
+  },
+  "web.branding.logo": {
+    "text": "Logo",
+    "source_hash": "d707dc2f"
+  },
+  "web.branding.replace_logo": {
+    "text": "Thay thế",
+    "source_hash": "95e15439"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "Xem trước trước khi thay đổi của bạn được áp dụng.",
+    "source_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Logo tên miền",
+    "source_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG hoặc SVG. Khuyến nghị 128x128px, tối đa 1MB.",
+    "source_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Lưu logo",
+    "source_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Gỡ bỏ logo",
+    "source_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Chọn một hình ảnh",
+    "source_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "hoặc kéo và thả",
+    "source_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "Loại tệp đó không được hỗ trợ. Vui lòng chọn một hình ảnh.",
+    "source_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "Hình ảnh quá lớn. Kích thước tối đa là {max}.",
+    "source_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "Logo này sẽ bị gỡ bỏ khi bạn lưu.",
+    "source_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "Đã xảy ra sự cố. Vui lòng thử lại.",
+    "source_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Hoàn tác",
+    "source_hash": "a8283ade"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Độ tương phản chữ/nền thấp",
+    "source_hash": "1c676370"
+  },
+  "web.branding.path_simple": {
+    "text": "Đơn giản",
+    "source_hash": "3fee95da"
+  },
+  "web.branding.path_match": {
+    "text": "Khớp với trang của tôi",
+    "source_hash": "776679cf"
+  },
+  "web.branding.path_advanced": {
+    "text": "Nâng cao",
+    "source_hash": "9f088dbe"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Những yếu tố thương hiệu thiết yếu của bạn.",
+    "source_hash": "7c9c0cca"
+  },
+  "web.branding.path_match_tag": {
+    "text": "Sao chép cài đặt từ một trang web hiện có.",
+    "source_hash": "e4b0d1cd"
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Tự viết CSS Tailwind v4 của riêng bạn.",
+    "source_hash": "2405bb6d"
+  },
+  "web.branding.badge_default": {
+    "text": "Mặc định",
+    "source_hash": "21b111cb"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Sắp ra mắt",
+    "source_hash": "4f7d6401"
+  },
+  "web.branding.your_brand": {
+    "text": "Thương hiệu của bạn",
+    "source_hash": "406265d3"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "Một vài lựa chọn nhanh — chúng tôi lo phần còn lại.",
+    "source_hash": "dbc8ec33"
+  },
+  "web.branding.corners": {
+    "text": "Góc",
+    "source_hash": "1d3cc47e"
+  },
+  "web.branding.more_options": {
+    "text": "Thêm tùy chọn",
+    "source_hash": "bc79cdff"
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "Đây là bản xem trước trực tiếp — thay đổi của bạn sẽ không hiển thị cho khách truy cập cho đến khi bạn lưu.",
+    "source_hash": "cb4b82de"
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Chỉ cho chúng tôi trang web của bạn và chúng tôi sẽ đọc màu sắc cùng phông chữ của nó, rồi thu hẹp khoảng cách chỉ bằng một cú nhấp.",
+    "source_hash": "42c34cc1"
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Chỉnh sửa trực tiếp các token {'@'}theme của Tailwind v4, hoặc dán bảng định kiểu của riêng bạn.",
+    "source_hash": "5a8473f5"
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Trang người nhận",
+    "source_hash": "de8aa19f"
+  },
+  "web.branding.preview_badge": {
+    "text": "Xem trước",
+    "source_hash": "324b134f"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Trang chủ · đã bật",
+    "source_hash": "2edd85f1"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Trang chủ · đã tắt",
+    "source_hash": "15d87050"
+  },
+  "web.branding.preview_live": {
+    "text": "Xem trước trực tiếp",
+    "source_hash": "f65ddc1f"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Chia sẻ một bí mật",
+    "source_hash": "5384461b"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Tạo liên kết bí mật",
+    "source_hash": "610fd42e"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Chỉ gửi tin nhắn an toàn",
+    "source_hash": "dc24dec2"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Khách truy cập không thể tạo bí mật ở đây.",
+    "source_hash": "17361d81"
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Nội dung trang người nhận",
+    "source_hash": "937733bd"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Ngôn ngữ và hướng dẫn hiển thị được trình bày cho người nhận trên tên miền này.",
+    "source_hash": "04162b70"
+  },
+  "web.branding.tab_brand": {
+    "text": "Thương hiệu",
+    "source_hash": "090ed431"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Chuyển phát",
+    "source_hash": "52bfe584"
+  },
+  "web.branding.delivery_language": {
+    "text": "Ngôn ngữ",
+    "source_hash": "a4fe6526"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Mặc định cho các trang người nhận và email trên tên miền này. Người nhận có thể đổi ngôn ngữ trên trang.",
+    "source_hash": "bfbc5599"
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Hướng dẫn hiển thị",
+    "source_hash": "7e1331f7"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Hiển thị trên trang người nhận. Để trống để dùng nội dung tích hợp sẵn theo ngôn ngữ đã chọn.",
+    "source_hash": "51b9811d"
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Trước khi hiển thị",
+    "source_hash": "5ce82b01"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "Sau khi hiển thị",
+    "source_hash": "d5bfe7fd"
   }
 }

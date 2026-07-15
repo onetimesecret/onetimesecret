@@ -43,6 +43,25 @@ KD.derive(@secret, :familia_enc).bytesize
 KD.derive(@secret, :identifier).bytesize
 #=> 32
 
+## Key verifier is 32 bytes (C10 boot-time SECRET verifier)
+KD.derive(@secret, :key_verifier).bytesize
+#=> 32
+
+## Key verifier derivation is deterministic
+KD.derive_hex(@secret, :key_verifier) == KD.derive_hex(@secret, :key_verifier)
+#=> true
+
+## Key verifier differs from every other purpose's output (purpose separation:
+## publishing the verifier reveals nothing about any working key)
+verifier = KD.derive(@secret, :key_verifier)
+others   = [KD.derive(@secret, :session), KD.derive(@secret, :identifier), KD.derive(@secret, :familia_enc)]
+others.none? { |key| key == verifier || key.start_with?(verifier) || verifier.start_with?(key) }
+#=> true
+
+## Key verifier is runtime-only: no env_var, so init.rake never writes it to .env
+KD::PURPOSES[:key_verifier].key?(:env_var)
+#=> false
+
 ## derive_hex returns hex string of correct length (familia_enc: 32 bytes = 64 hex chars)
 hex = KD.derive_hex(@secret, :familia_enc)
 hex.match?(/\A[a-f0-9]{64}\z/)

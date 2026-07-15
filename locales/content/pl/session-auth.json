@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Użyj opcji Magiczny link, aby zalogować się bez hasła. Po zalogowaniu możesz zmienić hasło w Ustawieniach konta.",
-    "source_hash": "2a058600"
+    "text": "Możesz poprosić o link do resetowania hasła, aby utworzyć nowe hasło.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Konto tymczasowo zablokowane?",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "Konto SSO",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Zresetuj hasło",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Twoja domena e-mail nie jest autoryzowana do rejestracji przez SSO. Skontaktuj się z administratorem.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Sprawdź swoją skrzynkę e-mail",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Wysłaliśmy link weryfikacyjny na Twój adres e-mail.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Wysłaliśmy link weryfikacyjny na ten adres — otwórz wiadomość i kliknij link, aby aktywować swoje konto.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Nie możesz go znaleźć? Sprawdź folder ze spamem.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Wprowadzono niewłaściwy adres?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Zacznij od nowa",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Hasło",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Nie otrzymałeś wiadomości weryfikacyjnej? Wprowadź swój adres e-mail, aby wysłać ją ponownie.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Wyślij ponownie wiadomość weryfikacyjną",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Jeśli konto wymaga weryfikacji, nowa wiadomość została wysłana. Sprawdź swoją skrzynkę odbiorczą oraz folder ze spamem.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Nie udało się wysłać wiadomości weryfikacyjnej. Sprawdź swoje połączenie i spróbuj ponownie.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Wyślij ponownie",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Twój adres e-mail został zweryfikowany — możesz się teraz zalogować.",
+    "source_hash": "c8d4b5a8"
   }
 }

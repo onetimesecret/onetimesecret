@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Engedélyezve",
-    "source_hash": "92c1cdfd"
+    "text": "Engedélyezés",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Letiltva",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Frissítés a beállításhoz",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Egyéni domén",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "A pontos gazdanév, amelyet a csapata használni fog, például {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "A titokhivatkozásai itt lesznek elérhetők:",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Ez az egész doménje — hol legyenek a titokhivatkozások?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Egy aldomén érintetlenül hagyja a(z) {domain} többi részét.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Javasolt",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Nincs rossz választás — válassza azt, amelyiket a csapata felismeri.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Népszerű aldomének",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Vagy használja az egész doménjét",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "A gyökérdoménem használata",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Ez az egész {domain} domént hozzánk irányítja — az ott lévő webhely feloldása leáll —, és A / ALIAS rekordot igényel.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "A „.{0}” nem ismert doménvégződés — ellenőrizze, nincs-e elgépelés (pl. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Adjon meg egy érvényes gazdanevet — betűk, számok, egyszeres pontok és kötőjelek (pl. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Kérjük, adjon meg egy doménnevet.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Folytatás ezzel: {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Munkaterület alapértelmezése",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS-beállítás",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Irányítsa a doménjét erre a szerverre egy CNAME-rekorddal",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS-konfiguráció",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Irányítsa a(z)",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "domént erre a szerverre a következő DNS-rekord hozzáadásával a szolgáltatójánál.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Hozzon létre egy CNAME-rekordot",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Hozzon létre egy ALIAS- vagy ANAME-rekordot",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Az apex (gyökér) domének nem használhatnak CNAME-rekordot. Helyette használja a DNS-szolgáltatója ALIAS- vagy ANAME-rekordját, vagy irányítson egy A-rekordot a szervere IP-címére.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Kezdőlap",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Mit tehetnek a látogatók a doménje kezdőlapján",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Privát céloldal",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "A látogatók egy privát céloldalt látnak, interaktív űrlap nélkül",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Titoklétrehozási űrlap",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "A látogatók létrehozhatják saját titokhivatkozásaikat",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Bejövő titkok űrlap",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "A látogatók titkokat küldhetnek a beállított címzettjeinek",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "A bejövő titkok engedélyezését igényli legalább egy címzettel",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Címzettek beállítása",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Privát céloldal",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Nyilvános: a látogatók titkokat hoznak létre",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Nyilvános: a látogatók titkokat küldenek Önnek",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "A bejövő titkok nem állnak készen — privát céloldal jelenik meg",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Bejövő",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "A kezdőlap beállításai mentve",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Ennek a doménnek a kezdőlapja jelenleg a bejövő titkok űrlapot jeleníti meg. A bejövő titkok letiltása vagy az összes címzett eltávolítása a kezdőlapot privát céloldalra váltja, amíg a bejövő titkok ismét készen nem állnak.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Bejelentkezés ezen a doménen",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "A bejelentkezés az egész munkaterületen ki van kapcsolva, így minden doménen nem érhető el. Az itteni beállításai megmaradnak, és akkor lépnek életbe, amikor a munkaterületi bejelentkezést újra engedélyezik.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Regisztrációk ezen a doménen",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "A regisztrációk az egész munkaterületen ki vannak kapcsolva, így minden doménen nem érhetők el. Az itteni beállításai megmaradnak, és akkor lépnek életbe, amikor a munkaterületi regisztrációkat újra engedélyezik.",
+    "source_hash": "49faefe4"
   }
 }

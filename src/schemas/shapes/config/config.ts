@@ -15,21 +15,15 @@
 
 import { z } from 'zod';
 
-import {
-  siteShape,
-} from './section/site';
+import { siteShape } from './section/site';
 import { storageShape, redisShape } from './section/storage';
-import {
-  emailerShape,
-  mailShape,
-  mailConnectionShape,
-  mailValidationShape,
-} from './section/mail';
+import { emailerShape, mailShape, mailConnectionShape, mailValidationShape } from './section/mail';
 import { diagnosticsShape } from './section/diagnostics';
 import { featuresShape } from './section/features';
 import { capabilitiesSchema } from './section/capabilities';
 import { i18nShape } from './section/i18n';
 import { developmentShape } from './section/development';
+import { experimentalShape } from './section/experimental';
 import { userInterfaceShape, apiShape } from './section/ui';
 import { limitsSchema } from './section/limits';
 import { secretOptionsShape } from './section/secret_options';
@@ -49,6 +43,7 @@ export {
   capabilitiesSchema as capabilitiesShape,
   i18nShape,
   developmentShape,
+  experimentalShape,
   userInterfaceShape,
   apiShape,
   limitsSchema as limitsShape,
@@ -132,6 +127,7 @@ const staticConfigShape = z.object({
   internationalization: i18nShape.optional(),
   diagnostics: diagnosticsShape.optional(),
   development: developmentShape.optional(),
+  experimental: experimentalShape.optional(),
 });
 
 /**

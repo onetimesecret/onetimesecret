@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Bu belirteci güvende tutun! Hesabınıza tam erişim sağlar.",
-    "source_hash": "8839aa4d"
+    "text": "Bu belirteci güvende tutun. API aracılığıyla gizli mesaj oluşturmak ve yönetmek için kullanılabilir.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Parolanızla onaylayın",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-posta başarıyla güncellendi. Yeni e-posta adresinizi doğrulamak için lütfen gelen kutunuzu kontrol edin.",
-    "source_hash": "58de2536"
+    "text": "Doğrulama e-postası gönderildi. Değişikliği tamamlamak için lütfen yeni gelen kutunuzu kontrol edin ve onay bağlantısına tıklayın.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "E-posta güncellenemedi. Lütfen tekrar deneyin.",
@@ -476,8 +476,8 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "{product_name} ürününü uygulamalarınıza nasıl entegre edeceğinizi öğrenin",
-    "source_hash": "6e8f910f"
+    "text": "{product_name} hizmetini uygulamalarınıza nasıl entegre edeceğinizi öğrenin",
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API Referansı",

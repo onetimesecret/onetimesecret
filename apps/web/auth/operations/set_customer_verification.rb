@@ -79,9 +79,9 @@ module Auth
         update_customer!
 
         auth_logger.debug "[set-customer-verification] #{@customer.extid} " \
-          "verified=#{@verified} verified_by=#{@verified_by.inspect} " \
-          "auth_mode=#{Onetime.auth_config.mode} " \
-          "rodauth_already_synced=#{@rodauth_already_synced}"
+                          "verified=#{@verified} verified_by=#{@verified_by.inspect} " \
+                          "auth_mode=#{Onetime.auth_config.mode} " \
+                          "rodauth_already_synced=#{@rodauth_already_synced}"
         :success
       end
 

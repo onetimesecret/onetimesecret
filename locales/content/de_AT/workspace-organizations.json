@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organisation",
-    "source_hash": "d764d425"
+    "text": "Workspace",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organisationen",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organisationen",
-    "source_hash": "2730183d"
+    "text": "Workspaces",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Organisationen verwalten",
-    "source_hash": "be0fe4c3"
+    "text": "Workspaces verwalten",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Neue Organisation",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Noch keine Organisationen",
-    "source_hash": "5b7a7cbd"
+    "text": "Noch keine Workspaces",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung. Erstellen Sie Ihre erste Organisation, um loszulegen.",
-    "source_hash": "deab4304"
+    "text": "Workspaces bieten einheitliche Abrechnung und Verwaltung. Legen Sie los, indem Sie Ihren ersten Workspace erstellen.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Keine Beschreibung vorhanden",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Erste Organisation erstellen",
-    "source_hash": "27bae486"
+    "text": "Ersten Workspace erstellen",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Neue Organisation erstellen",
-    "source_hash": "67cd5950"
+    "text": "Einen neuen Workspace erstellen",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Erstellen",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Organisation konnte nicht erstellt werden",
-    "source_hash": "f2204373"
+    "text": "Workspace konnte nicht erstellt werden",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Organisationsname",
-    "source_hash": "4cbd9073"
+    "text": "Workspace-Name",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "z.B. Acme GmbH",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Organisation auswählen",
-    "source_hash": "48326f52"
+    "text": "Einen Workspace auswählen",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organisationswechsel auf dieser Seite nicht verfügbar",
-    "source_hash": "da0cf810"
+    "text": "Workspace-Wechsel auf dieser Seite nicht verfügbar",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organisation nicht gefunden",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
-    "source_hash": "5985039f"
+    "text": "Mitglieder",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Abrechnung",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Mitglied",
-    "source_hash": "7c968fb7"
+    "text": "Teammitglied",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Administrator",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teammitglieder-Einladungen erfordern einen Plan mit Team-Verwaltung. Upgraden Sie, um Mitarbeiter zu Ihrer Organisation hinzuzufügen.",
-    "source_hash": "cf10d623"
+    "text": "Mitglieder-Einladungen erfordern einen kostenpflichtigen Tarif. Führen Sie ein Upgrade durch, um Mitarbeiter zu Ihrer Organisation hinzuzufügen.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -557,15 +557,15 @@
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Anderes Konto angemeldet",
-    "source_hash": "4a2f91c3"
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Diese Einladung ist für {invitedEmail}. Sie sind derzeit als {currentEmail} angemeldet.",
     "source_hash": "78a6f301"
   },
   "web.organizations.invitations.continue_as_invited_email": {
-    "text": "Weiter als {email}",
-    "source_hash": "6c9a1d4e"
+    "text": "Als {email} fortfahren",
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}T übrig",
@@ -662,10 +662,6 @@
   "api.organizations.invitations.errors.accept_organization_gone": {
     "text": "Die Organisation existiert nicht mehr",
     "source_hash": "a5df7d22"
-  },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Die Einladung wurde bereits %{status}",
-    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Die Einladung ist abgelaufen",
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Workspace erstellen",
+    "source_hash": "c63c14cf"
   }
 }

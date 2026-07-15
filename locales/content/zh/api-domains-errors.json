@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "不允许重复的收件人邮箱地址",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "无效的 secrets_mode：%{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "接收内容模式需要 incoming_secrets 权益。请升级方案。",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "接收内容必须已启用且至少设置一个收件人，才能用作主页。",
+    "source_hash": "556da6e2"
   }
 }

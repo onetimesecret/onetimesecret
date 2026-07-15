@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "组织",
-    "source_hash": "d764d425"
+    "text": "工作区",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "组织",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "组织",
-    "source_hash": "2730183d"
+    "text": "工作区",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "管理组织",
-    "source_hash": "be0fe4c3"
+    "text": "管理工作区",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "新建组织",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "暂无组织",
-    "source_hash": "5b7a7cbd"
+    "text": "尚无工作区",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "组织提供统一的账单和管理功能。创建您的第一个组织以开始使用。",
-    "source_hash": "deab4304"
+    "text": "工作区提供统一的账单和管理。创建您的第一个工作区即可开始。",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "未提供描述",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "创建第一个组织",
-    "source_hash": "27bae486"
+    "text": "创建第一个工作区",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "创建新组织",
-    "source_hash": "67cd5950"
+    "text": "创建一个新工作区",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "创建",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "创建组织失败",
-    "source_hash": "f2204373"
+    "text": "创建工作区失败",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "组织名称",
-    "source_hash": "4cbd9073"
+    "text": "工作区名称",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "例如 Acme 公司",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "选择组织",
-    "source_hash": "48326f52"
+    "text": "选择一个工作区",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "此页面不可切换组织",
-    "source_hash": "da0cf810"
+    "text": "此页面不支持切换工作区",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "未找到组织",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "团队",
-    "source_hash": "5985039f"
+    "text": "成员",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "账单",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "成员",
-    "source_hash": "7c968fb7"
+    "text": "团队成员",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "管理员",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "团队成员邀请需要具有团队管理功能的方案。升级以向您的组织添加协作者。",
-    "source_hash": "cf10d623"
+    "text": "成员邀请需要付费方案。升级方案即可为您的组织添加协作者。",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "专业版",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "已登录其他账户",
-    "source_hash": "4a2f91c3"
+    "text": "登录的账户不同",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "此邀请发送给 {invitedEmail}。您当前登录的是 {currentEmail}。",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "以 {email} 身份继续",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "剩余 {days} 天",
@@ -855,10 +855,6 @@
     "text": "组织不再存在",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "邀请已被%{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "邀请已过期",
     "source_hash": "7186297b"
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "创建工作区",
+    "source_hash": "c63c14cf"
   }
 }

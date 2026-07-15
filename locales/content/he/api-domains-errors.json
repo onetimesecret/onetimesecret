@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "לא ניתן להזין כתובות דוא״ל כפולות של נמענים",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "secrets_mode לא תקין: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "מצב סודות נכנסים מחייב את הזכאות incoming_secrets. אנא שדרג את התוכנית שלך.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "יש להפעיל סודות נכנסים עם נמען אחד לפחות לפני שניתן להשתמש בהם כדף הבית.",
+    "source_hash": "556da6e2"
   }
 }

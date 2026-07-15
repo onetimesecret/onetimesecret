@@ -3,6 +3,7 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
+import { domainIconMetaCanonical } from '@/schemas/contracts/custom-domain';
 import { customDomainSchema } from '@/schemas/shapes/v3/custom-domain';
 import { describe, expect, it } from 'vitest';
 
@@ -88,6 +89,11 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
         passphrase_required: false,
         notify_enabled: true,
       },
+      icon: {
+        filename: 'favicon.ico',
+        content_type: 'image/x-icon',
+        favicon_source: 'auto_fetch',
+      },
       status: 'active',
       vhost: {
         id: 12345,
@@ -131,6 +137,74 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
         expect(result.error.issues).toEqual([]);
       }
       expect(result.success).toBe(true);
+    });
+  });
+
+  // #3780: the workspace "Refresh favicon" gate reads
+  // `customDomainRecord.icon?.favicon_source`. Before the icon projection was
+  // added to safe_dump (backend) and the schema (here), that value was always
+  // stripped to `undefined` and the gate was inert. These lock the wiring in.
+  describe('icon provenance projection (#3780)', () => {
+    const baseDomain: Record<string, unknown> = {
+      extid: 'cd1a2b3c4d',
+      domainid: '01234567-89ab-cdef-0123-456789abcdef',
+      display_domain: 'secrets.example.com',
+      custid: 'cust:user@example.com',
+      base_domain: 'example.com',
+      subdomain: 'secrets.example.com',
+      trd: 'secrets',
+      tld: 'com',
+      sld: 'example',
+      is_apex: false,
+      txt_validation_host: '_onetime-challenge.secrets.example.com',
+      txt_validation_value: 'abc123def456ghi789',
+      verified: true,
+      created: 1609372800,
+      updated: 1609459200,
+    };
+
+    it('carries icon.favicon_source through to the parsed record', () => {
+      const parsed = customDomainSchema.parse({
+        ...baseDomain,
+        icon: {
+          filename: 'logo.png',
+          content_type: 'image/png',
+          favicon_source: 'user_upload',
+        },
+      });
+      expect(parsed.icon?.favicon_source).toBe('user_upload');
+    });
+
+    it('accepts a null icon (no icon stored) — gate stays enabled', () => {
+      const parsed = customDomainSchema.parse({ ...baseDomain, icon: null });
+      expect(parsed.icon ?? undefined).toBeUndefined();
+    });
+
+    it('accepts an absent icon (older payloads) — gate stays enabled', () => {
+      const parsed = customDomainSchema.parse(baseDomain);
+      expect(parsed.icon ?? undefined).toBeUndefined();
+    });
+
+    it('accepts an icon with a null favicon_source (legacy untagged upload)', () => {
+      const parsed = customDomainSchema.parse({
+        ...baseDomain,
+        icon: { filename: 'old.ico', content_type: 'image/x-icon', favicon_source: null },
+      });
+      expect(parsed.icon?.favicon_source ?? undefined).toBeUndefined();
+    });
+
+    it('rejects nothing but never carries the encoded blob (projection is string-only)', () => {
+      // The backend projection never sends `encoded`; the schema simply has no
+      // such key, so a stray one is stripped rather than surfacing megabytes on
+      // the record. Strict mode proves the declared shape is exactly the 3
+      // string fields.
+      const strict = customDomainSchema
+        .extend({ icon: domainIconMetaCanonical.strict().nullable().optional() })
+        .safeParse({
+          ...baseDomain,
+          icon: { filename: 'f.ico', content_type: 'image/x-icon', favicon_source: 'auto_fetch' },
+        });
+      expect(strict.success).toBe(true);
     });
   });
 });

@@ -35,6 +35,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       role: :customer,
       anonymous?: false,
       pending?: false,
+      suspended?: false,
       argon2_hash?: true,
       passphrase: '$argon2id$...'
     )
@@ -218,7 +219,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           end
 
           it 'sets info message about verification' do
-            expect(logic).to receive(:set_info_message).with(a_string_matching(/cust_test123/))
+            expect(logic).to receive(:set_info_message).with(a_string_matching(/#{Regexp.escape(test_email)}/))
             logic.process
           end
 

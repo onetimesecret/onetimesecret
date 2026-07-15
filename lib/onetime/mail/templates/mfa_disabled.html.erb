@@ -1,0 +1,23 @@
+<%# Body content only. Shared shell, header, and footer come from layout.html.erb. -%>
+<!-- Title -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
+  <p style="margin: 0;"><%= t('email.mfa_disabled.title') %></p>
+</div>
+
+<!-- Body -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
+  <p><%= h(t('email.mfa_disabled.body', product_name: product_name, date: disabled_at_formatted)) %></p>
+
+  <p style="color: #7a2620; background-color: #fdecea; border-left: 3px solid #d64545; padding: 12px 14px; border-radius: 4px; margin-top: 24px; font-size: 13px; line-height: 20px;">
+    <%= t('email.mfa_disabled.warning_notice') %>
+  </p>
+
+  <p style="color: #666666; font-size: 12px; margin-top: 16px;">
+    <a href="<%= baseuri %><%= security_settings_path %>" style="color: <%= brand_color %>;"><%= baseuri %><%= security_settings_path %></a>
+  </p>
+</div>
+
+<!-- Signature -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
+  <p style="margin: 0;"><%= h(signature_name || t('email.mfa_disabled.signature')) %></p>
+</div>

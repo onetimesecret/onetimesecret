@@ -29,7 +29,9 @@ setup or retry handling here.
 3. Per-locale governance at `generated/i18n/.resolved/{LOCALE}.json`, derived on
    demand by `locales/scripts/derive-governance.sh` (see eligibility gate).
 4. Source locale JSON at `./locales/content/{locale}/*.json`.
-5. **Paths to IGNORE**: `./generate/`, `./src/locales/` (compiled/legacy, not source).
+5. **Paths to IGNORE**: `./generated/locales/`, `./generated/types/` (compiled
+   output — never edit). `generated/i18n/` is NOT ignorable output: `.resolved/`
+   there is required agent input (see eligibility gate).
 
 ## Arguments
 
@@ -70,14 +72,20 @@ Only launch agents for `ELIGIBLE` locales.
 
 ### 1. Initialize Locales
 
-For each eligible locale that doesn't have tasks yet, enqueue only keys still
-untranslated in `content/LOCALE` (`--missing-only`) so a DB rebuild never requeues
-already-translated, reviewed strings. Omit `--missing-only` only to bootstrap a
-brand-new, empty locale:
+For each eligible locale, enqueue the keys that still need work with
+`--missing-only`: it queues both **untranslated** keys and **stale** ones
+(translated, but en changed since — the target `source_hash` no longer matches
+en's `content_hash`), and never requeues already-translated, still-current
+reviewed strings. Omit `--missing-only` only to bootstrap a brand-new, empty
+locale:
 
 ```bash
 python3 locales/scripts/i18n tasks create LOCALE --missing-only
 ```
+
+The `create` summary breaks the enqueued keys into `missing` vs `stale`; a large
+unexpected `stale` count usually means en drifted tree-wide (see
+`content hashes` guidance) rather than genuine edits — inspect before draining.
 
 ### 2. Check Current Status
 
@@ -102,7 +110,9 @@ Task tool with:
     locales/AGENT_TRANSLATION_PROTOCOL.md exactly. Per-locale governance
     (register, glossary, binding rules, declined decisions):
     generated/i18n/.resolved/{LOCALE}.json. Preserve all interpolation/markup tokens;
-    brand names stay English. Loop until 0 pending; do not export or commit.
+    brand names stay English. Loop until 0 pending; do not export or commit. End
+    your final message with a "GLOSSARY CANDIDATES ({LOCALE}):" block per the
+    protocol (list new term → rendering pairs, or "none").
 ```
 
 ### 4. Monitor Progress (single poll)
@@ -113,7 +123,7 @@ loops.** Proactively run a single poll, read the result, then poll again when re
 ```bash
 for locale in fr_CA de es pt_BR eo; do
   printf "%-6s: " "$locale"
-  python3 locales/scripts/i18n tasks next $locale --stats 2>/dev/null | grep -oE "[0-9]+ pending|[0-9]+ completed" | tr '\n' ' '
+  python3 locales/scripts/i18n tasks next $locale --stats 2>/dev/null | grep -oE "(pending|completed): [0-9]+" | tr '\n' ' '
   echo
 done
 ```
@@ -151,23 +161,23 @@ Do NOT run export until the user explicitly requests it.
 
 ```bash
 # Start fresh with 3 locales, max 5 agents
-/d:translate-parallel-agents fr_CA de es --max-agents 5
+/i18n:translate-parallel-agents fr_CA de es --max-agents 5
 
 # Check progress only
-/d:translate-parallel-agents --stats
+/i18n:translate-parallel-agents --stats
 
 # Resume monitoring after /compact
-/d:translate-parallel-agents --resume
+/i18n:translate-parallel-agents --resume
 
 # Add more locales to existing run
-/d:translate-parallel-agents pt_BR eo --max-agents 5
+/i18n:translate-parallel-agents pt_BR eo --max-agents 5
 ```
 
 ## Common Mistakes (Avoid These)
 
 1. **Wrong table name**: the SQLite table is `translation_tasks`, NOT `tasks`.
 2. **Wrong locale file path**: source translations live in `./locales/content/`,
-   not `src/locales/` or `./generate/`.
+   not `./generated/locales/` (compiled output).
 3. **Passive waiting**: do NOT just wait for completion notifications — actively
    poll with `tasks next LOCALE --stats`.
 4. **Raw database queries**: use the CLI (`tasks next LOCALE --stats`), not raw
@@ -200,9 +210,44 @@ Then simply: `Please continue`
 
 This preserves the orchestration state across compaction.
 
+## Collect glossary candidates (after each locale drains)
+
+Agents do not write the shared glossary table (one writer per locale). Each
+agent instead ends its final message with a `GLOSSARY CANDIDATES (<LOCALE>):`
+block. As locales finish, collect those blocks, review them (drop anything
+already fixed by the bound glossary in `generated/i18n/.resolved/<LOCALE>.json`
+or that conflicts with a `declined` decision), and insert the accepted ones:
+
+```bash
+python3 locales/scripts/i18n db query \
+  "INSERT INTO glossary (locale, term, translation, notes)
+   VALUES ('<LOCALE>', '<term>', '<rendering>', '<why>')"
+```
+
+This is the drain's substitute for the manual protocol's glossary step (step 5); without it, an
+agent-drained locale accrues no glossary entries (only the standing QC pass
+would). Optionally audit the drained result against the bound renderings:
+
+```bash
+python3 locales/scripts/i18n validate glossary <LOCALE>   # advisory
+```
+
 ## Completion
 
 When all locales show 0 pending:
-1. Verify with `--stats`.
-2. User can then run export: `python3 locales/scripts/i18n tasks export <locale>`.
-3. Run validation: `pnpm run locales:sync`.
+1. Verify with `--stats` (also shows the content-truth current/stale/missing split).
+2. Collect + insert glossary candidates (previous section).
+3. User can then run export: `python3 locales/scripts/i18n tasks export <locale>`.
+4. Run validation: `pnpm run locales:sync`.
+5. **Record the round in `session_log`** — once, after the export loop, so the
+   round is preserved in version-controlled SQL (nothing else writes this table):
+
+   ```bash
+   python3 locales/scripts/i18n db session add \
+     --date <YYYY-MM-DD> --tasks <total-completed> \
+     --notes 'N-locale drain; <verbatim notes: recoveries, glossary rows, audit result>'
+   python3 locales/scripts/i18n db export session_log   # persist to db/session_log.sql
+   ```
+
+   Keep `--notes` verbatim (recoveries, restart count, glossary rows inserted,
+   audit outcome) — the schema stores it unsummarized as the round's record.

@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Whakahaere",
-    "source_hash": "2730183d"
+    "text": "Ngā Wāhi Mahi",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Tautuhinga Whakahaere",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Me manatoko tonu koe kei runga koe i te paetukutuku mana o {product_name}. He wā tā ngā tāhae e waihanga ana i ngā paetukutuku tinihanga e tino rite ana ki {product_name} hei tāhae i āu karere huna. Hei karo i ngā whakaeke phishing, tirohia te rohe ā-takiwā i mua i te waihanga hononga hou.",
-    "source_hash": "b588f5b2"
+    "text": "Manatokona i ngā wā katoa kei te paetukutuku mana o {product_name} koe. He wā ka waihanga ngā tāhae i ngā paetukutuku horihori e rite tonu ana ki a {product_name} hei tāhae i ō karere huna. Hei karo i ngā whakaeke phishing, manatokona te rohe ā-takiwā i tō pae wāhitau i mua i te waihanga hononga hou.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Utu Mārama, Pono",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Ngā Karere Huna Taemai",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Whakahou",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "E whakahou ana...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Tirohia Tō Īmēra",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Whakaritenga DNS",
+    "source_hash": "6c63df31"
   }
 }

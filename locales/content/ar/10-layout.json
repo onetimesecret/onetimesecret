@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "المنتج",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
-    "text": "الشيفرة المصدرية",
-    "source_hash": "29c5c68f"
+    "text": "الكود المصدري",
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "الفوترة",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "أنت تعرض رسالة آمنة تمت مشاركتها معك عبر {product_name}. يُعرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "هل يمكنني عرض هذا السر مرة أخرى لاحقاً؟",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "زيارة الصفحة الرئيسية لـ {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "تنقل التذييل",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "يرجى التواصل مع الدعم للحصول على المساعدة",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Colonels فقط",
+    "source_hash": "3f1e2dbd"
   }
 }

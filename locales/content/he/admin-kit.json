@@ -1,0 +1,66 @@
+{
+  "web.admin.kit.confirmDialog.typePrompt": {
+    "text": "לאישור, הקלד {token} למטה",
+    "source_hash": "282445b6"
+  },
+  "web.admin.kit.confirmDialog.inputLabel": {
+    "text": "טקסט אישור",
+    "source_hash": "8edc1113"
+  },
+  "web.admin.kit.confirmDialog.mismatchHint": {
+    "text": "הטקסט שהוזן חייב להתאים בדיוק כדי להמשיך.",
+    "source_hash": "f0cc7389"
+  },
+  "web.admin.kit.dataTable.empty": {
+    "text": "לא נמצאו רשומות",
+    "source_hash": "6e2ea637"
+  },
+  "web.admin.kit.dataTable.sortBy": {
+    "text": "מיין לפי {column}",
+    "source_hash": "55fb1bf9"
+  },
+  "web.admin.kit.filterBar.search": {
+    "text": "חיפוש",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.kit.filterBar.searchPlaceholder": {
+    "text": "חיפוש…",
+    "source_hash": "7336265a"
+  },
+  "web.admin.kit.filterBar.clearFilters": {
+    "text": "נקה מסננים",
+    "source_hash": "7179ea00"
+  },
+  "web.admin.kit.filterBar.all": {
+    "text": "הכל",
+    "source_hash": "a52ace42"
+  },
+  "web.admin.kit.jsonViewer.expandAll": {
+    "text": "הרחב הכל",
+    "source_hash": "a3e586be"
+  },
+  "web.admin.kit.jsonViewer.collapseAll": {
+    "text": "כווץ הכל",
+    "source_hash": "25f7b372"
+  },
+  "web.admin.kit.jsonViewer.empty": {
+    "text": "אין נתונים",
+    "source_hash": "3b41ba9c"
+  },
+  "web.admin.kit.jsonViewer.copyLabel": {
+    "text": "העתק JSON",
+    "source_hash": "7708c6e2"
+  },
+  "web.admin.kit.revealEmail.reveal": {
+    "text": "חשוף כתובת דוא״ל",
+    "source_hash": "f6272277"
+  },
+  "web.admin.kit.revealEmail.hide": {
+    "text": "הסתר כתובת דוא״ל",
+    "source_hash": "9755e870"
+  },
+  "web.admin.kit.revealEmail.copy": {
+    "text": "העתק כתובת דוא״ל",
+    "source_hash": "61b94846"
+  }
+}

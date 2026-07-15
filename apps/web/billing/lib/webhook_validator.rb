@@ -18,11 +18,14 @@ module Billing
   # 1. **Signature Verification**: Uses webhook signing secret to verify
   #    that events actually came from Stripe
   #
-  # 2. **Timestamp Validation**: Rejects events older than 5 minutes to
-  #    prevent replay attacks
+  # 2. **Timestamp Validation**: Rejects events older than MAX_EVENT_AGE
+  #    (24 hours) to prevent replay attacks, while still accepting Stripe's
+  #    legitimate redelivery retries
   #
-  # 3. **Duplicate Detection**: Uses atomic Redis operations to prevent
-  #    processing the same event multiple times
+  # 3. **Duplicate Detection**: The webhook controller performs a first-line,
+  #    best-effort check-then-act idempotency lookup (StripeWebhookEvent).
+  #    The authoritative "process exactly once" guarantee is the worker's
+  #    atomic Redis claim (SET NX) on each dequeued message.
   #
   # ## Usage
   #
@@ -177,7 +180,7 @@ module Billing
     # Verify event timestamp to prevent replay attacks
     #
     # Rejects events that are:
-    # - Older than MAX_EVENT_AGE (5 minutes)
+    # - Older than MAX_EVENT_AGE (24 hours)
     # - More than MAX_FUTURE_TOLERANCE (1 minute) in the future
     #
     # @param event [Stripe::Event] Stripe event

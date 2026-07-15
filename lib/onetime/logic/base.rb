@@ -408,10 +408,12 @@ module Onetime
             },
             locale: locale || 'en',
           )
+          true
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
           OT.le "Error sending verification email: #{ex.message}", ex.backtrace
           set_info_message(errmsg)
+          false
         end
       end
 

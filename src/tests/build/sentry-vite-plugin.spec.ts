@@ -58,7 +58,9 @@ describe('Sentry Vite Plugin Configuration', () => {
       const index = content.indexOf('SENTRY_AUTH_TOKEN');
       const authTokenSection = content.substring(Math.max(0, index - 150), index + 50);
       expect(
-        authTokenSection.includes('CI only') || authTokenSection.includes('CI/CD') || authTokenSection.includes('@sentry/vite-plugin')
+        authTokenSection.includes('CI only') ||
+          authTokenSection.includes('CI/CD') ||
+          authTokenSection.includes('@sentry/vite-plugin')
       ).toBe(true);
     });
   });
@@ -108,7 +110,11 @@ describe('Sentry Vite Plugin Configuration', () => {
 
     it('generates manifest for asset tracking', () => {
       const content = fs.readFileSync(viteConfigPath, 'utf-8');
-      expect(content).toMatch(/manifest:\s*true/);
+      // Two-pass single-chunk build: the default (customer) pass enables the
+      // standard manifest (`: true`); the admin pass (VITE_BUILD_TARGET=admin)
+      // emits its own named manifest so the backend can resolve each shell's
+      // assets independently. See the isAdminBuild branch in vite.config.ts.
+      expect(content).toMatch(/manifest:\s*isAdminBuild\s*\?[^:]*manifest-admin[^:]*:\s*true/);
     });
   });
 });
@@ -232,10 +238,7 @@ describe('getSentryRelease() Single Source of Truth', () => {
 });
 
 describe('__SENTRY_RELEASE__ Usage in enableDiagnostics', () => {
-  const enableDiagnosticsPath = path.join(
-    PROJECT_ROOT,
-    'src/plugins/core/enableDiagnostics.ts'
-  );
+  const enableDiagnosticsPath = path.join(PROJECT_ROOT, 'src/plugins/core/enableDiagnostics.ts');
 
   it('uses __SENTRY_RELEASE__ for the release property', () => {
     const content = fs.readFileSync(enableDiagnosticsPath, 'utf-8');

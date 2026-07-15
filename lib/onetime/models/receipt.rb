@@ -309,6 +309,22 @@ module Onetime
 
         receipt.register_for_expiration_notifications
 
+        # Maintain the owner's live-secret counter at THE single secret-creation
+        # chokepoint (#60). Every path that mints a secret — the API secret
+        # actions, incoming secrets, password-reset and billing-welcome secrets —
+        # funnels through spawn_pair, so counting here (rather than in each Logic
+        # class) guarantees exactly one increment per created secret and no path
+        # is missed. Anonymous/ownerless creates are skipped inside the helper.
+        # This counter drifts UP (no expire/reveal decrement) and is corrected by
+        # the nightly SecretCountReconcileJob — see counter_fields.rb.
+        Onetime::Customer.increment_secrets_active(owner_id)
+
+        # Count the creation in today's daily-trend bucket (admin dashboard).
+        # Same chokepoint rationale as the counter above; fire-and-forget —
+        # DailyMetric.increment swallows its own errors and can never fail
+        # the secret creation.
+        Onetime::DailyMetric.increment(:secrets_created)
+
         [receipt, secret]
       end
 

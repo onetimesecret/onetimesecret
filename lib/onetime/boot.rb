@@ -143,6 +143,31 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
+      # Test/tryout datastore safety (fail closed + loud).
+      #
+      # Any boot in test mode MUST target the isolated test Valkey (port 2121),
+      # never a dev/prod datastore. This lives here — not only in the
+      # configure_familia initializer — because tryouts that boot with
+      # connect_to_db=false SKIP that initializer (see the skip-list below),
+      # which also leaves Familia.uri at its 127.0.0.1:6379 default (= dev). A
+      # bare `Familia.dbclient.flushdb` in such a tryout would then truncate the
+      # dev database with no guard ever running.
+      #
+      # Keyed on OT.mode (set from the boot! arg above) so it fires for every
+      # `OT.boot!(:test, ...)` even when RACK_ENV isn't 'test' — e.g. running a
+      # tryout in the default dev mode without flipping .test-mode. Sanctioned
+      # test runs (pnpm test:*, or the .test-mode direnv lane) load
+      # spec/config.test.yaml, whose uri is hardcoded to :2121, so they pass.
+      if OT.mode?(:test) || ENV['RACK_ENV'] == 'test'
+        redis_uri = @conf.dig('redis', 'uri').to_s
+        unless redis_uri.include?(':2121')
+          raise Onetime::Problem,
+            'Test/tryout boot MUST use the test datastore (Redis port 2121), ' \
+            "got: #{redis_uri.empty? ? '<unset>' : redis_uri}. Enter test mode " \
+            '(bin/setup --test / .test-mode) or run via `RACK_ENV=test`.'
+        end
+      end
+
       # Phase 1: Create registry instance (pure DI architecture)
       @boot_registry = Boot::InitializerRegistry.new
 
@@ -159,10 +184,10 @@ module Onetime
         ordered = @boot_registry.execution_order
         ordered.each do |init|
           # Skip database-related initializers
-          next if %i[
-            onetime.initializers.configure_familia
-            onetime.initializers.setup_connection_pool
-            onetime.initializers.check_global_banner
+          next if [
+            :'onetime.initializers.configure_familia',
+            :'onetime.initializers.setup_connection_pool',
+            :'onetime.initializers.check_global_banner',
           ].include?(init.name)
 
           # Check if initializer wants to skip itself (e.g., feature disabled)

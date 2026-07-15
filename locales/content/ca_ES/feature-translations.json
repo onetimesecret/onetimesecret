@@ -64,8 +64,8 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Les persones següents han dedicat el seu temps a ajudar a ampliar l'abast d'{product_name}:",
-    "source_hash": "85a766af"
+    "text": "Les persones següents han donat el seu temps per ajudar a ampliar l'abast de {product_name}:",
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Traduccions",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Des del 2012, {product_name} ha proporcionat una manera segura de compartir informació sensible arreu del món. Amb usuaris en regions on l'anglès no és la llengua principal, unes traduccions precises són essencials per fer que la comunicació segura sigui accessible per a tothom.",
-    "source_hash": "87a6e9af"
+    "text": "Des del 2012, {product_name} ha ofert una manera segura de compartir informació sensible a tot el món. Amb usuaris de regions on l'anglès no és la llengua principal, les traduccions precises són essencials per fer que la comunicació segura sigui accessible per a tothom.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Ajuda a que la comunicació segura sigui global",

@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Houd dit token veilig! Het geeft volledige toegang tot je account.",
-    "source_hash": "8839aa4d"
+    "text": "Houd dit token veilig. Het kan worden gebruikt om berichten aan te maken en te beheren via de API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Bevestig met je wachtwoord",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail succesvol bijgewerkt. Controleer je inbox om je nieuwe e-mailadres te verifiëren.",
-    "source_hash": "58de2536"
+    "text": "Verificatie-e-mail verstuurd. Controleer je nieuwe inbox en klik op de bevestigingslink om de wijziging te voltooien.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "E-mail bijwerken mislukt. Probeer het opnieuw.",
@@ -476,8 +476,8 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Ontdek hoe je {product_name} in je applicaties integreert",
-    "source_hash": "6e8f910f"
+    "text": "Leer hoe je {product_name} integreert in je applicaties",
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API-referentie",

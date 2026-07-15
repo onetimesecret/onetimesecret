@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Храните этот токен в безопасности! Он обеспечивает полный доступ к Вашей учётной записи.",
-    "source_hash": "8839aa4d"
+    "text": "Храните этот токен в безопасности. Он может использоваться для создания секретов и управления ими через API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Подтвердите паролем",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Почта успешно обновлена. Проверьте входящие, чтобы подтвердить новый адрес электронной почты.",
-    "source_hash": "58de2536"
+    "text": "Письмо для подтверждения отправлено. Пожалуйста, проверьте свой новый почтовый ящик и нажмите на ссылку подтверждения, чтобы завершить изменение.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Не удалось обновить почту. Попробуйте ещё раз.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "Узнайте, как интегрировать {product_name} в Ваши приложения",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Справочник REST API",

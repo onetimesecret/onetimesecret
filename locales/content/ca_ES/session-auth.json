@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Utilitza l'opció d'enllaç màgic per iniciar sessió sense contrasenya. Un cop hagis iniciat sessió, pots canviar la contrasenya a la configuració del compte.",
-    "source_hash": "2a058600"
+    "text": "Pots sol·licitar un enllaç per restablir la contrasenya i crear-ne una de nova.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Compte bloquejat temporalment?",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "Compte SSO",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Restableix la contrasenya",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "El domini del teu correu electrònic no està autoritzat per al registre amb SSO. Si us plau, contacta amb el teu administrador.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Comprova el teu correu electrònic",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Hem enviat un enllaç de verificació a la teva adreça de correu electrònic.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Hem enviat un enllaç de verificació a aquesta adreça — obre el correu electrònic i fes clic a l'enllaç per activar el teu compte.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "No el trobes? Comprova la carpeta de correu brossa.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Has introduït una adreça incorrecta?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Torna a començar",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Contrasenya",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "No has rebut el correu de verificació? Introdueix el teu correu electrònic per tornar-lo a enviar.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Torna a enviar el correu de verificació",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Si un compte necessita verificació, s'ha enviat un correu nou. Si us plau, comprova la safata d'entrada i la carpeta de correu brossa.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "No s'ha pogut enviar el correu de verificació. Si us plau, comprova la connexió i torna-ho a provar.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Torna a enviar el correu",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "S'ha verificat el teu correu electrònic — ara ja pots iniciar la sessió.",
+    "source_hash": "c8d4b5a8"
   }
 }

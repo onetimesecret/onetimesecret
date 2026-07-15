@@ -1,0 +1,154 @@
+{
+  "web.admin.banner.title": {
+    "text": "Широковещательный баннер",
+    "source_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "Опубликуйте объявление для всего сайта, отображаемое каждому посетителю, или очистите текущее.",
+    "source_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "Не удалось загрузить текущий баннер.",
+    "source_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "Повторить",
+    "source_hash": "942087cc"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "Очистить баннер",
+    "source_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "Очистить широковещательный баннер?",
+    "source_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "Это удалит активный баннер для всех посетителей. Введите слово подтверждения, чтобы продолжить.",
+    "source_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "Широковещательный баннер очищен.",
+    "source_hash": "b0f52af4"
+  },
+  "web.admin.banner.current.title": {
+    "text": "Текущий баннер",
+    "source_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "Баннер сейчас не установлен.",
+    "source_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "Статус",
+    "source_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "Активен",
+    "source_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "Срок действия",
+    "source_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "Постоянный (без срока)",
+    "source_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "Истекает через {duration}",
+    "source_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.audience": {
+    "text": "Аудитория",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "Сохранённое содержимое",
+    "source_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "Содержимое в формате HTML; при отображении сайт очищает его, оставляя только ссылки.",
+    "source_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "Редактировать",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "Установить баннер",
+    "source_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "Обновить баннер",
+    "source_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "Сообщение",
+    "source_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "Плановое обслуживание вс 02:00 UTC",
+    "source_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "HTML разрешён; сайт очищает его, оставляя только ссылки.",
+    "source_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "Автоматически удалить через (секунд)",
+    "source_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "Оставьте пустым, чтобы без срока",
+    "source_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "Необязательно. Баннер удаляется автоматически через указанное число секунд.",
+    "source_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "Аудитория",
+    "source_hash": "545c0235"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "На каких страницах показывать баннер. Страницы пользовательских доменов видят его только при выборе всех страниц.",
+    "source_hash": "28cc3018"
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "Везде, кроме страниц получателя",
+    "source_hash": "8575b3c0"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "Только страницы рабочего пространства",
+    "source_hash": "563e003e"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "Все страницы (включая пользовательские домены)",
+    "source_hash": "b9b74870"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "Опубликовать баннер",
+    "source_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "Обновить баннер",
+    "source_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "Опубликовать широковещательный баннер?",
+    "source_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "Этот баннер будет показан каждому посетителю по всему сайту, пока не будет очищен или не истечёт срок его действия.",
+    "source_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "Опубликовать",
+    "source_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "Широковещательный баннер опубликован.",
+    "source_hash": "55c06cab"
+  }
+}

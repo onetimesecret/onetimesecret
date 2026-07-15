@@ -62,7 +62,7 @@
   "email.welcome.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.welcome.postscript": {
     "text": "P.S. I tukuna tēnei īmēra ki %{email_address}. Mēnā kāore koe i waihanga pūkete, ka taea e koe te waiho i tēnei karere.",
@@ -102,7 +102,7 @@
   "email.password_request.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.password_request.postscript": {
     "text": "P.S. I tukuna tēnei īmēra ki %{email_address}.",
@@ -147,7 +147,7 @@
   "email.magic_link.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.magic_link.postscript": {
     "text": "P.S. I tukuna tēnei īmēra ki %{email_address}.",
@@ -232,7 +232,7 @@
   "email.secret_revealed.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Whakahaere manakohanga whakamōhiotanga",
@@ -315,7 +315,7 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Tautoko Huna",
+    "text": "Te Kapa Tautoko o Onetime Secret",
     "renderer": "erb",
     "source_hash": "f6a6c90f"
   },
@@ -357,7 +357,7 @@
   "email.organization_invitation.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Mēnā kāore koe i te tūmanako ki tēnei pōhiri, ka taea e koe te waiho i tēnei karere.",
@@ -397,17 +397,17 @@
   "email.password_changed.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.subject": {
-    "text": "Kua hurihia tō wāhitau īmēra (%{display_domain})",
+    "text": "Kua panonihia tō wāhitau īmēra (%{display_domain})",
     "renderer": "erb",
-    "source_hash": "d68d2f4c"
+    "source_hash": "4386fc57"
   },
   "email.email_changed.title": {
-    "text": "Kua Hurihia Tō Wāhitau Īmēra",
+    "text": "Kua Panonihia Tō Wāhitau Īmēra",
     "renderer": "erb",
-    "source_hash": "62b07299"
+    "source_hash": "db70f965"
   },
   "email.email_changed.security_notice": {
     "text": "Mēnā ehara i a koe i huri i tēnei, tēnā whakapā tere ki te tautoko nā te mea tērā pea kua whakaekea tō pūkete.",
@@ -415,9 +415,9 @@
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "Kua hurihia te wāhitau īmēra o tō pūkete %{product_name}.",
+    "text": "Kua panonihia te wāhitau īmēra i tō pūkete %{product_name}.",
     "renderer": "erb",
-    "source_hash": "bb467ebc"
+    "source_hash": "7fc0e27c"
   },
   "email.email_changed.new_email_label": {
     "text": "Īmēra hou:",
@@ -447,7 +447,7 @@
   "email.email_changed.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_changed.postscript": {
     "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address} hei whakamōhio i a koe mō te huringa wāhitau īmēra.",
@@ -497,7 +497,7 @@
   "email.email_change_requested.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_requested.postscript": {
     "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address} nā te mea i tonoa he huringa īmēra mō tō pūkete.",
@@ -552,7 +552,7 @@
   "email.email_change_confirmation.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.email_change_confirmation.postscript": {
     "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address} hei whakaū i te huringa wāhitau īmēra.",
@@ -582,7 +582,7 @@
   "email.mfa_enabled.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.mfa_disabled.subject": {
     "text": "Kua monokia te manatoko rua-āhuatanga (%{display_domain})",
@@ -607,7 +607,7 @@
   "email.mfa_disabled.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.new_login_alert.subject": {
     "text": "Takiuru hou ki tō pūkete (%{display_domain})",
@@ -652,7 +652,7 @@
   "email.new_login_alert.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.member_removed.subject": {
     "text": "Kua tangohia koe mai i %{organization_name}",
@@ -672,7 +672,7 @@
   "email.member_removed.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.role_changed.subject": {
     "text": "Kua hurihia tō tūranga i %{organization_name}",
@@ -692,7 +692,7 @@
   "email.role_changed.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.organization_deleted.subject": {
     "text": "Kua mukua te whakahaere \"%{organization_name}\"",
@@ -712,72 +712,7 @@
   "email.organization_deleted.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
-  },
-  "email.payment_receipt.subject": {
-    "text": "Rihīti utu mō %{product_name}",
-    "renderer": "erb",
-    "source_hash": "a1b5cc04"
-  },
-  "email.payment_receipt.title": {
-    "text": "Rihīti Utu",
-    "renderer": "erb",
-    "source_hash": "7e677ab8"
-  },
-  "email.payment_receipt.body": {
-    "text": "Ngā mihi mō tō utu. Anei ngā taipitopito utu:",
-    "renderer": "erb",
-    "source_hash": "a1fb6502"
-  },
-  "email.payment_receipt.amount_label": {
-    "text": "Tapeke:",
-    "renderer": "erb",
-    "source_hash": "cdf45632"
-  },
-  "email.payment_receipt.date_label": {
-    "text": "Rā:",
-    "renderer": "erb",
-    "source_hash": "b51489bd"
-  },
-  "email.payment_receipt.plan_label": {
-    "text": "Mahere:",
-    "renderer": "erb",
-    "source_hash": "c6c28dbb"
-  },
-  "email.payment_receipt.invoice_link": {
-    "text": "Tiro Pire",
-    "renderer": "erb",
-    "source_hash": "36008943"
-  },
-  "email.payment_receipt.signature": {
-    "text": "Te Kapa Tautoko",
-    "renderer": "erb",
-    "source_hash": "f58154f7"
-  },
-  "email.payment_failed.subject": {
-    "text": "I rahua te utu mō %{product_name}",
-    "renderer": "erb",
-    "source_hash": "77f18a23"
-  },
-  "email.payment_failed.title": {
-    "text": "I Rahua te Utu",
-    "renderer": "erb",
-    "source_hash": "a287ab86"
-  },
-  "email.payment_failed.body": {
-    "text": "Kāore i taea e mātou te tukatuka tō utu mō %{product_name}. Tēnā whakahōu tō tikanga utu kia karo i te whakatarunga ratonga.",
-    "renderer": "erb",
-    "source_hash": "6496ef22"
-  },
-  "email.payment_failed.update_payment_button": {
-    "text": "Whakahōu Tikanga Utu",
-    "renderer": "erb",
-    "source_hash": "926406b1"
-  },
-  "email.payment_failed.signature": {
-    "text": "Te Kapa Tautoko",
-    "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.trial_expiring.subject": {
     "text": "Ka pau tō whakamātautau %{product_name} i roto i ngā rā %{days_remaining}",
@@ -802,7 +737,7 @@
   "email.trial_expiring.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.subscription_changed.subject": {
     "text": "Kua hurihia tō ohaurunga %{product_name}",
@@ -827,7 +762,7 @@
   "email.subscription_changed.signature": {
     "text": "Te Kapa Tautoko",
     "renderer": "erb",
-    "source_hash": "f58154f7"
+    "source_hash": "dc75bf9f"
   },
   "email.common.greeting": {
     "text": "Kia ora,",

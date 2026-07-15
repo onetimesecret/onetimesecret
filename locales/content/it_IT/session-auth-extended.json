@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "La sessione è scaduta. Aggiorna la pagina e riprova.",
-    "source_hash": "a7c3e901"
+    "text": "La tua sessione è scaduta. Aggiorna la pagina e riprova.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Accesso fallito. Riprova.",

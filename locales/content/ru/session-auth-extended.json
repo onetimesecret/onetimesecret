@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Ваша сессия истекла. Пожалуйста, обновите страницу и попробуйте снова.",
-    "source_hash": "a7c3e901"
+    "text": "Срок действия Вашей сессии истёк. Пожалуйста, обновите страницу и попробуйте снова.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Вход не удался. Попробуйте ещё раз.",
@@ -710,12 +710,6 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Коды восстановления",
     "source_hash": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ КРИТИЧНО ДЛЯ БЕЗОПАСНОСТИ: Сообщения предотвращают раскрытие информации. См. src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Страница управления устройствами/браузерами пользователя"
   },
   "web.auth.google": {
     "text": "Google",

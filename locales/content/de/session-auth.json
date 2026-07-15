@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Verwende die Magic-Link-Option, um dich ohne Passwort anzumelden. Nach der Anmeldung kannst du dein Passwort in den Kontoeinstellungen ändern.",
-    "source_hash": "2a058600"
+    "text": "Du kannst einen Link zum Zurücksetzen des Passworts anfordern, um ein neues Passwort zu erstellen.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Konto vorübergehend gesperrt?",
@@ -395,9 +395,6 @@
   "web.help.contact_support": {
     "text": "Support kontaktieren",
     "source_hash": "f8d47b82"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "E-Mail-Verifizierungsablauf nach der Registrierung"
   },
   "web.auth.account.sso_linked": {
     "text": "SSO-Konto",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Deine E-Mail-Domain ist nicht für die SSO-Registrierung autorisiert. Bitte wende dich an deinen Administrator.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Überprüfe deine E-Mails",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Wir haben einen Verifizierungslink an deine E-Mail-Adresse gesendet.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Wir haben einen Verifizierungslink an diese Adresse gesendet — öffne die E-Mail und klicke auf den Link, um dein Konto zu aktivieren.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Kannst du ihn nicht finden? Überprüfe deinen Spam-Ordner.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Falsche Adresse eingegeben?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Von vorne beginnen",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Passwort",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Keine Verifizierungs-E-Mail erhalten? Gib deine E-Mail-Adresse ein, um sie erneut zu senden.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Verifizierungs-E-Mail erneut senden",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Wenn ein Konto verifiziert werden muss, wurde eine neue E-Mail gesendet. Bitte überprüfe deinen Posteingang und deinen Spam-Ordner.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Die Verifizierungs-E-Mail konnte nicht gesendet werden. Bitte überprüfe deine Verbindung und versuche es erneut.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "E-Mail erneut senden",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Deine E-Mail-Adresse wurde verifiziert — du kannst dich jetzt anmelden.",
+    "source_hash": "c8d4b5a8"
   }
 }

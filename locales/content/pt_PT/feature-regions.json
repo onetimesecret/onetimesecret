@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se o teu e-mail de contacto de faturação for diferente do e-mail da tua conta {product_name}, utiliza o e-mail de contacto de faturação da conta da nova região para manter os benefícios da tua subscrição.",
-    "source_hash": "dac1cc28"
+    "text": "Se o teu e-mail de contacto de faturação for diferente do e-mail da tua conta {product_name}, usa o e-mail de contacto de faturação para a conta da nova região a fim de manteres os benefícios da tua subscrição.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Os benefícios da sua subscrição serão aplicados automaticamente a qualquer conta criada com o seu endereço de e-mail de faturação.",

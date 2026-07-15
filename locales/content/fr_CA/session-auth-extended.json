@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Votre session a expiré. Veuillez rafraîchir la page et réessayer.",
-    "source_hash": "a7c3e901"
+    "text": "Votre session a expiré. Veuillez actualiser la page et réessayer.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Échec de la connexion. Veuillez réessayer.",
@@ -710,12 +710,6 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Codes de récupération",
     "source_hash": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SÉCURITÉ CRITIQUE : Les messages préviennent la divulgation d'informations. Voir src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Page de gestion des appareils/navigateurs connectés de l'utilisateur"
   },
   "web.auth.google": {
     "text": "Google",

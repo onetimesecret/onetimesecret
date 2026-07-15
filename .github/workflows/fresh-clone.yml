@@ -1,0 +1,174 @@
+# ==============================================================================
+# Fresh-clone contributor path (install-onboarding testing-strategy §2c)
+# ==============================================================================
+# The "Zulip shape": a CI job that is *nothing but the documented contributor
+# path*, run from zero on a clean runner. If this job needs a step the docs
+# don't state, either the job or the docs is wrong — fix one.
+#
+#   fresh runner
+#     -> bin/setup                              # the documented setup command
+#     -> bin/setup --test                       # the documented test lane
+#     -> pnpm run test:rspec:fast && pnpm test  # the documented suites
+#     -> bin/setup --test                       # second run = idempotency (Zulip)
+#     -> git status --porcelain == empty        # litter check (Zulip)
+#
+# Deliberate design choices:
+#   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.9,
+#     .node-version = 22), NOT hardcoded versions — this lane exists to prove
+#     the *documented* floors work (the Node-22 gate fix is the whole point of
+#     the onboarding branch; the reusable setup-node-env action defaults to 25
+#     and force-installs deps, so it is intentionally NOT used here).
+#   - No config-seeding composite actions and no Valkey service container:
+#     bin/setup does all app-level setup itself (seeds etc/ from
+#     defaults, installs deps, generates locales + schemas; the --test lane
+#     starts its own throwaway datastore on :2121). Reproducing those steps
+#     in YAML would test an idealized path, not the artifact a contributor
+#     runs.
+#   - No build step before the suite: TR-01 is that the RSpec fast suite is
+#     green on a pristine clone with no `pnpm run build` ever run.
+#
+# The job's DURATION is the TTFHW proxy for the contributor path — the measured
+# documented-path duration lands in the step summary, and ttfhw-chart.sh charts
+# the job duration against recent successful runs (warning annotation on a
+# regression past the median).
+# ==============================================================================
+name: Fresh-clone contributor path
+
+on:
+  pull_request:
+    paths:
+      - 'bin/setup'
+      - 'scripts/setup/**'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.ruby-version'
+      - '.node-version'
+      - 'etc/defaults/**'
+      - '.github/workflows/fresh-clone.yml'
+      - 'scripts/test-install/ttfhw-chart.sh'
+  schedule:
+    # Weekly: catches registry/runner/dependency rot with no commit
+    # (the scheduled-lane pattern — Sentry/Supabase run their install paths on
+    # a cron precisely for this).
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read  # ttfhw-chart.sh reads past run/job durations
+
+jobs:
+  fresh-clone:
+    name: bin/setup from zero
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # A contributor installs a datastore too. redis-server (Ubuntu 24.04
+      # universe, 7.x) is what the clean-room validation used; bin/setup
+      # discovers it via `command -v redis-server` and starts its own instance
+      # on :2121, so the apt-started service on :6379 is harmless.
+      - name: Install datastore (redis-server, Valkey-compatible)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-server
+
+      # Toolchain from the pinned version files — the documented floors.
+      # setup-ruby reads .ruby-version by default when no ruby-version is given
+      # (this SHA predates the `ruby-version-file` input), so 3.4.9 is selected
+      # from the file with no extra config.
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        with:
+          bundler-cache: false  # bin/setup runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Record start time
+        id: start
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      # --- The documented contributor path, from zero -------------------------
+      # CONTRIBUTING.md's 5-minute path is `bin/setup`; its "run what CI runs"
+      # section is `bin/setup --test` + the two suites. This job runs exactly
+      # those commands, in that order — the C6 proof (work-chunks: "C7's
+      # fresh-clone job runs bin/setup itself").
+      - name: Run bin/setup (documented contributor setup, first run)
+        run: bin/setup
+
+      # Doctor v2 proof (C9): the environment bin/setup just built must pass
+      # doctor's own diff(manifest, reality) checks with zero failures.
+      # Warnings are fine — contributor tooling (overmind, direnv) is optional
+      # and this runner has no app running; a non-zero exit means a FAIL-level
+      # check regressed.
+      - name: bin/setup --doctor (zero failures on a fresh setup)
+        run: bin/setup --doctor
+
+      - name: Run bin/setup --test (documented test lane)
+        run: bin/setup --test
+
+      - name: "RSpec fast suite (TR-01: no build ever run)"
+        run: pnpm run test:rspec:fast
+
+      - name: Vitest suite
+        run: pnpm test
+
+      - name: Run bin/setup --test again (idempotency contract)
+        run: bin/setup --test
+
+      # --- Litter check: the documented setup must leave a clean tree ---------
+      # Everything bin/setup writes to app/config/generated paths
+      # (etc/*.yaml, generated/**, .test-mode, .env*) is gitignored by design.
+      # Lockfiles get no carve-out: bin/setup installs frozen when a lockfile
+      # exists (BUNDLE_FROZEN / --frozen-lockfile), so any drift here means
+      # the frozen contract broke — fail, don't warn.
+      - name: Litter check (clean working tree after setup)
+        run: |
+          litter="$(git status --porcelain)"
+          if [[ -n "$litter" ]]; then
+            echo "::error::bin/setup dirtied tracked files"
+            echo "$litter"
+            echo "--- git diff ---"
+            git --no-pager diff
+            exit 1
+          fi
+          echo "Working tree clean after setup + suites + idempotency."
+
+      - name: Report contributor-path duration (TTFHW proxy)
+        if: always()
+        env:
+          START_EPOCH: ${{ steps.start.outputs.epoch }}
+        run: |
+          end="$(date +%s)"
+          start="$START_EPOCH"
+          if [[ -n "$start" ]]; then
+            secs=$(( end - start ))
+            printf '### Fresh-clone contributor path: %dm %ds\n' \
+              $(( secs / 60 )) $(( secs % 60 )) >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # TTFHW trend over time (work-chunks C7 residual): chart this job's
+      # duration across recent successful runs and warn when this run
+      # regressed past the median. Telemetry, not a gate — the script exits 0
+      # on every degraded path and continue-on-error backstops the rest.
+      - name: Chart TTFHW trend (regression warning vs median)
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/test-install/ttfhw-chart.sh

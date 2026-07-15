@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Whakahaere",
-    "source_hash": "d764d425"
+    "text": "Wāhi Mahi",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Ngā Whakahaere",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Ngā Whakahaere",
-    "source_hash": "2730183d"
+    "text": "Ngā Wāhi Mahi",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Whakahaere ngā Whakahaere",
-    "source_hash": "be0fe4c3"
+    "text": "Whakahaere Wāhi Mahi",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Whakahaere Hou",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Kāore anō he whakahaere",
-    "source_hash": "5b7a7cbd"
+    "text": "Kāore anō he Wāhi Mahi",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "He pire me te whakahaere kotahi e whakaratohia ana e ngā whakahaere. Tīmata mā te waihanga i tō whakahaere tuatahi.",
-    "source_hash": "deab4304"
+    "text": "Ka whakaratohia e ngā Wāhi Mahi te nama me te whakahaere kotahitanga. Tīmata mā te waihanga i tō Wāhi Mahi tuatahi.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Kāore he whakamārama i whakaratohia",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Waihanga Whakahaere Tuatahi",
-    "source_hash": "27bae486"
+    "text": "Waihanga Wāhi Mahi Tuatahi",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Waihanga whakahaere hou",
-    "source_hash": "67cd5950"
+    "text": "Waihanga i tētahi Wāhi Mahi hou",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Waihanga",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "I rahua te waihanga i te whakahaere",
-    "source_hash": "f2204373"
+    "text": "I rahu te waihanga Wāhi Mahi",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Ingoa Whakahaere",
-    "source_hash": "4cbd9073"
+    "text": "Ingoa Wāhi Mahi",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "hei tauira, Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Kōwhiria he whakahaere",
-    "source_hash": "48326f52"
+    "text": "Tīpakohia tētahi Wāhi Mahi",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Kāore e wātea ana te huri whakahaere i tēnei whārangi",
-    "source_hash": "da0cf810"
+    "text": "Kāore te huri Wāhi Mahi e wātea ana i tēnei whārangi",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Kāore i kitea te whakahaere",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Rōpū",
-    "source_hash": "5985039f"
+    "text": "Ngā Mema",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Pire",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Mema",
-    "source_hash": "7c968fb7"
+    "text": "Mema Kapa",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Kaiwhakahaere",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Me whai mahere me te whakahaere rōpū mō ngā pōhiri mema rōpū. Whakapiki hei tāpiri kaihonohono ki tō whakahaere.",
-    "source_hash": "cf10d623"
+    "text": "Me whai te tono mema i tētahi mahere utu. Whakapikihia hei tāpiri kaimahi tahi ki tō whakahaere.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Kua takiuru ki pūkete kē",
-    "source_hash": "4a2f91c3"
+    "text": "He pūkete kē kua takiuru",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Ko tēnei pōhiri mō {invitedEmail}. Kei te takiuru koe ināianei hei {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Haere tonu hei {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}r e toe ana",
@@ -662,10 +662,6 @@
   "api.organizations.invitations.errors.accept_organization_gone": {
     "text": "Kāore te whakahaere e noho tonu ana",
     "source_hash": "a5df7d22"
-  },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Kua %{status} kē te tono",
-    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Kua pau te tono",
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Waihanga Wāhi Mahi",
+    "source_hash": "c63c14cf"
   }
 }

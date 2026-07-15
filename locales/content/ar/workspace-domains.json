@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "مفعّل",
-    "source_hash": "92c1cdfd"
+    "text": "تفعيل",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "معطّل",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "قم بالترقية للإعداد",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "نطاق مخصّص",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "اسم المضيف الدقيق الذي سيستخدمه فريقك، مثل {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "ستوجد روابط أسرارك على",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "هذا نطاقك بالكامل — أين ينبغي أن توجد روابط الأسرار؟",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "يُبقي النطاق الفرعي بقية {domain} دون مساس.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "موصى به",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "لا يوجد اختيار خاطئ — اختر ما سيتعرّف عليه فريقك.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "النطاقات الفرعية الشائعة",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "أو استخدم نطاقك بالكامل",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "استخدام نطاقي الجذر",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "يوجّه هذا كامل {domain} إلينا — يتوقف الموقع هناك عن التحليل — ويتطلب سجل A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "”.{0}“ ليست نهاية نطاق معروفة — تحقّق من وجود خطأ إملائي (مثال: {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "أدخل اسم مضيف صالحاً — حروف وأرقام ونقاط وشرطات مفردة (مثال: {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "يرجى إدخال اسم نطاق.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "المتابعة بـ {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "افتراضي مساحة العمل",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "إعداد DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "وجّه نطاقك إلى هذا الخادم باستخدام سجل CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "إعداد DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "وجّه",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "إلى هذا الخادم بإضافة سجل DNS التالي لدى موفّرك.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "أنشئ سجل CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "أنشئ سجل ALIAS أو ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "لا يمكن لنطاقات الجذر (Apex) استخدام سجل CNAME. استخدم سجل ALIAS أو ANAME الخاص بموفّر DNS، أو وجّه سجل A إلى عنوان IP الخاص بخادمك، بدلاً من ذلك.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "الصفحة الرئيسية",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "ما يمكن للزوار فعله على الصفحة الرئيسية لنطاقك",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "صفحة هبوط خاصة",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "يرى الزوار صفحة هبوط خاصة بلا نموذج تفاعلي",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "نموذج إنشاء الأسرار",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "يمكن للزوار إنشاء روابط أسرارهم الخاصة",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "نموذج الأسرار الواردة",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "يمكن للزوار إرسال أسرار إلى المستلِمين المُعدّين لديك",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "يتطلب تفعيل الأسرار الواردة مع مستلِم واحد على الأقل",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "إعداد المستلِمين",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "صفحة هبوط خاصة",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "عام: ينشئ الزوار أسراراً",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "عام: يرسل لك الزوار أسراراً",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "الأسرار الواردة غير جاهزة — يتم عرض صفحة هبوط خاصة",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "واردة",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "تم حفظ إعدادات الصفحة الرئيسية",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "تعرض الصفحة الرئيسية لهذا النطاق حالياً نموذج الأسرار الواردة. سيؤدي تعطيل الأسرار الواردة أو إزالة جميع المستلِمين إلى تبديل الصفحة الرئيسية إلى صفحة هبوط خاصة حتى تصبح الأسرار الواردة جاهزة مرة أخرى.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "تسجيل الدخول على هذا النطاق",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "تسجيل الدخول معطّل على مستوى مساحة العمل بأكملها، لذا فهو غير متاح على كل نطاق. تُحفظ إعداداتك هنا وتصبح سارية عند إعادة تفعيل تسجيل الدخول لمساحة العمل.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "التسجيلات على هذا النطاق",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "التسجيلات معطّلة على مستوى مساحة العمل بأكملها، لذا فهي غير متاحة على كل نطاق. تُحفظ إعداداتك هنا وتصبح سارية عند إعادة تفعيل التسجيلات لمساحة العمل.",
+    "source_hash": "49faefe4"
   }
 }

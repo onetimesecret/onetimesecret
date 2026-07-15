@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Aktiviert",
-    "source_hash": "92c1cdfd"
+    "text": "Aktivieren",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Deaktiviert",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Upgrade zum Konfigurieren",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Benutzerdefinierter Bereich",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Der genaue Hostname, den Ihr Team verwenden wird, wie {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Ihre geheimen Links befinden sich unter",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Das ist Ihr gesamter Bereich — wo sollen sich die geheimen Links befinden?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Eine Subdomäne lässt den Rest von {domain} unberührt.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Empfohlen",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Es gibt keine falsche Wahl — wählen Sie, was Ihr Team erkennt.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Beliebte Subdomänen",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Oder verwenden Sie Ihren gesamten Bereich",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Meinen Root-Bereich verwenden",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Dadurch wird ganz {domain} auf uns verwiesen — die dortige Website wird nicht mehr aufgelöst — und es wird ein A-/ALIAS-Eintrag benötigt.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "„.{0}“ ist keine erkannte Bereichsendung — prüfen Sie auf einen Tippfehler (z. B. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Geben Sie einen gültigen Hostnamen ein — Buchstaben, Zahlen, einzelne Punkte und Bindestriche (z. B. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Bitte geben Sie einen Bereichsnamen ein.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Mit {0} fortfahren",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Workspace-Standard",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS-Einrichtung",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Verweisen Sie Ihren Bereich mit einem CNAME-Eintrag auf diesen Server",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS-Konfiguration",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Verweisen Sie",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "auf diesen Server, indem Sie den folgenden DNS-Eintrag bei Ihrem Anbieter hinzufügen.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Erstellen Sie einen CNAME-Eintrag",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Erstellen Sie einen ALIAS- oder ANAME-Eintrag",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apex-Bereiche (Root) können keinen CNAME-Eintrag verwenden. Verwenden Sie stattdessen den ALIAS- oder ANAME-Eintrag Ihres DNS-Anbieters oder verweisen Sie einen A-Eintrag auf die IP-Adresse Ihres Servers.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Startseite",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Was Besucher auf der Startseite Ihres Bereichs tun können",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Private Landingpage",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Besucher sehen eine private Landingpage ohne interaktives Formular",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Formular zur Erstellung von Geheimnissen",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Besucher können ihre eigenen geheimen Links erstellen",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Formular für eingehende Nachrichten",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Besucher können Geheimnisse an Ihre konfigurierten Empfänger senden",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Erfordert, dass eingehende Nachrichten mit mindestens einem Empfänger aktiviert sind",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Empfänger konfigurieren",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Private Landingpage",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Öffentlich: Besucher erstellen Geheimnisse",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Öffentlich: Besucher senden Ihnen Geheimnisse",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Eingehend nicht bereit — private Landingpage wird angezeigt",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Eingehend",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Startseiteneinstellungen gespeichert",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Die Startseite dieses Bereichs zeigt derzeit das Formular für eingehende Nachrichten. Wenn Sie eingehende Nachrichten deaktivieren oder alle Empfänger entfernen, wechselt die Startseite zu einer privaten Landingpage, bis Eingehend wieder bereit ist.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Anmeldung auf diesem Bereich",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Die Anmeldung ist workspace-weit deaktiviert, daher ist sie auf jedem Bereich nicht verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald die Workspace-Anmeldung wieder aktiviert ist.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Registrierungen auf diesem Bereich",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Registrierungen sind workspace-weit deaktiviert, daher sind sie auf jedem Bereich nicht verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald Workspace-Registrierungen wieder aktiviert sind.",
+    "source_hash": "49faefe4"
   }
 }

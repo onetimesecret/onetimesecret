@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organisationer",
-    "source_hash": "2730183d"
+    "text": "Arbetsytor",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Organisationsinställningar",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifiera alltid att du befinner dig på den officiella {product_name}-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som {product_name} för att stjäla dina hemligheter. Kontrollera regiondomänen innan du skapar nya länkar för att undvika nätfiskeattacker.",
-    "source_hash": "b588f5b2"
+    "text": "Kontrollera alltid att du är på den officiella {product_name}-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som {product_name} för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera regionens domän i adressfältet innan du skapar nya länkar.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Enkel, transparent prissättning",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Inkommande hemligheter",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Uppdatera",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Uppdaterar ...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Kontrollera din e-post",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS-konfiguration",
+    "source_hash": "6c63df31"
   }
 }

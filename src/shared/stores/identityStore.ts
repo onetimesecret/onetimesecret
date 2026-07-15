@@ -7,14 +7,18 @@ import {
 import {
   DEFAULT_LOGO_COMPONENT,
   NEUTRAL_BRAND_DEFAULTS,
-  RESOLVED_LOGO_COMPONENT,
   resolveProductName,
 } from '@/shared/constants/brand';
-import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
+import {
+  cornerStyleClasses,
+  resolveBodyFontClass,
+  resolveHeadingFontClass,
+} from '@/shared/utils/brand-helpers';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { useBootstrapStore } from './bootstrapStore';
 
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
@@ -263,15 +267,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /**
    * Resolved logo source on the identity axis: the tenant's uploaded logo when
    * present, then the operator's install-wide logo (custom domains excepted,
-   * see installLogoUri), then the terminal component sentinel.
-   *
-   * The terminal is `RESOLVED_LOGO_COMPONENT` (the build-time
-   * `VITE_LOGO_COMPONENT` override, else the neutral `DefaultLogo`) on the
-   * install's own contexts, but stays the neutral `DEFAULT_LOGO_COMPONENT` on
-   * custom domains: `installLogoUri` is already null there, so without this
-   * guard the operator's chosen component would surface on a tenant domain that
-   * has no uploaded logo — the same leak `installLogoUri` guards against. The
-   * override thus never affects custom-domain logo display.
+   * see installLogoUri), then the neutral `DEFAULT_LOGO_COMPONENT` sentinel —
+   * the only bundled logo component, on every surface.
    *
    * Never null or empty, so a consumer can render a lockup without its own
    * "no logo" fallback.
@@ -289,20 +286,28 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     () =>
       logoUri.value ||
       installLogoUri.value ||
-      (isCustom.value ? DEFAULT_LOGO_COMPONENT : RESOLVED_LOGO_COMPONENT)
+      DEFAULT_LOGO_COMPONENT
   );
 
-  const cornerClass = computed(() =>
-    state.brand?.corner_style
+  // border_radius (#3646) supersedes corner_style when set: it resolves to the
+  // `rounded-brand` utility backed by the runtime-injected `--radius-brand`
+  // variable, lifting the old 3-value corner_style ceiling. corner_style is the
+  // back-compat fallback for domains that predate the numeric radius.
+  const cornerClass = computed(() => {
+    if (state.brand?.border_radius != null && state.brand.border_radius !== '') {
+      return 'rounded-brand';
+    }
+    return state.brand?.corner_style
       ? cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS
-      : DEFAULT_CORNER_CLASS
-  );
+      : DEFAULT_CORNER_CLASS;
+  });
 
-  const fontFamilyClass = computed(() =>
-    state.brand?.font_family
-      ? fontFamilyClasses[state.brand.font_family] ?? ''
-      : ''
-  );
+  const fontFamilyClass = computed(() => resolveBodyFontClass(state.brand));
+
+  // Heading font (#3646): headings bind headingFontClass, body text binds
+  // fontFamilyClass. The ladder (heading_font wins, font_family backfills)
+  // lives in the brand-helpers resolvers.
+  const headingFontClass = computed(() => resolveHeadingFontClass(state.brand));
 
   const preRevealInstructions = computed(
     () => state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')
@@ -322,6 +327,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     logoUri,
     cornerClass,
     fontFamilyClass,
+    headingFontClass,
     preRevealInstructions,
     postRevealInstructions,
 

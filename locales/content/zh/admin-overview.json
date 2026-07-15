@@ -1,0 +1,94 @@
+{
+  "web.admin.overview.retry": {
+    "text": "重试",
+    "source_hash": "942087cc"
+  },
+  "web.admin.overview.feedback.title": {
+    "text": "用户反馈",
+    "source_hash": "cb7b24c6"
+  },
+  "web.admin.overview.feedback.total": {
+    "text": "过去 30 天内有 {count} 条",
+    "source_hash": "b6b9147c"
+  },
+  "web.admin.overview.feedback.today": {
+    "text": "今天",
+    "source_hash": "2b065c7c"
+  },
+  "web.admin.overview.feedback.yesterday": {
+    "text": "昨天",
+    "source_hash": "56618125"
+  },
+  "web.admin.overview.feedback.older": {
+    "text": "更早",
+    "source_hash": "03281c88"
+  },
+  "web.admin.overview.feedback.empty": {
+    "text": "此时段内无反馈",
+    "source_hash": "e09d594d"
+  },
+  "web.admin.overview.feedback.loadError": {
+    "text": "无法加载反馈。",
+    "source_hash": "4011c408"
+  },
+  "web.admin.overview.stats.heading": {
+    "text": "平台统计",
+    "source_hash": "77728e4d"
+  },
+  "web.admin.overview.stats.customers": {
+    "text": "客户",
+    "source_hash": "aabe76f1"
+  },
+  "web.admin.overview.stats.secrets": {
+    "text": "活动内容",
+    "source_hash": "8db4c552"
+  },
+  "web.admin.overview.stats.sessions": {
+    "text": "活动会话",
+    "source_hash": "61ad9909"
+  },
+  "web.admin.overview.stats.receipts": {
+    "text": "回执",
+    "source_hash": "60a627df"
+  },
+  "web.admin.overview.stats.secretsCreated": {
+    "text": "已创建的内容（累计）",
+    "source_hash": "bdb49794"
+  },
+  "web.admin.overview.stats.emailsSent": {
+    "text": "已发送的邮件（累计）",
+    "source_hash": "1c9a7518"
+  },
+  "web.admin.overview.stats.loadError": {
+    "text": "无法加载平台统计。",
+    "source_hash": "5f13cf7a"
+  },
+  "web.admin.overview.trends.title": {
+    "text": "最近 30 天",
+    "source_hash": "f8f03fb4"
+  },
+  "web.admin.overview.trends.signups": {
+    "text": "每日注册数",
+    "source_hash": "8db399dc"
+  },
+  "web.admin.overview.trends.secretsCreated": {
+    "text": "每日创建的内容数",
+    "source_hash": "d6852656"
+  },
+  "web.admin.overview.trends.today": {
+    "text": "今天",
+    "source_hash": "e0f4f767"
+  },
+  "web.admin.overview.trends.collectingNote": {
+    "text": "自首个数据点起开始收集——在此之前的日期显示为零。",
+    "source_hash": "269ee1eb"
+  },
+  "web.admin.overview.trends.sparklineAria": {
+    "text": "{label}：30 天趋势，今天 {count}",
+    "source_hash": "eb57a7b2"
+  },
+  "web.admin.overview.trends.loadError": {
+    "text": "无法加载趋势。",
+    "source_hash": "9cf97f63"
+  }
+}

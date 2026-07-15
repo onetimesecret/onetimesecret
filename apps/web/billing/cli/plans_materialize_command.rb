@@ -91,15 +91,19 @@ module Onetime
           return
         end
 
-        print_mode_banner(dry_run: dry_run, all: all, plan: plan,
-                          include_memberships: include_memberships)
+        print_mode_banner(
+          dry_run: dry_run,
+          all: all,
+          plan: plan,
+          include_memberships: include_memberships,
+        )
 
         verbosity = resolve_verbosity(verbose: verbose, quiet: quiet)
         renderer  = Billing::MaterializeProgressRenderer.new(
-                      total: total,
-                      verbosity: verbosity,
-                      include_memberships: include_memberships,
-                    )
+          total: total,
+          verbosity: verbosity,
+          include_memberships: include_memberships,
+        )
 
         result = ::Billing::Operations::MaterializePlans.call(
           plan_filter: plan,
@@ -167,7 +171,7 @@ module Onetime
       def print_next_steps(dry_run, succeeded_count, all, plan, include_memberships)
         return unless dry_run && succeeded_count > 0
 
-        cmd = if all
+        cmd  = if all
                 'bin/ots billing plans materialize --all --run'
               else
                 "bin/ots billing plans materialize --plan=#{plan} --run"
@@ -244,7 +248,6 @@ module Onetime
         USAGE
         true
       end
-
     end
   end
 end

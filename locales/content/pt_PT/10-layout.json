@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Produto",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Código-fonte",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Faturação",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Estás a ver uma mensagem segura que foi partilhada contigo através do {product_name}. Este conteúdo é apresentado apenas uma vez e depois eliminado permanentemente dos nossos servidores.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Posso ver esta mensagem confidencial novamente mais tarde?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Visitar a página inicial do {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Navegação do rodapé",
@@ -332,7 +332,7 @@
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Área de trabalho",
+    "text": "Espaço de trabalho",
     "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Contacta o suporte para obteres assistência",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Apenas Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

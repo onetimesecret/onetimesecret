@@ -580,9 +580,14 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         # Note: Rack session middleware might keep empty session, so check for authenticated data
         session_keys_after = dbclient.keys('*session*')
 
-        # Session should either be deleted or cleared (no authenticated_at)
+        # Session should either be deleted or cleared (no authenticated_at).
+        # Only the rack session blob is a plain string; the per-session sidecar
+        # (session_metadata:* hash) and the customer active_sessions index
+        # (sorted set) also match '*session*' but are not GET-able — skip them.
         if session_keys_after.any?
           session_keys_after.each do |key|
+            next unless dbclient.type(key) == 'string'
+
             session_data = dbclient.get(key)
             expect(session_data).not_to include('authenticated_at') if session_data
           end

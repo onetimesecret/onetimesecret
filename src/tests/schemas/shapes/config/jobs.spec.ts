@@ -14,6 +14,9 @@ import {
   jobsShape,
   jobsWorkersShape,
   jobsSchedulerShape,
+  jobsPlanCacheRefreshShape,
+  jobsCatalogRetryShape,
+  jobsDlqConsumerShape,
   jobsDomainRefreshShape,
   jobsExpirationWarningsShape,
   jobsMaintenanceShape,
@@ -27,9 +30,28 @@ describe('jobsShape — top-level defaults', () => {
     expect(result.rabbitmq_url).toBe('amqp://guest:guest@localhost:5672/dev');
     expect(result.channel_pool_size).toBe(5);
     expect(result.fallback_to_sync).toBe(true);
-    expect(result.plan_cache_refresh_enabled).toBe(false);
-    expect(result.catalog_retry_enabled).toBe(false);
-    expect(result.dlq_consumer_enabled).toBe(true);
+  });
+
+  it('materializes nested job toggles with their enabled defaults on empty input', () => {
+    // These blocks use the thunk+default pattern (like workers), so the whole
+    // block materializes with its enabled default even when absent — unlike
+    // domain_refresh (inline tree), which stays undefined when omitted. This
+    // preserves the original flat-key semantics (a value on empty parse).
+    const result = jobsShape.parse({});
+    expect(result.plan_cache_refresh).toEqual({ enabled: false });
+    expect(result.catalog_retry).toEqual({ enabled: false });
+    expect(result.dlq_consumer).toEqual({ enabled: true });
+  });
+
+  it('applies nested enabled defaults when the block is present but empty', () => {
+    const result = jobsShape.parse({
+      plan_cache_refresh: {},
+      catalog_retry: {},
+      dlq_consumer: {},
+    });
+    expect(result.plan_cache_refresh?.enabled).toBe(false);
+    expect(result.catalog_retry?.enabled).toBe(false);
+    expect(result.dlq_consumer?.enabled).toBe(true);
   });
 
   it('contract leaves channel_pool_size undefined', () => {
@@ -93,6 +115,20 @@ describe('jobsWorkersShape — full worker defaults', () => {
 describe('jobsSchedulerShape', () => {
   it('enabled defaults to false', () => {
     expect(jobsSchedulerShape.parse({}).enabled).toBe(false);
+  });
+});
+
+describe('scheduled-job enable toggles', () => {
+  it('plan_cache_refresh.enabled defaults to false', () => {
+    expect(jobsPlanCacheRefreshShape.parse({}).enabled).toBe(false);
+  });
+
+  it('catalog_retry.enabled defaults to false', () => {
+    expect(jobsCatalogRetryShape.parse({}).enabled).toBe(false);
+  });
+
+  it('dlq_consumer.enabled defaults to true', () => {
+    expect(jobsDlqConsumerShape.parse({}).enabled).toBe(true);
   });
 });
 

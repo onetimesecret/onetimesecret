@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "組織",
-    "source_hash": "d764d425"
+    "text": "ワークスペース",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "組織",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "組織",
-    "source_hash": "2730183d"
+    "text": "ワークスペース",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "組織を管理",
-    "source_hash": "be0fe4c3"
+    "text": "ワークスペースを管理",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "新しい組織",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "組織がまだありません",
-    "source_hash": "5b7a7cbd"
+    "text": "ワークスペースはまだありません",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "組織は統合された請求と管理を提供します。最初の組織を作成して始めましょう。",
-    "source_hash": "deab4304"
+    "text": "ワークスペースは統合された請求と管理を提供します。最初のワークスペースを作成して始めましょう。",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "説明がありません",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "最初の組織を作成",
-    "source_hash": "27bae486"
+    "text": "最初のワークスペースを作成",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "新しい組織を作成",
-    "source_hash": "67cd5950"
+    "text": "新しいワークスペースを作成",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "作成",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "組織の作成に失敗しました",
-    "source_hash": "f2204373"
+    "text": "ワークスペースの作成に失敗しました",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "組織名",
-    "source_hash": "4cbd9073"
+    "text": "ワークスペース名",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "例: 株式会社サンプル",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "組織を選択",
-    "source_hash": "48326f52"
+    "text": "ワークスペースを選択",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "このページでは組織の切り替えは利用できません",
-    "source_hash": "da0cf810"
+    "text": "このページではワークスペースの切り替えはできません",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "組織が見つかりません",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "チーム",
-    "source_hash": "5985039f"
+    "text": "メンバー",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "請求",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "メンバー",
-    "source_hash": "7c968fb7"
+    "text": "チームメンバー",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "管理者",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "チームメンバーの招待にはチーム管理機能を含むプランが必要です。組織にコラボレーターを追加するにはアップグレードしてください。",
-    "source_hash": "cf10d623"
+    "text": "メンバーの招待には有料プランが必要です。組織に共同編集者を追加するには、プランをアップグレードしてください。",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -557,7 +557,7 @@
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "別のアカウントでログイン中",
-    "source_hash": "4a2f91c3"
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "この招待は{invitedEmail}宛てです。現在{currentEmail}としてログインしています。",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "{email}として続行",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "残り{days}日",
@@ -855,10 +855,6 @@
     "text": "組織はすでに存在しません",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "この招待はすでに処理されています(%{status})",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "招待の有効期限が切れています",
     "source_hash": "7186297b"
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "ワークスペースを作成",
+    "source_hash": "c63c14cf"
   }
 }

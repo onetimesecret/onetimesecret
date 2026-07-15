@@ -181,7 +181,7 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
 
       it 'raises form error for already accepted invitation' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.error_key).to eq('api.invite.errors.invitation_already_processed')
+          expect(error.error_key).to eq('api.invite.errors.invitation_already_accepted')
         end
       end
     end

@@ -4,6 +4,8 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../support/actor_attribution_helpers'
+require 'onetime/security/request_context'
 
 # Security regression coverage for the double-reveal race (ShowSecret variant).
 #
@@ -15,6 +17,8 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 # duplicated per controller by design (v1 legacy and each v2 endpoint own their
 # own copy rather than sharing a base implementation).
 RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
+  include ActorAttributionSpecHelpers
+
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
@@ -32,15 +36,22 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
   # customer: overrides the default anonymous caller for the verification
   # branches that depend on who is logged in. Pass params as a braced hash --
   # the customer: kwarg would otherwise swallow a bare trailing hash.
-  def build_logic(params, customer: nil)
+  # ip:/user_agent: model the request context the auth strategy resolves into
+  # StrategyResult metadata (already edge-masked by Otto in production); nil by
+  # default so pre-existing examples run the no-network-context path unchanged.
+  def build_logic(params, customer: nil, ip: nil, user_agent: nil)
     customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
     org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
+    metadata = { organization: org }
+    metadata[:ip] = ip if ip
+    metadata[:user_agent] = user_agent if user_agent
+
     strategy_result = double('StrategyResult',
       session: mock_session,
       user: customer,
-      metadata: { organization: org },
+      metadata: metadata,
       auth_method: 'basicauth')
 
     described_class.new(strategy_result, params)
@@ -113,6 +124,61 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     end
   end
 
+  # End-to-end network context capture (#3640, ADR-022): a metadata fetch
+  # (GET without continue) reads the request IP/UA from StrategyResult metadata,
+  # reduces them to the privacy-safe representation, and threads them through
+  # the receipt to the org trail. A winning reveal is deliberately NOT covered
+  # here: that access is captured as the `revealed` lifecycle event, not as a
+  # `secret_get` (see ShowSecret#process), so it never reaches this path.
+  context 'network context capture (metadata fetch)' do
+    let(:trail_org) do
+      Onetime::Organization.new(
+        display_name: 'Show Trail Org',
+        contact_email: "show-trail-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+    end
+
+    let!(:pair) { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
+
+    before do
+      receipt.org_id = trail_org.objid
+      receipt.save_fields(:org_id)
+    end
+
+    it 'records the masked partial IP, partial UA, and keyed hash on the fetch' do
+      logic = build_logic(
+        { 'identifier' => secret.identifier },
+        ip: '203.0.113.42',
+        user_agent: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/119.0.0.0 Safari/537.36',
+      )
+      logic.process_params
+      logic.process
+
+      event = Onetime::Organization.load(trail_org.objid).audit_events_page.first
+      expect(event['kind']).to eq('secret_get')
+      expect(event['net_ip_partial']).to eq('203.0.113.0')
+      expect(event['net_ip_hash']).to match(/\A[0-9a-f]{64}\z/)
+      expect(event['net_ua_partial']).to include('Chrome')
+      expect(event['net_ua_partial']).not_to include('119.0.0.0')
+    end
+
+    # THE NO-REGRESSION GUARD at the endpoint boundary.
+    it 'never persists the raw IP or full UA sent by the caller' do
+      raw_ip  = '203.0.113.42'
+      full_ua = 'Mozilla/5.0 (X11; Linux x86_64) Chrome/119.0.0.0 Safari/537.36'
+
+      logic = build_logic({ 'identifier' => secret.identifier }, ip: raw_ip, user_agent: full_ua)
+      logic.process_params
+      logic.process
+
+      trail = Onetime::Organization.load(trail_org.objid)
+      raw   = trail.audit_events.membersraw.join
+      expect(raw).not_to include(raw_ip)
+      expect(raw).not_to include(full_ua)
+      expect(raw).not_to include('119.0.0.0')
+    end
+  end
+
   context 'when a concurrent request already won the reveal (this request loses)' do
     it 'does NOT emit the plaintext' do
       logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
@@ -130,6 +196,65 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(logic.show_secret).to be false
       expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
+    end
+  end
+
+  # Actor attribution on the ShowSecret reveal path (#3639). ShowSecret reveals
+  # via reveal_secret/verify_owner, both of which now thread the actor context.
+  context 'actor attribution (#3639)' do
+    it 'records actor=creator when the authenticated owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(owner_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+    end
+
+    it 'records actor=authenticated_other when an authenticated non-owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      other_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(other_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+    end
+
+    # THE privacy pin: an anonymous reveal of a guest link (owner_id nil, caller
+    # objid nil) must be 'anonymous', never 'creator'.
+    it 'records actor=anonymous for an anonymous reveal of a guest link (never creator)' do
+      org = link_receipt_to_org!(receipt) # default pair is a guest secret
+
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).not_to eq('creator')
+      expect(event).not_to have_key('actor_id')
     end
   end
 

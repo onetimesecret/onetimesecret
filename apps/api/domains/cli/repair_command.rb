@@ -3,12 +3,18 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require 'onetime/operations/domains/repair'
 
 module Onetime
   module CLI
     # Repair domain
     class DomainsRepairCommand < Command
       include DomainsHelpers
+
+      # Audit actor recorded for CLI-initiated mutations. The shell carries no
+      # authenticated colonel identity; a plain, non-secret public sentinel is
+      # used — never an internal objid. Mirrors BannedIpsBanCommand::CLI_ACTOR.
+      CLI_ACTOR = 'cli'
 
       desc 'Fix domain relationship issues'
 
@@ -33,53 +39,32 @@ module Onetime
         puts "Checking domain: #{domain_name}"
         puts
 
-        issues_found = []
-        repairs      = []
+        # Resolve the target org for the ORPHANED case silently — the op decides
+        # whether it's needed (it's ignored when the domain already has an org_id).
+        org = org_id ? load_organization(org_id, silent: true) : nil
 
-        # Check 1: Orphaned domain
-        if domain.org_id.to_s.empty?
-          if org_id
-            issues_found << 'Domain is orphaned (no org_id)'
-            repairs << -> {
-              domain.org_id  = org_id
-              domain.updated = OT.now.to_i
-              domain.save
-              org            = load_organization(org_id)
-              org.add_domain(domain.domainid) if org
-              "Assigned to organization #{org_id}"
-            }
-          else
-            puts 'Issue: Domain is orphaned (no org_id)'
-            puts 'Fix: Provide --org-id=<id> to assign to an organization'
-            return
-          end
-        else
-          # Check 2: org_id set but not in organization's collection
-          org = load_organization(domain.org_id)
-          if org
-            domains_in_org = org.list_domains
-            unless domains_in_org.include?(domain.domainid)
-              issues_found << "org_id is #{domain.org_id} but not in organization's domains collection"
-              repairs << -> {
-                org.add_domain(domain.domainid)
-                "Added to organization #{domain.org_id} collection"
-              }
-            end
-          else
-            issues_found << "org_id is #{domain.org_id} but organization not found"
-            puts "Issue: org_id is #{domain.org_id} but organization not found"
-            puts 'Fix: Provide --org-id=<id> to assign to a valid organization'
-            return
-          end
-        end
+        # Dry-run first to compute the plan (issues found) without mutating.
+        plan = Onetime::Operations::Domains::Repair.new(
+          domain: domain, org: org, actor: CLI_ACTOR, dry_run: true,
+        ).call
 
-        if issues_found.empty?
+        case plan.status
+        when :needs_org
+          puts 'Issue: Domain is orphaned (no org_id)'
+          puts 'Fix: Provide --org-id=<id> to assign to an organization'
+          return
+        when :org_not_found
+          puts "Error: Organization '#{domain.org_id}' not found"
+          puts "Issue: org_id is #{domain.org_id} but organization not found"
+          puts 'Fix: Provide --org-id=<id> to assign to a valid organization'
+          return
+        when :no_issues
           puts 'No issues found - domain relationships are consistent'
           return
         end
 
         puts 'Issues Found:'
-        issues_found.each_with_index do |issue, idx|
+        plan.issues.each_with_index do |issue, idx|
           puts "  #{idx + 1}. #{issue}"
         end
         puts
@@ -93,13 +78,17 @@ module Onetime
           end
         end
 
+        # Apply — the op mutates and records exactly one audit event.
+        result = Onetime::Operations::Domains::Repair.new(
+          domain: domain, org: org, actor: CLI_ACTOR, dry_run: false,
+        ).call
+
         puts 'Applying repairs:'
-        repairs.each do |repair|
-          result = repair.call
-          puts "  #{result}"
+        result.repairs_applied.each do |repair_result|
+          puts "  #{repair_result}"
         end
 
-        OT.info "[CLI] Domain repair: #{domain_name} - #{issues_found.size} issues fixed"
+        OT.info "[CLI] Domain repair: #{domain_name} - #{result.issues.size} issues fixed"
         puts
         puts 'Repair complete'
       end

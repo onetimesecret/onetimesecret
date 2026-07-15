@@ -68,6 +68,9 @@ module DomainsAPI
           {
             success: true,
             message: "Signup configuration deleted for domain #{@custom_domain.display_domain}",
+            # Post-delete resolution truth: no record, so effective == global.
+            # Serialized so the settings UI can re-render without a refetch (ADR-024).
+            details: signup_override_details(nil),
           }
         end
 

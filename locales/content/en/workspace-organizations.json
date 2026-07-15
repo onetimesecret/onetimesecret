@@ -1048,11 +1048,6 @@
     "context": "Returned when the invitation's org was deleted",
     "content_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Invitation has already been %{status}",
-    "context": "Returned when accepting an invitation already accepted/declined/expired",
-    "content_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Invitation has expired",
     "context": "Returned when the invitation has expired",

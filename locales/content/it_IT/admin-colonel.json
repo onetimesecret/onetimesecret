@@ -1,32 +1,4 @@
 {
-  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
-    "text": "{0}/{1}/{2} [{3}]",
-    "source_hash": "98ba1771"
-  },
-  "web.colonel.customer_verified_verified_not_verified_0": {
-    "text": "`+cliente.verificato? `verificato` : `non verificato",
-    "source_hash": "52e93cc0"
-  },
-  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
-    "text": "Clienti ({0} di {1})",
-    "source_hash": "eb88db1d"
-  },
-  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
-    "text": "Feedback degli utenti (totale: {0})",
-    "source_hash": "d4a80454"
-  },
-  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "Metadati / Segreti: {0}/{1} ({2}/{3}/{4} totale)",
-    "source_hash": "5a341707"
-  },
-  "web.colonel.secrets_details_counts_secret_count_0": {
-    "text": "Segreti ({0})",
-    "source_hash": "dd1c471a"
-  },
-  "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(attivo negli ultimi 5 minuti)",
-    "source_hash": "a2b19058"
-  },
   "web.colonel.configEditorTitle": {
     "text": "Impostazioni",
     "source_hash": "74a883a0"
@@ -830,5 +802,45 @@
   "web.colonel.secrets.state.viewed": {
     "text": "Visualizzato",
     "source_hash": "1b28d178"
+  },
+  "web.colonel.backToSite": {
+    "text": "Torna al sito",
+    "source_hash": "4ee0f819"
+  },
+  "web.colonel.customDomains.labels.domain": {
+    "text": "Dominio",
+    "source_hash": "79fa3361"
+  },
+  "web.colonel.customDomains.labels.status": {
+    "text": "Stato",
+    "source_hash": "920e413c"
+  },
+  "web.colonel.customDomains.labels.actions": {
+    "text": "Azioni",
+    "source_hash": "ff8059dc"
+  },
+  "web.colonel.nav.consoleTag": {
+    "text": "Console",
+    "source_hash": "29a40861"
+  },
+  "web.colonel.nav.groups.identity": {
+    "text": "Identità",
+    "source_hash": "999f23fc"
+  },
+  "web.colonel.nav.groups.security": {
+    "text": "Accesso e sicurezza",
+    "source_hash": "abb29a3f"
+  },
+  "web.colonel.nav.groups.platform": {
+    "text": "Piattaforma",
+    "source_hash": "c78ffe19"
+  },
+  "web.colonel.nav.groups.billing": {
+    "text": "Fatturazione",
+    "source_hash": "3ac8bbca"
+  },
+  "web.colonel.nav.groups.communications": {
+    "text": "Comunicazioni",
+    "source_hash": "919a9253"
   }
 }

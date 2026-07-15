@@ -28,8 +28,8 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Podgląd i dostosowywanie",
-    "source_hash": "215d3659"
+    "text": "Dostosuj i wyświetl podgląd",
+    "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Przełącz na widok przeglądarki Safari",
@@ -88,8 +88,8 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Kliknij, aby przesłać logo. Zalecany rozmiar: 128x128 pikseli. Maksymalny rozmiar pliku: 1MB. Obsługiwane formaty: PNG, JPG, SVG",
-    "source_hash": "a35452bf"
+    "text": "Kliknij, aby zarządzać logo. Zalecany rozmiar: 128x128 pikseli. Maksymalny rozmiar pliku: 1MB. Obsługiwane formaty: PNG, JPG, SVG",
+    "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Prześlij logo",
@@ -145,15 +145,15 @@
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Wspierane przez {product_name}",
-    "source_hash": "d8e9f0a1"
+    "source_hash": "1f393117"
   },
   "web.branding.low_contrast_warning": {
     "text": "Niski kontrast",
-    "source_hash": "a1b2c3d4"
+    "source_hash": "2d6e7516"
   },
   "web.branding.contrast_ratio_label": {
     "text": "Współczynnik kontrastu",
-    "source_hash": "e5f6a7b8"
+    "source_hash": "d521a5be"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}",
@@ -186,5 +186,225 @@
   "web.branding.keyhole_logo_icon": {
     "text": "Ikona dziurki od klucza symbolizująca bezpieczne, prywatne udostępnianie",
     "source_hash": "c868ac60"
+  },
+  "web.branding.secondary_color": {
+    "text": "Kolor drugorzędny",
+    "source_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Kolor tła",
+    "source_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Kolor tekstu",
+    "source_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Zaokrąglenie rogów",
+    "source_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Czcionka nagłówka",
+    "source_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Gotowe motywy",
+    "source_hash": "931eeb74"
+  },
+  "web.branding.logo": {
+    "text": "Logo",
+    "source_hash": "d707dc2f"
+  },
+  "web.branding.replace_logo": {
+    "text": "Zastąp",
+    "source_hash": "95e15439"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "Wyświetl podgląd, zanim Twoje zmiany zostaną opublikowane.",
+    "source_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Logo domeny",
+    "source_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG lub SVG. Zalecane 128x128px, do 1MB.",
+    "source_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Zapisz logo",
+    "source_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Usuń logo",
+    "source_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Wybierz obraz",
+    "source_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "lub przeciągnij i upuść",
+    "source_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "Ten typ pliku nie jest obsługiwany. Wybierz obraz.",
+    "source_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "Obraz jest za duży. Maksymalny rozmiar to {max}.",
+    "source_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "To logo zostanie usunięte po zapisaniu.",
+    "source_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "Coś poszło nie tak. Spróbuj ponownie.",
+    "source_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Cofnij",
+    "source_hash": "a8283ade"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Niski kontrast tekstu/tła",
+    "source_hash": "1c676370"
+  },
+  "web.branding.path_simple": {
+    "text": "Prosty",
+    "source_hash": "3fee95da"
+  },
+  "web.branding.path_match": {
+    "text": "Dopasuj do mojej witryny",
+    "source_hash": "776679cf"
+  },
+  "web.branding.path_advanced": {
+    "text": "Zaawansowany",
+    "source_hash": "9f088dbe"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Podstawy Twojej marki.",
+    "source_hash": "7c9c0cca"
+  },
+  "web.branding.path_match_tag": {
+    "text": "Skopiuj ustawienia z istniejącej witryny.",
+    "source_hash": "e4b0d1cd"
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Stwórz własny CSS Tailwind v4.",
+    "source_hash": "2405bb6d"
+  },
+  "web.branding.badge_default": {
+    "text": "Domyślny",
+    "source_hash": "21b111cb"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Wkrótce",
+    "source_hash": "4f7d6401"
+  },
+  "web.branding.your_brand": {
+    "text": "Twoja marka",
+    "source_hash": "406265d3"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "Kilka szybkich wyborów — resztą zajmiemy się my.",
+    "source_hash": "dbc8ec33"
+  },
+  "web.branding.corners": {
+    "text": "Rogi",
+    "source_hash": "1d3cc47e"
+  },
+  "web.branding.more_options": {
+    "text": "Więcej opcji",
+    "source_hash": "bc79cdff"
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "To jest podgląd na żywo — Twoje zmiany nie będą widoczne dla odwiedzających, dopóki ich nie zapiszesz.",
+    "source_hash": "cb4b82de"
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Wskaż nam swoją witrynę, a odczytamy jej kolory i czcionki, a następnie wypełnimy różnicę jednym kliknięciem.",
+    "source_hash": "42c34cc1"
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Edytuj bezpośrednio tokeny {'@'}theme Tailwind v4 lub wklej własny arkusz stylów.",
+    "source_hash": "5a8473f5"
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Strona odbiorcy",
+    "source_hash": "de8aa19f"
+  },
+  "web.branding.preview_badge": {
+    "text": "Podgląd",
+    "source_hash": "324b134f"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Strona główna · włączona",
+    "source_hash": "2edd85f1"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Strona główna · wyłączona",
+    "source_hash": "15d87050"
+  },
+  "web.branding.preview_live": {
+    "text": "Podgląd na żywo",
+    "source_hash": "f65ddc1f"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Udostępnij sekret",
+    "source_hash": "5384461b"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Utwórz link do sekretu",
+    "source_hash": "610fd42e"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Tylko bezpieczne dostarczanie wiadomości",
+    "source_hash": "dc24dec2"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Odwiedzający nie mogą tutaj tworzyć sekretów.",
+    "source_hash": "17361d81"
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Treść strony odbiorcy",
+    "source_hash": "937733bd"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Język i instrukcje ujawniania wyświetlane odbiorcom w tej domenie.",
+    "source_hash": "04162b70"
+  },
+  "web.branding.tab_brand": {
+    "text": "Marka",
+    "source_hash": "090ed431"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Dostarczanie",
+    "source_hash": "52bfe584"
+  },
+  "web.branding.delivery_language": {
+    "text": "Język",
+    "source_hash": "a4fe6526"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Domyślny dla stron odbiorców i e-maili w tej domenie. Odbiorcy mogą zmienić język na stronie.",
+    "source_hash": "bfbc5599"
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Instrukcje ujawniania",
+    "source_hash": "7e1331f7"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Wyświetlane na stronie odbiorcy. Pozostaw puste, aby użyć wbudowanego tekstu w wybranym języku.",
+    "source_hash": "51b9811d"
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Przed ujawnieniem",
+    "source_hash": "5ce82b01"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "Po ujawnieniu",
+    "source_hash": "d5bfe7fd"
   }
 }

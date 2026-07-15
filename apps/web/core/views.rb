@@ -29,6 +29,38 @@ module Core
       def init(*args); end
     end
 
+    ##
+    # AdminPoint renders the rebuilt Colonel admin console shell.
+    #
+    # It reuses VuePoint's serializers (identical window.__BOOTSTRAP_ME__ state)
+    # but selects the `admin` template and the `admin.ts` Vite entry, so /colonel
+    # loads the isolated admin bundle. Since the cutover
+    # (docs/specs/colonel-ui/50-cutover-hardening.md) this is the sole shell
+    # served at /colonel (see Core::Controllers::Page#colonel); the legacy
+    # colonel SPA has been retired.
+    #
+    class AdminPoint < Core::Views::BaseView
+      use_serializers(
+        ConfigSerializer,
+        AuthenticationSerializer,
+        DomainSerializer,
+        I18nSerializer,
+        MessagesSerializer,
+        OrganizationSerializer,
+        SystemSerializer,
+      )
+
+      def init(*args); end
+
+      def vite_entry
+        'admin.ts'
+      end
+
+      def render(template_name = 'admin')
+        super
+      end
+    end
+
     class BootstrapMe < Core::Views::BaseView
       use_serializers(
         ConfigSerializer,

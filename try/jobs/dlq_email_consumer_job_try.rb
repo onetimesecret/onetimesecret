@@ -124,12 +124,12 @@ end
 @job::DLQ_NAME
 #=> 'dlq.email.message'
 
-## enabled? returns false in test config (dlq_consumer_enabled not set to true)
+## enabled? returns false in test config (dlq_consumer.enabled not set to true)
 call_private(:enabled?)
 #=> false
 
-## enabled? checks jobs.dlq_consumer_enabled config path
-OT.conf.dig('jobs', 'dlq_consumer_enabled') == true
+## enabled? checks jobs.dlq_consumer.enabled config path
+OT.conf.dig('jobs', 'dlq_consumer', 'enabled') == true
 #=> false
 
 ## extract_original_queue returns queue from x-death headers

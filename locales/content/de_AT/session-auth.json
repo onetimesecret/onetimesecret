@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Verwenden Sie die Magic Link-Option, um sich ohne Passwort anzumelden. Nach der Anmeldung können Sie Ihr Passwort in den Kontoeinstellungen ändern.",
-    "source_hash": "2a058600"
+    "text": "Sie können einen Link zum Zurücksetzen des Passworts anfordern, um ein neues Passwort zu erstellen.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Konto vorübergehend gesperrt?",
@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "SSO-Konto",
     "source_hash": "b8f4c728"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
     "text": "Passwort zurücksetzen",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Ihr E-Mail-Bereich ist nicht für die SSO-Registrierung autorisiert. Bitte wenden Sie sich an Ihren Administrator.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Überprüfen Sie Ihre E-Mails",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Wir haben einen Bestätigungslink an Ihre E-Mail-Adresse gesendet.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Wir haben einen Bestätigungslink an diese Adresse gesendet — öffnen Sie die E-Mail und klicken Sie auf den Link, um Ihr Konto zu aktivieren.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Nicht zu finden? Überprüfen Sie Ihren Spam-Ordner.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Falsche Adresse eingegeben?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Neu beginnen",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Passwort",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Bestätigungs-E-Mail nicht erhalten? Geben Sie Ihre E-Mail-Adresse ein, um sie erneut zu senden.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Bestätigungs-E-Mail erneut senden",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Wenn ein Konto verifiziert werden muss, wurde eine neue E-Mail gesendet. Bitte überprüfen Sie Ihren Posteingang und Spam-Ordner.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "E-Mail erneut senden",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Ihre E-Mail-Adresse wurde verifiziert — Sie können sich jetzt eintragen.",
+    "source_hash": "c8d4b5a8"
   }
 }

@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Izdelek",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Izvorna koda",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Obračun",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Ogledujete si varno sporočilo, ki je bilo z vami deljeno prek storitve {product_name}. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov.",
-    "source_hash": "e0f1a10c"
+    "text": "Ogledujete si varno sporočilo, ki je bilo deljeno z vami prek {product_name}. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Ali si lahko to skrivnost ogledam še kdaj?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Obiščite domačo stran {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Navigacija v nogi",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Za pomoč se obrnite na podporo",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Samo za Colonele",
+    "source_hash": "3f1e2dbd"
   }
 }

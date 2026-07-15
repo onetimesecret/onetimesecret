@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Hold dette token sikkert! Det giver fuld adgang til din konto.",
-    "source_hash": "8839aa4d"
+    "text": "Hold dette token sikkert. Det kan bruges til at oprette og administrere beskeder via API'en.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Bekræft med din adgangskode",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail opdateret. Tjek venligst din indbakke for at bekræfte din nye e-mailadresse.",
-    "source_hash": "58de2536"
+    "text": "Bekræftelses-e-mail sendt. Tjek din nye indbakke, og klik på bekræftelseslinket for at fuldføre ændringen.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Kunne ikke opdatere e-mail. Prøv venligst igen.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "Lær, hvordan du integrerer {product_name} i dine applikationer",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API-reference",

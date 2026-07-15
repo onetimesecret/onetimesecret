@@ -88,7 +88,7 @@ module Onetime
           # record on the MAIL FROM subdomain; both are deterministic given the
           # region. Non-fatal: if SES rejects it we keep the DKIM records and
           # drop the MAIL FROM records (see #configure_mail_from).
-          mail_from_domain = "#{MAIL_FROM_SUBDOMAIN}.#{domain}"
+          mail_from_domain     = "#{MAIL_FROM_SUBDOMAIN}.#{domain}"
           mail_from_configured = configure_mail_from(client, domain, mail_from_domain)
 
           if mail_from_configured

@@ -1,0 +1,126 @@
+{
+  "web.admin.billing.title": {
+    "text": "請求カタログ",
+    "source_hash": "bfde7e68"
+  },
+  "web.admin.billing.description": {
+    "text": "設定済みプランとそのエンタイトルメント、およびStripe同期済みの公開カタログとの差分を読み取り専用で表示します。",
+    "source_hash": "05d5b332"
+  },
+  "web.admin.billing.retry": {
+    "text": "再試行",
+    "source_hash": "942087cc"
+  },
+  "web.admin.billing.loadError": {
+    "text": "請求カタログを読み込めませんでした。",
+    "source_hash": "c3110f77"
+  },
+  "web.admin.billing.localConfigWarning": {
+    "text": "Stripe同期済みプランのキャッシュが空のため、公開プランと差分を評価できません。設定済みカタログ(billing.yaml)のみを表示しています。開発環境やStripeが未設定の場合によく見られます。",
+    "source_hash": "905d95f8"
+  },
+  "web.admin.billing.inSync": {
+    "text": "同期済み",
+    "source_hash": "5701958c"
+  },
+  "web.admin.billing.driftCount": {
+    "text": "{count}件の差分",
+    "source_hash": "166538f5"
+  },
+  "web.admin.billing.inSyncDetail": {
+    "text": "設定済みカタログは公開プランと一致しています。差分は検出されませんでした。",
+    "source_hash": "57ab60a6"
+  },
+  "web.admin.billing.columns.planid": {
+    "text": "プランID",
+    "source_hash": "1f0d4dc6"
+  },
+  "web.admin.billing.columns.name": {
+    "text": "名前",
+    "source_hash": "dcd1d522"
+  },
+  "web.admin.billing.columns.tier": {
+    "text": "ティア",
+    "source_hash": "cb9e8664"
+  },
+  "web.admin.billing.columns.status": {
+    "text": "ステータス",
+    "source_hash": "920e413c"
+  },
+  "web.admin.billing.diff.title": {
+    "text": "プラン差分:{planid}",
+    "source_hash": "bc86e5f7"
+  },
+  "web.admin.billing.diff.subtitle": {
+    "text": "設定済みカタログ(billing.yaml)と公開中のStripe同期済みプランを並べて比較します。",
+    "source_hash": "d92e93ae"
+  },
+  "web.admin.billing.diff.config": {
+    "text": "設定済み(billing.yaml)",
+    "source_hash": "6bf2ff04"
+  },
+  "web.admin.billing.diff.live": {
+    "text": "公開中(Stripeキャッシュ)",
+    "source_hash": "4886945d"
+  },
+  "web.admin.billing.diff.absentConfig": {
+    "text": "このプランは設定済みカタログに存在しません。",
+    "source_hash": "0b594c88"
+  },
+  "web.admin.billing.diff.absentLive": {
+    "text": "このプランは公開中のStripe同期済みキャッシュに存在しません。",
+    "source_hash": "c53f31c3"
+  },
+  "web.admin.billing.plans.title": {
+    "text": "プラン",
+    "source_hash": "dfe8b2f0"
+  },
+  "web.admin.billing.plans.empty": {
+    "text": "カタログにプランが見つかりません。",
+    "source_hash": "39db3c13"
+  },
+  "web.admin.billing.plans.viewDiff": {
+    "text": "差分を表示",
+    "source_hash": "0e5d6873"
+  },
+  "web.admin.billing.source.stripe": {
+    "text": "Stripeキャッシュ",
+    "source_hash": "b5577327"
+  },
+  "web.admin.billing.source.localConfig": {
+    "text": "ローカル設定",
+    "source_hash": "49de43d2"
+  },
+  "web.admin.billing.stats.configured": {
+    "text": "設定済みプラン",
+    "source_hash": "4fda4796"
+  },
+  "web.admin.billing.stats.live": {
+    "text": "公開中のプラン",
+    "source_hash": "faaa88d9"
+  },
+  "web.admin.billing.stats.source": {
+    "text": "ソース",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.billing.stats.drift": {
+    "text": "差分",
+    "source_hash": "8b4c8240"
+  },
+  "web.admin.billing.status.in_sync": {
+    "text": "同期済み",
+    "source_hash": "5701958c"
+  },
+  "web.admin.billing.status.only_config": {
+    "text": "設定のみ",
+    "source_hash": "15836cba"
+  },
+  "web.admin.billing.status.only_live": {
+    "text": "公開中のみ",
+    "source_hash": "8f4ed495"
+  },
+  "web.admin.billing.status.changed": {
+    "text": "変更あり",
+    "source_hash": "2a6141e4"
+  }
+}

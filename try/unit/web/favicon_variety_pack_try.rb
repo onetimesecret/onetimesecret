@@ -11,11 +11,11 @@
 #    variety-pack URLs (apple-touch-icon, og:image) from OT.conf['brand'],
 #    falling back to the bundled NEUTRAL default paths when unset.
 #
-# 2. [trust regression guard] The OSS repo must ship brand-NEUTRAL default
-#    assets in public/web. Shipping the onetimesecret.com (#DC4A22) favicon /
-#    social pack as the default would mean every self-hosted install serves our
-#    company brand — the exact hazard #3048/#3049 neutralized for colours and
-#    this change neutralizes for the static icon files.
+# 2. [trust regression guard] The OSS repo must ship a brand-NEUTRAL default
+#    pack (public/branding/default, #3774). Shipping the onetimesecret.com
+#    (#DC4A22) favicon / social pack as the default would mean every self-hosted
+#    install serves our company brand — the exact hazard #3048/#3049 neutralized
+#    for colours and this change neutralizes for the static icon files.
 #
 
 require 'json'
@@ -55,7 +55,9 @@ ensure
   OT.send(:conf=, saved) rescue nil
 end
 
-PUBLIC_WEB = File.expand_path('../../../public/web', __dir__)
+# The neutral variety pack now lives in the tracked DEFAULT brand pack (#3774),
+# not loose files in public/web.
+PUBLIC_WEB = File.expand_path('../../../public/branding/default', __dir__)
 
 # TRYOUTS
 
@@ -131,7 +133,7 @@ end
 # [trust regression guard] shipped defaults are brand-NEUTRAL
 # ============================================================================
 
-## the full variety pack ships in public/web
+## the full variety pack ships in the tracked default pack
 %w[
   favicon.ico favicon.svg apple-touch-icon.png icon-192.png icon-512.png
   safari-pinned-tab.svg site.webmanifest social-preview.png

@@ -1,11 +1,11 @@
 <!-- src/apps/secret/components/branded/SecretConfirmationForm.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
@@ -39,30 +39,9 @@
   // Use computed refs from identityStore directly - already parsed with v3 schema
   const cornerClass = computed(() => productIdentity.cornerClass);
   const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
-
-  const hasImageError = ref(false);
-
-  const cornerStyle = computed(() => {
-    switch (productIdentity.brand?.corner_style) {
-      case 'rounded':
-        return 'rounded-lg';
-      case 'pill':
-        return 'rounded-full';
-      case 'square':
-        return 'rounded-none';
-      default:
-        return 'rounded-lg';
-    }
-  });
-
-  const handleImageError = () => {
-    hasImageError.value = true;
-  };
+  const headingFontClass = computed(() => productIdentity.headingFontClass);
 
   const buttonText = computed(() => props.isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue'));
-  // Prepare the standardized path to the logo image.
-  // Note that the file extension needs to be present but is otherwise not used.
-  const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 </script>
 
 <template>
@@ -71,45 +50,8 @@
     :preview-i18n="i18n"
     :domain-branding="productIdentity.brand ?? defaultBrandSettings"
     :corner-class="cornerClass"
-    :font-class="fontFamilyClass">
-    <template #logo>
-      <div class="relative mx-auto sm:mx-0">
-        <div :class="[cornerStyle, 'size-14 overflow-hidden sm:size-16']">
-          <!-- Background container with matching corner style -->
-          <div
-            :class="[
-              cornerStyle,
-              'absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700',
-              { hidden: logoImage && !hasImageError },
-            ]">
-            <!-- Default lock icon -->
-            <svg
-              v-if="!logoImage || hasImageError"
-              class="size-8 text-gray-400 dark:text-gray-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-
-          <!-- Logo -->
-          <img
-            v-if="logoImage && !hasImageError"
-            :src="logoImage"
-            :alt="t('web.layout.brand_logo')"
-            class="size-full object-contain"
-            :class="cornerStyle"
-            @error="handleImageError" />
-        </div>
-      </div>
-    </template>
-
+    :font-class="fontFamilyClass"
+    :heading-class="headingFontClass">
     <template #content>
       <div
         class="flex items-center text-gray-400 dark:text-gray-500"
@@ -161,7 +103,7 @@
             name="passphrase"
             :class="[
               cornerClass,
-              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white',
+              'w-full border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white',
             ]"
             autocomplete="current-password"
             :aria-label="t('web.COMMON.enter_passphrase_here')"
@@ -176,13 +118,11 @@
           :class="[
             cornerClass,
             fontFamilyClass,
-            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
+            productIdentity.buttonTextLight ? 'text-white' : 'text-gray-900',
+            'w-full bg-brand-500 py-3 text-base font-medium transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
           ]"
-          :style="{
-            backgroundColor: productIdentity.primaryColor,
-            color: productIdentity.buttonTextLight ? '#ffffff' : '#222222',
-          }"
-          class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          class="focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none"
+          data-testid="secret-reveal-submit"
           aria-live="polite">
           <span class="sr-only">{{ buttonText }}</span>
           {{ isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue') }}

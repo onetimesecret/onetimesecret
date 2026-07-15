@@ -71,8 +71,8 @@ import otsRules from './src/build/eslint';
 if (!pluginVue.configs?.['flat/strongly-recommended']) {
   throw new Error('Vue ESLint plugin flat/strongly-recommended config not found');
 }
-if (!pluginTailwindCSS.configs?.['flat/recommended']) {
-  throw new Error('Tailwind ESLint plugin flat/recommended config not found');
+if (!pluginTailwindCSS.configs?.['recommended']) {
+  throw new Error('Tailwind ESLint plugin recommended config not found');
 }
 
 export default [
@@ -189,8 +189,17 @@ export default [
         parser: parserTs,
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json', // Link to TypeScript configuration
-        extraFileExtensions: ['.vue'], // Add this line
+        // Intentionally NO `project`: linting is non-type-aware by design.
+        // No enabled rule reads type information — the active @typescript-eslint
+        // rules (no-unused-vars / no-unused-expressions / no-explicit-any) are
+        // purely syntactic, the custom ots/* rules are AST-only, and no
+        // recommendedTypeChecked set is spread in. Setting `project` only forced
+        // a full ~1,100-file TS program build per invocation for zero lint value
+        // (it dominated commit/push latency). vue-tsc (`pnpm type-check`, run in
+        // pre-push + CI T1) is the real type gate. If a type-aware rule is ever
+        // added, typescript-eslint errors loudly telling you to restore `project`
+        // here — so this is self-correcting, not a silent gap.
+        extraFileExtensions: ['.vue'],
       },
     },
     plugins: {
@@ -203,6 +212,19 @@ export default [
       'ots/no-internal-id-in-url': 'warn',
       // Privacy - no PII (email, token, …) in URL query; use router state
       'ots/no-pii-in-query': 'warn',
+
+      // Disable core `no-undef` for TypeScript (overrides the base src/ block).
+      // typescript-eslint explicitly recommends this: TS itself catches
+      // undefined identifiers far more accurately, and `no-undef` produces
+      // FALSE POSITIVES on ambient DOM lib types used in value/cast position
+      // (e.g. `x as EventListener`) — it only knew about them when the
+      // type-aware parser (`parserOptions.project`) fed it the TS lib globals.
+      // Now that linting is non-type-aware (see parserOptions above), those
+      // globals are gone, so `no-undef` would flag 10+ valid DOM-type casts.
+      // vue-tsc (`pnpm type-check`) remains the real "undefined name" gate.
+      // https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined
+      'no-undef': 'off',
+
       // ...tseslint.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -327,7 +349,7 @@ export default [
       parser: vueEslintParser,
       parserOptions: {
         parser: parserTs,
-        project: './tsconfig.json',
+        // No `project` — non-type-aware by design (see TS block above).
         extraFileExtensions: ['.vue'],
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -426,7 +448,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
+        // No `project` — non-type-aware by design (see TS block above).
       },
     },
     plugins: {
@@ -458,34 +480,44 @@ export default [
   },
 
   // Include Tailwind recommended configuration, scoped to Vue SFCs only.
-  // The upstream flat/recommended configs ship without `files`, which would
-  // apply class-name linting to every file in the repo (and crash resolving
-  // the Tailwind v4 config from non-component files). No src/ .ts file uses
-  // the configured callees (classnames/clsx/ctl) or the class attribute
-  // regex, so .vue components are the only place these rules belong.
-  ...pluginTailwindCSS.configs['flat/recommended'].map((config) => ({
-    ...config,
+  // Left unscoped, class-name linting would apply to every file in the repo
+  // (and crash resolving the Tailwind v4 config from non-component files). No
+  // src/ .ts file uses the configured callees (classnames/clsx/ctl) or the
+  // class attribute regex, so .vue components are the only place these rules
+  // belong. In eslint-plugin-tailwindcss 4.0.4 the export is a single flat
+  // config object under `recommended` (the beta shipped an array under
+  // `flat/recommended`); override its `files` to re-scope it.
+  {
+    ...pluginTailwindCSS.configs['recommended'],
     files: ['src/**/*.vue'],
-  })),
+  },
   {
     files: ['src/**/*.vue'],
     settings: {
       tailwindcss: {
-        // These are the default values but feel free to customize
-        callees: ['classnames', 'clsx', 'ctl'],
-        // Tailwind v4: point at the CSS entry — the single source of truth for the
-        // theme. The path must be absolute: the plugin resolves `tailwindcss`
-        // relative to the config's directory, so a relative value fails with
-        // "Could not resolve tailwindcss".
-        config: `${import.meta.dirname}/src/assets/style.css`,
-        cssFiles: ['**/*.css', '!**/node_modules', '!**/.*', '!**/dist', '!**/build'],
-        cssFilesRefreshRate: 5_000,
-        removeDuplicates: true,
-        skipClassAttribute: false,
-        whitelist: [],
-        tags: [], // can be set to e.g. ['tw'] for use in tw`bg-blue`
-        classRegex: '^class(Name)?$', // can be modified to support custom attributes. E.g. "^tw$" for `twin.macro`
+        // eslint-plugin-tailwindcss 4.0.4 renamed the settings API from the
+        // beta: `callees` → `functions`, `config` → `cssConfigPath`. The old
+        // per-file scanning knobs (cssFiles/skipClassAttribute/classRegex/
+        // tags/whitelist/removeDuplicates) were dropped; `attributes` now
+        // controls which props are scanned (default: class/className/ngClass/
+        // @apply). We keep the project's narrow function set.
+        functions: ['classnames', 'clsx', 'ctl'],
+        // Tailwind v4: point at the CSS entry — the single source of truth for
+        // the theme. Absolute path: the plugin resolves `tailwindcss` relative
+        // to this file's directory, so a relative value fails with "Could not
+        // resolve tailwindcss". Required — the plugin's default (src/style.css)
+        // does not exist here.
+        cssConfigPath: `${import.meta.dirname}/src/assets/style.css`,
       },
+    },
+    // Placed after the recommended spread so this override wins. False
+    // positives on the intentional divide+border container pattern:
+    // `divide-{color}` sets border-color on inner separators (& > * + *) while
+    // `border-{color}` sets it on the element itself. Different selectors,
+    // legitimately combined across our list components — but the 4.0.4
+    // detector conflates the shared border-color token and flags them.
+    rules: {
+      'tailwindcss/no-contradicting-classname': 'off',
     },
   },
 
@@ -542,7 +574,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.json', './tsconfig.test.json'],
+        // No `project` — non-type-aware by design (see TS block above).
         extraFileExtensions: ['.vue'],
       },
       globals: {
@@ -652,19 +684,6 @@ export default [
     rules: {
       'playwright/no-networkidle': 'error',
       'playwright/no-wait-for-timeout': 'error',
-
-      // TODO: dead since #3414 scoped the tailwind flat/recommended spread to
-      // src/**/*.vue - these 'off' entries no longer override anything. Kept
-      // only to avoid churning lines the in-flight e2e sweep branch (#3416)
-      // sits next to; remove in the follow-up.
-      'tailwindcss/classnames-order': 'off',
-      'tailwindcss/enforces-negative-arbitrary-values': 'off',
-      'tailwindcss/enforces-shorthand': 'off',
-      'tailwindcss/migration-from-tailwind-2': 'off',
-      'tailwindcss/no-arbitrary-value': 'off',
-      'tailwindcss/no-custom-classname': 'off',
-      'tailwindcss/no-contradicting-classname': 'off',
-      'tailwindcss/no-unnecessary-arbitrary-value': 'off',
     },
   },
 

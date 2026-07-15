@@ -7,6 +7,12 @@
 # Usage:
 #   bin/ots customers list                    # List grouped by custid domain
 #   bin/ots customers list --by-email         # List grouped by email domain
+#
+# Customer enumeration is delegated to the shared Auth::Operations::Customers::List
+# op (single implementation, shared with the colonel API); this command owns only
+# the domain-grouping presentation. The CLI runs outside the auth autoloader, so
+# require the op explicitly.
+require 'auth/operations/customers/list'
 
 module Onetime
   module CLI
@@ -23,9 +29,10 @@ module Onetime
 
         puts format('%d customers', Onetime::Customer.instances.size)
 
-        all_customers = Onetime::Customer.instances.all.map do |custid|
-          Onetime::Customer.load(custid)
-        end
+        # per_page: :all loads every customer in one shot — acceptable here
+        # because this is an off-request operational CLI grouping view (not a
+        # request handler). The grouping below is order-independent.
+        all_customers = Auth::Operations::Customers::List.new(per_page: :all).call.customers
 
         # Choose the field to group by
         field = by_email ? :email : :custid

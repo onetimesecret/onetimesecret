@@ -12,13 +12,12 @@
     DisabledHomepage: a plain "members only" notice with no sign-in CTA.
 
     Accepts the full DisabledHomepageProps contract for compatibility with
-    the dispatcher, but only consumes what it needs.
+    the dispatcher, but only consumes the brand font classes — even the
+    quiet default must represent the domain's brand, not ours (Q5,
+    brand-manager-advanced-workplan.md).
   */
 
-  // Closed variant ignores the props bag entirely — kept for contract
-  // compatibility with the dispatcher. The `_` prefix matches the project's
-  // unused-vars lint allowlist.
-  const _props = defineProps<DisabledHomepageProps>();
+  defineProps<DisabledHomepageProps>();
 </script>
 
 <template>
@@ -27,6 +26,8 @@
       <DisabledHomepageTaglines
         :tagline1="$t('web.homepage.authonly.tagline1')"
         :tagline2="$t('web.homepage.authonly.tagline2')"
+        :heading-class="headingFontClass ?? fontFamilyClass ?? ''"
+        :font-class="fontFamilyClass ?? ''"
         class="mb-6" />
       <div class="mb-6"></div>
     </div>

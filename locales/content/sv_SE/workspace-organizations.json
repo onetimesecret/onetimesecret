@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organisation",
-    "source_hash": "d764d425"
+    "text": "Arbetsyta",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organisationer",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organisationer",
-    "source_hash": "2730183d"
+    "text": "Arbetsytor",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Hantera organisationer",
-    "source_hash": "be0fe4c3"
+    "text": "Hantera arbetsytor",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Ny organisation",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Inga organisationer ännu",
-    "source_hash": "5b7a7cbd"
+    "text": "Inga arbetsytor ännu",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisationer ger enhetlig fakturering och administration. Kom igång genom att skapa din första organisation.",
-    "source_hash": "deab4304"
+    "text": "Arbetsytor ger enhetlig fakturering och administration. Kom igång genom att skapa din första arbetsyta.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Ingen beskrivning angiven",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Skapa första organisationen",
-    "source_hash": "27bae486"
+    "text": "Skapa första arbetsytan",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Skapa en ny organisation",
-    "source_hash": "67cd5950"
+    "text": "Skapa en ny arbetsyta",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Skapa",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Kunde inte skapa organisation",
-    "source_hash": "f2204373"
+    "text": "Det gick inte att skapa arbetsytan",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Organisationsnamn",
-    "source_hash": "4cbd9073"
+    "text": "Arbetsytans namn",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "t.ex. Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Välj en organisation",
-    "source_hash": "48326f52"
+    "text": "Välj en arbetsyta",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organisationsbyte ej tillgängligt på denna sida",
-    "source_hash": "da0cf810"
+    "text": "Byte av arbetsyta är inte tillgängligt på den här sidan",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organisation hittades inte",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
-    "source_hash": "5985039f"
+    "text": "Medlemmar",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Fakturering",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Medlem",
-    "source_hash": "7c968fb7"
+    "text": "Teammedlem",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Administratör",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Inbjudningar av teammedlemmar kräver en plan med teamhantering. Uppgradera för att lägga till samarbetspartners i din organisation.",
-    "source_hash": "cf10d623"
+    "text": "Medlemsinbjudningar kräver en betald plan. Uppgradera för att lägga till medarbetare i din organisation.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Inloggad med ett annat konto",
-    "source_hash": "4a2f91c3"
+    "text": "Ett annat konto är inloggat",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Denna inbjudan gäller {invitedEmail}. Du är för närvarande inloggad som {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Fortsätt som {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d kvar",
@@ -662,10 +662,6 @@
   "api.organizations.invitations.errors.accept_organization_gone": {
     "text": "Organisationen finns inte längre",
     "source_hash": "a5df7d22"
-  },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Inbjudan har redan blivit %{status}",
-    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Inbjudan har gått ut",
@@ -1030,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Skapa arbetsyta",
+    "source_hash": "c63c14cf"
   }
 }

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'openssl'
+require 'mail'
 
 module Onetime
   module Mail
@@ -43,16 +44,28 @@ module Onetime
         # Deliver an email message with unified error handling.
         # Subclasses implement perform_delivery and classify_error.
         # @param email [Hash] Email parameters (to, from, subject, text_body, html_body)
-        # @return [Object] Provider-specific response or nil
+        # @return [Object] Provider-specific response, or nil when the recipient
+        #   is on the suppression list (send skipped, nothing dispatched)
         def deliver(email)
-          email  = normalize_email(email)
+          email = normalize_email(email)
+
+          # Outbound suppression guard: never send to an address with a recorded
+          # bounce/complaint — repeat sends to known-bad addresses are what burn
+          # sender reputation. One Redis lookup, fail-open (see the helper).
+          if suppressed_recipient?(email)
+            log_delivery(email, 'suppressed')
+            return nil
+          end
+
           result = perform_delivery(email)
           log_delivery(email, delivery_log_status)
+          record_sent_metric
           result
         rescue Onetime::Mail::DeliveryError
           raise # pass-through, no double-wrap
         rescue StandardError => ex
           log_error(email, ex)
+          record_sync_bounce(email, ex)
           transient = classify_error(ex) == :transient
           raise Onetime::Mail::DeliveryError.new(
             "#{provider_name} delivery error: #{ex.message}",
@@ -92,6 +105,100 @@ module Onetime
         end
 
         protected
+
+        # Best-effort global "emails sent" tally, surfaced on the colonel stats
+        # dashboard (issue #3653, debt §7 — the send chokepoint for emails_sent).
+        #
+        # This is the single point every backend's successful send converges on,
+        # so the counter is incremented exactly once per delivered email. Only real
+        # provider sends count: the Disabled backend reports 'skipped' and the
+        # Logger backend reports 'logged' — neither emits an actual email, so they
+        # must not inflate the metric.
+        #
+        # A metrics write must never disrupt mail delivery, so the increment is
+        # guarded (Onetime::Customer may be absent in isolated mailer tests) and
+        # any error is swallowed.
+        def record_sent_metric
+          return unless delivery_log_status == 'sent'
+          return unless defined?(Onetime::Customer)
+
+          Onetime::Customer.emails_sent.increment
+        rescue StandardError => ex
+          if defined?(OT) && OT.respond_to?(:le)
+            OT.le "[mail] emails_sent counter increment failed: #{ex.message}"
+          end
+          nil
+        end
+
+        # The suppression-list check guarding every send (the deliverability
+        # counterpart of record_sent_metric — same single chokepoint, so every
+        # backend and every entry point above them is covered).
+        #
+        # FAIL-OPEN by contract: EmailSuppression.skip_send? already swallows
+        # Redis errors, and this wrapper adds a second layer (plus the same
+        # defined? guard record_sent_metric uses for isolated mailer tests) so
+        # a suppression-check failure can NEVER block mail delivery — losing
+        # one skip is a rounding error; blocking all outbound mail is an outage.
+        #
+        # A send fans out to every recipient in email[:to], so the guard must
+        # inspect each mailbox individually: a To of "a@x.com, b@x.com" or an
+        # Array of addresses would otherwise be looked up as one opaque string
+        # and never match a suppressed mailbox in the set. If ANY recipient is
+        # suppressed the whole send is skipped — the backends dispatch to all
+        # recipients at once, so there is no way to drop just one without
+        # rewriting the message; skipping matches the existing return-nil
+        # semantics and keeps known-bad addresses off the wire.
+        #
+        # @return [Boolean] true when any recipient is suppressed (skip the send)
+        def suppressed_recipient?(email)
+          return false unless defined?(Onetime::EmailSuppression)
+
+          recipient_mailboxes(email[:to]).any? do |address|
+            Onetime::EmailSuppression.skip_send?(address)
+          end
+        rescue StandardError => ex
+          if defined?(OT) && OT.respond_to?(:le)
+            OT.le "[mail] suppression check failed (failing open): #{ex.message}"
+          end
+          false
+        end
+
+        # Record a synchronous hard bounce into the deliverability event feed.
+        #
+        # Deliberately narrow: only SMTP 5xx rejections (Net::SMTPFatalError —
+        # e.g. 550 mailbox unavailable) are recipient-level feedback we can
+        # trust at send time. Other fatal errors (auth failures, API 4xx,
+        # config problems) are SENDER-side and must not show up as bounces.
+        # Recording is event-only — no auto-suppression from a single
+        # synchronous failure; suppression comes from ESP feedback ingestion
+        # or an operator decision (see Onetime::EmailSuppression).
+        #
+        # Best-effort like record_sent_metric: a feed write must never mask
+        # the delivery error being raised to the caller.
+        def record_sync_bounce(email, error)
+          return unless defined?(Onetime::EmailSuppression)
+          return unless defined?(Net::SMTPFatalError) && error.is_a?(Net::SMTPFatalError)
+
+          # A 5xx rejection is recipient-level feedback, but a fanned-out send
+          # can carry several mailboxes in :to. Record the bounce against each
+          # real mailbox rather than the opaque joined "a@x, b@x" string, which
+          # no per-address lookup could ever match. Event-only (no
+          # auto-suppression), so recording every recipient of a rejected
+          # envelope is safe; the single-recipient path records exactly one.
+          recipient_mailboxes(email[:to]).each do |address|
+            Onetime::EmailSuppression.record_event(
+              address: address,
+              kind: 'bounce',
+              reason: error.message.to_s,
+              source: "#{provider_name.downcase}-sync",
+            )
+          end
+        rescue StandardError => ex
+          if defined?(OT) && OT.respond_to?(:le)
+            OT.le "[mail] sync bounce recording failed: #{ex.message}"
+          end
+          nil
+        end
 
         # Override in subclasses for provider-specific validation
         def validate_config!
@@ -137,10 +244,56 @@ module Onetime
           end
         end
 
+        # Canonicalize the :to field to a single-mailbox string the backends can
+        # hand to a provider. The delivery stack is single-recipient by contract:
+        # Mailer#extract_email_address already collapses an Array to its first
+        # entry upstream, and every backend treats :to as one mailbox — SES wraps
+        # it as [email[:to]] and SendGrid as { email: email[:to] }. So an Array
+        # is collapsed to its first entry (mirroring extract_email_address) rather
+        # than comma-joined, which those backends would send as one invalid
+        # address. A String passes through unchanged, preserving any display name
+        # for the header — mailbox extraction for the guard is handled separately.
+        def normalize_recipients(value)
+          return value.to_s unless value.is_a?(Array)
+
+          value.map(&:to_s).map(&:strip).reject(&:empty?).first.to_s
+        end
+
+        # Split a recipient value into individual mailbox addresses for the
+        # suppression guard.
+        #
+        # Uses the mail gem's RFC 5322 parser so address lists with quoted
+        # display names ("Doe, John" <john@x.com>) or angle-addr wrappers are
+        # parsed correctly rather than naively split on commas. Handles the shapes
+        # a mailer can hand us for :to — an Array, a "a@x.com, b@x.com" string, or
+        # a bare address — and returns raw mailboxes with display names stripped.
+        # Falls back to a naive comma split if the value is not parseable, so a
+        # malformed header can never raise out of the delivery path.
+        #
+        # @return [Array<String>] individual recipient addresses
+        def recipient_mailboxes(value)
+          Array(value)
+            .flat_map { |entry| parse_addresses(entry) }
+            .map(&:strip)
+            .reject(&:empty?)
+        end
+
+        # Parse one recipient value into bare mailbox addresses via Mail's
+        # RFC 5322 address-list parser, falling back to a naive comma split
+        # (stripping any "Display Name <addr>" wrapper) if it will not parse.
+        def parse_addresses(entry)
+          str = entry.to_s
+          return [] if str.strip.empty?
+
+          Mail::AddressList.new(str).addresses.map(&:address)
+        rescue StandardError
+          str.split(',').map { |token| token[/<([^>]+)>/, 1] || token }
+        end
+
         # Normalize email hash to ensure required fields
         def normalize_email(email)
           {
-            to: email[:to].to_s,
+            to: normalize_recipients(email[:to]),
             from: email[:from].to_s,
             reply_to: email[:reply_to]&.to_s,
             subject: email[:subject].to_s,

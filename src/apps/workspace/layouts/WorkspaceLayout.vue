@@ -53,6 +53,7 @@
     displayPoweredBy: true,
     showSidebar: false,
     sidebarPosition: 'right',
+    bannerAudience: 'workspace',
   });
 
   // Store instances for centralized data loading

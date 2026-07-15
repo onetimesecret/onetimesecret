@@ -14,6 +14,9 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
       expected_members = %i[
         logo
         primary_color
+        secondary_color
+        background_color
+        text_color
         product_name
         product_domain
         support_email
@@ -27,7 +30,9 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         instructions_post_reveal
         button_text_light
         font_family
+        heading_font
         corner_style
+        border_radius
         locale
         default_ttl
         passphrase_required
@@ -53,8 +58,10 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
     end
 
     describe 'FONTS' do
-      it 'includes valid font families' do
-        expect(described_class::FONTS).to contain_exactly('sans', 'serif', 'mono')
+      it 'includes the curated font allowlist' do
+        expect(described_class::FONTS).to contain_exactly(
+          'sans', 'serif', 'mono', 'system', 'slab', 'rounded', 'humanist', 'geometric'
+        )
       end
 
       it 'is frozen' do
@@ -69,6 +76,16 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
 
       it 'is frozen' do
         expect(described_class::CORNERS).to be_frozen
+      end
+    end
+
+    describe 'RADII' do
+      it 'includes named border-radius presets' do
+        expect(described_class::RADII).to contain_exactly('none', 'sm', 'md', 'lg', 'xl')
+      end
+
+      it 'is frozen' do
+        expect(described_class::RADII).to be_frozen
       end
     end
   end
@@ -226,6 +243,104 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         expect(described_class.valid_corner_style?('')).to be false
         expect(described_class.valid_corner_style?(nil)).to be false
       end
+    end
+
+    describe '.valid_font? (expanded allowlist)' do
+      it 'accepts the new curated fonts' do
+        expect(described_class.valid_font?('system')).to be true
+        expect(described_class.valid_font?('slab')).to be true
+        expect(described_class.valid_font?('rounded')).to be true
+        expect(described_class.valid_font?('humanist')).to be true
+        expect(described_class.valid_font?('geometric')).to be true
+      end
+    end
+
+    describe '.valid_border_radius?' do
+      it 'accepts named presets (case-insensitive)' do
+        expect(described_class.valid_border_radius?('none')).to be true
+        expect(described_class.valid_border_radius?('MD')).to be true
+      end
+
+      it 'rejects the retired `full` pill preset' do
+        expect(described_class.valid_border_radius?('full')).to be false
+      end
+
+      it 'accepts integers and numeric strings within range' do
+        expect(described_class.valid_border_radius?(0)).to be true
+        expect(described_class.valid_border_radius?(16)).to be true
+        expect(described_class.valid_border_radius?('12')).to be true
+        expect(described_class.valid_border_radius?(described_class::RADIUS_MAX)).to be true
+      end
+
+      it 'rejects out-of-range, non-numeric, or unknown values' do
+        expect(described_class.valid_border_radius?(described_class::RADIUS_MAX + 1)).to be false
+        expect(described_class.valid_border_radius?(-1)).to be false
+        expect(described_class.valid_border_radius?('12px')).to be false
+        expect(described_class.valid_border_radius?('huge')).to be false
+        expect(described_class.valid_border_radius?(nil)).to be false
+      end
+    end
+  end
+
+  describe '.validate! (expanded vocabulary)' do
+    it 'accepts valid secondary/background/text colors' do
+      expect {
+        described_class.validate!(
+          secondary_color: '#0EA5E9',
+          background_color: '#FFFFFF',
+          text_color: '#1F2937'
+        )
+      }.not_to raise_error
+    end
+
+    it 'rejects an invalid secondary color format' do
+      expect {
+        described_class.validate!(secondary_color: 'not-a-hex')
+      }.to raise_error(Onetime::Problem, /secondary color/i)
+    end
+
+    it 'accepts a low-contrast text-on-background pair (contrast no longer gated)' do
+      # Near-identical colors are far below the 4.5:1 normal-text threshold, but
+      # WCAG contrast is no longer enforced on save (product decision 2026-07);
+      # only hex format is validated, so this pair is accepted.
+      expect {
+        described_class.validate!(text_color: '#EEEEEE', background_color: '#FFFFFF')
+      }.not_to raise_error
+    end
+
+    it 'accepts a high-contrast text-on-background pair' do
+      expect {
+        described_class.validate!(text_color: '#111111', background_color: '#FFFFFF')
+      }.not_to raise_error
+    end
+
+    it 'accepts a bright secondary accent (not contrast-gated)' do
+      # secondary_color is decorative; only format is validated, so a bright
+      # accent that would fail a 3:1-vs-white rule is still accepted.
+      expect {
+        described_class.validate!(secondary_color: '#0EA5E9')
+      }.not_to raise_error
+    end
+
+    it 'accepts a valid heading_font from the allowlist' do
+      expect { described_class.validate!(heading_font: 'slab') }.not_to raise_error
+    end
+
+    it 'rejects an unknown heading_font' do
+      expect {
+        described_class.validate!(heading_font: 'comic-sans')
+      }.to raise_error(Onetime::Problem, /heading font/i)
+    end
+
+    it 'accepts valid border_radius presets and pixel values' do
+      expect { described_class.validate!(border_radius: 'lg') }.not_to raise_error
+      expect { described_class.validate!(border_radius: 20) }.not_to raise_error
+    end
+
+    it 'rejects an out-of-range border_radius' do
+      expect {
+        described_class.validate!(border_radius: 999)
+      }.to raise_error(Onetime::Problem, /border radius/i)
     end
   end
 

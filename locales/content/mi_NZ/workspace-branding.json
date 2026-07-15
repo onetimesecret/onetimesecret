@@ -28,8 +28,8 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Arokite & Whakaritenga",
-    "source_hash": "215d3659"
+    "text": "Whakarite & Arokite",
+    "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Huri ki te tirohanga tirotiro Safari",
@@ -88,8 +88,8 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Pāwhiri ki te tukuake i tētahi tohu. Rahinga tūtohu: 128x128 ngā pika. Rahi kōnae mōrahi: 1MB. Ngā whakatakotoranga tautokona: PNG, JPG, SVG",
-    "source_hash": "a35452bf"
+    "text": "Pāwhiri hei whakahaere i tō tohu. Rahi tūtohua: 128x128 pika. Rahi kōnae mōrahi: 1MB. Ngā hōputu tautoko: PNG, JPG, SVG",
+    "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Tukuake moko",
@@ -145,15 +145,15 @@
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Whakahohea e {product_name}",
-    "source_hash": "d8e9f0a1"
+    "source_hash": "1f393117"
   },
   "web.branding.low_contrast_warning": {
     "text": "Pārakahanga iti",
-    "source_hash": "a1b2c3d4"
+    "source_hash": "2d6e7516"
   },
   "web.branding.contrast_ratio_label": {
     "text": "Ōwehenga pārakahanga",
-    "source_hash": "e5f6a7b8"
+    "source_hash": "d521a5be"
   },
   "web.branding.heading_logo": {
     "text": "Moko {0}",
@@ -186,5 +186,225 @@
   "web.branding.keyhole_logo_icon": {
     "text": "Ata pūwhare e tohu ana i te tohatoha haumaru, tūmataiti",
     "source_hash": "c868ac60"
+  },
+  "web.branding.secondary_color": {
+    "text": "Tae Tuarua",
+    "source_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Tae Papamuri",
+    "source_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Tae Kuputuhi",
+    "source_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Pūrā Tapa",
+    "source_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Momotuhi Pane",
+    "source_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Ngā Tautuhinga Kaupapa",
+    "source_hash": "931eeb74"
+  },
+  "web.branding.logo": {
+    "text": "Tohu",
+    "source_hash": "d707dc2f"
+  },
+  "web.branding.replace_logo": {
+    "text": "Whakakapi",
+    "source_hash": "95e15439"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "Arokitea i mua i te ora o ō huringa.",
+    "source_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Tohu rohe",
+    "source_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG, SVG rānei. Tūtohua 128x128px, tae atu ki te 1MB.",
+    "source_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Tiaki tohu",
+    "source_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Tango tohu",
+    "source_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Kōwhiria he whakaahua",
+    "source_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "tō, tuku rānei",
+    "source_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "Kāore taua momo kōnae e tautokona. Tēnā, kōwhiria he whakaahua.",
+    "source_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "He rahi rawa te whakaahua. Ko te rahi mōrahi ko {max}.",
+    "source_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "Ka tangohia tēnei tohu ina tiaki koe.",
+    "source_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "I hē tētahi mea. Tēnā, ngana anō.",
+    "source_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Whakahoki",
+    "source_hash": "a8283ade"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "He iti te rerekētanga kuputuhi/papamuri",
+    "source_hash": "1c676370"
+  },
+  "web.branding.path_simple": {
+    "text": "Māmā",
+    "source_hash": "3fee95da"
+  },
+  "web.branding.path_match": {
+    "text": "Whakaōrite ki taku pae",
+    "source_hash": "776679cf"
+  },
+  "web.branding.path_advanced": {
+    "text": "Matatau",
+    "source_hash": "9f088dbe"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Ō waitohu matua.",
+    "source_hash": "7c9c0cca"
+  },
+  "web.branding.path_match_tag": {
+    "text": "Tāruatia ngā tautuhinga mai i tētahi pae kua tū.",
+    "source_hash": "e4b0d1cd"
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Hangaia tāu ake CSS Tailwind v4.",
+    "source_hash": "2405bb6d"
+  },
+  "web.branding.badge_default": {
+    "text": "Taunoa",
+    "source_hash": "21b111cb"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "E tae mai ana",
+    "source_hash": "4f7d6401"
+  },
+  "web.branding.your_brand": {
+    "text": "Tō waitohu",
+    "source_hash": "406265d3"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "He kōwhiringa tere torutoru — mā mātou te toenga.",
+    "source_hash": "dbc8ec33"
+  },
+  "web.branding.corners": {
+    "text": "Ngā Koki",
+    "source_hash": "1d3cc47e"
+  },
+  "web.branding.more_options": {
+    "text": "Ētahi atu kōwhiringa",
+    "source_hash": "bc79cdff"
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "He arokite ora tēnei — kāore ō huringa e kitea e ngā manuhiri kia tiaki rā anō koe.",
+    "source_hash": "cb4b82de"
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Tohua mai tō paetukutuku, ka pānui mātou i ōna tae me ōna momotuhi, kātahi ka kati i te āputa i te pāwhiri kotahi.",
+    "source_hash": "42c34cc1"
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Whakatikahia ngā tokena {'@'}theme Tailwind v4 tōtika, whakapiritia rānei tāu ake pepa kāhua.",
+    "source_hash": "5a8473f5"
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Whārangi kaiwhiwhi",
+    "source_hash": "de8aa19f"
+  },
+  "web.branding.preview_badge": {
+    "text": "Arokite",
+    "source_hash": "324b134f"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Whārangi kāinga · kua whakahohea",
+    "source_hash": "2edd85f1"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Whārangi kāinga · kua monokia",
+    "source_hash": "15d87050"
+  },
+  "web.branding.preview_live": {
+    "text": "Arokite ora",
+    "source_hash": "f65ddc1f"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Tohatoha i tētahi karere huna",
+    "source_hash": "5384461b"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Waihanga hononga huna",
+    "source_hash": "610fd42e"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Te tuku karere haumaru anake",
+    "source_hash": "dc24dec2"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Kāore e taea e ngā manuhiri te waihanga karere huna ki konei.",
+    "source_hash": "17361d81"
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Ihirangi whārangi kaiwhiwhi",
+    "source_hash": "937733bd"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Ngā tohutohu reo me te whakaatu ka whakaaturia ki ngā kaiwhiwhi i tēnei rohe.",
+    "source_hash": "04162b70"
+  },
+  "web.branding.tab_brand": {
+    "text": "Waitohu",
+    "source_hash": "090ed431"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Tuku",
+    "source_hash": "52bfe584"
+  },
+  "web.branding.delivery_language": {
+    "text": "Reo",
+    "source_hash": "a4fe6526"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Taunoa mō ngā whārangi kaiwhiwhi me ngā īmēra i tēnei rohe. Ka taea e ngā kaiwhiwhi te huri reo i te whārangi.",
+    "source_hash": "bfbc5599"
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Tohutohu whakaatu",
+    "source_hash": "7e1331f7"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Ka whakaaturia i te whārangi kaiwhiwhi. Waiho wātea hei whakamahi i te kuputuhi tōmua i te reo kua tīpakohia.",
+    "source_hash": "51b9811d"
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "I mua i te whakaatu",
+    "source_hash": "5ce82b01"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "I muri i te whakaatu",
+    "source_hash": "d5bfe7fd"
   }
 }

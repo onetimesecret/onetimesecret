@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Lời mời đã được %{status}",
-    "source_hash": "130c87e0"
+    "text": "Lời mời này đã được xử lý",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Lời mời đã hết hạn",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Bạn đã là thành viên của tổ chức này",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Lời mời này đã được chấp nhận",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Lời mời này đã bị từ chối",
+    "source_hash": "96e0d626"
   }
 }

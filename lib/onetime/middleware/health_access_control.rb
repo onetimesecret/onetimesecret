@@ -24,7 +24,7 @@ module Onetime
       def initialize(app)
         @app          = app
         @logger       = Onetime.get_logger('HealthAccessControl')
-        @extra_ranges = parse_trusted_cidrs(ENV['HEALTH_TRUSTED_CIDR'])
+        @extra_ranges = parse_trusted_cidrs(ENV.fetch('HEALTH_TRUSTED_CIDR', nil))
       end
 
       def call(env)

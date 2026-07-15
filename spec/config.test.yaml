@@ -126,7 +126,8 @@ jobs:
   rabbitmq_url: "<%= ENV['RABBITMQ_URL'] || '' %>"
   channel_pool_size: 1
   fallback_to_sync: true
-  dlq_consumer_enabled: false
+  dlq_consumer:
+    enabled: false
   maintenance:
     housekeeping:
       enabled: false

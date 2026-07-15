@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "マジックリンクオプションを使用して、パスワードなしでログインできます。ログイン後、アカウント設定でパスワードを変更できます。",
-    "source_hash": "2a058600"
+    "text": "新しいパスワードを作成するために、パスワードリセットリンクをリクエストできます。",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "アカウントが一時的にロックされましたか?",
@@ -395,9 +395,6 @@
   "web.help.contact_support": {
     "text": "サポートに連絡",
     "source_hash": "f8d47b82"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "サインアップ後のメール認証フロー"
   },
   "web.auth.account.sso_linked": {
     "text": "SSOアカウント",
@@ -434,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "お使いのメールドメインはSSO登録の対象として許可されていません。管理者にお問い合わせください。",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "メールをご確認ください",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "確認リンクをお客様のメールアドレスに送信しました。",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "このアドレスに確認リンクを送信しました。メールを開いてリンクをクリックし、アカウントを有効化してください。",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "見つかりませんか?迷惑メールフォルダをご確認ください。",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "間違ったアドレスを入力しましたか?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "最初からやり直す",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "パスワード",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "確認メールが届きませんでしたか?メールアドレスを入力して再送信してください。",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "確認メールを再送信",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "アカウントの確認が必要な場合は、新しいメールが送信されました。受信トレイと迷惑メールフォルダをご確認ください。",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "確認メールを送信できませんでした。接続を確認してもう一度お試しください。",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "メールを再送信",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "メールが確認されました。ログインできるようになりました。",
+    "source_hash": "c8d4b5a8"
   }
 }

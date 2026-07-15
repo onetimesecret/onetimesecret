@@ -1,32 +1,4 @@
 {
-  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
-    "text": "{0}/{1}/{2} [{3}]",
-    "content_hash": "98ba1771"
-  },
-  "web.colonel.customer_verified_verified_not_verified_0": {
-    "text": "`+customer.verified ? `verified` : `not verified",
-    "content_hash": "52e93cc0"
-  },
-  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
-    "text": "Customers ({0} of {1})",
-    "content_hash": "eb88db1d"
-  },
-  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
-    "text": "User Feedback (Total: {0})",
-    "content_hash": "d4a80454"
-  },
-  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
-    "content_hash": "5a341707"
-  },
-  "web.colonel.secrets_details_counts_secret_count_0": {
-    "text": "Secrets ({0})",
-    "content_hash": "dd1c471a"
-  },
-  "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(active in the past 5 minutes)",
-    "content_hash": "a2b19058"
-  },
   "web.colonel.configEditorTitle": {
     "text": "Settings",
     "content_hash": "74a883a0"
@@ -102,6 +74,10 @@
   "web.colonel.admin": {
     "text": "Admin",
     "content_hash": "c1c224b0"
+  },
+  "web.colonel.backToSite": {
+    "text": "Back to site",
+    "content_hash": "4ee0f819"
   },
   "web.colonel.activity": {
     "text": "Activity",
@@ -731,6 +707,18 @@
     "text": "Favicon",
     "content_hash": "42955289"
   },
+  "web.colonel.customDomains.labels.domain": {
+    "text": "Domain",
+    "content_hash": "79fa3361"
+  },
+  "web.colonel.customDomains.labels.status": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.colonel.customDomains.labels.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
   "web.colonel.customDomains.status.verified": {
     "text": "Verified",
     "content_hash": "4f783840"
@@ -830,5 +818,29 @@
   "web.colonel.pagination.pageOf": {
     "text": "Page {current} of {total}",
     "content_hash": "f0df6412"
+  },
+  "web.colonel.nav.consoleTag": {
+    "text": "Console",
+    "content_hash": "29a40861"
+  },
+  "web.colonel.nav.groups.identity": {
+    "text": "Identity",
+    "content_hash": "999f23fc"
+  },
+  "web.colonel.nav.groups.security": {
+    "text": "Access & Security",
+    "content_hash": "abb29a3f"
+  },
+  "web.colonel.nav.groups.platform": {
+    "text": "Platform",
+    "content_hash": "c78ffe19"
+  },
+  "web.colonel.nav.groups.billing": {
+    "text": "Billing",
+    "content_hash": "3ac8bbca"
+  },
+  "web.colonel.nav.groups.communications": {
+    "text": "Communications",
+    "content_hash": "919a9253"
   }
 }

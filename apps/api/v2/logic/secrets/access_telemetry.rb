@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/request_context'
+
 module V2::Logic
   module Secrets
     # Records secret accesses on the receipt's access timeline
@@ -38,10 +40,37 @@ module V2::Logic
         end
 
         receipt = secret.load_receipt
-        receipt&.record_access_event(kind)
+        receipt&.record_access_event(kind, context: request_network_context)
       rescue StandardError => ex
         OT.le "[access-telemetry] #{ex.class}: #{ex.message} (kind=#{kind})"
         nil
+      end
+
+      # Privacy-safe network context (#3640) for the fetch event, threaded down
+      # to the model layer's org-trail fan-out (which has no request object of
+      # its own). Reads the IP / User-Agent the auth strategy resolved into the
+      # StrategyResult metadata -- in production these are ALREADY edge-masked
+      # by Otto's IPPrivacyMiddleware -- and reduces them again, unconditionally,
+      # to the stored representation: partial IP, partial UA, and a keyed
+      # correlation hash. Raw IP / full UA are never stored; see
+      # Onetime::Security::RequestContext and ADR-022 for the full stance.
+      #
+      # @return [Hash{String=>String}] string-keyed network attrs, forwarded via
+      #   record_access_event(context:) -> record_org_audit_event(**event_attrs).
+      #   Empty when no request context is available (e.g. in unit tests that
+      #   supply no metadata), in which case the event records without them.
+      def request_network_context
+        metadata = strategy_result&.metadata || {}
+
+        Onetime::Security::RequestContext.capture(
+          ip: metadata[:ip],
+          user_agent: metadata[:user_agent],
+        )
+      rescue StandardError => ex
+        # Capture must never break the (best-effort) telemetry path; on any
+        # failure fall back to recording the event with no network context.
+        OT.le "[access-telemetry] network-context capture failed: #{ex.class}: #{ex.message}"
+        {}
       end
     end
   end

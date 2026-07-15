@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Uitnodiging is al %{status}",
-    "source_hash": "130c87e0"
+    "text": "Deze uitnodiging is al verwerkt",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Uitnodiging is verlopen",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Je bent al lid van deze organisatie",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Deze uitnodiging is al geaccepteerd",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Deze uitnodiging is al afgewezen",
+    "source_hash": "96e0d626"
   }
 }

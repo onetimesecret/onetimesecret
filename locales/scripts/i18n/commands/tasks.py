@@ -55,8 +55,8 @@ def _register_create(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python create.py fr_CA           # Generate tasks for Canadian French
-    python create.py eo --dry-run    # Preview without writing
+    python3 locales/scripts/i18n tasks create fr_CA            # Generate tasks for Canadian French
+    python3 locales/scripts/i18n tasks create eo --dry-run     # Preview without writing
         """,
     )
     c.add_argument(
@@ -72,8 +72,9 @@ Examples:
         "--missing-only",
         action="store_true",
         help=(
-            "Enqueue only keys untranslated in content/<locale> (absent, or "
-            "empty text without skip), skipping levels with no work. Catches a "
+            "Enqueue keys untranslated in content/<locale> (absent, or empty "
+            "text without skip) plus stale ones (translated, but the en source "
+            "changed since), skipping levels with no work. Catches a "
             "locale up to a grown English source without re-touching reviewed "
             "translations. Run once per locale (re-running rewrites keys_json)."
         ),
@@ -89,13 +90,13 @@ def _register_next(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python next.py eo                    # Show next pending task
-    python next.py eo --claim            # Claim task (mark in_progress)
-    python next.py eo --json             # Output as JSON
-    python next.py eo --file auth.json   # Filter by file
-    python next.py eo --filter web.COMMON  # Filter by key path prefix
-    python next.py eo --stats            # Show task statistics
-    python next.py eo --id 42            # Get specific task by ID
+    python3 locales/scripts/i18n tasks next eo                    # Show next pending task
+    python3 locales/scripts/i18n tasks next eo --claim            # Claim task (mark in_progress)
+    python3 locales/scripts/i18n tasks next eo --json             # Output as JSON
+    python3 locales/scripts/i18n tasks next eo --file auth.json   # Filter by file
+    python3 locales/scripts/i18n tasks next eo --filter web.COMMON  # Filter by key path prefix
+    python3 locales/scripts/i18n tasks next eo --stats            # Show task statistics
+    python3 locales/scripts/i18n tasks next eo --id 42            # Get specific task by ID
         """,
     )
     c.add_argument(
@@ -145,11 +146,11 @@ def _register_update(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python update.py 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
-    python update.py 42 --file translations.json
-    python update.py 42 --skip --note "Not applicable"
-    python update.py 42 --status pending  # Reset to pending
-    python update.py 42 --status in_progress  # Mark as in progress
+    python3 locales/scripts/i18n tasks update 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
+    python3 locales/scripts/i18n tasks update 42 --file translations.json --validate
+    python3 locales/scripts/i18n tasks update 42 --skip --note "Not applicable"
+    python3 locales/scripts/i18n tasks update 42 --status pending  # Reset to pending
+    python3 locales/scripts/i18n tasks update 42 --status in_progress  # Mark as in progress
         """,
     )
     c.add_argument(
@@ -211,9 +212,9 @@ def _register_export(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python export.py eo --dry-run
-    python export.py eo
-    python export.py eo --file 00-common.json
+    python3 locales/scripts/i18n tasks export eo --dry-run
+    python3 locales/scripts/i18n tasks export eo
+    python3 locales/scripts/i18n tasks export eo --file 00-common.json
         """,
     )
     c.add_argument(
@@ -261,6 +262,10 @@ class TranslationTask:
     level_path: str
     locale: str
     keys_json: str  # JSON string: {"key_name": "English text", ...}
+    # JSON string: {"key_name": "en content_hash", ...} — the en watermark each
+    # leaf is being translated against, snapshotted now. export stamps these onto
+    # the target's source_hash. None when no leaf in the level has a content_hash.
+    source_hashes_json: str | None = None
 
 
 def get_parent_level(key_path: str) -> str:
@@ -285,30 +290,90 @@ def group_keys_by_level(keys: dict[str, str]) -> dict[str, dict[str, str]]:
     return dict(levels)
 
 
+def level_source_hashes(
+    level_path: str, leaf_keys: dict[str, str], en_hashes: dict[str, str]
+) -> dict[str, str]:
+    """Map each leaf in a level to its en ``content_hash`` (the snapshot).
+
+    Leaves whose en key has no ``content_hash`` (unhashed source) are omitted,
+    so the result — and thus ``source_hashes_json`` — is empty rather than
+    carrying null placeholders.
+    """
+    out: dict[str, str] = {}
+    for leaf in leaf_keys:
+        full_key = f"{level_path}.{leaf}" if level_path else leaf
+        if full_key in en_hashes:
+            out[leaf] = en_hashes[full_key]
+    return out
+
+
 def get_keys_from_file(file_path: Path) -> dict[str, str]:
     """Load a JSON file and return a dict of key_path -> value."""
     data = load_json_file(file_path)
     return dict(walk_keys(data))
 
 
-def get_translated_keys(locale: str, file_name: str) -> set[str]:
-    """Full key paths already handled for ``locale`` in ``file_name``.
+def get_source_hashes_from_file(file_path: Path) -> dict[str, str]:
+    """Full key path -> ``content_hash`` for translatable en keys in a file.
 
-    A target entry counts as handled when it carries a truthy ``skip`` flag or
-    a non-empty ``text`` value. Used by ``create --missing-only`` to enqueue
-    only the untranslated delta instead of the full English tree. Returns an
-    empty set when the target file does not exist yet (everything is missing).
+    Mirrors :func:`get_keys_from_file`'s skip/metadata filtering but reads the
+    ``content_hash`` written by ``content hashes`` instead of the text. Keys
+    without a ``content_hash`` (bare, not-yet-hashed source strings) are omitted
+    — they carry no watermark to snapshot or compare against.
+    """
+    out: dict[str, str] = {}
+    for full_key, entry in load_json_file(file_path).items():
+        if any(part.startswith("_") for part in full_key.split(".")) or not isinstance(
+            entry, dict
+        ):
+            continue
+        if entry.get("skip"):
+            continue
+        content_hash = entry.get("content_hash")
+        if isinstance(content_hash, str) and content_hash:
+            out[full_key] = content_hash
+    return out
+
+
+def get_target_entries(locale: str, file_name: str) -> dict[str, dict]:
+    """Full key path -> entry dict for ``locale``'s copy of ``file_name``.
+
+    Empty when the target file does not exist yet. Non-dict values are dropped
+    so callers can read ``text``/``skip``/``source_hash`` without re-checking.
     """
     target = CONTENT_DIR / locale / file_name
     if not target.exists():
-        return set()
-    done: set[str] = set()
-    for full_key, entry in load_json_file(target).items():
-        if not isinstance(entry, dict):
-            continue
-        if entry.get("skip") or entry.get("text", "") != "":
-            done.add(full_key)
-    return done
+        return {}
+    return {
+        k: v
+        for k, v in load_json_file(target).items()
+        if isinstance(v, dict)
+    }
+
+
+def classify_key(entry: Optional[dict], en_hash: Optional[str]) -> str:
+    """Classify one en key's state in a target locale.
+
+    ``entry`` is the target's entry for the key (None if absent); ``en_hash`` is
+    the key's current en ``content_hash`` (None if the source is unhashed).
+
+    Returns one of:
+      - ``"skipped"``  — target marked it skip (an intentional non-translation).
+      - ``"missing"``  — absent, or empty text without a skip flag.
+      - ``"stale"``    — translated, but its ``source_hash`` watermark no longer
+                         matches en (English moved after translation). Requires a
+                         present watermark AND a present en hash: an absent
+                         watermark can't prove drift, so it reads as ``current``.
+      - ``"current"``  — translated and the watermark still matches en.
+    """
+    if entry is not None and entry.get("skip"):
+        return "skipped"
+    if not (isinstance(entry, dict) and entry.get("text", "") != ""):
+        return "missing"
+    prev = entry.get("source_hash")
+    if en_hash and isinstance(prev, str) and prev and prev != en_hash:
+        return "stale"
+    return "current"
 
 
 def generate_tasks(
@@ -320,11 +385,18 @@ def generate_tasks(
 
     Default behaviour is target-blind: every English key becomes a task,
     regardless of the locale's existing translations. With ``missing_only``,
-    each English file is filtered against ``content/<locale>`` so only
-    untranslated keys (absent, or empty ``text`` without ``skip``) are
-    enqueued; levels left with no work produce no row. This is the
-    "translate the new strings only" path for catching a locale up to a grown
-    English source without re-touching reviewed translations.
+    each English file is filtered against ``content/<locale>`` so only keys that
+    still need work are enqueued — **missing** (absent, or empty ``text`` without
+    ``skip``) *and* **stale** (translated, but the target's ``source_hash``
+    watermark no longer matches en's ``content_hash`` — English moved after the
+    translation was made). Levels left with no work produce no row. This is the
+    catch-up path for bringing a locale up to a grown *or edited* English source
+    without re-touching still-current reviewed translations.
+
+    Every generated task also snapshots the current en ``content_hash`` per leaf
+    into ``source_hashes_json`` (both modes), so ``export`` can stamp the target
+    ``source_hash`` with exactly what was translated against — the watermark that
+    later marks the key stale if en changes again.
     """
     if not EN_DIR.exists():
         print(f"Error: English directory not found: {EN_DIR}", file=sys.stderr)
@@ -335,6 +407,8 @@ def generate_tasks(
         "total_files": 0,
         "total_levels": 0,
         "total_keys": 0,
+        "missing_keys": 0,
+        "stale_keys": 0,
     }
 
     # Get all English JSON files
@@ -345,10 +419,23 @@ def generate_tasks(
 
         # English keys, already excluding skip + underscore-meta entries.
         en_keys = get_keys_from_file(en_file)
+        # Per-leaf en content_hash (skip/meta excluded); drives both the stale
+        # filter and the snapshot stamped into each task row.
+        en_hashes = get_source_hashes_from_file(en_file)
 
         if missing_only:
-            done = get_translated_keys(locale, file_name)
-            en_keys = {k: v for k, v in en_keys.items() if k not in done}
+            target = get_target_entries(locale, file_name)
+            kept: dict[str, str] = {}
+            for full_key, text in en_keys.items():
+                state = classify_key(target.get(full_key), en_hashes.get(full_key))
+                if state == "missing":
+                    kept[full_key] = text
+                    stats["missing_keys"] += 1
+                elif state == "stale":
+                    kept[full_key] = text
+                    stats["stale_keys"] += 1
+                # "current"/"skipped" → leave the reviewed translation alone.
+            en_keys = kept
 
         # A fully-translated (or empty) file contributes no tasks.
         if not en_keys:
@@ -368,12 +455,22 @@ def generate_tasks(
                     f"LEVEL: {file_name}:{level_path} ({len(keys_dict)} keys)"
                 )
 
+            # Snapshot the en content_hash for each leaf in this level. Keys with
+            # no en content_hash (unhashed source) are omitted; None when empty.
+            level_hashes = level_source_hashes(level_path, keys_dict, en_hashes)
+            source_hashes_json = (
+                json.dumps(level_hashes, ensure_ascii=False)
+                if level_hashes
+                else None
+            )
+
             tasks.append(
                 TranslationTask(
                     file=file_name,
                     level_path=level_path,
                     locale=locale,
                     keys_json=json.dumps(keys_dict, ensure_ascii=False),
+                    source_hashes_json=source_hashes_json,
                 )
             )
 
@@ -384,8 +481,17 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
     """Insert translation tasks into the database.
 
     Upserts on (file, level_path, locale): inserts new levels, and for levels
-    that already exist refreshes only keys_json + updated_at. It never touches
-    status or translations_json, so in-flight / completed work is preserved.
+    that already exist refreshes keys_json + updated_at. It never touches status
+    or translations_json, so in-flight / completed work is preserved.
+
+    ``source_hashes_json`` is refreshed on conflict ONLY for non-completed rows.
+    A completed row's snapshot is the en hash its translation was actually made
+    against — the watermark export must stamp. Refreshing it to the current en
+    hash on a re-run (after en drifted post-translation, pre-export) would make
+    export stamp a hash newer than the translation, falsely marking a stale key
+    current and hiding it forever. Freezing it on completed rows keeps the
+    watermark truthful; the drifted key stays stale and a fresh-DB catch-up
+    re-enqueues it.
 
     Returns:
         Count of inserted/updated rows.
@@ -393,23 +499,52 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python locales/scripts/store.py init' to create it first."
+            "Run 'python3 locales/scripts/i18n db init' to create it first."
         )
 
     count = 0
     with get_connection() as conn:
         cursor = conn.cursor()
+
+        # Fail loud on a pre-schema-008 DB: the INSERT below names
+        # source_hashes_json, and the per-row `except` further down would
+        # otherwise swallow "no such column" on EVERY row and still exit 0 with
+        # an empty queue. A fresh `db init` has the column; an old local tasks.db
+        # needs `db migrate`.
+        columns = {
+            row[1]
+            for row in cursor.execute("PRAGMA table_info(translation_tasks)")
+        }
+        if "source_hashes_json" not in columns:
+            raise RuntimeError(
+                "translation_tasks is missing the 'source_hashes_json' column "
+                "(task DB predates schema 008). Run "
+                "'python3 locales/scripts/i18n db migrate' first."
+            )
+
         for task in tasks:
             try:
                 cursor.execute(
                     """
-                    INSERT INTO translation_tasks (file, level_path, locale, keys_json)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO translation_tasks
+                        (file, level_path, locale, keys_json, source_hashes_json)
+                    VALUES (?, ?, ?, ?, ?)
                     ON CONFLICT(file, level_path, locale) DO UPDATE SET
                         keys_json = excluded.keys_json,
+                        source_hashes_json = CASE
+                            WHEN translation_tasks.status = 'completed'
+                                THEN translation_tasks.source_hashes_json
+                            ELSE excluded.source_hashes_json
+                        END,
                         updated_at = datetime('now')
                     """,
-                    (task.file, task.level_path, task.locale, task.keys_json),
+                    (
+                        task.file,
+                        task.level_path,
+                        task.locale,
+                        task.keys_json,
+                        task.source_hashes_json,
+                    ),
                 )
                 count += 1
             except sqlite3.Error as e:
@@ -435,6 +570,10 @@ def _create_handler(args) -> int:
     print(f"  Files: {stats['total_files']}")
     print(f"  Levels: {stats['total_levels']}")
     print(f"  Keys: {stats['total_keys']}")
+    if args.missing_only:
+        # In catch-up mode, break the enqueued keys into new vs re-translate.
+        print(f"    missing (new/untranslated): {stats['missing_keys']}")
+        print(f"    stale (en changed since):   {stats['stale_keys']}")
 
     if args.dry_run:
         print()
@@ -449,7 +588,7 @@ def _create_handler(args) -> int:
     # Insert into database
     try:
         count = insert_tasks(tasks)
-    except FileNotFoundError as e:
+    except (FileNotFoundError, RuntimeError) as e:
         print(f"\nError: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -470,7 +609,7 @@ def get_next_task(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python locales/scripts/store.py init' to create it first."
+            "Run 'python3 locales/scripts/i18n db init' to create it first."
         )
 
     with get_connection() as conn:
@@ -577,7 +716,35 @@ def get_task_stats(locale: str) -> dict:
             (locale,),
         )
         rows = cursor.fetchall()
-        return {row[0]: row[1] for row in rows}
+        # Always report pending/completed, even at 0: every documented loop and
+        # monitor condition is "stop when pending: 0", and GROUP BY alone drops
+        # zero-count statuses so that line would otherwise never print.
+        stats = {"pending": 0, "completed": 0}
+        stats.update({row[0]: row[1] for row in rows})
+        return stats
+
+
+def compute_coverage(locale: str) -> dict[str, int]:
+    """Content-truth coverage of ``locale`` against en, independent of the queue.
+
+    For every translatable en key, classify the locale's current content entry
+    (see :func:`classify_key`) into ``current`` / ``stale`` / ``missing`` /
+    ``skipped``. This answers "how current is this locale" — which the task
+    queue's ``0 pending`` cannot: a fully drained queue can still hide keys whose
+    English moved after they were translated (``stale``) until the next
+    ``tasks create --missing-only`` re-enqueues them.
+    """
+    counts = {"current": 0, "stale": 0, "missing": 0, "skipped": 0}
+    if not EN_DIR.exists():
+        return counts
+    for en_file in sorted(EN_DIR.glob("*.json")):
+        en_keys = get_keys_from_file(en_file)
+        en_hashes = get_source_hashes_from_file(en_file)
+        target = get_target_entries(locale, en_file.name)
+        for full_key in en_keys:
+            state = classify_key(target.get(full_key), en_hashes.get(full_key))
+            counts[state] += 1
+    return counts
 
 
 def format_task_human(task: dict) -> str:
@@ -622,6 +789,9 @@ def _next_handler(args) -> int:
         if args.stats:
             stats = get_task_stats(args.locale)
             if args.json:
+                # Flat {status: count} — kept stable for machine consumers that
+                # sum(values()) (e.g. export-and-commit.sh). Coverage is a nested
+                # shape, so it stays out of --json to avoid breaking that sum.
                 print(json.dumps(stats, indent=2))
             else:
                 print(f"Task statistics for '{args.locale}':")
@@ -629,6 +799,20 @@ def _next_handler(args) -> int:
                 for status, count in sorted(stats.items()):
                     print(f"  {status}: {count}")
                 print(f"  total: {total}")
+
+                # Content-truth coverage: the "am I current?" signal the queue
+                # can't give. A drained queue (0 pending) can still show stale > 0.
+                coverage = compute_coverage(args.locale)
+                covered = coverage["current"] + coverage["stale"]
+                denom = covered + coverage["missing"]
+                print(f"\nCoverage (content/{args.locale} vs en):")
+                print(f"  current: {coverage['current']}")
+                print(f"  stale (en changed since translation): {coverage['stale']}")
+                print(f"  missing (untranslated): {coverage['missing']}")
+                print(f"  skipped: {coverage['skipped']}")
+                if denom:
+                    pct = covered / denom * 100
+                    print(f"  translated: {covered}/{denom} ({pct:.1f}%)")
             return 0
 
         # Get specific task by ID
@@ -689,7 +873,7 @@ def update_task(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python locales/scripts/store.py init' to create it first."
+            "Run 'python3 locales/scripts/i18n db init' to create it first."
         )
 
     if status and status not in VALID_STATUSES:
@@ -886,7 +1070,8 @@ def get_completed_tasks(
         cursor = conn.cursor()
 
         query = """
-            SELECT file, level_path, keys_json, translations_json
+            SELECT file, level_path, keys_json, translations_json,
+                   source_hashes_json
             FROM translation_tasks
             WHERE locale = ? AND status = 'completed' AND translations_json IS NOT NULL
         """
@@ -946,6 +1131,13 @@ def export_locale(
         for task in file_tasks:
             keys = json.loads(task["keys_json"])
             translations = json.loads(task["translations_json"])
+            # Per-leaf en content_hash snapshotted at create (empty for rows cut
+            # before the column, or leaves whose en key had no content_hash).
+            src_hashes = (
+                json.loads(task["source_hashes_json"])
+                if task["source_hashes_json"]
+                else {}
+            )
 
             for key in keys:
                 if key not in translations:
@@ -980,6 +1172,17 @@ def export_locale(
                 else:
                     # Create new entry
                     content[full_key] = {"text": translation}
+
+                # Stamp the watermark: the en content_hash this text was
+                # translated against. Advances a stale key's source_hash to the
+                # current en hash (clearing staleness) and gives freshly created
+                # keys a truthful watermark immediately, instead of waiting for
+                # `content hashes` to seed the CURRENT en hash — which would
+                # mislabel a key as fresh if en drifted in the interim. Only when
+                # we actually wrote text (past the blank guard) and have a hash.
+                src_hash = src_hashes.get(key)
+                if src_hash:
+                    content[full_key]["source_hash"] = src_hash
 
                 key_count += 1
 

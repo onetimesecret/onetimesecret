@@ -31,10 +31,13 @@ RSpec.describe 'Customers Command', type: :cli do
     # Mock Onetime::Customer (Familia model) instances
     instances_double = double('instances')
     allow(instances_double).to receive(:size).and_return(2)
-    allow(instances_double).to receive(:all).and_return(['customer1@example.com', 'customer2@example.com'])
+    allow(instances_double).to receive(:element_count).and_return(2)
+    allow(instances_double).to receive(:range).with(0, -1)
+      .and_return(['customer1@example.com', 'customer2@example.com'])
     allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
-    allow(Onetime::Customer).to receive(:load).with('customer1@example.com').and_return(customer1)
-    allow(Onetime::Customer).to receive(:load).with('customer2@example.com').and_return(customer2)
+    allow(Onetime::Customer).to receive(:load_multi)
+      .with(['customer1@example.com', 'customer2@example.com'])
+      .and_return([customer1, customer2])
   end
 
   describe 'list subcommand' do
@@ -47,9 +50,13 @@ RSpec.describe 'Customers Command', type: :cli do
     it 'handles customers with no domains' do
       instances_double = double('instances')
       allow(instances_double).to receive(:size).and_return(1)
-      allow(instances_double).to receive(:all).and_return(['customer2@example.com'])
+      allow(instances_double).to receive(:element_count).and_return(1)
+      allow(instances_double).to receive(:range).with(0, -1)
+        .and_return(['customer2@example.com'])
       allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
-      allow(Onetime::Customer).to receive(:load).with('customer2@example.com').and_return(customer2)
+      allow(Onetime::Customer).to receive(:load_multi)
+        .with(['customer2@example.com'])
+        .and_return([customer2])
 
       output = run_cli_command_quietly('customers', 'list')
       expect(output[:stdout]).to include('1 customers')
@@ -89,7 +96,7 @@ RSpec.describe 'Customers Command', type: :cli do
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
         .and_return(target_customer)
       allow(Auth::Operations::SetCustomerVerification).to receive(:new)
-        .with(customer: target_customer, verified: true, verified_by: 'cli_provision')
+        .with(customer: target_customer, verified: true, verified_by: 'cli_provision', db: nil)
         .and_return(verification_op)
       allow(verification_op).to receive(:call).and_return(:success)
 
@@ -164,7 +171,7 @@ RSpec.describe 'Customers Command', type: :cli do
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
         .and_return(target_customer)
       allow(Auth::Operations::SetCustomerVerification).to receive(:new)
-        .with(customer: target_customer, verified: false, verified_by: nil)
+        .with(customer: target_customer, verified: false, verified_by: nil, db: nil)
         .and_return(verification_op)
       allow(verification_op).to receive(:call).and_return(:success)
 

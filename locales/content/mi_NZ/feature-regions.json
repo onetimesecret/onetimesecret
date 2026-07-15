@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Mēnā he rerekē tō īmēra whakapā nama i tō īmēra pūkete {product_name}, whakamahia te īmēra whakapā nama mō te pūkete rohe hou kia pupuri ai i ngā painga o tō ohaurunga.",
-    "source_hash": "dac1cc28"
+    "text": "Mēnā he rerekē tō īmēra whakapā nama i te īmēra o tō pūkete {product_name}, whakamahia te īmēra whakapā nama mō te pūkete rohe hou hei pupuri i ngā painga o tō ohaurunga.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Ka tukuna aunoa ō painga ohaurunga ki ngā pūkete katoa i hangaia mā tō wāhitau īmēra nama.",

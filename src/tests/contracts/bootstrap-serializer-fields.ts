@@ -95,7 +95,14 @@ export const I18N_SERIALIZER_FIELDS = [
 // MESSAGES SERIALIZER FIELDS
 // Source: apps/web/core/views/serializers/messages_serializer.rb
 // ============================================================================
-export const MESSAGES_SERIALIZER_FIELDS = ['messages', 'global_banner'] as const;
+export const MESSAGES_SERIALIZER_FIELDS = [
+  'messages',
+  'global_banner',
+  // Audience scope for the global broadcast banner (sidecar key
+  // `global_banner:scope`). Emitted alongside `global_banner` by
+  // messages_serializer.rb; mirrors Onetime::Operations::BannerState::VALID_SCOPES.
+  'global_banner_scope',
+] as const;
 
 // ============================================================================
 // ORGANIZATION SERIALIZER FIELDS

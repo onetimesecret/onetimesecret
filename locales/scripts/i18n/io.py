@@ -36,8 +36,8 @@ def walk_keys(
         Tuples of (full_key_path, string_value).
     """
     for key, value in obj.items():
-        # Skip metadata keys
-        if key.startswith("_"):
+        # Skip metadata keys (any dotted segment starting with underscore)
+        if any(part.startswith("_") for part in key.split(".")):
             continue
 
         # Flat format: key is already dot-notation, value is {"text": "...", ...}

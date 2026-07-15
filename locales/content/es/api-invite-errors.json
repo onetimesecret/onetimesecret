@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "La invitación ya se ha %{status}",
-    "source_hash": "130c87e0"
+    "text": "Esta invitación ya se ha procesado",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "La invitación ha expirado",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Ya eres miembro de esta organización",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Esta invitación ya se ha aceptado",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Esta invitación ya se ha rechazado",
+    "source_hash": "96e0d626"
   }
 }

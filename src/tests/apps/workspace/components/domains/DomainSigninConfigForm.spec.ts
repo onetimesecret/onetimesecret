@@ -9,7 +9,8 @@
 // 5. Disabled mode (#3415): persists signin_enabled=false, hides method UI,
 //    preserves restrict_to/flags; re-enabling transitions save atomically
 // 6. Global availability gating hides unavailable methods in both method modes
-// 7. SSO Configure reachable in both method modes; upgrade hint when !canManageSso
+// 7. SSO Configure reachable in both method modes; upgrade hint when
+//    !canManageSso, and the SSO toggle (Mode A) / radio (Mode B) render locked
 // 8. Per-field loading feedback via savingField
 // 9. Delete confirmation two-step
 // 10. Accessibility (radiogroup roles, aria-describedby, role="switch")
@@ -135,6 +136,7 @@ interface MountOptions {
   isSaving?: boolean;
   isDeleting?: boolean;
   isConfigured?: boolean;
+  workspaceDefault?: boolean;
   ssoConfigured?: boolean;
   canManageSso?: boolean;
   globalAvailability?: { email_auth: boolean; webauthn: boolean; sso: boolean };
@@ -150,6 +152,10 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       isSaving: opts.isSaving ?? false,
       isDeleting: opts.isDeleting ?? false,
       isConfigured: opts.isConfigured ?? false,
+      // Most of this suite exercises an explicitly-configured domain, where
+      // the no-change early-returns apply; the ADR-024 materialization block
+      // below flips this on.
+      workspaceDefault: opts.workspaceDefault ?? false,
       ssoConfigured: opts.ssoConfigured ?? false,
       canManageSso: opts.canManageSso ?? true,
       globalAvailability: opts.globalAvailability ?? allAvailable,
@@ -452,6 +458,57 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
+  // Entitlement gating — SSO controls lock when !canManageSso
+  //
+  // Without the manage-SSO entitlement the org cannot configure SSO
+  // credentials, so SSO can never activate on the domain. An operable
+  // "Enabled" toggle next to the "Upgrade to configure" lock contradicted
+  // that (and persisted a flag that could never take effect).
+  // -----------------------------------------------------------------------
+
+  describe('entitlement gating: canManageSso=false locks SSO controls', () => {
+    it('disables the sso availability toggle in Mode A', () => {
+      wrapper = mountForm({ canManageSso: false });
+      expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
+    });
+
+    it('forces the sso toggle visually off even if formState says enabled', () => {
+      wrapper = mountForm({
+        canManageSso: false,
+        formState: { ...defaultFormState, sso_enabled: true },
+      });
+      expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('false');
+    });
+
+    it('leaves the email toggle operable', () => {
+      wrapper = mountForm({ canManageSso: false });
+      expect(toggles(wrapper)[0].attributes('disabled')).toBeUndefined();
+    });
+
+    it('keeps the SSO radio visible in Mode B (upgrade prompt) but disabled', () => {
+      wrapper = mountForm({
+        canManageSso: false,
+        formState: { ...defaultFormState, restrict_to: 'password' },
+      });
+      const radio = wrapper.find('#signin-restrict-sso');
+      expect(radio.exists()).toBe(true);
+      expect(radio.attributes('disabled')).toBeDefined();
+    });
+
+    it('never saves restrict_to: sso when unentitled', async () => {
+      // Belt & suspenders: the disabled attribute blocks the event AND
+      // selectMethod guards the value — removing either alone stays safe;
+      // this test fails only if both regress (the original bug).
+      wrapper = mountForm({
+        canManageSso: false,
+        formState: { ...defaultFormState, restrict_to: 'password' },
+      });
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+      expect(wrapper.emitted('auto-save')).toBeUndefined();
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // Mode B — restrict_to radio list
   // -----------------------------------------------------------------------
 
@@ -747,6 +804,126 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
       expect(toggles(wrapper)).toHaveLength(2);
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // ADR-024 — materialize-on-touch while following workspace defaults
+  //
+  // With workspaceDefault=true the form shows the SEEDED inherited state.
+  // Clicking a mode/method that MATCHES that state changes nothing
+  // value-wise, but must still auto-save so the composable materializes an
+  // explicit override (enabled: true — the pin). With workspaceDefault=false
+  // the same clicks stay no-ops (the existing early-returns).
+  // -----------------------------------------------------------------------
+
+  describe('ADR-024: materialize-on-touch (workspace default)', () => {
+    it('clicking "Any" when the inherited state already matches emits an empty pin patch (pin, no value change)', async () => {
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: null, signin_enabled: true },
+      });
+      await wrapper.find('#signin-mode-any').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{}, 'restrict_to']);
+    });
+
+    it('clicking "Any" on an explicitly-configured domain with matching state stays a no-op (already pinned)', async () => {
+      wrapper = mountForm({
+        workspaceDefault: false,
+        formState: { ...defaultFormState, restrict_to: null, signin_enabled: true },
+      });
+      await wrapper.find('#signin-mode-any').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('clicking "Sign-in disabled" when the inherited state is already disabled still saves signin_enabled=false (pin)', async () => {
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, signin_enabled: false },
+      });
+      await wrapper.find('#signin-mode-disabled').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{ signin_enabled: false }, 'signin_enabled']);
+    });
+
+    it('clicking "Sign-in disabled" when already disabled on a pinned domain stays a no-op', async () => {
+      wrapper = mountForm({
+        workspaceDefault: false,
+        formState: { ...defaultFormState, signin_enabled: false },
+      });
+      await wrapper.find('#signin-mode-disabled').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('clicking "One" when the inherited state already restricts to a method emits an empty pin patch', async () => {
+      // Seeded global restrict_to pre-activates Mode B; the click changes
+      // nothing value-wise but must still pin.
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: 'sso', sso_enabled: true },
+      });
+      await wrapper.find('#signin-mode-one').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{}, 'restrict_to']);
+    });
+
+    it('clicking "One" with no inherited restriction still only reveals the picker (nothing to pin until a method is chosen)', async () => {
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: null, signin_enabled: true },
+      });
+      await wrapper.find('#signin-mode-one').trigger('click');
+
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('clicking the pre-checked (inherited) method radio re-saves via the click path (radios fire no change when checked)', async () => {
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: 'sso', sso_enabled: true },
+      });
+      // A checked radio emits click but never change; the click path must pin.
+      await wrapper.find('#signin-restrict-sso').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{ restrict_to: 'sso', sso_enabled: true }, 'restrict_to']);
+    });
+
+    it('clicking the checked radio on a pinned domain does not re-save (click path is workspace-default only)', async () => {
+      wrapper = mountForm({
+        workspaceDefault: false,
+        formState: { ...defaultFormState, restrict_to: 'sso', sso_enabled: true },
+      });
+      await wrapper.find('#signin-restrict-sso').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('clicking an UNchecked radio while workspace-default saves once, not twice (click path defers to change)', async () => {
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: 'sso', sso_enabled: true },
+      });
+      // Radio activation behavior: click on an unchecked radio checks it and
+      // fires change — the DOM environment implements this, so triggering
+      // click alone reproduces the full browser sequence (click handler
+      // no-op + one change). Triggering change explicitly on top would
+      // dispatch a second change event no browser ever sends.
+      const radio = wrapper.find('#signin-restrict-password');
+      await radio.trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted).toHaveLength(1);
+      expect(emitted![0]).toEqual([{ restrict_to: 'password' }, 'restrict_to']);
     });
   });
 

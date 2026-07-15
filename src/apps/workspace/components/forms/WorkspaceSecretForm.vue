@@ -18,6 +18,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
+  import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { loggingService } from '@/services/logging.service';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -166,8 +167,14 @@
       },
     });
 
-  // Initialize TTL with default on mount
-  operations.updateField('ttl', defaultTtl.value);
+  // Initialize TTL on mount: restore the user's last-used value when it is
+  // still a valid option, otherwise fall back to the configured default.
+  // Persisted as a minor preference via localReceiptStore (localStorage).
+  const { lifetimeOptions } = usePrivacyOptions();
+  const preferredTtl = localReceiptStore.preferredTtl;
+  const isValidPreferredTtl =
+    preferredTtl != null && lifetimeOptions.value.some((opt) => opt.value === preferredTtl);
+  operations.updateField('ttl', isValidPreferredTtl ? preferredTtl : defaultTtl.value);
 
   // Sync content with form
   watch(content, (newContent) => {
@@ -222,6 +229,8 @@
 
   const updateTtl = (value: number) => {
     operations.updateField('ttl', value);
+    // Remember the choice so it is restored on the next page load
+    localReceiptStore.setPreferredTtl(value);
   };
 
   const updatePassphrase = (value: string) => {

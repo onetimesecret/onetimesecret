@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Sản phẩm",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Mã nguồn",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Thanh toán",
@@ -148,8 +148,8 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Bạn đang xem một tin nhắn an toàn được chia sẻ với bạn qua {product_name}. Nội dung này chỉ được hiển thị một lần và sau đó bị xóa vĩnh viễn khỏi máy chủ của chúng tôi.",
-    "source_hash": "e0f1a10c"
+    "text": "Bạn đang xem một tin nhắn an toàn được chia sẻ với bạn qua {product_name}. Nội dung này chỉ hiển thị một lần và sau đó bị xóa vĩnh viễn khỏi máy chủ của chúng tôi.",
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Tôi có thể xem lại bí mật này sau không?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Truy cập trang chủ {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Điều hướng chân trang",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Vui lòng liên hệ bộ phận hỗ trợ để được trợ giúp",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Chỉ dành cho Colonel",
+    "source_hash": "3f1e2dbd"
   }
 }
