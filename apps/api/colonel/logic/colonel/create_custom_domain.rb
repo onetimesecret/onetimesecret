@@ -77,6 +77,13 @@ module ColonelAPI
         end
 
         def process
+          # Atomicity: the #raise_concerns duplicate/orphan pre-checks run in a
+          # separate step and can race a concurrent colonel request — they are
+          # advisory (for precise field errors), NOT for correctness. create! is
+          # the sole atomic gate: HSETNX on display_domain_index claims a new
+          # domain, and claim_orphaned_domain uses a pinned-connection WATCH/MULTI
+          # to claim an orphan. The concurrent request that loses the gate gets an
+          # Onetime::Problem re-raised here, so no double-registration occurs.
           @custom_domain = Onetime::CustomDomain.create!(@display_domain, @org.objid)
 
           begin
