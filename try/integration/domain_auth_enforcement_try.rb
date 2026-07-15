@@ -28,7 +28,8 @@
 #   5. Default reconciliation: new SigninConfig conservative defaults
 #   6. Serializer visibility gates
 #   7. ConfigSerializer resolve_restrict_to domain override
-#   11. ConfigSerializer resolve_signin: custom-domain default-OFF + SSO carve-out (#3415)
+#   11. ConfigSerializer resolve_signin: custom-domain default-OFF + SSO carve-out (#3415);
+#       resolve_restrict_to='sso' parity for the same carve-out so SSO-only pages hide password/email (#3783)
 #   12. SsoConfig.tenant_sso_available_for? direct predicate coverage (#3783)
 #   13. Masthead LINK <-> /signin PAGE parity matrix (#3783)
 #
@@ -622,6 +623,27 @@ Core::Views::ConfigSerializer.send(
   { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_sso.display_domain, 'domain_strategy' => :custom },
 )
 #=> true
+
+## resolve_restrict_to='sso' for the SSO-only carve-out: page stays but AuthMethodSelector hides password/email (#3783)
+Core::Views::ConfigSerializer.send(
+  :resolve_restrict_to,
+  { 'display_domain' => @domain_si_sso.display_domain, 'domain_strategy' => :custom },
+)
+#=> 'sso'
+
+## resolve_restrict_to carve-out does NOT fire for a custom domain with no SigninConfig AND no SSO (falls back to global)
+Core::Views::ConfigSerializer.send(
+  :resolve_restrict_to,
+  { 'display_domain' => @domain_si_a.display_domain, 'domain_strategy' => :custom },
+)
+#=> Onetime.auth_config.restrict_to
+
+## resolve_restrict_to carve-out is custom-domain only: canonical request for the SSO-only domain follows global
+Core::Views::ConfigSerializer.send(
+  :resolve_restrict_to,
+  { 'display_domain' => @domain_si_sso.display_domain },
+)
+#=> Onetime.auth_config.restrict_to
 
 ## Custom domain, enabled SigninConfig with signin_enabled=false => false (explicit disable, #3415)
 @domain_si_b = Onetime::CustomDomain.create!("dae-si-b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)

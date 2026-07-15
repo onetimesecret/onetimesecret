@@ -193,12 +193,26 @@ module Core
 
         # Resolve restrict_to for the current request context.
         # Domain SigninConfig overrides global when enabled.
+        #
+        # SSO carve-out parity with resolve_signin: a custom domain with no
+        # enabled SigninConfig keeps its /signin page ONLY because SSO is
+        # available (resolve_signin returns sso_available?). Without narrowing
+        # restrict_to, AuthMethodSelector would fall into standard mode and
+        # render the password/email form beside the SSO buttons — yet password/
+        # email default OFF on custom domains and their POST route
+        # (Base#signin_enabled?) rejects them, so those forms advertise methods
+        # that always fail. Force restrict_to='sso' on exactly the same
+        # predicate resolve_signin uses (tenant_domain? && sso_available?) so
+        # the page-availability gate and the method restriction stay in
+        # lockstep and the SSO-only page renders SSO buttons alone.
         def resolve_restrict_to(view_vars)
           domain_id = resolve_domain_id(view_vars)
           if domain_id
             signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
             return signin_config.restrict_to if signin_config&.enabled?
           end
+
+          return 'sso' if tenant_domain?(view_vars) && sso_available?(view_vars)
 
           Onetime.auth_config.restrict_to
         end
