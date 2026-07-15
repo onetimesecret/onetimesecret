@@ -134,6 +134,25 @@ const callbackUrl = computed(() => {
 
 const showDomainFilter = computed(() => false);
 
+/**
+ * "Grant org-wide access" is withheld from the UI pending further testing
+ * (targeted for after v0.26.0) — but only for domains that don't already use
+ * it. A config loaded with grant_org_scope=true keeps its toggle so the grant
+ * stays revocable: hiding it outright would strand an unrevokable org-wide
+ * grant that every save re-persists (configToFormState seeds it and saveConfig
+ * always re-sends it). New/default configs (grant_org_scope=false) never see
+ * the control. The latch keeps it visible for the whole edit session even after
+ * the admin flips it off, so it doesn't vanish mid-edit.
+ */
+const showGrantOrgScope = ref(false);
+watch(
+  () => props.formState.grant_org_scope,
+  (granted) => {
+    if (granted) showGrantOrgScope.value = true;
+  },
+  { immediate: true }
+);
+
 const currentProviderOption = computed(() =>
   providerOptions.find((o) => o.value === props.formState.provider_type)
 );
@@ -688,8 +707,11 @@ aria-hidden="true">*</span>
         </p>
       </div>
 
-      <!-- Grant Org Scope Toggle -->
-      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+      <!-- Grant Org Scope Toggle (withheld pending testing unless already
+           granted, so an existing grant stays revocable — see showGrantOrgScope) -->
+      <div
+        v-if="showGrantOrgScope"
+        class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <div>
           <p class="text-sm font-medium text-gray-900 dark:text-white">
             {{ t('web.organizations.sso.grant_org_scope') }}
