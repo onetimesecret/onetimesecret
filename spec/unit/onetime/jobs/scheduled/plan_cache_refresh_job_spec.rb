@@ -64,7 +64,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
       before do
         allow(OT).to receive(:conf).and_return({
           'jobs' => {
-            'plan_cache_refresh_enabled' => true
+            'plan_cache_refresh' => { 'enabled' => true }
           }
         })
       end
@@ -85,7 +85,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
       before do
         allow(OT).to receive(:conf).and_return({
           'jobs' => {
-            'plan_cache_refresh_enabled' => false
+            'plan_cache_refresh' => { 'enabled' => false }
           }
         })
       end
@@ -313,7 +313,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
     it 'returns true when config is true' do
       allow(OT).to receive(:conf).and_return({
         'jobs' => {
-          'plan_cache_refresh_enabled' => true
+          'plan_cache_refresh' => { 'enabled' => true }
         }
       })
 
@@ -323,7 +323,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
     it 'returns false when config is false' do
       allow(OT).to receive(:conf).and_return({
         'jobs' => {
-          'plan_cache_refresh_enabled' => false
+          'plan_cache_refresh' => { 'enabled' => false }
         }
       })
 
@@ -339,7 +339,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
     it 'returns false when config is not exactly true' do
       allow(OT).to receive(:conf).and_return({
         'jobs' => {
-          'plan_cache_refresh_enabled' => 'yes'
+          'plan_cache_refresh' => { 'enabled' => 'yes' }
         }
       })
 

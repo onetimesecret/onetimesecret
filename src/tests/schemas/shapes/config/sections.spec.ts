@@ -98,7 +98,11 @@ describe('contract vs shape: defaults are absent on contracts, applied on shapes
     expect(s.rabbitmq_url).toBe('amqp://guest:guest@localhost:5672/dev');
     expect(s.channel_pool_size).toBe(5);
     expect(s.fallback_to_sync).toBe(true);
-    expect(s.dlq_consumer_enabled).toBe(true);
+
+    // Nested job blocks: contract leaves the toggle undefined, the shape
+    // defaults it (only when the block is present — like domain_refresh).
+    expect(jobsSchema.parse({ dlq_consumer: {} }).dlq_consumer?.enabled).toBeUndefined();
+    expect(jobsShape.parse({ dlq_consumer: {} }).dlq_consumer?.enabled).toBe(true);
   });
 
   it('redis (storage)', () => {

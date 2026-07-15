@@ -23,7 +23,8 @@ module Onetime
       #
       # Configuration:
       #   jobs:
-      #     dlq_consumer_enabled: true
+      #     dlq_consumer:
+      #       enabled: true
       #
       # Schedule: every 5 minutes, first_in: 30s
       #
@@ -75,7 +76,7 @@ module Onetime
           private
 
           def enabled?
-            OT.conf.dig('jobs', 'dlq_consumer_enabled') == true
+            OT.conf.dig('jobs', 'dlq_consumer', 'enabled') == true
           end
 
           def consume_dlq_batch

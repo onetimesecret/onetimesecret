@@ -16,7 +16,7 @@
 # NOTE: we load the defaults file DIRECTLY by explicit path rather than reading
 # OT.conf['jobs']. In :test mode OT.conf is the defaults deep-merged with
 # spec/config.test.yaml, and that test file overrides several jobs keys
-# (dlq_consumer_enabled -> false, channel_pool_size -> 1,
+# (dlq_consumer.enabled -> false, channel_pool_size -> 1,
 # maintenance.housekeeping.cron -> nil). Passing an explicit path to
 # Onetime::Config.load skips the defaults-layer merge (see Config.load docs),
 # so we assert the pure defaults file under a clean environment.
@@ -47,21 +47,21 @@ end
 [@jobs['enabled'], @jobs['fallback_to_sync'], @jobs['scheduler']['enabled']]
 #=> [false, true, false]
 
-## Top-level inlined scalars (dlq_consumer_enabled is TRUE, not false)
-[@jobs['plan_cache_refresh_enabled'], @jobs['catalog_retry_enabled'], @jobs['dlq_consumer_enabled']]
-#=> [false, false, true]
+## Scheduled-job toggles default ON (nested enabled blocks)
+[@jobs['plan_cache_refresh']['enabled'], @jobs['catalog_retry']['enabled'], @jobs['dlq_consumer']['enabled']]
+#=> [true, true, true]
 
-## domain_refresh block matches inlined defaults
+## domain_refresh block matches inlined defaults (enabled by default)
 @jobs['domain_refresh']
-#=> {"enabled"=>false, "check_interval"=>"30m", "batch_size"=>200, "rate_limit"=>0.5}
+#=> {"enabled"=>true, "check_interval"=>"30m", "batch_size"=>200, "rate_limit"=>0.5}
 
 ## expiration_warnings block matches inlined defaults
 @jobs['expiration_warnings']
 #=> {"enabled"=>false, "check_interval"=>"1h", "warning_hours"=>24, "min_ttl_hours"=>48, "batch_size"=>100}
 
-## favicon_fetch block matches inlined defaults
+## favicon_fetch block matches inlined defaults (enabled by default)
 @jobs['favicon_fetch']
-#=> {"enabled"=>false, "timeout"=>5, "max_response_bytes"=>102400, "max_redirects"=>3, "allowed_content_types"=>["image/x-icon", "image/vnd.microsoft.icon", "image/png"]}
+#=> {"enabled"=>true, "timeout"=>5, "max_response_bytes"=>102400, "max_redirects"=>3, "allowed_content_types"=>["image/x-icon", "image/vnd.microsoft.icon", "image/png"]}
 
 ## favicon_backfill block matches inlined defaults (#3780 nightly scan)
 @jobs['favicon_backfill']

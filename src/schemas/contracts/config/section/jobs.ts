@@ -28,6 +28,18 @@ const jobsSchedulerSchema = z.object({
   enabled: z.boolean(),
 });
 
+const jobsPlanCacheRefreshSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
+const jobsCatalogRetrySchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
+const jobsDlqConsumerSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
 const jobsDomainRefreshSchema = z.object({
   enabled: z.boolean().optional(),
   check_interval: z.string().optional(),
@@ -114,9 +126,9 @@ const jobsSchema = z.object({
   fallback_to_sync: z.boolean().optional(),
   workers: jobsWorkersSchema.optional(),
   scheduler: jobsSchedulerSchema.optional(),
-  plan_cache_refresh_enabled: z.boolean().optional(),
-  catalog_retry_enabled: z.boolean().optional(),
-  dlq_consumer_enabled: z.boolean().optional(),
+  plan_cache_refresh: jobsPlanCacheRefreshSchema.optional(),
+  catalog_retry: jobsCatalogRetrySchema.optional(),
+  dlq_consumer: jobsDlqConsumerSchema.optional(),
   domain_refresh: jobsDomainRefreshSchema.optional(),
   expiration_warnings: jobsExpirationWarningsSchema.optional(),
   favicon_fetch: jobsFaviconFetchSchema.optional(),
@@ -128,6 +140,9 @@ export {
   jobsSchema,
   jobsWorkersSchema,
   jobsSchedulerSchema,
+  jobsPlanCacheRefreshSchema,
+  jobsCatalogRetrySchema,
+  jobsDlqConsumerSchema,
   jobsDomainRefreshSchema,
   jobsExpirationWarningsSchema,
   jobsFaviconFetchSchema,

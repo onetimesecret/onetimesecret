@@ -24,11 +24,12 @@ if Onetime.billing_config.enabled?
         #   - Runs every 2 minutes to check for due retries
         #   - Processes up to 50 events per run to avoid overload
         #   - Skips if circuit is still open (waits for recovery)
-        #   - Disabled by default; enable via config
+        #   - Enabled by default; toggle via config
         #
-        # Enable in config:
+        # Toggle in config:
         #   jobs:
-        #     catalog_retry_enabled: true
+        #     catalog_retry:
+        #       enabled: true
         #
         class CatalogRetryJob < ScheduledJob
           class << self
@@ -45,7 +46,7 @@ if Onetime.billing_config.enabled?
             private
 
             def enabled?
-              OT.conf.dig('jobs', 'catalog_retry_enabled') == true
+              OT.conf.dig('jobs', 'catalog_retry', 'enabled') == true
             end
 
             def process_circuit_retries
