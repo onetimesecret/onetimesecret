@@ -891,7 +891,7 @@ jobs:
   # This ensures plan data remains available even if Stripe webhooks fail.
   # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
   # Skips gracefully if no Stripe API key is configured (standalone mode).
-  plan_cache_refresh_enabled: false
+  plan_cache_refresh_enabled: true
 
   # Catalog Retry Job
   # Retries webhook events that were blocked by the Stripe circuit breaker.
@@ -899,7 +899,7 @@ jobs:
   # price.created, etc.) are queued for retry rather than failing. This job
   # processes those queued events once the circuit breaker closes.
   # Runs every 2 minutes when enabled; skips if circuit is still open.
-  catalog_retry_enabled: false
+  catalog_retry_enabled: true
 
   # DLQ Email Consumer Job
   # Processes failed email messages from the dead-letter queue.
@@ -913,7 +913,7 @@ jobs:
   # visiting the verify page. See issue #3080.
   # Skips gracefully when no custom domains are registered.
   domain_refresh:
-    enabled: false
+    enabled: true
     # How often to refresh (rufus-scheduler interval)
     check_interval: '30m'
     # Maximum domains processed per run (rate limiting)
@@ -943,7 +943,7 @@ jobs:
   # HTTPS-only; user-uploaded icons are never overwritten.
   favicon_fetch:
     # Feature flag — default OFF
-    enabled: false
+    enabled: true
     # Seconds per HTTP fetch (connect + read)
     timeout: 5
     # Response size ceiling in bytes (100 KB), streamed-enforced

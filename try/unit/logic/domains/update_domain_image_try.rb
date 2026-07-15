@@ -142,6 +142,10 @@ end
 ## Case 9: FastImage guard — an unmeasurable icon (size -> nil) does NOT raise.
 # Without the `height && !height.zero?` guard, `width.to_f / height` would raise
 # on a nil height. process completes and returns the record hash.
+# Capture the gem's real `size` first so cleanup can restore it. The tryouts
+# suite shares one process, so a `remove_method` in cleanup would delete
+# FastImage.size for every later file (e.g. operations/fetch_domain_favicon_try.rb).
+@fastimage_orig_size = FastImage.method(:size)
 FastImage.define_singleton_method(:size) { |*_args| nil }
 @icon_nil = build_icon(@strategy_result, image_params(@extid, content: 'AAAA', filename: 'weird.ico', type: 'image/x-icon'))
 @icon_nil.raise_concerns
@@ -173,7 +177,9 @@ FastImage.define_singleton_method(:size) { |*_args| [32, 32] }
 #=> ['user_upload', false]
 
 # --- Cleanup ---
-FastImage.singleton_class.send(:remove_method, :size) if FastImage.singleton_methods.include?(:size)
+# Restore the gem's real singleton method (overwrites our stub) rather than
+# removing it — removal would leave FastImage with no `size` for later files.
+FastImage.define_singleton_method(:size, @fastimage_orig_size) if @fastimage_orig_size
 @domain.destroy! if @domain&.exists?
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?
