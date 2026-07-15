@@ -132,6 +132,15 @@
     return t('web.domains.signin.mode_any_hint');
   });
 
+  /**
+   * "One specific method" (Mode B) is hidden from the mode switch pending
+   * further testing (targeted for after v0.26.0). The mode's logic below is
+   * left intact — a domain whose restrict_to is already set still renders the
+   * picker — but the segment to switch INTO it is not offered. Flip to `true`
+   * to restore the option.
+   */
+  const showRestrictMode: boolean = false;
+
   // ---------------------------------------------------------------------------
   // Mode switch keyboard support (roving tabindex)
   // ---------------------------------------------------------------------------
@@ -143,12 +152,23 @@
    * auto-save PUT, and WAI-ARIA APG recommends NOT having selection follow
    * focus when activation has side effects like network requests.
    */
-  const MODE_SEGMENT_IDS = ['signin-mode-any', 'signin-mode-one', 'signin-mode-disabled'] as const;
+  // Segment order (disabled, any, one) matches the DOM so roving tabindex and
+  // arrow-key navigation stay consistent. "one" is last because it is hidden
+  // pending further testing (see showRestrictMode); getElementById filtering in
+  // onModeKeydown skips it while hidden.
+  const MODE_SEGMENT_IDS = ['signin-mode-disabled', 'signin-mode-any', 'signin-mode-one'] as const;
 
   const checkedModeIndex = computed(() => {
-    if (isModeDisabled.value) return 2;
-    if (isModeOne.value) return 1;
-    return 0;
+    if (isModeDisabled.value) return 0;
+    // Mode B ("one") is index 2, but its segment is not rendered while
+    // showRestrictMode is false. A domain with a preset restrict_to still lands
+    // in Mode B, so fall back to the first visible segment (0) for the roving
+    // tabindex — otherwise no visible segment holds tabindex 0 and the whole
+    // radiogroup drops out of the keyboard tab order. Per WAI-ARIA APG, when no
+    // radio is checked the first radio takes the tab stop; each segment's
+    // aria-checked stays accurate independently of this index.
+    if (isModeOne.value) return showRestrictMode ? 2 : 0;
+    return 1;
   });
 
   const modeTabindex = (index: number) => (checkedModeIndex.value === index ? 0 : -1);
@@ -387,12 +407,31 @@
           role="radiogroup"
           aria-labelledby="signin-mode-legend"
           @keydown="onModeKeydown">
+          <!-- Order: Sign-in disabled (the default) first, then Any available
+               method. "One specific method" is last and hidden pending testing
+               (showRestrictMode). -->
+          <button
+            id="signin-mode-disabled"
+            type="button"
+            role="radio"
+            :aria-checked="isModeDisabled"
+            :tabindex="modeTabindex(0)"
+            :disabled="isSaving"
+            @click="selectModeDisabled"
+            :class="[
+              'rounded-md px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+              isModeDisabled
+                ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+            ]">
+            {{ t('web.domains.signin.mode_disabled') }}
+          </button>
           <button
             id="signin-mode-any"
             type="button"
             role="radio"
             :aria-checked="isModeAny"
-            :tabindex="modeTabindex(0)"
+            :tabindex="modeTabindex(1)"
             :disabled="isSaving"
             @click="selectModeAny"
             :class="[
@@ -404,11 +443,12 @@
             {{ t('web.domains.signin.mode_any') }}
           </button>
           <button
+            v-if="showRestrictMode"
             id="signin-mode-one"
             type="button"
             role="radio"
             :aria-checked="isModeOne"
-            :tabindex="modeTabindex(1)"
+            :tabindex="modeTabindex(2)"
             :disabled="isSaving"
             @click="selectModeOne"
             :class="[
@@ -418,22 +458,6 @@
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
             ]">
             {{ t('web.domains.signin.mode_one') }}
-          </button>
-          <button
-            id="signin-mode-disabled"
-            type="button"
-            role="radio"
-            :aria-checked="isModeDisabled"
-            :tabindex="modeTabindex(2)"
-            :disabled="isSaving"
-            @click="selectModeDisabled"
-            :class="[
-              'rounded-md px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-              isModeDisabled
-                ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white'
-                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
-            ]">
-            {{ t('web.domains.signin.mode_disabled') }}
           </button>
         </div>
 
