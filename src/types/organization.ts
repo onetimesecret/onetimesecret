@@ -106,3 +106,52 @@ import type { Organization } from '@/schemas/shapes/organizations/organization';
 export function getOrganizationLabel(org: Organization): string {
   return org.display_name;
 }
+
+/**
+ * Invitation status values that have a localized label under
+ * `web.organizations.invitations.status.*`. A status outside this set has no
+ * label; callers fall back to the raw status string so an unknown/future enum
+ * degrades gracefully instead of crashing or rendering blank.
+ *
+ * Includes `revoked` for completeness even though the invitation contract enum
+ * does not currently emit it (a revoked invitation is deleted server-side, so
+ * it never surfaces as a status) — keeping the label wired means the mapping
+ * stays correct if that ever changes.
+ */
+export const LOCALIZED_INVITATION_STATUSES: ReadonlySet<string> = new Set([
+  INVITATION_STATUSES.PENDING,
+  INVITATION_STATUSES.ACCEPTED,
+  INVITATION_STATUSES.DECLINED,
+  INVITATION_STATUSES.EXPIRED,
+  'revoked',
+]);
+
+/**
+ * Resolve the effective display status for an invitation. A pending invitation
+ * past its expiry still reports `pending` from the API, so surface it as
+ * `expired` to match the countdown text rendered alongside it.
+ *
+ * @param status - raw invitation status
+ * @param expiresAtSeconds - expiry as a unix timestamp in seconds
+ * @param nowMs - current time in milliseconds (injectable for tests)
+ */
+export function effectiveInvitationStatus(
+  status: string,
+  expiresAtSeconds: number,
+  nowMs: number = Date.now()
+): string {
+  if (status === INVITATION_STATUSES.PENDING && expiresAtSeconds * 1000 <= nowMs) {
+    return INVITATION_STATUSES.EXPIRED;
+  }
+  return status;
+}
+
+/**
+ * i18n key for an invitation status label, or `null` when the status has no
+ * localized label (the caller should fall back to the raw status value).
+ */
+export function invitationStatusLabelKey(status: string): string | null {
+  return LOCALIZED_INVITATION_STATUSES.has(status)
+    ? `web.organizations.invitations.status.${status}`
+    : null;
+}

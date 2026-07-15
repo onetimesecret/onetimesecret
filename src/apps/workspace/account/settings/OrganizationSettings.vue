@@ -29,6 +29,7 @@ import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation, OrganizationRole } from '@/types/organization';
+import { INVITATION_STATUSES, effectiveInvitationStatus, invitationStatusLabelKey } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
 import { SsoService } from '@/services/sso.service';
@@ -534,6 +535,28 @@ const formatTimeRemaining = (expiresAt: number): string => {
     return t('web.organizations.invitations.expires_in_hours', { hours });
   } else {
     return t('web.organizations.invitations.expires_soon');
+  }
+};
+
+/** Localized status label for an invitation, with raw-value fallback. */
+const invitationStatusLabel = (invitation: OrganizationInvitation): string => {
+  const status = effectiveInvitationStatus(invitation.status, invitation.expires_at);
+  const key = invitationStatusLabelKey(status);
+  return key ? t(key) : status;
+};
+
+/** Tailwind badge classes keyed to an invitation's effective status. */
+const invitationStatusBadgeClass = (invitation: OrganizationInvitation): string => {
+  switch (effectiveInvitationStatus(invitation.status, invitation.expires_at)) {
+    case INVITATION_STATUSES.ACCEPTED:
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+    case INVITATION_STATUSES.DECLINED:
+      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+    case INVITATION_STATUSES.PENDING:
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+    case INVITATION_STATUSES.EXPIRED:
+    default:
+      return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
   }
 };
 
@@ -1324,8 +1347,10 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ invitation.email }}</span>
                     <div class="flex items-center gap-2">
-                      <span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                        {{ t('web.organizations.invitations.status.pending') }}
+                      <span
+                        :class="invitationStatusBadgeClass(invitation)"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
+                        {{ invitationStatusLabel(invitation) }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
                         {{ t('web.organizations.invitations.invited_at') }} {{ formatDisplayDate(new Date(invitation.invited_at * 1000)) }}
