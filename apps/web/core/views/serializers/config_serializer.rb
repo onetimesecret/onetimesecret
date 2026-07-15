@@ -214,9 +214,20 @@ module Core
         # the public /signin page render a friendly "not available" notice
         # instead of the auth form. The runtime POST gate lives in
         # Core::Controllers::Base#signin_enabled? and resolves through the
-        # same SigninConfig.resolve_signin_enabled helper, so the rendered
-        # page and the POST handler cannot disagree. Resolution semantics:
-        # ADR-024.
+        # same custom-domain-aware logic, so the rendered page and the POST
+        # handler cannot disagree. Resolution semantics: ADR-024.
+        #
+        # Custom domains default OFF (opt-in): a custom domain that has not
+        # enabled a SigninConfig shows the "not available" notice instead of
+        # the password/email form — matching the runtime route gate and the
+        # branded masthead. The one exception is SSO: SSO is an independent,
+        # explicitly-configured sign-in path (SsoConfig), so when tenant/
+        # platform SSO is active we keep the page available so its provider
+        # buttons still render even without a SigninConfig. An *enabled*
+        # SigninConfig falls through to the shared resolver, preserving the
+        # per-domain explicit-disable semantics (#3415), including hiding SSO
+        # when the owner set signin_enabled=false. Canonical / subdomain
+        # requests follow the global default (ADR-024 invariant #2).
         #
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if sign-in is available
@@ -227,7 +238,26 @@ module Core
           domain_id     = resolve_domain_id(view_vars)
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
+          # Custom domain that has not opted into per-domain sign-in: password/
+          # email defaults OFF; keep the page only when SSO is available.
+          if tenant_domain?(view_vars) && !signin_config&.enabled?
+            return sso_available?(view_vars)
+          end
+
           Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, signin_config)
+        end
+
+        # Whether any SSO sign-in method is available for the current request,
+        # reusing build_sso_config so tenant SsoConfig, the sso_permitted_for?
+        # activation gate, and platform fallback are all honored. Used by
+        # resolve_signin to keep a custom domain's /signin page reachable for
+        # SSO even when password/email sign-in is default-OFF.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Boolean] true if SSO providers are available
+        def sso_available?(view_vars)
+          sso = build_sso_config(view_vars)
+          sso.is_a?(Hash) && sso['enabled'] == true
         end
 
         # Resolve email_auth availability for the current request context.
