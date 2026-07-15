@@ -407,9 +407,9 @@
           role="radiogroup"
           aria-labelledby="signin-mode-legend"
           @keydown="onModeKeydown">
-          <!-- Order: Sign-in disabled (the default) first, then Any available
-               method. "One specific method" is last and hidden pending testing
-               (showRestrictMode). -->
+          <!-- DOM order: Sign-in disabled is rendered first, then Any available
+               method (the actual default). "One specific method" is last and
+               hidden pending testing (showRestrictMode). -->
           <button
             id="signin-mode-disabled"
             type="button"
@@ -459,6 +459,25 @@
             ]">
             {{ t('web.domains.signin.mode_one') }}
           </button>
+          <!-- When Mode B ("One specific method") is the active mode but its
+               interactive segment is withheld (showRestrictMode=false), expose
+               an sr-only, non-interactive radio so the radiogroup reports its
+               true selection to assistive tech. Without it, both visible radios
+               read aria-checked=false and AT announces a radiogroup with no
+               selection (WCAG 2.1 SC 4.1.2 Name, Role, Value). aria-disabled +
+               tabindex=-1 keep it out of the tab order and prevent switching
+               INTO the withheld mode; the visible segments stay keyboard-
+               reachable and can still switch to disabled/any. -->
+          <span
+            v-if="isModeOne && !showRestrictMode"
+            id="signin-mode-one-active"
+            role="radio"
+            aria-checked="true"
+            aria-disabled="true"
+            tabindex="-1"
+            class="sr-only">
+            {{ t('web.domains.signin.mode_one') }}
+          </span>
         </div>
 
         <p

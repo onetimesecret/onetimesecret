@@ -250,9 +250,51 @@ describe('DomainSigninConfigForm', () => {
       // Exactly one visible segment is in the tab order.
       expect(disabled.attributes('tabindex')).toBe('0');
       expect(any.attributes('tabindex')).toBe('-1');
-      // aria-checked stays accurate: neither visible segment is the active mode.
+      // aria-checked stays accurate on the visible segments: neither is the
+      // active mode (Mode B is the active mode, represented separately below).
       expect(disabled.attributes('aria-checked')).toBe('false');
       expect(any.attributes('aria-checked')).toBe('false');
+    });
+
+    it('exposes exactly one checked radio reflecting active Mode B while its segment is hidden', () => {
+      // WCAG 2.1 SC 4.1.2 (Name, Role, Value): the interactive Mode B segment
+      // is withheld (showRestrictMode=false), so if the radiogroup relied on the
+      // visible segments alone it would report NO selection while restrict_to is
+      // set. An sr-only, non-interactive radio carries the true selection so AT
+      // announces the active mode; it stays out of the tab order (tabindex=-1 /
+      // aria-disabled) and cannot switch INTO the withheld mode.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+
+      const radiogroup = wrapper.find('[role="radiogroup"]');
+      const checked = radiogroup.findAll('[role="radio"]').filter(
+        (r) => r.attributes('aria-checked') === 'true'
+      );
+      // Exactly one radio in the group is checked, and it is the Mode B stand-in.
+      expect(checked).toHaveLength(1);
+      expect(checked[0].attributes('id')).toBe('signin-mode-one-active');
+
+      const active = wrapper.find('#signin-mode-one-active');
+      expect(active.exists()).toBe(true);
+      expect(active.classes()).toContain('sr-only');
+      // Announced but not a tab stop, and not interactive (can't switch into it).
+      expect(active.attributes('tabindex')).toBe('-1');
+      expect(active.attributes('aria-disabled')).toBe('true');
+      // A visible segment still owns the tab stop (keyboard reachability intact).
+      expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('0');
+    });
+
+    it('does not render the Mode B stand-in radio when Mode B is not active', () => {
+      // The sr-only stand-in only exists to represent an otherwise-unrepresentable
+      // active Mode B. In Mode A the "Any" segment carries aria-checked itself.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      expect(wrapper.find('#signin-mode-one-active').exists()).toBe(false);
+
+      const radiogroup = wrapper.find('[role="radiogroup"]');
+      const checked = radiogroup.findAll('[role="radio"]').filter(
+        (r) => r.attributes('aria-checked') === 'true'
+      );
+      expect(checked).toHaveLength(1);
+      expect(checked[0].attributes('id')).toBe('signin-mode-any');
     });
 
     it('clicking "Any available method" with a restriction set auto-saves restrict_to: null', async () => {
