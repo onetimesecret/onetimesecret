@@ -89,6 +89,15 @@ module ColonelAPI
         # forbids. list_secrets.rb / export_usage.rb keep similar bounded SCANs
         # for the same reason (separate features). Removing the full-keyspace scan
         # via a per-owner secret index is a separate follow-up.
+        #
+        # LATENCY: worst-case cost scales with the TOTAL secret keyspace, not the
+        # user's own secret count. Each SCAN batch (COUNT=100) is followed by one
+        # Secret.load per returned key to read owner_id, and the 10k break bounds
+        # only the RETURNED items for a prolific owner — a full pass still touches
+        # every secret key (~N/100 SCAN calls + N loads for a keyspace of N).
+        # Acceptable for this colonel-only, on-demand support view; the per-owner
+        # index above is the fix if the keyspace grows large enough to be slow.
+        # scan_user_receipts below has the identical profile over receipts.
         def scan_user_secrets
           secrets  = []
           cursor   = '0'
