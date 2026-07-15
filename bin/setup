@@ -1130,6 +1130,16 @@ doctor_brand_pack() {
       doc_info "brand.yaml present but value-free (neutral — no keys set)"
     fi
   fi
+
+  # Optional pack-carried masthead logo (#3774): served overlay-first at
+  # /brand-logo.svg|png when present. Inert until brand.logo_url points at it.
+  local logos="" lf
+  for lf in brand-logo.svg brand-logo.png; do
+    if [[ -f "$resolved/$lf" ]]; then logos="$logos /$lf"; fi
+  done
+  if [[ -n "$logos" ]]; then
+    doc_info "pack carries a masthead logo, served at:$logos (point brand.logo_url at it)"
+  fi
 }
 
 doctor_run() {

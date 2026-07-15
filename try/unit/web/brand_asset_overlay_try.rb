@@ -12,7 +12,7 @@
 #   2. Onetime.resolve_brand_pack_dir / brand_overlay_dir — precedence, and the
 #      v2 "resolution always lands on a pack" rule (unset ⇒ the default pack).
 #   3. Onetime.brand_asset_path     — overlay-first single-file resolver that now
-#      collapses onto the pack path (selected pack → default pack → public/web).
+#      collapses onto the pack path (selected pack → default pack, no public/web).
 #   4. GetFavicon#serve_default_favicon — overlay favicon.ico, default-pack
 #      fall-through, and BRAND_FAVICON_URL redirect precedence.
 #   5. GetWebmanifest#load_base_manifest — overlay base manifest, brand.* overlay
@@ -35,8 +35,9 @@ require 'onetime/middleware/static_files'
 require 'web/core/logic/page/get_favicon'
 require 'web/core/logic/page/get_webmanifest'
 
-BRAND_PACK_URLS = Onetime::Middleware::StaticFiles::BRAND_PACK_URLS
-DEFAULT_PACK    = File.join(Onetime::HOME, 'public', 'branding', 'default')
+BRAND_PACK_URLS      = Onetime::Middleware::StaticFiles::BRAND_PACK_URLS
+BRAND_PACK_LOGO_URLS = Onetime::Middleware::StaticFiles::BRAND_PACK_LOGO_URLS
+DEFAULT_PACK         = File.join(Onetime::HOME, 'public', 'branding', 'default')
 
 OT.conf['site'] ||= {}
 
@@ -69,6 +70,11 @@ File.write(File.join(@overlay_bad_manifest, 'site.webmanifest'), '{not valid jso
 # Partial overlay: only favicon.svg present.
 @overlay_partial = Dir.mktmpdir('ots-overlay-partial')
 File.write(File.join(@overlay_partial, 'favicon.svg'), '<svg/>')
+
+# Overlay carrying a pack-local masthead logo (#3774): brand-logo.svg only,
+# to prove the optional logo URLs are existence-filtered like other assets.
+@overlay_logo = Dir.mktmpdir('ots-overlay-logo')
+File.write(File.join(@overlay_logo, 'brand-logo.svg'), '<svg/>')
 
 # Same pack NAME under BOTH search roots, to prove etc/branding wins over
 # public/branding. Cleaned up in teardown (nothing tracked lands here).
@@ -309,11 +315,38 @@ absent  = (BRAND_PACK_URLS - present).sort
 BRAND_PACK_URLS.all? { |u| File.exist?(File.join(DEFAULT_PACK, u)) }
 #=> true
 
+# ============================================================================
+# 7. Optional pack-carried masthead logo (#3774): served overlay-first,
+#    existence-filtered on BOTH layers so an absent logo falls through.
+# ============================================================================
+
+## the optional logo URL set is exactly brand-logo.svg + brand-logo.png
+BRAND_PACK_LOGO_URLS.sort
+#=> ['/brand-logo.png', '/brand-logo.svg']
+
+## an overlay carrying brand-logo.svg lists it (and only it) among the logo URLs
+set_overlay(assets_dir: @overlay_logo, pack: nil)
+overlay_dir = Onetime.brand_overlay_dir
+BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
+#=> ['/brand-logo.svg']
+
+## the served overlay set is the mandatory assets present PLUS the logo it carries
+set_overlay(assets_dir: @overlay_logo, pack: nil)
+overlay_dir = Onetime.brand_overlay_dir
+(BRAND_PACK_URLS + BRAND_PACK_LOGO_URLS).select { |u| File.exist?(File.join(overlay_dir, u)) }
+#=> ['/brand-logo.svg']
+
+## the neutral default pack ships NO logo — base layer existence-filters both out
+BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(DEFAULT_PACK, u)) }
+#=> []
+
+clear_overlay
+
 # Teardown — restore the no-overlay baseline and remove fixtures.
 OT.conf['brand']                    = @orig_brand
 OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
 OT.conf['site']['brand_pack']       = @orig_pack
 [@overlay_favicon, @overlay_manifest, @overlay_bad_manifest,
- @overlay_empty, @overlay_partial].each { |d| FileUtils.remove_entry(d) rescue nil }
+ @overlay_empty, @overlay_partial, @overlay_logo].each { |d| FileUtils.remove_entry(d) rescue nil }
 [@etc_pack_dir, @public_pack_dir, @vendor_only_dir].each { |d| FileUtils.remove_entry(d) rescue nil }
 FileUtils.remove_entry(File.join(Onetime::HOME, 'etc', 'branding')) if Dir.exist?(File.join(Onetime::HOME, 'etc', 'branding')) && Dir.empty?(File.join(Onetime::HOME, 'etc', 'branding'))
