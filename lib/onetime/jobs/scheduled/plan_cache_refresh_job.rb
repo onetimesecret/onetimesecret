@@ -16,9 +16,10 @@ module Onetime
       # Without this safeguard, cache expiry could cause Plan.load(planid) to return
       # nil, triggering fail-closed behavior (empty entitlements for users).
       #
-      # Disabled by default. Enable via config:
+      # Enabled by default. Toggle via config:
       #   jobs:
-      #     plan_cache_refresh_enabled: true
+      #     plan_cache_refresh:
+      #       enabled: true
       #
       # Configuration:
       #   - Runs every 6 hours (half of the 12-hour TTL)
@@ -41,7 +42,7 @@ module Onetime
           private
 
           def enabled?
-            OT.conf.dig('jobs', 'plan_cache_refresh_enabled') == true
+            OT.conf.dig('jobs', 'plan_cache_refresh', 'enabled') == true
           end
 
           def refresh_plan_cache

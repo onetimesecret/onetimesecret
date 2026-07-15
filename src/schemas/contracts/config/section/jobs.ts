@@ -28,6 +28,18 @@ const jobsSchedulerSchema = z.object({
   enabled: z.boolean(),
 });
 
+const jobsPlanCacheRefreshSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
+const jobsCatalogRetrySchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
+const jobsDlqConsumerSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
 const jobsDomainRefreshSchema = z.object({
   enabled: z.boolean().optional(),
   check_interval: z.string().optional(),
@@ -41,6 +53,23 @@ const jobsExpirationWarningsSchema = z.object({
   warning_hours: z.number().optional(),
   min_ttl_hours: z.number().optional(),
   batch_size: z.number().optional(),
+});
+
+const jobsFaviconFetchSchema = z.object({
+  enabled: z.boolean().optional(),
+  timeout: z.number().optional(),
+  max_response_bytes: z.number().optional(),
+  max_redirects: z.number().optional(),
+  allowed_content_types: z.array(z.string()).optional(),
+});
+
+const jobsFaviconBackfillSchema = z.object({
+  enabled: z.boolean().optional(),
+  cron: z.string().optional(),
+  batch_size: z.number().optional(),
+  max_attempts: z.number().optional(),
+  base_days: z.number().optional(),
+  cap_days: z.number().optional(),
 });
 
 const jobsPhantomCleanupSchema = z.object({
@@ -97,11 +126,13 @@ const jobsSchema = z.object({
   fallback_to_sync: z.boolean().optional(),
   workers: jobsWorkersSchema.optional(),
   scheduler: jobsSchedulerSchema.optional(),
-  plan_cache_refresh_enabled: z.boolean().optional(),
-  catalog_retry_enabled: z.boolean().optional(),
-  dlq_consumer_enabled: z.boolean().optional(),
+  plan_cache_refresh: jobsPlanCacheRefreshSchema.optional(),
+  catalog_retry: jobsCatalogRetrySchema.optional(),
+  dlq_consumer: jobsDlqConsumerSchema.optional(),
   domain_refresh: jobsDomainRefreshSchema.optional(),
   expiration_warnings: jobsExpirationWarningsSchema.optional(),
+  favicon_fetch: jobsFaviconFetchSchema.optional(),
+  favicon_backfill: jobsFaviconBackfillSchema.optional(),
   maintenance: jobsMaintenanceSchema.optional(),
 });
 
@@ -109,8 +140,13 @@ export {
   jobsSchema,
   jobsWorkersSchema,
   jobsSchedulerSchema,
+  jobsPlanCacheRefreshSchema,
+  jobsCatalogRetrySchema,
+  jobsDlqConsumerSchema,
   jobsDomainRefreshSchema,
   jobsExpirationWarningsSchema,
+  jobsFaviconFetchSchema,
+  jobsFaviconBackfillSchema,
   jobsMaintenanceSchema,
   workerConfigSchema,
 };

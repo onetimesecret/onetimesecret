@@ -80,12 +80,12 @@
     "content_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Use your phone to scan the QR code",
-    "content_hash": "99ecf59f"
+    "text": "e.g. Use your phone to scan the QR code",
+    "content_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contact onboarding{'@'}example.com with any questions",
-    "content_hash": "bee120a7"
+    "text": "e.g. Contact onboarding{'@'}example.com with any questions",
+    "content_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "These instructions will be shown to recipients before they reveal the secret content",
@@ -146,6 +146,58 @@
   "web.branding.remove_logo": {
     "text": "Remove logo",
     "content_hash": "f1c1afa4"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "content_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Refresh favicon from domain",
+    "content_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Fetch the favicon from your domain again. The new icon appears shortly.",
+    "content_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Refreshing favicon — the new icon will appear shortly.",
+    "content_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "You've uploaded a custom favicon, so a fetched icon won't replace it.",
+    "content_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Upload favicon",
+    "content_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Replace",
+    "content_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Remove favicon",
+    "content_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG or SVG. Uploading replaces the fetched icon.",
+    "content_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Domain favicon",
+    "content_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Domain favicon",
+    "content_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG or SVG. Up to 256KB. Replaces the auto-fetched icon.",
+    "content_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Save favicon",
+    "content_hash": "c8a1566c"
   },
   "web.branding.image_upload_choose": {
     "text": "Choose an image",
@@ -320,8 +372,8 @@
     "content_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "This is a live preview — your changes won't be visible to visitors until you save.",
-    "content_hash": "cb4b82de"
+    "text": "This is a live preview — your changes won't be visible to visitors until you click Update.",
+    "content_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Point us at your website and we'll read its colors and fonts, then close the gap in one click.",

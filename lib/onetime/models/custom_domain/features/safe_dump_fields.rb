@@ -40,6 +40,27 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :brand, ->(obj) { obj.brand_settings.to_h } # until we can call obj.brand.to_h
       # NOTE: We don't include brand images here b/c they create huge payloads
       # that we want to avoid unless we are actually going to use it.
+      #
+      # #3780: expose the stored favicon's provenance + light metadata so the
+      # workspace can gate the "Refresh favicon" button — a user_upload icon is
+      # never clobbered by a forced fetch (FetchDomainFavicon#overwrite_guard),
+      # so the control is disabled for it. Deliberately DROPS the base64
+      # `encoded` bytes (the "huge payload" the note above avoids; the image is
+      # served separately via the image endpoint) and the numeric dimensions
+      # (stored as strings in Redis, which the frontend's numeric icon schema
+      # would reject). Only the string fields ride the record; nil when no icon
+      # is stored, keeping list payloads small.
+      base.safe_dump_field :icon,
+        ->(obj) {
+                filename = obj.icon['filename'].to_s
+                next nil if filename.empty?
+
+                {
+                  'filename' => filename,
+                  'content_type' => obj.icon['content_type'],
+                  'favicon_source' => obj.icon['favicon_source'],
+                }
+        }
       base.safe_dump_field :status
       base.safe_dump_field :vhost, ->(obj) { obj.parse_vhost }
       base.safe_dump_field :vhost_fetch_failed_at, ->(obj) { obj.vhost_fetch_failed_at&.to_i }

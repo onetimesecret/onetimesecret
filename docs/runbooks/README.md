@@ -8,6 +8,9 @@ happens, and the steps to resolve or verify.
 
 - [dns-validation-failures.md](./dns-validation-failures.md) — Diagnosing custom
   domain DNS validation failures.
+- [favicon-fetch-worker.md](./favicon-fetch-worker.md) — Manually triggering the
+  custom-domain favicon fetch job, running its worker, and the feature flags that
+  gate it.
 - [duplicate-plans-on-plans-page.md](./duplicate-plans-on-plans-page.md) —
   Resolving duplicate plan entries surfaced on the plans page.
 - [feedback-rate-limit-verification.md](./feedback-rate-limit-verification.md) —

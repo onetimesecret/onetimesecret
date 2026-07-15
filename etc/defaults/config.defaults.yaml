@@ -891,7 +891,8 @@ jobs:
   # This ensures plan data remains available even if Stripe webhooks fail.
   # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
   # Skips gracefully if no Stripe API key is configured (standalone mode).
-  plan_cache_refresh_enabled: false
+  plan_cache_refresh:
+    enabled: true
 
   # Catalog Retry Job
   # Retries webhook events that were blocked by the Stripe circuit breaker.
@@ -899,13 +900,15 @@ jobs:
   # price.created, etc.) are queued for retry rather than failing. This job
   # processes those queued events once the circuit breaker closes.
   # Runs every 2 minutes when enabled; skips if circuit is still open.
-  catalog_retry_enabled: false
+  catalog_retry:
+    enabled: true
 
   # DLQ Email Consumer Job
   # Processes failed email messages from the dead-letter queue.
   # Runs on a schedule to inspect DLQ messages and re-publish recoverable
   # failures or log permanent failures for investigation.
-  dlq_consumer_enabled: true
+  dlq_consumer:
+    enabled: true
 
   # Domain refresh job
   # Periodically refreshes cached vhost/resolving status for custom domains
@@ -913,7 +916,7 @@ jobs:
   # visiting the verify page. See issue #3080.
   # Skips gracefully when no custom domains are registered.
   domain_refresh:
-    enabled: false
+    enabled: true
     # How often to refresh (rufus-scheduler interval)
     check_interval: '30m'
     # Maximum domains processed per run (rate limiting)
@@ -936,6 +939,45 @@ jobs:
     # Maximum warnings to process per job run (rate limiting)
     # Prevents queue overflow; remaining secrets processed in next run
     batch_size: 100
+
+  # Auto-fetch custom-domain favicon from the live domain
+  # Discovers and downloads a favicon for verified custom domains under an
+  # SSRF guard, then populates custom_domain.icon. See issue #3780.
+  # HTTPS-only; user-uploaded icons are never overwritten.
+  favicon_fetch:
+    # Feature flag — default ON (see #3780)
+    enabled: true
+    # Seconds per HTTP fetch (connect + read)
+    timeout: 5
+    # Response size ceiling in bytes (100 KB), streamed-enforced
+    max_response_bytes: 102400
+    # Maximum redirects followed, each re-validated against the SSRF guard
+    max_redirects: 3
+    # Allowed image content types. SVG is intentionally excluded (script/XXE
+    # risk) and rejected at fetch time. This array REPLACES on override
+    # (deep_merge) — restate it in full to change the set.
+    allowed_content_types:
+      - image/x-icon
+      - image/vnd.microsoft.icon
+      - image/png
+
+  # Nightly favicon backfill scan (#3780)
+  # Paginates the full custom-domain set and enqueues a favicon fetch for each
+  # domain still missing an auto-fetched icon whose backoff window has elapsed.
+  # Requires BOTH this flag AND favicon_fetch.enabled (the worker must consume).
+  favicon_backfill:
+    # Feature flag — default OFF
+    enabled: false
+    # Scan schedule (cron); nightly at 03:00 by default
+    cron: '0 3 * * *'
+    # Domains loaded+scanned per page while paginating the full set
+    batch_size: 500
+    # Stop retrying a domain after this many terminal non-success attempts
+    max_attempts: 6
+    # Backoff base in days (doubles each attempt: 1, 2, 4, 8, ...)
+    base_days: 1
+    # Backoff ceiling in days (the doubling never schedules further out than this)
+    cap_days: 30
 
   # Data maintenance jobs
   # Scheduled jobs for Redis data consistency checks and repairs.

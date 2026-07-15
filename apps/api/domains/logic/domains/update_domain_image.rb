@@ -54,6 +54,19 @@ module DomainsAPI::Logic
 
       class << self
         attr_reader :field
+
+        # Accepted upload MIME types for this image field. Subclasses override to
+        # widen the allowlist (e.g. icons also accept .ico). Defaults to the
+        # shared IMAGE_MIME_TYPES so logo uploads are unchanged.
+        def accepted_mime_types
+          IMAGE_MIME_TYPES
+        end
+
+        # Maximum upload size in bytes for this image field. Subclasses override
+        # to tighten it (e.g. favicons are tiny). Defaults to MAX_IMAGE_BYTES.
+        def max_image_bytes
+          MAX_IMAGE_BYTES
+        end
       end
 
       def process_params
@@ -90,8 +103,8 @@ module DomainsAPI::Logic
         raise_form_error 'Image file is required' unless @uploaded_file
 
         @bytes = @uploaded_file.size
-        raise_form_error 'Image file is too large' if bytes > MAX_IMAGE_BYTES
-        raise_form_error 'Invalid file type' unless IMAGE_MIME_TYPES.include?(@content_type)
+        raise_form_error 'Image file is too large' if bytes > self.class.max_image_bytes
+        raise_form_error 'Invalid file type' unless self.class.accepted_mime_types.include?(@content_type)
 
         @greenlighted = true
       end
@@ -104,9 +117,12 @@ module DomainsAPI::Logic
         # Create data URI for FastImage
         data_uri = "data:#{content_type};base64,#{encoded_content}"
 
+        # FastImage.size returns nil for formats it can't measure (some .ico
+        # files among them). Guard the ratio division so an unmeasurable icon
+        # stores nil dimensions instead of raising on a nil/zero height.
         dimensions    = FastImage.size(data_uri)
         width, height = dimensions
-        ratio         = width.to_f / height
+        ratio         = height && !height.zero? ? width.to_f / height : nil
 
         # Add the encoded image and metadata to the custom domain
         # image field (e.g. logo, icon, etc). These fields are their
@@ -121,6 +137,12 @@ module DomainsAPI::Logic
         _image_field['width']        = width
         _image_field['ratio']        = ratio
         _image_field['bytes']        = @bytes
+
+        # Tag the source so the favicon fetch worker never clobbers a user
+        # upload, and drop the stale derived favicon cache on re-upload so
+        # GetFavicon regenerates from the new bytes (#3780).
+        _image_field['favicon_source'] = 'user_upload'
+        _image_field.remove_field('encoded_favicon')
 
         success_data
       end
@@ -160,6 +182,26 @@ module DomainsAPI::Logic
 
     class UpdateDomainIcon < UpdateDomainImage
       @field = :icon
+
+      # Favicons commonly ship as .ico, which the shared image allowlist omits —
+      # a real favicon upload would otherwise be rejected as "Invalid file type".
+      # Widen the allowlist for icons only (logo uploads are untouched).
+      ICON_MIME_TYPES = (IMAGE_MIME_TYPES + %w[image/x-icon image/vnd.microsoft.icon]).freeze
+
+      # Favicons are tiny; cap far below the 2 MB shared image limit. Sits above
+      # the client-side FAVICON_MAX_BYTES (256 KB in BrandFaviconField) so the
+      # client stays the stricter early filter and this is the real server gate.
+      MAX_ICON_BYTES = 512 * 1024 # 512 KB
+
+      class << self
+        def accepted_mime_types
+          ICON_MIME_TYPES
+        end
+
+        def max_image_bytes
+          MAX_ICON_BYTES
+        end
+      end
     end
   end
 end

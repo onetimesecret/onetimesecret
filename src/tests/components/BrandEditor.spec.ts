@@ -13,7 +13,7 @@ import BrandEditor from '@/apps/workspace/components/dashboard/brand/BrandEditor
 import BrandPathSwitcher from '@/apps/workspace/components/dashboard/brand/BrandPathSwitcher.vue';
 import DeliveryPanel from '@/apps/workspace/components/dashboard/DeliveryPanel.vue';
 import SimpleBrandPanel from '@/apps/workspace/components/dashboard/brand/SimpleBrandPanel.vue';
-import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
+import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
 
 // Echo i18n keys so assertions don't depend on translation content (house
 // convention — see SecretPreview.spec.ts / DomainHeader.spec.ts).
@@ -66,16 +66,32 @@ describe('BrandPathSwitcher', () => {
 });
 
 describe('SimpleBrandPanel', () => {
-  const mountPanel = (settings: Partial<BrandSettings> = {}) =>
+  const mountPanel = (
+    settings: Partial<BrandSettings> = {},
+    faviconSource: string | null = null,
+    faviconImage: ImageProps | null = null
+  ) =>
     mount(SimpleBrandPanel, {
       props: {
         modelValue: baseSettings(settings),
         logoImage: null,
         onLogoUpload: vi.fn(),
         onLogoRemove: vi.fn(),
+        // Favicon upload field props (#3780) — required by the panel now that it
+        // renders BrandFaviconField above the refresh button.
+        faviconImage,
+        onFaviconUpload: vi.fn().mockResolvedValue(undefined),
+        onFaviconRemove: vi.fn().mockResolvedValue(undefined),
+        onRefreshFavicon: vi.fn().mockResolvedValue(undefined),
+        faviconSource,
       },
       global: { stubs: leafStubs },
     });
+
+  // The favicon refresh control is the only button whose label echoes this key
+  // (corner buttons carry borderRadiusDisplayMap English labels).
+  const findRefreshButton = (wrapper: ReturnType<typeof mountPanel>) =>
+    wrapper.findAll('button').find((b) => b.text().includes('web.branding.refresh_favicon'));
 
   it('writes border_radius when a corner is picked (Square→none, Extra Rounded→xl)', async () => {
     const wrapper = mountPanel({ border_radius: 'md' });
@@ -126,6 +142,70 @@ describe('SimpleBrandPanel', () => {
     expect(values).toEqual(['humanist', 'serif', 'sans', 'mono', 'system']);
     expect((select.element as HTMLSelectElement).value).toBe('humanist');
   });
+
+  // #3780 — manual "Refresh favicon from domain" control.
+  it('renders the refresh-favicon button and fires onRefreshFavicon on click', async () => {
+    const onRefreshFavicon = vi.fn().mockResolvedValue(undefined);
+    const wrapper = mount(SimpleBrandPanel, {
+      props: {
+        modelValue: baseSettings(),
+        logoImage: null,
+        onLogoUpload: vi.fn(),
+        onLogoRemove: vi.fn(),
+        faviconImage: null,
+        onFaviconUpload: vi.fn().mockResolvedValue(undefined),
+        onFaviconRemove: vi.fn().mockResolvedValue(undefined),
+        onRefreshFavicon,
+        faviconSource: null,
+      },
+      global: { stubs: leafStubs },
+    });
+
+    const button = wrapper.findAll('button').find((b) =>
+      b.text().includes('web.branding.refresh_favicon')
+    );
+    expect(button?.exists()).toBe(true);
+
+    await button!.trigger('click');
+    expect(onRefreshFavicon).toHaveBeenCalledTimes(1);
+  });
+
+  // #3780 coexistence — the upload field (new) and the refresh button (existing)
+  // must BOTH be present. BrandFaviconField is deliberately NOT stubbed here so
+  // its upload trigger renders; the refresh button + hint live on the panel.
+  it('renders BOTH the favicon upload field and the refresh control (coexistence)', () => {
+    const wrapper = mountPanel();
+    expect(wrapper.find('[data-testid="domain-favicon-upload"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="domain-favicon-refresh"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="domain-favicon-hint"]').exists()).toBe(true);
+  });
+
+  it('the refresh button still reads its disabled state from the domain record (faviconSource), not the upload preview', () => {
+    // A domain that shows an uploaded-icon preview but whose record provenance is
+    // still auto_fetch must leave the refresh button ENABLED — the gate is the
+    // record's faviconSource prop, independent of faviconImage.
+    const previewOnly = mountPanel({}, 'auto_fetch', {
+      encoded: 'QUJD',
+      content_type: 'image/x-icon',
+    } as ImageProps);
+    expect(
+      (findRefreshButton(previewOnly)!.element as HTMLButtonElement).disabled
+    ).toBe(false);
+  });
+
+  it('leaves the button enabled for an empty or auto-fetched icon', () => {
+    expect(
+      (findRefreshButton(mountPanel({}, null))!.element as HTMLButtonElement).disabled
+    ).toBe(false);
+    expect(
+      (findRefreshButton(mountPanel({}, 'auto_fetch'))!.element as HTMLButtonElement).disabled
+    ).toBe(false);
+  });
+
+  it('disables the button when the favicon was user-uploaded (a forced fetch cannot overwrite it)', () => {
+    const button = findRefreshButton(mountPanel({}, 'user_upload'));
+    expect((button!.element as HTMLButtonElement).disabled).toBe(true);
+  });
 });
 
 describe('BrandEditor', () => {
@@ -136,6 +216,10 @@ describe('BrandEditor', () => {
         logoImage: null,
         onLogoUpload: vi.fn(),
         onLogoRemove: vi.fn(),
+        faviconImage: null,
+        onFaviconUpload: vi.fn().mockResolvedValue(undefined),
+        onFaviconRemove: vi.fn().mockResolvedValue(undefined),
+        onRefreshFavicon: vi.fn().mockResolvedValue(undefined),
         previewI18n,
         secretIdentifier: 'abcd',
       },

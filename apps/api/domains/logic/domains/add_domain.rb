@@ -115,6 +115,17 @@ module DomainsAPI::Logic
           # Continue processing despite error
         end
 
+        # Auto-fetch the domain's favicon on add (#3780). Flag-gated and isolated:
+        # the Publisher's jobs-disabled branch runs FetchDomainFavicon inline and can
+        # raise, so wrap it so a favicon failure never breaks domain creation.
+        if OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
+          begin
+            Onetime::Jobs::Publisher.enqueue_favicon_fetch(@custom_domain.identifier)
+          rescue StandardError => ex
+            logger.error '[AddDomain] Failed to enqueue favicon fetch', display_domain: @display_domain, exception: ex
+          end
+        end
+
         success_data
       end
 
