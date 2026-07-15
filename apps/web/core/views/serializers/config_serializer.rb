@@ -193,12 +193,26 @@ module Core
 
         # Resolve restrict_to for the current request context.
         # Domain SigninConfig overrides global when enabled.
+        #
+        # SSO carve-out parity with resolve_signin: a custom domain with no
+        # enabled SigninConfig keeps its /signin page ONLY because SSO is
+        # available (resolve_signin returns sso_available?). Without narrowing
+        # restrict_to, AuthMethodSelector would fall into standard mode and
+        # render the password/email form beside the SSO buttons — yet password/
+        # email default OFF on custom domains and their POST route
+        # (Base#signin_enabled?) rejects them, so those forms advertise methods
+        # that always fail. Force restrict_to='sso' on exactly the same
+        # predicate resolve_signin uses (tenant_domain? && sso_available?) so
+        # the page-availability gate and the method restriction stay in
+        # lockstep and the SSO-only page renders SSO buttons alone.
         def resolve_restrict_to(view_vars)
           domain_id = resolve_domain_id(view_vars)
           if domain_id
             signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
             return signin_config.restrict_to if signin_config&.enabled?
           end
+
+          return 'sso' if tenant_domain?(view_vars) && sso_available?(view_vars)
 
           Onetime.auth_config.restrict_to
         end
@@ -214,9 +228,20 @@ module Core
         # the public /signin page render a friendly "not available" notice
         # instead of the auth form. The runtime POST gate lives in
         # Core::Controllers::Base#signin_enabled? and resolves through the
-        # same SigninConfig.resolve_signin_enabled helper, so the rendered
-        # page and the POST handler cannot disagree. Resolution semantics:
-        # ADR-024.
+        # same custom-domain-aware logic, so the rendered page and the POST
+        # handler cannot disagree. Resolution semantics: ADR-024.
+        #
+        # Custom domains default OFF (opt-in): a custom domain that has not
+        # enabled a SigninConfig shows the "not available" notice instead of
+        # the password/email form — matching the runtime route gate and the
+        # branded masthead. The one exception is SSO: SSO is an independent,
+        # explicitly-configured sign-in path (SsoConfig), so when tenant/
+        # platform SSO is active we keep the page available so its provider
+        # buttons still render even without a SigninConfig. An *enabled*
+        # SigninConfig falls through to the shared resolver, preserving the
+        # per-domain explicit-disable semantics (#3415), including hiding SSO
+        # when the owner set signin_enabled=false. Canonical / subdomain
+        # requests follow the global default (ADR-024 invariant #2).
         #
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if sign-in is available
@@ -227,7 +252,26 @@ module Core
           domain_id     = resolve_domain_id(view_vars)
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
+          # Custom domain that has not opted into per-domain sign-in: password/
+          # email defaults OFF; keep the page only when SSO is available.
+          if tenant_domain?(view_vars) && !signin_config&.enabled?
+            return sso_available?(view_vars)
+          end
+
           Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, signin_config)
+        end
+
+        # Whether any SSO sign-in method is available for the current request,
+        # reusing build_sso_config so tenant SsoConfig, the sso_permitted_for?
+        # activation gate, and platform fallback are all honored. Used by
+        # resolve_signin to keep a custom domain's /signin page reachable for
+        # SSO even when password/email sign-in is default-OFF.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Boolean] true if SSO providers are available
+        def sso_available?(view_vars)
+          sso = build_sso_config(view_vars)
+          sso.is_a?(Hash) && sso['enabled'] == true
         end
 
         # Resolve email_auth availability for the current request context.
@@ -283,23 +327,24 @@ module Core
         # Looks up CustomDomain::SsoConfig (credentials) for the custom domain
         # and gates it on SigninConfig.sso_permitted_for? — the shared
         # activation authority. Tenant SSO config is returned only when the
-        # credentials store is enabled AND the SigninConfig permits SSO. This
-        # is the display half of the parity gate; the runtime half lives in
-        # apps/web/auth/config/hooks/omniauth_tenant.rb and consults the same
-        # predicate. SigninConfig.sso_enabled governs the TENANT's SSO only;
-        # build_sso_config's platform-fallback policy is unchanged.
+        # credentials store is enabled AND the SigninConfig permits SSO. Both
+        # conditions are expressed through SsoConfig.tenant_sso_available_for?,
+        # the single source of truth this display half of the parity gate now
+        # shares with the branded-masthead link gate
+        # (Core::Views::DomainSerializer#effective_signin_enabled?). The runtime
+        # half lives in apps/web/auth/config/hooks/omniauth_tenant.rb and
+        # consults the same sso_permitted_for? predicate. SigninConfig.sso_enabled
+        # governs the TENANT's SSO only; build_sso_config's platform-fallback
+        # policy is unchanged.
         #
         # @param view_vars [Hash] View variables
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
           domain_id = resolve_domain_id(view_vars)
           return nil unless domain_id
+          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
 
-          domain_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
-          return nil unless domain_config&.enabled?
-          return nil unless Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
-
-          domain_config
+          Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
         end
 
         # Resolve domain identifier from view variables

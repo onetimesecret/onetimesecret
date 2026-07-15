@@ -305,6 +305,31 @@ module Onetime
           global && config.signup_enabled?
         end
 
+        # Effective sign-up availability for a CUSTOM DOMAIN request.
+        #
+        # Mirrors SigninConfig.resolve_signin_enabled_for_custom_domain: custom
+        # domains default OFF, so both "no config" and "config present but
+        # master switch off" resolve to false. Unlike resolve_signup_enabled
+        # (which lets an unconfigured CANONICAL request follow the global
+        # default, ADR-024 invariant #2), sign-up on a custom domain requires
+        # an explicitly *enabled* SignupConfig. The global kill switch still
+        # gates the result — an enabled config can only narrow, never re-enable
+        # sign-up disabled globally.
+        #
+        # Single source of truth for the custom-domain default, shared by the
+        # runtime route gate (Core::Controllers::Base#signup_enabled?) and the
+        # branded-masthead display gate
+        # (Core::Views::DomainSerializer#effective_signup_enabled?).
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signup)
+        # @param config [SignupConfig, nil] the per-domain config, if any
+        # @return [Boolean]
+        def resolve_signup_enabled_for_custom_domain(global, config)
+          return false unless config&.enabled?
+
+          resolve_signup_enabled(global, config)
+        end
+
         # Install-level signup capability — the `global` input to
         # resolve_signup_enabled, defined once so the runtime gate
         # (Core::Controllers::Base#signup_enabled?) and the settings API

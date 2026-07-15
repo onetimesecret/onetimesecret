@@ -192,6 +192,32 @@ module Onetime
           global && config.signin_enabled?
         end
 
+        # Effective sign-in availability for a CUSTOM DOMAIN request.
+        #
+        # Custom domains default OFF: sign-in is available only when the domain
+        # owner has explicitly opted in via an *enabled* SigninConfig. Unlike
+        # resolve_signin_enabled — which lets an unconfigured CANONICAL request
+        # follow the global default (ADR-024 invariant #2) — here both "no
+        # config" and "config present but master switch off" mean "not
+        # explicitly allowed" and resolve to false. The global kill switch
+        # still gates the result: an enabled config can only narrow, never
+        # re-enable sign-in disabled globally.
+        #
+        # Single source of truth for the custom-domain default, shared by the
+        # runtime route gate (Core::Controllers::Base#signin_enabled?) and the
+        # branded-masthead display gate
+        # (Core::Views::DomainSerializer#effective_signin_enabled?), so the
+        # /signin POST handler and the masthead link cannot disagree.
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signin)
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @return [Boolean]
+        def resolve_signin_enabled_for_custom_domain(global, config)
+          return false unless config&.enabled?
+
+          resolve_signin_enabled(global, config)
+        end
+
         # Resolve effective email-auth (magic-link) availability, combining the
         # install-level capability with an optional per-domain override.
         #
