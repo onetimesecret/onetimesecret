@@ -29,6 +29,8 @@
 #   6. Serializer visibility gates
 #   7. ConfigSerializer resolve_restrict_to domain override
 #   11. ConfigSerializer resolve_signin: custom-domain default-OFF + SSO carve-out (#3415)
+#   12. SsoConfig.tenant_sso_available_for? direct predicate coverage (#3783)
+#   13. Masthead LINK <-> /signin PAGE parity matrix (#3783)
 #
 # Run:
 #   try try/integration/domain_auth_enforcement_try.rb --agent
@@ -281,6 +283,34 @@ Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis2.iden
 )
 Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis3.identifier)
 #=> true
+
+## effective_signin_enabled? returns true for an SSO-only tenant: enabled SsoConfig, NO SigninConfig (masthead SSO carve-out)
+@domain_vis_sso = Onetime::CustomDomain.create!("dae-vis-sso-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_vis = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_vis_sso.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO VIS',
+  enabled: true,
+  issuer: 'https://idp-vis.example.com',
+  client_id: 'client-vis',
+)
+Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis_sso.identifier)
+#=> true
+
+## effective_signin_enabled? stays OFF for a real domain with NEITHER SigninConfig nor SsoConfig (opt-in default)
+@domain_vis_none = Onetime::CustomDomain.create!("dae-vis-none-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis_none.identifier)
+#=> false
+
+## Invariant: for the SSO-only tenant the masthead link gate and the /signin PAGE gate now AGREE (both true)
+[
+  Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis_sso.identifier),
+  Core::Views::ConfigSerializer.send(
+    :resolve_signin,
+    { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_vis_sso.display_domain, 'domain_strategy' => :custom },
+  ),
+]
+#=> [true, true]
 
 ## effective_signup_enabled? defaults OFF when no SignupConfig exists (custom-domain opt-in)
 Core::Views::DomainSerializer.send(:effective_signup_enabled?, 'nonexistent_domain_id')
@@ -649,6 +679,221 @@ Core::Views::ConfigSerializer.send(
 ## resolve_signin: missing site config => false (no global capability to narrow)
 Core::Views::ConfigSerializer.send(:resolve_signin, {})
 #=> false
+
+# ===================================================================
+# 12. SsoConfig.tenant_sso_available_for? — shared source of truth (#3783)
+# ===================================================================
+#
+# tenant_sso_available_for? is the single predicate both halves of the
+# masthead-LINK <-> /signin-PAGE parity consume: the PAGE gate via
+# ConfigSerializer#resolve_tenant_sso_config, and the LINK gate via
+# DomainSerializer#effective_signin_enabled?. It is TRUE only when the domain
+# has its OWN enabled SsoConfig (credentials) AND SigninConfig.sso_permitted_for?
+# allows SSO. Covered directly here so the shared authority has coverage
+# independent of either serializer. Reuses the section-9 SSO fixtures (same
+# cross-section reuse as section 10's parity assertions).
+
+## tenant_sso_available_for? is false when the domain has no SsoConfig (no credentials store)
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?('nonexistent_domain_id')
+#=> false
+
+## enabled SsoConfig + no SigninConfig => true (sso_permitted_for? defers to the credentials)
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@domain_sso_a.identifier)
+#=> true
+
+## enabled SsoConfig + enabled SigninConfig that permits SSO (sso_enabled=true) => true
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@domain_sso_c.identifier)
+#=> true
+
+## enabled SsoConfig + enabled SigninConfig that FORBIDS SSO (sso_enabled=false) => false
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@domain_sso_b.identifier)
+#=> false
+
+## SsoConfig present but enabled=false (credentials off) => false even with no SigninConfig
+@domain_tsa_off = Onetime::CustomDomain.create!("dae-tsa-off-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_tsa_off = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_tsa_off.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO TSA OFF',
+  enabled: false,
+  issuer: 'https://idp-tsa-off.example.com',
+  client_id: 'client-tsa-off',
+)
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@domain_tsa_off.identifier)
+#=> false
+
+## Parity: the predicate agrees with resolve_tenant_sso_config for the same domain (both active)
+[
+  Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@domain_sso_c.identifier),
+  !Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_c.display_domain }).nil?,
+]
+#=> [true, true]
+
+# ===================================================================
+# 13. Masthead LINK <-> /signin PAGE parity matrix (#3783)
+# ===================================================================
+#
+# The regression this pins: for a custom domain the branded-masthead Sign In
+# LINK (DomainSerializer#effective_signin_enabled?) must mirror the /signin
+# PAGE gate (ConfigSerializer#resolve_signin) the link navigates to — a
+# visible link to a dead page, or a hidden link to a working page, are both
+# bugs. Each row asserts [LINK, PAGE] for the SAME custom domain; they must
+# AGREE except row 8's documented, intentional divergence.
+#
+# The POST /signin runtime gate (Base#signin_enabled?) is deliberately NOT in
+# this matrix: it stays OFF for SSO-only tenants (SSO signs in via omniauth
+# routes, not POST credentials), so it does not track the LINK/PAGE pair. That
+# asymmetry is by design; see effective_signin_enabled? / resolve_signin.
+#
+# Rows 1/2/4/7 reuse the section-6 fixtures (cross-section reuse as in section
+# 10); rows 3/6 add fixtures; rows 5/8 reuse a section-6 domain under a toggled
+# global/operator flag. All rows are custom-domain (domain_strategy: :custom),
+# where tenant_domain? is always true.
+
+## Row 1 — neither SigninConfig nor SsoConfig => LINK false, PAGE false (default OFF, opt-in)
+[
+  Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis_none.identifier),
+  Core::Views::ConfigSerializer.send(
+    :resolve_signin,
+    { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_vis_none.display_domain, 'domain_strategy' => :custom },
+  ),
+]
+#=> [false, false]
+
+## Row 2 — enabled SsoConfig, no SigninConfig => LINK true, PAGE true (the #3783 headline fix)
+[
+  Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis_sso.identifier),
+  Core::Views::ConfigSerializer.send(
+    :resolve_signin,
+    { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_vis_sso.display_domain, 'domain_strategy' => :custom },
+  ),
+]
+#=> [true, true]
+
+## Row 3 — SsoConfig present but enabled=false, no SigninConfig => LINK false, PAGE false
+@domain_pm_sso_off = Onetime::CustomDomain.create!("dae-pm-sso-off-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_pm_off = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_pm_sso_off.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO PM OFF',
+  enabled: false,
+  issuer: 'https://idp-pm-off.example.com',
+  client_id: 'client-pm-off',
+)
+[
+  Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_pm_sso_off.identifier),
+  Core::Views::ConfigSerializer.send(
+    :resolve_signin,
+    { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_pm_sso_off.display_domain, 'domain_strategy' => :custom },
+  ),
+]
+#=> [false, false]
+
+## Row 4 — enabled SigninConfig(signin_enabled=true), global ON => LINK true, PAGE true
+[
+  Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis3.identifier),
+  Core::Views::ConfigSerializer.send(
+    :resolve_signin,
+    { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_vis3.display_domain, 'domain_strategy' => :custom },
+  ),
+]
+#=> [true, true]
+
+## Row 5 — same enabled SigninConfig(signin_enabled=true) but global kill switch OFF => LINK false, PAGE false
+#   The LINK gate reads the global capability from OT.conf via
+#   SigninConfig.global_signin_enabled (no view_vars injection point like the
+#   PAGE gate). Save the class method, force it OFF, assert, restore in an
+#   ensure so cases stay independent (cf. section 8's auth_config stubbing).
+#   The PAGE gate takes global OFF through SITE_SIGNIN_OFF.
+@orig_global_signin = Onetime::CustomDomain::SigninConfig.method(:global_signin_enabled)
+@row5_gates = begin
+  Onetime::CustomDomain::SigninConfig.define_singleton_method(:global_signin_enabled) { |*_a| false }
+  [
+    Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis3.identifier),
+    Core::Views::ConfigSerializer.send(
+      :resolve_signin,
+      { 'site' => SITE_SIGNIN_OFF, 'display_domain' => @domain_vis3.display_domain, 'domain_strategy' => :custom },
+    ),
+  ]
+ensure
+  Onetime::CustomDomain::SigninConfig.define_singleton_method(:global_signin_enabled, @orig_global_signin)
+end
+@row5_gates
+#=> [false, false]
+
+## Row 6 (LOAD-BEARING) guard: the tempting OR operand (tenant SSO) IS available for this domain...
+#   This is the case a naive `resolver || tenant_sso_available_for?` OR gets
+#   WRONG. Because the SigninConfig is ENABLED, effective_signin_enabled? SKIPS
+#   the SSO carve-out and defers to the shared resolver, which honors the
+#   explicit signin_enabled=false and hides SSO along with it (#3415). The SSO
+#   operand the OR would fold in IS true here (asserted below), which is exactly
+#   why an OR would flip this to an unreachable-page bug. Both gates must be false.
+@domain_pm_or = Onetime::CustomDomain.create!("dae-pm-or-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_pm_or = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_pm_or.identifier,
+  enabled: true,
+  signin_enabled: false,
+  sso_enabled: true,
+)
+@sso_pm_or = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_pm_or.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO PM OR',
+  enabled: true,
+  issuer: 'https://idp-pm-or.example.com',
+  client_id: 'client-pm-or',
+)
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@domain_pm_or.identifier)
+#=> true
+
+## Row 6: ...yet BOTH gates are false — an enabled SigninConfig(signin_enabled=false) hides SSO (#3415), no OR
+[
+  Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_pm_or.identifier),
+  Core::Views::ConfigSerializer.send(
+    :resolve_signin,
+    { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_pm_or.display_domain, 'domain_strategy' => :custom },
+  ),
+]
+#=> [false, false]
+
+## Row 7 — enabled SigninConfig(signin_enabled=false), no SsoConfig => LINK false, PAGE false
+[
+  Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis2.identifier),
+  Core::Views::ConfigSerializer.send(
+    :resolve_signin,
+    { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_vis2.display_domain, 'domain_strategy' => :custom },
+  ),
+]
+#=> [false, false]
+
+## Row 8 (INTENTIONAL DIVERGENCE, not a bug) — platform-SSO-fallback-only domain:
+#   no tenant SsoConfig, no SigninConfig, but the operator has enabled platform
+#   fallback (allow_platform_fallback_for_tenants?) with platform SSO on. The
+#   PAGE gate follows the operator fallback and stays reachable; the masthead
+#   LINK reflects per-domain OWNER opt-in only (tenant_sso_available_for? is
+#   TENANT-scoped) so it stays OFF. This divergence is BY DESIGN — a branded
+#   front door advertises what the domain owner configured, not a global
+#   operator fallback. Do NOT "fix" it into agreement. Reuses @domain_vis_none
+#   (row 1's [false,false] domain): only the operator toggle changes, isolating
+#   the effect to the PAGE gate. auth_config predicates are stubbed then removed
+#   (section-8 idiom) so the toggle does not leak.
+@af_fallback = Onetime.auth_config
+@af_fallback.define_singleton_method(:allow_platform_fallback_for_tenants?) { true }
+@af_fallback.define_singleton_method(:sso_enabled?) { true }
+@row8_gates = begin
+  [
+    Core::Views::DomainSerializer.send(:effective_signin_enabled?, @domain_vis_none.identifier),
+    Core::Views::ConfigSerializer.send(
+      :resolve_signin,
+      { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_vis_none.display_domain, 'domain_strategy' => :custom },
+    ),
+  ]
+ensure
+  @af_fallback.singleton_class.send(:remove_method, :allow_platform_fallback_for_tenants?)
+  @af_fallback.singleton_class.send(:remove_method, :sso_enabled?)
+end
+@row8_gates
+#=> [false, true]
 
 # --- Cleanup ---
 

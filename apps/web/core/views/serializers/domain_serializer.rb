@@ -6,6 +6,7 @@ require 'onetime/middleware/domain_strategy'
 require 'onetime/logger_methods'
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/models/custom_domain/signup_config'
+require 'onetime/models/custom_domain/sso_config'
 
 module Core
   module Views
@@ -166,8 +167,28 @@ module Core
         # link. Same default-OFF / opt-in polarity as effective_signup_enabled?:
         # hidden unless an enabled SigninConfig turns it on, and even then the
         # global AUTH_ENABLED && AUTH_SIGNIN kill switch still gates the result.
+        #
+        # The masthead link navigates to the /signin PAGE, so its visibility
+        # must mirror the PAGE display gate (ConfigSerializer#resolve_signin),
+        # NOT the POST /signin runtime gate (Core::Controllers::Base#signin_enabled?).
+        # That is why this method reproduces resolve_signin's structure rather
+        # than the runtime resolver: a custom domain with no enabled SigninConfig
+        # defaults OFF for password/email but keeps the door open when tenant
+        # SSO is available (SsoConfig.tenant_sso_available_for?), so an SSO-only
+        # tenant (enabled SsoConfig, no SigninConfig) gets a working link to its
+        # working /signin page. An *enabled* SigninConfig falls through to the
+        # shared resolver, which honors an explicit signin_enabled=false and
+        # hides SSO along with it (#3415) — matching resolve_signin exactly. SSO
+        # itself signs in via the omniauth routes, never POST /signin, so the
+        # POST handler correctly stays OFF for SSO-only tenants; that asymmetry
+        # with this link gate is intentional. Platform-SSO fallback is out of
+        # scope here by design (see SsoConfig.tenant_sso_available_for?).
         def effective_signin_enabled?(domain_id)
           config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
+
+          unless config&.enabled?
+            return Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
+          end
 
           Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(
             Onetime::CustomDomain::SigninConfig.global_signin_enabled,

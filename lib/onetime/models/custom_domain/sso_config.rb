@@ -363,6 +363,34 @@ module Onetime
           nil
         end
 
+        # Whether tenant SSO is an available sign-in path for a custom domain.
+        #
+        # True only when the domain has its OWN enabled SsoConfig (credentials
+        # store) AND SigninConfig.sso_permitted_for? allows SSO — the identical
+        # two conditions ConfigSerializer#resolve_tenant_sso_config uses to hand
+        # back the tenant provider. Domain-id-only (no request context), so it
+        # is the single source of truth shared by the branded-masthead link gate
+        # (Core::Views::DomainSerializer#effective_signin_enabled?) and the
+        # /signin page gate (via resolve_tenant_sso_config), keeping the masthead
+        # Sign In link and the /signin page in agreement for an SSO-only tenant
+        # (enabled SsoConfig, no SigninConfig) — the case the link previously hid
+        # while the page it points to worked.
+        #
+        # Scope: TENANT SsoConfig only, not the operator's platform-SSO fallback
+        # (allow_platform_fallback_for_tenants?). A branded front door advertises
+        # what the DOMAIN OWNER opted into, not a global operator fallback, so a
+        # platform-fallback-only domain keeps its /signin page (resolve_signin
+        # honors fallback) without lighting up a masthead link. See
+        # ConfigSerializer#build_sso_config.
+        #
+        # @param domain_id [String] CustomDomain identifier (objid)
+        # @return [Boolean] true if tenant SSO can be used to sign in
+        def tenant_sso_available_for?(domain_id)
+          return false unless find_by_domain_id(domain_id)&.enabled?
+
+          Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
+        end
+
         # Check if a domain has SSO configured.
         #
         # @param domain_id [String] CustomDomain identifier

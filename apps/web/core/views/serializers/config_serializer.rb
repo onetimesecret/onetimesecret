@@ -313,23 +313,24 @@ module Core
         # Looks up CustomDomain::SsoConfig (credentials) for the custom domain
         # and gates it on SigninConfig.sso_permitted_for? — the shared
         # activation authority. Tenant SSO config is returned only when the
-        # credentials store is enabled AND the SigninConfig permits SSO. This
-        # is the display half of the parity gate; the runtime half lives in
-        # apps/web/auth/config/hooks/omniauth_tenant.rb and consults the same
-        # predicate. SigninConfig.sso_enabled governs the TENANT's SSO only;
-        # build_sso_config's platform-fallback policy is unchanged.
+        # credentials store is enabled AND the SigninConfig permits SSO. Both
+        # conditions are expressed through SsoConfig.tenant_sso_available_for?,
+        # the single source of truth this display half of the parity gate now
+        # shares with the branded-masthead link gate
+        # (Core::Views::DomainSerializer#effective_signin_enabled?). The runtime
+        # half lives in apps/web/auth/config/hooks/omniauth_tenant.rb and
+        # consults the same sso_permitted_for? predicate. SigninConfig.sso_enabled
+        # governs the TENANT's SSO only; build_sso_config's platform-fallback
+        # policy is unchanged.
         #
         # @param view_vars [Hash] View variables
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
           domain_id = resolve_domain_id(view_vars)
           return nil unless domain_id
+          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
 
-          domain_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
-          return nil unless domain_config&.enabled?
-          return nil unless Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
-
-          domain_config
+          Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
         end
 
         # Resolve domain identifier from view variables
