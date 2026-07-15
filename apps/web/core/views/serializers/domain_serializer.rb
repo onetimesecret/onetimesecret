@@ -4,6 +4,8 @@
 
 require 'onetime/middleware/domain_strategy'
 require 'onetime/logger_methods'
+require 'onetime/models/custom_domain/signin_config'
+require 'onetime/models/custom_domain/signup_config'
 
 module Core
   module Views
@@ -119,32 +121,58 @@ module Core
           # truth, shared with the homepage-config API responses.
           effective_enabled = homepage_config.effectively_enabled?(custom_domain: custom_domain)
 
+          # signup_enabled / signin_enabled drive the branded homepage
+          # masthead auth links. They carry the effective_* value — custom
+          # domains default OFF and only show a link when the domain owner has
+          # explicitly enabled it via SigninConfig/SignupConfig (the
+          # /domains/:id/signin + /signup settings pages), with the global
+          # kill switch still able to force it off. This is NOT
+          # HomepageConfig's own signup_enabled?/signin_enabled? fields —
+          # those defaulted to false and had no settings-UI writer, so the
+          # links never rendered.
           {
             'domain_id' => domain_id,
             'enabled' => effective_enabled,
             'secrets_mode' => secrets_mode,
-            'signup_enabled' => homepage_config.signup_enabled? && effective_signup_enabled?(domain_id),
-            'signin_enabled' => homepage_config.signin_enabled? && effective_signin_enabled?(domain_id),
+            'signup_enabled' => effective_signup_enabled?(domain_id),
+            'signin_enabled' => effective_signin_enabled?(domain_id),
             'disabled_homepage_variant' => homepage_config.disabled_homepage_variant_value,
             'created_at' => homepage_config.created&.to_i,
             'updated_at' => homepage_config.updated&.to_i,
           }
         end
 
-        # Backend gate: if a SignupConfig exists and disables signup, don't show the form.
+        # Resolved sign-up availability for the branded homepage's Create
+        # Account link. Custom domains default OFF: the branded front door
+        # never advertises account creation unless the domain owner has
+        # explicitly opted in via an enabled SignupConfig (the
+        # /domains/:id/signup settings page). This is a deliberate divergence
+        # from ADR-024 invariant #2 (which has unconfigured domains follow the
+        # global default) — that invariant governs the canonical site's
+        # display/runtime gates, not this branded masthead surface. When a
+        # domain HAS opted in, the ADR-024 resolver still applies: the global
+        # kill switch (AUTH_ENABLED && AUTH_SIGNUP) wins and the per-domain
+        # value can only narrow, never widen.
         def effective_signup_enabled?(domain_id)
           config = Onetime::CustomDomain::SignupConfig.find_by_domain_id(domain_id)
-          return true unless config&.enabled?
 
-          config.signup_enabled?
+          Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(
+            Onetime::CustomDomain::SignupConfig.global_signup_enabled,
+            config,
+          )
         end
 
-        # Backend gate: if an enabled SigninConfig disables signin, don't show the link.
+        # Resolved sign-in availability for the branded homepage's Sign In
+        # link. Same default-OFF / opt-in polarity as effective_signup_enabled?:
+        # hidden unless an enabled SigninConfig turns it on, and even then the
+        # global AUTH_ENABLED && AUTH_SIGNIN kill switch still gates the result.
         def effective_signin_enabled?(domain_id)
           config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
-          return true unless config&.enabled?
 
-          config.signin_enabled?
+          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(
+            Onetime::CustomDomain::SigninConfig.global_signin_enabled,
+            config,
+          )
         end
 
         # Use extid (external ID) for public URLs, not domainid (internal objid)
