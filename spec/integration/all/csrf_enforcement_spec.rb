@@ -176,12 +176,12 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
 
     describe 'API routes without authentication' do
       it 'POST to /api/v1/generate without auth bypasses CSRF (anonymous allowed)' do
-        # API routes bypass CSRF entirely because:
-        # - API v1 only accepts Basic Auth or anonymous (no session auth)
-        # - Anonymous requests are stateless (no session = no CSRF attack vector)
+        # Anonymous API request with no session cookie has no CSRF vector:
+        # - API v1 has no session auth (Basic Auth or anonymous only)
+        # - Anonymous requests are stateless (no session = nothing to forge)
         response = @mock_request.post('/api/v1/generate')
 
-        # Should NOT be 403 (CSRF rejection) - API routes bypass CSRF
+        # Should NOT be 403 (CSRF rejection) - no session => bypass
         # Will be 400 (missing params) or similar API-level error
         expect(response.status).not_to eq(403)
       end
@@ -197,31 +197,29 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(response.status).not_to eq(403)
       end
 
-      it 'documents CSRF bypass for all API routes' do
-        # API routes bypass CSRF entirely - both authenticated and anonymous
-        # This is safe because:
-        # - API v1 removed session auth (Basic Auth or anonymous only)
-        # - Anonymous requests have no session to exploit
-        # - Authenticated API requests use API keys, not session cookies
-
+      it 'bypasses CSRF for an anonymous API request with no session cookie' do
+        # No ambient session cookie => nothing a forged cross-site request could
+        # ride => no CSRF vector => bypass. Covers v1 (no session auth),
+        # anonymous/programmatic clients, and the /api/incoming/* inbound surface.
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
         allow_if = middleware_config[:options][:allow_if]
 
-        # Simulate request without Basic Auth to /api/v1/test
+        # Simulate request without Basic Auth and without an authenticated session
         env_without_auth = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST'
         }
 
         result = allow_if.call(env_without_auth)
-        expect(result).to be true # All API routes bypass CSRF
+        expect(result).to be true # No session => no CSRF vector => bypass
       end
 
-      it 'documents CSRF bypass with Basic Auth on API' do
+      it 'bypasses CSRF for an API request authenticated via Basic Auth' do
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
         allow_if = middleware_config[:options][:allow_if]
 
-        # Simulate request WITH Basic Auth to /api/v1/test
+        # Simulate request WITH Basic Auth to /api/v1/test. Basic Auth is a
+        # stateless per-request credential (API key), not an ambient cookie.
         credentials = Base64.strict_encode64('user:pass')
         env_with_auth = {
           'PATH_INFO' => '/api/v1/test',
@@ -230,7 +228,53 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         }
 
         result = allow_if.call(env_with_auth)
-        expect(result).to be true # CSRF should be bypassed
+        expect(result).to be true # Basic Auth (no ambient cookie) => bypass
+      end
+    end
+
+    describe 'session-authenticated API routes require CSRF (H-1)' do
+      let(:allow_if) do
+        Onetime::Middleware::Security.middleware_components['AuthenticityToken'][:options][:allow_if]
+      end
+
+      it 'does NOT bypass a session-authenticated API POST with no token' do
+        # This is exactly the forged-cross-site scenario H-1 closed: an ambient
+        # authenticated session cookie is present and no explicit credential is
+        # supplied, so the request must fall through and require X-CSRF-Token.
+        env = {
+          'PATH_INFO' => '/api/v2/account',
+          'REQUEST_METHOD' => 'POST',
+          'rack.session' => { 'authenticated' => true }
+        }
+
+        expect(allow_if.call(env)).to be false
+      end
+
+      it 'still bypasses when Basic Auth is present even with a session cookie' do
+        # Basic Auth short-circuits before the session check: an explicit API-key
+        # credential is not a forgeable ambient credential.
+        credentials = Base64.strict_encode64('user:pass')
+        env = {
+          'PATH_INFO' => '/api/v2/account',
+          'REQUEST_METHOD' => 'POST',
+          'HTTP_AUTHORIZATION' => "Basic #{credentials}",
+          'rack.session' => { 'authenticated' => true }
+        }
+
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'bypasses an anonymous (unauthenticated) session API POST' do
+        # Anonymous SPA guest flows carry a session cookie but authenticated=false,
+        # so there is no sensitive ambient authority to abuse => bypass. (The SPA
+        # sends a valid token anyway; not broken either way.)
+        env = {
+          'PATH_INFO' => '/api/v2/secret/conceal',
+          'REQUEST_METHOD' => 'POST',
+          'rack.session' => { 'authenticated' => false }
+        }
+
+        expect(allow_if.call(env)).to be true
       end
     end
 
@@ -339,8 +383,9 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(result).to be true
       end
 
-      it 'bypasses API routes regardless of auth header type' do
-        # All API routes bypass CSRF (Bearer, Basic, or none)
+      it 'bypasses an API route with a Bearer header and no session cookie' do
+        # A Bearer header is not Basic Auth, but with no ambient session cookie
+        # there is still no CSRF vector, so the request bypasses.
         env = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST',
@@ -350,14 +395,17 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(result).to be true
       end
 
-      it 'bypasses API routes even with malformed auth header' do
+      it 'bypasses an API route with a malformed auth header and no session' do
+        # 'Basic' without a trailing space + credentials does NOT match the Basic
+        # short-circuit, but with no session cookie there is still nothing to
+        # forge, so it bypasses on the no-session rule.
         env = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST',
           'HTTP_AUTHORIZATION' => 'Basic' # Missing credentials
         }
         result = allow_if.call(env)
-        expect(result).to be true # API routes always bypass CSRF
+        expect(result).to be true # No session => no CSRF vector => bypass
       end
     end
 
