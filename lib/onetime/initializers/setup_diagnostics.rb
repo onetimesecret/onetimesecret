@@ -459,13 +459,24 @@ module Onetime
           # Admin paths:
           # - /colonel/* - admin paths need full debugging context; scrub multi-segment
           #
+          # Free-text nets (issue #3794 C2/C4): after the path and named-param
+          # passes, the email and verifiable-identifier nets sweep values that
+          # ride under non-sensitive positions — e.g. ?ref=<62-char-id> or
+          # ?email=user@example.com in a Referer or span URL. Named-param
+          # redaction runs first so '[REDACTED]' placeholders are never
+          # re-processed by the nets. This makes scrub_url the single
+          # "thorough" tier for every URL-shaped value (request.url, Referer,
+          # transaction name, span data['url'], span data['http.query']).
+          #
           # @param url [String, nil] The URL to scrub
           # @return [String, nil] The scrubbed URL or original if nil/malformed
           def scrub_url(url)
             return url if url.nil? || url.empty?
 
             scrubbed = scrub_sensitive_paths(url)
-            scrub_sensitive_query_params(scrubbed)
+            scrubbed = scrub_sensitive_query_params(scrubbed)
+            scrubbed = scrubbed.gsub(EMAIL_PATTERN, '[EMAIL_REDACTED]')
+            scrubbed.gsub(IDENTIFIER_TEXT_PATTERN, '[REDACTED]')
           rescue StandardError
             # Fail-closed: return redacted placeholder to prevent leaking sensitive data
             '[SCRUBBING_FAILED]'
@@ -474,32 +485,40 @@ module Onetime
           # Scrub sensitive data from free text (exception messages,
           # capture_message strings, span descriptions).
           #
-          # Applies, in order: email redaction, exact-length identifier
-          # redaction, then the URL path/query passes (which are gsub-based
-          # and safe on arbitrary text). Mirrors scrubSensitiveStrings in
-          # src/plugins/core/diagnostics/scrubbers.ts.
+          # Since scrub_url now carries the email and identifier nets itself
+          # (issue #3794), this is a semantic alias: both tiers apply the same
+          # passes (paths, named params, emails, exact-length identifiers),
+          # all gsub-based and safe on arbitrary text. Mirrors
+          # scrubSensitiveStrings in src/plugins/core/diagnostics/scrubbers.ts.
           #
           # @param text [String, nil] The text to scrub
           # @return [String, nil] The scrubbed text
           def scrub_text(text)
             return text if text.nil? || text.empty?
 
-            result = text.gsub(EMAIL_PATTERN, '[EMAIL_REDACTED]')
-            result = result.gsub(IDENTIFIER_TEXT_PATTERN, '[REDACTED]')
-            scrub_url(result)
+            scrub_url(text)
           rescue StandardError
             '[SCRUBBING_FAILED]'
           end
 
-          # Scrub sensitive parameters from a bare query string (no '?'),
-          # as found in span data['http.query'].
+          # Scrub sensitive parameters from a bare query string, as found in
+          # span data['http.query']. Tolerates a leading '?' (issue #3794 —
+          # the frontend had the same bug as its C1): without stripping it,
+          # the first param would parse as key "?token" and dodge the
+          # named-param redaction. Any leading '?' is preserved in the output.
           #
           # @param query [String] e.g. "key=abc123&ttl=3600"
           # @return [String] e.g. "key=[REDACTED]&ttl=3600"
           def scrub_query_string(query)
             return query if query.nil? || query.empty?
 
-            scrub_url("?#{query}").delete_prefix('?')
+            # Prepend a fresh '?' so scrub_url parses the input as a query
+            # string and applies its full pass stack (named params, emails,
+            # identifier net), then strip it back off; the caller's original
+            # prefix (if any) is restored below.
+            bare     = query.delete_prefix('?')
+            scrubbed = scrub_url("?#{bare}").delete_prefix('?')
+            query.start_with?('?') ? "?#{scrubbed}" : scrubbed
           end
 
           # Scrub emails, identifiers, and sensitive paths from exception
@@ -573,18 +592,26 @@ module Onetime
           # Mirrors EMAIL_PATTERN in src/plugins/core/diagnostics/scrubbers.ts.
           EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
 
-          # Verifiable identifiers in free text. Word-boundary anchored and
-          # length-exact so trace IDs (32 hex) and commit hashes (40 hex) —
-          # which are ops-useful — survive. 62 = v0.24 identifiers, 31 = legacy
-          # v0.23.
+          # Verifiable identifiers in free text. 62 = v0.24 identifiers,
+          # 31 = legacy v0.23.
           #
-          # INTENTIONAL DIVERGENCE from the frontend VERIFIABLE_ID_PATTERN in
-          # src/plugins/core/diagnostics/scrubbers.ts. The backend pattern is
-          # anchored + case-sensitive ([0-9a-z] only) to deliberately preserve
-          # 32/40-char lowercase-hex ops/trace IDs and commit hashes. The
-          # frontend is case-insensitive. Do NOT "fix" this asymmetry by making
-          # the two patterns identical — the difference is by design.
-          IDENTIFIER_TEXT_PATTERN = /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/
+          # The 62-char branch is UNANCHORED so a secret glued to adjacent
+          # word characters (`?ref=<id>abc`, `<id>x`, `load <id>_meta`) is
+          # still caught. A \b-anchored 62 branch silently leaked all of
+          # those shapes. The over-redaction risk is minimal: no ops-useful
+          # token is >= 62 chars, and partially redacting a longer blob is
+          # fail-safe, not a bug. The 31-char branch stays \b-anchored and
+          # length-exact so ops-useful values of nearby lengths — trace IDs
+          # (32 hex), commit hashes (40 hex) — survive untouched.
+          #
+          # Mirrors VERIFIABLE_ID_PATTERN in
+          # src/plugins/core/diagnostics/scrubbers.ts, with ONE intentional
+          # divergence: the backend pattern is case-SENSITIVE ([0-9a-z]
+          # only), because the backend controls its own identifier
+          # generation (lowercase base-36). The frontend is
+          # case-insensitive. Do NOT "fix" this asymmetry by making the two
+          # patterns identical — the difference is by design.
+          IDENTIFIER_TEXT_PATTERN = /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/
 
           private
 

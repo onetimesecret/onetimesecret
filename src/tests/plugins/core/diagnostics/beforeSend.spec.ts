@@ -120,9 +120,10 @@ const TEST_HOST = 'example.com';
 function createMockRouter(config: {
   params: Record<string, string | string[]>;
   meta: Partial<RouteMeta>;
+  resolve?: (path: string) => unknown;
 }): Router {
   return {
-    resolve: vi.fn(),
+    resolve: config.resolve ? vi.fn(config.resolve) : vi.fn(),
     currentRoute: {
       value: {
         params: config.params,
@@ -149,6 +150,7 @@ function getBeforeSend(): (event: ErrorEvent) => ErrorEvent | null {
 function setupWithRouter(routerConfig: {
   params: Record<string, string | string[]>;
   meta: Partial<RouteMeta>;
+  resolve?: (path: string) => unknown;
 }): void {
   resetCapturedOptions();
   const mockRouter = createMockRouter(routerConfig);
@@ -735,5 +737,80 @@ describe('beforeSendTransaction handler', () => {
 
     // Value layer opted out; /page/ is not a known sensitive path, so it stays.
     expect(result.request?.url).toBe('https://example.com/page/admin123');
+  });
+
+  // #3794 C1 — Sentry stores span http.query as parsedUrl.search, WITH the
+  // leading `?`. The first sensitive param must still be redacted.
+  it('scrubs the first sensitive param in span http.query despite a leading `?`', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/reveal',
+      spans: [
+        {
+          description: 'GET /reveal',
+          data: { 'http.query': '?token=hunter2&x=1' },
+        },
+      ],
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.spans?.[0].data?.['http.query']).toBe('?token=[REDACTED]&x=1');
+  });
+
+  // #3794 C6 — the value layer must use the route the transaction belongs to
+  // (resolved from event.request.url), not the live currentRoute. An in-flight
+  // pageload transaction can outlive a navigation to a different route.
+  it('resolves the value layer from the transaction URL, not the live current route (C6)', () => {
+    // User has already navigated to /dashboard (no params, nothing to scrub)…
+    setupWithRouter({
+      params: {},
+      meta: {},
+      // …but the transaction's own URL resolves to a route whose param is
+      // marked sensitive via metadata.
+      resolve: (path: string) =>
+        path === '/page/abc123'
+          ? { meta: { sentryScrubParams: ['id'] }, params: { id: 'abc123' } }
+          : { meta: {}, params: {} },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/page/abc123',
+      request: { url: 'https://example.com/page/abc123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // Live-route reading would return [] and leak abc123 (it is too short for
+    // the pattern net); URL-resolved route context redacts it.
+    expect(result.request?.url).toBe('https://example.com/page/[REDACTED]');
+    expect(result.transaction).toBe('/page/[REDACTED]');
+  });
+
+  it('falls back to the current route when transaction URL resolution throws (C6)', () => {
+    setupWithRouter({
+      params: { secretKey: 'abc123' },
+      meta: {},
+      resolve: () => {
+        throw new Error('no match');
+      },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      request: { url: 'https://example.com/page/abc123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // Current-route fallback still applies the value layer.
+    expect(result.request?.url).toBe('https://example.com/page/[REDACTED]');
   });
 });

@@ -33,24 +33,33 @@ export const SENSITIVE_PATH_PATTERN =
 /**
  * Fallback pattern for verifiable identifiers appearing in unexpected paths
  * or free text. Matches both the current 62-char base62 IDs (v0.24) and the
- * legacy 31-char IDs (v0.23). Word-boundary anchored (`\b`) and length-exact
- * so ops-useful values of other lengths — trace IDs (32 hex), commit hashes
- * (40 hex) — survive untouched.
+ * legacy 31-char IDs (v0.23).
+ *
+ * Anchoring is asymmetric BY DESIGN:
+ *   - The 62-char branch is UNANCHORED so a secret glued to adjacent word
+ *     characters (`?ref=<id>abc`, `<id>x`, `load <id>_meta`) is still caught.
+ *     A `\b`-anchored 62 branch silently leaked all of those shapes. The
+ *     over-redaction risk is minimal: no ops-useful token is >= 62 chars, and
+ *     partially redacting a longer blob is fail-safe, not a bug.
+ *   - The 31-char branch stays `\b`-anchored and length-exact so ops-useful
+ *     values of nearby lengths — trace IDs (32 hex), commit hashes (40 hex) —
+ *     survive untouched; an unanchored 31 branch would match inside them.
  *
  * DOCUMENTED DIVERGENCE FROM BACKEND (by design, not drift):
- *   Frontend: /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/gi  (case-INSENSITIVE)
- *   Backend:  /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/     (case-SENSITIVE)
+ *   Frontend: /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/gi  (case-INSENSITIVE)
+ *   Backend:  /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/    (case-SENSITIVE)
  *     — lib/onetime/initializers/setup_diagnostics.rb IDENTIFIER_TEXT_PATTERN
+ *   Anchoring now matches (62 branch unanchored, 31 branch \b-anchored on
+ *   both sides); the only remaining divergence is case-sensitivity.
  *
  * The backend stays strict (lowercase-only) because it controls its own
  * identifier generation and wants to avoid redacting mixed-case ops tokens.
  * The frontend is deliberately case-insensitive: it scrubs data from browser
- * URLs/messages of unknown provenance, so it errs toward over-redaction. The
- * `\b` anchoring and exact lengths are shared; only the case flag differs.
+ * URLs/messages of unknown provenance, so it errs toward over-redaction.
  *
  * @internal Exported for testing
  */
-export const VERIFIABLE_ID_PATTERN = /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/gi;
+export const VERIFIABLE_ID_PATTERN = /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/gi;
 
 /**
  * Query-parameter names whose VALUES carry secrets and must be redacted.
@@ -166,16 +175,19 @@ function extractAndScrubPath(input: string): string {
 
 /**
  * Redacts the VALUES of sensitive query parameters within a raw query string,
- * preserving the parameter names. Operates on the portion after `?` and before
- * any `#` fragment, i.e. NOT a full URL. Used both by `scrubUrlWithPatterns`
- * (via `scrubUrlQueryParamNames`) and directly for span `http.query` data,
- * which Sentry stores as a bare query string.
+ * preserving the parameter names. Operates on a query string (not a full URL),
+ * with or without a leading `?` — Sentry stores span `http.query` as
+ * `parsedUrl.search`, which INCLUDES the leading `?` (@sentry/core fetch
+ * instrumentation), while `scrubUrlQueryParamNames` passes the portion after
+ * `?`. A leading `?` is stripped before splitting (so `?token=x` matches the
+ * `token` param, not a bogus `?token` name) and preserved in the output so the
+ * value round-trips faithfully.
  *
  * Matching is case-insensitive on the parameter NAME only (mirrors the backend
  * `SENSITIVE_QUERY_PARAMS.include?(key.downcase)`). Empty trailing segments are
  * preserved by keeping the raw split, so `a=1&` round-trips.
  *
- * @param query - Raw query string, e.g. `key=abc&foo=bar` (no leading `?`)
+ * @param query - Raw query string, e.g. `key=abc&foo=bar` or `?key=abc&foo=bar`
  * @returns The query string with sensitive param values replaced by [REDACTED]
  */
 export function scrubSensitiveQueryParams(query: string): string {
@@ -183,8 +195,11 @@ export function scrubSensitiveQueryParams(query: string): string {
     return query;
   }
 
+  const hasLeadingQuestionMark = query.startsWith('?');
+  const bareQuery = hasLeadingQuestionMark ? query.slice(1) : query;
+
   const sensitive = SENSITIVE_QUERY_PARAMS as readonly string[];
-  return query
+  const scrubbed = bareQuery
     .split('&')
     .map((param) => {
       const eq = param.indexOf('=');
@@ -198,24 +213,30 @@ export function scrubSensitiveQueryParams(query: string): string {
       return param;
     })
     .join('&');
+  return hasLeadingQuestionMark ? `?${scrubbed}` : scrubbed;
 }
 
 /**
- * Scrubs a bare query string (Sentry span `http.query` data): first redacts
- * sensitive param values by name (A1), then applies the verifiable-ID and
- * email pattern nets to anything remaining. Distinct from
- * `scrubUrlWithPatterns`, which expects a URL/path, not a bare query string.
+ * Scrubs a query string (Sentry span `http.query` data, stored as
+ * `parsedUrl.search` WITH its leading `?`): first redacts sensitive param
+ * values by name (A1), then applies the verifiable-ID and email pattern nets
+ * to anything remaining. Distinct from `scrubUrlWithPatterns`, which expects
+ * a URL/path, not a query string.
  *
- * @param query - Raw query string, e.g. `token=abc&email=user@x.com`
- * @returns The scrubbed query string
+ * @param query - Raw query string, e.g. `?token=abc&email=user@x.com`
+ * @returns The scrubbed query string (leading `?` preserved if present)
  */
 export function scrubQueryStringValues(query: string): string {
   if (!query || typeof query !== 'string') {
     return query;
   }
   let result = scrubSensitiveQueryParams(query);
-  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
+  // Ordering invariant: the email pass must run BEFORE the identifier pass.
+  // An ID-shaped local part (e.g. <62-char-id>@example.com) would otherwise
+  // be replaced first, leaving `[REDACTED]@domain` that EMAIL_PATTERN can no
+  // longer match — leaking the email domain.
   result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
   return result;
 }
 
@@ -266,11 +287,15 @@ export function scrubUrlWithPatterns(url: string): string {
   // Third pass: redact sensitive query-param values by name (?token=... etc.)
   result = scrubUrlQueryParamNames(result);
 
-  // Fourth pass: scrub any remaining 62/31-char verifiable IDs
-  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
-
-  // Fifth pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
+  // Fourth pass: scrub email addresses (e.g., in query params like
+  // ?email=user@example.com). Ordering invariant: the email pass must run
+  // BEFORE the identifier pass — an ID-shaped local part would otherwise be
+  // replaced first, leaving `[REDACTED]@domain` that EMAIL_PATTERN can no
+  // longer match.
   result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
+
+  // Fifth pass: scrub any remaining 62/31-char verifiable IDs
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
 
   return result;
 }
