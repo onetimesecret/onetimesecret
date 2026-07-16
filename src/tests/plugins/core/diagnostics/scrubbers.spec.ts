@@ -242,7 +242,8 @@ describe('scrubSensitiveQueryParams (A1)', () => {
   });
 
   it('handles null/undefined/empty gracefully', () => {
-    expect(scrubSensitiveQueryParams(null as unknown as string)).toBe(null);
+    expect(scrubSensitiveQueryParams(null)).toBe(null);
+    expect(scrubSensitiveQueryParams(undefined)).toBe(undefined);
     expect(scrubSensitiveQueryParams('')).toBe('');
   });
 
@@ -304,7 +305,8 @@ describe('scrubQueryStringValues (A4)', () => {
   });
 
   it('handles null/undefined/empty gracefully', () => {
-    expect(scrubQueryStringValues(null as unknown as string)).toBe(null);
+    expect(scrubQueryStringValues(null)).toBe(null);
+    expect(scrubQueryStringValues(undefined)).toBe(undefined);
     expect(scrubQueryStringValues('')).toBe('');
   });
 

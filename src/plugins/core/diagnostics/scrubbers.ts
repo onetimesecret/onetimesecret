@@ -190,8 +190,12 @@ function extractAndScrubPath(input: string): string {
  * @param query - Raw query string, e.g. `key=abc&foo=bar` or `?key=abc&foo=bar`
  * @returns The query string with sensitive param values replaced by [REDACTED]
  */
-export function scrubSensitiveQueryParams(query: string): string {
-  if (!query || typeof query !== 'string') {
+export function scrubSensitiveQueryParams(query: string): string;
+export function scrubSensitiveQueryParams(query: null | undefined): null | undefined;
+export function scrubSensitiveQueryParams(
+  query: string | null | undefined
+): string | null | undefined {
+  if (!query) {
     return query;
   }
 
@@ -226,8 +230,12 @@ export function scrubSensitiveQueryParams(query: string): string {
  * @param query - Raw query string, e.g. `?token=abc&email=user@x.com`
  * @returns The scrubbed query string (leading `?` preserved if present)
  */
-export function scrubQueryStringValues(query: string): string {
-  if (!query || typeof query !== 'string') {
+export function scrubQueryStringValues(query: string): string;
+export function scrubQueryStringValues(query: null | undefined): null | undefined;
+export function scrubQueryStringValues(
+  query: string | null | undefined
+): string | null | undefined {
+  if (!query) {
     return query;
   }
   let result = scrubSensitiveQueryParams(query);
