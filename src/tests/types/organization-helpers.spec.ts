@@ -43,6 +43,21 @@ describe('effectiveInvitationStatus', () => {
   it('passes an already-expired status through unchanged', () => {
     expect(effectiveInvitationStatus('expired', PAST_S, NOW_MS)).toBe(INVITATION_STATUSES.EXPIRED);
   });
+
+  // Guards the whole-second comparison: expiry is floored to seconds to match
+  // the row countdown (formatTimeRemaining), so a sub-second-future expiry must
+  // still read as pending rather than flipping early on millisecond precision.
+  it('stays pending for a sub-second-future expiry within the same second', () => {
+    expect(effectiveInvitationStatus('pending', NOW_S + 0.5, NOW_MS + 700)).toBe(
+      INVITATION_STATUSES.PENDING
+    );
+  });
+
+  it('flips to expired once the whole second has ticked past expiry', () => {
+    expect(effectiveInvitationStatus('pending', NOW_S + 0.5, NOW_MS + 1000)).toBe(
+      INVITATION_STATUSES.EXPIRED
+    );
+  });
 });
 
 describe('invitationStatusLabelKey', () => {

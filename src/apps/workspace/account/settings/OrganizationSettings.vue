@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useConfirmDialog } from '@vueuse/core';
+import { useConfirmDialog, useNow } from '@vueuse/core';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
@@ -73,6 +73,11 @@ const route = useRoute();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
 const membersStore = useMembersStore();
+
+// Reactive clock so expiry-derived display (invitation status badge + countdown)
+// refreshes on its own instead of going stale until the next user action. Ticks
+// coarsely — these values change on a minute/hour scale, not per frame.
+const now = useNow({ interval: 30_000 });
 
 const orgId = computed(() => route.params.extid as string);
 
@@ -518,9 +523,8 @@ const handleRevokeInvitation = async (token: string) => {
   }
 };
 
-const formatTimeRemaining = (expiresAt: number): string => {
-  const now = Math.floor(Date.now() / 1000);
-  const remaining = expiresAt - now;
+const formatTimeRemaining = (expiresAt: number, nowMs: number = Date.now()): string => {
+  const remaining = expiresAt - Math.floor(nowMs / 1000);
 
   if (remaining <= 0) {
     return t('web.organizations.invitations.status.expired');
@@ -538,27 +542,45 @@ const formatTimeRemaining = (expiresAt: number): string => {
   }
 };
 
-/** Localized status label for an invitation, with raw-value fallback. */
-const invitationStatusLabel = (invitation: OrganizationInvitation): string => {
-  const status = effectiveInvitationStatus(invitation.status, invitation.expires_at);
-  const key = invitationStatusLabelKey(status);
-  return key ? t(key) : status;
-};
-
 /** Tailwind badge classes keyed to an invitation's effective status. */
-const invitationStatusBadgeClass = (invitation: OrganizationInvitation): string => {
-  switch (effectiveInvitationStatus(invitation.status, invitation.expires_at)) {
+const invitationStatusBadgeClass = (status: string): string => {
+  switch (status) {
     case INVITATION_STATUSES.ACCEPTED:
       return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
     case INVITATION_STATUSES.DECLINED:
       return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
     case INVITATION_STATUSES.PENDING:
       return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+    // 'revoked' is deleted server-side today so it never reaches here, but keep
+    // it explicit for symmetry with LOCALIZED_INVITATION_STATUSES.
+    case 'revoked':
     case INVITATION_STATUSES.EXPIRED:
     default:
       return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
   }
 };
+
+/**
+ * Invitation rows decorated with their expiry-aware display fields. Resolving
+ * the effective status once per row here (rather than in each template binding)
+ * avoids recomputing it, and reading `now` makes every derived field — status
+ * badge and countdown — refresh on the clock tick, so a pending invitation that
+ * lapses while the tab stays open updates on its own instead of showing a stale
+ * "Pending" badge.
+ */
+const decoratedInvitations = computed(() => {
+  const nowMs = now.value.getTime();
+  return invitations.value.map((invitation) => {
+    const status = effectiveInvitationStatus(invitation.status, invitation.expires_at, nowMs);
+    const labelKey = invitationStatusLabelKey(status);
+    return {
+      invitation,
+      statusLabel: labelKey ? t(labelKey) : status,
+      statusBadgeClass: invitationStatusBadgeClass(status),
+      timeRemaining: formatTimeRemaining(invitation.expires_at, nowMs),
+    };
+  });
+});
 
 const canManageMembers = computed(() => {
   if (!organization.value) return false;
@@ -568,6 +590,11 @@ const canManageMembers = computed(() => {
 // Mirror backend check (create_invitation.rb:130): member_count + pending invitations
 // vs total_members_per_org limit. Limit of -1 means unlimited; null/undefined means
 // unknown (e.g. self-hosted) — treat as no limit.
+//
+// Counts the raw 'pending' status, NOT the expiry-aware effective status: the
+// backend keeps a lapsed invitation's seat reserved until cleanup, so this
+// limit check must match it. A row can therefore read "Expired" in its badge
+// while still counting toward the quota here — intentional.
 const pendingInvitationCount = computed(() =>
   invitations.value.filter((inv) => inv.status === 'pending').length
 );
@@ -1340,7 +1367,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </h4>
               <div class="mt-3 space-y-2">
                 <div
-                  v-for="invitation in invitations"
+                  v-for="{ invitation, statusLabel, statusBadgeClass, timeRemaining } in decoratedInvitations"
                   :key="invitation.id"
                   data-testid="org-invitation-row"
                   class="flex items-center justify-between rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/50">
@@ -1348,16 +1375,16 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ invitation.email }}</span>
                     <div class="flex items-center gap-2">
                       <span
-                        :class="invitationStatusBadgeClass(invitation)"
+                        :class="statusBadgeClass"
                         class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
-                        {{ invitationStatusLabel(invitation) }}
+                        {{ statusLabel }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
                         {{ t('web.organizations.invitations.invited_at') }} {{ formatDisplayDate(new Date(invitation.invited_at * 1000)) }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">·</span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ formatTimeRemaining(invitation.expires_at) }}
+                        {{ timeRemaining }}
                       </span>
                     </div>
                   </div>

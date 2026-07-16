@@ -140,7 +140,11 @@ export function effectiveInvitationStatus(
   expiresAtSeconds: number,
   nowMs: number = Date.now()
 ): string {
-  if (status === INVITATION_STATUSES.PENDING && expiresAtSeconds * 1000 <= nowMs) {
+  // Compare in whole seconds so the badge flips in lockstep with the row's
+  // countdown (formatTimeRemaining, which floors to seconds) — never showing
+  // "expired" while the countdown still reads "expires soon" on a sub-second gap.
+  const nowSeconds = Math.floor(nowMs / 1000);
+  if (status === INVITATION_STATUSES.PENDING && expiresAtSeconds <= nowSeconds) {
     return INVITATION_STATUSES.EXPIRED;
   }
   return status;
