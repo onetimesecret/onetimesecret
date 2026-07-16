@@ -24,11 +24,12 @@ import {
 // and scrubber tests below. The frontend pattern is
 //   /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/gi   (case-INSENSITIVE, by design)
 // mirroring the backend IDENTIFIER_TEXT_PATTERN
-//   /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/     (case-SENSITIVE)
-// with the deliberate, documented case divergence. The 62-char branch is
-// UNANCHORED so IDs glued to adjacent word chars are still caught; the 31-char
-// branch stays `\b`-anchored so 32-char trace IDs / 40-char commit hashes
-// survive.
+//   /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/     (case-SENSITIVE)
+// with the deliberate, documented case divergence. Anchoring is asymmetric on
+// BOTH frontend and backend: only the 31-char legacy branch is `\b`-anchored;
+// the 62-char branch is intentionally left UNANCHORED so IDs glued to adjacent
+// word chars (`<id>abc`) are still caught. The 31-char branch stays
+// `\b`-anchored so 32-char trace IDs / 40-char commit hashes survive.
 // ---------------------------------------------------------------------------
 const ID_VECTORS = {
   id62: 'a'.repeat(62), // current (v0.24) — redacted

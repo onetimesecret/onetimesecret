@@ -35,14 +35,17 @@ events and transaction events separately:
   middleware), `contexts['request']['url']`, exception message strings, and
   `capture_message` strings.
 - `before_send_transaction` → `scrub_transaction_event`. Same URL rules plus
-  spans: `:description` (free text), `data['url']`, `data['http.query']`.
+  spans: `:description` (free text), `data['url']`, `data['http.query']`. It
+  intentionally does not call `scrub_event_messages`: transaction events carry
+  spans and URLs, not the exception `values`/`message` fields that
+  `scrub_event_messages` scrubs, so there is nothing for it to do.
 
 Rules (all in `SetupDiagnostics` class methods):
 
 - Identifier paths (`/secret/`, `/receipt/`, `/private/`, `/metadata/`, `/incoming/`): segment redacted when ≥ 20 base36 chars (62 = v0.24, 31 = legacy v0.23; named actions like `/receipt/recent` pass through).
 - Auth token paths (`/forgot/`, `/l/`, `/auth/reset-password/`, `/account/email/confirm/`) and `/colonel/*`: always redacted.
 - Query params `key`, `secret`, `token`, `passphrase`: values redacted.
-- Free text: emails → `[EMAIL_REDACTED]`; exact-length word-bounded 62/31-char base36 identifiers → `[REDACTED]`. Length-exact so 32-hex trace IDs and 40-hex commit hashes survive.
+- Free text: emails → `[EMAIL_REDACTED]`; 62/31-char base36 identifiers → `[REDACTED]`. The two branches are anchored differently: the 62-char branch is **unanchored** so identifiers glued to adjacent word characters (`?ref=<id>abc`, `<id>x`, `load <id>_meta`) are still caught — this deliberately over-redacts any ≥62-char base36 run, which is fail-safe since no ops-useful token reaches that length. The 31-char legacy branch stays `\b` word-bounded and length-exact so 32-hex trace IDs and 40-hex commit hashes survive.
 
 Failure semantics: fail closed. URL scrub errors redact to
 `[SCRUBBING_FAILED]`; transaction scrub errors drop the event.

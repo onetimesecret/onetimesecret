@@ -32,8 +32,9 @@ export const SENSITIVE_PATH_PATTERN =
 
 /**
  * Fallback pattern for verifiable identifiers appearing in unexpected paths
- * or free text. Matches both the current 62-char base62 IDs (v0.24) and the
- * legacy 31-char IDs (v0.23).
+ * or free text. Matches both the current 62-char base-36 IDs (v0.24) and the
+ * legacy 31-char IDs (v0.23). Routers/backend define verifiable identifiers as
+ * base-36 (`[0-9a-z]`).
  *
  * Anchoring is asymmetric BY DESIGN:
  *   - The 62-char branch is UNANCHORED so a secret glued to adjacent word

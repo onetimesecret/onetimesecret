@@ -9,10 +9,19 @@ self-hosted Sentry at catch.onetimesecret.com. Plugin:
 ## Architecture
 
 Isolated-client pattern: explicit `BrowserClient` + `Scope`, no global
-`Sentry.init`. Consequence: anything the SDK would normally put on the global
-scope must be set on our scope directly — transaction names come from a
-`router.afterEach` hook that sets the matched route record's parameterized
-path (`/secret/:secretKey`), never the resolved URL.
+`Sentry.init`. The client is bound to *both* scopes (dual-scope): our isolated
+`Scope` (manual captures, tags, transaction name) and the global current scope
+via `setCurrentClient`. The global binding is required because SDK integrations
+resolve their client off the *current* scope, not our isolated one — without it
+`browserApiErrors` drops async-callback errors (timers, listeners, XHR) and
+`browserTracing` never records transactions (so `beforeSendTransaction`
+scrubbing never runs). Both scopes route events through the same client, so all
+events still pass this client's `beforeSend`/`beforeSendTransaction` scrubbers.
+Consequence of isolation: the transaction name still must be set on our scope
+directly — a `router.afterEach` hook sets the matched route record's
+parameterized path (`/secret/:secretKey`), never the resolved URL. See the
+`setCurrentClient` comment block in `enableDiagnostics.ts` for the full
+rationale.
 
 Config arrives from the backend via bootstrap (`config.sentry`: DSN,
 environment, sample rates). Release is `__SENTRY_RELEASE__` at build time so
@@ -42,8 +51,8 @@ diagnostics.service.ts (`errorType`, `schema`, `planid`, `role`, ...).
 Three hooks; all defined in enableDiagnostics.ts, patterns in
 `src/plugins/core/diagnostics/scrubbers.ts`:
 
-- `beforeSend` — exception/message strings, `request.url`, `transaction`, breadcrumb URLs. Two layers: route-param value scrubbing (opt out per route with `meta.sentryScrubParams: false` — governs param values only) plus an always-on pattern net (emails, 62-char identifiers, sensitive paths).
-- `beforeSendTransaction` — performance events bypass `beforeSend`; scrubs transaction name, `request.url`, span descriptions (free-text scrubber — the URL scrubber would mangle `GET /path` strings), and span `url` / `http.url` / `url.full` data.
+- `beforeSend` — exception/message strings, `request.url`, `request.headers.Referer`, `transaction`, breadcrumb URLs. Two layers: route-param value scrubbing (opt out per route with `meta.sentryScrubParams: false` — governs param values only) plus an always-on pattern net (emails, 62-char and legacy 31-char identifiers, sensitive paths, and sensitive query-param value redaction for `key` / `secret` / `token` / `passphrase`).
+- `beforeSendTransaction` — performance events bypass `beforeSend`; scrubs transaction name, `request.url`, span descriptions (free-text scrubber — the URL scrubber would mangle `GET /path` strings), and span `url` / `http.url` / `http.query` / `url.full` data.
 - `beforeBreadcrumb` — navigation breadcrumbs via `router.resolve()` metadata; xhr/fetch breadcrumbs via patterns.
 
 Path patterns are generated from Otto routes marked `sensitive=true`:

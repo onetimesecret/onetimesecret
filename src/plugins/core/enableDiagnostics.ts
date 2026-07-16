@@ -557,7 +557,11 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     release: __SENTRY_RELEASE__,
   };
 
-  console.debug('[EnableDiagnostics] sentryOptions:', sentryOptions);
+  // Guard behind DEBUG: sentryOptions includes the DSN and must not be logged
+  // in production.
+  if (DEBUG) {
+    console.debug('[EnableDiagnostics] sentryOptions:', sentryOptions);
+  }
 
   const client = new BrowserClient(sentryOptions);
   const scope = new Scope();
@@ -594,7 +598,9 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // integrations run, but it does not merge the two scopes' transaction name.)
   // afterEach fires on the initial navigation as well, so pageload errors are
   // covered once routing resolves.
-  router.afterEach((to) => {
+  // afterEach returns an unregister fn; capture it so repeated mount/unmount
+  // (tests, micro-frontends) don't accumulate handlers. Unbound on unmount.
+  const unregisterAfterEach = router.afterEach((to) => {
     const parameterized = to.matched.at(-1)?.path ?? to.path;
     scope.setTransactionName(parameterized);
   });
@@ -616,6 +622,7 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
       // lost if the application shuts down unexpectedly.
       app.unmount = ((original) =>
         function (this: App) {
+          unregisterAfterEach();
           client.close(2000).then(() => {
             original.call(this);
           });
