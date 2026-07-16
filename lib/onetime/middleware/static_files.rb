@@ -105,6 +105,12 @@ module Onetime
             # so a listed URL with a missing file would 404 instead of falling
             # through. Existence is resolved once at boot — changing packs (or
             # adding overlay files) needs a restart.
+            #
+            # Note the existence filter here applies to the MANDATORY BRAND_PACK_URLS
+            # too, not just the optional logo URLs: "unconditional" serving (see the
+            # BRAND_PACK_URLS comment) is a BASE-layer property. A selected pack that
+            # omits a mandatory file simply isn't listed in this overlay layer, so it
+            # falls through to the default base for that file.
             if overlay_dir && base_dir && overlay_dir != base_dir
               overlay_urls = (BRAND_PACK_URLS + BRAND_PACK_LOGO_URLS).select { |u| File.exist?(File.join(overlay_dir, u)) }
               unless overlay_urls.empty?

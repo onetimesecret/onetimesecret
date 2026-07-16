@@ -77,6 +77,11 @@ File.write(File.join(@overlay_partial, 'favicon.svg'), '<svg/>')
 @overlay_logo = Dir.mktmpdir('ots-overlay-logo')
 File.write(File.join(@overlay_logo, 'brand-logo.svg'), '<svg/>')
 
+# Symmetric fixture: brand-logo.png ONLY, to prove the existence filter works
+# independently for the .png extension too.
+@overlay_logo_png = Dir.mktmpdir('ots-overlay-logo-png')
+File.write(File.join(@overlay_logo_png, 'brand-logo.png'), 'PNGBYTES')
+
 # Same pack NAME under BOTH search roots, to prove etc/branding wins over
 # public/branding. Cleaned up in teardown (nothing tracked lands here).
 @pack_name = "trytest_#{Process.pid}"
@@ -137,8 +142,12 @@ File.write(File.join(@e2e_overlay, 'brand-logo.svg'), 'LOGO-OVERLAY-SVG')
 OT.conf['site']['middleware'] = { 'static_files' => true }
 set_overlay(assets_dir: @e2e_overlay, pack: nil)
 @e2e_client = Rack::MockRequest.new(Onetime::Middleware::StaticFiles.new(@e2e_app))
-OT.conf['site']['middleware'] = @orig_mw
+# Second stack with NO overlay selected: resolves to the default pack, so
+# overlay_dir == base_dir and the overlay layer is skipped entirely. The default
+# ships no logo, so /brand-logo.svg must fall through to the app here.
 clear_overlay
+@e2e_default_client = Rack::MockRequest.new(Onetime::Middleware::StaticFiles.new(@e2e_app))
+OT.conf['site']['middleware'] = @orig_mw
 
 # TRYOUTS
 
@@ -348,6 +357,12 @@ overlay_dir = Onetime.brand_overlay_dir
 BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
 #=> ['/brand-logo.svg']
 
+## symmetric check: an overlay carrying brand-logo.png lists only the .png
+set_overlay(assets_dir: @overlay_logo_png, pack: nil)
+overlay_dir = Onetime.brand_overlay_dir
+BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
+#=> ['/brand-logo.png']
+
 ## the served overlay set is the mandatory assets present PLUS the logo it carries
 set_overlay(assets_dir: @overlay_logo, pack: nil)
 overlay_dir = Onetime.brand_overlay_dir
@@ -372,6 +387,11 @@ res = @e2e_client.get('/brand-logo.svg')
 [res.status, res.body]
 #=> [200, 'LOGO-OVERLAY-SVG']
 
+## the served .svg logo carries the image/svg+xml content-type (Rack's own MIME
+## table, so it does not depend on a system MIME database — browsers render it)
+@e2e_client.get('/brand-logo.svg').content_type
+#=> 'image/svg+xml'
+
 ## GET /brand-logo.png is NOT served (the pack omits it) — falls through to the app
 res = @e2e_client.get('/brand-logo.png')
 [res.status, res.body]
@@ -381,11 +401,21 @@ res = @e2e_client.get('/brand-logo.png')
 @e2e_client.get('/favicon.svg').status
 #=> 200
 
+## with NO overlay (default pack, which ships no logo) /brand-logo.svg falls through
+res = @e2e_default_client.get('/brand-logo.svg')
+[res.status, res.body]
+#=> [404, 'APP-FALLTHROUGH']
+
+## ...and a mandatory asset still serves from the default base layer in that stack
+@e2e_default_client.get('/favicon.svg').status
+#=> 200
+
 # Teardown — restore the no-overlay baseline and remove fixtures.
 OT.conf['brand']                    = @orig_brand
 OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
 OT.conf['site']['brand_pack']       = @orig_pack
 [@overlay_favicon, @overlay_manifest, @overlay_bad_manifest,
- @overlay_empty, @overlay_partial, @overlay_logo, @e2e_overlay].each { |d| FileUtils.remove_entry(d) rescue nil }
+ @overlay_empty, @overlay_partial, @overlay_logo, @overlay_logo_png,
+ @e2e_overlay].each { |d| FileUtils.remove_entry(d) rescue nil }
 [@etc_pack_dir, @public_pack_dir, @vendor_only_dir].each { |d| FileUtils.remove_entry(d) rescue nil }
 FileUtils.remove_entry(File.join(Onetime::HOME, 'etc', 'branding')) if Dir.exist?(File.join(Onetime::HOME, 'etc', 'branding')) && Dir.empty?(File.join(Onetime::HOME, 'etc', 'branding'))
