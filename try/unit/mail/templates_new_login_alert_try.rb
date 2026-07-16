@@ -135,3 +135,8 @@ template.baseuri
 template = Onetime::Mail::Templates::NewLoginAlert.new(@valid_data)
 template.subject.is_a?(String) && !template.subject.empty?
 #=> true
+
+## NewLoginAlert subject interpolates display_domain (no raw placeholder)
+template = Onetime::Mail::Templates::NewLoginAlert.new(@valid_data)
+template.subject.include?('%{')
+#=> false

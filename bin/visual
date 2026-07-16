@@ -100,13 +100,47 @@ VISUAL_ENV=(
   # toggle, while a dev shell renders whatever its BRAND_* exports say —
   # either way the baselines stop being reproducible elsewhere.
   #
-  # No BRAND_LOGO_URL: the masthead resolves through the neutral `default`
-  # brand pack (#3774), whose brand.yaml is value-free, so brand.logo_url stays
-  # nil and the header renders the neutral DefaultLogo (keyhole + product name)
-  # — exactly what a stock install shows. (Pre-#3774 this pinned the loose
-  # OTS asset img/onetime-logo-v3-xl.svg, retired with the brand-pack
-  # consolidation; a served masthead logo now comes only from an operator's
-  # absolute brand.logo_url, which the neutral suite deliberately does not set.)
+  # Brand hermeticity — pin the WHOLE brand surface, not a handful of keys.
+  # The masthead logo/name/colour resolve from the brand PACK (its brand.yaml)
+  # underneath the BRAND_* overrides. An ambient BRAND_PACK (a dev shell that
+  # exports e.g. BRAND_PACK=linkdepot) or BRAND_ASSETS_DIR loads a *different*
+  # pack — linkdepot ships a teal /favicon.svg logo and product_name
+  # "LinkDepot", so a custom logo image renders and the product-name text
+  # drops — into a local `--update`, while CI's clean env resolves the value-
+  # free `default` pack (keyhole + product name). That gap is a pure-config
+  # false positive, indistinguishable from a code change in the diff. Force the
+  # default pack and blank every renderable brand key this suite does not
+  # deliberately pin, so a local regenerate is byte-identical to CI no matter
+  # what the dev's shell exports.
+  BRAND_PACK=default
+  BRAND_ASSETS_DIR=
+  # Un-pinned brand keys: blank == CI-absent (the brand: config block is wholly
+  # ENV-driven, so an empty value normalizes to nil — normalize_brand in
+  # lib/onetime/config.rb). logo_url MUST stay nil: a set logo swaps the neutral
+  # DefaultLogo image AND suppresses the product-name text (the exact linkdepot
+  # symptom). favicon/apple-touch/og only touch <head>, but blank them too so
+  # the rendered HTML is deterministic.
+  BRAND_LOGO_URL=
+  BRAND_LOGO_ALT=
+  BRAND_FAVICON_URL=
+  BRAND_APPLE_TOUCH_ICON_URL=
+  BRAND_OG_IMAGE_URL=
+  BRAND_PRODUCT_DOMAIN=
+  BRAND_SUPPORT_EMAIL=
+  BRAND_SIGNATURE_NAME=
+  BRAND_TOTP_ISSUER=
+  # Legacy unprefixed fallbacks (LEGACY_BRAND_FALLBACKS in config.rb still
+  # reads these): neutralize so ambient SITE_NAME/LOGO_URL/LOGO_ALT can't leak
+  # into product_name/logo_url when the BRAND_* form is unset.
+  SITE_NAME=
+  LOGO_URL=
+  LOGO_ALT=
+  # The brand the neutral suite DOES pin: the default-pack DefaultLogo (keyhole)
+  # tinted by primary_color, plus the product name — exactly what a stock
+  # `default`-pack install shows. (Pre-#3774 this pinned the loose OTS asset
+  # img/onetime-logo-v3-xl.svg, retired with the brand-pack consolidation; a
+  # served masthead logo now comes only from an operator's absolute
+  # brand.logo_url, which the neutral suite deliberately does not set.)
   "BRAND_PRODUCT_NAME=Onetime Secret"
   "BRAND_PRIMARY_COLOR=#3B82F6"
   BRAND_CORNER_STYLE=square
