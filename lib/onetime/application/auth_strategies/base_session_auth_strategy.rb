@@ -29,6 +29,14 @@ module Onetime
           session = env['rack.session']
           return failure('[SESSION_MISSING] No session available') unless session
 
+          # Defense-in-depth (M-11): a session mid-MFA must never authenticate a
+          # request, even if some future code path sets authenticated=true without
+          # clearing this flag. PrepareMfaSession writes the STRING key
+          # 'awaiting_mfa'; SyncSession deletes it when MFA completes. Read the
+          # string key deliberately — a symbol :awaiting_mfa would silently never
+          # match. Guard is nil/false-safe: only == true blocks.
+          return failure('[SESSION_AWAITING_MFA] MFA not completed') if session['awaiting_mfa'] == true
+
           # Check if session is authenticated
           unless session['authenticated'] == true
             return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
