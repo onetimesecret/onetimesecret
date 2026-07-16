@@ -1172,10 +1172,12 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       end
 
       context 'special characters in paths' do
-        it 'handles URL-encoded characters in secret keys with valid identifier length' do
-          # 20 chars with URL-encoded space: abc%20 takes 6 chars but decodes to 4
-          result = scrub_url("https://example.com/secret/#{short_identifier}")
-          expect(result).to eq('https://example.com/secret/[REDACTED]')
+        it 'leaves percent-encoded sequences in non-sensitive segments untouched while scrubbing the identifier' do
+          # Scrubbing operates on the raw string — no percent-decoding
+          # happens. A %20 in a non-sensitive path segment must survive
+          # verbatim while the /secret/:identifier segment is redacted.
+          result = scrub_url("https://example.com/my%20docs/secret/#{short_identifier}")
+          expect(result).to eq('https://example.com/my%20docs/secret/[REDACTED]')
         end
 
         it 'handles paths with trailing slashes' do
@@ -1355,6 +1357,22 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
             .to eq('https://example.com/dashboard?ref=[REDACTED]')
         end
 
+        it 'redacts a 62-char identifier glued to trailing word chars in a Referer query param' do
+          # Glued-identifier bypass regression: ?ref=<62-char-id>abc has no
+          # word boundary after the identifier; the unanchored 62 branch
+          # must still catch it end-to-end through the Referer scrub path.
+          request = mock_request_class.new(
+            url: 'https://example.com/api/v1/status',
+            headers: { 'Referer' => "https://example.com/dashboard?ref=#{'a' * 62}abc" }
+          )
+          event = mock_event_class.new(request: request, contexts: {})
+
+          result = described_class.scrub_event_urls(event)
+
+          expect(result.request.headers['Referer'])
+            .to eq('https://example.com/dashboard?ref=[REDACTED]abc')
+        end
+
         it 'redacts a 31-char legacy identifier in a non-sensitive Referer query param' do
           request = mock_request_class.new(
             url: 'https://example.com/api/v1/status',
@@ -1478,11 +1496,21 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         expect(result).to eq('legacy [REDACTED] here')
       end
 
-      it 'redacts an identifier abutting a word char via word boundary' do
-        # A 62-char run immediately followed by a word char is a 63+ run, so the
-        # {62} alternative does not match at a \b — the run survives.
+      it 'redacts a 62-char identifier glued to a trailing word char (unanchored 62 branch)' do
+        # Regression for the glued-identifier bypass: the 62-char branch is
+        # unanchored, so `<id>x` is caught even though there is no word
+        # boundary after the identifier.
         result = described_class.scrub_text("#{id_62}x")
-        expect(result).to eq("#{id_62}x")
+        expect(result).to eq('[REDACTED]x')
+      end
+
+      it 'does NOT redact a 31-char run glued to a word char (\\b anchoring is intentional)' do
+        # The 31-char branch stays \b-anchored and length-exact so
+        # ops-useful values of nearby lengths (32-hex trace IDs, 40-hex
+        # commit hashes) survive; a glued 31-char run is a longer word run
+        # and must not match.
+        result = described_class.scrub_text("#{id_31}x")
+        expect(result).to eq("#{id_31}x")
       end
 
       it 'redacts an identifier that abuts punctuation (word boundary holds)' do
@@ -1490,10 +1518,13 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         expect(result).to eq('id=[REDACTED].')
       end
 
-      it 'does not redact a 63+ char run' do
+      it 'partially redacts a 63+ char run (fail-safe over-redaction)' do
+        # With the 62 branch unanchored, the first 62 chars of a longer run
+        # match and are redacted; the remainder survives. Over-redacting a
+        # blob nobody needs is fail-safe, unlike leaking a glued secret.
         run = 'a' * 63
         result = described_class.scrub_text("val #{run} end")
-        expect(result).to eq("val #{run} end")
+        expect(result).to eq('val [REDACTED]a end')
       end
 
       it 'scrubs sensitive URL paths embedded in text' do

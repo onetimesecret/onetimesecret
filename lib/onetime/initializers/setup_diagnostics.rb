@@ -592,18 +592,26 @@ module Onetime
           # Mirrors EMAIL_PATTERN in src/plugins/core/diagnostics/scrubbers.ts.
           EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
 
-          # Verifiable identifiers in free text. Word-boundary anchored and
-          # length-exact so trace IDs (32 hex) and commit hashes (40 hex) —
-          # which are ops-useful — survive. 62 = v0.24 identifiers, 31 = legacy
-          # v0.23.
+          # Verifiable identifiers in free text. 62 = v0.24 identifiers,
+          # 31 = legacy v0.23.
           #
-          # INTENTIONAL DIVERGENCE from the frontend VERIFIABLE_ID_PATTERN in
-          # src/plugins/core/diagnostics/scrubbers.ts. The backend pattern is
-          # anchored + case-sensitive ([0-9a-z] only) to deliberately preserve
-          # 32/40-char lowercase-hex ops/trace IDs and commit hashes. The
-          # frontend is case-insensitive. Do NOT "fix" this asymmetry by making
-          # the two patterns identical — the difference is by design.
-          IDENTIFIER_TEXT_PATTERN = /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/
+          # The 62-char branch is UNANCHORED so a secret glued to adjacent
+          # word characters (`?ref=<id>abc`, `<id>x`, `load <id>_meta`) is
+          # still caught. A \b-anchored 62 branch silently leaked all of
+          # those shapes. The over-redaction risk is minimal: no ops-useful
+          # token is >= 62 chars, and partially redacting a longer blob is
+          # fail-safe, not a bug. The 31-char branch stays \b-anchored and
+          # length-exact so ops-useful values of nearby lengths — trace IDs
+          # (32 hex), commit hashes (40 hex) — survive untouched.
+          #
+          # Mirrors VERIFIABLE_ID_PATTERN in
+          # src/plugins/core/diagnostics/scrubbers.ts, with ONE intentional
+          # divergence: the backend pattern is case-SENSITIVE ([0-9a-z]
+          # only), because the backend controls its own identifier
+          # generation (lowercase base-36). The frontend is
+          # case-insensitive. Do NOT "fix" this asymmetry by making the two
+          # patterns identical — the difference is by design.
+          IDENTIFIER_TEXT_PATTERN = /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/
 
           private
 

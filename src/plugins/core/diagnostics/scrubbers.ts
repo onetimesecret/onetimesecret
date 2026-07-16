@@ -47,8 +47,10 @@ export const SENSITIVE_PATH_PATTERN =
  *
  * DOCUMENTED DIVERGENCE FROM BACKEND (by design, not drift):
  *   Frontend: /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/gi  (case-INSENSITIVE)
- *   Backend:  /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/     (case-SENSITIVE)
+ *   Backend:  /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/    (case-SENSITIVE)
  *     — lib/onetime/initializers/setup_diagnostics.rb IDENTIFIER_TEXT_PATTERN
+ *   Anchoring now matches (62 branch unanchored, 31 branch \b-anchored on
+ *   both sides); the only remaining divergence is case-sensitivity.
  *
  * The backend stays strict (lowercase-only) because it controls its own
  * identifier generation and wants to avoid redacting mixed-case ops tokens.
