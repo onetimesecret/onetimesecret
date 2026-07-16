@@ -93,20 +93,29 @@ describe('VERIFIABLE_ID_PATTERN', () => {
   });
 
   it('does not match 32-char values (trace IDs) or 40-char (commit hashes)', () => {
-    // Word-boundary + exact-length anchoring lets ops-useful values survive.
+    // The `\b`-anchored, exact-length 31 branch lets ops-useful values of
+    // nearby lengths survive (and neither is long enough for the 62 branch).
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
     expect('a'.repeat(32).match(VERIFIABLE_ID_PATTERN)).toBeNull();
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
     expect('a'.repeat(40).match(VERIFIABLE_ID_PATTERN)).toBeNull();
   });
 
-  it('does not match a 63-char blob (no word boundary at an exact-length cut)', () => {
-    // Previously (unanchored) this matched the first 62 chars. With `\b`
-    // anchoring a longer contiguous word-char run no longer matches, because
-    // neither the 62- nor 31-char alternative ends on a word boundary.
+  it('matches the first 62 chars of a 63-char blob (#3794 C3, fail-safe)', () => {
+    // The 62-char branch is UNANCHORED so a secret glued to adjacent word
+    // characters (`<id>abc`, `?ref=<id>x`) is still redacted. The cost is
+    // that longer contiguous runs get their first 62 chars redacted —
+    // over-redaction in the fail-safe direction, matching the pre-hardening
+    // behavior of the original /[0-9a-z]{62}/gi pattern.
     const id63 = 'a'.repeat(63);
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
-    expect(id63.match(VERIFIABLE_ID_PATTERN)).toBeNull();
+    expect(id63.match(VERIFIABLE_ID_PATTERN)?.[0]).toBe('a'.repeat(62));
+  });
+
+  it('matches a 62-char id glued to trailing word characters (#3794 C3)', () => {
+    const id62 = 'a'.repeat(62);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect(`?ref=${id62}xyz`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe('?ref=[REDACTED]xyz');
   });
 
   it('matches a 62-char id delimited by non-word characters', () => {
