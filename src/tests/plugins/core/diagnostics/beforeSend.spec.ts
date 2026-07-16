@@ -14,7 +14,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ErrorEvent } from '@sentry/core';
+import type { ErrorEvent, TransactionEvent } from '@sentry/core';
 import type { Router, RouteLocationNormalizedLoaded } from 'vue-router';
 import type { RouteMeta } from '@/types/router';
 
@@ -120,15 +120,25 @@ const TEST_HOST = 'example.com';
 function createMockRouter(config: {
   params: Record<string, string | string[]>;
   meta: Partial<RouteMeta>;
+  resolve?: (path: string) => unknown;
+  /**
+   * Parameterized path of the current route (e.g. `/secret/:secretKey`). Sets
+   * both `path` and a single `matched` record so the transaction handler's
+   * navigate-away guard can compare `event.transaction` to the current route.
+   */
+  path?: string;
 }): Router {
   return {
-    resolve: vi.fn(),
+    resolve: config.resolve ? vi.fn(config.resolve) : vi.fn(),
     currentRoute: {
       value: {
         params: config.params,
         meta: config.meta,
-      } as RouteLocationNormalizedLoaded,
+        path: config.path,
+        matched: config.path ? [{ path: config.path }] : [],
+      } as unknown as RouteLocationNormalizedLoaded,
     },
+    afterEach: vi.fn(),
   } as unknown as Router;
 }
 
@@ -148,6 +158,8 @@ function getBeforeSend(): (event: ErrorEvent) => ErrorEvent | null {
 function setupWithRouter(routerConfig: {
   params: Record<string, string | string[]>;
   meta: Partial<RouteMeta>;
+  resolve?: (path: string) => unknown;
+  path?: string;
 }): void {
   resetCapturedOptions();
   const mockRouter = createMockRouter(routerConfig);
@@ -452,6 +464,59 @@ describe('beforeSend handler', () => {
       );
     });
 
+    // -----------------------------------------------------------------------
+    // A3 — request.headers.Referer scrubbing. httpContextIntegration attaches
+    // document.referrer as request.headers.Referer; it is a full URL and can
+    // carry secret identifiers/emails, so it must go through the URL scrubber.
+    // -----------------------------------------------------------------------
+    it('scrubs a secret identifier in the Referer header', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: {
+          headers: { Referer: 'https://example.com/secret/abc123def456' },
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.headers?.Referer).toBe('https://example.com/secret/[REDACTED]');
+    });
+
+    it('scrubs a lowercase referer header variant', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: {
+          headers: { referer: 'https://example.com/reveal?token=abc123' },
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.headers?.referer).toBe('https://example.com/reveal?token=[REDACTED]');
+    });
+
+    it('scrubs the route-param value in the Referer header (value layer)', () => {
+      setupWithRouter({
+        params: { secretKey: 'abc123' },
+        meta: {},
+      });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: {
+          headers: { Referer: 'https://example.com/page/abc123' },
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.headers?.Referer).toBe('https://example.com/page/[REDACTED]');
+    });
+
     it('removes secret property if present on event', () => {
       setupWithRouter({
         params: {},
@@ -527,5 +592,287 @@ describe('beforeSend handler', () => {
 
       expect(result.breadcrumbs?.[0].message).toBe('Log message');
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// beforeSendTransaction handler
+// ---------------------------------------------------------------------------
+
+describe('beforeSendTransaction handler', () => {
+  const originalConsoleDebug = console.debug;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetCapturedOptions();
+    console.debug = vi.fn();
+    mockGetBootstrapValue.mockReturnValue(null);
+  });
+
+  afterEach(() => {
+    console.debug = originalConsoleDebug;
+  });
+
+  function getBeforeSendTransaction(): (event: TransactionEvent) => TransactionEvent | null {
+    const options = getCapturedClientOptions();
+    if (!options) throw new Error('BrowserClient constructor was never called');
+    return options.beforeSendTransaction as (event: TransactionEvent) => TransactionEvent | null;
+  }
+
+  it('is wired into client options', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    expect(getBeforeSendTransaction()).toBeTypeOf('function');
+  });
+
+  it('scrubs raw pageload transaction name and request.url', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/api/v2/secret/abc123def456',
+      request: { url: 'https://eu.onetimesecret.com/api/v2/secret/abc123def456' },
+    } as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.transaction).toBe('/api/v2/secret/[REDACTED]');
+    expect(result.request?.url).toBe('https://eu.onetimesecret.com/api/v2/secret/[REDACTED]');
+  });
+
+  it('scrubs span descriptions and URL data attributes', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      spans: [
+        {
+          description: 'GET /api/v2/secret/abc123def456',
+          data: { 'http.url': 'https://eu.onetimesecret.com/api/v2/secret/abc123def456' },
+        },
+      ],
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.spans?.[0].description).toBe('GET /api/v2/secret/[REDACTED]');
+    expect(result.spans?.[0].data?.['http.url']).toBe(
+      'https://eu.onetimesecret.com/api/v2/secret/[REDACTED]'
+    );
+    // Parameterized route names pass through untouched
+    expect(result.transaction).toBe('/secret/:secretKey');
+  });
+
+  // A4 — span http.query is a bare query string; sensitive param values must
+  // be redacted by name (and the id/email nets applied to the remainder).
+  it('scrubs sensitive params in span http.query data', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      spans: [
+        {
+          description: 'GET /reveal',
+          data: { 'http.query': 'token=abc123&email=user@example.com&interval=month' },
+        },
+      ],
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.spans?.[0].data?.['http.query']).toBe(
+      'token=[REDACTED]&email=[EMAIL_REDACTED]&interval=month'
+    );
+  });
+
+  // A3 — Referer header scrubbing runs in the transaction handler too, via the
+  // shared entrypoint.
+  it('scrubs a secret identifier in the Referer header on transaction events', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      request: { headers: { Referer: 'https://example.com/secret/abc123def456' } },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.request?.headers?.Referer).toBe('https://example.com/secret/[REDACTED]');
+  });
+
+  // D2 — the transaction handler runs the route-param VALUE layer, not just the
+  // pattern net. A benign-looking id that only route metadata knows is
+  // sensitive must still be redacted from transaction events.
+  it('runs the route-param value layer on transaction request.url (D2)', () => {
+    setupWithRouter({
+      params: { secretKey: 'abc123' },
+      meta: {},
+      // The value layer resolves the transaction's OWN route from request.url.
+      resolve: (p: string) =>
+        p === '/page/abc123' ? { meta: {}, params: { id: 'abc123' } } : { meta: {}, params: {} },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      // /page/abc123 is not a known sensitive path; only the route param
+      // value 'abc123' marks it sensitive. The pattern net alone would miss it.
+      request: { url: 'https://example.com/page/abc123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.request?.url).toBe('https://example.com/page/[REDACTED]');
+  });
+
+  it('honors sentryScrubParams: false for the transaction value layer', () => {
+    setupWithRouter({
+      params: { adminId: 'admin123' },
+      meta: { sentryScrubParams: false },
+      resolve: (p: string) =>
+        p === '/page/admin123'
+          ? { meta: { sentryScrubParams: false }, params: { adminId: 'admin123' } }
+          : { meta: {}, params: {} },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/colonel/:adminId',
+      request: { url: 'https://example.com/page/admin123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // Value layer opted out; /page/ is not a known sensitive path, so it stays.
+    expect(result.request?.url).toBe('https://example.com/page/admin123');
+  });
+
+  // #3794 C1 — Sentry stores span http.query as parsedUrl.search, WITH the
+  // leading `?`. The first sensitive param must still be redacted.
+  it('scrubs the first sensitive param in span http.query despite a leading `?`', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/reveal',
+      spans: [
+        {
+          description: 'GET /reveal',
+          data: { 'http.query': '?token=hunter2&x=1' },
+        },
+      ],
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.spans?.[0].data?.['http.query']).toBe('?token=[REDACTED]&x=1');
+  });
+
+  // #3794 C6 — the value layer must use the route the transaction belongs to
+  // (resolved from event.request.url), not the live currentRoute. An in-flight
+  // pageload transaction can outlive a navigation to a different route.
+  it('resolves the value layer from the transaction URL, not the live current route (C6)', () => {
+    // User has already navigated to /dashboard (no params, nothing to scrub)…
+    setupWithRouter({
+      params: {},
+      meta: {},
+      // …but the transaction's own URL resolves to a route whose param is
+      // marked sensitive via metadata.
+      resolve: (path: string) =>
+        path === '/page/abc123'
+          ? { meta: { sentryScrubParams: ['id'] }, params: { id: 'abc123' } }
+          : { meta: {}, params: {} },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/page/abc123',
+      request: { url: 'https://example.com/page/abc123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // Live-route reading would return [] and leak abc123 (it is too short for
+    // the pattern net); URL-resolved route context redacts it.
+    expect(result.request?.url).toBe('https://example.com/page/[REDACTED]');
+    expect(result.transaction).toBe('/page/[REDACTED]');
+  });
+
+  // #3794 C6 — when URL resolution fails, the current-route fallback applies
+  // ONLY if the user is still on the transaction's route. `event.transaction`
+  // (the parameterized route name) equals the current route's parameterized
+  // path here, so borrowing current params is correct.
+  it('uses the current route when it still matches the transaction route (C6)', () => {
+    setupWithRouter({
+      params: { secretKey: 'abc123' },
+      meta: {},
+      path: '/secret/:secretKey',
+      resolve: () => {
+        throw new Error('no match');
+      },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      request: { url: 'https://example.com/page/abc123' },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // event.transaction === currentPath → current params applied.
+    expect(result.request?.url).toBe('https://example.com/page/[REDACTED]');
+  });
+
+  // Greptile P1 / #3794 — navigate-away guard. When URL resolution fails AND the
+  // user has navigated to a DIFFERENT route, the current route's params belong
+  // to another page. Borrowing them would (a) miss this transaction's own value
+  // and (b) redact unrelated strings that happen to match another page's param.
+  // The value layer must contribute nothing; only the always-on pattern/path
+  // nets apply as the floor.
+  it('does NOT borrow current-route params after navigating to a different route (Greptile P1)', () => {
+    setupWithRouter({
+      // Live route is /org/:orgSlug with param acme42 — a DIFFERENT route than
+      // the in-flight /secret transaction below.
+      params: { orgSlug: 'acme42' },
+      meta: {},
+      path: '/org/:orgSlug',
+      resolve: () => {
+        throw new Error('no match');
+      },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      request: {
+        // /org/acme42 is NOT a sensitive path and acme42 is too short for the ID
+        // net. If the guard failed and borrowed the current param 'acme42', it
+        // would be redacted here. With the guard it survives untouched.
+        url: 'https://example.com/org/acme42',
+        // Net floor proof: a /secret/<id> Referer is redacted by the path net
+        // regardless of the value layer.
+        headers: { Referer: `https://example.com/secret/${'a'.repeat(62)}` },
+      },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // Guard bites: unrelated current param 'acme42' is NOT borrowed → survives.
+    expect(result.request?.url).toBe('https://example.com/org/acme42');
+    // Net floor still runs independent of the value layer.
+    expect(result.request?.headers?.Referer).toBe('https://example.com/secret/[REDACTED]');
   });
 });

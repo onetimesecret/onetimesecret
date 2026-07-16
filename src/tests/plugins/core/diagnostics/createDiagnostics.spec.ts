@@ -17,6 +17,12 @@ const {
   mockSetTag,
   mockSetClient,
   mockClientInit,
+  mockClientClose,
+  mockInitDiagnostics,
+  mockSetTransactionName,
+  mockSetCurrentClient,
+  mockCurrentScopeSetTag,
+  mockGetCurrentScope,
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
@@ -25,6 +31,11 @@ const {
   const mockSetClient = vi.fn();
   const mockClientInit = vi.fn();
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
+  const mockInitDiagnostics = vi.fn();
+  const mockSetTransactionName = vi.fn();
+  const mockSetCurrentClient = vi.fn();
+  const mockCurrentScopeSetTag = vi.fn();
+  const mockGetCurrentScope = vi.fn(() => ({ setTag: mockCurrentScopeSetTag }));
   const mockGetBootstrapValue = vi.fn();
 
   class MockBrowserClient {
@@ -35,12 +46,19 @@ const {
   class MockScope {
     setClient = mockSetClient;
     setTag = mockSetTag;
+    setTransactionName = mockSetTransactionName;
   }
 
   return {
     mockSetTag,
     mockSetClient,
     mockClientInit,
+    mockClientClose,
+    mockInitDiagnostics,
+    mockSetTransactionName,
+    mockSetCurrentClient,
+    mockCurrentScopeSetTag,
+    mockGetCurrentScope,
     mockGetBootstrapValue,
     MockBrowserClient,
     MockScope,
@@ -57,6 +75,8 @@ vi.mock('@sentry/browser', async (importOriginal) => {
     ...actual,
     BrowserClient: MockBrowserClient,
     Scope: MockScope,
+    setCurrentClient: mockSetCurrentClient,
+    getCurrentScope: mockGetCurrentScope,
   };
 });
 
@@ -65,7 +85,7 @@ vi.mock('@sentry/vue', () => ({
 }));
 
 vi.mock('@/services/diagnostics.service', () => ({
-  initDiagnostics: vi.fn(),
+  initDiagnostics: mockInitDiagnostics,
 }));
 
 // ---------------------------------------------------------------------------
@@ -86,6 +106,9 @@ function createMockRouter(): Router {
         meta: {},
       },
     },
+    // afterEach returns an unregister fn in vue-router; the mock must mirror
+    // that so the plugin's captured `unregisterAfterEach` is callable on unmount.
+    afterEach: vi.fn(() => vi.fn()),
   } as unknown as Router;
 }
 
@@ -161,8 +184,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is null', () => {
@@ -174,8 +198,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is undefined', () => {
@@ -187,8 +212,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when regions object is missing', () => {
@@ -200,8 +226,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when regions object has no current_jurisdiction property', () => {
@@ -213,8 +240,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('initializes Sentry client and scope', () => {
@@ -228,5 +256,127 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     expect(mockSetClient).toHaveBeenCalled();
     expect(mockClientInit).toHaveBeenCalled();
+  });
+
+  // B1/B2 — binds the client to the current scope so browserApiErrors and
+  // browserTracing integrations resolve a real client (async errors captured,
+  // transactions produced). See enableDiagnostics.ts setCurrentClient note.
+  it('binds the client to the current scope via setCurrentClient', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router: createMockRouter(),
+    });
+
+    expect(mockSetCurrentClient).toHaveBeenCalledTimes(1);
+    // Same client instance that scope.setClient received.
+    expect(mockSetCurrentClient.mock.calls[0][0]).toBe(mockSetClient.mock.calls[0][0]);
+  });
+
+  // #3794 C5 — setCurrentClient routes integration-captured events (unhandled
+  // rejections, browserApiErrors callbacks, browserTracing transactions)
+  // through the CURRENT scope. Deployment tags set only on the detached
+  // isolated scope never reach those events, so they must be mirrored onto
+  // the current scope too.
+  it('sets deployment tags on the current scope for integration-captured events', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'EU' });
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router: createMockRouter(),
+    });
+
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('jurisdiction', 'eu');
+    // The isolated scope keeps its tags too (manual captures).
+    expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockSetTag).toHaveBeenCalledWith('jurisdiction', 'eu');
+  });
+
+  it('names transactions from the matched route record path on navigation', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+    const router = createMockRouter();
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router,
+    });
+
+    // Capture the afterEach hook and simulate a navigation to a secret link
+    const afterEachMock = router.afterEach as ReturnType<typeof vi.fn>;
+    expect(afterEachMock).toHaveBeenCalledTimes(1);
+    const hook = afterEachMock.mock.calls[0][0];
+
+    hook({
+      path: '/secret/abc123def456',
+      matched: [{ path: '/secret/:secretKey' }],
+    });
+
+    // Parameterized route path, not the resolved URL with the identifier
+    expect(mockSetTransactionName).toHaveBeenCalledWith('/secret/:secretKey');
+  });
+
+  it('falls back to the resolved path when no route record matched', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+    const router = createMockRouter();
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router,
+    });
+
+    const afterEachMock = router.afterEach as ReturnType<typeof vi.fn>;
+    const hook = afterEachMock.mock.calls[0][0];
+
+    hook({ path: '/unknown-page', matched: [] });
+
+    expect(mockSetTransactionName).toHaveBeenCalledWith('/unknown-page');
+  });
+
+  // Regression: the router.afterEach unregister fn must be captured and called
+  // in the patched app.unmount so repeated mount/unmount (tests,
+  // micro-frontends) don't accumulate handlers. Also verifies the original
+  // client shutdown (client.close) still runs.
+  it('unbinds the router.afterEach hook and closes the client on unmount', async () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+    const router = createMockRouter();
+
+    const plugin = createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router,
+    });
+
+    // The unregister stub returned by the mocked afterEach.
+    const afterEachMock = router.afterEach as ReturnType<typeof vi.fn>;
+    const unregisterAfterEach = afterEachMock.mock.results[0].value as ReturnType<typeof vi.fn>;
+
+    // Minimal Vue App: install patches app.unmount around this original.
+    const originalUnmount = vi.fn();
+    const app = {
+      provide: vi.fn(),
+      unmount: originalUnmount,
+    } as unknown as import('vue').App;
+
+    plugin.install(app);
+
+    expect(unregisterAfterEach).not.toHaveBeenCalled();
+
+    // Drive the patched unmount.
+    app.unmount();
+
+    expect(unregisterAfterEach).toHaveBeenCalledTimes(1);
+    expect(mockClientClose).toHaveBeenCalledWith(2000);
+
+    // client.close resolves; the original unmount runs in the .then callback.
+    await Promise.resolve();
+    expect(originalUnmount).toHaveBeenCalledTimes(1);
   });
 });
