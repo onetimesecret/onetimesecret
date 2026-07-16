@@ -24,11 +24,29 @@ module Onetime
     class StaticFiles
       # Root-served brand-pack asset URLs that can be overlaid by a brand pack
       # (site.brand_pack / site.brand_assets_dir, #3739). /dist is the app build
-      # output and is NEVER overlaid.
+      # output and is NEVER overlaid. Every URL here is MANDATORY — the tracked
+      # default pack is drift-guarded to carry all of them — so the base layer
+      # serves them unconditionally.
       BRAND_PACK_URLS = %w[
         /favicon.svg /safari-pinned-tab.svg /apple-touch-icon.png
         /icon-192.png /icon-512.png /social-preview.png
       ].freeze
+
+      # Optional pack-carried masthead/header logo, served overlay-first at a
+      # stable URL so a pack can ship its OWN logo image instead of hosting it
+      # externally (#3774). Kept SEPARATE from BRAND_PACK_URLS because it is
+      # optional: the neutral default pack ships no logo, so these URLs are
+      # existence-filtered on BOTH layers — listing a missing file in the
+      # unconditional base layer would 404-shadow the URL instead of letting it
+      # fall through. A pack opts in by (a) carrying brand-logo.svg and/or
+      # brand-logo.png in its directory AND (b) pointing brand.logo_url
+      # (brand.yaml manifest or BRAND_LOGO_URL) at it, e.g.
+      # `logo_url: "/brand-logo.svg"`. The file alone is inert until logo_url
+      # references it; normalize_brand root-relativizes the path so it resolves
+      # identically on every route. Note: a root-relative logo renders in the
+      # web UI but is omitted from emails (which need an absolute URL) — the
+      # same pre-existing caveat normalize_brand already warns about at boot.
+      BRAND_PACK_LOGO_URLS = %w[/brand-logo.svg /brand-logo.png].freeze
 
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
@@ -87,8 +105,14 @@ module Onetime
             # so a listed URL with a missing file would 404 instead of falling
             # through. Existence is resolved once at boot — changing packs (or
             # adding overlay files) needs a restart.
+            #
+            # Note the existence filter here applies to the MANDATORY BRAND_PACK_URLS
+            # too, not just the optional logo URLs: "unconditional" serving (see the
+            # BRAND_PACK_URLS comment) is a BASE-layer property. A selected pack that
+            # omits a mandatory file simply isn't listed in this overlay layer, so it
+            # falls through to the default base for that file.
             if overlay_dir && base_dir && overlay_dir != base_dir
-              overlay_urls = BRAND_PACK_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
+              overlay_urls = (BRAND_PACK_URLS + BRAND_PACK_LOGO_URLS).select { |u| File.exist?(File.join(overlay_dir, u)) }
               unless overlay_urls.empty?
                 Onetime.ld "[StaticFiles] Brand overlay active: #{overlay_dir} (#{overlay_urls.size} file(s))"
                 use Rack::Static, urls: overlay_urls, root: overlay_dir
@@ -104,8 +128,12 @@ module Onetime
             # routes so per-custom-domain icons, brand.favicon_url redirects, and
             # brand-aware manifest fields keep working.
             if base_dir
+              # Mandatory assets serve unconditionally (drift-guarded present);
+              # the optional logo URLs are existence-filtered so an absent logo
+              # (the neutral default pack) falls through instead of 404-shadowing.
+              base_logo_urls = BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(base_dir, u)) }
               Onetime.ld "[StaticFiles] Base brand layer: #{base_dir}"
-              use Rack::Static, urls: BRAND_PACK_URLS, root: base_dir
+              use Rack::Static, urls: BRAND_PACK_URLS + base_logo_urls, root: base_dir
             else
               Onetime.le '[StaticFiles] default brand pack not found; brand assets will 404'
             end

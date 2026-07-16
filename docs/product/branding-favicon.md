@@ -56,6 +56,7 @@ Replacing a **file** works for every asset and is the uniform override path. The
 | `social-preview.png`                                       | `BRAND_OG_IMAGE_URL` (absolute URL)          | ✅   |
 | `site.webmanifest` name/theme                              | `BRAND_PRODUCT_NAME` / `BRAND_PRIMARY_COLOR` | ✅   |
 | `favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png` | —                                            | ✅   |
+| `brand-logo.svg` / `brand-logo.png` (masthead logo, optional) | `BRAND_LOGO_URL` (absolute CDN, or `/brand-logo.svg` for the pack file) | ✅   |
 | **Whole pack** (all rows above, incl. `favicon.ico` + `site.webmanifest`) | `BRAND_PACK` / `BRAND_ASSETS_DIR` (runtime overlay dir) | ✅   |
 
 **Option A — URL overrides (no rebuild).** Point assets at your own/CDN URLs:
@@ -77,6 +78,15 @@ URL — https recommended; other values degrade emails to a text-only header).
 It appears above because it usually points at the same CDN. Pair it with
 `BRAND_LOGO_ALT` for the logo's alt text; unset falls back to an i18n string
 derived from the product name.
+
+A pack can also **carry its own logo file** instead of hosting it externally
+(#3774): drop `brand-logo.svg` and/or `brand-logo.png` in the pack directory and
+set `BRAND_LOGO_URL=/brand-logo.svg` (or `logo_url: "/brand-logo.svg"` in the
+pack's `brand.yaml`). It is served overlay-first at that stable root URL, so the
+logo travels with the pack as one unit. The file is inert until `logo_url`
+points at it; the neutral default pack ships no logo. Caveat: a root-relative
+logo like `/brand-logo.svg` renders in the web UI but is **omitted from
+emails** — use an absolute CDN URL if your emails must show the logo.
 
 **Option B — bake a pack at build.** Generate a pack under
 [`public/branding/<name>/`](../../public/branding/), then build with

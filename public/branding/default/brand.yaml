@@ -26,6 +26,13 @@
 # etc/branding/<name>/), replace the assets, and uncomment + set the keys below.
 # Presets under scripts/branding/presets/*.mjs emit this file with real values.
 #
+# Masthead logo (#3774): a pack can carry its own logo image instead of hosting
+# it externally. Drop `brand-logo.svg` and/or `brand-logo.png` in this directory
+# and set `logo_url: "/brand-logo.svg"` below — the file is served overlay-first
+# at that stable root URL. A root-relative logo renders in the web UI but is
+# omitted from emails (which need an absolute URL); use an absolute logo_url if
+# your emails must show the logo.
+#
 # The commented keys below are exactly the manifest whitelist
 # (Onetime::Config::BRAND_MANIFEST_KEYS == BRAND_ENV keys):
 #
@@ -36,7 +43,7 @@
 # signature_name: "Support Team"               # email sign-off name
 # corner_style: "rounded"                      # rounded | square | pill
 # font_family: "sans"                          # sans | serif | mono
-# logo_url: "https://cdn.example.com/logo.svg" # masthead + email logo (absolute for email)
+# logo_url: "https://cdn.example.com/logo.svg" # masthead + email logo; absolute for email, or "/brand-logo.svg" for a pack-carried file
 # logo_alt: "Example logo"                     # logo alt text
 # favicon_url: "https://cdn.example.com/favicon.ico" # /favicon.ico 302 redirect
 # apple_touch_icon_url: "https://cdn.example.com/touch.png" # head apple-touch-icon

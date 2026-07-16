@@ -497,6 +497,10 @@ brand:
   corner_style: <%= ENV['BRAND_CORNER_STYLE']&.to_json %>
   font_family: <%= ENV['BRAND_FONT_FAMILY']&.to_json %>
   button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT']&.to_json %>
+  # Masthead/email logo. An absolute http(s) URL works everywhere; a brand pack
+  # can instead carry its own brand-logo.svg / brand-logo.png and set this to the
+  # served path (e.g. "/brand-logo.svg", #3774). A root-relative value renders in
+  # the web UI but is omitted from emails (which need an absolute URL).
   logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>
   # Accessible name for the brand logo. Unset falls back to an i18n string
   # derived from the product name.
