@@ -21,6 +21,7 @@ import type { BillingInterval } from '@/types/billing';
 import { isLegacyPlan, getPlanLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
+import { isAllowedCheckoutUrl } from '@/utils/redirect';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -259,8 +260,9 @@ const handlePlanSelect = async (plan: BillingPlan) => {
       { id: plan.id, interval: plan.interval }
     );
 
-    // Redirect to Stripe Checkout
-    if (response.checkout_url) {
+    // Redirect to Stripe Checkout.
+    // Security (M-9): host-allowlist the API-derived URL before navigating.
+    if (isAllowedCheckoutUrl(response.checkout_url)) {
       window.location.href = response.checkout_url;
     } else {
       error.value = t('web.billing.checkout_session_failed');
@@ -353,8 +355,13 @@ const handleGracefulConfirmed = async (_cancelAt: number) => {
 const handleImmediateRedirect = (checkoutUrl: string) => {
   showCurrencyMigrationModal.value = false;
   currencyConflict.value = null;
-  // Redirect to Stripe Checkout for the new currency subscription
-  window.location.href = checkoutUrl;
+  // Redirect to Stripe Checkout for the new currency subscription.
+  // Security (M-9): host-allowlist the API-derived URL before navigating.
+  if (isAllowedCheckoutUrl(checkoutUrl)) {
+    window.location.href = checkoutUrl;
+  } else {
+    error.value = t('web.billing.checkout_session_failed');
+  }
 };
 
 // Handle "Complete Migration" from the PendingMigrationBanner
@@ -390,7 +397,8 @@ const handleCompletePendingMigration = async () => {
       }
     );
 
-    if (response.checkout_url) {
+    // Security (M-9): host-allowlist the API-derived URL before navigating.
+    if (isAllowedCheckoutUrl(response.checkout_url)) {
       window.location.href = response.checkout_url;
     } else {
       error.value = t('web.billing.checkout_session_failed');

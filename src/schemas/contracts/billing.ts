@@ -9,9 +9,21 @@
  * (timestamp → Date) remain in shapes/account/billing.ts.
  */
 
+import { isAllowedCheckoutUrl } from '@/utils/redirect';
 import { z } from 'zod';
 
 import { BillingTierSchema, CanonicalPlanIdSchema } from './config/billing';
+
+/**
+ * Security (M-9): checkout URLs are navigated to via `window.location`, so the
+ * schema layer host-allowlists them as defence-in-depth. The load-bearing check
+ * remains the assignment-site guard in PlanSelector.vue (isAllowedCheckoutUrl).
+ */
+const checkoutUrlSchema = z
+  .url()
+  .refine((value) => isAllowedCheckoutUrl(value), {
+    message: 'checkout_url host is not allowlisted',
+  });
 
 /**
  * Plan type schema
@@ -125,6 +137,20 @@ export const paymentMethodSchema = z.object({
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
 /**
+ * Checkout session response (POST /billing/api/org/:extid/checkout)
+ *
+ * Wire format for a newly created Stripe Checkout session. `checkout_url` is
+ * host-allowlisted (see checkoutUrlSchema / M-9) because it is navigated to via
+ * `window.location`.
+ */
+export const checkoutSessionResponseSchema = z.object({
+  checkout_url: checkoutUrlSchema,
+  session_id: z.string(),
+});
+
+export type CheckoutSessionResponse = z.infer<typeof checkoutSessionResponseSchema>;
+
+/**
  * Currency migration schemas
  *
  * Used when a customer tries to subscribe to a plan in a different currency
@@ -196,7 +222,7 @@ export const immediateMigrationResponseSchema = z.object({
   success: z.literal(true),
   migration: z.object({
     mode: z.literal('immediate'),
-    checkout_url: z.string(),
+    checkout_url: checkoutUrlSchema,
     refund_amount: z.number(),
     refund_formatted: z.string(),
   }),
