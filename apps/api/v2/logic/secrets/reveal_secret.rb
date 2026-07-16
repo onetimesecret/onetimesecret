@@ -73,7 +73,7 @@ module V2::Logic
 
         # Check passphrase rate limit before allowing passphrase attempts
         # This prevents brute-force attacks on secrets with passphrases
-        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+        check_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
       end
 
       def process # rubocop:disable Metrics/PerceivedComplexity
@@ -102,7 +102,7 @@ module V2::Logic
           actor_context = lifecycle_actor_context(secret)
 
           # Clear any rate limit state on successful passphrase entry
-          clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+          clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
 
           # Decryption is deferred to secret.reveal! below: it decrypts ONLY on
           # the caller that wins the atomic reveal claim, so a request that lost
@@ -211,7 +211,7 @@ module V2::Logic
 
         elsif secret.has_passphrase? && !correct_passphrase
           # Record failed attempt for rate limiting
-          attempt_count = record_failed_passphrase_attempt!(secret.identifier)
+          attempt_count = record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
 
           secret_logger.warn 'Incorrect passphrase attempt',
             {
@@ -277,6 +277,20 @@ module V2::Logic
         return if secret_value.to_s.empty? # return nil when the value is empty
 
         secret_value.to_s.scan("\n").empty?
+      end
+
+      private
+
+      # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
+      # from strategy_result metadata (set for both anonymous and authenticated
+      # callers). nil when unavailable, in which case the limiter falls back to
+      # the global per-secret backstop rather than collapsing every caller into
+      # one shared IP bucket. Do NOT use session['ip_address'] here -- it is
+      # absent for the anonymous recipients who are the primary threat model.
+      def passphrase_client_ip
+        return unless respond_to?(:strategy_result)
+
+        strategy_result&.metadata&.[](:ip)
       end
     end
   end
