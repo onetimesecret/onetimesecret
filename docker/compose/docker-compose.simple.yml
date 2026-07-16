@@ -26,7 +26,9 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - VALKEY_URL=redis://maindb:6379/0
+      # Password threaded into the URL so the app authenticates against the
+      # Valkey --requirepass set on the maindb service below (H-2).
+      - VALKEY_URL=redis://:${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set — add one with 'echo "VALKEY_PASSWORD=$$(openssl rand -hex 32)" >> .env'}@maindb:6379/0
       - SECRET=${SECRET:?SECRET must be set in .env — add one with 'echo "SECRET=$$(openssl rand -hex 32)" >> .env' (see README)}
       - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
@@ -62,6 +64,11 @@ services:
   maindb:
     image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
     container_name: onetime-maindb
+    environment:
+      # Lets the healthcheck's `valkey-cli ping` authenticate against
+      # --requirepass without embedding the password in the healthcheck
+      # command (valkey-cli reads REDISCLI_AUTH from the environment).
+      - REDISCLI_AUTH=${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set}
     command: >
       valkey-server
       --appendonly yes
@@ -71,6 +78,7 @@ services:
       --save 157680000 1
       --bind 0.0.0.0
       --port 6379
+      --requirepass ${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set}
       --databases 1
       --timeout 30
       --loglevel notice
@@ -80,13 +88,14 @@ services:
       options:
         max-size: '60m'
         max-file: '3'
-    # Loopback-only publish, for host-side debugging (redis-cli/valkey-cli,
-    # RedisInsight). Never reachable from other machines. The app talks to
-    # maindb over the compose network, so if this collides with a Redis
-    # already on your host's 6379, delete the ports block —
-    # `docker compose exec maindb valkey-cli` works without it.
-    ports:
-      - '127.0.0.1:6379:6379'
+    # Note: Port 6379 is NOT published to the host — only reachable by other
+    # containers on the compose network (the app talks to maindb by service
+    # name). Combined with --requirepass above, this keeps the datastore off
+    # the host network entirely. For host-side debugging (valkey-cli,
+    # RedisInsight) use `docker compose exec maindb valkey-cli` (REDISCLI_AUTH
+    # is already set in the container).
+    expose:
+      - '6379'
     restart: unless-stopped
     volumes:
       - maindb-data:/data

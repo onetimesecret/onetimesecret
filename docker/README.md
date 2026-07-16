@@ -71,7 +71,7 @@ root README.
 | `SESSION_SECRET`, `IDENTIFIER_SECRET` | both       | no                                   | derived from `SECRET`      | Only set to override HKDF derivation.                                      |
 | `FEDERATION_SECRET`                 | both         | multi-region only                    | —                          | Must be identical across regions.                                          |
 | `DOMAIN`, `CERTIFICATE_EMAIL`       | full (proxy) | yes for real TLS                     | `localhost` / `admin@example.com` | Let's Encrypt issuance via Caddy.                                    |
-| `RABBITMQ_USER`, `RABBITMQ_PASS`    | full         | change for production                | `guest` / `guest`          | AMQP credentials; also embedded in `RABBITMQ_URL`.                          |
+| `RABBITMQ_USER`, `RABBITMQ_PASS`    | full         | yes (full stack)                     | — (no default)             | AMQP credentials; required — `docker compose up` fails fast if unset. Embedded in `RABBITMQ_URL`. |
 | `JOBS_ENABLED`                      | full         | no                                   | `false`                    | See [Background Jobs](#background-jobs-jobs_enabled).                       |
 | `OTS_IMAGE_TAG`                     | both         | no                                   | pinned release             | See [Image Version](#image-version-ots_image_tag).                          |
 | `RACK_ENV`                          | both         | no                                   | `production`               |                                                                             |

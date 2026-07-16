@@ -73,6 +73,12 @@ services:
       - ACCOUNT_ID_SECRET=${ACCOUNT_ID_SECRET:-}
       - FEDERATION_SECRET=${FEDERATION_SECRET:-}
       - IDENTIFIER_SECRET=${IDENTIFIER_SECRET:-}
+      # App-side AMQP producer URL for job publishing (JOBS_ENABLED=true).
+      # Must match the worker-email/scheduler URLs exactly so all three
+      # reach the same broker (host 'rabbitmq', default vhost '/') with the
+      # same seeded credentials. Overrides the RABBITMQ_URL placeholder the
+      # app would otherwise inherit from .env (a nonexistent host).
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set}@rabbitmq:5672
       # false (default): worker/scheduler stay idle and email is sent
       # synchronously from the web process. true: the app publishes jobs
       # to RabbitMQ and worker-email consumes them. See docker/README.md.
@@ -146,8 +152,8 @@ services:
     image: rabbitmq:4.2-management@sha256:2f5f2d5551a7c11e09c57b00ff6a86f363ddd424e3bde3a54c88a75c742a81e8
     container_name: onetime-rabbitmq
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-guest}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:?RABBITMQ_USER must be set}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS must be set}
       - RABBITMQ_DEFAULT_VHOST=/
     logging:
       driver: 'json-file'
@@ -184,7 +190,7 @@ services:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set}@rabbitmq:5672
       - JOBS_ENABLED=${JOBS_ENABLED:-false}
     # Top-level CLI command ('ots worker', not 'ots jobs worker'). --queues
     # filters on the exact Sneakers queue name (worker_command.rb
@@ -227,7 +233,7 @@ services:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set}@rabbitmq:5672
       - JOBS_ENABLED=${JOBS_ENABLED:-false}
     # Top-level CLI command ('ots scheduler', not 'ots jobs scheduler').
     # Scheduled jobs additionally require JOBS_SCHEDULER_ENABLED=true.
