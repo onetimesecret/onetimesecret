@@ -115,28 +115,58 @@ function collectCurrentRouteValues(router: Router): string[] {
 }
 
 /**
+ * Resolves the route-param VALUES to redact from a path/URL string, or null if
+ * the string cannot be resolved to a route.
+ */
+function resolveRouteValuesFromPath(router: Router, location: string): string[] | null {
+  try {
+    // router.resolve wants an in-app location, not a full URL. Synthetic base
+    // so bare paths and absolute URLs both parse; the base is discarded.
+    const parsed = new URL(location, 'http://_');
+    const resolved = router.resolve(parsed.pathname + parsed.search + parsed.hash);
+    return collectRouteParamValues(resolved as ResolvedRouteLike);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Collects the route-param VALUES to redact for the route a *transaction*
  * event belongs to. Transactions (pageload/navigation) can still be in flight
  * when the user navigates away, so `router.currentRoute` may describe a
  * different route than the one the event's URLs point at — reading the live
- * route there would silently skip the value layer. Instead, resolve the route
- * from the transaction's own `request.url`, and fall back to the current
- * route only when no URL is present or resolution fails.
+ * route there would silently borrow the wrong page's params.
  */
 function collectTransactionRouteValues(router: Router, event: TransactionEvent): string[] {
+  // 1. Preferred: the transaction's OWN route, resolved from request.url. Carries
+  //    the real param values, correct even after the user has navigated on.
   const url = event.request?.url;
   if (url) {
-    try {
-      // router.resolve wants an in-app location, not a full URL. Use a
-      // synthetic base so bare paths parse too; the base is discarded.
-      const parsed = new URL(url, 'http://_');
-      const resolved = router.resolve(parsed.pathname + parsed.search + parsed.hash);
-      return collectRouteParamValues(resolved as ResolvedRouteLike);
-    } catch {
-      // Fall through to the current-route fallback below.
-    }
+    const values = resolveRouteValuesFromPath(router, url);
+    if (values) return values; // note: [] is a valid resolution (no/opted-out params)
   }
-  return collectCurrentRouteValues(router);
+
+  // 2. No usable URL. The current route's params are this transaction's values
+  //    ONLY if we have not navigated since it began. `event.transaction` is
+  //    stamped at transaction start and names the transaction's own route
+  //    (parameterized, e.g. `/secret/:secretKey`); compare it to the current
+  //    route's parameterized path. On a mismatch the user navigated away — the
+  //    current route's params belong to a DIFFERENT page, so applying them would
+  //    miss this transaction's value AND redact unrelated strings. Return no
+  //    values and let the always-on pattern/path nets be the floor.
+  //
+  //    Residual limitation: a short, meta-scrubbed param on a non-sensitive-path
+  //    route, once its URL is gone and the user has navigated away, is
+  //    unrecoverable at the value layer — only the nets apply.
+  const current = router.currentRoute.value;
+  const currentPath = current.matched?.at(-1)?.path ?? current.path;
+  if (!event.transaction || event.transaction === currentPath) {
+    return collectRouteParamValues({
+      meta: current.meta,
+      params: current.params as Record<string, string | string[]>,
+    });
+  }
+  return [];
 }
 
 /** Scrubs any case variant of the Referer header value through the URL scrubber. */

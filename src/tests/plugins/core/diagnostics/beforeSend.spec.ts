@@ -121,6 +121,12 @@ function createMockRouter(config: {
   params: Record<string, string | string[]>;
   meta: Partial<RouteMeta>;
   resolve?: (path: string) => unknown;
+  /**
+   * Parameterized path of the current route (e.g. `/secret/:secretKey`). Sets
+   * both `path` and a single `matched` record so the transaction handler's
+   * navigate-away guard can compare `event.transaction` to the current route.
+   */
+  path?: string;
 }): Router {
   return {
     resolve: config.resolve ? vi.fn(config.resolve) : vi.fn(),
@@ -128,7 +134,9 @@ function createMockRouter(config: {
       value: {
         params: config.params,
         meta: config.meta,
-      } as RouteLocationNormalizedLoaded,
+        path: config.path,
+        matched: config.path ? [{ path: config.path }] : [],
+      } as unknown as RouteLocationNormalizedLoaded,
     },
     afterEach: vi.fn(),
   } as unknown as Router;
@@ -151,6 +159,7 @@ function setupWithRouter(routerConfig: {
   params: Record<string, string | string[]>;
   meta: Partial<RouteMeta>;
   resolve?: (path: string) => unknown;
+  path?: string;
 }): void {
   resetCapturedOptions();
   const mockRouter = createMockRouter(routerConfig);
@@ -704,6 +713,9 @@ describe('beforeSendTransaction handler', () => {
     setupWithRouter({
       params: { secretKey: 'abc123' },
       meta: {},
+      // The value layer resolves the transaction's OWN route from request.url.
+      resolve: (p: string) =>
+        p === '/page/abc123' ? { meta: {}, params: { id: 'abc123' } } : { meta: {}, params: {} },
     });
     const handler = getBeforeSendTransaction();
 
@@ -724,6 +736,10 @@ describe('beforeSendTransaction handler', () => {
     setupWithRouter({
       params: { adminId: 'admin123' },
       meta: { sentryScrubParams: false },
+      resolve: (p: string) =>
+        p === '/page/admin123'
+          ? { meta: { sentryScrubParams: false }, params: { adminId: 'admin123' } }
+          : { meta: {}, params: {} },
     });
     const handler = getBeforeSendTransaction();
 
@@ -792,10 +808,15 @@ describe('beforeSendTransaction handler', () => {
     expect(result.transaction).toBe('/page/[REDACTED]');
   });
 
-  it('falls back to the current route when transaction URL resolution throws (C6)', () => {
+  // #3794 C6 — when URL resolution fails, the current-route fallback applies
+  // ONLY if the user is still on the transaction's route. `event.transaction`
+  // (the parameterized route name) equals the current route's parameterized
+  // path here, so borrowing current params is correct.
+  it('uses the current route when it still matches the transaction route (C6)', () => {
     setupWithRouter({
       params: { secretKey: 'abc123' },
       meta: {},
+      path: '/secret/:secretKey',
       resolve: () => {
         throw new Error('no match');
       },
@@ -810,7 +831,48 @@ describe('beforeSendTransaction handler', () => {
 
     const result = handler(event) as TransactionEvent;
 
-    // Current-route fallback still applies the value layer.
+    // event.transaction === currentPath → current params applied.
     expect(result.request?.url).toBe('https://example.com/page/[REDACTED]');
+  });
+
+  // Greptile P1 / #3794 — navigate-away guard. When URL resolution fails AND the
+  // user has navigated to a DIFFERENT route, the current route's params belong
+  // to another page. Borrowing them would (a) miss this transaction's own value
+  // and (b) redact unrelated strings that happen to match another page's param.
+  // The value layer must contribute nothing; only the always-on pattern/path
+  // nets apply as the floor.
+  it('does NOT borrow current-route params after navigating to a different route (Greptile P1)', () => {
+    setupWithRouter({
+      // Live route is /org/:orgSlug with param acme42 — a DIFFERENT route than
+      // the in-flight /secret transaction below.
+      params: { orgSlug: 'acme42' },
+      meta: {},
+      path: '/org/:orgSlug',
+      resolve: () => {
+        throw new Error('no match');
+      },
+    });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      request: {
+        // /org/acme42 is NOT a sensitive path and acme42 is too short for the ID
+        // net. If the guard failed and borrowed the current param 'acme42', it
+        // would be redacted here. With the guard it survives untouched.
+        url: 'https://example.com/org/acme42',
+        // Net floor proof: a /secret/<id> Referer is redacted by the path net
+        // regardless of the value layer.
+        headers: { Referer: `https://example.com/secret/${'a'.repeat(62)}` },
+      },
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    // Guard bites: unrelated current param 'acme42' is NOT borrowed → survives.
+    expect(result.request?.url).toBe('https://example.com/org/acme42');
+    // Net floor still runs independent of the value layer.
+    expect(result.request?.headers?.Referer).toBe('https://example.com/secret/[REDACTED]');
   });
 });
