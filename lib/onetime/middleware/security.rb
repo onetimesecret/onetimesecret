@@ -32,6 +32,18 @@ module Onetime
     class Security
       @middleware_components = {}
 
+      # Middleware keys whose protections are security-critical: switching one of
+      # these off silently weakens the app, so a disable is logged at warn level.
+      # Toggles that ship OFF by design (http_origin, xss_header, cookie_tossing,
+      # ip_spoofing) are intentionally excluded to keep the log quiet.
+      SECURITY_CRITICAL_KEYS = %w[
+        frame_options
+        path_traversal
+        strict_transport
+        authenticity_token
+        utf8_sanitizer
+      ].freeze
+
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
       attr_reader :app
@@ -67,15 +79,25 @@ module Onetime
         middleware_settings = Onetime.conf.dig('site', 'middleware') || {}
 
         # Define middleware components with their corresponding settings keys
-        components = self.class.middleware_components
+        components     = self.class.middleware_components
+        critical_keys  = SECURITY_CRITICAL_KEYS
         Rack::Builder.new do
           # Apply each middleware if configured
           components.each do |name, config|
-            # All settings comfing from yaml are strings as a rule
+            # ERB in the config emits real YAML booleans (true/false), so this
+            # reads a real boolean, not a string.
             middleware_key = config[:key].to_s
-            next unless middleware_settings[middleware_key]
+            unless middleware_settings[middleware_key]
+              # Loudly flag a security-critical protection that is switched off so
+              # an accidental disable is visible in logs. Deliberately-off toggles
+              # stay quiet (see SECURITY_CRITICAL_KEYS).
+              if critical_keys.include?(middleware_key)
+                OT.lw "[Security] #{name} protection DISABLED (site.middleware.#{middleware_key}=false)"
+              end
+              next
+            end
 
-            OT.ld "[Security] Enabling #{name}/middleware_key protection"
+            OT.ld "[Security] Enabling #{name} protection (site.middleware.#{middleware_key})"
 
             # Use double-splat to pass options only if they exist
             use config[:klass], **(config[:options] || {})

@@ -334,12 +334,12 @@ site:
     xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
     # Prevents your site from being embedded in frames (clickjacking protection)
     # Sets X-Frame-Options header to SAMEORIGIN or DENY
-    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: false)
-    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] == 'true' %>
+    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: true)
+    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] != 'false' %>
     # Blocks directory traversal attacks using "../" in paths
     # Critical for preventing unauthorized file access
-    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: false)
-    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] == 'true' %>
+    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: true)
+    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] != 'false' %>
     # Protects against cookie tossing attacks
     # Prevents session fixation via manipulated cookies
     # ENV: MIDDLEWARE_COOKIE_TOSSING (default: false)
@@ -350,8 +350,8 @@ site:
     ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>
     # Forces all connections to use HTTPS via HSTS headers
     # Disable only for development or when behind a secure proxy
-    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: false)
-    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] == 'true' %>
+    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: true)
+    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>
   # Security Configuration
   # Additional security settings beyond middleware
   security:
