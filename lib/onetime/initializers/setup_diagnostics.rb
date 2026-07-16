@@ -459,13 +459,24 @@ module Onetime
           # Admin paths:
           # - /colonel/* - admin paths need full debugging context; scrub multi-segment
           #
+          # Free-text nets (issue #3794 C2/C4): after the path and named-param
+          # passes, the email and verifiable-identifier nets sweep values that
+          # ride under non-sensitive positions — e.g. ?ref=<62-char-id> or
+          # ?email=user@example.com in a Referer or span URL. Named-param
+          # redaction runs first so '[REDACTED]' placeholders are never
+          # re-processed by the nets. This makes scrub_url the single
+          # "thorough" tier for every URL-shaped value (request.url, Referer,
+          # transaction name, span data['url'], span data['http.query']).
+          #
           # @param url [String, nil] The URL to scrub
           # @return [String, nil] The scrubbed URL or original if nil/malformed
           def scrub_url(url)
             return url if url.nil? || url.empty?
 
             scrubbed = scrub_sensitive_paths(url)
-            scrub_sensitive_query_params(scrubbed)
+            scrubbed = scrub_sensitive_query_params(scrubbed)
+            scrubbed = scrubbed.gsub(EMAIL_PATTERN, '[EMAIL_REDACTED]')
+            scrubbed.gsub(IDENTIFIER_TEXT_PATTERN, '[REDACTED]')
           rescue StandardError
             # Fail-closed: return redacted placeholder to prevent leaking sensitive data
             '[SCRUBBING_FAILED]'
@@ -474,32 +485,36 @@ module Onetime
           # Scrub sensitive data from free text (exception messages,
           # capture_message strings, span descriptions).
           #
-          # Applies, in order: email redaction, exact-length identifier
-          # redaction, then the URL path/query passes (which are gsub-based
-          # and safe on arbitrary text). Mirrors scrubSensitiveStrings in
-          # src/plugins/core/diagnostics/scrubbers.ts.
+          # Since scrub_url now carries the email and identifier nets itself
+          # (issue #3794), this is a semantic alias: both tiers apply the same
+          # passes (paths, named params, emails, exact-length identifiers),
+          # all gsub-based and safe on arbitrary text. Mirrors
+          # scrubSensitiveStrings in src/plugins/core/diagnostics/scrubbers.ts.
           #
           # @param text [String, nil] The text to scrub
           # @return [String, nil] The scrubbed text
           def scrub_text(text)
             return text if text.nil? || text.empty?
 
-            result = text.gsub(EMAIL_PATTERN, '[EMAIL_REDACTED]')
-            result = result.gsub(IDENTIFIER_TEXT_PATTERN, '[REDACTED]')
-            scrub_url(result)
+            scrub_url(text)
           rescue StandardError
             '[SCRUBBING_FAILED]'
           end
 
-          # Scrub sensitive parameters from a bare query string (no '?'),
-          # as found in span data['http.query'].
+          # Scrub sensitive parameters from a bare query string, as found in
+          # span data['http.query']. Tolerates a leading '?' (issue #3794 —
+          # the frontend had the same bug as its C1): without stripping it,
+          # the first param would parse as key "?token" and dodge the
+          # named-param redaction. Any leading '?' is preserved in the output.
           #
           # @param query [String] e.g. "key=abc123&ttl=3600"
           # @return [String] e.g. "key=[REDACTED]&ttl=3600"
           def scrub_query_string(query)
             return query if query.nil? || query.empty?
 
-            scrub_url("?#{query}").delete_prefix('?')
+            bare     = query.delete_prefix('?')
+            scrubbed = scrub_url("?#{bare}").delete_prefix('?')
+            query.start_with?('?') ? "?#{scrubbed}" : scrubbed
           end
 
           # Scrub emails, identifiers, and sensitive paths from exception
