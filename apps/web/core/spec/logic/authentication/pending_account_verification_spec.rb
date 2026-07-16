@@ -65,6 +65,13 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
       # Stub set_info_message (it's a no-op in base)
       allow(logic).to receive(:set_info_message)
+
+      # M-4: stub the login rate limiter so these unit specs never touch Redis.
+      # raise_concerns calls check_login_rate_limit! and process (verified
+      # credentials) calls clear_login_rate_limit!.
+      allow(logic).to receive(:check_login_rate_limit!)
+      allow(logic).to receive(:record_failed_login_attempt!)
+      allow(logic).to receive(:clear_login_rate_limit!)
     end
 
     # Claude has a lot of trouble distinguishing between `=` and `==`

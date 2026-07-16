@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
+require 'onetime/security/login_rate_limiter'
 
 module Core::Logic
   module Authentication
@@ -10,6 +11,7 @@ module Core::Logic
 
     class AuthenticateSession < Onetime::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Security::LoginRateLimiter
 
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 
@@ -57,7 +59,24 @@ module Core::Logic
       end
 
       def raise_concerns
+        # M-4: simple mode has no Rodauth lockout, so throttle credential
+        # submissions here. This runs at the top of raise_concerns, but note
+        # that process_params (fired from the Base constructor, see #3516) has
+        # ALREADY performed the argon2 passphrase comparison by this point — so
+        # the check does not save the argon2 work for a locked subject. What it
+        # DOES guarantee is that a locked-out subject is rejected here (as a
+        # rate-limit error) before we count another failed attempt or emit the
+        # invalid-credential response, capping sustained guessing that simple
+        # mode would otherwise allow unbounded.
+        check_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
+
         return unless @cust.nil?
+
+        # @cust is nil for BOTH unknown-email and wrong-password (only set when
+        # the passphrase matches), so this is the single failure funnel. Count
+        # the failed attempt before raising the (deliberately non-enumerating)
+        # error.
+        record_failed_login_attempt!(login_rate_limit_email, login_rate_limit_ip)
 
         # cust stays nil - error raised before we need it
         raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
@@ -77,6 +96,12 @@ module Core::Logic
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
 
+        # M-4: credentials verified (success? is true past this point), so drop
+        # any accumulated failed-attempt/lockout state for this subject. Covers
+        # the greenlight, pending, and suspended paths uniformly — a valid
+        # credential is never a brute-force attempt.
+        clear_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
+
         # Suspended accounts cannot log in. This check runs AFTER credential
         # verification (success? above), so the message is only ever shown to
         # someone holding valid credentials — it confirms nothing to an
@@ -93,7 +118,8 @@ module Core::Logic
             }
 
           raise_form_error 'This account has been suspended. Contact support for assistance.',
-            field: 'email', error_type: 'suspended'
+            field: 'email',
+            error_type: 'suspended'
         end
 
         if cust.pending?
@@ -187,6 +213,19 @@ module Core::Logic
       end
 
       private
+
+      # Rate-limit subject halves passed separately to the two-tier
+      # LoginRateLimiter (email drives the global backstop; email+ip the tight
+      # per-origin tier). See LoginRateLimiter for why neither half alone is a
+      # sufficient key. IP comes from the same strategy metadata the log lines
+      # read; both are available after process_params.
+      def login_rate_limit_email
+        @potential_email_address
+      end
+
+      def login_rate_limit_ip
+        @strategy_result&.metadata&.[](:ip)
+      end
 
       def form_fields
         { objid: objid }
