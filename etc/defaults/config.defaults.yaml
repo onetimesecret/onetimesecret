@@ -303,7 +303,9 @@ site:
     # Cookie name
     key: 'onetime.session'
     # Require HTTPS for cookies (recommended: true in production)
-    secure: <%= ENV['SSL'] == 'true' || false %>
+    # Leave unset (nil) when SSL env is not 'true' so boot.rb's ssl_enabled?
+    # fallback can default this to true in production / when site.ssl is on.
+    secure: <%= ENV['SSL'] == 'true' ? true : nil %>
     # SameSite cookie attribute (strict|lax|none)
     # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations
     same_site: lax
