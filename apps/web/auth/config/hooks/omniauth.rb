@@ -26,7 +26,42 @@ module Auth::Config::Hooks
       # Uses NFC normalization and :fold for international email addresses.
       auth.account_from_omniauth do
         normalized_email = OT::Utils.normalize_email(omniauth_email)
-        _account_from_login(normalized_email)
+        existing         = _account_from_login(normalized_email)
+
+        if existing
+          # SECURITY (H-3): reached ONLY when no account_identities row exists
+          # for (provider, uid) — `existing` has never linked THIS identity.
+          # Returning it would let create_omniauth_identity link the caller's
+          # IdP identity to it and log them in → account takeover (an attacker
+          # controlling a provider that emits the victim's email is signed in
+          # as the victim). Refuse to auto-link by email; require explicit,
+          # authenticated linking from account settings instead.
+          #
+          # This MUST redirect (halt) — returning nil here would fall through to
+          # omniauth_create_account (omniauth_create_account? is true), which
+          # inserts a row with the duplicate login and violates the unique
+          # accounts.email index → 500. redirect halts the callback so we never
+          # reach create_omniauth_identity or omniauth_create_account. The
+          # domain-validation hook below also runs only on the CREATE path, so
+          # the email-link path would bypass it entirely.
+          #
+          # FOLLOW-UP: no authenticated "link SSO from account settings" flow
+          # exists yet, so this strands users who created a password account
+          # first and expect SSO to match by email. Ship a companion linking UI.
+          Auth::Logging.log_auth_event(
+            :omniauth_link_refused_existing_account,
+            level: :warn,
+            email: OT::Utils.obscure_email(normalized_email),
+            provider: omniauth_provider,
+          )
+          set_redirect_error_flash 'An account with this email already exists. ' \
+                                   'Sign in with your existing method, then link SSO from account settings.'
+          redirect '/signin?auth_error=account_exists_link_required'
+        end
+
+        # Genuinely new email → allow JIT create (subject to the domain checks
+        # in before_omniauth_create_account below).
+        nil
       end
 
       # ========================================================================

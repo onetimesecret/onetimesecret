@@ -215,36 +215,92 @@ RSpec.describe 'OmniAuth hooks' do
         accounts_store[normalized_email]
       end
 
-      # Simulates the full _account_from_omniauth method
+      # Simulates the full _account_from_omniauth method AFTER the H-3 fix.
+      #
+      # SECURITY (H-3): the production hook no longer returns an existing account
+      # for auto-linking by email — that is the account-takeover vector. When an
+      # existing account matches the normalized IdP email, the hook logs, sets an
+      # error flash, and `redirect`s to account_exists_link_required, which HALTS
+      # the callback (Roda throw :halt) so create_omniauth_identity never links
+      # the caller's (provider, uid) and never logs them in. We can't redirect in
+      # this pure-logic harness, so we model the halt as a refusal marker carrying
+      # the redirect target. Only a genuinely new email returns nil (JIT create).
+      #
+      # HONESTY: this is a REIMPLEMENTATION of the decision boundary — it does NOT
+      # drive the production `_account_from_omniauth`. The real hook's redirect/halt
+      # path is NOT yet integration-covered end-to-end (follow-up filed); these unit
+      # assertions verify the intended logic only.
       def account_from_omniauth(omniauth_email)
         normalized_email = normalize_email(omniauth_email)
-        find_account_by_email(normalized_email)
+        existing         = find_account_by_email(normalized_email)
+        return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' } if existing
+
+        nil
       end
 
-      context 'with existing account' do
-        it 'finds account when IdP returns uppercase email' do
-          account = account_from_omniauth('USER@EXAMPLE.COM')
-          expect(account).not_to be_nil
-          expect(account[:id]).to eq(1)
-          expect(account[:email]).to eq('user@example.com')
+      context 'with existing account (refuses SSO auto-link by email)' do
+        # These assertions are the INVERSION of the pre-fix behavior, which
+        # returned the existing account by email and let Rodauth link+login.
+
+        it 'refuses when IdP returns uppercase email matching an existing account' do
+          result = account_from_omniauth('USER@EXAMPLE.COM')
+          expect(result).to include(refused: true)
+          expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
         end
 
-        it 'finds account when IdP returns mixed case email' do
-          account = account_from_omniauth('User@Example.COM')
-          expect(account).not_to be_nil
-          expect(account[:id]).to eq(1)
+        it 'refuses when IdP returns mixed case email matching an existing account' do
+          result = account_from_omniauth('User@Example.COM')
+          expect(result).to include(refused: true)
         end
 
-        it 'finds account when IdP returns email with whitespace' do
-          account = account_from_omniauth('  user@example.com  ')
-          expect(account).not_to be_nil
-          expect(account[:id]).to eq(1)
+        it 'refuses when IdP returns email with whitespace matching an existing account' do
+          result = account_from_omniauth('  user@example.com  ')
+          expect(result).to include(refused: true)
         end
 
-        it 'finds account with combined case and whitespace issues' do
-          account = account_from_omniauth('  ADMIN@COMPANY.ORG  ')
-          expect(account).not_to be_nil
-          expect(account[:id]).to eq(2)
+        it 'refuses with combined case and whitespace issues' do
+          result = account_from_omniauth('  ADMIN@COMPANY.ORG  ')
+          expect(result).to include(refused: true)
+        end
+
+        it 'never returns the existing account record (no auto-link)' do
+          result = account_from_omniauth('USER@EXAMPLE.COM')
+          # Pre-fix this returned { id: 1, email: 'user@example.com' }.
+          expect(result).not_to include(:id)
+          expect(result).not_to include(:email)
+        end
+      end
+
+      # ======================================================================
+      # H-3 account-takeover path
+      # ======================================================================
+      #
+      # Victim already holds a password account for victim@x.com. An attacker
+      # controls an IdP that emits victim@x.com under a NEW (provider, uid) that
+      # has never been linked. Pre-fix, the hook returned the victim's account,
+      # Rodauth linked the attacker's identity and logged them in as the victim.
+      # Post-fix, the hook refuses and redirects to account_exists_link_required.
+      #
+      # NOTE: the full "NO new account_identities row / NOT logged in" assertions
+      # require a real Rodauth callback. That end-to-end coverage does NOT yet
+      # exist — the production hook's redirect/halt path is currently unverified by
+      # any full-mode integration spec (follow-up filed). The block below models the
+      # decision boundary in isolation only; it does NOT exercise the real hook.
+      context 'account takeover: SSO email matches a pre-existing password account' do
+        let(:accounts_store) do
+          { 'victim@x.com' => { id: 42, email: 'victim@x.com' } }
+        end
+
+        it 'refuses to auto-link and redirects to account_exists_link_required' do
+          # Attacker's IdP returns the victim's email under a new identity.
+          result = account_from_omniauth('victim@x.com')
+          expect(result).to include(refused: true)
+          expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+        end
+
+        it 'does not surface the victim account for linking' do
+          result = account_from_omniauth('VICTIM@X.COM')
+          expect(result).not_to include(id: 42)
         end
       end
 
