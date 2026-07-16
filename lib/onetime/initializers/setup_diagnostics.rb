@@ -512,6 +512,10 @@ module Onetime
           def scrub_query_string(query)
             return query if query.nil? || query.empty?
 
+            # Prepend a fresh '?' so scrub_url parses the input as a query
+            # string and applies its full pass stack (named params, emails,
+            # identifier net), then strip it back off; the caller's original
+            # prefix (if any) is restored below.
             bare     = query.delete_prefix('?')
             scrubbed = scrub_url("?#{bare}").delete_prefix('?')
             query.start_with?('?') ? "?#{scrubbed}" : scrubbed

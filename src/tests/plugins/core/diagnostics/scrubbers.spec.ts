@@ -37,6 +37,7 @@ const ID_VECTORS = {
   traceId32: 'c'.repeat(32), // ops-useful — survives
   commitHash40: 'd'.repeat(40), // ops-useful — survives
   short6: 'abc123', // too short — survives
+  idLocalPartEmail: `${'a'.repeat(62)}@example.com`, // ID-shaped local part — [EMAIL_REDACTED]
 } as const;
 
 describe('scrubbers', () => {
@@ -392,5 +393,36 @@ describe('62-char IDs abutting word characters (#3794 C3)', () => {
 
   it('scrubUrlWithPatterns redacts a glued 62-char ID in a query value', () => {
     expect(scrubUrlWithPatterns(`/lookup?ref=${id62}abc`)).toBe('/lookup?ref=[REDACTED]abc');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #3794 — email pass must run BEFORE the identifier pass.
+// An email whose local part is a 62-char ID (<62id>@example.com) would
+// otherwise have the ID replaced first, leaving `[REDACTED]@example.com`
+// that EMAIL_PATTERN can no longer match — leaking the email domain.
+// ---------------------------------------------------------------------------
+describe('email-before-identifier ordering (#3794 P1)', () => {
+  const { idLocalPartEmail } = ID_VECTORS;
+
+  it('scrubUrlWithPatterns fully redacts an ID-local-part email in a query value', () => {
+    const result = scrubUrlWithPatterns(`https://example.com/?from=${idLocalPartEmail}`);
+    expect(result).toBe('https://example.com/?from=[EMAIL_REDACTED]');
+    expect(result).not.toContain('@example.com');
+    expect(result).not.toContain('[REDACTED]@');
+  });
+
+  it('scrubQueryStringValues fully redacts an ID-local-part email', () => {
+    const result = scrubQueryStringValues(`?from=${idLocalPartEmail}`);
+    expect(result).toBe('?from=[EMAIL_REDACTED]');
+    expect(result).not.toContain('@example.com');
+    expect(result).not.toContain('[REDACTED]@');
+  });
+
+  it('scrubSensitiveStrings fully redacts an ID-local-part email in free text', () => {
+    const result = scrubSensitiveStrings(`contact ${idLocalPartEmail}`);
+    expect(result).toBe('contact [EMAIL_REDACTED]');
+    expect(result).not.toContain('@example.com');
+    expect(result).not.toContain('[REDACTED]@');
   });
 });

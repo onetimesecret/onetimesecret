@@ -229,8 +229,12 @@ export function scrubQueryStringValues(query: string): string {
     return query;
   }
   let result = scrubSensitiveQueryParams(query);
-  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
+  // Ordering invariant: the email pass must run BEFORE the identifier pass.
+  // An ID-shaped local part (e.g. <62-char-id>@example.com) would otherwise
+  // be replaced first, leaving `[REDACTED]@domain` that EMAIL_PATTERN can no
+  // longer match — leaking the email domain.
   result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
   return result;
 }
 
@@ -281,11 +285,15 @@ export function scrubUrlWithPatterns(url: string): string {
   // Third pass: redact sensitive query-param values by name (?token=... etc.)
   result = scrubUrlQueryParamNames(result);
 
-  // Fourth pass: scrub any remaining 62/31-char verifiable IDs
-  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
-
-  // Fifth pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
+  // Fourth pass: scrub email addresses (e.g., in query params like
+  // ?email=user@example.com). Ordering invariant: the email pass must run
+  // BEFORE the identifier pass — an ID-shaped local part would otherwise be
+  // replaced first, leaving `[REDACTED]@domain` that EMAIL_PATTERN can no
+  // longer match.
   result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
+
+  // Fifth pass: scrub any remaining 62/31-char verifiable IDs
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
 
   return result;
 }

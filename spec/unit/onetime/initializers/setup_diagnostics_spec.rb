@@ -964,6 +964,18 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
           result = scrub_url("https://example.com/metadata/#{identifier_62}")
           expect(result).to eq('https://example.com/metadata/[REDACTED]')
         end
+
+        # Ordering invariant: the email pass must run before the identifier
+        # pass inside scrub_url. An ID-shaped local part would otherwise be
+        # replaced first, leaving `[REDACTED]@domain` that EMAIL_PATTERN can
+        # no longer match — leaking the email domain. Mirrors the frontend's
+        # idLocalPartEmail regression vectors in scrubbers.spec.ts.
+        it 'fully redacts an email whose local part is a 62-char identifier' do
+          result = scrub_url("https://example.com/?from=#{identifier_62}@example.com")
+          expect(result).to include('[EMAIL_REDACTED]')
+          expect(result).not_to include('@example.com')
+          expect(result).not_to include('[REDACTED]@')
+        end
       end
 
       context 'with named path segments (should NOT be scrubbed)' do
