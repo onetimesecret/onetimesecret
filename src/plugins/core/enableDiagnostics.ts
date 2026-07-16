@@ -14,6 +14,7 @@ import {
   defaultStackParser,
   eventFiltersIntegration,
   functionToStringIntegration,
+  getCurrentScope,
   globalHandlersIntegration,
   httpContextIntegration,
   linkedErrorsIntegration,
@@ -28,7 +29,7 @@ import {
 } from '@sentry/core';
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
-import type { Router } from 'vue-router';
+import type { Router, RouteMeta as VueRouteMeta } from 'vue-router';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
@@ -68,26 +69,90 @@ function scrubUrlValuesThenPatterns(url: string, sortedValues: string[]): string
 }
 
 /**
- * Collects the route-param VALUES to redact for the router's *current* route,
- * honoring the `sentryScrubParams` opt-out. Shared by both the error and the
- * transaction scrub entrypoints so the param-value layer is applied
- * identically to both event kinds.
+ * Route-shaped input for `collectRouteParamValues`: anything carrying resolved
+ * `meta` and `params` — the router's current route, a `router.resolve()`
+ * result, etc.
+ */
+interface ResolvedRouteLike {
+  meta: VueRouteMeta;
+  params: Record<string, string | string[]>;
+}
+
+/**
+ * Collects the route-param VALUES to redact for a resolved-route-like object,
+ * honoring the `sentryScrubParams` opt-out. Single implementation shared by
+ * the error handler (current route), the breadcrumb handler (route resolved
+ * from the navigation path), and the transaction handler (route resolved from
+ * the event's own URL).
  *
  * Layer-1 (param-value) scrubbing is opt-out-governed: `sentryScrubParams:
  * false` yields no values. The always-on pattern net inside
  * `scrubUrlValuesThenPatterns` runs regardless of the return value here.
  */
-function collectCurrentRouteValues(router: Router): string[] {
-  const currentRoute = router.currentRoute.value;
-  const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
+function collectRouteParamValues(route: ResolvedRouteLike): string[] {
+  const sentryScrubParams = route.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
   if (sentryScrubParams === false) {
     return [];
   }
-  const params = currentRoute.params as Record<string, string | string[]>;
+  const params = route.params;
   if (params && Object.keys(params).length > 0) {
     return collectValuesToRedact(params, sentryScrubParams);
   }
   return [];
+}
+
+/**
+ * Collects the route-param VALUES to redact for the router's *current* route.
+ * Appropriate for error events, which are captured synchronously while the
+ * route that produced them is still current.
+ */
+function collectCurrentRouteValues(router: Router): string[] {
+  const currentRoute = router.currentRoute.value;
+  return collectRouteParamValues({
+    meta: currentRoute.meta,
+    params: currentRoute.params as Record<string, string | string[]>,
+  });
+}
+
+/**
+ * Collects the route-param VALUES to redact for the route a *transaction*
+ * event belongs to. Transactions (pageload/navigation) can still be in flight
+ * when the user navigates away, so `router.currentRoute` may describe a
+ * different route than the one the event's URLs point at — reading the live
+ * route there would silently skip the value layer. Instead, resolve the route
+ * from the transaction's own `request.url`, and fall back to the current
+ * route only when no URL is present or resolution fails.
+ */
+function collectTransactionRouteValues(router: Router, event: TransactionEvent): string[] {
+  const url = event.request?.url;
+  if (url) {
+    try {
+      // router.resolve wants an in-app location, not a full URL. Use a
+      // synthetic base so bare paths parse too; the base is discarded.
+      const parsed = new URL(url, 'http://_');
+      const resolved = router.resolve(parsed.pathname + parsed.search + parsed.hash);
+      return collectRouteParamValues(resolved as ResolvedRouteLike);
+    } catch {
+      // Fall through to the current-route fallback below.
+    }
+  }
+  return collectCurrentRouteValues(router);
+}
+
+/** Scrubs any case variant of the Referer header value through the URL scrubber. */
+function scrubRefererHeader(
+  headers: Record<string, string> | undefined,
+  sortedValues: string[]
+): void {
+  if (!headers) {
+    return;
+  }
+  for (const name of Object.keys(headers)) {
+    const value = headers[name];
+    if (name.toLowerCase() === 'referer' && typeof value === 'string') {
+      headers[name] = scrubUrlValuesThenPatterns(value, sortedValues);
+    }
+  }
 }
 
 /**
@@ -109,21 +174,6 @@ function collectCurrentRouteValues(router: Router): string[] {
  * Event-kind-specific fields (error breadcrumbs, transaction spans) are handled
  * by the respective callers, not here.
  */
-function scrubRefererHeader(
-  headers: Record<string, string> | undefined,
-  sortedValues: string[]
-): void {
-  if (!headers) {
-    return;
-  }
-  for (const name of Object.keys(headers)) {
-    const value = headers[name];
-    if (name.toLowerCase() === 'referer' && typeof value === 'string') {
-      headers[name] = scrubUrlValuesThenPatterns(value, sortedValues);
-    }
-  }
-}
-
 function scrubCommonEventFields(
   event: ErrorEvent | TransactionEvent,
   sortedValues: string[]
@@ -176,16 +226,7 @@ function createBeforeBreadcrumbHandler(router: Router) {
         let sortedValues: string[] = [];
         try {
           const resolved = router.resolve(path);
-          const sentryScrubParams = resolved.meta.sentryScrubParams as
-            | RouteMeta['sentryScrubParams']
-            | undefined;
-
-          if (sentryScrubParams !== false) {
-            const params = resolved.params as Record<string, string | string[]>;
-            if (params && Object.keys(params).length > 0) {
-              sortedValues = collectValuesToRedact(params, sentryScrubParams);
-            }
-          }
+          sortedValues = collectRouteParamValues(resolved as ResolvedRouteLike);
         } catch {
           // Resolution failed — fall through to the always-on pattern net below.
         }
@@ -304,16 +345,17 @@ function createBeforeSendHandler(router: Router) {
  *
  * Runs the SAME shared entrypoint as `createBeforeSendHandler`, including the
  * route-param VALUE layer (D2), so a value scrubbed on error events is scrubbed
- * on transaction events too. Route context is taken from the router's current
- * route, which is valid at transaction flush time (transactions flush on
- * navigation/pageload completion, when `currentRoute` reflects the destination).
+ * on transaction events too. Route context is resolved from the transaction's
+ * own `request.url` (see `collectTransactionRouteValues`) — NOT the live
+ * current route, which may already describe a later navigation by the time an
+ * in-flight transaction is finalized.
  *
  * @internal Tested via the options captured by the BrowserClient mock,
  * same as createBeforeSendHandler.
  */
 function createBeforeSendTransactionHandler(router: Router) {
   return (event: TransactionEvent): TransactionEvent | null => {
-    const sortedValues = collectCurrentRouteValues(router);
+    const sortedValues = collectTransactionRouteValues(router, event);
 
     // Shared entrypoint: request.url, Referer header, transaction name.
     scrubCommonEventFields(event, sortedValues);
@@ -337,8 +379,10 @@ function createBeforeSendTransactionHandler(router: Router) {
           span.data[key] = scrubUrlWithPatterns(value);
         }
       }
-      // http.query is stored as a bare query string, not a URL — scrub it as
-      // one (sensitive param values by name, then the ID/email nets).
+      // http.query is stored as `parsedUrl.search`, which INCLUDES the
+      // leading `?` (@sentry/core fetch instrumentation) — scrub it as a
+      // query string (sensitive param values by name, then the ID/email
+      // nets); the scrubber handles the leading `?` itself.
       const query = span.data['http.query'];
       if (typeof query === 'string') {
         span.data['http.query'] = scrubQueryStringValues(query);
@@ -347,6 +391,40 @@ function createBeforeSendTransactionHandler(router: Router) {
 
     return event;
   };
+}
+
+/**
+ * Applies the deployment tags (service / site_host / jurisdiction) to every
+ * given scope. Deployment tags must live on BOTH scopes:
+ *   - the isolated `Scope`, so manual captures (diagnostics.service) carry
+ *     them, and
+ *   - the CURRENT scope, because `setCurrentClient` routes integration-
+ *     captured events (unhandled rejections, browserApiErrors async
+ *     callbacks, browserTracing transactions) through the current scope —
+ *     tags set only on the detached isolated scope never reach those events.
+ *
+ * @see https://github.com/onetimesecret/onetimesecret/issues/2964 (service)
+ * @see lib/onetime/initializers/setup_diagnostics.rb (site_host mirrors the
+ *   backend so multi-region / custom-domain deployments are distinguishable)
+ */
+function applyDeploymentTags(scopes: Array<Pick<Scope, 'setTag'>>, host: string): void {
+  // Jurisdiction comes from the bootstrap value directly since Pinia is not
+  // yet installed when createDiagnostics() is called.
+  const regions = getBootstrapValue('regions');
+  const jurisdictionId =
+    typeof regions?.current_jurisdiction === 'string'
+      ? regions.current_jurisdiction.toLowerCase()
+      : null;
+
+  for (const scope of scopes) {
+    scope.setTag('service', 'web');
+    if (host) {
+      scope.setTag('site_host', host);
+    }
+    if (jurisdictionId) {
+      scope.setTag('jurisdiction', jurisdictionId);
+    }
+  }
 }
 
 interface EnableDiagnosticsOptions {
@@ -500,16 +578,9 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // client.init() to mirror Sentry's own initAndBind ordering.
   setCurrentClient(client);
 
-  // Set default service tag for all events from this frontend app
-  // @see https://github.com/onetimesecret/onetimesecret/issues/2964
-  scope.setTag('service', 'web');
-
-  // Mirror the backend's site_host tag so multi-region / custom-domain
-  // deployments are distinguishable in the shared frontend project.
-  // @see lib/onetime/initializers/setup_diagnostics.rb
-  if (host) {
-    scope.setTag('site_host', host);
-  }
+  // Deployment tags on both the isolated scope (manual captures) and the
+  // current scope (integration-captured events). See applyDeploymentTags.
+  applyDeploymentTags([scope, getCurrentScope()], host);
 
   // Set the event `transaction` field from the matched route record's
   // parameterized path (e.g. /secret/:secretKey), never the resolved URL.
@@ -527,18 +598,6 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     const parameterized = to.matched.at(-1)?.path ?? to.path;
     scope.setTransactionName(parameterized);
   });
-
-  // Add jurisdiction tag for region-specific filtering in Sentry
-  // Use bootstrap value directly since Pinia is not yet installed when
-  // createDiagnostics() is called
-  const regions = getBootstrapValue('regions');
-  const jurisdictionId =
-    typeof regions?.current_jurisdiction === 'string'
-      ? regions.current_jurisdiction.toLowerCase()
-      : null;
-  if (jurisdictionId) {
-    scope.setTag('jurisdiction', jurisdictionId);
-  }
 
   // Initialize the Sentry client. This is equivalent to calling
   // Sentry.init() with the options provided above.

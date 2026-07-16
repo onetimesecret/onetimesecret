@@ -19,6 +19,8 @@ const {
   mockClientInit,
   mockSetTransactionName,
   mockSetCurrentClient,
+  mockCurrentScopeSetTag,
+  mockGetCurrentScope,
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
@@ -29,6 +31,8 @@ const {
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
   const mockSetTransactionName = vi.fn();
   const mockSetCurrentClient = vi.fn();
+  const mockCurrentScopeSetTag = vi.fn();
+  const mockGetCurrentScope = vi.fn(() => ({ setTag: mockCurrentScopeSetTag }));
   const mockGetBootstrapValue = vi.fn();
 
   class MockBrowserClient {
@@ -48,6 +52,8 @@ const {
     mockClientInit,
     mockSetTransactionName,
     mockSetCurrentClient,
+    mockCurrentScopeSetTag,
+    mockGetCurrentScope,
     mockGetBootstrapValue,
     MockBrowserClient,
     MockScope,
@@ -65,6 +71,7 @@ vi.mock('@sentry/browser', async (importOriginal) => {
     BrowserClient: MockBrowserClient,
     Scope: MockScope,
     setCurrentClient: mockSetCurrentClient,
+    getCurrentScope: mockGetCurrentScope,
   };
 });
 
@@ -259,6 +266,29 @@ describe('createDiagnostics jurisdiction tagging', () => {
     expect(mockSetCurrentClient).toHaveBeenCalledTimes(1);
     // Same client instance that scope.setClient received.
     expect(mockSetCurrentClient.mock.calls[0][0]).toBe(mockSetClient.mock.calls[0][0]);
+  });
+
+  // #3794 C5 — setCurrentClient routes integration-captured events (unhandled
+  // rejections, browserApiErrors callbacks, browserTracing transactions)
+  // through the CURRENT scope. Deployment tags set only on the detached
+  // isolated scope never reach those events, so they must be mirrored onto
+  // the current scope too.
+  it('sets deployment tags on the current scope for integration-captured events', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'EU' });
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router: createMockRouter(),
+    });
+
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('jurisdiction', 'eu');
+    // The isolated scope keeps its tags too (manual captures).
+    expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockSetTag).toHaveBeenCalledWith('jurisdiction', 'eu');
   });
 
   it('names transactions from the matched route record path on navigation', () => {
