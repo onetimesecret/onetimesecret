@@ -17,6 +17,8 @@ const {
   mockSetTag,
   mockSetClient,
   mockClientInit,
+  mockClientClose,
+  mockInitDiagnostics,
   mockSetTransactionName,
   mockSetCurrentClient,
   mockCurrentScopeSetTag,
@@ -29,6 +31,7 @@ const {
   const mockSetClient = vi.fn();
   const mockClientInit = vi.fn();
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
+  const mockInitDiagnostics = vi.fn();
   const mockSetTransactionName = vi.fn();
   const mockSetCurrentClient = vi.fn();
   const mockCurrentScopeSetTag = vi.fn();
@@ -50,6 +53,8 @@ const {
     mockSetTag,
     mockSetClient,
     mockClientInit,
+    mockClientClose,
+    mockInitDiagnostics,
     mockSetTransactionName,
     mockSetCurrentClient,
     mockCurrentScopeSetTag,
@@ -80,7 +85,7 @@ vi.mock('@sentry/vue', () => ({
 }));
 
 vi.mock('@/services/diagnostics.service', () => ({
-  initDiagnostics: vi.fn(),
+  initDiagnostics: mockInitDiagnostics,
 }));
 
 // ---------------------------------------------------------------------------
@@ -101,7 +106,9 @@ function createMockRouter(): Router {
         meta: {},
       },
     },
-    afterEach: vi.fn(),
+    // afterEach returns an unregister fn in vue-router; the mock must mirror
+    // that so the plugin's captured `unregisterAfterEach` is callable on unmount.
+    afterEach: vi.fn(() => vi.fn()),
   } as unknown as Router;
 }
 
@@ -331,5 +338,45 @@ describe('createDiagnostics jurisdiction tagging', () => {
     hook({ path: '/unknown-page', matched: [] });
 
     expect(mockSetTransactionName).toHaveBeenCalledWith('/unknown-page');
+  });
+
+  // Regression: the router.afterEach unregister fn must be captured and called
+  // in the patched app.unmount so repeated mount/unmount (tests,
+  // micro-frontends) don't accumulate handlers. Also verifies the original
+  // client shutdown (client.close) still runs.
+  it('unbinds the router.afterEach hook and closes the client on unmount', async () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+    const router = createMockRouter();
+
+    const plugin = createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router,
+    });
+
+    // The unregister stub returned by the mocked afterEach.
+    const afterEachMock = router.afterEach as ReturnType<typeof vi.fn>;
+    const unregisterAfterEach = afterEachMock.mock.results[0].value as ReturnType<typeof vi.fn>;
+
+    // Minimal Vue App: install patches app.unmount around this original.
+    const originalUnmount = vi.fn();
+    const app = {
+      provide: vi.fn(),
+      unmount: originalUnmount,
+    } as unknown as import('vue').App;
+
+    plugin.install(app);
+
+    expect(unregisterAfterEach).not.toHaveBeenCalled();
+
+    // Drive the patched unmount.
+    app.unmount();
+
+    expect(unregisterAfterEach).toHaveBeenCalledTimes(1);
+    expect(mockClientClose).toHaveBeenCalledWith(2000);
+
+    // client.close resolves; the original unmount runs in the .then callback.
+    await Promise.resolve();
+    expect(originalUnmount).toHaveBeenCalledTimes(1);
   });
 });
