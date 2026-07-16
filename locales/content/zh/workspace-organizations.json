@@ -467,6 +467,10 @@
     "text": "已过期",
     "source_hash": "424a2551"
   },
+  "web.organizations.invitations.status.revoked": {
+    "text": "已撤销",
+    "source_hash": "f6f738d0"
+  },
   "web.organizations.invitations.roles.member": {
     "text": "团队成员",
     "source_hash": "d4e55dfa"

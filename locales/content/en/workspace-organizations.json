@@ -549,6 +549,10 @@
     "text": "Expired",
     "content_hash": "424a2551"
   },
+  "web.organizations.invitations.status.revoked": {
+    "text": "Revoked",
+    "content_hash": "f6f738d0"
+  },
   "web.organizations.invitations.roles.member": {
     "text": "Team Member",
     "content_hash": "d4e55dfa"

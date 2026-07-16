@@ -467,6 +467,10 @@
     "text": "期限切れ",
     "source_hash": "424a2551"
   },
+  "web.organizations.invitations.status.revoked": {
+    "text": "取り消し済み",
+    "source_hash": "f6f738d0"
+  },
   "web.organizations.invitations.roles.member": {
     "text": "チームメンバー",
     "source_hash": "d4e55dfa"
