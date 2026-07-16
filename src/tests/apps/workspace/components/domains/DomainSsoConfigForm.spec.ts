@@ -635,57 +635,50 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Grant org scope toggle (#3384)
+  // Grant org scope toggle (#3384) — hidden pending testing (post-v0.26.0)
   //
-  // The toggle was restored to this form after the main→develop merge dropped it
-  // (the #3383 signin redesign deleted the enclosing toggle block; grant_org_scope
-  // was independent #3384 collateral). It writes back via updateField, which emits
-  // update:formState with the full patched state.
+  // The toggle is withheld from the UI (showGrantOrgScope === false) so the
+  // org-wide-access behavior can be tested more before release. grant_org_scope
+  // stays at its default and still round-trips on save; only the control is
+  // hidden. Restore the behavioral toggle tests when the control is un-hidden.
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('Grant org scope toggle', () => {
-    it('renders the grant org scope toggle', async () => {
+  describe('Grant org scope toggle (hidden pending testing)', () => {
+    it('does not render the grant org scope toggle', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, enabled: true },
         isConfigured: true,
       });
 
-      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+      // It was the form's only role="switch"; hidden now.
+      expect(wrapper.find('[role="switch"]').exists()).toBe(false);
     });
 
-    it('reflects grant_org_scope: true via aria-checked', async () => {
+    it('does not emit update:formState for grant_org_scope on mount (no control to flip)', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, grant_org_scope: false },
+        isConfigured: true,
+      });
+
+      expect(wrapper.emitted('update:formState')).toBeFalsy();
+    });
+
+    // A config that ALREADY has grant_org_scope=true keeps its toggle so the
+    // grant stays revocable. Hiding it for these domains would strand an
+    // irrevocable org-wide grant that every save re-persists (the toggle is the
+    // only control; configToFormState/saveConfig always round-trip the value).
+    it('renders the toggle when the loaded config already grants org scope', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, grant_org_scope: true },
         isConfigured: true,
       });
 
-      expect(wrapper.find('[role="switch"]').attributes('aria-checked')).toBe('true');
+      const toggle = wrapper.find('[role="switch"]');
+      expect(toggle.exists()).toBe(true);
+      expect(toggle.attributes('aria-checked')).toBe('true');
     });
 
-    it('reflects grant_org_scope: false via aria-checked', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, grant_org_scope: false },
-        isConfigured: true,
-      });
-
-      expect(wrapper.find('[role="switch"]').attributes('aria-checked')).toBe('false');
-    });
-
-    it('emits update:formState with grant_org_scope=true when toggled on (was false)', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, grant_org_scope: false },
-        isConfigured: true,
-      });
-
-      await wrapper.find('[role="switch"]').trigger('click');
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      const lastEmit = emitted![emitted!.length - 1][0] as SsoConfigFormState;
-      expect(lastEmit.grant_org_scope).toBe(true);
-    });
-
-    it('emits update:formState with grant_org_scope=false when toggled off (was true)', async () => {
+    it('lets an existing org-wide grant be revoked (emits grant_org_scope=false)', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, grant_org_scope: true },
         isConfigured: true,
@@ -697,6 +690,52 @@ describe('DomainSsoConfigForm', () => {
       expect(emitted).toBeTruthy();
       const lastEmit = emitted![emitted!.length - 1][0] as SsoConfigFormState;
       expect(lastEmit.grant_org_scope).toBe(false);
+    });
+
+    // The latch is per-domain: SsoCredentialsModal reuses this instance without
+    // a :key, so navigating domains must not carry a prior domain's granted
+    // toggle over to a fresh grant_org_scope=false domain (that would re-expose
+    // the withheld control and let an admin inadvertently enable an org-wide
+    // grant this change intends to keep unavailable).
+    it('resets the latch when the domain changes (instance reused without :key)', async () => {
+      // Domain A already grants org scope → toggle is visible.
+      wrapper = await mountComponent({
+        domainExtId: 'dm_grants',
+        formState: { ...mockExistingFormState, grant_org_scope: true },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+
+      // Admin navigates to Domain B (same instance) whose config does NOT grant
+      // org scope. The latch must reset so the withheld toggle is gone.
+      await wrapper.setProps({
+        domainExtId: 'dm_no_grant',
+        formState: { ...mockExistingFormState, grant_org_scope: false },
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    });
+
+    // The whole reason the control latches (rather than tracking grant_org_scope
+    // directly): while editing ONE domain, flipping the grant off must not make
+    // the toggle vanish mid-edit — the admin still needs to flip it back on or
+    // save the revocation. Only a domain CHANGE resets the latch.
+    it('keeps the toggle visible after a same-domain mid-edit flip-off', async () => {
+      wrapper = await mountComponent({
+        domainExtId: 'dm_grants',
+        formState: { ...mockExistingFormState, grant_org_scope: true },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+
+      // Same domainExtId; admin flips the grant off (only formState changes).
+      await wrapper.setProps({
+        formState: { ...mockExistingFormState, grant_org_scope: false },
+      });
+
+      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
     });
   });
 

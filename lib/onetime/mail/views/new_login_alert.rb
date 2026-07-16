@@ -35,6 +35,7 @@ module Onetime
           EmailTranslations.translate(
             'email.new_login_alert.subject',
             locale: locale,
+            display_domain: display_domain,
           )
         end
 
