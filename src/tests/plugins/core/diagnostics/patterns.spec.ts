@@ -80,18 +80,57 @@ describe('VERIFIABLE_ID_PATTERN', () => {
     expect(id62.match(VERIFIABLE_ID_PATTERN)).toBeTruthy();
   });
 
-  it('does not match shorter identifiers', () => {
+  it('matches 31-character legacy (v0.23) identifiers', () => {
+    const id31 = 'a'.repeat(31);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect(id31.match(VERIFIABLE_ID_PATTERN)).toBeTruthy();
+  });
+
+  it('does not match 61-char identifiers (length-exact)', () => {
     const id61 = 'a'.repeat(61);
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
     expect(id61.match(VERIFIABLE_ID_PATTERN)).toBeNull();
   });
 
-  it('does not match longer identifiers as a single match', () => {
+  it('does not match 32-char values (trace IDs) or 40-char (commit hashes)', () => {
+    // The `\b`-anchored, exact-length 31 branch lets ops-useful values of
+    // nearby lengths survive (and neither is long enough for the 62 branch).
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect('a'.repeat(32).match(VERIFIABLE_ID_PATTERN)).toBeNull();
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect('a'.repeat(40).match(VERIFIABLE_ID_PATTERN)).toBeNull();
+  });
+
+  it('matches the first 62 chars of a 63-char blob (#3794 C3, fail-safe)', () => {
+    // The 62-char branch is UNANCHORED so a secret glued to adjacent word
+    // characters (`<id>abc`, `?ref=<id>x`) is still redacted. The cost is
+    // that longer contiguous runs get their first 62 chars redacted —
+    // over-redaction in the fail-safe direction, matching the pre-hardening
+    // behavior of the original /[0-9a-z]{62}/gi pattern.
     const id63 = 'a'.repeat(63);
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
-    // Will match the first 62 chars, but the match itself is 62 chars
-    const matches = id63.match(VERIFIABLE_ID_PATTERN);
-    expect(matches?.[0].length).toBe(62);
+    expect(id63.match(VERIFIABLE_ID_PATTERN)?.[0]).toBe('a'.repeat(62));
+  });
+
+  it('matches a 62-char id glued to trailing word characters (#3794 C3)', () => {
+    const id62 = 'a'.repeat(62);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect(`?ref=${id62}xyz`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe('?ref=[REDACTED]xyz');
+  });
+
+  it('matches a 62-char id delimited by non-word characters', () => {
+    const id62 = 'a'.repeat(62);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    const matches = `/path/${id62}/tail`.match(VERIFIABLE_ID_PATTERN);
+    expect(matches?.[0]).toBe(id62);
+  });
+
+  it('is case-insensitive by design (frontend divergence from backend)', () => {
+    // Frontend scrubs data of unknown provenance and errs toward
+    // over-redaction; backend IDENTIFIER_TEXT_PATTERN stays case-sensitive.
+    const mixed = 'A'.repeat(31);
+    VERIFIABLE_ID_PATTERN.lastIndex = 0;
+    expect(mixed.match(VERIFIABLE_ID_PATTERN)).toBeTruthy();
   });
 });
 
