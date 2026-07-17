@@ -170,16 +170,7 @@ function handleMfaAccess(
     isAuthenticated: boolean | null;
   }
 ) {
-  const { awaitingMfa, isFullyAuthenticated, isAuthenticated } = authStore;
-
-  // DEBUG: Log MFA state on every navigation
-  loggingService.debug('[MFA Guard] State check:', {
-    targetPath: to.path,
-    targetName: to.name,
-    awaitingMfa,
-    isAuthenticated,
-    isFullyAuthenticated,
-  });
+  const { awaitingMfa, isFullyAuthenticated } = authStore;
 
   // Redirect to MFA verification if awaiting second factor
   if (awaitingMfa && to.path !== '/mfa-verify') {
