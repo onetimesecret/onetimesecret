@@ -60,7 +60,11 @@ function parseSessionsResponse(data: unknown) {
 export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () => {
   /** The customer's active session rows (whole list — never paginated). */
   const sessions = ref<AdminCustomerSession[]>([]);
-  /** The acting colonel's own session id when it's in this list, else null. */
+  /**
+   * The acting colonel's own request session id whenever the API can identify
+   * it — independent of whether it appears in `sessions` (the component does
+   * the row matching). Null when unidentifiable or before/after a failed fetch.
+   */
   const currentSessionId = ref<string | null>(null);
   /** True while a request is in flight. */
   const loading = ref(false);
