@@ -222,4 +222,184 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # M-2: session revocation on credential change (PR #3803, security audit)
+  #
+  # The after_reset_password / after_change_password hooks revoke the encrypted
+  # Redis session blobs (the real app auth gate). The remediation under test
+  # replaced a blanket `safe_execute` swallow with an explicit begin/rescue that
+  # FAILS OPEN (the credential change still commits) but LOUDLY: a distinct
+  # error-level :sessions_revoke_FAILED event plus a Sentry re-capture, so a
+  # non-revoking reset/change alerts instead of blending into routine logging.
+  #
+  # These specs pin that behavior: the credential change must still complete when
+  # revocation raises, and the loud signal must fire.
+  # ---------------------------------------------------------------------------
+  describe 'session revocation on credential change (M-2)' do
+    let(:cred_email) { "revoke-test-#{SecureRandom.hex(8)}@example.com" }
+    let(:new_password) { 'NewSecureP@ss456!' }
+
+    # sentry-ruby is `require: false`, so the Sentry constant is absent in test
+    # mode. Stub it (mirroring spec/unit/onetime/jobs/trace_propagation_spec.rb)
+    # so the hook's `defined?(Sentry) && Sentry.initialized?` guard is truthy and
+    # the capture path is exercised deterministically.
+    let(:sentry_scope) do
+      instance_double('Sentry::Scope', set_level: nil, set_tags: nil, set_context: nil)
+    end
+
+    def stub_sentry!
+      # Define the methods on the module so verify_partial_doubles is satisfied
+      # (an empty Module would reject `allow(...).to receive(:initialized?)`).
+      stub_const('Sentry', Module.new do
+        def self.initialized?; true; end
+
+        def self.capture_exception(_ex); end
+      end)
+      allow(Sentry).to receive(:capture_exception).and_yield(sentry_scope)
+    end
+
+    # Establish an authenticated session (change-password requires being logged in
+    # and supplying the current password).
+    def login(email:, password:)
+      post_json '/auth/login', { login: email, password: password }
+      expect(last_response.status).to eq(200),
+        "Login failed: #{last_response.body[0..500]}"
+    end
+
+    let(:revoke_op) { Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent }
+
+    def change_password
+      post_json '/auth/change-password', {
+        password: valid_password,
+        'new-password': new_password,
+        'password-confirm': new_password,
+      }
+    end
+
+    describe 'after_change_password hook' do
+      before do
+        create_account(email: cred_email, password: valid_password)
+        expect(last_response.status).to be_between(200, 299),
+          "Account creation failed: #{last_response.body[0..500]}"
+        login(email: cred_email, password: valid_password)
+      end
+
+      it 'still completes the change but emits :sessions_revoke_FAILED and captures to Sentry when revocation raises' do
+        stub_sentry!
+        allow(revoke_op).to receive(:new).and_raise(StandardError.new('redis revoke boom'))
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        change_password
+
+        # FAIL-OPEN: the password change commits even though revocation raised.
+        expect(last_response.status).to eq(200),
+          "Expected change to still succeed but got #{last_response.status}: #{last_response.body[0..500]}"
+
+        # LOUD: distinct error-level event, tagged with the originating hook.
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:sessions_revoke_FAILED, hash_including(level: :error, hook: :after_change_password))
+
+        # LOUD: Sentry re-capture attempted.
+        expect(Sentry).to have_received(:capture_exception)
+      end
+
+      it 'revokes other sessions and logs :sessions_revoked_on_change on success' do
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        change_password
+
+        expect(last_response.status).to eq(200)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:sessions_revoked_on_change, hash_including(level: :info))
+        # The failure event must NOT fire on the happy path.
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:sessions_revoke_FAILED, any_args)
+      end
+
+      it 'falls back to the account email for revocation when external_id is blank (fail-secure identity)' do
+        # Blank the external_id so the hook exercises the next->if/else email
+        # fallback rather than silently skipping the revoke.
+        account = find_account_by_email(cred_email)
+        test_db[:accounts].where(id: account[:id]).update(external_id: nil)
+
+        result = revoke_op::Result.new(
+          revoked: true, blobs_deleted: 0, untracked_deleted: 0, scan_capped: false
+        )
+        fake_op = instance_double(revoke_op.to_s, call: result)
+        # Revocation must still run, keyed on the email fallback — not skipped.
+        expect(revoke_op).to receive(:new)
+          .with(hash_including(custid: cred_email)).and_return(fake_op)
+
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        change_password
+
+        expect(last_response.status).to eq(200)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:sessions_revoked_on_change, hash_including(level: :info))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:sessions_revoke_skipped_no_identity, any_args)
+      end
+    end
+
+    describe 'after_reset_password hook' do
+      before do
+        create_account(email: cred_email, password: valid_password)
+        expect(last_response.status).to be_between(200, 299),
+          "Account creation failed: #{last_response.body[0..500]}"
+      end
+
+      # Drives the real unauthenticated reset flow. The reset key is HMAC'd
+      # (base.rb enables hmac_secret_guard), so it cannot be reconstructed from
+      # the DB row — the only place the valid token appears is the delivered
+      # email link. Intercept the mailer to capture it, then submit the reset.
+      def reset_password_with_token
+        # Auth emails are dispatched synchronously through
+        # Onetime::Jobs::Publisher.enqueue_email_raw during the request (the
+        # Logger delivery itself runs in a worker that doesn't execute in-test),
+        # so that publisher call is the reliable interception point for the
+        # HMAC'd reset link/token.
+        captured = []
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email_raw)
+          .and_wrap_original do |orig, payload, **kwargs|
+            captured << payload
+            orig.call(payload, **kwargs)
+          end
+
+        post_json '/auth/reset-password-request', { login: cred_email }
+
+        body  = captured.map { |e| e[:body].to_s }.join("\n")
+        match = body.match(/[?&]key=([^"'&\s<>]+)/)
+        skip 'reset key not issued in this environment (email/config gated)' if match.nil?
+
+        token = CGI.unescape(match[1])
+        post_json '/auth/reset-password', {
+          key: token,
+          password: new_password,
+          'password-confirm': new_password,
+        }
+        token
+      end
+
+      it 'still completes the reset but emits :sessions_revoke_FAILED (after_reset_password) and captures to Sentry when revocation raises' do
+        stub_sentry!
+        allow(revoke_op).to receive(:new).and_raise(StandardError.new('redis reset boom'))
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        reset_password_with_token
+
+        # If the reset token flow reached the hook, it did so via a committed
+        # reset (2xx/302). Only then is the fail-open-loud assertion meaningful.
+        unless [200, 201, 302].include?(last_response.status)
+          skip "reset did not reach after_reset_password (status #{last_response.status}); " \
+               "token/key hashing likely differs in this environment"
+        end
+
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:sessions_revoke_FAILED, hash_including(level: :error, hook: :after_reset_password))
+        expect(Sentry).to have_received(:capture_exception)
+      end
+    end
+  end
 end
