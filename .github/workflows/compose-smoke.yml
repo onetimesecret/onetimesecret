@@ -70,6 +70,11 @@ jobs:
           secret="$(openssl rand -hex 32)"
           echo "SECRET=$secret" >> "$GITHUB_ENV"
           echo "SECRET=$secret" > .env
+          # H-2: VALKEY_URL / maindb requirepass now use ${VALKEY_PASSWORD:?...}
+          # (fail-fast required). Supply a throwaway so `config`/`up` interpolate.
+          valkey_password="$(openssl rand -hex 32)"
+          echo "VALKEY_PASSWORD=$valkey_password" >> "$GITHUB_ENV"
+          echo "VALKEY_PASSWORD=$valkey_password" >> .env
 
       # Zero-cost lint of every documented file combination first (Mattermost
       # pattern) — a broken include/merge fails here before anything is pulled.
@@ -136,6 +141,18 @@ jobs:
           echo "AUTH_SECRET=$auth_secret" >> "$GITHUB_ENV"
           echo "ACCOUNT_ID_SECRET=$account_id_secret" >> "$GITHUB_ENV"
           echo "SECRET=$secret" > .env
+          # H-2: VALKEY_URL / maindb requirepass and RabbitMQ user/pass are now
+          # ${VAR:?...} fail-fast required. Supply throwaways so `config`/`build`/
+          # `up` interpolate (both $GITHUB_ENV for interpolation and .env for
+          # env_file: at container runtime).
+          valkey_password="$(openssl rand -hex 32)"
+          rabbitmq_pass="$(openssl rand -hex 16)"
+          echo "VALKEY_PASSWORD=$valkey_password" >> "$GITHUB_ENV"
+          echo "RABBITMQ_USER=ots" >> "$GITHUB_ENV"
+          echo "RABBITMQ_PASS=$rabbitmq_pass" >> "$GITHUB_ENV"
+          echo "VALKEY_PASSWORD=$valkey_password" >> .env
+          echo "RABBITMQ_USER=ots" >> .env
+          echo "RABBITMQ_PASS=$rabbitmq_pass" >> .env
 
       # Build the app image FROM SOURCE via the same bake config releases
       # use, tagged so the compose default `onetimesecret/onetimesecret:
