@@ -37,9 +37,9 @@ Onetime::Application::Registry.prepare_application_registry
 def @test.app
   Onetime::Application::Registry.generate_rack_url_map
 end
-def post(*args);   @test.post(*args);   end
+def post(*args);   @test.post(*with_csrf(args));   end
 def get(*args);    @test.get(*args);    end
-def delete(*args); @test.delete(*args); end
+def delete(*args); @test.delete(*with_csrf(args)); end
 def last_response; @test.last_response; end
 
 @ts = Familia.now.to_i
