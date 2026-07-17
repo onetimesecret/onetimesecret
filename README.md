@@ -96,7 +96,7 @@ See [.env.reference](./.env.reference)
 
 ### Bare-Metal / Manual
 
-Requires Ruby 3.4.9 (pinned via `.ruby-version`), Redis/Valkey, Node.js 22, pnpm 11.10.0, and Python 3 (required by the frontend build).
+Requires Ruby 3.4.10 (pinned via `.ruby-version`), Redis/Valkey, Node.js 22, pnpm 11.10.0, and Python 3 (required by the frontend build).
 
 > **Note:** A UTF-8 locale (e.g. `export LANG=C.UTF-8`) is recommended. The `.env` reader now forces UTF-8, so a POSIX/`C` locale no longer breaks boot, but a UTF-8 locale is still best for correct handling of non-ASCII data.
 
