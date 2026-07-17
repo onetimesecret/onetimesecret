@@ -227,7 +227,7 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-playwright": "^2.10.4",
-    "eslint-plugin-tailwindcss": "4.0.4",
+    "eslint-plugin-tailwindcss": "4.0.6",
     "eslint-plugin-vue": "^10.9.1",
     "flatted": "^3.4.2",
     "fs-extra": "^11.3.4",
