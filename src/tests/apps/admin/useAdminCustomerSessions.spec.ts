@@ -104,7 +104,20 @@ describe('useAdminCustomerSessions', () => {
   });
 
   it('defaults currentSessionId to null when the field is absent', async () => {
-    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    // Genuinely omit the key — the schema is `.nullable().optional()`, so
+    // "key missing" and "key: null" are distinct inputs. This covers missing.
+    const payload = sessionsPayload();
+    delete (payload.details as Record<string, unknown>).current_session_id;
+    mockApi.get.mockResolvedValue({ data: payload });
+    const store = useAdminCustomerSessions();
+
+    await store.fetchForCustomer(USER_ID);
+
+    expect(store.currentSessionId).toBeNull();
+  });
+
+  it('keeps currentSessionId null when the field is explicitly null', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
     const store = useAdminCustomerSessions();
 
     await store.fetchForCustomer(USER_ID);
