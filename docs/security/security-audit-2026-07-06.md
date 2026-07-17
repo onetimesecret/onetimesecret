@@ -40,13 +40,43 @@ The most significant findings are in deployment configuration defaults (security
 
 **Finding Summary:**
 
-| Severity      | Count |
-| ------------- | ----- |
-| Critical      | 0     |
-| High          | 3     |
-| Medium        | 11    |
-| Low           | 10    |
-| Informational | 6     |
+| Severity      | Count | Fixed | Accepted | Open |
+| ------------- | ----- | ----- | -------- | ---- |
+| Critical      | 0     | 0     | 0        | 0    |
+| High          | 3     | 3     | 0        | 0    |
+| Medium        | 11    | 10    | 1        | 0    |
+| Low           | 10    | 0     | 0        | 10   |
+| Informational | 6     | 0     | 0        | 6    |
+
+Status columns reflect the `security/audit-2026-07-06-high-medium` branch (2026-07-17). See [Remediation Status](#remediation-status) for per-finding detail.
+
+---
+
+## Remediation Status
+
+**Branch:** `security/audit-2026-07-06-high-medium` (as of 2026-07-17)
+
+All 3 High and all 11 Medium findings are resolved on this branch, except **M-3** (accepted; V1 is maintenance-only) which is documented rather than fixed. One additional residual (#3516) was reviewed and accepted with an inline note. Low and Informational findings are not addressed on this branch.
+
+| ID   | Status       | Commit(s)               | Note                                                              |
+| ---- | ------------ | ----------------------- | ---------------------------------------------------------------- |
+| H-1  | Fixed        | `d3f5246c2`             | CSRF token required on session-authenticated API requests        |
+| H-2  | Fixed        | `1759fc294`             | Valkey/RabbitMQ credentials required in compose stacks           |
+| H-3  | Fixed        | `aa3d70b2b`             | OmniAuth email auto-link to existing accounts refused            |
+| M-1  | Fixed        | `2afbe890d`             | Security middleware protections default on                       |
+| M-2  | Fixed        | `1eadc38e9`, `ed7acb23d`| Sessions revoked on password change/reset; fails loud            |
+| M-3  | Accepted     | —                       | V1 maintenance-only; gap documented, no fix                      |
+| M-4  | Fixed        | `4ccff8543`             | Two-tier login rate limiter for simple-mode auth                 |
+| M-5  | Fixed        | `b56b99ddd`             | s6-overlay tarball checksums verified before extraction          |
+| M-6  | Fixed        | `1759fc294`             | RabbitMQ credentials required (same change as H-2)               |
+| M-7  | Fixed        | `60dd19fda`, `dcf71f3c2`| Cookie `secure` key omitted unless SSL=true; boot.rb defaults on |
+| M-8  | Fixed        | `00956813d`, `06843d620`| Passphrase limiter keyed on secret+IP; per-IP keys in ops (RL-1) |
+| M-9  | Fixed        | `11ff16ef8`             | Stripe checkout URLs host-allowlisted before navigation          |
+| M-10 | Fixed        | `3673b9be8`             | Admin routes gated on colonel role; redirect param hardened      |
+| M-11 | Fixed        | `02dd1b21d`             | Awaiting-MFA sessions blocked from authenticating                |
+| #3516| Accepted     | `643c2182e`             | Argon2 DoS-amplification residual; throttle bounds risk, in-line |
+
+Low (L-1–L-10) and Informational (I-1–I-6): **Open** — not scoped to this branch.
 
 ---
 
@@ -82,6 +112,8 @@ API v2/v3 endpoints support session-based authentication via `BaseSessionAuthStr
 
 **Remediation:** Modify the `allow_if` lambda to only bypass CSRF when `Authorization: Basic ...` credentials are present. For session-authenticated API requests, require the `X-CSRF-Token` header.
 
+**Status:** ✅ Fixed — `d3f5246c2`. Session-authenticated `/api/` requests now require a CSRF token.
+
 ---
 
 #### H-2: Redis/Valkey Exposed Without Authentication in Simple Docker Compose
@@ -104,6 +136,8 @@ redis-cli -h <host-ip> -p 6379 KEYS '*'
 
 **Remediation:** Change `ports: '6379:6379'` to `expose: ['6379']`. Add a `requirepass` directive to the Valkey command.
 
+**Status:** ✅ Fixed — `1759fc294`. Valkey (and RabbitMQ, M-6) credentials are now required in the compose stacks.
+
 ---
 
 #### H-3: OAuth Account Linking via Email Without Identity Verification (rodauth-omniauth)
@@ -120,6 +154,8 @@ redis-cli -h <host-ip> -p 6379 KEYS '*'
 **Preconditions:** The deployment must have OAuth/SSO enabled (disabled by default in onetimesecret). The attacker must control an OAuth provider returning the victim's email. This is a library-level finding in `rodauth-omniauth`.
 
 **Remediation:** Override `account_from_omniauth` to return nil when no identity exists, requiring explicit user-initiated account linking while authenticated. Alternatively, require password confirmation before linking a new OAuth identity to an existing account.
+
+**Status:** ✅ Fixed — `aa3d70b2b`. Email-based auto-linking to existing accounts is refused.
 
 ---
 
@@ -151,6 +187,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 **Remediation:** Enable `frame_options`, `strict_transport`, and `path_traversal` by default. Log warnings when security middleware is disabled.
 
+**Status:** ✅ Fixed — `2afbe890d`. Security middleware protections default on.
+
 ---
 
 #### M-2: Session Not Invalidated on Password Change or Reset
@@ -164,6 +202,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 **Impact:** A compromised session survives credential rotation for up to 24 hours (inactivity deadline).
 
 **Remediation:** Call `remove_all_active_sessions_except_current` in the `after_change_password` and `after_reset_password` hooks.
+
+**Status:** ✅ Fixed — `1eadc38e9`, `ed7acb23d`. Sessions are revoked on password change/reset; revocation fails loud rather than silently on error.
 
 ---
 
@@ -179,6 +219,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 **Remediation:** V1 is maintenance-only. Document the known gap. For any future work, use the V2 pattern exclusively.
 
+**Status:** ⚪ Accepted — no code change. V1 is maintenance-only; the gap is documented and V2 already uses the correct pattern.
+
 ---
 
 #### M-4: No Login Rate Limiting in Simple Auth Mode
@@ -192,6 +234,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 **Impact:** Unlimited password guessing against simple-mode deployments.
 
 **Remediation:** Add a Redis-based rate limiter to the simple-mode authentication path, similar to `PassphraseRateLimiter`.
+
+**Status:** ✅ Fixed — `4ccff8543`. Two-tier login rate limiter added for simple-mode auth.
 
 ---
 
@@ -207,6 +251,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 **Remediation:** Download and verify the `.sha256` checksum files published alongside each release.
 
+**Status:** ✅ Fixed — `b56b99ddd`. s6-overlay tarball checksums are verified before extraction.
+
 ---
 
 #### M-6: RabbitMQ Default `guest:guest` Credentials
@@ -221,6 +267,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 **Remediation:** Make `RABBITMQ_USER` and `RABBITMQ_PASS` required variables (using `${VAR:?error}` syntax).
 
+**Status:** ✅ Fixed — `1759fc294`. RabbitMQ credentials are now required in the compose stacks (same change as H-2).
+
 ---
 
 #### M-7: Session Cookie `secure` Flag Depends on Manual Configuration
@@ -232,6 +280,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 **Description:** The `secure` cookie flag defaults to `ENV['SSL'] == 'true' || false`. A deployment behind HTTPS that forgets `SSL=true` serves session cookies without the `Secure` flag, exposing them to interception via HTTP downgrade.
 
 **Remediation:** Auto-detect HTTPS from `X-Forwarded-Proto` headers. Default `secure: true` in production mode.
+
+**Status:** ✅ Fixed — `60dd19fda`, `dcf71f3c2`. The `session.secure` key is omitted unless `SSL=true`, letting `boot.rb`'s `ssl_enabled?` fallback default it to true in production.
 
 ---
 
@@ -247,6 +297,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 **Remediation:** Use a compound key including client IP: `"passphrase:attempts:#{secret_identifier}:#{client_ip}"`.
 
+**Status:** ✅ Fixed — `00956813d`, `06843d620`. Two-tier limiting keyed on secret+IP; per-IP limiter keys surfaced in ratelimit inspect/reset ops (RL-1).
+
 ---
 
 #### M-9: `checkout_url` Redirect Without Domain Validation
@@ -261,6 +313,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 **Remediation:** Add a Zod refinement validating `checkout_url` matches `https://checkout.stripe.com/` or the application domain.
 
+**Status:** ✅ Fixed — `11ff16ef8`. Stripe checkout URLs are host-allowlisted before navigation.
+
 ---
 
 #### M-10: Colonel Admin Panel Lacks Frontend Route Guard
@@ -273,6 +327,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 **Remediation:** Add a `beforeEnter` guard checking `cust.role === 'colonel'` and redirecting non-colonels.
 
+**Status:** ✅ Fixed — `3673b9be8`. Admin routes gated on colonel role; redirect param check hardened.
+
 ---
 
 #### M-11: MFA `awaiting_mfa` Flag Not Checked by Auth Strategy
@@ -284,6 +340,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 **Description:** `PrepareMfaSession` sets `session['awaiting_mfa'] = true` alongside `session['account_id']` and `session['email']`. `BaseSessionAuthStrategy` checks only `session['authenticated']` -- not `awaiting_mfa`. Any code path treating `account_id` presence as full authentication bypasses MFA.
 
 **Remediation:** Add `session['awaiting_mfa'] != true` to the `authenticated?` check.
+
+**Status:** ✅ Fixed — `02dd1b21d`. Awaiting-MFA sessions are blocked from authenticating.
 
 ---
 
