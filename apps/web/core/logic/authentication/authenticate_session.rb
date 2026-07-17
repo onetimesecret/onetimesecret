@@ -23,6 +23,17 @@ module Core::Logic
         @stay                    = true # Keep sessions alive by default
         @session_ttl             = (stay ? 30.days : 20.minutes).to_i
 
+        # M-4/#3516: gate BEFORE the argon2 passphrase comparison below, so a
+        # locked-out subject never triggers an expensive password hash. Both
+        # rate-limit keys derive from data already in hand here — the submitted
+        # email (params) and the client IP (strategy metadata) — so the check
+        # needs neither the customer lookup nor the comparison it precedes. This
+        # runs inside the Base constructor (process_params fires there, see
+        # #3516); a lockout therefore raises LimitExceeded from `.new`, which the
+        # Otto request hook / Roda ErrorTranslator surface as 429 exactly as they
+        # did when this check lived in raise_concerns.
+        check_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
+
         potential = Onetime::Customer.find_by_email(potential_email_address)
 
         return unless potential
@@ -59,25 +70,12 @@ module Core::Logic
       end
 
       def raise_concerns
-        # M-4: simple mode has no Rodauth lockout, so throttle credential
-        # submissions here. This runs at the top of raise_concerns, but note
-        # that process_params (fired from the Base constructor, see #3516) has
-        # ALREADY performed the argon2 passphrase comparison by this point — so
-        # the check does not save the argon2 work for a locked subject. What it
-        # DOES guarantee is that a locked-out subject is rejected here (as a
-        # rate-limit error) before we count another failed attempt or emit the
-        # invalid-credential response, capping sustained guessing that simple
-        # mode would otherwise allow unbounded.
-        #
-        # KNOWN RESIDUAL (accepted, #3516): this leaves a DoS-amplification
-        # gap — a locked/blocked subject still burns one argon2 hash per request
-        # because the comparison precedes this guard. Closing it cleanly would
-        # require moving the rate-limit check ahead of the credential comparison,
-        # but the argon2 work and the rate-limit keys (email + ip) are BOTH
-        # produced by process_params in the Base constructor, so a pre-check would
-        # mean restructuring that credential pipeline. Deliberately not done here;
-        # the throttle above bounds the sustained-guessing risk this gap enables.
-        check_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
+        # M-4: simple mode has no Rodauth lockout, so credential submissions are
+        # throttled by the two-tier LoginRateLimiter. The lockout CHECK now runs
+        # in process_params, ahead of the argon2 comparison, so a locked subject
+        # never burns a password hash (#3516). Here we only RECORD the failure
+        # for a subject that got past that gate — a read-only probe cannot be
+        # placed after the failure it counts, so the two halves are split.
 
         return unless @cust.nil?
 
