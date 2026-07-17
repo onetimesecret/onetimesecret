@@ -448,10 +448,12 @@
     "content_hash": "ff8059dc"
   },
   "web.admin.customers.detail.sessions.current.badge": {
-    "text": "This session"
+    "text": "This session",
+    "content_hash": "6da6530a"
   },
   "web.admin.customers.detail.sessions.current.tooltip": {
-    "text": "Your current admin session. Revoking it here has no effect — it is re-created for the rest of this request."
+    "text": "Your current admin session. Revoking it here has no effect — it is re-created for the rest of this request.",
+    "content_hash": "ef097ab1"
   },
   "web.admin.customers.detail.sessions.revoke.button": {
     "text": "Revoke",
