@@ -63,7 +63,9 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - VALKEY_URL=redis://maindb:6379/0
+      # Password threaded into the URL so the app authenticates against the
+      # Valkey --requirepass set on the maindb service below (H-2).
+      - VALKEY_URL=redis://:${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set — add one with 'echo "VALKEY_PASSWORD=$$(openssl rand -hex 32)" >> .env'}@maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - SECRET=${SECRET:?SECRET must be set in .env — add one with 'echo "SECRET=$$(openssl rand -hex 32)" >> .env' (see README)}
       - SESSION_SECRET=${SESSION_SECRET:-}
@@ -115,6 +117,11 @@ services:
   maindb:
     image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
     container_name: onetime-maindb
+    environment:
+      # Lets the healthcheck's `valkey-cli ping` authenticate against
+      # --requirepass without embedding the password in the healthcheck
+      # command (valkey-cli reads REDISCLI_AUTH from the environment).
+      - REDISCLI_AUTH=${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set}
     command: >
       valkey-server
       --appendonly yes
@@ -124,6 +131,7 @@ services:
       --save 157680000 1
       --bind 0.0.0.0
       --port 6379
+      --requirepass ${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set}
       --databases 1
       --timeout 30
       --loglevel notice
@@ -135,7 +143,11 @@ services:
         max-file: '3'
     networks:
       - onetime-network
-    # Note: Port 6379 is NOT exposed externally - only to containers on the same network
+    # Note: Port 6379 is NOT exposed externally — only to containers on the
+    # same network. Combined with --requirepass above, this keeps the datastore
+    # off the host network entirely. For host-side debugging (valkey-cli,
+    # RedisInsight) use `docker compose exec maindb valkey-cli` (REDISCLI_AUTH
+    # is already set in the container).
     expose:
       - '6379'
     restart: unless-stopped
@@ -188,7 +200,7 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - VALKEY_URL=redis://maindb:6379/0
+      - VALKEY_URL=redis://:${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set}@maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set}@rabbitmq:5672
       - JOBS_ENABLED=${JOBS_ENABLED:-false}
@@ -231,7 +243,7 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - VALKEY_URL=redis://maindb:6379/0
+      - VALKEY_URL=redis://:${VALKEY_PASSWORD:?VALKEY_PASSWORD must be set}@maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set}@rabbitmq:5672
       - JOBS_ENABLED=${JOBS_ENABLED:-false}
