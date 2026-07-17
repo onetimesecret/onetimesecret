@@ -48,9 +48,24 @@ function sessionsUrl(userId: string): string {
   return `/api/colonel/users/${encodeURIComponent(userId)}/sessions`;
 }
 
+/** Schema-check the list payload; the store decides how to degrade on a miss. */
+function parseSessionsResponse(data: unknown) {
+  return gracefulParse(
+    colonelCustomerSessionsResponseSchema,
+    data,
+    'ColonelCustomerSessionsResponse'
+  );
+}
+
 export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () => {
   /** The customer's active session rows (whole list — never paginated). */
   const sessions = ref<AdminCustomerSession[]>([]);
+  /**
+   * The acting colonel's own request session id whenever the API can identify
+   * it — independent of whether it appears in `sessions` (the component does
+   * the row matching). Null when unidentifiable or before/after a failed fetch.
+   */
+  const currentSessionId = ref<string | null>(null);
   /** True while a request is in flight. */
   const loading = ref(false);
   /** The last thrown network/HTTP error, or null. */
@@ -73,13 +88,10 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
     loading.value = true;
     error.value = null;
     validationError.value = null;
+    currentSessionId.value = null; // reset up-front; only a 2xx re-populates it
     try {
       const response = await $api.get(sessionsUrl(userId));
-      const result = gracefulParse(
-        colonelCustomerSessionsResponseSchema,
-        response.data,
-        'ColonelCustomerSessionsResponse'
-      );
+      const result = parseSessionsResponse(response.data);
       if (!result.ok) {
         // Contract mismatch: degrade to empty; gracefulParse already reported it.
         validationError.value = 'ColonelCustomerSessionsResponse';
@@ -87,6 +99,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
         return null;
       }
       sessions.value = result.data.details?.sessions ?? [];
+      currentSessionId.value = result.data.details?.current_session_id ?? null;
       return sessions.value;
     } catch (err) {
       // Network/HTTP failure: clear stale rows and rethrow for the view to handle.
@@ -129,6 +142,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
   /** Explicit manual reset — setup stores have no built-in $reset. */
   function $reset(): void {
     sessions.value = [];
+    currentSessionId.value = null;
     loading.value = false;
     error.value = null;
     validationError.value = null;
@@ -137,6 +151,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
   return {
     // State
     sessions,
+    currentSessionId,
     loading,
     error,
     validationError,

@@ -58,6 +58,50 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 DB.set(@key, @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
                              'email' => @cust.email }))
 
+# Owner-mismatch fixtures (used by the mismatch test cases further down). A
+# SECOND customer @other owns @msid; @cust owns @msid2. Both are set up here in
+# the top-level setup region so the values persist to the test cases + teardown.
+@other = Onetime::Customer.create!(email: "revoke_other_#{@nonce}@example.com")
+@other.verified = 'true'
+@other.save
+@other_extid = @other.extid
+
+@msid  = "trymismatch_#{@nonce}"
+@mkey  = "session:#{@msid}"
+@msid2 = "trymatch_#{@nonce}"
+@mkey2 = "session:#{@msid2}"
+SM.load(@msid)&.destroy!
+SM.load(@msid2)&.destroy!
+
+# @msid tracked to @other (sidecar user_id == @other_extid); @msid2 tracked to
+# @cust (matching owner). Mint a real blob for each.
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @msid,
+  session_data: { 'authenticated' => true, 'external_id' => @other_extid,
+                  'ip_address' => '203.0.113.9', 'user_agent' => 'UA' },
+).call
+DB.set(@mkey, @codec.encode({ 'authenticated' => true, 'external_id' => @other_extid }))
+
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @msid2,
+  session_data: { 'authenticated' => true, 'external_id' => @extid,
+                  'ip_address' => '203.0.113.10', 'user_agent' => 'UA' },
+).call
+DB.set(@mkey2, @codec.encode({ 'authenticated' => true, 'external_id' => @extid }))
+
+# Nil-customer fixture: @nsid gets a sidecar + real blob (tracked to @cust), but
+# the revoke will be routed via a custid that resolves to NO customer. The blob
+# delete + sidecar destroy must still run; only the index prune is skipped.
+@nsid = "trynilcust_#{@nonce}"
+@nkey = "session:#{@nsid}"
+SM.load(@nsid)&.destroy!
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @nsid,
+  session_data: { 'authenticated' => true, 'external_id' => @extid,
+                  'ip_address' => '203.0.113.11', 'user_agent' => 'UA' },
+).call
+DB.set(@nkey, @codec.encode({ 'authenticated' => true, 'external_id' => @extid }))
+
 # ---- pre-conditions ---------------------------------------------------
 
 ## before revoke: the live blob, the sidecar, and the index member all exist
@@ -114,9 +158,64 @@ AE.count
 AE.recent(1).first['detail']['blob_deleted']
 #=> false
 
+# ---- owner mismatch: audit records the sidecar's true owner --------------
+# Colonel-only tool, so a revoke via a route custid that does NOT own the sid
+# still deletes the blob (takeover mitigation must not be gated on best-effort
+# sidecar state) — but the audit surfaces the sidecar's recorded owner so the
+# action is not silently mis-attributed to the route customer. Fixtures (@msid
+# owned by @other, @msid2 owned by @cust) are minted in the setup region above.
+
+## revoking @other's sid via @cust (the WRONG owner) still deletes the blob
+AE.events.clear
+@resm = RFC.new(custid: @extid, session_id: @msid, actor: @actor).call
+[@resm.revoked, @resm.blob_deleted, Store.find_key(DB, @msid)]
+#=> [true, true, nil]
+
+## the audit targets the route customer but records the sidecar's true owner
+@evm = AE.recent(1).first
+[@evm['target'], @evm['detail']['session_user_id']]
+#=> ["#{@extid}", "#{@other_extid}"]
+
+## a matching-owner revoke omits session_user_id (only present on mismatch)
+AE.events.clear
+RFC.new(custid: @extid, session_id: @msid2, actor: @actor).call
+AE.recent(1).first['detail'].key?('session_user_id')
+#=> false
+
+# ---- nil customer: blob still dies, only the index prune is skipped ------
+# load_customer tolerates an unknown/deleted custid (nil) — the blob delete and
+# sidecar destroy have already run by then, so only the index prune is skipped
+# (with an OT.ld breadcrumb). The op still returns revoked:true and still audits.
+
+## revoking via a custid that resolves to NO customer still kills blob + sidecar
+AE.events.clear
+@nghost = "ghost_#{@nonce}@example.com"
+@resn = RFC.new(custid: @nghost, session_id: @nsid, actor: @actor).call
+[@resn.revoked, @resn.blob_deleted, Store.find_key(DB, @nsid), SM.load(@nsid).nil?]
+#=> [true, true, nil, true]
+
+## it still audits, targeting the route custid; session_user_id is omitted
+## because owner attribution needs a resolved customer to compare against
+@evn = AE.recent(1).first
+[AE.count, @evn['target'], @evn['detail'].key?('session_user_id')]
+#=> [1, "#{@nghost}", false]
+
+## the true owner's index member survives (prune skipped) — it self-heals later
+## via ListForCustomer's blob-liveness prune
+@cust.active_sessions.member?(@nsid)
+#=> true
+
 # Cleanup
 SM.load(@sid)&.destroy!
 DB.del(@key)
+SM.load(@msid)&.destroy!
+DB.del(@mkey)
+SM.load(@msid2)&.destroy!
+DB.del(@mkey2)
+SM.load(@nsid)&.destroy!
+DB.del(@nkey)
+@other.active_sessions.clear
+@other.destroy!
 @cust.active_sessions.clear
 @cust.destroy!
 AE.events.clear
