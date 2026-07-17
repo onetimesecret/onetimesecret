@@ -240,23 +240,31 @@ RSpec.describe 'Auth module structure smoke tests' do
       end
     end
 
-    describe 'ErrorHandling hooks module' do
+  end
+
+  describe 'Auth::Config::Overrides modules' do
+    before(:all) do
+      # Load overrides index (method overrides, distinct from hooks)
+      require_relative '../../config/overrides'
+    end
+
+    describe 'ErrorHandling overrides module' do
       it 'is defined' do
-        expect(defined?(Auth::Config::Hooks::ErrorHandling)).to eq('constant')
+        expect(defined?(Auth::Config::Overrides::ErrorHandling)).to eq('constant')
       end
 
       it 'has configure class method' do
-        expect(Auth::Config::Hooks::ErrorHandling).to respond_to(:configure)
+        expect(Auth::Config::Overrides::ErrorHandling).to respond_to(:configure)
       end
     end
 
-    describe 'AuditLogging hooks module' do
+    describe 'PasswordMigration overrides module' do
       it 'is defined' do
-        expect(defined?(Auth::Config::Hooks::AuditLogging)).to eq('constant')
+        expect(defined?(Auth::Config::Overrides::PasswordMigration)).to eq('constant')
       end
 
       it 'has configure class method' do
-        expect(Auth::Config::Hooks::AuditLogging).to respond_to(:configure)
+        expect(Auth::Config::Overrides::PasswordMigration).to respond_to(:configure)
       end
     end
   end

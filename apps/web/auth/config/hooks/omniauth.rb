@@ -130,24 +130,10 @@ module Auth::Config::Hooks
         # Removing this block breaks SSO with "encoded token is not a string".
       end
 
-      # ========================================================================
-      # HOOK: Before OmniAuth Callback Route
-      # ========================================================================
-      #
-      # USER JOURNEY CONTEXT:
-      # This hook fires at the very start of callback processing, before any
-      # account lookup or creation. Useful for logging and debugging.
-      #
-      auth.before_omniauth_callback_route do
-        Auth::Logging.log_auth_event(
-          :omniauth_callback_start,
-          level: :info,
-          provider: omniauth_provider,
-          uid: omniauth_uid,
-          email: OT::Utils.obscure_email(omniauth_email),
-          ip: request.ip,
-        )
-      end
+      # NOTE: before_omniauth_callback_route is OWNED by omniauth_tenant.rb
+      # (hooks don't chain; a second definition here would be clobbered — or
+      # worse, clobber the tenant validation). The :omniauth_callback_start
+      # logging that used to live here moved into that hook.
 
       # ========================================================================
       # HOOK: Before OmniAuth Account Creation - Domain Validation
