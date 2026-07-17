@@ -525,9 +525,7 @@ GEM
     sqlite3 (2.9.5-x86_64-linux-musl)
     stackprof (0.2.28)
     stringio (3.1.9)
-    stripe (19.3.1)
-      bigdecimal
-      logger
+    stripe (18.4.2)
     swd (2.0.3)
       activesupport (>= 3)
       attr_required (>= 0.0.5)
@@ -685,7 +683,7 @@ DEPENDENCIES
   sqlite3 (~> 2.0)
   stackprof
   stringio (~> 3.1.6)
-  stripe
+  stripe (~> 18.4)
   syntax_tree
   tilt
   timecop (~> 0.9)
