@@ -51,7 +51,7 @@ module V2::Logic
         max_length = (maxlen_config || 128).to_i
         if length > max_length
           emsg = "Generated password length must be no more than #{max_length} characters"
-          raise_form_error emsg, field: :secret
+          raise_form_error emsg, field: :length
         end
 
         # Build character set options from merged configuration

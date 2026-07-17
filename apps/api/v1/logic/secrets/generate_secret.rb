@@ -22,7 +22,7 @@ module V1::Logic
         # Mirrors the v2 generate cap and the frontend Zod max.
         max_length = (password_config['maximum_length'] || 128).to_i
         if length > max_length
-          raise_form_error "Generated password length must be no more than #{max_length} characters"
+          raise_form_error "Generated password length must be no more than #{max_length} characters", field: :length
         end
 
         # Build character set options from payload or configuration
