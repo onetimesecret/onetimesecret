@@ -1,13 +1,18 @@
-# apps/web/auth/config/hooks/error_handling.rb
+# apps/web/auth/config/overrides/error_handling.rb
 #
 # frozen_string_literal: true
 
+#
+# MECHANISM: method override — `auth.around_rodauth` REPLACES Rodauth's
+# wrapper method (overrides clobber like hooks do: last definition wins).
+# It is not a before/after hook, which is why this file lives in
+# config/overrides/ rather than config/hooks/.
 #
 # The around_rodauth handler is called for every route, which we use as
 # a global error handler.
 #
 
-module Auth::Config::Hooks
+module Auth::Config::Overrides
   module ErrorHandling
     def self.configure(auth)
       auth.around_rodauth do |&blk|

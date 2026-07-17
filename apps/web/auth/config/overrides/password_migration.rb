@@ -1,9 +1,14 @@
-# apps/web/auth/config/hooks/password_migration.rb
+# apps/web/auth/config/overrides/password_migration.rb
 #
 # frozen_string_literal: true
 
 #
-# Password Migration Hook
+# Password Migration Override
+#
+# MECHANISM: method override — `auth.password_match?` REPLACES Rodauth's
+# implementation (overrides clobber like hooks do: last definition wins).
+# It is not a before/after hook, which is why this file lives in
+# config/overrides/ rather than config/hooks/.
 #
 # Enables transparent password migration from Redis (simple auth mode) to
 # Rodauth (full auth mode) during login.
@@ -23,7 +28,7 @@
 # - A Customer with passphrase exists in Redis
 #
 
-module Auth::Config::Hooks
+module Auth::Config::Overrides
   module PasswordMigration
     def self.configure(auth)
       #
@@ -125,4 +130,4 @@ module Auth::Config::Hooks
 end
 
 # Register instance methods with Rodauth
-Rodauth::Auth.include(Auth::Config::Hooks::PasswordMigration::InstanceMethods)
+Rodauth::Auth.include(Auth::Config::Overrides::PasswordMigration::InstanceMethods)

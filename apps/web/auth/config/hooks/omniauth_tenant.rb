@@ -163,7 +163,7 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
-      # HOOK: Before OmniAuth Callback - Tenant Context Validation
+      # HOOK: Before OmniAuth Callback - Logging + Tenant Context Validation
       # ========================================================================
       #
       # USER JOURNEY CONTEXT:
@@ -171,10 +171,22 @@ module Auth::Config::Hooks
       # We validate that the callback is arriving at the same tenant that
       # initiated the auth request. This prevents cross-tenant redirect attacks.
       #
-      # The before_omniauth_callback_route hook (in omniauth.rb) runs BEFORE this
-      # one (it is registered first in config.rb). This hook validates tenants.
+      # OWNERSHIP: Rodauth hooks do NOT chain — each auth.before_omniauth_callback_route
+      # call REPLACES the previous definition. This is the SOLE definition of the
+      # hook (omniauth.rb used to define one too; registered first in config.rb,
+      # it was silently clobbered by this one — the #3275 pattern). This block
+      # therefore does both jobs: log callback start, then validate the tenant.
       #
       auth.before_omniauth_callback_route do
+        Auth::Logging.log_auth_event(
+          :omniauth_callback_start,
+          level: :info,
+          provider: omniauth_provider,
+          uid: omniauth_uid,
+          email: OT::Utils.obscure_email(omniauth_email),
+          ip: request.ip,
+        )
+
         expected_domain_id = session.delete(:omniauth_tenant_domain_id)
         expected_host      = session.delete(:omniauth_tenant_host)
 

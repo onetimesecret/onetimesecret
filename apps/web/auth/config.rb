@@ -36,6 +36,7 @@ module Auth
     require_relative 'config/email'
     require_relative 'config/features'
     require_relative 'config/hooks'
+    require_relative 'config/overrides'
     require_relative 'config/rodauth_overrides'
 
     configure do
@@ -66,7 +67,8 @@ module Auth
       # Password hashing: argon2id
       Features::Argon2.configure(self)
 
-      # Audit logging for authentication events
+      # Audit logging for authentication events (feature enablement, defaults,
+      # and the per-event audit_log_message_for/metadata_for registrations)
       Features::AuditLogging.configure(self)
 
       # Account lifecycle: create, verify, close, change/reset password
@@ -76,14 +78,17 @@ module Auth
       # Email delivery configuration (requires email_base from above)
       Email.configure(self)
 
-      # Hooks for customizing authentication behavior
+      # Hooks for customizing authentication behavior.
+      # NOTE: hooks don't chain — this order is a precedence list (last writer
+      # wins per hook name); each hook has exactly one owner. See config/hooks.rb.
       Hooks::Account.configure(self)
-      Hooks::AuditLogging.configure(self)
       Hooks::Login.configure(self)
       Hooks::Logout.configure(self)
       Hooks::Password.configure(self)
-      Hooks::PasswordMigration.configure(self)
-      Hooks::ErrorHandling.configure(self)
+
+      # Method overrides (replace Rodauth methods, not before/after hooks)
+      Overrides::PasswordMigration.configure(self)
+      Overrides::ErrorHandling.configure(self)
       RodauthOverrides.configure(self)
 
       # Lockout: brute force protection

@@ -5,6 +5,11 @@
 module Auth::Config::Hooks
   # Billing - Plan selection carry-through after authentication
   #
+  # MECHANISM: this file defines helper methods via auth_class_eval (additive,
+  # safe to layer) — it defines NO hooks. The before_create_account hook that
+  # calls capture_plan_selection lives in account.rb (moved there after the
+  # #3275 hook-collision bug; see the NOTE block at the bottom of this file).
+  #
   # Captures plan selection from pricing page URLs and provides redirect
   # information in auth responses to continue the checkout flow.
   #
