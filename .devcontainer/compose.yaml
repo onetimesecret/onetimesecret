@@ -11,7 +11,7 @@ services:
   app:
     # Maintained upstream — hand-rolling a Dockerfile here would create a
     # second rot surface (testing-strategy §5). Tag tracks .ruby-version.
-    image: ghcr.io/rails/devcontainer/images/ruby:3.4.9
+    image: ghcr.io/rails/devcontainer/images/ruby:3.4.10
     volumes:
       - ..:/workspaces/onetimesecret:cached
       # Named volume: node_modules I/O through a bind mount is painfully slow
