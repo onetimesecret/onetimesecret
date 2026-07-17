@@ -6,29 +6,29 @@
 
 ## Repositories Audited
 
-| Repository | Branch | Commit |
-|---|---|---|
-| onetimesecret/onetimesecret | `claude/eager-brahmagupta-ha5uo6` | `260be4a` |
-| delano/familia | `claude/amazing-goodall-ha5uo6` | `df9992b` |
-| delano/otto | `claude/upbeat-planck-ha5uo6` | `bbc59eb` |
-| onetimesecret/rodauth | `claude/dreamy-babbage-ha5uo6` | `2732c44` |
-| onetimesecret/rodauth-omniauth | `claude/magical-feynman-ha5uo6` | `9fe8152` |
-| onetimesecret/rhales | `claude/magical-euler-ha5uo6` | `ca79eaf` |
+| Repository                     | Branch                            | Commit    |
+| ------------------------------ | --------------------------------- | --------- |
+| onetimesecret/onetimesecret    | `claude/eager-brahmagupta-ha5uo6` | `260be4a` |
+| delano/familia                 | `claude/amazing-goodall-ha5uo6`   | `df9992b` |
+| delano/otto                    | `claude/upbeat-planck-ha5uo6`     | `bbc59eb` |
+| onetimesecret/rodauth          | `claude/dreamy-babbage-ha5uo6`    | `2732c44` |
+| onetimesecret/rodauth-omniauth | `claude/magical-feynman-ha5uo6`   | `9fe8152` |
+| onetimesecret/rhales           | `claude/magical-euler-ha5uo6`     | `ca79eaf` |
 
 ## Coverage
 
-| Focus Area | Status |
-|---|---|
+| Focus Area                | Status  |
+| ------------------------- | ------- |
 | Auth & session management | Covered |
-| Authorization / IDOR | Covered |
-| Redis-specific risks | Covered |
-| REST API security | Covered |
-| SPA security | Covered |
-| Supply chain | Covered |
-| Runtime / deployment | Covered |
-| Business logic | Covered |
-| Cryptography | Covered |
-| Observability | Covered |
+| Authorization / IDOR      | Covered |
+| Redis-specific risks      | Covered |
+| REST API security         | Covered |
+| SPA security              | Covered |
+| Supply chain              | Covered |
+| Runtime / deployment      | Covered |
+| Business logic            | Covered |
+| Cryptography              | Covered |
+| Observability             | Covered |
 
 ---
 
@@ -40,13 +40,13 @@ The most significant findings are in deployment configuration defaults (security
 
 **Finding Summary:**
 
-| Severity | Count |
-|---|---|
-| Critical | 0 |
-| High | 3 |
-| Medium | 11 |
-| Low | 10 |
-| Informational | 6 |
+| Severity      | Count |
+| ------------- | ----- |
+| Critical      | 0     |
+| High          | 3     |
+| Medium        | 11    |
+| Low           | 10    |
+| Informational | 6     |
 
 ---
 
@@ -66,7 +66,7 @@ The most significant findings are in deployment configuration defaults (security
 **Description:** The `AuthenticityToken` middleware's `allow_if` lambda exempts all paths starting with `/api/` from CSRF validation unconditionally:
 
 ```ruby
-return true if req.path.start_with?('/api/')
+return true if req.path.start_with?("/api/")
 ```
 
 API v2/v3 endpoints support session-based authentication via `BaseSessionAuthStrategy`. A session-authenticated POST to any `/api/v2/` or `/api/v3/` endpoint bypasses CSRF entirely.
@@ -74,6 +74,7 @@ API v2/v3 endpoints support session-based authentication via `BaseSessionAuthStr
 **Impact:** An attacker hosting a malicious page can submit cross-origin form POSTs to session-authenticated API endpoints. With `SameSite=Lax` cookies, this is partially mitigated for cross-site requests, but same-site requests (from subdomains or same-site contexts) bypass this.
 
 **Reproduction:**
+
 1. User is logged in via session cookie
 2. User visits attacker-controlled page on a subdomain or same eTLD+1 origin
 3. Attacker's page submits a POST form to `/api/v2/secrets` with `Content-Type: application/x-www-form-urlencoded`
@@ -95,6 +96,7 @@ API v2/v3 endpoints support session-based authentication via `BaseSessionAuthStr
 **Impact:** Full data breach of all secrets and customer credentials. The full compose file correctly uses `expose` instead of `ports`.
 
 **Reproduction:**
+
 ```bash
 docker compose -f docker/compose/docker-compose.simple.yml up -d
 redis-cli -h <host-ip> -p 6379 KEYS '*'
@@ -133,15 +135,15 @@ redis-cli -h <host-ip> -p 6379 KEYS '*'
 
 **Description:** Critical security middleware defaults to disabled:
 
-| Middleware | Default | Protection |
-|---|---|---|
-| `frame_options` | OFF | Clickjacking (X-Frame-Options) |
-| `strict_transport` | OFF | HSTS |
-| `path_traversal` | OFF | Directory traversal |
-| `cookie_tossing` | OFF | Cookie manipulation from subdomains |
-| `ip_spoofing` | OFF | X-Forwarded-For spoofing |
-| `http_origin` | OFF | Origin header validation |
-| `xss_header` | OFF | X-XSS-Protection |
+| Middleware         | Default | Protection                          |
+| ------------------ | ------- | ----------------------------------- |
+| `frame_options`    | OFF     | Clickjacking (X-Frame-Options)      |
+| `strict_transport` | OFF     | HSTS                                |
+| `path_traversal`   | OFF     | Directory traversal                 |
+| `cookie_tossing`   | OFF     | Cookie manipulation from subdomains |
+| `ip_spoofing`      | OFF     | X-Forwarded-For spoofing            |
+| `http_origin`      | OFF     | Origin header validation            |
+| `xss_header`       | OFF     | X-XSS-Protection                    |
 
 Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
@@ -171,7 +173,7 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 **Category:** Business Logic
 **File:** `apps/api/v1/logic/secrets/show_secret.rb:66`
 
-**Description:** The V1 API decrypts the secret value at line 66 *before* the atomic `revealed!` claim at line 94. A losing racer's plaintext is suppressed (lines 110-113), but it exists in Ruby process memory. The V2 API correctly decrypts only inside the won claim via `secret.reveal!`.
+**Description:** The V1 API decrypts the secret value at line 66 _before_ the atomic `revealed!` claim at line 94. A losing racer's plaintext is suppressed (lines 110-113), but it exists in Ruby process memory. The V2 API correctly decrypts only inside the won claim via `secret.reveal!`.
 
 **Impact:** In a race condition, the plaintext exists in memory for the losing request's process lifetime. Not directly exploitable remotely, but increases the surface for memory disclosure via crashes or debugging endpoints.
 
@@ -379,22 +381,22 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 
 ## Risk Register
 
-| ID | Finding | Severity | Exploitability | Business Impact | Priority |
-|---|---|---|---|---|---|
-| H-1 | CSRF bypass on session-auth API routes | High | Medium | Secret creation/account modification under victim's identity | P1 |
-| H-2 | Redis exposed without auth (simple compose) | High | High | Full data breach of secrets and credentials | P1 |
-| H-3 | OAuth email-based account linking | High | Medium | Account takeover (requires OAuth enabled) | P2 |
-| M-1 | Security middleware disabled by default | Medium | High | Missing clickjacking/HSTS/traversal protection | P1 |
-| M-2 | Sessions survive password change | Medium | Low | Compromised sessions persist after credential rotation | P2 |
-| M-3 | V1 decrypts before atomic claim | Medium | Low | Plaintext in memory for losing racers | P3 |
-| M-4 | No login rate limiting (simple mode) | Medium | High | Brute force password attacks | P2 |
-| M-5 | S6 overlay no checksum verification | Medium | Low | Supply chain attack on container init | P2 |
-| M-6 | RabbitMQ default credentials | Medium | Medium | Message interception on default deployments | P2 |
-| M-7 | Cookie `secure` flag manual config | Medium | Medium | Session hijacking via HTTP downgrade | P2 |
-| M-8 | Passphrase rate limiter targeted DoS | Medium | Medium | Legitimate recipients locked out | P2 |
-| M-9 | `checkout_url` redirect unvalidated | Medium | Low | Phishing via billing response manipulation | P3 |
-| M-10 | Colonel panel no frontend guard | Medium | Low | Admin UI structure disclosure | P3 |
-| M-11 | MFA awaiting flag unchecked | Medium | Low | Potential MFA bypass if code reads account_id | P2 |
+| ID   | Finding                                     | Severity | Exploitability | Business Impact                                              | Priority |
+| ---- | ------------------------------------------- | -------- | -------------- | ------------------------------------------------------------ | -------- |
+| H-1  | CSRF bypass on session-auth API routes      | High     | Medium         | Secret creation/account modification under victim's identity | P1       |
+| H-2  | Redis exposed without auth (simple compose) | High     | High           | Full data breach of secrets and credentials                  | P1       |
+| H-3  | OAuth email-based account linking           | High     | Medium         | Account takeover (requires OAuth enabled)                    | P2       |
+| M-1  | Security middleware disabled by default     | Medium   | High           | Missing clickjacking/HSTS/traversal protection               | P1       |
+| M-2  | Sessions survive password change            | Medium   | Low            | Compromised sessions persist after credential rotation       | P2       |
+| M-3  | V1 decrypts before atomic claim             | Medium   | Low            | Plaintext in memory for losing racers                        | P3       |
+| M-4  | No login rate limiting (simple mode)        | Medium   | High           | Brute force password attacks                                 | P2       |
+| M-5  | S6 overlay no checksum verification         | Medium   | Low            | Supply chain attack on container init                        | P2       |
+| M-6  | RabbitMQ default credentials                | Medium   | Medium         | Message interception on default deployments                  | P2       |
+| M-7  | Cookie `secure` flag manual config          | Medium   | Medium         | Session hijacking via HTTP downgrade                         | P2       |
+| M-8  | Passphrase rate limiter targeted DoS        | Medium   | Medium         | Legitimate recipients locked out                             | P2       |
+| M-9  | `checkout_url` redirect unvalidated         | Medium   | Low            | Phishing via billing response manipulation                   | P3       |
+| M-10 | Colonel panel no frontend guard             | Medium   | Low            | Admin UI structure disclosure                                | P3       |
+| M-11 | MFA awaiting flag unchecked                 | Medium   | Low            | Potential MFA bypass if code reads account_id                | P2       |
 
 ---
 
