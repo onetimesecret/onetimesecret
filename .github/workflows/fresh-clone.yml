@@ -13,7 +13,7 @@
 #     -> git status --porcelain == empty        # litter check (Zulip)
 #
 # Deliberate design choices:
-#   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.9,
+#   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.10,
 #     .node-version = 22), NOT hardcoded versions — this lane exists to prove
 #     the *documented* floors work (the Node-22 gate fix is the whole point of
 #     the onboarding branch; the reusable setup-node-env action defaults to 25
@@ -78,11 +78,10 @@ jobs:
           sudo apt-get install -y redis-server
 
       # Toolchain from the pinned version files — the documented floors.
-      # setup-ruby reads .ruby-version by default when no ruby-version is given
-      # (this SHA predates the `ruby-version-file` input), so 3.4.9 is selected
-      # from the file with no extra config.
+      # setup-ruby reads .ruby-version by default when no ruby-version is given,
+      # so 3.4.10 is selected from the file with no extra config.
       - name: Setup Ruby (.ruby-version)
-        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
           bundler-cache: false  # bin/setup runs `bundle install` itself
 
