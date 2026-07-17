@@ -125,7 +125,7 @@ API v2/v3 endpoints support session-based authentication via `BaseSessionAuthStr
 
 **Description:** The simple Docker Compose file exposes Valkey on port 6379 to the host network (`ports: '6379:6379'`) with `--bind 0.0.0.0` and no `requirepass`. Any process that can reach port 6379 can read all stored secrets, customer data, and session tokens.
 
-**Impact:** Full data breach of all secrets and customer credentials. The full compose file correctly uses `expose` instead of `ports`.
+**Impact:** Full data breach of all secrets and customer credentials. The full compose file already uses `expose` instead of `ports`, but originally ran Valkey without `--requirepass`; both stacks are now hardened symmetrically.
 
 **Reproduction:**
 
@@ -136,7 +136,7 @@ redis-cli -h <host-ip> -p 6379 KEYS '*'
 
 **Remediation:** Change `ports: '6379:6379'` to `expose: ['6379']`. Add a `requirepass` directive to the Valkey command.
 
-**Status:** ✅ Fixed — `1759fc294`. Valkey (and RabbitMQ, M-6) credentials are now required in the compose stacks.
+**Status:** ✅ Fixed — `1759fc294` (simple stack) and follow-up (full stack). Valkey `--requirepass` and RabbitMQ (M-6) credentials are now required across both compose stacks; neither publishes the datastore port to the host.
 
 ---
 
