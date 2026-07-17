@@ -411,9 +411,13 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         )
       end
 
-      it 'raises LimitExceeded from raise_concerns before evaluating credentials' do
+      it 'raises LimitExceeded from process_params before evaluating credentials' do
+        # #3516/36fe2cc90 moved the lockout gate ahead of the argon2 comparison,
+        # i.e. into process_params (fired from .new), so a locked subject never
+        # burns a password hash. record_failed_login_attempt! lives only in
+        # raise_concerns and must not fire on a pre-gated lockout.
         expect(logic).not_to receive(:record_failed_login_attempt!)
-        expect { logic.raise_concerns }.to raise_error(Onetime::LimitExceeded)
+        expect { logic.process_params }.to raise_error(Onetime::LimitExceeded)
       end
     end
 
