@@ -74,7 +74,11 @@ module Onetime
           session_user_id = meta&.user_id
           meta&.destroy!
           customer        = load_customer
-          customer&.active_sessions&.remove(@session_id)
+          if customer
+            customer.active_sessions&.remove(@session_id)
+          else
+            OT.ld("[RevokeForCustomer] no customer for #{@custid}; index prune skipped")
+          end
 
           # One customer-scoped audit event per revoke. session_id is a public
           # identifier; never put session contents into detail.

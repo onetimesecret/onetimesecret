@@ -89,6 +89,19 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 ).call
 DB.set(@mkey2, @codec.encode({ 'authenticated' => true, 'external_id' => @extid }))
 
+# Nil-customer fixture: @nsid gets a sidecar + real blob (tracked to @cust), but
+# the revoke will be routed via a custid that resolves to NO customer. The blob
+# delete + sidecar destroy must still run; only the index prune is skipped.
+@nsid = "trynilcust_#{@nonce}"
+@nkey = "session:#{@nsid}"
+SM.load(@nsid)&.destroy!
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @nsid,
+  session_data: { 'authenticated' => true, 'external_id' => @extid,
+                  'ip_address' => '203.0.113.11', 'user_agent' => 'UA' },
+).call
+DB.set(@nkey, @codec.encode({ 'authenticated' => true, 'external_id' => @extid }))
+
 # ---- pre-conditions ---------------------------------------------------
 
 ## before revoke: the live blob, the sidecar, and the index member all exist
@@ -169,6 +182,29 @@ RFC.new(custid: @extid, session_id: @msid2, actor: @actor).call
 AE.recent(1).first['detail'].key?('session_user_id')
 #=> false
 
+# ---- nil customer: blob still dies, only the index prune is skipped ------
+# load_customer tolerates an unknown/deleted custid (nil) — the blob delete and
+# sidecar destroy have already run by then, so only the index prune is skipped
+# (with an OT.ld breadcrumb). The op still returns revoked:true and still audits.
+
+## revoking via a custid that resolves to NO customer still kills blob + sidecar
+AE.events.clear
+@nghost = "ghost_#{@nonce}@example.com"
+@resn = RFC.new(custid: @nghost, session_id: @nsid, actor: @actor).call
+[@resn.revoked, @resn.blob_deleted, Store.find_key(DB, @nsid), SM.load(@nsid).nil?]
+#=> [true, true, nil, true]
+
+## it still audits, targeting the route custid; session_user_id is omitted
+## because owner attribution needs a resolved customer to compare against
+@evn = AE.recent(1).first
+[AE.count, @evn['target'], @evn['detail'].key?('session_user_id')]
+#=> [1, "#{@nghost}", false]
+
+## the true owner's index member survives (prune skipped) — it self-heals later
+## via ListForCustomer's blob-liveness prune
+@cust.active_sessions.member?(@nsid)
+#=> true
+
 # Cleanup
 SM.load(@sid)&.destroy!
 DB.del(@key)
@@ -176,6 +212,8 @@ SM.load(@msid)&.destroy!
 DB.del(@mkey)
 SM.load(@msid2)&.destroy!
 DB.del(@mkey2)
+SM.load(@nsid)&.destroy!
+DB.del(@nkey)
 @other.active_sessions.clear
 @other.destroy!
 @cust.active_sessions.clear
