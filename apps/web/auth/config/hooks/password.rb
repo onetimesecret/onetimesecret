@@ -25,6 +25,11 @@ module Auth::Config::Hooks
     # registration call stays valid. All password-event logic lives in Hooks::Account.
     def self.configure(_auth)
       # Intentionally empty — see the module comment above.
+      #
+      # Discoverability: every password-lifecycle hook (after_reset_password_request,
+      # after_reset_password, after_change_password) and the M-2 session-revocation
+      # logic live in Auth::Config::Hooks::Account (apps/web/auth/config/hooks/account.rb).
+      # Look there, not here.
     end
   end
 end

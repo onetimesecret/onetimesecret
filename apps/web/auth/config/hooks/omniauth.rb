@@ -45,9 +45,12 @@ module Auth::Config::Hooks
           # domain-validation hook below also runs only on the CREATE path, so
           # the email-link path would bypass it entirely.
           #
-          # FOLLOW-UP: no authenticated "link SSO from account settings" flow
-          # exists yet, so this strands users who created a password account
-          # first and expect SSO to match by email. Ship a companion linking UI.
+          # FOLLOW-UP (needs a tracked ticket): no authenticated "link SSO from
+          # account settings" flow exists yet, so a password-first user who then
+          # tries SSO can only self-resolve by signing in with their password (the
+          # flash below tells them so) — they cannot complete the link themselves.
+          # Ship a companion authenticated account-linking UI so this refusal
+          # becomes a recoverable step instead of a dead end.
           Auth::Logging.log_auth_event(
             :omniauth_link_refused_existing_account,
             level: :warn,
