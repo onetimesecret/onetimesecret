@@ -68,6 +68,15 @@ module Core::Logic
         # rate-limit error) before we count another failed attempt or emit the
         # invalid-credential response, capping sustained guessing that simple
         # mode would otherwise allow unbounded.
+        #
+        # KNOWN RESIDUAL (accepted, #3516): this leaves a DoS-amplification
+        # gap — a locked/blocked subject still burns one argon2 hash per request
+        # because the comparison precedes this guard. Closing it cleanly would
+        # require moving the rate-limit check ahead of the credential comparison,
+        # but the argon2 work and the rate-limit keys (email + ip) are BOTH
+        # produced by process_params in the Base constructor, so a pre-check would
+        # mean restructuring that credential pipeline. Deliberately not done here;
+        # the throttle above bounds the sustained-guessing risk this gap enables.
         check_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
 
         return unless @cust.nil?
