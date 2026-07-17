@@ -56,7 +56,7 @@ Status columns reflect the `security/audit-2026-07-06-high-medium` branch (2026-
 
 **Branch:** `security/audit-2026-07-06-high-medium` (as of 2026-07-17)
 
-All 3 High and all 11 Medium findings are resolved on this branch, except **M-3** (accepted; V1 is maintenance-only) which is documented rather than fixed. One additional residual (#3516) was reviewed and accepted with an inline note. Low and Informational findings are not addressed on this branch.
+All 3 High and all 11 Medium findings are resolved on this branch, except **M-3** (accepted; V1 is maintenance-only) which is documented rather than fixed. One additional residual (#3516) was fixed by moving the login rate-limit check ahead of the Argon2 comparison. Low and Informational findings are not addressed on this branch.
 
 | ID   | Status       | Commit(s)               | Note                                                              |
 | ---- | ------------ | ----------------------- | ---------------------------------------------------------------- |
@@ -74,7 +74,7 @@ All 3 High and all 11 Medium findings are resolved on this branch, except **M-3*
 | M-9  | Fixed        | `11ff16ef8`             | Stripe checkout URLs host-allowlisted before navigation          |
 | M-10 | Fixed        | `3673b9be8`             | Admin routes gated on colonel role; redirect param hardened      |
 | M-11 | Fixed        | `02dd1b21d`             | Awaiting-MFA sessions blocked from authenticating                |
-| #3516| Accepted     | `643c2182e`             | Argon2 DoS-amplification residual; throttle bounds risk, in-line |
+| #3516| Fixed        | `643c2182e`, `468e47cdf`| Argon2 DoS-amplification residual; rate-limit check moved ahead of Argon2 comparison |
 
 Low (L-1–L-10) and Informational (I-1–I-6): **Open** — not scoped to this branch.
 
