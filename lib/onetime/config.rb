@@ -71,6 +71,10 @@ module Onetime
             },
             'password_generation' => {
               'default_length' => 12,
+              # Server-enforced ceiling on requested generated-password length.
+              # Rejects oversized `length` before allocation (DoS guard); mirrors
+              # the frontend Zod max so client/server limits stay in lockstep.
+              'maximum_length' => 128,
               'length_options' => [8, 12, 16, 20, 24, 32],
               'character_sets' => {
                 'uppercase' => true,
@@ -511,6 +515,10 @@ module Onetime
 
       if password_gen_config['default_length'].is_a?(String)
         conf['site']['secret_options']['password_generation']['default_length'] = password_gen_config['default_length'].to_i
+      end
+
+      if password_gen_config['maximum_length'].is_a?(String)
+        conf['site']['secret_options']['password_generation']['maximum_length'] = password_gen_config['maximum_length'].to_i
       end
 
       # Handle length_options as string or array

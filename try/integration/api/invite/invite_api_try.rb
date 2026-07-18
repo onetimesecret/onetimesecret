@@ -26,10 +26,10 @@ def @test.app
 end
 
 # Delegate Rack::Test methods to @test
-def post(*args); @test.post(*args); end
+def post(*args); @test.post(*with_csrf(args)); end
 def get(*args); @test.get(*args); end
-def put(*args); @test.put(*args); end
-def delete(*args); @test.delete(*args); end
+def put(*args); @test.put(*with_csrf(args)); end
+def delete(*args); @test.delete(*with_csrf(args)); end
 def last_response; @test.last_response; end
 
 # Helper to enable domains feature at runtime level
@@ -324,7 +324,7 @@ def @test.app
 end
 # Re-delegate to new test object
 def get(*args); @test.get(*args); end
-def post(*args); @test.post(*args); end
+def post(*args); @test.post(*with_csrf(args)); end
 def last_response; @test.last_response; end
 @branding_owner = Onetime::Customer.create!(email: generate_unique_test_email("branding_owner"))
 @branding_invitee_email = generate_unique_test_email("branding_invitee")

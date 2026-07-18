@@ -238,6 +238,10 @@ site:
     password_generation:
       # Default length for generated passwords
       default_length: <%= ENV['PASSWORD_GEN_LENGTH'] || 12 %>
+      # Server-enforced ceiling on requested generated-password length.
+      # Rejects oversized `length` values before allocation (DoS guard);
+      # matches the frontend Zod max so the two limits stay in lockstep.
+      maximum_length: <%= ENV['PASSWORD_GEN_MAX_LENGTH'] || 128 %>
       # Character sets to include in generated passwords
       character_sets:
         # Include uppercase letters (A-Z)

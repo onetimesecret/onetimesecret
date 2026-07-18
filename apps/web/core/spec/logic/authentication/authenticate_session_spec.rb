@@ -395,26 +395,33 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     end
   end
 
+  describe 'login rate limiting (M-4) — pre-gated lockout' do
+    # #3516/#3807 moved check_login_rate_limit! ahead of the argon2 comparison,
+    # into process_params, which fires from Onetime::Logic::Base#initialize. A
+    # locked subject therefore raises at construction — before any credential is
+    # evaluated and before record_failed_login_attempt! (which lives only in
+    # raise_concerns) can run. Arm the raise via any_instance so the gate is
+    # active before .new, then assert against described_class.new to exercise
+    # the real gated path rather than a re-invocation on an already-built object.
+    before do
+      allow_any_instance_of(described_class).to receive(:check_login_rate_limit!).and_raise(
+        Onetime::LimitExceeded.new(
+          'Too many login attempts. Please try again later.',
+          retry_after: 1800,
+          max_attempts: 5,
+        ),
+      )
+    end
+
+    it 'raises LimitExceeded at construction, before evaluating credentials' do
+      expect_any_instance_of(described_class).not_to receive(:record_failed_login_attempt!)
+      expect { described_class.new(strategy_result, params, 'en') }.to raise_error(Onetime::LimitExceeded)
+    end
+  end
+
   describe 'login rate limiting (M-4)' do
     before do
       logic.process_params
-    end
-
-    context 'when the subject is already locked out' do
-      before do
-        allow(logic).to receive(:check_login_rate_limit!).and_raise(
-          Onetime::LimitExceeded.new(
-            'Too many login attempts. Please try again later.',
-            retry_after: 1800,
-            max_attempts: 5,
-          ),
-        )
-      end
-
-      it 'raises LimitExceeded from raise_concerns before evaluating credentials' do
-        expect(logic).not_to receive(:record_failed_login_attempt!)
-        expect { logic.raise_concerns }.to raise_error(Onetime::LimitExceeded)
-      end
     end
 
     context 'on a failed credential attempt' do
