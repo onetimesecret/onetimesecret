@@ -79,6 +79,13 @@ jobs:
       # Zero-cost lint of every documented file combination first (Mattermost
       # pattern) — a broken include/merge fails here before anything is pulled.
       - name: Lint all documented compose combos (config -q)
+        # docker-compose.full.yml interpolates ${RABBITMQ_USER:?}/${RABBITMQ_PASS:?}
+        # (fail-fast required, like SECRET/VALKEY_PASSWORD above). This job never
+        # brings the full stack up — it only lints it — so throwaway values are
+        # fine here and scoped to this step.
+        env:
+          RABBITMQ_USER: lint
+          RABBITMQ_PASS: lint
         run: |
           set -x
           docker compose config -q
