@@ -67,19 +67,38 @@ module Onetime
             blob_deleted = true
           end
 
-          # Tidy the sidecar + the per-customer index (both idempotent).
-          Onetime::SessionMetadata.load(@session_id)&.destroy!
-          customer = load_customer
-          customer&.active_sessions&.remove(@session_id)
+          # Tidy the sidecar + the per-customer index (both idempotent). Capture the
+          # sidecar's recorded owner BEFORE destroying it so a mismatch — the sid
+          # belongs to a different customer than the route names — is auditable.
+          meta            = Onetime::SessionMetadata.load(@session_id)
+          session_user_id = meta&.user_id
+          meta&.destroy!
+          customer        = load_customer
+          if customer
+            customer.active_sessions&.remove(@session_id)
+          else
+            OT.ld("[RevokeForCustomer] no customer for #{@custid}; index prune skipped")
+          end
 
           # One customer-scoped audit event per revoke. session_id is a public
           # identifier; never put session contents into detail.
+          #
+          # Ownership note: this is a colonel-only takeover-mitigation tool, so the
+          # delete is NOT gated on the sidecar (best-effort, possibly stale) — an
+          # operator pointing at a sid wants it gone. But when the sidecar records a
+          # DIFFERENT owner than the route customer we surface `session_user_id` in
+          # detail so the revoke is not silently mis-attributed. The true owner's
+          # stale index member self-heals via ListForCustomer's blob-liveness prune.
+          detail = { session_id: @session_id, blob_deleted: blob_deleted }
+          if session_user_id && customer && session_user_id != customer.extid
+            detail[:session_user_id] = session_user_id
+          end
           Onetime::AdminAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @custid,
             result: :success,
-            detail: { session_id: @session_id, blob_deleted: blob_deleted },
+            detail: detail,
           )
 
           Result.new(session_id: @session_id, revoked: true, blob_deleted: blob_deleted)
