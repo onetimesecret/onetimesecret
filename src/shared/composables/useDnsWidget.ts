@@ -5,13 +5,13 @@
 // The widget helps users configure DNS records by detecting their DNS provider
 // and offering automated updates or provider-specific instructions.
 
+// Widget asset imports - Vite will handle bundling/hashing
+import dnsWidgetCss from '@/assets/approximated/dnswidget.v1.css?url';
+import dnsWidgetJs from '@/assets/approximated/dnswidget.v1.js?url';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { AxiosInstance } from 'axios';
 import { inject, onUnmounted, ref, toValue, type MaybeRefOrGetter, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-// Import widget assets - Vite will handle bundling/hashing
-import dnsWidgetCss from '@/assets/approximated/dnswidget.v1.css?url';
-import dnsWidgetJs from '@/assets/approximated/dnswidget.v1.js?url';
 
 // DNS widget global interface
 declare global {
@@ -70,6 +70,39 @@ export interface UseDnsWidgetOptions {
   onVerificationFailed?: (records: unknown[]) => void;
   /** Callback when only some records are verified */
   onPartialVerification?: (records: unknown[]) => void;
+}
+
+/**
+ * [S5] Resolve the per-request CSP nonce so dynamically injected scripts pass
+ * the nonce-only `script-src` policy (Otto emits `script-src 'nonce-<n>'` in
+ * production with no 'strict-dynamic' and no 'self', so an un-nonced injected
+ * script is blocked).
+ *
+ * Resolution order:
+ * 1. Bootstrap payload — the SystemSerializer includes `nonce` in
+ *    window.__BOOTSTRAP_ME__, hydrated into the bootstrap store.
+ * 2. `<meta name="csp-nonce">` — conventional fallback if a template adds it.
+ * 3. The nonce IDL property of any already-nonced script element (the
+ *    property survives browser nonce-hiding even when the content attribute
+ *    is emptied).
+ *
+ * Returns undefined when no nonce is discoverable (e.g. CSP disabled), in
+ * which case injection proceeds exactly as before.
+ */
+export function resolveCspNonce(): string | undefined {
+  try {
+    const storeNonce = useBootstrapStore().nonce;
+    if (storeNonce) return storeNonce;
+  } catch {
+    // Pinia not active (e.g. called outside app context) — fall through.
+  }
+
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]');
+  if (meta?.content) return meta.content;
+
+  const noncedScript = document.querySelector<HTMLScriptElement>('script[nonce]');
+  const inherited = noncedScript?.nonce || noncedScript?.getAttribute('nonce');
+  return inherited || undefined;
 }
 
 /**
@@ -147,6 +180,7 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
 
     return new Promise((resolve) => {
       // Load CSS (using Vite-resolved URL)
+      // No nonce needed: style-src includes 'self' and the asset is same-origin.
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = dnsWidgetCss;
@@ -155,6 +189,12 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
       // Load JS (using Vite-resolved URL)
       const script = document.createElement('script');
       script.src = dnsWidgetJs;
+      // [S5] Carry the per-request CSP nonce so the injected script passes the
+      // nonce-only script-src policy. Without it the browser blocks the load.
+      const cspNonce = resolveCspNonce();
+      if (cspNonce) {
+        script.setAttribute('nonce', cspNonce);
+      }
       script.onload = () => resolve(true);
       script.onerror = () => {
         console.error('[useDnsWidget] Failed to load widget script');

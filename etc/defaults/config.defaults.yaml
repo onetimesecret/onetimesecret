@@ -559,6 +559,21 @@ features:
     default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
     # Optional default passphrase for all incoming secrets (nil = no passphrase)
     default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
+    # Rate limiting for anonymous incoming-secret submissions (AZ9). Throttles
+    # per client IP and per client-supplied recipient hash BEFORE any secret is
+    # created or email is sent. Enabled by default (protective); set
+    # INCOMING_RATE_LIMIT_ENABLED=false to opt out. See
+    # lib/onetime/security/incoming_rate_limiter.rb.
+    rate_limit:
+      enabled: <%= ENV['INCOMING_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Submissions permitted per window from a single client IP.
+      max_per_ip: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      # Higher backstop cap per recipient hash (catches IP-rotating spam).
+      max_per_recipient: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_RECIPIENT'] || 30 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['INCOMING_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once a tier's cap is hit (1 hour).
+      lockout: <%= ENV['INCOMING_RATE_LIMIT_LOCKOUT'] || 3600 %>
     # Recipients who can receive incoming secrets
     # Each recipient needs an email and optional display name.
     # Email addresses are hashed at startup and never exposed in API responses.

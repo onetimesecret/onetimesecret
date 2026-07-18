@@ -1,6 +1,7 @@
 // src/tests/views/session/AcceptInvite.spec.ts
 
 import AcceptInvite from '@/apps/session/views/AcceptInvite.vue';
+import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
@@ -39,10 +40,10 @@ describe('AcceptInvite', () => {
     organization_id: 'on%orgacme123', // ExtId format for organization reference
     email: 'invitee@example.com',
     role: 'member',
-    invited_by_email: 'admin@acme.com',
+    // Backend emits a masked inviter value, never the raw email (AZ7)
+    invited_by: 'a***@a***.com',
     expires_at: Math.floor(Date.now() / 1000) + 604800, // 7 days from now
     status: 'pending',
-    account_exists: false, // No existing account for invited email (shows signup form)
     actionable: true, // Invitation can be acted upon
   };
 
@@ -109,7 +110,7 @@ describe('AcceptInvite', () => {
       const emailInput = wrapper.find('[data-testid="invite-signup-email-input"]');
       expect(emailInput.exists()).toBe(true);
       expect(emailInput.attributes('value')).toBe('invitee@example.com');
-      expect(wrapper.text()).toContain('admin@acme.com');
+      expect(wrapper.text()).toContain('a***@a***.com');
     });
 
     it('displays member role correctly', async () => {
@@ -149,7 +150,7 @@ describe('AcceptInvite', () => {
 
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: { ...mockInvitation, account_exists: true },
+        record: mockInvitation,
       });
 
       const wrapper = await mountComponent();
@@ -210,31 +211,37 @@ describe('AcceptInvite', () => {
   });
 
   describe('Unauthenticated User', () => {
-    it('shows sign-in notice when user is not authenticated and account exists', async () => {
+    it('shows signup form by default when user is not authenticated', async () => {
+      // The show endpoint deliberately carries no account_exists signal (AZ7),
+      // so unauthenticated users always start in the signup flow.
       authStore.$patch({ cust: null });
       const axiosMock = getGlobalAxiosMock();
-      // account_exists: true triggers signin_required state which shows the sign-in notice
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: { ...mockInvitation, account_exists: true },
-      });
-
-      const wrapper = await mountComponent();
-
-      expect(wrapper.text()).toContain('web.organizations.invitations.must_sign_in');
-    });
-
-    it('shows signup form when user is not authenticated and no account exists', async () => {
-      authStore.$patch({ cust: null });
-      const axiosMock = getGlobalAxiosMock();
-      // account_exists: false triggers signup_required state which shows inline signup form
-      axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: mockInvitation, // account_exists: false by default
+        record: mockInvitation,
       });
 
       const wrapper = await mountComponent();
 
       // Component should show the signup_required state testid
       expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
+    });
+
+    it('switches to sign-in notice after signup reports an existing account', async () => {
+      authStore.$patch({ cust: null });
+      const axiosMock = getGlobalAxiosMock();
+      axiosMock.onGet('/api/invite/test-token-123').reply(200, {
+        record: mockInvitation,
+      });
+
+      const wrapper = await mountComponent();
+      expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
+
+      // The signup form discovers the existing account via the signup attempt
+      // and emits account-exists; the state machine flips to signin_required.
+      wrapper.findComponent(InviteSignUpForm).vm.$emit('account-exists');
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('web.organizations.invitations.must_sign_in');
     });
   });
 
@@ -362,7 +369,7 @@ describe('AcceptInvite', () => {
 
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: { ...mockInvitation, account_exists: true },
+        record: mockInvitation,
       });
 
       const wrapper = await mountComponent();
@@ -398,7 +405,7 @@ describe('AcceptInvite', () => {
 
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: { ...mockInvitation, account_exists: true },
+        record: mockInvitation,
       });
 
       const wrapper = await mountComponent();

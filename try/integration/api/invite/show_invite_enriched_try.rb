@@ -9,7 +9,9 @@
 # Key behaviors tested:
 # - All statuses return structured response (pending, accepted, declined, expired)
 # - Only invalid/not-found tokens return 404
-# - account_exists field reflects whether Customer exists for invited_email
+# - Response never exposes the inviter's raw email (masked invited_by) [AZ7]
+# - Response is indistinguishable whether or not the invited email has an
+#   account (no account_exists oracle) [AZ7]
 # - auth_methods includes magic_link when email_auth feature is enabled
 # - actionable field indicates if invitation can still be acted upon
 
@@ -75,10 +77,20 @@ resp = JSON.parse(last_response.body)
 resp['record']['actionable']
 #=> true
 
-## GET pending invitation - account_exists is false when no Customer exists
-resp = JSON.parse(last_response.body)
-resp['record']['account_exists']
+## GET pending invitation - raw inviter email never appears in response body [AZ7]
+last_response.body.include?(@owner.email)
 #=> false
+
+## GET pending invitation - invited_by is a masked, non-identifying value [AZ7]
+resp = JSON.parse(last_response.body)
+masked = resp['record']['invited_by']
+[masked.nil?, masked == @owner.email, masked.include?('***')]
+#=> [false, false, true]
+
+## GET pending invitation - no account_exists oracle field [AZ7]
+resp = JSON.parse(last_response.body)
+[resp['record'].key?('account_exists'), resp['record'].key?('invited_by_email')]
+#=> [false, false]
 
 ## Setup pending invitation for user WITH existing account
 @existing_user_email = generate_unique_test_email("pending_with_acct")
@@ -93,11 +105,21 @@ resp['record']['account_exists']
 [@pending_invitation_with_acct.nil?, @existing_user.nil?]
 #=> [false, false]
 
-## GET pending invitation - account_exists is true when Customer exists
+## Responses are indistinguishable whether or not the invited email has an
+## account: identical key sets, and identical values apart from the invited
+## email itself [AZ7]
+get "/api/invite/#{@token_pending_no_acct}", {}, { 'HTTP_ACCEPT' => 'application/json' }
+@record_no_acct = JSON.parse(last_response.body)['record']
 get "/api/invite/#{@token_pending_with_acct}", {}, { 'HTTP_ACCEPT' => 'application/json' }
-resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['account_exists']]
-#=> [200, true]
+@record_with_acct = JSON.parse(last_response.body)['record']
+# email and expires_at legitimately vary per-invitation; nothing else may.
+varying = %w[email expires_at]
+[
+  last_response.status,
+  @record_no_acct.keys.sort == @record_with_acct.keys.sort,
+  @record_no_acct.except(*varying) == @record_with_acct.except(*varying),
+]
+#=> [200, true, true]
 
 # ============================================================================
 # ACCEPTED (ACTIVE) INVITATION TESTS
@@ -182,9 +204,9 @@ resp = JSON.parse(last_response.body)
 resp['record']['actionable']
 #=> false
 
-## GET expired invitation - account_exists reflects actual state
+## GET expired invitation - still no account_exists oracle field [AZ7]
 resp = JSON.parse(last_response.body)
-resp['record']['account_exists']
+resp['record'].key?('account_exists')
 #=> false
 
 # ============================================================================
@@ -291,7 +313,7 @@ has_magic_link == Onetime.auth_config.email_auth_enabled?
 get "/api/invite/#{@token_pending_no_acct}", {}, { 'HTTP_ACCEPT' => 'application/json' }
 resp = JSON.parse(last_response.body)
 record = resp['record']
-required_fields = %w[organization_name organization_id email role status expires_at actionable account_exists]
+required_fields = %w[organization_name organization_id email role status expires_at actionable invited_by]
 required_fields.all? { |f| record.key?(f) }
 #=> true
 
