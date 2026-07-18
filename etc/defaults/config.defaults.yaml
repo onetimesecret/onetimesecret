@@ -238,6 +238,10 @@ site:
     password_generation:
       # Default length for generated passwords
       default_length: <%= ENV['PASSWORD_GEN_LENGTH'] || 12 %>
+      # Server-enforced ceiling on requested generated-password length.
+      # Rejects oversized `length` values before allocation (DoS guard);
+      # matches the frontend Zod max so the two limits stay in lockstep.
+      maximum_length: <%= ENV['PASSWORD_GEN_MAX_LENGTH'] || 128 %>
       # Character sets to include in generated passwords
       character_sets:
         # Include uppercase letters (A-Z)
@@ -303,7 +307,13 @@ site:
     # Cookie name
     key: 'onetime.session'
     # Require HTTPS for cookies (recommended: true in production)
-    secure: <%= ENV['SSL'] == 'true' || false %>
+    # OMIT the key entirely when SSL env is not 'true' so boot.rb's ssl_enabled?
+    # fallback can default this to true in production / when site.ssl is on.
+    # (Emitting `null` here fails schema validation — the contract is
+    # boolean-or-absent, not boolean-or-null; see site.ts `secure`.)
+    <% if ENV['SSL'] == 'true' %>
+    secure: true
+    <% end %>
     # SameSite cookie attribute (strict|lax|none)
     # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations
     same_site: lax
@@ -334,12 +344,12 @@ site:
     xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
     # Prevents your site from being embedded in frames (clickjacking protection)
     # Sets X-Frame-Options header to SAMEORIGIN or DENY
-    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: false)
-    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] == 'true' %>
+    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: true)
+    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] != 'false' %>
     # Blocks directory traversal attacks using "../" in paths
     # Critical for preventing unauthorized file access
-    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: false)
-    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] == 'true' %>
+    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: true)
+    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] != 'false' %>
     # Protects against cookie tossing attacks
     # Prevents session fixation via manipulated cookies
     # ENV: MIDDLEWARE_COOKIE_TOSSING (default: false)
@@ -350,8 +360,8 @@ site:
     ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>
     # Forces all connections to use HTTPS via HSTS headers
     # Disable only for development or when behind a secure proxy
-    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: false)
-    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] == 'true' %>
+    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: true)
+    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>
   # Security Configuration
   # Additional security settings beyond middleware
   security:

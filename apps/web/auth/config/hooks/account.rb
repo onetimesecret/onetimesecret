@@ -2,9 +2,15 @@
 #
 # frozen_string_literal: true
 
+# Redis-only, except-current session revoke used by the password hooks below to
+# enforce M-2 (sessions must not survive a password change/reset). Required
+# explicitly (mirroring the colonel logic classes) so the constant is loaded when
+# these hooks fire, rather than relying on ambient load order.
+require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+
 module Auth::Config::Hooks
   module Account
-    # rubocop:disable Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength
     def self.configure(auth)
       #
       # Hook: Before Account Creation
@@ -433,6 +439,85 @@ module Auth::Config::Hooks
           account_id: account_id,
           email: account[:email],
         )
+
+        # SECURITY (M-2): a password reset MUST invalidate every existing session
+        # for the account — the whole point of a reset is to lock out whoever
+        # currently holds a live session. The user is UNAUTHENTICATED here (they
+        # followed an email link), so there is no current session to preserve:
+        # revoke them ALL.
+        #
+        # Rodauth's own clear_tokens(:reset_password) already ran inside this
+        # transaction and cleared the SQL account_active_session_keys rows (full
+        # mode). But those rows only gate /auth/* routes; the app's real auth gate
+        # is the encrypted Redis session blob (BaseSessionAuthStrategy). Revoke
+        # those blobs here or a pre-reset attacker session survives the reset.
+        # Deliberately NOT wrapped in Onetime::ErrorHandler.safe_execute. That
+        # helper swallows a StandardError into a routine :warn-level "error-handler"
+        # log line and returns nil — so a Redis DELETE that raises here would leave
+        # the pre-reset session blobs ALIVE while the reset still reports success.
+        # That is fail-OPEN for the exact scenario a reset exists to defend against
+        # (a stolen session surviving the credential change). We handle the raise
+        # EXPLICITLY below: distinct error-level event + Sentry re-capture, so a
+        # non-revoking reset pages instead of blending into routine hook logging.
+        #
+        # ACCEPTED RESIDUAL RISK: revocation here is best-effort, not guaranteed.
+        # A durable idempotent retry (enqueue RevokeAllForCustomerExceptCurrent on
+        # failure) is the tracked follow-up; the operation is already idempotent so
+        # a retry is safe. Until then a Redis-raise leaves blobs live but LOUDLY.
+        #
+        # Fail SECURE (M-2): revocation MUST still run when external_id is absent.
+        # A bare `next unless account[:external_id]` would silently skip the revoke
+        # and leave live session blobs alive across the reset. Fall back to the
+        # account email — RevokeAllForCustomerExceptCurrent resolves it the same way
+        # (Customer.load_by_extid_or_email). Only when neither identifier is usable
+        # do we skip, and then LOUDLY so a non-revoking reset is visible.
+        custid = account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
+        if custid.to_s.strip.empty?
+          Auth::Logging.log_auth_event(
+            :sessions_revoke_skipped_no_identity,
+            level: :warn,
+            account_id: account_id,
+          )
+        else
+          begin
+            # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
+            # open reset transaction; the guaranteed tracked kill still revokes every
+            # post-sidecar session (see RevokeAllForCustomerExceptCurrent docs).
+            result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
+              custid: custid,
+              scan_untracked: false,
+            ).call
+
+            Auth::Logging.log_auth_event(
+              :sessions_revoked_on_reset,
+              level: :info,
+              account_id: account_id,
+              blobs_deleted: result.blobs_deleted,
+              scan_capped: result.scan_capped,
+            )
+          rescue StandardError => ex
+            # FAIL-OPEN, MADE LOUD: the reset already committed (Rodauth cleared the
+            # SQL reset tokens), but the encrypted Redis session blobs may STILL be
+            # live. Emit a distinct error-level event and re-capture to Sentry so
+            # this alerts rather than hiding in routine error-handler logging.
+            Auth::Logging.log_auth_event(
+              :sessions_revoke_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_reset_password,
+              error: ex.message,
+              security_warning: 'password reset succeeded but pre-reset session blobs may still be live',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_reset_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
+        end
       end
 
       #
@@ -453,6 +538,113 @@ module Auth::Config::Hooks
         # sync metadata to the customer record.
         Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
           Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+        end
+
+        # SECURITY (M-2): changing the password must sign out every OTHER session
+        # (the standard "someone may know my password" remediation) while KEEPING
+        # the session the user is changing it from. Unlike reset, change_password
+        # does NOT trigger Rodauth's clear_tokens, so BOTH session stores must be
+        # handled here.
+        #
+        # Resolve the current Rack session id (== the sid tracked in
+        # Customer#active_sessions). If it cannot be determined we fail SECURE:
+        # except_session_id stays nil, revoking ALL sessions incl. the current one,
+        # so the user is simply logged out rather than a stale session surviving.
+        current_sid = begin
+          session.id&.public_id
+        rescue StandardError => ex
+          # Item 6: surface the swallowed error so a failure to resolve the
+          # current sid is visible. We still fall through to nil (fail SECURE:
+          # except_session_id stays nil → the user is logged out of every
+          # session incl. the current one, rather than a stale one surviving).
+          Auth::Logging.log_auth_event(
+            :current_session_id_unresolved,
+            level: :warn,
+            account_id: account_id,
+            error: ex.message,
+          )
+          nil
+        end
+
+        # (1) Rodauth SQL account_active_session_keys (full mode only; the
+        # active_sessions feature is toggleable via AUTH_ACTIVE_SESSIONS_ENABLED and
+        # absent in simple mode, so guard on respond_to?). Keeps the current Rodauth
+        # session key. The user is logged in here, so the helper's except-current
+        # path applies.
+        if respond_to?(:remove_all_active_sessions_except_current)
+          Onetime::ErrorHandler.safe_execute('revoke_rodauth_sessions_on_change', account_id: account_id) do
+            remove_all_active_sessions_except_current
+          end
+        end
+
+        # (2) Encrypted Redis session blobs — the real app auth gate
+        # (BaseSessionAuthStrategy). Keep the current sid; revoke the rest.
+        #
+        # Deliberately NOT wrapped in Onetime::ErrorHandler.safe_execute (same
+        # reasoning as after_reset_password above): that helper would swallow a
+        # Redis-raise into routine :warn error-handler logging and return nil, so a
+        # failed DELETE leaves the OTHER session blobs ALIVE while the change still
+        # reports success — fail-OPEN for the "someone may know my password"
+        # remediation. We handle the raise EXPLICITLY: distinct error-level event +
+        # Sentry re-capture so a non-revoking change alerts.
+        #
+        # ACCEPTED RESIDUAL RISK: revocation here is best-effort, not guaranteed; a
+        # durable idempotent retry is the tracked follow-up (op is idempotent).
+        #
+        # Fail SECURE (M-2): revocation MUST still run when external_id is absent.
+        # A bare `next unless account[:external_id]` would silently skip the revoke
+        # and leave OTHER live session blobs alive across the change. Fall back to
+        # the account email — RevokeAllForCustomerExceptCurrent resolves it the same
+        # way (Customer.load_by_extid_or_email). Only when neither identifier is
+        # usable do we skip, and then LOUDLY so a non-revoking change is visible.
+        custid = account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
+        if custid.to_s.strip.empty?
+          Auth::Logging.log_auth_event(
+            :sessions_revoke_skipped_no_identity,
+            level: :warn,
+            account_id: account_id,
+          )
+        else
+          begin
+            # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
+            # open change transaction; the guaranteed tracked kill still revokes every
+            # OTHER post-sidecar session (see RevokeAllForCustomerExceptCurrent docs).
+            result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
+              custid: custid,
+              except_session_id: current_sid,
+              scan_untracked: false,
+            ).call
+
+            Auth::Logging.log_auth_event(
+              :sessions_revoked_on_change,
+              level: :info,
+              account_id: account_id,
+              blobs_deleted: result.blobs_deleted,
+              kept_current: !current_sid.to_s.empty?,
+              scan_capped: result.scan_capped,
+            )
+          rescue StandardError => ex
+            # FAIL-OPEN, MADE LOUD: the password change already committed, but the
+            # OTHER encrypted Redis session blobs may STILL be live. Emit a distinct
+            # error-level event and re-capture to Sentry so this alerts rather than
+            # hiding in routine error-handler logging.
+            Auth::Logging.log_auth_event(
+              :sessions_revoke_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_change_password,
+              error: ex.message,
+              security_warning: 'password change succeeded but other session blobs may still be live',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_change_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
         end
 
         # Best-effort security notification that the password changed. Never
@@ -491,6 +683,6 @@ module Auth::Config::Hooks
         end
       end
     end
-    # rubocop:enable Metrics/PerceivedComplexity
+    # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength
   end
 end

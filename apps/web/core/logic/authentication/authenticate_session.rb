@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
+require 'onetime/security/login_rate_limiter'
 
 module Core::Logic
   module Authentication
@@ -10,6 +11,7 @@ module Core::Logic
 
     class AuthenticateSession < Onetime::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Security::LoginRateLimiter
 
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 
@@ -20,6 +22,17 @@ module Core::Logic
         @passwd                  = self.class.normalize_password(params['password'])
         @stay                    = true # Keep sessions alive by default
         @session_ttl             = (stay ? 30.days : 20.minutes).to_i
+
+        # M-4/#3516: gate BEFORE the argon2 passphrase comparison below, so a
+        # locked-out subject never triggers an expensive password hash. Both
+        # rate-limit keys derive from data already in hand here — the submitted
+        # email (params) and the client IP (strategy metadata) — so the check
+        # needs neither the customer lookup nor the comparison it precedes. This
+        # runs inside the Base constructor (process_params fires there, see
+        # #3516); a lockout therefore raises LimitExceeded from `.new`, which the
+        # Otto request hook / Roda ErrorTranslator surface as 429 exactly as they
+        # did when this check lived in raise_concerns.
+        check_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
 
         potential = Onetime::Customer.find_by_email(potential_email_address)
 
@@ -57,7 +70,20 @@ module Core::Logic
       end
 
       def raise_concerns
+        # M-4: simple mode has no Rodauth lockout, so credential submissions are
+        # throttled by the two-tier LoginRateLimiter. The lockout CHECK now runs
+        # in process_params, ahead of the argon2 comparison, so a locked subject
+        # never burns a password hash (#3516). Here we only RECORD the failure
+        # for a subject that got past that gate — a read-only probe cannot be
+        # placed after the failure it counts, so the two halves are split.
+
         return unless @cust.nil?
+
+        # @cust is nil for BOTH unknown-email and wrong-password (only set when
+        # the passphrase matches), so this is the single failure funnel. Count
+        # the failed attempt before raising the (deliberately non-enumerating)
+        # error.
+        record_failed_login_attempt!(login_rate_limit_email, login_rate_limit_ip)
 
         # cust stays nil - error raised before we need it
         raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
@@ -77,6 +103,12 @@ module Core::Logic
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
 
+        # M-4: credentials verified (success? is true past this point), so drop
+        # any accumulated failed-attempt/lockout state for this subject. Covers
+        # the greenlight, pending, and suspended paths uniformly — a valid
+        # credential is never a brute-force attempt.
+        clear_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
+
         # Suspended accounts cannot log in. This check runs AFTER credential
         # verification (success? above), so the message is only ever shown to
         # someone holding valid credentials — it confirms nothing to an
@@ -93,7 +125,8 @@ module Core::Logic
             }
 
           raise_form_error 'This account has been suspended. Contact support for assistance.',
-            field: 'email', error_type: 'suspended'
+            field: 'email',
+            error_type: 'suspended'
         end
 
         if cust.pending?
@@ -187,6 +220,19 @@ module Core::Logic
       end
 
       private
+
+      # Rate-limit subject halves passed separately to the two-tier
+      # LoginRateLimiter (email drives the global backstop; email+ip the tight
+      # per-origin tier). See LoginRateLimiter for why neither half alone is a
+      # sufficient key. IP comes from the same strategy metadata the log lines
+      # read; both are available after process_params.
+      def login_rate_limit_email
+        @potential_email_address
+      end
+
+      def login_rate_limit_ip
+        @strategy_result&.metadata&.[](:ip)
+      end
 
       def form_fields
         { objid: objid }

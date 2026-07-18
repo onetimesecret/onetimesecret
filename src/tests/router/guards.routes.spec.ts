@@ -2,7 +2,7 @@
 
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 import {
   NavigationGuardReturn,
   RouteLocationNormalized,
@@ -12,6 +12,7 @@ import {
 
 import {
   AuthValidator,
+  handleColonelRequirement,
   handleOrgRoleRequirement,
   handleSsoOnlyRoute,
   setupRouterGuards,
@@ -273,6 +274,54 @@ describe('Router Guards', () => {
     const result = await guard(to);
 
     expect(result).toEqual({ name: 'Dashboard' });
+  });
+
+  describe('auth-route redirect param validation (L-5, via main guard)', () => {
+    // handleAuthRouteRedirect now validates the ?redirect param with the shared
+    // isValidInternalPath (rejects protocol-relative, embedded '://', and
+    // over-length paths), falling back to Dashboard. Exercised through the main
+    // guard (index 3) for an authenticated user hitting an auth route.
+
+    const authRouteWithRedirect = (redirect: string): RouteLocationNormalized => ({
+      meta: { isAuthRoute: true },
+      query: { redirect },
+      path: '/signin',
+      name: 'Sign In',
+      params: {},
+      hash: '',
+      fullPath: '/signin',
+      matched: [],
+      redirectedFrom: undefined,
+    });
+
+    const getMainGuard = (): AuthGuard => {
+      setupRouterGuards(router);
+      const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
+      vi.mocked(useAuthStore).mockReturnValue(authStore as ReturnType<typeof useAuthStore>);
+      // Index 3: main guard (0=custom-domain, 1=feature-check, 2=sso-only, 3=main)
+      return vi.mocked(router.beforeEach).mock.calls[3][0] as AuthGuard;
+    };
+
+    it('honours a valid internal redirect param', async () => {
+      const result = await getMainGuard()(authRouteWithRedirect('/dashboard/settings'));
+      expect(result).toEqual({ path: '/dashboard/settings' });
+    });
+
+    it('rejects a protocol-relative redirect (//evil) and falls back to Dashboard', async () => {
+      const result = await getMainGuard()(authRouteWithRedirect('//evil'));
+      expect(result).toEqual({ name: 'Dashboard' });
+    });
+
+    it('rejects an embedded-protocol redirect (/a://b) and falls back to Dashboard', async () => {
+      const result = await getMainGuard()(authRouteWithRedirect('/a://b'));
+      expect(result).toEqual({ name: 'Dashboard' });
+    });
+
+    it('rejects an over-length redirect (>2048 chars) and falls back to Dashboard', async () => {
+      const overLength = '/' + 'a'.repeat(2048);
+      const result = await getMainGuard()(authRouteWithRedirect(overLength));
+      expect(result).toEqual({ name: 'Dashboard' });
+    });
   });
 
   it('should handle root path redirect for authenticated users', async () => {
@@ -995,6 +1044,81 @@ describe('Router Guards', () => {
         );
         expect(result).toEqual({ path: '/dashboard' });
       });
+    });
+  });
+
+  describe('colonel requirement guard (handleColonelRequirement, M-10)', () => {
+    // Direct unit tests. Non-colonels are hard-navigated out of the admin bundle
+    // via window.location.assign('/') (the admin router has no /dashboard or
+    // /signin to SPA-redirect to), and the guard returns false to abort the nav.
+
+    const makeRoute = (
+      overrides: Partial<RouteLocationNormalized> = {}
+    ): RouteLocationNormalized => ({
+      meta: {},
+      path: '/colonel',
+      name: 'AdminOverview',
+      query: {},
+      params: {},
+      hash: '',
+      fullPath: '/colonel',
+      matched: [],
+      redirectedFrom: undefined,
+      ...overrides,
+    });
+
+    let originalLocation: Location;
+    let assignMock: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      originalLocation = window.location;
+      assignMock = vi.fn();
+      Object.defineProperty(window, 'location', {
+        value: { assign: assignMock },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('allows routes without requiresColonel (no-op on the customer router)', () => {
+      const result = handleColonelRequirement(makeRoute({ meta: {} }));
+      expect(result).toBeNull();
+      expect(assignMock).not.toHaveBeenCalled();
+    });
+
+    it('allows a colonel on a requiresColonel route', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ cust: { role: 'colonel' } });
+
+      const result = handleColonelRequirement(makeRoute({ meta: { requiresColonel: true } }));
+      expect(result).toBeNull();
+      expect(assignMock).not.toHaveBeenCalled();
+    });
+
+    it('hard-navigates a non-colonel out of the admin bundle and aborts the nav', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ cust: { role: 'customer' } });
+
+      const result = handleColonelRequirement(makeRoute({ meta: { requiresColonel: true } }));
+      expect(assignMock).toHaveBeenCalledWith('/');
+      expect(result).toBe(false);
+    });
+
+    it('hard-navigates when no customer is present (fails closed)', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ cust: null });
+
+      const result = handleColonelRequirement(makeRoute({ meta: { requiresColonel: true } }));
+      expect(assignMock).toHaveBeenCalledWith('/');
+      expect(result).toBe(false);
     });
   });
 });

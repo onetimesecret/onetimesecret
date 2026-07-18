@@ -8,9 +8,13 @@ import { RouteRecordRaw } from 'vue-router';
 // sole admin frontend served there — the backend serves this isolated admin
 // bundle unconditionally (docs/specs/colonel-ui/50-cutover-hardening.md).
 // Access control is the backend's role=colonel gate on /colonel plus the API
-// 403s — requiresAuth here is defence-in-depth.
+// 403s — requiresAuth + requiresColonel here are client-side defence-in-depth.
+// requiresColonel makes handleColonelRequirement (guards.routes.ts) hard-navigate
+// any authenticated non-colonel out of the admin bundle to '/', so the shell
+// never flashes for them.
 export const adminDefaultMeta = {
   requiresAuth: true,
+  requiresColonel: true,
   layout: AdminLayout,
   layoutProps: {
     // AdminLayout owns its own chrome (persistent sidebar); suppress the

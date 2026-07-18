@@ -26,7 +26,45 @@ module Auth::Config::Hooks
       # Uses NFC normalization and :fold for international email addresses.
       auth.account_from_omniauth do
         normalized_email = OT::Utils.normalize_email(omniauth_email)
-        _account_from_login(normalized_email)
+        existing         = _account_from_login(normalized_email)
+
+        if existing
+          # SECURITY (H-3): reached ONLY when no account_identities row exists
+          # for (provider, uid) — `existing` has never linked THIS identity.
+          # Returning it would let create_omniauth_identity link the caller's
+          # IdP identity to it and log them in → account takeover (an attacker
+          # controlling a provider that emits the victim's email is signed in
+          # as the victim). Refuse to auto-link by email; require explicit,
+          # authenticated linking from account settings instead.
+          #
+          # This MUST redirect (halt) — returning nil here would fall through to
+          # omniauth_create_account (omniauth_create_account? is true), which
+          # inserts a row with the duplicate login and violates the unique
+          # accounts.email index → 500. redirect halts the callback so we never
+          # reach create_omniauth_identity or omniauth_create_account. The
+          # domain-validation hook below also runs only on the CREATE path, so
+          # the email-link path would bypass it entirely.
+          #
+          # FOLLOW-UP (needs a tracked ticket): no authenticated "link SSO from
+          # account settings" flow exists yet, so a password-first user who then
+          # tries SSO can only self-resolve by signing in with their password (the
+          # flash below tells them so) — they cannot complete the link themselves.
+          # Ship a companion authenticated account-linking UI so this refusal
+          # becomes a recoverable step instead of a dead end.
+          Auth::Logging.log_auth_event(
+            :omniauth_link_refused_existing_account,
+            level: :warn,
+            email: OT::Utils.obscure_email(normalized_email),
+            provider: omniauth_provider,
+          )
+          set_redirect_error_flash 'An account with this email already exists. ' \
+                                   'Sign in with your existing method, then link SSO from account settings.'
+          redirect '/signin?auth_error=account_exists_link_required'
+        end
+
+        # Genuinely new email → allow JIT create (subject to the domain checks
+        # in before_omniauth_create_account below).
+        nil
       end
 
       # ========================================================================
@@ -95,24 +133,10 @@ module Auth::Config::Hooks
         # Removing this block breaks SSO with "encoded token is not a string".
       end
 
-      # ========================================================================
-      # HOOK: Before OmniAuth Callback Route
-      # ========================================================================
-      #
-      # USER JOURNEY CONTEXT:
-      # This hook fires at the very start of callback processing, before any
-      # account lookup or creation. Useful for logging and debugging.
-      #
-      auth.before_omniauth_callback_route do
-        Auth::Logging.log_auth_event(
-          :omniauth_callback_start,
-          level: :info,
-          provider: omniauth_provider,
-          uid: omniauth_uid,
-          email: OT::Utils.obscure_email(omniauth_email),
-          ip: request.ip,
-        )
-      end
+      # NOTE: before_omniauth_callback_route is OWNED by omniauth_tenant.rb
+      # (hooks don't chain; a second definition here would be clobbered — or
+      # worse, clobber the tenant validation). The :omniauth_callback_start
+      # logging that used to live here moved into that hook.
 
       # ========================================================================
       # HOOK: Before OmniAuth Account Creation - Domain Validation

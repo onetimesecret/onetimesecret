@@ -4,6 +4,7 @@
 
 require_relative '../integration_spec_helper'
 require 'rack/test'
+require 'rack/protection'
 
 # Requires full authentication mode for admin/colonel functionality
 RSpec.describe 'Admin Interface', type: :integration do
@@ -58,11 +59,30 @@ RSpec.describe 'Admin Interface', type: :integration do
     # Otto's BaseSessionAuthStrategy looks for:
     # - session['authenticated'] == true
     # - session['external_id'] (matches Customer.find_by_extid)
-    env 'rack.session', {
+    #
+    # Keep a reference to the injected session hash so admin_csrf_token can
+    # mint a masked CSRF token backed by this exact hash's :csrf key.
+    @test_session = {
       'external_id' => user.extid,
       'authenticated' => true,
       'session_id' => SecureRandom.hex(16)
     }
+    env 'rack.session', @test_session
+  end
+
+  # Mint a per-request masked CSRF token for the injected colonel session.
+  #
+  # The session-gated CSRF middleware requires a valid X-CSRF-Token on every
+  # non-GET request under a cookie-authenticated session. AuthenticityToken.token
+  # mutates @test_session to set the raw :csrf key (if absent) and returns a
+  # fresh BREACH-masked token that validates against it. Because @test_session is
+  # the same object injected into env['rack.session'], the validator sees the key.
+  #
+  # NOTE: do NOT use CsrfTestHelpers#ensure_csrf_token here — it GETs /auth and
+  # establishes a fresh ANONYMOUS session whose :csrf would not match this
+  # injected authed session.
+  def admin_csrf_token
+    Rack::Protection::AuthenticityToken.token(@test_session)
   end
 
   # Helper to create secrets through the API
@@ -198,6 +218,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       let!(:secret_pair) { create_secret_via_api }
 
       it 'deletes the secret' do
+        header 'X-CSRF-Token', admin_csrf_token
         delete "/api/colonel/secrets/#{secret_pair[:secret].objid}"
         expect(last_response.status).to eq(200)
 
@@ -208,6 +229,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       it 'actually removes secret from database' do
         secret_id = secret_pair[:secret].objid
 
+        header 'X-CSRF-Token', admin_csrf_token
         delete "/api/colonel/secrets/#{secret_id}"
 
         # Verify secret is gone
@@ -219,6 +241,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         secret_id = secret_pair[:secret].objid
         receipt_id = secret_pair[:receipt].objid
 
+        header 'X-CSRF-Token', admin_csrf_token
         delete "/api/colonel/secrets/#{secret_id}"
 
         # Verify metadata is also gone
@@ -227,6 +250,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'returns 404 for non-existent secret' do
+        header 'X-CSRF-Token', admin_csrf_token
         delete '/api/colonel/secrets/nonexistent'
         expect(last_response.status).to eq(404)
       end
@@ -321,6 +345,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'updates user plan' do
+        header 'X-CSRF-Token', admin_csrf_token
         post "/api/colonel/users/#{test_user.objid}/plan", planid: 'premium'
         expect(last_response.status).to eq(200)
 
@@ -329,6 +354,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'actually modifies the user record' do
+        header 'X-CSRF-Token', admin_csrf_token
         post "/api/colonel/users/#{test_user.objid}/plan", planid: 'enterprise'
 
         reloaded_user = Onetime::Customer.load(test_user.objid)
@@ -336,6 +362,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'returns 404 for non-existent user' do
+        header 'X-CSRF-Token', admin_csrf_token
         post '/api/colonel/users/nonexistent/plan', planid: 'premium'
         expect(last_response.status).to eq(404)
       end
@@ -390,6 +417,7 @@ RSpec.describe 'Admin Interface', type: :integration do
 
     describe 'POST /api/colonel/banned-ips' do
       it 'bans an IP address' do
+        header 'X-CSRF-Token', admin_csrf_token
         post '/api/colonel/banned-ips', {
           ip_address: '192.168.1.100',
           reason: 'Spam'
@@ -401,6 +429,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'actually bans the IP in database' do
+        header 'X-CSRF-Token', admin_csrf_token
         post '/api/colonel/banned-ips', {
           ip_address: '10.0.0.50',
           reason: 'Abuse'
@@ -410,6 +439,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'rejects invalid IP addresses' do
+        header 'X-CSRF-Token', admin_csrf_token
         post '/api/colonel/banned-ips', {
           ip_address: 'not-an-ip',
           reason: 'Test'
@@ -426,17 +456,20 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'unbans an IP address' do
+        header 'X-CSRF-Token', admin_csrf_token
         delete '/api/colonel/banned-ips/192.168.1.200'
         expect(last_response.status).to eq(200)
       end
 
       it 'actually removes the ban from database' do
+        header 'X-CSRF-Token', admin_csrf_token
         delete '/api/colonel/banned-ips/192.168.1.200'
 
         expect(Onetime::BannedIP.banned?('192.168.1.200')).to be false
       end
 
       it 'returns 404 for non-banned IP' do
+        header 'X-CSRF-Token', admin_csrf_token
         delete '/api/colonel/banned-ips/1.2.3.4'
         expect(last_response.status).to eq(404)
       end
@@ -528,6 +561,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       receipt_id = secret_pair[:receipt].objid
 
       # Delete through admin panel
+      header 'X-CSRF-Token', admin_csrf_token
       delete "/api/colonel/secrets/#{secret_id}"
       expect(last_response.status).to eq(200)
 
@@ -544,6 +578,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       )
 
       # Change plan through admin panel
+      header 'X-CSRF-Token', admin_csrf_token
       post "/api/colonel/users/#{test_user.objid}/plan", planid: 'premium'
       expect(last_response.status).to eq(200)
 
@@ -580,6 +615,7 @@ RSpec.describe 'Admin Interface', type: :integration do
 
     it 'TEST 5: Ban IP, verify blocking works' do
       # Ban an IP
+      header 'X-CSRF-Token', admin_csrf_token
       post '/api/colonel/banned-ips', {
         ip_address: '1.2.3.4',
         reason: 'Test ban'

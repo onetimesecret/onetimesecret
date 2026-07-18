@@ -101,6 +101,53 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
     end
 
     # -----------------------------------------------------------------
+    # Session awaiting MFA (M-11) — must never authenticate a request
+    # -----------------------------------------------------------------
+    # Defense-in-depth: even if authenticated=true is present, an unresolved
+    # awaiting_mfa flag must fail closed. Uses the STRING key 'awaiting_mfa'
+    # that PrepareMfaSession writes and SyncSession deletes on completion.
+    context 'with session awaiting MFA and authenticated=true' do
+      let(:env_awaiting_mfa_authenticated) do
+        {
+          'rack.session' => {
+            'authenticated' => true,
+            'awaiting_mfa' => true,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_awaiting_mfa_authenticated, nil) }
+
+      it 'returns an AuthFailure (MFA not completed)' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    context 'with session awaiting MFA (no authenticated flag)' do
+      let(:env_awaiting_mfa_only) do
+        {
+          'rack.session' => {
+            'awaiting_mfa' => true,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_awaiting_mfa_only, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
     # Session without external_id
     # -----------------------------------------------------------------
     context 'with session missing external_id' do

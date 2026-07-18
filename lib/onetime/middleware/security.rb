@@ -32,6 +32,18 @@ module Onetime
     class Security
       @middleware_components = {}
 
+      # Middleware keys whose protections are security-critical: switching one of
+      # these off silently weakens the app, so a disable is logged at warn level.
+      # Toggles that ship OFF by design (http_origin, xss_header, cookie_tossing,
+      # ip_spoofing) are intentionally excluded to keep the log quiet.
+      SECURITY_CRITICAL_KEYS = %w[
+        frame_options
+        path_traversal
+        strict_transport
+        authenticity_token
+        utf8_sanitizer
+      ].freeze
+
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
       attr_reader :app
@@ -67,15 +79,25 @@ module Onetime
         middleware_settings = Onetime.conf.dig('site', 'middleware') || {}
 
         # Define middleware components with their corresponding settings keys
-        components = self.class.middleware_components
+        components     = self.class.middleware_components
+        critical_keys  = SECURITY_CRITICAL_KEYS
         Rack::Builder.new do
           # Apply each middleware if configured
           components.each do |name, config|
-            # All settings comfing from yaml are strings as a rule
+            # ERB in the config emits real YAML booleans (true/false), so this
+            # reads a real boolean, not a string.
             middleware_key = config[:key].to_s
-            next unless middleware_settings[middleware_key]
+            unless middleware_settings[middleware_key]
+              # Loudly flag a security-critical protection that is switched off so
+              # an accidental disable is visible in logs. Deliberately-off toggles
+              # stay quiet (see SECURITY_CRITICAL_KEYS).
+              if critical_keys.include?(middleware_key)
+                OT.lw "[Security] #{name} protection DISABLED (site.middleware.#{middleware_key}=false)"
+              end
+              next
+            end
 
-            OT.ld "[Security] Enabling #{name}/middleware_key protection"
+            OT.ld "[Security] Enabling #{name} protection (site.middleware.#{middleware_key})"
 
             # Use double-splat to pass options only if they exist
             use config[:klass], **(config[:options] || {})
@@ -109,12 +131,17 @@ Onetime::Middleware::Security.middleware_components = {
   #
   # Bypass rules:
   # - SSO routes (/auth/sso/*): Use OAuth 'state' parameter for CSRF protection
-  # - API routes with Basic Auth: API key serves as the credential; no session = no CSRF needed
-  # - Web/SPA routes: Must include X-CSRF-Token header (Axios interceptor) or 'shrimp' form param
+  # - API routes WITHOUT an authenticated session cookie: no ambient credential to
+  #   forge, so no CSRF vector (Basic-Auth API-key clients, anonymous/programmatic
+  #   callers, unauthenticated secret recipients, the /api/incoming/* inbound surface)
+  # - Web/SPA + session-authenticated API routes: Must include X-CSRF-Token header
+  #   (Axios interceptor) or 'shrimp' form param
   #
-  # Note: API v1 no longer accepts session/cookie auth (must use Basic Auth or be anonymous).
-  # API v2/v3 still support session auth, so those requests require CSRF tokens unless
-  # Basic Auth credentials are provided (the allow_if lambda checks for this).
+  # Note: API v1 has no session/cookie auth (Basic Auth or anonymous only), so v1
+  # requests never carry an authenticated session and always bypass. API v2/v3
+  # support session auth; a logged-in SPA user hitting those endpoints is required
+  # to present a CSRF token (the allow_if lambda enforces this by checking for an
+  # authenticated session cookie).
   #
   # See also: apps/web/auth/config/hooks/omniauth.rb for Rodauth-side bypass
   'AuthenticityToken' => {
@@ -134,12 +161,26 @@ Onetime::Middleware::Security.middleware_components = {
         # - Similar to SSO: the authentication token validates the request
         return true if req.path == '/auth/email-login'
 
-        # API routes bypass CSRF entirely:
-        # - API v1 only accepts Basic Auth or anonymous (no session auth)
-        # - API v2/v3 with session auth are accessed via frontend which sends CSRF tokens
-        # - Anonymous API requests are stateless (no session = no CSRF attack vector)
-        # - CSRF attacks require victim's session cookies, which don't exist for API calls
-        return true if req.path.start_with?('/api/')
+        # API routes: bypass CSRF ONLY when there is no ambient session cookie to
+        # forge against. A CSRF attack rides the victim's session cookie, so the
+        # discriminator MUST be the authenticated session — not merely the presence
+        # of an Authorization header.
+        #   - Basic Auth (API key): a stateless credential sent explicitly per
+        #     request; no ambient cookie => no CSRF vector => bypass.
+        #   - No authenticated session cookie (anonymous/programmatic clients, v1
+        #     which has no session auth, unauthenticated secret recipients, and the
+        #     entire /api/incoming/* inbound surface): nothing to forge => bypass.
+        #   - Session-cookie-authenticated API request (logged-in SPA user): fall
+        #     through and require a valid X-CSRF-Token. The SPA sends it on every
+        #     request (axios interceptor), so this does not break the app; it only
+        #     rejects a forged cross-site request that presents no token.
+        if req.path.start_with?('/api/')
+          return true if env['HTTP_AUTHORIZATION'].to_s.start_with?('Basic ')
+
+          session = env['rack.session']
+          return true unless session && session['authenticated'] == true
+          # else: session-authenticated API request -> fall through, require token
+        end
 
         # NOTE: Incoming secrets API is now at /api/incoming/* and covered by the /api/ check above.
         # The frontend page at /incoming uses GET requests which don't require CSRF protection.

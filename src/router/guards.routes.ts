@@ -7,6 +7,7 @@ import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { isSsoOnlyMode } from '@/utils/features';
+import { isValidInternalPath } from '@/utils/redirect';
 import { RouteLocationNormalized, RouteLocationRaw, Router } from 'vue-router';
 
 import { processQueryParams } from './queryParams.handler';
@@ -114,6 +115,13 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   // for signed-in users.
   router.beforeEach(async (to) => (await handleOrgRoleRequirement(to)) ?? true);
 
+  // Colonel gate (meta.requiresColonel); admin bundle only. After the auth guard
+  // so a logged-out user is sent to /signin first and this only fires for an
+  // authenticated-but-non-colonel. No-op on the customer router (no route sets
+  // requiresColonel). Returns false to abort the SPA nav when it hard-navigates
+  // out of the admin bundle; null (allow) becomes true via the `?? true`.
+  router.beforeEach((to) => handleColonelRequirement(to) ?? true);
+
   // Update page title after navigation completes
   router.afterEach((to: RouteLocationNormalized) => {
     // Find the title from the matched routes, starting from the most specific
@@ -162,16 +170,7 @@ function handleMfaAccess(
     isAuthenticated: boolean | null;
   }
 ) {
-  const { awaitingMfa, isFullyAuthenticated, isAuthenticated } = authStore;
-
-  // DEBUG: Log MFA state on every navigation
-  loggingService.debug('[MFA Guard] State check:', {
-    targetPath: to.path,
-    targetName: to.name,
-    awaitingMfa,
-    isAuthenticated,
-    isFullyAuthenticated,
-  });
+  const { awaitingMfa, isFullyAuthenticated } = authStore;
 
   // Redirect to MFA verification if awaiting second factor
   if (awaitingMfa && to.path !== '/mfa-verify') {
@@ -344,6 +343,41 @@ async function singleOrgMeetsRole(
 }
 
 /**
+ * Enforce the colonel-only requirement declared via `meta.requiresColonel`
+ * (set on every admin-console route via adminDefaultMeta).
+ *
+ * Client-side defence-in-depth: the backend already gates /colonel on
+ * role=colonel and 403s the admin APIs, but without this guard an
+ * authenticated non-colonel loads the full admin shell client-side before the
+ * API calls fail. The role is read synchronously from the server-injected
+ * bootstrap customer (no fetch).
+ *
+ * Redirect subtlety: the admin router has NO /dashboard and NO /signin route,
+ * so a SPA redirect (e.g. `{ path: '/dashboard' }`) would resolve to the admin
+ * NotFound view still inside the /colonel shell. A non-colonel must be
+ * hard-navigated OUT of the admin bundle into the customer app via
+ * window.location.assign('/'); the guard returns `false` to abort the in-SPA
+ * navigation while the full page load takes over.
+ *
+ * Returns null to allow navigation (colonel, or a route without the flag), or
+ * false to abort after triggering the hard navigation.
+ */
+export function handleColonelRequirement(to: RouteLocationNormalized): false | null {
+  if (!to.meta.requiresColonel) return null;
+
+  const role = useBootstrapStore().cust?.role;
+  if (role === 'colonel') return null;
+
+  loggingService.debug('[RouterGuard] Non-colonel blocked from admin route:', {
+    path: to.path,
+    role,
+  });
+
+  window.location.assign('/');
+  return false;
+}
+
+/**
  * Handle redirects for authenticated users accessing auth routes.
  * Returns a redirect target or null if no redirect needed.
  */
@@ -356,10 +390,10 @@ function handleAuthRouteRedirect(to: RouteLocationNormalized) {
   if (to.path === '/forgot') {
     return { path: '/account/settings/security/reset-password' };
   }
-  // Respect redirect param if valid
+  // Respect redirect param if valid. isValidInternalPath additionally caps
+  // length at 2048 and rejects embedded '://' that the ad-hoc slash check missed.
   const redirectParam = to.query.redirect as string | undefined;
-  const isValidRedirect = redirectParam?.startsWith('/') && !redirectParam.startsWith('//');
-  return isValidRedirect ? { path: redirectParam } : { name: 'Dashboard' };
+  return isValidInternalPath(redirectParam) ? { path: redirectParam } : { name: 'Dashboard' };
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

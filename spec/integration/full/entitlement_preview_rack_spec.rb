@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'rack/protection'
 
 # Load the ColonelAPI application and its dependencies
 # apps/api is in the load path from spec_helper
@@ -342,8 +343,12 @@ RSpec.describe 'Entitlement preview through the rack stack (ADR-020)', type: :in
 
   describe 'POST /api/colonel/entitlement-preview through the stack' do
     it 'activates a preview that the next request serves, then clears the Fiber-local' do
-      env 'rack.session', base_session
+      # Capture the injected authed session so a masked CSRF token can be minted
+      # from its :csrf key; the session-gated CSRF middleware requires it on POST.
+      session = base_session
+      env 'rack.session', session
 
+      header 'X-CSRF-Token', Rack::Protection::AuthenticityToken.token(session)
       post '/api/colonel/entitlement-preview',
         { planid: 'identity_v1' }.to_json,
         'CONTENT_TYPE' => 'application/json'

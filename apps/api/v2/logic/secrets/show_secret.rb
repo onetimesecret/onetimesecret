@@ -59,7 +59,7 @@ module V2::Logic
 
         # Check passphrase rate limit before allowing passphrase attempts
         # This prevents brute-force attacks on secrets with passphrases
-        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+        check_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
       end
 
       def process
@@ -72,10 +72,10 @@ module V2::Logic
         if secret.has_passphrase? && !passphrase.empty?
           if correct_passphrase
             # Clear rate limit on successful passphrase
-            clear_passphrase_rate_limit!(secret.identifier)
+            clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip)
           else
             # Record failed attempt
-            record_failed_passphrase_attempt!(secret.identifier)
+            record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
           end
         end
 
@@ -149,6 +149,18 @@ module V2::Logic
       end
 
       private
+
+      # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
+      # from strategy_result metadata (set for both anonymous and authenticated
+      # callers). nil when unavailable, in which case the limiter falls back to
+      # the global per-secret backstop rather than collapsing every caller into
+      # one shared IP bucket. Do NOT use session['ip_address'] here -- it is
+      # absent for the anonymous recipients who are the primary threat model.
+      def passphrase_client_ip
+        return unless respond_to?(:strategy_result)
+
+        strategy_result&.metadata&.[](:ip)
+      end
 
       def verify_owner(owner)
         if anonymous_user? || (cust.custid == owner.custid && !owner.verified?)

@@ -6,6 +6,7 @@ require 'digest'
 
 module Auth::Config::RodauthOverrides
   # Rodauth method overrides for security and logging
+  # See also: config/overrides/ for the other method overrides (around_rodauth, password_match?).
   #
   def self.configure(auth)
     # SECURITY: Override verify_account's specific error messages with generic one

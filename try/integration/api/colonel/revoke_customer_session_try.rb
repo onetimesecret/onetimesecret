@@ -37,7 +37,7 @@ def @test.app
   Onetime::Application::Registry.generate_rack_url_map
 end
 
-def delete(*args);  @test.delete(*args);  end
+def delete(*args);  @test.delete(*with_csrf(args));  end
 def last_response;  @test.last_response;  end
 
 Store = Onetime::Operations::Sessions::Store

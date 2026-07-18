@@ -100,6 +100,33 @@ function validatePathString(path: string): boolean {
   }
 }
 
+/**
+ * Validates that a checkout URL is safe to navigate to via `window.location`.
+ *
+ * Security (M-9): `checkout_url` is API-derived and assigned directly to
+ * `window.location.href` in the billing plan flow. Restrict navigation to the
+ * Stripe Checkout host or the app's own origin so a tampered/unexpected value
+ * cannot drive an open redirect. The internal validators in this module
+ * (isValidInternalPath, validateRedirect, validateUrl) only permit same-origin
+ * internal targets, so an external-host allowlist requires this dedicated helper.
+ *
+ * The host allowlist is intentionally exact — Stripe Checkout is served only
+ * from `checkout.stripe.com`; do not loosen to a wildcard `*.stripe.com`.
+ *
+ * @param url - The checkout URL to validate
+ * @returns true only when the URL parses and its origin is the Stripe Checkout
+ *          host or the current origin
+ */
+export function isAllowedCheckoutUrl(url: string | undefined | null): url is string {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const { origin } = new URL(url);
+    return origin === 'https://checkout.stripe.com' || origin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
 function validateUrl(url: string): boolean {
   try {
     // For protocol-relative URLs, use current protocol

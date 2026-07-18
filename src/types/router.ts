@@ -80,6 +80,12 @@ export interface RouteMeta {
    */
   excludeSsoOnly?: boolean;
   /**
+   * When true, this route requires the signed-in customer to have the
+   * `colonel` role. Set on every admin-console route (src/apps/admin).
+   * Enforced by handleColonelRequirement in guards.routes.ts.
+   */
+  requiresColonel?: boolean;
+  /**
    * Sentry URL scrubbing configuration. Controls which route params are
    * redacted in Sentry events to prevent sensitive data leakage.
    *

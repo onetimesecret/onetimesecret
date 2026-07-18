@@ -104,11 +104,11 @@ describe('middlewareShape — defaults', () => {
     expect(result.authenticity_token).toBe(true);
     expect(result.http_origin).toBe(false);
     expect(result.xss_header).toBe(false);
-    expect(result.frame_options).toBe(false);
-    expect(result.path_traversal).toBe(false);
+    expect(result.frame_options).toBe(true);
+    expect(result.path_traversal).toBe(true);
     expect(result.cookie_tossing).toBe(false);
     expect(result.ip_spoofing).toBe(false);
-    expect(result.strict_transport).toBe(false);
+    expect(result.strict_transport).toBe(true);
   });
 });
 

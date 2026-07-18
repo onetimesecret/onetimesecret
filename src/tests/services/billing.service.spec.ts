@@ -334,6 +334,42 @@ describe('BillingService', () => {
       );
       expect(result.checkout_url).toContain('stripe.com');
     });
+
+    // Security (M-9): the service host-allowlists checkout_url so a tampered or
+    // unexpected URL can never reach a window.location assignment.
+    it('rejects a checkout_url pointing at a non-Stripe host', async () => {
+      const mockResponse = {
+        data: {
+          checkout_url: 'https://evil.example.com/pay/cs_123',
+          session_id: 'cs_123',
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        BillingService.createCheckoutSession('org_abc', {
+          id: 'identity_plus_v1',
+          interval: 'month',
+        })
+      ).rejects.toThrow();
+    });
+
+    it('rejects a malformed checkout_url', async () => {
+      const mockResponse = {
+        data: {
+          checkout_url: 'not-a-valid-url',
+          session_id: 'cs_123',
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        BillingService.createCheckoutSession('org_abc', {
+          id: 'identity_plus_v1',
+          interval: 'month',
+        })
+      ).rejects.toThrow();
+    });
   });
 
   describe('listPlans', () => {

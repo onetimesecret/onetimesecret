@@ -38,7 +38,7 @@ module V1::Logic
           # Burn is the same brute-force oracle as show/reveal: each wrong
           # guess confirms the passphrase is wrong, and a correct guess
           # destroys the secret.
-          check_passphrase_rate_limit!(potential_secret.identifier) if potential_secret.has_passphrase?
+          check_passphrase_rate_limit!(potential_secret.identifier, passphrase_client_ip) if potential_secret.has_passphrase?
 
           @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
           viewable = potential_secret.viewable?
@@ -51,7 +51,7 @@ module V1::Logic
             @secret = potential_secret
 
             # Clear any rate limit state on successful passphrase entry
-            clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+            clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
 
             owner = secret.load_owner
             # Gate on winning the atomic burn claim: when a concurrent reveal
@@ -65,7 +65,7 @@ module V1::Logic
 
           elsif !correct_passphrase
             # Record failed attempt for rate limiting
-            record_failed_passphrase_attempt!(potential_secret.identifier)
+            record_failed_passphrase_attempt!(potential_secret.identifier, passphrase_client_ip)
 
             message = I18n.t('web.COMMON.error_passphrase', locale: locale, default: 'Incorrect passphrase')
             raise_form_error message
@@ -123,6 +123,19 @@ module V1::Logic
             is_orphaned: false,
           },
         }
+      end
+
+      private
+
+      # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). V1
+      # logic is constructed with (sess, cust, params, locale) and has no
+      # strategy_result / per-request IP plumbing, so this is nil today and the
+      # limiter falls back to the global per-secret backstop. Kept as a single
+      # seam so v1 can adopt the per-IP tier if an IP is ever threaded in.
+      def passphrase_client_ip
+        return unless respond_to?(:strategy_result)
+
+        strategy_result&.metadata&.[](:ip)
       end
 
     end
