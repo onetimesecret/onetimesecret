@@ -25,7 +25,10 @@ class SizeTestLogic < Logic::Base
 end
 
 # Pin the ceiling to a small, known value for the byte-boundary assertions.
+# Tryout files share one process and OT.conf is global; snapshot first so the
+# teardown can restore it for later files.
 @max = 8
+@saved_conf = YAML.load(YAML.dump(OT.conf))
 new_conf = YAML.load(YAML.dump(OT.conf))
 new_conf['site']['secret_options'] ||= {}
 new_conf['site']['secret_options']['content'] = { 'maximum_length' => @max }
@@ -77,3 +80,6 @@ rescue OT::FormError => e
   e.message
 end
 #=> "Secret content must be no more than #{@max} bytes long"
+
+# Restore the shared config for later tryout files.
+OT.send(:conf=, @saved_conf)

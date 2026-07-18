@@ -20,6 +20,10 @@ require 'onetime/security/incoming_rate_limiter'
 
 OT.boot! :test, true
 
+# Tryout files share one process and OT.conf is global; snapshot the booted
+# config so the teardown can restore it for later files.
+@saved_conf = YAML.load(YAML.dump(OT.conf))
+
 # Enable the limiter with small, known caps (test config ships it disabled).
 def set_incoming_rate_limit(cfg)
   new_conf = YAML.load(YAML.dump(OT.conf))
@@ -126,6 +130,12 @@ end
 [@redis.exists?("incoming:attempts:ip:"), @redis.exists?("incoming:attempts:rcpt:#{@rcpt_c}")]
 #=> [false, true]
 
+## With neither IP nor recipient the limiter is a complete no-op: no raise,
+## and neither tier writes a blank-suffixed key
+result = @raises.call(nil, nil)
+[result, @redis.exists?("incoming:attempts:ip:"), @redis.exists?("incoming:attempts:rcpt:")]
+#=> [false, false, false]
+
 ## -- Per-recipient backstop (max_per_recipient=5) -------------------------
 
 ## Five nil-IP submissions reach the recipient cap and lock the recipient tier
@@ -158,9 +168,9 @@ results.none?
 [@redis.exists?("incoming:attempts:ip:#{@off_ip}"), @redis.exists?("incoming:attempts:rcpt:#{@off_rcpt}")]
 #=> [false, false]
 
-# Clean up test keys
-set_incoming_rate_limit('enabled' => true, 'max_per_ip' => 3, 'max_per_recipient' => 5, 'window' => 900, 'lockout' => 900)
+# Clean up test keys and restore the shared config for later tryout files.
 cleanup(@redis, ip: @ip_a, rcpt: @rcpt_a)
 cleanup(@redis, ip: @ip_b, rcpt: @rcpt_b)
 cleanup(@redis, rcpt: @rcpt_c)
 cleanup(@redis, ip: @off_ip, rcpt: @off_rcpt)
+OT.send(:conf=, @saved_conf)

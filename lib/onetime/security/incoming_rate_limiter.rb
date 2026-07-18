@@ -12,7 +12,8 @@ module Onetime
     # writes and outbound mail. This module caps submissions using the same
     # two-tier + Lua-lockout shape as {LoginRateLimiter}, adapted for a plain
     # rate limiter (every submission is an "attempt"; there is no failure branch
-    # — check and record happen together on each request):
+    # — each tier's check and record is a single atomic Lua call, so concurrent
+    # bursts cannot overshoot the cap):
     #
     #   1. Per-IP tier (the primary gate): keyed on the edge-masked client IP and
     #      capped at MAX_PER_IP. Stops a given origin after a handful of
@@ -61,16 +62,23 @@ module Onetime
       # Default lockout duration in seconds once a tier's cap is hit (1 hour).
       DEFAULT_LOCKOUT = 3600
 
-      # Lua script to atomically increment a tier's counter and set its
-      # expiry/lockout. Identical shape to LoginRateLimiter's script: on the
-      # increment that reaches max_attempts it sets the lockout flag and clears
-      # the counter, so the NEXT check raises.
-      RECORD_ATTEMPT_SCRIPT = <<~LUA
+      # Lua script that checks the lockout AND records the submission in one
+      # atomic round trip. Unlike LoginRateLimiter's split check/record (which
+      # tolerates a bounded burst overshoot), a concurrent burst here cannot
+      # exceed the cap: Redis serializes script executions, the increment that
+      # reaches max_attempts sets the lockout flag and clears the counter, and
+      # every later execution sees the flag and is denied before incrementing.
+      # Returns {1, current_count} when allowed, {0, lockout_ttl} when denied.
+      CHECK_AND_RECORD_SCRIPT = <<~LUA
         local attempts_key = KEYS[1]
         local lockout_key = KEYS[2]
         local attempt_window = tonumber(ARGV[1])
         local max_attempts = tonumber(ARGV[2])
         local lockout_duration = tonumber(ARGV[3])
+
+        if redis.call('EXISTS', lockout_key) == 1 then
+          return {0, redis.call('TTL', lockout_key)}
+        end
 
         local current = redis.call('INCR', attempts_key)
 
@@ -83,13 +91,14 @@ module Onetime
           redis.call('DEL', attempts_key)
         end
 
-        return current
+        return {1, current}
       LUA
 
       # Enforce the incoming-submission rate limit and record this submission.
-      # Raises LimitExceeded if EITHER tier is already locked from prior
-      # submissions; otherwise records the current submission against every
-      # applicable tier. No-op when the limiter is disabled by config.
+      # Raises LimitExceeded if either tier is locked; a locked tier is never
+      # incremented (the Lua script denies before INCR). Tiers are evaluated
+      # IP-first, so a submission denied by the recipient backstop still counts
+      # against its IP. No-op when the limiter is disabled by config.
       #
       # @param client_ip [String, nil] The caller's edge-masked client IP.
       # @param recipient [String, nil] The client-supplied recipient hash.
@@ -98,65 +107,42 @@ module Onetime
       def enforce_incoming_rate_limit!(client_ip, recipient = nil)
         return unless incoming_rate_limit_enabled?
 
-        # Check both tiers before recording so a locked origin is rejected
-        # without adding to its counter.
+        # Per-IP first (the tighter gate): a locked IP is rejected before the
+        # recipient tier is touched, so it never inflates the recipient count.
         if (ip_keys   = incoming_ip_keys(client_ip))
-          enforce_incoming_tier_lock!(ip_keys[:lockout], ip_keys[:attempts], incoming_max_per_ip, 'ip', client_ip)
+          enforce_incoming_tier!(ip_keys, incoming_max_per_ip, 'ip', client_ip)
         end
         if (rcpt_keys = incoming_recipient_keys(recipient))
-          enforce_incoming_tier_lock!(rcpt_keys[:lockout], rcpt_keys[:attempts], incoming_max_per_recipient, 'recipient', recipient)
+          enforce_incoming_tier!(rcpt_keys, incoming_max_per_recipient, 'recipient', recipient)
         end
-
-        record_incoming_submission!(client_ip, recipient)
       end
 
       private
 
-      # Raise LimitExceeded if the tier is locked; otherwise log when approaching
-      # the cap. Mirrors LoginRateLimiter#enforce_login_tier_lock!.
-      def enforce_incoming_tier_lock!(lockout_key, attempts_key, max_attempts, tier_label, subject)
-        is_locked, ttl, current = incoming_redis.pipelined do |pipe|
-          pipe.exists?(lockout_key)
-          pipe.ttl(lockout_key)
-          pipe.get(attempts_key)
-        end
+      # Atomically check-and-record one tier via CHECK_AND_RECORD_SCRIPT.
+      # Raises LimitExceeded when the tier is locked; otherwise logs as the
+      # count approaches/reaches the cap.
+      def enforce_incoming_tier!(keys, max_attempts, tier_label, subject)
+        allowed, detail = incoming_redis.eval(
+          CHECK_AND_RECORD_SCRIPT,
+          keys: [keys[:attempts], keys[:lockout]],
+          argv: [incoming_window, max_attempts, incoming_lockout],
+        )
 
-        if [true, 1].include?(is_locked)
+        if allowed.to_i != 1
           raise Onetime::LimitExceeded.new(
             'Too many incoming secret submissions. Please try again later.',
-            retry_after: ttl.to_i > 0 ? ttl : incoming_lockout,
+            retry_after: detail.to_i.positive? ? detail.to_i : incoming_lockout,
             max_attempts: max_attempts,
           )
         end
 
-        current = current.to_i
-        if current >= max_attempts - 1
-          OT.li "[IncomingRateLimiter] #{tier_label} #{obscured_incoming_subject(tier_label, subject)} at #{current}/#{max_attempts} submissions"
+        count = detail.to_i
+        if count >= max_attempts
+          OT.le "[IncomingRateLimiter] #{tier_label} #{obscured_incoming_subject(tier_label, subject)} locked for #{incoming_lockout}s after #{count} submissions"
+        elsif count >= max_attempts - 1
+          OT.li "[IncomingRateLimiter] #{tier_label} #{obscured_incoming_subject(tier_label, subject)} at #{count}/#{max_attempts} submissions"
         end
-      end
-
-      # Record this submission against both applicable tiers.
-      def record_incoming_submission!(client_ip, recipient)
-        if (ip_keys   = incoming_ip_keys(client_ip))
-          count = record_incoming_tier!(ip_keys[:attempts], ip_keys[:lockout], incoming_max_per_ip)
-          if count >= incoming_max_per_ip
-            OT.le "[IncomingRateLimiter] ip #{obscured_incoming_subject('ip', client_ip)} locked for #{incoming_lockout}s after #{count} submissions"
-          end
-        end
-        if (rcpt_keys = incoming_recipient_keys(recipient))
-          count = record_incoming_tier!(rcpt_keys[:attempts], rcpt_keys[:lockout], incoming_max_per_recipient)
-          if count >= incoming_max_per_recipient
-            OT.le "[IncomingRateLimiter] recipient #{obscured_incoming_subject('recipient', recipient)} locked for #{incoming_lockout}s after #{count} submissions"
-          end
-        end
-      end
-
-      def record_incoming_tier!(attempts_key, lockout_key, max_attempts)
-        incoming_redis.eval(
-          RECORD_ATTEMPT_SCRIPT,
-          keys: [attempts_key, lockout_key],
-          argv: [incoming_window, max_attempts, incoming_lockout],
-        )
       end
 
       # Composite per-IP keys, or nil when no IP is available (skips the IP tier

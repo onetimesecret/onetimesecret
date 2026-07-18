@@ -57,8 +57,10 @@ module V1::Logic
         OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length')&.to_i
       end
 
-      # Max secret size: 10_000 characters matches the API spec's
-      # maxLength: 10000 documented in the OpenAPI definition.
+      # Max secret size: 10_000 matches the API spec's maxLength: 10000
+      # documented in the OpenAPI definition. Enforced in BYTES (C5): a
+      # character-denominated check admits up to 4x the cap in Redis for
+      # multibyte content, so the byte measure is what actually bounds storage.
       V1_MAX_SECRET_SIZE = 10_000
 
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
@@ -237,12 +239,13 @@ module V1::Logic
       #
       # The API spec documents maxLength: 10000 but this was never enforced
       # in code. V1 now enforces the documented limit to prevent abuse and
-      # ensure consistent behavior with the API documentation.
+      # ensure consistent behavior with the API documentation. Byte-measured
+      # to match the shared V2 path (C5).
       def validate_secret_size
         return if secret_value.nil?
-        return if secret_value.length <= V1_MAX_SECRET_SIZE
+        return if secret_value.to_s.bytesize <= V1_MAX_SECRET_SIZE
 
-        raise_form_error "Secret value exceeds the maximum size of #{V1_MAX_SECRET_SIZE} characters"
+        raise_form_error "Secret value exceeds the maximum size of #{V1_MAX_SECRET_SIZE} bytes"
       end
 
       def validate_recipient
