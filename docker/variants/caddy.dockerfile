@@ -108,16 +108,19 @@ COPY --from=builder /go/caddy /usr/bin/caddy
 # Verify installation
 RUN caddy version
 
-# Ensure directories exist and make PUBLIC_DIR available as env var
+# Ensure directories exist and make PUBLIC_DIR available as env var.
+# PUBLIC_DIR ships empty: the app container serves its own built assets
+# (ADR-025), and public/web no longer holds tracked static files (they were
+# retired in favor of brand packs, ADR-029). The Caddyfile only static-serves
+# files that exist under PUBLIC_DIR (`@exists file`) and proxies everything
+# else to the app, so an empty dir means "proxy everything". Operators can
+# still mount assets into ${PUBLIC_DIR} at run time to have Caddy serve them.
 RUN mkdir -p /etc/caddy ${PUBLIC_DIR}
 ENV PUBLIC_DIR=${PUBLIC_DIR}
 
 # Ensure a default configuration (can be overridden at run time)
 # via `-v path/2/Caddyfile:/etc/caddy/Caddyfile:ro`
 COPY ./etc/examples/Caddyfile-example /etc/caddy/Caddyfile
-
-# Copy static assets so they're served directly by Caddy instead of proxied
-COPY ./public/web ${PUBLIC_DIR}
 
 # Exposing ports is safe. For documentation only - Tells users which ports the container listens on
 # Metadata - Used by tools like docker-compose for automatic port mapping
