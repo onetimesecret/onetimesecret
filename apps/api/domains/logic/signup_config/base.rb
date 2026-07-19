@@ -49,13 +49,21 @@ module DomainsAPI
         # availability from the raw flag pair — client-side derivation is the
         # drift ADR-024 exists to kill.
         #
+        # effective_enabled uses the CUSTOM-DOMAIN resolver (default OFF,
+        # opt-in) — NOT resolve_signup_enabled. These settings describe a
+        # custom domain, so an unconfigured domain must read "disabled" even
+        # when the canonical site's signup is on (#3814). Same authority as
+        # the runtime gate (Core::Controllers::Base#signup_enabled?) and the
+        # masthead (DomainSerializer#effective_signup_enabled?). Signup has no
+        # SSO carve-out.
+        #
         # @param config [Onetime::CustomDomain::SignupConfig, nil] nil when unconfigured
         # @return [Hash] global_enabled, effective_enabled
         def signup_override_details(config)
           global = Onetime::CustomDomain::SignupConfig.global_signup_enabled
           {
             global_enabled: global,
-            effective_enabled: Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(global, config),
+            effective_enabled: Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(global, config),
           }
         end
 
