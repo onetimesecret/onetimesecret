@@ -16,6 +16,9 @@
 #   6. Authentication guard — anonymous users rejected
 #   7. Missing domain_id — rejected
 #   8. Entitlement gating — org without custom_signin_config is rejected
+#  11. ADR-024 details resolution — details.effective_enabled uses the
+#      custom-domain resolver (default OFF, opt-in, SSO carve-out) so the
+#      settings page agrees with the masthead link and POST gate (#3814)
 #
 # Run:
 #   bundle exec try try/integration/api/domains/put_signin_config_try.rb --agent
@@ -33,6 +36,8 @@ require 'apps/api/domains/logic/signin_config/base'
 require 'apps/api/domains/logic/signin_config/put_signin_config'
 require 'apps/api/domains/logic/signin_config/get_signin_config'
 require 'apps/api/domains/logic/signin_config/delete_signin_config'
+require 'apps/api/domains/logic/signup_config/base'
+require 'apps/api/domains/logic/signup_config/get_signup_config'
 
 Familia.dbclient.flushdb
 OT.info "Cleaned Redis for PutSigninConfig test run"
@@ -358,6 +363,83 @@ rescue Onetime::FormError => ex
   ex.message.include?('restrict_to must be one of')
 end
 #=> true
+
+# ============================================================
+# 11. ADR-024 details resolution — custom-domain default OFF (#3814)
+#
+# details.effective_enabled must use the same custom-domain resolver
+# (default OFF, opt-in, tenant-SSO carve-out) as the runtime POST gate
+# and the branded masthead. Global signin is ON in the test config, so
+# these cases discriminate: the canonical-surface resolver
+# (resolve_signin_enabled) would report true for an unconfigured domain
+# — the exact bug where the settings page read "Enabled (Workspace
+# default)" while the domain's /signin was closed.
+# ============================================================
+
+## Sanity: global signin is ON in test config (makes the cases below discriminating)
+Onetime::CustomDomain::SigninConfig.global_signin_enabled
+#=> true
+
+## GET details: unconfigured domain, no SSO — effective_enabled false despite global true
+@domain_unconf = Onetime::CustomDomain.create!("psc-unconf-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@logic_get_unconf = build_get(extid: @domain_unconf.extid)
+@logic_get_unconf.raise_concerns
+@details_unconf = @logic_get_unconf.process[:details]
+[@details_unconf[:global_enabled], @details_unconf[:effective_enabled]]
+#=> [true, false]
+
+## GET details: SSO-only tenant (enabled SsoConfig, NO SigninConfig) — effective_enabled true (SSO carve-out)
+@domain_ssoonly = Onetime::CustomDomain.create!("psc-ssoonly-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_ssoonly.identifier,
+  provider_type: 'oidc',
+  display_name: 'PSC SSO',
+  enabled: true,
+  issuer: 'https://idp-psc.example.com',
+  client_id: 'client-psc',
+)
+@logic_get_ssoonly = build_get(extid: @domain_ssoonly.extid)
+@logic_get_ssoonly.raise_concerns
+@logic_get_ssoonly.process[:details][:effective_enabled]
+#=> true
+
+## PUT details: enabled config with signin_enabled=true — effective_enabled true (explicit opt-in)
+@domain_opt = Onetime::CustomDomain.create!("psc-opt-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@logic_put_opt = build_put(
+  extid: @domain_opt.extid,
+  params: { 'enabled' => 'true', 'signin_enabled' => 'true' },
+)
+@logic_put_opt.raise_concerns
+@logic_put_opt.process[:details][:effective_enabled]
+#=> true
+
+## PUT details: enabled config with signin_enabled=false wins over tenant SSO (explicit opt-out, #3415 parity)
+@logic_put_ssooff = build_put(
+  extid: @domain_ssoonly.extid,
+  params: { 'enabled' => 'true', 'signin_enabled' => 'false', 'sso_enabled' => 'false' },
+)
+@logic_put_ssooff.raise_concerns
+@logic_put_ssooff.process[:details][:effective_enabled]
+#=> false
+
+## DELETE details: post-delete reverts to default OFF (nil config, no SSO)
+@logic_del_opt = build_delete(extid: @domain_opt.extid)
+@logic_del_opt.raise_concerns
+@logic_del_opt.process[:details][:effective_enabled]
+#=> false
+
+## DELETE details: post-delete with tenant SSO stays true (carve-out survives config removal)
+@logic_del_ssoonly = build_delete(extid: @domain_ssoonly.extid)
+@logic_del_ssoonly.raise_concerns
+@logic_del_ssoonly.process[:details][:effective_enabled]
+#=> true
+
+## GET signup details: unconfigured domain — effective_enabled false despite global signup true (no SSO carve-out for signup)
+@logic_get_signup = DomainsAPI::Logic::SignupConfig::GetSignupConfig.new(@strategy_result, { 'extid' => @domain_unconf.extid })
+@logic_get_signup.raise_concerns
+@signup_details = @logic_get_signup.process[:details]
+[@signup_details[:global_enabled], @signup_details[:effective_enabled]]
+#=> [true, false]
 
 # --- Cleanup ---
 
