@@ -153,8 +153,11 @@ module Onetime
             raise ArgumentError, 'Missing template in message payload'
           end
 
-          # Extract locale from payload, fall back to configured default locale
-          locale = email_data.delete(:locale) || email_data.delete('locale') || OT.default_locale
+          # Extract locale from payload, fall back to configured default locale.
+          # A blank locale ("") is truthy in Ruby and would slip past a bare `||`,
+          # so treat blank/whitespace the same as missing.
+          locale = email_data.delete(:locale) || email_data.delete('locale')
+          locale = OT.default_locale if locale.to_s.strip.empty?
 
           Onetime::Mail.deliver(template, email_data, locale: locale, sender_config: sender_config)
         end

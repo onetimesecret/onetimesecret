@@ -426,11 +426,10 @@ module Onetime
           #
           # @return [Stripe::Customer, nil] Stripe customer or nil if not found
           def get_stripe_customer_by_email
-            email_to_try = billing_email.to_s.presence ||
-                           stripe_checkout_email.to_s.presence ||
-                           contact_email.to_s.presence
+            email_to_try = [billing_email, stripe_checkout_email, contact_email]
+              .map(&:to_s).find { |email| !email.strip.empty? }
 
-            return nil if email_to_try.blank?
+            return nil if email_to_try.nil?
 
             OT.info "[Organization.get_stripe_customer_by_email] Searching for: #{email_to_try}"
             customers = Stripe::Customer.list(email: email_to_try, limit: 1)
