@@ -219,7 +219,7 @@ module Billing
           existing_id = customer.stripe_customer_id.to_s
           new_id      = fields[:stripe_customer_id].to_s
 
-          if existing_id.present? && existing_id != new_id
+          if !existing_id.empty? && existing_id != new_id
             billing_logger.warn '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing',
               existing: existing_id,
               new: new_id,

@@ -409,7 +409,7 @@ module Onetime
           #
           # @return [Stripe::Customer, nil] Stripe customer or nil if not found
           def get_stripe_customer
-            return stripe_customer if stripe_customer_id.to_s.present?
+            return stripe_customer unless stripe_customer_id.to_s.empty?
 
             get_stripe_customer_by_email
           rescue Stripe::StripeError => ex
@@ -458,7 +458,7 @@ module Onetime
           #
           # @return [Stripe::Subscription, nil] Stripe subscription or nil if not found
           def get_stripe_subscription
-            return stripe_subscription if stripe_subscription_id.to_s.present?
+            return stripe_subscription unless stripe_subscription_id.to_s.empty?
 
             # Fallback: Get customer's subscriptions and take first active one
             customer = get_stripe_customer

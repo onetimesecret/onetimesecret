@@ -81,7 +81,7 @@ module Onetime
             stripe_cust_id = v1_data[:stripe_customer_id] || v1_data['stripe_customer_id']
             stripe_sub_id  = v1_data[:stripe_subscription_id] || v1_data['stripe_subscription_id']
 
-            if stripe_cust_id.to_s.present?
+            unless stripe_cust_id.to_s.empty?
               org.stripe_customer_id     = stripe_cust_id
               org.stripe_subscription_id = stripe_sub_id
               org.stripe_checkout_email  = email
@@ -95,7 +95,7 @@ module Onetime
               {
                 customer_extid: customer.extid,
                 org_extid: org.extid,
-                has_billing: stripe_cust_id.to_s.present?,
+                has_billing: !stripe_cust_id.to_s.empty?,
               }
 
             org
@@ -158,8 +158,8 @@ module Onetime
           #
           # @return [Boolean]
           def from_v1_migration?
-            v1_source_custid.to_s.present? ||
-              migration_metadata('source_customer_email').present?
+            !v1_source_custid.to_s.empty? ||
+              !migration_metadata('source_customer_email').to_s.empty?
           end
 
           # Store v1 migration source info in caboose

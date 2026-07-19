@@ -46,7 +46,7 @@ module Onetime::Secret::Features
       def pending_owner_migration
         instances.revrangeraw(0, -1).collect do |identifier|
           secret = load(identifier)
-          secret if secret&.v1_custid.to_s.present? && secret.owner_id.to_s.empty?
+          secret if !secret&.v1_custid.to_s.empty? && secret.owner_id.to_s.empty?
         end.compact
       end
 
@@ -78,7 +78,7 @@ module Onetime::Secret::Features
       # @param email_to_objid_mapping [Hash] email => customer_objid mapping
       # @return [Boolean] Success status
       def migrate_owner!(email_to_objid_mapping)
-        return true if owner_id.to_s.present? # Already migrated
+        return true unless owner_id.to_s.empty? # Already migrated
 
         custid = v1_custid
         return false if custid.to_s.empty?
@@ -122,7 +122,7 @@ module Onetime::Secret::Features
       #
       # @return [Boolean]
       def needs_owner_migration?
-        v1_custid.to_s.present? && owner_id.to_s.empty?
+        !v1_custid.to_s.empty? && owner_id.to_s.empty?
       end
 
       # Check if secret is from anonymous user

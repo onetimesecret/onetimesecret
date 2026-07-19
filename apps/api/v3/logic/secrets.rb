@@ -109,7 +109,7 @@ module V3
         def notify_owner_of_reveal
           owner = secret.load_owner
           return if owner.nil? || owner.anonymous?
-          return unless owner.email.to_s.present?
+          return if owner.email.to_s.empty?
           return unless owner.notify_on_reveal?
 
           Onetime::Jobs::Publisher.enqueue_email(

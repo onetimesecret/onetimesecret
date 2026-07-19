@@ -99,7 +99,7 @@ module Onetime::Customer::Features
       #
       # @return [Boolean]
       def needs_billing_migration?
-        stripe_customer_id.to_s.present? || stripe_subscription_id.to_s.present?
+        !stripe_customer_id.to_s.empty? || !stripe_subscription_id.to_s.empty?
       end
     end
   end
