@@ -90,6 +90,9 @@ module OrganizationAPI::Logic
       # so its email/locale remain valid. A delivery failure must never fail
       # the removal.
       def notify_member_removed
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = @target_member.locale
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
         Onetime::Jobs::Publisher.enqueue_email(
           :member_removed,
           {
@@ -97,7 +100,7 @@ module OrganizationAPI::Logic
             organization_name: @organization.display_name,
             removed_by: cust.email,
             removed_at: Time.now.utc.iso8601,
-            locale: @target_member.locale || OT.default_locale,
+            locale: email_locale,
           },
           fallback: :async_thread,
         )

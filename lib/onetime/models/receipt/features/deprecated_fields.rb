@@ -97,6 +97,9 @@ module Onetime::Receipt::Features
         # be serialized to JSON for the message queue - it becomes "#<Secret:0x...>".
         # The template uses secret_key for the URL and share_domain for custom domains.
         # Use secret.identifier (not deprecated secret.key which may be nil)
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        locale = OT.default_locale if locale.to_s.strip.empty?
+
         Onetime::Jobs::Publisher.enqueue_email(
           :secret_link,
           {
@@ -105,7 +108,7 @@ module Onetime::Receipt::Features
             recipient: email_address,
             sender_email: cust.email,
             has_passphrase: secret.has_passphrase?,
-            locale: locale || OT.default_locale,
+            locale: locale,
           },
           domain_id: domain_id,
         ) # fallback: :async_thread is the default
