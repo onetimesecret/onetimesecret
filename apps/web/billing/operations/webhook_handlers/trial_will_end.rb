@@ -47,6 +47,10 @@ module Billing
           ends_at        = Time.at(trial_end).utc
           days_remaining = [((ends_at - Time.now.utc) / SECONDS_PER_DAY).ceil, 0].max
 
+          # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+          email_locale = owner.respond_to?(:locale) ? owner.locale : nil
+          email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
           Onetime::Jobs::Publisher.enqueue_email(
             :trial_expiring,
             {
@@ -54,7 +58,7 @@ module Billing
               plan_name: org.planid,
               trial_ends_at: ends_at.iso8601,
               days_remaining: days_remaining,
-              locale: (owner.respond_to?(:locale) ? owner.locale : nil) || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :async_thread,
           )

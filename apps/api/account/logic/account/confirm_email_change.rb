@@ -76,6 +76,11 @@ module AccountAPI::Logic
         # Invalidate all sessions for this customer
         invalidate_sessions(@owner)
 
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = @owner.locale if email_locale.to_s.strip.empty?
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
         # Send confirmation notification to the OLD email (the email has now changed)
         begin
           Onetime::Jobs::Publisher.enqueue_email(
@@ -83,7 +88,7 @@ module AccountAPI::Logic
             {
               old_email: old_email,
               new_email: new_email,
-              locale: locale || @owner.locale || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :async_thread,
           )

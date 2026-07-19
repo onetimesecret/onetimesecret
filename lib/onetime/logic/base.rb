@@ -404,6 +404,13 @@ module Onetime
         # immediately. e.g. customer:abcd1234:reset_secret
         customer.reset_secret = secret.identifier
 
+        # @locale can arrive blank ("") from params (see #initialize) — an empty
+        # string is truthy, so it slips past a bare `||` into an invalid I18n
+        # lookup (:"") that raises I18n::InvalidLocale, which the rescue below
+        # swallows as a silent delivery failure. This synchronous path bypasses
+        # the EmailWorker locale-normalization chokepoint, so normalize here. (#3812)
+        email_locale = locale.to_s.strip.empty? ? OT.default_locale : locale
+
         begin
           Onetime::Mail::Mailer.deliver(
             :welcome,
@@ -411,7 +418,7 @@ module Onetime
               email_address: customer.email,
               secret: secret,
             },
-            locale: locale || 'en',
+            locale: email_locale,
           )
           true
         rescue StandardError => ex

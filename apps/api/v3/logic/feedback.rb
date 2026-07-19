@@ -125,6 +125,10 @@ module V3
         is_anonymous = sender.nil? || sender.anonymous?
         display_from = is_anonymous ? 'anonymous' : OT::Utils.obscure_email(sender.email)
 
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
         email_data = {
           recipient_email: recipient_email,
           email_address: display_from,
@@ -134,7 +138,7 @@ module V3
           message: message,
           display_domain: effective_domain,
           domain_strategy: domain_strategy || :default,
-          locale: locale || OT.default_locale,
+          locale: email_locale,
         }
 
         # When the submitter is authenticated, set Reply-To to their real email

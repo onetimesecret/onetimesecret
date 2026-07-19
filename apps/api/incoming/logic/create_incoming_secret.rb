@@ -285,6 +285,10 @@ module Incoming
         # selection (nil on the canonical domain).
         domain_id = resolved_domain_id
 
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
         Onetime::Jobs::Publisher.enqueue_email(
           :incoming_secret,
           {
@@ -293,7 +297,7 @@ module Incoming
             recipient: recipient_email,
             memo: memo,
             has_passphrase: !passphrase.to_s.empty?,
-            locale: locale || OT.default_locale,
+            locale: email_locale,
           },
           domain_id: domain_id,
         )

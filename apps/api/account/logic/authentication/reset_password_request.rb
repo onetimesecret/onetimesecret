@@ -93,12 +93,16 @@ module AccountAPI::Logic
         # and the user can request another. We return the same generic response
         # whether or not delivery succeeds, so the result never reveals delivery
         # status.
-        queued = Onetime::Jobs::Publisher.enqueue_email(
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = cust.locale if email_locale.to_s.strip.empty?
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+        queued       = Onetime::Jobs::Publisher.enqueue_email(
           :password_request,
           {
             email_address: cust.email,
             secret: secret,
-            locale: locale || cust.locale || OT.default_locale,
+            locale: email_locale,
           },
           fallback: :sync,
         )
