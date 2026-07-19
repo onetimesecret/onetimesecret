@@ -493,4 +493,40 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       logic.process
     end
   end
+
+  # Regression for #3812: the synchronous verification-email path bypasses the
+  # EmailWorker locale-normalization chokepoint. A blank @locale ("") is truthy,
+  # so it would slip past the delivery site's `||` into an invalid I18n lookup
+  # (:"") and raise I18n::InvalidLocale, silently failing the email.
+  describe '#send_verification_email locale normalization' do
+    subject(:blank_locale_logic) { described_class.new(strategy_result, params, '') }
+
+    let(:secret) do
+      double('Secret', identifier: 'sec_abc123').tap do |s|
+        allow(s).to receive(:verification=)
+        allow(s).to receive(:custid=)
+        allow(s).to receive(:save)
+      end
+    end
+
+    before do
+      allow(customer).to receive(:reset_secret=)
+      allow(Onetime::Receipt).to receive(:spawn_pair).and_return([double('Receipt'), secret])
+      allow(Onetime::Mail::Mailer).to receive(:deliver)
+    end
+
+    it 'reproduces the blank @locale from a blank locale param' do
+      expect(blank_locale_logic.locale).to eq('')
+    end
+
+    it 'delivers the welcome email with the default locale when @locale is blank' do
+      blank_locale_logic.send(:send_verification_email, nil, customer: customer)
+
+      expect(Onetime::Mail::Mailer).to have_received(:deliver).with(
+        :welcome,
+        hash_including(email_address: test_email),
+        locale: OT.default_locale,
+      )
+    end
+  end
 end
