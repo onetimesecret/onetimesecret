@@ -341,6 +341,59 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:sessions_revoke_skipped_no_identity, any_args)
       end
+
+      # -----------------------------------------------------------------------
+      # #3812 regression: the notification email must carry a resolvable locale.
+      #
+      # A Customer whose locale loaded blank ("") from Redis is truthy and would
+      # slip past a bare `recipient&.locale || OT.default_locale`, queueing a
+      # :password_changed email with locale "" that I18n cannot resolve. The
+      # hook normalizes blank/whitespace to the default. These pin the enqueued
+      # value at the hook boundary; the worker sink is covered independently in
+      # spec/integration/all/jobs/workers/email_worker_spec.rb.
+      # -----------------------------------------------------------------------
+      def enqueued_password_changed_locale
+        captured = []
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, payload, **_kwargs|
+          captured << payload if template == :password_changed
+          nil
+        end
+
+        change_password
+
+        expect(last_response.status).to eq(200),
+          "Expected change to succeed but got #{last_response.status}: #{last_response.body[0..500]}"
+        expect(captured.size).to eq(1),
+          "Expected exactly one :password_changed email, got #{captured.size}"
+        captured.first[:locale]
+      end
+
+      it 'normalizes a blank Customer locale to the default when enqueueing :password_changed' do
+        customer = find_customer_by_email(cred_email)
+        expect(customer).not_to be_nil
+        customer.locale = ''
+        customer.save
+
+        expect(enqueued_password_changed_locale).to eq(OT.default_locale)
+      end
+
+      it 'normalizes a whitespace-only Customer locale to the default' do
+        customer = find_customer_by_email(cred_email)
+        expect(customer).not_to be_nil
+        customer.locale = '   '
+        customer.save
+
+        expect(enqueued_password_changed_locale).to eq(OT.default_locale)
+      end
+
+      it 'carries a set Customer locale through to the :password_changed email' do
+        customer = find_customer_by_email(cred_email)
+        expect(customer).not_to be_nil
+        customer.locale = 'fr'
+        customer.save
+
+        expect(enqueued_password_changed_locale).to eq('fr')
+      end
     end
 
     describe 'after_reset_password hook' do

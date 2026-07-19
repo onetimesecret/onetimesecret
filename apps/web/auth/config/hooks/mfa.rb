@@ -183,6 +183,10 @@ module Auth::Config::Hooks
         # the request IP is the best available location.
         Onetime::ErrorHandler.safe_execute('new_login_alert_email', account_id: account_id) do
           recipient = Onetime::Customer.find_by_email(account[:email])
+          # Customers default locale to "" (matches Redis string load), which is
+          # truthy and would slip past a bare `||`. Treat blank as missing.
+          locale    = recipient&.locale
+          locale    = OT.default_locale if locale.to_s.strip.empty?
           Onetime::Jobs::Publisher.enqueue_email(
             :new_login_alert,
             {
@@ -190,7 +194,7 @@ module Auth::Config::Hooks
               device_info: request.user_agent || 'Unknown device',
               location: request.ip,
               login_at: Time.now.utc.iso8601,
-              locale: recipient&.locale || OT.default_locale,
+              locale: locale,
             },
             fallback: :async_thread,
           )
@@ -236,12 +240,16 @@ module Auth::Config::Hooks
         # Best-effort security notification that MFA was turned off.
         Onetime::ErrorHandler.safe_execute('mfa_disabled_email', account_id: account_id) do
           recipient = Onetime::Customer.find_by_email(account[:email])
+          # Customers default locale to "" (matches Redis string load), which is
+          # truthy and would slip past a bare `||`. Treat blank as missing.
+          locale    = recipient&.locale
+          locale    = OT.default_locale if locale.to_s.strip.empty?
           Onetime::Jobs::Publisher.enqueue_email(
             :mfa_disabled,
             {
               email_address: account[:email],
               disabled_at: Time.now.utc.iso8601,
-              locale: recipient&.locale || OT.default_locale,
+              locale: locale,
             },
             fallback: :async_thread,
           )
@@ -284,12 +292,16 @@ module Auth::Config::Hooks
         # Best-effort security notification that MFA was enabled.
         Onetime::ErrorHandler.safe_execute('mfa_enabled_email', account_id: account_id) do
           recipient = Onetime::Customer.find_by_email(account[:email])
+          # Customers default locale to "" (matches Redis string load), which is
+          # truthy and would slip past a bare `||`. Treat blank as missing.
+          locale    = recipient&.locale
+          locale    = OT.default_locale if locale.to_s.strip.empty?
           Onetime::Jobs::Publisher.enqueue_email(
             :mfa_enabled,
             {
               email_address: account[:email],
               enabled_at: Time.now.utc.iso8601,
-              locale: recipient&.locale || OT.default_locale,
+              locale: locale,
             },
             fallback: :async_thread,
           )

@@ -651,12 +651,16 @@ module Auth::Config::Hooks
         # let a delivery problem surface as a password-change failure.
         Onetime::ErrorHandler.safe_execute('password_changed_email', account_id: account_id) do
           recipient = Onetime::Customer.find_by_email(account[:email])
+          # Customers default locale to "" (matches Redis string load), which is
+          # truthy and would slip past a bare `||`. Treat blank as missing.
+          locale    = recipient&.locale
+          locale    = OT.default_locale if locale.to_s.strip.empty?
           Onetime::Jobs::Publisher.enqueue_email(
             :password_changed,
             {
               email_address: account[:email],
               changed_at: Time.now.utc.iso8601,
-              locale: recipient&.locale || OT.default_locale,
+              locale: locale,
             },
             fallback: :async_thread,
           )

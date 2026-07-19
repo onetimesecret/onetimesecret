@@ -78,6 +78,9 @@ module OrganizationAPI::Logic
       # and no failure may affect the (already-completed) deletion.
       def notify_members_deleted(recipients, display_name)
         recipients.each do |recipient|
+          # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+          email_locale = recipient[:locale]
+          email_locale = OT.default_locale if email_locale.to_s.strip.empty?
           Onetime::Jobs::Publisher.enqueue_email(
             :organization_deleted,
             {
@@ -85,7 +88,7 @@ module OrganizationAPI::Logic
               organization_name: display_name,
               deleted_by: cust.email,
               deleted_at: Time.now.utc.iso8601,
-              locale: recipient[:locale] || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :async_thread,
           )

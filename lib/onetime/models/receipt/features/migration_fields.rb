@@ -38,7 +38,7 @@ module Onetime::Receipt::Features
       def pending_owner_migration
         instances.revrangeraw(0, -1).collect do |identifier|
           receipt = load(identifier)
-          receipt if receipt&.v1_custid.to_s.present? && receipt.owner_id.to_s.empty?
+          receipt if !receipt&.v1_custid.to_s.empty? && receipt.owner_id.to_s.empty?
         end.compact
       end
 
@@ -69,7 +69,7 @@ module Onetime::Receipt::Features
       # @param email_to_org_mapping [Hash] email => org_objid mapping (optional)
       # @return [Boolean] Success status
       def migrate_owner!(email_to_objid_mapping, email_to_org_mapping = {})
-        return true if owner_id.to_s.present? # Already migrated
+        return true unless owner_id.to_s.empty? # Already migrated
 
         custid = v1_custid
         return false if custid.to_s.empty?
@@ -108,11 +108,11 @@ module Onetime::Receipt::Features
       # @return [Boolean] Save result
       def migrate_field_names!
         # Only migrate if new fields are empty and old fields have values
-        if previewed.to_s.empty? && viewed.to_s.present?
+        if previewed.to_s.empty? && !viewed.to_s.empty?
           self.previewed = viewed
         end
 
-        if revealed.to_s.empty? && received.to_s.present?
+        if revealed.to_s.empty? && !received.to_s.empty?
           self.revealed = received
         end
 
@@ -123,7 +123,7 @@ module Onetime::Receipt::Features
       #
       # @return [Boolean]
       def needs_owner_migration?
-        v1_custid.to_s.present? && owner_id.to_s.empty?
+        !v1_custid.to_s.empty? && owner_id.to_s.empty?
       end
 
       # Check if receipt is from anonymous user

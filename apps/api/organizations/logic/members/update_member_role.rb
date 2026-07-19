@@ -103,6 +103,9 @@ module OrganizationAPI::Logic
       # Best-effort security notification to the member whose role changed.
       # Queued via RabbitMQ; a delivery failure must never fail the role change.
       def notify_role_changed
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = @target_member.locale
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
         Onetime::Jobs::Publisher.enqueue_email(
           :role_changed,
           {
@@ -112,7 +115,7 @@ module OrganizationAPI::Logic
             new_role: @new_role,
             changed_by: cust.email,
             changed_at: Time.now.utc.iso8601,
-            locale: @target_member.locale || OT.default_locale,
+            locale: email_locale,
           },
           fallback: :async_thread,
         )

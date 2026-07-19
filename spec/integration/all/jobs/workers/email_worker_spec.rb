@@ -166,6 +166,87 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         )
       end
 
+      it 'falls back to the default locale when the payload locale is an empty string' do
+        message_with_empty_locale = JSON.generate(
+          template: 'secret_link',
+          data: {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com',
+            locale: ''
+          }
+        )
+
+        worker.work_with_params(message_with_empty_locale, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          },
+          locale: 'en',
+          sender_config: nil
+        )
+      end
+
+      it 'falls back to the default locale when the payload locale is whitespace-only' do
+        message_with_whitespace_locale = JSON.generate(
+          template: 'secret_link',
+          data: {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com',
+            locale: '   '
+          }
+        )
+
+        worker.work_with_params(message_with_whitespace_locale, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          },
+          locale: 'en',
+          sender_config: nil
+        )
+      end
+
+      it 'strips surrounding whitespace from a valid payload locale' do
+        message_with_padded_locale = JSON.generate(
+          template: 'secret_link',
+          data: {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com',
+            locale: ' fr '
+          }
+        )
+
+        worker.work_with_params(message_with_padded_locale, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          },
+          locale: 'fr',
+          sender_config: nil
+        )
+      end
+
       it 'acknowledges the message after successful delivery' do
         worker.work_with_params(message, delivery_info, metadata)
 
