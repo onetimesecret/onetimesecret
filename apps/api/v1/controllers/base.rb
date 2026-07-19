@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
+
 require_relative 'helpers'
 
 module V1
@@ -57,13 +59,14 @@ module V1
           # backwards compatibility but can mask config issues. See #2620.
           return disabled_response(req.path) unless session_auth_enforced?
 
-          OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
+          safe_custid = sanitize_for_log(custid)
+          OT.ld "[authorized] Attempt for '#{safe_custid}' via #{req.client_ipaddress} (basic auth)"
           possible = Onetime::Customer.load_by_extid_or_email(custid)
 
-          @cust = possible if possible&.apitoken?(apitoken)
+          @cust = verify_apitoken(possible, apitoken)
           raise OT::Unauthorized, 'Invalid credentials' if cust.nil?
 
-          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (basic auth authenticated)"
+          OT.ld "[authorized] '#{safe_custid}' via #{req.client_ipaddress} (basic auth authenticated)"
 
         elsif allow_anonymous
           # Anonymous path - only for routes that explicitly opt-in
@@ -84,6 +87,32 @@ module V1
 
         yield
       end
+    end
+
+    # Fixed digest compared against when the username doesn't resolve to a
+    # customer. Comparing SHA-256 hexdigests keeps both operands the same
+    # length, so the compare cost matches the real-token path and response
+    # timing can't distinguish existing from nonexistent usernames.
+    V1_DUMMY_TOKEN_DIGEST = Digest::SHA256.hexdigest('v1-basic-auth-dummy-token').freeze
+
+    # Verify an API token with equivalent work whether or not the customer
+    # exists (prevents timing-based username enumeration). Returns the
+    # customer on success, nil otherwise.
+    def verify_apitoken(customer, apitoken)
+      return customer.apitoken?(apitoken) ? customer : nil if customer
+
+      # Dummy compare of equivalent cost; result intentionally discarded.
+      Rack::Utils.secure_compare(
+        Digest::SHA256.hexdigest(apitoken.to_s),
+        V1_DUMMY_TOKEN_DIGEST,
+      )
+      nil
+    end
+
+    # Strip control characters (CR, LF, ESC, NUL, etc.) and truncate before
+    # interpolating untrusted input into line-oriented log output.
+    def sanitize_for_log(value)
+      value.to_s.gsub(/[[:cntrl:]]/, '')[0, 256]
     end
 
     # Applies domain context from the DomainStrategy middleware to a logic

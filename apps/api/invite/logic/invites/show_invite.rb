@@ -65,9 +65,11 @@ module InviteAPI::Logic
       def success_data
         result = { record: serialize_invitation_public(@invitation) }
 
-        # Add computed status flags for frontend branching
-        result[:record][:actionable]     = actionable?
-        result[:record][:account_exists] = account_exists?
+        # Add computed status flag for frontend branching.
+        # NOTE: This response must NOT vary on whether the invited email
+        # already has an account (AZ7 account-existence oracle) -- the
+        # endpoint is noauth and gated only by the invite token.
+        result[:record][:actionable] = actionable?
 
         auth_logger.debug 'Building success_data',
           domain_strategy: domain_strategy,
@@ -91,11 +93,6 @@ module InviteAPI::Logic
       # Whether this invitation can still be acted upon (accept/decline)
       def actionable?
         @invitation.pending? && !@invitation.expired?
-      end
-
-      # Whether an account exists for the invited email
-      def account_exists?
-        Onetime::Customer.email_exists?(@invitation.invited_email)
       end
 
       def build_auth_methods(sso_config)

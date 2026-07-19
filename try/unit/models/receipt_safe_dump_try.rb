@@ -221,6 +221,56 @@ r.source = nil
 r.safe_dump[:secret_identifier]
 #=> @test_secret_identifier
 
+## AZ6 GATE: custid is declared in safe_dump_fields
+Receipt.safe_dump_fields.include?(:custid)
+#=> true
+
+## AZ6 GATE: owner_id is declared in safe_dump_fields
+Receipt.safe_dump_fields.include?(:owner_id)
+#=> true
+
+## AZ6: standard (owner-path) receipt still emits custid — unchanged
+r = Receipt.new
+r.custid = 'cust-abc123'
+r.source = 'standard'
+r.safe_dump[:custid]
+#=> 'cust-abc123'
+
+## AZ6: standard (owner-path) receipt still emits owner_id — unchanged
+r = Receipt.new
+r.owner_id = 'owner-xyz789'
+r.source = 'standard'
+r.safe_dump[:owner_id]
+#=> 'owner-xyz789'
+
+## AZ6 GATE: incoming (guest) provenance withholds custid from safe_dump
+r = Receipt.new
+r.custid = 'cust-abc123'
+r.source = 'incoming'
+r.safe_dump[:custid]
+#=> nil
+
+## AZ6 GATE: incoming (guest) provenance withholds owner_id from safe_dump
+r = Receipt.new
+r.owner_id = 'owner-xyz789'
+r.source = 'incoming'
+r.safe_dump[:owner_id]
+#=> nil
+
+## AZ6 LEGACY: nil source reads as standard — custid still emitted
+r = Receipt.new
+r.custid = 'cust-abc123'
+r.source = nil
+r.safe_dump[:custid]
+#=> 'cust-abc123'
+
+## AZ6: unrecognized non-empty source fails closed (custid withheld)
+r = Receipt.new
+r.custid = 'cust-abc123'
+r.source = 'mystery'
+r.safe_dump[:custid]
+#=> nil
+
 ## Created receipt can be destroyed (cleanup)
 @receipt = Receipt.new :receipt
 @receipt.secret_identifier = @test_secret_identifier

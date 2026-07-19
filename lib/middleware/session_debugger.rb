@@ -46,7 +46,19 @@ module Rack
       end
     end
 
+    # Header names whose values carry credentials or session tokens and must
+    # never reach the logs. Rack 3 downcases header names; match
+    # case-insensitively anyway for legacy/request-side shapes.
+    REDACTED_HEADERS = %w[set-cookie cookie authorization].freeze
+
     private
+
+    # Returns a redacted copy for logging; never mutates the real headers.
+    def redact_headers(headers)
+      headers.to_h.each_with_object({}) do |(key, value), acc|
+        acc[key] = REDACTED_HEADERS.include?(key.to_s.downcase) ? '[REDACTED]' : value
+      end
+    end
 
     def debug_request(env)
       # Capture request info
@@ -99,7 +111,7 @@ module Rack
         {
           status: status,
           duration: duration,
-          response_headers: headers,
+          response_headers: redact_headers(headers),
         }
 
       [status, headers, body]

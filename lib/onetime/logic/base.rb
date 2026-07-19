@@ -182,9 +182,14 @@ module Onetime
         # Normalize once so the comparison and the error message agree and a
         # Float from config never renders as "10000.0".
         max_length = (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
-        return if value.to_s.length <= max_length
+        # Measure in BYTES, not characters (C5): the ceiling bounds Redis storage,
+        # and a multibyte string can occupy up to 4x its character count. The
+        # client-facing hint (src/schemas/contracts/config/public.ts) is still
+        # character-denominated, so a caller may see a slightly lower effective
+        # limit for multibyte content — the server budget is bytes.
+        return if value.to_s.bytesize <= max_length
 
-        raise_form_error "Secret content must be no more than #{max_length} characters long",
+        raise_form_error "Secret content must be no more than #{max_length} bytes long",
           field: :secret
       end
 
