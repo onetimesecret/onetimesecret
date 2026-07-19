@@ -13,7 +13,7 @@ The OneTimeSecret application demonstrates strong security fundamentals: authent
 
 **No critical remote code execution, SQL injection, or authentication bypass vulnerabilities were found.**
 
-However, several medium-severity issues and design considerations warrant attention, particularly around the Rodauth authentication mode, account creation race conditions, and operational configuration defaults.
+However, 9 medium-severity issues and 11 low-severity findings warrant attention, particularly around rate limiting gaps, the Rodauth authentication mode, account creation race conditions, and operational configuration defaults.
 
 ---
 
@@ -154,6 +154,29 @@ remember_cookie_options { { httponly: true, secure: true, same_site: :lax } }
 
 ---
 
+#### M-9: No Per-IP Rate Limiting on V3 Guest Secret Creation
+
+**Location:** `apps/api/v3/routes.txt:29-34`, V2 `ConcealSecret`/`GenerateSecret` logic  
+**Category:** Rate Limiting / Resource Exhaustion
+
+**Description:** The V3 guest endpoints (`POST /api/v3/guest/secret/conceal` and `POST /api/v3/guest/secret/generate`) have no per-IP rate limiting for secret creation. Unlike the V1 API (which has `check_rate_limit!` in controllers) or the incoming API (which has `IncomingRateLimiter`), the V3 guest creation path is unbounded.
+
+**Impact:** An attacker can create unlimited secrets via the guest endpoints, consuming Redis storage. Each secret has a configurable TTL (max 30 days) but burst creation is unbounded.
+
+**Exploitation:**
+```bash
+# Flood Redis with secrets from a single IP
+for i in $(seq 1 10000); do
+  curl -s -X POST "https://target/api/v3/guest/secret/conceal" \
+    -H "Content-Type: application/json" \
+    -d '{"secret_value":"payload_'$i'","ttl":2592000}'
+done
+```
+
+**Remediation:** Add per-IP creation rate limiting (similar to `IncomingRateLimiter`) to the V3 guest secret creation flow.
+
+---
+
 #### M-8: Redis Transport Unencrypted (Multi-Host Deployments)
 
 **Location:** `docker/compose/docker-compose.simple.yml` — `redis://:password@maindb:6379/0`  
@@ -269,7 +292,22 @@ remember_cookie_options { { httponly: true, secure: true, same_site: :lax } }
 
 ---
 
-#### L-9: OPTIONS Preflight Routes Exist but Return No CORS Headers
+#### L-9: No Rack-Level Request Body Size Limit
+
+**Location:** `lib/onetime/application/middleware_stack.rb`  
+**Category:** Availability / Resource Exhaustion
+
+**Description:** The middleware stack does not include a Rack-level body size enforcement middleware. While application-level `validate_secret_size` caps the secret value, the full POST body (including JSON overhead) is parsed into memory before validation occurs.
+
+**Impact:** An attacker could send extremely large JSON payloads to any endpoint, temporarily consuming server memory during parsing.
+
+**Mitigating factor:** Puma has configurable `max_request_body_size` but this must be explicitly set in the Puma config. Caddy/reverse proxy may also enforce limits.
+
+**Remediation:** Set `max_request_body_size` in Puma configuration, or add `Rack::ContentLength`-style request body limit middleware.
+
+---
+
+#### L-10: OPTIONS Preflight Routes Exist but Return No CORS Headers
 
 **Location:** `apps/api/v2/routes.txt:37-38`, `apps/api/v3/routes.txt:25-26`  
 **Category:** Configuration / CORS
@@ -282,7 +320,7 @@ remember_cookie_options { { httponly: true, secure: true, same_site: :lax } }
 
 ---
 
-#### L-10: CSP Disableable via Environment Variable
+#### L-11: CSP Disableable via Environment Variable
 
 **Location:** `etc/defaults/config.defaults.yaml:379`, `apps/web/core/middleware/request_setup.rb:102`  
 **Category:** Configuration / Defense-in-Depth
@@ -388,11 +426,38 @@ Production usage is blocked with `SecurityError` at both strategy registration A
 
 ---
 
-#### I-11: CSP Nonce Implementation (Positive)
+#### I-11: Dependencies Are Current (No Known CVEs)
+
+**Location:** `Gemfile.lock`, `pnpm-lock.yaml`
+
+Key security-critical gems are all at current/patched versions:
+- rack 3.2.6, puma 7.2.1, nokogiri 1.19.4, rexml 3.4.4, roda 3.102.0
+- rodauth 2.42.0, webauthn 3.4.3, json 2.19.9, bcrypt 3.1.22, argon2 2.3.3
+- rbnacl 7.1.2, sanitize 7.0.0, loofah 2.25.1
+
+NPM dependencies apply security-relevant overrides: `undici >=6.27.0`, `ws >=8.21.0`, `form-data >=4.0.6`, `js-yaml >=3.15.0`. DOMPurify 3.4.0+ for client-side sanitization.
+
+---
+
+#### I-12: Colonel API Authorization is Airtight (3-Layer Defense)
+
+Every colonel route (all 123) enforces `role=colonel` at the Otto router layer. Every colonel logic class (all 72) re-verifies via `verify_one_of_roles!(colonel: true)`. The `has_system_role?` check requires both `cust.role == 'colonel'` AND `cust.verified?`. Network isolation middleware optionally adds a CIDR gate returning 404 (not 403).
+
+---
+
+#### I-13: CSP Nonce Implementation (Positive)
 
 **Location:** `apps/web/core/middleware/request_setup.rb:37`
 
 Nonce generated via `SecureRandom.base64(16)` (128 bits from OpenSSL CSPRNG). Consistently applied to all `<link>` and `<script>` tags in templates. CSP emission delegated to Otto framework's `CSP::Writer` with backstop mode (fills gaps, doesn't override downstream policies).
+
+---
+
+#### I-14: Incoming API Rate Limiting Well-Implemented
+
+**Location:** `lib/onetime/security/incoming_rate_limiter.rb`
+
+Two-tier atomic Lua-based rate limiting: 10/hour per IP, 30/hour per recipient hash. 1-hour lockout. Executed BEFORE any Redis I/O or email enqueue. Fails closed on Redis errors.
 
 ---
 
@@ -432,8 +497,10 @@ Nonce generated via `SecureRandom.base64(16)` (128 bits from OpenSSL CSPRNG). Co
 | L-6 | Low | 2.1 | Crypto | Argon2 t_cost=2 vs recommended 3 | Open | Backend |
 | L-7 | Low | 2.8 | Auth | WebAuthn RP ID from request host | Open | Auth |
 | L-8 | Low | 2.0 | Auth | OTP failure limit 7 vs recommended 5 | Open | Auth |
-| L-9 | Low | 2.0 | Config | OPTIONS preflight routes non-functional | Open | Backend |
-| L-10 | Low | 2.0 | Config | CSP disableable via env var (no warning) | Open | Ops |
+| L-9 | Low | 3.1 | Availability | No Rack-level request body size limit | Open | Backend |
+| L-10 | Low | 2.0 | Config | OPTIONS preflight routes non-functional | Open | Backend |
+| L-11 | Low | 2.0 | Config | CSP disableable via env var (no warning) | Open | Ops |
+| M-9 | Medium | 5.3 | Rate Limit | V3 guest secret creation unbounded | Open | Backend |
 
 ---
 
@@ -473,10 +540,12 @@ Nonce generated via `SecureRandom.base64(16)` (128 bits from OpenSSL CSPRNG). Co
 ## Recommendations (Priority Order)
 
 1. **Fix M-2:** Propagate client IP to V1 passphrase rate limiter (quick fix, high impact)
-2. **Fix M-3:** Uncomment and set `lockout_expiration_default` to 1800 seconds
-3. **Fix M-1:** Use HSETNX for unique index writes in Familia, or add WATCH/MULTI/EXEC
-4. **Fix M-6:** Explicitly set secure cookie attributes on remember-me
-5. **Fix M-4:** Integrate LoginRateLimiter into Rodauth login flow
-6. **Fix L-2:** Add minimum SECRET length validation at boot (32+ bytes)
-7. **Fix L-6:** Increase Argon2 t_cost from 2 to 3
-8. **Document:** H-1 and M-5 as accepted architecture decisions in a threat model document
+2. **Fix M-9:** Add per-IP rate limiting to V3 guest secret creation endpoints
+3. **Fix M-3:** Uncomment and set `lockout_expiration_default` to 1800 seconds
+4. **Fix M-1:** Use HSETNX for unique index writes in Familia, or add WATCH/MULTI/EXEC
+5. **Fix M-6:** Explicitly set secure cookie attributes on remember-me
+6. **Fix M-4:** Integrate LoginRateLimiter into Rodauth login flow
+7. **Fix L-2:** Add minimum SECRET length validation at boot (32+ bytes)
+8. **Fix L-6:** Increase Argon2 t_cost from 2 to 3
+9. **Fix L-9:** Set Puma `max_request_body_size` or add Rack body-limit middleware
+10. **Document:** H-1 and M-5 as accepted architecture decisions in a threat model document
