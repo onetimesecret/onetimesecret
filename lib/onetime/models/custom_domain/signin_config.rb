@@ -204,16 +204,36 @@ module Onetime
         # re-enable sign-in disabled globally.
         #
         # Single source of truth for the custom-domain default, shared by the
-        # runtime route gate (Core::Controllers::Base#signin_enabled?) and the
+        # runtime route gate (Core::Controllers::Base#signin_enabled?), the
         # branded-masthead display gate
-        # (Core::Views::DomainSerializer#effective_signin_enabled?), so the
-        # /signin POST handler and the masthead link cannot disagree.
+        # (Core::Views::DomainSerializer#effective_signin_enabled?), and the
+        # settings API (DomainsAPI signin_config details, #3814), so the
+        # /signin POST handler, the masthead link, and the settings page
+        # cannot disagree.
+        #
+        # SSO carve-out (domain_id:): when the caller passes domain_id, the
+        # "not explicitly allowed" branch falls back to
+        # SsoConfig.tenant_sso_available_for? instead of false. An SSO-only
+        # tenant (enabled SsoConfig, no SigninConfig) has a working /signin
+        # page via the omniauth routes, so DISPLAY surfaces — the masthead
+        # link and the settings page — must report sign-in as available.
+        # Callers gating the password/email POST /signin handler omit
+        # domain_id and keep the strict false: SSO never flows through POST
+        # /signin, so that asymmetry is intentional (#3415, #3783). An
+        # *enabled* config always falls through to the shared resolver, which
+        # honors an explicit signin_enabled=false and hides SSO along with it.
         #
         # @param global [Boolean] install-level availability (auth.enabled && auth.signin)
         # @param config [SigninConfig, nil] the per-domain config, if any
+        # @param domain_id [String, nil] CustomDomain identifier (objid); when
+        #   present, enables the tenant-SSO carve-out for display surfaces
         # @return [Boolean]
-        def resolve_signin_enabled_for_custom_domain(global, config)
-          return false unless config&.enabled?
+        def resolve_signin_enabled_for_custom_domain(global, config, domain_id: nil)
+          unless config&.enabled?
+            return false if domain_id.nil?
+
+            return Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
+          end
 
           resolve_signin_enabled(global, config)
         end

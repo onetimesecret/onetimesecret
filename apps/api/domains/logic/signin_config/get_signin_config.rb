@@ -47,7 +47,7 @@ module DomainsAPI
           {
             user_id: cust.extid,
             record: @signin_config.nil? ? nil : serialize_signin_config(@signin_config),
-            details: signin_override_details(@signin_config),
+            details: signin_override_details(@signin_config, @custom_domain.identifier),
           }
         end
 

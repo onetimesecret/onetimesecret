@@ -1,4 +1,4 @@
-# apps/api/v1/spec/integration/v1_response_contract_spec.rb
+# apps/api/v1/spec/integration/simple/v1_response_contract_spec.rb
 #
 # frozen_string_literal: true
 
@@ -15,7 +15,7 @@
 #
 # Run:
 #   pnpm run test:database:start
-#   pnpm run test:rspec apps/api/v1/spec/integration/v1_response_contract_spec.rb
+#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec apps/api/v1/spec/integration/simple/v1_response_contract_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'integration', 'integration_spec_helper')
 
@@ -32,8 +32,13 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
     end
   end
 
+  # force: a partial boot (`OT.boot! :test, false`) from an earlier
+  # randomized-order spec marks boot complete while skipping configure_familia,
+  # and a plain boot! re-entry is a no-op — this spec needs the full
+  # initializer set (VERIFIABLE_ID_HMAC_SECRET, encryption keys) to mint
+  # secrets.
   before(:all) do
-    Onetime.boot! :test
+    Onetime.boot! :test, force: true
   end
 
   # The response=json wrapper adds top-level "success" and "data" keys;

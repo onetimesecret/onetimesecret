@@ -24,7 +24,7 @@
 
 import type { PutSignupConfigRequest } from '@/schemas/api/domains/requests/signup-config';
 import type { SignupConfigDetails } from '@/schemas/api/domains/responses/signup-config';
-import type { ApplicationError } from '@/schemas/errors';
+import { createError, type ApplicationError } from '@/schemas/errors';
 import type {
   CustomDomainSignupConfig,
   SignupValidationStrategy,
@@ -187,10 +187,21 @@ export function useSignupConfig(domainExtId: string) {
    * Load the current signup config for this domain.
    * A null record means "unconfigured" — the form is seeded from the
    * inherited global state carried in details, not from static defaults.
+   *
+   * A response with neither record nor details (older backend 404 or a
+   * payload that failed schema validation) fails loudly instead of seeding:
+   * the seed is a guess about the inherited state, and a save would
+   * materialize that guess as an explicit override (PR #3817, mirroring
+   * useSigninConfig).
    */
   const initialize = () =>
     wrap(async () => {
       const response = await SignupConfigService.getConfigForDomain(domainExtId);
+
+      if (!response.record && !response.details) {
+        throw createError(t('web.COMMON.unexpected_error'), 'technical', 'error');
+      }
+
       signupConfig.value = response.record;
       details.value = response.details;
 
