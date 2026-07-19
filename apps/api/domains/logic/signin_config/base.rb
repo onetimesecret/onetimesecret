@@ -49,13 +49,27 @@ module DomainsAPI
         # drift ADR-024 exists to kill. global_restrict_to lets the UI show the
         # inherited method restriction while the domain is unconfigured.
         #
+        # effective_enabled uses the CUSTOM-DOMAIN resolver (default OFF,
+        # opt-in) with the tenant-SSO carve-out — NOT resolve_signin_enabled.
+        # These settings describe a custom domain, so an unconfigured domain
+        # must read "disabled" even when the canonical site's sign-in is on
+        # (#3814), while an SSO-only tenant (enabled SsoConfig, no
+        # SigninConfig) reads "enabled" to match its working masthead link and
+        # /signin page (same shared authority as
+        # Core::Views::DomainSerializer#effective_signin_enabled?).
+        #
         # @param config [Onetime::CustomDomain::SigninConfig, nil] nil when unconfigured
+        # @param domain_id [String] CustomDomain identifier (objid) for the SSO carve-out
         # @return [Hash] global_enabled, effective_enabled, global_restrict_to
-        def signin_override_details(config)
+        def signin_override_details(config, domain_id)
           global = Onetime::CustomDomain::SigninConfig.global_signin_enabled
           {
             global_enabled: global,
-            effective_enabled: Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, config),
+            effective_enabled: Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(
+              global,
+              config,
+              domain_id: domain_id,
+            ),
             global_restrict_to: Onetime.auth_config.restrict_to,
           }
         end
