@@ -24,7 +24,7 @@
 
 import type { PutSigninConfigRequest } from '@/schemas/api/domains/requests/signin-config';
 import type { SigninConfigDetails } from '@/schemas/api/domains/responses/signin-config';
-import type { ApplicationError } from '@/schemas/errors';
+import { createError, type ApplicationError } from '@/schemas/errors';
 import type {
   CustomDomainSigninConfig,
   SigninRestrictTo,
@@ -85,9 +85,10 @@ export function resolveGlobalMethodAvailability(): GlobalMethodAvailability {
  * plus the user's change — never static defaults that could silently flip
  * unrelated behavior.
  *
- * When `details` is absent (older backend / missing payload), signin seeds
- * OFF: custom domains are default-off opt-in (#3814), so false is the safe
- * fallback — matching useSignupConfig.
+ * The null-details fallback seeds signin OFF (custom domains are default-off
+ * opt-in, #3814) and only backs the placeholder state before initialize
+ * resolves — initialize itself errors on a details-less response instead of
+ * seeding, so a guessed seed can never be materialized by an autosave.
  */
 function createSeededFormState(
   details: SigninConfigDetails | null,
@@ -218,10 +219,21 @@ export function useSigninConfig(domainExtId: string) {
    * Load the current signin config for this domain.
    * A null record means "unconfigured" — the form is seeded from the
    * inherited global state carried in details, not from static defaults.
+   *
+   * A response with neither record nor details (older backend 404 or a
+   * payload that failed schema validation) fails loudly instead of seeding:
+   * the seed is a guess about the inherited state, and any autosave would
+   * materialize that guess as an explicit override — on an SSO-only domain
+   * that would persist signin_enabled: false and disable sign-in (PR #3817).
    */
   const initialize = () =>
     wrap(async () => {
       const response = await SigninConfigService.getConfigForDomain(domainExtId);
+
+      if (!response.record && !response.details) {
+        throw createError(t('web.COMMON.unexpected_error'), 'technical', 'error');
+      }
+
       signinConfig.value = response.record;
       details.value = response.details;
 

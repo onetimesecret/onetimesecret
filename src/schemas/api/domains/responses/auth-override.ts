@@ -15,8 +15,11 @@ import { z } from 'zod';
 /**
  * Resolution details common to signin-config and signup-config responses.
  *
- * Optional-tolerant: older backends omit `details` entirely (the envelope
- * marks it optional), but when present these two fields are guaranteed.
+ * REQUIRED on GET/PUT responses (PR #3817): the settings UI seeds
+ * unconfigured domains from these fields, so a details-less payload fails
+ * parse instead of seeding a guess. Older backends that omit `details`
+ * (or 404) surface as a failed load. DELETE responses still mark it
+ * optional — they only refresh already-held details.
  */
 export const authOverrideDetailsSchema = z.object({
   /** Whether the current user can manage this config. */

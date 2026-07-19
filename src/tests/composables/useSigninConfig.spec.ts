@@ -71,12 +71,16 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+// Mirrors the real wrap error-boundary: catches, forwards to onError (which
+// the composable uses to set error.value), returns undefined. Without the
+// onError forwarding, the fail-loud initialize contract would be untestable.
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => ({
+  useAsyncHandler: (options?: { onError?: (err: unknown) => void }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
       try {
         return await fn();
-      } catch {
+      } catch (err) {
+        options?.onError?.(err);
         return undefined;
       }
     }),
@@ -112,6 +116,16 @@ const _mockDisabledConfig: CustomDomainSigninConfig = {
   email_auth_enabled: false,
 };
 
+// Resolution details for an unconfigured domain under an enabled global:
+// default-off resolver output (#3814). `details` is required on GET/PUT
+// responses — a response without it is a failed load, never a seedable
+// state (PR #3817).
+const mockUnconfiguredDetails = {
+  global_enabled: true,
+  effective_enabled: false,
+  global_restrict_to: null,
+};
+
 // -----------------------------------------------------------------------------
 // Tests
 // -----------------------------------------------------------------------------
@@ -122,9 +136,10 @@ describe('useSigninConfig', () => {
     vi.clearAllMocks();
     mockFeatures.value = undefined; // all methods globally available
 
-    // Default: no existing config (unconfigured), no resolution details
-    // (older-backend fallback shape)
-    mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+    // Default: no existing config (unconfigured) with resolution details —
+    // the modern backend always sends details; a details-less response is a
+    // failed load (covered explicitly below).
+    mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
     mockPutConfigForDomain.mockResolvedValue({ record: mockSigninConfigData });
     mockDeleteConfigForDomain.mockResolvedValue({ success: true });
   });
@@ -134,8 +149,8 @@ describe('useSigninConfig', () => {
   // ---------------------------------------------------------------------------
 
   describe('initialize', () => {
-    it('sets signinConfig to null when domain is unconfigured (404)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+    it('sets signinConfig to null when domain is unconfigured', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
 
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
@@ -143,6 +158,20 @@ describe('useSigninConfig', () => {
       expect(composable.signinConfig.value).toBeNull();
       expect(composable.isConfigured.value).toBe(false);
       expect(composable.isInitialized.value).toBe(true);
+    });
+
+    it('fails initialization when the response has neither record nor details (older-backend 404 / failed parse)', async () => {
+      // The seed is a guess about the inherited state; an autosave would
+      // materialize it as an explicit override — on an SSO-only domain that
+      // would persist signin_enabled: false and disable sign-in (PR #3817).
+      // Fail loudly instead: error set, never initialized.
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.error.value?.message).toBe('An unexpected error occurred');
+      expect(composable.isInitialized.value).toBe(false);
     });
 
     it('populates formState from existing config', async () => {
@@ -162,24 +191,19 @@ describe('useSigninConfig', () => {
       expect(composable.isConfigured.value).toBe(true);
     });
 
-    it('seeds formState from inherited state when unconfigured (no details: default-off signin, methods from bootstrap)', async () => {
-      // ADR-024 seeding, older-backend shape (details null): signin_enabled
-      // falls back to false — custom domains are default-off opt-in (#3814),
-      // matching useSignupConfig. Method flags still mirror global
-      // availability (all available here) — NOT static false, which would
-      // flip methods off on the first unrelated save.
+    it('does not seed or snapshot on a details-less response (nothing to materialize)', async () => {
+      // Companion to the fail-loud contract: the failed initialize must leave
+      // no saved snapshot behind — savedFormState stays null, so there is no
+      // materializable state for a later save to persist.
       mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
 
       const composable = useSigninConfig('dm-ext-123');
+      const placeholder = { ...composable.formState.value };
       await composable.initialize();
 
-      expect(composable.formState.value).toEqual({
-        enabled: false,
-        signin_enabled: false,
-        restrict_to: null,
-        email_auth_enabled: true,
-        sso_enabled: true,
-      });
+      expect(composable.formState.value).toEqual(placeholder);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+      expect(composable.details.value).toBeNull();
     });
 
     it('snapshots savedFormState on load', async () => {
@@ -229,6 +253,33 @@ describe('useSigninConfig', () => {
 
       expect(composable.formState.value.restrict_to).toBeNull();
     });
+
+    it('defaults a null or missing signin_enabled to false (conservative default, #3814)', async () => {
+      // The shape types signin_enabled as boolean, but the mocked service
+      // bypasses Zod parsing, so a legacy/unparsed record can reach
+      // configToFormState with signin_enabled null. The fallback must be OFF:
+      // custom domains are default-off opt-in, matching useSignupConfig.
+      const configWithNullSignin = {
+        ...mockSigninConfigData,
+        signin_enabled: null,
+      } as unknown as CustomDomainSigninConfig;
+      mockGetConfigForDomain.mockResolvedValue({ record: configWithNullSignin });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.signin_enabled).toBe(false);
+
+      const { signin_enabled: _omit, ...configWithoutSignin } = mockSigninConfigData;
+      mockGetConfigForDomain.mockResolvedValue({
+        record: configWithoutSignin as unknown as CustomDomainSigninConfig,
+      });
+
+      const fresh = useSigninConfig('dm-ext-123');
+      await fresh.initialize();
+
+      expect(fresh.formState.value.signin_enabled).toBe(false);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -237,7 +288,7 @@ describe('useSigninConfig', () => {
 
   describe('saveConfig', () => {
     it('sends all form fields in PUT payload', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
@@ -265,7 +316,7 @@ describe('useSigninConfig', () => {
         ...mockSigninConfigData,
         sso_enabled: true,
       };
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockResolvedValue({ record: updatedConfig });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -285,7 +336,7 @@ describe('useSigninConfig', () => {
     });
 
     it('updates savedFormState snapshot after successful save', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockResolvedValue({ record: mockSigninConfigData });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -307,7 +358,7 @@ describe('useSigninConfig', () => {
     });
 
     it('shows success notification after save', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
@@ -329,7 +380,7 @@ describe('useSigninConfig', () => {
     });
 
     it('sets isSaving during operation', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       let resolveSave: (value: unknown) => void;
       mockPutConfigForDomain.mockImplementation(
         () =>
@@ -359,7 +410,7 @@ describe('useSigninConfig', () => {
     });
 
     it('resets isSaving even when save fails', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockRejectedValue(new Error('Network error'));
 
       const composable = useSigninConfig('dm-ext-123');
@@ -423,7 +474,7 @@ describe('useSigninConfig', () => {
 
   describe('autoSaveField', () => {
     it('updates the field then persists via PUT', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, sso_enabled: true },
       });
@@ -441,7 +492,7 @@ describe('useSigninConfig', () => {
     });
 
     it('commits other pending edits in the same full-replacement PUT', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
@@ -461,7 +512,7 @@ describe('useSigninConfig', () => {
     });
 
     it('exposes savingField while the save is in flight, clears it after', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       let resolveSave: (value: unknown) => void;
       mockPutConfigForDomain.mockImplementation(
         () =>
@@ -483,7 +534,7 @@ describe('useSigninConfig', () => {
     });
 
     it('clears savingField even when the save fails', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockRejectedValue(new Error('Network error'));
 
       const composable = useSigninConfig('dm-ext-123');
@@ -495,7 +546,7 @@ describe('useSigninConfig', () => {
     });
 
     it('reverts formState to the saved snapshot when the PUT fails', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockRejectedValue(new Error('Network error'));
 
       const composable = useSigninConfig('dm-ext-123');
@@ -512,7 +563,7 @@ describe('useSigninConfig', () => {
     });
 
     it('ignores concurrent calls while a save is already running', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       let resolveSave: (value: unknown) => void;
       mockPutConfigForDomain.mockImplementation(
         () =>
@@ -537,7 +588,7 @@ describe('useSigninConfig', () => {
     });
 
     it('leaves hasUnsavedChanges false after a clean auto-save', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, sso_enabled: true },
       });
@@ -563,7 +614,7 @@ describe('useSigninConfig', () => {
 
   describe('autoSaveFields', () => {
     it('merges a multi-key partial and sends all of it in one full-replacement PUT', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, restrict_to: 'sso', sso_enabled: true },
       });
@@ -585,7 +636,7 @@ describe('useSigninConfig', () => {
     });
 
     it('attributes savingField to the explicit hint when provided', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       let resolveSave: (value: unknown) => void;
       mockPutConfigForDomain.mockImplementation(
         () =>
@@ -611,7 +662,7 @@ describe('useSigninConfig', () => {
     });
 
     it('defaults savingField to the first partial key when no hint is given', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       let resolveSave: (value: unknown) => void;
       mockPutConfigForDomain.mockImplementation(
         () =>
@@ -656,7 +707,7 @@ describe('useSigninConfig', () => {
     });
 
     it('is a no-op while a save is already in flight (multi-key path)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       let resolveSave: (value: unknown) => void;
       mockPutConfigForDomain.mockImplementation(
         () =>
@@ -1014,7 +1065,7 @@ describe('useSigninConfig', () => {
     });
 
     it('isConfigured returns false when signinConfig is null', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
@@ -1115,7 +1166,7 @@ describe('useSigninConfig', () => {
 
   describe('ADR-024: writes materialize an explicit override (pinning)', () => {
     it('saveConfig forces enabled: true in the PUT even while formState.enabled is false (saving = pinning)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
 
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
@@ -1130,7 +1181,7 @@ describe('useSigninConfig', () => {
     });
 
     it('autoSave pins too: a single toggle flip on an unconfigured domain sends enabled: true (never an enabled=false record)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
 
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();

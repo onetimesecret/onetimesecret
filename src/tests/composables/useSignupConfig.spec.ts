@@ -62,12 +62,16 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+// Mirrors the real wrap error-boundary: catches, forwards to onError (which
+// the composable uses to set error.value), returns undefined. Without the
+// onError forwarding, the fail-loud initialize contract would be untestable.
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => ({
+  useAsyncHandler: (options?: { onError?: (err: unknown) => void }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
       try {
         return await fn();
-      } catch {
+      } catch (err) {
+        options?.onError?.(err);
         return undefined;
       }
     }),
@@ -99,6 +103,15 @@ const mockPassthroughConfig: CustomDomainSignupConfig = {
   requires_allowlist: false,
 };
 
+// Resolution details for an unconfigured domain under an enabled global:
+// default-off resolver output (#3814). `details` is required on GET/PUT
+// responses — a response without it is a failed load, never a seedable
+// state (PR #3817).
+const mockUnconfiguredDetails = {
+  global_enabled: true,
+  effective_enabled: false,
+};
+
 // -----------------------------------------------------------------------------
 // Tests
 // -----------------------------------------------------------------------------
@@ -108,9 +121,10 @@ describe('useSignupConfig', () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
 
-    // Default: no existing config (unconfigured), no resolution details
-    // (older-backend fallback shape)
-    mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+    // Default: no existing config (unconfigured) with resolution details —
+    // the modern backend always sends details; a details-less response is a
+    // failed load (covered explicitly below).
+    mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
     mockPutConfigForDomain.mockResolvedValue({ record: mockSignupConfigData });
     mockDeleteConfigForDomain.mockResolvedValue({ success: true });
   });
@@ -121,7 +135,7 @@ describe('useSignupConfig', () => {
 
   describe('initialize', () => {
     it('sets signupConfig to null when domain is unconfigured', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
 
       const composable = useSignupConfig('dm-ext-123');
       await composable.initialize();
@@ -148,22 +162,19 @@ describe('useSignupConfig', () => {
       expect(composable.isConfigured.value).toBe(true);
     });
 
-    it('seeds formState with static defaults when unconfigured and details are null (#3814 ?? false fallback)', async () => {
-      // Older-backend shape (details null): signup_enabled falls back to
-      // false — custom domains are default-off opt-in (#3814). Never seeded
-      // from the canonical follows-global resolver.
+    it('fails initialization when the response has neither record nor details (older-backend 404 / failed parse)', async () => {
+      // The seed is a guess about the inherited state; a save would
+      // materialize it as an explicit override (PR #3817, mirroring
+      // useSigninConfig). Fail loudly instead: error set, never initialized,
+      // no saved snapshot to persist.
       mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
 
       const composable = useSignupConfig('dm-ext-123');
       await composable.initialize();
 
-      expect(composable.formState.value).toEqual({
-        validation_strategy: 'passthrough',
-        allowed_signup_domains: [],
-        enabled: false,
-        signup_enabled: false,
-        autoverify: false,
-      });
+      expect(composable.error.value?.message).toBe('An unexpected error occurred');
+      expect(composable.isInitialized.value).toBe(false);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
     });
 
     it('snapshots savedFormState on load', async () => {
@@ -189,7 +200,7 @@ describe('useSignupConfig', () => {
 
   describe('saveConfig', () => {
     it('sends strategy, signup_enabled, autoverify and allowlist in PUT payload (domain_allowlist)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       const composable = useSignupConfig('dm-ext-123');
       await composable.initialize();
 
@@ -231,7 +242,7 @@ describe('useSignupConfig', () => {
     });
 
     it('updates signupConfig and snapshot after successful save', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       mockPutConfigForDomain.mockResolvedValue({ record: mockPassthroughConfig });
 
       const composable = useSignupConfig('dm-ext-123');
@@ -250,7 +261,7 @@ describe('useSignupConfig', () => {
     });
 
     it('shows success notification after save', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       const composable = useSignupConfig('dm-ext-123');
       await composable.initialize();
 
@@ -264,7 +275,7 @@ describe('useSignupConfig', () => {
     });
 
     it('sets isSaving during operation and clears it after', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
       let resolveSave: (value: unknown) => void;
       mockPutConfigForDomain.mockImplementation(
         () =>
@@ -499,15 +510,6 @@ describe('useSignupConfig', () => {
       expect(composable.formState.value.signup_enabled).toBe(true);
     });
 
-    it('falls back to signup_enabled false when details are null (?? false, never the global flag)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
-
-      const composable = useSignupConfig('dm-ext-123');
-      await composable.initialize();
-
-      expect(composable.formState.value.signup_enabled).toBe(false);
-    });
-
     it('an explicit record wins over seeding', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: { ...mockSignupConfigData, signup_enabled: false },
@@ -528,7 +530,7 @@ describe('useSignupConfig', () => {
 
   describe('ADR-024: writes materialize an explicit override (pinning)', () => {
     it('saveConfig forces enabled: true in the PUT even while formState.enabled is false (saving = pinning)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
 
       const composable = useSignupConfig('dm-ext-123');
       await composable.initialize();
