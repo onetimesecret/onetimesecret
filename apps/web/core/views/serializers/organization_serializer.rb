@@ -14,6 +14,15 @@ module Core
     module OrganizationSerializer
       extend Onetime::LoggerMethods
 
+      # Free-tier limit literals used only when the free_v1 plan itself
+      # cannot be resolved from billing config. Values mirror free_v1 in
+      # billing.yaml (teams is absent there: free tier has none).
+      FALLBACK_FREE_TIER_LIMITS = {
+        'teams' => 0,
+        'total_members_per_org' => 1,
+        'custom_domains' => 1,
+      }.freeze
+
       # Serializes organization data from view variables
       #
       # @param view_vars [Hash] The view variables containing organization info
@@ -61,6 +70,7 @@ module Core
         # @param cust [Onetime::Customer] Current user for role calculation
         # @return [Hash] Serialized organization data
         def serialize_organization(org, cust)
+          entitlements, limits = plan_derived_fields(org)
           {
             'objid' => org.objid,
             'extid' => org.extid,
@@ -68,9 +78,63 @@ module Core
             'is_default' => org.is_default || false,
             'planid' => org.planid,
             'current_user_role' => determine_user_role(org, cust),
-            'entitlements' => org.entitlements,
-            'limits' => serialize_limits(org),
+            'entitlements' => entitlements,
+            'limits' => limits,
           }
+        end
+
+        # Resolve entitlements and limits for the bootstrap payload
+        #
+        # Both readers fail closed (Billing::PlanCacheMissError) when the
+        # org's planid resolves from neither the plan cache nor billing.yaml.
+        # Degrade to free tier at this read edge only — the model raise must
+        # stay so enforcement paths (require_entitlement!) remain fail-closed,
+        # but a bootstrap read raising takes login down with a 503.
+        #
+        # @param org [Onetime::Organization] Organization
+        # @return [Array(Array<String>, Hash)] Entitlements and limits
+        def plan_derived_fields(org)
+          [org.entitlements, serialize_limits(org)]
+        rescue StandardError => ex
+          # Match by name: builds without the billing app never define (or
+          # raise) the error class, and a bare rescue would NameError here.
+          raise unless defined?(::Billing::PlanCacheMissError) && ex.is_a?(::Billing::PlanCacheMissError)
+
+          OT.le "[OrganizationSerializer] Plan catalog unavailable, degrading to free tier: plan=#{org.planid} org=#{org.extid}"
+          [
+            Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS.dup,
+            free_tier_fallback_limits,
+          ]
+        end
+
+        # Free-tier limits for the degraded bootstrap payload
+        #
+        # Resolves free_v1 from billing config when possible (config loading
+        # rescues internally, so this returns nil rather than raising), with
+        # FALLBACK_FREE_TIER_LIMITS literals per missing key. Same shape as
+        # serialize_limits: integers, -1 for unlimited.
+        #
+        # @return [Hash] Normalized limits
+        def free_tier_fallback_limits
+          config_limits =
+            if defined?(::Billing::Plan)
+              (::Billing::Plan.load_from_config('free_v1') || {})[:limits] || {}
+            else
+              {}
+            end
+
+          FALLBACK_FREE_TIER_LIMITS.to_h do |key, default|
+            val        = config_limits["#{key}.max"]
+            normalized =
+              if val.nil?
+                default
+              elsif val == 'unlimited'
+                -1
+              else
+                val.to_i
+              end
+            [key, normalized]
+          end
         end
 
         # Limits for the bootstrap payload, matching the safe_dump shape
