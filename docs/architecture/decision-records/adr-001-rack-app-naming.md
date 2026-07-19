@@ -1,11 +1,16 @@
 ---
 id: 001
-status: accepted
+status: deprecated
 title: ADR-001: Naming and Separation of Rack Applications
 ---
 
 ## Status
-Accepted
+Deprecated
+
+Deprecated 2026-07-19 — no longer relevant; kept for history. Its `lib/`
+dependency-rules example referenced `lib/chimera.rb` for mustache
+compatibility; both that file and the `mustache` gem dependency have since
+been removed.
 
 ## Date
 2025-10-08

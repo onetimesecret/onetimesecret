@@ -42,7 +42,7 @@ gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-proxy', '~> 0.7'
 gem 'rack-session', '~> 2.1.2'
-gem 'rack-utf8_sanitizer'
+gem 'rack-utf8_sanitizer', '~> 1.11'
 
 # ====================================
 # Data Processing & Utilities
@@ -59,14 +59,13 @@ gem 'dry-cli', '~> 1.2'
 gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
-gem 'mustache'
-gem 'public_suffix'
-gem 'sanitize'
+gem 'public_suffix', '~> 7.0'
+gem 'sanitize', '~> 7.0'
 gem 'semantic_logger', '~> 4.17'
 gem 'tilt'
 
 # Email validation
-gem 'truemail'
+gem 'truemail', '~> 3.3'
 
 # ====================================
 # Database & DB Tools

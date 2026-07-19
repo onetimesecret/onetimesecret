@@ -193,7 +193,6 @@ GEM
     minitest (5.27.0)
     multi_xml (0.9.1)
       bigdecimal (>= 3.1, < 5)
-    mustache (1.1.2)
     net-http (0.9.1)
       uri (>= 0.11.1)
     net-imap (0.6.4.1)
@@ -629,7 +628,6 @@ DEPENDENCIES
   lettermint (~> 0.2.0)
   logger
   mail
-  mustache
   omniauth-entra-id (~> 3.1)
   omniauth-github (~> 2.0)
   omniauth-google-oauth2 (~> 1.2)
@@ -638,7 +636,7 @@ DEPENDENCIES
   passforge (~> 1.1)
   pg (~> 1.6)
   psych (~> 5.2.3)
-  public_suffix
+  public_suffix (~> 7.0)
   puma (>= 6.0, < 8.0)
   rack (>= 3.2.6, < 4.0)
   rack-contrib (~> 2.5.0)
@@ -646,7 +644,7 @@ DEPENDENCIES
   rack-proxy (~> 0.7)
   rack-session (~> 2.1.2)
   rack-test
-  rack-utf8_sanitizer
+  rack-utf8_sanitizer (~> 1.11)
   rackup
   rbnacl (~> 7.1, >= 7.1.1)
   rdoc
@@ -672,7 +670,7 @@ DEPENDENCIES
   rubocop-thread_safety
   ruby-lsp (~> 0.26.9)
   rufus-scheduler (~> 3.9)
-  sanitize
+  sanitize (~> 7.0)
   semantic_logger (~> 4.17)
   sendgrid-ruby
   sentry-ruby
@@ -687,7 +685,7 @@ DEPENDENCIES
   syntax_tree
   tilt
   timecop (~> 0.9)
-  truemail
+  truemail (~> 3.3)
   tryouts (~> 3.7.1)
   uri-valkey (~> 1.4.0)
   vcr (~> 6.0)
