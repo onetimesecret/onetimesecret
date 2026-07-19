@@ -20,11 +20,17 @@
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
-# - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
-# - AUTHENTICATION_MODE=full
+# - AUTHENTICATION_MODE=simple (login_as creates a Valkey-backed Customer
+#   with a passphrase; full mode routes /auth/login through Rodauth, which
+#   has no matching account row, so every login 401s)
 #
 # RUN:
-#   source .env.test && pnpm run test:rspec apps/api/domains/spec/integration/domain_signup_config_spec.rb
+#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec apps/api/domains/spec/integration/domain_signup_config_spec.rb
+#
+# NOTE: this file sits at spec/integration/ root (no mode subdirectory), so
+# the rake spec:integration:<mode> lanes — which glob
+# apps/*/*/spec/integration/<mode> — do not pick it up, and spec:apps:*
+# excludes integration/. It currently runs only when invoked directly.
 #
 # =============================================================================
 
@@ -695,12 +701,30 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         login_as(test_owner)
       end
 
-      it 'returns 404' do
+      # Unconfigured is a first-class state (ADR-024): 200 with record: null,
+      # not 404, so the settings UI can render the inherited global state.
+      it 'returns 200 with a null record' do
         json_get api_path(test_custom_domain.extid)
 
-        expect(last_response.status).to eq(404)
+        expect(last_response.status).to eq(200)
+
         body = json_body
-        expect(body['error']).to include('Signup configuration not found')
+        expect(body).to have_key('record')
+        expect(body['record']).to be_nil
+      end
+
+      # #3814: custom domains are default-OFF opt-in for signup. An
+      # unconfigured domain must read effective_enabled: false even while the
+      # canonical site's signup is globally enabled (signup: true in
+      # spec/config.test.yaml) — same authority as the runtime POST gate and
+      # the masthead serializer.
+      it 'reports effective_enabled false while global signup is enabled' do
+        json_get api_path(test_custom_domain.extid)
+
+        details = json_body['details']
+        expect(details).not_to be_nil
+        expect(details['global_enabled']).to be true
+        expect(details['effective_enabled']).to be false
       end
     end
 
