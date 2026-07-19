@@ -84,6 +84,10 @@ export function resolveGlobalMethodAvailability(): GlobalMethodAvailability {
  * actually runs, and the first explicit write materializes this snapshot
  * plus the user's change — never static defaults that could silently flip
  * unrelated behavior.
+ *
+ * When `details` is absent (older backend / missing payload), signin seeds
+ * OFF: custom domains are default-off opt-in (#3814), so false is the safe
+ * fallback — matching useSignupConfig.
  */
 function createSeededFormState(
   details: SigninConfigDetails | null,
@@ -91,7 +95,7 @@ function createSeededFormState(
 ): SigninConfigFormState {
   return {
     enabled: false,
-    signin_enabled: details?.effective_enabled ?? true,
+    signin_enabled: details?.effective_enabled ?? false,
     restrict_to: details?.global_restrict_to ?? null,
     email_auth_enabled: methods.email_auth,
     sso_enabled: methods.sso,
