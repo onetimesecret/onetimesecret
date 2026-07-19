@@ -106,6 +106,7 @@ support/schemas/
 Procfile.*
 !Procfile*.example
 !Procfile.production
+onetimesecret_*
 
 # Auto-generated files
 src/auto-imports.d.ts
