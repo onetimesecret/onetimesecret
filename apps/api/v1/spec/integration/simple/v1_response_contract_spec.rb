@@ -1,4 +1,4 @@
-# apps/api/v1/spec/integration/v1_response_contract_spec.rb
+# apps/api/v1/spec/integration/simple/v1_response_contract_spec.rb
 #
 # frozen_string_literal: true
 
@@ -15,7 +15,7 @@
 #
 # Run:
 #   pnpm run test:database:start
-#   pnpm run test:rspec apps/api/v1/spec/integration/v1_response_contract_spec.rb
+#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec apps/api/v1/spec/integration/simple/v1_response_contract_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'integration', 'integration_spec_helper')
 

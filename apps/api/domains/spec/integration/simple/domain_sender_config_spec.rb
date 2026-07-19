@@ -1,4 +1,4 @@
-# apps/api/domains/spec/integration/domain_sender_config_spec.rb
+# apps/api/domains/spec/integration/simple/domain_sender_config_spec.rb
 #
 # frozen_string_literal: true
 
@@ -22,11 +22,12 @@
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
-# - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
-# - AUTHENTICATION_MODE=full
+# - AUTHENTICATION_MODE=simple (login_as creates a Valkey-backed Customer
+#   with a passphrase; full mode routes /auth/login through Rodauth, which
+#   has no matching account row, so every login 401s)
 #
 # RUN:
-#   source .env.test && pnpm run test:rspec apps/api/domains/spec/integration/domain_sender_config_spec.rb
+#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec apps/api/domains/spec/integration/simple/domain_sender_config_spec.rb
 #
 # =============================================================================
 

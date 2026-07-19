@@ -130,5 +130,5 @@ Frontend:
 
 Tests:
 - `try/unit/models/custom_domain_auth_killswitch_try.rb` — resolver truth table (kill switch, narrowing, inherit)
-- `apps/api/domains/spec/integration/domain_signup_config_spec.rb` — settings API contract
+- `apps/api/domains/spec/integration/simple/domain_signup_config_spec.rb` — settings API contract
 - `src/tests/composables/useSigninConfig.spec.ts`, `src/tests/apps/workspace/components/domains/DomainSigninConfigForm.spec.ts` — seeding + materialization

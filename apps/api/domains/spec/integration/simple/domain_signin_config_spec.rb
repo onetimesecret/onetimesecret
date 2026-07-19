@@ -1,4 +1,4 @@
-# apps/api/domains/spec/integration/domain_signin_config_spec.rb
+# apps/api/domains/spec/integration/simple/domain_signin_config_spec.rb
 #
 # frozen_string_literal: true
 
@@ -28,11 +28,13 @@
 #   has no matching account row, so every login 401s)
 #
 # RUN:
-#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec apps/api/domains/spec/integration/domain_signin_config_spec.rb
+#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec apps/api/domains/spec/integration/simple/domain_signin_config_spec.rb
 #
-# NOTE: like its siblings in this directory, this file has no mode
-# subdirectory, so the rake spec:integration:<mode> lanes do not pick it up.
-# It currently runs only when invoked directly.
+# NOTE: living under integration/simple/ puts this file in the rake
+# spec:integration:simple lane (glob apps/*/*/spec/integration/simple), which
+# CI runs in the blocking ruby-integration-simple job. The path also derives
+# the :simple_auth_mode tag (spec/spec_helper.rb), pinning the simple-mode
+# mock auth config.
 #
 # =============================================================================
 
