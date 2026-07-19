@@ -1,16 +1,11 @@
 ---
 id: 001
-status: deprecated
+status: accepted
 title: ADR-001: Naming and Separation of Rack Applications
 ---
 
 ## Status
-Deprecated
-
-Deprecated 2026-07-19 — no longer relevant; kept for history. Its `lib/`
-dependency-rules example referenced `lib/chimera.rb` for mustache
-compatibility; both that file and the `mustache` gem dependency have since
-been removed.
+Accepted
 
 ## Date
 2025-10-08
@@ -91,6 +86,16 @@ This ADR is accepted for implementation targeting release 0.23. As of 2025-10-10
 ### lib/ Dependency Rules
 Code organization follows a strict dependency hierarchy:
 - `lib/onetime/` contains project-specific code and may reference anything in `lib/`
-- `lib/` contains potentially extractable code (e.g., `lib/chimera.rb` for mustache compatibility) and must not reference `lib/onetime/`
+- `lib/` contains potentially extractable code (e.g., `lib/middleware/`) and must not reference `lib/onetime/`
 
 This ensures clean extraction paths if/when `lib/` code graduates to separate repositories.
+
+## Amendments
+
+- 2026-07-19 — Names evolved during implementation: the `apps/public`
+  (anonymous) surface shipped as `apps/internal`; authenticated and core
+  surfaces consolidated under `apps/web` (`core`, `auth`, `billing`);
+  `apps/api` (v1/v2) is intact. The separation decision stands — only the
+  directory vocabulary changed. The former `lib/chimera.rb` mustache-compat
+  example was removed along with the unused `mustache` gem; `lib/middleware/`
+  now illustrates the extractable-`lib/` rule.
