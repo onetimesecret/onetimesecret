@@ -112,7 +112,7 @@ function createSeededFormState(
 function configToFormState(config: CustomDomainSigninConfig): SigninConfigFormState {
   return {
     enabled: config.enabled,
-    signin_enabled: config.signin_enabled ?? true,
+    signin_enabled: config.signin_enabled ?? false,
     restrict_to: config.restrict_to ?? null,
     email_auth_enabled: config.email_auth_enabled ?? false,
     sso_enabled: config.sso_enabled ?? false,
