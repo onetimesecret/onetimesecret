@@ -510,6 +510,7 @@ export const bootstrapSchema = z.object({
   site_host: z.string().default(''),
   support_email: z.string().default(''),
   support_host: z.string().default(''),
+  checkout_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
 

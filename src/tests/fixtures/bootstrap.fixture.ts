@@ -63,6 +63,7 @@ export const baseBootstrap: BootstrapPayload = {
   frontend_host: 'https://test.onetimesecret.com',
   site_host: 'test.onetimesecret.com',
   support_host: 'support.onetimesecret.com',
+  checkout_host: 'pay.onetimesecret.com',
 
   // Test locales
   supported_locales: ['en', 'es', 'fr', 'de'],
