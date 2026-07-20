@@ -77,8 +77,12 @@ module Onetime
 
     # Stripe custom Checkout domain host (bare host, no scheme).
     # Empty/nil unless a Stripe "custom domain" is configured for Checkout.
+    #
+    # Checks ENV['STRIPE_CHECKOUT_HOST'] first, then falls back to config file,
+    # mirroring stripe_key. This keeps the host available even when billing.yaml
+    # is absent (the deployment contract sets STRIPE_CHECKOUT_HOST directly).
     def checkout_host
-      config['checkout_host']
+      ENV.fetch('STRIPE_CHECKOUT_HOST', nil) || config['checkout_host']
     end
 
     # Schema version

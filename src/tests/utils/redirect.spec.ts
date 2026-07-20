@@ -277,4 +277,30 @@ describe('isAllowedCheckoutUrl', () => {
     expect(isAllowedCheckoutUrl(undefined)).toBe(false);
     expect(isAllowedCheckoutUrl('not-a-url')).toBe(false);
   });
+
+  describe('setAllowedCheckoutHost input validation', () => {
+    it('tolerates surrounding whitespace on the configured host', () => {
+      // env/helm values commonly carry stray spaces; they must not silently
+      // clear the host and reintroduce the checkout regression.
+      setAllowedCheckoutHost('  pay.onetimesecret.com  ');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(true);
+    });
+
+    it('rejects a host carrying userinfo instead of selecting the authority', () => {
+      // "pay.onetimesecret.com@evil.example" parses to origin https://evil.example.
+      setAllowedCheckoutHost('pay.onetimesecret.com@evil.example');
+      expect(isAllowedCheckoutUrl('https://evil.example/c/pay/cs')).toBe(false);
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+    });
+
+    it('rejects a host that includes a path', () => {
+      setAllowedCheckoutHost('pay.onetimesecret.com/evil');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+    });
+
+    it('rejects a value that already includes a scheme', () => {
+      setAllowedCheckoutHost('https://pay.onetimesecret.com');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+    });
+  });
 });

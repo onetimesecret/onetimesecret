@@ -117,19 +117,37 @@ let configuredCheckoutOrigin: string | null = null;
 /**
  * Register this deployment's Stripe custom-domain Checkout host (bare host,
  * e.g. "pay.onetimesecret.com"), sourced from the bootstrap `checkout_host`
- * config. Call once at app init. Empty/invalid clears it. Enables
+ * config. Call once at app init. Empty/invalid input clears it. Enables
  * isAllowedCheckoutUrl to accept live-mode Checkout URLs served from the
  * account's Stripe custom domain without hardcoding the host.
+ *
+ * Input must be a bare host (optionally `host:port`). Surrounding whitespace is
+ * tolerated (env/helm values often carry it). Anything else — userinfo, a path,
+ * a query/fragment, or an embedded scheme — is rejected rather than coerced,
+ * because `new URL()` silently absorbs those components and could yield an
+ * unintended origin (e.g. "pay.example.com@evil.example" → "https://evil.example",
+ * or "https://pay.example.com" → host "https"). Rejection fails closed.
  */
 export function setAllowedCheckoutHost(host: string | undefined | null): void {
-  if (!host) {
-    configuredCheckoutOrigin = null;
-    return;
-  }
+  // Default to cleared; only a well-formed bare host re-enables the origin.
+  configuredCheckoutOrigin = null;
+  if (!host) return;
+
+  const trimmed = host.trim();
+  if (!trimmed) return;
+
   try {
-    configuredCheckoutOrigin = new URL(`https://${host}`).origin;
+    const url = new URL(`https://${trimmed}`);
+    const isBareHost =
+      url.username === '' &&
+      url.password === '' &&
+      url.pathname === '/' &&
+      url.search === '' &&
+      url.hash === '' &&
+      url.host === trimmed.toLowerCase(); // url.host includes any non-default port
+    if (isBareHost) configuredCheckoutOrigin = url.origin;
   } catch {
-    configuredCheckoutOrigin = null;
+    // Unparseable host — leave cleared.
   }
 }
 
