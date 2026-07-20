@@ -75,6 +75,12 @@ module Onetime
       config['stripe_api_version']
     end
 
+    # Stripe custom Checkout domain host (bare host, no scheme).
+    # Empty/nil unless a Stripe "custom domain" is configured for Checkout.
+    def checkout_host
+      config['checkout_host']
+    end
+
     # Schema version
     def schema_version
       config['schema_version']
