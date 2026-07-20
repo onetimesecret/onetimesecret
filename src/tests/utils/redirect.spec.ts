@@ -1,7 +1,11 @@
 // src/tests/utils/redirect.spec.ts
 
-import { validateRedirect } from '@/utils/redirect';
-import { beforeEach, describe, expect, it } from 'vitest';
+import {
+  isAllowedCheckoutUrl,
+  setAllowedCheckoutHost,
+  validateRedirect,
+} from '@/utils/redirect';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 describe('validateRedirect', () => {
   beforeEach(() => {
@@ -180,5 +184,97 @@ describe('validateRedirect', () => {
       // Invalid properties should still fail
       expect(validateRedirect({ path: '/profile', query: '<script>' })).toBe(true);
     });
+  });
+});
+
+describe('isAllowedCheckoutUrl', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: { origin: 'https://onetimesecret.com' },
+      writable: true,
+    });
+  });
+
+  afterEach(() => {
+    // Reset the module-level configured host so state doesn't leak between tests.
+    setAllowedCheckoutHost(null);
+  });
+
+  it('allows the shared Stripe Checkout host', () => {
+    expect(isAllowedCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(true);
+  });
+
+  it('allows the current app origin', () => {
+    expect(isAllowedCheckoutUrl('https://onetimesecret.com/billing/welcome')).toBe(true);
+  });
+
+  it('rejects an unrelated host', () => {
+    expect(isAllowedCheckoutUrl('https://evil.example.com/c/pay/cs')).toBe(false);
+  });
+
+  describe('when no custom checkout host is configured', () => {
+    it('rejects the Stripe custom-domain host (not hardcoded)', () => {
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs_test_123')).toBe(
+        false
+      );
+    });
+
+    it('still allows the shared Stripe host and the app origin', () => {
+      expect(isAllowedCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(
+        true
+      );
+      expect(isAllowedCheckoutUrl('https://onetimesecret.com/billing/welcome')).toBe(true);
+    });
+  });
+
+  describe('when a custom checkout host is configured', () => {
+    beforeEach(() => {
+      setAllowedCheckoutHost('pay.onetimesecret.com');
+    });
+
+    it('allows the configured Stripe custom-domain Checkout host', () => {
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs_test_123')).toBe(
+        true
+      );
+    });
+
+    it('still allows the static baseline and same-origin', () => {
+      expect(isAllowedCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(
+        true
+      );
+      expect(isAllowedCheckoutUrl('https://onetimesecret.com/billing/welcome')).toBe(true);
+    });
+
+    it('still rejects lookalike siblings of the configured host', () => {
+      expect(isAllowedCheckoutUrl('https://not-pay.onetimesecret.com.evil.com/')).toBe(
+        false
+      );
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com.evil.com/')).toBe(false);
+      expect(isAllowedCheckoutUrl('https://checkout.stripe.com.evil.com/')).toBe(false);
+    });
+  });
+
+  it('clears the configured host when set to empty or null', () => {
+    setAllowedCheckoutHost('pay.onetimesecret.com');
+    expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(true);
+
+    setAllowedCheckoutHost('');
+    expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+
+    setAllowedCheckoutHost('pay.onetimesecret.com');
+    setAllowedCheckoutHost(null);
+    expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+  });
+
+  it('does not allow a wildcard sibling of an allowlisted host', () => {
+    expect(isAllowedCheckoutUrl('https://not-pay.onetimesecret.com.evil.com/')).toBe(false);
+    expect(isAllowedCheckoutUrl('https://checkout.stripe.com.evil.com/')).toBe(false);
+  });
+
+  it('rejects empty, null, and unparseable input', () => {
+    expect(isAllowedCheckoutUrl('')).toBe(false);
+    expect(isAllowedCheckoutUrl(null)).toBe(false);
+    expect(isAllowedCheckoutUrl(undefined)).toBe(false);
+    expect(isAllowedCheckoutUrl('not-a-url')).toBe(false);
   });
 });

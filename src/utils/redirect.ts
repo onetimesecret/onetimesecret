@@ -101,6 +101,39 @@ function validatePathString(path: string): boolean {
 }
 
 /**
+ * Static baseline allowlist for checkout origins.
+ *
+ * Contains only the shared Stripe Checkout host. When a Stripe "custom domain"
+ * is configured on the account, its host is NOT hardcoded here — it is supplied
+ * at runtime from the bootstrap `checkout_host` config via
+ * setAllowedCheckoutHost(). See isAllowedCheckoutUrl.
+ *
+ * Do NOT loosen these to a wildcard `*.stripe.com` or `*.onetimesecret.com`.
+ */
+const CHECKOUT_ALLOWED_ORIGINS = ['https://checkout.stripe.com'] as const;
+
+let configuredCheckoutOrigin: string | null = null;
+
+/**
+ * Register this deployment's Stripe custom-domain Checkout host (bare host,
+ * e.g. "pay.onetimesecret.com"), sourced from the bootstrap `checkout_host`
+ * config. Call once at app init. Empty/invalid clears it. Enables
+ * isAllowedCheckoutUrl to accept live-mode Checkout URLs served from the
+ * account's Stripe custom domain without hardcoding the host.
+ */
+export function setAllowedCheckoutHost(host: string | undefined | null): void {
+  if (!host) {
+    configuredCheckoutOrigin = null;
+    return;
+  }
+  try {
+    configuredCheckoutOrigin = new URL(`https://${host}`).origin;
+  } catch {
+    configuredCheckoutOrigin = null;
+  }
+}
+
+/**
  * Validates that a checkout URL is safe to navigate to via `window.location`.
  *
  * Security (M-9): `checkout_url` is API-derived and assigned directly to
@@ -110,18 +143,28 @@ function validatePathString(path: string): boolean {
  * (isValidInternalPath, validateRedirect, validateUrl) only permit same-origin
  * internal targets, so an external-host allowlist requires this dedicated helper.
  *
- * The host allowlist is intentionally exact — Stripe Checkout is served only
- * from `checkout.stripe.com`; do not loosen to a wildcard `*.stripe.com`.
+ * The host allowlist is intentionally exact. Accepted origins are:
+ *   1. the static baseline: the shared `checkout.stripe.com` host,
+ *   2. the current app origin (same-origin), and
+ *   3. this deployment's runtime-configured Stripe custom-domain Checkout host,
+ *      seeded once at app init from the bootstrap `checkout_host` config via
+ *      setAllowedCheckoutHost() (e.g. `pay.onetimesecret.com`).
+ *
+ * Do NOT loosen to a wildcard `*.stripe.com` or `*.onetimesecret.com`.
  *
  * @param url - The checkout URL to validate
- * @returns true only when the URL parses and its origin is the Stripe Checkout
- *          host or the current origin
+ * @returns true only when the URL parses and its origin is an allowlisted
+ *          Stripe Checkout host, the current origin, or the configured host
  */
 export function isAllowedCheckoutUrl(url: string | undefined | null): url is string {
   if (!url || typeof url !== 'string') return false;
   try {
     const { origin } = new URL(url);
-    return origin === 'https://checkout.stripe.com' || origin === window.location.origin;
+    return (
+      (CHECKOUT_ALLOWED_ORIGINS as readonly string[]).includes(origin) ||
+      origin === window.location.origin ||
+      (configuredCheckoutOrigin !== null && origin === configuredCheckoutOrigin)
+    );
   } catch {
     return false;
   }
