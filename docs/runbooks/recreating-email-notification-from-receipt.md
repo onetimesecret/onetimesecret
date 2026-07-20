@@ -1,8 +1,6 @@
-# docs/runbooks/recreating-email-notification-from-receipt.md
+# Recreating an email notification from a receipt
 
-created: 2026-07-20
-
----
+_Created: 2026-07-20_
 
 ## Follow-up improvements
 
@@ -163,7 +161,7 @@ share_domain: s.share_domain,
 recipient: r.recipients,
 memo: r.memo,
 has_passphrase: r.has_passphrase?,
-locale: OT.default_locale, # originored on the receipt
+locale: OT.default_locale, # original locale not stored on the receipt
 },
 domain_id: r.domain_id,
 )
@@ -172,11 +170,11 @@ puts "re-enqueued #{r.shortid} -> #{OT::Utils.obscure_email(r.recipients)}"
 end
 puts "Re-enqueued #{sent} notifications"
 
-This pushes them onto email.message.send; the workeatch them drain:
+This pushes them onto email.message.send; the workers deliver them — watch them drain:
 
 podman exec <container> bin/ots queue status
 
 Notes
 
 - The payload mirrors create_incoming_secret.rb:292 exactly, with two substitutions: secret_key/share_domain come from the reloaded secret, and locale falls back to OT.default_locale because the original request locale isn't persisted on the receipt (recipients get the default-language email — cosmetic only).
-- If instances scoring turns out not to be created he dry-run's printed created= timestamps will lookwrong (outside your window) — that's your signal to tell me and I'll switch the enumerator to expiration_timeline ranged by created + ttl instead.
+- If instances scoring turns out not to be created, the dry-run's printed created= timestamps will look wrong (outside your window) — that's your signal to tell me and I'll switch the enumerator to expiration_timeline ranged by created + ttl instead.
