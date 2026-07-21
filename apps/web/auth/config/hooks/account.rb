@@ -854,19 +854,23 @@ module Auth::Config::Hooks
           if request.env['rack.session.options']
             request.env['rack.session.options'][:renew] = true
 
+            # One Customer load drives both the watermark read and the stale-sid
+            # index cleanup below. A blank custid (or a miss) yields nil, and the
+            # `&.` chains degrade every use to a no-op — the same fail-secure
+            # outcome the separate `custid` blank-guard gave, without the reload.
+            rotation_customer = Onetime::Customer.load_by_extid_or_email(custid)
+
             # Strictly postdate the watermark UpdatePasswordMetadata just wrote.
             # [now, watermark + 1].max is > watermark under any clock relationship;
             # if the watermark cannot be resolved (0) fall back to now + 1 so the
             # "strictly greater than the real watermark" invariant still holds.
-            watermark                   = Onetime::Customer.load_by_extid_or_email(custid)&.last_password_update.to_i
+            watermark                   = rotation_customer&.last_password_update.to_i
             session['authenticated_at'] =
               watermark.positive? ? [Familia.now.to_i, watermark + 1].max : Familia.now.to_i + 1
 
             unless current_sid.to_s.empty?
               Onetime::SessionMetadata.load(current_sid)&.destroy!
-              unless custid.to_s.strip.empty?
-                Onetime::Customer.load_by_extid_or_email(custid)&.active_sessions&.remove(current_sid)
-              end
+              rotation_customer&.active_sessions&.remove(current_sid)
             end
           else
             # rack.session.options absent → Rack's renew lever is unavailable, so

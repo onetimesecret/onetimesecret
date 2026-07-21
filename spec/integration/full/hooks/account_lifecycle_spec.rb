@@ -527,21 +527,23 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         it 'logs :session_rotation_FAILED at error and still succeeds when the rotation block raises' do
           # rack.session.options IS present (normal request), so the hook enters
-          # the rotation branch and requests :renew; forcing SessionMetadata.load
-          # to raise trips the rotation rescue AFTER :renew + the watermark
-          # re-stamp, so the change still commits (fail-open, but loud). The same
-          # stub raises inside TrackMetadata during the commit, but that operation
-          # swallows its own exception, so it does not surface as a 500.
-          allow(Onetime::SessionMetadata).to receive(:load)
-            .and_raise(StandardError.new('boom'))
+          # the rotation branch and requests :renew, then tidies the PRE-rotation
+          # sid by calling destroy! on its sidecar. Raise from THAT destroy! — the
+          # one call unique to the rotation block — so the failure lands in the
+          # rotation rescue AFTER :renew + the watermark re-stamp and the change
+          # still commits (fail-open, but loud). TrackMetadata only ever load+saves
+          # (never destroy!), so this injects NO error into it: the test does not
+          # depend on TrackMetadata swallowing anything to avoid a 500.
+          old_sid    = current_cookie_sid
+          stale_meta = Onetime::SessionMetadata.load(old_sid)
+          expect(stale_meta).not_to be_nil
+          allow(stale_meta).to receive(:destroy!).and_raise(StandardError.new('boom'))
+          allow(Onetime::SessionMetadata).to receive(:load).and_call_original
+          allow(Onetime::SessionMetadata).to receive(:load).with(old_sid).and_return(stale_meta)
           allow(Auth::Logging).to receive(:log_auth_event).and_call_original
-
           change_password
-
-          expect(last_response.status).to eq(200),
-            "Expected change to still succeed but got #{last_response.status}: #{last_response.body[0..500]}"
-          expect(Auth::Logging).to have_received(:log_auth_event)
-            .with(:session_rotation_FAILED, hash_including(level: :error))
+          expect(last_response.status).to eq(200), "change should still succeed, got #{last_response.status}: #{last_response.body[0..300]}"
+          expect(Auth::Logging).to have_received(:log_auth_event).with(:session_rotation_FAILED, hash_including(level: :error))
         end
       end
     end
