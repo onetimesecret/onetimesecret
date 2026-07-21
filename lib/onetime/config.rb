@@ -683,7 +683,16 @@ module Onetime
       # return so the provenance record always exists.
       brand_at_entry         = conf['brand'] || {}
       operator_keys          = BRAND_MANIFEST_KEYS.reject { |key| brand_at_entry[key].nil? }
-      conf['brand_manifest'] = { 'operator_keys' => operator_keys }
+      # absorbed_keys is filled below with the keys actually taken FROM the pack
+      # manifest (positive pack provenance). The diagnostic's mount-race detector
+      # (#3822) unions it with the keys on disk NOW so a key that was in brand.yaml
+      # at boot but has since been REMOVED — lingering in the frozen conf, absent
+      # from a live disk re-read — is still caught (#8). Same array object as the
+      # hash value, so the `absorbed_keys << key` appends below are visible through
+      # conf['brand_manifest']; it is frozen read-only with the rest of conf at
+      # deep_freeze. Initialized before every early return so the record always exists.
+      absorbed_keys          = []
+      conf['brand_manifest'] = { 'operator_keys' => operator_keys, 'absorbed_keys' => absorbed_keys }
 
       dir = Onetime.resolve_brand_pack_dir(
         brand_assets_dir: conf.dig('site', 'brand_assets_dir'),
@@ -716,7 +725,8 @@ module Onetime
         value = value.strip
         next if value.empty?
 
-        brand[key] = value
+        brand[key]      = value
+        absorbed_keys << key
       end
     rescue StandardError => ex
       # A malformed pack manifest must never abort boot — it is an optional,
