@@ -61,6 +61,23 @@ module Onetime
       # self-expire within the 24h blob TTL. Default stays TRUE so offboarding/colonel
       # callers keep the full sweep.
       #
+      # ## +honor_credential_watermark:+ — the async sweep must not kill fresh sessions
+      #
+      # The async full sweep (#3810) runs SECONDS after the credential change, not
+      # inside it. By the time the worker picks up the message, sessions
+      # authenticated AFTER the change legitimately exist: the rotated current
+      # session, or a fresh post-reset login. Killing those would log the user
+      # straight back out of the session the credential change just established.
+      # With the flag on, `Customer#last_password_update` acts as a watermark:
+      # any blob whose `authenticated_at` is STRICTLY AFTER it is SPARED (blob,
+      # sidecar, and index entry all kept, like the preserved current session). A
+      # blob authenticated exactly AT the watermark is a same-second pre-change
+      # session and is REVOKED, mirroring the auth-time `<=` rejection. A blob with
+      # a missing/nil `authenticated_at` coerces to 0 and is deleted whenever a
+      # watermark is in force — fail-secure, since only a stale legacy blob lacks
+      # the stamp. The flag defaults to FALSE (byte-for-byte historic behavior),
+      # and a nil/empty/zero `last_password_update` degrades to the same.
+      #
       # The preserved session's blob, sidecar, and index entry are left fully intact.
       #
       # Stateless, single `#call`, returns an immutable {Result}. Best-effort by
@@ -90,14 +107,20 @@ module Onetime
         #   sweep (mechanism b). Default TRUE. The password hooks pass FALSE to keep
         #   the SCAN + per-candidate decrypt out of Rodauth's open SQL transaction;
         #   the guaranteed tracked kill (a) is unaffected either way.
+        # @param honor_credential_watermark [Boolean] spare blobs authenticated
+        #   STRICTLY AFTER `Customer#last_password_update` (see class docs). Default
+        #   FALSE. The async sweep worker passes TRUE; with a nil/empty/zero
+        #   watermark the flag degrades to the unguarded revoke.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(custid:, except_session_id: nil, scan_untracked: true, dbclient: nil)
-          @custid            = custid
+        def initialize(custid:, except_session_id: nil, scan_untracked: true,
+                       honor_credential_watermark: false, dbclient: nil)
+          @custid                     = custid
           # Normalize to a string so the `sid == @except_session_id` guards are
           # type-stable; nil becomes '' which no real sid ever equals → revoke ALL.
-          @except_session_id = except_session_id.to_s
-          @scan_untracked    = scan_untracked
-          @dbclient          = dbclient
+          @except_session_id          = except_session_id.to_s
+          @scan_untracked             = scan_untracked
+          @honor_credential_watermark = honor_credential_watermark
+          @dbclient                   = dbclient
         end
 
         # @return [Result]
@@ -107,20 +130,26 @@ module Onetime
 
           return zero_result if customer.nil?
 
+          # 0 when the caller didn't opt in OR the customer has no usable stamp —
+          # both degrade to the historic unguarded revoke (see class docs).
+          watermark = credential_watermark(customer)
+
           # Snapshot the index BEFORE we tidy it — drives the guaranteed kill and
           # the tracked/untracked classification.
           tracked     = customer.active_sessions.revrange(0, -1)
           tracked_set = tracked.to_set
 
-          # (a) GUARANTEED: delete each tracked blob directly, skipping current.
-          tracked_deleted                = purge_tracked(db, tracked)
+          # (a) GUARANTEED: delete each tracked blob directly, skipping current
+          #     and (when a watermark is active) post-credential-change sessions.
+          tracked_deleted, spared        = purge_tracked(db, tracked, watermark)
           # (b) BEST-EFFORT: sweep the keyspace for untracked blobs, skipping current.
           #     Gated by scan_untracked so the password hooks can keep this SCAN out
           #     of the open SQL transaction (see class docs).
           untracked_deleted, scan_capped =
-            @scan_untracked ? purge_untracked(db, customer, tracked_set) : [0, false]
-          # (c) Tidy metadata for the sessions we actually revoked (never current).
-          tidy_sidecars(customer, tracked)
+            @scan_untracked ? purge_untracked(db, customer, tracked_set, watermark) : [0, false]
+          # (c) Tidy metadata for the sessions we actually revoked (never current,
+          #     never the watermark-spared ones — those stay fully tracked).
+          tidy_sidecars(customer, tracked, spared)
 
           Result.new(
             revoked: true,
@@ -137,21 +166,34 @@ module Onetime
         end
 
         # GUARANTEED kill: delete each tracked sid's live blob directly, EXCEPT the
-        # preserved current session. The sids are, by construction, this customer's,
-        # so no identity check is needed. Exact + uncapped. Returns the count that
-        # had a live blob and was deleted.
+        # preserved current session and any blob the credential watermark spares.
+        # The sids are, by construction, this customer's, so no identity check is
+        # needed. Exact + uncapped. The per-blob GET + decrypt happens ONLY when a
+        # watermark is active, so the default path stays byte-for-byte the historic
+        # delete. Returns [deleted_count, spared_sids].
         #
-        # @return [Integer]
-        def purge_tracked(db, tracked)
-          tracked.count do |sid|
+        # @return [Array(Integer, Array<String>)]
+        def purge_tracked(db, tracked, watermark)
+          codec   = watermark.positive? ? Onetime::SessionCodec.from_config : nil
+          spared  = []
+          deleted = tracked.count do |sid|
             next false if sid == @except_session_id # keep the current session
 
             key = Store.find_key(db, sid)
             next false unless key
 
+            # Watermark guard (see class docs): a blob authenticated STRICTLY
+            # AFTER the credential change is a legitimate post-change session —
+            # spare it.
+            if watermark.positive? && spared_by_watermark?(Store.load_data(db, key, codec: codec), watermark)
+              spared << sid
+              next false
+            end
+
             db.del(key)
             true
           end
+          [deleted, spared]
         end
 
         # BEST-EFFORT sweep for genuinely UNTRACKED (pre-sidecar) blobs whose identity
@@ -160,7 +202,7 @@ module Onetime
         # before scanning if we cannot identify the target. Returns [count, capped].
         #
         # @return [Array(Integer, Boolean)]
-        def purge_untracked(db, customer, tracked_set)
+        def purge_untracked(db, customer, tracked_set, watermark)
           extid = customer.extid.to_s
           return [0, false] if extid.empty?
 
@@ -176,6 +218,8 @@ module Onetime
             data = Store.load_data(db, key, codec: codec)
             next unless data.is_a?(Hash)
             next unless IDENTITY_FIELDS.any? { |f| data[f].to_s == extid }
+            # Watermark guard (see class docs): spare post-credential-change blobs.
+            next if watermark.positive? && spared_by_watermark?(data, watermark)
 
             db.del(key)
             deleted += 1
@@ -185,15 +229,41 @@ module Onetime
         end
 
         # Destroy the sidecar and drop the index entry for every REVOKED sid (the
-        # current session, if preserved, keeps both). Blobs are already gone; this
-        # only reconciles metadata. Uses per-sid remove (not index clear) so the
-        # preserved session stays tracked.
-        def tidy_sidecars(customer, tracked)
-          revoked = tracked.reject { |sid| sid == @except_session_id }
+        # current session, if preserved, keeps both — as does any watermark-spared
+        # sid, whose session stays fully alive). Blobs are already gone; this only
+        # reconciles metadata. Uses per-sid remove (not index clear) so the
+        # preserved sessions stay tracked.
+        def tidy_sidecars(customer, tracked, spared)
+          spared  = spared.to_set # O(1) membership for the reject below
+          revoked = tracked.reject { |sid| sid == @except_session_id || spared.include?(sid) }
           revoked.each do |sid|
             Onetime::SessionMetadata.load(sid)&.destroy!
             customer.active_sessions.remove(sid)
           end
+        end
+
+        # Resolve the active credential watermark: the customer's
+        # `last_password_update` as a positive epoch-second integer, or 0 when the
+        # caller didn't opt in / the stamp is nil, empty, or non-positive. A zero
+        # return disables the guard entirely (historic unguarded behavior).
+        #
+        # @return [Integer]
+        def credential_watermark(customer)
+          return 0 unless @honor_credential_watermark
+
+          watermark = customer.last_password_update.to_i
+          watermark.positive? ? watermark : 0
+        end
+
+        # Whether a decoded blob is SPARED by an active watermark: authenticated
+        # STRICTLY AFTER the credential change. A blob authenticated exactly at
+        # the watermark is NO LONGER spared (it is revoked); only blobs strictly
+        # after survive — mirroring the auth-time `<=` rejection, so a same-second
+        # pre-change session dies both here and at auth. A missing/nil
+        # `authenticated_at` (or an undecodable blob) coerces to 0 → NOT spared —
+        # fail-secure, since only a stale legacy blob lacks the stamp.
+        def spared_by_watermark?(data, watermark)
+          data.is_a?(Hash) && data['authenticated_at'].to_i > watermark
         end
 
         # Same resolution as the sibling ops: extid → email → objid. nil is tolerated

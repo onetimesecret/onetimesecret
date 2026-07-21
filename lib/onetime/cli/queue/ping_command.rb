@@ -9,7 +9,7 @@
 #   ots queue ping [options]
 #
 # Options:
-#   -q, --queue QUEUE    Test specific queue only (email, billing, notification, transient)
+#   -q, --queue QUEUE    Test specific queue only (email, billing, notification, transient, session-sweep)
 #   -w, --wait SECONDS   Wait for worker response (default: 5)
 #   -n, --dry-run        Show what would be published without sending
 #
@@ -30,7 +30,7 @@ module Onetime
         option :queue,
           type: :string,
           aliases: ['q'],
-          desc: 'Test specific queue: email, billing, notification, transient (default: all)'
+          desc: 'Test specific queue: email, billing, notification, transient, session-sweep (default: all)'
         option :wait,
           type: :integer,
           default: 5,
@@ -48,6 +48,7 @@ module Onetime
           'billing' => 'billing.event.process',
           'notification' => 'notifications.alert.push',
           'transient' => 'system.transient',
+          'session-sweep' => 'session.revoke.sweep',
         }.freeze
 
         def call(queue: nil, wait: 5, dry_run: false, **)
@@ -185,6 +186,14 @@ module Onetime
               action: 'ping',
               ping_id: ping_id,
               timestamp: Time.now.utc.iso8601,
+            }
+          when 'session.revoke.sweep'
+            # Test message for SessionRevocationSweepWorker (custid 'ping.test'
+            # short-circuits before the idempotency claim and the operation)
+            {
+              custid: 'ping.test',
+              ping_id: ping_id,
+              requested_at: Time.now.utc.iso8601,
             }
           else
             { ping_id: ping_id, timestamp: Time.now.utc.iso8601 }

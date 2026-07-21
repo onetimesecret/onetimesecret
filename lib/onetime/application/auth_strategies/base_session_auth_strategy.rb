@@ -57,6 +57,16 @@ module Onetime
           # state — see Auth::Operations::Customers::SetSuspension.
           return failure('[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
 
+          # Credential watermark (#3810): reject any session authenticated before
+          # the customer's last password change/reset. This per-request check —
+          # not the enumerative blob deletion in the password hooks, which is
+          # hygiene — is the authoritative revocation boundary, so even a blob
+          # the hooks never found dies here. See Helpers for the fail-secure /
+          # never-mass-logout semantics.
+          if session_predates_credential_change?(session, cust)
+            return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
+          end
+
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)
           return check_result if check_result.is_a?(Otto::Security::Authentication::AuthFailure)

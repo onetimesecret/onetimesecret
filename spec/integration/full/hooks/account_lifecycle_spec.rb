@@ -300,8 +300,10 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:sessions_revoke_FAILED, hash_including(level: :error, hook: :after_change_password))
 
-        # LOUD: Sentry re-capture attempted.
-        expect(Sentry).to have_received(:capture_exception)
+        # LOUD: Sentry re-capture attempted. at_least(:once) because the #3810
+        # after_commit sweep runs the same (stubbed, raising) op synchronously
+        # when jobs are disabled, producing a second capture via its own rescue.
+        expect(Sentry).to have_received(:capture_exception).at_least(:once)
       end
 
       it 'revokes other sessions and logs :sessions_revoked_on_change on success' do
@@ -328,11 +330,15 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
         )
         fake_op = instance_double(revoke_op.to_s, call: result)
         # Revocation must still run, keyed on the email fallback — not skipped.
+        # at_least(:once) because the #3810 after_commit sweep (jobs disabled →
+        # synchronous fallback) constructs the op a second time, also keyed on
+        # the same email-fallback custid.
         expect(revoke_op).to receive(:new)
-          .with(hash_including(custid: cred_email)).and_return(fake_op)
+          .with(hash_including(custid: cred_email)).at_least(:once).and_return(fake_op)
 
         allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
+        before_change = Familia.now.to_i
         change_password
 
         expect(last_response.status).to eq(200)
@@ -340,6 +346,15 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
           .with(:sessions_revoked_on_change, hash_including(level: :info))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:sessions_revoke_skipped_no_identity, any_args)
+
+        # #3810: the credential watermark stamp must survive a NULL external_id
+        # too — UpdatePasswordMetadata falls back to the account email the same
+        # way the revoke does. Without this, the async sweep runs unguarded and
+        # kills the just-rotated session.
+        customer = find_customer_by_email(cred_email)
+        expect(customer.last_password_update.to_i).to be >= before_change
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:credential_watermark_stamp_FAILED, any_args)
       end
 
       # -----------------------------------------------------------------------
@@ -393,6 +408,143 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
         customer.save
 
         expect(enqueued_password_changed_locale).to eq('fr')
+      end
+
+      # -----------------------------------------------------------------------
+      # #3810: credential watermark + async full sweep + session rotation.
+      #
+      # The in-transaction revoke above runs with scan_untracked: false, so
+      # untracked (pre-sidecar) blobs used to survive until their 24h TTL. The
+      # fix is layered: (1) Customer#last_password_update is the watermark that
+      # session validation rejects stale blobs against (the authoritative
+      # boundary), (2) a db.after_commit hook enqueues an idempotent async FULL
+      # sweep (this rack-test harness commits for real, so after_commit fires
+      # in-request), and (3) the kept session is re-stamped past the watermark
+      # and its sid rotated (session-fixation closure).
+      # -----------------------------------------------------------------------
+      describe 'credential watermark, async sweep, and rotation (#3810)' do
+        def current_cookie_sid
+          rack_mock_session.cookie_jar['onetime.session']
+        end
+
+        # Decrypt the live blob for a sid via the same canonical Store + Codec
+        # the session admin verbs use.
+        def session_blob_data(sid)
+          db  = Familia.dbclient
+          key = Onetime::Operations::Sessions::Store.find_key(db, sid)
+          return nil unless key
+
+          Onetime::Operations::Sessions::Store.load_data(
+            db, key, codec: Onetime::SessionCodec.from_config
+          )
+        end
+
+        it 'stamps the credential watermark and re-stamps the kept session past it' do
+          before_change = Familia.now.to_i
+
+          change_password
+          expect(last_response.status).to eq(200)
+
+          customer  = find_customer_by_email(cred_email)
+          watermark = customer.last_password_update.to_i
+          expect(watermark).to be >= before_change
+
+          # The kept (rotated) session must STRICTLY postdate the watermark:
+          # auth-time validation now rejects sessions at-or-before it (`<=`), so a
+          # value equal to the watermark would be killed on the next request.
+          data = session_blob_data(current_cookie_sid)
+          expect(data).to be_a(Hash)
+          expect(data['authenticated_at'].to_i).to be > watermark
+        end
+
+        it 'enqueues the async full sweep after commit, excepting the pre-rotation sid' do
+          captured = []
+          allow(Onetime::Jobs::Publisher).to receive(:enqueue_session_revocation_sweep) do |custid, **kwargs|
+            captured << [custid, kwargs]
+            true
+          end
+          allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+          sid_before = current_cookie_sid
+          expect(sid_before).not_to be_nil
+
+          change_password
+          expect(last_response.status).to eq(200)
+
+          expect(captured.size).to eq(1),
+            "Expected exactly one sweep enqueue, got #{captured.size}"
+          custid, kwargs = captured.first
+          expect(custid.to_s).not_to be_empty
+          # except_session_id carries the PRE-rotation sid; the rotated session
+          # is protected by the worker honoring the credential watermark.
+          expect(kwargs[:except_session_id]).to eq(sid_before)
+
+          expect(Auth::Logging).to have_received(:log_auth_event)
+            .with(:sessions_sweep_enqueued, hash_including(level: :info))
+        end
+
+        it 'rotates the session id and retires the old sid blob, sidecar, and index entry' do
+          sid_before = current_cookie_sid
+          expect(sid_before).not_to be_nil
+
+          change_password
+          expect(last_response.status).to eq(200)
+
+          sid_after = current_cookie_sid
+          expect(sid_after).not_to be_nil
+          expect(sid_after).not_to eq(sid_before)
+
+          # Old sid fully retired: blob deleted by Rack's renew path
+          # (Onetime::Session#delete_session), sidecar + index tidied by the hook.
+          expect(Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, sid_before)).to be_nil
+          expect(Onetime::SessionMetadata.load(sid_before)).to be_nil
+
+          customer = find_customer_by_email(cred_email)
+          tracked  = customer.active_sessions.revrange(0, -1)
+          expect(tracked).not_to include(sid_before)
+          # write_session re-created the sidecar index for the NEW sid via
+          # TrackMetadata during the response commit.
+          expect(tracked).to include(sid_after)
+        end
+
+        it 'logs :sessions_sweep_enqueue_FAILED and still succeeds when the enqueue raises' do
+          allow(Onetime::Jobs::Publisher).to receive(:enqueue_session_revocation_sweep)
+            .and_raise(StandardError.new('broker down'))
+          allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+          change_password
+
+          # The transaction has already committed when after_commit runs; a
+          # broker failure must never surface as a password-change failure.
+          expect(last_response.status).to eq(200),
+            "Expected change to still succeed but got #{last_response.status}: #{last_response.body[0..500]}"
+          expect(Auth::Logging).to have_received(:log_auth_event)
+            .with(:sessions_sweep_enqueue_FAILED,
+              hash_including(level: :error, hook: :after_change_password))
+          expect(Auth::Logging).not_to have_received(:log_auth_event)
+            .with(:sessions_sweep_enqueued, any_args)
+        end
+
+        it 'logs :session_rotation_FAILED at error and still succeeds when the rotation block raises' do
+          # rack.session.options IS present (normal request), so the hook enters
+          # the rotation branch and requests :renew, then tidies the PRE-rotation
+          # sid by calling destroy! on its sidecar. Raise from THAT destroy! — the
+          # one call unique to the rotation block — so the failure lands in the
+          # rotation rescue AFTER :renew + the watermark re-stamp and the change
+          # still commits (fail-open, but loud). TrackMetadata only ever load+saves
+          # (never destroy!), so this injects NO error into it: the test does not
+          # depend on TrackMetadata swallowing anything to avoid a 500.
+          old_sid    = current_cookie_sid
+          stale_meta = Onetime::SessionMetadata.load(old_sid)
+          expect(stale_meta).not_to be_nil
+          allow(stale_meta).to receive(:destroy!).and_raise(StandardError.new('boom'))
+          allow(Onetime::SessionMetadata).to receive(:load).and_call_original
+          allow(Onetime::SessionMetadata).to receive(:load).with(old_sid).and_return(stale_meta)
+          allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+          change_password
+          expect(last_response.status).to eq(200), "change should still succeed, got #{last_response.status}: #{last_response.body[0..300]}"
+          expect(Auth::Logging).to have_received(:log_auth_event).with(:session_rotation_FAILED, hash_including(level: :error))
+        end
       end
     end
 
@@ -451,7 +603,49 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:sessions_revoke_FAILED, hash_including(level: :error, hook: :after_reset_password))
-        expect(Sentry).to have_received(:capture_exception)
+        # at_least(:once): the #3810 after_commit sweep's synchronous fallback
+        # re-raises through the same stub, adding a second capture (see the
+        # change-password sibling above).
+        expect(Sentry).to have_received(:capture_exception).at_least(:once)
+      end
+
+      # -----------------------------------------------------------------------
+      # #3810: reset previously did NOT stamp Customer#last_password_update
+      # (only after_change_password did, via UpdatePasswordMetadata), so
+      # untracked pre-reset blobs passed watermark validation until their 24h
+      # TTL. These pin the closed gap: the watermark stamps on reset, and the
+      # after_commit hook enqueues the async full sweep with NO except sid (the
+      # user is unauthenticated here — nothing to preserve).
+      # -----------------------------------------------------------------------
+      it 'stamps the credential watermark and enqueues the sweep without except_session_id (#3810)' do
+        captured = []
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_session_revocation_sweep) do |custid, **kwargs|
+          captured << [custid, kwargs]
+          true
+        end
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        before_reset = Familia.now.to_i
+        reset_password_with_token
+
+        unless [200, 201, 302].include?(last_response.status)
+          skip "reset did not reach after_reset_password (status #{last_response.status}); " \
+               "token/key hashing likely differs in this environment"
+        end
+
+        # The closed gap: the reset path now stamps the watermark too.
+        customer = find_customer_by_email(cred_email)
+        expect(customer).not_to be_nil
+        expect(customer.last_password_update.to_i).to be >= before_reset
+
+        expect(captured.size).to eq(1),
+          "Expected exactly one sweep enqueue, got #{captured.size}"
+        custid, kwargs = captured.first
+        expect(custid.to_s).not_to be_empty
+        expect(kwargs[:except_session_id]).to be_nil
+
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:sessions_sweep_enqueued, hash_including(level: :info))
       end
     end
   end
