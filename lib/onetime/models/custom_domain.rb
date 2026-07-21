@@ -1052,6 +1052,10 @@ module Onetime
         PublicSuffix.valid?(input, default_rule: nil)
       end
 
+      # Whether the input is exactly the configured site host. Narrower
+      # than overlaps_canonical_domain? by design: callers (e.g.
+      # share_domain filtering) ask "is this THE site host?", not "does
+      # this collide with any canonical host or subdomain thereof?".
       def default_domain?(input)
         display_domain = Onetime::CustomDomain.display_domain(input)
         site_host      = OT.conf.dig('site', 'host')
@@ -1088,6 +1092,11 @@ module Onetime
         # Control characters are invalid in domain names (RFC 952/1123).
         # Treat as overlap to block registration -- a domain that cannot
         # be valid should never bypass the canonical-domain guard.
+        #
+        # Ordering matters: this check must stay ahead of the
+        # display_domain call below, which raises Onetime::Problem for
+        # the same input (caught by the fail-closed rescue, but the
+        # explicit path is the one under test).
         return true if contains_control_chars?(input)
 
         input_display = display_domain(input)

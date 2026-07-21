@@ -222,6 +222,13 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
       allow(OT).to receive(:conf).and_return({
         'site' => { 'host' => 'example.com' },
       })
+
+      # Spy on the Redis-touching collaborators so we can prove the
+      # guard raises before any of them run (mirrors the index spies in
+      # update_display_domain_spec).
+      index_double = instance_double('Familia::UniqueIndex', hsetnx: 1)
+      allow(described_class).to receive(:display_domain_index).and_return(index_double)
+      allow(described_class).to receive(:load_by_display_domain)
     end
 
     it 'rejects the canonical domain verbatim' do
@@ -234,6 +241,15 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
       expect {
         described_class.create!('secrets.example.com', 'org-test-001')
       }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+    end
+
+    it 'raises before any Redis access' do
+      expect {
+        described_class.create!('example.com', 'org-test-001')
+      }.to raise_error(Onetime::Problem)
+
+      expect(described_class).not_to have_received(:load_by_display_domain)
+      expect(described_class.display_domain_index).not_to have_received(:hsetnx)
     end
   end
 end
