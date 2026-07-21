@@ -479,6 +479,74 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     end
   end
 
+  describe 'CsrfResponseHeader 403 discrimination (#3837, root cause of #3831)' do
+    # A CSRF 403 has two very different root causes that are indistinguishable
+    # AFTER @app.call (AuthenticityToken#accepts? sets session[:csrf] before it
+    # validates). CsrfResponseHeader captures presence BEFORE @app.call and logs
+    # a discriminated warning. We drive the middleware directly with a stub app
+    # so the branch is deterministic and does not depend on the full CSRF flow.
+    let(:stub_403_app) { ->(_env) { [403, {}, []] } }
+    let(:middleware) { Onetime::Middleware::CsrfResponseHeader.new(stub_403_app) }
+    # A realistic raw session token: the downstream X-CSRF-Token masking block
+    # base64-decodes session[:csrf], so it must be a valid urlsafe token (an
+    # arbitrary string can trip Base64.urlsafe_decode64 on length).
+    let(:valid_token) { Rack::Protection::AuthenticityToken.random_token }
+
+    def env_for(method:, path:, session: nil)
+      env = { 'REQUEST_METHOD' => method, 'PATH_INFO' => path }
+      env['rack.session'] = session unless session.nil?
+      env
+    end
+
+    it 'logs a session-continuity break when a POST 403s with NO token in session' do
+      # No csrf token present at request start => the session was lost or never
+      # persisted between issuing the token and this request. This is the #3837
+      # bug class, NOT forgery.
+      allow(OT).to receive(:lw).and_call_original
+      middleware.call(env_for(method: 'POST', path: '/account/update', session: {}))
+
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/session-continuity break/),
+        hash_including(method: 'POST', path: '/account/update')
+      )
+      # ...and it is NOT mis-classified as a genuine token-mismatch.
+      expect(OT).not_to have_received(:lw).with(a_string_matching(/token-mismatch/), anything)
+    end
+
+    it 'logs a token-mismatch when a POST 403s WITH a token already in session' do
+      # A raw token was present at request start but the submitted one did not
+      # match => a genuine forged/stale request. CSRF_SESSION_KEY is :csrf, read
+      # exactly as AuthenticityToken reads it.
+      allow(OT).to receive(:lw).and_call_original
+      middleware.call(env_for(method: 'POST', path: '/account/update', session: { csrf: valid_token }))
+
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/token-mismatch/),
+        hash_including(method: 'POST', path: '/account/update')
+      )
+      # ...and it is NOT mis-classified as a session-continuity break.
+      expect(OT).not_to have_received(:lw).with(a_string_matching(/session-continuity break/), anything)
+    end
+
+    it 'does NOT log for a SAFE method (GET) even when the response is 403' do
+      # Safe methods are never CSRF-checked, so they must not pay the session
+      # load cost nor emit a rejection log.
+      allow(OT).to receive(:lw).and_call_original
+      middleware.call(env_for(method: 'GET', path: '/account/update', session: {}))
+
+      expect(OT).not_to have_received(:lw).with(a_string_matching(/CSRF 403/), anything)
+    end
+
+    it 'does NOT log when an unsafe POST is NOT rejected (status != 403)' do
+      ok_app = ->(_env) { [200, {}, []] }
+      ok_middleware = Onetime::Middleware::CsrfResponseHeader.new(ok_app)
+      allow(OT).to receive(:lw).and_call_original
+      ok_middleware.call(env_for(method: 'POST', path: '/account/update', session: {}))
+
+      expect(OT).not_to have_received(:lw).with(a_string_matching(/CSRF 403/), anything)
+    end
+  end
+
   describe 'CSRF round-trip: page-rendered token accepted on POST' do
     # Validates the invariant that tokens generated from rack.session
     # during page render are accepted by Rack::Protection on subsequent
