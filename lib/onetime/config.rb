@@ -617,6 +617,11 @@ module Onetime
     # default pack's brand.yaml documents.
     BRAND_MANIFEST_KEYS = BRAND_ENV.keys.freeze
 
+    # The manifest filename inside a resolved brand pack. Shared so the boot-time
+    # absorber (apply_brand_manifest) and the diagnostic's live re-read
+    # (Onetime.brand_pack_diagnostics) can never drift apart on the name. #3822
+    BRAND_MANIFEST_FILENAME = 'brand.yaml'
+
     # Maps brand identity keys to their deprecated sources (#3612): the legacy
     # unprefixed env var and the legacy site.interface.ui.header.branding YAML
     # path. Consulted by normalize_brand only when the brand: authority (BRAND_*
@@ -668,13 +673,25 @@ module Onetime
     # @param conf [Hash] the merged configuration (mutated in place)
     # @return [void]
     def apply_brand_manifest(conf)
+      # Provenance capture (#3822): record which manifest keys the operator ALREADY
+      # set in their brand: config (non-nil BEFORE we fill any gap). This is the
+      # exact set apply_brand_manifest will NOT touch (see the nil-gate below), and
+      # the diagnostic's mount-race detector reads it back from the frozen boot
+      # snapshot to exclude legitimate operator overrides from a false race signal.
+      # Stored as a sibling of conf['brand'] (never inside it — that hash is
+      # whitelisted/serialized as brand identity). Captured before every early
+      # return so the provenance record always exists.
+      brand_at_entry         = conf['brand'] || {}
+      operator_keys          = BRAND_MANIFEST_KEYS.reject { |key| brand_at_entry[key].nil? }
+      conf['brand_manifest'] = { 'operator_keys' => operator_keys }
+
       dir = Onetime.resolve_brand_pack_dir(
         brand_assets_dir: conf.dig('site', 'brand_assets_dir'),
         brand_pack: conf.dig('site', 'brand_pack'),
       )
       return if dir.nil?
 
-      path = File.join(dir, 'brand.yaml')
+      path = File.join(dir, BRAND_MANIFEST_FILENAME)
       return unless File.exist?(path)
 
       manifest = YAML.safe_load_file(path) || {}

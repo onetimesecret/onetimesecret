@@ -15,6 +15,8 @@ require 'truemail'
 
 require 'erb'
 
+require 'yaml'
+
 require 'bcrypt'
 
 begin
@@ -220,17 +222,29 @@ module Onetime
     # NOW, filtered exactly as it filters (whitelist ∩ String ∩ stripped
     # non-empty). resolved_dir is nil only on a broken checkout (default pack
     # absent); every field below is nil-safe for that case.
-    manifest_path   = resolved_dir ? File.join(resolved_dir, 'brand.yaml') : nil
+    manifest_path   = resolved_dir ? File.join(resolved_dir, Onetime::Config::BRAND_MANIFEST_FILENAME) : nil
     manifest_exists = !!(manifest_path && File.exist?(manifest_path))
     live_scalars    = manifest_exists ? read_brand_manifest_scalars(manifest_path) : {}
 
     # boot_vs_live_mismatch — the mount-race detector. TRUE when a real manifest
     # sits in the resolved pack NOW, but the frozen boot conf did not absorb what
-    # disk offers for some key, AND env is not the reason. The env-exclusion is
-    # MANDATORY: BRAND_* env is the top precedence layer (normalize_brand applies
-    # it AFTER the manifest), so every ordinary override makes conf differ from
-    # disk by design; without excluding those keys each one would false-positive.
+    # disk offers for some key, for a reason that can only be a race. TWO layers
+    # legitimately outrank the manifest and are excluded so neither false-positives:
+    #
+    #   1. BRAND_* env — the TOP precedence layer (normalize_brand applies it AFTER
+    #      the manifest). Any ordinary env override makes conf differ from disk by
+    #      design, so the env-backed key is skipped (brand_env_override?).
+    #   2. operator brand: config — apply_brand_manifest fills ONLY keys the
+    #      operator left nil, so a key the operator SET in config legitimately
+    #      diverges from a differing pack brand.yaml. Those keys are recorded at
+    #      boot in conf['brand_manifest']['operator_keys'] and skipped here.
+    #
+    # What survives both exclusions is a genuine race: a key the operator did NOT
+    # set and env does NOT override, where the boot conf (nil, or filled from a
+    # stale pack) disagrees with what the resolved pack offers on disk NOW.
+    operator_keys         = OT.conf.dig('brand_manifest', 'operator_keys') || []
     boot_vs_live_mismatch = manifest_exists && live_scalars.any? do |key, disk_value|
+      next false if operator_keys.include?(key)
       next false if brand_env_override?(key)
 
       OT.conf.dig('brand', key).to_s != disk_value
@@ -278,7 +292,6 @@ module Onetime
   # missing/malformed/non-mapping manifest surfaces as an empty contribution
   # rather than an exception. #3822
   def self.read_brand_manifest_scalars(path)
-    require 'yaml'
     return {} unless path && File.exist?(path)
 
     manifest = YAML.safe_load_file(path) || {}

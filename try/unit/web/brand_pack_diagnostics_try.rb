@@ -18,8 +18,12 @@
 #      NO env override -> boot_vs_live_mismatch == true.
 #   5. Env-override FALSE-positive guard: same divergence, but the backing
 #      BRAND_* env IS set -> boot_vs_live_mismatch == false (correctness linchpin).
+#   5b. Operator-config provenance guard: an operator-set key (recorded in
+#      conf['brand_manifest']['operator_keys']) differing from a differing pack
+#      manifest is NOT a race; a non-operator key still IS (stale-content kept).
 #   6. Non-default pack missing on disk -> fell_back_to_default == true.
-#   7. Malformed brand.yaml -> empty contribution via the rescue, not an exception.
+#   7. Malformed / non-mapping brand.yaml -> empty contribution via the guard/
+#      rescue, not an exception.
 #   8. env.brand_pack mirrors raw ENV['BRAND_PACK'] right now.
 #
 # All OT.conf / ENV / temp-dir state is set per-test and RESTORED in teardown so
@@ -43,6 +47,7 @@ OT.conf['site'] ||= {}
 @orig_assets_dir      = OT.conf['site']['brand_assets_dir']
 @orig_pack            = OT.conf['site']['brand_pack']
 @orig_brand           = OT.conf['brand']
+@orig_brand_manifest  = OT.conf['brand_manifest']
 @orig_env_pack        = ENV['BRAND_PACK']
 @orig_env_assets      = ENV['BRAND_ASSETS_DIR']
 @orig_env_prod_name   = ENV['BRAND_PRODUCT_NAME']
@@ -61,6 +66,12 @@ File.write(File.join(@pack_with_manifest, 'favicon.svg'), '<svg/>')
 # exercise the rescue in read_brand_manifest_scalars.
 @bad_manifest_pack = Dir.mktmpdir('ots-diag-badpack')
 File.write(File.join(@bad_manifest_pack, 'brand.yaml'), %(product_name: [1, 2\n))
+
+# A pack whose brand.yaml parses to a NON-Hash top level (a bare scalar). Valid
+# YAML, but not a mapping, so it contributes nothing — exercises the
+# `return {} unless manifest.is_a?(Hash)` guard in read_brand_manifest_scalars.
+@nonhash_manifest_pack = Dir.mktmpdir('ots-diag-nonhashpack')
+File.write(File.join(@nonhash_manifest_pack, 'brand.yaml'), %(hello\n))
 
 def set_overlay(assets_dir: nil, pack: nil)
   OT.conf['site']['brand_assets_dir'] = assets_dir
@@ -185,6 +196,37 @@ Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
 #=> true
 
 # ============================================================================
+# 5b. Operator-config provenance guard (the #1 correctness bug)
+# ============================================================================
+#
+# Precedence is defaults < pack brand.yaml < operator brand: config < BRAND_*
+# env, and apply_brand_manifest fills ONLY keys the operator left nil. So a key
+# the operator SET in config legitimately differs from a pack shipping a
+# DIFFERENT value for it — that is NOT a mount race. Boot records the operator's
+# keys in conf['brand_manifest']['operator_keys']; the detector must skip them.
+
+## operator-set key differing from a differing on-disk manifest (NO env) -> NOT a race.
+## This is the exact false-positive the old (env-only) exclusion missed.
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = { 'product_name' => 'Operator Chosen' } # what the operator set in config
+OT.conf['brand_manifest'] = { 'operator_keys' => ['product_name'] } # provenance as boot records it
+set_overlay(assets_dir: @pack_with_manifest, pack: nil) # pack ships 'Acme Diagnostics'
+Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
+#=> false
+
+## a key NOT in operator_keys, boot conf differing from disk -> STILL a race (stale-content
+## detection is preserved: operator provenance must not blanket-suppress real drift).
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = { 'product_name' => 'Stale Neutral' } # filled from a stale pack at boot
+OT.conf['brand_manifest'] = { 'operator_keys' => [] }             # operator set nothing
+set_overlay(assets_dir: @pack_with_manifest, pack: nil)
+Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
+#=> true
+
+# Reset provenance so later sections see the no-operator-keys baseline.
+OT.conf['brand_manifest'] = { 'operator_keys' => [] }
+
+# ============================================================================
 # 6. Non-default pack configured but missing on disk -> fell_back_to_default
 # ============================================================================
 
@@ -215,8 +257,20 @@ d = Onetime.brand_pack_diagnostics
 [d['manifest']['exists'], d['manifest']['keys_on_disk'], d['boot_vs_live_mismatch']]
 #=> [true, [], false]
 
+## a brand.yaml parsing to a NON-Hash top level (bare scalar) contributes nothing
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand'] = {}
+set_overlay(assets_dir: @nonhash_manifest_pack, pack: nil)
+d = Onetime.brand_pack_diagnostics
+[d['manifest']['exists'], d['manifest']['keys_on_disk'], d['boot_vs_live_mismatch']]
+#=> [true, [], false]
+
 ## the internal helper returns {} for a malformed manifest path
 Onetime.read_brand_manifest_scalars(File.join(@bad_manifest_pack, 'brand.yaml'))
+#=> {}
+
+## the internal helper returns {} for a manifest whose top level is not a mapping
+Onetime.read_brand_manifest_scalars(File.join(@nonhash_manifest_pack, 'brand.yaml'))
 #=> {}
 
 ## the internal helper returns {} for a nonexistent path
@@ -241,9 +295,10 @@ Onetime.brand_pack_diagnostics['env']['brand_pack']
 
 # Teardown — restore the no-overlay baseline, ENV, and remove fixtures.
 OT.conf['brand']                    = @orig_brand
+OT.conf['brand_manifest']           = @orig_brand_manifest
 OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
 OT.conf['site']['brand_pack']       = @orig_pack
 @orig_env_pack.nil?      ? ENV.delete('BRAND_PACK')         : (ENV['BRAND_PACK'] = @orig_env_pack)
 @orig_env_assets.nil?    ? ENV.delete('BRAND_ASSETS_DIR')   : (ENV['BRAND_ASSETS_DIR'] = @orig_env_assets)
 @orig_env_prod_name.nil? ? ENV.delete('BRAND_PRODUCT_NAME') : (ENV['BRAND_PRODUCT_NAME'] = @orig_env_prod_name)
-[@pack_with_manifest, @bad_manifest_pack].each { |d| FileUtils.remove_entry(d) rescue nil }
+[@pack_with_manifest, @bad_manifest_pack, @nonhash_manifest_pack].each { |d| FileUtils.remove_entry(d) rescue nil }
