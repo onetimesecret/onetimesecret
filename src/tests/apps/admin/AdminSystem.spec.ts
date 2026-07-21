@@ -104,6 +104,7 @@ function brandPayload(overrides: Record<string, unknown> = {}) {
         brand_pack: 'onetimesecret',
         brand_assets_dir: '/app/etc/branding',
         brand_absorbed: ['product_name'],
+        brand_operator_keys: [],
       },
       roots: [
         { path: '/app/etc/branding', exists: true },

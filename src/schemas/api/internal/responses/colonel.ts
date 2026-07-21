@@ -184,11 +184,16 @@ export const brandDiagnosticsDetailsSchema = z.object({
     brand_pack: z.string().nullable(),
     brand_assets_dir: z.string().nullable(),
   }),
-  // Boot-time config snapshot — catches config divergence from ENV.
+  // Boot-time config snapshot — catches config divergence from ENV. The two
+  // key lists are PROVENANCE as boot recorded it (conf['brand_manifest']):
+  // brand_absorbed = keys filled FROM the pack manifest, brand_operator_keys =
+  // keys the operator set in brand: config. Env/legacy-filled keys appear in
+  // neither list.
   config: z.object({
     brand_pack: z.string().nullable(),
     brand_assets_dir: z.string().nullable(),
     brand_absorbed: z.array(z.string()),
+    brand_operator_keys: z.array(z.string()),
   }),
   // Search roots probed in order, each flagged for on-disk existence.
   roots: z.array(

@@ -26,6 +26,7 @@ function healthyPayload() {
         brand_pack: 'onetimesecret',
         brand_assets_dir: '/app/etc/branding',
         brand_absorbed: ['product_name'],
+        brand_operator_keys: ['primary_color'],
       },
       roots: [
         { path: '/app/etc/branding', exists: true },

@@ -103,8 +103,9 @@ d = @resp['details']
 d = @resp['details']
 [d['env'].key?('brand_pack'),
  d['config'].key?('brand_absorbed'),
+ d['config'].key?('brand_operator_keys'),
  d['manifest'].key?('keys_on_disk')]
-#=> [true, true, true]
+#=> [true, true, true, true]
 
 ## record is an empty object (success_data does not run the custid->user_id transform)
 @resp = JSON.parse(last_response.body)

@@ -134,10 +134,10 @@ clear_overlay
 Onetime.brand_pack_diagnostics['env'].keys.sort
 #=> ['brand_assets_dir', 'brand_pack']
 
-## config carries brand_pack, brand_assets_dir, and brand_absorbed
+## config carries brand_pack, brand_assets_dir, and the two provenance key lists
 clear_overlay
 Onetime.brand_pack_diagnostics['config'].keys.sort
-#=> ['brand_absorbed', 'brand_assets_dir', 'brand_pack']
+#=> ['brand_absorbed', 'brand_assets_dir', 'brand_operator_keys', 'brand_pack']
 
 ## manifest carries path, exists, keys_on_disk
 clear_overlay
@@ -165,14 +165,21 @@ d = Onetime.brand_pack_diagnostics
 [d['fell_back_to_default'], d['resolved_dir'] == DEFAULT_PACK, d['resolved_dir'].end_with?('/default')]
 #=> [false, true, true]
 
-## config.brand_absorbed lists only non-empty brand keys from the boot snapshot
-OT.conf['brand'] = { 'product_name' => 'Acme', 'primary_color' => '', 'logo_url' => nil }
+## config.brand_absorbed / brand_operator_keys mirror boot PROVENANCE
+## (conf['brand_manifest']), NOT key presence: font_family is non-empty in
+## conf['brand'] but sits in neither provenance list (an env/legacy-filled key),
+## so it appears in NEITHER output — the misread the presence-derived version
+## invited during cross-region diffs.
+OT.conf['brand'] = { 'product_name' => 'Acme', 'primary_color' => '#112233', 'font_family' => 'sans' }
+OT.conf['brand_manifest'] = { 'operator_keys' => ['primary_color'], 'absorbed_keys' => ['product_name'] }
 clear_overlay
-Onetime.brand_pack_diagnostics['config']['brand_absorbed']
-#=> ['product_name']
+d = Onetime.brand_pack_diagnostics['config']
+[d['brand_absorbed'], d['brand_operator_keys']]
+#=> [['product_name'], ['primary_color']]
 
 ## overlay_assets reflects on-disk presence now (default pack: mandatory set, no logo)
 OT.conf['brand'] = {}
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => [] }
 clear_overlay
 oa = Onetime.brand_pack_diagnostics['overlay_assets']
 [oa.include?('/favicon.svg'), oa.include?('/brand-logo.svg')]
@@ -235,6 +242,7 @@ d = Onetime.brand_pack_diagnostics
 ## a healthy pack does NOT read as fallback and does NOT read as a boot/live mismatch
 ENV.delete('BRAND_PRODUCT_NAME')
 OT.conf['brand'] = { 'product_name' => 'Acme Diagnostics' }
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['product_name'] }
 set_overlay(assets_dir: @pack_with_manifest, pack: nil)
 d = Onetime.brand_pack_diagnostics
 [d['fell_back_to_default'], d['boot_vs_live_mismatch'], d['config']['brand_absorbed'].include?('product_name')]

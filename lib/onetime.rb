@@ -311,9 +311,15 @@ module Onetime
       'config' => {
         'brand_pack' => cfg_pack,
         'brand_assets_dir' => cfg_assets,
-        'brand_absorbed' => Onetime::Config::BRAND_MANIFEST_KEYS.reject do |k|
-          OT.conf.dig('brand', k).to_s.strip.empty?
-        end,
+        # PROVENANCE as boot recorded it (conf['brand_manifest']), NOT key
+        # presence: brand_absorbed = keys apply_brand_manifest filled FROM the
+        # pack manifest; brand_operator_keys = keys the operator had already set
+        # in brand: config. A key filled by BRAND_* env or a legacy fallback
+        # appears in NEITHER list — deriving these from non-empty conf['brand']
+        # values would misread env/operator overrides as pack-absorbed and skew
+        # a cross-region diff during an incident.
+        'brand_absorbed' => absorbed_keys,
+        'brand_operator_keys' => operator_keys,
       },
       'roots' => brand_pack_roots.map { |path| { 'path' => path, 'exists' => Dir.exist?(path) } },
       'resolved_dir' => resolved_dir,

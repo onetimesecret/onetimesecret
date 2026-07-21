@@ -31,7 +31,7 @@ module Onetime
         desc: 'Machine-parseable JSON for fleet diffing (stable key order)'
 
       # Width of the label column (incl. trailing colon) in human output.
-      LABEL_WIDTH = 24
+      LABEL_WIDTH = 30
       # Indent for continuation lines, aligning under the value column.
       CONT_INDENT = (' ' * (LABEL_WIDTH + 2)).freeze
 
@@ -101,7 +101,8 @@ module Onetime
         row 'resolved_dir', or_none(diagnostics['resolved_dir'])
         print_flags(diagnostics)
         print_manifest(diagnostics['manifest'] || {})
-        row 'brand_absorbed (boot)', list_or_none((diagnostics['config'] || {})['brand_absorbed'])
+        row 'brand_absorbed (pack, boot)', list_or_none((diagnostics['config'] || {})['brand_absorbed'])
+        row 'brand_operator_keys (boot)', list_or_none((diagnostics['config'] || {})['brand_operator_keys'])
         print_roots(diagnostics['roots'])
         row 'overlay_assets', list_or_none(diagnostics['overlay_assets'])
       end

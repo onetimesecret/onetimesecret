@@ -848,6 +848,27 @@
               class="text-xs text-gray-400 dark:text-gray-500">
               {{ t('web.admin.system.brand.none') }}
             </p>
+
+            <h4
+              class="mt-4 mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.admin.system.brand.operatorKeys') }}
+            </h4>
+            <div
+              v-if="brand.config.brand_operator_keys.length"
+              class="flex flex-wrap gap-1.5"
+              data-testid="brand-operator-keys">
+              <span
+                v-for="entry in brand.config.brand_operator_keys"
+                :key="entry"
+                class="inline-flex rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                {{ entry }}
+              </span>
+            </div>
+            <p
+              v-else
+              class="text-xs text-gray-400 dark:text-gray-500">
+              {{ t('web.admin.system.brand.none') }}
+            </p>
           </div>
 
           <div
