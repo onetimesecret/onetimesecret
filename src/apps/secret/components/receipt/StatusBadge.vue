@@ -4,12 +4,13 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/shared/composables/useSecretExpiration';
-  import { type Receipt, ReceiptState, receiptStateSchema } from '@/schemas/shapes/v3/receipt';
+  import { type Receipt } from '@/schemas/shapes/v3/receipt';
   import { getDisplayStatus, type DisplayStatus, getStatusText } from '@/utils/status';
   import { computed, watchEffect } from 'vue';
 
   interface Props {
     record: Receipt;
+    expiresIn?: number;
   }
 
   const props = defineProps<Props>();
@@ -21,8 +22,12 @@
   );
 
   const status = computed((): DisplayStatus => {
+    // getDisplayStatus is the single display authority: it validates the raw
+    // lifecycle state and tolerates legacy aliases ('viewed'/'received'), so we
+    // pass the value straight through. Re-validating here against the strict v3
+    // schema would throw on legacy receipts the display layer is built to
+    // absorb (#3829).
     const stateValue = props.record.secret_state || props.record.state;
-    const state = receiptStateSchema.parse(stateValue) as ReceiptState;
 
     // Map expiration states to display states
     if (expirationState.value === 'expired') {
@@ -32,7 +37,11 @@
       return 'expiring_soon';
     }
 
-    return getDisplayStatus(state);
+    const displayStatus = getDisplayStatus(stateValue, props.expiresIn);
+    if (displayStatus === 'new' && props.record.is_previewed) {
+      return 'previewed';
+    }
+    return displayStatus;
   });
 
   // Status styling maps with enhanced design

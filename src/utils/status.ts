@@ -44,6 +44,13 @@ const STATE_TO_DISPLAY: Record<string, DisplayStatus> = {
 /**
  * Maps the given state to UI display status.
  *
+ * This is the single display-status authority: it validates the raw lifecycle
+ * state itself and tolerates legacy aliases ('viewed' -> 'previewed',
+ * 'received' -> 'revealed') via STATE_TO_DISPLAY. Unrecognized or missing
+ * input degrades to 'orphaned' rather than throwing, so callers pass the raw
+ * state straight through instead of pre-validating against a stricter schema
+ * (see #3829).
+ *
  * The only cases where we might need different names are when:
  *
  * 1. We need a more user-friendly display term
@@ -51,7 +58,7 @@ const STATE_TO_DISPLAY: Record<string, DisplayStatus> = {
  *    which combines state with time).
  */
 export function getDisplayStatus(
-  state: ReceiptState,
+  state: string | null | undefined,
   expiresIn?: number
 ): DisplayStatus {
   if (!state || !isValidReceiptState(state)) {
