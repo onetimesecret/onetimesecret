@@ -440,6 +440,22 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
+    # Assume HTTPS at the origin (opt-in, INDEPENDENT of trusted_proxy).
+    #
+    # Upgrade-only: when true, requests that do not already look like HTTPS
+    # are marked as HTTPS before any downstream consumer reads the scheme
+    # (Secure session cookie, HttpOrigin, CSRF, HSTS, scheme redirects).
+    #
+    # Only enable when a real TLS-terminating proxy fronts the origin AND it
+    # does NOT forward X-Forwarded-Proto: https (e.g. Cloudflare Tunnel).
+    # Standard nginx/Caddy/ALB setups forward the scheme and do NOT need
+    # this. Never enable on a directly-reachable origin: it would let a
+    # plain-HTTP client be treated as HTTPS. Also keep site.ssl at its https
+    # default when this is on: pairing assume_https with site.ssl:false makes
+    # config-driven share/email/redirect links emit http:// while clients use
+    # https (mixed-content downgrade of generated URLs).
+    assume_https: <%= ENV['ASSUME_HTTPS'] == 'true' %>
+
   # Admin (Colonel) Configuration
   # Network-level posture for the Colonel admin surfaces.
   admin:
