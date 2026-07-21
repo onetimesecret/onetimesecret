@@ -8,7 +8,7 @@ overrides:
   '@babel/core': '>=7.29.6 <8'
   '@types/estree': '1.0.9'
   esbuild: '>=0.28.1'
-  brace-expansion: '1.1.15'
+  brace-expansion: '1.1.16'
   flatted: '^3.4.2'
   form-data: '>=4.0.6'
   js-yaml: '>=3.15.0'
