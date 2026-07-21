@@ -617,6 +617,11 @@ module Onetime
     # default pack's brand.yaml documents.
     BRAND_MANIFEST_KEYS = BRAND_ENV.keys.freeze
 
+    # The manifest filename inside a resolved brand pack. Shared so the boot-time
+    # absorber (apply_brand_manifest) and the diagnostic's live re-read
+    # (Onetime.brand_pack_diagnostics) can never drift apart on the name. #3822
+    BRAND_MANIFEST_FILENAME = 'brand.yaml'
+
     # Maps brand identity keys to their deprecated sources (#3612): the legacy
     # unprefixed env var and the legacy site.interface.ui.header.branding YAML
     # path. Consulted by normalize_brand only when the brand: authority (BRAND_*
@@ -668,13 +673,34 @@ module Onetime
     # @param conf [Hash] the merged configuration (mutated in place)
     # @return [void]
     def apply_brand_manifest(conf)
+      # Provenance capture (#3822): record which manifest keys the operator ALREADY
+      # set in their brand: config (non-nil BEFORE we fill any gap). This is the
+      # exact set apply_brand_manifest will NOT touch (see the nil-gate below), and
+      # the diagnostic's mount-race detector reads it back from the frozen boot
+      # snapshot to exclude legitimate operator overrides from a false race signal.
+      # Stored as a sibling of conf['brand'] (never inside it — that hash is
+      # whitelisted/serialized as brand identity). Captured before every early
+      # return so the provenance record always exists.
+      brand_at_entry         = conf['brand'] || {}
+      operator_keys          = BRAND_MANIFEST_KEYS.reject { |key| brand_at_entry[key].nil? }
+      # absorbed_keys is filled below with the keys actually taken FROM the pack
+      # manifest (positive pack provenance). The diagnostic's mount-race detector
+      # (#3822) unions it with the keys on disk NOW so a key that was in brand.yaml
+      # at boot but has since been REMOVED — lingering in the frozen conf, absent
+      # from a live disk re-read — is still caught (#8). Same array object as the
+      # hash value, so the `absorbed_keys << key` appends below are visible through
+      # conf['brand_manifest']; it is frozen read-only with the rest of conf at
+      # deep_freeze. Initialized before every early return so the record always exists.
+      absorbed_keys          = []
+      conf['brand_manifest'] = { 'operator_keys' => operator_keys, 'absorbed_keys' => absorbed_keys }
+
       dir = Onetime.resolve_brand_pack_dir(
         brand_assets_dir: conf.dig('site', 'brand_assets_dir'),
         brand_pack: conf.dig('site', 'brand_pack'),
       )
       return if dir.nil?
 
-      path = File.join(dir, 'brand.yaml')
+      path = File.join(dir, BRAND_MANIFEST_FILENAME)
       return unless File.exist?(path)
 
       manifest = YAML.safe_load_file(path) || {}
@@ -699,7 +725,8 @@ module Onetime
         value = value.strip
         next if value.empty?
 
-        brand[key] = value
+        brand[key]      = value
+        absorbed_keys << key
       end
     rescue StandardError => ex
       # A malformed pack manifest must never abort boot — it is an optional,

@@ -3,11 +3,12 @@
 // Per-resource schema surface for the colonel System screen (ticket #33).
 // Internal-only; consumed by the Vue admin console.
 //
-// The System screen is a READ-ONLY status/info read-out over three endpoints
+// The System screen is a READ-ONLY status/info read-out over four endpoints
 // that ALREADY have frozen response schemas in ./colonel:
 //   - GET /api/colonel/system/database → databaseMetricsResponseSchema
 //   - GET /api/colonel/system/redis    → redisMetricsResponseSchema
 //   - GET /api/colonel/queue           → queueMetricsResponseSchema
+//   - GET /api/colonel/system/brand    → brandDiagnosticsResponseSchema (#3822)
 //
 // Per CONTRACT 3 (the Zod tripwire) those contracts are REUSED, never
 // duplicated. This file merely RE-EXPORTS them so the System view imports every
@@ -18,10 +19,12 @@ export {
   databaseMetricsResponseSchema,
   redisMetricsResponseSchema,
   queueMetricsResponseSchema,
+  brandDiagnosticsResponseSchema,
 } from './colonel';
 
 export type {
   DatabaseMetricsResponse,
   RedisMetricsResponse,
   QueueMetricsResponse,
+  BrandDiagnosticsResponse,
 } from './colonel';
