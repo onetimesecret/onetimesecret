@@ -115,6 +115,16 @@ const CHECKOUT_ALLOWED_ORIGINS = ['https://checkout.stripe.com'] as const;
 let configuredCheckoutOrigin: string | null = null;
 
 /**
+ * Bare-host shape for a Stripe custom Checkout domain: DNS labels with an
+ * optional `:port` and nothing else — no scheme, userinfo, path, query, or
+ * fragment. Mirrors CHECKOUT_HOST_RE in lib/onetime/billing_config.rb so a
+ * value that boots on the backend also passes here at navigation time. The
+ * captured group is the optional port digits, range-checked by the caller.
+ */
+const CHECKOUT_HOST_RE =
+  /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?))*(?::(\d{1,5}))?$/i;
+
+/**
  * Register this deployment's Stripe custom-domain Checkout host (bare host,
  * e.g. "pay.onetimesecret.com"), sourced from the bootstrap `checkout_host`
  * config. Call once at app init. Empty/invalid input clears it. Enables
@@ -136,18 +146,30 @@ export function setAllowedCheckoutHost(host: string | undefined | null): void {
   const trimmed = host.trim();
   if (!trimmed) return;
 
+  // Validate the raw input directly against a bare-host shape — DNS labels plus
+  // an optional port, nothing else. This mirrors the backend CHECKOUT_HOST_RE in
+  // lib/onetime/billing_config.rb. We deliberately do NOT validate by comparing
+  // against `new URL().host`: that parser normalizes the default port (:443)
+  // away, so the supported "host:443" form would fail the comparison and clear
+  // the origin. The regex rejects userinfo, paths, queries, fragments, and
+  // embedded schemes up front, so URL parsing below is only used to normalize.
+  const match = CHECKOUT_HOST_RE.exec(trimmed);
+  if (!match) return;
+
+  const port = match[1];
+  if (port !== undefined) {
+    const portNum = Number(port);
+    // new URL() rejects out-of-range ports; enforce the TCP range here so a
+    // value like "pay.example.com:99999" fails closed at config time rather
+    // than passing our shape check and then being silently dropped by new URL().
+    if (portNum < 1 || portNum > 65535) return;
+  }
+
   try {
-    const url = new URL(`https://${trimmed}`);
-    const isBareHost =
-      url.username === '' &&
-      url.password === '' &&
-      url.pathname === '/' &&
-      url.search === '' &&
-      url.hash === '' &&
-      url.host === trimmed.toLowerCase(); // url.host includes any non-default port
-    if (isBareHost) configuredCheckoutOrigin = url.origin;
+    // Normalize to an origin (drops the default :443, lowercases the host).
+    configuredCheckoutOrigin = new URL(`https://${trimmed}`).origin;
   } catch {
-    // Unparseable host — leave cleared.
+    // Unparseable despite matching the bare-host shape — leave cleared.
   }
 }
 

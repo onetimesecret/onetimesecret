@@ -188,14 +188,25 @@ describe('validateRedirect', () => {
 });
 
 describe('isAllowedCheckoutUrl', () => {
+  let originalLocation: Location;
+
   beforeEach(() => {
+    originalLocation = window.location;
     Object.defineProperty(window, 'location', {
       value: { origin: 'https://onetimesecret.com' },
       writable: true,
+      configurable: true,
     });
   });
 
   afterEach(() => {
+    // Restore the real Location so a partial stub doesn't leak into other test
+    // files sharing this Vitest worker (see src/tests/router/guards.routes.spec.ts).
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
     // Reset the module-level configured host so state doesn't leak between tests.
     setAllowedCheckoutHost(null);
   });
@@ -300,6 +311,28 @@ describe('isAllowedCheckoutUrl', () => {
 
     it('rejects a value that already includes a scheme', () => {
       setAllowedCheckoutHost('https://pay.onetimesecret.com');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+    });
+
+    it('accepts a host with an explicit non-default port', () => {
+      // The port is part of the origin, so only matching-port URLs are allowed.
+      setAllowedCheckoutHost('pay.onetimesecret.com:8443');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com:8443/c/pay/cs')).toBe(true);
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+    });
+
+    it('accepts a host with the explicit default HTTPS port (:443)', () => {
+      // new URL() normalizes :443 away; the host must still be enabled. This is
+      // the regression the raw-input validation guards against — comparing the
+      // input to new URL().host would drop :443 and clear the origin.
+      setAllowedCheckoutHost('pay.onetimesecret.com:443');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(true);
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com:443/c/pay/cs')).toBe(true);
+    });
+
+    it('rejects a host with an out-of-range port', () => {
+      // new URL() rejects ports > 65535; fail closed rather than silently drop.
+      setAllowedCheckoutHost('pay.onetimesecret.com:99999');
       expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
     });
   });
