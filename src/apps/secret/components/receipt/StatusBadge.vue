@@ -10,6 +10,7 @@
 
   interface Props {
     record: Receipt;
+    expiresIn?: number;
   }
 
   const props = defineProps<Props>();
@@ -32,7 +33,11 @@
       return 'expiring_soon';
     }
 
-    return getDisplayStatus(state);
+    const displayStatus = getDisplayStatus(state, props.expiresIn);
+    if (displayStatus === 'new' && props.record.is_previewed) {
+      return 'previewed';
+    }
+    return displayStatus;
   });
 
   // Status styling maps with enhanced design
