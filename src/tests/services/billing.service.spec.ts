@@ -378,7 +378,7 @@ describe('BillingService', () => {
         data: {
           plans: [
             { id: 'free_v1', name: 'Free', tier: 'free' },
-            { id: 'identity_plus_v1', name: 'Identity Plus', tier: 'single_team' },
+            { id: 'identity_plus_v1', name: 'Identity Plus', tier: 'single_account' },
           ],
         },
       };

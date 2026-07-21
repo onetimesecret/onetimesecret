@@ -8,7 +8,7 @@ overrides:
   '@babel/core': '>=7.29.6 <8'
   '@types/estree': 1.0.9
   esbuild: '>=0.28.1'
-  brace-expansion: 1.1.15
+  brace-expansion: 1.1.16
   flatted: ^3.4.2
   form-data: '>=4.0.6'
   js-yaml: '>=3.15.0'
@@ -65,13 +65,13 @@ importers:
         version: 14.3.0(vue@3.5.34(typescript@5.9.3))
       '@vueuse/integrations':
         specifier: ^14.3.0
-        version: 14.3.0(axios@1.16.0)(focus-trap@7.8.0)(qrcode@1.5.4)(vue@3.5.34(typescript@5.9.3))
+        version: 14.3.0(axios@1.18.0)(focus-trap@7.8.0)(qrcode@1.5.4)(vue@3.5.34(typescript@5.9.3))
       axios:
         specifier: ^1.16.0
-        version: 1.16.0
+        version: 1.18.0
       brace-expansion:
-        specifier: 1.1.15
-        version: 1.1.15
+        specifier: 1.1.16
+        version: 1.1.16
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
@@ -222,7 +222,7 @@ importers:
         version: 2.4.10(@vue/compiler-dom@3.5.34)(@vue/server-renderer@3.5.34(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
       axios-mock-adapter:
         specifier: ^2.1.0
-        version: 2.1.0(axios@1.16.0)
+        version: 2.1.0(axios@1.18.0)
       esbuild:
         specifier: '>=0.28.1'
         version: 0.28.1
@@ -2236,8 +2236,8 @@ packages:
     peerDependencies:
       axios: '>= 0.17.0'
 
-  axios@1.16.0:
-    resolution: {integrity: sha512-6hp5CwvTPlN2A31g5dxnwAX0orzM7pmCRDLnZSX772mv8WDqICwFjowHuPs04Mc8deIld1+ejhtaMn5vp6b+1w==}
+  axios@1.18.0:
+    resolution: {integrity: sha512-E32NzpYKp++W7XRe52rHiXV2ehxmh3wbdgO7MHeFM+vqxLBYHzt0ElkiImtOBxtOmyp0yoC8C6uESVV84Y2/hw==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -2260,8 +2260,8 @@ packages:
   boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
 
-  brace-expansion@1.1.15:
-    resolution: {integrity: sha512-EwOCDEex4quD37XhqM3omwtMoJjr//isUZz1JopUNWms+4Z2ViyM/k1YIRePpoVNnQhENnxtFjLaxNHrT7xIUg==}
+  brace-expansion@1.1.16:
+    resolution: {integrity: sha512-IDw48K2/2kRkg9LdJxurvq3lV3aBgq0REY89duEqFRthjlPdXHKMj7EnQOXVckxzgisinf3nHfrcE2FufFLXMw==}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -6528,13 +6528,13 @@ snapshots:
       '@vueuse/shared': 14.3.0(vue@3.5.34(typescript@5.9.3))
       vue: 3.5.34(typescript@5.9.3)
 
-  '@vueuse/integrations@14.3.0(axios@1.16.0)(focus-trap@7.8.0)(qrcode@1.5.4)(vue@3.5.34(typescript@5.9.3))':
+  '@vueuse/integrations@14.3.0(axios@1.18.0)(focus-trap@7.8.0)(qrcode@1.5.4)(vue@3.5.34(typescript@5.9.3))':
     dependencies:
       '@vueuse/core': 14.3.0(vue@3.5.34(typescript@5.9.3))
       '@vueuse/shared': 14.3.0(vue@3.5.34(typescript@5.9.3))
       vue: 3.5.34(typescript@5.9.3)
     optionalDependencies:
-      axios: 1.16.0
+      axios: 1.18.0
       focus-trap: 7.8.0
       qrcode: 1.5.4
 
@@ -6681,19 +6681,21 @@ snapshots:
 
   axe-core@4.12.1: {}
 
-  axios-mock-adapter@2.1.0(axios@1.16.0):
+  axios-mock-adapter@2.1.0(axios@1.18.0):
     dependencies:
-      axios: 1.16.0
+      axios: 1.18.0
       fast-deep-equal: 3.1.3
       is-buffer: 2.0.5
 
-  axios@1.16.0:
+  axios@1.18.0:
     dependencies:
       follow-redirects: 1.16.0
       form-data: 4.0.6
+      https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
+      - supports-color
 
   balanced-match@1.0.2: {}
 
@@ -6709,7 +6711,7 @@ snapshots:
 
   boolbase@1.0.0: {}
 
-  brace-expansion@1.1.15:
+  brace-expansion@1.1.16:
     dependencies:
       balanced-match: 1.0.2
       concat-map: 0.0.1
@@ -7064,7 +7066,7 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
       has-tostringtag: 1.0.2
-      hasown: 2.0.3
+      hasown: 2.0.4
 
   es-shim-unscopables@1.1.0:
     dependencies:
@@ -7434,7 +7436,7 @@ snapshots:
       call-bound: 1.0.4
       define-properties: 1.2.1
       functions-have-names: 1.2.3
-      hasown: 2.0.3
+      hasown: 2.0.4
       is-callable: 1.2.7
 
   functions-have-names@1.2.3: {}
@@ -7618,7 +7620,7 @@ snapshots:
   internal-slot@1.1.0:
     dependencies:
       es-errors: 1.3.0
-      hasown: 2.0.3
+      hasown: 2.0.4
       side-channel: 1.1.0
 
   is-array-buffer@3.0.5:
@@ -7727,7 +7729,7 @@ snapshots:
       call-bound: 1.0.4
       gopd: 1.2.0
       has-tostringtag: 1.0.2
-      hasown: 2.0.3
+      hasown: 2.0.4
 
   is-set@2.0.3: {}
 
@@ -8058,15 +8060,15 @@ snapshots:
 
   minimatch@10.2.4:
     dependencies:
-      brace-expansion: 1.1.15
+      brace-expansion: 1.1.16
 
   minimatch@3.1.5:
     dependencies:
-      brace-expansion: 1.1.15
+      brace-expansion: 1.1.16
 
   minimatch@9.0.9:
     dependencies:
-      brace-expansion: 1.1.15
+      brace-expansion: 1.1.16
 
   minimist@1.2.8: {}
 

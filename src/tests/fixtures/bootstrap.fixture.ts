@@ -63,6 +63,10 @@ export const baseBootstrap: BootstrapPayload = {
   frontend_host: 'https://test.onetimesecret.com',
   site_host: 'test.onetimesecret.com',
   support_host: 'support.onetimesecret.com',
+  // Empty by default — mirrors production (set only when a Stripe custom
+  // Checkout domain is configured) and avoids enabling the custom-domain
+  // allowlist across unrelated tests. Scenario fixtures override as needed.
+  checkout_host: '',
 
   // Test locales
   supported_locales: ['en', 'es', 'fr', 'de'],

@@ -62,6 +62,7 @@ module Core
 
         # Link to the pricing page can be seen regardless of authentication status
         output['billing_enabled'] = OT.billing_config.enabled?
+        output['checkout_host']   = OT.billing_config.checkout_host.to_s
 
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''
@@ -143,6 +144,7 @@ module Core
             'frontend_host' => nil,
             'homepage_mode' => nil,
             'billing_enabled' => nil,
+            'checkout_host' => nil,
             'regions' => nil,
             'regions_enabled' => nil,
             'secret_options' => nil,

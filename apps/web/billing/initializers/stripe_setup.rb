@@ -17,6 +17,11 @@ module Billing
       end
 
       def execute(_context)
+        # Fail the deploy — not a future customer's checkout — on a malformed
+        # custom Checkout host. Runs before Stripe setup so the message is
+        # about config, not an obscure downstream navigation failure.
+        Onetime.billing_config.validate_checkout_host!
+
         # Don't bring Stripe into this unless billing is enabled
         require 'stripe'
 

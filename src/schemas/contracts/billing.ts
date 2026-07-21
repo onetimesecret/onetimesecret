@@ -18,6 +18,10 @@ import { BillingTierSchema, CanonicalPlanIdSchema } from './config/billing';
  * Security (M-9): checkout URLs are navigated to via `window.location`, so the
  * schema layer host-allowlists them as defence-in-depth. The load-bearing check
  * remains the assignment-site guard in PlanSelector.vue (isAllowedCheckoutUrl).
+ * The allowlisted origins are the static baseline (`checkout.stripe.com`), the
+ * current app origin (same-origin), and this deployment's Stripe custom-domain
+ * Checkout host, configured at runtime from the bootstrap `checkout_host` field
+ * (see setAllowedCheckoutHost in @/utils/redirect).
  */
 const checkoutUrlSchema = z
   .url()
