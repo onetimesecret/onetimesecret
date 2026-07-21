@@ -187,6 +187,12 @@ module Onetime
 
       return if new_domain == old_domain
 
+      # Same system-integrity invariant as create!: a rename must not be
+      # able to move an existing record onto the canonical domain (#3841).
+      if self.class.overlaps_canonical_domain?(new_domain)
+        raise Onetime::Problem, 'This domain overlaps with the default site domain'
+      end
+
       # Verify the new domain is not already taken in either index
       existing = self.class.display_domain_index.get(new_domain)
       if existing && existing != identifier
@@ -757,6 +763,15 @@ module Onetime
         obj               = parse(input, org_id)
         normalized_domain = obj.display_domain.to_s.downcase
 
+        # System-integrity backstop: the logic layer already rejects
+        # canonical overlaps, but create! is also reachable from the
+        # console, CLI tooling, and future endpoints. Enforce the
+        # invariant at the write gate so no caller can register the
+        # canonical domain or a subdomain of it (#3841).
+        if overlaps_canonical_domain?(normalized_domain)
+          raise Onetime::Problem, 'This domain overlaps with the default site domain'
+        end
+
         # Check for existing domain BEFORE attempting creation
         existing = load_by_display_domain(normalized_domain)
 
@@ -1047,40 +1062,53 @@ module Onetime
         false
       end
 
-      # Whether the input domain overlaps with the canonical site domain.
+      # Whether the input domain overlaps with a canonical site domain.
       # Checks both exact match and base-domain match so that subdomains
-      # of the canonical host are also blocked (e.g. secrets.example.com
+      # of a canonical host are also blocked (e.g. secrets.example.com
       # when the site host is eu.example.com — both resolve to example.com).
+      #
+      # Covers both site.host and features.domains.default: the
+      # DomainStrategy middleware treats `domains.default || site.host`
+      # as canonical, so a distinct default link domain needs the same
+      # protection as the site host (#3841).
       #
       # Uses PublicSuffix for normalization, so leading/trailing whitespace,
       # casing differences, and trailing dots cannot circumvent the check.
+      # Fails closed: input that cannot be parsed is treated as overlap.
       #
       # Placed before entitlement checks in AddDomain so it is absolute
       # (no colonel bypass) — this is a system-integrity invariant.
       def overlaps_canonical_domain?(input)
-        site_host = OT.conf.dig('site', 'host').to_s
-        return false if site_host.empty?
+        canonical_hosts = [
+          OT.conf&.dig('site', 'host'),
+          OT.conf&.dig('features', 'domains', 'default'),
+        ].map(&:to_s).reject(&:empty?)
+        return false if canonical_hosts.empty?
 
         # Control characters are invalid in domain names (RFC 952/1123).
         # Treat as overlap to block registration -- a domain that cannot
         # be valid should never bypass the canonical-domain guard.
         return true if contains_control_chars?(input)
 
-        return true if default_domain?(input)
+        input_display = display_domain(input)
+        input_base    = base_domain(input)
 
-        # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
-        canonical_host = site_host.split(':').first
-        input_base     = base_domain(input)
-        canonical_base = base_domain(canonical_host)
+        canonical_hosts.any? do |host|
+          # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
+          bare_host = host.split(':').first.to_s.downcase
+          next true if input_display.eql?(bare_host)
 
-        # Skip base-domain comparison when canonical can't be resolved
-        # (e.g. localhost in development)
-        return false if canonical_base.nil? || input_base.nil?
+          canonical_base = base_domain(bare_host)
 
-        input_base == canonical_base
-      rescue PublicSuffix::Error => ex
+          # Skip base-domain comparison when this canonical host can't be
+          # resolved (e.g. localhost in development)
+          next false if canonical_base.nil? || input_base.nil?
+
+          input_base == canonical_base
+        end
+      rescue PublicSuffix::Error, Onetime::Problem => ex
         OT.le "[CustomDomain.overlaps_canonical_domain?] #{ex.message} for `#{input}`"
-        false
+        true
       end
 
       # ASCII control characters (0x00-0x1F, 0x7F) are invalid in domain

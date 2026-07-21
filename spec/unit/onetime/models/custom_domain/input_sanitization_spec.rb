@@ -2,14 +2,15 @@
 #
 # frozen_string_literal: true
 
-# TDD red-phase tests for two security findings in the domain input
-# validation pipeline. These test desired behavior that is NOT YET
-# implemented -- most tests are expected to FAIL until the fixes land.
+# Security regression tests for the domain input validation pipeline.
 #
-# Finding 1: Null bytes and control characters pass PublicSuffix.valid?
-#            and flow through unchecked.
-# Finding 2: Trailing dots -- PublicSuffix already normalizes these, so
-#            those tests serve as regression guards (expected GREEN).
+# Finding 1: Null bytes and control characters are rejected before they
+#            reach storage or DNS record instructions.
+# Finding 2: Trailing dots -- PublicSuffix normalizes these; regression
+#            guards.
+# Finding 3 (#3841): the canonical-domain overlap guard covers both
+#            site.host and features.domains.default, fails closed on
+#            unparseable input, and is enforced at the create! write gate.
 
 require 'spec_helper'
 
@@ -164,6 +165,75 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
       it 'returns false for a completely different domain' do
         expect(described_class.overlaps_canonical_domain?('other-site.org')).to be false
       end
+    end
+
+    context 'with unparseable input (fail closed)' do
+      it 'treats a bare unknown label as overlap' do
+        expect(described_class.overlaps_canonical_domain?('not_a_domain')).to be true
+      end
+    end
+
+    # The DomainStrategy middleware treats features.domains.default as
+    # canonical when set, so the guard must cover it too (#3841).
+    context 'when features.domains.default differs from site.host' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'example.com' },
+          'features' => { 'domains' => { 'default' => 'branded-links.net' } },
+        })
+      end
+
+      it 'detects the default link domain verbatim' do
+        expect(described_class.overlaps_canonical_domain?('branded-links.net')).to be true
+      end
+
+      it 'detects a subdomain of the default link domain' do
+        expect(described_class.overlaps_canonical_domain?('secrets.branded-links.net')).to be true
+      end
+
+      it 'still detects the site host' do
+        expect(described_class.overlaps_canonical_domain?('sub.example.com')).to be true
+      end
+
+      it 'returns false for an unrelated domain' do
+        expect(described_class.overlaps_canonical_domain?('other-site.org')).to be false
+      end
+    end
+
+    context 'when no canonical hosts are configured' do
+      before do
+        allow(OT).to receive(:conf).and_return({})
+      end
+
+      it 'returns false' do
+        expect(described_class.overlaps_canonical_domain?('example.com')).to be false
+      end
+    end
+  end
+
+  # ------------------------------------------------------------------ #
+  # create! backstop — the write gate enforces the canonical invariant
+  # itself, so console/CLI callers can't bypass the endpoint guard (#3841).
+  # The guard raises before any Redis access.
+  # ------------------------------------------------------------------ #
+
+  describe '.create! canonical backstop' do
+    before do
+      allow(OT).to receive(:conf).and_return({
+        'site' => { 'host' => 'example.com' },
+      })
+    end
+
+    it 'rejects the canonical domain verbatim' do
+      expect {
+        described_class.create!('example.com', 'org-test-001')
+      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+    end
+
+    it 'rejects a subdomain of the canonical domain' do
+      expect {
+        described_class.create!('secrets.example.com', 'org-test-001')
+      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
     end
   end
 end
