@@ -302,5 +302,27 @@ describe('isAllowedCheckoutUrl', () => {
       setAllowedCheckoutHost('https://pay.onetimesecret.com');
       expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
     });
+
+    it('accepts a host with an explicit non-default port', () => {
+      // The port is part of the origin, so only matching-port URLs are allowed.
+      setAllowedCheckoutHost('pay.onetimesecret.com:8443');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com:8443/c/pay/cs')).toBe(true);
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+    });
+
+    it('accepts a host with the explicit default HTTPS port (:443)', () => {
+      // new URL() normalizes :443 away; the host must still be enabled. This is
+      // the regression the raw-input validation guards against — comparing the
+      // input to new URL().host would drop :443 and clear the origin.
+      setAllowedCheckoutHost('pay.onetimesecret.com:443');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(true);
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com:443/c/pay/cs')).toBe(true);
+    });
+
+    it('rejects a host with an out-of-range port', () => {
+      // new URL() rejects ports > 65535; fail closed rather than silently drop.
+      setAllowedCheckoutHost('pay.onetimesecret.com:99999');
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
+    });
   });
 });

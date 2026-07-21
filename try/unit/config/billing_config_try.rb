@@ -106,6 +106,16 @@ ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com:8443'
 Onetime::BillingConfig.instance.valid_checkout_host?
 #=> true
 
+## valid_checkout_host? accepts the explicit default HTTPS port
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com:443'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> true
+
+## valid_checkout_host? rejects an out-of-range port (new URL() would drop it)
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com:99999'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> false
+
 ## valid_checkout_host? rejects a scheme prefix
 ENV['STRIPE_CHECKOUT_HOST'] = 'https://pay.onetimesecret.com'
 Onetime::BillingConfig.instance.valid_checkout_host?

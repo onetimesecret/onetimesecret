@@ -98,11 +98,21 @@ module Onetime
 
     # Whether the configured checkout_host is a well-formed bare host.
     # Empty/nil counts as valid — the custom-domain feature is simply off.
+    #
+    # The port, when present, must fall in the real TCP range (1..65535). The
+    # frontend derives the origin with `new URL()`, which rejects out-of-range
+    # ports; enforcing the same bound here keeps a value like
+    # "pay.example.com:99999" from booting the backend only to be silently
+    # dropped (fail-closed) by the browser guard and break checkout later.
     def valid_checkout_host?
       host = checkout_host.to_s.strip
       return true if host.empty?
+      return false unless CHECKOUT_HOST_RE.match?(host)
 
-      CHECKOUT_HOST_RE.match?(host)
+      port = host[/:(\d+)\z/, 1]
+      return true if port.nil?
+
+      (1..65_535).cover?(port.to_i)
     end
 
     # Boot-time enforcement: raise when checkout_host is set but malformed.
