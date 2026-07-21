@@ -440,6 +440,17 @@ module Auth::Config::Hooks
           email: account[:email],
         )
 
+        # Credential watermark (#3810): stamp Customer#last_password_update, same
+        # as after_change_password below. Session validation (Helpers/
+        # BaseSessionAuthStrategy) rejects any session blob authenticated before
+        # this instant, so the watermark — not the blob deletion below, which is
+        # hygiene — is the authoritative revocation boundary. Reset previously
+        # skipped this stamp, so untracked pre-reset blobs stayed valid until
+        # their 24h TTL.
+        Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
+          Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+        end
+
         # SECURITY (M-2): a password reset MUST invalidate every existing session
         # for the account — the whole point of a reset is to lock out whoever
         # currently holds a live session. The user is UNAUTHENTICATED here (they
@@ -460,10 +471,13 @@ module Auth::Config::Hooks
         # EXPLICITLY below: distinct error-level event + Sentry re-capture, so a
         # non-revoking reset pages instead of blending into routine hook logging.
         #
-        # ACCEPTED RESIDUAL RISK: revocation here is best-effort, not guaranteed.
-        # A durable idempotent retry (enqueue RevokeAllForCustomerExceptCurrent on
-        # failure) is the tracked follow-up; the operation is already idempotent so
-        # a retry is safe. Until then a Redis-raise leaves blobs live but LOUDLY.
+        # RESIDUAL RISK, NOW BACKSTOPPED (#3810): revocation here is still
+        # best-effort, but the durable idempotent retry exists — the after_commit
+        # block below enqueues an async FULL sweep (the worker runs the untracked
+        # keyspace scan this in-transaction revoke deliberately skips). A
+        # Redis-raise here now degrades to "the sweep gets it", and the credential
+        # watermark stamped above is the authoritative boundary regardless. The
+        # raise is still handled LOUDLY below.
         #
         # Fail SECURE (M-2): revocation MUST still run when external_id is absent.
         # A bare `next unless account[:external_id]` would silently skip the revoke
@@ -479,6 +493,48 @@ module Auth::Config::Hooks
             account_id: account_id,
           )
         else
+          # Durable follow-up (#3810): enqueue the async FULL sweep — including
+          # the untracked keyspace scan the in-transaction revoke below skips —
+          # once the reset actually COMMITS. First use of Sequel's after_commit in
+          # this codebase: Rodauth 2.44 runs this hook INSIDE its reset
+          # transaction, and after_commit defers the block until commit (skipped
+          # entirely on rollback; yields immediately when no transaction is open).
+          # Registered BEFORE the inline revoke so the sweep is enqueued even when
+          # that revoke raises — it IS the durable retry the comment above
+          # promises. With jobs disabled the publisher falls back to running the
+          # sweep inline after commit; acceptable, since small keyspaces sweep
+          # fast and the watermark — not the sweep — is the security boundary.
+          db.after_commit do
+            # MANDATORY internal rescue: an exception escaping an after_commit
+            # block propagates out of the ALREADY-COMMITTED transaction and would
+            # 500 a successful password reset. Broker failure degrades to a loud
+            # log + Sentry capture instead.
+            Onetime::Jobs::Publisher.enqueue_session_revocation_sweep(custid)
+
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueued,
+              level: :info,
+              account_id: account_id,
+            )
+          rescue StandardError => ex
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueue_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_reset_password,
+              error: ex.message,
+              security_warning: 'async session sweep not enqueued; untracked pre-reset blobs rely on watermark validation + TTL',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_reset_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
+
           begin
             # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
             # open reset transaction; the guaranteed tracked kill still revokes every
@@ -588,8 +644,12 @@ module Auth::Config::Hooks
         # remediation. We handle the raise EXPLICITLY: distinct error-level event +
         # Sentry re-capture so a non-revoking change alerts.
         #
-        # ACCEPTED RESIDUAL RISK: revocation here is best-effort, not guaranteed; a
-        # durable idempotent retry is the tracked follow-up (op is idempotent).
+        # RESIDUAL RISK, NOW BACKSTOPPED (#3810): revocation here is still
+        # best-effort, but the durable idempotent retry exists — the after_commit
+        # block below enqueues an async FULL sweep (untracked keyspace scan
+        # included) after the change commits, and the credential watermark
+        # (UpdatePasswordMetadata above) is the authoritative revocation boundary
+        # regardless of what either deletion reaches.
         #
         # Fail SECURE (M-2): revocation MUST still run when external_id is absent.
         # A bare `next unless account[:external_id]` would silently skip the revoke
@@ -605,6 +665,44 @@ module Auth::Config::Hooks
             account_id: account_id,
           )
         else
+          # Durable follow-up (#3810): enqueue the async FULL sweep once the
+          # change actually COMMITS, mirroring after_reset_password above (see the
+          # after_commit rationale there — deferred to commit, skipped on
+          # rollback, registered BEFORE the inline revoke so it enqueues even when
+          # that revoke raises). except_session_id carries the PRE-rotation sid;
+          # the rotated current session is protected by the worker honoring the
+          # credential watermark, not by sid identity.
+          db.after_commit do
+            # MANDATORY internal rescue: an exception escaping an after_commit
+            # block propagates out of the ALREADY-COMMITTED transaction and would
+            # 500 a successful password change. Broker failure degrades to a loud
+            # log + Sentry capture instead.
+            Onetime::Jobs::Publisher.enqueue_session_revocation_sweep(custid, except_session_id: current_sid)
+
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueued,
+              level: :info,
+              account_id: account_id,
+            )
+          rescue StandardError => ex
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueue_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_change_password,
+              error: ex.message,
+              security_warning: 'async session sweep not enqueued; untracked pre-change blobs rely on watermark validation + TTL',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_change_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
+
           begin
             # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
             # open change transaction; the guaranteed tracked kill still revokes every
@@ -645,6 +743,46 @@ module Auth::Config::Hooks
               end
             end
           end
+        end
+
+        # Re-stamp the kept session (#3810): the credential watermark stamped
+        # above (UpdatePasswordMetadata) rejects any session authenticated before
+        # it, so the session the user changed their password FROM must postdate
+        # the watermark or validation kills it on its very next request. Same
+        # string key + clock as SyncSession#populate_session stamps at login.
+        session['authenticated_at'] = Familia.now.to_i
+
+        # Rotate the session id (#3810 session-fixation finding): a credential
+        # change is a privilege boundary, so the sid that existed before the
+        # change must not remain valid after it. Setting :renew makes Rack's
+        # commit path call Onetime::Session#delete_session (which DELETES the old
+        # sid's blob) and re-persist the session data under a fresh sid — the
+        # same lever the logout controller uses. write_session then re-creates
+        # the sidecar + index entry for the NEW sid via TrackMetadata, so only
+        # the old sid's metadata needs tidying here (the tidy_sidecars pattern
+        # from RevokeAllForCustomerExceptCurrent).
+        begin
+          if request.env['rack.session.options']
+            request.env['rack.session.options'][:renew] = true
+
+            unless current_sid.to_s.empty?
+              Onetime::SessionMetadata.load(current_sid)&.destroy!
+              unless custid.to_s.strip.empty?
+                Onetime::Customer.load_by_extid_or_email(custid)&.active_sessions&.remove(current_sid)
+              end
+            end
+          end
+        rescue StandardError => ex
+          # Rotation failure must never fail the password change, but must never
+          # be silent either: without rotation the pre-change sid stays live
+          # (session fixation) until watermark validation or TTL retires it.
+          Auth::Logging.log_auth_event(
+            :session_rotation_FAILED,
+            level: :error,
+            account_id: account_id,
+            error: ex.message,
+            security_warning: 'password change succeeded but the session id was not rotated',
+          )
         end
 
         # Best-effort security notification that the password changed. Never
