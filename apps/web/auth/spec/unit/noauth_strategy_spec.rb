@@ -103,6 +103,61 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
     end
 
     # -----------------------------------------------------------------
+    # Credential watermark (#3810) — the anonymous-capable path. A session
+    # authenticated BEFORE Customer#last_password_update must degrade to
+    # anonymous (nil user), never a 401: Helpers#load_user_from_session
+    # returns nil when session_predates_credential_change?. The rejecting
+    # variant is covered in session_auth_strategy_spec.rb.
+    # -----------------------------------------------------------------
+    context 'credential watermark (#3810)' do
+      let(:watermark) { Familia.now.to_i }
+
+      def env_with_authenticated_at(value)
+        {
+          'rack.session' => {
+            'authenticated' => true,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+            'authenticated_at' => value,
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      context 'with a session authenticated before the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          no_auth_strategy.authenticate(env_with_authenticated_at(watermark - 100), nil)
+        end
+
+        it 'returns a StrategyResult (not AuthFailure)' do
+          expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+        end
+
+        it 'degrades to anonymous (nil user, not authenticated)' do
+          expect(result.user).to be_nil
+          expect(result.authenticated?).to be false
+        end
+      end
+
+      context 'with a session authenticated exactly at the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          no_auth_strategy.authenticate(env_with_authenticated_at(watermark), nil)
+        end
+
+        it 'resolves the customer (strict <, so the re-stamped session survives)' do
+          expect(result.user).to be_a(Onetime::Customer)
+          expect(result.user.custid).to eq(test_customer.custid)
+          expect(result.authenticated?).to be true
+        end
+      end
+    end
+
+    # -----------------------------------------------------------------
     # Always returns StrategyResult — never AuthFailure
     # -----------------------------------------------------------------
     context 'across multiple env variations' do
