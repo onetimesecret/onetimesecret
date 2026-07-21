@@ -58,6 +58,7 @@ export const CONFIG_SERIALIZER_FIELDS = [
   'site_host',
   'support_email',
   'support_host',
+  'checkout_host',
   'ui',
 ] as const;
 
