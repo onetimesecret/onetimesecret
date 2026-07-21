@@ -12,6 +12,12 @@ import PlanChangeModal from './PlanChangeModal.vue';
 import CancelSubscriptionModal from './CancelSubscriptionModal.vue';
 import CurrencyMigrationModal from './CurrencyMigrationModal.vue';
 import PendingMigrationBanner from './PendingMigrationBanner.vue';
+import {
+  isPlanCurrent as isPlanCurrentLogic,
+  isPlanCurrencyMismatch as isPlanCurrencyMismatchLogic,
+  isCurrencyMigrationBlocked,
+  isPlanButtonDisabled as isPlanButtonDisabledLogic,
+} from './planSelectorLogic';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
@@ -91,7 +97,7 @@ const pendingMigration = computed(() => subscriptionStatus.value?.pending_curren
 const currentCurrency = computed(() => subscriptionStatus.value?.current_currency ?? null);
 
 const isPlanCurrencyMismatch = (plan: BillingPlan): boolean =>
-  !!currentCurrency.value && !!plan.currency && currentCurrency.value !== plan.currency;
+  isPlanCurrencyMismatchLogic(currentCurrency.value, plan);
 
 // Current plan for the modal (find from plans list based on subscription)
 const currentPlanForModal = computed(() => {
@@ -201,7 +207,8 @@ const isPlanRecommended = (plan: BillingPlan): boolean => plan.is_popular ?? fal
  * STRICT id match: the "Current" badge belongs to the plan whose id equals the
  * org's planid. No tier comparison — tier is drift-prone metadata (#3824).
  */
-const isPlanCurrent = (plan: BillingPlan): boolean => plan.id === selectedOrg.value?.planid;
+const isPlanCurrent = (plan: BillingPlan): boolean =>
+  isPlanCurrentLogic(plan, selectedOrg.value?.planid);
 
 /**
  * Canonical tier ordering for upgrade/downgrade direction (#3824).
@@ -227,11 +234,14 @@ const canDowngrade = (plan: BillingPlan): boolean => {
 };
 
 const isPlanButtonDisabled = (plan: BillingPlan): boolean =>
-  (isPlanCurrent(plan) && !isCancelScheduled.value) ||
-  isCreatingCheckout.value ||
-  isReactivating.value ||
-  (plan.tier === 'free' && !hasActiveSubscription.value) ||
-  isPlanCurrencyMismatch(plan);
+  isPlanButtonDisabledLogic(plan, {
+    orgPlanId: selectedOrg.value?.planid,
+    currentCurrency: currentCurrency.value,
+    isCreatingCheckout: isCreatingCheckout.value,
+    isReactivating: isReactivating.value,
+    isCancelScheduled: isCancelScheduled.value,
+    hasActiveSubscription: hasActiveSubscription.value,
+  });
 
 const isPlanProcessing = (plan: BillingPlan): boolean =>
   (isCreatingCheckout.value && !isPlanCurrent(plan)) || (isReactivating.value && isPlanCurrent(plan));
@@ -419,11 +429,7 @@ const handleCompletePendingMigration = async () => {
   // Guard: if the old subscription hasn't been cancelled yet, its currency
   // still differs from the migration target — creating a checkout would
   // trigger a currency conflict from Stripe.
-  if (
-    currentCurrency.value &&
-    pendingMigration.value.target_currency &&
-    currentCurrency.value !== pendingMigration.value.target_currency
-  ) {
+  if (isCurrencyMigrationBlocked(currentCurrency.value, pendingMigration.value.target_currency)) {
     error.value = t('web.billing.plan_unavailable_region_mismatch');
     return;
   }

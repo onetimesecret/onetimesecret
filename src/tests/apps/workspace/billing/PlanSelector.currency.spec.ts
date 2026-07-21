@@ -9,54 +9,50 @@
 // - handleCompletePendingMigration currency guard
 // - Plan card button disabled state for mismatched currencies
 //
-// NOTE: These tests exercise extracted logic from PlanSelector.vue.
-// They do not mount the component to avoid complex Vue/Pinia/i18n setup.
+// These exercise the SHARED pure logic in planSelectorLogic.ts — the same
+// module PlanSelector.vue delegates to. The predicates are imported, never
+// re-implemented, so the test can't drift from the component (the pre-#3824
+// tier-based isPlanCurrent silently lingering in a test copy is exactly the
+// failure mode this avoids).
 
 import { describe, it, expect } from 'vitest';
 import type { Plan as BillingPlan, SubscriptionStatusResponse } from '@/services/billing.service';
+import {
+  isPlanCurrent,
+  isPlanCurrencyMismatch,
+  isCurrencyMigrationBlocked,
+  isPlanButtonDisabled,
+  type PlanButtonState,
+} from '@/apps/workspace/billing/planSelectorLogic';
 
-// --- Extracted logic from PlanSelector.vue ---
+// --- Thin composition of the handler flows under test ---
+//
+// These mirror the early-return ordering of PlanSelector.vue's async handlers
+// (which interleave side effects, so they can't be imported as-is). The
+// drift-prone predicates — isPlanCurrent, isPlanCurrencyMismatch — come from
+// the shared module, so only the trivial glue (extid/free-tier checks) is local.
 
 /**
- * isPlanCurrencyMismatch — line ~90 in PlanSelector.vue
- *
- * Returns true when the plan's currency differs from the
- * current subscription's currency.
- */
-function isPlanCurrencyMismatch(
-  currentCurrency: string | null,
-  plan: BillingPlan
-): boolean {
-  return !!currentCurrency && !!plan.currency && currentCurrency !== plan.currency;
-}
-
-/**
- * Simulates handlePlanSelect's early-return logic (lines ~213-220)
- *
- * Returns true if the handler would bail out before making an API call.
+ * handlePlanSelect (PlanSelector.vue) bails before any checkout/modal when the
+ * org is unset, the plan is already current, the plan is free, or the currency
+ * mismatches.
  */
 function wouldHandlePlanSelectEarlyReturn(
   plan: BillingPlan,
-  currentPlanId: string | undefined,
+  orgPlanId: string | undefined,
   orgExtid: string | undefined,
   currentCurrency: string | null
 ): boolean {
-  // isPlanCurrent check — STRICT id match, mirrors production (#3824)
-  if (plan.id === currentPlanId) return true;
-  // No org selected
   if (!orgExtid) return true;
-  // Free tier — no checkout
+  if (isPlanCurrent(plan, orgPlanId)) return true;
   if (plan.tier === 'free') return true;
-  // Currency mismatch
-  if (isPlanCurrencyMismatch(currentCurrency, plan)) return true;
-  return false;
+  return isPlanCurrencyMismatch(currentCurrency, plan);
 }
 
 /**
- * Simulates handleCompletePendingMigration's currency guard
- * (the fix added in this PR).
- *
- * Returns true if the handler would bail out before creating a checkout.
+ * handleCompletePendingMigration bails when the org is unset, there's no
+ * pending migration, or the still-active subscription's currency conflicts
+ * with the migration target.
  */
 function wouldCompleteMigrationBail(
   orgExtid: string | undefined,
@@ -64,35 +60,7 @@ function wouldCompleteMigrationBail(
   currentCurrency: string | null
 ): boolean {
   if (!orgExtid || !pendingMigration) return true;
-  if (
-    currentCurrency &&
-    pendingMigration.target_currency &&
-    currentCurrency !== pendingMigration.target_currency
-  ) {
-    return true;
-  }
-  return false;
-}
-
-/**
- * Simulates the button-disabled condition from PlanSelector template (line ~608):
- *   :button-disabled="isPlanCurrent(plan) || isCreatingCheckout
- *     || plan.tier === 'free' || isPlanCurrencyMismatch(plan)"
- */
-function isButtonDisabled(
-  plan: BillingPlan,
-  currentPlanId: string | undefined,
-  isCreatingCheckout: boolean,
-  currentCurrency: string | null
-): boolean {
-  // isPlanCurrent — STRICT id match, mirrors production (#3824)
-  const isPlanCurrent = plan.id === currentPlanId;
-  return (
-    isPlanCurrent ||
-    isCreatingCheckout ||
-    plan.tier === 'free' ||
-    isPlanCurrencyMismatch(currentCurrency, plan)
-  );
+  return isCurrencyMigrationBlocked(currentCurrency, pendingMigration.target_currency);
 }
 
 // --- Test fixtures ---
@@ -110,6 +78,16 @@ const createMockPlan = (overrides: Partial<BillingPlan> = {}): BillingPlan => ({
   features: ['Feature 1'],
   limits: { teams: 1 },
   entitlements: ['create_secrets', 'api_access'],
+  ...overrides,
+});
+
+const createButtonState = (overrides: Partial<PlanButtonState> = {}): PlanButtonState => ({
+  orgPlanId: 'free_v1',
+  currentCurrency: null,
+  isCreatingCheckout: false,
+  isReactivating: false,
+  isCancelScheduled: false,
+  hasActiveSubscription: false,
   ...overrides,
 });
 
@@ -216,6 +194,11 @@ describe('PlanSelector currency mismatch logic', () => {
       );
       expect(result).toBe(true);
     });
+
+    it('early-returns when no org selected', () => {
+      const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
+      expect(wouldHandlePlanSelectEarlyReturn(cadPlan, 'free_v1', undefined, 'cad')).toBe(true);
+    });
   });
 
   describe('handleCompletePendingMigration currency guard', () => {
@@ -255,50 +238,92 @@ describe('PlanSelector currency mismatch logic', () => {
   describe('plan card button disabled state', () => {
     it('disables button when plan currency mismatches subscription', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
-      expect(isButtonDisabled(eurPlan, 'free_v1', false, 'cad')).toBe(true);
+      const state = createButtonState({ currentCurrency: 'cad', hasActiveSubscription: true });
+      expect(isPlanButtonDisabled(eurPlan, state)).toBe(true);
     });
 
     it('enables button when currencies match', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      expect(isButtonDisabled(cadPlan, 'free_v1', false, 'cad')).toBe(false);
+      const state = createButtonState({ currentCurrency: 'cad', hasActiveSubscription: true });
+      expect(isPlanButtonDisabled(cadPlan, state)).toBe(false);
     });
 
     it('enables button when no current currency (new subscriber)', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
-      expect(isButtonDisabled(eurPlan, 'free_v1', false, null)).toBe(false);
+      const state = createButtonState({ currentCurrency: null });
+      expect(isPlanButtonDisabled(eurPlan, state)).toBe(false);
     });
 
     it('disables button for current plan even when currencies match', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
       // Strict id match: org's planid equals this plan's id (#3824)
-      expect(isButtonDisabled(cadPlan, 'identity_plus_v1', false, 'cad')).toBe(true);
+      const state = createButtonState({
+        orgPlanId: 'identity_plus_v1',
+        currentCurrency: 'cad',
+        hasActiveSubscription: true,
+      });
+      expect(isPlanButtonDisabled(cadPlan, state)).toBe(true);
+    });
+
+    it('enables the current plan button while a cancellation is scheduled (to reactivate)', () => {
+      const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
+      const state = createButtonState({
+        orgPlanId: 'identity_plus_v1',
+        currentCurrency: 'cad',
+        hasActiveSubscription: true,
+        isCancelScheduled: true,
+      });
+      expect(isPlanButtonDisabled(cadPlan, state)).toBe(false);
     });
 
     it('disables button during checkout creation', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      expect(isButtonDisabled(cadPlan, 'free_v1', true, 'cad')).toBe(true);
+      const state = createButtonState({
+        currentCurrency: 'cad',
+        hasActiveSubscription: true,
+        isCreatingCheckout: true,
+      });
+      expect(isPlanButtonDisabled(cadPlan, state)).toBe(true);
     });
 
-    it('disables button for free tier plans', () => {
+    it('disables button while reactivating', () => {
+      const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
+      const state = createButtonState({ currentCurrency: 'cad', isReactivating: true });
+      expect(isPlanButtonDisabled(cadPlan, state)).toBe(true);
+    });
+
+    it('disables the free tier button for a new subscriber (nothing to cancel to)', () => {
       const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1' });
-      expect(isButtonDisabled(freePlan, 'identity_plus_v1', false, null)).toBe(true);
+      const state = createButtonState({ orgPlanId: 'free_v1', hasActiveSubscription: false });
+      expect(isPlanButtonDisabled(freePlan, state)).toBe(true);
+    });
+
+    it('enables the free tier button for an active subscriber (cancel to downgrade)', () => {
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1' });
+      const state = createButtonState({
+        orgPlanId: 'identity_plus_v1',
+        hasActiveSubscription: true,
+      });
+      expect(isPlanButtonDisabled(freePlan, state)).toBe(false);
     });
   });
 
   describe('cross-region scenarios', () => {
-    it('USD subscriber sees EUR plans as disabled', () => {
+    it('CAD subscriber sees EUR plans as disabled', () => {
       const eurPlan = createMockPlan({ currency: 'eur', region: 'EU' });
+      const state = createButtonState({ currentCurrency: 'cad', hasActiveSubscription: true });
       expect(isPlanCurrencyMismatch('cad', eurPlan)).toBe(true);
-      expect(isButtonDisabled(eurPlan, 'free_v1', false, 'cad')).toBe(true);
+      expect(isPlanButtonDisabled(eurPlan, state)).toBe(true);
     });
 
-    it('EUR subscriber sees USD plans as disabled', () => {
+    it('EUR subscriber sees CAD plans as disabled', () => {
       const cadPlan = createMockPlan({ currency: 'cad', region: 'US' });
+      const state = createButtonState({ currentCurrency: 'eur', hasActiveSubscription: true });
       expect(isPlanCurrencyMismatch('eur', cadPlan)).toBe(true);
-      expect(isButtonDisabled(cadPlan, 'free_v1', false, 'eur')).toBe(true);
+      expect(isPlanButtonDisabled(cadPlan, state)).toBe(true);
     });
 
-    it('new subscriber (no currency) sees all plans as enabled', () => {
+    it('new subscriber (no currency) sees paid plans as enabled', () => {
       const cadPlan = createMockPlan({ currency: 'cad', region: 'US' });
       const eurPlan = createMockPlan({ currency: 'eur', region: 'EU' });
 
@@ -306,12 +331,12 @@ describe('PlanSelector currency mismatch logic', () => {
       expect(isPlanCurrencyMismatch(null, eurPlan)).toBe(false);
     });
 
-    it('pending migration blocked when old USD sub still active for EUR target', () => {
+    it('pending migration blocked when old CAD sub still active for EUR target', () => {
       const pending = createPendingMigration({
         target_currency: 'eur',
         target_plan_name: 'Identity Plus (EU)',
       });
-      // Old subscription still active with USD
+      // Old subscription still active with CAD
       expect(wouldCompleteMigrationBail('on1abc123', pending, 'cad')).toBe(true);
     });
 
