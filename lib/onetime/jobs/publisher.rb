@@ -146,7 +146,9 @@ module Onetime
         # @param except_session_id [String, nil] Bare session id to preserve
         #   (the caller's current session)
         # @return [Boolean] true if published to queue or processed synchronously
-        # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+        # @raise [StandardError] Only from a LIVE pool failing mid-publish (e.g.
+        #   Bunny::ConnectionClosedError); a never-initialized pool degrades to
+        #   the inline fallback instead of raising
         def enqueue_session_revocation_sweep(custid, except_session_id: nil)
           new.enqueue_session_revocation_sweep(custid, except_session_id: except_session_id)
         end
