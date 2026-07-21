@@ -14,50 +14,16 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Plan as BillingPlan } from '@/services/billing.service';
-
-// Type for the tier hierarchy - matches PlanSelector.vue logic
-// #3824: single_account is a distinct tier below single_team (identity_plus_v1).
-type PlanTier = 'free' | 'single_account' | 'single_team' | 'multi_team';
-
-// Canonical tier order for upgrade/downgrade comparison (#3824)
-// free < single_account < single_team < multi_team
-const TIER_ORDER: PlanTier[] = ['free', 'single_account', 'single_team', 'multi_team'];
-
-/**
- * Helper: Get tier index for comparison
- * Used to determine upgrade/downgrade eligibility
- */
-function getTierIndex(tier: string): number {
-  const index = TIER_ORDER.indexOf(tier as PlanTier);
-  return index >= 0 ? index : -1;
-}
-
-/**
- * Logic extracted from PlanSelector.vue: canUpgrade
- *
- * Determines if user can upgrade from current tier to target plan.
- * Uses canonical rank ordering (#3824). Unresolved tiers (rank -1) yield no
- * direction, matching the component (currentPlan null => no upgrade/downgrade).
- */
-function canUpgrade(currentTier: string, targetPlan: BillingPlan): boolean {
-  const c = getTierIndex(currentTier);
-  const t = getTierIndex(targetPlan.tier);
-  if (c === -1 || t === -1) return false;
-  return t > c;
-}
-
-/**
- * Logic extracted from PlanSelector.vue: canDowngrade
- *
- * Determines if user can downgrade from current tier to target plan.
- * Uses canonical rank ordering (#3824).
- */
-function canDowngrade(currentTier: string, targetPlan: BillingPlan): boolean {
-  const c = getTierIndex(currentTier);
-  const t = getTierIndex(targetPlan.tier);
-  if (c === -1 || t === -1) return false;
-  return t < c;
-}
+// Drift-prone predicates come from the ONE shared module PlanSelector.vue
+// delegates to (#3824). tierRank is imported under its historical spec name
+// getTierIndex so the existing call sites read unchanged.
+import {
+  tierRank as getTierIndex,
+  canUpgrade,
+  canDowngrade,
+  isPlanRecommended,
+  isPlanCurrent,
+} from '@/apps/workspace/billing/planSelectorLogic';
 
 /**
  * Logic extracted from PlanSelector.vue: getBasePlan
@@ -83,18 +49,6 @@ function getNewFeatures(plan: BillingPlan, allPlans: BillingPlan[]): string[] {
 
   // Filter out features that exist in base plan
   return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
-}
-
-/**
- * Logic extracted from PlanSelector.vue: isPlanRecommended
- *
- * Determines if plan should show "Most Popular" badge.
- * #3824: is_popular (API-provided) is the SOLE authority. The old
- * tier === 'single_team' fallback was removed so "Most Popular" is never
- * defaulted onto a card.
- */
-function isPlanRecommended(plan: BillingPlan & { is_popular?: boolean }): boolean {
-  return plan.is_popular ?? false;
 }
 
 /**
@@ -244,11 +198,8 @@ describe('PlanSelector Logic', () => {
      *     triggers the original mis-badge — a drift guard on the fixture itself.
      */
 
-    // NEW (shipped) logic under guard.
-    const isPlanCurrent = (
-      plan: BillingPlan,
-      planid: string | null | undefined
-    ): boolean => plan.id === planid;
+    // NEW (shipped) logic under guard = the shared module's isPlanCurrent
+    // (imported at top of file), NOT a local re-implementation.
 
     // OLD (buggy) pre-#3824 logic, reproduced verbatim: resolve the org's tier
     // from the plans list, else hardcode legacy 'identity' -> single_team, else
@@ -720,13 +671,9 @@ describe('PlanSelector Logic', () => {
           tier: 'free',
         });
 
-        // #3824: isPlanCurrent is STRICT id match (plan.id === org.planid), not
-        // tier equality. A real free customer has planid === the free plan id.
-        const isPlanCurrent = (
-          plan: BillingPlan,
-          planid: string | null | undefined
-        ): boolean => plan.id === planid;
-
+        // #3824: isPlanCurrent (shared module, imported at top) is STRICT id
+        // match (plan.id === org.planid), not tier equality. A real free
+        // customer has planid === the free plan id.
         expect(isPlanCurrent(freePlan, 'free_v1')).toBe(true);
         // A tier string is NOT a plan id, so it must not badge the card.
         expect(isPlanCurrent(freePlan, 'free')).toBe(false);

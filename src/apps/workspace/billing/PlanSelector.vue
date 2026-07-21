@@ -15,8 +15,12 @@ import PendingMigrationBanner from './PendingMigrationBanner.vue';
 import {
   isPlanCurrent as isPlanCurrentLogic,
   isPlanCurrencyMismatch as isPlanCurrencyMismatchLogic,
-  isCurrencyMigrationBlocked,
   isPlanButtonDisabled as isPlanButtonDisabledLogic,
+  canUpgrade as canUpgradeLogic,
+  canDowngrade as canDowngradeLogic,
+  isPlanRecommended,
+  resolvePlanSelectAction,
+  resolveCompletePendingMigrationAction,
 } from './planSelectorLogic';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
@@ -197,41 +201,19 @@ const freePlan = computed(() => plans.value.find((plan) => plan.tier === 'free')
 const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value || isLoadingOrg.value);
 
 /**
- * Check if plan should show "Most Popular" badge.
- * is_popular (API-provided) is the sole authority — no tier-based fallback,
- * so "Most Popular" is never defaulted onto a card (#3824).
- */
-const isPlanRecommended = (plan: BillingPlan): boolean => plan.is_popular ?? false;
-
-/**
  * STRICT id match: the "Current" badge belongs to the plan whose id equals the
  * org's planid. No tier comparison — tier is drift-prone metadata (#3824).
  */
 const isPlanCurrent = (plan: BillingPlan): boolean =>
   isPlanCurrentLogic(plan, selectedOrg.value?.planid);
 
-/**
- * Canonical tier ordering for upgrade/downgrade direction (#3824).
- * free < single_account < single_team < multi_team
- */
-const TIER_ORDER = ['free', 'single_account', 'single_team', 'multi_team'] as const;
-const tierRank = (tier: string | undefined | null): number =>
-  tier ? TIER_ORDER.indexOf(tier as (typeof TIER_ORDER)[number]) : -1;
+// Upgrade/downgrade direction is pure tier-rank logic (#3824). Bind the current
+// tier here so all call sites (getButtonLabel, etc.) stay single-arg.
+const canUpgrade = (plan: BillingPlan): boolean =>
+  canUpgradeLogic(currentPlan.value?.tier, plan);
 
-const canUpgrade = (plan: BillingPlan): boolean => {
-  const current = tierRank(currentPlan.value?.tier);
-  const target = tierRank(plan.tier);
-  // Unresolved/legacy current plan (rank -1) yields no direction.
-  if (current === -1 || target === -1) return false;
-  return target > current;
-};
-
-const canDowngrade = (plan: BillingPlan): boolean => {
-  const current = tierRank(currentPlan.value?.tier);
-  const target = tierRank(plan.tier);
-  if (current === -1 || target === -1) return false;
-  return target < current;
-};
+const canDowngrade = (plan: BillingPlan): boolean =>
+  canDowngradeLogic(currentPlan.value?.tier, plan);
 
 const isPlanButtonDisabled = (plan: BillingPlan): boolean =>
   isPlanButtonDisabledLogic(plan, {
@@ -280,35 +262,54 @@ const loadPlans = async () => {
 };
 
 const handlePlanSelect = async (plan: BillingPlan) => {
+  // Pure decision first (shared with the currency spec), then side effects.
+  const action = resolvePlanSelectAction(plan, {
+    orgExtid: selectedOrg.value?.extid,
+    orgPlanId: selectedOrg.value?.planid,
+    currentCurrency: currentCurrency.value,
+    isCancelScheduled: isCancelScheduled.value,
+    hasActiveSubscription: hasActiveSubscription.value,
+  });
+
+  switch (action) {
+    case 'noop':
+      return;
+
+    case 'reactivate':
+      // Current plan clicked while a cancellation is scheduled → reactivate.
+      await handleReactivateSubscription();
+      return;
+
+    case 'open-cancel-modal':
+      // Free plan for an active subscriber: cancel instead of checkout.
+      showCancelModal.value = true;
+      return;
+
+    case 'currency-blocked':
+      // Clear stale messages; the disabled button already explains the block.
+      error.value = '';
+      successMessage.value = '';
+      return;
+
+    case 'open-plan-change-modal':
+      error.value = '';
+      successMessage.value = '';
+      targetPlan.value = plan;
+      showPlanChangeModal.value = true;
+      return;
+
+    case 'checkout':
+      error.value = '';
+      successMessage.value = '';
+      await startCheckoutSession(plan);
+      return;
+  }
+};
+
+// New subscriber flow: redirect to Stripe Checkout for the selected plan.
+const startCheckoutSession = async (plan: BillingPlan) => {
   if (!selectedOrg.value?.extid) return;
 
-  if (isPlanCurrent(plan)) {
-    // When cancellation is scheduled, clicking the current plan reactivates
-    if (isCancelScheduled.value) await handleReactivateSubscription();
-    return;
-  }
-
-  // Free plan: open the cancel subscription modal instead of checkout
-  if (plan.tier === 'free') {
-    if (hasActiveSubscription.value) {
-      showCancelModal.value = true;
-    }
-    return;
-  }
-
-  // Clear any previous messages
-  error.value = '';
-  successMessage.value = '';
-
-  if (isPlanCurrencyMismatch(plan)) return;
-
-  if (hasActiveSubscription.value) {
-    targetPlan.value = plan;
-    showPlanChangeModal.value = true;
-    return;
-  }
-
-  // New subscriber or currency-mismatch flow: redirect to Stripe Checkout
   isCreatingCheckout.value = true;
 
   try {
@@ -424,15 +425,26 @@ const handleImmediateRedirect = (checkoutUrl: string) => {
 
 // Handle "Complete Migration" from the PendingMigrationBanner
 const handleCompletePendingMigration = async () => {
-  if (!selectedOrg.value?.extid || !pendingMigration.value) return;
+  // Pure decision first (shared with the currency spec), then side effects.
+  // 'currency-blocked' means the old subscription hasn't been cancelled yet, so
+  // its currency still differs from the migration target — creating a checkout
+  // would trigger a currency conflict from Stripe.
+  const action = resolveCompletePendingMigrationAction(pendingMigration.value, {
+    orgExtid: selectedOrg.value?.extid,
+    currentCurrency: currentCurrency.value,
+  });
 
-  // Guard: if the old subscription hasn't been cancelled yet, its currency
-  // still differs from the migration target — creating a checkout would
-  // trigger a currency conflict from Stripe.
-  if (isCurrencyMigrationBlocked(currentCurrency.value, pendingMigration.value.target_currency)) {
+  if (action === 'currency-blocked') {
     error.value = t('web.billing.plan_unavailable_region_mismatch');
     return;
   }
+  if (action !== 'checkout') return;
+
+  // action === 'checkout': both are guaranteed present; re-read as locals so
+  // TypeScript narrows for the checkout call below.
+  const extid = selectedOrg.value?.extid;
+  const migration = pendingMigration.value;
+  if (!extid || !migration) return;
 
   isCompletingPendingMigration.value = true;
   error.value = '';
@@ -441,10 +453,10 @@ const handleCompletePendingMigration = async () => {
     // Create a new checkout session for the pending migration target plan.
     // target_plan_id is a family ID (e.g. "identity_plus_v1").
     // target_interval provides the billing interval.
-    const planId = pendingMigration.value.target_plan_id;
-    const interval = pendingMigration.value.target_interval ?? 'month';
+    const planId = migration.target_plan_id;
+    const interval = migration.target_interval ?? 'month';
     const response = await BillingService.createCheckoutSession(
-      selectedOrg.value.extid,
+      extid,
       {
         id: planId,
         interval,

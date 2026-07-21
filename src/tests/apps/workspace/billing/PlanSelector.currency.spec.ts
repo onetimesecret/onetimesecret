@@ -18,50 +18,20 @@
 import { describe, it, expect } from 'vitest';
 import type { Plan as BillingPlan, SubscriptionStatusResponse } from '@/services/billing.service';
 import {
-  isPlanCurrent,
   isPlanCurrencyMismatch,
-  isCurrencyMigrationBlocked,
   isPlanButtonDisabled,
+  resolvePlanSelectAction,
+  resolveCompletePendingMigrationAction,
   type PlanButtonState,
+  type PlanSelectContext,
+  type CompletePendingMigrationContext,
 } from '@/apps/workspace/billing/planSelectorLogic';
 
-// --- Thin composition of the handler flows under test ---
-//
-// These mirror the early-return ordering of PlanSelector.vue's async handlers
-// (which interleave side effects, so they can't be imported as-is). The
-// drift-prone predicates — isPlanCurrent, isPlanCurrencyMismatch — come from
-// the shared module, so only the trivial glue (extid/free-tier checks) is local.
-
-/**
- * handlePlanSelect (PlanSelector.vue) bails before any checkout/modal when the
- * org is unset, the plan is already current, the plan is free, or the currency
- * mismatches.
- */
-function wouldHandlePlanSelectEarlyReturn(
-  plan: BillingPlan,
-  orgPlanId: string | undefined,
-  orgExtid: string | undefined,
-  currentCurrency: string | null
-): boolean {
-  if (!orgExtid) return true;
-  if (isPlanCurrent(plan, orgPlanId)) return true;
-  if (plan.tier === 'free') return true;
-  return isPlanCurrencyMismatch(currentCurrency, plan);
-}
-
-/**
- * handleCompletePendingMigration bails when the org is unset, there's no
- * pending migration, or the still-active subscription's currency conflicts
- * with the migration target.
- */
-function wouldCompleteMigrationBail(
-  orgExtid: string | undefined,
-  pendingMigration: SubscriptionStatusResponse['pending_currency_migration'],
-  currentCurrency: string | null
-): boolean {
-  if (!orgExtid || !pendingMigration) return true;
-  return isCurrencyMigrationBlocked(currentCurrency, pendingMigration.target_currency);
-}
+// The handler-flow tests below assert the ACTUAL decision functions
+// PlanSelector.vue calls (resolvePlanSelectAction /
+// resolveCompletePendingMigrationAction) rather than re-implementing the
+// early-return ordering. If the component reorders a guard, these break — the
+// drift the previous hand-copied helpers couldn't catch (#3824).
 
 // --- Test fixtures ---
 
@@ -91,6 +61,17 @@ const createButtonState = (overrides: Partial<PlanButtonState> = {}): PlanButton
   ...overrides,
 });
 
+// Default context: org present, on the free plan, no subscription — i.e. a new
+// subscriber. Override per-test to exercise the other handlePlanSelect branches.
+const createSelectContext = (overrides: Partial<PlanSelectContext> = {}): PlanSelectContext => ({
+  orgExtid: 'on1abc123',
+  orgPlanId: 'free_v1',
+  currentCurrency: null,
+  isCancelScheduled: false,
+  hasActiveSubscription: false,
+  ...overrides,
+});
+
 const createPendingMigration = (
   overrides: Partial<NonNullable<SubscriptionStatusResponse['pending_currency_migration']>> = {}
 ): NonNullable<SubscriptionStatusResponse['pending_currency_migration']> => ({
@@ -101,6 +82,12 @@ const createPendingMigration = (
   target_interval: 'month',
   effective_after: Math.floor(Date.now() / 1000) + 86400 * 30,
   ...overrides,
+});
+
+// Migration guard context — org always present; the no-org case is inlined.
+const migCtx = (currentCurrency: string | null): CompletePendingMigrationContext => ({
+  orgExtid: 'on1abc123',
+  currentCurrency,
 });
 
 // --- Tests ---
@@ -139,99 +126,129 @@ describe('PlanSelector currency mismatch logic', () => {
     });
   });
 
-  describe('handlePlanSelect early return on mismatch', () => {
-    it('early-returns when plan currency mismatches subscription currency', () => {
+  describe('resolvePlanSelectAction (handlePlanSelect decision)', () => {
+    it('is currency-blocked when plan currency mismatches subscription currency', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
-      const result = wouldHandlePlanSelectEarlyReturn(
+      const action = resolvePlanSelectAction(
         eurPlan,
-        'free_v1', // org's current plan id (not this plan)
-        'on1abc123', // org extid
-        'cad' // current subscription currency
+        createSelectContext({ orgPlanId: 'free_v1', currentCurrency: 'cad' })
       );
-      expect(result).toBe(true);
+      expect(action).toBe('currency-blocked');
     });
 
-    it('does not early-return when currencies match', () => {
+    it('proceeds to checkout when currencies match and no active subscription', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      const result = wouldHandlePlanSelectEarlyReturn(
+      const action = resolvePlanSelectAction(
         cadPlan,
-        'free_v1',
-        'on1abc123',
-        'cad'
+        createSelectContext({ orgPlanId: 'free_v1', currentCurrency: 'cad' })
       );
-      expect(result).toBe(false);
+      expect(action).toBe('checkout');
     });
 
-    it('does not early-return when no current currency (new subscriber)', () => {
+    it('proceeds to checkout when no current currency (new subscriber)', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
-      const result = wouldHandlePlanSelectEarlyReturn(
+      const action = resolvePlanSelectAction(
         eurPlan,
-        'free_v1',
-        'on1abc123',
-        null
+        createSelectContext({ orgPlanId: 'free_v1', currentCurrency: null })
       );
-      expect(result).toBe(false);
+      expect(action).toBe('checkout');
     });
 
-    it('early-returns for current plan regardless of currency', () => {
-      const plan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      const result = wouldHandlePlanSelectEarlyReturn(
-        plan,
-        'identity_plus_v1', // same plan id (this is the current plan)
-        'on1abc123',
-        'cad'
-      );
-      expect(result).toBe(true);
-    });
-
-    it('early-returns for free tier plans regardless of currency', () => {
-      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1' });
-      const result = wouldHandlePlanSelectEarlyReturn(
-        freePlan,
-        'identity_plus_v1', // org on a paid plan; free card early-returns via free-tier check
-        'on1abc123',
-        'cad'
-      );
-      expect(result).toBe(true);
-    });
-
-    it('early-returns when no org selected', () => {
+    it('opens the plan-change modal for an active subscriber switching paid plans', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      expect(wouldHandlePlanSelectEarlyReturn(cadPlan, 'free_v1', undefined, 'cad')).toBe(true);
+      const action = resolvePlanSelectAction(
+        cadPlan,
+        createSelectContext({
+          orgPlanId: 'team_plus_v1', // different paid plan than this card
+          currentCurrency: 'cad',
+          hasActiveSubscription: true,
+        })
+      );
+      expect(action).toBe('open-plan-change-modal');
+    });
+
+    it('is a no-op for the current plan (not cancel-scheduled) regardless of currency', () => {
+      const plan = createMockPlan({ currency: 'cad', tier: 'single_team' }); // id identity_plus_v1
+      const action = resolvePlanSelectAction(
+        plan,
+        createSelectContext({ orgPlanId: 'identity_plus_v1', currentCurrency: 'cad' })
+      );
+      expect(action).toBe('noop');
+    });
+
+    it('reactivates when the current plan is clicked while a cancellation is scheduled', () => {
+      const plan = createMockPlan({ currency: 'cad', tier: 'single_team' }); // id identity_plus_v1
+      const action = resolvePlanSelectAction(
+        plan,
+        createSelectContext({
+          orgPlanId: 'identity_plus_v1',
+          currentCurrency: 'cad',
+          isCancelScheduled: true,
+        })
+      );
+      expect(action).toBe('reactivate');
+    });
+
+    it('opens the cancel modal for a free card when the subscriber is active', () => {
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1' });
+      const action = resolvePlanSelectAction(
+        freePlan,
+        createSelectContext({ orgPlanId: 'identity_plus_v1', hasActiveSubscription: true })
+      );
+      expect(action).toBe('open-cancel-modal');
+    });
+
+    it('is a no-op for a free card when there is no active subscription', () => {
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1' });
+      const action = resolvePlanSelectAction(
+        freePlan,
+        createSelectContext({ orgPlanId: 'free_v1', hasActiveSubscription: false })
+      );
+      expect(action).toBe('noop');
+    });
+
+    it('is a no-op when no org is selected', () => {
+      const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
+      const action = resolvePlanSelectAction(
+        cadPlan,
+        createSelectContext({ orgExtid: undefined, currentCurrency: 'cad' })
+      );
+      expect(action).toBe('noop');
     });
   });
 
-  describe('handleCompletePendingMigration currency guard', () => {
-    it('bails when current currency differs from migration target currency', () => {
+  describe('resolveCompletePendingMigrationAction (migration guard)', () => {
+    it('is currency-blocked when current currency differs from migration target', () => {
       const pending = createPendingMigration({ target_currency: 'eur' });
-      expect(wouldCompleteMigrationBail('on1abc123', pending, 'cad')).toBe(true);
+      expect(resolveCompletePendingMigrationAction(pending, migCtx('cad'))).toBe('currency-blocked');
     });
 
-    it('proceeds when current currency matches migration target', () => {
+    it('proceeds to checkout when current currency matches migration target', () => {
       const pending = createPendingMigration({ target_currency: 'eur' });
-      expect(wouldCompleteMigrationBail('on1abc123', pending, 'eur')).toBe(false);
+      expect(resolveCompletePendingMigrationAction(pending, migCtx('eur'))).toBe('checkout');
     });
 
-    it('proceeds when current currency is null (subscription already cancelled)', () => {
+    it('proceeds to checkout when current currency is null (subscription already cancelled)', () => {
       const pending = createPendingMigration({ target_currency: 'eur' });
-      expect(wouldCompleteMigrationBail('on1abc123', pending, null)).toBe(false);
+      expect(resolveCompletePendingMigrationAction(pending, migCtx(null))).toBe('checkout');
     });
 
-    it('bails when no org extid', () => {
+    it('is a no-op when no org extid', () => {
       const pending = createPendingMigration();
-      expect(wouldCompleteMigrationBail(undefined, pending, 'cad')).toBe(true);
+      // Inline (not migCtx) because an explicit undefined still hits the default.
+      const ctx: CompletePendingMigrationContext = { orgExtid: undefined, currentCurrency: 'cad' };
+      expect(resolveCompletePendingMigrationAction(pending, ctx)).toBe('noop');
     });
 
-    it('bails when no pending migration', () => {
-      expect(wouldCompleteMigrationBail('on1abc123', null, 'cad')).toBe(true);
+    it('is a no-op when no pending migration', () => {
+      expect(resolveCompletePendingMigrationAction(null, migCtx('cad'))).toBe('noop');
     });
 
-    it('proceeds when pending migration target_currency is empty', () => {
+    it('proceeds to checkout when pending migration target_currency is empty', () => {
       // Empty target_currency means !!'' is false, so the guard won't trigger,
-      // but the checkout will proceed. This is the expected behavior since
-      // the API should always provide a target_currency.
+      // but the checkout will proceed. The API should always provide a currency.
       const pending = createPendingMigration({ target_currency: '' });
-      expect(wouldCompleteMigrationBail('on1abc123', pending, 'cad')).toBe(false);
+      expect(resolveCompletePendingMigrationAction(pending, migCtx('cad'))).toBe('checkout');
     });
   });
 
@@ -332,21 +349,15 @@ describe('PlanSelector currency mismatch logic', () => {
     });
 
     it('pending migration blocked when old CAD sub still active for EUR target', () => {
-      const pending = createPendingMigration({
-        target_currency: 'eur',
-        target_plan_name: 'Identity Plus (EU)',
-      });
+      const pending = createPendingMigration({ target_currency: 'eur' });
       // Old subscription still active with CAD
-      expect(wouldCompleteMigrationBail('on1abc123', pending, 'cad')).toBe(true);
+      expect(resolveCompletePendingMigrationAction(pending, migCtx('cad'))).toBe('currency-blocked');
     });
 
     it('pending migration allowed after old sub cancels (currency becomes null)', () => {
-      const pending = createPendingMigration({
-        target_currency: 'eur',
-        target_plan_name: 'Identity Plus (EU)',
-      });
+      const pending = createPendingMigration({ target_currency: 'eur' });
       // Old subscription cancelled — current_currency is null
-      expect(wouldCompleteMigrationBail('on1abc123', pending, null)).toBe(false);
+      expect(resolveCompletePendingMigrationAction(pending, migCtx(null))).toBe('checkout');
     });
   });
 });
