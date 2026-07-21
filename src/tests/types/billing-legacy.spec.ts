@@ -217,12 +217,13 @@ describe('PlanSelector currentTier Logic', () => {
 
   // Mock plan data for testing
   // Plan IDs are now family-keyed without interval suffix.
-  // Backend reality (#3824): identity_plus_v1 is single_account, not single_team.
+  // Backend reality (#3824): identity_plus_v1 is single_account (not single_team)
+  // and team_plus_v1 is single_team (not multi_team). Mirrors billing.fixture.ts.
   type MockPlan = { id: string; tier: string };
   const mockPlans: MockPlan[] = [
     { id: 'free_v1', tier: 'free' },
     { id: 'identity_plus_v1', tier: 'single_account' },
-    { id: 'team_plus_v1', tier: 'multi_team' },
+    { id: 'team_plus_v1', tier: 'single_team' },
   ];
 
   /**
@@ -239,9 +240,11 @@ describe('PlanSelector currentTier Logic', () => {
     // Legacy "identity" shares identity_plus_v1's family tier: single_account.
     if (planid === 'identity') return 'single_account';
 
-    // Fallback: infer tier from planid naming convention
-    if (planid.includes('multi_team') || planid.includes('team_plus')) return 'multi_team';
-    if (planid.includes('single_team')) return 'single_team';
+    // Fallback: infer tier from planid naming convention.
+    // #3824: team_plus_* is single_team, not multi_team. Match multi_team first
+    // so a literal multi_team_* id still resolves to the top tier.
+    if (planid.includes('multi_team')) return 'multi_team';
+    if (planid.includes('team_plus') || planid.includes('single_team')) return 'single_team';
     if (planid.includes('single_account') || planid.includes('identity_plus')) return 'single_account';
 
     return 'free';
@@ -262,9 +265,10 @@ describe('PlanSelector currentTier Logic', () => {
 
     it('returns correct tier for plans in the list', () => {
       expect(getCurrentTier('free_v1', mockPlans)).toBe('free');
-      // #3824: identity_plus_v1 is single_account in the backend, not single_team.
+      // #3824: identity_plus_v1 is single_account and team_plus_v1 is single_team
+      // in the backend (not single_team / multi_team respectively).
       expect(getCurrentTier('identity_plus_v1', mockPlans)).toBe('single_account');
-      expect(getCurrentTier('team_plus_v1', mockPlans)).toBe('multi_team');
+      expect(getCurrentTier('team_plus_v1', mockPlans)).toBe('single_team');
     });
 
     it('returns "single_account" for legacy "identity" planid', () => {
@@ -275,7 +279,9 @@ describe('PlanSelector currentTier Logic', () => {
     it('infers tier from naming convention for unknown plans', () => {
       // Plans not in list but follow naming convention
       expect(getCurrentTier('identity_plus_v2', mockPlans)).toBe('single_account');
-      expect(getCurrentTier('team_plus_v2', mockPlans)).toBe('multi_team');
+      // #3824: team_plus_* infers to single_team; only a literal multi_team_* id
+      // resolves to the top multi_team tier.
+      expect(getCurrentTier('team_plus_v2', mockPlans)).toBe('single_team');
       expect(getCurrentTier('multi_team_v1', mockPlans)).toBe('multi_team');
       expect(getCurrentTier('single_team_v1', mockPlans)).toBe('single_team');
     });

@@ -601,10 +601,11 @@ onMounted(async () => {
       </div>
 
       <!-- Billing Interval Toggle -->
-      <div class="flex items-center justify-center gap-3"
-data-testid="billing-interval-toggle"
-role="group"
-aria-label="Billing interval">
+      <div
+        class="flex items-center justify-center gap-3"
+        data-testid="billing-interval-toggle"
+        role="group"
+        aria-label="Billing interval">
         <button
           @click="billingInterval = 'month'"
           data-testid="billing-interval-month"
@@ -673,7 +674,7 @@ aria-live="polite">
             </p>
           </div>
           <span
-            v-if="currentTier === 'free'"
+            v-if="freePlan && isPlanCurrent(freePlan)"
             class="shrink-0 rounded-md bg-green-100 px-4 py-2 text-sm font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-300">
             {{ t('web.billing.plans.current') }}
           </span>

@@ -83,6 +83,7 @@ export const mockPlans: Record<string, Plan> = {
     stripe_price_id: 'price_single_monthly',
     name: 'Identity Plus',
     // Backend reality: identity_plus_v1 is single_account, not single_team (#3824).
+    // Object key kept as `single_team` to avoid breaking imports.
     tier: 'single_account',
     interval: 'month',
     amount: 2900,
