@@ -44,8 +44,12 @@ or open Colonel → System → Brand Diagnostics.
   2. `BRAND_*` env actually reached the container — compare env vs config in the
      diagnostic output.
 
-- **Broken checkout (exit `2`)** → the resolved pack references assets that
-  don't exist; fix the pack contents / mount before it reaches users.
+- **Broken checkout (exit `2`)** → the brand-pack resolver returned nothing
+  (`resolved_dir` is nil): even the default pack is absent or unresolvable,
+  indicating a broken image build or checkout. Rebuild the image / fix the
+  mount. (A resolved pack that merely references missing assets does **not**
+  trigger exit `2` — those assets are filtered out and `resolved_dir` stays
+  non-nil, so the run exits `0` or `1`.)
 
 ## Prevention
 
