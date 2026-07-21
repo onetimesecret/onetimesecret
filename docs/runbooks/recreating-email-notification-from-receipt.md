@@ -4,7 +4,9 @@ _Created: 2026-07-20_
 
 ## Follow-up improvements
 
-1 & 2 were related to the DLQ which is removed in RabbitMQ 2.3
+Items 1 & 2 concerned the dead-letter queue and have been dropped from this
+list — the DLQ recovery path is documented below under "First check the dead
+letter queue." (The DLQ is still in use; the stack runs RabbitMQ 4.2.)
 
 3. Fail fast and loud at boot, not at first send
 

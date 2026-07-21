@@ -19,6 +19,17 @@ module Onetime
   class BillingConfig
     include Singleton
 
+    # Bare-host shape for a Stripe custom Checkout domain, mirroring the
+    # frontend allowlist rule in src/utils/redirect.ts (setAllowedCheckoutHost):
+    # DNS labels with an optional :port and nothing else — no scheme, userinfo,
+    # path, query, or fragment. Anything the frontend would reject at navigation
+    # time must fail here at boot instead.
+    CHECKOUT_HOST_RE = /\A
+      (?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)          # first DNS label
+      (?:\.(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?))*   # additional labels
+      (?::\d{1,5})?                                # optional port
+    \z/ix
+
     attr_reader :config, :path, :environment
 
     def initialize
@@ -83,6 +94,48 @@ module Onetime
     # is absent (the deployment contract sets STRIPE_CHECKOUT_HOST directly).
     def checkout_host
       ENV.fetch('STRIPE_CHECKOUT_HOST', nil) || config['checkout_host']
+    end
+
+    # Whether the configured checkout_host is a well-formed bare host.
+    # Empty/nil counts as valid — the custom-domain feature is simply off.
+    #
+    # The port, when present, must fall in the real TCP range (1..65535). The
+    # frontend derives the origin with `new URL()`, which rejects out-of-range
+    # ports; enforcing the same bound here keeps a value like
+    # "pay.example.com:99999" from booting the backend only to be silently
+    # dropped (fail-closed) by the browser guard and break checkout later.
+    def valid_checkout_host?
+      host = checkout_host.to_s.strip
+      return true if host.empty?
+      return false unless CHECKOUT_HOST_RE.match?(host)
+
+      port = host[/:(\d+)\z/, 1]
+      return true if port.nil?
+
+      (1..65_535).cover?(port.to_i)
+    end
+
+    # Boot-time enforcement: raise when checkout_host is set but malformed.
+    #
+    # Without this, a bad STRIPE_CHECKOUT_HOST (scheme prefix, userinfo,
+    # path, whitespace-in-the-middle) is silently dropped by the frontend
+    # guard (fail-closed), so custom-domain checkout breaks only when a
+    # customer clicks Upgrade — hours or days after the bad deploy. Failing
+    # here turns that into a loud boot failure the deploy can catch.
+    def validate_checkout_host!
+      return if valid_checkout_host?
+
+      raise Onetime::ConfigError, <<~MSG.strip
+        STRIPE_CHECKOUT_HOST (or billing.yaml checkout_host) is not a bare host: #{checkout_host.to_s.strip.inspect}
+
+        It must be a bare host with an optional port — no scheme, no path, no userinfo. Examples:
+          valid:   pay.onetimesecret.com
+          valid:   pay.onetimesecret.com:8443       (optional port)
+          invalid: https://pay.onetimesecret.com   (drop the scheme)
+          invalid: pay.onetimesecret.com/checkout  (drop the path)
+
+        Leave it unset unless a Stripe custom Checkout domain is configured.
+      MSG
     end
 
     # Schema version

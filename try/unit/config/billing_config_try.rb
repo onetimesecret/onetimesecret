@@ -84,5 +84,66 @@ Onetime::BillingConfig.instance_variable_set(:@singleton__instance__, nil)
 result
 #=> nil
 
+# --- checkout_host validation ---
+# checkout_host reads ENV['STRIPE_CHECKOUT_HOST'] first, so drive it via ENV.
+@original_checkout_host = ENV.delete('STRIPE_CHECKOUT_HOST')
+
+## valid_checkout_host? is true when unset (feature off)
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> true
+
+## validate_checkout_host! is a no-op when unset
+Onetime::BillingConfig.instance.validate_checkout_host!
+#=> nil
+
+## valid_checkout_host? accepts a bare host
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> true
+
+## valid_checkout_host? accepts a bare host with a port
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com:8443'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> true
+
+## valid_checkout_host? accepts the explicit default HTTPS port
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com:443'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> true
+
+## valid_checkout_host? rejects an out-of-range port (new URL() would drop it)
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com:99999'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> false
+
+## valid_checkout_host? rejects a scheme prefix
+ENV['STRIPE_CHECKOUT_HOST'] = 'https://pay.onetimesecret.com'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> false
+
+## valid_checkout_host? rejects an embedded path
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com/checkout'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> false
+
+## valid_checkout_host? rejects userinfo (origin-selection attack)
+ENV['STRIPE_CHECKOUT_HOST'] = 'pay.onetimesecret.com@evil.example'
+Onetime::BillingConfig.instance.valid_checkout_host?
+#=> false
+
+## validate_checkout_host! raises ConfigError on a malformed host
+ENV['STRIPE_CHECKOUT_HOST'] = 'https://pay.onetimesecret.com'
+begin
+  Onetime::BillingConfig.instance.validate_checkout_host!
+  :no_raise
+rescue Onetime::ConfigError
+  :raised
+end
+#=> :raised
+
+# Restore checkout_host env var
+ENV.delete('STRIPE_CHECKOUT_HOST')
+ENV['STRIPE_CHECKOUT_HOST'] = @original_checkout_host unless @original_checkout_host.nil?
+
 # Restore env var cleared in setup
 ENV['STRIPE_API_KEY'] = @original_stripe_api_key unless @original_stripe_api_key.nil?
