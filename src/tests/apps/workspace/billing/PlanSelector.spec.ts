@@ -23,6 +23,12 @@ import {
   canDowngrade,
   isPlanRecommended,
   isPlanCurrent,
+  isPlanButtonDisabled,
+  resolvePlanSelectAction,
+  shouldShowCancelLink,
+  type PlanButtonState,
+  type PlanSelectContext,
+  type CancelLinkState,
 } from '@/apps/workspace/billing/planSelectorLogic';
 
 /**
@@ -713,32 +719,64 @@ describe('PlanSelector Logic', () => {
     });
 
     describe('free plan CTA link', () => {
-      it('free plan action is disabled in PlanSelector (no checkout for free)', () => {
-        // PlanSelector disables the button for free plans
-        // PlanSelector.vue disables button when isPlanCurrent || isCreatingCheckout || free
+      // Default PlanButtonState for a fresh, non-subscribing visitor. Overrides
+      // flip individual dimensions. The disable logic itself is imported from
+      // planSelectorLogic (isPlanButtonDisabled), so it can't drift.
+      const buttonState = (
+        overrides: Partial<PlanButtonState> = {}
+      ): PlanButtonState => ({
+        orgPlanId: 'single_team_v1',
+        currentCurrency: null,
+        isCreatingCheckout: false,
+        isReactivating: false,
+        isCancelScheduled: false,
+        hasActiveSubscription: false,
+        ...overrides,
+      });
+
+      it('free plan action is disabled for a visitor without a subscription', () => {
         const freePlan = createMockPlan({
           id: 'free',
           tier: 'free',
         });
 
-        // Simulate the disable condition from PlanSelector
-        const isButtonDisabled = (
-          plan: BillingPlan, isPlanCurrent: boolean, isCreatingCheckout: boolean
-        ): boolean => isPlanCurrent || isCreatingCheckout || plan.id === 'free';
-
-        expect(isButtonDisabled(freePlan, false, false)).toBe(true);
+        expect(
+          isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: false }))
+        ).toBe(true);
       });
 
-      it('free plan does not trigger checkout flow', () => {
-        // PlanSelector.vue skips checkout for free tier
+      it('free plan action is enabled for an active subscriber (to downgrade)', () => {
+        // #3824: free is disabled ONLY when there is no active subscription. An
+        // active subscriber can click free to cancel/downgrade.
+        const freePlan = createMockPlan({
+          id: 'free',
+          tier: 'free',
+        });
+
+        expect(
+          isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: true }))
+        ).toBe(false);
+      });
+
+      it('free plan never resolves to a checkout action', () => {
+        // handlePlanSelect routes free away from Stripe Checkout: it is a no-op
+        // for a non-subscriber and opens the cancel modal for a subscriber.
         const freePlan = createMockPlan({
           id: 'free_v1',
           tier: 'free',
         });
+        const ctx: PlanSelectContext = {
+          orgExtid: 'org-abc',
+          orgPlanId: 'single_team_v1',
+          currentCurrency: null,
+          isCancelScheduled: false,
+          hasActiveSubscription: false,
+        };
 
-        // handlePlanSelect early returns for free tier
-        const shouldSkipCheckout = (plan: BillingPlan): boolean => plan.tier === 'free';
-        expect(shouldSkipCheckout(freePlan)).toBe(true);
+        expect(resolvePlanSelectAction(freePlan, ctx)).toBe('noop');
+        expect(
+          resolvePlanSelectAction(freePlan, { ...ctx, hasActiveSubscription: true })
+        ).toBe('open-cancel-modal');
       });
     });
 
@@ -836,41 +874,54 @@ describe('PlanSelector Logic', () => {
     });
 
     describe('cancel subscription link visibility', () => {
-      /**
-       * Logic extracted from PlanSelector.vue:
-       * Cancel link is shown when:
-       * 1. hasActiveSubscription is true
-       * 2. currentTier is not 'free'
-       *
-       * Template: v-if="hasActiveSubscription && currentTier !== 'free'"
-       */
-      function shouldShowCancelLink(
-        hasActiveSubscription: boolean,
-        currentTier: string
-      ): boolean {
-        return hasActiveSubscription && currentTier !== 'free';
-      }
+      // Production template guard (PlanSelector.vue), imported so the test can't
+      // drift from it:
+      //   (hasActiveSubscription || isLegacyCustomer) && currentTier !== 'free' && !isCancelScheduled
+      const cancelLinkState = (
+        overrides: Partial<CancelLinkState> = {}
+      ): CancelLinkState => ({
+        hasActiveSubscription: false,
+        isLegacyCustomer: false,
+        currentTier: 'single_team',
+        isCancelScheduled: false,
+        ...overrides,
+      });
 
       it('shows cancel link for active paid subscriber on single_team tier', () => {
-        expect(shouldShowCancelLink(true, 'single_team')).toBe(true);
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'single_team' }))
+        ).toBe(true);
       });
 
       it('shows cancel link for active paid subscriber on multi_team tier', () => {
-        expect(shouldShowCancelLink(true, 'multi_team')).toBe(true);
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'multi_team' }))
+        ).toBe(true);
+      });
+
+      it('shows cancel link for a legacy customer without an active subscription', () => {
+        // Grandfathered customers can still cancel even without an active sub.
+        expect(
+          shouldShowCancelLink(cancelLinkState({ isLegacyCustomer: true, hasActiveSubscription: false }))
+        ).toBe(true);
       });
 
       it('hides cancel link for free tier users', () => {
-        expect(shouldShowCancelLink(true, 'free')).toBe(false);
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'free' }))
+        ).toBe(false);
       });
 
-      it('hides cancel link when no active subscription', () => {
-        expect(shouldShowCancelLink(false, 'single_team')).toBe(false);
-        expect(shouldShowCancelLink(false, 'multi_team')).toBe(false);
+      it('hides cancel link when neither subscribed nor legacy', () => {
+        expect(shouldShowCancelLink(cancelLinkState({ currentTier: 'single_team' }))).toBe(false);
+        expect(shouldShowCancelLink(cancelLinkState({ currentTier: 'multi_team' }))).toBe(false);
       });
 
-      it('hides cancel link for free tier even with subscription flag', () => {
-        // Edge case: subscription data might be stale
-        expect(shouldShowCancelLink(true, 'free')).toBe(false);
+      it('hides cancel link once a cancellation is already scheduled', () => {
+        // The reactivate banner covers this state instead.
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, isCancelScheduled: true }))
+        ).toBe(false);
       });
     });
 

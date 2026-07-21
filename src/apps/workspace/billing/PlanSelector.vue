@@ -21,6 +21,7 @@ import {
   isPlanRecommended,
   resolvePlanSelectAction,
   resolveCompletePendingMigrationAction,
+  shouldShowCancelLink,
 } from './planSelectorLogic';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
@@ -227,6 +228,17 @@ const isPlanButtonDisabled = (plan: BillingPlan): boolean =>
 
 const isPlanProcessing = (plan: BillingPlan): boolean =>
   (isCreatingCheckout.value && !isPlanCurrent(plan)) || (isReactivating.value && isPlanCurrent(plan));
+
+// Cancel-link visibility is pure state logic; share it with the spec so the
+// template condition can't drift out from under the tests (#3824).
+const showCancelLink = computed(() =>
+  shouldShowCancelLink({
+    hasActiveSubscription: hasActiveSubscription.value,
+    isLegacyCustomer: isLegacyCustomer.value,
+    currentTier: currentTier.value,
+    isCancelScheduled: isCancelScheduled.value,
+  })
+);
 
 const getButtonLabel = (plan: BillingPlan): string => {
   if (isPlanCurrent(plan)) {
@@ -730,7 +742,7 @@ aria-live="polite">
 
       <!-- Cancel Subscription (shown for active paid subscriptions OR legacy customers, NOT already scheduled for cancellation) -->
       <div
-        v-if="(hasActiveSubscription || isLegacyCustomer) && currentTier !== 'free' && !isCancelScheduled"
+        v-if="showCancelLink"
         class="text-center">
         <button
           type="button"

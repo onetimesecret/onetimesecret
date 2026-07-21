@@ -226,3 +226,24 @@ export function resolveCompletePendingMigrationAction(
   }
   return 'checkout';
 }
+
+export interface CancelLinkState {
+  hasActiveSubscription: boolean;
+  isLegacyCustomer: boolean;
+  currentTier: string | null | undefined;
+  isCancelScheduled: boolean;
+}
+
+/**
+ * Whether the "Cancel Subscription" link is shown. Mirrors the template guard
+ * exactly: an active subscriber OR a grandfathered legacy customer, on a paid
+ * tier, whose cancellation is not already scheduled. Free tier never shows it,
+ * and a customer already scheduled to cancel sees the reactivate banner instead.
+ */
+export function shouldShowCancelLink(state: CancelLinkState): boolean {
+  return (
+    (state.hasActiveSubscription || state.isLegacyCustomer) &&
+    state.currentTier !== 'free' &&
+    !state.isCancelScheduled
+  );
+}
