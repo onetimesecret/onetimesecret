@@ -222,6 +222,16 @@ RSpec.describe Onetime::Jobs::Workers::SessionRevocationSweepWorker, type: :inte
         expect(worker.requeued?).to be false
         expect(worker.acked?).to be false
       end
+
+      it 'releases the idempotency claim so a DLQ replay actually re-runs' do
+        allow(operation).to receive(:call).and_raise(StandardError, 'boom')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        # Without the release, the claim's 1h TTL would turn an immediate
+        # operator replay into a silent ack-no-op duplicate skip.
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_falsey
+      end
     end
 
     context 'capped scan' do

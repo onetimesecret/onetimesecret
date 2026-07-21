@@ -1013,14 +1013,31 @@ RSpec.describe Onetime::Jobs::Publisher do
         instance_double(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
       end
 
+      # The inline branch reads the Result for outcome logging (worker parity),
+      # so the stub must return a real Data instance, not nil.
+      let(:op_result) do
+        Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent::Result.new(
+          revoked: true, blobs_deleted: 3, untracked_deleted: 1, scan_capped: false,
+        )
+      end
+
+      let(:capped_result) do
+        Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent::Result.new(
+          revoked: true, blobs_deleted: 5, untracked_deleted: 2, scan_capped: true,
+        )
+      end
+
+      let(:logger_double) { double('logger', info: nil, warn: nil, error: nil) }
+
       before do
         $rmq_channel_pool = nil
         # The publisher requires the op lazily; load it here so the constant
         # exists for the verified double.
         require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
-        allow(mock_operation).to receive(:call)
+        allow(mock_operation).to receive(:call).and_return(op_result)
         allow(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
           .to receive(:new).and_return(mock_operation)
+        allow(publisher).to receive(:logger).and_return(logger_double)
       end
 
       it 'runs the op inline with the full sweep and watermark enabled' do
@@ -1047,6 +1064,41 @@ RSpec.describe Onetime::Jobs::Publisher do
             scan_untracked: true,
             honor_credential_watermark: true,
           )
+      end
+
+      # Worker parity: the inline fallback must surface the same outcomes the
+      # async worker logs, or a jobs-disabled deployment loses visibility.
+      it 'logs the outcome at info with the sweep counts' do
+        publisher.enqueue_session_revocation_sweep(custid)
+
+        expect(logger_double).to have_received(:info).with(
+          'Session revocation sweep complete',
+          hash_including(custid: custid, blobs_deleted: 3, untracked_deleted: 1),
+        )
+      end
+
+      it 'logs at ERROR when the scan was capped (an untracked blob may remain)' do
+        allow(mock_operation).to receive(:call).and_return(capped_result)
+
+        publisher.enqueue_session_revocation_sweep(custid)
+
+        expect(logger_double).to have_received(:error).with(
+          /scan cap/,
+          hash_including(custid: custid, blobs_deleted: 5, untracked_deleted: 2),
+        )
+        expect(logger_double).not_to have_received(:info)
+          .with(/sweep complete/i, anything)
+      end
+
+      it 'logs the inline fallback at WARN when jobs are configured ON but the pool is nil (degraded)' do
+        allow(OT).to receive(:conf).and_return('jobs' => { 'enabled' => true })
+
+        publisher.enqueue_session_revocation_sweep(custid)
+
+        expect(logger_double).to have_received(:warn).with(
+          /pool unavailable.*degraded/,
+          hash_including(custid: custid),
+        )
       end
     end
   end

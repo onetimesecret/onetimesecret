@@ -338,6 +338,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
+        before_change = Familia.now.to_i
         change_password
 
         expect(last_response.status).to eq(200)
@@ -345,6 +346,15 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
           .with(:sessions_revoked_on_change, hash_including(level: :info))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:sessions_revoke_skipped_no_identity, any_args)
+
+        # #3810: the credential watermark stamp must survive a NULL external_id
+        # too — UpdatePasswordMetadata falls back to the account email the same
+        # way the revoke does. Without this, the async sweep runs unguarded and
+        # kills the just-rotated session.
+        customer = find_customer_by_email(cred_email)
+        expect(customer.last_password_update.to_i).to be >= before_change
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:credential_watermark_stamp_FAILED, any_args)
       end
 
       # -----------------------------------------------------------------------
@@ -439,11 +449,12 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
           watermark = customer.last_password_update.to_i
           expect(watermark).to be >= before_change
 
-          # The kept (rotated) session must postdate the watermark, or watermark
-          # validation would kill it on its next request.
+          # The kept (rotated) session must STRICTLY postdate the watermark:
+          # auth-time validation now rejects sessions at-or-before it (`<=`), so a
+          # value equal to the watermark would be killed on the next request.
           data = session_blob_data(current_cookie_sid)
           expect(data).to be_a(Hash)
-          expect(data['authenticated_at'].to_i).to be >= watermark
+          expect(data['authenticated_at'].to_i).to be > watermark
         end
 
         it 'enqueues the async full sweep after commit, excepting the pre-rotation sid' do
@@ -512,6 +523,27 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
               hash_including(level: :error, hook: :after_change_password))
           expect(Auth::Logging).not_to have_received(:log_auth_event)
             .with(:sessions_sweep_enqueued, any_args)
+        end
+
+        it 'logs :session_rotation_FAILED at error and still succeeds when the rotation block raises' do
+          # rack.session.options IS present (normal request), so the hook enters
+          # the rotation branch and requests :renew, then tidies the PRE-rotation
+          # sid by calling destroy! on its sidecar. Raise from THAT destroy! — the
+          # one call unique to the rotation block — so the failure lands in the
+          # rotation rescue AFTER :renew + the watermark re-stamp and the change
+          # still commits (fail-open, but loud). TrackMetadata only ever load+saves
+          # (never destroy!), so this injects NO error into it: the test does not
+          # depend on TrackMetadata swallowing anything to avoid a 500.
+          old_sid    = current_cookie_sid
+          stale_meta = Onetime::SessionMetadata.load(old_sid)
+          expect(stale_meta).not_to be_nil
+          allow(stale_meta).to receive(:destroy!).and_raise(StandardError.new('boom'))
+          allow(Onetime::SessionMetadata).to receive(:load).and_call_original
+          allow(Onetime::SessionMetadata).to receive(:load).with(old_sid).and_return(stale_meta)
+          allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+          change_password
+          expect(last_response.status).to eq(200), "change should still succeed, got #{last_response.status}: #{last_response.body[0..300]}"
+          expect(Auth::Logging).to have_received(:log_auth_event).with(:session_rotation_FAILED, hash_including(level: :error))
         end
       end
     end

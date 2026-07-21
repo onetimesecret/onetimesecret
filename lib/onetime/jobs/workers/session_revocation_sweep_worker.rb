@@ -110,7 +110,10 @@ module Onetime
         rescue StandardError => ex
           # The operation is stateless and idempotent (already-deleted blobs
           # simply aren't found again), so replaying this message from the DLQ
-          # is safe.
+          # is safe. Releasing the claim is safe for exactly that reason — and
+          # required: without it the claim's 1h TTL turns an operator's
+          # immediate DLQ replay into a silent ack-no-op duplicate skip.
+          release_processing_claim(message_id)
           log_error 'Unexpected error running session revocation sweep', ex, custid: custid
           reject! # Send to DLQ
         end
