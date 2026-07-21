@@ -136,6 +136,20 @@ module Onetime
         def enqueue_favicon_fetch(domain_id, force: false)
           new.enqueue_favicon_fetch(domain_id, force: force)
         end
+
+        # Enqueue a full session-revocation sweep for async processing (#3810)
+        #
+        # Falls back to running the sweep synchronously if jobs are disabled,
+        # so the security sweep still happens without RabbitMQ for dev/testing.
+        #
+        # @param custid [String] Customer identifier (extid/email/objid)
+        # @param except_session_id [String, nil] Bare session id to preserve
+        #   (the caller's current session)
+        # @return [Boolean] true if published to queue or processed synchronously
+        # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+        def enqueue_session_revocation_sweep(custid, except_session_id: nil)
+          new.enqueue_session_revocation_sweep(custid, except_session_id: except_session_id)
+        end
       end
 
       def initialize
@@ -386,6 +400,54 @@ module Onetime
           domain_id: domain_id,
           message_id: message_id,
           queue: 'domain.favicon.fetch'
+        true
+      end
+
+      # Enqueue a full session-revocation sweep for async processing (#3810)
+      #
+      # The password-change/reset hooks revoke tracked sessions in-transaction
+      # with scan_untracked: false; this sweep is the async follow-up that mops
+      # up untracked (pre-sidecar) blobs, honoring the credential watermark so
+      # sessions authenticated AFTER the change (the rotated current session, a
+      # fresh post-reset login) survive. Falls back to running the operation
+      # synchronously if jobs are disabled. If jobs ARE enabled but RabbitMQ is
+      # unavailable, raises so the caller can surface the failure. There is
+      # deliberately NO per-feature config flag — this is a security sweep;
+      # jobs.enabled only selects the transport.
+      #
+      # @param custid [String] Customer identifier (extid/email/objid)
+      # @param except_session_id [String, nil] Bare session id to preserve
+      #   (the caller's current session)
+      # @return [Boolean] true if published to queue or processed synchronously
+      # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+      def enqueue_session_revocation_sweep(custid, except_session_id: nil)
+        unless jobs_enabled?
+          logger.info 'Jobs disabled, running session revocation sweep synchronously',
+            custid: custid
+
+          require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+
+          Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
+            custid: custid,
+            except_session_id: except_session_id,
+            scan_untracked: true,
+            honor_credential_watermark: true,
+          ).call
+
+          return true
+        end
+
+        message = {
+          custid: custid,
+          except_session_id: except_session_id,
+          requested_at: Time.now.utc.iso8601,
+        }
+
+        message_id = publish('session.revoke.sweep', message)
+        logger.info 'Enqueued session revocation sweep',
+          custid: custid,
+          message_id: message_id,
+          queue: 'session.revoke.sweep'
         true
       end
 

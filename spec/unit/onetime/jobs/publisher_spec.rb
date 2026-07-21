@@ -935,4 +935,119 @@ RSpec.describe Onetime::Jobs::Publisher do
       end
     end
   end
+
+  # ==========================================================================
+  # Session Revocation Sweep Tests (#3810)
+  # ==========================================================================
+  # These tests verify the async full-sweep publish path and the synchronous
+  # fallback that runs the operation inline (with the untracked sweep AND the
+  # credential watermark enabled) when jobs are disabled.
+  # ==========================================================================
+
+  describe '#enqueue_session_revocation_sweep' do
+    subject(:publisher) { described_class.new }
+
+    let(:custid) { 'cust_extid_123' }
+    let(:session_id) { 'sid_current_456' }
+
+    describe 'with RabbitMQ' do
+      let(:mock_channel) { instance_double(Bunny::Channel) }
+      let(:mock_exchange) { instance_double(Bunny::Exchange) }
+      let(:mock_channel_pool) { instance_double(ConnectionPool) }
+
+      before do
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      it 'publishes to the session.revoke.sweep queue with the payload keys' do
+        result = publisher.enqueue_session_revocation_sweep(custid, except_session_id: session_id)
+
+        expect(result).to be true
+        expect(mock_exchange).to have_received(:publish) do |payload_json, options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:custid]).to eq(custid)
+          expect(payload[:except_session_id]).to eq(session_id)
+          expect(payload[:requested_at]).not_to be_nil
+          expect(options[:routing_key]).to eq('session.revoke.sweep')
+        end
+      end
+
+      it 'publishes persistent messages with a UUID message_id' do
+        publisher.enqueue_session_revocation_sweep(custid)
+
+        expect(mock_exchange).to have_received(:publish) do |_payload_json, options|
+          expect(options[:persistent]).to be true
+          expect(options[:message_id]).to match(/^[0-9a-f-]{36}$/)
+        end
+      end
+
+      it 'includes a nil except_session_id when not provided (revoke ALL)' do
+        publisher.enqueue_session_revocation_sweep(custid)
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:except_session_id]).to be_nil
+        end
+      end
+
+      # Security sweep: no email-style fallback machinery. If RabbitMQ dies
+      # mid-publish the error propagates so the caller can surface it.
+      it 'propagates publish errors to the caller (domain pattern, no fallback)' do
+        allow(mock_channel_pool).to receive(:with).and_raise(Bunny::ConnectionClosedError.new(nil))
+
+        expect {
+          publisher.enqueue_session_revocation_sweep(custid)
+        }.to raise_error(Bunny::ConnectionClosedError)
+      end
+    end
+
+    describe 'sync fallback when jobs are disabled' do
+      let(:mock_operation) do
+        instance_double(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+      end
+
+      before do
+        $rmq_channel_pool = nil
+        # The publisher requires the op lazily; load it here so the constant
+        # exists for the verified double.
+        require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+        allow(mock_operation).to receive(:call)
+        allow(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+          .to receive(:new).and_return(mock_operation)
+      end
+
+      it 'runs the op inline with the full sweep and watermark enabled' do
+        result = publisher.enqueue_session_revocation_sweep(custid, except_session_id: session_id)
+
+        expect(result).to be true
+        expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+          .to have_received(:new).with(
+            custid: custid,
+            except_session_id: session_id,
+            scan_untracked: true,
+            honor_credential_watermark: true,
+          )
+        expect(mock_operation).to have_received(:call)
+      end
+
+      it 'passes a nil except_session_id through (revoke ALL)' do
+        publisher.enqueue_session_revocation_sweep(custid)
+
+        expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+          .to have_received(:new).with(
+            custid: custid,
+            except_session_id: nil,
+            scan_untracked: true,
+            honor_credential_watermark: true,
+          )
+      end
+    end
+  end
 end

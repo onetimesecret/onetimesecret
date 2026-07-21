@@ -79,6 +79,11 @@ module Onetime
           auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.migration.customer' },
         },
+        'session.revoke.sweep' => {
+          durable: true,
+          auto_delete: false,
+          arguments: { 'x-dead-letter-exchange' => 'dlx.session.revoke' },
+        },
         'system.transient' => {
           durable: false,
           auto_delete: true,
@@ -123,6 +128,10 @@ module Onetime
         },
         'dlx.migration.customer' => {
           queue: 'dlq.migration.customer',
+          arguments: {},
+        },
+        'dlx.session.revoke' => {
+          queue: 'dlq.session.revoke',
           arguments: {},
         },
       }.freeze

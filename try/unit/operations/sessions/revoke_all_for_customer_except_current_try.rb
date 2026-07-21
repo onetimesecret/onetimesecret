@@ -23,6 +23,11 @@
 # - except_session_id: nil revokes ALL (parity with RevokeAllForCustomer, sans SQL/audit)
 # - scan_untracked: false skips the best-effort sweep (tracked-only kill) so the
 #   password hooks keep the keyspace SCAN out of Rodauth's open SQL transaction
+# - honor_credential_watermark: true spares blobs authenticated AT/AFTER
+#   Customer#last_password_update (the async sweep must not kill the rotated
+#   current session or a fresh post-reset login); stale blobs and blobs with no
+#   authenticated_at stamp still die; a nil watermark degrades to the unguarded
+#   revoke; flag off (default) ignores the watermark entirely
 #
 # Run: try --agent try/unit/operations/sessions/revoke_all_for_customer_except_current_try.rb
 
@@ -168,8 +173,84 @@ DB.set("session:#{@st_untracked}", @codec.encode({ 'authenticated' => true,
 [Store.find_key(DB, @st_tracked).nil?, Store.find_key(DB, @st_untracked).nil?]
 #=> [true, false]
 
+# ---- honor_credential_watermark: spare post-credential-change sessions -
+# The async sweep (#3810) runs SECONDS after the credential change; blobs
+# authenticated AT/AFTER Customer#last_password_update are legitimate
+# post-change sessions (the rotated current session, a fresh post-reset login)
+# and must SURVIVE. Blobs without an authenticated_at stamp coerce to 0 and
+# die whenever a watermark is in force (fail-secure: stale legacy blob).
+
+## flag ON: a TRACKED fresh blob (authenticated after the watermark) is SPARED
+## while a TRACKED stale one still dies
+# @st_untracked (no authenticated_at) deliberately survived the previous
+# section; drop it here so this section's sweeps count ONLY their own blobs.
+DB.del("session:#{@st_untracked}")
+@wm = Familia.now.to_i - 60
+@cust.last_password_update = @wm
+@cust.save
+@wm_fresh = "tryxc_wm_fresh_#{@nonce}"
+@wm_stale = "tryxc_wm_stale_#{@nonce}"
+[@wm_fresh, @wm_stale].each do |sid|
+  Onetime::Operations::Sessions::TrackMetadata.new(
+    session_id: sid,
+    session_data: { 'authenticated' => true, 'external_id' => @extid,
+                    'ip_address' => '203.0.113.9', 'user_agent' => 'UA' },
+  ).call
+end
+DB.set("session:#{@wm_fresh}", @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
+                                               'authenticated_at' => @wm + 30 }))
+DB.set("session:#{@wm_stale}", @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
+                                               'authenticated_at' => @wm - 3600 }))
+@res4 = RXC.new(custid: @extid, except_session_id: nil, honor_credential_watermark: true).call
+[@res4.blobs_deleted, Store.find_key(DB, @wm_fresh).nil?, Store.find_key(DB, @wm_stale).nil?]
+#=> [1, false, true]
+
+## the SPARED session keeps BOTH its sidecar and its index entry (fully alive,
+## exactly like the preserved current session)
+[SM.load(@wm_fresh).nil?, @cust.active_sessions.revrange(0, -1)]
+#=> [false, ["#{@wm_fresh}"]]
+
+## flag ON: the sweep spares an UNTRACKED fresh blob too, while an untracked
+## blob with NO authenticated_at coerces to 0 and dies (fail-secure)
+@wm_ufresh   = "tryxc_wm_ufresh_#{@nonce}"
+@wm_unstamp  = "tryxc_wm_unstamp_#{@nonce}"
+DB.set("session:#{@wm_ufresh}", @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
+                                                'authenticated_at' => @wm + 5 }))
+DB.set("session:#{@wm_unstamp}", @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
+                                                 'email' => @cust.email }))
+@res5 = RXC.new(custid: @extid, except_session_id: nil, honor_credential_watermark: true).call
+[@res5.blobs_deleted, @res5.untracked_deleted,
+ Store.find_key(DB, @wm_ufresh).nil?, Store.find_key(DB, @wm_unstamp).nil?]
+#=> [1, 1, false, true]
+
+## flag ON but a nil watermark degrades to the unguarded revoke — the
+## previously-spared fresh blobs (tracked @wm_fresh + untracked @wm_ufresh) die
+@cust.last_password_update = nil
+@cust.save
+@res6 = RXC.new(custid: @extid, except_session_id: nil, honor_credential_watermark: true).call
+[@res6.blobs_deleted, @res6.untracked_deleted,
+ Store.find_key(DB, @wm_fresh).nil?, Store.find_key(DB, @wm_ufresh).nil?]
+#=> [2, 1, true, true]
+
+## flag OFF (default): a positive watermark is IGNORED — a fresh tracked blob
+## still dies, byte-for-byte the historic behavior
+@cust.last_password_update = Familia.now.to_i - 60
+@cust.save
+@off_fresh = "tryxc_off_fresh_#{@nonce}"
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @off_fresh,
+  session_data: { 'authenticated' => true, 'external_id' => @extid,
+                  'ip_address' => '203.0.113.9', 'user_agent' => 'UA' },
+).call
+DB.set("session:#{@off_fresh}", @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
+                                                'authenticated_at' => Familia.now.to_i }))
+@res7 = RXC.new(custid: @extid, except_session_id: nil).call
+[@res7.blobs_deleted, Store.find_key(DB, @off_fresh).nil?]
+#=> [1, true]
+
 # Cleanup
-[@current, @revoked, @untracked, @other_sid, @st_tracked, @st_untracked].each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
+[@current, @revoked, @untracked, @other_sid, @st_tracked, @st_untracked,
+ @wm_fresh, @wm_stale, @wm_ufresh, @wm_unstamp, @off_fresh].each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
 @cust.active_sessions.clear
 @cust.destroy!
 @other.destroy!
