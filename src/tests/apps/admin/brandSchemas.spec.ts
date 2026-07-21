@@ -34,7 +34,7 @@ function healthyPayload() {
       resolved_dir: '/app/etc/branding/onetimesecret',
       fell_back_to_default: false,
       manifest: {
-        path: '/app/etc/branding/onetimesecret/manifest.json',
+        path: '/app/etc/branding/onetimesecret/brand.yaml',
         exists: true,
         keys_on_disk: ['product_name', 'logo'],
       },
