@@ -54,6 +54,7 @@ OT.conf['site'] ||= {}
 @orig_env_pack        = ENV['BRAND_PACK']
 @orig_env_assets      = ENV['BRAND_ASSETS_DIR']
 @orig_env_prod_name   = ENV['BRAND_PRODUCT_NAME']
+@orig_env_logo_url    = ENV['BRAND_LOGO_URL']
 
 # --- Fixtures --------------------------------------------------------------
 
@@ -97,6 +98,15 @@ File.write(File.join(@asset_only_pack, 'favicon.svg'), '<svg/>')
 # absorbed_keys alone (manifest_exists must not short-circuit it).
 @removed_manifest_pack = Dir.mktmpdir('ots-diag-removed')
 File.write(File.join(@removed_manifest_pack, 'favicon.svg'), '<svg/>')
+
+# A pack whose brand.yaml carries a BARE-RELATIVE logo_url ('img/logo.svg').
+# normalize_brand root-relativizes such a path at boot ('/img/logo.svg') so the
+# one install logo resolves on every route, while the diagnostic's live re-read
+# (read_brand_manifest_scalars) replays only the manifest filter (strip + type)
+# and returns the RAW value — so the two diverge for a reason that is
+# normalization, not a race. Drives the 5f pinned false positive.
+@logo_relative_pack = Dir.mktmpdir('ots-diag-logorel')
+File.write(File.join(@logo_relative_pack, 'brand.yaml'), %(logo_url: "img/logo.svg"\n))
 
 def set_overlay(assets_dir: nil, pack: nil)
   OT.conf['site']['brand_assets_dir'] = assets_dir
@@ -375,6 +385,78 @@ d = Onetime.brand_pack_diagnostics
 [d['boot_vs_live_mismatch'], d['fell_back_to_default'], d['overlay_assets'].include?('/favicon.svg')]
 #=> [false, false, true]
 
+# ============================================================================
+# 5e. KNOWN FALSE-POSITIVE (pinned): an empty BRAND_* env that CLEARED an
+#     absorbed key at boot reads as a race
+# ============================================================================
+#
+# The detector compares the LIVE disk re-read (read_brand_manifest_scalars — the
+# RAW manifest value) against conf['brand'], which holds the value AFTER
+# normalize_brand ran at boot. When those two transforms disagree, the compare
+# diverges for a reason that is NOT a mount race. This section pins the first such
+# interaction so a future narrowing is deliberate, not accidental.
+#
+# Boot sequence: apply_brand_manifest absorbs the pack's product_name (recording it
+# in absorbed_keys); then normalize_brand sees a set-but-BLANK BRAND_PRODUCT_NAME
+# and CLEARS the key to nil (config.rb `value.empty? ? nil : value`). The running
+# instance is now neutral-by-choice — exactly the operator's intent — yet
+# brand_env_override? treats a blank env as "not an override" (the guard-stays-armed
+# rule of section 5), so the key is still scanned and 'Acme Diagnostics' != ''
+# flags. A true fix would treat a present-but-blank BRAND_* as a deliberate clear
+# and skip it; deferred, pinned here.
+
+## an empty BRAND_* that cleared an absorbed key at boot -> currently flags (false positive)
+ENV['BRAND_PRODUCT_NAME'] = ''                                  # set-but-blank: cleared the key at boot
+OT.conf['brand']          = { 'product_name' => nil }          # normalize_brand's post-clear state
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['product_name'] }
+set_overlay(assets_dir: @pack_with_manifest, pack: nil)        # pack still ships 'Acme Diagnostics'
+d = Onetime.brand_pack_diagnostics
+[d['manifest']['keys_on_disk'], d['boot_vs_live_mismatch']]
+#=> [['product_name'], true]
+
+## contrast: same pack and provenance, but the key was NOT cleared (conf still holds
+## the absorbed value) -> healthy. Isolates the flag to the clear-induced divergence,
+## proving it is normalize_brand's blank-env clear — not the pack — that trips it.
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = { 'product_name' => 'Acme Diagnostics' }
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['product_name'] }
+set_overlay(assets_dir: @pack_with_manifest, pack: nil)
+Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
+#=> false
+
+# ============================================================================
+# 5f. KNOWN FALSE-POSITIVE (pinned): a bare-relative logo_url that
+#     normalize_brand root-relativized at boot reads as a race
+# ============================================================================
+#
+# Second instance of the raw-disk-vs-normalized-conf divergence (see 5e). A pack
+# brand.yaml carrying a bare-relative logo_url ('img/logo.svg') is absorbed as-is by
+# apply_brand_manifest, then normalize_brand root-relativizes it to '/img/logo.svg'
+# at boot (config.rb "bare-relative logo path" block) so the one install logo
+# resolves on every route. The diagnostic's live re-read replays only the manifest
+# filter and returns the RAW 'img/logo.svg', so 'img/logo.svg' != '/img/logo.svg'
+# flags though nothing raced. A true fix would run the same normalization on
+# live_scalars before comparing; deferred, pinned here.
+
+## a bare-relative logo_url, normalize-rewritten at boot -> currently flags (false positive)
+ENV.delete('BRAND_LOGO_URL')
+OT.conf['brand']          = { 'logo_url' => '/img/logo.svg' }   # normalize_brand's post-rewrite state
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['logo_url'] }
+set_overlay(assets_dir: @logo_relative_pack, pack: nil)        # brand.yaml ships raw 'img/logo.svg'
+d = Onetime.brand_pack_diagnostics
+[d['manifest']['keys_on_disk'], d['boot_vs_live_mismatch']]
+#=> [['logo_url'], true]
+
+## contrast: had normalize NOT rewritten (conf holds the same raw value on disk) the
+## compare agrees and does NOT flag -> isolates the divergence to the
+## root-relativization, confirming it is the normalization and not a race.
+ENV.delete('BRAND_LOGO_URL')
+OT.conf['brand']          = { 'logo_url' => 'img/logo.svg' }    # raw == disk
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['logo_url'] }
+set_overlay(assets_dir: @logo_relative_pack, pack: nil)
+Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
+#=> false
+
 # Reset provenance so later sections see the no-operator-keys baseline.
 OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => [] }
 
@@ -458,6 +540,8 @@ ensure
   @orig_env_pack.nil?      ? ENV.delete('BRAND_PACK')         : (ENV['BRAND_PACK'] = @orig_env_pack)
   @orig_env_assets.nil?    ? ENV.delete('BRAND_ASSETS_DIR')   : (ENV['BRAND_ASSETS_DIR'] = @orig_env_assets)
   @orig_env_prod_name.nil? ? ENV.delete('BRAND_PRODUCT_NAME') : (ENV['BRAND_PRODUCT_NAME'] = @orig_env_prod_name)
+  @orig_env_logo_url.nil?  ? ENV.delete('BRAND_LOGO_URL')     : (ENV['BRAND_LOGO_URL'] = @orig_env_logo_url)
   [@pack_with_manifest, @bad_manifest_pack, @nonhash_manifest_pack,
-   @manifestless_pack, @asset_only_pack, @removed_manifest_pack].each { |d| FileUtils.remove_entry(d) rescue nil }
+   @manifestless_pack, @asset_only_pack, @removed_manifest_pack,
+   @logo_relative_pack].each { |d| FileUtils.remove_entry(d) rescue nil }
 end
