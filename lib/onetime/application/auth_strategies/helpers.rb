@@ -57,9 +57,10 @@ module Onetime
         #   - Watermark set + missing authenticated_at (coerces to 0) => true.
         #     Fail-secure: an identity-bearing blob with no login timestamp
         #     cannot be proven to postdate the credential change.
-        #   - authenticated_at == watermark => false (strict <), so the current
-        #     session re-stamped by after_change_password survives its own
-        #     password change.
+        #   - authenticated_at == watermark => TRUE (rejected, treated as
+        #     pre-change). The current session survives NOT via equality but
+        #     because after_change_password re-stamps it to a value STRICTLY
+        #     GREATER than the watermark, so it clears the `<=` boundary.
         #
         # @param session_data [Hash, #[], nil] Rack session (string keys)
         # @param cust [Onetime::Customer, nil] customer resolved from the session
@@ -71,7 +72,7 @@ module Onetime
           return false unless watermark.positive?
 
           authenticated_at = session_data ? session_data['authenticated_at'].to_i : 0
-          authenticated_at < watermark
+          authenticated_at <= watermark
         end
 
         # Builds standard metadata hash from env

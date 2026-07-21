@@ -23,11 +23,13 @@
 # - except_session_id: nil revokes ALL (parity with RevokeAllForCustomer, sans SQL/audit)
 # - scan_untracked: false skips the best-effort sweep (tracked-only kill) so the
 #   password hooks keep the keyspace SCAN out of Rodauth's open SQL transaction
-# - honor_credential_watermark: true spares blobs authenticated AT/AFTER
+# - honor_credential_watermark: true spares blobs authenticated STRICTLY AFTER
 #   Customer#last_password_update (the async sweep must not kill the rotated
-#   current session or a fresh post-reset login); stale blobs and blobs with no
-#   authenticated_at stamp still die; a nil watermark degrades to the unguarded
-#   revoke; flag off (default) ignores the watermark entirely
+#   current session or a fresh post-reset login); a blob exactly AT the watermark
+#   is a same-second pre-change session and is REVOKED (mirrors the auth-time <=
+#   rejection); stale blobs and blobs with no authenticated_at stamp still die; a
+#   nil watermark degrades to the unguarded revoke; flag off (default) ignores the
+#   watermark entirely
 #
 # Run: try --agent try/unit/operations/sessions/revoke_all_for_customer_except_current_try.rb
 
@@ -175,9 +177,11 @@ DB.set("session:#{@st_untracked}", @codec.encode({ 'authenticated' => true,
 
 # ---- honor_credential_watermark: spare post-credential-change sessions -
 # The async sweep (#3810) runs SECONDS after the credential change; blobs
-# authenticated AT/AFTER Customer#last_password_update are legitimate
+# authenticated STRICTLY AFTER Customer#last_password_update are legitimate
 # post-change sessions (the rotated current session, a fresh post-reset login)
-# and must SURVIVE. Blobs without an authenticated_at stamp coerce to 0 and
+# and must SURVIVE. A blob authenticated exactly AT the watermark is a
+# same-second pre-change session and is REVOKED (mirrors the auth-time `<=`
+# rejection). Blobs without an authenticated_at stamp coerce to 0 and
 # die whenever a watermark is in force (fail-secure: stale legacy blob).
 
 ## flag ON: a TRACKED fresh blob (authenticated after the watermark) is SPARED
@@ -248,9 +252,31 @@ DB.set("session:#{@off_fresh}", @codec.encode({ 'authenticated' => true, 'extern
 [@res7.blobs_deleted, Store.find_key(DB, @off_fresh).nil?]
 #=> [1, true]
 
+# ---- watermark boundary is STRICTLY AFTER: == watermark is REVOKED -----
+# The auth-time check rejects authenticated_at <= watermark, so the sweep must
+# match exactly: a blob authenticated AT the watermark is a same-second
+# pre-change session and is REVOKED; only authenticated_at > watermark survives.
+# (All prior target blobs are dead after @res7, so this section counts only its
+# own two blobs.)
+
+## a blob AT the watermark is REVOKED; a blob at watermark+1 is SPARED
+@bw = Familia.now.to_i - 30
+@cust.last_password_update = @bw
+@cust.save
+@wm_at    = "tryxc_wm_at_#{@nonce}"
+@wm_after = "tryxc_wm_after_#{@nonce}"
+DB.set("session:#{@wm_at}", @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
+                                            'authenticated_at' => @bw }))
+DB.set("session:#{@wm_after}", @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
+                                               'authenticated_at' => @bw + 1 }))
+@res8 = RXC.new(custid: @extid, except_session_id: nil, honor_credential_watermark: true).call
+[@res8.blobs_deleted, Store.find_key(DB, @wm_at).nil?, Store.find_key(DB, @wm_after).nil?]
+#=> [1, true, false]
+
 # Cleanup
 [@current, @revoked, @untracked, @other_sid, @st_tracked, @st_untracked,
- @wm_fresh, @wm_stale, @wm_ufresh, @wm_unstamp, @off_fresh].each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
+ @wm_fresh, @wm_stale, @wm_ufresh, @wm_unstamp, @off_fresh,
+ @wm_at, @wm_after].each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
 @cust.active_sessions.clear
 @cust.destroy!
 @other.destroy!

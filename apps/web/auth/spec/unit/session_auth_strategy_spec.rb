@@ -236,7 +236,19 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
           session_auth_strategy.authenticate(env_with_authenticated_at(watermark), nil)
         end
 
-        it 'authenticates (strict <, so the re-stamped current session survives its own change)' do
+        it 'returns an AuthFailure (== watermark is pre-change under <=; a same-second session is rejected)' do
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        end
+      end
+
+      context 'with a session authenticated strictly after the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(watermark + 1), nil)
+        end
+
+        it 'authenticates (after_change_password re-stamps the kept session to > watermark)' do
           expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
           expect(result.authenticated?).to be true
         end

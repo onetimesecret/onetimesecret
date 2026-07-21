@@ -69,8 +69,10 @@ module Onetime
       # session, or a fresh post-reset login. Killing those would log the user
       # straight back out of the session the credential change just established.
       # With the flag on, `Customer#last_password_update` acts as a watermark:
-      # any blob whose `authenticated_at` is AT/AFTER it is SPARED (blob, sidecar,
-      # and index entry all kept, like the preserved current session). A blob with
+      # any blob whose `authenticated_at` is STRICTLY AFTER it is SPARED (blob,
+      # sidecar, and index entry all kept, like the preserved current session). A
+      # blob authenticated exactly AT the watermark is a same-second pre-change
+      # session and is REVOKED, mirroring the auth-time `<=` rejection. A blob with
       # a missing/nil `authenticated_at` coerces to 0 and is deleted whenever a
       # watermark is in force — fail-secure, since only a stale legacy blob lacks
       # the stamp. The flag defaults to FALSE (byte-for-byte historic behavior),
@@ -106,7 +108,7 @@ module Onetime
         #   the SCAN + per-candidate decrypt out of Rodauth's open SQL transaction;
         #   the guaranteed tracked kill (a) is unaffected either way.
         # @param honor_credential_watermark [Boolean] spare blobs authenticated
-        #   AT/AFTER `Customer#last_password_update` (see class docs). Default
+        #   STRICTLY AFTER `Customer#last_password_update` (see class docs). Default
         #   FALSE. The async sweep worker passes TRUE; with a nil/empty/zero
         #   watermark the flag degrades to the unguarded revoke.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
@@ -180,8 +182,9 @@ module Onetime
             key = Store.find_key(db, sid)
             next false unless key
 
-            # Watermark guard (see class docs): a blob authenticated AT/AFTER the
-            # credential change is a legitimate post-change session — spare it.
+            # Watermark guard (see class docs): a blob authenticated STRICTLY
+            # AFTER the credential change is a legitimate post-change session —
+            # spare it.
             if watermark.positive? && spared_by_watermark?(Store.load_data(db, key, codec: codec), watermark)
               spared << sid
               next false
@@ -231,6 +234,7 @@ module Onetime
         # reconciles metadata. Uses per-sid remove (not index clear) so the
         # preserved sessions stay tracked.
         def tidy_sidecars(customer, tracked, spared)
+          spared  = spared.to_set # O(1) membership for the reject below
           revoked = tracked.reject { |sid| sid == @except_session_id || spared.include?(sid) }
           revoked.each do |sid|
             Onetime::SessionMetadata.load(sid)&.destroy!
@@ -252,11 +256,14 @@ module Onetime
         end
 
         # Whether a decoded blob is SPARED by an active watermark: authenticated
-        # AT/AFTER the credential change. A missing/nil `authenticated_at` (or an
-        # undecodable blob) coerces to 0 → NOT spared — fail-secure, since only a
-        # stale legacy blob lacks the stamp.
+        # STRICTLY AFTER the credential change. A blob authenticated exactly at
+        # the watermark is NO LONGER spared (it is revoked); only blobs strictly
+        # after survive — mirroring the auth-time `<=` rejection, so a same-second
+        # pre-change session dies both here and at auth. A missing/nil
+        # `authenticated_at` (or an undecodable blob) coerces to 0 → NOT spared —
+        # fail-secure, since only a stale legacy blob lacks the stamp.
         def spared_by_watermark?(data, watermark)
-          data.is_a?(Hash) && data['authenticated_at'].to_i >= watermark
+          data.is_a?(Hash) && data['authenticated_at'].to_i > watermark
         end
 
         # Same resolution as the sibling ops: extid → email → objid. nil is tolerated

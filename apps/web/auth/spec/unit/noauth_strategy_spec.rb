@@ -149,7 +149,21 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
           no_auth_strategy.authenticate(env_with_authenticated_at(watermark), nil)
         end
 
-        it 'resolves the customer (strict <, so the re-stamped session survives)' do
+        it 'degrades to anonymous (== watermark is pre-change under <=; nil user, not authenticated)' do
+          expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+          expect(result.user).to be_nil
+          expect(result.authenticated?).to be false
+        end
+      end
+
+      context 'with a session authenticated strictly after the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          no_auth_strategy.authenticate(env_with_authenticated_at(watermark + 1), nil)
+        end
+
+        it 'resolves the customer (after_change_password re-stamps the kept session to > watermark)' do
           expect(result.user).to be_a(Onetime::Customer)
           expect(result.user.custid).to eq(test_customer.custid)
           expect(result.authenticated?).to be true
