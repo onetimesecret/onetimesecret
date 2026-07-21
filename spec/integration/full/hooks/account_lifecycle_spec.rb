@@ -338,6 +338,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
+        before_change = Familia.now.to_i
         change_password
 
         expect(last_response.status).to eq(200)
@@ -345,6 +346,15 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
           .with(:sessions_revoked_on_change, hash_including(level: :info))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:sessions_revoke_skipped_no_identity, any_args)
+
+        # #3810: the credential watermark stamp must survive a NULL external_id
+        # too — UpdatePasswordMetadata falls back to the account email the same
+        # way the revoke does. Without this, the async sweep runs unguarded and
+        # kills the just-rotated session.
+        customer = find_customer_by_email(cred_email)
+        expect(customer.last_password_update.to_i).to be >= before_change
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:credential_watermark_stamp_FAILED, any_args)
       end
 
       # -----------------------------------------------------------------------

@@ -446,9 +446,44 @@ module Auth::Config::Hooks
         # this instant, so the watermark — not the blob deletion below, which is
         # hygiene — is the authoritative revocation boundary. Reset previously
         # skipped this stamp, so untracked pre-reset blobs stayed valid until
-        # their 24h TTL.
-        Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
-          Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+        # their 24h TTL. The Redis stamp is not rollback-aware: a reset that
+        # rolls back after this point still forces re-login everywhere
+        # (fail-secure, accepted).
+        #
+        # NOT wrapped in ErrorHandler.safe_execute: that helper swallows a raise
+        # into routine :warn logging, and a silently-missing watermark means the
+        # async sweep below runs UNGUARDED (it may then kill legitimate
+        # post-reset sessions — fail-secure, but it must be attributable). The
+        # stamp failure never fails the reset itself.
+        begin
+          stamped = Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+          unless stamped
+            Auth::Logging.log_auth_event(
+              :credential_watermark_stamp_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_reset_password,
+              reason: 'customer not found',
+              security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+            )
+          end
+        rescue StandardError => ex
+          Auth::Logging.log_auth_event(
+            :credential_watermark_stamp_FAILED,
+            level: :error,
+            account_id: account_id,
+            hook: :after_reset_password,
+            error: ex.message,
+            security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+          )
+
+          if defined?(Sentry) && Sentry.initialized?
+            Sentry.capture_exception(ex) do |scope|
+              scope.set_level(:error)
+              scope.set_tags(component: 'auth.session_revocation', hook: 'after_reset_password', finding: 'M-2')
+              scope.set_context('session_revocation', { account_id: account_id })
+            end
+          end
         end
 
         # SECURITY (M-2): a password reset MUST invalidate every existing session
@@ -590,10 +625,45 @@ module Auth::Config::Hooks
           email: account[:email],
         )
 
-        # Rodauth is the source of truth for password management. Here, we just
-        # sync metadata to the customer record.
-        Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
-          Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+        # Rodauth is the source of truth for password management. Here, we sync
+        # metadata to the customer record — including the credential watermark
+        # (Customer#last_password_update), the authoritative revocation boundary
+        # session validation and the async sweep below both key on.
+        #
+        # NOT wrapped in ErrorHandler.safe_execute (same reasoning as
+        # after_reset_password above): a silently-missing watermark means the
+        # async sweep runs UNGUARDED and may kill the just-rotated session —
+        # fail-secure, but it must be attributable, not swallowed into routine
+        # :warn logging. The stamp failure never fails the password change.
+        begin
+          stamped = Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+          unless stamped
+            Auth::Logging.log_auth_event(
+              :credential_watermark_stamp_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_change_password,
+              reason: 'customer not found',
+              security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+            )
+          end
+        rescue StandardError => ex
+          Auth::Logging.log_auth_event(
+            :credential_watermark_stamp_FAILED,
+            level: :error,
+            account_id: account_id,
+            hook: :after_change_password,
+            error: ex.message,
+            security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+          )
+
+          if defined?(Sentry) && Sentry.initialized?
+            Sentry.capture_exception(ex) do |scope|
+              scope.set_level(:error)
+              scope.set_tags(component: 'auth.session_revocation', hook: 'after_change_password', finding: 'M-2')
+              scope.set_context('session_revocation', { account_id: account_id })
+            end
+          end
         end
 
         # SECURITY (M-2): changing the password must sign out every OTHER session
@@ -671,7 +741,10 @@ module Auth::Config::Hooks
           # rollback, registered BEFORE the inline revoke so it enqueues even when
           # that revoke raises). except_session_id carries the PRE-rotation sid;
           # the rotated current session is protected by the worker honoring the
-          # credential watermark, not by sid identity.
+          # credential watermark, not by sid identity — protection that holds
+          # only when the watermark stamp above actually landed. When it did
+          # not, the sweep runs unguarded and may log the user out (fail-secure);
+          # the :credential_watermark_stamp_FAILED event makes that attributable.
           db.after_commit do
             # MANDATORY internal rescue: an exception escaping an after_commit
             # block propagates out of the ALREADY-COMMITTED transaction and would
