@@ -179,6 +179,134 @@ module Onetime
     File.join(canonical, name)
   end
 
+  # Read-only brand-pack resolution diagnostics for the v0.26.0 branding
+  # incident (#3822): byte-identical brand files rendered correctly on CA/NZ but
+  # fell back to neutral on UK. The cause is one of three modes a running
+  # instance otherwise cannot tell apart — config divergence, env not reaching
+  # the container, or a boot-time mount race — so this surfaces all three at
+  # once. It is the SINGLE SOURCE OF TRUTH: the `bin/ots config brand` command
+  # and the Colonel `GET /system/brand` endpoint are thin adapters over this
+  # payload. String keys throughout — it is serialized to JSON and printed by a
+  # CLI.
+  #
+  # Purity: reads ENV, OT.conf, and the filesystem; mutates nothing (OT.conf is
+  # frozen in prod) and adds no memoization, so two calls reflect current disk
+  # both times. Resolution is delegated to the live resolvers
+  # (brand_overlay_dir, brand_pack_dir), never reimplemented. #3822
+  def self.brand_pack_diagnostics
+    # Asset-URL constants live on the middleware path, which the CLI adapter may
+    # never build. require_relative is idempotent, so load it on demand.
+    require_relative 'onetime/middleware/static_files'
+
+    resolved_dir = brand_overlay_dir                  # LIVE re-resolution, not the boot snapshot
+    default_dir  = brand_pack_dir(DEFAULT_BRAND_PACK)
+
+    # site.* as the FROZEN BOOT snapshot saw it (may differ from raw ENV now).
+    cfg_pack   = OT.conf.dig('site', 'brand_pack')
+    cfg_assets = OT.conf.dig('site', 'brand_assets_dir')
+
+    # fell_back_to_default is TRUE only when a non-default pack was INTENDED yet
+    # the DEFAULT pack was served (a stale brand_assets_dir masking a good pack,
+    # a typo'd pack name, or env not arriving all land here). Landing on the
+    # default with nothing configured is CORRECT, not a fallback — hence the
+    # intent gate. brand_assets_dir WINS over brand_pack, so any non-empty
+    # brand_assets_dir signals intent regardless of brand_pack.
+    intended_non_default = !cfg_assets.to_s.strip.empty? ||
+                           (!cfg_pack.to_s.strip.empty? && cfg_pack.to_s.strip != DEFAULT_BRAND_PACK)
+    served_default       = resolved_dir == default_dir
+    fell_back_to_default = intended_non_default && served_default
+
+    # Live manifest re-read: what boot WOULD absorb if apply_brand_manifest ran
+    # NOW, filtered exactly as it filters (whitelist ∩ String ∩ stripped
+    # non-empty). resolved_dir is nil only on a broken checkout (default pack
+    # absent); every field below is nil-safe for that case.
+    manifest_path   = resolved_dir ? File.join(resolved_dir, 'brand.yaml') : nil
+    manifest_exists = !!(manifest_path && File.exist?(manifest_path))
+    live_scalars    = manifest_exists ? read_brand_manifest_scalars(manifest_path) : {}
+
+    # boot_vs_live_mismatch — the mount-race detector. TRUE when a real manifest
+    # sits in the resolved pack NOW, but the frozen boot conf did not absorb what
+    # disk offers for some key, AND env is not the reason. The env-exclusion is
+    # MANDATORY: BRAND_* env is the top precedence layer (normalize_brand applies
+    # it AFTER the manifest), so every ordinary override makes conf differ from
+    # disk by design; without excluding those keys each one would false-positive.
+    boot_vs_live_mismatch = manifest_exists && live_scalars.any? do |key, disk_value|
+      next false if brand_env_override?(key)
+
+      OT.conf.dig('brand', key).to_s != disk_value
+    end
+
+    # Pack assets present on disk in the resolved pack RIGHT NOW. This may differ
+    # from what StaticFiles actually serves — that overlay set is frozen at boot
+    # — so a divergence here is itself a mount-race signal.
+    overlay_urls   = Onetime::Middleware::StaticFiles::BRAND_PACK_URLS +
+                     Onetime::Middleware::StaticFiles::BRAND_PACK_LOGO_URLS
+    overlay_assets = overlay_urls.select { |u| resolved_dir && File.exist?(File.join(resolved_dir, u)) }
+
+    {
+      'home' => Onetime::HOME,
+      'env' => {
+        # Raw ENV right now (nil if unset) — catches "env not reaching the
+        # container": nil here while config expects a pack.
+        'brand_pack' => ENV.fetch('BRAND_PACK', nil),
+        'brand_assets_dir' => ENV.fetch('BRAND_ASSETS_DIR', nil),
+      },
+      'config' => {
+        'brand_pack' => cfg_pack,
+        'brand_assets_dir' => cfg_assets,
+        'brand_absorbed' => Onetime::Config::BRAND_MANIFEST_KEYS.reject do |k|
+          OT.conf.dig('brand', k).to_s.strip.empty?
+        end,
+      },
+      'roots' => brand_pack_roots.map { |path| { 'path' => path, 'exists' => Dir.exist?(path) } },
+      'resolved_dir' => resolved_dir,
+      'fell_back_to_default' => fell_back_to_default,
+      'manifest' => {
+        'path' => manifest_path,
+        'exists' => manifest_exists,
+        'keys_on_disk' => live_scalars.keys,
+      },
+      'boot_vs_live_mismatch' => boot_vs_live_mismatch,
+      'overlay_assets' => overlay_assets,
+    }
+  end
+
+  # Internal helper for brand_pack_diagnostics: the { key => stripped value } a
+  # brand.yaml would contribute to conf['brand'] if apply_brand_manifest ran now,
+  # replicating its exact filter (BRAND_MANIFEST_KEYS ∩ String ∩ stripped
+  # non-empty). The rescue is scoped to the live YAML read only, so a
+  # missing/malformed/non-mapping manifest surfaces as an empty contribution
+  # rather than an exception. #3822
+  def self.read_brand_manifest_scalars(path)
+    require 'yaml'
+    return {} unless path && File.exist?(path)
+
+    manifest = YAML.safe_load_file(path) || {}
+    return {} unless manifest.is_a?(Hash)
+
+    Onetime::Config::BRAND_MANIFEST_KEYS.each_with_object({}) do |key, acc|
+      value = manifest[key]
+      next unless value.is_a?(String)
+
+      value    = value.strip
+      acc[key] = value unless value.empty?
+    end
+  rescue StandardError
+    {}
+  end
+
+  # Internal helper for brand_pack_diagnostics: true when the BRAND_* env var
+  # backing this brand key is set to a non-empty value. The mount-race detector
+  # (boot_vs_live_mismatch) EXCLUDES such keys: env is the top precedence layer
+  # applied after the manifest, so a legitimate BRAND_* override makes conf
+  # differ from the on-disk manifest BY DESIGN and must not read as a race. #3822
+  def self.brand_env_override?(key)
+    env_var = Onetime::Config::BRAND_ENV[key]
+    return false unless env_var
+
+    !ENV.fetch(env_var, '').to_s.strip.empty?
+  end
+
   require_relative 'onetime/class_methods'
   extend ClassMethods
 
