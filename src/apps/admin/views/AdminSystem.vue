@@ -7,6 +7,7 @@
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type { QueueMetric } from '@/schemas/api/internal/responses/colonel';
   import {
+    brandDiagnosticsResponseSchema,
     databaseMetricsResponseSchema,
     queueMetricsResponseSchema,
     redisMetricsResponseSchema,
@@ -22,12 +23,13 @@
    * `ColonelSystemRedis` views rebuilt fresh on the Slice-3 template. It does NOT
    * import `src/apps/colonel/*` or `colonelInfoStore`.
    *
-   * Three independent single-GET read-outs via {@link useResourceFetch} (CONTRACT
+   * Four independent single-GET read-outs via {@link useResourceFetch} (CONTRACT
    * 1 — single screens use useResourceFetch, not a paginated store). All reads
    * REUSE the frozen wrapped schemas (CONTRACT 3):
    *   - GET /api/colonel/system/database → server + memory + db sizes + model counts
    *   - GET /api/colonel/queue           → connection + worker health + per-queue
    *   - GET /api/colonel/system/redis    → full Redis/Valkey INFO (JsonViewer)
+   *   - GET /api/colonel/system/brand    → brand-pack resolution diagnostic (#3822)
    *
    * Read-only: nothing here mutates, so nothing is audited (CONTRACT 4).
    */
@@ -137,10 +139,63 @@
     () => redisError.value !== null || redisValidationError.value !== null
   );
 
+  // ---- Brand-pack diagnostics (#3822) ---------------------------------------
+
+  const {
+    data: brandData,
+    loading: brandLoading,
+    error: brandError,
+    validationError: brandValidationError,
+    load: loadBrand,
+  } = useResourceFetch({
+    url: '/api/colonel/system/brand',
+    schema: brandDiagnosticsResponseSchema,
+    context: 'BrandDiagnosticsResponse',
+  });
+
+  const brand = computed(() => brandData.value?.details ?? null);
+  const brandFailed = computed(
+    () => brandError.value !== null || brandValidationError.value !== null
+  );
+
+  /** One probed brand search root (the `roots[]` element shape). */
+  interface BrandRoot {
+    path: string;
+    exists: boolean;
+  }
+
+  const brandRootColumns = computed<DataTableColumn<BrandRoot>[]>(() => [
+    { key: 'path', label: t('web.admin.system.brand.roots.columns.path') },
+    { key: 'exists', label: t('web.admin.system.brand.roots.columns.exists'), align: 'right' },
+  ]);
+
+  /**
+   * Danger-flag badge classes for the two boolean tripwires. Polarity is
+   * inverted vs a health enum: `false` is the healthy state (green), `true`
+   * means the tripwire fired (red) — these are the fields the tool exists to
+   * surface, so a tripped flag reads loud.
+   */
+  function dangerBadgeClass(tripped: boolean): string {
+    return tripped
+      ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
+      : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200';
+  }
+
+  /**
+   * On-disk existence badge for a search root / manifest. Normal polarity here:
+   * present = green, missing = red (the inverse of {@link dangerBadgeClass}).
+   */
+  function existsBadgeClass(exists: boolean): string {
+    return exists
+      ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'
+      : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200';
+  }
+
   function loadAll(): void {
     loadDb().catch(() => {});
     loadQueue().catch(() => {});
     loadRedis().catch(() => {});
+    loadBrand().catch(() => {});
   }
 
   onMounted(loadAll);
@@ -507,6 +562,338 @@
           :data="redis.redis_info"
           :expand-depth="1"
           testid="system-redis-json" />
+      </div>
+    </section>
+
+    <!-- ================= Brand-pack diagnostics (#3822) ================= -->
+    <section
+      class="mt-8"
+      data-testid="system-brand">
+      <h3 class="mb-1 text-lg font-medium text-gray-900 dark:text-white">
+        {{ t('web.admin.system.brand.title') }}
+      </h3>
+      <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.system.brand.description') }}
+      </p>
+
+      <!-- Loading -->
+      <div
+        v-if="brandLoading && !brand"
+        class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+        data-testid="system-brand-loading">
+        <OIcon
+          collection="heroicons"
+          name="arrow-path"
+          size="5"
+          class="animate-spin motion-reduce:animate-none" />
+        {{ t('web.COMMON.loading') }}
+      </div>
+
+      <!-- Error -->
+      <div
+        v-else-if="brandFailed"
+        class="flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
+        role="alert"
+        data-testid="system-brand-error">
+        <span class="text-sm text-red-800 dark:text-red-200">
+          {{ t('web.admin.system.brand.loadError') }}
+        </span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          @click="loadBrand().catch(() => {})">
+          <OIcon
+            collection="heroicons"
+            name="arrow-path"
+            size="4" />
+          {{ t('web.admin.system.retry') }}
+        </button>
+      </div>
+
+      <!-- Loaded -->
+      <div
+        v-else-if="brand"
+        class="space-y-4"
+        data-testid="system-brand-loaded">
+        <!-- Danger flags — the reason this tool exists, so they read first. -->
+        <div
+          class="flex flex-wrap items-center gap-3"
+          data-testid="brand-flags">
+          <span
+            class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
+            :class="dangerBadgeClass(brand.fell_back_to_default)"
+            data-testid="brand-fallback-badge">
+            <OIcon
+              collection="heroicons"
+              :name="brand.fell_back_to_default ? 'exclamation-triangle' : 'check-circle'"
+              size="3" />
+            {{ brand.fell_back_to_default
+              ? t('web.admin.system.brand.flags.fellBack.danger')
+              : t('web.admin.system.brand.flags.fellBack.ok') }}
+          </span>
+          <span
+            class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
+            :class="dangerBadgeClass(brand.boot_vs_live_mismatch)"
+            data-testid="brand-mismatch-badge">
+            <OIcon
+              collection="heroicons"
+              :name="brand.boot_vs_live_mismatch ? 'exclamation-triangle' : 'check-circle'"
+              size="3" />
+            {{ brand.boot_vs_live_mismatch
+              ? t('web.admin.system.brand.flags.mismatch.danger')
+              : t('web.admin.system.brand.flags.mismatch.ok') }}
+          </span>
+        </div>
+
+        <!-- Headline tiles -->
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <StatCard
+            :label="t('web.admin.system.brand.stats.brandPack')"
+            :value="brand.config.brand_pack ?? t('web.admin.system.brand.none')"
+            icon="archive-box"
+            testid="brand-stat-pack" />
+          <StatCard
+            :label="t('web.admin.system.brand.stats.overlayAssets')"
+            :value="num(brand.overlay_assets.length)"
+            icon="rectangle-group"
+            testid="brand-stat-overlays" />
+          <StatCard
+            :label="t('web.admin.system.brand.stats.manifestKeys')"
+            :value="num(brand.manifest.keys_on_disk.length)"
+            icon="key"
+            testid="brand-stat-keys" />
+        </div>
+
+        <!-- Resolution -->
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+          data-testid="brand-resolution">
+          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            {{ t('web.admin.system.brand.resolution') }}
+          </h4>
+          <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+            <div data-testid="brand-resolved-dir">
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.fields.resolvedDir') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-all text-gray-900 dark:text-white">
+                {{ brand.resolved_dir ?? t('web.admin.system.brand.none') }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.fields.home') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-all text-gray-900 dark:text-white">
+                {{ brand.home }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Environment vs Config (the divergence catcher) -->
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+          data-testid="brand-env-config">
+          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            {{ t('web.admin.system.brand.envVsConfig') }}
+          </h4>
+          <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+            <div data-testid="brand-env-pack">
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.fields.envPack') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-all text-gray-900 dark:text-white">
+                {{ brand.env.brand_pack ?? t('web.admin.system.brand.none') }}
+              </dd>
+            </div>
+            <div data-testid="brand-config-pack">
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.fields.configPack') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-all text-gray-900 dark:text-white">
+                {{ brand.config.brand_pack ?? t('web.admin.system.brand.none') }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.fields.envAssetsDir') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-all text-gray-900 dark:text-white">
+                {{ brand.env.brand_assets_dir ?? t('web.admin.system.brand.none') }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.fields.configAssetsDir') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-all text-gray-900 dark:text-white">
+                {{ brand.config.brand_assets_dir ?? t('web.admin.system.brand.none') }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Search roots -->
+        <div
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
+          data-testid="brand-roots">
+          <h4 class="border-b border-gray-100 px-5 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
+            {{ t('web.admin.system.brand.roots.title') }}
+          </h4>
+          <DataTable
+            :columns="brandRootColumns"
+            :rows="brand.roots"
+            row-key="path"
+            :empty-text="t('web.admin.system.brand.roots.empty')"
+            testid="brand-roots-table">
+            <template #cell-path="{ row }">
+              <span class="font-mono text-gray-900 dark:text-white">{{ row.path }}</span>
+            </template>
+            <template #cell-exists="{ row }">
+              <span
+                class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
+                :class="existsBadgeClass(row.exists)">
+                <OIcon
+                  collection="heroicons"
+                  :name="row.exists ? 'check-circle' : 'x-circle'"
+                  size="3" />
+                {{ row.exists
+                  ? t('web.admin.system.brand.exists.yes')
+                  : t('web.admin.system.brand.exists.no') }}
+              </span>
+            </template>
+          </DataTable>
+        </div>
+
+        <!-- Manifest -->
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+          data-testid="brand-manifest">
+          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            {{ t('web.admin.system.brand.manifest.title') }}
+          </h4>
+          <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.manifest.path') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-all text-gray-900 dark:text-white">
+                {{ brand.manifest.path ?? t('web.admin.system.brand.none') }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.brand.manifest.exists') }}
+              </dt>
+              <dd class="mt-1">
+                <span
+                  class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
+                  :class="existsBadgeClass(brand.manifest.exists)"
+                  data-testid="brand-manifest-exists">
+                  <OIcon
+                    collection="heroicons"
+                    :name="brand.manifest.exists ? 'check-circle' : 'x-circle'"
+                    size="3" />
+                  {{ brand.manifest.exists
+                    ? t('web.admin.system.brand.exists.yes')
+                    : t('web.admin.system.brand.exists.no') }}
+                </span>
+              </dd>
+            </div>
+          </dl>
+          <div class="mt-4">
+            <p class="mb-1.5 text-xs text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.system.brand.manifest.keysOnDisk') }}
+            </p>
+            <div
+              v-if="brand.manifest.keys_on_disk.length"
+              class="flex flex-wrap gap-1.5"
+              data-testid="brand-manifest-keys">
+              <span
+                v-for="key in brand.manifest.keys_on_disk"
+                :key="key"
+                class="inline-flex rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                {{ key }}
+              </span>
+            </div>
+            <p
+              v-else
+              class="text-xs text-gray-400 dark:text-gray-500">
+              {{ t('web.admin.system.brand.none') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Absorbed keys + overlay assets -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div
+            class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            data-testid="brand-absorbed">
+            <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.admin.system.brand.absorbed') }}
+            </h4>
+            <div
+              v-if="brand.config.brand_absorbed.length"
+              class="flex flex-wrap gap-1.5">
+              <span
+                v-for="entry in brand.config.brand_absorbed"
+                :key="entry"
+                class="inline-flex rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                {{ entry }}
+              </span>
+            </div>
+            <p
+              v-else
+              class="text-xs text-gray-400 dark:text-gray-500">
+              {{ t('web.admin.system.brand.none') }}
+            </p>
+
+            <h4
+              class="mt-4 mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.admin.system.brand.operatorKeys') }}
+            </h4>
+            <div
+              v-if="brand.config.brand_operator_keys.length"
+              class="flex flex-wrap gap-1.5"
+              data-testid="brand-operator-keys">
+              <span
+                v-for="entry in brand.config.brand_operator_keys"
+                :key="entry"
+                class="inline-flex rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                {{ entry }}
+              </span>
+            </div>
+            <p
+              v-else
+              class="text-xs text-gray-400 dark:text-gray-500">
+              {{ t('web.admin.system.brand.none') }}
+            </p>
+          </div>
+
+          <div
+            class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            data-testid="brand-overlay-assets">
+            <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.admin.system.brand.overlayAssets') }}
+            </h4>
+            <div
+              v-if="brand.overlay_assets.length"
+              class="flex flex-wrap gap-1.5">
+              <span
+                v-for="asset in brand.overlay_assets"
+                :key="asset"
+                class="inline-flex rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                {{ asset }}
+              </span>
+            </div>
+            <p
+              v-else
+              class="text-xs text-gray-400 dark:text-gray-500">
+              {{ t('web.admin.system.brand.none') }}
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   </div>
