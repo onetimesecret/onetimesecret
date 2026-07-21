@@ -449,11 +449,12 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
           watermark = customer.last_password_update.to_i
           expect(watermark).to be >= before_change
 
-          # The kept (rotated) session must postdate the watermark, or watermark
-          # validation would kill it on its next request.
+          # The kept (rotated) session must STRICTLY postdate the watermark:
+          # auth-time validation now rejects sessions at-or-before it (`<=`), so a
+          # value equal to the watermark would be killed on the next request.
           data = session_blob_data(current_cookie_sid)
           expect(data).to be_a(Hash)
-          expect(data['authenticated_at'].to_i).to be >= watermark
+          expect(data['authenticated_at'].to_i).to be > watermark
         end
 
         it 'enqueues the async full sweep after commit, excepting the pre-rotation sid' do
@@ -522,6 +523,25 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
               hash_including(level: :error, hook: :after_change_password))
           expect(Auth::Logging).not_to have_received(:log_auth_event)
             .with(:sessions_sweep_enqueued, any_args)
+        end
+
+        it 'logs :session_rotation_FAILED at error and still succeeds when the rotation block raises' do
+          # rack.session.options IS present (normal request), so the hook enters
+          # the rotation branch and requests :renew; forcing SessionMetadata.load
+          # to raise trips the rotation rescue AFTER :renew + the watermark
+          # re-stamp, so the change still commits (fail-open, but loud). The same
+          # stub raises inside TrackMetadata during the commit, but that operation
+          # swallows its own exception, so it does not surface as a 500.
+          allow(Onetime::SessionMetadata).to receive(:load)
+            .and_raise(StandardError.new('boom'))
+          allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+          change_password
+
+          expect(last_response.status).to eq(200),
+            "Expected change to still succeed but got #{last_response.status}: #{last_response.body[0..500]}"
+          expect(Auth::Logging).to have_received(:log_auth_event)
+            .with(:session_rotation_FAILED, hash_including(level: :error))
         end
       end
     end
