@@ -211,9 +211,19 @@ module Onetime
     # the DEFAULT pack was served (a stale brand_assets_dir masking a good pack,
     # a typo'd pack name, or env not arriving all land here). Landing on the
     # default with nothing configured is CORRECT, not a fallback — hence the
-    # intent gate. brand_assets_dir WINS over brand_pack, so any non-empty
-    # brand_assets_dir signals intent regardless of brand_pack.
-    intended_non_default = !cfg_assets.to_s.strip.empty? ||
+    # intent gate. brand_assets_dir WINS over brand_pack, so a non-empty
+    # brand_assets_dir signals intent — UNLESS it points at the default pack
+    # itself. An operator MAY deliberately pin brand_assets_dir (or brand_pack)
+    # at the default pack: that is neutral-by-choice, not a fallback, and must
+    # not gate a deploy (#3822 #9). Normalize brand_assets_dir exactly as
+    # resolve_brand_pack_dir does (absolute as-is; relative against HOME) and
+    # exclude it when it equals default_dir — mirroring the resolver's string
+    # handling, not re-resolving. The brand_pack branch already excludes an
+    # explicit 'default' name the same way.
+    assets_norm = cfg_assets.to_s.strip
+    assets_norm = File.join(HOME, assets_norm) unless assets_norm.empty? || File.absolute_path?(assets_norm)
+
+    intended_non_default = (!assets_norm.empty? && assets_norm != default_dir) ||
                            (!cfg_pack.to_s.strip.empty? && cfg_pack.to_s.strip != DEFAULT_BRAND_PACK)
     served_default       = resolved_dir == default_dir
     fell_back_to_default = intended_non_default && served_default
@@ -227,9 +237,26 @@ module Onetime
     live_scalars    = manifest_exists ? read_brand_manifest_scalars(manifest_path) : {}
 
     # boot_vs_live_mismatch — the mount-race detector. TRUE when a real manifest
-    # sits in the resolved pack NOW, but the frozen boot conf did not absorb what
-    # disk offers for some key, for a reason that can only be a race. TWO layers
-    # legitimately outrank the manifest and are excluded so neither false-positives:
+    # sits in the resolved pack NOW, but the frozen boot conf disagrees with what
+    # disk offers for some key, for a reason that can only be a race. The scan
+    # covers the UNION of two key sets so a REMOVED key is not missed:
+    #
+    #   * keys the manifest carries on disk NOW (live_scalars) — catches a value
+    #     that CHANGED or APPEARED since boot; and
+    #   * keys the pack manifest was absorbed FROM at boot
+    #     (conf['brand_manifest']['absorbed_keys']) — catches a value REMOVED from
+    #     brand.yaml since boot: it lingers in the frozen conf but is absent from a
+    #     live disk re-read, so a disk-only scan would miss it (#8). This holds
+    #     whether a SINGLE key was deleted (brand.yaml still on disk) or the WHOLE
+    #     brand.yaml was removed (file gone, pack dir still resolving via a lingering
+    #     logo/favicon): when the manifest is gone live_scalars is empty, so the union
+    #     collapses to absorbed_keys alone and the removal still scans. Provenance-
+    #     gated to absorbed keys so a legacy/default-filled conf key (config.rb
+    #     LEGACY_BRAND_FALLBACKS — never pack-sourced) is not mistaken for a race
+    #     on a supported back-compat path (#3612).
+    #
+    # TWO layers legitimately outrank the manifest and are excluded so neither
+    # false-positives:
     #
     #   1. BRAND_* env — the TOP precedence layer (normalize_brand applies it AFTER
     #      the manifest). Any ordinary env override makes conf differ from disk by
@@ -239,15 +266,31 @@ module Onetime
     #      diverges from a differing pack brand.yaml. Those keys are recorded at
     #      boot in conf['brand_manifest']['operator_keys'] and skipped here.
     #
-    # What survives both exclusions is a genuine race: a key the operator did NOT
-    # set and env does NOT override, where the boot conf (nil, or filled from a
-    # stale pack) disagrees with what the resolved pack offers on disk NOW.
+    # What survives is a genuine race: a key the operator did NOT set and env does
+    # NOT override, where the boot conf (nil, filled from a stale pack, or holding
+    # a since-removed value) disagrees with what the resolved pack offers on disk NOW.
+    #
+    # SCOPE (#7, deferred): this detects SCALAR races only. An asset-only race — a
+    # pack whose logo/favicon mount but whose brand.yaml is value-free or absent —
+    # leaves both live_scalars and absorbed_keys empty, so it does NOT auto-flag
+    # here (and a resolved non-default pack keeps fell_back_to_default false too, so
+    # the CLI exits 0). overlay_assets is exposed for manual cross-region diffing
+    # meanwhile. An automatic asset-race signal needs a boot baseline of the mounted
+    # overlay set (StaticFiles instrumentation) that does not yet exist. The tryout
+    # pins this asset-only-reads-healthy behavior so any future change is deliberate.
     operator_keys         = OT.conf.dig('brand_manifest', 'operator_keys') || []
-    boot_vs_live_mismatch = manifest_exists && live_scalars.any? do |key, disk_value|
+    absorbed_keys         = OT.conf.dig('brand_manifest', 'absorbed_keys') || []
+    # No manifest_exists guard is needed: when the manifest is absent live_scalars is
+    # empty, so the union collapses to absorbed_keys alone. A WHOLE brand.yaml removed
+    # since boot then still scans its lingering absorbed keys (each compares unequal —
+    # "" from the absent disk read vs the frozen conf value — and flags), while an
+    # asset-only pack (#7, empty absorbed_keys) yields an empty union so `.any?`
+    # short-circuits to false and correctly does NOT flag.
+    boot_vs_live_mismatch = (live_scalars.keys | absorbed_keys).any? do |key|
       next false if operator_keys.include?(key)
       next false if brand_env_override?(key)
 
-      OT.conf.dig('brand', key).to_s != disk_value
+      live_scalars[key].to_s != OT.conf.dig('brand', key).to_s
     end
 
     # Pack assets present on disk in the resolved pack RIGHT NOW. This may differ
