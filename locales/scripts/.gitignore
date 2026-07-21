@@ -1,0 +1,5 @@
+# The i18n CLI is deliberately zero-install (stdlib only; see pyproject.toml).
+# A stray `uv run --project` here builds an env + lockfile anyway — keep those
+# artifacts out of the tree.
+uv.lock
+.venv/

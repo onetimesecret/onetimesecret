@@ -156,6 +156,68 @@ export const databaseMetricsDetailsSchema = z.object({
 });
 
 /**
+ * Brand-pack diagnostics response details (#3822).
+ *
+ * Read-only diagnostic for the running instance's brand-pack resolution, so ops
+ * can see why one region serves neutral branding (the v0.26.0 UK incident:
+ * identical files on disk, divergent render). The two boolean DANGER flags ARE
+ * the point of the tool and the reason it renders them first:
+ *   - `fell_back_to_default`  — resolution missed the pack and fell back to the
+ *                               neutral default (broken checkout / bad mount).
+ *   - `boot_vs_live_mismatch` — the boot-time snapshot disagrees with the live
+ *                               resolution (a mount race — the container booted
+ *                               before the brand volume was ready).
+ *
+ * Nullable fields track the failure shapes the tool exists to surface:
+ *   - `resolved_dir` / `manifest.path` are null on a broken checkout (nothing
+ *     resolved / no manifest on disk) — render "(none)", never a blank.
+ *   - the env/config brand strings are null when ENV isn't reaching the
+ *     container or the config never set them. The backend always emits these
+ *     keys (value may be null but the key is never absent), so they use
+ *     `.nullable()` — not `.nullish()`. Requiring the key present keeps the
+ *     drift tripwire intact: a missing key is a contract break, not "unset".
+ */
+export const brandDiagnosticsDetailsSchema = z.object({
+  home: z.string(),
+  // Raw ENV as the process sees it now — catches "env not reaching container".
+  env: z.object({
+    brand_pack: z.string().nullable(),
+    brand_assets_dir: z.string().nullable(),
+  }),
+  // Boot-time config snapshot — catches config divergence from ENV. The two
+  // key lists are PROVENANCE as boot recorded it (conf['brand_manifest']):
+  // brand_absorbed = keys filled FROM the pack manifest, brand_operator_keys =
+  // keys the operator set in brand: config. Env/legacy-filled keys appear in
+  // neither list.
+  config: z.object({
+    brand_pack: z.string().nullable(),
+    brand_assets_dir: z.string().nullable(),
+    brand_absorbed: z.array(z.string()),
+    brand_operator_keys: z.array(z.string()),
+  }),
+  // Search roots probed in order, each flagged for on-disk existence.
+  roots: z.array(
+    z.object({
+      path: z.string(),
+      exists: z.boolean(),
+    })
+  ),
+  // NULLABLE: null when nothing resolved (broken checkout).
+  resolved_dir: z.string().nullable(),
+  // DANGER flag: true = fell back to the neutral default pack.
+  fell_back_to_default: z.boolean(),
+  manifest: z.object({
+    // NULLABLE: null when no manifest is present on disk.
+    path: z.string().nullable(),
+    exists: z.boolean(),
+    keys_on_disk: z.array(z.string()),
+  }),
+  // DANGER flag: true = boot snapshot ≠ live resolution (mount race).
+  boot_vs_live_mismatch: z.boolean(),
+  overlay_assets: z.array(z.string()),
+});
+
+/**
  * Redis metrics response details (full Redis INFO)
  */
 export const redisMetricsDetailsSchema = z.object({
@@ -726,6 +788,10 @@ export const databaseMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   databaseMetricsDetailsSchema
 );
+export const brandDiagnosticsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  brandDiagnosticsDetailsSchema
+);
 export const redisMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   redisMetricsDetailsSchema
@@ -766,6 +832,7 @@ export type CustomDomainsResponse = z.infer<typeof colonelCustomDomainsResponseS
 export type ColonelOrganizationsResponse = z.infer<typeof colonelOrganizationsResponseSchema>;
 export type InvestigateOrganizationResponse = z.infer<typeof investigateOrganizationResponseSchema>;
 export type DatabaseMetricsResponse = z.infer<typeof databaseMetricsResponseSchema>;
+export type BrandDiagnosticsResponse = z.infer<typeof brandDiagnosticsResponseSchema>;
 export type RedisMetricsResponse = z.infer<typeof redisMetricsResponseSchema>;
 export type BannedIPsResponse = z.infer<typeof bannedIPsResponseSchema>;
 export type UsageExportResponse = z.infer<typeof usageExportResponseSchema>;
