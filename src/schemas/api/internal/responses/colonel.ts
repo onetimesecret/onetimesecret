@@ -172,19 +172,22 @@ export const databaseMetricsDetailsSchema = z.object({
  *   - `resolved_dir` / `manifest.path` are null on a broken checkout (nothing
  *     resolved / no manifest on disk) — render "(none)", never a blank.
  *   - the env/config brand strings are null when ENV isn't reaching the
- *     container or the config never set them, hence `.nullish()`.
+ *     container or the config never set them. The backend always emits these
+ *     keys (value may be null but the key is never absent), so they use
+ *     `.nullable()` — not `.nullish()`. Requiring the key present keeps the
+ *     drift tripwire intact: a missing key is a contract break, not "unset".
  */
 export const brandDiagnosticsDetailsSchema = z.object({
   home: z.string(),
   // Raw ENV as the process sees it now — catches "env not reaching container".
   env: z.object({
-    brand_pack: z.string().nullish(),
-    brand_assets_dir: z.string().nullish(),
+    brand_pack: z.string().nullable(),
+    brand_assets_dir: z.string().nullable(),
   }),
   // Boot-time config snapshot — catches config divergence from ENV.
   config: z.object({
-    brand_pack: z.string().nullish(),
-    brand_assets_dir: z.string().nullish(),
+    brand_pack: z.string().nullable(),
+    brand_assets_dir: z.string().nullable(),
     brand_absorbed: z.array(z.string()),
   }),
   // Search roots probed in order, each flagged for on-disk existence.
