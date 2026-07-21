@@ -246,7 +246,9 @@ export function createWireFreeOrganization(
 }
 
 /**
- * Creates wire format for single team tier (Identity Plus).
+ * Creates wire format for the Identity Plus org (planid identity_plus_v1).
+ * Backend tier for this plan is single_account (#3824). The factory name is
+ * retained for backwards compatibility with existing test imports.
  */
 export function createWireSingleTeamOrganization(
   overrides?: Partial<OrganizationWire>
@@ -300,7 +302,8 @@ export function createWireMultiTeamOrganization(
 
 /**
  * Creates wire format for legacy identity plan (Early Supporter).
- * These customers have single_team tier features but planid is 'identity'.
+ * These customers have single_account tier features but planid is 'identity'
+ * (grandfathered; not present in the active plans list) (#3824).
  */
 export function createWireLegacyIdentityOrganization(
   overrides?: Partial<OrganizationWire>

@@ -88,7 +88,7 @@ describe('Legacy Plan Utilities', () => {
         expect(info).toEqual({
           isLegacy: true,
           displayName: 'Identity Plus (Early Supporter)',
-          tier: 'single_team',
+          tier: 'single_account',
         });
       });
 
@@ -97,9 +97,9 @@ describe('Legacy Plan Utilities', () => {
         expect(info?.isLegacy).toBe(true);
       });
 
-      it('maps to single_team tier for feature parity', () => {
+      it('maps to single_account tier for feature parity (#3824 backend reality)', () => {
         const info = getLegacyPlanInfo('identity');
-        expect(info?.tier).toBe('single_team');
+        expect(info?.tier).toBe('single_account');
       });
 
       it('has correct display name with Early Supporter suffix', () => {
@@ -178,27 +178,27 @@ describe('Legacy Plan Utilities', () => {
   // ============================================================
   describe('Legacy Plan Tier Mapping', () => {
     /**
-     * This tests the logic that PlanSelector.vue uses to map legacy planid
-     * to currentTier. The component has this logic:
-     *
-     * if (planid === 'identity') return 'single_team';
-     *
-     * We verify that getLegacyPlanInfo provides the correct tier.
+     * getLegacyPlanInfo is the source of truth for a grandfathered plan's
+     * family tier. Post-#3824 the legacy "identity" plan shares the same tier
+     * as identity_plus_v1 in the backend, which is single_account (NOT
+     * single_team). Note: PlanSelector.vue no longer hardcodes a legacy tier —
+     * its currentTier is derived strictly from an id-matched plan (null for
+     * unresolved/legacy). This block verifies the family tier metadata only.
      */
-    it('legacy "identity" plan maps to "single_team" tier', () => {
+    it('legacy "identity" plan maps to "single_account" tier', () => {
       const info = getLegacyPlanInfo('identity');
-      expect(info?.tier).toBe('single_team');
+      expect(info?.tier).toBe('single_account');
     });
 
     it('tier mapping enables correct upgrade/downgrade behavior', () => {
       const legacyInfo = getLegacyPlanInfo('identity');
       const legacyTier = legacyInfo?.tier ?? 'free';
 
-      // Legacy identity users (single_team tier) can:
-      // - Upgrade to multi_team
+      // Legacy identity users (single_account tier) can:
+      // - Upgrade to single_team or multi_team
       // - Downgrade to free
-      // - NOT upgrade to single_team (same tier)
-      expect(legacyTier).toBe('single_team');
+      // (single_account is a distinct, lower tier than single_team)
+      expect(legacyTier).toBe('single_account');
     });
   });
 });
@@ -208,21 +208,25 @@ describe('Legacy Plan Utilities', () => {
 // ============================================================
 describe('PlanSelector currentTier Logic', () => {
   /**
-   * Extracted logic from PlanSelector.vue currentTier computed property.
-   * This tests the tier resolution for various planid values including legacy plans.
+   * Family-tier resolution for a given planid. Post-#3824 the component's own
+   * currentTier is id-derived (null for unresolved/legacy), so this helper is a
+   * standalone resolver of the FAMILY tier a planid belongs to (used for
+   * display/feature-parity reasoning), consistent with getLegacyPlanInfo and
+   * the corrected backend tiers: identity_plus_v1 => single_account.
    */
 
   // Mock plan data for testing
-  // Plan IDs are now family-keyed without interval suffix
+  // Plan IDs are now family-keyed without interval suffix.
+  // Backend reality (#3824): identity_plus_v1 is single_account, not single_team.
   type MockPlan = { id: string; tier: string };
   const mockPlans: MockPlan[] = [
     { id: 'free_v1', tier: 'free' },
-    { id: 'identity_plus_v1', tier: 'single_team' },
+    { id: 'identity_plus_v1', tier: 'single_account' },
     { id: 'team_plus_v1', tier: 'multi_team' },
   ];
 
   /**
-   * Replicates PlanSelector.vue currentTier logic
+   * Resolves the family tier for a planid (see block doc).
    */
   function getCurrentTier(planid: string | null | undefined, plans: MockPlan[]): string {
     if (!planid) return 'free';
@@ -231,12 +235,14 @@ describe('PlanSelector currentTier Logic', () => {
     const matchingPlan = plans.find(p => p.id === planid);
     if (matchingPlan) return matchingPlan.tier;
 
-    // Handle legacy plans that aren't in the active plans list
-    if (planid === 'identity') return 'single_team';
+    // Handle legacy plans that aren't in the active plans list.
+    // Legacy "identity" shares identity_plus_v1's family tier: single_account.
+    if (planid === 'identity') return 'single_account';
 
     // Fallback: infer tier from planid naming convention
     if (planid.includes('multi_team') || planid.includes('team_plus')) return 'multi_team';
-    if (planid.includes('single_team') || planid.includes('identity_plus')) return 'single_team';
+    if (planid.includes('single_team')) return 'single_team';
+    if (planid.includes('single_account') || planid.includes('identity_plus')) return 'single_account';
 
     return 'free';
   }
@@ -256,18 +262,19 @@ describe('PlanSelector currentTier Logic', () => {
 
     it('returns correct tier for plans in the list', () => {
       expect(getCurrentTier('free_v1', mockPlans)).toBe('free');
-      expect(getCurrentTier('identity_plus_v1', mockPlans)).toBe('single_team');
+      // #3824: identity_plus_v1 is single_account in the backend, not single_team.
+      expect(getCurrentTier('identity_plus_v1', mockPlans)).toBe('single_account');
       expect(getCurrentTier('team_plus_v1', mockPlans)).toBe('multi_team');
     });
 
-    it('returns "single_team" for legacy "identity" planid', () => {
+    it('returns "single_account" for legacy "identity" planid', () => {
       // Legacy plan not in active plans list but has special handling
-      expect(getCurrentTier('identity', mockPlans)).toBe('single_team');
+      expect(getCurrentTier('identity', mockPlans)).toBe('single_account');
     });
 
     it('infers tier from naming convention for unknown plans', () => {
       // Plans not in list but follow naming convention
-      expect(getCurrentTier('identity_plus_v2', mockPlans)).toBe('single_team');
+      expect(getCurrentTier('identity_plus_v2', mockPlans)).toBe('single_account');
       expect(getCurrentTier('team_plus_v2', mockPlans)).toBe('multi_team');
       expect(getCurrentTier('multi_team_v1', mockPlans)).toBe('multi_team');
       expect(getCurrentTier('single_team_v1', mockPlans)).toBe('single_team');
@@ -275,18 +282,22 @@ describe('PlanSelector currentTier Logic', () => {
   });
 
   describe('legacy plan upgrade/downgrade eligibility', () => {
-    // Tier order for reference: free < single_team < multi_team
+    // Canonical tier order (#3824): free < single_account < single_team < multi_team
+    const TIER_ORDER = ['free', 'single_account', 'single_team', 'multi_team'];
+    const rank = (tier: string): number => TIER_ORDER.indexOf(tier);
 
     function canUpgrade(currentTier: string, targetTier: string): boolean {
-      if (currentTier === 'free') return targetTier !== 'free';
-      if (currentTier === 'single_team') return targetTier === 'multi_team';
-      return false;
+      const c = rank(currentTier);
+      const t = rank(targetTier);
+      if (c === -1 || t === -1) return false;
+      return t > c;
     }
 
     function canDowngrade(currentTier: string, targetTier: string): boolean {
-      if (currentTier === 'multi_team') return targetTier !== 'multi_team';
-      if (currentTier === 'single_team') return targetTier === 'free';
-      return false;
+      const c = rank(currentTier);
+      const t = rank(targetTier);
+      if (c === -1 || t === -1) return false;
+      return t < c;
     }
 
     it('legacy "identity" users can upgrade to multi_team', () => {
@@ -299,12 +310,14 @@ describe('PlanSelector currentTier Logic', () => {
       expect(canDowngrade(legacyTier, 'free')).toBe(true);
     });
 
-    it('legacy "identity" users cannot upgrade to single_team (same tier)', () => {
+    it('legacy "identity" users can upgrade to single_team (a higher tier)', () => {
+      // #3824: single_account is a distinct, LOWER tier than single_team, so
+      // this is a genuine upgrade direction (the old "same tier" premise is gone).
       const legacyTier = getCurrentTier('identity', mockPlans);
-      expect(canUpgrade(legacyTier, 'single_team')).toBe(false);
+      expect(canUpgrade(legacyTier, 'single_team')).toBe(true);
     });
 
-    it('legacy "identity" users cannot downgrade to single_team (same tier)', () => {
+    it('legacy "identity" users cannot downgrade to single_team (a higher tier)', () => {
       const legacyTier = getCurrentTier('identity', mockPlans);
       expect(canDowngrade(legacyTier, 'single_team')).toBe(false);
     });

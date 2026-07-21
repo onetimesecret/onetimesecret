@@ -22,7 +22,8 @@ import { isLegacyPlan, getPlanLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { isAllowedCheckoutUrl } from '@/utils/redirect';
-import { computed, onMounted, ref } from 'vue';
+import { captureMessage, isDiagnosticsEnabled } from '@/services/diagnostics.service';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 const props = withDefaults(
@@ -109,24 +110,55 @@ const {
 } = useEntitlements(selectedOrg);
 
 /**
- * Get the current organization's tier by finding the matching plan.
- * The org has planid (canonical family ID like 'identity_plus_v1') and we need
- * the tier (e.g., 'single_team') for comparison with available plans.
+ * Resolve the organization's current plan by STRICT id match against the
+ * loaded plans list. Returns null when the org's planid isn't present (legacy
+ * or unmatched) — we never invent a tier for an unresolved plan (#3824).
  */
-const currentTier = computed((): string => {
-  const planid = selectedOrg.value?.planid;
-  if (!planid) return 'free';
+const currentPlan = computed(
+  () => plans.value.find((p) => p.id === selectedOrg.value?.planid) ?? null
+);
 
-  // Find the plan that matches the org's planid to get its tier
-  const matchingPlan = plans.value.find(p => p.id === planid);
-  if (matchingPlan) return matchingPlan.tier;
+/**
+ * Current tier, derived strictly from the resolved plan. Null for
+ * unresolved/legacy plans so the free banner and upgrade/downgrade ordering
+ * never badge or mis-order the wrong card.
+ */
+const currentTier = computed((): string | null => currentPlan.value?.tier ?? null);
 
-  // Handle legacy plans that aren't in the active plans list
-  // Legacy 'identity' plan has team features equivalent to single_team tier
-  if (planid === 'identity') return 'single_team';
+/**
+ * Diagnostic: an org carrying a non-legacy planid that isn't present in the
+ * loaded plans list is a data/tier drift the team needs to see (this replaces
+ * the old silent 'free' fallback). Fire once per unmatched planid (deduped)
+ * through the shared diagnostics service.
+ */
+const reportedUnmatchedPlanids = new Set<string>();
+watch(
+  [currentPlan, selectedOrg, plans],
+  () => {
+    const planid = selectedOrg.value?.planid;
+    if (!planid) return;
+    // Plans not loaded yet — can't conclude the id is genuinely absent.
+    if (plans.value.length === 0) return;
+    if (currentPlan.value) return;
+    // Legacy plans (e.g. 'identity') are expected to be absent from the list.
+    if (isLegacyPlan(planid)) return;
+    if (reportedUnmatchedPlanids.has(planid)) return;
 
-  return 'free';
-});
+    if (isDiagnosticsEnabled()) {
+      // Mark as reported only when actually emitting, so dedup tracks
+      // "sent" rather than "seen" (a disabled emit must not suppress a
+      // later send once diagnostics are enabled).
+      reportedUnmatchedPlanids.add(planid);
+      captureMessage('current plan id not present in plans list', {
+        service: 'web',
+        errorType: 'technical',
+        planid,
+        orgExtid: selectedOrg.value?.extid,
+      });
+    }
+  },
+  { immediate: true }
+);
 
 // Legacy plan detection for grandfathered customers
 const isLegacyCustomer = computed(() =>
@@ -160,22 +192,38 @@ const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinit
 
 /**
  * Check if plan should show "Most Popular" badge.
- * Uses API-provided is_popular flag if available.
+ * is_popular (API-provided) is the sole authority — no tier-based fallback,
+ * so "Most Popular" is never defaulted onto a card (#3824).
  */
-const isPlanRecommended = (plan: BillingPlan): boolean => plan.is_popular ?? plan.tier === 'single_team';
+const isPlanRecommended = (plan: BillingPlan): boolean => plan.is_popular ?? false;
 
-const isPlanCurrent = (plan: BillingPlan): boolean => plan.tier === currentTier.value;
+/**
+ * STRICT id match: the "Current" badge belongs to the plan whose id equals the
+ * org's planid. No tier comparison — tier is drift-prone metadata (#3824).
+ */
+const isPlanCurrent = (plan: BillingPlan): boolean => plan.id === selectedOrg.value?.planid;
+
+/**
+ * Canonical tier ordering for upgrade/downgrade direction (#3824).
+ * free < single_account < single_team < multi_team
+ */
+const TIER_ORDER = ['free', 'single_account', 'single_team', 'multi_team'] as const;
+const tierRank = (tier: string | undefined | null): number =>
+  tier ? TIER_ORDER.indexOf(tier as (typeof TIER_ORDER)[number]) : -1;
 
 const canUpgrade = (plan: BillingPlan): boolean => {
-  if (currentTier.value === 'free') return plan.tier !== 'free';
-  if (currentTier.value === 'single_team') return plan.tier === 'multi_team';
-  return false;
+  const current = tierRank(currentPlan.value?.tier);
+  const target = tierRank(plan.tier);
+  // Unresolved/legacy current plan (rank -1) yields no direction.
+  if (current === -1 || target === -1) return false;
+  return target > current;
 };
 
 const canDowngrade = (plan: BillingPlan): boolean => {
-  if (currentTier.value === 'multi_team') return plan.tier !== 'multi_team';
-  if (currentTier.value === 'single_team') return plan.tier === 'free';
-  return false;
+  const current = tierRank(currentPlan.value?.tier);
+  const target = tierRank(plan.tier);
+  if (current === -1 || target === -1) return false;
+  return target < current;
 };
 
 const isPlanButtonDisabled = (plan: BillingPlan): boolean =>

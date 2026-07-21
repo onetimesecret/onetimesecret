@@ -37,12 +37,12 @@ function isPlanCurrencyMismatch(
  */
 function wouldHandlePlanSelectEarlyReturn(
   plan: BillingPlan,
-  currentTier: string,
+  currentPlanId: string | undefined,
   orgExtid: string | undefined,
   currentCurrency: string | null
 ): boolean {
-  // isPlanCurrent check
-  if (plan.tier === currentTier) return true;
+  // isPlanCurrent check — STRICT id match, mirrors production (#3824)
+  if (plan.id === currentPlanId) return true;
   // No org selected
   if (!orgExtid) return true;
   // Free tier — no checkout
@@ -81,11 +81,12 @@ function wouldCompleteMigrationBail(
  */
 function isButtonDisabled(
   plan: BillingPlan,
-  currentTier: string,
+  currentPlanId: string | undefined,
   isCreatingCheckout: boolean,
   currentCurrency: string | null
 ): boolean {
-  const isPlanCurrent = plan.tier === currentTier;
+  // isPlanCurrent — STRICT id match, mirrors production (#3824)
+  const isPlanCurrent = plan.id === currentPlanId;
   return (
     isPlanCurrent ||
     isCreatingCheckout ||
@@ -165,7 +166,7 @@ describe('PlanSelector currency mismatch logic', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
       const result = wouldHandlePlanSelectEarlyReturn(
         eurPlan,
-        'free', // current tier
+        'free_v1', // org's current plan id (not this plan)
         'on1abc123', // org extid
         'cad' // current subscription currency
       );
@@ -176,7 +177,7 @@ describe('PlanSelector currency mismatch logic', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
       const result = wouldHandlePlanSelectEarlyReturn(
         cadPlan,
-        'free',
+        'free_v1',
         'on1abc123',
         'cad'
       );
@@ -187,7 +188,7 @@ describe('PlanSelector currency mismatch logic', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
       const result = wouldHandlePlanSelectEarlyReturn(
         eurPlan,
-        'free',
+        'free_v1',
         'on1abc123',
         null
       );
@@ -198,7 +199,7 @@ describe('PlanSelector currency mismatch logic', () => {
       const plan = createMockPlan({ currency: 'cad', tier: 'single_team' });
       const result = wouldHandlePlanSelectEarlyReturn(
         plan,
-        'single_team', // same tier
+        'identity_plus_v1', // same plan id (this is the current plan)
         'on1abc123',
         'cad'
       );
@@ -206,10 +207,10 @@ describe('PlanSelector currency mismatch logic', () => {
     });
 
     it('early-returns for free tier plans regardless of currency', () => {
-      const freePlan = createMockPlan({ currency: 'cad', tier: 'free' });
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1' });
       const result = wouldHandlePlanSelectEarlyReturn(
         freePlan,
-        'single_team',
+        'identity_plus_v1', // org on a paid plan; free card early-returns via free-tier check
         'on1abc123',
         'cad'
       );
@@ -254,32 +255,33 @@ describe('PlanSelector currency mismatch logic', () => {
   describe('plan card button disabled state', () => {
     it('disables button when plan currency mismatches subscription', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
-      expect(isButtonDisabled(eurPlan, 'free', false, 'cad')).toBe(true);
+      expect(isButtonDisabled(eurPlan, 'free_v1', false, 'cad')).toBe(true);
     });
 
     it('enables button when currencies match', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      expect(isButtonDisabled(cadPlan, 'free', false, 'cad')).toBe(false);
+      expect(isButtonDisabled(cadPlan, 'free_v1', false, 'cad')).toBe(false);
     });
 
     it('enables button when no current currency (new subscriber)', () => {
       const eurPlan = createMockPlan({ currency: 'eur', tier: 'single_team' });
-      expect(isButtonDisabled(eurPlan, 'free', false, null)).toBe(false);
+      expect(isButtonDisabled(eurPlan, 'free_v1', false, null)).toBe(false);
     });
 
     it('disables button for current plan even when currencies match', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      expect(isButtonDisabled(cadPlan, 'single_team', false, 'cad')).toBe(true);
+      // Strict id match: org's planid equals this plan's id (#3824)
+      expect(isButtonDisabled(cadPlan, 'identity_plus_v1', false, 'cad')).toBe(true);
     });
 
     it('disables button during checkout creation', () => {
       const cadPlan = createMockPlan({ currency: 'cad', tier: 'single_team' });
-      expect(isButtonDisabled(cadPlan, 'free', true, 'cad')).toBe(true);
+      expect(isButtonDisabled(cadPlan, 'free_v1', true, 'cad')).toBe(true);
     });
 
     it('disables button for free tier plans', () => {
-      const freePlan = createMockPlan({ currency: 'cad', tier: 'free' });
-      expect(isButtonDisabled(freePlan, 'free', false, null)).toBe(true);
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1' });
+      expect(isButtonDisabled(freePlan, 'identity_plus_v1', false, null)).toBe(true);
     });
   });
 
@@ -287,13 +289,13 @@ describe('PlanSelector currency mismatch logic', () => {
     it('USD subscriber sees EUR plans as disabled', () => {
       const eurPlan = createMockPlan({ currency: 'eur', region: 'EU' });
       expect(isPlanCurrencyMismatch('cad', eurPlan)).toBe(true);
-      expect(isButtonDisabled(eurPlan, 'free', false, 'cad')).toBe(true);
+      expect(isButtonDisabled(eurPlan, 'free_v1', false, 'cad')).toBe(true);
     });
 
     it('EUR subscriber sees USD plans as disabled', () => {
       const cadPlan = createMockPlan({ currency: 'cad', region: 'US' });
       expect(isPlanCurrencyMismatch('eur', cadPlan)).toBe(true);
-      expect(isButtonDisabled(cadPlan, 'free', false, 'eur')).toBe(true);
+      expect(isButtonDisabled(cadPlan, 'free_v1', false, 'eur')).toBe(true);
     });
 
     it('new subscriber (no currency) sees all plans as enabled', () => {
