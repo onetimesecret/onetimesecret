@@ -188,6 +188,7 @@ module Onetime
             :'onetime.initializers.configure_familia',
             :'onetime.initializers.setup_connection_pool',
             :'onetime.initializers.check_global_banner',
+            :'onetime.initializers.check_tenant_sso_trust',
           ].include?(init.name)
 
           # Check if initializer wants to skip itself (e.g., feature disabled)

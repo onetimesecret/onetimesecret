@@ -35,6 +35,7 @@ require_relative 'initializers/setup_connection_pool'  # depends_on: [:familia_c
 require_relative 'initializers/check_secret_verifier'  # depends_on: [:familia_config]
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/check_unique_index_format' # depends_on: [:database]
+require_relative 'initializers/check_tenant_sso_trust' # depends_on: [:database]
 require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 
 # Convention-based plugin discovery and initialization.

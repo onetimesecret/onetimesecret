@@ -133,9 +133,12 @@ IdP redirects to /auth/sso/{provider}/callback
 Token exchange (code → tokens)
     │
     ▼
-Account lookup by email
-    ├─ Found → Link identity, sync session
-    └─ Not found → Create account + Customer + workspace, sync session
+Account lookup by (provider, uid), then by email
+    ├─ (provider, uid) already linked → sync session
+    ├─ Email matches an account, but this identity is not linked
+    │     ├─ Trusted-IdP flag ON  → auto-link identity, sync session
+    │     └─ Trusted-IdP flag OFF → refuse, redirect to /signin (default)
+    └─ Email unknown → Create account + Customer + workspace, sync session
     │
     ▼
 Redirect to dashboard (authenticated)
@@ -145,7 +148,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 ## Behavior
 
-**Account Matching:** By email (case-insensitive). An SSO user whose email matches an existing password account gets their identity linked to that account.
+**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). This refusal can be relaxed per provider with the trusted-IdP flag — see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag).
 
 **Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
@@ -154,6 +157,52 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 **Email Verification:** SSO accounts are auto-verified. The IdP handles verification.
 
 **MFA:** Not enforced for SSO logins. The IdP is responsible for MFA.
+
+## Identity Linking and the Trusted-IdP Flag
+
+### The invariant
+
+An email claim may **locate** an account; only a **demonstrated credential** may **bind** an identity to it. Email is metadata, not an identity join key.
+
+Concretely: an SSO login is identified by the `(provider, uid)` pair recorded in `account_identities`. When that pair is already linked, the user is signed into the linked account. When it is *not* linked, but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. The refusal is logged as `omniauth_link_refused_existing_account` (level `warn`) and the user is redirected to `/signin?auth_error=account_exists_link_required` with a flash telling them to sign in with their existing method.
+
+This is the correct default for a multi-tenant platform. It is *not* what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
+
+### The flag
+
+Per-provider environment variables, plus a global fallback. Default is **false** (refuse) in every case.
+
+| Variable | Applies to |
+|----------|-----------|
+| `OIDC_TRUST_EMAIL_FOR_LINKING` | Generic OIDC provider |
+| `ENTRA_TRUST_EMAIL_FOR_LINKING` | Microsoft Entra ID |
+| `GOOGLE_TRUST_EMAIL_FOR_LINKING` | Google |
+| `GITHUB_TRUST_EMAIL_FOR_LINKING` | GitHub |
+| `SSO_TRUST_EMAIL_FOR_LINKING` | Global fallback (deprecated single-OIDC default) |
+
+Set the value to the string `true` to enable; anything else (or unset) is disabled. Precedence: a per-provider variable, **when present**, wins for that provider (`true` enables, any other value disables); otherwise the global `SSO_TRUST_EMAIL_FOR_LINKING=true` enables linking for every platform provider that has no per-provider override; otherwise the default of `false` applies.
+
+**What it does when true:** for the matched provider, `account_from_omniauth` returns the account located by the (normalized, case-insensitive) email instead of refusing. `rodauth-omniauth` then persists the `(provider, uid)` row and signs the user in — the intended auto-link. The lookup surface is unchanged: it is the *same* normalized email H-3 already used, just no longer refused. Each such link emits an `omniauth_email_linked_trusted_provider` audit event at level `warn`, so linking-by-trust is always visible in the audit log.
+
+### Threat-model caveat
+
+> You are declaring this IdP wholly inside your trust boundary. Enable only for single-tenant installs where the same operator controls both OTS and the IdP.
+
+Why: whoever controls the IdP can mint a token bearing **any** victim's email. Trusting the email for linking is therefore identical to trusting the IdP to never do that. That assumption holds when you run the IdP yourself and it serves only your own users; it does not hold for a shared or third-party IdP, or for any deployment where users bring their own IdP. Turning the flag on there converts "controls an IdP" into "can take over any account by email."
+
+### The flag is platform-only; multi-tenant is refused by construction
+
+The flag affects **only** the platform (environment-configured) SSO provider path. It has no effect on per-domain tenant SSO (`CustomDomain::SsoConfig`). This is enforced structurally, not by a second check: the tenant callback path sets `session[:validated_omniauth_domain_id]`, and the linking branch only runs when that value is `nil`. Tenant callbacks therefore never reach the trusted-linking branch, regardless of how the flag is set.
+
+Because the flag looks like it might apply to tenants but cannot, the boot initializer `CheckTenantSsoTrust` emits a **WARN** (via the auth logger) when the flag is enabled *and* at least one `CustomDomain::SsoConfig` record exists — a signal that an operator may believe they enabled cross-IdP email linking for tenants when they have not. The guard is **non-fatal by design**: production runs live tenant SSO configs alongside a large account base, and a fatal guard would brick those deploys. A clean install with the flag off boots silently.
+
+### Documented bypass: domain validation is skipped on the auto-link path
+
+The `before_omniauth_create_account` hook — which enforces `ALLOWED_SIGNUP_DOMAIN` and per-domain `SignupConfig` restrictions — runs only on the account-**create** path. The trusted auto-link path returns the existing account before any create happens, so it does **not** pass through that domain check. This is acceptable because no new account is minted and no new email is admitted: the account already exists and was located by its own stored email. It is called out here so the behavior is documented rather than discovered — if you rely on `ALLOWED_SIGNUP_DOMAIN` as a security boundary, note that it gates signups, not links.
+
+### Gotcha: renaming a provider route orphans existing links
+
+The `provider` string stored in `account_identities` is derived from the provider's route name (`OIDC_ROUTE_NAME`, `ENTRA_ROUTE_NAME`, etc., defaulting to `oidc`/`entra`/`google`/`github`). Changing that route name — or moving a tenant from one strategy to another — changes the stored `provider` value for all **new** logins, which no longer matches the `provider` recorded on **existing** `account_identities` rows. The effect is that every previously linked user is treated as unlinked at once: each is refused (default) or forced through a fresh auto-link (trust flag on) on their next SSO sign-in. Treat any change to a route name as a mass re-link event and communicate it to your users, or migrate the stored `provider` values deliberately. Do not rename provider routes casually on a deployment with existing SSO users.
 
 ## Provider Configuration
 
@@ -387,7 +436,7 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
 
 - PKCE enabled by default (generic OIDC)
 - OAuth state parameter provides CSRF protection for the redirect flow
-- Email from IdP is trusted (no additional verification performed)
+- The IdP email verifies the account for JIT signup, but by default is **not** treated as an identity join key: an SSO identity is not auto-linked to a pre-existing account found only by email (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag))
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
 - Client secrets should be rotated per provider's recommendations

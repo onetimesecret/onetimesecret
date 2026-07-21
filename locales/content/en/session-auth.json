@@ -128,6 +128,14 @@
     "context": "Shown on signin page when SSO signup is blocked by the email domain policy (per-domain SignupConfig or global allowed_signup_domains).",
     "content_hash": "87603782"
   },
+  "web.login.errors.account_exists_link_required": {
+    "text": "An account with this email address already exists but isn't linked to this sign-in method. Please sign in with your existing method to continue.",
+    "context": "Shown on signin page when SSO refuses to auto-link: an account with the callback email exists but is not linked to this provider. Message-only in Phase 1 (#3840) — do not reference an account-settings link or an email-confirmation flow (those arrive in later phases)."
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "We couldn't finish adding you to your organization. Please contact your administrator.",
+    "context": "Shown on signin page when tenant-domain SSO authenticated but the organization join produced no membership (orphaned account). Admins/ops must investigate; the user cannot self-resolve."
+  },
   "web.login.signin_disabled_heading": {
     "text": "Sign-in is not available",
     "context": "Page heading on /signin when sign-in is disabled for the current domain (per-domain SigninConfig).",

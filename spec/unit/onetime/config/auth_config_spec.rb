@@ -45,6 +45,7 @@ RSpec.describe Onetime::AuthConfig do
         restrict_to: <%= restrict_to %>
         sso:
           sso_display_name: ''
+          trust_email_for_linking: <%= ENV['SSO_TRUST_EMAIL_FOR_LINKING'] == 'true' %>
     YAML
   end
 
@@ -58,6 +59,10 @@ RSpec.describe Onetime::AuthConfig do
       AUTH_SSO_ENABLED AUTH_SSO_ONLY
       AUTH_PASSWORD_ONLY AUTH_EMAIL_AUTH_ONLY AUTH_WEBAUTHN_ONLY
       OIDC_ISSUER OIDC_CLIENT_ID
+      OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
+      SSO_TRUST_EMAIL_FOR_LINKING
+      OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
+      GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
     ]
   end
 
@@ -279,6 +284,109 @@ RSpec.describe Onetime::AuthConfig do
       ENV.delete('OIDC_CLIENT_ID')
       config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true')
       expect(config.sso_only_enabled?).to be false
+    end
+  end
+
+  # ── trust_email_for_linking? (#3836 email-linking escape hatch) ─────
+  #
+  # Keys on the ROUTE NAME (the value omniauth_provider returns), reverse-
+  # mapped to the provider's env prefix via the registry. Each provider has
+  # its own *_TRUST_EMAIL_FOR_LINKING var; a global SSO_TRUST_EMAIL_FOR_LINKING
+  # is the deprecated single-OIDC / catch-all fallback.
+
+  describe '#trust_email_for_linking?' do
+    # Route name -> per-provider trust var. Verifies the reverse-mapping
+    # (entra_id != entra != ENTRA) resolves to the right env var for all four.
+    {
+      'oidc' => 'OIDC_TRUST_EMAIL_FOR_LINKING',
+      'entra' => 'ENTRA_TRUST_EMAIL_FOR_LINKING',
+      'google' => 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
+      'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
+    }.each do |route_name, trust_var|
+      context "for the '#{route_name}' route" do
+        it "defaults to false when #{trust_var} is unset" do
+          config = fresh_config
+          expect(config.trust_email_for_linking?(route_name)).to be false
+        end
+
+        it "returns true when #{trust_var}=true" do
+          config = fresh_config(trust_var => 'true')
+          expect(config.trust_email_for_linking?(route_name)).to be true
+        end
+
+        it "returns false when #{trust_var}=false" do
+          config = fresh_config(trust_var => 'false')
+          expect(config.trust_email_for_linking?(route_name)).to be false
+        end
+
+        it "is unaffected by another provider's trust var" do
+          other = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
+          config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
+          expect(config.trust_email_for_linking?(route_name)).to be false
+        end
+      end
+    end
+
+    it 'accepts a symbol route name (omniauth_provider returns a symbol)' do
+      config = fresh_config('ENTRA_TRUST_EMAIL_FOR_LINKING' => 'true')
+      expect(config.trust_email_for_linking?(:entra)).to be true
+    end
+
+    it 'reverse-maps a custom route name from *_ROUTE_NAME' do
+      config = fresh_config(
+        'OIDC_ROUTE_NAME' => 'zitadel',
+        'OIDC_TRUST_EMAIL_FOR_LINKING' => 'true',
+      )
+      expect(config.trust_email_for_linking?('zitadel')).to be true
+      # The default 'oidc' route name no longer maps to the OIDC definition.
+      expect(config.trust_email_for_linking?('oidc')).to be false
+    end
+
+    it 'returns false for an unknown route name with no global flag' do
+      config = fresh_config
+      expect(config.trust_email_for_linking?('unknown')).to be false
+    end
+
+    context 'global SSO_TRUST_EMAIL_FOR_LINKING fallback' do
+      it 'applies to every provider when no per-provider var is set' do
+        config = fresh_config('SSO_TRUST_EMAIL_FOR_LINKING' => 'true')
+        expect(config.trust_email_for_linking?('oidc')).to be true
+        expect(config.trust_email_for_linking?('entra')).to be true
+        expect(config.trust_email_for_linking?('google')).to be true
+        expect(config.trust_email_for_linking?('github')).to be true
+      end
+
+      it 'is overridden by an explicit per-provider var (per-provider wins)' do
+        config = fresh_config(
+          'SSO_TRUST_EMAIL_FOR_LINKING' => 'true',
+          'ENTRA_TRUST_EMAIL_FOR_LINKING' => 'false',
+        )
+        # entra explicitly opts out; the others still inherit the global true.
+        expect(config.trust_email_for_linking?('entra')).to be false
+        expect(config.trust_email_for_linking?('oidc')).to be true
+      end
+    end
+  end
+
+  describe '#trust_email_for_linking_enabled?' do
+    it 'returns false when no trust flag is set (clean install)' do
+      config = fresh_config
+      expect(config.trust_email_for_linking_enabled?).to be false
+    end
+
+    it 'returns true when the global flag is set' do
+      config = fresh_config('SSO_TRUST_EMAIL_FOR_LINKING' => 'true')
+      expect(config.trust_email_for_linking_enabled?).to be true
+    end
+
+    it 'returns true when any per-provider flag is set' do
+      config = fresh_config('GITHUB_TRUST_EMAIL_FOR_LINKING' => 'true')
+      expect(config.trust_email_for_linking_enabled?).to be true
+    end
+
+    it 'returns false when a per-provider flag is explicitly false' do
+      config = fresh_config('GITHUB_TRUST_EMAIL_FOR_LINKING' => 'false')
+      expect(config.trust_email_for_linking_enabled?).to be false
     end
   end
 

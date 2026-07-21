@@ -245,6 +245,53 @@ module Onetime
       sso_config['allow_platform_fallback_for_tenants'] == true
     end
 
+    # Whether an SSO identity may auto-link to an account LOCATED purely by
+    # email, for the given provider route name (#3836).
+    #
+    # This is the ONE sanctioned exception to the invariant that email may
+    # LOCATE an account but only a demonstrated credential may BIND. It is an
+    # explicit, opt-in operator declaration that the IdP is inside the trust
+    # boundary — safe only when the operator controls both OTS and the IdP
+    # (self-hosted single-tenant). It has NO effect on the multi-tenant
+    # (tenant SsoConfig) surface; the callers gate that separately.
+    #
+    # Precedence:
+    #   1. Per-provider ENV override (e.g. OIDC_TRUST_EMAIL_FOR_LINKING) when
+    #      that var is present — 'true' enables, anything else disables.
+    #   2. Deprecated global fallback (sso.trust_email_for_linking, from
+    #      SSO_TRUST_EMAIL_FOR_LINKING) for the single-OIDC case and any
+    #      provider without its own trust var set.
+    #   3. Default: false.
+    #
+    # @param route_name [String, Symbol] the OmniAuth provider/route name
+    # @return [Boolean]
+    def trust_email_for_linking?(route_name)
+      defn = provider_definition_for_route(route_name)
+
+      # 1. Explicit per-provider override wins when the var is present.
+      if defn && ENV.key?(defn[:trust_var])
+        return ENV[defn[:trust_var]] == 'true'
+      end
+
+      # 2. Deprecated global / platform-wide fallback.
+      return true if sso_trust_email_for_linking?
+
+      # 3. Provider default (false), or false for unknown route names.
+      defn ? !!defn[:trust_default] : false
+    end
+
+    # Whether the email-linking trust flag is enabled ANYWHERE — globally or
+    # for any per-provider trust var. Used by the boot guard to decide whether
+    # to warn about the multi-tenant surface (a clean install with the flag
+    # off boots silently).
+    #
+    # @return [Boolean]
+    def trust_email_for_linking_enabled?
+      return true if sso_trust_email_for_linking?
+
+      provider_definitions.any? { |defn| ENV[defn[:trust_var]] == 'true' }
+    end
+
     # DEPRECATED: Use sso_display_name
     def omniauth_provider_name
       sso_display_name
@@ -301,6 +348,13 @@ module Onetime
       sso_config['sso_only'] == true
     end
 
+    # Global (deprecated single-OIDC) email-linking trust flag.
+    # Read from sso.trust_email_for_linking (rendered from
+    # SSO_TRUST_EMAIL_FOR_LINKING in auth.defaults.yaml).
+    def sso_trust_email_for_linking?
+      sso_config['trust_email_for_linking'] == true
+    end
+
     # SSO configuration section from full mode config.
     # Contains sso_display_name (and legacy sso_only).
     #
@@ -328,6 +382,11 @@ module Onetime
 
     # Provider definitions for sso_providers. Each entry defines the env
     # vars that gate the provider and where to read its route/display names.
+    #
+    # trust_var / trust_default gate the #3836 email-linking escape hatch:
+    # an explicit, per-provider operator declaration that the IdP is inside
+    # the trust boundary, so an SSO identity may auto-link to an account
+    # LOCATED by email. See #trust_email_for_linking?.
     def provider_definitions
       [
         {
@@ -336,6 +395,8 @@ module Onetime
           route_default: 'oidc',
           display_var: 'OIDC_DISPLAY_NAME',
           display_default: sso_display_name || 'SSO',
+          trust_var: 'OIDC_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
         },
         {
           required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
@@ -343,6 +404,8 @@ module Onetime
           route_default: 'entra',
           display_var: 'ENTRA_DISPLAY_NAME',
           display_default: 'Microsoft',
+          trust_var: 'ENTRA_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
         },
         {
           required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
@@ -350,6 +413,8 @@ module Onetime
           route_default: 'google',
           display_var: 'GOOGLE_DISPLAY_NAME',
           display_default: 'Google',
+          trust_var: 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
         },
         {
           required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
@@ -357,8 +422,28 @@ module Onetime
           route_default: 'github',
           display_var: 'GITHUB_DISPLAY_NAME',
           display_default: 'GitHub',
+          trust_var: 'GITHUB_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
         },
       ]
+    end
+
+    # Reverse-map a route/provider name to its provider definition.
+    #
+    # Keys on the ROUTE NAME (the value returned by omniauth_provider and
+    # stored in account_identities.provider), NOT the env prefix or the
+    # provider_type. A provider's route name is ENV[route_var] when set,
+    # otherwise route_default (e.g. 'oidc', 'entra', 'google', 'github').
+    #
+    # @param route_name [String] the OmniAuth provider/route name
+    # @return [Hash, nil] the matching provider definition, or nil
+    def provider_definition_for_route(route_name)
+      route_name = route_name.to_s
+      return nil if route_name.empty?
+
+      provider_definitions.find do |defn|
+        ENV.fetch(defn[:route_var], defn[:route_default]) == route_name
+      end
     end
 
     # Check if an environment variable is present and non-empty

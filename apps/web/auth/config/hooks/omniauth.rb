@@ -27,6 +27,42 @@ module Auth::Config::Hooks
       auth.account_from_omniauth do
         normalized_email = OT::Utils.normalize_email(omniauth_email)
         existing         = _account_from_login(normalized_email)
+        provider         = omniauth_provider
+
+        # ────────────────────────────────────────────────────────────────
+        # #3836: opt-in, per-provider, boot-guarded email-based linking
+        # ────────────────────────────────────────────────────────────────
+        #
+        # The H-3 refusal below is correct for the multi-tenant platform: an
+        # attacker controlling an IdP that emits a victim's email must not be
+        # able to auto-link to the victim's account. But self-hosted
+        # single-tenant operators control BOTH OTS and the IdP, so email IS a
+        # trustworthy join key for them — and the refusal locks them out.
+        #
+        # This is the ONE sanctioned exception to "email may LOCATE, only a
+        # credential may BIND": an explicit operator declaration (per-provider
+        # *_TRUST_EMAIL_FOR_LINKING or global SSO_TRUST_EMAIL_FOR_LINKING) that
+        # the IdP is inside the trust boundary. It is scoped to the PLATFORM
+        # (env-configured) path only: session[:validated_omniauth_domain_id] is
+        # set by omniauth_tenant.rb ONLY on tenant callbacks, so requiring it to
+        # be nil excludes the multi-tenant surface by construction.
+        #
+        # Returning the located account (not nil, not a redirect) makes
+        # rodauth-omniauth's _handle_omniauth_callback treat it as the located
+        # account and persist the (provider, uid) row via its own upsert — the
+        # intended auto-link. The account was located by the SAME normalized
+        # email used by H-3, so no widening of the lookup surface occurs.
+        if existing &&
+           session[:validated_omniauth_domain_id].nil? &&
+           Onetime.auth_config.trust_email_for_linking?(provider)
+          Auth::Logging.log_auth_event(
+            :omniauth_email_linked_trusted_provider,
+            level: :warn,
+            email: OT::Utils.obscure_email(normalized_email),
+            provider: provider,
+          )
+          next existing
+        end
 
         if existing
           # SECURITY (H-3): reached ONLY when no account_identities row exists

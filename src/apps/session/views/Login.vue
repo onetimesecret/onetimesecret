@@ -74,6 +74,8 @@ const authErrorMessages: Record<string, string> = {
   token_invalid: 'web.login.errors.token_invalid',
   invalid_email: 'web.login.errors.invalid_email',
   domain_not_allowed: 'web.login.errors.domain_not_allowed',
+  account_exists_link_required: 'web.login.errors.account_exists_link_required',
+  org_join_failed: 'web.login.errors.org_join_failed',
 };
 
 onMounted(() => {

@@ -373,6 +373,105 @@ RSpec.describe 'OmniAuth hooks' do
   end
 
   # ==========================================================================
+  # #3836: trusted-provider email-linking escape hatch
+  # ==========================================================================
+  #
+  # WHAT THIS TESTS:
+  #   The decision boundary added to _account_from_omniauth: when the operator
+  #   has declared a provider trusted (trust flag on) AND we are on the PLATFORM
+  #   path (session[:validated_omniauth_domain_id] is nil — no tenant callback),
+  #   an existing account located by email is RETURNED for auto-linking instead
+  #   of being refused by H-3.
+  #
+  # HONESTY: like the H-3 block above, this is a REIMPLEMENTATION of the
+  # decision boundary — it does NOT drive the production _account_from_omniauth
+  # (which needs a real Rodauth callback + datastore). It mirrors the exact
+  # gate order in the hook: existing && platform-path && trust-flag -> link.
+  # End-to-end coverage of the return/upsert path is a follow-up.
+  describe '#3836 trusted-provider email linking (decision boundary)' do
+    let(:accounts_store) do
+      { 'user@example.com' => { id: 1, email: 'user@example.com' } }
+    end
+
+    def normalize_email(omniauth_email)
+      omniauth_email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+    end
+
+    def find_account_by_email(normalized_email)
+      accounts_store[normalized_email]
+    end
+
+    # Mirrors the production gate order in _account_from_omniauth:
+    #   1. trust-link (existing && platform path && trust flag on) -> account
+    #   2. H-3 refusal (existing) -> refused/redirect
+    #   3. new email -> nil (JIT create)
+    #
+    # `tenant_domain_id` models session[:validated_omniauth_domain_id]: nil on
+    # the platform path, set on a tenant callback.
+    def account_from_omniauth(omniauth_email, trust_flag:, tenant_domain_id: nil)
+      normalized_email = normalize_email(omniauth_email)
+      existing         = find_account_by_email(normalized_email)
+
+      if existing && tenant_domain_id.nil? && trust_flag
+        return { linked: true, account: existing }
+      end
+
+      return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' } if existing
+
+      nil
+    end
+
+    context 'trust flag ON, platform path, existing account' do
+      it 'returns the located account for auto-linking (not a refusal)' do
+        result = account_from_omniauth('user@example.com', trust_flag: true)
+        expect(result).to include(linked: true)
+        expect(result[:account]).to eq(id: 1, email: 'user@example.com')
+      end
+
+      it 'links regardless of IdP email casing (uses the same normalization)' do
+        result = account_from_omniauth('USER@EXAMPLE.COM', trust_flag: true)
+        expect(result).to include(linked: true)
+      end
+    end
+
+    context 'trust flag ON, TENANT path (validated_omniauth_domain_id set)' do
+      it 'still refuses — the flag never applies to the multi-tenant surface' do
+        result = account_from_omniauth(
+          'user@example.com', trust_flag: true, tenant_domain_id: 'dom_abc123'
+        )
+        expect(result).to include(refused: true)
+        expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+        expect(result).not_to include(:linked)
+      end
+    end
+
+    context 'trust flag OFF (unchanged H-3 behavior)' do
+      it 'refuses on the platform path' do
+        result = account_from_omniauth('user@example.com', trust_flag: false)
+        expect(result).to include(refused: true)
+        expect(result).not_to include(:linked)
+      end
+
+      it 'refuses on the tenant path' do
+        result = account_from_omniauth(
+          'user@example.com', trust_flag: false, tenant_domain_id: 'dom_abc123'
+        )
+        expect(result).to include(refused: true)
+      end
+    end
+
+    context 'genuinely new email (JIT create), regardless of trust flag' do
+      it 'returns nil when the trust flag is ON' do
+        expect(account_from_omniauth('new@example.com', trust_flag: true)).to be_nil
+      end
+
+      it 'returns nil when the trust flag is OFF' do
+        expect(account_from_omniauth('new@example.com', trust_flag: false)).to be_nil
+      end
+    end
+  end
+
+  # ==========================================================================
   # only_json? Override Tests
   # ==========================================================================
   #
