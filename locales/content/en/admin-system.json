@@ -154,5 +154,129 @@
   "web.admin.system.redis.captured": {
     "text": "Captured {at}",
     "content_hash": "57b40c0f"
+  },
+  "web.admin.system.brand.title": {
+    "text": "Brand Diagnostics",
+    "content_hash": "1cf9abd5"
+  },
+  "web.admin.system.brand.description": {
+    "text": "Which brand pack the running instance resolved on disk — surfaces why a region may serve neutral branding.",
+    "content_hash": "be29e282"
+  },
+  "web.admin.system.brand.loadError": {
+    "text": "Could not load brand diagnostics.",
+    "content_hash": "80607303"
+  },
+  "web.admin.system.brand.none": {
+    "text": "(none)",
+    "content_hash": "552e4230"
+  },
+  "web.admin.system.brand.flags.fellBack.danger": {
+    "text": "Fell back to default pack",
+    "content_hash": "7bf7ba2f"
+  },
+  "web.admin.system.brand.flags.fellBack.ok": {
+    "text": "Brand pack resolved",
+    "content_hash": "1ab3162f"
+  },
+  "web.admin.system.brand.flags.mismatch.danger": {
+    "text": "Boot / live mismatch",
+    "content_hash": "0a022192"
+  },
+  "web.admin.system.brand.flags.mismatch.ok": {
+    "text": "Boot matches live",
+    "content_hash": "d4792c09"
+  },
+  "web.admin.system.brand.stats.brandPack": {
+    "text": "Brand Pack",
+    "content_hash": "884437d0"
+  },
+  "web.admin.system.brand.stats.overlayAssets": {
+    "text": "Overlay Assets",
+    "content_hash": "c87de1f9"
+  },
+  "web.admin.system.brand.stats.manifestKeys": {
+    "text": "Manifest Keys",
+    "content_hash": "c4267198"
+  },
+  "web.admin.system.brand.resolution": {
+    "text": "Resolution",
+    "content_hash": "d4055faf"
+  },
+  "web.admin.system.brand.fields.resolvedDir": {
+    "text": "Resolved Directory",
+    "content_hash": "0623b983"
+  },
+  "web.admin.system.brand.fields.home": {
+    "text": "Home",
+    "content_hash": "3a786953"
+  },
+  "web.admin.system.brand.envVsConfig": {
+    "text": "Environment vs Config",
+    "content_hash": "bee3debb"
+  },
+  "web.admin.system.brand.fields.envPack": {
+    "text": "ENV Brand Pack",
+    "content_hash": "940aeb5c"
+  },
+  "web.admin.system.brand.fields.configPack": {
+    "text": "Config Brand Pack",
+    "content_hash": "761b9550"
+  },
+  "web.admin.system.brand.fields.envAssetsDir": {
+    "text": "ENV Brand Assets Dir",
+    "content_hash": "05854f1f"
+  },
+  "web.admin.system.brand.fields.configAssetsDir": {
+    "text": "Config Brand Assets Dir",
+    "content_hash": "e91e5c46"
+  },
+  "web.admin.system.brand.roots.title": {
+    "text": "Search Roots",
+    "content_hash": "d8696f2b"
+  },
+  "web.admin.system.brand.roots.empty": {
+    "text": "No search roots",
+    "content_hash": "867a471c"
+  },
+  "web.admin.system.brand.roots.columns.path": {
+    "text": "Path",
+    "content_hash": "62fa5a5b"
+  },
+  "web.admin.system.brand.roots.columns.exists": {
+    "text": "Exists",
+    "content_hash": "fefd8ba5"
+  },
+  "web.admin.system.brand.exists.yes": {
+    "text": "Present",
+    "content_hash": "43f9b89c"
+  },
+  "web.admin.system.brand.exists.no": {
+    "text": "Missing",
+    "content_hash": "6be36ca4"
+  },
+  "web.admin.system.brand.manifest.title": {
+    "text": "Manifest",
+    "content_hash": "3c99f1f3"
+  },
+  "web.admin.system.brand.manifest.path": {
+    "text": "Path",
+    "content_hash": "62fa5a5b"
+  },
+  "web.admin.system.brand.manifest.exists": {
+    "text": "Exists",
+    "content_hash": "fefd8ba5"
+  },
+  "web.admin.system.brand.manifest.keysOnDisk": {
+    "text": "Keys on Disk",
+    "content_hash": "52439c03"
+  },
+  "web.admin.system.brand.absorbed": {
+    "text": "Absorbed Keys",
+    "content_hash": "9784e110"
+  },
+  "web.admin.system.brand.overlayAssets": {
+    "text": "Overlay Assets",
+    "content_hash": "c87de1f9"
   }
 }

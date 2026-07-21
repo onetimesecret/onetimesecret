@@ -31,6 +31,7 @@ const i18n = createTestI18n();
 const DB_URL = '/api/colonel/system/database';
 const QUEUE_URL = '/api/colonel/queue';
 const REDIS_URL = '/api/colonel/system/redis';
+const BRAND_URL = '/api/colonel/system/brand';
 
 function dbPayload() {
   return {
@@ -88,12 +89,50 @@ function redisPayload() {
   };
 }
 
-/** Route each of the three independent single-GET read-outs by URL. */
-function routeGet() {
+/**
+ * Brand-pack diagnostic (#3822). Healthy by default; `overrides` merges into
+ * `details` so a test can trip the two DANGER booleans to model a mount-race.
+ */
+function brandPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      home: '/app',
+      env: { brand_pack: 'onetimesecret', brand_assets_dir: '/app/etc/branding' },
+      config: {
+        brand_pack: 'onetimesecret',
+        brand_assets_dir: '/app/etc/branding',
+        brand_absorbed: ['product_name'],
+      },
+      roots: [
+        { path: '/app/etc/branding', exists: true },
+        { path: '/app/public/branding', exists: false },
+      ],
+      resolved_dir: '/app/etc/branding/onetimesecret',
+      fell_back_to_default: false,
+      manifest: {
+        path: '/app/etc/branding/onetimesecret/manifest.json',
+        exists: true,
+        keys_on_disk: ['product_name', 'logo'],
+      },
+      boot_vs_live_mismatch: false,
+      overlay_assets: ['/favicon.svg'],
+      ...overrides,
+    },
+  };
+}
+
+/**
+ * Route each independent single-GET read-out by URL. `brandOverrides` lets a
+ * test flip the brand diagnostic into its mount-race shape without a new mock.
+ */
+function routeGet(brandOverrides: Record<string, unknown> = {}) {
   mockApi.get.mockImplementation((url: string) => {
     if (url === DB_URL) return Promise.resolve({ data: dbPayload() });
     if (url === QUEUE_URL) return Promise.resolve({ data: queuePayload() });
     if (url === REDIS_URL) return Promise.resolve({ data: redisPayload() });
+    if (url === BRAND_URL) return Promise.resolve({ data: brandPayload(brandOverrides) });
     return Promise.reject(new Error(`unexpected GET ${url}`));
   });
 }
@@ -122,7 +161,7 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
   });
   afterEach(() => wrapper?.unmount());
 
-  it('issues the three independent GETs on mount', async () => {
+  it('issues the four independent GETs on mount', async () => {
     routeGet();
     wrapper = mountView(pinia);
     await flushPromises();
@@ -130,9 +169,10 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     expect(mockApi.get).toHaveBeenCalledWith(DB_URL, undefined);
     expect(mockApi.get).toHaveBeenCalledWith(QUEUE_URL, undefined);
     expect(mockApi.get).toHaveBeenCalledWith(REDIS_URL, undefined);
+    expect(mockApi.get).toHaveBeenCalledWith(BRAND_URL, undefined);
   });
 
-  it('renders the loaded database, queue and redis read-outs', async () => {
+  it('renders the loaded database, queue, redis and brand read-outs', async () => {
     routeGet();
     wrapper = mountView(pinia);
     await flushPromises();
@@ -153,6 +193,19 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     // Redis: the JsonViewer read-out mounts (loaded branch, not loading/error).
     expect(wrapper.find('[data-testid="system-redis-json"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-redis-error"]').exists()).toBe(false);
+
+    // Brand: loaded branch renders — resolved dir, roots table, manifest keys.
+    const brand = wrapper.find('[data-testid="system-brand"]');
+    expect(brand.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="system-brand-loaded"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="system-brand-error"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="brand-resolved-dir"]').text()).toContain(
+      '/app/etc/branding/onetimesecret'
+    );
+    expect(wrapper.find('[data-testid="brand-roots-table"]').text()).toContain(
+      '/app/public/branding'
+    );
+    expect(wrapper.find('[data-testid="brand-manifest-keys"]').text()).toContain('product_name');
   });
 
   it('shows a per-section error state when each GET fails', async () => {
@@ -164,6 +217,8 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     expect(wrapper.find('[data-testid="system-queue-error"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-redis-error"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-redis-json"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="system-brand-error"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="system-brand-loaded"]').exists()).toBe(false);
   });
 
   it('shows the loading state while the requests are in flight', async () => {
@@ -176,5 +231,40 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     expect(wrapper.find('[data-testid="system-database-loading"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-queue-loading"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-redis-loading"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="system-brand-loading"]').exists()).toBe(true);
+  });
+
+  // The two danger booleans are the reason #3822 exists — assert they read as
+  // green/healthy on a clean instance and flip to red + the alert glyph on the
+  // mount-race payload (boot snapshot ≠ live resolution AND fell back to default).
+  it('renders the brand danger badges green on a healthy instance', async () => {
+    routeGet();
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const fallback = wrapper.find('[data-testid="brand-fallback-badge"]');
+    const mismatch = wrapper.find('[data-testid="brand-mismatch-badge"]');
+
+    expect(fallback.attributes('class')).toContain('bg-green-100');
+    expect(fallback.find('.o-icon').attributes('data-name')).toBe('check-circle');
+    expect(mismatch.attributes('class')).toContain('bg-green-100');
+    expect(mismatch.find('.o-icon').attributes('data-name')).toBe('check-circle');
+  });
+
+  it('flips the brand danger badges red on a mount-race payload', async () => {
+    routeGet({ fell_back_to_default: true, boot_vs_live_mismatch: true });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const fallback = wrapper.find('[data-testid="brand-fallback-badge"]');
+    const mismatch = wrapper.find('[data-testid="brand-mismatch-badge"]');
+
+    expect(fallback.attributes('class')).toContain('bg-red-100');
+    expect(fallback.attributes('class')).not.toContain('bg-green-100');
+    expect(fallback.find('.o-icon').attributes('data-name')).toBe('exclamation-triangle');
+
+    expect(mismatch.attributes('class')).toContain('bg-red-100');
+    expect(mismatch.attributes('class')).not.toContain('bg-green-100');
+    expect(mismatch.find('.o-icon').attributes('data-name')).toBe('exclamation-triangle');
   });
 });
