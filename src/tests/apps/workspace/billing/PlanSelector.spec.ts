@@ -14,45 +14,22 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Plan as BillingPlan } from '@/services/billing.service';
-
-// Type for the tier hierarchy - matches PlanSelector.vue logic
-type PlanTier = 'free' | 'single_team' | 'multi_team';
-
-// Tier order for upgrade/downgrade comparison
-const TIER_ORDER: PlanTier[] = ['free', 'single_team', 'multi_team'];
-
-/**
- * Helper: Get tier index for comparison
- * Used to determine upgrade/downgrade eligibility
- */
-function getTierIndex(tier: string): number {
-  const index = TIER_ORDER.indexOf(tier as PlanTier);
-  return index >= 0 ? index : -1;
-}
-
-/**
- * Logic extracted from PlanSelector.vue: canUpgrade
- *
- * Determines if user can upgrade from current tier to target plan.
- * FIXED: Uses tier comparison instead of planid.
- */
-function canUpgrade(currentTier: string, targetPlan: BillingPlan): boolean {
-  if (currentTier === 'free') return targetPlan.tier !== 'free';
-  if (currentTier === 'single_team') return targetPlan.tier === 'multi_team';
-  return false;
-}
-
-/**
- * Logic extracted from PlanSelector.vue: canDowngrade
- *
- * Determines if user can downgrade from current tier to target plan.
- * FIXED: Uses tier comparison instead of planid.
- */
-function canDowngrade(currentTier: string, targetPlan: BillingPlan): boolean {
-  if (currentTier === 'multi_team') return targetPlan.tier !== 'multi_team';
-  if (currentTier === 'single_team') return targetPlan.tier === 'free';
-  return false;
-}
+// Drift-prone predicates come from the ONE shared module PlanSelector.vue
+// delegates to (#3824). tierRank is imported under its historical spec name
+// getTierIndex so the existing call sites read unchanged.
+import {
+  tierRank as getTierIndex,
+  canUpgrade,
+  canDowngrade,
+  isPlanRecommended,
+  isPlanCurrent,
+  isPlanButtonDisabled,
+  resolvePlanSelectAction,
+  shouldShowCancelLink,
+  type PlanButtonState,
+  type PlanSelectContext,
+  type CancelLinkState,
+} from '@/apps/workspace/billing/planSelectorLogic';
 
 /**
  * Logic extracted from PlanSelector.vue: getBasePlan
@@ -78,22 +55,6 @@ function getNewFeatures(plan: BillingPlan, allPlans: BillingPlan[]): string[] {
 
   // Filter out features that exist in base plan
   return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
-}
-
-/**
- * Logic extracted from PlanSelector.vue: isPlanRecommended
- *
- * Determines if plan should show "Most Popular" badge.
- * ISSUE: Currently hardcoded to tier === 'single_team'
- * FIX: Should use is_popular flag from API when available.
- */
-function isPlanRecommended(plan: BillingPlan & { is_popular?: boolean }): boolean {
-  // Fixed implementation uses API flag when available
-  if (plan.is_popular !== undefined) {
-    return plan.is_popular;
-  }
-  // Fallback to tier-based logic (legacy behavior)
-  return plan.tier === 'single_team';
 }
 
 /**
@@ -219,6 +180,148 @@ describe('PlanSelector Logic', () => {
     it('returns false when multi_team targets multi_team', () => {
       const targetPlan = createMockPlan({ tier: 'multi_team' });
       expect(canDowngrade('multi_team', targetPlan)).toBe(false);
+    });
+  });
+
+  // ============================================================
+  // isPlanCurrent — STRICT id match (#3824)
+  // ============================================================
+  describe('isPlanCurrent (strict id match, #3824)', () => {
+    /**
+     * Regression coverage for the "Current" badge landing on the wrong card.
+     *
+     * Root cause: the old component derived a tier for the org and badged every
+     * card whose tier matched. A legacy 'identity' org resolved (via a hardcode)
+     * to tier `single_team`, and because `team_plus_v1` is ALSO `single_team`,
+     * the badge landed on the Team Plus card. The fix compares
+     * `plan.id === org.planid` — no tier, no fallback.
+     *
+     * These tests pin BOTH logics against the backend-correct fixture so the
+     * scenario provably reproduces the bug:
+     *   - NEW (shipped): strict id match. This is the contract under guard.
+     *   - OLD (buggy): tier match with the `identity -> single_team` hardcode
+     *     and a silent `free` fallback. Asserted only to prove the fixture still
+     *     triggers the original mis-badge — a drift guard on the fixture itself.
+     */
+
+    // NEW (shipped) logic under guard = the shared module's isPlanCurrent
+    // (imported at top of file), NOT a local re-implementation.
+
+    // OLD (buggy) pre-#3824 logic, reproduced verbatim: resolve the org's tier
+    // from the plans list, else hardcode legacy 'identity' -> single_team, else
+    // fall back to 'free'; then badge by tier equality.
+    const oldResolveTier = (
+      plans: BillingPlan[],
+      planid: string | null | undefined
+    ): string =>
+      plans.find((p) => p.id === planid)?.tier ??
+      (planid === 'identity' ? 'single_team' : 'free');
+    const isPlanCurrentOld = (
+      plan: BillingPlan,
+      plans: BillingPlan[],
+      planid: string | null | undefined
+    ): boolean => plan.tier === oldResolveTier(plans, planid);
+
+    // Backend-correct plan grid (#3824), matching apps/web/billing/docs/
+    // plan-definitions.md and etc/examples/billing.example.yaml:
+    //   identity_plus_v1 = single_account, team_plus_v1 = single_team.
+    const buildPlans = (): BillingPlan[] => [
+      createMockPlan({ id: 'free_v1', tier: 'free' }),
+      createMockPlan({ id: 'identity_plus_v1', tier: 'single_account' }),
+      createMockPlan({ id: 'team_plus_v1', tier: 'single_team' }),
+    ];
+
+    it('(a) legacy "identity" org badges NO card — old tier logic wrongly badged Team Plus', () => {
+      const plans = buildPlans();
+
+      // NEW (shipped): strict id match → nothing is badged.
+      const badged = plans.filter((p) => isPlanCurrent(p, 'identity'));
+      expect(badged).toHaveLength(0);
+      expect(isPlanCurrent(plans[0], 'identity')).toBe(false); // Free
+      expect(isPlanCurrent(plans[1], 'identity')).toBe(false); // Identity Plus
+      expect(isPlanCurrent(plans[2], 'identity')).toBe(false); // Team Plus
+
+      // OLD (buggy): 'identity' -> single_team hardcode collides with
+      // team_plus_v1 (single_team) → Team Plus is mis-badged. This is the exact
+      // #3824 regression; asserting it proves the fixture reproduces the bug
+      // (if team_plus_v1 drifts back to multi_team, this assertion breaks).
+      const oldBadged = plans.filter((p) => isPlanCurrentOld(p, plans, 'identity'));
+      expect(oldBadged.map((p) => p.id)).toEqual(['team_plus_v1']);
+    });
+
+    it('(b) identity_plus_v1 subscriber badges ONLY the Identity Plus card', () => {
+      const plans = buildPlans();
+
+      // NEW (shipped): strict id match → only its own card.
+      const badged = plans.filter((p) => isPlanCurrent(p, 'identity_plus_v1'));
+      expect(badged).toHaveLength(1);
+      expect(badged[0].id).toBe('identity_plus_v1');
+      // Team Plus (single_team) must NOT be badged.
+      expect(isPlanCurrent(plans[2], 'identity_plus_v1')).toBe(false);
+
+      // single_account is a unique tier in the grid (no collision), so the old
+      // tier logic happens to agree here for this in-grid planid. Documents why
+      // this positive case is safe under both logics.
+      const oldBadged = plans.filter((p) =>
+        isPlanCurrentOld(p, plans, 'identity_plus_v1')
+      );
+      expect(oldBadged.map((p) => p.id)).toEqual(['identity_plus_v1']);
+    });
+
+    it('(c) a non-matching, non-legacy planid badges NO card — old logic wrongly badged Free', () => {
+      // The diagnostic path: planid absent from the plans list.
+      const plans = buildPlans();
+
+      // NEW (shipped): strict id match → nothing is badged.
+      const badged = plans.filter((p) => isPlanCurrent(p, 'some_unknown_v9'));
+      expect(badged).toHaveLength(0);
+      expect(isPlanCurrent(plans[0], 'some_unknown_v9')).toBe(false); // Free
+
+      // OLD (buggy): unknown planid → silent 'free' fallback collides with
+      // free_v1 → Free is mis-badged. Asserting it pins both the fixture and
+      // the fallback that #3824 removed.
+      const oldBadged = plans.filter((p) =>
+        isPlanCurrentOld(p, plans, 'some_unknown_v9')
+      );
+      expect(oldBadged.map((p) => p.id)).toEqual(['free_v1']);
+    });
+
+    it('genuine free subscriber (planid free_v1) badges only the free card', () => {
+      const plans = buildPlans();
+      const badged = plans.filter((p) => isPlanCurrent(p, 'free_v1'));
+      expect(badged).toHaveLength(1);
+      expect(badged[0].id).toBe('free_v1');
+    });
+  });
+
+  // ============================================================
+  // single_account tier ordering (#3824)
+  // ============================================================
+  describe('single_account tier ordering (#3824)', () => {
+    it('ranks free < single_account < single_team < multi_team', () => {
+      expect(getTierIndex('free')).toBeLessThan(getTierIndex('single_account'));
+      expect(getTierIndex('single_account')).toBeLessThan(getTierIndex('single_team'));
+      expect(getTierIndex('single_team')).toBeLessThan(getTierIndex('multi_team'));
+    });
+
+    it('single_account can upgrade to single_team and multi_team', () => {
+      expect(canUpgrade('single_account', createMockPlan({ tier: 'single_team' }))).toBe(true);
+      expect(canUpgrade('single_account', createMockPlan({ tier: 'multi_team' }))).toBe(true);
+    });
+
+    it('single_account can downgrade to free but not to single_team', () => {
+      expect(canDowngrade('single_account', createMockPlan({ tier: 'free' }))).toBe(true);
+      expect(canDowngrade('single_account', createMockPlan({ tier: 'single_team' }))).toBe(false);
+    });
+
+    it('free can upgrade to single_account', () => {
+      expect(canUpgrade('free', createMockPlan({ tier: 'single_account' }))).toBe(true);
+    });
+
+    it('unresolved tier yields no upgrade/downgrade direction (component: currentPlan null)', () => {
+      const target = createMockPlan({ tier: 'single_team' });
+      expect(canUpgrade('', target)).toBe(false);
+      expect(canDowngrade('', target)).toBe(false);
     });
   });
 
@@ -357,15 +460,19 @@ describe('PlanSelector Logic', () => {
       expect(isPlanRecommended(plan)).toBe(false);
     });
 
-    it('falls back to tier-based logic when is_popular not set', () => {
+    it('returns false when is_popular is not set (#3824: no tier fallback)', () => {
+      // No card is defaulted to "Most Popular" without an explicit API flag.
       const singleTeamPlan = createMockPlan({ tier: 'single_team' });
-      expect(isPlanRecommended(singleTeamPlan)).toBe(true);
+      expect(isPlanRecommended(singleTeamPlan)).toBe(false);
+
+      const singleAccountPlan = createMockPlan({ tier: 'single_account' });
+      expect(isPlanRecommended(singleAccountPlan)).toBe(false);
 
       const multiTeamPlan = createMockPlan({ tier: 'multi_team' });
       expect(isPlanRecommended(multiTeamPlan)).toBe(false);
     });
 
-    it('falls back to false for non-single_team tiers without API flag', () => {
+    it('returns false for any tier without the API flag', () => {
       const freePlan = createMockPlan({ tier: 'free' });
       expect(isPlanRecommended(freePlan)).toBe(false);
     });
@@ -564,18 +671,18 @@ describe('PlanSelector Logic', () => {
     });
 
     describe('free plan button state for current free users', () => {
-      it('free plan button is disabled when user is on free tier', () => {
+      it('free plan card is marked current for a genuine free subscriber (#3824 id match)', () => {
         const freePlan = createMockPlan({
           id: 'free_v1',
           tier: 'free',
         });
 
-        // User is on free tier (currentTier = 'free')
-        // isPlanCurrent should return true
-        const isPlanCurrent = (plan: BillingPlan, currentTier: string): boolean =>
-          plan.tier === currentTier;
-
-        expect(isPlanCurrent(freePlan, 'free')).toBe(true);
+        // #3824: isPlanCurrent (shared module, imported at top) is STRICT id
+        // match (plan.id === org.planid), not tier equality. A real free
+        // customer has planid === the free plan id.
+        expect(isPlanCurrent(freePlan, 'free_v1')).toBe(true);
+        // A tier string is NOT a plan id, so it must not badge the card.
+        expect(isPlanCurrent(freePlan, 'free')).toBe(false);
       });
 
       it('free plan cannot be upgraded to when already on free', () => {
@@ -612,32 +719,64 @@ describe('PlanSelector Logic', () => {
     });
 
     describe('free plan CTA link', () => {
-      it('free plan action is disabled in PlanSelector (no checkout for free)', () => {
-        // PlanSelector disables the button for free plans
-        // PlanSelector.vue disables button when isPlanCurrent || isCreatingCheckout || free
+      // Default PlanButtonState for a fresh, non-subscribing visitor. Overrides
+      // flip individual dimensions. The disable logic itself is imported from
+      // planSelectorLogic (isPlanButtonDisabled), so it can't drift.
+      const buttonState = (
+        overrides: Partial<PlanButtonState> = {}
+      ): PlanButtonState => ({
+        orgPlanId: 'single_team_v1',
+        currentCurrency: null,
+        isCreatingCheckout: false,
+        isReactivating: false,
+        isCancelScheduled: false,
+        hasActiveSubscription: false,
+        ...overrides,
+      });
+
+      it('free plan action is disabled for a visitor without a subscription', () => {
         const freePlan = createMockPlan({
           id: 'free',
           tier: 'free',
         });
 
-        // Simulate the disable condition from PlanSelector
-        const isButtonDisabled = (
-          plan: BillingPlan, isPlanCurrent: boolean, isCreatingCheckout: boolean
-        ): boolean => isPlanCurrent || isCreatingCheckout || plan.id === 'free';
-
-        expect(isButtonDisabled(freePlan, false, false)).toBe(true);
+        expect(
+          isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: false }))
+        ).toBe(true);
       });
 
-      it('free plan does not trigger checkout flow', () => {
-        // PlanSelector.vue skips checkout for free tier
+      it('free plan action is enabled for an active subscriber (to downgrade)', () => {
+        // #3824: free is disabled ONLY when there is no active subscription. An
+        // active subscriber can click free to cancel/downgrade.
+        const freePlan = createMockPlan({
+          id: 'free',
+          tier: 'free',
+        });
+
+        expect(
+          isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: true }))
+        ).toBe(false);
+      });
+
+      it('free plan never resolves to a checkout action', () => {
+        // handlePlanSelect routes free away from Stripe Checkout: it is a no-op
+        // for a non-subscriber and opens the cancel modal for a subscriber.
         const freePlan = createMockPlan({
           id: 'free_v1',
           tier: 'free',
         });
+        const ctx: PlanSelectContext = {
+          orgExtid: 'org-abc',
+          orgPlanId: 'single_team_v1',
+          currentCurrency: null,
+          isCancelScheduled: false,
+          hasActiveSubscription: false,
+        };
 
-        // handlePlanSelect early returns for free tier
-        const shouldSkipCheckout = (plan: BillingPlan): boolean => plan.tier === 'free';
-        expect(shouldSkipCheckout(freePlan)).toBe(true);
+        expect(resolvePlanSelectAction(freePlan, ctx)).toBe('noop');
+        expect(
+          resolvePlanSelectAction(freePlan, { ...ctx, hasActiveSubscription: true })
+        ).toBe('open-cancel-modal');
       });
     });
 
@@ -649,7 +788,7 @@ describe('PlanSelector Logic', () => {
           is_popular: undefined, // Not explicitly set
         });
 
-        // isPlanRecommended falls back to tier === 'single_team' when is_popular undefined
+        // #3824: is_popular is the sole authority; undefined => false (no fallback)
         expect(isPlanRecommended(freePlan)).toBe(false);
       });
 
@@ -735,41 +874,54 @@ describe('PlanSelector Logic', () => {
     });
 
     describe('cancel subscription link visibility', () => {
-      /**
-       * Logic extracted from PlanSelector.vue:
-       * Cancel link is shown when:
-       * 1. hasActiveSubscription is true
-       * 2. currentTier is not 'free'
-       *
-       * Template: v-if="hasActiveSubscription && currentTier !== 'free'"
-       */
-      function shouldShowCancelLink(
-        hasActiveSubscription: boolean,
-        currentTier: string
-      ): boolean {
-        return hasActiveSubscription && currentTier !== 'free';
-      }
+      // Production template guard (PlanSelector.vue), imported so the test can't
+      // drift from it:
+      //   (hasActiveSubscription || isLegacyCustomer) && currentTier !== 'free' && !isCancelScheduled
+      const cancelLinkState = (
+        overrides: Partial<CancelLinkState> = {}
+      ): CancelLinkState => ({
+        hasActiveSubscription: false,
+        isLegacyCustomer: false,
+        currentTier: 'single_team',
+        isCancelScheduled: false,
+        ...overrides,
+      });
 
       it('shows cancel link for active paid subscriber on single_team tier', () => {
-        expect(shouldShowCancelLink(true, 'single_team')).toBe(true);
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'single_team' }))
+        ).toBe(true);
       });
 
       it('shows cancel link for active paid subscriber on multi_team tier', () => {
-        expect(shouldShowCancelLink(true, 'multi_team')).toBe(true);
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'multi_team' }))
+        ).toBe(true);
+      });
+
+      it('shows cancel link for a legacy customer without an active subscription', () => {
+        // Grandfathered customers can still cancel even without an active sub.
+        expect(
+          shouldShowCancelLink(cancelLinkState({ isLegacyCustomer: true, hasActiveSubscription: false }))
+        ).toBe(true);
       });
 
       it('hides cancel link for free tier users', () => {
-        expect(shouldShowCancelLink(true, 'free')).toBe(false);
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'free' }))
+        ).toBe(false);
       });
 
-      it('hides cancel link when no active subscription', () => {
-        expect(shouldShowCancelLink(false, 'single_team')).toBe(false);
-        expect(shouldShowCancelLink(false, 'multi_team')).toBe(false);
+      it('hides cancel link when neither subscribed nor legacy', () => {
+        expect(shouldShowCancelLink(cancelLinkState({ currentTier: 'single_team' }))).toBe(false);
+        expect(shouldShowCancelLink(cancelLinkState({ currentTier: 'multi_team' }))).toBe(false);
       });
 
-      it('hides cancel link for free tier even with subscription flag', () => {
-        // Edge case: subscription data might be stale
-        expect(shouldShowCancelLink(true, 'free')).toBe(false);
+      it('hides cancel link once a cancellation is already scheduled', () => {
+        // The reactivate banner covers this state instead.
+        expect(
+          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, isCancelScheduled: true }))
+        ).toBe(false);
       });
     });
 

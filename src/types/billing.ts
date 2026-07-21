@@ -66,7 +66,7 @@ export function getLegacyPlanInfo(
     return {
       isLegacy: true,
       displayName: 'Identity Plus (Early Supporter)',
-      tier: 'single_team', // Same tier as identity_plus for feature parity
+      tier: 'single_account', // Same tier as identity_plus_v1 (backend: single_account)
     };
   }
   return null;
