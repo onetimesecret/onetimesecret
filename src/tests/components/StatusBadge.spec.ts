@@ -118,19 +118,27 @@ describe('StatusBadge — #3829 previewed display state', () => {
     expect(wrapper.text().trim()).toBe('web.STATUS.previewed');
   });
 
-  it('rejects the deprecated viewed state at parse time (pre-existing v3 strict enum)', () => {
-    // NOT a #3829 behavior. StatusBadge validates state through the strict
-    // v3/contracts receiptStateSchema, which excludes the deprecated
-    // 'viewed'/'received' aliases — so a 'viewed' state throws a ZodError
-    // here, exactly as it did before #3829. A v3-parsed Receipt can never
-    // carry state 'viewed' (the API-layer receiptSchema rejects it first);
-    // STATE_TO_DISPLAY's 'viewed' alias in src/utils/status.ts serves
-    // v2-shaped callers only. If the badge's parse is ever relaxed to accept
-    // legacy aliases, this test will fail — update it to expect
-    // 'web.STATUS.previewed' at that point.
-    expect(() =>
-      mountBadge(makeRecord({ state: 'viewed', is_previewed: false }))
-    ).toThrow(/Invalid option/);
+  it('renders legacy viewed state as Previewed (tolerant display layer, #3829)', () => {
+    // #3829 root fix: the badge routes state through getDisplayStatus — the
+    // single display authority, built on the v2-tolerant layer — instead of
+    // pre-validating against the strict v3 schema. Legacy aliases degrade to
+    // their canonical display state (viewed -> previewed) rather than throwing.
+    // The label comes from STATE_TO_DISPLAY, not the is_previewed override, so
+    // it holds even with is_previewed false.
+    const wrapper = mountBadge(makeRecord({ state: 'viewed', is_previewed: false }));
+    expect(wrapper.text().trim()).toBe('web.STATUS.previewed');
+  });
+
+  it('renders legacy received state as Revealed (tolerant display layer, #3829)', () => {
+    const wrapper = mountBadge(makeRecord({ state: 'received', is_previewed: false }));
+    expect(wrapper.text().trim()).toBe('web.STATUS.revealed');
+  });
+
+  it('degrades an unrecognized state to Orphaned instead of throwing (#3829)', () => {
+    // The trap is fully closed: no state string can crash the badge. An
+    // unknown value falls through getDisplayStatus's guard to 'orphaned'.
+    const wrapper = mountBadge(makeRecord({ state: 'bogus', is_previewed: false }));
+    expect(wrapper.text().trim()).toBe('web.STATUS.orphaned');
   });
 
   it('server-authoritative expiring-soon (expiresIn < 1800) outranks previewed', () => {
