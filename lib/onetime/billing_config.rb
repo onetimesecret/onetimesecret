@@ -128,8 +128,9 @@ module Onetime
       raise Onetime::ConfigError, <<~MSG.strip
         STRIPE_CHECKOUT_HOST (or billing.yaml checkout_host) is not a bare host: #{checkout_host.to_s.strip.inspect}
 
-        It must be a hostname only — no scheme, no path, no userinfo. Examples:
+        It must be a bare host with an optional port — no scheme, no path, no userinfo. Examples:
           valid:   pay.onetimesecret.com
+          valid:   pay.onetimesecret.com:8443       (optional port)
           invalid: https://pay.onetimesecret.com   (drop the scheme)
           invalid: pay.onetimesecret.com/checkout  (drop the path)
 
