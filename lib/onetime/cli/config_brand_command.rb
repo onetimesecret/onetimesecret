@@ -76,8 +76,11 @@ module Onetime
       ensure
         SemanticLogger.flush if defined?(SemanticLogger)
         if saved
-          $stdout.reopen(saved)
-          saved.close
+          begin
+            $stdout.reopen(saved)
+          ensure
+            saved.close # always run, even if reopen raises, to avoid fd leak
+          end
         end
       end
 
