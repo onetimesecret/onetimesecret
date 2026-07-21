@@ -71,6 +71,25 @@ module Onetime
 
     attr_reader :dbclient
 
+    # Throttle interval (seconds) between "secure cookie silently dropped"
+    # warnings. Every request over a mis-forwarded TLS-terminating proxy trips
+    # the same condition, so we rate-limit to avoid flooding the log. See #3837.
+    unless defined?(SECURE_COOKIE_WARN_INTERVAL)
+      SECURE_COOKIE_WARN_INTERVAL = 300 # ~5 minutes
+    end
+
+    # Class-level, process-wide guard for the throttled warning below. Holds the
+    # monotonic timestamp (Process::CLOCK_MONOTONIC) of the last emission, nil
+    # until the first. The Mutex keeps concurrent Puma threads from racing on it.
+    # `||=` keeps this idempotent across code reloads.
+    @secure_cookie_warn_mutex ||= Mutex.new
+    @secure_cookie_warned_at  ||= nil
+
+    class << self
+      attr_accessor :secure_cookie_warned_at
+      attr_reader :secure_cookie_warn_mutex
+    end
+
     def initialize(app, options = {})
       # Require a secret for security - fall back to site secret if not set
       is_valid_string = options[:secret].is_a?(String) && !options[:secret].empty?
@@ -165,6 +184,63 @@ module Onetime
         }
 
       new_sid
+    end
+
+    # Rack calls this from commit_session to decide whether a cookie flagged
+    # :secure may be written. The parent (PersistedSecure) returns false when
+    # options[:secure] is set but the request is seen as non-SSL and @assume_ssl
+    # is not enabled — commit_session then returns EARLY and the cookie is
+    # SILENTLY never written. That silent drop is the root cause of #3837 (and
+    # the reported symptom in #3831).
+    #
+    # This override is observability-only: we deliberately do NOT change the
+    # decision or touch @assume_ssl semantics (both stay entirely in the parent).
+    # We just turn the silent drop into a throttled, actionable warning and then
+    # return the parent's verdict unchanged.
+    def security_matches?(request, options)
+      matched = super
+      warn_dropped_secure_cookie(request) if !matched && options[:secure] && !request.ssl?
+      matched
+    end
+
+    # Emit the dropped-secure-cookie warning at most once per
+    # SECURE_COOKIE_WARN_INTERVAL per process, using the class-level monotonic
+    # guard declared above. The constant is referenced explicitly (rather than
+    # via self.class) so subclasses can't miss the shared state.
+    #
+    # The warning carries its own proof: a snapshot of the scheme-detection
+    # signals Rack saw at the moment the cookie was dropped (see
+    # #scheme_evidence). The next field report then contains the observation
+    # directly instead of us reconstructing which hop stripped the scheme.
+    def warn_dropped_secure_cookie(request)
+      now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+      Onetime::Session.secure_cookie_warn_mutex.synchronize do
+        last = Onetime::Session.secure_cookie_warned_at
+        return if last && (now - last) < SECURE_COOKIE_WARN_INTERVAL
+
+        Onetime::Session.secure_cookie_warned_at = now
+      end
+
+      OT.lw '[Session] cookie NOT written: secure cookie over a request the app sees as non-SSL. Behind a TLS-terminating proxy, forward X-Forwarded-Proto: https or set ASSUME_HTTPS=true.',
+        **scheme_evidence(request)
+    end
+
+    # Snapshot of the scheme-detection signals Rack consults in Request#scheme.
+    # We reach this method only when req.ssl? is already false, so any header
+    # present here definitionally did NOT carry an https signal -- presence vs
+    # absence is the diagnostic. We record booleans rather than raw values so we
+    # never log the forwarded client IP that HTTP_FORWARDED (RFC 7239 `for=`)
+    # can carry; rack.url_scheme is a bare scheme token and safe to log verbatim.
+    def scheme_evidence(request)
+      env = request.env
+      {
+        rack_url_scheme: env['rack.url_scheme'],
+        x_forwarded_proto: env.key?('HTTP_X_FORWARDED_PROTO'),
+        forwarded: env.key?('HTTP_FORWARDED'),
+        x_forwarded_ssl: env.key?('HTTP_X_FORWARDED_SSL'),
+        https: env.key?('HTTPS'),
+      }
     end
 
     # Validates session ID format
