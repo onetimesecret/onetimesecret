@@ -29,11 +29,49 @@ module Onetime
           external_id = session['external_id']
           return nil if external_id.to_s.empty?
 
-          Onetime::Customer.find_by_extid(external_id)
+          cust = Onetime::Customer.find_by_extid(external_id)
+
+          # Credential watermark (#3810): a session established before the
+          # customer's last password change/reset must not resolve an identity.
+          # This is the anonymous-capable path (NoAuthStrategy), so a stale
+          # session degrades to nil/anonymous — never a 401 here; the
+          # session-requiring strategies reject with SESSION_STALE_CREDENTIALS
+          # in BaseSessionAuthStrategy instead.
+          return nil if session_predates_credential_change?(session, cust)
+
+          cust
         rescue StandardError => ex
           OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
           OT.ld ex.backtrace.first(3).join("\n")
           nil
+        end
+
+        # Whether a session blob was authenticated BEFORE the customer's last
+        # credential change (#3810). This predicate — not the enumerative blob
+        # deletion in the password hooks, which is hygiene — is the authoritative
+        # session-revocation boundary: a blob the hooks never found still dies
+        # here on its next request. Strict integer comparison of epoch seconds:
+        #
+        #   - No customer or no watermark (nil/0) => false. Deploying this check
+        #     can never mass-logout customers who never changed a password.
+        #   - Watermark set + missing authenticated_at (coerces to 0) => true.
+        #     Fail-secure: an identity-bearing blob with no login timestamp
+        #     cannot be proven to postdate the credential change.
+        #   - authenticated_at == watermark => false (strict <), so the current
+        #     session re-stamped by after_change_password survives its own
+        #     password change.
+        #
+        # @param session_data [Hash, #[], nil] Rack session (string keys)
+        # @param cust [Onetime::Customer, nil] customer resolved from the session
+        # @return [Boolean]
+        def session_predates_credential_change?(session_data, cust)
+          return false unless cust
+
+          watermark = cust.last_password_update.to_i
+          return false unless watermark.positive?
+
+          authenticated_at = session_data ? session_data['authenticated_at'].to_i : 0
+          authenticated_at < watermark
         end
 
         # Builds standard metadata hash from env

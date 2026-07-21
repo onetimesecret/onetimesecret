@@ -192,6 +192,81 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
     end
 
     # -----------------------------------------------------------------
+    # Credential watermark (#3810) — a session authenticated before the
+    # customer's last password change/reset must be rejected. This
+    # validation (not the enumerative blob deletion in the password hooks)
+    # is the authoritative revocation boundary. Strict integer epoch-second
+    # comparison against Customer#last_password_update.
+    # -----------------------------------------------------------------
+    context 'credential watermark (#3810)' do
+      let(:watermark) { Familia.now.to_i }
+
+      # Session env with a controllable authenticated_at; nil omits the key
+      # entirely (a pre-watermark-era or hand-rolled blob).
+      def env_with_authenticated_at(value)
+        session = {
+          'authenticated' => true,
+          'external_id' => test_customer.extid,
+          'email' => test_customer.email,
+        }
+        session['authenticated_at'] = value unless value.nil?
+        {
+          'rack.session' => session,
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      context 'with a session authenticated before the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(watermark - 100), nil)
+        end
+
+        it 'returns an AuthFailure (stale credentials)' do
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        end
+      end
+
+      context 'with a session authenticated exactly at the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(watermark), nil)
+        end
+
+        it 'authenticates (strict <, so the re-stamped current session survives its own change)' do
+          expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+          expect(result.authenticated?).to be true
+        end
+      end
+
+      context 'with no watermark on the customer' do
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(nil), nil)
+        end
+
+        it 'authenticates (absent watermark never rejects — deploy cannot mass-logout)' do
+          expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+          expect(result.authenticated?).to be true
+        end
+      end
+
+      context 'with a watermark set but no authenticated_at in the session' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(nil), nil)
+        end
+
+        it 'returns an AuthFailure (missing authenticated_at fails secure)' do
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        end
+      end
+    end
+
+    # -----------------------------------------------------------------
     # Metadata on successful auth
     # -----------------------------------------------------------------
     context 'metadata on successful auth' do
