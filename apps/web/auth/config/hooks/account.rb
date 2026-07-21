@@ -10,6 +10,16 @@ require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 
 module Auth::Config::Hooks
   module Account
+    # Resolve the Customer identifier for a Rodauth account row, fail SECURE:
+    # prefer external_id (== Customer.extid), fall back to email when it is blank
+    # so credential-change/reset revocation still runs rather than silently
+    # skipping. Called from the after_*_password hook blocks below, which execute
+    # in the Rodauth INSTANCE context — a bare private method would not be in
+    # scope there, so this is an explicit-receiver module method.
+    def self.resolve_custid(account)
+      account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
+    end
+
     # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength
     def self.configure(auth)
       #
@@ -520,7 +530,7 @@ module Auth::Config::Hooks
         # account email — RevokeAllForCustomerExceptCurrent resolves it the same way
         # (Customer.load_by_extid_or_email). Only when neither identifier is usable
         # do we skip, and then LOUDLY so a non-revoking reset is visible.
-        custid = account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
+        custid = Auth::Config::Hooks::Account.resolve_custid(account)
         if custid.to_s.strip.empty?
           Auth::Logging.log_auth_event(
             :sessions_revoke_skipped_no_identity,
@@ -727,7 +737,7 @@ module Auth::Config::Hooks
         # the account email — RevokeAllForCustomerExceptCurrent resolves it the same
         # way (Customer.load_by_extid_or_email). Only when neither identifier is
         # usable do we skip, and then LOUDLY so a non-revoking change is visible.
-        custid = account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
+        custid = Auth::Config::Hooks::Account.resolve_custid(account)
         if custid.to_s.strip.empty?
           Auth::Logging.log_auth_event(
             :sessions_revoke_skipped_no_identity,
@@ -818,25 +828,39 @@ module Auth::Config::Hooks
           end
         end
 
-        # Re-stamp the kept session (#3810): the credential watermark stamped
-        # above (UpdatePasswordMetadata) rejects any session authenticated before
-        # it, so the session the user changed their password FROM must postdate
-        # the watermark or validation kills it on its very next request. Same
-        # string key + clock as SyncSession#populate_session stamps at login.
-        session['authenticated_at'] = Familia.now.to_i
-
-        # Rotate the session id (#3810 session-fixation finding): a credential
-        # change is a privilege boundary, so the sid that existed before the
-        # change must not remain valid after it. Setting :renew makes Rack's
-        # commit path call Onetime::Session#delete_session (which DELETES the old
-        # sid's blob) and re-persist the session data under a fresh sid — the
-        # same lever the logout controller uses. write_session then re-creates
-        # the sidecar + index entry for the NEW sid via TrackMetadata, so only
-        # the old sid's metadata needs tidying here (the tidy_sidecars pattern
-        # from RevokeAllForCustomerExceptCurrent).
+        # Rotate the session id + re-stamp the kept session (#3810). The two are
+        # ordering-coupled, so both live inside the rotation block:
+        #
+        # ROTATION (session-fixation finding): a credential change is a privilege
+        # boundary, so the sid that existed before the change must not remain
+        # valid after it. Setting :renew makes Rack's commit path call
+        # Onetime::Session#delete_session (which DELETES the old sid's blob) and
+        # re-persist the session data under a fresh sid — the same lever the
+        # logout controller uses. write_session then re-creates the sidecar +
+        # index entry for the NEW sid via TrackMetadata, so only the old sid's
+        # metadata needs tidying here (the tidy_sidecars pattern from
+        # RevokeAllForCustomerExceptCurrent).
+        #
+        # RE-STAMP (watermark survival): the credential watermark stamped above
+        # (UpdatePasswordMetadata) rejects — via the auth-time `<=` check — any
+        # session whose authenticated_at is at or before it, so the kept session
+        # must be stamped to a value STRICTLY GREATER than the watermark or
+        # validation kills it on its very next request. The re-stamp runs ONLY
+        # after :renew has been requested, so a rotation that cannot happen fails
+        # SECURE: the un-rotated pre-change sid keeps its stale authenticated_at
+        # and the watermark (<=) retires it on its next request. Same string key
+        # + clock as SyncSession#populate_session stamps at login.
         begin
           if request.env['rack.session.options']
             request.env['rack.session.options'][:renew] = true
+
+            # Strictly postdate the watermark UpdatePasswordMetadata just wrote.
+            # [now, watermark + 1].max is > watermark under any clock relationship;
+            # if the watermark cannot be resolved (0) fall back to now + 1 so the
+            # "strictly greater than the real watermark" invariant still holds.
+            watermark                   = Onetime::Customer.load_by_extid_or_email(custid)&.last_password_update.to_i
+            session['authenticated_at'] =
+              watermark.positive? ? [Familia.now.to_i, watermark + 1].max : Familia.now.to_i + 1
 
             unless current_sid.to_s.empty?
               Onetime::SessionMetadata.load(current_sid)&.destroy!
@@ -844,6 +868,17 @@ module Auth::Config::Hooks
                 Onetime::Customer.load_by_extid_or_email(custid)&.active_sessions&.remove(current_sid)
               end
             end
+          else
+            # rack.session.options absent → Rack's renew lever is unavailable, so
+            # the sid cannot be rotated. Do NOT re-stamp: leaving the pre-change
+            # sid's stale authenticated_at in place lets the watermark (<=) retire
+            # it on its next request (fail SECURE). Log loudly so it is attributable.
+            Auth::Logging.log_auth_event(
+              :session_rotation_FAILED,
+              level: :error,
+              account_id: account_id,
+              security_warning: 'rack.session.options missing; session id not rotated, watermark will retire old sid',
+            )
           end
         rescue StandardError => ex
           # Rotation failure must never fail the password change, but must never
