@@ -39,7 +39,10 @@ OT.boot! :test, false
 
 require 'onetime/middleware/static_files'
 
-DEFAULT_PACK = File.join(Onetime::HOME, 'public', 'branding', 'default')
+# Derive the default pack dir from the resolver rather than hardcoding the path,
+# so this test tracks brand_pack_dir's resolution (root precedence, existence) if
+# it ever changes (#10).
+DEFAULT_PACK = Onetime.brand_pack_dir(Onetime::DEFAULT_BRAND_PACK)
 
 OT.conf['site'] ||= {}
 
@@ -72,6 +75,28 @@ File.write(File.join(@bad_manifest_pack, 'brand.yaml'), %(product_name: [1, 2\n)
 # `return {} unless manifest.is_a?(Hash)` guard in read_brand_manifest_scalars.
 @nonhash_manifest_pack = Dir.mktmpdir('ots-diag-nonhashpack')
 File.write(File.join(@nonhash_manifest_pack, 'brand.yaml'), %(hello\n))
+
+# A pack whose brand.yaml EXISTS but carries no identity scalars (comment only),
+# so manifest_exists stays true while live_scalars comes back empty. Used for #8
+# (a key recorded in absorbed_keys but absent from disk NOW — a since-removed
+# manifest key) and for the legacy-provenance guard.
+@manifestless_pack = Dir.mktmpdir('ots-diag-nokeys')
+File.write(File.join(@manifestless_pack, 'brand.yaml'), %(# no identity scalars\n))
+
+# A pack that mounts an ASSET (favicon) alongside a value-free brand.yaml — the
+# #7 asset-only-race shape: overlay_assets is non-empty but there are no scalars
+# to diff, so the scalar detector stays silent by design.
+@asset_only_pack = Dir.mktmpdir('ots-diag-assetonly')
+File.write(File.join(@asset_only_pack, 'brand.yaml'), %(# assets only, no scalars\n))
+File.write(File.join(@asset_only_pack, 'favicon.svg'), '<svg/>')
+
+# A pack whose brand.yaml was WHOLLY removed (file gone) but that still resolves
+# because an asset (favicon) lingers on disk. Exercises the #8 whole-file-removal
+# branch: manifest_exists is FALSE and live_scalars is empty, yet absorbed_keys
+# still names a value frozen in conf — so the union scan must admit on
+# absorbed_keys alone (manifest_exists must not short-circuit it).
+@removed_manifest_pack = Dir.mktmpdir('ots-diag-removed')
+File.write(File.join(@removed_manifest_pack, 'favicon.svg'), '<svg/>')
 
 def set_overlay(assets_dir: nil, pack: nil)
   OT.conf['site']['brand_assets_dir'] = assets_dir
@@ -141,6 +166,48 @@ OT.conf['brand'] = {}
 clear_overlay
 oa = Onetime.brand_pack_diagnostics['overlay_assets']
 [oa.include?('/favicon.svg'), oa.include?('/brand-logo.svg')]
+#=> [true, false]
+
+# ============================================================================
+# 2b. #9 explicit-default is neutral-by-choice, NOT a fallback
+# ============================================================================
+#
+# An operator MAY deliberately pin brand_assets_dir (or brand_pack) AT the
+# default pack to serve neutral branding on purpose. Resolution honors it and
+# lands on the default — but that is intent satisfied, not a fallback, so it must
+# NOT set fell_back_to_default (which would exit `bin/ots config brand` 1 on a
+# valid config). Before #9 any non-empty brand_assets_dir tripped the gate.
+
+## brand_assets_dir pinned at the default pack (absolute) -> resolves there, NOT a fallback
+OT.conf['brand'] = {}
+set_overlay(assets_dir: DEFAULT_PACK, pack: nil)
+d = Onetime.brand_pack_diagnostics
+[d['resolved_dir'] == DEFAULT_PACK, d['fell_back_to_default']]
+#=> [true, false]
+
+## same pin as a HOME-relative path -> normalized to the default pack, NOT a fallback
+OT.conf['brand'] = {}
+set_overlay(assets_dir: 'public/branding/default', pack: nil)
+d = Onetime.brand_pack_diagnostics
+[d['resolved_dir'] == DEFAULT_PACK, d['fell_back_to_default']]
+#=> [true, false]
+
+## brand_pack pinned at the default NAME -> resolves there, NOT a fallback (parity)
+OT.conf['brand'] = {}
+set_overlay(assets_dir: nil, pack: 'default')
+d = Onetime.brand_pack_diagnostics
+[d['resolved_dir'] == DEFAULT_PACK, d['fell_back_to_default']]
+#=> [true, false]
+
+## a TRAILING-SLASH default pin normalizes to the default pack, NOT a fallback.
+## The resolver preserves the slash in resolved_dir, and assets_norm carries the
+## same slash, so intent-vs-served stay in lockstep and the flag holds false. This
+## pins the byte-identical invariant: a future canonicalization that strips the
+## slash from resolved_dir but not assets_norm would flip this to a false positive.
+OT.conf['brand'] = {}
+set_overlay(assets_dir: 'public/branding/default/', pack: nil)
+d = Onetime.brand_pack_diagnostics
+[d['resolved_dir'].chomp('/') == DEFAULT_PACK, d['fell_back_to_default']]
 #=> [true, false]
 
 # ============================================================================
@@ -223,8 +290,93 @@ set_overlay(assets_dir: @pack_with_manifest, pack: nil)
 Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
 #=> true
 
+# ============================================================================
+# 5c. #8 removed-key provenance — a since-removed manifest key still detected
+# ============================================================================
+#
+# apply_brand_manifest records the keys it absorbed FROM the pack in
+# conf['brand_manifest']['absorbed_keys']. If such a key is later REMOVED from
+# brand.yaml on disk, it lingers in the frozen boot conf but is absent from a
+# live disk re-read (live_scalars) — a disk-only scan misses the divergence. The
+# union of live_scalars with absorbed_keys catches it, provenance-gated so a
+# legacy/default-filled conf key (never pack-sourced) is NOT flagged (#3612).
+
+## an absorbed key REMOVED from disk (empty live_scalars) but lingering in conf
+## with a non-empty value -> STILL a race (the disk-only scan would have missed it).
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = { 'product_name' => 'Absorbed At Boot' } # lingering pack value
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['product_name'] }
+set_overlay(assets_dir: @manifestless_pack, pack: nil) # brand.yaml exists, defines no product_name
+d = Onetime.brand_pack_diagnostics
+[d['manifest']['exists'], d['manifest']['keys_on_disk'], d['boot_vs_live_mismatch']]
+#=> [true, [], true]
+
+## converse: same removal but the lingering conf value is ALSO empty -> nothing
+## diverges (empty conf == absent disk), so NOT a race. Provenance alone never flags.
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = { 'product_name' => '' }
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['product_name'] }
+set_overlay(assets_dir: @manifestless_pack, pack: nil)
+Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
+#=> false
+
+## a legacy/default-filled key NOT in absorbed_keys that the pack does not offer is
+## NOT flagged: only positive pack provenance is scanned, so back-compat paths
+## (config.rb LEGACY_BRAND_FALLBACKS) never read as a race — the false-positive a
+## naive union-over-conf['brand'] fix would introduce (#3612).
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = { 'product_name' => 'Legacy SITE_NAME Value' }
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => [] }
+set_overlay(assets_dir: @manifestless_pack, pack: nil)
+Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
+#=> false
+
+## the WHOLE brand.yaml removed since boot (file gone, pack still resolves via a
+## lingering favicon): manifest_exists is FALSE, yet an absorbed key still lingers
+## in conf -> STILL a race. The union must admit on absorbed_keys alone here, since
+## manifest_exists is false and would otherwise short-circuit the scan (#8).
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = { 'product_name' => 'Absorbed At Boot' }
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => ['product_name'] }
+set_overlay(assets_dir: @removed_manifest_pack, pack: nil) # NO brand.yaml on disk
+d = Onetime.brand_pack_diagnostics
+[d['manifest']['exists'], d['boot_vs_live_mismatch']]
+#=> [false, true]
+
+## converse of the whole-file removal: NO absorbed_keys either (asset-only shape,
+## brand.yaml gone) -> the union is empty, .any? is false, so this correctly does
+## NOT flag. This is what keeps the manifest_exists||absorbed_keys.any? guard from
+## regressing the #7 asset-only-reads-healthy contract.
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = {}
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => [] }
+set_overlay(assets_dir: @removed_manifest_pack, pack: nil)
+Onetime.brand_pack_diagnostics['boot_vs_live_mismatch']
+#=> false
+
+# ============================================================================
+# 5d. #7 asset-only race — documented deferral (pins current behavior)
+# ============================================================================
+#
+# A non-default pack that mounts its ASSETS but ships no identity scalars is an
+# asset-only race. The scalar detector intentionally does NOT auto-flag it:
+# boot_vs_live_mismatch stays false (no scalars to diff) and fell_back_to_default
+# stays false (a non-default pack DID resolve), so `bin/ots config brand` exits 0.
+# overlay_assets still surfaces the asset for manual cross-region diffing. An
+# automatic signal awaits StaticFiles boot-baseline instrumentation. Pinned here
+# so any future change to this behavior is deliberate, not accidental.
+
+## asset-only race reads healthy on both danger flags; overlay_assets carries the asset
+ENV.delete('BRAND_PRODUCT_NAME')
+OT.conf['brand']          = {}
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => [] }
+set_overlay(assets_dir: @asset_only_pack, pack: nil)
+d = Onetime.brand_pack_diagnostics
+[d['boot_vs_live_mismatch'], d['fell_back_to_default'], d['overlay_assets'].include?('/favicon.svg')]
+#=> [false, false, true]
+
 # Reset provenance so later sections see the no-operator-keys baseline.
-OT.conf['brand_manifest'] = { 'operator_keys' => [] }
+OT.conf['brand_manifest'] = { 'operator_keys' => [], 'absorbed_keys' => [] }
 
 # ============================================================================
 # 6. Non-default pack configured but missing on disk -> fell_back_to_default
@@ -293,12 +445,19 @@ clear_overlay
 Onetime.brand_pack_diagnostics['env']['brand_pack']
 #=> nil
 
-# Teardown — restore the no-overlay baseline, ENV, and remove fixtures.
-OT.conf['brand']                    = @orig_brand
-OT.conf['brand_manifest']           = @orig_brand_manifest
-OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
-OT.conf['site']['brand_pack']       = @orig_pack
-@orig_env_pack.nil?      ? ENV.delete('BRAND_PACK')         : (ENV['BRAND_PACK'] = @orig_env_pack)
-@orig_env_assets.nil?    ? ENV.delete('BRAND_ASSETS_DIR')   : (ENV['BRAND_ASSETS_DIR'] = @orig_env_assets)
-@orig_env_prod_name.nil? ? ENV.delete('BRAND_PRODUCT_NAME') : (ENV['BRAND_PRODUCT_NAME'] = @orig_env_prod_name)
-[@pack_with_manifest, @bad_manifest_pack, @nonhash_manifest_pack].each { |d| FileUtils.remove_entry(d) rescue nil }
+# Teardown — restore the no-overlay baseline, ENV, and remove fixtures. The
+# OT.conf restore is wrapped so the PROCESS-GLOBAL cleanup (ENV vars + temp dirs)
+# still runs even if a conf restore raises: that state, not OT.conf, is what
+# poisons sibling try files sharing this process (#11).
+begin
+  OT.conf['brand']                    = @orig_brand
+  OT.conf['brand_manifest']           = @orig_brand_manifest
+  OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
+  OT.conf['site']['brand_pack']       = @orig_pack
+ensure
+  @orig_env_pack.nil?      ? ENV.delete('BRAND_PACK')         : (ENV['BRAND_PACK'] = @orig_env_pack)
+  @orig_env_assets.nil?    ? ENV.delete('BRAND_ASSETS_DIR')   : (ENV['BRAND_ASSETS_DIR'] = @orig_env_assets)
+  @orig_env_prod_name.nil? ? ENV.delete('BRAND_PRODUCT_NAME') : (ENV['BRAND_PRODUCT_NAME'] = @orig_env_prod_name)
+  [@pack_with_manifest, @bad_manifest_pack, @nonhash_manifest_pack,
+   @manifestless_pack, @asset_only_pack, @removed_manifest_pack].each { |d| FileUtils.remove_entry(d) rescue nil }
+end
