@@ -188,14 +188,25 @@ describe('validateRedirect', () => {
 });
 
 describe('isAllowedCheckoutUrl', () => {
+  let originalLocation: Location;
+
   beforeEach(() => {
+    originalLocation = window.location;
     Object.defineProperty(window, 'location', {
       value: { origin: 'https://onetimesecret.com' },
       writable: true,
+      configurable: true,
     });
   });
 
   afterEach(() => {
+    // Restore the real Location so a partial stub doesn't leak into other test
+    // files sharing this Vitest worker (see src/tests/router/guards.routes.spec.ts).
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
     // Reset the module-level configured host so state doesn't leak between tests.
     setAllowedCheckoutHost(null);
   });
