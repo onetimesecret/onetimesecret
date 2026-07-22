@@ -1,15 +1,16 @@
 # Security & Code Audit — 2026-07-19
 
-- **Repo:** `/Users/d/Projects/dev/onetimesecret/onetimesecret`
-- **Method:** `/audit` workflow (fan-out finders per dimension → adversarial refute panel per candidate → synthesis), plus manual empirical verification of the contested HIGH findings.
-- **Workflow run:** `wf_e45a0e8f-571` (first pass session-limited: 12/31 agents failed; resumed to completion: 76 agents, 0 errors, deps dimension replayed from cache).
+- **Repo:** onetimesecret/onetimesecret
+- **Method:** Automated multi-agent audit (fan-out finders per dimension → adversarial refute panel per candidate → synthesis), plus manual empirical verification of the contested HIGH findings.
 - **Dimensions:** security, correctness, tests, dead code, deps.
+
+> **Historical reference.** This report reflects the codebase and remediation state as of 2026-07-19. It covers one automated audit pass; it is not a comprehensive statement of the application's security posture, and other reviews are tracked separately.
 
 Note on provenance: the workflow's own synthesis reported "3 high (session fixation via URL-param SID, two untested MFA security controls)". That headline is not reliable — the synthesis over-trusted a split verification panel. The findings below reflect manual verification of the decisive cases against the actual code.
 
 ---
 
-## Bottom line: zero real vulnerabilities
+## Bottom line: no confirmed vulnerabilities from this pass
 
 The workflow reported "3 high" findings. None survive scrutiny. The three HIGH "session" findings are false positives (verified empirically). The two MFA-labeled HIGH findings are real test-coverage gaps, not live bugs.
 
@@ -44,8 +45,8 @@ Latent nit, not a finding: the dead guard block means the child's intended `sidb
 
 ### Two real test-coverage gaps on MFA enforcement (finder labeled HIGH; they are gaps, not live bugs)
 
-- `apps/web/auth/operations/mfa_state_checker.rb:138` — `query_mfa_state` is the DB read that arms MFA enforcement (feeds `DetectMfaRequirement` via the after-login hook) and has **zero tests**; the consumer specs pass hard-coded booleans, so the real table/count logic never runs. A silent-false regression would disable MFA enforcement with nothing to catch it.
-- `apps/web/auth/operations/prepare_mfa_session.rb:89` — writes the `awaiting_mfa` guard flag; no direct test exercises it. (The "complete MFA bypass" framing was overstated — there is defense-in-depth — but the coverage hole is real.)
+- The DB read that arms MFA enforcement (feeding the after-login requirement check) lacked direct test coverage; consumer specs pass hard-coded booleans, so the real table/count logic never ran under test. A silent-false regression would have weakened MFA enforcement with nothing to catch it.
+- The operation that writes the awaiting-MFA session guard flag likewise had no direct test. (The "complete MFA bypass" framing was overstated — there is defense-in-depth — but the coverage hole was real.)
 
 ### One latent correctness bug
 
