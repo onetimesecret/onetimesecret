@@ -1,7 +1,6 @@
 <!-- src/apps/session/views/Login.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -12,6 +11,7 @@ import { useLanguageStore } from '@/shared/stores/languageStore';
 import { hasPasswordlessMethods } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 const { t } = useI18n();
@@ -153,10 +153,13 @@ const handleModeChange = (_mode: AuthMode) => {
       <template v-else>
         <!-- Post-verification success: persistent confirmation that the email
              was verified, shown until the user leaves the page. -->
+        <!-- prettier-ignore-attribute class -->
         <div
           v-if="verifiedNotice"
           role="status"
-          class="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
+          class="
+            mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3
+            text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
           data-testid="signin-verified-notice">
           <OIcon
             collection="heroicons"
@@ -167,10 +170,13 @@ const handleModeChange = (_mode: AuthMode) => {
         </div>
 
         <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
+        <!-- prettier-ignore-attribute class -->
         <div
           v-if="authError"
           role="alert"
-          class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          class="
+            mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700
+            dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {{ authError }}
         </div>
 
@@ -188,16 +194,22 @@ const handleModeChange = (_mode: AuthMode) => {
         class="flex items-center justify-center gap-2 text-sm">
         <!-- Consistent footer for all modes when passwordless methods enabled -->
         <template v-if="passwordlessEnabled">
+          <!-- prettier-ignore-attribute class -->
           <router-link
             to="/help"
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
+            class="
+              text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline
+              dark:text-gray-400 dark:hover:text-gray-300">
             {{ t('web.login.need_help') }}
           </router-link>
           <template v-if="signupEnabled">
             <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
+            <!-- prettier-ignore-attribute class -->
             <router-link
               :to="signupLink"
-              class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
+              class="
+                text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline
+                dark:text-gray-400 dark:hover:text-gray-300">
               {{ t('web.login.create_account') }}
             </router-link>
           </template>
@@ -208,9 +220,12 @@ const handleModeChange = (_mode: AuthMode) => {
             {{ t('web.login.alternate_prefix') }}
           </span>
           {{ ' ' }}
+          <!-- prettier-ignore-attribute class -->
           <router-link
             :to="signupLink"
-            class="font-medium text-brand-600 underline transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+            class="
+              font-medium text-brand-600 underline transition-colors duration-200
+              hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
             {{ t('web.login.need_an_account') }}
           </router-link>
         </template>

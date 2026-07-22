@@ -1,11 +1,11 @@
 // src/utils/features.ts
 
-import { getBootstrapValue } from '@/services/bootstrap.service';
 import {
   featuresSchema,
   type AuthenticationSettings,
   type Features,
 } from '@/schemas/contracts/bootstrap';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { debugLog } from '@/utils/debug';
 
 /**

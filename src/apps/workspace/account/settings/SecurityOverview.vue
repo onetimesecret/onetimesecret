@@ -1,14 +1,14 @@
 <!-- src/apps/workspace/account/settings/SecurityOverview.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAccount } from '@/shared/composables/useAccount';
-  import { hasPasswordOf, isMfaEnabledOf, isSsoEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { AccountInfo } from '@/types/auth';
+  import { hasPasswordOf, isMfaEnabledOf, isSsoEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
   import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
@@ -221,9 +221,12 @@
   <SettingsLayout>
     <div class="space-y-8">
       <!-- Security Score Card -->
+      <!-- prettier-ignore-attribute class -->
       <div
         v-if="false"
-        class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+        class="
+          rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm
+          dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="flex items-start justify-between">
           <div>
             <h2 class="text-lg font-medium text-gray-600 dark:text-gray-300">
@@ -285,12 +288,18 @@
       </div>
 
       <!-- SSO empty state — shown when all cards are filtered out -->
+      <!-- prettier-ignore-attribute class -->
       <div
         v-if="!hasPw && securityCards.length === 0"
-        class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+        class="
+          rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm
+          dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="flex items-start gap-4">
+          <!-- prettier-ignore-attribute class -->
           <div
-            class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+            class="
+              flex size-12 shrink-0 items-center justify-center rounded-lg
+              bg-brand-50 dark:bg-brand-900/20">
             <OIcon
               collection="heroicons"
               name="shield-check-solid"
@@ -312,13 +321,19 @@
       <div
         v-if="securityCards.length > 0"
         class="grid gap-6 sm:grid-cols-2">
+        <!-- prettier-ignore-attribute class -->
         <div
           v-for="card in securityCards"
           :key="card.id"
-          class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          class="
+            rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm
+            dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="flex items-start gap-4">
+            <!-- prettier-ignore-attribute class -->
             <div
-              class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+              class="
+                flex size-12 shrink-0 items-center justify-center rounded-lg
+                bg-gray-100 dark:bg-gray-700">
               <OIcon
                 :collection="card.icon.collection"
                 :name="card.icon.name"
@@ -346,9 +361,12 @@
 
               <!-- Action Button -->
               <div class="mt-4">
+                <!-- prettier-ignore-attribute class -->
                 <router-link
                   :to="card.action.to"
-                  class="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                  class="
+                    inline-flex items-center gap-2 text-sm font-medium text-brand-600
+                    hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
                   {{ card.action.label }}
                   <OIcon
                     collection="heroicons"

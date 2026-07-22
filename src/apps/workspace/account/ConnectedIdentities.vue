@@ -1,17 +1,17 @@
 <!-- src/apps/workspace/account/ConnectedIdentities.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import { useConfirmDialog } from '@vueuse/core';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
-  import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
-  import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { useConnectedIdentities } from '@/shared/composables/useConnectedIdentities';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { submitSsoLogin } from '@/shared/utils/sso';
   import { getSsoProviders, type SsoProvider } from '@/utils/features';
+  import { useConfirmDialog } from '@vueuse/core';
   import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const csrfStore = useCsrfStore();
@@ -137,10 +137,13 @@
               ]">
               {{ error }}
             </p>
+            <!-- prettier-ignore-attribute class -->
             <button
               @click="clearError"
               type="button"
-              class="ml-auto shrink-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              class="
+                ml-auto shrink-0 text-gray-500 hover:text-gray-700
+                dark:text-gray-400 dark:hover:text-gray-200"
               aria-label="Dismiss">
               <OIcon
                 collection="heroicons"
@@ -154,8 +157,11 @@
         <!-- Identities card -->
         <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
           <div class="flex items-center gap-3">
+            <!-- prettier-ignore-attribute class -->
             <div
-              class="flex size-12 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+              class="
+                flex size-12 items-center justify-center rounded-lg
+                bg-brand-100 dark:bg-brand-900/30">
               <OIcon
                 collection="heroicons"
                 name="globe-alt-solid"
@@ -212,7 +218,7 @@
                   <!-- Issuer is hidden for the '' sentinel (legacy / OAuth2-only rows) -->
                   <p
                     v-if="identity.issuer"
-                    class="break-all text-sm text-gray-500 dark:text-gray-400">
+                    class="text-sm break-all text-gray-500 dark:text-gray-400">
                     {{ t('web.auth.connections.issuer') }}: {{ identity.issuer }}
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -220,12 +226,16 @@
                   </p>
                 </div>
               </div>
+              <!-- prettier-ignore-attribute class -->
               <button
                 @click="handleRemove(identity.id)"
                 type="button"
                 :disabled="isLoading"
                 :data-testid="`connections-remove-${identity.id}`"
-                class="shrink-0 text-sm font-medium text-red-600 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300">
+                class="
+                  shrink-0 text-sm font-medium text-red-600 hover:text-red-500
+                  disabled:cursor-not-allowed disabled:opacity-50
+                  dark:text-red-400 dark:hover:text-red-300">
                 {{ t('web.auth.connections.remove') }}
               </button>
             </li>
@@ -244,13 +254,18 @@
               {{ t('web.auth.connections.connect_description') }}
             </p>
             <div class="mt-4 flex flex-wrap gap-3">
+              <!-- prettier-ignore-attribute class -->
               <button
                 v-for="provider in connectableProviders"
                 :key="provider.route_name"
                 @click="handleConnect(provider)"
                 type="button"
                 :data-testid="`connections-connect-${provider.route_name}`"
-                class="inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-300 dark:hover:bg-brand-900/40">
+                class="
+                  inline-flex items-center gap-2 rounded-lg border border-brand-200
+                  bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors
+                  hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-900/20
+                  dark:text-brand-300 dark:hover:bg-brand-900/40">
                 <OIcon
                   collection="heroicons"
                   name="link-solid"
@@ -264,14 +279,20 @@
 
         <!-- Related settings -->
         <div class="mt-6 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+          <!-- prettier-ignore-attribute class -->
           <h3
-            class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            class="
+              mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase
+              dark:text-gray-400">
             {{ t('web.LABELS.related_settings') }}
           </h3>
           <div class="space-y-2">
+            <!-- prettier-ignore-attribute class -->
             <router-link
               to="/account/settings/security/sessions"
-              class="flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+              class="
+                flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600
+                dark:text-gray-300 dark:hover:text-brand-400">
               <OIcon
                 collection="heroicons"
                 name="computer-desktop-solid"
@@ -279,9 +300,12 @@
                 aria-hidden="true" />
               <span>{{ t('web.auth.sessions.link_title') }}</span>
             </router-link>
+            <!-- prettier-ignore-attribute class -->
             <router-link
               to="/account/settings/security/passkeys"
-              class="flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
+              class="
+                flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600
+                dark:text-gray-300 dark:hover:text-brand-400">
               <OIcon
                 collection="heroicons"
                 name="finger-print-solid"

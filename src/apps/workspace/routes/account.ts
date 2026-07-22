@@ -1,9 +1,9 @@
 // src/apps/workspace/routes/account.ts
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
-import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
 import { hasPassword, isFullAuthMode, isOwnerOrAdmin } from '@/utils/features';
+import type { RouteRecordRaw } from 'vue-router';
 
 /**
  * Route guard for org-management account routes (password, MFA,
