@@ -229,20 +229,22 @@ module Onetime
     # Snapshot of the scheme-detection signals Rack consults in Request#scheme.
     # We reach this method only when req.ssl? is already false, so any signal
     # present here definitionally did NOT carry an https value -- its value (or
-    # absence) is the diagnostic. rack.url_scheme and X-Forwarded-Proto are bare
-    # scheme tokens ("http", "https", or a proto list) with no client PII, so we
-    # log them verbatim: the value distinguishes "proxy forwarded http" from
-    # "proxy forwarded nothing", which a boolean would erase. HTTP_FORWARDED
-    # (RFC 7239) can carry the forwarded client IP in its `for=` parameter, and
-    # X-Forwarded-Ssl/HTTPS are boolean by nature, so those stay presence-only.
+    # absence) is the diagnostic. rack.url_scheme, X-Forwarded-Proto, X-Forwarded-Ssl
+    # and HTTPS are all bare tokens with no client PII, so we log them verbatim:
+    # the raw value distinguishes "proxy forwarded http"/"HTTPS=off" from "proxy
+    # forwarded nothing" (nil), which a presence boolean would erase -- and it
+    # avoids the trap where env.key?('HTTPS') reports true for an explicit
+    # HTTPS=off (Rack only treats 'on' as ssl, so `https: "off"` is the honest
+    # evidence). HTTP_FORWARDED (RFC 7239) can carry the forwarded client IP in
+    # its `for=` parameter, so it stays presence-only to keep PII out of the log.
     def scheme_evidence(request)
       env = request.env
       {
         rack_url_scheme: env['rack.url_scheme'],
         x_forwarded_proto: env['HTTP_X_FORWARDED_PROTO'],
         forwarded: env.key?('HTTP_FORWARDED'),
-        x_forwarded_ssl: env.key?('HTTP_X_FORWARDED_SSL'),
-        https: env.key?('HTTPS'),
+        x_forwarded_ssl: env['HTTP_X_FORWARDED_SSL'],
+        https: env['HTTPS'],
       }
     end
 

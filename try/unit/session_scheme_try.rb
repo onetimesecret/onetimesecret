@@ -95,12 +95,13 @@ CAPTURED_WARNINGS.first.include?('ASSUME_HTTPS=true') &&
 #=> true
 
 ## (a4) ...and the warning carries the scheme-evidence snapshot as its own proof:
-## for a plain HTTP request every scheme signal is absent (X-Forwarded-Proto is
-## logged by value, so absent => nil) and the resolved scheme is nil.
+## for a plain HTTP request every scheme signal is absent. The scheme tokens
+## (X-Forwarded-Proto, X-Forwarded-Ssl, HTTPS) are logged by value, so absent =>
+## nil; HTTP_FORWARDED stays presence-only (false) to keep client PII out.
 reset_warn_guard!
 @session.send(:security_matches?, request_for({}), { secure: true })
 CAPTURED_PAYLOADS.first
-#=> { rack_url_scheme: nil, x_forwarded_proto: nil, forwarded: false, x_forwarded_ssl: false, https: false }
+#=> { rack_url_scheme: nil, x_forwarded_proto: nil, forwarded: false, x_forwarded_ssl: nil, https: nil }
 
 ## (a5) ...and a present-but-non-https X-Forwarded-Proto is recorded by VALUE in
 ## the evidence ('http' reached Rack but did not carry https) => pinpoints the hop
@@ -110,7 +111,17 @@ reset_warn_guard!
 partial = request_for({ 'HTTP_X_FORWARDED_PROTO' => 'http' })
 @session.send(:security_matches?, partial, { secure: true })
 [partial.ssl?, CAPTURED_PAYLOADS.first[:x_forwarded_proto], CAPTURED_PAYLOADS.first[:https]]
-#=> [false, 'http', false]
+#=> [false, 'http', nil]
+
+## (a6) ...and an explicit HTTPS=off is recorded by VALUE, not erased to a
+## misleading presence boolean. Rack treats only HTTPS=='on' as ssl, so 'off'
+## still resolves ssl? false and we log `https: "off"` -- the honest evidence
+## that a proxy set the header to a non-https value (vs. nil = header absent).
+reset_warn_guard!
+off_req = request_for({ 'HTTPS' => 'off' })
+@session.send(:security_matches?, off_req, { secure: true })
+[off_req.ssl?, CAPTURED_PAYLOADS.first[:https]]
+#=> [false, 'off']
 
 ## (b) assume_https ON upgrades the scheme (Part 1): plain HTTP env is marked HTTPS
 @env = {}
