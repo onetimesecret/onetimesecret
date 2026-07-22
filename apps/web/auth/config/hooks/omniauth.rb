@@ -30,6 +30,87 @@ module Auth::Config::Hooks
         provider         = omniauth_provider
 
         # ────────────────────────────────────────────────────────────────
+        # #3840 Phase 2: authenticated identity connect (session == credential)
+        # ────────────────────────────────────────────────────────────────
+        #
+        # INVARIANT: email may LOCATE an account; only a demonstrated
+        # CREDENTIAL may BIND an identity. Here the credential is an ACTIVE
+        # AUTHENTICATED SESSION whose account IS the located account — the
+        # strongest possible proof of ownership. When a logged-in user connects
+        # a NEW IdP to their OWN account, bind it.
+        #
+        # Evaluated FIRST (before the trusted-provider auto-link and the H-3
+        # refusal below) because a proven session credential outranks the
+        # email-only heuristics those branches rely on. It is reached only for a
+        # NEW identity: an existing (provider, issuer, uid) row routes the gem to
+        # account_from_omniauth_identity and never enters this hook.
+        #
+        # SECURITY TRAPS (all three are guarded here):
+        #   (a) NEVER return nil on the located==self path — nil falls through to
+        #       omniauth_create_account, which inserts the located email and 500s
+        #       on the unique accounts.email index. Return the located account so
+        #       the gem's create_omniauth_identity upserts the (provider, issuer,
+        #       uid) row onto THAT already-authenticated account (confirmed vs
+        #       rodauth-omniauth 0.6.2 _handle_omniauth_callback: a returned
+        #       account skips create-account, and create_omniauth_identity binds
+        #       the row to account_id, then login re-affirms the same session).
+        #   (b) TAKEOVER GUARD: bind ONLY when the located account IS the session
+        #       account. If logged in but the email locates a DIFFERENT account
+        #       (or no account at all), refuse — never silently take over another
+        #       account, never create a duplicate.
+        #   (c) SURFACE ISOLATION: bind ONLY on the PLATFORM surface
+        #       (session[:validated_omniauth_domain_id] nil). A tenant callback
+        #       must not bind a tenant-issuer identity via this flow: a tenant
+        #       admin controls their IdP's assertions, so a tenant identity bound
+        #       onto an account would hand them a login into it. Tenant-surface
+        #       authenticated linking needs org-membership verification and is a
+        #       deliberate follow-up (see docs / open questions).
+        if logged_in?
+          session_account_id = session_value
+          platform_path      = session[:validated_omniauth_domain_id].nil?
+          located_is_self    = existing &&
+                               existing[account_id_column].to_s == session_account_id.to_s
+
+          if platform_path && located_is_self
+            Auth::Logging.log_auth_event(
+              :omniauth_identity_connected,
+              level: :warn,
+              email: OT::Utils.obscure_email(normalized_email),
+              provider: provider,
+              issuer: resolved_issuer,
+              account_id: session_account_id,
+            )
+            next existing
+          end
+
+          # Logged in but NOT a clean self-bind on the platform surface:
+          #   - tenant callback            => wrong surface (isolation)
+          #   - located account != self    => cross-account conflict (takeover)
+          #   - no account for this email  => would spawn a duplicate on JIT create
+          # Refuse in all cases. NEVER fall through to the trusted-provider or
+          # H-3 branches (which reason about email only) or to JIT create.
+          refuse_reason =
+            if !platform_path
+              'tenant_surface'
+            elsif existing
+              'account_conflict'
+            else
+              'no_matching_account'
+            end
+          Auth::Logging.log_auth_event(
+            :omniauth_identity_connect_refused,
+            level: :warn,
+            email: OT::Utils.obscure_email(normalized_email),
+            provider: provider,
+            reason: refuse_reason,
+          )
+          set_redirect_error_flash 'This identity could not be connected to your account. ' \
+                                   'It may already belong to a different account, or the ' \
+                                   'connection was started on the wrong domain.'
+          redirect '/signin?auth_error=identity_connect_conflict'
+        end
+
+        # ────────────────────────────────────────────────────────────────
         # #3836: opt-in, per-provider, boot-guarded email-based linking
         # ────────────────────────────────────────────────────────────────
         #
