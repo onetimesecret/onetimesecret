@@ -43,9 +43,12 @@ end
 
 # Capture OT.lw so we can assert the Part 2 dropped-cookie warning fires.
 # OT.lw is a class method on Onetime; override it to append to a constant
-# array (closure-captured). Single-file tryout process, so no cross-file leak.
+# array (closure-captured). Tryouts runs every try/unit file in ONE process, so
+# this singleton override WOULD leak into later files; ORIGINAL_OT_LW below
+# preserves the real method and the final teardown restores it.
 CAPTURED_WARNINGS = []
 CAPTURED_PAYLOADS = []
+ORIGINAL_OT_LW = OT.method(:lw)
 OT.define_singleton_method(:lw) do |*msgs, **payload|
   CAPTURED_WARNINGS << msgs.join(' ')
   CAPTURED_PAYLOADS << payload
@@ -92,20 +95,22 @@ CAPTURED_WARNINGS.first.include?('ASSUME_HTTPS=true') &&
 #=> true
 
 ## (a4) ...and the warning carries the scheme-evidence snapshot as its own proof:
-## for a plain HTTP request every scheme signal is absent and the scheme is nil.
+## for a plain HTTP request every scheme signal is absent (X-Forwarded-Proto is
+## logged by value, so absent => nil) and the resolved scheme is nil.
 reset_warn_guard!
 @session.send(:security_matches?, request_for({}), { secure: true })
 CAPTURED_PAYLOADS.first
-#=> { rack_url_scheme: nil, x_forwarded_proto: false, forwarded: false, x_forwarded_ssl: false, https: false }
+#=> { rack_url_scheme: nil, x_forwarded_proto: nil, forwarded: false, x_forwarded_ssl: false, https: false }
 
-## (a5) ...and a present-but-non-https X-Forwarded-Proto is recorded as PRESENT
-## in the evidence (it reached Rack but did not carry https) => pinpoints the hop
-## without us reconstructing it. Rack still resolves scheme http, so ssl? false.
+## (a5) ...and a present-but-non-https X-Forwarded-Proto is recorded by VALUE in
+## the evidence ('http' reached Rack but did not carry https) => pinpoints the hop
+## AND the scheme it claimed, without us reconstructing it. Rack still resolves
+## scheme http, so ssl? false.
 reset_warn_guard!
 partial = request_for({ 'HTTP_X_FORWARDED_PROTO' => 'http' })
 @session.send(:security_matches?, partial, { secure: true })
 [partial.ssl?, CAPTURED_PAYLOADS.first[:x_forwarded_proto], CAPTURED_PAYLOADS.first[:https]]
-#=> [false, true, false]
+#=> [false, 'http', false]
 
 ## (b) assume_https ON upgrades the scheme (Part 1): plain HTTP env is marked HTTPS
 @env = {}
@@ -150,5 +155,19 @@ assume_https_middleware(true).call(env)
 request_for(env).ssl?
 #=> true
 
+## (e) THROTTLE: within SECURE_COOKIE_WARN_INTERVAL the dropped-cookie warning
+## fires at most once per process. Two back-to-back drops => exactly one captured
+## warning (the monotonic guard suppresses the second). Deterministic: no sleep,
+## the interval is 300s and the clock is monotonic, so both calls fall inside it.
+reset_warn_guard!
+2.times { @session.send(:security_matches?, request_for({}), { secure: true }) }
+CAPTURED_WARNINGS.length
+#=> 1
+
 # Restore the flag to its default OFF state for hygiene.
 (OT.conf['site']['network'] ||= {})['assume_https'] = false
+
+# Restore the real OT.lw. Tryouts shares one process across try/unit files, so
+# leaving the capturing override in place would silently swallow warnings emitted
+# by every later file.
+OT.define_singleton_method(:lw, &ORIGINAL_OT_LW)
