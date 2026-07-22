@@ -67,12 +67,21 @@ site:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
-        # Deployment-wide default landing page when the homepage secret form
-        # is gated by auth (auth.required or mode=external). One of: closed
-        # (quiet two-tagline, no CTA), minimal, or v1. Per-domain config and
-        # the ?variant= URL override take precedence; blank uses the frontend
-        # default (closed).
+        # Deployment-wide default landing page for the CANONICAL site when the
+        # homepage secret form is gated by auth (auth.required or mode=external).
+        # One of: closed (quiet two-tagline, no CTA), minimal, or v1. Per-domain
+        # config and the ?variant= URL override take precedence; blank uses the
+        # frontend default (closed). Applies to the canonical site only —
+        # custom domains use custom_disabled_variant below.
         disabled_variant: <%= ENV['DEFAULT_DISABLED_HOMEPAGE_VARIANT'] || nil %>
+        # Deployment-wide default landing page for CUSTOM DOMAINS whose homepage
+        # is private (homepage disabled, or incoming mode degraded at runtime).
+        # Same values as disabled_variant (closed / minimal / v1). Kept separate
+        # so the canonical and custom-domain defaults stay decoupled: a custom
+        # domain does NOT inherit disabled_variant. Per-domain config
+        # (homepage_config.disabled_homepage_variant) and the ?variant= URL
+        # override take precedence; blank uses the frontend default (closed).
+        custom_disabled_variant: <%= ENV['DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT'] || nil %>
         # Links rendered when a public visitor lands on the homepage but
         # the secret form is gated by auth (e.g. mode=external). Recipients
         # arriving via a shared link use these to learn about the service.

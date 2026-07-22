@@ -70,8 +70,11 @@ module Onetime
 
       # Which disabled-homepage variant this domain renders when the homepage
       # secret form is gated by auth. nil (unset) = fall back to the
-      # deployment-wide default (site.interface.ui.homepage.disabled_variant)
-      # and ultimately the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant.
+      # deployment-wide custom-domain default
+      # (site.interface.ui.homepage.custom_disabled_variant) and ultimately the
+      # frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant. Custom domains do
+      # NOT inherit the canonical-site disabled_variant — the two tiers are
+      # kept decoupled.
       field :disabled_homepage_variant
 
       # Which interactive experience the homepage offers when enabled
