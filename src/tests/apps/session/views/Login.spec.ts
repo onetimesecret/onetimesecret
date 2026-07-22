@@ -13,6 +13,8 @@
  * - token_expired -> web.login.errors.token_expired
  * - token_invalid -> web.login.errors.token_invalid
  * - invalid_email -> web.login.errors.invalid_email
+ * - account_exists_link_required -> web.login.errors.account_exists_link_required
+ * - org_join_failed -> web.login.errors.org_join_failed
  *
  * Unrecognized codes fall back to the generic sso_failed message so the page
  * never renders blank (issue #3478 — the "frozen loading screen").
@@ -170,6 +172,24 @@ describe('Login.vue auth_error handling', () => {
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
       expect(alert.text()).toContain('web.login.errors.invalid_email');
+    });
+
+    it('displays account_exists_link_required error from SSO (#3840)', async () => {
+      wrapper = await createWrapper({ auth_error: 'account_exists_link_required' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.account_exists_link_required');
+    });
+
+    it('displays org_join_failed error from tenant SSO', async () => {
+      wrapper = await createWrapper({ auth_error: 'org_join_failed' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.org_join_failed');
     });
 
     it('shows a generic error for unknown codes (never a blank page)', async () => {

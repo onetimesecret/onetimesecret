@@ -131,6 +131,23 @@ full:
     # Default: false (require explicit per-domain SSO configuration)
     allow_platform_fallback_for_tenants: <%= ENV['SSO_ALLOW_PLATFORM_FALLBACK'] == 'true' %>
 
+    # Email-based account linking trust (deprecated single-OIDC / global default)
+    #
+    # The ONE sanctioned exception to the invariant that email may LOCATE an
+    # account but only a demonstrated credential may BIND. When true, an SSO
+    # identity whose email matches an existing account is auto-linked to it,
+    # instead of being refused (the H-3 default). Only enable this when the
+    # operator controls BOTH OTS and the IdP (self-hosted single-tenant, #3836).
+    #
+    # This global value applies to the platform (env-configured) provider path
+    # only; it is ignored on the multi-tenant (tenant SsoConfig) surface by
+    # construction. Per-provider overrides (OIDC_TRUST_EMAIL_FOR_LINKING,
+    # ENTRA_TRUST_EMAIL_FOR_LINKING, GOOGLE_*, GITHUB_*) take precedence.
+    #
+    # Default: false (refuse email-based auto-linking — require explicit,
+    # authenticated linking from account settings)
+    trust_email_for_linking: <%= ENV['SSO_TRUST_EMAIL_FOR_LINKING'] == 'true' %>
+
   # Argon2 secret key (pepper) for password hashing defense-in-depth.
   # Folded into password hashes — if the hash database is compromised,
   # passwords remain protected unless this secret is also leaked.
