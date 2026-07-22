@@ -388,6 +388,43 @@ RSpec.describe Onetime::AuthConfig do
       config = fresh_config('GITHUB_TRUST_EMAIL_FOR_LINKING' => 'false')
       expect(config.trust_email_for_linking_enabled?).to be false
     end
+
+    # Truth-table (b) — global true, all provider vars absent → true — is
+    # already covered by 'returns true when the global flag is set' above.
+
+    it 'returns false when the global flag is set but every provider opts out' do
+      # Truth-table (a) — the #3844 fix. A global true with EVERY provider
+      # explicitly false means linking is disabled everywhere; the boot guard
+      # must NOT warn about a flag that has no effect.
+      config = fresh_config(
+        'SSO_TRUST_EMAIL_FOR_LINKING' => 'true',
+        'OIDC_TRUST_EMAIL_FOR_LINKING' => 'false',
+        'ENTRA_TRUST_EMAIL_FOR_LINKING' => 'false',
+        'GOOGLE_TRUST_EMAIL_FOR_LINKING' => 'false',
+        'GITHUB_TRUST_EMAIL_FOR_LINKING' => 'false',
+      )
+      expect(config.trust_email_for_linking_enabled?).to be false
+    end
+
+    it 'returns true when the global flag is set and only some providers opt out' do
+      # Guards against over-correcting the fix: providers WITHOUT an explicit
+      # var still inherit the global true, so the flag remains effectively on.
+      config = fresh_config(
+        'SSO_TRUST_EMAIL_FOR_LINKING' => 'true',
+        'GITHUB_TRUST_EMAIL_FOR_LINKING' => 'false',
+      )
+      expect(config.trust_email_for_linking_enabled?).to be true
+    end
+
+    it 'returns true for a trusted provider on a custom route name' do
+      # Truth-table (c): a custom *_ROUTE_NAME must still round-trip through
+      # provider_definition_for_route back to its own trust var.
+      config = fresh_config(
+        'OIDC_ROUTE_NAME' => 'zitadel',
+        'OIDC_TRUST_EMAIL_FOR_LINKING' => 'true',
+      )
+      expect(config.trust_email_for_linking_enabled?).to be true
+    end
   end
 
   # ── RESTRICT_TO_VALUES constant ────────────────────────────────────

@@ -182,6 +182,8 @@ Per-provider environment variables, plus a global fallback. Default is **false**
 
 Set the value to the string `true` to enable; anything else (or unset) is disabled. Precedence: a per-provider variable, **when present**, wins for that provider (`true` enables, any other value disables); otherwise the global `SSO_TRUST_EMAIL_FOR_LINKING=true` enables linking for every platform provider that has no per-provider override; otherwise the default of `false` applies.
 
+**Opting a single provider out of a global `true` requires an explicit `=false`, not omission.** With `SSO_TRUST_EMAIL_FOR_LINKING=true`, a provider whose `*_TRUST_EMAIL_FOR_LINKING` is simply left unset *inherits* the global `true` — it is not opted out. To disable linking for one provider while keeping the global default for the others, set that provider's variable explicitly, e.g. `GITHUB_TRUST_EMAIL_FOR_LINKING=false`. Setting **every** provider to `false` disables the feature entirely even with the global `true` still present.
+
 **What it does when true:** for the matched provider, `account_from_omniauth` returns the account located by the (normalized, case-insensitive) email instead of refusing. `rodauth-omniauth` then persists the `(provider, uid)` row and signs the user in — the intended auto-link. The lookup surface is unchanged: it is the *same* normalized email H-3 already used, just no longer refused. Each such link emits an `omniauth_email_linked_trusted_provider` audit event at level `warn`, so linking-by-trust is always visible in the audit log.
 
 ### Threat-model caveat

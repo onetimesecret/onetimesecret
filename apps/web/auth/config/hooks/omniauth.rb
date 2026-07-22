@@ -91,7 +91,7 @@ module Auth::Config::Hooks
             :omniauth_link_refused_existing_account,
             level: :warn,
             email: OT::Utils.obscure_email(normalized_email),
-            provider: omniauth_provider,
+            provider: provider,
           )
           set_redirect_error_flash 'An account with this email already exists. ' \
                                    'Sign in with your existing method, then link SSO from account settings.'

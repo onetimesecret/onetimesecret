@@ -280,16 +280,23 @@ module Onetime
       defn ? !!defn[:trust_default] : false
     end
 
-    # Whether the email-linking trust flag is enabled ANYWHERE — globally or
-    # for any per-provider trust var. Used by the boot guard to decide whether
-    # to warn about the multi-tenant surface (a clean install with the flag
-    # off boots silently).
+    # Whether the email-linking trust flag is EFFECTIVELY enabled for at least
+    # one provider. Used by the boot guard to decide whether to warn about the
+    # multi-tenant surface (a clean install with the flag off boots silently).
+    #
+    # Delegates to #trust_email_for_linking? per provider so the SAME precedence
+    # applies: an explicit per-provider *_TRUST_EMAIL_FOR_LINKING wins over the
+    # deprecated global SSO_TRUST_EMAIL_FOR_LINKING fallback. Consequently a
+    # global `true` with EVERY provider explicitly opted out
+    # (*_TRUST_EMAIL_FOR_LINKING=false) returns false — no provider is actually
+    # trusted, so the guard stays silent rather than warning on a dead flag.
     #
     # @return [Boolean]
     def trust_email_for_linking_enabled?
-      return true if sso_trust_email_for_linking?
-
-      provider_definitions.any? { |defn| ENV[defn[:trust_var]] == 'true' }
+      provider_definitions.any? do |defn|
+        route_name = ENV.fetch(defn[:route_var], defn[:route_default])
+        trust_email_for_linking?(route_name)
+      end
     end
 
     # DEPRECATED: Use sso_display_name
