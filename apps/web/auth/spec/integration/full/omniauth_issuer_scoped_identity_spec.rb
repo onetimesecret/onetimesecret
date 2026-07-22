@@ -52,10 +52,12 @@ RSpec.describe 'Issuer-scoped SSO identity lookup', type: :integration do
   let(:created_identity_ids) { [] }
 
   after do
+    # Identities first, then accounts (FK order). Deletes are idempotent, so a
+    # partially-populated list is safe. A cleanup error is a real problem and is
+    # allowed to surface rather than leave stray rows in the shared in-memory DB
+    # that would make later examples order-dependent.
     created_identity_ids.each { |id| ds.where(id: id).delete }
     created_account_ids.each { |id| db[:accounts].where(id: id).delete }
-  rescue StandardError
-    # Non-fatal cleanup error
   end
 
   def create_account(email)

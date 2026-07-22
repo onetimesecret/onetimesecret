@@ -472,4 +472,55 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       end.not_to raise_error
     end
   end
+
+  # Regression (#3840 Phase 0 / #3838 item 5): mirror of the SQLite up->down->up
+  # guard for the PRODUCTION backend. The issuer-scoped migration re-keys
+  # account_identities to (provider, issuer, uid) to close a cross-tenant SSO
+  # takeover. Its `down` restores (provider, uid) uniqueness as a standalone
+  # index, and its `up` must idempotently drop BOTH the original unnamed
+  # constraint AND that standalone index — otherwise a rollback+re-apply leaves a
+  # stale (provider, uid) unique that silently re-imposes the pre-issuer key.
+  describe 'issuer-scoped migration survives an up->down->up cycle' do
+    # Derive the version from the filename so a later renumber doesn't rot this.
+    let(:issuer_migration_version) do
+      file = Dir.glob(File.join(migrations_dir, '[0-9]*issuer_scoped*.rb')).first
+      raise 'issuer-scoped migration not found' unless file
+
+      File.basename(file)[/\A(\d+)/, 1].to_i
+    end
+
+    def insert_account(db, email)
+      db[:accounts].insert(email: email, status_id: 2, external_id: SecureRandom.uuid)
+    end
+
+    it 'preserves (provider, issuer, uid) uniqueness after re-migrating' do
+      v = issuer_migration_version
+
+      # up to the migration, roll it back (down), then re-apply it (up).
+      Sequel::Migrator.run(migration_db, migrations_dir, target: v)
+      Sequel::Migrator.run(migration_db, migrations_dir, target: v - 1)
+      Sequel::Migrator.run(migration_db, migrations_dir, target: v)
+
+      acct_a = insert_account(setup_db, 'cycle-a@example.com')
+      acct_b = insert_account(setup_db, 'cycle-b@example.com')
+      ids = setup_db[:account_identities]
+
+      # Two IdPs asserting the same sub (uid) under different issuers must coexist.
+      ids.insert(account_id: acct_a, provider: 'oidc', issuer: 'https://idp-a.example', uid: 'shared-sub')
+      expect do
+        ids.insert(account_id: acct_b, provider: 'oidc', issuer: 'https://idp-b.example', uid: 'shared-sub')
+      end.not_to raise_error
+      expect(ids.where(provider: 'oidc', uid: 'shared-sub').count).to eq(2)
+
+      # A true (provider, issuer, uid) duplicate is still rejected.
+      expect do
+        ids.insert(account_id: acct_b, provider: 'oidc', issuer: 'https://idp-a.example', uid: 'shared-sub')
+      end.to raise_error(Sequel::UniqueConstraintViolation)
+
+      # The stale (provider, uid) unique must be gone.
+      uniques = test_db.indexes(:account_identities).values.select { |i| i[:unique] }.map { |i| i[:columns] }
+      expect(uniques).to include(%i[provider issuer uid])
+      expect(uniques).not_to include(%i[provider uid])
+    end
+  end
 end
