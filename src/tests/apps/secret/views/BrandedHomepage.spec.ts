@@ -18,6 +18,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { createTestI18n } from '@tests/setup';
+import BrandedHero from '@/apps/secret/components/branded/BrandedHero.vue';
 
 vi.mock('@/services/bootstrap.service', () => ({
   getBootstrapSnapshot: vi.fn(() => null),
@@ -125,6 +126,9 @@ describe('BrandedHomepage render switch', () => {
     expect(wrapper.find('[data-testid="stub-secret-form"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="homepage-incoming-form"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="stub-disabled-homepage"]').exists()).toBe(true);
+    // BrandedHero is suppressed in the private branch — the variant dispatcher
+    // owns its own hero, so the branded landing hero must not double up.
+    expect(wrapper.findComponent(BrandedHero).exists()).toBe(false);
     expect(loadConfigMock).not.toHaveBeenCalled();
   });
 
@@ -160,6 +164,7 @@ describe('BrandedHomepage render switch', () => {
     expect(wrapper.text()).not.toContain('incoming.upgrade_required_title');
     // BrandedHero (and its "Send a secret" headline) is suppressed once the
     // private branch takes over — no marketing copy over a members-only page.
+    expect(wrapper.findComponent(BrandedHero).exists()).toBe(false);
     expect(wrapper.text()).not.toContain('web.homepage.send_a_secret');
   });
 
