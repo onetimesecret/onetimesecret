@@ -141,7 +141,18 @@ module Onetime
         puts format('  %-30s %d', dry_run ? 'Would dedupe:' : 'Deduped:', stats[:dedupe])
         puts format('  %-30s %d', 'Skipped (out of scope):', stats[:out_of_scope])
         puts format('  %-30s %d', 'Skipped (ambiguous origin):', stats[:ambiguous_origin])
+        puts format('  %-30s %d', 'Skipped (multiple candidates):', stats[:multiple_candidates])
         puts format('  %-30s %d', 'Skipped (no customer):', stats[:no_customer])
+
+        unless stats[:multiple_candidates].zero?
+          puts "\n  Multiple-candidate accounts (>1 legacy '' row on the shared route; stamp one by"
+          puts '  hand only after confirming which uid this tenant minted):'
+          results.select { |r| r.status == :skipped_multiple_candidates }
+            .map(&:account_id).uniq.each do |account_id|
+            puts "    - account #{account_id}"
+          end
+        end
+
         return if stats[:error].zero?
 
         puts format('  %-30s %d', 'Errors / conflicts:', stats[:error])
@@ -170,6 +181,7 @@ module Onetime
           organization: op.organization.extid,
           provider: op.provider,
           issuer: op.issuer,
+          sso_enabled: op.sso_enabled?,
           dry_run: dry_run,
           statistics: {
             scanned: results.size,
@@ -177,6 +189,7 @@ module Onetime
             dedupe: stats[:dedupe],
             skipped_out_of_scope: stats[:out_of_scope],
             skipped_ambiguous_origin: stats[:ambiguous_origin],
+            skipped_multiple_candidates: stats[:multiple_candidates],
             skipped_no_customer: stats[:no_customer],
             errors: stats[:error],
           },
@@ -197,15 +210,24 @@ module Onetime
       end
 
       def tally(results)
-        stats = { stamp: 0, dedupe: 0, out_of_scope: 0, ambiguous_origin: 0, no_customer: 0, error: 0 }
+        stats = {
+          stamp: 0,
+          dedupe: 0,
+          out_of_scope: 0,
+          ambiguous_origin: 0,
+          multiple_candidates: 0,
+          no_customer: 0,
+          error: 0,
+        }
         results.each do |r|
           case r.status
-          when :would_stamp, :stamped         then stats[:stamp]            += 1
-          when :would_dedupe, :deduped        then stats[:dedupe]           += 1
-          when :skipped_out_of_scope          then stats[:out_of_scope]     += 1
-          when :skipped_ambiguous_origin      then stats[:ambiguous_origin] += 1
-          when :skipped_no_customer           then stats[:no_customer]      += 1
-          when :error                         then stats[:error]            += 1
+          when :would_stamp, :stamped         then stats[:stamp]               += 1
+          when :would_dedupe, :deduped        then stats[:dedupe]              += 1
+          when :skipped_out_of_scope          then stats[:out_of_scope]        += 1
+          when :skipped_ambiguous_origin      then stats[:ambiguous_origin]    += 1
+          when :skipped_multiple_candidates   then stats[:multiple_candidates] += 1
+          when :skipped_no_customer           then stats[:no_customer]         += 1
+          when :error                         then stats[:error]               += 1
           end
         end
         stats

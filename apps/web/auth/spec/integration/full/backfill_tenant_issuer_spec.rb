@@ -361,6 +361,107 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
   end
 
   # ==========================================================================
+  # 3b. GATE 0 (run-level) — an account owning >1 legacy '' candidate row
+  # ==========================================================================
+  #
+  # `provider` is the SHARED strategy route, so a single account can hold more
+  # than one legacy '' row under it (e.g. a tenant-minted row AND a platform-
+  # minted one). GATE 2 keys on the single per-customer signup_domain_id and so
+  # passes them all alike — it cannot say which the tenant minted. The run must
+  # refuse the whole account (:skipped_multiple_candidates) rather than stamp the
+  # wrong row and strip its '' self-heal.
+
+  describe 'GATE 0: multiple candidates per account' do
+    let(:platform_issuer) { 'https://platform-idp.example.com' }
+
+    # Two '' rows, SAME account (distinct uids — the composite index forbids a
+    # duplicate (provider, '', uid)). Every one is refused, nothing written.
+    it 'refuses every legacy row of an account with >1 (:skipped_multiple_candidates), live' do
+      tenant = build_tenant
+      cust   = create_member(tenant, membership: :domain_scoped, signup: :match)
+      account_id = insert_account(cust)
+      r1 = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-multi-1')
+      r2 = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-multi-2')
+
+      results = new_operation(tenant, dry_run: false).call
+
+      expect(results.map(&:status)).to eq(%i[skipped_multiple_candidates skipped_multiple_candidates])
+      expect(results.map(&:account_id).uniq).to eq([account_id])
+      expect(issuer_of(r1[:identity_id])).to eq('')
+      expect(issuer_of(r2[:identity_id])).to eq('')
+    end
+
+    it 'reports :skipped_multiple_candidates and writes nothing in dry-run too' do
+      tenant = build_tenant
+      cust   = create_member(tenant, membership: :domain_scoped, signup: :match)
+      account_id = insert_account(cust)
+      r1 = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-dry-1')
+      r2 = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-dry-2')
+
+      results = new_operation(tenant, dry_run: true).call
+
+      expect(results.map(&:status)).to eq(%i[skipped_multiple_candidates skipped_multiple_candidates])
+      expect(issuer_of(r1[:identity_id])).to eq('')
+      expect(issuer_of(r2[:identity_id])).to eq('')
+    end
+
+    # The security payoff: because the rows are left '', the platform self-heal
+    # path still matches and upgrades them — so a platform-minted sibling row is
+    # NOT broken (the harm GATE 0 exists to prevent).
+    it 'leaves the rows healable by the platform self-heal path (harm avoided)' do
+      tenant = build_tenant
+      cust   = create_member(tenant, membership: :domain_scoped, signup: :match)
+      account_id = insert_account(cust)
+      r1 = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-heal-1')
+      insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-heal-2')
+
+      new_operation(tenant, dry_run: false).call
+
+      healed = feature.lookup_identity(ds: ds, **cols, provider: tenant.provider, uid: r1[:uid],
+                                                       resolved_issuer: platform_issuer, platform_path: true)
+      expect(healed).not_to be_nil
+      expect(healed[:account_id]).to eq(account_id)
+      expect(healed[:issuer]).to eq(platform_issuer)
+    end
+
+    # Self-enforcement regression: GATE 0 lives in process_identity (not #call),
+    # so a DIRECT caller (a future resume/retry path, or the specs) cannot bypass
+    # it and stamp a platform-minted sibling row.
+    it 'refuses via process_identity called directly (self-enforced, not #call-only)' do
+      tenant = build_tenant
+      cust   = create_member(tenant, membership: :domain_scoped, signup: :match)
+      account_id = insert_account(cust)
+      r1 = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-direct-1')
+      insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-direct-2')
+
+      op     = new_operation(tenant, dry_run: false)
+      result = op.process_identity({ id: r1[:identity_id], account_id: account_id,
+                                     uid: r1[:uid], provider: tenant.provider, issuer: '' })
+
+      expect(result.status).to eq(:skipped_multiple_candidates)
+      expect(issuer_of(r1[:identity_id])).to eq('')
+    end
+
+    # A multi-candidate account must not poison single-candidate accounts in the
+    # same run — those still stamp normally.
+    it 'still stamps single-candidate accounts in the same run' do
+      tenant = build_tenant
+      single = seed_stampable(tenant, uid: 'sub-single')
+      multi  = create_member(tenant, membership: :domain_scoped, signup: :match)
+      multi_account = insert_account(multi)
+      insert_identity(account_id: multi_account, tenant: tenant, issuer: '', uid: 'sub-m1')
+      insert_identity(account_id: multi_account, tenant: tenant, issuer: '', uid: 'sub-m2')
+
+      results = new_operation(tenant, dry_run: false).call
+      by_account = results.group_by(&:account_id)
+
+      expect(by_account[single[:account_id]].map(&:status)).to eq([:stamped])
+      expect(by_account[multi_account].map(&:status)).to eq(%i[skipped_multiple_candidates skipped_multiple_candidates])
+      expect(issuer_of(single[:identity_id])).to eq(tenant_issuer)
+    end
+  end
+
+  # ==========================================================================
   # 4. Dedupe — same account already carries the exact row (gates satisfied)
   # ==========================================================================
 
@@ -620,10 +721,30 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       payload = JSON.parse(output)
       expect(payload['dry_run']).to be true
       expect(payload['issuer']).to eq(tenant_issuer)
+      expect(payload['sso_enabled']).to be true
       expect(payload['statistics']['stamp']).to eq(1)
       expect(payload['statistics']).to have_key('skipped_ambiguous_origin')
+      expect(payload['statistics']).to have_key('skipped_multiple_candidates')
       expect(payload['results'].first['status']).to eq('would_stamp')
       expect(issuer_of(row[:identity_id])).to eq('')
+    end
+
+    # Follow-ups: JSON must carry the disabled-domain signal (human mode warns in
+    # the header) and the multiple-candidates stat for scripted callers.
+    it 'reports sso_enabled=false and the multiple-candidates stat (JSON)' do
+      tenant = build_tenant(enabled: false)
+      cust   = create_member(tenant, membership: :domain_scoped, signup: :match)
+      account_id = insert_account(cust)
+      insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-json-1')
+      insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'sub-json-2')
+
+      cmd = Onetime::CLI::SsoBackfillIssuerCommand.new
+      output = run_command(cmd, domain: tenant.domain.display_domain, confirm: false, json: true)
+
+      payload = JSON.parse(output)
+      expect(payload['sso_enabled']).to be false
+      expect(payload['statistics']['skipped_multiple_candidates']).to eq(2)
+      expect(payload['results'].map { |r| r['status'] }).to eq(%w[skipped_multiple_candidates skipped_multiple_candidates])
     end
 
     it 'executes with --confirm and stamps (JSON)' do

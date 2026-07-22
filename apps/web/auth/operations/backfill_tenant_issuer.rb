@@ -52,6 +52,17 @@ module Auth
     #      follows up manually). provisioning_origin does NOT discriminate (always
     #      'sso_jit' for SSO) and is deliberately not used.
     #
+    #   0. MULTIPLE-CANDIDATES gate (checked FIRST in process_identity, alongside
+    #      GATEs 1/2). Because `provider` is shared, one account can own MORE THAN
+    #      ONE legacy '' row under it (e.g. a tenant-minted row AND a platform-minted
+    #      one, both on the 'oidc' route). GATE 2 keys on the single per-customer
+    #      signup_domain_id, so it passes ALL of that account's rows alike and cannot
+    #      say which the tenant minted. Rather than stamp the wrong one (stripping a
+    #      '' self-heal and breaking that login), every one of the account's rows is
+    #      flagged :skipped_multiple_candidates and left for manual review — closing
+    #      the last soft-spot where safety relied on an operator spotting a duplicate
+    #      account_id in the dry-run.
+    #
     # Only providers whose resolved issuer is non-'' (oidc, entra_id) can lock a
     # user out. google/github resolve to the '' sentinel, so their legacy '' row
     # still matches the exact lookup — those users are NOT locked out and this
@@ -139,9 +150,13 @@ module Auth
           .all
       end
 
-      # Process a single legacy identity row.
+      # Process a single legacy identity row. All fail-closed gates (0/1/2) are
+      # enforced HERE so the primitive is self-safe for any caller — #call, the
+      # specs, and any future direct/resume caller alike.
       #
-      # Decision order (both fail-closed gates run BEFORE any write):
+      # Decision order (every gate runs BEFORE any write):
+      #   0. MULTIPLE-CANDIDATES gate: account owns >1 legacy '' row under the
+      #      shared provider route                         -> :skipped_multiple_candidates
       #   1. No resolvable customer for account_id        -> :skipped_no_customer
       #   2. DOMAIN-SCOPE gate: no active membership scoped to this domain
       #                                                   -> :skipped_out_of_scope
@@ -157,6 +172,21 @@ module Auth
       def process_identity(row)
         account_id = row[:account_id]
         uid        = row[:uid]
+
+        # GATE 0 — multiple candidates. `provider` is the SHARED strategy route, so
+        # one account can own more than one legacy '' row under it (e.g. a tenant-
+        # minted row AND a platform-minted one). GATEs 1/2 below are account-level
+        # facts (membership, signup_domain_id) and evaluate every one of the
+        # account's '' rows identically — so they cannot tell which the tenant
+        # minted. Refuse the whole account fail-closed rather than stamp the wrong
+        # row and strip its '' self-heal. A LIVE count (not a #call snapshot) keeps
+        # the check row-local so a direct caller can't bypass it; safe because a
+        # stamp/dedupe only ever REMOVES a row from the '' set (never adds one), and
+        # only for a single-candidate account, so counts never race upward mid-run.
+        sentinel_candidates = identities_ds
+          .where(provider: provider, issuer: ISSUER_SENTINEL, account_id: account_id)
+          .count
+        return skip_multiple_candidates(row, sentinel_candidates) if sentinel_candidates > 1
 
         customer = resolve_customer(account_id)
         unless customer
@@ -306,6 +336,26 @@ module Auth
       rescue StandardError => ex
         OT.le "[BackfillTenantIssuer] Error processing identity #{row[:id]}: #{ex.message}"
         result(:error, row[:account_id], row[:uid], nil, ex.message)
+      end
+
+      # GATE 0 outcome: this account owns >1 legacy '' row under the shared provider
+      # route, so no per-row gate can safely pick which to stamp (see the
+      # MULTIPLE-CANDIDATES note in the class docs). Report and leave EVERY one of
+      # its rows untouched; an operator disambiguates by inspecting each uid. Each
+      # such row hits this independently, so all of the account's rows are refused.
+      def skip_multiple_candidates(row, candidate_count)
+        customer = resolve_customer(row[:account_id])
+        obscured = customer && OT::Utils.obscure_email(customer.email)
+        result(
+          :skipped_multiple_candidates,
+          row[:account_id],
+          row[:uid],
+          customer,
+          "Account owns #{candidate_count} legacy '' rows under provider '#{provider}' (a shared " \
+          'strategy route); the per-customer provenance gate cannot distinguish this tenant\'s row ' \
+          'from a platform/other-domain row — left untouched for manual review (inspect each uid).',
+          obscured: obscured,
+        )
       end
 
       # Stamp the resolved issuer onto a legacy '' row. The issuer='' guard in the
