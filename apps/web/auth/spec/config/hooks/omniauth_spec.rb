@@ -682,4 +682,199 @@ RSpec.describe 'OmniAuth hooks' do
   # - Organization creation with is_default flag
   # - Idempotency guarantees
   #
+
+  # ==========================================================================
+  # Issuer-scoped identity lookup (#3840 Phase 0 / #3838 item 5)
+  # ==========================================================================
+  #
+  # Unlike the pure-logic REIMPLEMENTATIONS elsewhere in this file, this block
+  # drives the SHIPPED production functions in
+  # Auth::Config::Features::OmniAuth against an in-memory SQLite dataset (real
+  # Sequel queries + a real UPDATE for the lazy upgrade). This is the item-5
+  # cross-tenant takeover regression coverage.
+  describe 'issuer-scoped identity lookup (Auth::Config::Features::OmniAuth)' do
+    before(:all) do
+      require 'sequel'
+      # Drives real code; the feature file only pulls in OmniAuth strategy gems
+      # at require time (no app boot, no DB connection).
+      require_relative '../../../config/features/omniauth'
+    end
+
+    let(:feature) { Auth::Config::Features::OmniAuth }
+
+    # Fresh in-memory schema mirroring migration 008 / create_omniauth_tables.
+    let(:db) do
+      d = Sequel.sqlite
+      d.create_table(:account_identities) do
+        primary_key :id, type: :Bignum
+        Integer :account_id, null: false
+        String :provider, null: false
+        String :issuer, null: false, default: ''
+        String :uid, null: false
+        index %i[provider issuer uid], unique: true
+      end
+      d
+    end
+    let(:ds) { db[:account_identities] }
+    let(:cols) { { id_col: :id, provider_col: :provider, uid_col: :uid, issuer_col: :issuer } }
+
+    describe '.resolve_issuer' do
+      it 'prefers the strategy option issuer (authoritative)' do
+        result = feature.resolve_issuer(
+          strategy_options: { issuer: 'https://idp-a.example' },
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('https://idp-a.example')
+      end
+
+      it 'falls back to ENV OIDC_ISSUER for a discovery (OIDC) strategy' do
+        result = feature.resolve_issuer(
+          strategy_options: { discovery: true },
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('https://env.example')
+      end
+
+      it 'falls back to ENV OIDC_ISSUER when provider matches the OIDC route name' do
+        result = feature.resolve_issuer(
+          strategy_options: nil,
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('https://env.example')
+      end
+
+      it 'returns the "" sentinel for non-OIDC providers (never nil)' do
+        result = feature.resolve_issuer(
+          strategy_options: {},
+          provider: 'github', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('')
+      end
+
+      it 'returns the "" sentinel when no issuer is resolvable' do
+        result = feature.resolve_issuer(
+          strategy_options: { issuer: '' },
+          provider: 'github', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+        )
+        expect(result).to eq('')
+      end
+
+      # Entra ID exposes :tenant_id (not :issuer) in strategy options, so the
+      # option branch misses; the validated `iss` claim from the id-token
+      # (extra.raw_info) is the tenant-distinguishing issuer. Without this,
+      # every Entra tenant collapses to '' (#3838 item 5 regression).
+      it 'uses the token iss claim when the strategy exposes no issuer option (Entra)' do
+        result = feature.resolve_issuer(
+          strategy_options: { tenant_id: 'tenant-guid' },
+          provider: 'entra', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: 'https://login.microsoftonline.com/tenant-guid/v2.0',
+        )
+        expect(result).to eq('https://login.microsoftonline.com/tenant-guid/v2.0')
+      end
+
+      it 'distinguishes two Entra tenants by their token iss' do
+        opts = { strategy_options: { tenant_id: 'x' }, provider: 'entra',
+                 oidc_route_name: 'oidc', env_oidc_issuer: nil }
+        a = feature.resolve_issuer(**opts, token_issuer: 'https://login.microsoftonline.com/aaa/v2.0')
+        b = feature.resolve_issuer(**opts, token_issuer: 'https://login.microsoftonline.com/bbb/v2.0')
+        expect(a).not_to eq(b)
+      end
+
+      it 'prefers the strategy option issuer over the token iss' do
+        result = feature.resolve_issuer(
+          strategy_options: { issuer: 'https://discovery.example' },
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: 'https://token.example',
+        )
+        expect(result).to eq('https://discovery.example')
+      end
+
+      it 'ignores a blank token iss and falls through to the sentinel' do
+        result = feature.resolve_issuer(
+          strategy_options: { tenant_id: 'x' },
+          provider: 'entra', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: '',
+        )
+        expect(result).to eq('')
+      end
+    end
+
+    describe '.platform_path?' do
+      it 'is true when no validated tenant domain is present' do
+        expect(feature.platform_path?(nil)).to be true
+        expect(feature.platform_path?('')).to be true
+      end
+
+      it 'is false on a tenant callback (validated domain present)' do
+        expect(feature.platform_path?('domain-123')).to be false
+      end
+    end
+
+    describe '.lookup_identity' do
+      # ITEM-5 REGRESSION: two IdPs (issuers) assert the same sub under the same
+      # strategy name. Under the old (provider, uid) key the second collided
+      # with the first → takeover. With (provider, issuer, uid) they are two
+      # distinct rows and the lookup discriminates by issuer.
+      context 'same (provider, uid) with different issuer (item-5)' do
+        before do
+          ds.insert(account_id: 10, provider: 'oidc', issuer: 'https://idp-a', uid: 'sub-shared')
+          ds.insert(account_id: 20, provider: 'oidc', issuer: 'https://idp-b', uid: 'sub-shared')
+        end
+
+        it 'stores them as two distinct rows (composite unique permits)' do
+          expect(ds.count).to eq(2)
+        end
+
+        it 'rejects a true duplicate (provider, issuer, uid)' do
+          expect do
+            ds.insert(account_id: 99, provider: 'oidc', issuer: 'https://idp-a', uid: 'sub-shared')
+          end.to raise_error(Sequel::UniqueConstraintViolation)
+        end
+
+        it 'resolves issuer-A to account 10 and issuer-B to account 20 (no cross-bind)' do
+          a = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'sub-shared',
+                                                      resolved_issuer: 'https://idp-a', platform_path: false)
+          b = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'sub-shared',
+                                                      resolved_issuer: 'https://idp-b', platform_path: false)
+          expect(a[:account_id]).to eq(10)
+          expect(b[:account_id]).to eq(20)
+          expect(a[:account_id]).not_to eq(b[:account_id])
+        end
+      end
+
+      context 'platform grace + lazy upgrade' do
+        before { ds.insert(account_id: 30, provider: 'oidc', issuer: '', uid: 'legacy-sub') }
+
+        it 'matches the legacy "" row and upgrades its issuer in the DB' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'legacy-sub',
+                                                           resolved_issuer: 'https://real-idp', platform_path: true)
+          expect(result[:account_id]).to eq(30)
+          expect(result[:issuer]).to eq('https://real-idp')
+          expect(ds.first(account_id: 30)[:issuer]).to eq('https://real-idp')
+        end
+      end
+
+      context 'tenant path: issuer-exact only (no grace)' do
+        before { ds.insert(account_id: 40, provider: 'oidc', issuer: '', uid: 'legacy-sub-2') }
+
+        it 'does NOT match the legacy "" row and leaves it untouched' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'legacy-sub-2',
+                                                           resolved_issuer: 'https://tenant-idp', platform_path: false)
+          expect(result).to be_nil
+          expect(ds.first(account_id: 40)[:issuer]).to eq('')
+        end
+      end
+
+      context 'sentinel issuer (non-OIDC) with a legacy "" row on the platform path' do
+        before { ds.insert(account_id: 50, provider: 'github', issuer: '', uid: 'gh-1') }
+
+        it 'matches via the exact query without a pointless "" -> "" upgrade' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'github', uid: 'gh-1',
+                                                           resolved_issuer: '', platform_path: true)
+          expect(result[:account_id]).to eq(50)
+          expect(ds.first(account_id: 50)[:issuer]).to eq('')
+        end
+      end
+    end
+  end
 end
