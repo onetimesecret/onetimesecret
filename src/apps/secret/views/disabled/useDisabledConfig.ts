@@ -297,8 +297,15 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   // Variant resolution (highest precedence first):
   //   1. ?variant= URL override (dogfood/preview)
   //   2. per-domain homepage_config.disabled_homepage_variant
-  //   3. deployment-wide ui.homepage.disabled_variant
-  //      (DEFAULT_DISABLED_HOMEPAGE_VARIANT env var)
+  //   3. deployment-wide default — SPLIT by domain context so the canonical
+  //      site and custom domains stay decoupled (the canonical/custom split
+  //      from 4effa3e3f5):
+  //        - custom domains: ui.homepage.custom_disabled_variant
+  //          (DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT env var). Custom
+  //          domains do NOT fall back to the canonical disabled_variant — an
+  //          unset custom default goes straight to the frontend const.
+  //        - canonical site: ui.homepage.disabled_variant
+  //          (DEFAULT_DISABLED_HOMEPAGE_VARIANT env var)
   //   4. frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant
   // URL is read once at composable-call time (page loads don't preserve query
   // params); the store-backed fallbacks stay reactive so a $patch on the
@@ -311,7 +318,9 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     coerceDisabledVariant(
       urlOverride ??
         homepage_config.value?.disabled_homepage_variant ??
-        ui.value?.homepage?.disabled_variant
+        (isCustom.value
+          ? ui.value?.homepage?.custom_disabled_variant
+          : ui.value?.homepage?.disabled_variant)
     )
   );
 

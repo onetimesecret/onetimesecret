@@ -1,13 +1,18 @@
 // src/tests/apps/secret/views/BrandedHomepage.spec.ts
 //
 // Render-switch contract for the branded custom-domain homepage:
-//   - private (enabled: false)            -> trust card, no form
+//   - private (enabled: false)            -> disabled-homepage dispatcher, no form
 //   - create mode (enabled, create)       -> SecretForm
 //   - incoming mode (enabled, incoming)   -> IncomingSecretFormBody once the
 //                                            runtime config confirms it
-//   - incoming mode, runtime unavailable  -> trust card (NEVER upgrade/billing
-//                                            or misconfiguration copy on the
-//                                            branded front door)
+//   - incoming mode, runtime unavailable  -> disabled-homepage dispatcher (NEVER
+//                                            upgrade/billing or misconfiguration
+//                                            copy on the branded front door)
+//
+// The private/degraded branch delegates presentation to the disabled-homepage
+// variant dispatcher (DisabledHomepage.vue), stubbed here so these tests stay
+// focused on BrandedHomepage's public-vs-private switching. The variant chain
+// itself is covered in useDisabledConfig.spec.ts.
 
 import { flushPromises, mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -31,6 +36,13 @@ vi.mock('@/apps/secret/components/incoming/IncomingSecretFormBody.vue', () => ({
   default: {
     name: 'IncomingSecretFormBody',
     template: '<div data-testid="stub-incoming-form-body" />',
+  },
+}));
+
+vi.mock('@/apps/secret/views/DisabledHomepage.vue', () => ({
+  default: {
+    name: 'DisabledHomepage',
+    template: '<div data-testid="stub-disabled-homepage" />',
   },
 }));
 
@@ -97,8 +109,6 @@ async function mountHomepage(config: HomepageConfigCanonical | null) {
   return wrapper;
 }
 
-const TRUST_CARD_KEY = 'web.homepage.this_is_a_private_instance_only_authorized_team_';
-
 describe('BrandedHomepage render switch', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -109,12 +119,12 @@ describe('BrandedHomepage render switch', () => {
     incomingState.recipients = [{ digest: 'abc', display_name: 'Security' }];
   });
 
-  it('renders the trust card when the homepage is not public', async () => {
+  it('renders the disabled-homepage dispatcher when the homepage is not public', async () => {
     const wrapper = await mountHomepage(homepageConfig({ enabled: false }));
 
     expect(wrapper.find('[data-testid="stub-secret-form"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="homepage-incoming-form"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain(TRUST_CARD_KEY);
+    expect(wrapper.find('[data-testid="stub-disabled-homepage"]').exists()).toBe(true);
     expect(loadConfigMock).not.toHaveBeenCalled();
   });
 
@@ -123,6 +133,7 @@ describe('BrandedHomepage render switch', () => {
 
     expect(wrapper.find('[data-testid="stub-secret-form"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="homepage-incoming-form"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="stub-disabled-homepage"]').exists()).toBe(false);
     expect(wrapper.text()).toContain('web.homepage.create_a_secure_link');
     expect(loadConfigMock).not.toHaveBeenCalled();
   });
@@ -136,7 +147,7 @@ describe('BrandedHomepage render switch', () => {
     expect(wrapper.text()).toContain('web.homepage.send_a_secret');
   });
 
-  it('degrades to the trust card when the runtime config is entitlement-blocked', async () => {
+  it('degrades to the disabled-homepage dispatcher when the runtime config is entitlement-blocked', async () => {
     incomingState.isEntitlementBlocked = true;
     incomingState.isFeatureEnabled = false;
 
@@ -144,24 +155,24 @@ describe('BrandedHomepage render switch', () => {
 
     expect(wrapper.find('[data-testid="homepage-incoming-form"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="stub-secret-form"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain(TRUST_CARD_KEY);
+    expect(wrapper.find('[data-testid="stub-disabled-homepage"]').exists()).toBe(true);
     // No upgrade/billing copy for anonymous visitors.
     expect(wrapper.text()).not.toContain('incoming.upgrade_required_title');
-    // Headline falls back to the neutral copy — no "Send a secret" over a
-    // members-only trust card.
+    // BrandedHero (and its "Send a secret" headline) is suppressed once the
+    // private branch takes over — no marketing copy over a members-only page.
     expect(wrapper.text()).not.toContain('web.homepage.send_a_secret');
   });
 
-  it('degrades to the trust card when recipients drift to empty', async () => {
+  it('degrades to the disabled-homepage dispatcher when recipients drift to empty', async () => {
     incomingState.recipients = [];
 
     const wrapper = await mountHomepage(homepageConfig({ secrets_mode: 'incoming' }));
 
     expect(wrapper.find('[data-testid="homepage-incoming-form"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain(TRUST_CARD_KEY);
+    expect(wrapper.find('[data-testid="stub-disabled-homepage"]').exists()).toBe(true);
   });
 
-  it('degrades to the trust card when the config load fails', async () => {
+  it('degrades to the disabled-homepage dispatcher when the config load fails', async () => {
     loadConfigMock.mockRejectedValue(new Error('network'));
     incomingState.configError = 'network';
     incomingState.isFeatureEnabled = false;
@@ -169,7 +180,7 @@ describe('BrandedHomepage render switch', () => {
     const wrapper = await mountHomepage(homepageConfig({ secrets_mode: 'incoming' }));
 
     expect(wrapper.find('[data-testid="homepage-incoming-form"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain(TRUST_CARD_KEY);
+    expect(wrapper.find('[data-testid="stub-disabled-homepage"]').exists()).toBe(true);
   });
 
   it('never renders the create form in incoming mode', async () => {
