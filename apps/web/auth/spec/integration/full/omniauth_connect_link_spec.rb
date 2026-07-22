@@ -7,33 +7,36 @@
 # =============================================================================
 #
 # Issue: #3840 Phase 2 — authenticated identity connect ("connect SSO from
-#        account settings"). The credential that BINDS an identity here is an
-#        ACTIVE AUTHENTICATED SESSION whose account IS the located account.
+#        account settings"). The credential that BINDS an identity here is the
+#        ACTIVE AUTHENTICATED SESSION. The IdP email plays NO role: we bind to
+#        the LOGGED-IN account, never to an email-located one (email matching is
+#        the pre-account-hijacking anti-pattern).
 #
 # WHY THIS FILE EXISTS:
 #   The authenticated-bind branch added to account_from_omniauth
 #   (apps/web/auth/config/hooks/omniauth.rb) can only be validated end-to-end:
 #   it depends on rodauth.logged_in? being true DURING the omniauth callback and
 #   on the gem's create_omniauth_identity upserting the row onto the
-#   already-authenticated account. This file drives the REAL Rodauth callback
-#   through the Rack stack (a password login establishes the session first) and
-#   asserts the persisted side effects — the account_identities row, the
-#   redirect, the audit event — that only the production machinery produces.
+#   already-authenticated (session) account. This file drives the REAL Rodauth
+#   callback through the Rack stack (a password login establishes the session
+#   first) and asserts the persisted side effects — the account_identities row,
+#   the redirect, the audit event — that only the production machinery produces.
 #
 # WHAT IT LOCKS IN (production code: apps/web/auth/config/hooks/omniauth.rb):
-#   1. logged-in + located account == self (platform surface)
-#        -> account_from_omniauth returns the session account, the gem persists
+#   1. logged-in on the PLATFORM surface
+#        -> account_from_omniauth returns the SESSION account, the gem persists
 #           the (provider, issuer, uid) row bound to it, and the
 #           :omniauth_identity_connected warn event fires. No refusal.
-#   2. logged-in + located account != self (email locates a DIFFERENT account)
-#        -> REFUSED (takeover guard): no identity row, no duplicate account,
-#           :omniauth_identity_connect_refused (reason account_conflict) fires.
+#   2. logged-in, IdP asserts a DIFFERENT account's email (hijack attempt)
+#        -> binds to the SESSION account anyway; the other (victim) account gets
+#           NO row and is untouched; no duplicate account. :omniauth_identity_
+#           connected fires with the SESSION account_id. Proves email is ignored.
 #   3. UNAUTHENTICATED + existing account (trust off)
 #        -> unchanged H-3 refusal. Proves the new branch is gated on logged_in?
 #           (:omniauth_identity_connected never fires when not logged in).
 #   4. logged-in on the PLATFORM surface + TENANT callback
-#        -> REFUSED (surface isolation): even with located == self, a tenant
-#           callback must not bind a tenant-issuer identity. Reason tenant_surface.
+#        -> REFUSED (surface isolation): a tenant callback must not bind a
+#           tenant-issuer identity onto a platform session. Reason tenant_surface.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -150,10 +153,10 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
-  # Scenario 1 — logged-in, located == self (platform) -> bind
+  # Scenario 1 — logged-in on the platform surface -> bind to session account
   # ==========================================================================
 
-  describe 'logged-in, located account == self (platform surface)' do
+  describe 'logged-in on the platform surface' do
     before { enable_platform_fallback }
 
     it 'binds the new IdP identity to the session account and fires the connect event' do
@@ -201,18 +204,24 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
-  # Scenario 2 — logged-in, located account != self -> REFUSE (takeover guard)
+  # Scenario 2 — logged-in, IdP asserts a DIFFERENT account's email
+  #              -> bind to the SESSION account; the victim is untouched
   # ==========================================================================
+  #
+  # The security property: email plays NO role. The session is the
+  # authorization, so an IdP that lies about the email (emitting a victim's
+  # address to try to reach the victim's account) still only binds to the
+  # ACTOR's own session account. The victim gets no row and is never routed to.
 
-  describe 'logged-in, located account != self (takeover guard)' do
+  describe 'logged-in, IdP asserts a different account email (email is ignored)' do
     before { enable_platform_fallback }
 
-    it 'refuses to bind, creates no row and no duplicate account' do
+    it 'binds to the session account and leaves the other account untouched' do
       actor_email  = "actor-#{SecureRandom.hex(6)}@company.example.com"
       victim_email = "victim-#{SecureRandom.hex(6)}@company.example.com"
       uid          = "sub-#{SecureRandom.hex(8)}"
 
-      seed_account_with_password(actor_email)
+      actor_id        = seed_account_with_password(actor_email)
       victim_id       = seed_existing_account(victim_email)
       accounts_before = auth_db[:accounts].count
 
@@ -228,23 +237,30 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
         skip 'OmniAuth route not registered' if last_response.status == 404
 
-        expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=identity_connect_conflict'),
-          "Cross-account connect must refuse. Location: #{last_response.location.inspect}"
+        expect(last_response.location.to_s).not_to include('identity_connect_conflict'),
+          "Authenticated connect must NOT refuse. Location: #{last_response.location.inspect}"
+        expect(last_response.status).to eq(302),
+          "Expected a post-login redirect, got #{last_response.status}: #{last_response.body}"
 
-        # No takeover: no identity row bound to the victim (or anyone).
-        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
-          'Takeover guard must NOT create an account_identities row'
+        # The bind attaches to the ACTOR's session account, NOT the victim whose
+        # email the IdP asserted.
+        rows = identities.where(provider: 'oidc', uid: uid).all
+        expect(rows.size).to eq(1),
+          "Expected exactly one bound identity row, got #{rows.size}: #{rows.inspect}"
+        expect(rows.first[:account_id]).to eq(actor_id),
+          'Bound identity must attach to the authenticated (session) account'
+
+        # The victim account is untouched — no row, no hijack.
         expect(identities.where(account_id: victim_id).count).to eq(0),
-          'No identity may be bound to the victim account'
+          'No identity may be bound to the account whose email the IdP asserted'
         # No duplicate account created.
         expect(auth_db[:accounts].count).to eq(accounts_before),
-          'Refusal must NOT create a duplicate account'
+          'Connect must NOT create a duplicate account'
 
         expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_identity_connect_refused, hash_including(provider: 'oidc', reason: 'account_conflict'))
+          .with(:omniauth_identity_connected, hash_including(provider: 'oidc', account_id: actor_id))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
-          .with(:omniauth_identity_connected, anything)
+          .with(:omniauth_identity_connect_refused, anything)
       ensure
         teardown_mock_auth
       end
@@ -295,14 +311,15 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Scenario 4 — logged-in on PLATFORM, TENANT callback -> REFUSE (isolation)
   # ==========================================================================
   #
-  # Even with located == self, a tenant callback must not bind a tenant-issuer
-  # identity via this flow. The session is a PLATFORM session; the callback is a
-  # TENANT callback (validated_omniauth_domain_id set by the tenant hook).
+  # Surface isolation is checked BEFORE the session-account bind and is
+  # independent of the IdP email: a tenant callback must never bind a
+  # tenant-issuer identity onto a PLATFORM session (validated_omniauth_domain_id
+  # is set by the tenant hook on tenant callbacks only).
 
   describe 'logged-in on platform, tenant callback (surface isolation)', :oauth_flow do
     include OAuthFlowHelper
 
-    it 'refuses to bind on the tenant surface despite located == self' do
+    it 'refuses to bind on the tenant surface' do
       run_id = "connect-tenant-#{SecureRandom.hex(4)}"
       host   = "secrets-#{run_id}.tenant.example.com"
       email  = "tenant-actor-#{run_id}@tenant.example.com"
