@@ -6,6 +6,7 @@
 
 require 'yaml'
 require 'erb'
+require 'uri'
 require 'singleton'
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
@@ -280,6 +281,30 @@ module Onetime
       end
     end
 
+    # The SSO identity-provider origins that must be allowed in the CSP
+    # form-action directive.
+    #
+    # Since otto 2.5+, the app emits a CSP header with `form-action 'self'`.
+    # Chromium enforces form-action across the whole redirect chain, so the
+    # SSO flow — a DOM form POST to /auth/sso/:provider that 302-redirects to
+    # the IdP (e.g. login.microsoftonline.com) — is blocked unless the IdP
+    # origin is present in form-action. This returns those origins so the
+    # router can widen the directive at boot.
+    #
+    # Provider-derived origins reuse the SAME gating as #sso_providers (SSO
+    # feature enabled AND the provider's required env vars present), so they
+    # can never drift from the providers that actually register. The
+    # SSO_FORM_ACTION_ORIGINS override is merged in unconditionally — it covers
+    # sovereign clouds, an OIDC issuer that differs from its authorization
+    # endpoint, and org-level SSO whose issuers are unknown at boot.
+    #
+    # Returns a de-duplicated Array of origin strings (scheme://host[:port]),
+    # or [] when nothing is configured. Side-effect free and safe to call at
+    # router-build time (no auth-app boot required).
+    def sso_form_action_origins
+      (active_provider_origins + override_form_action_origins).uniq
+    end
+
     # DEPRECATED: Use email_auth_enabled?
     def magic_links_enabled?
       email_auth_enabled?
@@ -328,6 +353,13 @@ module Onetime
 
     # Provider definitions for sso_providers. Each entry defines the env
     # vars that gate the provider and where to read its route/display names.
+    #
+    # idp_origin / idp_origin_from feed #sso_form_action_origins: a static
+    # :idp_origin for providers whose IdP host is fixed, or :idp_origin_from
+    # naming an env var whose URL the origin is derived from (OIDC's issuer).
+    # ENTRA is static because the OmniAuth strategy hard-pins the commercial
+    # cloud (login.microsoftonline.com); there is no sovereign-cloud authority
+    # env in this app — use SSO_FORM_ACTION_ORIGINS for those.
     def provider_definitions
       [
         {
@@ -336,6 +368,7 @@ module Onetime
           route_default: 'oidc',
           display_var: 'OIDC_DISPLAY_NAME',
           display_default: sso_display_name || 'SSO',
+          idp_origin_from: 'OIDC_ISSUER',
         },
         {
           required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
@@ -343,6 +376,7 @@ module Onetime
           route_default: 'entra',
           display_var: 'ENTRA_DISPLAY_NAME',
           display_default: 'Microsoft',
+          idp_origin: 'https://login.microsoftonline.com',
         },
         {
           required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
@@ -350,6 +384,7 @@ module Onetime
           route_default: 'google',
           display_var: 'GOOGLE_DISPLAY_NAME',
           display_default: 'Google',
+          idp_origin: 'https://accounts.google.com',
         },
         {
           required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
@@ -357,8 +392,60 @@ module Onetime
           route_default: 'github',
           display_var: 'GITHUB_DISPLAY_NAME',
           display_default: 'GitHub',
+          idp_origin: 'https://github.com',
         },
       ]
+    end
+
+    # Origins for the providers that pass #sso_providers' gate (SSO enabled and
+    # all required env vars present). Reuses provider_definitions so it can
+    # never register an origin for a provider that would not register.
+    # filter_map drops a provider whose origin cannot be resolved (e.g. a
+    # malformed OIDC_ISSUER), so a bad issuer is skipped, never raised.
+    def active_provider_origins
+      return [] unless sso_enabled?
+
+      provider_definitions.filter_map do |defn|
+        next unless defn[:required_vars].all? { |var| env_present?(var) }
+
+        provider_origin(defn)
+      end
+    end
+
+    # Resolve a single provider definition to its IdP origin: a static
+    # :idp_origin, or one derived from the URL in the env var named by
+    # :idp_origin_from. Returns nil when unresolvable.
+    def provider_origin(defn)
+      return defn[:idp_origin] if defn[:idp_origin]
+      return origin_from_url(ENV.fetch(defn[:idp_origin_from], nil)) if defn[:idp_origin_from]
+
+      nil
+    end
+
+    # The SSO_FORM_ACTION_ORIGINS override: a space-separated origin list,
+    # merged into #sso_form_action_origins independent of any provider gating.
+    def override_form_action_origins
+      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split
+    end
+
+    # Derive an origin (scheme://host[:port]) from a URL, omitting a default
+    # port (80/443). Returns nil for a blank, schemeless, hostless, or
+    # otherwise malformed URL — never raises. Note that URI.parse sets #host to
+    # an empty string (not nil) for a scheme-present, hostless URL such as
+    # "https://" or "https:///path", so an empty/whitespace host is treated the
+    # same as nil to avoid emitting a degenerate "https://" origin.
+    def origin_from_url(url)
+      str = url.to_s.strip
+      return nil if str.empty?
+
+      uri = URI.parse(str)
+      return nil if uri.scheme.nil? || uri.host.to_s.strip.empty?
+
+      origin  = "#{uri.scheme}://#{uri.host}"
+      origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
+      origin
+    rescue URI::InvalidURIError
+      nil
     end
 
     # Check if an environment variable is present and non-empty

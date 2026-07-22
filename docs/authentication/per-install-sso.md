@@ -61,6 +61,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
+| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive so Chromium does not block the SSO form-POST redirect (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)) |
 
 ### Generic OIDC
 
@@ -382,6 +383,35 @@ Check logs for errors in `after_omniauth_create_account`. Ensure Redis/Valkey is
 ### CSRF error on callback
 
 If you see `encoded token is not a string`: the CSRF bypass for SSO routes is misconfigured. Check that `lib/onetime/middleware/security.rb` skips `/auth/sso/*` and that the `omniauth_request_validation_phase` hook is empty in `hooks/omniauth.rb`.
+
+### SSO login blocked on Chromium-family browsers (CSP `form-action`)
+
+**Symptom:** Clicking a "Login with {Provider}" button appears to do nothing, and the browser console shows a Content-Security-Policy error naming the `form-action` directive. Chrome, Edge, and other Chromium-family browsers are affected; Firefox is not.
+
+**Cause:** As of otto 2.5 (shipped in v0.26.0-rc1), the emitted CSP contained `form-action 'self'`. The SSO flow POSTs a form to `/auth/sso/{provider}`, which responds with a redirect to the IdP's authorization endpoint. Chromium enforces `form-action` across the entire redirect chain, so the cross-origin hop to the IdP is blocked. Firefox only checks the initial (same-origin) form target and never trips the policy — which is why the bug reproduces in one browser family and not the other. (#3848)
+
+**Fix (automatic):** The app now derives the origin of each active SSO provider at boot and adds it to the `form-action` directive:
+
+| Provider | Origin added |
+|----------|--------------|
+| Microsoft Entra ID | `https://login.microsoftonline.com` |
+| Google | `https://accounts.google.com` |
+| GitHub | `https://github.com` |
+| Generic OIDC | Origin of `OIDC_ISSUER` |
+
+No configuration is required for the common case. The resolved set is exposed as `Onetime.auth_config.sso_form_action_origins`.
+
+**When to use the override:** Set `SSO_FORM_ACTION_ORIGINS` (space-separated origins) when the auto-derived origin is wrong or incomplete:
+
+- **Sovereign / national clouds** — e.g. Entra on `https://login.microsoftonline.us` (US Government) or another regional Microsoft endpoint instead of the global `https://login.microsoftonline.com`.
+- **OIDC issuer ≠ authorization endpoint** — when the discovery document's `authorization_endpoint` lives on a different origin than `OIDC_ISSUER`. The form POSTs to the authorization endpoint's origin, which is what CSP checks.
+- **Org-level SSO with placeholder providers** — when providers are configured per-organization and the boot-time environment has no concrete issuer to derive an origin from.
+
+```bash
+SSO_FORM_ACTION_ORIGINS="https://login.microsoftonline.us https://auth.example.gov"
+```
+
+**Interim workaround (un-upgraded installs):** If you cannot yet deploy the fix, set `CSP_ENABLED=false` to drop the CSP header entirely. This unblocks SSO at the cost of losing CSP protection, so treat it as temporary and re-enable CSP after upgrading.
 
 ## Security Notes
 
