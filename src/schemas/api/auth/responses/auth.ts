@@ -256,6 +256,52 @@ export type ActiveSessionsResponse = z.infer<typeof activeSessionsResponseSchema
 export const removeSessionResponseSchema = authResponseSchema;
 export type RemoveSessionResponse = z.infer<typeof removeSessionResponseSchema>;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Connected Identities (SSO account-linking — #3840 Phase 2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A single SSO identity linked to the authenticated account.
+ *
+ * Shape mirrors GET /auth/identities EXACTLY (account-scoped rows, ordered by
+ * id ascending):
+ * - id:       account_identities row PK — the stable DELETE handle.
+ * - provider: strategy name stored on the row (oidc, entra, github, google).
+ * - issuer:   resolved IdP issuer (Phase 0 column). '' sentinel for legacy rows
+ *             and OAuth2-only providers (GitHub/Google); a URL otherwise. NOT
+ *             NULL, so an empty string — never null — signals "no issuer".
+ * - uid:      MASKED IdP subject (first4 + U+2026 + last4, or '***' when
+ *             length <= 8). Display-only; the raw sub is never returned. The
+ *             delete handle is `id`, not `uid`.
+ *
+ * NOTE: created_at is deliberately ABSENT — no such column exists on
+ * account_identities in migration 006/008 or the spec schema. Adding a
+ * timestamp would require a schema migration first.
+ */
+export const connectedIdentitySchema = z.object({
+  id: z.number().int(),
+  provider: z.string(),
+  issuer: z.string(),
+  uid: z.string(),
+});
+export type ConnectedIdentity = z.infer<typeof connectedIdentitySchema>;
+
+/** GET /auth/identities → { identities: [...] }. Empty account => { identities: [] }. */
+export const identitiesResponseSchema = z.object({
+  identities: z.array(connectedIdentitySchema),
+});
+export type IdentitiesResponse = z.infer<typeof identitiesResponseSchema>;
+
+/**
+ * DELETE /auth/identities/:id → { success: string } on 200.
+ * Error bodies (401/404/409/500) surface as the axios error's response.data and
+ * are classified by useAsyncHandler; the 409 last-credential guard carries an
+ * additional { error_code: 'last_credential' } the composable reads from
+ * details.
+ */
+export const removeIdentityResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
+export type RemoveIdentityResponse = z.infer<typeof removeIdentityResponseSchema>;
+
 // OTP setup response
 // When HMAC is enabled, Rodauth returns an error response with only secrets on first request
 export const otpSetupResponseSchema = z.object({
