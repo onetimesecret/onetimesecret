@@ -132,6 +132,10 @@
     "text": "An account with this email address already exists but isn't linked to this sign-in method. Sign in with your existing method, then link this provider under Security settings → Connected identities.",
     "context": "Shown on signin page when SSO refuses to auto-link: an account with the callback email exists but is not linked to this provider. Phase 2 (#3840) is live — the authenticated Connected Identities panel (/account/settings/security/connections) now lets a signed-in user link the provider, so the copy points there. Content edited; content_hash intentionally omitted so locales:hashes regenerates it."
   },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "This identity couldn't be connected. The connection may have been started on the wrong domain, or your session expired. Please sign in again, then connect it from your account settings.",
+    "context": "Shown on /signin when an authenticated SSO connect is refused for surface isolation (tenant callback on a platform session) or an expired session (#3840 Phase 2)"
+  },
   "web.login.errors.org_join_failed": {
     "text": "We couldn't finish adding you to your organization. Please contact your administrator.",
     "context": "Shown on signin page when tenant-domain SSO authenticated but the organization join produced no membership (orphaned account). Admins/ops must investigate; the user cannot self-resolve.",

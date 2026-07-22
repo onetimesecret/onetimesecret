@@ -8,9 +8,13 @@
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useConnectedIdentities } from '@/shared/composables/useConnectedIdentities';
-  import { onMounted, ref } from 'vue';
+  import { useCsrfStore } from '@/shared/stores/csrfStore';
+  import { submitSsoLogin } from '@/shared/utils/sso';
+  import { getSsoProviders, type SsoProvider } from '@/utils/features';
+  import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
+  const csrfStore = useCsrfStore();
   const { identities, isLoading, error, errorCode, fetchIdentities, removeIdentity, clearError } =
     useConnectedIdentities();
 
@@ -24,6 +28,33 @@
   };
   const providerLabel = (provider: string): string =>
     PROVIDER_LABELS[provider] ?? provider.charAt(0).toUpperCase() + provider.slice(1);
+
+  // Providers the account can still link. A provider is "already linked" when
+  // its route_name matches the `provider` of any existing identity row (both are
+  // the omniauth route name, e.g. 'oidc'). Exclude-by-route is correct here: on
+  // the platform / self-host surface a route maps to a single issuer.
+  const CONNECT_REDIRECT = '/account/settings/security/connections';
+
+  const connectableProviders = computed<SsoProvider[]>(() => {
+    const linked = new Set(identities.value.map((identity) => identity.provider));
+    return getSsoProviders().filter((provider) => !linked.has(provider.route_name));
+  });
+
+  // Prefer the backend display_name; fall back to the friendly PROVIDER_LABELS
+  // map so a blank display_name still renders a sensible button label.
+  const connectLabel = (provider: SsoProvider): string =>
+    provider.display_name?.trim() ? provider.display_name : providerLabel(provider.route_name);
+
+  // Connecting reuses the sign-in form POST (see submitSsoLogin): the backend
+  // hook binds the returned identity to the logged-in account. `redirect` brings
+  // the user back to this panel after the IdP round-trip.
+  const handleConnect = (provider: SsoProvider) => {
+    submitSsoLogin({
+      routeName: provider.route_name,
+      shrimp: csrfStore.shrimp,
+      redirect: CONNECT_REDIRECT,
+    });
+  };
 
   // Confirmation dialog for individual identity removal (mirrors ActiveSessions).
   const {
@@ -199,6 +230,36 @@
               </button>
             </li>
           </ul>
+
+          <!-- Connect a provider: shown in both empty and populated states as
+               long as there is at least one provider not yet linked. -->
+          <div
+            v-if="connectableProviders.length > 0"
+            class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700"
+            data-testid="connections-connect">
+            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.auth.connections.connect_title') }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.auth.connections.connect_description') }}
+            </p>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button
+                v-for="provider in connectableProviders"
+                :key="provider.route_name"
+                @click="handleConnect(provider)"
+                type="button"
+                :data-testid="`connections-connect-${provider.route_name}`"
+                class="inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-300 dark:hover:bg-brand-900/40">
+                <OIcon
+                  collection="heroicons"
+                  name="link-solid"
+                  class="size-5 shrink-0"
+                  aria-hidden="true" />
+                {{ t('web.auth.connections.connect_action', { provider: connectLabel(provider) }) }}
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Related settings -->

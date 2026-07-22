@@ -75,6 +75,7 @@ const authErrorMessages: Record<string, string> = {
   invalid_email: 'web.login.errors.invalid_email',
   domain_not_allowed: 'web.login.errors.domain_not_allowed',
   account_exists_link_required: 'web.login.errors.account_exists_link_required',
+  identity_connect_conflict: 'web.login.errors.identity_connect_conflict',
   org_join_failed: 'web.login.errors.org_join_failed',
 };
 

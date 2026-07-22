@@ -347,6 +347,18 @@
     "text": "Identity providers you can use to sign in to this account",
     "context": "Card subheader for the list of linked SSO identities"
   },
+  "web.auth.connections.connect_title": {
+    "text": "Connect a provider",
+    "context": "Header for the section that lets a logged-in user link a new SSO identity provider (#3840 Phase 2)"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Link another single sign-on provider you can use to sign in to this account.",
+    "context": "Subtext under the Connect-a-provider header"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Connect {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name"
+  },
   "web.auth.connections.issuer": {
     "text": "Issuer",
     "context": "Label preceding the identity provider issuer URL in a connected-identity row"

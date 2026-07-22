@@ -74,6 +74,24 @@ vi.mock('@/shared/composables/useConnectedIdentities', () => ({
   useConnectedIdentities: () => mockState,
 }));
 
+// Configured SSO providers (bootstrap-backed in prod) — controllable per test.
+import type { SsoProvider } from '@/utils/features';
+const mockGetSsoProviders = vi.fn<() => SsoProvider[]>(() => []);
+vi.mock('@/utils/features', () => ({
+  getSsoProviders: () => mockGetSsoProviders(),
+}));
+
+// SSO connect initiates a form POST (navigates away); assert the call, not nav.
+const mockSubmitSsoLogin = vi.fn();
+vi.mock('@/shared/utils/sso', () => ({
+  submitSsoLogin: (opts: unknown) => mockSubmitSsoLogin(opts),
+}));
+
+// CSRF store: the component reads csrfStore.shrimp to include in the connect POST.
+vi.mock('@/shared/stores/csrfStore', () => ({
+  useCsrfStore: () => ({ shrimp: 'test-shrimp' }),
+}));
+
 import ConnectedIdentities from '@/apps/workspace/account/ConnectedIdentities.vue';
 
 const i18n = createTestI18n();
@@ -114,6 +132,8 @@ describe('ConnectedIdentities', () => {
     mockState.errorCode.value = null;
     mockState.fetchIdentities.mockResolvedValue([]);
     mockState.removeIdentity.mockResolvedValue(true);
+    // clearAllMocks keeps implementations, so reset the provider list explicitly.
+    mockGetSsoProviders.mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -242,6 +262,60 @@ describe('ConnectedIdentities', () => {
       await flushPromises();
 
       expect(mockState.removeIdentity).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Connect a provider', () => {
+    const providers: SsoProvider[] = [
+      { route_name: 'oidc', display_name: 'OpenID Connect' },
+      { route_name: 'entra', display_name: 'Microsoft Entra' },
+    ];
+
+    it('renders a Connect button for each connectable provider', () => {
+      mockGetSsoProviders.mockReturnValue(providers);
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="connections-connect-entra"]').exists()).toBe(true);
+    });
+
+    it('offers connect buttons in the empty state', () => {
+      mockGetSsoProviders.mockReturnValue([{ route_name: 'oidc', display_name: 'OpenID Connect' }]);
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-testid="connections-empty"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
+    });
+
+    it('excludes a provider already present in identities (same route_name)', () => {
+      mockState.identities.value = [makeIdentity({ provider: 'entra' })];
+      mockGetSsoProviders.mockReturnValue(providers);
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="connections-connect-entra"]').exists()).toBe(false);
+    });
+
+    it('renders no connect region when every provider is already linked', () => {
+      mockState.identities.value = [makeIdentity({ provider: 'entra' })];
+      mockGetSsoProviders.mockReturnValue([{ route_name: 'entra', display_name: 'Microsoft Entra' }]);
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(false);
+    });
+
+    it('initiates SSO connect with the provider route, shrimp, and return redirect', async () => {
+      mockGetSsoProviders.mockReturnValue([{ route_name: 'oidc', display_name: 'OpenID Connect' }]);
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="connections-connect-oidc"]').trigger('click');
+
+      expect(mockSubmitSsoLogin).toHaveBeenCalledWith({
+        routeName: 'oidc',
+        shrimp: 'test-shrimp',
+        redirect: '/account/settings/security/connections',
+      });
     });
   });
 
