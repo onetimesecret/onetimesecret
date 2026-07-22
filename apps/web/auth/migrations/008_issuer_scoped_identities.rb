@@ -45,9 +45,19 @@ Sequel.migration do
       alter_table(:account_identities) do
         drop_constraint(nil, type: :unique)
       end
+    when :postgres
+      # Drop the (provider, uid) uniqueness idempotently. Migration 006 created
+      # it as an unnamed table-level UNIQUE constraint, which PostgreSQL names
+      # deterministically `<table>_<cols>_key`. IF EXISTS also tolerates the
+      # shape a prior `down` of THIS migration leaves behind (a standalone unique
+      # INDEX rather than a constraint), so up->down->up cycles in dev/CI don't
+      # fail on a missing constraint.
+      run 'ALTER TABLE account_identities DROP CONSTRAINT IF EXISTS account_identities_provider_uid_key'
+      run 'DROP INDEX IF EXISTS account_identities_provider_uid_index'
     else
-      # PostgreSQL/MySQL/MSSQL: the constraint from `unique [:provider, :uid]`
-      # is named deterministically by Sequel as "<table>_<cols>_key".
+      # Best-effort for other backends (MySQL/MSSQL). These name the constraint
+      # by their own convention, which may differ from Sequel's default — this
+      # project only ships PostgreSQL and SQLite, so those paths are unverified.
       alter_table(:account_identities) do
         drop_constraint(:account_identities_provider_uid_key, type: :unique)
       end
@@ -66,12 +76,28 @@ Sequel.migration do
   end
 
   down do
-    # Reverse exactly: drop the composite unique, restore (provider, uid)
-    # uniqueness, then drop the column. The composite index references :issuer,
-    # so it must be dropped before the column.
+    # Reverse: drop the composite unique, restore (provider, uid) uniqueness,
+    # then drop the column. The composite index references :issuer, so it must be
+    # dropped before the column.
+    #
+    # NOTE: uniqueness is restored as a standalone unique INDEX, not the original
+    # unnamed table-level UNIQUE constraint from migration 006. For PostgreSQL and
+    # SQLite the two are functionally interchangeable for Rodauth's uniqueness
+    # check, and the paired `up` drops BOTH forms (IF EXISTS on postgres) so an
+    # up->down->up cycle stays consistent.
+    #
+    # A rollback WILL fail if production already holds two identities that share
+    # (provider, uid) but differ by issuer — precisely the collisions this schema
+    # was introduced to admit. That data cannot be collapsed back onto a unique
+    # (provider, uid) key; reconcile such rows manually before rolling back.
     # rubocop:disable Sequel/ConcurrentIndex
-    alter_table(:account_identities) do
-      drop_index [:provider, :issuer, :uid]
+    case database_type
+    when :postgres
+      run 'DROP INDEX IF EXISTS account_identities_provider_issuer_uid_index'
+    else
+      alter_table(:account_identities) do
+        drop_index [:provider, :issuer, :uid]
+      end
     end
 
     alter_table(:account_identities) do

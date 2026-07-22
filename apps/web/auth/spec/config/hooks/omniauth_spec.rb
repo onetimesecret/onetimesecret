@@ -758,6 +758,45 @@ RSpec.describe 'OmniAuth hooks' do
         )
         expect(result).to eq('')
       end
+
+      # Entra ID exposes :tenant_id (not :issuer) in strategy options, so the
+      # option branch misses; the validated `iss` claim from the id-token
+      # (extra.raw_info) is the tenant-distinguishing issuer. Without this,
+      # every Entra tenant collapses to '' (#3838 item 5 regression).
+      it 'uses the token iss claim when the strategy exposes no issuer option (Entra)' do
+        result = feature.resolve_issuer(
+          strategy_options: { tenant_id: 'tenant-guid' },
+          provider: 'entra', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: 'https://login.microsoftonline.com/tenant-guid/v2.0',
+        )
+        expect(result).to eq('https://login.microsoftonline.com/tenant-guid/v2.0')
+      end
+
+      it 'distinguishes two Entra tenants by their token iss' do
+        opts = { strategy_options: { tenant_id: 'x' }, provider: 'entra',
+                 oidc_route_name: 'oidc', env_oidc_issuer: nil }
+        a = feature.resolve_issuer(**opts, token_issuer: 'https://login.microsoftonline.com/aaa/v2.0')
+        b = feature.resolve_issuer(**opts, token_issuer: 'https://login.microsoftonline.com/bbb/v2.0')
+        expect(a).not_to eq(b)
+      end
+
+      it 'prefers the strategy option issuer over the token iss' do
+        result = feature.resolve_issuer(
+          strategy_options: { issuer: 'https://discovery.example' },
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: 'https://token.example',
+        )
+        expect(result).to eq('https://discovery.example')
+      end
+
+      it 'ignores a blank token iss and falls through to the sentinel' do
+        result = feature.resolve_issuer(
+          strategy_options: { tenant_id: 'x' },
+          provider: 'entra', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: '',
+        )
+        expect(result).to eq('')
+      end
     end
 
     describe '.platform_path?' do

@@ -85,17 +85,34 @@ module Auth::Config::Features
     ISSUER_SENTINEL = ''
 
     # Resolve the issuer for the current callback.
-    # Precedence: strategy option (authoritative) > ENV['OIDC_ISSUER'] for OIDC
-    # > '' sentinel (non-OIDC / unknown).
+    # Precedence:
+    #   1. strategy option :issuer — OIDC discovery populates and validates this.
+    #   2. token issuer (`iss`) from the auth hash's extra.raw_info — id-token
+    #      providers (Entra ID) expose the validated `iss` claim here. OIDC never
+    #      reaches this branch (its issuer resolves at #1); its raw_info is the
+    #      UserInfo response, which per OIDC core §5.3.2 may omit `iss`.
+    #   3. ENV['OIDC_ISSUER'] for the OIDC route.
+    #   4. '' sentinel (OAuth2 providers with no issuer concept: GitHub/Google).
+    #
+    # Entra matters here: its strategy exposes :tenant_id, not :issuer, so #1
+    # misses and without #2 every Entra tenant would collapse to '' —
+    # reintroducing the item-5 collision for `ignore_tid: true` configs (where
+    # the Entra uid degrades from `tid+oid` to `oid` alone). Scoping on the
+    # validated `iss` makes the security property explicit rather than an
+    # implicit consequence of the gem's uid composition.
     #
     # @param strategy_options [Hash, nil] omniauth_strategy&.options
     # @param provider [String, Symbol] omniauth_provider (route name)
     # @param oidc_route_name [String] configured OIDC route name (OIDC_ROUTE_NAME)
     # @param env_oidc_issuer [String, nil] ENV['OIDC_ISSUER']
+    # @param token_issuer [String, nil] validated `iss` claim from extra.raw_info
     # @return [String] resolved issuer or the '' sentinel
-    def self.resolve_issuer(strategy_options:, provider:, oidc_route_name:, env_oidc_issuer:)
+    def self.resolve_issuer(strategy_options:, provider:, oidc_route_name:, env_oidc_issuer:,
+                            token_issuer: nil)
       option_issuer = strategy_options && strategy_options[:issuer]
       return option_issuer.to_s if option_issuer && !option_issuer.to_s.empty?
+
+      return token_issuer.to_s if token_issuer && !token_issuer.to_s.empty?
 
       is_oidc = (strategy_options && strategy_options[:discovery] == true) ||
                 provider.to_s == oidc_route_name.to_s
@@ -152,17 +169,36 @@ module Auth::Config::Features
     def self.configure_issuer_scoped_identities(auth)
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
-        # Resolver: strategy option > ENV OIDC_ISSUER (OIDC) > '' sentinel.
+        # Resolver: strategy option > token `iss` (Entra) > ENV OIDC_ISSUER > ''.
         def resolved_issuer
           Auth::Config::Features::OmniAuth.resolve_issuer(
             strategy_options: omniauth_strategy&.options,
             provider: omniauth_provider,
             oidc_route_name: ENV.fetch('OIDC_ROUTE_NAME', 'oidc'),
             env_oidc_issuer: ENV.fetch('OIDC_ISSUER', nil),
+            token_issuer: omniauth_token_issuer,
           )
         end
 
-        # Platform (non-tenant) callback gate. See hooks/omniauth_tenant.rb.
+        # The validated `iss` claim from the auth hash's extra.raw_info, if the
+        # strategy exposes one (Entra ID's raw_info is the decoded id_token). Nil
+        # for OIDC (raw_info is the UserInfo response) and OAuth2 (no id_token).
+        # Read defensively — extra/raw_info may be a plain Hash or an AuthHash.
+        def omniauth_token_issuer
+          extra = omniauth_extra
+          return nil unless extra
+
+          raw = extra['raw_info'] || extra[:raw_info]
+          return nil unless raw
+
+          raw['iss'] || raw[:iss]
+        end
+
+        # Platform (non-tenant) callback gate. The tenant hook
+        # (hooks/omniauth_tenant.rb) sets session[:validated_omniauth_domain_id]
+        # in before_omniauth_callback_route; rodauth-omniauth-0.6.2 runs that
+        # hook (features/omniauth.rb:53 handle_omniauth_callback) BEFORE
+        # retrieve_omniauth_identity (:62), so the signal is reliable here.
         def omniauth_platform_path?
           Auth::Config::Features::OmniAuth.platform_path?(session[:validated_omniauth_domain_id])
         end
@@ -170,15 +206,21 @@ module Auth::Config::Features
       # rubocop:enable Lint/NestedMethodDefinition
 
       # SECURITY-CRITICAL override: issuer-aware identity lookup.
-      auth.retrieve_omniauth_identity do
+      #
+      # `retrieve_omniauth_identity` is declared via auth_private_methods, so this
+      # DSL block becomes the body of `_retrieve_omniauth_identity(provider, uid)`
+      # — Rodauth invokes it with the two positional args (omniauth_provider,
+      # omniauth_uid). The block MUST accept them or every callback 500s with
+      # ArgumentError (wrong number of arguments).
+      auth.retrieve_omniauth_identity do |provider, uid|
         Auth::Config::Features::OmniAuth.lookup_identity(
           ds: omniauth_identities_ds,
           id_col: omniauth_identities_id_column,
           provider_col: omniauth_identities_provider_column,
           uid_col: omniauth_identities_uid_column,
           issuer_col: :issuer,
-          provider: omniauth_provider,
-          uid: omniauth_uid,
+          provider: provider,
+          uid: uid,
           resolved_issuer: resolved_issuer,
           platform_path: omniauth_platform_path?,
         )
