@@ -41,19 +41,6 @@ class MockApp
   end
 end
 
-# Capture OT.lw so we can assert the Part 2 dropped-cookie warning fires.
-# OT.lw is a class method on Onetime; override it to append to a constant
-# array (closure-captured). Tryouts runs every try/unit file in ONE process, so
-# this singleton override WOULD leak into later files; ORIGINAL_OT_LW below
-# preserves the real method and the final teardown restores it.
-CAPTURED_WARNINGS = []
-CAPTURED_PAYLOADS = []
-ORIGINAL_OT_LW = OT.method(:lw)
-OT.define_singleton_method(:lw) do |*msgs, **payload|
-  CAPTURED_WARNINGS << msgs.join(' ')
-  CAPTURED_PAYLOADS << payload
-end
-
 @app     = MockApp.new
 @secret  = SecureRandom.hex(64)
 @session = Session.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600 })
@@ -75,6 +62,24 @@ end
 def assume_https_middleware(enabled)
   (OT.conf['site']['network'] ||= {})['assume_https'] = enabled
   Onetime::Middleware::AssumeHttps.new(MockApp.new)
+end
+
+# Install the OT.lw capture LAST in setup — after every fallible setup step
+# (notably Session.new above) has run — so no setup statement can raise while
+# this process-wide singleton override is in place. The ordering matters: a
+# failure during SETUP early-returns before the teardown block runs
+# (tryouts test_batch.rb), whereas a failure inside a *test* does NOT skip
+# teardown (tryouts wraps each test in a rescue and still runs the teardown
+# afterward). Installing here means the teardown below restores OT.lw on every
+# reachable path, so the capture cannot leak into later files in the shared
+# tryouts process. OT.lw is a class method; we append to closure-captured
+# constant arrays and keep ORIGINAL_OT_LW to restore the real method.
+CAPTURED_WARNINGS = []
+CAPTURED_PAYLOADS = []
+ORIGINAL_OT_LW = OT.method(:lw)
+OT.define_singleton_method(:lw) do |*msgs, **payload|
+  CAPTURED_WARNINGS << msgs.join(' ')
+  CAPTURED_PAYLOADS << payload
 end
 
 
@@ -180,5 +185,10 @@ CAPTURED_WARNINGS.length
 
 # Restore the real OT.lw. Tryouts shares one process across try/unit files, so
 # leaving the capturing override in place would silently swallow warnings emitted
-# by every later file.
+# by every later file. tryouts runs this teardown block even when a test above
+# raises (each test is wrapped in a rescue; the teardown runs unconditionally
+# after the test loop), so this restore is the framework-guaranteed "ensure" —
+# and the override is installed as the last setup step so setup cannot fail with
+# it in place. at_exit would be the wrong tool here: it fires at process exit,
+# AFTER later files have already run, so it could not prevent a cross-file leak.
 OT.define_singleton_method(:lw, &ORIGINAL_OT_LW)

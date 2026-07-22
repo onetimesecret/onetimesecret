@@ -27,6 +27,15 @@ module Onetime
       # State-changing methods that Rack::Protection::AuthenticityToken
       # validates. Safe methods (GET/HEAD/OPTIONS) are never CSRF-checked, so
       # they must not pay the session-load cost below nor emit rejection logs.
+      #
+      # NOTE (observability-only): this is a hardcoded allowlist, not the exact
+      # complement of rack-protection's `safe?` (GET/HEAD/OPTIONS/TRACE). A
+      # non-standard unsafe method that rack-protection WOULD CSRF-check (e.g.
+      # WebDAV PROPFIND/MKCOL) is absent here, so its 403 would skip this
+      # diagnostic. That only costs a log line — never security — and OTS
+      # exposes no such methods, so the explicit, readable allowlist is
+      # preferred over deriving the complement of a private rack-protection
+      # predicate.
       UNSAFE_METHODS = %w[POST PUT PATCH DELETE].freeze
 
       # Session key holding the raw CSRF token. This is AuthenticityToken's
