@@ -485,7 +485,16 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     # validates). CsrfResponseHeader captures presence BEFORE @app.call and logs
     # a discriminated warning. We drive the middleware directly with a stub app
     # so the branch is deterministic and does not depend on the full CSRF flow.
-    let(:stub_403_app) { ->(_env) { [403, {}, []] } }
+    # Simulates AuthenticityToken rejecting the request: rack-protection sets the
+    # env attack marker (via the configured instrumenter) BEFORE it denies with a
+    # 403. CsrfResponseHeader keys its diagnostic on that marker, so the stub must
+    # set it to exercise the real code path.
+    let(:stub_403_app) do
+      ->(env) {
+        env['rack.protection.attack'] = 'authenticitytoken'
+        [403, {}, []]
+      }
+    end
     let(:middleware) { Onetime::Middleware::CsrfResponseHeader.new(stub_403_app) }
     # A realistic raw session token: the downstream X-CSRF-Token masking block
     # base64-decodes session[:csrf], so it must be a valid urlsafe token (an
@@ -534,7 +543,7 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       allow(OT).to receive(:lw).and_call_original
       middleware.call(env_for(method: 'GET', path: '/account/update', session: {}))
 
-      expect(OT).not_to have_received(:lw).with(a_string_matching(/CSRF 403/), anything)
+      expect(OT).not_to have_received(:lw)
     end
 
     it 'does NOT log when an unsafe POST is NOT rejected (status != 403)' do
@@ -543,7 +552,35 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       allow(OT).to receive(:lw).and_call_original
       ok_middleware.call(env_for(method: 'POST', path: '/account/update', session: {}))
 
-      expect(OT).not_to have_received(:lw).with(a_string_matching(/CSRF 403/), anything)
+      expect(OT).not_to have_received(:lw)
+    end
+
+    it 'does NOT log when a non-CSRF 403 is returned (no attack marker)' do
+      # An app-level 403 (Onetime::Forbidden, EntitlementRequired,
+      # GuestRoutesDisabled) never sets env['rack.protection.attack']. Before the
+      # marker gate these were mis-logged as CSRF failures; now they are correctly
+      # ignored so the CSRF diagnostic only fires on genuine CSRF rejections.
+      plain_403_app   = ->(_env) { [403, {}, []] }
+      plain_middleware = Onetime::Middleware::CsrfResponseHeader.new(plain_403_app)
+      allow(OT).to receive(:lw).and_call_original
+      plain_middleware.call(env_for(method: 'POST', path: '/account/update', session: {}))
+
+      expect(OT).not_to have_received(:lw)
+    end
+
+    it 'logs the full request path including the URLMap SCRIPT_NAME prefix' do
+      # CsrfResponseHeader runs above the URLMap mount, so a rejected POST to a
+      # mounted app must log SCRIPT_NAME + PATH_INFO, not the prefix-stripped
+      # PATH_INFO alone.
+      allow(OT).to receive(:lw).and_call_original
+      env = env_for(method: 'POST', path: '/v2/account/update', session: {})
+      env['SCRIPT_NAME'] = '/api'
+      middleware.call(env)
+
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/CSRF 403/),
+        hash_including(path: '/api/v2/account/update')
+      )
     end
   end
 

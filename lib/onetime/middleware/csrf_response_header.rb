@@ -34,6 +34,16 @@ module Onetime
       # (set_token only runs inside AuthenticityToken during @app.call).
       CSRF_SESSION_KEY = :csrf
 
+      # Rack::Protection stamps env['rack.protection.attack'] with the rejecting
+      # middleware's lowercased class name — but ONLY when an :instrumenter is
+      # configured (security.rb wires CSRF_ATTACK_INSTRUMENTER onto
+      # AuthenticityToken for exactly this). A 403 raised by the app itself
+      # (Onetime::Forbidden, EntitlementRequired, GuestRoutesDisabled) never sets
+      # it, so gating the diagnostic on this marker keeps non-CSRF 403s out of the
+      # CSRF log. Scoped to AuthenticityToken specifically: HttpOrigin is a
+      # different CSRF class whose 403s the token/continuity split does not model.
+      CSRF_ATTACK_MARKER = 'authenticitytoken'
+
       def initialize(app)
         @app = app
       end
@@ -57,12 +67,20 @@ module Onetime
           headers['X-CSRF-Token'] = csrf_token if csrf_token
         end
 
-        log_csrf_rejection(env, had_csrf) if unsafe && status == 403
+        log_csrf_rejection(env, had_csrf) if unsafe && csrf_rejection?(env)
 
         [status, headers, body]
       end
 
       private
+
+      # True only for a 403 produced by AuthenticityToken (a genuine CSRF
+      # rejection), as opposed to any other 403 this middleware happens to wrap.
+      # The marker's presence already implies the deny (403) reaction ran, so we
+      # do not also test `status`.
+      def csrf_rejection?(env)
+        env['rack.protection.attack'] == CSRF_ATTACK_MARKER
+      end
 
       # True when the session already carries a non-empty raw CSRF token.
       # Reads with AuthenticityToken's own key; the read forces a lazy session
@@ -78,7 +96,13 @@ module Onetime
       # values or secrets — only method + path context. This logs the CSRF
       # REJECTION and is distinct from the Part 2 cookie-drop warning.
       def log_csrf_rejection(env, had_csrf)
-        context = { method: env['REQUEST_METHOD'], path: env['PATH_INFO'] }
+        # SCRIPT_NAME carries the URLMap mount prefix (e.g. "/api"); PATH_INFO is
+        # only the remainder. Join them so the logged path is the full request path
+        # rather than a prefix-stripped fragment.
+        context = {
+          method: env['REQUEST_METHOD'],
+          path: "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}",
+        }
 
         if had_csrf
           # The session held a token but the submitted one did not match: a

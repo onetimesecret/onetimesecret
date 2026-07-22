@@ -44,6 +44,20 @@ module Onetime
         utf8_sanitizer
       ].freeze
 
+      # Configuring an :instrumenter is the ONLY thing that makes Rack::Protection
+      # stamp env['rack.protection.attack'] with the rejecting middleware's name
+      # before it denies (rack-protection base.rb#instrument). CsrfResponseHeader
+      # reads that marker to tell a genuine AuthenticityToken 403 apart from an
+      # app-level 403 (Onetime::Forbidden, EntitlementRequired, GuestRoutesDisabled)
+      # it merely wraps. We only need the env marker, not the notification, so
+      # #instrument is a deliberate no-op -- no ActiveSupport::Notifications
+      # dependency and no event emission. See #3837 (root cause of #3831).
+      CSRF_ATTACK_INSTRUMENTER = Object.new.tap do |instrumenter|
+        # rack-protection invokes instrumenter.instrument('rack.protection', env)
+        # AFTER it has set the env marker we care about.
+        def instrumenter.instrument(_name, _env); end
+      end
+
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
       attr_reader :app
@@ -149,6 +163,10 @@ Onetime::Middleware::Security.middleware_components = {
     klass: Rack::Protection::AuthenticityToken,
     options: {
       authenticity_param: 'shrimp',
+      # Marks env['rack.protection.attack'] on rejection so CsrfResponseHeader
+      # can distinguish a real CSRF 403 from an unrelated 403 (see the
+      # CSRF_ATTACK_INSTRUMENTER definition above).
+      instrumenter: Onetime::Middleware::Security::CSRF_ATTACK_INSTRUMENTER,
       allow_if: ->(env) {
         req = Rack::Request.new(env)
 
