@@ -199,6 +199,13 @@ module Auth::Config::Features
         # in before_omniauth_callback_route; rodauth-omniauth-0.6.2 runs that
         # hook (features/omniauth.rb:53 handle_omniauth_callback) BEFORE
         # retrieve_omniauth_identity (:62), so the signal is reliable here.
+        #
+        # VERSION-PINNED INVARIANT: this ordering (before_omniauth_callback_route
+        # runs before retrieve_omniauth_identity) is what makes the security gate
+        # sound. It holds in rodauth-omniauth >= 0.6.2; RE-VERIFY it whenever the
+        # gem is upgraded — if a later version reorders the callback, tenant
+        # callbacks could reach the '' legacy fallback and re-open the item-5
+        # takeover.
         def omniauth_platform_path?
           Auth::Config::Features::OmniAuth.platform_path?(session[:validated_omniauth_domain_id])
         end
@@ -305,6 +312,15 @@ module Auth::Config::Features
       #   - Auth hash: { provider: 'entra', ... }
       #   - DB: account_identities.provider = 'entra'
       # Without name: override, omniauth-entra-id defaults to 'entra_id'.
+      #
+      # SECURITY — dependency on issuer-scoping (#3840 Phase 0 / #3838 item 5):
+      # By default omniauth-entra-id composes the uid as `tid+oid` (tenant id +
+      # object id), so it is unique across tenants on its own. A deployer who
+      # sets `ignore_tid: true` degrades the uid to `oid` ALONE — the same oid
+      # can then recur across tenants. Cross-tenant safety in that config relies
+      # ENTIRELY on the (provider, issuer, uid) key: resolve_issuer scopes the
+      # row by the validated `iss` claim (see omniauth_token_issuer). If you add
+      # `ignore_tid: true` here, do NOT weaken that issuer resolution.
       tenant_id     = ENV.fetch('ENTRA_TENANT_ID', nil)
       client_id     = ENV.fetch('ENTRA_CLIENT_ID', nil)
       client_secret = ENV.fetch('ENTRA_CLIENT_SECRET', nil)

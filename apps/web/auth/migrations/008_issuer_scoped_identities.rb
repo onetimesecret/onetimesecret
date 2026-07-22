@@ -62,9 +62,12 @@ Sequel.migration do
       run 'ALTER TABLE account_identities DROP CONSTRAINT IF EXISTS account_identities_provider_uid_key'
       run 'DROP INDEX IF EXISTS account_identities_provider_uid_index'
     else
-      # Best-effort for other backends (MySQL/MSSQL). These name the constraint
-      # by their own convention, which may differ from Sequel's default — this
-      # project only ships PostgreSQL and SQLite, so those paths are unverified.
+      # MySQL/MSSQL are NOT supported deployment targets — this project ships
+      # only PostgreSQL and SQLite. This branch is best-effort and UNVERIFIED:
+      # those backends name the 006 constraint by their own convention, which
+      # may differ from the PostgreSQL-style name assumed here, so drop_constraint
+      # can miss and abort the migration. If you add such a target, verify this
+      # path (and the paired `down`) against its real constraint name first.
       alter_table(:account_identities) do
         drop_constraint(:account_identities_provider_uid_key, type: :unique)
       end
