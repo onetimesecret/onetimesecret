@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'instrumented_authenticity_token'
+
 module Onetime
   module Middleware
     ##
@@ -34,15 +36,13 @@ module Onetime
       # (set_token only runs inside AuthenticityToken during @app.call).
       CSRF_SESSION_KEY = :csrf
 
-      # Rack::Protection stamps env['rack.protection.attack'] with the rejecting
-      # middleware's lowercased class name — but ONLY when an :instrumenter is
-      # configured (security.rb wires CSRF_ATTACK_INSTRUMENTER onto
-      # AuthenticityToken for exactly this). A 403 raised by the app itself
+      # InstrumentedAuthenticityToken stamps this env key true on its deny path
+      # (a genuine CSRF rejection). A 403 raised by the app itself
       # (Onetime::Forbidden, EntitlementRequired, GuestRoutesDisabled) never sets
       # it, so gating the diagnostic on this marker keeps non-CSRF 403s out of the
       # CSRF log. Scoped to AuthenticityToken specifically: HttpOrigin is a
       # different CSRF class whose 403s the token/continuity split does not model.
-      CSRF_ATTACK_MARKER = 'authenticitytoken'
+      CSRF_REJECTION_KEY = Onetime::Middleware::InstrumentedAuthenticityToken::REJECTION_ENV_KEY
 
       def initialize(app)
         @app = app
@@ -67,19 +67,21 @@ module Onetime
           headers['X-CSRF-Token'] = csrf_token if csrf_token
         end
 
-        log_csrf_rejection(env, had_csrf) if unsafe && csrf_rejection?(env)
+        log_csrf_rejection(env, had_csrf) if unsafe && status == 403 && csrf_rejection?(env)
 
         [status, headers, body]
       end
 
       private
 
-      # True only for a 403 produced by AuthenticityToken (a genuine CSRF
-      # rejection), as opposed to any other 403 this middleware happens to wrap.
-      # The marker's presence already implies the deny (403) reaction ran, so we
-      # do not also test `status`.
+      # True only for a request InstrumentedAuthenticityToken denied (a genuine
+      # CSRF rejection), as opposed to any other 403 this middleware happens to
+      # wrap. The marker is set only on the deny path, so it is already 403-only
+      # by construction; the caller still ANDs `status == 403` as free insurance
+      # against a future config change (e.g. reaction: :report) that could set a
+      # marker without denying.
       def csrf_rejection?(env)
-        env['rack.protection.attack'] == CSRF_ATTACK_MARKER
+        env[CSRF_REJECTION_KEY] == true
       end
 
       # True when the session already carries a non-empty raw CSRF token.

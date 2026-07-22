@@ -48,7 +48,8 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
 
         expect(middleware_config).not_to be_nil
-        expect(middleware_config[:klass]).to eq(Rack::Protection::AuthenticityToken)
+        expect(middleware_config[:klass]).to eq(Onetime::Middleware::InstrumentedAuthenticityToken)
+        expect(middleware_config[:klass]).to be < Rack::Protection::AuthenticityToken
         expect(middleware_config[:options][:authenticity_param]).to eq('shrimp')
       end
 
@@ -420,9 +421,10 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         # The header name is hardcoded in the gem as X-CSRF-Token
         # This is used by Axios interceptor in the frontend
 
-        # We verify by checking the middleware is the standard one
+        # We verify by checking the middleware is our subclass of the standard
+        # one (InstrumentedAuthenticityToken inherits the header handling).
         config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
-        expect(config[:klass]).to eq(Rack::Protection::AuthenticityToken)
+        expect(config[:klass]).to be < Rack::Protection::AuthenticityToken
       end
     end
   end
@@ -485,13 +487,14 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     # validates). CsrfResponseHeader captures presence BEFORE @app.call and logs
     # a discriminated warning. We drive the middleware directly with a stub app
     # so the branch is deterministic and does not depend on the full CSRF flow.
-    # Simulates AuthenticityToken rejecting the request: rack-protection sets the
-    # env attack marker (via the configured instrumenter) BEFORE it denies with a
-    # 403. CsrfResponseHeader keys its diagnostic on that marker, so the stub must
-    # set it to exercise the real code path.
+    # Simulates InstrumentedAuthenticityToken rejecting the request: its #deny
+    # stamps the rejection marker BEFORE returning a 403. CsrfResponseHeader keys
+    # its diagnostic on that marker, so the stub sets the SAME key to exercise the
+    # real code path. (The live-stack tripwire below proves the real middleware
+    # actually sets it.)
     let(:stub_403_app) do
       ->(env) {
-        env['rack.protection.attack'] = 'authenticitytoken'
+        env[Onetime::Middleware::InstrumentedAuthenticityToken::REJECTION_ENV_KEY] = true
         [403, {}, []]
       }
     end
@@ -557,8 +560,8 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
 
     it 'does NOT log when a non-CSRF 403 is returned (no attack marker)' do
       # An app-level 403 (Onetime::Forbidden, EntitlementRequired,
-      # GuestRoutesDisabled) never sets env['rack.protection.attack']. Before the
-      # marker gate these were mis-logged as CSRF failures; now they are correctly
+      # GuestRoutesDisabled) never sets the rejection marker. Before the marker
+      # gate these were mis-logged as CSRF failures; now they are correctly
       # ignored so the CSRF diagnostic only fires on genuine CSRF rejections.
       plain_403_app   = ->(_env) { [403, {}, []] }
       plain_middleware = Onetime::Middleware::CsrfResponseHeader.new(plain_403_app)
@@ -580,6 +583,28 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       expect(OT).to have_received(:lw).with(
         a_string_matching(/CSRF 403/),
         hash_including(path: '/api/v2/account/update')
+      )
+    end
+
+    # TRIPWIRE: the tests above stub the marker. This one drives the FULL live
+    # stack (CsrfResponseHeader wrapping the real InstrumentedAuthenticityToken),
+    # so it fails loudly if the subclass's #deny stops setting the marker — e.g.
+    # if rack-protection changes its reaction dispatch and `default_reaction
+    # :deny` no longer rebinds, or if the subclass is dropped. Without this, a
+    # marker that silently stopped firing would leave every other test green.
+    it 'stamps the rejection marker through the REAL middleware stack on a genuine CSRF 403' do
+      allow(OT).to receive(:lw).and_call_original
+
+      # POST to a web route with no session and no shrimp -> the real
+      # AuthenticityToken denies with 403 via its (rebound) deny path.
+      response = @mock_request.post('/signin', {
+        params: { login: 'test@example.com', pass: 'password123' }
+      })
+
+      expect(response.status).to eq(403)
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/CSRF 403/),
+        hash_including(method: 'POST', path: '/signin')
       )
     end
   end
