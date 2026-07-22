@@ -2,53 +2,31 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { gracefulParse } from '@/utils/schemaValidation';
-import { z } from 'zod';
-import { useDocumentVisibility } from '@vueuse/core';
-import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
-import { handleError, ref, watch } from 'vue';
-
-// Inline schema — CSRF validation is a simple endpoint, not part of the API registry
-const csrfResponseSchema = z.object({
-  isValid: z.boolean(),
-  shrimp: z.string(),
-});
-
-const DEFAULT_PERIODIC_INTERVAL_MS = 60000 * 15; // Check every 15 minutes
+import { ref, watch } from 'vue';
 
 interface StoreOptions extends PiniaPluginOptions {
   shrimp?: string;
 }
 
 /**
- * Store for managing CSRF token (shrimp) state and validation.
+ * Store for managing CSRF token (shrimp) state.
  *
  * Key concepts:
- * - Token validity is determined by server validation, not just presence
- * - Server returns both validity status and optionally a new token
- * - Periodic validation ensures token stays valid during session
+ * - The current token is mirrored here from the bootstrap payload.
+ * - Rotation is handled transparently by the axios response interceptor, and
+ *   re-read from bootstrap when a native fetch bypasses axios.
  *
  * @example
  * import { useCsrfStore } from '@/stores/csrfStore';
  *
  * const csrfStore = useCsrfStore();
  *
- * // Start periodic validation
- * csrfStore.startPeriodicCheck(60000); // Check every minute (?!)
- *
- * // Stop validation when no longer needed
- * csrfStore.stopPeriodicCheck();
+ * // Read the current token (typically consumed by API interceptors / forms)
+ * const token = csrfStore.shrimp;
  *
  * // Update token (typically handled by API interceptors)
  * csrfStore.updateShrimp(newToken);
- *
- * // Check if token is valid according to server
- * if (csrfStore.isValid) {
- *   // Proceed with protected action
- * } else {
- *   // Handle invalid token scenario
- * }
  */
 
 /**
@@ -57,29 +35,20 @@ interface StoreOptions extends PiniaPluginOptions {
 export type CsrfStore = {
   // State
   shrimp: string;
-  isValid: boolean;
-  intervalChecker: number | null;
   _initialized: boolean;
 
   // Actions
   init: () => void;
   updateShrimp: (newShrimp: string) => void;
-  checkShrimpValidity: () => Promise<void>;
-  startPeriodicCheck: (intervalMs?: number) => void;
-  stopPeriodicCheck: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
-/* eslint-disable max-lines-per-function */
 export const useCsrfStore = defineStore('csrf', () => {
-  const $api = useApi();
   const bootstrapStore = useBootstrapStore();
   const { shrimp: bootstrapShrimp, authenticated } = storeToRefs(bootstrapStore);
 
   // State
   const shrimp = ref('');
-  const isValid = ref(false);
-  const intervalChecker = ref<number | null>(null);
   const _initialized = ref(false);
 
   function init(options?: StoreOptions) {
@@ -87,8 +56,12 @@ export const useCsrfStore = defineStore('csrf', () => {
     shrimp.value = (options?.shrimp || bootstrapShrimp.value) ?? '';
     _initialized.value = true;
 
-    // startPeriodicCheck();
-    // initVisibilityCheck();
+    // NOTE: There is deliberately no periodic or Page-Visibility CSRF
+    // revalidation here. The token rotates transparently via the axios
+    // response interceptor plus a refresh-before-submit path, so a client-side
+    // validity probe adds no safety. The /api/v3/validate-shrimp endpoint was
+    // intentionally NOT restored — see ADR-031 / issue #3839 before re-adding
+    // any client-side polling.
 
     return _initialized;
   }
@@ -111,48 +84,6 @@ export const useCsrfStore = defineStore('csrf', () => {
     shrimp.value = newShrimp;
   }
 
-  async function checkShrimpValidity() {
-    const response = await $api.post('/api/v3/validate-shrimp', {});
-
-    const result = gracefulParse(csrfResponseSchema, response.data, 'CsrfResponse');
-    if (!result.ok) {
-      throw new Error('CSRF validation failed. Please reload the page.');
-    }
-    isValid.value = result.data.isValid;
-    if (result.data.isValid) {
-      updateShrimp(result.data.shrimp);
-    }
-    return result.data;
-  }
-
-  function initVisibilityCheck() {
-    // console.debug(`[csrfStore] Init initVisibilityCheck...`);
-
-    const visibility = useDocumentVisibility();
-
-    watch(visibility, async (currentVisibility) => {
-      if (currentVisibility === 'visible') {
-        await checkShrimpValidity();
-      }
-    });
-  }
-
-  function startPeriodicCheck(intervalMs: number = DEFAULT_PERIODIC_INTERVAL_MS) {
-    // console.debug(`[csrfStore] Init startPeriodicCheck... ${DEFAULT_PERIODIC_INTERVAL_MS}`);
-
-    stopPeriodicCheck();
-    intervalChecker.value = window.setInterval(() => {
-      checkShrimpValidity();
-    }, intervalMs);
-  }
-
-  function stopPeriodicCheck() {
-    if (intervalChecker.value !== null) {
-      clearInterval(intervalChecker.value);
-      intervalChecker.value = null;
-    }
-  }
-
   /**
    * Resets store to initial state, including re-reading shrimp from bootstrap.
    * We read from bootstrapStore to maintain consistency with store
@@ -160,25 +91,16 @@ export const useCsrfStore = defineStore('csrf', () => {
    */
   function $reset() {
     shrimp.value = bootstrapShrimp.value ?? '';
-    isValid.value = false;
     _initialized.value = false;
-    stopPeriodicCheck();
   }
 
   return {
     // State
     shrimp,
-    isValid,
-    intervalChecker,
 
     // Actions
     init,
-    handleError,
     updateShrimp,
-    checkShrimpValidity,
-    startPeriodicCheck,
-    stopPeriodicCheck,
-    initVisibilityCheck,
     $reset,
   };
 });
