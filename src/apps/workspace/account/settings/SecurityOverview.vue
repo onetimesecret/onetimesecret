@@ -5,7 +5,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
-  import { hasPasswordOf, isMfaEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
+  import { hasPasswordOf, isMfaEnabledOf, isSsoEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { AccountInfo } from '@/types/auth';
   import { computed, onMounted, ref } from 'vue';
@@ -18,6 +18,7 @@
   const showSessionsCard = ref(false);
   const mfaFeatureEnabled = computed(() => isMfaEnabledOf(bootstrapStore));
   const webAuthnEnabled = computed(() => isWebAuthnEnabledOf(bootstrapStore));
+  const ssoEnabled = computed(() => isSsoEnabledOf(bootstrapStore));
   const hasPw = computed(() => hasPasswordOf(bootstrapStore));
   const { accountInfo, fetchAccountInfo } = useAccount();
 
@@ -124,6 +125,23 @@
     };
   }
 
+  // Helper to build connected-identities card (SSO account-linking, #3840).
+  // NOT password-dependent — SSO-only accounts are the primary audience.
+  function buildConnectionsCard(): SecurityCard {
+    return {
+      id: 'connections',
+      icon: { collection: 'heroicons', name: 'globe-alt-solid' },
+      title: t('web.auth.connections.title'),
+      description: t('web.auth.connections.description'),
+      status: 'active',
+      statusText: t('web.auth.connections.overview_status'),
+      action: {
+        label: t('web.settings.security.manage'),
+        to: '/account/settings/security/connections',
+      },
+    };
+  }
+
   // Helper to build sessions card
   function buildSessionsCard(info: AccountInfo): SecurityCard {
     return {
@@ -158,6 +176,12 @@
 
     if (webAuthnEnabled.value) {
       cards.push(buildPasskeyCard(accountInfo.value));
+    }
+
+    // Connected identities card — not password-dependent, so it is added after
+    // the SSO-only card filter above and shown whenever SSO is enabled.
+    if (ssoEnabled.value) {
+      cards.push(buildConnectionsCard());
     }
 
     if (showSessionsCard.value) {

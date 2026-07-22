@@ -309,6 +309,24 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    // Connected SSO identities (#3840 Phase 2). Guarded like passkeys with
+    // checkSecurityAccess (full-auth mode only) — an SSO identity is an
+    // alternative credential, NOT password-dependent, so it must NOT use a
+    // hasPassword-gated guard (SSO-only accounts are the primary users here).
+    path: '/account/settings/security/connections',
+    name: 'Connected Identities',
+    beforeEnter: checkSecurityAccess,
+    component: () => import('@/apps/workspace/account/ConnectedIdentities.vue'),
+    meta: {
+      title: 'web.TITLES.connected_identities',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
+    },
+  },
+  {
     path: '/account/settings/api',
     name: 'API Settings',
     component: () => import('@/apps/workspace/account/settings/ApiSettings.vue'),

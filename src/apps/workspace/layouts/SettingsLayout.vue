@@ -18,6 +18,7 @@ import {
   hasPasswordOf,
   isFullAuthModeOf,
   isOwnerOrAdminOf,
+  isSsoEnabledOf,
   isSsoOnlyModeOf,
   isWebAuthnEnabledOf,
 } from '@/utils/features';
@@ -40,6 +41,7 @@ const tabItems = computed(() => {
     isSsoOnlyMode: isSsoOnlyModeOf(bootstrapStore),
     isOwnerOrAdmin: isOwnerOrAdminOf(bootstrapStore),
     isWebAuthnEnabled: isWebAuthnEnabledOf(bootstrapStore),
+    isSsoEnabled: isSsoEnabledOf(bootstrapStore),
   };
   const sections = getSettingsNavigationSections(t, features);
   const allItems = sections.flatMap((section) => section.items);
