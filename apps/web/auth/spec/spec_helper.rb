@@ -230,13 +230,20 @@ module RodauthTestHelper
   end
 
   # Creates tables for OmniAuth (SSO identity linking)
+  #
+  # MUST mirror migrations/008_issuer_scoped_identities.rb — specs build the
+  # schema from HERE, not the migration. The identity is keyed on
+  # (provider, issuer, uid) to close the #3838 item-5 cross-tenant takeover;
+  # `issuer` is NOT NULL with the '' sentinel (never NULL — a NULL vs ''
+  # split would break the unique index).
   def self.create_omniauth_tables(db)
     db.create_table(:account_identities) do
       primary_key :id, type: :Bignum
       foreign_key :account_id, :accounts, type: :Bignum, null: false
       String :provider, null: false
+      String :issuer, null: false, default: ''
       String :uid, null: false
-      index [:provider, :uid], unique: true
+      index [:provider, :issuer, :uid], unique: true
     end
   end
 
