@@ -129,9 +129,8 @@
     "content_hash": "87603782"
   },
   "web.login.errors.account_exists_link_required": {
-    "text": "An account with this email address already exists but isn't linked to this sign-in method. Please sign in with your existing method to continue.",
-    "context": "Shown on signin page when SSO refuses to auto-link: an account with the callback email exists but is not linked to this provider. Message-only in Phase 1 (#3840) — do not reference an account-settings link or an email-confirmation flow (those arrive in #3840 Phase 2, the authenticated account-linking panel).",
-    "content_hash": "e4261e30"
+    "text": "An account with this email address already exists but isn't linked to this sign-in method. Sign in with your existing method, then link this provider under Security settings → Connected identities.",
+    "context": "Shown on signin page when SSO refuses to auto-link: an account with the callback email exists but is not linked to this provider. Phase 2 (#3840) is live — the authenticated Connected Identities panel (/account/settings/security/connections) now lets a signed-in user link the provider, so the copy points there. Content edited; content_hash intentionally omitted so locales:hashes regenerates it."
   },
   "web.login.errors.org_join_failed": {
     "text": "We couldn't finish adding you to your organization. Please contact your administrator.",
