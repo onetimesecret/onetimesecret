@@ -481,18 +481,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
   # constraint AND that standalone index — otherwise a rollback+re-apply leaves a
   # stale (provider, uid) unique that silently re-imposes the pre-issuer key.
   describe 'issuer-scoped migration survives an up->down->up cycle' do
-    # Derive the version from the filename so a later renumber doesn't rot this.
-    let(:issuer_migration_version) do
-      file = Dir.glob(File.join(migrations_dir, '[0-9]*issuer_scoped*.rb')).first
-      raise 'issuer-scoped migration not found' unless file
-
-      File.basename(file)[/\A(\d+)/, 1].to_i
-    end
-
-    def insert_account(db, email)
-      db[:accounts].insert(email: email, status_id: 2, external_id: SecureRandom.uuid)
-    end
-
+    # issuer_migration_version and insert_account come from MigrationTestHelpers.
     it 'preserves (provider, issuer, uid) uniqueness after re-migrating' do
       v = issuer_migration_version
 

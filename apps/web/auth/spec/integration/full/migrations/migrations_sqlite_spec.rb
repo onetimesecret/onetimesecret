@@ -294,18 +294,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration', :sqlite_database do
   # (provider, uid) unique in place and silently re-imposed the old key —
   # defeating issuer-scoping. This guards that cycle.
   describe 'issuer-scoped migration (008) reversibility' do
-    # Derive the version from the filename so a later renumber doesn't rot this.
-    let(:issuer_migration_version) do
-      file = Dir.glob(File.join(migrations_dir, '[0-9]*issuer_scoped*.rb')).first
-      raise 'issuer-scoped migration not found' unless file
-
-      File.basename(file)[/\A(\d+)/, 1].to_i
-    end
-
-    def insert_account(db, email)
-      db[:accounts].insert(email: email, status_id: 2, external_id: SecureRandom.uuid)
-    end
-
+    # issuer_migration_version and insert_account come from MigrationTestHelpers.
     it 'preserves (provider, issuer, uid) uniqueness after an up->down->up cycle' do
       v = issuer_migration_version
 
