@@ -11,6 +11,8 @@ require 'rack'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
+require_relative 'instrumented_authenticity_token'
+
 module Onetime
   module Middleware
     # Security middleware collection for Onetime Secret
@@ -146,7 +148,11 @@ Onetime::Middleware::Security.middleware_components = {
   # See also: apps/web/auth/config/hooks/omniauth.rb for Rodauth-side bypass
   'AuthenticityToken' => {
     key: :authenticity_token,
-    klass: Rack::Protection::AuthenticityToken,
+    # Subclass of Rack::Protection::AuthenticityToken that stamps
+    # env['onetime.csrf.rejected'] on rejection so CsrfResponseHeader can
+    # distinguish a real CSRF 403 from an unrelated 403. See
+    # InstrumentedAuthenticityToken for why the subclass (not an :instrumenter).
+    klass: Onetime::Middleware::InstrumentedAuthenticityToken,
     options: {
       authenticity_param: 'shrimp',
       allow_if: ->(env) {
