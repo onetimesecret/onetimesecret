@@ -33,9 +33,25 @@
 # The `db` is passed EXPLICITLY (not rodauth.db) so the op is usable outside a
 # Rodauth request context — e.g. a background bind completed after MFA (#3877).
 #
+# TRANSACTION SAFETY:
+#   The insert is wrapped in a SAVEPOINT (db.transaction(savepoint: true)) so a
+#   concurrent-bind UniqueConstraintViolation rolls back ONLY that statement, not
+#   an ambient caller transaction. This matters for the deferred bind after MFA
+#   (#3877): Rodauth runs `after_two_factor_authentication` INSIDE `transaction do`
+#   for the WebAuthn (webauthn.rb) and SMS (sms_codes.rb) second factors. Without
+#   the savepoint, on PostgreSQL the violation would abort that outer transaction —
+#   the re-read below would then raise PG::InFailedSqlTransaction and the whole MFA
+#   transaction would roll back. Called OUTSIDE a transaction (the password-challenge
+#   interstitial), the savepoint degrades to a plain single-statement transaction.
+#
 # Returns:
 #   :ok       — row inserted, OR already present for the SAME account (idempotent)
-#   :conflict — the (provider, issuer, uid) row is owned by a DIFFERENT account
+#   :conflict — the (provider, issuer, uid) row is owned by a DIFFERENT account,
+#               OR ownership could not be confirmed (the winner vanished between the
+#               violation and the re-read). NEVER a success: callers must not log the
+#               caller in onto that identity. A post-authentication caller with no
+#               error surface (4.A's deferred bind — MFA already succeeded) must
+#               audit-and-skip on :conflict, never raise and never fail the login.
 #
 # Example:
 #   result = Auth::Operations::BindSsoIdentity.call(
@@ -78,11 +94,17 @@ module Auth
         existing = dataset.where(@criteria).first
         return owned_or_conflict(existing) if existing
 
-        dataset.insert(@criteria.merge(account_id: @account_id))
+        # SAVEPOINT so a losing-race violation cannot poison an ambient caller
+        # transaction (see TRANSACTION SAFETY above). Degrades to a plain
+        # transaction when not already inside one.
+        @db.transaction(savepoint: true) do
+          dataset.insert(@criteria.merge(account_id: @account_id))
+        end
         :ok
       rescue Sequel::UniqueConstraintViolation
-        # A concurrent bind inserted the row first — re-read and apply the SAME
-        # ownership check to the winner.
+        # A concurrent bind inserted the row first; the savepoint rolled back to
+        # before our insert, so the outer transaction (if any) is still healthy.
+        # Re-read and apply the SAME ownership check to the winner.
         owned_or_conflict(dataset.where(@criteria).first)
       end
 
@@ -93,7 +115,11 @@ module Auth
       end
 
       # :ok when the existing identity row belongs to the account we authenticated,
-      # :conflict otherwise (including a row that vanished between checks).
+      # :conflict otherwise. A nil row — the winner vanished between the violation and
+      # the re-read, or was never found — is :conflict, i.e. "could not confirm this
+      # row is yours." It is NEVER upgraded to :ok, so a mismatch (or an unconfirmable
+      # race) can never masquerade as a successful bind. See the :conflict caller
+      # contract in the Returns doc above.
       def owned_or_conflict(row)
         row && row[:account_id].to_s == @account_id.to_s ? :ok : :conflict
       end
