@@ -268,6 +268,21 @@ DB.set("session:#{@hex_sid}:domain_context", 'y')
  DB.exists("session:#{@hex_sid}:awaiting_mfa", "session:#{@hex_sid}:domain_context")]
 #=> [:deleted, 0, 0]
 
+# ---- Store.extract_id: recover the bare sid from every key shape (#3858) ----
+
+## extract_id strips the prefix from each supported key shape down to the bare
+## sid — critically the nested `session:rack:session:<sid>` shape, where a
+## single strip would leave `rack:session:<sid>` and make the sidecar purge (a
+## format-gated no-op on non-hex sids) silently skip the session's sidecars
+@eid = SecureRandom.hex(32)
+[
+  Onetime::Operations::Sessions::Store.extract_id("session:#{@eid}"),
+  Onetime::Operations::Sessions::Store.extract_id("rack:session:#{@eid}"),
+  Onetime::Operations::Sessions::Store.extract_id(@eid),
+  Onetime::Operations::Sessions::Store.extract_id("session:rack:session:#{@eid}"),
+].uniq
+#=> [@eid]
+
 # Cleanup
 DB.del(@key_a)
 DB.del(@key_b)

@@ -143,12 +143,18 @@ module Onetime
           IDENTITY_FIELDS.any? { |f| !data[f].to_s.empty? }
         end
 
-        # Recover the bare session id from a full key.
+        # Recover the bare session id from a full key. Strips EVERY leading
+        # session:/rack:session: prefix, not just one — the legacy
+        # `session:rack:session:<sid>` shape ({key_patterns}) nests two, and a
+        # single strip would leave `rack:session:<sid>`, which then fails the
+        # sidecar sid-format guard so {SessionSidecar.purge} silently no-ops.
         #
         # @param key [String]
         # @return [String]
         def extract_id(key)
-          key.gsub(KEY_PREFIX_PATTERN, '')
+          id = key.to_s
+          id = id.sub(KEY_PREFIX_PATTERN, '') while id.match?(KEY_PREFIX_PATTERN)
+          id
         end
 
         # Bounded, non-blocking scan of every session key. Uses SCAN (via
@@ -161,18 +167,26 @@ module Onetime
         # catches non-string keys such as the entitlement-preview SETs
         # (`session:<sid>:entitlement_preview_*`), which would WRONGTYPE on GET.
         # Sidecar keys ({SIDECAR_KEY_PATTERN}) ARE strings, so they need the
-        # client-side reject — kept lazy to preserve the bounded-cursor
-        # property, with {MAX_SCAN} bounding POST-filter keys (the budget that
-        # matters to consumers). {load_data} stays defensive for anything a
-        # filter can't anticipate.
+        # client-side reject.
+        #
+        # {MAX_SCAN} bounds the RAW cursor iterations (the safety property),
+        # then the sidecar reject runs — NOT the reverse. Rejecting first and
+        # capping the survivors would let a sidecar-dense keyspace pull far more
+        # than {MAX_SCAN} keys off the cursor to collect {MAX_SCAN} blobs,
+        # reopening the O(all-keys) walk the cap exists to prevent. The
+        # trade-off: in such a keyspace the returned blob count is a floor, not
+        # exact — acceptable because {MAX_SCAN} is already a saturation cap
+        # (consumers treat a full result as "10000+"). {load_data} stays
+        # defensive for anything a filter can't anticipate.
         #
         # @param dbclient [Object]
         # @param pattern [String]
-        # @return [Array<String>] the matched keys (scan order, capped)
+        # @return [Array<String>] the matched non-sidecar keys (scan order)
         def scan_keys(dbclient, pattern: SESSION_SCAN_PATTERN)
           dbclient.scan_each(match: pattern, type: 'string')
-                  .lazy.reject { |key| key.match?(SIDECAR_KEY_PATTERN) }
+                  .lazy
                   .first(MAX_SCAN)
+                  .reject { |key| key.match?(SIDECAR_KEY_PATTERN) }
         end
 
         # Count session keys via the same bounded, string-typed scan the listing

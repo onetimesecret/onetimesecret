@@ -631,7 +631,7 @@ module Onetime
           operation: 'write',
         }
 
-      # Step 3: Compute HMAC signature for integrity verification
+      # Step 4: Compute HMAC signature for integrity verification
       # This proves the data hasn't been modified
       hmac        = compute_hmac(encoded)
       signed_data = "#{encoded}--#{hmac}"
@@ -644,10 +644,10 @@ module Onetime
           operation: 'write',
         }
 
-      # Step 4: Get or create StringKey for this session
+      # Step 5: Get or create StringKey for this session
       stringkey = get_stringkey(sid_string)
 
-      # Step 5: Save to Redis
+      # Step 6: Save to Redis
       # Key: session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
       # Value: eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
       stringkey.set(signed_data)
@@ -658,7 +658,7 @@ module Onetime
           operation: 'write',
         }
 
-      # Step 6: Update expiration if configured
+      # Step 7: Update expiration if configured
       if @expire_after && @expire_after > 0
         stringkey.update_expiration(expiration: @expire_after)
         session_logger.trace 'Expiration updated',
