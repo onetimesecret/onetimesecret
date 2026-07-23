@@ -23,6 +23,10 @@ OT.boot! :test, false
 require 'sequel'
 require 'web/auth/database'
 
+require 'securerandom'
+require 'onetime/session/codec'
+require 'onetime/session/sidecar'
+
 # Build a minimal in-memory SQLite DB that matches the schema used by
 # update_auth_database and invalidate_sessions in ConfirmEmailChange.
 def build_test_sqlite_db
@@ -443,6 +447,65 @@ confirm.process
 @inv_session.empty?
 #=> true
 
+# --- ConfirmEmailChange: Redis session sweep (delete_redis_sessions, #3858) ---
+#
+# delete_redis_sessions SCANs session:* for blobs whose HMAC-verified,
+# decrypted external_id matches the customer, deletes each matching blob AND
+# purges its per-value sidecar keys (session:<sid>:<field>), skipping
+# sidecar-shaped keys during the scan. The method deliberately swallows all
+# errors (best-effort cleanup), so these cases assert its actual REDIS effects
+# — without them, a regression (renamed SIDECAR_KEY_PATTERN, dropped require,
+# changed extract_id) would raise on the first scan iteration, be silently
+# swallowed, and disable the entire email-change session sweep while every
+# other test stayed green.
+#
+# Blobs are planted with the SAME secret resolution the sweep uses
+# (ENV SESSION_SECRET || site secret, see #resolve_session_secret): the
+# middleware's configured session secret can differ in test config, and only
+# a matching-keyed blob reaches the match -> del -> purge branch.
+
+## delete_redis_sessions deletes the matching customer's session blob AND its
+## per-value sidecar keys, while a different customer's blob survives (the
+## identity match is exact)
+@sweep_secret = ENV.fetch('SESSION_SECRET', nil)
+@sweep_secret = OT.conf.dig('site', 'secret') if @sweep_secret.to_s.empty?
+@sweep_codec  = Onetime::SessionCodec.new(@sweep_secret)
+@sweep_db     = Familia.dbclient
+@sweep_cust   = Onetime::Customer.new email: generate_unique_test_email('sweep')
+@sweep_cust.save
+@sweep_sid     = SecureRandom.hex(32) # 64 hex, the shape the purge is gated on
+@sweep_blob    = "session:#{@sweep_sid}"
+@sweep_sidecar = "session:#{@sweep_sid}:awaiting_mfa"
+@other_sid     = SecureRandom.hex(32)
+@other_blob    = "session:#{@other_sid}"
+@sweep_db.set(@sweep_blob,
+              @sweep_codec.encode({ 'external_id' => @sweep_cust.extid, 'authenticated' => true }),
+              ex: 3600)
+Onetime::SessionSidecar.write(@sweep_sid, 'awaiting_mfa', true, codec: @sweep_codec)
+@sweep_db.set(@other_blob,
+              @sweep_codec.encode({ 'external_id' => 'extid_of_someone_else', 'authenticated' => true }),
+              ex: 3600)
+@sweep_obj = AccountAPI::Logic::Account::ConfirmEmailChange.new(
+  MockStrategyResult.new(session: {}, user: @sweep_cust), { 'token' => '' }
+)
+@sweep_obj.send(:delete_redis_sessions, @sweep_cust)
+[@sweep_db.exists(@sweep_blob), @sweep_db.exists(@sweep_sidecar), @sweep_db.exists(@other_blob)]
+#=> [0, 0, 1]
+
+## the sweep runs through invalidate_sessions too: the blob + sidecar die and
+## the rack session clears in the same call
+@sweep_db.set(@sweep_blob,
+              @sweep_codec.encode({ 'external_id' => @sweep_cust.extid, 'authenticated' => true }),
+              ex: 3600)
+Onetime::SessionSidecar.write(@sweep_sid, 'domain_context', 'example.com', codec: @sweep_codec)
+@sweep_sess = { 'sid' => 'current', 'authenticated' => true }
+@sweep_obj2 = AccountAPI::Logic::Account::ConfirmEmailChange.new(
+  MockStrategyResult.new(session: @sweep_sess, user: @sweep_cust), { 'token' => '' }
+)
+@sweep_obj2.send(:invalidate_sessions, @sweep_cust)
+[@sweep_db.exists(@sweep_blob), @sweep_db.exists("session:#{@sweep_sid}:domain_context"), @sweep_sess.empty?]
+#=> [0, 0, true]
+
 # --- ConfirmEmailChange: Rodauth full-mode (SQLite accounts.email update) ---
 #
 # These tests exercise the update_auth_database and invalidate_sessions
@@ -593,6 +656,11 @@ noacct_result[:confirmed]
 #=> true
 
 # Cleanup
+if defined?(@sweep_db) && @sweep_db
+  @sweep_db.del(@sweep_blob, @other_blob)
+  Onetime::SessionSidecar.purge(@sweep_sid)
+end
+@sweep_cust.delete! if defined?(@sweep_cust) && @sweep_cust
 @bare_cust.delete! if defined?(@bare_cust) && @bare_cust
 @inv_cust.delete! if defined?(@inv_cust) && @inv_cust
 @rod_cust.delete! if defined?(@rod_cust) && @rod_cust

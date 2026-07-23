@@ -332,15 +332,31 @@ found_sid, found_data = call_private_method(@sidecar_session, :find_session, @sc
 @sc_req2.env['onetime.session.sidecar_merged'].sort
 #=> ["awaiting_mfa", "domain_context"]
 
-## [#3858] the sidecar WINS over a stale blob-resident copy (rolling-deploy
-## back-compat: a pre-deploy blob still carrying awaiting_mfa keeps working,
-## and the field moves out of the blob on its next commit)
+## [#3858] a blob-resident copy WINS over the sidecar when both exist: a blob
+## still carrying an externalized field means its last write happened WITHOUT
+## a successful sidecar commit (pre-deploy writer, or the commit-failure
+## fallback that keeps fields in the blob), so the blob copy is at least as
+## fresh. Regression for the stale-awaiting_mfa lockout: here the sidecar
+## holds a stale true (its overwrite lost to a transient commit failure on the
+## MFA-completion request) while the blob carries the healing false — the
+## stale true must NOT be laundered back into the session, or every request
+## would re-commit it with a fresh TTL and lock the authenticated session out
+## of all gated routes indefinitely
 @sw_sid = SecureRandom.hex(32)
 DB.set("session:#{@sw_sid}", @try_codec.encode({ 'account_id' => 1, 'awaiting_mfa' => false }))
 Onetime::SessionSidecar.write(@sw_sid, 'awaiting_mfa', true, codec: @try_codec)
-_sw_sid, sw_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @sw_sid)
-sw_data['awaiting_mfa']
-#=> true
+@sw_req = MockRequestWithEnv.new
+_sw_sid, @sw_data = call_private_method(@sidecar_session, :find_session, @sw_req, @sw_sid)
+@sw_data['awaiting_mfa']
+#=> false
+
+## [#3858] ...and the next write_session HEALS the stale sidecar from the blob
+## copy — the documented one-cycle degradation: the sidecar now stores false
+## and the blob is stripped of the field again
+call_private_method(@sidecar_session, :write_session, @sw_req, @sw_sid, @sw_data, {})
+[Onetime::SessionSidecar.read(@sw_sid, 'awaiting_mfa', codec: @try_codec),
+ @try_codec.decode(DB.get("session:#{@sw_sid}")).key?('awaiting_mfa')]
+#=> [false, false]
 
 ## [#3858] the blob-miss path does NOT merge: a revoked/expired session
 ## presents as {} even while sidecar keys still exist — they are inert until

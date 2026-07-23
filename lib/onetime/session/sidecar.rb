@@ -232,17 +232,32 @@ module Onetime
 
     # Read-side middleware hook (used only by Onetime::Session#find_session):
     # overlay every merge_on_read+externalize field onto the freshly-decoded
-    # session hash, in one pipeline. The sidecar value WINS over a blob-
-    # resident copy — rolling-deploy back-compat: a pre-deploy blob still
-    # carrying an externalized field keeps working, and the field moves out of
-    # the blob on its next commit.
+    # session hash, in one pipeline.
+    #
+    # THE BLOB COPY WINS ON CONFLICT. In healthy steady state the two never
+    # conflict — commit strips externalized fields from every blob it writes —
+    # so a blob still carrying an externalized field means its most recent
+    # write happened WITHOUT a successful sidecar commit: either a pre-deploy
+    # writer (rolling-deploy back-compat: the blob value flows through and
+    # moves out on the next commit) or the commit-failure fallback that keeps
+    # fields in the blob. In both cases the blob copy is at least as fresh as
+    # the sidecar's. Letting the sidecar override it would launder a stale
+    # sidecar value back to freshness on every subsequent commit — e.g. a
+    # stale awaiting_mfa=true (its DEL/overwrite lost to a transient pipeline
+    # failure on the MFA-completion request) would override the blob's healing
+    # `false` each request, be re-committed with a fresh TTL, and lock the
+    # authenticated session out of every gated route indefinitely. Blob-wins
+    # keeps that degradation to the documented single cycle: the next
+    # successful commit re-externalizes the blob copy and heals the sidecar.
     #
     # NOT called on the blob-miss or tamper/new-sid paths: a revoked/expired
     # session must present as {}; its sidecar keys are inert until purged or
     # TTL-expired.
     #
-    # @return [Hash] { data: <possibly-overlaid hash>, fields: <overlaid field
-    #   names> } — :fields feeds the write-side deletion semantics (#commit).
+    # @return [Hash] { data: <possibly-overlaid hash>, fields: <field names
+    #   holding a live authentic sidecar value this request, overlaid or
+    #   outranked> } — :fields feeds the write-side semantics (#commit): DEL
+    #   on app-side delete, heal-by-SET while present.
     def merge(sid, session_data, dbclient: nil, codec: nil)
       overlay = FIELDS.select { |_f, p| p[:merge_on_read] && p[:externalize] }.keys
       return { data: session_data, fields: [] } if overlay.empty? || !valid_sid?(sid)
@@ -260,9 +275,18 @@ module Onetime
         # nil never exists: commit turns a nil-valued field into a DEL.)
         next if value.nil?
 
+        # The sidecar key holds a live authentic value, so commit must own its
+        # lifecycle this request (heal-by-SET while present, DEL on app-side
+        # delete) whether or not the overlay below applies.
+        merged << field
+
+        # Blob-wins on conflict (see the method comment): a blob-resident copy
+        # is at least as fresh, and overriding it would launder a stale
+        # sidecar value back to freshness every request.
+        next if data.key?(field)
+
         data        = data.dup if data.equal?(session_data)
         data[field] = value
-        merged << field
       end
 
       { data: data, fields: merged }
@@ -288,11 +312,16 @@ module Onetime
     # hash on failure: fields stay in the blob for this cycle (data safe; only
     # the independent TTL degrades to the blob's).
     #
-    # `ceiling:` (optional) replaces the CONFIG-DERIVED fallback ceiling used
-    # when the blob key does not exist yet (first commit runs just before the
-    # blob SET) or carries no TTL — the middleware passes its own
-    # `@expire_after` so its value wins over global config. A live blob's
-    # REMAINING TTL, when present, still wins as the ceiling regardless.
+    # `ceiling:` (the middleware's own `@expire_after`) is AUTHORITATIVE on
+    # this path: write_session refreshes the blob to exactly this TTL in the
+    # same request, immediately after this call, so it — not the blob's
+    # about-to-be-overwritten remaining TTL — is the clamp ceiling. Reading the
+    # stale remaining TTL here would strand a fresh sidecar on a rolling
+    # session's last seconds (a new awaiting_mfa landing on a blob with 10s
+    # left would get EX 10, then the blob is extended a full day). The invariant
+    # still holds: sidecar TTL = min(field, ceiling) <= ceiling = the blob's new
+    # TTL. When no ceiling is given (expire_after disabled), fall back to the
+    # live blob's remaining TTL, else global config.
     #
     # @return [Hash]
     def commit(sid, session_data, merged: nil, dbclient: nil, codec: nil, ceiling: nil)
@@ -327,7 +356,7 @@ module Onetime
       db = dbclient || Familia.dbclient
       # One TTL probe per commit (not per field): every field clamps against
       # the same blob ceiling read once, before the pipeline.
-      effective_ceiling = writes.empty? ? nil : ttl_ceiling(sid, db, fallback: ceiling)
+      effective_ceiling = writes.empty? ? nil : ttl_ceiling(sid, db, authoritative: ceiling, fallback: ceiling)
       db.pipelined do |pipe|
         writes.each do |field, payload|
           pipe.set(key_for(sid, field), payload, ex: clamp_ttl(FIELDS[field][:ttl], effective_ceiling))
@@ -353,18 +382,28 @@ module Onetime
       raise ArgumentError, "unregistered session sidecar field: #{field.inspect}"
     end
 
-    # INVARIANT: a sidecar key must never outlive the session blob. Clamp the
-    # requested TTL to the blob's REMAINING TTL, so a revoked/expiring blob's
-    # sidecars die no later than the blob would have. With no blob (mid-first-
-    # request: commit runs just before the blob SET) or a TTL-less blob
-    # (expire_after disabled), fall back to the caller-supplied ceiling when
-    # given (the middleware's own expire_after), else the configured ceiling —
-    # either way, the TTL the blob is about to get.
+    # INVARIANT: a sidecar key must never outlive the session blob it rides on.
+    #
+    # `authoritative:` is the TTL the blob IS BEING (re)written to in the same
+    # operation as this call (the middleware commit path — write_session sets
+    # the blob to @expire_after just after commit). When given, it IS the
+    # ceiling: the blob's current remaining TTL is about to be overwritten, so
+    # clamping to it would strand a fresh sidecar on a rolling session's last
+    # seconds. The invariant is preserved against the blob's NEW TTL, not its
+    # stale one.
+    #
+    # Without `authoritative:` (the standalone #write path — the blob is NOT
+    # rewritten here), clamp to the blob's live REMAINING TTL so a revoked/
+    # expiring blob's sidecars die no later than it would have. With no blob or
+    # a TTL-less blob, fall back to `fallback:` (a caller-supplied ceiling) when
+    # given, else the configured expire_after, else the module default.
     def effective_ttl(sid, requested, dbclient, ceiling: nil)
       clamp_ttl(requested, ttl_ceiling(sid, dbclient, fallback: ceiling))
     end
 
-    def ttl_ceiling(sid, dbclient, fallback: nil)
+    def ttl_ceiling(sid, dbclient, fallback: nil, authoritative: nil)
+      return authoritative.to_i if authoritative.to_i.positive?
+
       blob_ttl = dbclient.ttl("session:#{sid}") # -2 no key, -1 no TTL
       return blob_ttl if blob_ttl >= 1
 
@@ -374,7 +413,12 @@ module Onetime
       configured.positive? ? configured : DEFAULT_TTL_CEILING
     end
 
+    # Total by construction: a non-positive ceiling (which #ttl_ceiling never
+    # returns, but a direct caller could) falls back to the module default
+    # rather than raising from clamp(1, 0).
     def clamp_ttl(requested, ceiling)
+      ceiling = ceiling.to_i
+      ceiling = DEFAULT_TTL_CEILING if ceiling < 1
       [requested.to_i, ceiling].min.clamp(1, ceiling)
     end
 

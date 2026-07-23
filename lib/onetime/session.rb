@@ -474,8 +474,14 @@ module Onetime
         session_data = Familia::JsonSerializer.parse(decrypted_data)
 
         # Overlay externalized per-value fields (sidecar keys with their own
-        # TTLs) onto the decoded hash. The sidecar value wins over any stale
-        # blob-resident copy (rolling-deploy back-compat). Runs ONLY on this
+        # TTLs) onto the decoded hash. A blob-resident copy WINS over the
+        # sidecar value: the blob still carrying an externalized field means
+        # its last write happened without a successful sidecar commit (a
+        # pre-deploy writer, or the commit-failure fallback below that keeps
+        # fields in the blob), so the blob copy is at least as fresh and the
+        # next commit heals the sidecar from it — a stale sidecar value must
+        # never be laundered back to freshness (see SessionSidecar#merge).
+        # Runs ONLY on this
         # authentic-blob path — a missing/tampered blob must present as {} with
         # its sidecars inert. Own rescue: a sidecar read failure degrades to
         # "unmerged" (fields simply absent — the safe state by the admission

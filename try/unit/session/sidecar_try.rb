@@ -22,7 +22,9 @@
 # - consume: atomic read+delete for single-use nonces (#3859) — second consume
 #   is nil, binding verified like read
 # - middleware hooks: commit externalizes+strips (nil means DEL; merged-stash
-#   deletion; fast path returns the same object), merge overlays sidecar-wins
+#   deletion; fast path returns the same object), merge overlays absent fields
+#   but the BLOB copy wins on conflict (a stale sidecar value must never be
+#   laundered back to freshness; the next commit heals the sidecar)
 #
 # Run: try --agent try/unit/session/sidecar_try.rb
 
@@ -231,12 +233,32 @@ DB.set("session:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
 [@out, @in.key?('awaiting_mfa'), DB.exists(@key_mfa, @key_dc)]
 #=> [{ 'account_id' => 7 }, true, 2]
 
-## merge overlays the externalized values back over the hash — the sidecar
-## WINS over a stale blob-resident copy (rolling-deploy back-compat) — and
-## reports which fields it merged
-@merged = SC.merge(@sid, { 'account_id' => 7, 'awaiting_mfa' => false }, codec: @codec)
+## merge overlays the externalized values back over the hash (steady state:
+## the blob was stripped, so nothing conflicts) and reports which fields
+## carried live sidecar values
+@merged = SC.merge(@sid, { 'account_id' => 7 }, codec: @codec)
 [@merged[:data], @merged[:fields].sort]
 #=> [{ 'account_id' => 7, 'awaiting_mfa' => true, 'domain_context' => 'example.com' }, ['awaiting_mfa', 'domain_context']]
+
+## BLOB-WINS on conflict: a blob still carrying an externalized field means its
+## last write happened WITHOUT a successful sidecar commit (pre-deploy writer,
+## or the commit-failure fallback that keeps fields in the blob), so the blob
+## copy is at least as fresh. Here the sidecar holds a stale awaiting_mfa=true
+## (its overwrite was lost to a transient commit failure) while the blob
+## carries the healing false — the blob value must win or the stale true would
+## be re-committed with a fresh TTL every request, locking the authenticated
+## session out of every gated route. The field still counts as merged so
+## commit owns its lifecycle.
+@conflict = SC.merge(@sid, { 'account_id' => 7, 'awaiting_mfa' => false }, codec: @codec)
+[@conflict[:data]['awaiting_mfa'], @conflict[:fields].include?('awaiting_mfa')]
+#=> [false, true]
+
+## ...and the next healthy commit HEALS the stale sidecar from the blob copy —
+## the documented one-cycle degradation, not a permanent lockout: the sidecar
+## now reads back false, not the stale true
+SC.commit(@sid, @conflict[:data], merged: @conflict[:fields], codec: @codec)
+SC.read(@sid, 'awaiting_mfa', codec: @codec)
+#=> false
 
 ## commit with the merged stash translates an app-side deletion into a sidecar
 ## DEL: awaiting_mfa was merged in, then deleted before write-back
@@ -260,6 +282,35 @@ SC.commit(@sid, { '_flash' => 'note' }, codec: @codec)
 ## session pays nothing
 @anon = { 'csrf' => 'tok' }
 SC.commit(@sid, @anon, codec: @codec).equal?(@anon)
+#=> true
+
+## ceiling: override — on a FIRST commit the blob key does not exist yet, so
+## the fallback ceiling would come from config; the middleware passes its own
+## expire_after via ceiling:, and that value wins: the 900s awaiting_mfa
+## default clamps down to it
+DB.del(@blob_key)
+SC.commit(@sid, { 'awaiting_mfa' => true }, codec: @codec, ceiling: 120)
+DB.ttl(@key_mfa).positive? && DB.ttl(@key_mfa) <= 120
+#=> true
+
+## ...and on the middleware commit path ceiling: is AUTHORITATIVE — it is the
+## TTL write_session refreshes the blob to in this SAME request, right after
+## commit. A live blob's stale remaining TTL must NOT clamp the fresh sidecar
+## below its field TTL. Regression for the rolling-session bug: a nearly-
+## expired blob (30s left) is about to be extended, so a new awaiting_mfa must
+## get its full 900s default (min(900, 99_999)), not 30s. Invariant preserved
+## against the blob's NEW TTL: 900 <= 99_999.
+DB.set(@blob_key, 'x', ex: 30)
+SC.commit(@sid, { 'awaiting_mfa' => true }, codec: @codec, ceiling: 99_999)
+DB.ttl(@key_mfa) > 30 && DB.ttl(@key_mfa) <= 900
+#=> true
+
+## ...whereas the standalone #write path does NOT rewrite the blob, so it still
+## clamps to the live blob's remaining TTL — the sidecar can never outlive the
+## session it rides on when nothing is refreshing that session
+DB.set(@blob_key, 'x', ex: 30)
+SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
+DB.ttl(@key_mfa).positive? && DB.ttl(@key_mfa) <= 30
 #=> true
 
 # Cleanup

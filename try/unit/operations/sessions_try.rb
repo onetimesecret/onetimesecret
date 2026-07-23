@@ -274,4 +274,10 @@ DB.del(@key_b)
 DB.del(@set_key)
 DB.del(@sidecar_key)
 DB.del(@hex_key)
+# The planted sidecar fixtures have NO TTL and Store.scan_keys deliberately
+# hides sidecar-shaped keys, so if the Delete op's purge ever regresses these
+# would leak as immortal keys no sweep reclaims — delete them explicitly
+# (same convention as the revoke_* tryouts' teardowns).
+DB.del("session:#{@hex_sid}:awaiting_mfa")
+DB.del("session:#{@hex_sid}:domain_context")
 AE.events.clear
