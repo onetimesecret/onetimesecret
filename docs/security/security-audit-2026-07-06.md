@@ -6,14 +6,14 @@
 
 ## Repositories Audited
 
-| Repository                     | Branch                            | Commit    |
-| ------------------------------ | --------------------------------- | --------- |
-| onetimesecret/onetimesecret    | `claude/eager-brahmagupta-ha5uo6` | `260be4a` |
-| delano/familia                 | `claude/amazing-goodall-ha5uo6`   | `df9992b` |
-| delano/otto                    | `claude/upbeat-planck-ha5uo6`     | `bbc59eb` |
-| onetimesecret/rodauth          | `claude/dreamy-babbage-ha5uo6`    | `2732c44` |
-| onetimesecret/rodauth-omniauth | `claude/magical-feynman-ha5uo6`   | `9fe8152` |
-| onetimesecret/rhales           | `claude/magical-euler-ha5uo6`     | `ca79eaf` |
+| Repository                     | Commit    |
+| ------------------------------ | --------- |
+| onetimesecret/onetimesecret    | `260be4a` |
+| delano/familia                 | `df9992b` |
+| delano/otto                    | `bbc59eb` |
+| onetimesecret/rodauth          | `2732c44` |
+| onetimesecret/rodauth-omniauth | `9fe8152` |
+| onetimesecret/rhales           | `ca79eaf` |
 
 ## Coverage
 
@@ -34,7 +34,9 @@
 
 ## Executive Summary
 
-The application demonstrates strong security engineering overall. The core product promise -- burn-after-reading -- is protected by an atomic compare-and-set Lua script in Redis that correctly prevents double-reveal races. Session management uses AES-256-GCM encryption with HMAC signing and HKDF-derived keys. Identifier generation uses 256-bit CSPRNG. Input sanitization is thorough and multi-pass. XSS is mitigated by textarea-based rendering and DOMPurify for the single v-html usage.
+> **Historical reference.** This report reflects the codebase as of 2026-07-06 and the remediation state as of 2026-07-17. It is one audit among several and does not represent a complete or current statement of the application's security posture. Findings from other reviews are tracked separately.
+
+The application demonstrates sound security practices in the areas reviewed. The core product promise -- burn-after-reading -- is protected by an atomic compare-and-set Lua script in Redis that correctly prevents double-reveal races. Session management uses AES-256-GCM encryption with HMAC signing and HKDF-derived keys. Identifier generation uses 256-bit CSPRNG. Input sanitization is thorough and multi-pass. XSS is mitigated by textarea-based rendering and DOMPurify for the single v-html usage.
 
 The most significant findings are in deployment configuration defaults (security middleware disabled, Redis unauthenticated) and an API-wide CSRF bypass that affects session-authenticated API v2/v3 requests. No critical vulnerabilities were found in the application logic itself.
 
@@ -76,7 +78,7 @@ All 3 High and all 11 Medium findings are resolved on this branch, except **M-3*
 | M-11 | Fixed        | `02dd1b21d`             | Awaiting-MFA sessions blocked from authenticating                |
 | #3516| Fixed        | `643c2182e`, `468e47cdf`| Argon2 DoS-amplification residual; rate-limit check moved ahead of Argon2 comparison |
 
-Low (L-1–L-10) and Informational (I-1–I-6): **Open** — not scoped to this branch.
+Low (L-1–L-10) and Informational (I-1–I-6): not scoped to this branch; tracked in the internal backlog. Statuses shown here reflect 2026-07-17 and may be out of date.
 
 ---
 
@@ -456,11 +458,13 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 | M-10 | Colonel panel no frontend guard             | Medium   | Low            | Admin UI structure disclosure                                | P3       |
 | M-11 | MFA awaiting flag unchecked                 | Medium   | Low            | Potential MFA bypass if code reads account_id                | P2       |
 
+Low (L-1–L-10) and Informational (I-1–I-6) findings are not scored in this register; see [Remediation Status](#remediation-status) — they're tracked in the internal backlog rather than this branch.
+
 ---
 
 ## Positive Security Findings
 
-The following areas demonstrate strong security engineering:
+The following areas held up well under review (within the limits of static analysis):
 
 1. **Atomic burn-after-reading** -- Redis Lua CAS script prevents double-reveal races (`secret_state_management.rb`)
 2. **256-bit CSPRNG identifiers** -- `SecureRandom.hex(32)` for all IDs (`familia/secure_identifier.rb`)
