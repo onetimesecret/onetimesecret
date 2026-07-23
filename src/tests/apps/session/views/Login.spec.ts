@@ -183,6 +183,15 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).toContain('web.login.errors.account_exists_link_required');
     });
 
+    it('displays identity_connect_conflict error from SSO connect (#3840)', async () => {
+      wrapper = await createWrapper({ auth_error: 'identity_connect_conflict' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.identity_connect_conflict');
+    });
+
     it('displays org_join_failed error from tenant SSO', async () => {
       wrapper = await createWrapper({ auth_error: 'org_join_failed' });
       await flushPromises();

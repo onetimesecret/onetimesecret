@@ -331,6 +331,106 @@
     "context": "Navigation link title",
     "content_hash": "c87ccdb4"
   },
+  "web.auth.connections.title": {
+    "text": "Connected Identities",
+    "context": "Title / nav label for the SSO account-linking panel (#3840 Phase 2)",
+    "content_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Manage the single sign-on providers linked to your account.",
+    "context": "Subheading under the Connected Identities page title",
+    "content_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Single sign-on",
+    "context": "Card header for the list of linked SSO identities",
+    "content_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Identity providers you can use to sign in to this account",
+    "context": "Card subheader for the list of linked SSO identities",
+    "content_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Connect a provider",
+    "context": "Header for the section that lets a logged-in user link a new SSO identity provider (#3840 Phase 2)",
+    "content_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Link another single sign-on provider you can use to sign in to this account.",
+    "context": "Subtext under the Connect-a-provider header",
+    "content_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Connect {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "content_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Issuer",
+    "context": "Label preceding the identity provider issuer URL in a connected-identity row",
+    "content_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifier",
+    "context": "Label preceding the masked subject/identifier in a connected-identity row",
+    "content_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Remove",
+    "context": "Button to unlink a single connected identity",
+    "content_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Remove connected identity",
+    "context": "Title of the confirmation dialog shown before unlinking an identity",
+    "content_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Are you sure you want to remove this connected identity? You will no longer be able to sign in with it.",
+    "context": "Body of the confirmation dialog shown before unlinking an identity",
+    "content_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Connected identity removed",
+    "context": "Toast shown after an identity is successfully unlinked",
+    "content_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "No connected identities",
+    "context": "Empty-state title when the account has no linked SSO identities",
+    "content_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "You haven't linked any single sign-on providers to this account yet.",
+    "context": "Empty-state description when the account has no linked SSO identities",
+    "content_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Single sign-on",
+    "context": "Status badge text on the Security Overview card for connected identities",
+    "content_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "This is your only way to sign in. Add a password or link another provider before removing it, so you don't get locked out.",
+    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential)",
+    "content_hash": "edfbc970"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "That connected identity could not be found. It may have already been removed.",
+    "context": "Error shown when unlinking an identity returns 404 (not owned by the caller or already gone)",
+    "content_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Your session has expired. Please sign in again.",
+    "context": "Error shown when a connected-identities request returns 401",
+    "content_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "We couldn't complete that action. Please try again.",
+    "context": "Fallback error for connected-identities fetch/remove failures",
+    "content_hash": "a0d4edc0"
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "Warning: {count} login attempt(s) remaining",
     "content_hash": "151dcb5e"

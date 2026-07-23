@@ -1,9 +1,9 @@
 // src/apps/workspace/routes/account.ts
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
-import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
 import { hasPassword, isFullAuthMode, isOwnerOrAdmin } from '@/utils/features';
+import type { RouteRecordRaw } from 'vue-router';
 
 /**
  * Route guard for org-management account routes (password, MFA,
@@ -301,6 +301,24 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/apps/workspace/account/PasskeySettings.vue'),
     meta: {
       title: 'web.TITLES.passkeys',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Connected SSO identities (#3840 Phase 2). Guarded like passkeys with
+    // checkSecurityAccess (full-auth mode only) — an SSO identity is an
+    // alternative credential, NOT password-dependent, so it must NOT use a
+    // hasPassword-gated guard (SSO-only accounts are the primary users here).
+    path: '/account/settings/security/connections',
+    name: 'Connected Identities',
+    beforeEnter: checkSecurityAccess,
+    component: () => import('@/apps/workspace/account/ConnectedIdentities.vue'),
+    meta: {
+      title: 'web.TITLES.connected_identities',
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,

@@ -1318,6 +1318,11 @@
     "context": "Page title for passkey management",
     "content_hash": "c87ccdb4"
   },
+  "web.TITLES.connected_identities": {
+    "text": "Connected Identities",
+    "context": "Page title for the SSO connected-identities management panel (#3840 Phase 2)",
+    "content_hash": "e132c4d9"
+  },
   "web.TITLES.api_settings": {
     "text": "API Settings",
     "content_hash": "6c2a9675"

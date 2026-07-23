@@ -9,6 +9,7 @@ vi.mock('@/utils/features', () => ({
   isFullAuthMode: vi.fn(() => false),
   isSsoOnlyMode: vi.fn(() => false),
   isWebAuthnEnabled: vi.fn(() => false),
+  isSsoEnabled: vi.fn(() => false),
   hasPassword: vi.fn(() => false),
   isOwnerOrAdmin: vi.fn(() => false),
 }));
@@ -17,11 +18,12 @@ import {
   getSettingsNavigation,
   getSettingsNavigationSections,
 } from '@/apps/workspace/config/settings-navigation';
-import { isFullAuthMode, isSsoOnlyMode, isWebAuthnEnabled, hasPassword, isOwnerOrAdmin } from '@/utils/features';
+import { isFullAuthMode, isSsoOnlyMode, isWebAuthnEnabled, isSsoEnabled, hasPassword, isOwnerOrAdmin } from '@/utils/features';
 
 const mockedIsFullAuthMode = vi.mocked(isFullAuthMode);
 const mockedIsSsoOnlyMode = vi.mocked(isSsoOnlyMode);
 const mockedIsWebAuthnEnabled = vi.mocked(isWebAuthnEnabled);
+const mockedIsSsoEnabled = vi.mocked(isSsoEnabled);
 const mockedHasPassword = vi.mocked(hasPassword);
 const mockedIsOwnerOrAdmin = vi.mocked(isOwnerOrAdmin);
 
@@ -36,6 +38,7 @@ function makeFeatures(overrides: Partial<NavigationFeatures> = {}): NavigationFe
     isSsoOnlyMode: false,
     isOwnerOrAdmin: false,
     isWebAuthnEnabled: false,
+    isSsoEnabled: false,
     ...overrides,
   };
 }
@@ -64,6 +67,7 @@ describe('settings-navigation config', () => {
     mockedIsFullAuthMode.mockReturnValue(false);
     mockedIsSsoOnlyMode.mockReturnValue(false);
     mockedIsWebAuthnEnabled.mockReturnValue(false);
+    mockedIsSsoEnabled.mockReturnValue(false);
     mockedHasPassword.mockReturnValue(false);
     mockedIsOwnerOrAdmin.mockReturnValue(false);
   });
@@ -180,6 +184,26 @@ describe('settings-navigation config', () => {
       expect(
         getVisibleChildIds(makeFeatures({ isWebAuthnEnabled: true }), 'security')
       ).toContain('passkeys');
+    });
+
+    it('connections child visible only when SSO is enabled', () => {
+      expect(
+        getVisibleChildIds(makeFeatures({ isSsoEnabled: false }), 'security')
+      ).not.toContain('connections');
+
+      expect(
+        getVisibleChildIds(makeFeatures({ isSsoEnabled: true }), 'security')
+      ).toContain('connections');
+    });
+
+    it('connections child is not password-dependent (visible for SSO-only accounts)', () => {
+      // SSO-only account: no password, SSO enabled — connections must still show.
+      expect(
+        getVisibleChildIds(
+          makeFeatures({ hasPassword: false, isSsoEnabled: true }),
+          'security'
+        )
+      ).toContain('connections');
     });
   });
 

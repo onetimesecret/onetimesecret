@@ -26,8 +26,141 @@ module Auth::Config::Hooks
       # Uses NFC normalization and :fold for international email addresses.
       auth.account_from_omniauth do
         normalized_email = OT::Utils.normalize_email(omniauth_email)
-        existing         = _account_from_login(normalized_email)
         provider         = omniauth_provider
+
+        # ────────────────────────────────────────────────────────────────
+        # #3840 Phase 2: authenticated identity connect (session BINDS, but only
+        # with an account-bound CONNECT INTENT established at initiation)
+        # ────────────────────────────────────────────────────────────────
+        #
+        # CANONICAL PRACTICE: an active session is the authorization to bind a
+        # new identity — BUT logged_in? alone is NOT proof of connect intent.
+        # Tabs share cookies, so a plain second-tab / shared-browser SSO sign-in
+        # arriving on an already-authenticated session must NOT be treated as a
+        # connect. We therefore require TWO signals to bind:
+        #   1. an authenticated session (session_value), and
+        #   2. an account-bound connect intent set during INITIATION — the
+        #      omniauth_request_validation_phase hook above stashes
+        #      session[:sso_connect_intent] = session_value only when the
+        #      logged-in caller POSTed connect=1 (the Connected Identities
+        #      panel). CSRF/state proves "this browser initiated a request"; the
+        #      intent nonce proves "this browser initiated a CONNECT for THIS
+        #      account".
+        # We consume (DELETE) the nonce here, and bind ONLY when it matches the
+        # CURRENT session account. Absent/mismatched intent → fall through to the
+        # email-based branches exactly as an unauthenticated caller would (never
+        # silently bind onto the session account — that was the #3840 P1 finding).
+        #
+        # The IdP email still plays NO role in the bind decision. Matching a
+        # connect to an email-LOCATED account is the pre-account-hijacking
+        # anti-pattern: an attacker who controls an IdP that emits a victim's
+        # email must never be routed to the victim's account. We route by
+        # session, so the victim is untouched even if the IdP lies about email.
+        #
+        # "Already linked elsewhere" cannot occur here: an existing
+        # (provider, issuer, uid) row routes the gem to
+        # account_from_omniauth_identity (rodauth-omniauth 0.6.2
+        # _handle_omniauth_callback), so this hook is reached ONLY for a NEW
+        # identity.
+        #
+        # Evaluated FIRST (before the trusted-provider auto-link and the H-3
+        # refusal below): a proven session credential + connect intent outranks
+        # the email-only heuristics those branches rely on.
+        #
+        # Return semantics: the gem sets @account to whatever this block
+        # returns, skips create-account (account is present), and
+        # create_omniauth_identity binds the (provider, issuer, uid) row to
+        # that account's id; login then re-affirms the same session. So we must
+        # return the SESSION account row (loaded by id), never nil (nil would
+        # fall through to omniauth_create_account and 500 on the unique
+        # accounts.email index).
+        #
+        # SURFACE ISOLATION (the one refusal retained on this path): bind ONLY
+        # on the PLATFORM surface (session[:validated_omniauth_domain_id] nil).
+        # A tenant callback must not bind a tenant-issuer identity onto a
+        # platform-session account — a tenant admin controls their IdP's
+        # assertions, so such a binding would hand them a login into the
+        # account. Authenticated tenant-surface linking needs org-membership
+        # verification and is a deliberate follow-up (see docs / open questions).
+
+        # Consume the account-bound connect intent by DELETE-on-read, then bind
+        # only when the SAME session account that initiated the connect is still
+        # the authenticated one.
+        #
+        # KNOWN GAP (fast-follow #3859): this DELETE is the ONLY site that clears
+        # the nonce, so it is NOT yet truly single-use. An abandoned connect (user
+        # cancels at the IdP, the IdP errors, or the tab is closed) never reaches
+        # this callback, so the intent stays live in the session — and the NEXT SSO
+        # callback on that session, even a plain (connect=0) sign-in, consumes it
+        # and binds. That reopens the shared-browser bind this nonce defends
+        # against, gated behind "a dangling connect intent exists." The fix is to
+        # clear stale intent at the next request phase (see the connect-intent
+        # capture in omniauth_request_validation_phase below); tracked in #3859.
+        intent_account_id  = session.delete(:sso_connect_intent)
+        has_connect_intent = logged_in? &&
+                             !intent_account_id.nil? &&
+                             intent_account_id.to_s == session_value.to_s
+
+        if has_connect_intent
+          if session[:validated_omniauth_domain_id]
+            # Tenant callback on a platform session → refuse (surface isolation).
+            Auth::Logging.log_auth_event(
+              :omniauth_identity_connect_refused,
+              level: :warn,
+              provider: provider,
+              reason: 'tenant_surface',
+            )
+            set_redirect_error_flash 'This identity could not be connected. The connection ' \
+                                     'was started on the wrong domain.'
+            redirect '/signin?auth_error=identity_connect_conflict'
+          end
+
+          # Load the authenticated account by SESSION id (never by email).
+          # _account_from_session applies the open-status filter and returns nil
+          # exactly when the session account is no longer usable (e.g. closed
+          # mid-session) — refuse rather than fall through to a JIT duplicate.
+          session_account = _account_from_session
+          unless session_account
+            Auth::Logging.log_auth_event(
+              :omniauth_identity_connect_refused,
+              level: :warn,
+              provider: provider,
+              reason: 'session_account_missing',
+            )
+            set_redirect_error_flash 'This identity could not be connected to your account.'
+            redirect '/signin?auth_error=identity_connect_conflict'
+          end
+
+          Auth::Logging.log_auth_event(
+            :omniauth_identity_connected,
+            level: :warn,
+            email: OT::Utils.obscure_email(normalized_email),
+            provider: provider,
+            issuer: resolved_issuer,
+            account_id: session_account[account_id_column],
+          )
+          next session_account
+        elsif logged_in?
+          # Logged in but NO valid connect intent: a plain SSO sign-in on an
+          # already-authenticated session (second tab, shared browser), or an
+          # intent that was set for a DIFFERENT account. Do NOT bind onto the
+          # session account — fall through to the email-based branches below and
+          # treat this exactly like an unauthenticated caller. Log it: a callback
+          # reaching an authenticated session without connect intent is the
+          # precise shape of the shared-browser/second-tab hazard the intent
+          # nonce defends against, so it is worth observing.
+          Auth::Logging.log_auth_event(
+            :omniauth_connect_intent_absent,
+            level: :info,
+            provider: provider,
+            had_intent: !intent_account_id.nil?,
+          )
+        end
+
+        # Not authenticated (or logged-in without connect intent): email is the
+        # only signal available, so the email-based branches below apply. Locate
+        # an existing account by the SAME normalized email each of them uses.
+        existing = _account_from_login(normalized_email)
 
         # ────────────────────────────────────────────────────────────────
         # #3836: opt-in, per-provider, boot-guarded email-based linking
@@ -81,12 +214,11 @@ module Auth::Config::Hooks
           # domain-validation hook below also runs only on the CREATE path, so
           # the email-link path would bypass it entirely.
           #
-          # FOLLOW-UP (needs a tracked ticket): no authenticated "link SSO from
-          # account settings" flow exists yet, so a password-first user who then
-          # tries SSO can only self-resolve by signing in with their password (the
-          # flash below tells them so) — they cannot complete the link themselves.
-          # Ship a companion authenticated account-linking UI so this refusal
-          # becomes a recoverable step instead of a dead end.
+          # RECOVERY (Phase 2, shipped): a password-first user who hits this
+          # refusal self-resolves by signing in with their password, then
+          # connecting the IdP from account settings (Connected Identities) —
+          # the authenticated connect branch at the top of this hook binds it.
+          # The flash below points them at that path.
           Auth::Logging.log_auth_event(
             :omniauth_link_refused_existing_account,
             level: :warn,
@@ -162,11 +294,48 @@ module Auth::Config::Hooks
       # See: lib/onetime/middleware/security.rb (Rack::Protection config)
       #
       auth.omniauth_request_validation_phase do
-        # ⚠️  INTENTIONALLY EMPTY - DO NOT ADD CODE HERE
+        # ⚠️  DO NOT call check_csrf / check_csrf? here.
         #
-        # This empty block skips Roda's route_csrf validation.
-        # OAuth state parameter provides CSRF protection instead.
-        # Removing this block breaks SSO with "encoded token is not a string".
+        # The default body is `check_csrf if check_csrf?`. Re-introducing it
+        # breaks SSO with "encoded token is not a string" (Rack::Protection is
+        # skipped for /auth/sso/*, so session[:csrf] is absent and route_csrf
+        # decodes nil). OAuth's state parameter provides CSRF protection instead.
+        #
+        # ────────────────────────────────────────────────────────────────
+        # #3840 Phase 2: CAPTURE account-bound CONNECT INTENT (the ONE thing
+        # this block may do — it does NOT validate CSRF).
+        # ────────────────────────────────────────────────────────────────
+        #
+        # This hook runs during the SSO REQUEST phase (POST /auth/sso/:provider),
+        # BEFORE the redirect to the IdP — verified in rodauth-omniauth 0.6.2 /
+        # omniauth 2.1.4 (strategy.rb request_call:240 and mock_request_call:325
+        # both call request_validation_phase, and it runs inside omniauth_run's
+        # set_omniauth_session so `session` is the Rodauth session). It has access
+        # to request.params and session.
+        #
+        # The Connected Identities panel initiates the connect flow with the form
+        # field connect=1; a plain sign-in does NOT send it. When a LOGGED-IN
+        # caller initiates a connect, stash an ACCOUNT-BOUND intent nonce (the
+        # session account id, not a bare boolean) so the callback can verify the
+        # SAME account that initiated is the one being bound. The callback
+        # (account_from_omniauth) consumes and deletes it.
+        #
+        # WHY THIS EXISTS (security): logged_in? alone is NOT connect intent.
+        # Tabs share cookies, so without this an ordinary second-tab / shared-
+        # browser SSO sign-in arriving on an already-authenticated session would
+        # be routed through the bind path and permanently attach the arriving IdP
+        # identity to the session account. CSRF/state proves "this browser
+        # initiated a request"; this nonce proves "this browser initiated a
+        # CONNECT for THIS account".
+        #
+        # TODO(#3859): make the nonce truly single-use — this hook is the fix
+        # site. Every subsequent SSO callback passes through here first (it mints
+        # the state the callback validates), so an `else session.delete(...)` for
+        # non-connect flows deterministically kills a nonce left dangling by an
+        # abandoned connect, before a plain (connect=0) callback can bind on it.
+        if logged_in? && request.params['connect'].to_s == '1'
+          session[:sso_connect_intent] = session_value
+        end
       end
 
       # NOTE: before_omniauth_callback_route is OWNED by omniauth_tenant.rb

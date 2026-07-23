@@ -1,11 +1,11 @@
 // src/utils/features.ts
 
-import { getBootstrapValue } from '@/services/bootstrap.service';
 import {
   featuresSchema,
   type AuthenticationSettings,
   type Features,
 } from '@/schemas/contracts/bootstrap';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { debugLog } from '@/utils/debug';
 
 /**
@@ -134,16 +134,23 @@ export function isPasswordRequirementsEnabled(): boolean {
 }
 
 /**
+ * Pure predicate: SSO authentication enabled in the given state.
+ *
+ * `sso` can be a boolean (false) or an object with an `enabled` property.
+ */
+export function isSsoEnabledOf(state: { features?: Features }): boolean {
+  const sso = state.features?.sso;
+  if (typeof sso === 'boolean') return sso;
+  return sso?.enabled === true;
+}
+
+/**
  * Checks if SSO authentication is enabled
  */
 export function isSsoEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const features = getBootstrapValue('features');
-  // sso can be boolean (false) or object with enabled property
-  const sso = features?.sso;
-  if (typeof sso === 'boolean') return sso;
-  return sso?.enabled === true;
+  return isSsoEnabledOf({ features: getBootstrapValue('features') });
 }
 
 /**
