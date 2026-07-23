@@ -87,10 +87,8 @@ module Onetime
     # EXPLICIT-USE FIELDS (merge_on_read: false, externalize: false) are never
     # touched by merge/commit; they work only through the explicit
     # write/read/consume/delete API — but they ARE included in purge, because
-    # the registry is the cleanup contract (see below). Issue #3859 will
-    # register `sso_connect_intent` (a single-use SSO connect nonce, consumed
-    # via #consume) as such a field; it is not registered here because its
-    # writers live on an unmerged branch.
+    # the registry is the cleanup contract (see below). `sso_connect_intent`
+    # (issue #3859) is the first such field.
     #
     # OUTSIDE THIS PRIMITIVE, by design: `session_metadata:<sid>`
     # (TrackMetadata / Onetime::SessionMetadata) keeps its own 30-day TTL,
@@ -124,6 +122,20 @@ module Onetime
       # of step. (This is why it is neither an externalized field nor an
       # explicit-use field — a third, declared-pending-audit state.)
       '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false },
+      # #3859: the SSO account-bound connect-intent nonce (value = the session
+      # account id). EXPLICIT-USE: written by omniauth_request_validation_phase
+      # when a logged-in caller POSTs connect=1, consumed (atomic GETDEL) by
+      # account_from_omniauth. Living here instead of in the blob is the fix
+      # for the abandoned-connect gap: a connect abandoned at the IdP (cancel /
+      # IdP error / closed tab) never reaches the consuming callback, and a
+      # blob-resident nonce would stay live for a later plain sign-in to bind
+      # on — the TTL expires it unconditionally after one IdP round-trip.
+      # Absence is the safe state (admission rule): a miss means no bind, the
+      # callback falls through to the email branches' default-deny. Encrypted:
+      # the value is an account id bound to the session — capability-adjacent —
+      # and the codec's sid/field binding stops a Redis-writing attacker from
+      # replaying one session's intent under another sid.
+      'sso_connect_intent' => { ttl: 300, encrypted: true, merge_on_read: false, externalize: false },
     }.freeze
 
     # Deterministic key derivation — no stored key names needed, which is what

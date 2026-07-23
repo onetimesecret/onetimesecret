@@ -10,7 +10,8 @@
 #        account settings"). Binding requires TWO signals: an ACTIVE
 #        AUTHENTICATED SESSION *and* an account-bound CONNECT INTENT set at
 #        initiation (the panel POSTs connect=1, captured by
-#        omniauth_request_validation_phase into session[:sso_connect_intent]).
+#        omniauth_request_validation_phase into the short-TTL sidecar key
+#        sidecar:<sid>:sso_connect_intent — single-use per #3859).
 #        logged_in? alone is NOT enough — that would let a second-tab / shared-
 #        browser sign-in silently bind the arriving identity to the session
 #        account. The IdP email plays NO role: we bind to the LOGGED-IN account,
@@ -166,17 +167,27 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Run the SSO REQUEST phase carrying the connect-intent signal (connect=1),
   # exactly as the Connected Identities panel does at initiation. In OmniAuth
   # test mode this triggers omniauth_request_validation_phase, which — when the
-  # caller is logged in — stashes session[:sso_connect_intent] = <session
-  # account id> in the session cookie. The subsequent callback consumes it and,
-  # only then, takes the bind branch. Cookie sessions can't be poked directly
-  # (see oauth_flow_helper#inject_oauth_session), so this real initiation is how
-  # the intent is threaded. Returns the request-phase status so callers can skip
-  # when the provider route isn't registered (404).
+  # caller is logged in — writes the account-bound intent nonce as the
+  # short-TTL sidecar key sidecar:<sid>:sso_connect_intent (#3859). The
+  # subsequent callback consumes it and, only then, takes the bind branch.
+  # Returns the request-phase status so callers can skip when the provider
+  # route isn't registered (404).
   def initiate_sso_connect(provider: :oidc, host: nil)
     clear_body_headers
     header 'Host', host if host
     post "/auth/sso/#{provider}", { connect: '1' }
     last_response.status
+  end
+
+  # The plain (64-hex) session id behind the current Rack::Test cookie jar —
+  # the sid the sidecar keys are derived from. The cookie value IS the sid
+  # (Onetime::Session stores it unencrypted; only the blob is ciphered).
+  def current_sid
+    rack_mock_session.cookie_jar['onetime.session']
+  end
+
+  def intent_live?(sid)
+    Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')
   end
 
   # ==========================================================================
@@ -204,6 +215,10 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         # scenario below) — the intent nonce is now REQUIRED to bind.
         skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if initiate_sso_connect == 404
 
+        sid = current_sid
+        expect(intent_live?(sid)).to be(true),
+          'Connect initiation must set the intent sidecar key'
+
         clear_body_headers
         post '/auth/sso/oidc/callback'
 
@@ -229,6 +244,11 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
           .with(:omniauth_identity_connected, hash_including(provider: 'oidc', account_id: account_id))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connect_refused, anything)
+
+        # Single-use (#3859): the successful bind CONSUMED the nonce (atomic
+        # GETDEL) — nothing is left for a later callback to replay.
+        expect(intent_live?(sid)).to be(false),
+          'The consumed intent must not survive the bind'
       ensure
         teardown_mock_auth
       end
@@ -361,6 +381,146 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
           .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc'))
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 2c — ABANDONED connect: expired intent must not bind (#3859)
+  # ==========================================================================
+  #
+  # The single-use gap: the nonce's only clearing site used to be the consume
+  # in account_from_omniauth, so a connect ABANDONED at the IdP (cancel, IdP
+  # error, closed tab) left the intent live for the next callback on the same
+  # session — even a plain connect=0 sign-in — to bind on. The nonce now lives
+  # as a short-TTL sidecar key: an abandoned intent simply expires, and a miss
+  # at the callback is default-deny. Deleting the key here models the TTL
+  # expiry without waiting out the clock.
+
+  describe 'abandoned connect, intent expired (must not bind)' do
+    before { enable_platform_fallback }
+
+    it 'sets a short-TTL intent at initiation and refuses to bind once it has expired' do
+      actor_email = "actor-abandon-#{SecureRandom.hex(6)}@company.example.com"
+      other_email = "other-#{SecureRandom.hex(6)}@company.example.com"
+      uid         = "sub-#{SecureRandom.hex(8)}"
+
+      actor_id = seed_account_with_password(actor_email)
+      seed_existing_account(other_email)
+
+      csrf_login(actor_email)
+      expect(last_response.status).to be_between(200, 302)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      setup_mock_auth(email: other_email, uid: uid)
+      begin
+        # Initiate a connect — the intent goes live as a sidecar key whose TTL
+        # is bounded to one IdP round-trip (SessionSidecar::FIELDS, 300s).
+        skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+
+        sid = current_sid
+        expect(intent_live?(sid)).to be(true),
+          'Precondition failed: connect initiation must set the intent sidecar key'
+        ttl = Familia.dbclient.ttl("sidecar:#{sid}:sso_connect_intent")
+        expect(ttl).to be_between(1, 300),
+          "Intent TTL must be bounded to one IdP round-trip, got #{ttl}"
+
+        # ABANDON: the connect's callback never runs. Model the TTL firing by
+        # removing the key directly (same observable state as expiry).
+        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+
+        # A later plain sign-in callback on the SAME authenticated session must
+        # find nothing to consume and fall through to the H-3 refusal.
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
+          "Expired-intent callback must fall through to H-3, not bind. Location: #{last_response.location.inspect}"
+
+        # THE CRUX: the abandoned intent granted nothing to the later callback.
+        expect(identities.where(account_id: actor_id).count).to eq(0),
+          'An expired connect intent must NOT let a later callback bind onto the session account'
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+        expect(intent_live?(sid)).to be(false)
+
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connected, anything)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: false))
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 2d — ABANDONED connect, then a plain sign-in WITHIN the TTL
+  # ==========================================================================
+  #
+  # The exact #3859 exploit shape, closed deterministically (not just by the
+  # TTL): Alice initiates a connect and abandons at the IdP; still within the
+  # intent's TTL, a plain (connect=0) SSO sign-in starts on the same
+  # still-authenticated session — the shared-machine case. Every callback's
+  # flow passes through omniauth_request_validation_phase first (it mints the
+  # state the callback validates), and a non-connect initiation DELETES any
+  # dangling intent there, so the plain sign-in's own callback can never
+  # consume the leftover nonce.
+
+  describe 'abandoned connect, then plain sign-in within the TTL (must not bind)' do
+    before { enable_platform_fallback }
+
+    it 'clears the dangling intent at the plain request phase and does not bind' do
+      actor_email = "actor-dangling-#{SecureRandom.hex(6)}@company.example.com"
+      other_email = "other-#{SecureRandom.hex(6)}@company.example.com"
+      uid         = "sub-#{SecureRandom.hex(8)}"
+
+      actor_id = seed_account_with_password(actor_email)
+      seed_existing_account(other_email)
+
+      csrf_login(actor_email)
+      expect(last_response.status).to be_between(200, 302)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      setup_mock_auth(email: other_email, uid: uid)
+      begin
+        # Alice initiates a connect... and abandons it (no callback).
+        skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+
+        sid = current_sid
+        expect(intent_live?(sid)).to be(true),
+          'Precondition failed: connect initiation must set the intent sidecar key'
+
+        # Within the TTL, a PLAIN sign-in starts on the same session. Its
+        # request phase must kill the dangling intent.
+        clear_body_headers
+        post '/auth/sso/oidc'
+        expect(last_response.status).to eq(302)
+        expect(intent_live?(sid)).to be(false),
+          'A non-connect request phase must delete a dangling connect intent'
+
+        # The plain sign-in's callback finds no intent — no bind, H-3 refusal.
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
+          "Plain sign-in after an abandoned connect must not bind. Location: #{last_response.location.inspect}"
+
+        expect(identities.where(account_id: actor_id).count).to eq(0),
+          'A dangling connect intent must NOT let a plain sign-in bind onto the session account'
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connected, anything)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: false))
       ensure
         teardown_mock_auth
       end
