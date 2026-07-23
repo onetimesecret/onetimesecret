@@ -175,6 +175,20 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
     last_response
   end
 
+  # Mint a challenge directly — the POST endpoint can be exercised without a full
+  # SSO round-trip, since the token only carries the snapshot the POST reloads.
+  # account_id is intentionally caller-supplied so tests can mint a challenge whose
+  # snapshotted account differs from the one the email re-locates (link_conflict).
+  def mint_challenge(email:, uid:, account_id:, provider: 'oidc', issuer: 'https://issuer.example.com')
+    Onetime::SsoLinkChallenge.issue(
+      provider: provider,
+      issuer: issuer,
+      uid: uid,
+      email: OT::Utils.normalize_email(email),
+      account_id: account_id,
+    )
+  end
+
   # Trust off -> an existing account reaches the H-3/interstitial branch rather
   # than being auto-linked by email.
   before do
@@ -477,18 +491,6 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
       end
     end
 
-    # Mint a challenge directly — the POST throttle can be exercised without a full
-    # SSO round-trip, since the token only carries the snapshot the POST reloads.
-    def mint_challenge(email:, uid:, account_id:)
-      Onetime::SsoLinkChallenge.issue(
-        provider: 'oidc',
-        issuer: 'https://issuer.example.com',
-        uid: uid,
-        email: OT::Utils.normalize_email(email),
-        account_id: account_id,
-      )
-    end
-
     it 'refuses with 429 link_rate_limited once locked; a single attempt is unaffected' do
       email      = "rl-#{SecureRandom.hex(6)}@company.example.com"
       uid        = "sub-#{SecureRandom.hex(8)}"
@@ -518,5 +520,138 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
       expect(identities.where(account_id: account_id).count).to eq(0)
       expect(Onetime::SsoLinkChallenge.load(locked.token)).not_to be_nil
     end
+  end
+
+  # ==========================================================================
+  # (i) snapshot account_id mismatch -> 409 link_conflict (review L3)
+  # ==========================================================================
+  #
+  # #3840 review, L3: the challenge snapshots account_id at mint. If the email now
+  # re-locates a DIFFERENT account than the snapshot (the address was re-pointed
+  # between mint and POST), the mismatch guard (~routes/link_sso.rb:176) must refuse
+  # with 409 link_conflict and bind nothing — never link onto the re-located account.
+  # This is the FIRST spec to exercise the link_conflict branch.
+
+  describe 'POST /auth/link-sso snapshot account mismatch (link_conflict)' do
+    it 'refuses with 409 link_conflict when the snapshot account_id differs from the re-located account' do
+      email      = "mismatch-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+
+      # Snapshot a DIFFERENT account id than the one `email` re-locates. Correct
+      # password is required to reach the mismatch guard (it runs AFTER the verify).
+      challenge = mint_challenge(email: email, uid: uid, account_id: account_id + 100_000)
+      result    = post_link_sso(token: challenge.token, password: AuthTestConstants::TEST_PASSWORD)
+
+      expect(result.status).to eq(409),
+        "Expected link_conflict, got #{result.status}: #{result.body}"
+      expect(JSON.parse(result.body)['error_code']).to eq('link_conflict')
+
+      # Nothing bound onto the re-located account.
+      expect(identities.where(account_id: account_id).count).to eq(0)
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+    end
+  end
+
+  # ==========================================================================
+  # (j) identity already owned by another account -> 409 link_conflict (review L1)
+  # ==========================================================================
+  #
+  # #3840 review, L1: bind_sso_identity must verify the pre-existing
+  # (provider, issuer, uid) row belongs to the SAME account we just authenticated.
+  # A row owned by a DIFFERENT account is a conflict (409 link_conflict), never a
+  # silent idempotent success that would log the caller in onto someone else's
+  # identity. Cannot occur on the happy path (the challenge is minted only when no
+  # identity row exists), so this is defence-in-depth against a row that appears
+  # between mint and POST.
+
+  describe 'POST /auth/link-sso identity already owned by another account (link_conflict)' do
+    it 'refuses with 409 link_conflict and inserts no new row when the identity belongs to another account' do
+      email_a   = "owner-a-#{SecureRandom.hex(6)}@company.example.com"
+      email_b   = "owner-b-#{SecureRandom.hex(6)}@company.example.com"
+      uid       = "sub-#{SecureRandom.hex(8)}"
+      issuer    = 'https://issuer.example.com'
+      account_a = seed_account_with_password(email_a)
+      account_b = seed_existing_account(email_b)
+
+      # Account B already owns this exact (provider, issuer, uid).
+      identities.insert(account_id: account_b, provider: 'oidc', issuer: issuer, uid: uid)
+
+      # Challenge snapshots account A (matches the account email_a re-locates, so the
+      # mint-mismatch guard passes and execution reaches bind_sso_identity).
+      challenge = mint_challenge(email: email_a, uid: uid, account_id: account_a, issuer: issuer)
+      result    = post_link_sso(token: challenge.token, password: AuthTestConstants::TEST_PASSWORD)
+
+      expect(result.status).to eq(409),
+        "Expected link_conflict from the bind ownership check, got #{result.status}: #{result.body}"
+      expect(JSON.parse(result.body)['error_code']).to eq('link_conflict')
+
+      # Still exactly one row — owned by B — and nothing bound onto A.
+      rows = identities.where(provider: 'oidc', uid: uid).all
+      expect(rows.size).to eq(1)
+      expect(rows.first[:account_id]).to eq(account_b)
+      expect(identities.where(account_id: account_a).count).to eq(0)
+    end
+  end
+
+  # ==========================================================================
+  # (k) single-use token consumption is atomic (review Item 2)
+  # ==========================================================================
+  #
+  # #3840 review, Item 2: #delete! returns the Redis DEL count. Redis DEL is atomic,
+  # so of two concurrent consumers exactly ONE gets 1 and the other gets 0 — which
+  # the POST handler now gates on to reject a racing consumer, closing the
+  # load-then-delete TOCTOU.
+
+  describe 'single-use token consumption (atomic)' do
+    it 'returns DEL count 1 for the winning consumer and 0 for a second handle to the same token' do
+      winner = mint_challenge(
+        email: "atomic-#{SecureRandom.hex(6)}@company.example.com",
+        uid: "sub-#{SecureRandom.hex(8)}",
+        account_id: 4242,
+      )
+      loser  = Onetime::SsoLinkChallenge.load(winner.token) # second handle, same Redis key
+      expect(loser).not_to be_nil
+
+      expect(winner.delete!).to eq(1)
+      expect(loser.delete!).to eq(0)
+    end
+
+    it 'rejects a second POST that reuses an already-consumed token' do
+      email      = "reuse-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+
+      challenge = mint_challenge(email: email, uid: uid, account_id: account_id)
+
+      first = post_link_sso(token: challenge.token, password: AuthTestConstants::TEST_PASSWORD)
+      expect(first.status).to eq(200),
+        "First link should succeed, got #{first.status}: #{first.body}"
+
+      # Same token again -> the challenge is gone, so the load-nil guard refuses.
+      second = post_link_sso(token: challenge.token, password: AuthTestConstants::TEST_PASSWORD)
+      expect(second.status).to eq(401)
+      expect(JSON.parse(second.body)['error_code']).to eq('link_expired')
+    end
+  end
+
+  # ==========================================================================
+  # (l) MFA account defers the identity bind (review Item 1)
+  # ==========================================================================
+  #
+  # The interstitial must NOT bind the identity when the password login leaves a
+  # second factor pending: login returns mfa_required (the SAME body POST /auth/login
+  # emits) and the (provider, issuer, uid) row stays UNLINKED this round. Binding
+  # before 2FA would attach an MFA-EXEMPT SSO login path to the account.
+  #
+  # Exercising this end-to-end needs the OTP feature loaded (AUTH_MFA_ENABLED) so
+  # respond_to?(:otp_auth_route) is true and after_login emits mfa_required. The
+  # shared integration harness boots ONCE (before(:all)) with MFA disabled and cannot
+  # toggle the Rodauth feature set per-example, so this path is verified by code
+  # review + the link_sso_second_factor_pending? gate. Left as a pending example to
+  # keep the coverage gap VISIBLE (manual follow-up).
+
+  describe 'MFA account defers the identity bind (Item 1)' do
+    it 'returns mfa_required and binds no identity (needs an AUTH_MFA_ENABLED harness)'
   end
 end
