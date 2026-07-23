@@ -168,6 +168,8 @@ export function isAuthError(
     | ResendVerificationEmailResponse
     | IdentitiesResponse
     | RemoveIdentityResponse
+    | LinkSsoChallengeResponse
+    | LinkSsoVerifyResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -307,6 +309,87 @@ export type IdentitiesResponse = z.infer<typeof identitiesResponseSchema>;
  */
 export const removeIdentityResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
 export type RemoveIdentityResponse = z.infer<typeof removeIdentityResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sign-in interstitial (SSO password-challenge linking — #3840 Phase 3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Challenge context for the sign-in interstitial.
+ *
+ * An UNAUTHENTICATED SSO sign-in whose IdP email matches an existing account
+ * that HAS a password is redirected by the backend to the interstitial carrying
+ * a single-use challenge token. GET /auth/link-sso/:token returns the display
+ * context: which provider was used and the email that was claimed. Both are
+ * DISPLAY-ONLY — no secrets, no account id, no uid. The token itself is the
+ * authorization; a missing / expired / consumed token is a 404 (or an error
+ * body) and never returns context.
+ *
+ * INVARIANT (#3840): email may LOCATE an account; only a demonstrated credential
+ * may BIND an identity. Here the credential is the account's EXISTING password,
+ * collected by the interstitial and verified by POST /auth/link-sso.
+ */
+export const linkSsoChallengeSchema = z.object({
+  provider: z.string(),
+  email: z.string(),
+});
+export type LinkSsoChallenge = z.infer<typeof linkSsoChallengeSchema>;
+
+/**
+ * GET /auth/link-sso/:token → { provider, email } on 200.
+ * A spent / expired / unknown token surfaces as an axios error (404/410) whose
+ * body is classified by useAsyncHandler; the union's error branch only covers
+ * the unusual 200-with-error body.
+ */
+export const linkSsoChallengeResponseSchema = z.union([linkSsoChallengeSchema, authErrorSchema]);
+export type LinkSsoChallengeResponse = z.infer<typeof linkSsoChallengeResponseSchema>;
+
+/**
+ * POST /auth/link-sso non-MFA success body: the backend verified the password,
+ * bound (provider, issuer, uid) to the located account, and ESTABLISHED THE
+ * SESSION. It returns an optional internal redirect target; the SPA validates it
+ * with isValidInternalPath and falls back to the ?redirect query param, then '/'.
+ */
+const linkSsoVerifyCompleteSchema = z.object({
+  success: z.string(),
+  redirect: z.string().optional(),
+});
+
+/**
+ * POST /auth/link-sso success body.
+ *
+ * Because the backend completes the password check via the SAME rodauth login
+ * path as POST /auth/login, it returns the STANDARD login success contract, in
+ * two variants:
+ * - MFA account: the same body login returns for MFA (authSuccessWithMfaSchema) —
+ *   password proven, but a second factor is still required. mfa_required MUST be
+ *   modelled here; a plain z.object would silently strip it and the interstitial
+ *   would mark the user fully authenticated, skipping the OTP challenge (#3840).
+ * - Non-MFA account: { success, redirect? } — session established.
+ *
+ * Union order matters (Zod matches the first valid schema): the MFA variant
+ * carries the required mfa_required key and MUST precede the plain success
+ * variant, which would otherwise match an MFA body and drop the flag.
+ *
+ * Failure bodies (401 invalid_password wrong password, 401 link_expired expired-
+ * or-spent token) are NOT modelled here — they arrive as axios errors and are
+ * distinguished by the composable via HTTP status + an optional { error_code }.
+ */
+export const linkSsoVerifySuccessSchema = z.union([
+  authSuccessWithMfaSchema, // MFA variant — must precede plain success
+  linkSsoVerifyCompleteSchema, // { success, redirect? }
+]);
+export type LinkSsoVerifySuccess = z.infer<typeof linkSsoVerifySuccessSchema>;
+
+/** Type guard: a link-sso verify success that still requires a second factor. */
+export function linkSsoRequiresMfa(
+  response: LinkSsoVerifySuccess
+): response is z.infer<typeof authSuccessWithMfaSchema> {
+  return 'mfa_required' in response && response.mfa_required === true;
+}
+
+export const linkSsoVerifyResponseSchema = z.union([linkSsoVerifySuccessSchema, authErrorSchema]);
+export type LinkSsoVerifyResponse = z.infer<typeof linkSsoVerifyResponseSchema>;
 
 // OTP setup response
 // When HMAC is enabled, Rodauth returns an error response with only secrets on first request

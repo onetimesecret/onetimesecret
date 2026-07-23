@@ -16,6 +16,7 @@ require_relative 'models/admin_audit_event'
 require_relative 'models/daily_metric'
 require_relative 'models/email_suppression'
 require_relative 'models/session_metadata'
+require_relative 'models/sso_link_challenge'
 
 # CustomDomain sibling configs — loaded after CustomDomain so the
 # nested-class reopens (`class CustomDomain; class ApiConfig; ...`)

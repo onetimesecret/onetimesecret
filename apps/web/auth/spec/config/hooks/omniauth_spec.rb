@@ -215,25 +215,45 @@ RSpec.describe 'OmniAuth hooks' do
         accounts_store[normalized_email]
       end
 
-      # Simulates the full _account_from_omniauth method AFTER the H-3 fix.
+      # Simulates the full _account_from_omniauth method AFTER the H-3 fix and the
+      # #3840 Phase 3 sign-in interstitial.
       #
       # SECURITY (H-3): the production hook no longer returns an existing account
       # for auto-linking by email — that is the account-takeover vector. When an
-      # existing account matches the normalized IdP email, the hook logs, sets an
-      # error flash, and `redirect`s to account_exists_link_required, which HALTS
-      # the callback (Roda throw :halt) so create_omniauth_identity never links
-      # the caller's (provider, uid) and never logs them in. We can't redirect in
-      # this pure-logic harness, so we model the halt as a refusal marker carrying
-      # the redirect target. Only a genuinely new email returns nil (JIT create).
+      # existing account matches the normalized IdP email, the hook either:
+      #   - (Phase 3) mints a single-use challenge and `redirect`s to the sign-in
+      #     interstitial (/link-sso/:token) IFF the account HAS a password — the
+      #     user proves ownership by re-entering it before any bind; or
+      #   - (SSO-only, no password) logs, sets an error flash, and `redirect`s to
+      #     account_exists_link_required.
+      # Both HALT the callback (Roda throw :halt) so create_omniauth_identity never
+      # links the caller's (provider, uid) by email. We can't redirect in this
+      # pure-logic harness, so we model the halt as a marker carrying the redirect
+      # target. Only a genuinely new email returns nil (JIT create).
       #
       # HONESTY: this is a REIMPLEMENTATION of the decision boundary — it does NOT
-      # drive the production `_account_from_omniauth`. The real hook's redirect/halt
-      # path is NOT yet integration-covered end-to-end (follow-up filed); these unit
-      # assertions verify the intended logic only.
-      def account_from_omniauth(omniauth_email)
+      # drive the production `_account_from_omniauth`. End-to-end coverage of the
+      # interstitial + H-3 halt lives in
+      # apps/web/auth/spec/integration/full/omniauth_signin_interstitial_spec.rb;
+      # these unit assertions verify the intended decision logic only.
+      #
+      # `has_password:` models "does the located account have a password hash",
+      # which the production hook derives from a direct password_hash_table lookup
+      # (has_password? is unusable on the unauthenticated path). `tenant_domain_id:`
+      # models session[:validated_omniauth_domain_id] — non-nil on a TENANT callback.
+      # The interstitial is PLATFORM-only: on the tenant surface the mint branch's
+      # platform-surface guard is skipped, so even a password account keeps the H-3
+      # refusal (Finding 1 — closes the tenant-surface password-guessing oracle).
+      def account_from_omniauth(omniauth_email, has_password: false, tenant_domain_id: nil)
         normalized_email = normalize_email(omniauth_email)
         existing         = find_account_by_email(normalized_email)
-        return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' } if existing
+        platform_surface = tenant_domain_id.nil?
+
+        if existing
+          return { interstitial: true, redirect: '/link-sso/<token>' } if has_password && platform_surface
+
+          return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' }
+        end
 
         nil
       end
@@ -301,6 +321,64 @@ RSpec.describe 'OmniAuth hooks' do
         it 'does not surface the victim account for linking' do
           result = account_from_omniauth('VICTIM@X.COM')
           expect(result).not_to include(id: 42)
+        end
+      end
+
+      # ======================================================================
+      # #3840 Phase 3 — password-holding account diverts to the interstitial
+      # ======================================================================
+      #
+      # The decision split H-3 gained: an existing account that HAS a password is
+      # not dead-ended. The hook mints a single-use challenge and redirects to the
+      # sign-in interstitial, where the EXISTING password is verified before any
+      # bind. An SSO-only account (no password) keeps the H-3 refusal. Either way
+      # the located account is NEVER returned for auto-link-by-email.
+      context 'existing account WITH a password (Phase 3 interstitial)' do
+        it 'redirects to the sign-in interstitial instead of the H-3 refusal' do
+          result = account_from_omniauth('user@example.com', has_password: true)
+          expect(result).to include(interstitial: true)
+          expect(result[:redirect]).to match(%r{^/link-sso/})
+          expect(result).not_to include(refused: true)
+        end
+
+        it 'diverts regardless of IdP email casing (same normalization)' do
+          result = account_from_omniauth('USER@EXAMPLE.COM', has_password: true)
+          expect(result).to include(interstitial: true)
+        end
+
+        it 'still never surfaces the located account record (no auto-link)' do
+          result = account_from_omniauth('user@example.com', has_password: true)
+          expect(result).not_to include(:id)
+          expect(result).not_to include(:email)
+        end
+      end
+
+      context 'existing account WITHOUT a password (SSO-only keeps H-3)' do
+        it 'refuses to the account_exists_link_required redirect' do
+          result = account_from_omniauth('user@example.com', has_password: false)
+          expect(result).to include(refused: true)
+          expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+          expect(result).not_to include(:interstitial)
+        end
+      end
+
+      # Finding 1 (adversarial review): an unauthenticated TENANT callback whose
+      # asserted email matches a PASSWORD-holding platform account must NOT get the
+      # interstitial — the mint branch is platform-only, so it falls through to the
+      # unchanged H-3 refusal. Without the guard this is a tenant-controlled,
+      # un-lockable password-guessing oracle against arbitrary platform accounts.
+      context 'existing password account on the TENANT surface (Finding 1: no interstitial)' do
+        it 'keeps the H-3 refusal — the interstitial is platform-only' do
+          result = account_from_omniauth('user@example.com', has_password: true, tenant_domain_id: 'domain-123')
+          expect(result).to include(refused: true)
+          expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+          expect(result).not_to include(:interstitial)
+        end
+
+        it 'still refuses an SSO-only account on the tenant surface' do
+          result = account_from_omniauth('user@example.com', has_password: false, tenant_domain_id: 'domain-123')
+          expect(result).to include(refused: true)
+          expect(result).not_to include(:interstitial)
         end
       end
 
