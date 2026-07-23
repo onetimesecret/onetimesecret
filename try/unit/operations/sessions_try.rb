@@ -21,10 +21,12 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test
 
+require 'securerandom'
 require 'onetime/operations/sessions/store'
 require 'onetime/operations/sessions/list_sessions'
 require 'onetime/operations/sessions/inspect_session'
 require 'onetime/operations/sessions/delete_session'
+require 'onetime/session/sidecar'
 
 AE  = Onetime::AdminAuditEvent
 DB  = Familia.dbclient
@@ -67,6 +69,16 @@ AE.events.clear
 DB.del(@set_key)
 DB.sadd(@set_key, %w[api_access custom_domains])
 
+# Plant a per-value sidecar STRING key (sidecar:<64-hex-sid>:<field>, issue
+# #3858). Unlike the preview SET above, it IS a string, so a `session:`-
+# namespaced name would sail through the scan's `type: 'string'` filter into
+# every listing/count — which is exactly why the sidecar prefix lives OUTSIDE
+# the `*session*` match. All List cases below run with this key present too.
+@sidecar_sid = SecureRandom.hex(32)
+@sidecar_key = "sidecar:#{@sidecar_sid}:awaiting_mfa"
+DB.del(@sidecar_key)
+DB.set(@sidecar_key, 'sidecar-envelope-bytes')
+
 # ---- List -------------------------------------------------------------
 
 ## List returns a Result whose sessions include the seeded pair
@@ -87,6 +99,29 @@ Onetime::Operations::Sessions::Store.scan_keys(DB).include?(@set_key)
 ## [regression] Store.load_data on a non-string key resolves nil instead of raising WRONGTYPE
 Onetime::Operations::Sessions::Store.load_data(DB, @set_key)
 #=> nil
+
+## [#3858] a sidecar STRING key never surfaces as a listing row — its
+## `sidecar:` prefix keeps it outside the `*session*` scan by construction,
+## with no client-side reject anywhere
+@list.sessions.map { |s| s[:key] }.include?(@sidecar_key)
+#=> false
+
+## [#3858] Store.scan_keys never sees sidecar keys: the namespace is disjoint,
+## so every scan consumer (List, count, the revoke sweeps) stays clean and
+## `keys.size >= MAX_SCAN` remains an exact truncation signal
+Onetime::Operations::Sessions::Store.scan_keys(DB).include?(@sidecar_key)
+#=> false
+
+## [#3858] the planted key matches SessionSidecar's real derivation, and the
+## derived name must never match the `*session*` scan glob — i.e. the prefix
+## must never contain the substring "session". This is the property the whole
+## scan exclusion rests on; renaming the prefix back into the session
+## namespace fails here first. (File.fnmatch mirrors the Redis MATCH glob.)
+[
+  Onetime::SessionSidecar.key_for(@sidecar_sid, 'awaiting_mfa') == @sidecar_key,
+  File.fnmatch?('*session*', Onetime::SessionSidecar.key_for(@sidecar_sid, 'awaiting_mfa')),
+]
+#=> [true, false]
 
 ## Store.count tallies string session keys via the same bounded scan (>= the seeded pair)
 Onetime::Operations::Sessions::Store.count(DB) >= 2
@@ -222,8 +257,46 @@ AE.events.clear
 AE.count
 #=> 0
 
+# ---- Delete: per-value sidecar purge (#3858) --------------------------
+
+## deleting a session also purges its per-value sidecar keys — the purge is an
+## exact registry DEL, format-gated to real 64-hex sids (which is why this
+## case mints a hex sid instead of the readable trysess_* ids above)
+@hex_sid = SecureRandom.hex(32)
+@hex_key = "session:#{@hex_sid}"
+DB.set(@hex_key, JSON.generate({ 'external_id' => "ext_hex_#{@nonce}" }))
+DB.set("sidecar:#{@hex_sid}:awaiting_mfa", 'x')
+DB.set("sidecar:#{@hex_sid}:domain_context", 'y')
+@delres = Onetime::Operations::Sessions::Delete.new(session_id: @hex_sid, actor: @actor).call
+[@delres.status, DB.exists(@hex_key),
+ DB.exists("sidecar:#{@hex_sid}:awaiting_mfa", "sidecar:#{@hex_sid}:domain_context")]
+#=> [:deleted, 0, 0]
+
+# ---- Store.extract_id: recover the bare sid from every key shape (#3858) ----
+
+## extract_id strips the prefix from each supported key shape down to the bare
+## sid — critically the nested `session:rack:session:<sid>` shape, where a
+## single strip would leave `rack:session:<sid>` and make the sidecar purge (a
+## format-gated no-op on non-hex sids) silently skip the session's sidecars
+@eid = SecureRandom.hex(32)
+[
+  Onetime::Operations::Sessions::Store.extract_id("session:#{@eid}"),
+  Onetime::Operations::Sessions::Store.extract_id("rack:session:#{@eid}"),
+  Onetime::Operations::Sessions::Store.extract_id(@eid),
+  Onetime::Operations::Sessions::Store.extract_id("session:rack:session:#{@eid}"),
+].uniq
+#=> [@eid]
+
 # Cleanup
 DB.del(@key_a)
 DB.del(@key_b)
 DB.del(@set_key)
+DB.del(@sidecar_key)
+DB.del(@hex_key)
+# The planted sidecar fixtures have NO TTL and live outside the `*session*`
+# scan, so if the Delete op's purge ever regresses these would leak as
+# immortal keys no sweep reclaims — delete them explicitly (same convention
+# as the revoke_* tryouts' teardowns).
+DB.del("sidecar:#{@hex_sid}:awaiting_mfa")
+DB.del("sidecar:#{@hex_sid}:domain_context")
 AE.events.clear

@@ -31,6 +31,19 @@ class MockRequest
   end
 end
 
+# Request mock that ALSO carries a Rack env — the sidecar merge/commit hooks
+# (#3858) stash the merged-field list in env so write_session can translate an
+# app-side `sess.delete(field)` into a sidecar DEL. MockRequest (no env) stays
+# in the older tests to prove the hooks degrade conservatively without one.
+class MockRequestWithEnv
+  attr_accessor :cookies, :env
+
+  def initialize(cookies = {}, env = {})
+    @cookies = cookies
+    @env     = env
+  end
+end
+
 # Helper class for mocking Rack apps
 class MockApp
   def call(env)
@@ -48,6 +61,20 @@ end
   namespace: 'testsession'
 }
 @session = Session.new(@app, @session_opts)
+
+# Sidecar (#3858) fixtures: a middleware instance on the DEFAULT 'session'
+# namespace, because the sidecar TTL clamp probes the blob at 'session:<sid>'
+# (sidecar keys are ALWAYS sidecar:<sid>:<field>, whatever the blob
+# namespace — a blob on any other namespace is invisible to the clamp). The codec is built from the same secret so seeded envelopes
+# verify against the middleware's own codec.
+@sidecar_session = Session.new(@app, {
+  secret: @secret,
+  key: 'test.session',
+  expire_after: 3600,
+  namespace: 'session',
+})
+@try_codec = Onetime::SessionCodec.new(@secret)
+DB = Familia.dbclient
 
 # Helper method to access private methods for testing
 def call_private_method(obj, method_name, *args)
@@ -273,4 +300,89 @@ session_no_redis = Session.new(@app, { secret: @secret })
 session_no_redis.is_a?(Session)
 #=> true
 
+# ---- Per-value sidecar integration (#3858) ----------------------------
+
+## [#3858] write_session EXTERNALIZES registered fields: stripped from the
+## stored blob (decode it — the fields are gone) yet preserved for the app
+@sc_sid = SecureRandom.hex(32)
+@sc_req = MockRequestWithEnv.new
+session_data = { 'account_id' => 7, 'awaiting_mfa' => true, 'domain_context' => 'example.com' }
+call_private_method(@sidecar_session, :write_session, @sc_req, @sc_sid, session_data, {})
+blob = @try_codec.decode(DB.get("session:#{@sc_sid}"))
+[blob['account_id'], blob.key?('awaiting_mfa'), blob.key?('domain_context')]
+#=> [7, false, false]
+
+## [#3858] ...the fields live as sibling keys with their own clamped TTLs
+## (independent of — and never longer than — the blob's lifetime)
+mfa_ttl = DB.ttl("sidecar:#{@sc_sid}:awaiting_mfa")
+dc_ttl  = DB.ttl("sidecar:#{@sc_sid}:domain_context")
+[mfa_ttl.positive? && mfa_ttl <= 900, dc_ttl.positive? && dc_ttl <= 3600]
+#=> [true, true]
+
+## [#3858] find_session MERGES the sidecar values back into the session hash —
+## call sites see the same fields they always did
+@sc_req2 = MockRequestWithEnv.new
+found_sid, found_data = call_private_method(@sidecar_session, :find_session, @sc_req2, @sc_sid)
+[found_data['account_id'], found_data['awaiting_mfa'], found_data['domain_context']]
+#=> [7, true, "example.com"]
+
+## [#3858] the merge stashes which fields came from sidecars in the Rack env —
+## the write side needs it to turn an app-side delete into a sidecar DEL
+@sc_req2.env['onetime.session.sidecar_merged'].sort
+#=> ["awaiting_mfa", "domain_context"]
+
+## [#3858] a blob-resident copy WINS over the sidecar when both exist: a blob
+## still carrying an externalized field means its last write happened WITHOUT
+## a successful sidecar commit (pre-deploy writer, or the commit-failure
+## fallback that keeps fields in the blob), so the blob copy is at least as
+## fresh. Regression for the stale-awaiting_mfa lockout: here the sidecar
+## holds a stale true (its overwrite lost to a transient commit failure on the
+## MFA-completion request) while the blob carries the healing false — the
+## stale true must NOT be laundered back into the session, or every request
+## would re-commit it with a fresh TTL and lock the authenticated session out
+## of all gated routes indefinitely
+@sw_sid = SecureRandom.hex(32)
+DB.set("session:#{@sw_sid}", @try_codec.encode({ 'account_id' => 1, 'awaiting_mfa' => false }))
+Onetime::SessionSidecar.write(@sw_sid, 'awaiting_mfa', true, codec: @try_codec)
+@sw_req = MockRequestWithEnv.new
+_sw_sid, @sw_data = call_private_method(@sidecar_session, :find_session, @sw_req, @sw_sid)
+@sw_data['awaiting_mfa']
+#=> false
+
+## [#3858] ...and the next write_session HEALS the stale sidecar from the blob
+## copy — the documented one-cycle degradation: the sidecar now stores false
+## and the blob is stripped of the field again
+call_private_method(@sidecar_session, :write_session, @sw_req, @sw_sid, @sw_data, {})
+[Onetime::SessionSidecar.read(@sw_sid, 'awaiting_mfa', codec: @try_codec),
+ @try_codec.decode(DB.get("session:#{@sw_sid}")).key?('awaiting_mfa')]
+#=> [false, false]
+
+## [#3858] the blob-miss path does NOT merge: a revoked/expired session
+## presents as {} even while sidecar keys still exist — they are inert until
+## purged or TTL-expired
+@bm_sid = SecureRandom.hex(32)
+Onetime::SessionSidecar.write(@bm_sid, 'awaiting_mfa', true, codec: @try_codec)
+_bm_sid, bm_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @bm_sid)
+[bm_data, DB.exists("sidecar:#{@bm_sid}:awaiting_mfa")]
+#=> [{}, 1]
+
+## [#3858] deleting a merged field deletes its sidecar on the next commit —
+## the app-visible `sess.delete('awaiting_mfa')` contract, via the env stash
+@dl_req = MockRequestWithEnv.new
+_dl_sid, dl_data = call_private_method(@sidecar_session, :find_session, @dl_req, @sc_sid)
+dl_data.delete('awaiting_mfa')
+call_private_method(@sidecar_session, :write_session, @dl_req, @sc_sid, dl_data, {})
+[DB.exists("sidecar:#{@sc_sid}:awaiting_mfa"), DB.exists("sidecar:#{@sc_sid}:domain_context")]
+#=> [0, 1]
+
+## [#3858] delete_session purges the sidecar keys along with the blob
+call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @sc_sid, {})
+[DB.exists("session:#{@sc_sid}"), DB.exists("sidecar:#{@sc_sid}:domain_context")]
+#=> [0, 0]
+
+# Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)
+[@sc_sid, @sw_sid, @bm_sid].compact.each do |sid|
+  DB.del("session:#{sid}")
+  Onetime::SessionSidecar.purge(sid)
+end
 # Note: Redis TTL will automatically clean up test sessions

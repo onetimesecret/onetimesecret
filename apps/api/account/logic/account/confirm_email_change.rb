@@ -5,6 +5,8 @@
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
 require 'onetime/logic/sso_only_gating'
+require 'onetime/operations/sessions/store'
+require 'onetime/session/sidecar'
 
 module AccountAPI::Logic
   module Account
@@ -180,6 +182,10 @@ module AccountAPI::Logic
         hmac_key           = Onetime::KeyDerivation.derive_session_subkey(session_secret, 'hmac')
         encryption_key_raw = [Onetime::KeyDerivation.derive_session_subkey(session_secret, 'encryption')].pack('H*')
 
+        # Per-value sidecar keys live under `sidecar:<sid>:<field>` — outside
+        # this match by construction — and are purged alongside their owning
+        # blob below.
+        #
         # STRING-typed like Store.scan_keys: the loose match also catches
         # non-string session:* keys (the entitlement-preview SETs), each of
         # which would cost a GET round trip that dies as a silently-rescued
@@ -189,6 +195,9 @@ module AccountAPI::Logic
           next unless session_extid == extid
 
           dbclient.del(key)
+          Onetime::SessionSidecar.purge(
+            Onetime::Operations::Sessions::Store.extract_id(key), dbclient: dbclient
+          )
           deleted += 1
         end
 

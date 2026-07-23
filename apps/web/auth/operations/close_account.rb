@@ -56,6 +56,7 @@
 
 require 'onetime/operations/sessions/store'
 require 'onetime/session/codec'
+require 'onetime/session/sidecar'
 
 module Auth
   module Operations
@@ -176,8 +177,8 @@ module Auth
         ].include?(table)
       end
 
-      # Deletes all Redis sessions associated with the given external_id.
-      # Sessions are stored in Redis with keys like "session:<session_id>".
+      # Deletes all Redis sessions associated with the given external_id, and
+      # purges each deleted session's per-value sidecar keys (issue #3858).
       #
       # Session values are AES-256-GCM encrypted + HMAC-signed
       # ("base64(iv+tag+ciphertext)--hmac"), so they MUST be decoded through
@@ -204,7 +205,9 @@ module Auth
 
         # Scan for all session keys. STRING-typed like Store.scan_keys: the
         # loose match also catches non-string keys (the entitlement-preview
-        # SETs) that would WRONGTYPE on GET.
+        # SETs) that would WRONGTYPE on GET. Per-value sidecar keys live under
+        # `sidecar:<sid>:<field>` — outside this match by construction — and
+        # are purged alongside their owning blob below.
         dbclient.scan_each(match: 'session:*', type: 'string') do |key|
             session_data = Onetime::Operations::Sessions::Store.load_data(dbclient, key, codec: codec)
             next unless session_data.is_a?(Hash)
@@ -214,6 +217,9 @@ module Auth
             next unless session_extid == extid
 
             dbclient.del(key)
+            Onetime::SessionSidecar.purge(
+              Onetime::Operations::Sessions::Store.extract_id(key), dbclient: dbclient
+            )
             deleted_count += 1
             OT.ld "[close-account] Deleted Redis session: #{key[0..30]}..."
         rescue StandardError => ex
