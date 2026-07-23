@@ -302,7 +302,18 @@ module Onetime
     # or [] when nothing is configured. Side-effect free and safe to call at
     # router-build time (no auth-app boot required).
     def sso_form_action_origins
-      (active_provider_origins + override_form_action_origins).uniq
+      provider_origins = active_provider_origins
+      override_origins = override_form_action_origins
+
+      # An override set with zero auto-derived provider origins (SSO disabled or
+      # no active providers) is a config smell worth surfacing: form-action is
+      # being widened without any provider that actually registers.
+      if provider_origins.empty? && !ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.strip.empty?
+        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action but ' \
+              'no SSO provider origins are active (SSO disabled or no active providers)'
+      end
+
+      (provider_origins + override_origins).uniq
     end
 
     # DEPRECATED: Use email_auth_enabled?
@@ -424,8 +435,19 @@ module Onetime
 
     # The SSO_FORM_ACTION_ORIGINS override: a space-separated origin list,
     # merged into #sso_form_action_origins independent of any provider gating.
+    #
+    # Each token is routed through #origin_from_url and filter_map-dropped
+    # unless it resolves to a clean http(s) origin. Passing raw tokens straight
+    # into the CSP form-action directive is unsafe: a token like
+    # "https://idp.example.com;" or "https://a b.com" would inject into the
+    # header and otto's per-request reject_injection! would raise, 500-ing every
+    # request. Dropped tokens are logged so a misconfiguration is visible.
     def override_form_action_origins
-      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split
+      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.filter_map do |token|
+        origin = origin_from_url(token)
+        OT.lw "[auth_config] dropping invalid SSO_FORM_ACTION_ORIGINS token: #{token.inspect}" if origin.nil?
+        origin
+      end
     end
 
     # Derive an origin (scheme://host[:port]) from a URL, omitting a default
@@ -439,12 +461,26 @@ module Onetime
       return nil if str.empty?
 
       uri = URI.parse(str)
-      return nil if uri.scheme.nil? || uri.host.to_s.strip.empty?
 
-      origin  = "#{uri.scheme}://#{uri.host}"
+      # Only http(s) may widen the CSP form-action directive. Plain http is
+      # kept on purpose: internal OIDC providers commonly run without TLS.
+      return nil unless %w[http https].include?(uri.scheme&.downcase)
+
+      host = uri.host.to_s.strip
+      return nil if host.empty?
+
+      # Reject a host carrying CSP-hostile characters (whitespace, ';', ',',
+      # quotes, brackets, control chars). URI.parse keeps a trailing ';' on the
+      # host ("idp.example.com;" from "https://idp.example.com;"), and such an
+      # origin would break the form-action directive — otto's per-request
+      # reject_injection! raises, 500-ing every request. Guard here so a
+      # returned origin is always CSP-safe.
+      return nil if host.match?(/[\s;,'"()<>]/) || host.match?(/[\x00-\x1f]/)
+
+      origin  = "#{uri.scheme}://#{host}"
       origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
       origin
-    rescue URI::InvalidURIError
+    rescue URI::Error
       nil
     end
 

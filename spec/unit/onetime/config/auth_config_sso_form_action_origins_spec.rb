@@ -118,6 +118,14 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_form_action_origins).to contain_exactly('https://idp.example.com')
     end
 
+    # Non-TLS http is accepted on purpose: internal OIDC providers commonly run
+    # without TLS. Documents that origin_from_url keeps http, only rejecting
+    # non-http(s) schemes (see the ftp override case below).
+    it 'accepts a plain-http OIDC_ISSUER (internal non-TLS provider)' do
+      config = fresh_config('OIDC_ISSUER' => 'http://internal-idp.example.com', 'OIDC_CLIENT_ID' => 'id')
+      expect(config.sso_form_action_origins).to contain_exactly('http://internal-idp.example.com')
+    end
+
     # ── malformed / blank OIDC issuer is tolerated ───────────────────
 
     it 'tolerates a malformed OIDC_ISSUER by skipping it (no raise)' do
@@ -202,6 +210,34 @@ RSpec.describe Onetime::AuthConfig do
         'SSO_FORM_ACTION_ORIGINS' => 'https://accounts.google.com',
       )
       expect(config.sso_form_action_origins).to contain_exactly('https://accounts.google.com')
+    end
+
+    # ── SSO_FORM_ACTION_ORIGINS override validation ──────────────────
+    # Override tokens are routed through origin_from_url and dropped unless they
+    # resolve to a clean http(s) origin. Unvalidated tokens would inject into
+    # the CSP form-action directive; otto's reject_injection! then 500s every
+    # request.
+
+    it 'drops a schemeless override token' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'login.microsoftonline.us')
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    # KEY REGRESSION GUARD: a semicolon-injection value must never yield an
+    # origin token carrying ';'. URI.parse keeps the trailing ';' on the host,
+    # so the host guard in origin_from_url must reject it.
+    it 'never emits an origin containing a semicolon from an injection value' do
+      config = fresh_config(
+        'SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com; script-src https://evil.example',
+      )
+      origins = config.sso_form_action_origins
+      expect(origins).to all(satisfy { |o| !o.include?(';') })
+      expect(origins).not_to include('https://idp.example.com;')
+    end
+
+    it 'drops a non-http(s) override token (ftp)' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'ftp://files.example.com')
+      expect(config.sso_form_action_origins).to eq([])
     end
 
     # ── SSO feature disabled ─────────────────────────────────────────
