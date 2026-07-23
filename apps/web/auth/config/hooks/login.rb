@@ -199,6 +199,35 @@ module Auth::Config::Hooks
           )
           session['awaiting_mfa'] = false
 
+          # Self-heal a DEFERRED SSO bind whose MFA prediction went stale
+          # (#3877). The link-sso interstitial stashes a deferred bind (via the
+          # rodauth.login block, i.e. BEFORE this hook) only when its pre-login
+          # MFA check said a second factor was pending. If the decision just
+          # made HERE disagrees (the account's factors changed in the window
+          # between the two checks), no second factor will ever fire to
+          # complete the stash — so complete it now: the password verified
+          # moments ago and no factor is pending, which is exactly the
+          # authorization the interstitial's direct-bind branch requires. For
+          # every other login the stash cannot exist (login_session destroyed
+          # the previous session before this hook) and this is a no-op (:none).
+          Onetime::ErrorHandler.safe_execute('complete_deferred_sso_bind', account_id: account_id) do
+            outcome = Auth::Operations::DeferredSsoBind.complete(
+              db: db,
+              session: session,
+              account_id: account_id,
+            )
+            unless outcome == :none
+              Auth::Logging.log_auth_event(
+                :sso_deferred_bind_completed,
+                level: outcome == :ok ? :info : :warn,
+                log_metric: true,
+                account_id: account_id,
+                outcome: outcome,
+                correlation_id: correlation_id,
+              )
+            end
+          end
+
           Onetime::ErrorHandler.safe_execute(
             'sync_session_after_login',
             account_id: account_id,

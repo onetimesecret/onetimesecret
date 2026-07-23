@@ -43,8 +43,11 @@ require 'onetime/security/login_rate_limiter'
 #     (the SAME body POST /auth/login emits), but no identity is linked this round.
 #     Binding before 2FA would attach an MFA-EXEMPT SSO login path (SSO logins
 #     bypass MFA) to an account whose owner never passed the second factor — a
-#     password-only attacker could then sign in via SSO and defeat MFA. Completing
-#     the bind after MFA is a documented follow-up.
+#     password-only attacker could then sign in via SSO and defeat MFA. The
+#     deferred bind is stashed in the partial MFA session (DeferredSsoBind.defer)
+#     and completed by after_two_factor_authentication once the second factor
+#     succeeds (#3877 / Phase 4.A), so MFA accounts end up linked exactly like
+#     non-MFA accounts — just one factor later.
 #   - PLATFORM-only: challenges are minted solely on the platform callback path,
 #     so the tenant surface is never offered this interstitial (#3849).
 #
@@ -194,12 +197,28 @@ module Auth
             # attached to the account — a password-only attacker who cannot pass the
             # victim's OTP could bind their own IdP identity and then sign in via
             # SSO, defeating MFA. So for an MFA account we DEFER the bind: the login
-            # below proceeds to the OTP step (emits mfa_required, unchanged) and the
-            # identity is left UNLINKED this round (a follow-up completes it after
-            # MFA). Moot for default installs (MFA off) but load-bearing for
+            # below proceeds to the OTP step (emits mfa_required, unchanged), the
+            # identity stays UNLINKED this round, and the stashed bind is completed
+            # by after_two_factor_authentication once the second factor succeeds
+            # (#3877). Moot for default installs (MFA off) but load-bearing for
             # AUTH_MFA_ENABLED deployments.
+            deferred_bind = nil
             if link_sso_second_factor_pending?(account_id)
-              auth_logger.warn 'SSO link deferred: second factor pending, identity NOT bound this round',
+              # DEFERRED BIND (#3877 / Phase 4.A): the password HAS verified, so
+              # the bind is authorized — only its timing moves. Snapshot the
+              # challenge tuple here (the single-use token is already consumed;
+              # this local is the last place it exists) and stash it into the
+              # session INSIDE the login block below, where it survives the
+              # login-time clear_session and rides the partial MFA session to
+              # after_two_factor_authentication (hooks/mfa.rb), which completes
+              # the bind once the second factor succeeds.
+              deferred_bind = {
+                account_id: account_id,
+                provider: challenge.provider,
+                issuer: challenge.issuer,
+                uid: challenge.uid,
+              }
+              auth_logger.warn 'SSO link deferred: second factor pending, bind completes after MFA',
                 {
                   account_id: account_id,
                   provider: challenge.provider,
@@ -247,7 +266,17 @@ module Auth
             # non-MFA account, or the SAME mfa_required body POST /auth/login returns
             # for an MFA account (authSuccessWithMfaSchema). The response passes
             # through unchanged; the SPA already handles both shapes.
-            rodauth.login('password')
+            #
+            # The block Rodauth yields runs between login_session and after_login —
+            # the ONLY point where a session write both survives the login-time
+            # clear_session (login_session destroys the previous session) and
+            # precedes after_login's MFA hand-off (PrepareMfaSession). Stash the
+            # deferred bind there so after_two_factor_authentication can complete it.
+            rodauth.login('password') do
+              if deferred_bind
+                Auth::Operations::DeferredSsoBind.defer(session: session, **deferred_bind)
+              end
+            end
           rescue Onetime::LimitExceeded => ex
             # Must precede the generic StandardError rescue below (which would turn
             # this into a 500). Translate to the ADR-013-style 429 the SPA surfaces.
