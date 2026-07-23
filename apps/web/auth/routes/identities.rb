@@ -74,19 +74,47 @@ module Auth
 
             # Scope by BOTH id AND account_id (the dataset already pins
             # account_id). A cross-account id resolves to nil => 404, never a
-            # delete of someone else's identity.
-            target = identities_ds.where(id: identity_id).first
-            unless target
-              response.status = 404
-              next { error: 'Identity not found' }
+            # delete of someone else's identity. Built once, reused for the delete.
+            scoped = identities_ds.where(id: identity_id)
+
+            # Existence check, last-credential guard, and delete run inside ONE
+            # transaction with an account-scoped row lock, closing a TOCTOU: two
+            # concurrent DELETEs for DIFFERENT ids of the same SSO-only account
+            # could each observe count==2 and both pass the last-credential check,
+            # stripping every sign-in method.
+            #
+            # for_update.all issues "SELECT ... FOR UPDATE": on PostgreSQL this
+            # row-locks the account's identity rows, so a concurrent DELETE for
+            # the same account blocks here until we commit; on SQLite the lock
+            # clause is dropped and SQLite serializes writers anyway, so neither
+            # backend raises. Count/existence are derived from this single locked
+            # fetch — no redundant per-id re-query.
+            #
+            # NOTE: do NOT use identities_ds.for_update.count — Sequel emits
+            # "SELECT count(*) ... FOR UPDATE", which PostgreSQL REJECTS (FOR
+            # UPDATE is not allowed with aggregates). Materialize, then count in Ruby.
+            #
+            # has_password? checks the session account's password hash. Accounts
+            # WITH a password may remove identities freely.
+            result = rodauth.db.transaction do
+              locked = identities_ds.for_update.all
+              target = locked.find { |row| row[:id] == identity_id }
+
+              if target.nil?
+                :not_found
+              elsif locked.size <= 1 && !rodauth.has_password?
+                :last_credential
+              else
+                scoped.delete
+                { provider: target[:provider] }
+              end
             end
 
-            # Last-credential safety: refuse to remove the FINAL sign-in method of
-            # an account that has no usable password (SSO-only) — that would lock
-            # the account out with no way back in. has_password? checks the
-            # session account's password hash. Accounts WITH a password may remove
-            # identities freely.
-            if identities_ds.count <= 1 && !rodauth.has_password?
+            case result
+            when :not_found
+              response.status = 404
+              next { error: 'Identity not found' }
+            when :last_credential
               response.status = 409
               next {
                 error: 'Cannot remove your only sign-in method. ' \
@@ -95,12 +123,10 @@ module Auth
               }
             end
 
-            identities_ds.where(id: identity_id).delete
-
             auth_logger.warn 'SSO identity disconnected',
               {
                 account_id: account_id,
-                provider: target[:provider],
+                provider: result[:provider],
               }
 
             response.headers['Content-Type'] = 'application/json'
