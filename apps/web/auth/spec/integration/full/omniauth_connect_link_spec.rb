@@ -528,16 +528,26 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
-  # Scenario 3 — UNAUTHENTICATED -> unchanged H-3 refusal (regression)
+  # Scenario 3 — UNAUTHENTICATED, SSO-ONLY account -> unchanged H-3 refusal
   # ==========================================================================
+  #
+  # The connect branch is gated on logged_in? + intent, so an unauthenticated
+  # callback never binds. For an existing account WITHOUT a password there is no
+  # credential to challenge, so the H-3 refusal stands unchanged.
+  #
+  # NOTE (#3840 Phase 3): a password-HOLDING account on this same unauthenticated
+  # path now diverts to the sign-in interstitial (/link-sso/:token) instead of the
+  # H-3 refusal — that branch is covered end-to-end in
+  # omniauth_signin_interstitial_spec.rb. Here the account is seeded WITHOUT a
+  # password, so it stays on the H-3 refusal and no challenge is minted.
 
-  describe 'unauthenticated (regression: new branch is gated on logged_in?)' do
+  describe 'unauthenticated, SSO-only account (regression: connect branch gated + no interstitial)' do
     before { enable_platform_fallback }
 
-    it 'falls through to the existing H-3 refusal and never fires the connect event' do
+    it 'falls through to the H-3 refusal, mints no challenge, and fires no connect event' do
       email = "anon-#{SecureRandom.hex(6)}@company.example.com"
       uid   = "sub-#{SecureRandom.hex(8)}"
-      seed_existing_account(email)
+      seed_existing_account(email) # no password -> nothing to challenge
 
       # No login. trust flag defaults off -> H-3 refusal path.
       allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
@@ -551,12 +561,16 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
         expect(last_response.status).to eq(302)
         expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "Unauthenticated flow must keep the H-3 refusal. Location: #{last_response.location.inspect}"
+          "SSO-only unauthenticated flow must keep the H-3 refusal. Location: #{last_response.location.inspect}"
+        # And it must NOT divert to the Phase 3 interstitial (no password = no challenge).
+        expect(last_response.location.to_s).not_to match(%r{/link-sso/})
 
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
 
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_link_challenge_issued, anything)
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connected, anything)
         expect(Auth::Logging).not_to have_received(:log_auth_event)
