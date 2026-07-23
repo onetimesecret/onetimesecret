@@ -40,16 +40,17 @@ module Auth::Config::Hooks
         # connect. We therefore require TWO signals to bind:
         #   1. an authenticated session (session_value), and
         #   2. an account-bound connect intent set during INITIATION — the
-        #      omniauth_request_validation_phase hook above stashes
-        #      session[:sso_connect_intent] = session_value only when the
-        #      logged-in caller POSTed connect=1 (the Connected Identities
-        #      panel). CSRF/state proves "this browser initiated a request"; the
-        #      intent nonce proves "this browser initiated a CONNECT for THIS
-        #      account".
-        # We consume (DELETE) the nonce here, and bind ONLY when it matches the
-        # CURRENT session account. Absent/mismatched intent → fall through to the
-        # email-based branches exactly as an unauthenticated caller would (never
-        # silently bind onto the session account — that was the #3840 P1 finding).
+        #      omniauth_request_validation_phase hook below writes the sidecar
+        #      key sidecar:<sid>:sso_connect_intent = session_value (short TTL,
+        #      see SessionSidecar::FIELDS) only when the logged-in caller POSTed
+        #      connect=1 (the Connected Identities panel). CSRF/state proves
+        #      "this browser initiated a request"; the intent nonce proves
+        #      "this browser initiated a CONNECT for THIS account".
+        # We consume (atomic GETDEL) the nonce here, and bind ONLY when it
+        # matches the CURRENT session account. Absent/expired/mismatched intent
+        # → fall through to the email-based branches exactly as an
+        # unauthenticated caller would (never silently bind onto the session
+        # account — that was the #3840 P1 finding).
         #
         # The IdP email still plays NO role in the bind decision. Matching a
         # connect to an email-LOCATED account is the pre-account-hijacking
@@ -83,20 +84,25 @@ module Auth::Config::Hooks
         # account. Authenticated tenant-surface linking needs org-membership
         # verification and is a deliberate follow-up (see docs / open questions).
 
-        # Consume the account-bound connect intent by DELETE-on-read, then bind
-        # only when the SAME session account that initiated the connect is still
-        # the authenticated one.
+        # Consume the account-bound connect intent (atomic GETDEL on its
+        # sidecar key), then bind only when the SAME session account that
+        # initiated the connect is still the authenticated one.
         #
-        # KNOWN GAP (fast-follow #3859): this DELETE is the ONLY site that clears
-        # the nonce, so it is NOT yet truly single-use. An abandoned connect (user
-        # cancels at the IdP, the IdP errors, or the tab is closed) never reaches
-        # this callback, so the intent stays live in the session — and the NEXT SSO
-        # callback on that session, even a plain (connect=0) sign-in, consumes it
-        # and binds. That reopens the shared-browser bind this nonce defends
-        # against, gated behind "a dangling connect intent exists." The fix is to
-        # clear stale intent at the next request phase (see the connect-intent
-        # capture in omniauth_request_validation_phase below); tracked in #3859.
-        intent_account_id  = session.delete(:sso_connect_intent)
+        # SINGLE-USE, BOUNDED IN TIME (#3859): the nonce lives as a short-TTL
+        # sidecar key (sidecar:<sid>:sso_connect_intent, ~5 min — one IdP
+        # round-trip), NOT as a field in the session blob. A blob-resident
+        # nonce was only ever cleared here, so an ABANDONED connect (user
+        # cancels at the IdP, the IdP errors, the tab is closed) left it live
+        # for the next callback on the session — even a plain connect=0
+        # sign-in — to consume and bind on: exactly the shared-browser bind
+        # this nonce exists to prevent. Now an abandoned intent needs no
+        # cleanup (the key expires), and the request phase below additionally
+        # deletes any dangling intent on the next non-connect SSO initiation,
+        # so a plain sign-in can never reach this consume with a stale nonce
+        # still live. A miss here means "absent or expired" — default-deny.
+        # (Blob copies written by pre-#3859 code are discarded unconsumed.)
+        session.delete(:sso_connect_intent)
+        intent_account_id  = Onetime::SessionSidecar.consume(session.id&.public_id, 'sso_connect_intent')
         has_connect_intent = logged_in? &&
                              !intent_account_id.nil? &&
                              intent_account_id.to_s == session_value.to_s
@@ -328,13 +334,20 @@ module Auth::Config::Hooks
         # initiated a request"; this nonce proves "this browser initiated a
         # CONNECT for THIS account".
         #
-        # TODO(#3859): make the nonce truly single-use — this hook is the fix
-        # site. Every subsequent SSO callback passes through here first (it mints
-        # the state the callback validates), so an `else session.delete(...)` for
-        # non-connect flows deterministically kills a nonce left dangling by an
-        # abandoned connect, before a plain (connect=0) callback can bind on it.
+        # SINGLE-USE (#3859): the nonce is a SHORT-TTL SIDECAR KEY
+        # (sidecar:<sid>:sso_connect_intent, ~5 min — one IdP round-trip; see
+        # SessionSidecar::FIELDS), not a session-blob field, so an abandoned
+        # connect needs no cleanup — the key expires whatever the browser does
+        # next. The else branch closes the residual in-TTL window: every SSO
+        # callback's flow passes through this request phase first (it mints the
+        # state the callback validates), so deleting on a non-connect initiation
+        # deterministically kills a nonce left dangling by an abandoned connect
+        # before a plain (connect=0) callback could consume it. A failed write
+        # fails closed: no intent → the callback never binds.
         if logged_in? && request.params['connect'].to_s == '1'
-          session[:sso_connect_intent] = session_value
+          Onetime::SessionSidecar.write(session.id&.public_id, 'sso_connect_intent', session_value)
+        else
+          Onetime::SessionSidecar.delete(session.id&.public_id, 'sso_connect_intent')
         end
       end
 

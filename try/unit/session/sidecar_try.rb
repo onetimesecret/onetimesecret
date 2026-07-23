@@ -233,6 +233,19 @@ DB.set("sidecar:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
 [SC.consume(@sid2, 'awaiting_mfa', codec: @codec), DB.exists("sidecar:#{@sid2}:awaiting_mfa")]
 #=> [nil, 0]
 
+## sso_connect_intent (#3859) is registered EXPLICIT-USE: encrypted, never
+## merged or externalized (merge/commit ignore it), TTL bounded to one IdP
+## round-trip — the policy the omniauth connect-intent nonce depends on
+SC::FIELDS['sso_connect_intent']
+#=> { ttl: 300, encrypted: true, merge_on_read: false, externalize: false }
+
+## the intent nonce round-trips through write + single-use consume: first
+## consume yields the bound account id and spends the key, second is nil
+SC.write(@sid, 'sso_connect_intent', 42, codec: @codec)
+[SC.consume(@sid, 'sso_connect_intent', codec: @codec),
+ SC.consume(@sid, 'sso_connect_intent', codec: @codec)]
+#=> [42, nil]
+
 # ---- middleware hooks: commit / merge -----------------------------------
 
 ## commit externalizes registered fields: strips them from the returned hash
