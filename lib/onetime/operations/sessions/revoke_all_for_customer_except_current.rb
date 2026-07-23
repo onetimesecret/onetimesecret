@@ -214,7 +214,7 @@ module Onetime
           return [0, false] if extid.empty?
 
           codec   = Onetime::SessionCodec.from_config
-          keys    = Store.scan_keys(db)
+          keys, scan_capped = Store.scan_keys_capped(db)
           deleted = 0
 
           keys.each do |key|
@@ -235,7 +235,7 @@ module Onetime
             deleted += 1
           end
 
-          [deleted, keys.size >= Store::MAX_SCAN]
+          [deleted, scan_capped]
         end
 
         # Destroy the sidecar and drop the index entry for every REVOKED sid (the

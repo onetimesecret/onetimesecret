@@ -174,19 +174,34 @@ module Onetime
         # capping the survivors would let a sidecar-dense keyspace pull far more
         # than {MAX_SCAN} keys off the cursor to collect {MAX_SCAN} blobs,
         # reopening the O(all-keys) walk the cap exists to prevent. The
-        # trade-off: in such a keyspace the returned blob count is a floor, not
-        # exact — acceptable because {MAX_SCAN} is already a saturation cap
-        # (consumers treat a full result as "10000+"). {load_data} stays
-        # defensive for anything a filter can't anticipate.
+        # consequence: because the reject runs AFTER the cap, the surviving blob
+        # count is a floor, so truncation must be judged from the RAW (pre-reject)
+        # size — {scan_keys_capped} returns that flag; deriving it from the
+        # survivor count (`keys.size >= MAX_SCAN`) would silently under-report a
+        # capped scan whenever sidecars filled part of the first {MAX_SCAN} keys.
+        # {load_data} stays defensive for anything a filter can't anticipate.
+        #
+        # @param dbclient [Object]
+        # @param pattern [String]
+        # @return [Array(Array<String>, Boolean)] the matched non-sidecar keys
+        #   (scan order), and whether the raw cursor hit {MAX_SCAN} (truncated)
+        def scan_keys_capped(dbclient, pattern: SESSION_SCAN_PATTERN)
+          raw = dbclient.scan_each(match: pattern, type: 'string')
+                        .lazy
+                        .first(MAX_SCAN)
+          [raw.reject { |key| key.match?(SIDECAR_KEY_PATTERN) }, raw.size >= MAX_SCAN]
+        end
+
+        # The non-sidecar session keys from a bounded scan, dropping the
+        # truncation flag — for callers (counts) that don't report capping. See
+        # {scan_keys_capped} for the scan semantics and why capping is judged
+        # from the raw size, not the returned count.
         #
         # @param dbclient [Object]
         # @param pattern [String]
         # @return [Array<String>] the matched non-sidecar keys (scan order)
         def scan_keys(dbclient, pattern: SESSION_SCAN_PATTERN)
-          dbclient.scan_each(match: pattern, type: 'string')
-                  .lazy
-                  .first(MAX_SCAN)
-                  .reject { |key| key.match?(SIDECAR_KEY_PATTERN) }
+          scan_keys_capped(dbclient, pattern: pattern).first
         end
 
         # Count session keys via the same bounded, string-typed scan the listing

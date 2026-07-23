@@ -116,7 +116,13 @@ module Onetime
       # One-shot Roda flash messages (may embed email addresses — mild PII,
       # hence encrypted). Declared but NOT externalized: the Roda flash plugin
       # writes it mid-request via its own delete-then-rewrite cycle, which must
-      # be audited against commit semantics before flipping this on.
+      # be audited against commit semantics before flipping this on. merge_on_read
+      # is inert while externalize is false (merge/commit both gate on
+      # externalize) but is pre-set to its intended live value: a flash message
+      # MUST merge back once externalized, so enabling it is a single
+      # externalize:false->true flip with no risk of leaving the two flags out
+      # of step. (This is why it is neither an externalized field nor an
+      # explicit-use field — a third, declared-pending-audit state.)
       '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false },
     }.freeze
 

@@ -584,10 +584,12 @@ module Onetime
       # TrackMetadata gate below is unaffected.
       begin
         merged_fields = request.respond_to?(:env) ? request.env['onetime.session.sidecar_merged'] : nil
-        # ceiling: on a FIRST commit the blob key does not exist yet, so the
-        # sidecar's TTL-clamp fallback would come from global config — pass this
-        # middleware's own expire_after so its value wins. A live blob's
-        # remaining TTL still takes precedence inside commit.
+        # ceiling: the blob is refreshed to @expire_after immediately below in
+        # this same request, so @expire_after — not the blob's about-to-be-
+        # overwritten remaining TTL — is the authoritative clamp ceiling for the
+        # sidecar keys commit writes (SessionSidecar#ttl_ceiling treats a passed
+        # ceiling as `authoritative:`). This also covers the FIRST commit, where
+        # the blob key does not exist yet so no ceiling could be read off it.
         session_data  = Onetime::SessionSidecar.commit(
           sid_string, session_data, merged: merged_fields, dbclient: @dbclient, codec: @codec,
           ceiling: @expire_after

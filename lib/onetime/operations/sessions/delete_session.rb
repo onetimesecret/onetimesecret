@@ -57,8 +57,10 @@ module Onetime
 
           # The sid's per-value sidecar keys (Onetime::SessionSidecar) go with
           # the blob — an exact O(registry) DEL by name, format-gated inside
-          # purge so legacy non-hex ids no-op harmlessly.
-          Onetime::SessionSidecar.purge(@session_id, dbclient: db)
+          # purge so legacy non-hex ids no-op harmlessly. Derive the bare sid
+          # from the resolved key: `key` may be a full `session:<sid>` shape
+          # (find_key resolves several), which would fail purge's sid guard.
+          Onetime::SessionSidecar.purge(Store.extract_id(key), dbclient: db)
 
           # One audit event per successful mutation. The session id is a public
           # identifier; never put session contents (tokens, etc.) into detail.

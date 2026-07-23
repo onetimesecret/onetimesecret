@@ -109,6 +109,15 @@ Onetime::Operations::Sessions::Store.load_data(DB, @set_key)
 Onetime::Operations::Sessions::Store.scan_keys(DB).include?(@sidecar_key)
 #=> false
 
+## [#3858] Store.scan_keys_capped returns [non-sidecar keys, capped]: the reject
+## applies to the keys, and `capped` is derived from the RAW pre-reject scan
+## size (false well under MAX_SCAN), NOT the survivor count — so a keyspace
+## padded with sidecar keys can never make the survivor count under-report a
+## capped scan.
+@sk_keys, @sk_capped = Onetime::Operations::Sessions::Store.scan_keys_capped(DB)
+[@sk_keys.include?(@sidecar_key), @sk_capped]
+#=> [false, false]
+
 ## [#3858] the exclusion predicate matches ONLY the sidecar shape — a full hex
 ## sid with a suffix — never a blob (nothing follows the sid in any legacy
 ## blob shape, including the bare 64-hex one)
