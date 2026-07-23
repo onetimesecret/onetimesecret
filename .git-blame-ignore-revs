@@ -1,0 +1,13 @@
+# .git-blame-ignore-revs
+#
+# Commits listed here are ignored by `git blame` so that large, mechanical
+# changes (mass reformats, bulk renames) don't obscure the authorship of the
+# surrounding code.
+#
+# Enable locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# GitHub honours this file automatically in its blame view.
+
+# style: apply Prettier formatting across Vue/TS/JS files
+c25f6887f5e644bbd3b4435c6286b4f134d9cd61

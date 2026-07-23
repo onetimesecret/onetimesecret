@@ -77,6 +77,33 @@ environment when something misbehaves.
 The full lane matrix (integration suites, PostgreSQL, billing) lives in
 [tests/lanes/](tests/lanes/) and `.github/workflows/ci.yml`.
 
+## Code formatting
+
+Frontend code (`*.vue`, `*.ts`, `*.js`) is formatted by
+[Prettier](https://prettier.io) using the checked-in `.prettierrc`. Prettier
+owns formatting; ESLint owns correctness and style, with
+`eslint-config-prettier` disabling the ESLint rules that would otherwise fight
+Prettier. Notable options: `vueIndentScriptAndStyle: true`, `printWidth: 100`,
+`singleQuote: true`, `semi: true`.
+
+```bash
+pnpm run format:check      # report drift (what CI enforces)
+pnpm run format            # write formatting to the files you pass
+pnpm exec prettier --write "**/*.{vue,ts,js}"   # reformat the whole tree
+```
+
+Formatting is enforced in CI: the `TypeScript Lint` job runs
+`prettier --check`, so an unformatted file fails the build. Run
+`pnpm run format:check` before you push to catch drift locally.
+
+The one-time mass reformat that introduced this policy is recorded in
+[`.git-blame-ignore-revs`](.git-blame-ignore-revs) so `git blame` skips it.
+Enable it locally with:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 ## Generated artifacts — never hand-edit
 
 `generated/locales/` and `generated/schemas/` are build outputs

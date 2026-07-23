@@ -58,6 +58,7 @@
 import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import parserTs from '@typescript-eslint/parser';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import * as importPlugin from 'eslint-plugin-import';
 import pluginPlaywright from 'eslint-plugin-playwright';
 import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
@@ -521,12 +522,6 @@ export default [
     },
   },
 
-  // Use this prettier plugin for eslint, which disables conflicting rules.
-  // This plugin is a workaround for ESLint and Prettier conflicts. Simply,
-  // uncomment the next line to enable it (don't forget to import it at the
-  //  top): `import eslintConfigPrettier from 'eslint-config-prettier';
-  // eslintConfigPrettier,
-
   /**
    * Page and Layout Components Exception
    * Relaxes naming convention for top-level components (views, layouts, page-level routes)
@@ -748,4 +743,14 @@ export default [
       ],
     },
   },
+
+  /**
+   * Prettier Compatibility (Must be last)
+   * Disables all ESLint rules that conflict with Prettier's formatting so the
+   * two tools never fight over the same code. Prettier owns formatting; ESLint
+   * owns correctness/style. Placed last so it wins over any earlier config that
+   * re-enables a stylistic rule.
+   * See: https://github.com/prettier/eslint-config-prettier
+   */
+  eslintConfigPrettier,
 ];

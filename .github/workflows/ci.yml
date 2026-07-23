@@ -230,6 +230,9 @@ jobs:
       - name: Run linting
         run: pnpm lint
 
+      - name: Check Prettier formatting
+        run: pnpm exec prettier --check "**/*.{vue,ts,js}"
+
   # Runs the pre-commit hygiene hooks (whitespace, EOF, private-key,
   # merge-conflict, large-file) that no other CI job covers — a safety net for
   # commits pushed with `--no-verify` or without hooks installed. Scoped to the
