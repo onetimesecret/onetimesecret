@@ -155,8 +155,11 @@ require 'onetime/session/codec'
 ## deleted, while a DIFFERENT account's blob survives -- proving the encrypted
 ## blob actually decodes (a plain JSON.parse skipped every authenticated
 ## session)
-@ca_secret = ENV.fetch('SESSION_SECRET', nil)
-@ca_secret = OT.conf.dig('site', 'secret') if @ca_secret.to_s.empty?
+# Plant blobs with the middleware writer's own secret resolution
+# (session_config['secret'], the chain middleware_stack mounts the session
+# with) — the sweep's SessionCodec.from_config must resolve the SAME secret
+# for the encrypted blob to decode and match.
+@ca_secret = Onetime.session_config['secret']
 @ca_codec  = Onetime::SessionCodec.new(@ca_secret)
 @ca_db     = Familia.dbclient
 @ca_extid  = "extid_close_#{SecureRandom.hex(6)}"

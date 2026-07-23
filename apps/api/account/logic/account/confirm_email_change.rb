@@ -193,13 +193,13 @@ module AccountAPI::Logic
         auth_logger.error '[confirm-email-change] Redis session cleanup error', exception: ex
       end
 
-      # Resolve the session secret using the same fallback chain as
-      # Onetime::Session#initialize: ENV['SESSION_SECRET'] then site secret.
+      # Resolve the session secret with the SAME chain the middleware writer
+      # is mounted with: Onetime.session_config['secret'] — site.session.secret
+      # falling back to site.secret (middleware_stack.rb / boot.rb). The
+      # middleware never consults ENV['SESSION_SECRET'], so reading ENV here
+      # could derive keys from a different secret and silently match nothing.
       def resolve_session_secret
-        secret = ENV.fetch('SESSION_SECRET', nil)
-        return secret if secret.is_a?(String) && !secret.empty?
-
-        OT.conf.dig('site', 'secret')
+        Onetime.session_config['secret']
       end
 
       # Extract the external_id from a stored session value after verifying

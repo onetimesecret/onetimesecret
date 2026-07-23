@@ -443,6 +443,40 @@ confirm.process
 @inv_session.empty?
 #=> true
 
+# --- ConfirmEmailChange: Redis session sweep (AES-GCM decode) ---
+#
+# delete_redis_sessions SCANs session:* and deletes blobs whose decrypted
+# external_id matches the customer. Sessions are AES-256-GCM encrypted, so
+# the sweep's key derivation MUST start from the SAME secret the middleware
+# writer is mounted with (session_config['secret']); any other chain builds
+# wrong keys and every encrypted session silently survives. These cases
+# assert the real Redis effects (the method swallows all errors, so nothing
+# else could catch a regression).
+require 'onetime/session/codec'
+
+## delete_redis_sessions deletes the matching customer's session blob while a
+## different customer's blob survives (the identity match is exact) — proving
+## the sweep derives its keys from the writer's own secret resolution
+@sweep_secret = Onetime.session_config['secret']
+@sweep_codec  = Onetime::SessionCodec.new(@sweep_secret)
+@sweep_db     = Familia.dbclient
+@sweep_cust   = Onetime::Customer.new email: generate_unique_test_email('sweep')
+@sweep_cust.save
+@sweep_blob = "session:#{SecureRandom.hex(32)}"
+@other_blob = "session:#{SecureRandom.hex(32)}"
+@sweep_db.set(@sweep_blob,
+              @sweep_codec.encode({ 'external_id' => @sweep_cust.extid, 'authenticated' => true }),
+              ex: 3600)
+@sweep_db.set(@other_blob,
+              @sweep_codec.encode({ 'external_id' => 'extid_of_someone_else', 'authenticated' => true }),
+              ex: 3600)
+@sweep_obj = AccountAPI::Logic::Account::ConfirmEmailChange.new(
+  MockStrategyResult.new(session: {}, user: @sweep_cust), { 'token' => '' }
+)
+@sweep_obj.send(:delete_redis_sessions, @sweep_cust)
+[@sweep_db.exists(@sweep_blob), @sweep_db.exists(@other_blob)]
+#=> [0, 1]
+
 # --- ConfirmEmailChange: Rodauth full-mode (SQLite accounts.email update) ---
 #
 # These tests exercise the update_auth_database and invalidate_sessions
@@ -593,6 +627,8 @@ noacct_result[:confirmed]
 #=> true
 
 # Cleanup
+@sweep_db.del(@other_blob) if defined?(@other_blob) && @other_blob
+@sweep_cust.delete! if defined?(@sweep_cust) && @sweep_cust
 @bare_cust.delete! if defined?(@bare_cust) && @bare_cust
 @inv_cust.delete! if defined?(@inv_cust) && @inv_cust
 @rod_cust.delete! if defined?(@rod_cust) && @rod_cust
