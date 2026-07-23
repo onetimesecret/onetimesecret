@@ -18,4 +18,5 @@
 module Auth::Config::Overrides
   require_relative 'overrides/error_handling'
   require_relative 'overrides/password_migration'
+  require_relative 'overrides/reset_password_enumeration'
 end
