@@ -111,6 +111,7 @@
     "test:rspec:integration": "bundle exec rake spec:integration:all",
     "test:rspec:integration:simple": "bundle exec rake spec:integration:simple",
     "test:rspec:integration:full": "bundle exec rake spec:integration:full",
+    "test:rspec:integration:full:mfa": "bundle exec rake spec:integration:full:mfa",
     "test:rspec:integration:full:postgres": "bundle exec rake spec:integration:full:postgres",
     "test:rspec:integration:disabled": "bundle exec rake spec:integration:disabled",
     "test:rspec:all": "bundle exec rake spec:all",

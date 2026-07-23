@@ -651,14 +651,16 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   # password step, then the bound row after the second factor succeeds.
   #
   # Exercising this end-to-end needs the OTP feature loaded (AUTH_MFA_ENABLED) so
-  # respond_to?(:otp_auth_route) is true and after_login emits mfa_required. The
-  # shared integration harness boots ONCE (before(:all)) with MFA disabled and cannot
-  # toggle the Rodauth feature set per-example, so the deferred-bind mechanics are
-  # locked in by spec/operations/deferred_sso_bind_spec.rb (session contract,
-  # single-use, account-bound, conflict passthrough) and this stays a pending
-  # example to keep the end-to-end gap VISIBLE (#3877 tracks the harness).
-
-  describe 'MFA account defers the identity bind, completing it after MFA (Item 1 / #3877)' do
-    it 'returns mfa_required with no bind, then binds after the second factor (needs an AUTH_MFA_ENABLED harness)'
-  end
+  # respond_to?(:otp_auth_route) is true and after_login emits mfa_required. THIS
+  # shared harness boots ONCE (before(:all)) with MFA disabled and cannot toggle
+  # the Rodauth feature set per-example (Auth::Config is one-shot —
+  # auth-config-one-shot.md), so the coverage lives elsewhere:
+  #   - END-TO-END: integration/full_mfa/omniauth_signin_interstitial_mfa_spec.rb
+  #     runs in its OWN process with AUTH_MFA_ENABLED=true (rake
+  #     spec:integration:full:mfa, chained from spec:integration:full) and locks
+  #     in the full sequence — mfa_required + NO row at the password step, the
+  #     bound row after the second factor, and no bind on a failed attempt.
+  #   - MECHANICS: spec/operations/deferred_sso_bind_spec.rb (session contract,
+  #     single-use, account-bound, conflict passthrough).
+  # No pending example here: the gap this placeholder kept visible is closed.
 end
