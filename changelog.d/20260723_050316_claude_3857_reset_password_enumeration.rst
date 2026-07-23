@@ -12,4 +12,10 @@ Security
   The endpoint now returns the same generic "an email has been sent" response in
   every case, matching the enumeration-safe behavior the basic-mode endpoint
   already enforced, while still sending a reset email only for a valid, verified
-  account and preserving Rodauth's resend throttle. (#3857)
+  account and preserving Rodauth's resend throttle. A residual response-timing
+  difference remains — a matching account performs additional database writes and
+  an email dispatch that a non-existent address does not — and is a known, accepted
+  limitation: it reduces the leak from a definitive single-request answer to a
+  timing-only signal, and closing it fully would require request padding or dummy
+  work that adds abuse surface on an unauthenticated route without robustly
+  removing it. (#3857)

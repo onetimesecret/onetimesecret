@@ -54,23 +54,15 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
     allow(Onetime::Jobs::Publisher).to receive(:enqueue_email_raw).and_return(true)
   end
 
-  let(:created_account_ids) { [] }
-
-  after do
-    db = Auth::Database.connection
-    created_account_ids.each do |account_id|
-      # Delete child rows before the parent. On PostgreSQL the FK from
-      # account_password_reset_keys / account_password_hashes -> accounts makes a
-      # bare accounts delete raise; the rescue below would then swallow it and the
-      # rows would leak. (On SQLite FKs are off by default so order is moot, but we
-      # keep the correct order so cleanup is real on either backend.)
-      db[:account_password_reset_keys].where(id: account_id).delete
-      db[:account_password_hashes].where(id: account_id).delete
-      db[:accounts].where(id: account_id).delete
-    rescue StandardError
-      # Non-fatal cleanup error
-    end
-  end
+  # No per-example DB cleanup block here on purpose. FullModeSuiteDatabase wipes
+  # every Rodauth table in an after(:each) hook for :full_auth_mode specs (see
+  # spec/support/full_mode_suite_database.rb — clean_tables! over the authoritative
+  # RODAUTH_TABLES list), so isolation is already guaranteed. A hand-rolled
+  # per-account delete would also be unsafe to maintain: an account is referenced by
+  # ~20 FK-bound tables (audit logs, reset/verify/remember keys, ...), several with
+  # ON DELETE RESTRICT, so a child-first delete list would silently leak rows the
+  # moment a new flow touches another table — which is exactly what a stricter
+  # version of this block surfaced during review.
 
   def unique_test_email(prefix = 'reset-enum')
     "#{prefix}-#{SecureRandom.hex(8)}@integration-test.example.com"
@@ -87,7 +79,6 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
       created_at: Time.now,
       updated_at: Time.now
     )
-    created_account_ids << account_id
 
     # Cost params match test config in config/features/argon2.rb (argon2 is
     # required at the top of the file).
@@ -171,11 +162,14 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
       # this one account, so exactly one enqueue to this address is expected.
       expect(status).to eq(200)
       expect(body['success']).to match(/email has been sent/i)
-      # enqueue_email_raw is called with a message hash (to:/subject:/body:/from:)
-      # then delivery options; assert exactly one reset email addressed to the
-      # verified account.
+      # enqueue_email_raw receives (message_hash, delivery_opts). Mail::Message#to
+      # ALWAYS returns a Mail::AddressContainer (< Array) of BARE addresses — even a
+      # "Name <addr>" input is parsed down to ["addr"] — and email_to here is
+      # account[login_column], so to: is exactly [verified]. contain_exactly pins
+      # that single recipient order-independently and, unlike include(), fails loudly
+      # if the shape ever regresses to a bare string (which would substring-match).
       expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
-        .with(hash_including(to: include(verified)), any_args).once
+        .with(hash_including(to: contain_exactly(verified)), any_args).once
     end
   end
 

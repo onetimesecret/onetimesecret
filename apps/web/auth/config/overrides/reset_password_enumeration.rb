@@ -73,20 +73,24 @@
 # oracle is closed. A LATENCY residual remains: the miss path halts right after the
 # shared `accounts` SELECT, whereas a valid, open, non-throttled account
 # additionally runs ~4 single-row statements on account_password_reset_keys
-# (inside a transaction), generates a random key, and enqueues the reset email — an
-# async AMQP publish (~ms) in production with background jobs enabled. That
-# hit/miss delta is single-digit-millisecond indexed DB work, an order of magnitude
-# below the network / Puma / GC jitter an off-host attacker sees, so it degrades to
-# a statistical-only, many-sample attack rather than a deterministic distinguisher.
+# (inside a transaction), generates a random key, and dispatches the reset email.
+# Dispatch cost is deployment-dependent: an async AMQP publish (~ms) when background
+# jobs are enabled, or a synchronous inline SMTP send (delivery.rb uses
+# fallback: :sync, taken whenever RabbitMQ is absent — a common self-hosted config)
+# that can dominate the delta. With jobs enabled the hit/miss gap sits near the
+# network / Puma / GC jitter an off-host attacker sees (a noisy many-sample attack);
+# under synchronous delivery the gap is larger and that statistical attack is
+# easier. Either way it is not a single-request distinguisher — but not negligible.
 #
 # We deliberately DO NOT pad the miss path. account_password_reset_keys is FK/PK-
 # bound to accounts, so a non-existent login has no legal row to mirror;
 # equalization would require junk accounts, insert-and-rollback theater, or dummy
 # queue traffic — all new side effects and an abuse surface on an unauthenticated
-# route — while a fixed sleep pad is defeated by variance analysis and taxes every
-# legitimate request (Ruby/Rack offers no constant-time guarantee across a DB +
-# AMQP chain anyway). Content-equalization above is the meaningful fix; the timing
-# residual is accepted and documented. (Reviewed: Greptile P1, issue #3857.)
+# route — while a fixed sleep pad is defeated by variance analysis, taxes every
+# legitimate request, and lets an unauthenticated caller pin Puma threads (a DoS
+# amplifier); Ruby/Rack offers no constant-time guarantee across a DB + email chain
+# regardless. Content-equalization above is the meaningful fix; the timing residual
+# is accepted and documented. (Reviewed: Greptile P1 + 2nd review bot, issue #3857.)
 #
 # See also: config/rodauth_overrides.rb (verify_account error-flash overrides)
 # and config/overrides/password_migration.rb (the `super` override idiom).
@@ -129,6 +133,11 @@ module Auth::Config::Overrides
             reset_password_email_sent_response
           end
 
+          # Fail-open return: normally the halt above fires and we never reach
+          # here. If the halt contract ever breaks, this bare `account` (nil on a
+          # miss) makes the route re-expose the oracle rather than act on a
+          # non-account. A guard clause would return the response object instead;
+          # an explicit `return` trips Style/RedundantReturn.
           account
         end
 
@@ -153,6 +162,11 @@ module Auth::Config::Overrides
         def reset_password_email_recently_sent?
           return false unless super
 
+          # Truthy super = a real account is throttled. HALTS with the generic
+          # success (HALT CONTRACT). Intentionally no explicit boolean: on the
+          # fail-open (halt-removed) path this returns the response value, which
+          # the route treats as truthy and re-exposes the oracle. A defensive
+          # `true` would change that documented fall-through return — omit it.
           reset_password_email_sent_response
         end
       end
