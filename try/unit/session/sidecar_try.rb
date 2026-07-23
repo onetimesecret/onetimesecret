@@ -119,6 +119,15 @@ SC.write(@sid, 'awaiting_mfa', false, codec: @codec)
 SC.read(@sid, 'awaiting_mfa', codec: @codec)
 #=> false
 
+## a nil value DELETES the key rather than storing an envelope around nil —
+## read reports stored-nil as absent, so the key would be invisible-but-
+## present (exists? true, read nil), and the commit hook already defines nil
+## as DELETE. write returns nil (no TTL) and the key is really gone.
+[SC.write(@sid, 'awaiting_mfa', nil, codec: @codec),
+ SC.exists?(@sid, 'awaiting_mfa'),
+ DB.exists(@key_mfa)]
+#=> [nil, false, 0]
+
 ## complex values round-trip type-preserved through the JSON envelope
 ## (_flash is registered but externalize:false — the explicit API still works,
 ## per the explicit-use field contract)

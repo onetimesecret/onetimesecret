@@ -459,16 +459,15 @@ confirm.process
 # swallowed, and disable the entire email-change session sweep while every
 # other test stayed green.
 #
-# Blobs are planted with the SAME secret resolution the sweep uses
-# (ENV SESSION_SECRET || site secret, see #resolve_session_secret): the
-# middleware's configured session secret can differ in test config, and only
-# a matching-keyed blob reaches the match -> del -> purge branch.
+# Blobs are planted with the middleware writer's own secret resolution
+# (Onetime.session_config['secret'], the chain middleware_stack mounts the
+# session with), which #resolve_session_secret must mirror — only a
+# matching-keyed blob reaches the match -> del -> purge branch.
 
 ## delete_redis_sessions deletes the matching customer's session blob AND its
 ## per-value sidecar keys, while a different customer's blob survives (the
 ## identity match is exact)
-@sweep_secret = ENV.fetch('SESSION_SECRET', nil)
-@sweep_secret = OT.conf.dig('site', 'secret') if @sweep_secret.to_s.empty?
+@sweep_secret = Onetime.session_config['secret']
 @sweep_codec  = Onetime::SessionCodec.new(@sweep_secret)
 @sweep_db     = Familia.dbclient
 @sweep_cust   = Onetime::Customer.new email: generate_unique_test_email('sweep')

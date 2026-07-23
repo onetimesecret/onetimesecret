@@ -154,14 +154,26 @@ module Onetime
     # the write is a single SET+EX — atomic, no SET-then-EXPIRE gap for a
     # crash to leave an immortal key in.
     #
-    # @return [Integer, nil] the effective (clamped) TTL, or nil for a sid
-    #   that fails the format guard (no key is ever created for one).
+    # A nil value DELETES the key instead of storing an envelope around nil:
+    # #read reports a stored nil as absent (nil is its miss signal), so the
+    # key would be invisible-but-present — and the commit hook already
+    # defines nil as DELETE, so the explicit API matches it. (false is a
+    # value and stores normally.)
+    #
+    # @return [Integer, nil] the effective (clamped) TTL, or nil when no key
+    #   was written — a sid that fails the format guard, or a nil value
+    #   (which deletes instead).
     def write(sid, field, value, ttl: nil, dbclient: nil, codec: nil)
       field  = field.to_s
       policy = ensure_registered!(field)
       return nil unless valid_sid?(sid)
 
-      db      = dbclient || Familia.dbclient
+      db = dbclient || Familia.dbclient
+      if value.nil?
+        db.del(key_for(sid, field))
+        return nil
+      end
+
       seconds = effective_ttl(sid, ttl || policy[:ttl], db)
       db.set(key_for(sid, field), encode_envelope(sid, field, value, policy, codec), ex: seconds)
       seconds
@@ -421,6 +433,11 @@ module Onetime
     def ttl_ceiling(sid, dbclient, fallback: nil, authoritative: nil)
       return authoritative.to_i if authoritative.to_i.positive?
 
+      # `session:<sid>` is the ONLY shape the current middleware writes (its
+      # default namespace); the legacy shapes in Store.key_patterns exist as
+      # read-compat for admin tooling. A blob under one of those is invisible
+      # to this probe, in which case the clamp falls through to the fallback/
+      # configured ceiling below — still bounded, never immortal.
       blob_ttl = dbclient.ttl("session:#{sid}") # -2 no key, -1 no TTL
       return blob_ttl if blob_ttl >= 1
 

@@ -55,6 +55,7 @@
 #
 
 require 'onetime/operations/sessions/store'
+require 'onetime/session/codec'
 require 'onetime/session/sidecar'
 
 module Auth
@@ -195,13 +196,19 @@ module Auth
 
         dbclient      = Familia.dbclient
         deleted_count = 0
-        codec         = session_codec
+        # from_config resolves the SAME secret chain the middleware writer is
+        # mounted with (session_config['secret'] → site.secret). Any other
+        # chain — e.g. ENV['SESSION_SECRET'], which the middleware never
+        # reads — can build a codec with the wrong key, and every encrypted
+        # session silently fails to decode and survives the sweep.
+        codec         = Onetime::SessionCodec.from_config
 
-        # Scan for all session keys
-        # Per-value sidecar keys live under `sidecar:<sid>:<field>` — outside
-        # this match by construction — and are purged alongside their owning
-        # blob below.
-        dbclient.scan_each(match: 'session:*') do |key|
+        # Scan for all session keys. STRING-typed like Store.scan_keys: the
+        # loose match also catches non-string keys (the entitlement-preview
+        # SETs) that would WRONGTYPE on GET. Per-value sidecar keys live under
+        # `sidecar:<sid>:<field>` — outside this match by construction — and
+        # are purged alongside their owning blob below.
+        dbclient.scan_each(match: 'session:*', type: 'string') do |key|
             session_data = Onetime::Operations::Sessions::Store.load_data(dbclient, key, codec: codec)
             next unless session_data.is_a?(Hash)
 
@@ -224,21 +231,6 @@ module Auth
       rescue StandardError => ex
         OT.le "[close-account] Error deleting Redis sessions: #{ex.message}"
         0
-      end
-
-      # SessionCodec built from the same secret the session middleware writes
-      # with — ENV['SESSION_SECRET'], then the site secret (the fallback chain
-      # in Onetime::Session#initialize). Returns nil when no secret is
-      # configured, in which case {Store.load_data} degrades to the legacy
-      # plaintext-JSON path rather than raising.
-      def session_codec
-        secret = ENV.fetch('SESSION_SECRET', nil)
-        secret = OT.conf.dig('site', 'secret') if secret.to_s.empty?
-        return nil if secret.to_s.empty?
-
-        Onetime::SessionCodec.new(secret)
-      rescue StandardError
-        nil
       end
 
       # Builds an error result hash
