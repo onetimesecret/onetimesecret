@@ -42,6 +42,12 @@ vi.mock('@/shared/stores/authStore', () => ({
   useAuthStore: () => mockAuthStore,
 }));
 
+// Bootstrap store: MFA hand-off marks awaiting_mfa via update() (mirrors Login).
+const mockBootstrapUpdate = vi.fn();
+vi.mock('@/shared/stores/bootstrapStore', () => ({
+  useBootstrapStore: () => ({ update: mockBootstrapUpdate }),
+}));
+
 // Composable: controllable reactive state + spies.
 const mockState = {
   challenge: ref<LinkSsoChallenge | null>(null),
@@ -239,6 +245,48 @@ describe('LinkSso', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
       expect(mockState.verifyLink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Verify success — MFA required', () => {
+    beforeEach(() => {
+      mockState.challenge.value = makeChallenge();
+    });
+
+    it('does NOT mark fully authenticated and hands off to /mfa-verify', async () => {
+      // MFA account: password proven but a second factor is still required.
+      mockState.verifyLink.mockResolvedValue({ success: 'ok', mfa_required: true });
+      wrapper = mountComponent();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('correct pw');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      // Not fully authenticated — the OTP challenge is not skipped.
+      expect(mockSetAuthenticated).not.toHaveBeenCalled();
+      // Marked awaiting MFA so the route guard permits /mfa-verify (mirrors Login).
+      expect(mockBootstrapUpdate).toHaveBeenCalledWith({
+        awaiting_mfa: true,
+        authenticated: false,
+      });
+      expect(mockPush).toHaveBeenCalledWith({ path: '/mfa-verify', query: undefined });
+    });
+
+    it('preserves the ?redirect query when handing off to /mfa-verify', async () => {
+      mockRoute.query = { redirect: '/account/settings' };
+      mockState.verifyLink.mockResolvedValue({ success: 'ok', mfa_required: true });
+      wrapper = mountComponent();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockPush).toHaveBeenCalledWith({
+        path: '/mfa-verify',
+        query: { redirect: '/account/settings' },
+      });
     });
   });
 

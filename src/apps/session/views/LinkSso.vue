@@ -2,10 +2,15 @@
 
 <script setup lang="ts">
   import AuthView from '@/apps/session/components/AuthView.vue';
+  import {
+    linkSsoRequiresMfa,
+    type LinkSsoVerifySuccess,
+  } from '@/schemas/api/auth/responses/auth';
   import { loggingService } from '@/services/logging.service';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useLinkSso } from '@/shared/composables/useLinkSso';
   import { useAuthStore } from '@/shared/stores/authStore';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { isValidInternalPath } from '@/utils/redirect';
   import { ref, onMounted, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -15,6 +20,7 @@
   const route = useRoute();
   const router = useRouter();
   const authStore = useAuthStore();
+  const bootstrapStore = useBootstrapStore();
 
   const { challenge, verifyLink, fetchChallenge, isLoading, error, errorCode, clearError } =
     useLinkSso();
@@ -83,6 +89,35 @@
     }
   });
 
+  // Handle a successful verify. The password proof succeeded server-side; for an
+  // MFA account only the FIRST factor is done. Mirror the normal Login flow
+  // (useAuth) EXACTLY: hand an MFA account off to the shared /mfa-verify challenge
+  // WITHOUT marking it fully authenticated; otherwise complete the sign-in and
+  // navigate to the safest available destination.
+  const handleVerifySuccess = async (result: LinkSsoVerifySuccess) => {
+    if (linkSsoRequiresMfa(result)) {
+      loggingService.debug('[LinkSso] MFA required, routing to /mfa-verify');
+      // Mark awaiting_mfa (NOT authenticated) so the MFA route guard permits
+      // /mfa-verify; preserve any ?redirect for the post-verify hop.
+      bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
+      router.push({
+        path: '/mfa-verify',
+        query: redirectPath.value ? { redirect: redirectPath.value } : undefined,
+      });
+      return;
+    }
+
+    loggingService.debug('[LinkSso] Link verified, completing sign-in');
+    await authStore.setAuthenticated(true);
+
+    // Prefer the backend's redirect target when it is a safe internal path;
+    // otherwise the ?redirect query param; otherwise the dashboard.
+    const fromResponse =
+      result.redirect && isValidInternalPath(result.redirect) ? result.redirect : null;
+    const destination = fromResponse ?? redirectPath.value ?? '/';
+    router.push(destination);
+  };
+
   // Verify the account's EXISTING password. Success establishes the session
   // server-side; sync client auth state and navigate. Wrong password → retry;
   // spent/expired token → dead-end.
@@ -93,15 +128,7 @@
     const result = await verifyLink(token.value, password.value);
 
     if (result) {
-      loggingService.debug('[LinkSso] Link verified, completing sign-in');
-      await authStore.setAuthenticated(true);
-
-      // Prefer the backend's redirect target when it is a safe internal path;
-      // otherwise the ?redirect query param; otherwise the dashboard.
-      const fromResponse =
-        result.redirect && isValidInternalPath(result.redirect) ? result.redirect : null;
-      const destination = fromResponse ?? redirectPath.value ?? '/';
-      router.push(destination);
+      await handleVerifySuccess(result);
       return;
     }
 
@@ -227,7 +254,7 @@
               :aria-disabled="!password || isLoading ? 'true' : undefined"
               class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="link-sso-submit">
-              <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+              <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
               <span v-else>{{ t('web.link_sso.submit') }}</span>
             </button>
 

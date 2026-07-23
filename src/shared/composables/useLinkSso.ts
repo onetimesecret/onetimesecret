@@ -24,10 +24,14 @@
  * - GET  /auth/link-sso/:token  200 => { provider, email }
  *                               404/410 => token missing / expired / consumed
  * - POST /auth/link-sso         200 => { success, redirect? } (session established)
- *                               403 => wrong password (retryable)
- *                               404/410 => token expired / consumed (dead-end)
+ *                                    or { success, mfa_required, ... } (MFA account —
+ *                                    same body POST /auth/login returns; hand off to
+ *                                    the shared /mfa-verify challenge, do NOT complete)
+ *                               401 invalid_password => wrong password (retryable)
+ *                               401 link_expired     => token expired / consumed (dead-end)
  *   The failure branch is distinguished by HTTP status and, when present, an
- *   { error_code } field ('invalid_password' vs 'invalid_token'/'expired_token').
+ *   { error_code } field ('invalid_password' vs 'invalid_token'/'expired_token'/
+ *   'link_expired'). Legacy 403/404/410 statuses are still classified defensively.
  *
  * Mirrors useMfa / useConnectedIdentities: happy paths validate through a zod
  * schema; useAsyncHandler `wrap` manages the loading state and the unexpected
@@ -79,6 +83,7 @@ function resolveLinkErrorCode(
   if (
     backendCode === 'invalid_token' ||
     backendCode === 'expired_token' ||
+    backendCode === 'link_expired' ||
     status === 404 ||
     status === 410
   ) {
@@ -141,10 +146,11 @@ export function useLinkSso() {
     status: number | undefined,
     backendCode: unknown,
     fallback: LinkSsoErrorCode = null
-  ) {
+  ): string {
     const code = resolveLinkErrorCode(status, backendCode) ?? fallback;
     errorCode.value = code;
     error.value = messageForCode(code);
+    return error.value;
   }
 
   function readErrorResponse(err: unknown): ErrorResponseLike | undefined {
@@ -226,8 +232,8 @@ export function useLinkSso() {
       // view branches consistently on errorCode.
       if (isAuthError(validated)) {
         const rawCode = (response.data as Record<string, unknown>)?.error_code;
-        setLinkError(response.status, rawCode);
-        throw createError(error.value ?? t('web.link_sso.errors.generic'), 'human', 'error');
+        const message = setLinkError(response.status, rawCode);
+        throw createError(message, 'human', 'error');
       }
 
       return validated;

@@ -160,6 +160,43 @@ describe('useLinkSso', () => {
       expect(error.value).toBe('web.link_sso.errors.invalid_token');
     });
 
+    // Backend returns 401 (not 404/410) with error_code 'link_expired' for a
+    // consumed/expired token. Without the explicit code mapping the 401 would
+    // fall through to invalid_password (retryable) — but the token is single-use,
+    // so a retry can never succeed. It MUST dead-end.
+    it('classifies a spent token (401 link_expired) as invalid_token (dead-end)', async () => {
+      axiosMock
+        .onPost('/auth/link-sso')
+        .reply(401, { error: 'expired', error_code: 'link_expired' });
+
+      const { verifyLink, error, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('invalid_token');
+      expect(error.value).toBe('web.link_sso.errors.invalid_token');
+    });
+
+    // MFA account: the backend returns the SAME body POST /auth/login returns for
+    // MFA. The schema must NOT strip mfa_required (else the view would mark the
+    // user fully authenticated and skip the OTP challenge).
+    it('preserves mfa_required (does not strip it) on a 200 MFA response', async () => {
+      axiosMock
+        .onPost('/auth/link-sso')
+        .reply(200, { success: 'ok', mfa_required: true, mfa_methods: ['otp'] });
+
+      const { verifyLink, error, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'correct-password');
+
+      expect(result).toMatchObject({
+        success: 'ok',
+        mfa_required: true,
+        mfa_methods: ['otp'],
+      });
+      expect(error.value).toBeNull();
+      expect(errorCode.value).toBeNull();
+    });
+
     it('honors an explicit error_code (invalid_token) on a 403', async () => {
       axiosMock
         .onPost('/auth/link-sso')

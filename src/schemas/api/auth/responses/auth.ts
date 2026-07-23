@@ -345,23 +345,48 @@ export const linkSsoChallengeResponseSchema = z.union([linkSsoChallengeSchema, a
 export type LinkSsoChallengeResponse = z.infer<typeof linkSsoChallengeResponseSchema>;
 
 /**
- * POST /auth/link-sso { token, password } success body.
- *
- * On success the backend verifies the password, binds (provider, issuer, uid)
- * to the located account, and ESTABLISHES THE SESSION. It returns an optional
- * internal redirect target; the SPA validates it with isValidInternalPath and
- * falls back to the ?redirect query param, then '/'.
- *
- * Failure bodies (403 wrong password, 404/410 expired-or-spent token) are NOT
- * modelled here — they arrive as axios errors and are distinguished by the
- * composable via HTTP status + an optional { error_code } the backend may set
- * ('invalid_password' vs 'invalid_token'/'expired_token').
+ * POST /auth/link-sso non-MFA success body: the backend verified the password,
+ * bound (provider, issuer, uid) to the located account, and ESTABLISHED THE
+ * SESSION. It returns an optional internal redirect target; the SPA validates it
+ * with isValidInternalPath and falls back to the ?redirect query param, then '/'.
  */
-export const linkSsoVerifySuccessSchema = z.object({
+const linkSsoVerifyCompleteSchema = z.object({
   success: z.string(),
   redirect: z.string().optional(),
 });
+
+/**
+ * POST /auth/link-sso success body.
+ *
+ * Because the backend completes the password check via the SAME rodauth login
+ * path as POST /auth/login, it returns the STANDARD login success contract, in
+ * two variants:
+ * - MFA account: the same body login returns for MFA (authSuccessWithMfaSchema) —
+ *   password proven, but a second factor is still required. mfa_required MUST be
+ *   modelled here; a plain z.object would silently strip it and the interstitial
+ *   would mark the user fully authenticated, skipping the OTP challenge (#3840).
+ * - Non-MFA account: { success, redirect? } — session established.
+ *
+ * Union order matters (Zod matches the first valid schema): the MFA variant
+ * carries the required mfa_required key and MUST precede the plain success
+ * variant, which would otherwise match an MFA body and drop the flag.
+ *
+ * Failure bodies (401 invalid_password wrong password, 401 link_expired expired-
+ * or-spent token) are NOT modelled here — they arrive as axios errors and are
+ * distinguished by the composable via HTTP status + an optional { error_code }.
+ */
+export const linkSsoVerifySuccessSchema = z.union([
+  authSuccessWithMfaSchema, // MFA variant — must precede plain success
+  linkSsoVerifyCompleteSchema, // { success, redirect? }
+]);
 export type LinkSsoVerifySuccess = z.infer<typeof linkSsoVerifySuccessSchema>;
+
+/** Type guard: a link-sso verify success that still requires a second factor. */
+export function linkSsoRequiresMfa(
+  response: LinkSsoVerifySuccess
+): response is z.infer<typeof authSuccessWithMfaSchema> {
+  return 'mfa_required' in response && response.mfa_required === true;
+}
 
 export const linkSsoVerifyResponseSchema = z.union([linkSsoVerifySuccessSchema, authErrorSchema]);
 export type LinkSsoVerifyResponse = z.infer<typeof linkSsoVerifyResponseSchema>;
