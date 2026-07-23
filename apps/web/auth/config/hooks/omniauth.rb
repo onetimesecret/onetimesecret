@@ -83,10 +83,19 @@ module Auth::Config::Hooks
         # account. Authenticated tenant-surface linking needs org-membership
         # verification and is a deliberate follow-up (see docs / open questions).
 
-        # Consume the account-bound connect intent. DELETE unconditionally so it
-        # can never be replayed on a later callback (single-use nonce). Bind only
-        # when the SAME session account that initiated the connect is still the
-        # authenticated one.
+        # Consume the account-bound connect intent by DELETE-on-read, then bind
+        # only when the SAME session account that initiated the connect is still
+        # the authenticated one.
+        #
+        # KNOWN GAP (fast-follow #3859): this DELETE is the ONLY site that clears
+        # the nonce, so it is NOT yet truly single-use. An abandoned connect (user
+        # cancels at the IdP, the IdP errors, or the tab is closed) never reaches
+        # this callback, so the intent stays live in the session — and the NEXT SSO
+        # callback on that session, even a plain (connect=0) sign-in, consumes it
+        # and binds. That reopens the shared-browser bind this nonce defends
+        # against, gated behind "a dangling connect intent exists." The fix is to
+        # clear stale intent at the next request phase (see the connect-intent
+        # capture in omniauth_request_validation_phase below); tracked in #3859.
         intent_account_id  = session.delete(:sso_connect_intent)
         has_connect_intent = logged_in? &&
                              !intent_account_id.nil? &&
@@ -318,6 +327,12 @@ module Auth::Config::Hooks
         # identity to the session account. CSRF/state proves "this browser
         # initiated a request"; this nonce proves "this browser initiated a
         # CONNECT for THIS account".
+        #
+        # TODO(#3859): make the nonce truly single-use — this hook is the fix
+        # site. Every subsequent SSO callback passes through here first (it mints
+        # the state the callback validates), so an `else session.delete(...)` for
+        # non-connect flows deterministically kills a nonce left dangling by an
+        # abandoned connect, before a plain (connect=0) callback can bind on it.
         if logged_in? && request.params['connect'].to_s == '1'
           session[:sso_connect_intent] = session_value
         end
