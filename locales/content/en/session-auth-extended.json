@@ -431,6 +431,66 @@
     "context": "Fallback error for connected-identities fetch/remove failures",
     "content_hash": "a0d4edc0"
   },
+  "web.link_sso.title": {
+    "text": "Link your sign-in method",
+    "context": "Heading + page title for the #3840 Phase 3 sign-in interstitial: an unauthenticated SSO sign-in whose email matches an existing password account is asked to prove the password before the provider is linked.",
+    "content_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "You signed in with {provider}, which matches the existing account {email}. Enter that account's password to link {provider} and continue.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "content_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Password",
+    "context": "Label for the existing-account password field on the #3840 Phase 3 sign-in interstitial.",
+    "content_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Your existing password",
+    "context": "Placeholder for the existing-account password field on the #3840 Phase 3 sign-in interstitial.",
+    "content_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Link and continue",
+    "context": "Submit button on the #3840 Phase 3 sign-in interstitial: verifies the existing password, binds the SSO identity, and completes sign-in.",
+    "content_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Cancel",
+    "context": "Cancel action on the #3840 Phase 3 sign-in interstitial; returns the user to sign in with their existing method.",
+    "content_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "This linking request has expired",
+    "context": "Heading of the dead-end panel on the #3840 Phase 3 sign-in interstitial, shown when the single-use challenge token is missing, expired, or already used.",
+    "content_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "For your security, the request to link this sign-in method is no longer valid. Sign in with your existing password, then connect this provider under Security settings → Connected identities.",
+    "context": "Body of the dead-end panel on the #3840 Phase 3 sign-in interstitial (expired/spent challenge token). Points the user at the Phase 2 Connected Identities flow.",
+    "content_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Continue to sign in",
+    "context": "Primary action on the dead-end panel of the #3840 Phase 3 sign-in interstitial; routes to /signin carrying the Connected Identities panel as the post-login destination.",
+    "content_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "That password doesn't match this account. Please try again.",
+    "context": "Inline error on the #3840 Phase 3 sign-in interstitial when the entered password fails to verify (retryable). Deliberately does not confirm the account exists beyond the already-displayed claimed email.",
+    "content_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "This linking request has expired or was already used. Sign in with your existing password, then connect this provider from your account settings.",
+    "context": "Error on the #3840 Phase 3 sign-in interstitial when the single-use challenge token is expired, spent, or unknown (dead-end, not retryable).",
+    "content_hash": "541f9127"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "We couldn't link your account. Please try again.",
+    "context": "Fallback error for #3840 Phase 3 sign-in interstitial challenge-context / verify failures that are neither a wrong password nor an expired token.",
+    "content_hash": "f727c174"
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "Warning: {count} login attempt(s) remaining",
     "content_hash": "151dcb5e"
