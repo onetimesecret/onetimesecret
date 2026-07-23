@@ -458,6 +458,8 @@ Only `authenticity_token` (CSRF) and `utf8_sanitizer` are enabled by default.
 | M-10 | Colonel panel no frontend guard             | Medium   | Low            | Admin UI structure disclosure                                | P3       |
 | M-11 | MFA awaiting flag unchecked                 | Medium   | Low            | Potential MFA bypass if code reads account_id                | P2       |
 
+Low (L-1–L-10) and Informational (I-1–I-6) findings are not scored in this register; see [Remediation Status](#remediation-status) — they're tracked in the internal backlog rather than this branch.
+
 ---
 
 ## Positive Security Findings

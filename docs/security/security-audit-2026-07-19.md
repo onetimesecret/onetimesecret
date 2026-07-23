@@ -48,6 +48,8 @@ Latent nit, not a finding: the dead guard block means the child's intended `sidb
 - The DB read that arms MFA enforcement (feeding the after-login requirement check) lacked direct test coverage; consumer specs pass hard-coded booleans, so the real table/count logic never ran under test. A silent-false regression would have weakened MFA enforcement with nothing to catch it.
 - The operation that writes the awaiting-MFA session guard flag likewise had no direct test. (The "complete MFA bypass" framing was overstated — there is defense-in-depth — but the coverage hole was real.)
 
+Tracked in [#3854](https://github.com/onetimesecret/onetimesecret/issues/3854).
+
 ### One latent correctness bug
 
 - `lib/onetime/middleware/identity_resolution.rb:104` reads `session['account_external_id']`, a key nothing ever writes (full-mode writes `external_id`), so full-mode identity always resolves to `no_identity`. Currently inert because nothing consumes `env['identity.*']` — but it is a landmine for whoever wires a consumer expecting it to work.
