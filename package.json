@@ -197,7 +197,7 @@
     "@eslint/plugin-kit": "^0.7.0",
     "@intlify/devtools-types": "^11.3.0",
     "@intlify/eslint-plugin-vue-i18n": "^4.3.0",
-    "@intlify/unplugin-vue-i18n": "^11.0.7",
+    "@intlify/unplugin-vue-i18n": "^11.2.4",
     "@pinia/testing": "^1.0.3",
     "@playwright/test": "^1.58.2",
     "@prettier/plugin-ruby": "^4.0.4",
