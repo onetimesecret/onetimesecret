@@ -205,10 +205,18 @@ module Auth
                   provider: challenge.provider,
                 }
             else
-              # Fully authenticated by password alone -> safe to bind now. Shape
-              # mirrors omniauth_identity_insert_hash (config/features/omniauth.rb):
-              # { account_id, provider, uid, issuer }.
-              if bind_sso_identity(challenge, account_id) == :conflict
+              # Fully authenticated by password alone -> safe to bind now. Shared
+              # bind primitive (#3840 Phase 4): idempotent, issuer-scoped insert
+              # whose column shape mirrors omniauth_identity_insert_hash
+              # (config/features/omniauth.rb): { account_id, provider, uid, issuer }.
+              bind_result = Auth::Operations::BindSsoIdentity.call(
+                db: rodauth.db,
+                account_id: account_id,
+                provider: challenge.provider,
+                issuer: challenge.issuer,
+                uid: challenge.uid,
+              )
+              if bind_result == :conflict
                 # Item 3 defence-in-depth: the (provider, issuer, uid) row is already
                 # owned by a DIFFERENT account. Never report success (that would log
                 # the caller in as if the identity were theirs) — surface a conflict.
@@ -280,42 +288,6 @@ module Auth
           token: (parsed['token'] || request.params['token']).to_s,
           password: (parsed['password'] || request.params['password']).to_s,
         }
-      end
-
-      # Insert the identity row for the proven account, issuer-scoped and
-      # idempotent. Returns :ok when the row is inserted OR already exists for the
-      # SAME account. Returns :conflict when a row for this (provider, issuer, uid)
-      # already exists for a DIFFERENT account — the caller surfaces that as 409
-      # link_conflict rather than logging the user in onto an identity that is not
-      # theirs (#3840 review, Item 3 defence-in-depth). The unique index on
-      # (provider, issuer, uid) plus "challenge minted only when no identity row
-      # exists" makes cross-account escalation impossible, so this only ever fires
-      # as a benign idempotency guard — but we verify ownership at BOTH the
-      # pre-check and the concurrent-insert (UniqueConstraintViolation) site so a
-      # mismatch can never masquerade as success.
-      def bind_sso_identity(challenge, account_id)
-        ds       = rodauth.db[:account_identities]
-        criteria = {
-          provider: challenge.provider,
-          issuer: challenge.issuer.to_s,
-          uid: challenge.uid,
-        }
-
-        existing = ds.where(criteria).first
-        return owned_or_conflict(existing, account_id) if existing
-
-        ds.insert(criteria.merge(account_id: account_id))
-        :ok
-      rescue Sequel::UniqueConstraintViolation
-        # A concurrent bind inserted the row first — re-read and apply the SAME
-        # ownership check to the winner.
-        owned_or_conflict(ds.where(criteria).first, account_id)
-      end
-
-      # :ok when the existing identity row belongs to the account we authenticated,
-      # :conflict otherwise (including a row that vanished between checks).
-      def owned_or_conflict(row, account_id)
-        row && row[:account_id].to_s == account_id.to_s ? :ok : :conflict
       end
 
       # Would completing this PASSWORD login leave a second factor pending? Mirrors
