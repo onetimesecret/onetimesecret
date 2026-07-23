@@ -305,16 +305,19 @@ describe('ConnectedIdentities', () => {
       expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(false);
     });
 
-    it('initiates SSO connect with the provider route, shrimp, and return redirect', async () => {
+    it('initiates SSO connect with the provider route, shrimp, return redirect, and connect intent', async () => {
       mockGetSsoProviders.mockReturnValue([{ route_name: 'oidc', display_name: 'OpenID Connect' }]);
       wrapper = mountComponent();
 
       await wrapper.find('[data-testid="connections-connect-oidc"]').trigger('click');
 
+      // connect: true is load-bearing — the backend only binds the returned
+      // identity to the session account when the initiation is marked.
       expect(mockSubmitSsoLogin).toHaveBeenCalledWith({
         routeName: 'oidc',
         shrimp: 'test-shrimp',
         redirect: '/account/settings/security/connections',
+        connect: true,
       });
     });
   });

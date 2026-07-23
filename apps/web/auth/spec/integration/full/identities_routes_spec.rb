@@ -34,7 +34,8 @@ require_relative '../../spec_helper'
 RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integration do
   include Rack::Test::Methods
 
-  TEST_PASSWORD = 'TestPassword123!'
+  # Password is AuthTestConstants::TEST_PASSWORD (shared across spec files so a
+  # top-level constant isn't redefined when both specs load in one process).
 
   def app
     Onetime::Application::Registry.generate_rack_url_map
@@ -62,7 +63,7 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
   # Helpers
   # ==========================================================================
 
-  def seed_account_with_password(email, password: TEST_PASSWORD)
+  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
     normalized = OT::Utils.normalize_email(email)
     customer   = Onetime::Customer.new(email: normalized)
     customer.save
@@ -93,7 +94,7 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
   end
 
   # Establish an authenticated session via password login.
-  def csrf_login(email, password: TEST_PASSWORD)
+  def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
     clear_body_headers
     header 'Accept', 'application/json'
     get '/auth'
@@ -255,6 +256,32 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
 
       expect(last_response.status).to eq(200)
       expect(identities.where(id: row[:id]).count).to eq(0)
+    end
+  end
+
+  # ==========================================================================
+  # mask_uid — display masking boundary (unit)
+  # ==========================================================================
+  #
+  # mask_uid (routes/identities.rb) returns '***' for length <= 8 and
+  # "#{first4}…#{last4}" otherwise. Exercised directly via a tiny double that
+  # includes the route module — no HTTP/DB round-trip needed. Auth::Routes::
+  # Identities is loaded during boot (router.rb requires + includes it).
+
+  describe '#mask_uid (boundary)' do
+    let(:masker) { Class.new { include Auth::Routes::Identities }.new }
+
+    it 'fully masks a uid of exactly 8 chars (the <= 8 boundary)' do
+      expect(masker.send(:mask_uid, 'abcd1234')).to eq('***')
+    end
+
+    it 'masks a 9-char uid as first4 + … + last4 (just past the boundary)' do
+      expect(masker.send(:mask_uid, 'abcde1234')).to eq('abcd…1234')
+    end
+
+    it 'fully masks nil and empty' do
+      expect(masker.send(:mask_uid, nil)).to eq('***')
+      expect(masker.send(:mask_uid, '')).to eq('***')
     end
   end
 end

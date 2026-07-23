@@ -7,34 +7,44 @@
 # =============================================================================
 #
 # Issue: #3840 Phase 2 — authenticated identity connect ("connect SSO from
-#        account settings"). The credential that BINDS an identity here is the
-#        ACTIVE AUTHENTICATED SESSION. The IdP email plays NO role: we bind to
-#        the LOGGED-IN account, never to an email-located one (email matching is
-#        the pre-account-hijacking anti-pattern).
+#        account settings"). Binding requires TWO signals: an ACTIVE
+#        AUTHENTICATED SESSION *and* an account-bound CONNECT INTENT set at
+#        initiation (the panel POSTs connect=1, captured by
+#        omniauth_request_validation_phase into session[:sso_connect_intent]).
+#        logged_in? alone is NOT enough — that would let a second-tab / shared-
+#        browser sign-in silently bind the arriving identity to the session
+#        account. The IdP email plays NO role: we bind to the LOGGED-IN account,
+#        never to an email-located one (email matching is the pre-account-
+#        hijacking anti-pattern).
 #
 # WHY THIS FILE EXISTS:
-#   The authenticated-bind branch added to account_from_omniauth
+#   The authenticated-bind branch in account_from_omniauth
 #   (apps/web/auth/config/hooks/omniauth.rb) can only be validated end-to-end:
-#   it depends on rodauth.logged_in? being true DURING the omniauth callback and
-#   on the gem's create_omniauth_identity upserting the row onto the
-#   already-authenticated (session) account. This file drives the REAL Rodauth
-#   callback through the Rack stack (a password login establishes the session
-#   first) and asserts the persisted side effects — the account_identities row,
-#   the redirect, the audit event — that only the production machinery produces.
+#   it depends on rodauth.logged_in? being true AND a matching connect-intent
+#   nonce being present DURING the omniauth callback, and on the gem's
+#   create_omniauth_identity upserting the row onto the already-authenticated
+#   (session) account. This file drives the REAL Rodauth request+callback
+#   through the Rack stack (a password login establishes the session, then a
+#   connect=1 request phase sets the intent) and asserts the persisted side
+#   effects — the account_identities row, the redirect, the audit event — that
+#   only the production machinery produces.
 #
 # WHAT IT LOCKS IN (production code: apps/web/auth/config/hooks/omniauth.rb):
-#   1. logged-in on the PLATFORM surface
+#   1. logged-in + connect intent on the PLATFORM surface
 #        -> account_from_omniauth returns the SESSION account, the gem persists
 #           the (provider, issuer, uid) row bound to it, and the
 #           :omniauth_identity_connected warn event fires. No refusal.
-#   2. logged-in, IdP asserts a DIFFERENT account's email (hijack attempt)
+#   2. logged-in + connect intent, IdP asserts a DIFFERENT account's email
 #        -> binds to the SESSION account anyway; the other (victim) account gets
 #           NO row and is untouched; no duplicate account. :omniauth_identity_
 #           connected fires with the SESSION account_id. Proves email is ignored.
+#   2b. logged-in but NO connect intent (second-tab / shared-browser sign-in)
+#        -> treated as unauthenticated: falls through to H-3, session account
+#           gets NO row, :omniauth_identity_connected never fires. The P1 fix.
 #   3. UNAUTHENTICATED + existing account (trust off)
-#        -> unchanged H-3 refusal. Proves the new branch is gated on logged_in?
+#        -> unchanged H-3 refusal. Proves the branch is gated on session+intent
 #           (:omniauth_identity_connected never fires when not logged in).
-#   4. logged-in on the PLATFORM surface + TENANT callback
+#   4. logged-in + connect intent on the PLATFORM surface + TENANT callback
 #        -> REFUSED (surface isolation): a tenant callback must not bind a
 #           tenant-issuer identity onto a platform session. Reason tenant_surface.
 #
@@ -55,7 +65,8 @@ require_relative '../../support/oauth_flow_helper'
 RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: :integration do
   include Rack::Test::Methods
 
-  TEST_PASSWORD = 'TestPassword123!'
+  # Password is AuthTestConstants::TEST_PASSWORD (shared across spec files so a
+  # top-level constant isn't redefined when both specs load in one process).
 
   def app
     Onetime::Application::Registry.generate_rack_url_map
@@ -103,7 +114,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Seed a VERIFIED account WITH an Argon2 password hash so csrf_login can
   # establish a real authenticated session for it. Cost params match the test
   # config in config/features/argon2.rb.
-  def seed_account_with_password(email, password: TEST_PASSWORD)
+  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
     account_id = seed_existing_account(email)
     require 'argon2'
     hasher     = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
@@ -113,7 +124,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
   # Establish a session, fetch the CSRF token, then POST a JSON login. The full
   # Rack app enforces CSRF, so the shrimp token is required.
-  def csrf_login(email, password: TEST_PASSWORD)
+  def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
     clear_body_headers
     header 'Accept', 'application/json'
     get '/auth'
@@ -152,6 +163,22 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     OmniAuth.config.mock_auth.clear
   end
 
+  # Run the SSO REQUEST phase carrying the connect-intent signal (connect=1),
+  # exactly as the Connected Identities panel does at initiation. In OmniAuth
+  # test mode this triggers omniauth_request_validation_phase, which — when the
+  # caller is logged in — stashes session[:sso_connect_intent] = <session
+  # account id> in the session cookie. The subsequent callback consumes it and,
+  # only then, takes the bind branch. Cookie sessions can't be poked directly
+  # (see oauth_flow_helper#inject_oauth_session), so this real initiation is how
+  # the intent is threaded. Returns the request-phase status so callers can skip
+  # when the provider route isn't registered (404).
+  def initiate_sso_connect(provider: :oidc, host: nil)
+    clear_body_headers
+    header 'Host', host if host
+    post "/auth/sso/#{provider}", { connect: '1' }
+    last_response.status
+  end
+
   # ==========================================================================
   # Scenario 1 — logged-in on the platform surface -> bind to session account
   # ==========================================================================
@@ -172,6 +199,11 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
       setup_mock_auth(email: email, uid: uid)
       begin
+        # Establish account-bound connect intent via the real initiation POST
+        # (connect=1). Without it the bind branch is not taken (see the no-intent
+        # scenario below) — the intent nonce is now REQUIRED to bind.
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if initiate_sso_connect == 404
+
         clear_body_headers
         post '/auth/sso/oidc/callback'
 
@@ -232,6 +264,11 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
       setup_mock_auth(email: victim_email, uid: uid)
       begin
+        # Intent is established by the ACTOR (its session) at initiation; the IdP
+        # later asserting the victim's email cannot change which account the
+        # intent is bound to.
+        skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+
         clear_body_headers
         post '/auth/sso/oidc/callback'
 
@@ -261,6 +298,69 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
           .with(:omniauth_identity_connected, hash_including(provider: 'oidc', account_id: actor_id))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connect_refused, anything)
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 2b — logged-in but NO connect intent -> must NOT bind (the P1 fix)
+  # ==========================================================================
+  #
+  # The core security property added in this PR: logged_in? alone is NOT connect
+  # intent. A plain SSO sign-in arriving on an already-authenticated session
+  # (second tab, shared browser) must be treated exactly like an unauthenticated
+  # caller — it must NEVER silently bind the arriving IdP identity to the session
+  # account. Here the IdP asserts a DIFFERENT existing account's email (trust
+  # off), so the fall-through lands on the H-3 refusal; the session account is
+  # left with no row.
+
+  describe 'logged-in but WITHOUT connect intent (must not bind)' do
+    before { enable_platform_fallback }
+
+    it 'does not bind onto the session account and falls through to the H-3 refusal' do
+      actor_email = "actor-nointent-#{SecureRandom.hex(6)}@company.example.com"
+      other_email = "other-#{SecureRandom.hex(6)}@company.example.com"
+      uid         = "sub-#{SecureRandom.hex(8)}"
+
+      actor_id = seed_account_with_password(actor_email)
+      seed_existing_account(other_email) # a DIFFERENT existing account
+
+      csrf_login(actor_email)
+      expect(last_response.status).to be_between(200, 302)
+
+      # Trust off -> the email branch for an existing account is the H-3 refusal.
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      setup_mock_auth(email: other_email, uid: uid)
+      begin
+        # DELIBERATELY skip initiate_sso_connect: this is the second-tab / shared
+        # browser case — a callback arrives on the authenticated session with NO
+        # account-bound connect intent. It must be handled as unauthenticated.
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        skip 'OmniAuth route not registered' if last_response.status == 404
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
+          "No-intent callback must fall through to H-3, not bind. Location: #{last_response.location.inspect}"
+
+        # THE CRUX: the arriving identity did NOT attach to the session account.
+        expect(identities.where(account_id: actor_id).count).to eq(0),
+          'A plain sign-in without connect intent must NOT bind onto the session account'
+        # And no identity row exists at all (H-3 refuses to create one).
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+
+        # The connect event never fires; the intent-absent + H-3 events do.
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connected, anything)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc'))
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
       ensure
         teardown_mock_auth
       end
@@ -347,10 +447,14 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       )
 
       begin
-        # Initiate from the tenant host so the tenant hook records the context.
+        # Initiate from the tenant host WITH connect intent so the tenant hook
+        # records the context AND the callback reaches the intent-gated bind
+        # branch — where surface isolation then refuses. (Without intent the
+        # callback would fall through to the email branches and never assert the
+        # tenant_surface refusal this scenario is about.)
         clear_body_headers
         header 'Host', host
-        post '/auth/sso/oidc'
+        post '/auth/sso/oidc', { connect: '1' }
 
         skip "OmniAuth route not registered for #{host}" if last_response.status == 404
         expect(last_response.status).to eq(302)
