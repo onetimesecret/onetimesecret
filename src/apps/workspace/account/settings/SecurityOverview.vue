@@ -35,29 +35,6 @@
     };
   }
 
-  const securityScore = computed(() => {
-    if (!accountInfo.value) return 0;
-
-    if (mfaFeatureEnabled.value) {
-      let score = 0;
-      if (accountInfo.value.email_verified) score += 25;
-      if (accountInfo.value.mfa_enabled) score += 50;
-      if (accountInfo.value.recovery_codes_count > 0) score += 25;
-      return score;
-    }
-
-    // When MFA is disabled, score based on available factors only
-    return accountInfo.value.email_verified ? 100 : 0;
-  });
-
-  const securityLevel = computed(() => {
-    const score = securityScore.value;
-    if (score >= 90) return { label: t('web.settings.security.excellent'), color: 'green' };
-    if (score >= 70) return { label: t('web.settings.security.good'), color: 'blue' };
-    if (score >= 25) return { label: t('web.settings.security.fair'), color: 'yellow' };
-    return { label: t('web.settings.security.weak'), color: 'red' };
-  });
-
   // Helper to build core security cards
   function buildCoreCards(info: AccountInfo): SecurityCard[] {
     return [
@@ -198,20 +175,6 @@
       'bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-900/20 dark:text-yellow-400',
   };
 
-  const scoreColorClasses: Record<string, string> = {
-    green: 'text-green-600 dark:text-green-400',
-    blue: 'text-blue-600 dark:text-blue-400',
-    yellow: 'text-yellow-600 dark:text-yellow-400',
-    red: 'text-red-600 dark:text-red-400',
-  };
-
-  const progressBarColorClasses: Record<string, string> = {
-    green: 'bg-green-600',
-    blue: 'bg-blue-600',
-    yellow: 'bg-yellow-600',
-    red: 'bg-red-600',
-  };
-
   onMounted(async () => {
     await fetchAccountInfo();
   });
@@ -220,73 +183,6 @@
 <template>
   <SettingsLayout>
     <div class="space-y-8">
-      <!-- Security Score Card -->
-      <!-- prettier-ignore-attribute class -->
-      <div
-        v-if="false"
-        class="
-          rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm
-          dark:border-gray-700/60 dark:bg-gray-800/60">
-        <div class="flex items-start justify-between">
-          <div>
-            <h2 class="text-lg font-medium text-gray-600 dark:text-gray-300">
-              {{ t('web.settings.security.security_score') }}
-            </h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.settings.security.score_description') }}
-            </p>
-          </div>
-          <div class="text-right">
-            <div :class="['text-4xl font-bold', scoreColorClasses[securityLevel.color]]">
-              {{ securityScore }}
-            </div>
-            <div
-              class="mt-1 text-sm font-medium"
-              :class="scoreColorClasses[securityLevel.color]">
-              {{ securityLevel.label }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="mt-4">
-          <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-            <div
-              :class="[
-                'h-full transition-all duration-500',
-                progressBarColorClasses[securityLevel.color],
-              ]"
-              :style="{ width: `${securityScore}%` }"></div>
-          </div>
-        </div>
-
-        <!-- Recommendations -->
-        <div
-          v-if="securityScore < 100"
-          class="mt-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-          <div class="flex gap-3">
-            <OIcon
-              collection="heroicons"
-              name="information-circle-solid"
-              class="size-5 shrink-0 text-blue-600 dark:text-blue-400"
-              aria-hidden="true" />
-            <div class="text-sm text-blue-700 dark:text-blue-300">
-              <p class="font-medium">
-                {{ t('web.settings.security.improve_security') }}
-              </p>
-              <ul class="mt-2 list-inside list-disc space-y-1">
-                <li v-if="!accountInfo?.mfa_enabled">
-                  {{ t('web.settings.security.enable_mfa_recommendation') }}
-                </li>
-                <li v-if="!accountInfo?.recovery_codes_count">
-                  {{ t('web.settings.security.generate_recovery_codes_recommendation') }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- SSO empty state — shown when all cards are filtered out -->
       <!-- prettier-ignore-attribute class -->
       <div
