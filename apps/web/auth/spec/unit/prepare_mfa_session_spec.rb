@@ -37,6 +37,11 @@ RSpec.describe Auth::Operations::PrepareMfaSession do
         )
       end
 
+      # The STRING key is load-bearing, not incidental: BaseSessionAuthStrategy
+      # reads `session['awaiting_mfa'] == true` and its own comment warns that a
+      # symbol :awaiting_mfa "would silently never match" — i.e. writing the
+      # wrong key form here fails OPEN (MFA skipped). This assertion guards that.
+      # See lib/onetime/application/auth_strategies/base_session_auth_strategy.rb.
       it 'sets the awaiting_mfa flag under the STRING key' do
         expect(session['awaiting_mfa']).to be(true)
       end
@@ -48,7 +53,7 @@ RSpec.describe Auth::Operations::PrepareMfaSession do
 
       it 'does not set external_id or the correlation id when they are absent' do
         expect(session).not_to have_key('external_id')
-        expect(session).not_to have_key(:mfa_correlation_id)
+        expect(session).not_to have_key('mfa_correlation_id')
       end
 
       it 'never marks the session authenticated (fail-closed contract)' do
@@ -81,8 +86,12 @@ RSpec.describe Auth::Operations::PrepareMfaSession do
         expect(session['external_id']).to eq('cust_abc123')
       end
 
-      it 'stores the correlation id under the SYMBOL key :mfa_correlation_id' do
-        expect(session[:mfa_correlation_id]).to eq('auth_xyz789')
+      # Every key this operation writes is a String so the session round-trips
+      # consistently through Rack serialization. (This assertion also guards the
+      # previously-symbol :mfa_correlation_id write, corrected alongside this spec.)
+      it "stores the correlation id under the STRING key 'mfa_correlation_id'" do
+        expect(session['mfa_correlation_id']).to eq('auth_xyz789')
+        expect(session).not_to have_key(:mfa_correlation_id)
       end
     end
 

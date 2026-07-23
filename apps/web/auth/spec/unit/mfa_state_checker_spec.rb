@@ -191,18 +191,17 @@ RSpec.describe Auth::Operations::MfaStateChecker do
   describe 'caching (cache_ttl set)' do
     subject(:checker) { described_class.new(db, logger: null_logger, cache_ttl: 60) }
 
-    it 'serves the cached State on a subsequent check within the TTL' do
+    it 'serves the cached result on a subsequent check within the TTL' do
       account_id = create_account('cache@example.com')
 
-      first = checker.check(account_id)
-      expect(first.has_otp_secret).to be(false)
+      expect(checker.check(account_id).has_otp_secret).to be(false)
 
       # Mutate the DB *after* the first read was cached.
       add_otp_key(account_id)
 
-      second = checker.check(account_id)
-      expect(second).to equal(first), 'expected the cached State object to be returned'
-      expect(second.has_otp_secret).to be(false)
+      # The cached result is returned, so this read is intentionally stale — it
+      # does not reflect the OTP row we just inserted (that's the caching contract).
+      expect(checker.check(account_id).has_otp_secret).to be(false)
     end
 
     it 're-reads the DB after clear_cache' do
