@@ -21,7 +21,12 @@ module Core::Logic
         @potential_email_address = params['login'].to_s.downcase.strip
         @passwd                  = self.class.normalize_password(params['password'])
         @stay                    = true # Keep sessions alive by default
-        @session_ttl             = (stay ? 30.days : 20.minutes).to_i
+        # The TTL write_session actually applies: the session middleware
+        # re-applies the configured expire_after on every commit, and
+        # IdentityResolution independently caps identity age at the same
+        # value — nothing consumes a per-login TTL, so reporting anything
+        # else (the old hardcoded 30 days) was a lie in the auth log.
+        @session_ttl             = Onetime.session_config['expire_after'].to_i
 
         # M-4/#3516: gate BEFORE the argon2 passphrase comparison below, so a
         # locked-out subject never triggers an expensive password hash. Both

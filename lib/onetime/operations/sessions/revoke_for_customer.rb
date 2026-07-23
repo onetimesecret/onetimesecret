@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/sessions/store'
+require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/admin_audit_event'
 
@@ -66,6 +67,15 @@ module Onetime
             db.del(key)
             blob_deleted = true
           end
+
+          # Per-value sidecar keys are purged UNCONDITIONALLY (idempotent,
+          # exact registry-derived names) — an operator revoking a sid wants
+          # ALL of its state gone, even when the blob itself had already
+          # expired or been deleted out from under the sidecars. purge is gated
+          # on the bare-hex sid format, so extract it from the resolved key (or
+          # the raw input when no live blob existed) — a full `session:<sid>`
+          # would otherwise fail the guard and leave the sidecars orphaned.
+          Onetime::SessionSidecar.purge(Store.extract_id(key || @session_id), dbclient: db)
 
           # Tidy the sidecar + the per-customer index (both idempotent). Capture the
           # sidecar's recorded owner BEFORE destroying it so a mismatch — the sid
