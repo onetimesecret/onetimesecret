@@ -16,12 +16,12 @@ There is a REST API for Magic Containers. Base URL is `https://api.bunny.net/mc`
 
 **References**
 
-[^1]: [Magic Containers - bunny.net Documentation](https://docs.bunny.net/magic-containers) (26%)
+[^1]: [Magic Containers - bunny.net Documentation](https://docs.bunny.net/magic-containers)
 
-[^2]: [Bunny Database - bunny.net Documentation](https://docs.bunny.net/database) (25%)
+[^2]: [Bunny Database - bunny.net Documentation](https://docs.bunny.net/database)
 
-[^3]: [Meet Bunny Database: the SQL service that just works](https://bunny.net/blog/meet-bunny-database-the-sql-service-that-just-works/) (21%)
+[^3]: [Meet Bunny Database: the SQL service that just works](https://bunny.net/blog/meet-bunny-database-the-sql-service-that-just-works/)
 
-[^4]: [Magic Containers API Reference - bunny.net Documentation](https://docs.bunny.net/api-reference/magic-containers/overview) (19%)
+[^4]: [Magic Containers API Reference - bunny.net Documentation](https://docs.bunny.net/api-reference/magic-containers/overview)
 
-[^5]: [Deploy - bunny.net Documentation](https://docs.bunny.net/magic-containers/deploy) (8%)
+[^5]: [Deploy - bunny.net Documentation](https://docs.bunny.net/magic-containers/deploy)

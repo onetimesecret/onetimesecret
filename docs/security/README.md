@@ -8,4 +8,4 @@ We keep dated security self-assessments here. These are typically coming from ou
 
 ## Process
 
-There is no specific structure in terms of how each dated directory is laid out. We reference the findings for individual fixes either directly or via github issue like any other change.
+There is no specific structure in terms of how each dated directory is laid out. We reference the findings for individual fixes either directly or via a GitHub issue like any other change.
