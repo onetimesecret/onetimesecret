@@ -219,6 +219,83 @@ module Auth::Config::Hooks
           # reach create_omniauth_identity or omniauth_create_account. The
           # domain-validation hook below also runs only on the CREATE path, so
           # the email-link path would bypass it entirely.
+          existing_id = existing[account_id_column]
+
+          # ────────────────────────────────────────────────────────────────
+          # #3840 Phase 3: sign-in interstitial for PASSWORD-HOLDING accounts.
+          # ────────────────────────────────────────────────────────────────
+          #
+          # A password-holding account CAN prove ownership without a prior
+          # session: re-enter the existing password. Instead of dead-ending at
+          # the H-3 refusal, mint a single-use challenge snapshotting this
+          # callback's (provider, resolved_issuer, uid, email, account id) and
+          # redirect to the interstitial, where the password is collected and
+          # verified before the (provider, issuer, uid) row is bound
+          # (POST /auth/link-sso, apps/web/auth/routes/link_sso.rb). This still
+          # honours "email may LOCATE, only a credential may BIND" — the located
+          # account is NOT returned here (no auto-link); the credential is proven
+          # at the POST.
+          #
+          # We CANNOT use rodauth.has_password? here: it reads the SESSION
+          # account's hash (account ? account_id : session_value), and this branch
+          # is the UNAUTHENTICATED path (session_value nil) — it would always be
+          # false. Query the located account's hash directly instead, mirroring
+          # Rodauth's own password_hash_ds (base.rb) but scoped to existing_id.
+          #
+          # SURFACE ISOLATION (critical — this guard is NOT redundant): mint ONLY
+          # on the PLATFORM surface (session[:validated_omniauth_domain_id] nil). An
+          # UNAUTHENTICATED TENANT SSO callback ALSO reaches this email branch:
+          # before_omniauth_callback_route (omniauth_tenant.rb) stamps
+          # session[:validated_omniauth_domain_id] on EVERY tenant callback, and an
+          # unauthenticated caller is not logged in and has no connect intent — so
+          # the connect/refuse branches at the top of this hook are skipped and
+          # execution falls through to HERE with the tenant key SET. A tenant admin
+          # controls their own IdP and can assert ANY email, so WITHOUT this guard
+          # the tenant surface would become an unauthenticated, un-lockable
+          # password-guessing oracle against arbitrary PLATFORM accounts, and a
+          # successful guess would bind the tenant IdP identity onto the victim's
+          # platform account — the exact cross-surface takeover #3849 says must stay
+          # refused. So gate the mint on the platform surface, matching the trust
+          # branch's guard above (session[:validated_omniauth_domain_id].nil?) and
+          # the connect branch's tenant refusal. A tenant callback falls through to
+          # the H-3 refusal below (no challenge minted, no :omniauth_link_challenge_
+          # issued event). Authenticated tenant-surface linking is a deliberate
+          # follow-up (#3849).
+          # Mint only on the platform surface AND only when the located account has
+          # a password to challenge. account_has_challengeable_password? (below) also
+          # covers not-yet-migrated Redis-resident passwords so those accounts get
+          # the interstitial instead of the H-3 dead-end; see its doc for why that
+          # does not weaken anything. SQL-first short-circuit keeps the migrated
+          # common case cheap.
+          platform_surface = session[:validated_omniauth_domain_id].nil?
+          has_password     = platform_surface &&
+                             Auth::Config::Hooks::OmniAuth.account_has_challengeable_password?(
+                               db[password_hash_table].where(password_hash_id_column => existing_id),
+                               normalized_email,
+                               provider,
+                             )
+
+          if has_password
+            challenge = Onetime::SsoLinkChallenge.issue(
+              provider: provider,
+              issuer: resolved_issuer,
+              uid: omniauth_uid,
+              email: normalized_email,
+              account_id: existing_id,
+            )
+            Auth::Logging.log_auth_event(
+              :omniauth_link_challenge_issued,
+              level: :warn,
+              email: OT::Utils.obscure_email(normalized_email),
+              provider: provider,
+              issuer: resolved_issuer,
+            )
+            # Redirect to the SPA interstitial route (served by the Vue app),
+            # carrying the single-use token as a path segment.
+            redirect "/link-sso/#{challenge.token}"
+          end
+
+          # SSO-only account (no password to challenge) → UNCHANGED H-3 refusal.
           #
           # RECOVERY (Phase 2, shipped): a password-first user who hits this
           # refusal self-resolves by signing in with their password, then
@@ -555,6 +632,42 @@ module Auth::Config::Hooks
         # Query param allows frontend to display appropriate error message.
         '/signin?auth_error=sso_failed'
       end
+    end
+
+    # Does the located account have a password the Phase 3 interstitial can
+    # challenge? True when a Rodauth password hash exists, OR (coverage) when a
+    # password still resident in Redis under the simple->full migration
+    # (config/overrides/password_migration.rb) has not yet been written to
+    # account_password_hashes. Consulting the migration source keeps those
+    # (shrinking, self-healing) accounts on the interstitial instead of the H-3
+    # dead-end, and does NOT weaken anything: the bind is still gated on the POST
+    # /auth/link-sso password verify, which itself routes through password_match?
+    # -> migrate_password_from_redis (the SAME transparent path a normal login
+    # uses), and the account was already LOCATED by the caller, so no new
+    # existence / has-password oracle is introduced. Fail-safe: any lookup error
+    # returns false, so the caller falls through to the H-3 refusal — never a
+    # weaker bind. SQL-first short-circuit avoids the Redis read for the migrated
+    # common case. Extracted from account_from_omniauth to keep that hook's
+    # branching (and complexity) contained.
+    #
+    # @param hash_ds [Sequel::Dataset] account_password_hashes scoped to the id
+    # @param normalized_email [String] email that located the account
+    # @param provider [String] OmniAuth provider name (logging only)
+    # @return [Boolean]
+    def self.account_has_challengeable_password?(hash_ds, normalized_email, provider)
+      return true if hash_ds.any?
+
+      Onetime::Customer.email_exists?(normalized_email) &&
+        !!Onetime::Customer.find_by_email(normalized_email)&.has_passphrase?
+    rescue StandardError => ex
+      Auth::Logging.log_auth_event(
+        :omniauth_link_password_probe_error,
+        level: :warn,
+        email: OT::Utils.obscure_email(normalized_email),
+        provider: provider,
+        error: ex.message,
+      )
+      false
     end
   end
 end
