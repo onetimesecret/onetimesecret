@@ -96,9 +96,9 @@ module Auth
         def defer(session:, account_id:, provider:, issuer:, uid:)
           session[SESSION_KEY] = {
             'account_id' => account_id.to_s,
-            'provider'   => provider.to_s,
-            'issuer'     => issuer.to_s,
-            'uid'        => uid.to_s,
+            'provider' => provider.to_s,
+            'issuer' => issuer.to_s,
+            'uid' => uid.to_s,
           }
         end
 
