@@ -180,7 +180,11 @@ module AccountAPI::Logic
         hmac_key           = Onetime::KeyDerivation.derive_session_subkey(session_secret, 'hmac')
         encryption_key_raw = [Onetime::KeyDerivation.derive_session_subkey(session_secret, 'encryption')].pack('H*')
 
-        dbclient.scan_each(match: 'session:*') do |key|
+        # STRING-typed like Store.scan_keys: the loose match also catches
+        # non-string session:* keys (the entitlement-preview SETs), each of
+        # which would cost a GET round trip that dies as a silently-rescued
+        # WRONGTYPE inside extract_session_extid.
+        dbclient.scan_each(match: 'session:*', type: 'string') do |key|
           session_extid = extract_session_extid(dbclient, key, hmac_key, encryption_key_raw)
           next unless session_extid == extid
 
