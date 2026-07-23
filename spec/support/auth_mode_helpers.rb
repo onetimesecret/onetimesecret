@@ -220,6 +220,14 @@ module AuthModeHelpers
     def reload!
       self
     end
+
+    # Mirrors Onetime::AuthConfig#sso_form_action_origins. Tests don't set
+    # provider env vars, so this only reflects the SSO_FORM_ACTION_ORIGINS
+    # override — enough for router/CSP boot specs that just need the method
+    # to respond without raising.
+    def sso_form_action_origins
+      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split
+    end
   end
 
   # Mutex for thread-safe singleton method modification
