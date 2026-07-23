@@ -168,6 +168,8 @@ export function isAuthError(
     | ResendVerificationEmailResponse
     | IdentitiesResponse
     | RemoveIdentityResponse
+    | LinkSsoChallengeResponse
+    | LinkSsoVerifyResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -307,6 +309,62 @@ export type IdentitiesResponse = z.infer<typeof identitiesResponseSchema>;
  */
 export const removeIdentityResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
 export type RemoveIdentityResponse = z.infer<typeof removeIdentityResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sign-in interstitial (SSO password-challenge linking — #3840 Phase 3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Challenge context for the sign-in interstitial.
+ *
+ * An UNAUTHENTICATED SSO sign-in whose IdP email matches an existing account
+ * that HAS a password is redirected by the backend to the interstitial carrying
+ * a single-use challenge token. GET /auth/link-sso/:token returns the display
+ * context: which provider was used and the email that was claimed. Both are
+ * DISPLAY-ONLY — no secrets, no account id, no uid. The token itself is the
+ * authorization; a missing / expired / consumed token is a 404 (or an error
+ * body) and never returns context.
+ *
+ * INVARIANT (#3840): email may LOCATE an account; only a demonstrated credential
+ * may BIND an identity. Here the credential is the account's EXISTING password,
+ * collected by the interstitial and verified by POST /auth/link-sso.
+ */
+export const linkSsoChallengeSchema = z.object({
+  provider: z.string(),
+  email: z.string(),
+});
+export type LinkSsoChallenge = z.infer<typeof linkSsoChallengeSchema>;
+
+/**
+ * GET /auth/link-sso/:token → { provider, email } on 200.
+ * A spent / expired / unknown token surfaces as an axios error (404/410) whose
+ * body is classified by useAsyncHandler; the union's error branch only covers
+ * the unusual 200-with-error body.
+ */
+export const linkSsoChallengeResponseSchema = z.union([linkSsoChallengeSchema, authErrorSchema]);
+export type LinkSsoChallengeResponse = z.infer<typeof linkSsoChallengeResponseSchema>;
+
+/**
+ * POST /auth/link-sso { token, password } success body.
+ *
+ * On success the backend verifies the password, binds (provider, issuer, uid)
+ * to the located account, and ESTABLISHES THE SESSION. It returns an optional
+ * internal redirect target; the SPA validates it with isValidInternalPath and
+ * falls back to the ?redirect query param, then '/'.
+ *
+ * Failure bodies (403 wrong password, 404/410 expired-or-spent token) are NOT
+ * modelled here — they arrive as axios errors and are distinguished by the
+ * composable via HTTP status + an optional { error_code } the backend may set
+ * ('invalid_password' vs 'invalid_token'/'expired_token').
+ */
+export const linkSsoVerifySuccessSchema = z.object({
+  success: z.string(),
+  redirect: z.string().optional(),
+});
+export type LinkSsoVerifySuccess = z.infer<typeof linkSsoVerifySuccessSchema>;
+
+export const linkSsoVerifyResponseSchema = z.union([linkSsoVerifySuccessSchema, authErrorSchema]);
+export type LinkSsoVerifyResponse = z.infer<typeof linkSsoVerifyResponseSchema>;
 
 // OTP setup response
 // When HMAC is enabled, Rodauth returns an error response with only secrets on first request

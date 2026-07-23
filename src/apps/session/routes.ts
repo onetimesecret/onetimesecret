@@ -183,6 +183,35 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: false,
     },
   },
+  // Sign-in interstitial (SSO password-challenge linking — #3840 Phase 3).
+  // Reached UNAUTHENTICATED via a backend redirect after an SSO sign-in whose
+  // IdP email matched an existing password-holding account. The single-use
+  // challenge token rides in the path (`:token`). Meta mirrors /mfa-verify
+  // (another post-credential, pre-fully-authenticated interstitial), EXCEPT the
+  // token is sensitive: sentryScrubParams: ['token'] redacts it from diagnostics
+  // (mfa-verify has no path param, so it opts out with `false`).
+  {
+    path: '/link-sso/:token',
+    name: 'Link SSO',
+    component: () => import('@/apps/session/views/LinkSso.vue'),
+    meta: {
+      title: 'web.link_sso.title',
+      requiresAuth: false,
+      isAuthRoute: true,
+      requiresFeature: 'signin',
+      excludeSsoOnly: true,
+      layout: AuthLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+      sentryScrubParams: ['token'],
+    },
+  },
   {
     path: '/email-login',
     name: 'Email Login',
