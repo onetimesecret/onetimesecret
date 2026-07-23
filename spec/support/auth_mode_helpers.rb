@@ -224,9 +224,13 @@ module AuthModeHelpers
     # Mirrors Onetime::AuthConfig#sso_form_action_origins. Tests don't set
     # provider env vars, so this only reflects the SSO_FORM_ACTION_ORIGINS
     # override — enough for router/CSP boot specs that just need the method
-    # to respond without raising.
+    # to respond without raising. Applies the same .uniq the production method
+    # does so a duplicated override doesn't yield a duplicated CSP source list.
+    # (Token http(s)/injection validation is intentionally not replicated here:
+    # boot specs don't set malformed overrides, and duplicating that logic would
+    # drift from the single source of truth in AuthConfig#origin_from_url.)
     def sso_form_action_origins
-      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split
+      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.uniq
     end
   end
 
