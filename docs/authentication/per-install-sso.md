@@ -138,7 +138,10 @@ Account lookup by (provider, uid), then by email
     ├─ (provider, uid) already linked → sync session
     ├─ Email matches an account, but this identity is not linked
     │     ├─ Trusted-IdP flag ON  → auto-link identity, sync session
-    │     └─ Trusted-IdP flag OFF → refuse, redirect to /signin (default)
+    │     └─ Trusted-IdP flag OFF →
+    │            ├─ account HAS a password → sign-in interstitial
+    │            │      (prove existing password → link identity → sync session)
+    │            └─ account has NO password → refuse, redirect to /signin (default)
     └─ Email unknown → Create account + Customer + workspace, sync session
     │
     ▼
@@ -149,7 +152,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 ## Behavior
 
-**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). This refusal can be relaxed per provider with the trusted-IdP flag — see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag).
+**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Two paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)), and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)).
 
 **Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
@@ -168,6 +171,40 @@ An email claim may **locate** an account; only a **demonstrated credential** may
 Concretely: an SSO login is identified by the `(provider, uid)` pair recorded in `account_identities`. When that pair is already linked, the user is signed into the linked account. When it is *not* linked, but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. The refusal is logged as `omniauth_link_refused_existing_account` (level `warn`) and the user is redirected to `/signin?auth_error=account_exists_link_required` with a flash telling them to sign in with their existing method.
 
 This is the correct default for a multi-tenant platform. It is *not* what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
+
+### Sign-in interstitial (password-challenge linking)
+
+The refusal is the *right* default, but for one common case it is unnecessarily blunt: a user who already has a **password** account and now signs in through SSO for the first time. That user *can* demonstrate a credential — their existing password — so instead of dead-ending them, the callback offers a **sign-in interstitial** that collects and verifies that password before binding the identity. This keeps the invariant intact: email still only *locates* the account; the existing password is the credential that *binds*.
+
+This path needs no operator configuration. It is on by default and is the platform-surface recovery for a password user's first SSO sign-in (the counterpart to the authenticated "Connect SSO" panel in account settings, which serves users who signed in with their password first).
+
+**What happens (unauthenticated callback, existing account, identity not linked, trust flag off):**
+
+1. `account_from_omniauth` looks up the located account's password hash directly (it cannot use `has_password?`, which reads the *session* account and there is no session yet on this path).
+2. **Account has a password →** it mints a single-use `Onetime::SsoLinkChallenge` in Redis — a short-lived (5 min) token snapshotting `(provider, resolved_issuer, uid, normalized email, account id)` — logs `omniauth_link_challenge_issued` (level `warn`), and redirects the browser to the SPA interstitial at `/link-sso/{token}`.
+3. **Account has no password (SSO-only) →** unchanged H-3 refusal (`omniauth_link_refused_existing_account`, redirect to `/signin?auth_error=account_exists_link_required`). There is no credential to challenge.
+
+**The interstitial endpoints** (`apps/web/auth/routes/link_sso.rb`):
+
+| Endpoint | Purpose | Response |
+|----------|---------|----------|
+| `GET /auth/link-sso/{token}` | Display context for the page | `{ provider, email }` — display only; never the account id, uid, or issuer. Missing/consumed/expired token → `404 { error, error_code: "link_expired" }`. |
+| `POST /auth/link-sso` | Verify password, bind identity, log in | Body `{ token, password }`. Success establishes the session and returns Rodauth's standard login JSON response (`200 { success, … }`, plus `mfa_required`/`billing_redirect` when applicable). Failures return `{ error, error_code }` (see below). |
+
+**POST error codes** (the SPA maps these to copy and, for `link_expired`/`link_conflict`, the account-settings connections pointer `/account/settings/security/connections`):
+
+| Status | `error_code` | Meaning |
+|--------|--------------|---------|
+| 400 | `invalid_request` | token or password missing |
+| 401 | `link_expired` | token missing / already consumed / expired, or the located account vanished |
+| 401 | `invalid_password` | the existing password did not verify |
+| 409 | `link_conflict` | the email now resolves to a different account than the one snapshotted at mint |
+
+**Why the token is single-use (security-load-bearing).** `POST /auth/link-sso` **deletes** the challenge up front — before it even checks the password — so a token is worth exactly **one** attempt. This is deliberate: password verification runs through `Auth::Config.valid_login_and_password?`, a Rodauth *internal request* that does **not** go through the login route and therefore does **not** increment lockout counters. Without one-shot consumption, a token minted by an attacker who completed an SSO round-trip asserting a victim's email would be an unbounded (TTL-window) password-guessing oracle with no lockout. One-shot consumption bounds it to a single guess per full IdP round-trip. The 5-minute TTL bounds abandoned challenges. On a wrong password the user must restart the SSO sign-in — a deliberate trade of a small amount of retry convenience for closing the oracle.
+
+**Session establishment reuses Rodauth's own machinery.** On a correct password the handler binds the `(provider, issuer, uid)` row (same shape as `omniauth_identity_insert_hash`) and then calls `rodauth.login('password')` rather than hand-rolling the session. That runs the normal `after_login` path — the Redis session blob via `SyncSession` (the real app auth gate), `active_sessions` registration, and MFA detection — so a password account that has OTP configured still gets the MFA gate, exactly as a direct `/auth/login` would.
+
+**Platform-only.** The interstitial is only ever offered on the platform callback path. The email branches in `account_from_omniauth` are reached solely when `session[:validated_omniauth_domain_id]` is `nil` (tenant callbacks bind by session or refuse earlier), so a tenant callback can never mint a challenge. Authenticated tenant-surface linking is a separate follow-up.
 
 ### The flag
 
