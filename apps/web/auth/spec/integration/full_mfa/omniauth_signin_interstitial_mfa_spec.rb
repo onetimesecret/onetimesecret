@@ -217,6 +217,18 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
     auth_db[:account_otp_keys].where(id: account_id).update(last_use: Time.now - 300)
   end
 
+  # A code guaranteed to be rejected RIGHT NOW: Rodauth validates with
+  # otp_drift (30s), so the previous and next interval's codes are accepted
+  # too — a candidate must differ from all three, not just the current code.
+  def wrong_otp_code(secret)
+    totp  = ROTP::TOTP.new(secret)
+    now   = Time.now.to_i
+    valid = [totp.at(now - 30), totp.at(now), totp.at(now + 30)]
+    candidate = '000000'
+    candidate = candidate.next.rjust(6, '0') while valid.include?(candidate)
+    candidate
+  end
+
   # Drive the SSO callback for an OTP-enabled password account up to the point
   # where the interstitial has verified the password and handed off to MFA.
   # Returns [challenge_issuer, token]. Skips (like the shared-harness specs)
@@ -304,17 +316,40 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
     account_id = seed_account_with_password(email)
     secret     = provision_totp(email)
 
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
     begin
-      password_step_expecting_mfa(email: email, uid: uid, account_id: account_id)
+      issuer, _token = password_step_expecting_mfa(email: email, uid: uid, account_id: account_id)
 
       # A wrong code must not complete the login — and must not bind.
       allow_immediate_otp_reuse!(account_id)
-      good_code  = ROTP::TOTP.new(secret).now
-      wrong_code = good_code == '000000' ? '000001' : '000000'
-      json_post('/auth/otp-auth', otp_code: wrong_code)
-      expect(last_response.status).not_to eq(200)
+      json_post('/auth/otp-auth', otp_code: wrong_otp_code(secret))
+
+      # Pin the SPECIFIC rejection, not just "non-200": Rodauth's OTP failure
+      # path is 401 (invalid_key_error_status) with a field-error on the OTP
+      # param. A 404 from a routing regression or a 401 from an earlier guard
+      # (require_login, lockout) would prove nothing about the MFA gate and
+      # must not pass this example vacuously.
+      expect(last_response.status).to eq(401),
+        "A wrong OTP code must be rejected with 401, got #{last_response.status}: #{last_response.body}"
+      body = json_body
+      expect(body['field-error']).to be_an(Array),
+        "Expected Rodauth's field-error on the OTP param, got: #{body.inspect}"
+      expect(body['field-error'].first).to eq('otp_code')
+      expect(body['error']).not_to be_nil
+
+      # The rejection came from OTP VALIDATION itself — the app's
+      # after_otp_authentication_failure hook fired for this account.
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:mfa_verification_failure, hash_including(account_id: account_id))
+
+      # Positive intermediate state: nothing bound anywhere, and the deferred
+      # completion hook never ran (not even with a non-:ok outcome).
       expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
         'A failed second factor must not bind the identity'
+      expect(identities.where(account_id: account_id).count).to eq(0)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:sso_deferred_bind_completed, any_args)
 
       # The pending bind survives the failed attempt: the next successful
       # factor still completes it (the stash is consumed on SUCCESS, not on
@@ -326,6 +361,10 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
       rows = identities.where(provider: 'oidc', uid: uid).all
       expect(rows.size).to eq(1)
       expect(rows.first[:account_id]).to eq(account_id)
+      expect(rows.first[:issuer]).to eq(issuer)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:sso_deferred_bind_completed, hash_including(outcome: :ok, account_id: account_id))
+        .once
     ensure
       teardown_mock_auth
     end
