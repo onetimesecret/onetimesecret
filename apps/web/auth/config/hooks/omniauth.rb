@@ -17,6 +17,11 @@
 
 module Auth::Config::Hooks
   module OmniAuth
+    # rubocop:disable Metrics/PerceivedComplexity
+    # A long, linear chain of Rodauth hook registrations (mirrors the same
+    # inline disable on Hooks::Account.configure). Splitting it would scatter the
+    # callback flow across methods and obscure the account_from_omniauth branch
+    # order the security model depends on.
     def self.configure(auth)
       # Normalize email for case-insensitive account lookup.
       # Required because:
@@ -293,9 +298,115 @@ module Auth::Config::Hooks
             # Redirect to the SPA interstitial route (served by the Vue app),
             # carrying the single-use token as a path segment.
             redirect "/link-sso/#{challenge.token}"
+          elsif platform_surface
+            # ────────────────────────────────────────────────────────────────
+            # #3840 Phase 4: mailbox-proof linking for PASSWORDLESS accounts.
+            # ────────────────────────────────────────────────────────────────
+            #
+            # The located account has NO challengeable password, so Phase 3's
+            # password interstitial cannot help — but a passwordless account CAN
+            # still prove ownership: control of its on-file mailbox (the SAME proof
+            # magic-link/email_auth uses to authenticate). Email a single-use token
+            # to the ON-FILE address and bind (provider, issuer, uid) only when the
+            # user clicks it (POST /auth/sso-link-confirm, routes/sso_link_confirm.rb).
+            #
+            # SECURITY: the token proves MAILBOX control, so it travels ONLY via the
+            # emailed link — NEVER in this callback redirect. We redirect the browser
+            # to a TOKEN-LESS notice; the token reaches only the on-file inbox. A
+            # caller who merely completed an SSO round-trip asserting the victim's
+            # email therefore cannot self-consume it. Still honours "email may
+            # LOCATE, only a demonstrated credential may BIND" — mailbox control is
+            # the credential.
+            #
+            # PLATFORM-ONLY (the elsif guard, NOT redundant): an unauthenticated
+            # TENANT callback also reaches this email branch with
+            # session[:validated_omniauth_domain_id] SET (has_password is already
+            # gated on the platform surface, so it is false here for tenants). A
+            # tenant admin controls their IdP and could otherwise trigger link emails
+            # to arbitrary platform addresses, so tenant callbacks fall through to the
+            # H-3 refusal below (authenticated tenant-surface linking is a follow-up,
+            # #3849).
+            on_file_email = existing[:email]
+
+            # Snapshot the account's credential watermark so ANY later credential
+            # change (password set/reset/change stamps Customer#last_password_update
+            # via UpdatePasswordMetadata) invalidates this token at consume time.
+            watermark = begin
+              custid = existing[:external_id].to_s.empty? ? on_file_email : existing[:external_id]
+              Onetime::Customer.load_by_extid_or_email(custid)&.last_password_update.to_i
+            rescue StandardError
+              0
+            end
+
+            verification = Onetime::SsoLinkVerification.issue(
+              provider: provider,
+              issuer: resolved_issuer,
+              uid: omniauth_uid,
+              email: normalized_email,
+              account_id: existing_id,
+              sid: session.id&.public_id,
+              password_watermark: watermark,
+            )
+
+            locale = begin
+              cust = Onetime::Customer.find_by_email(on_file_email)
+              loc  = cust&.locale
+              loc.to_s.strip.empty? ? OT.default_locale : loc
+            rescue StandardError
+              OT.default_locale
+            end
+
+            # Deliver to the ON-FILE address. Auth-critical → :sync. Fail CLOSED: a
+            # RETURN (true or false) both mean "sent" — false only means "delivered
+            # via the sync fallback rather than queued" — while a RAISE means the
+            # send failed. On failure, consume the just-issued token and fall through
+            # to the H-3 refusal rather than telling the user to check an inbox that
+            # got no mail.
+            sent = begin
+              Onetime::Jobs::Publisher.enqueue_email(
+                :sso_link_verification,
+                {
+                  email_address: on_file_email,
+                  confirm_url: "#{request.base_url}/sso-link-confirm/#{verification.token}",
+                  provider: provider,
+                  baseuri: request.base_url,
+                  product_name: OT.conf.dig('site', 'product_name'),
+                  display_domain: request.host,
+                  locale: locale,
+                },
+                fallback: :sync,
+              )
+              true
+            rescue StandardError => ex
+              Auth::Logging.log_auth_event(
+                :sso_link_verification_send_FAILED,
+                level: :error,
+                email: OT::Utils.obscure_email(on_file_email),
+                provider: provider,
+                error: ex.message,
+              )
+              false
+            end
+
+            if sent
+              Auth::Logging.log_auth_event(
+                :sso_link_verification_issued,
+                level: :warn,
+                email: OT::Utils.obscure_email(on_file_email),
+                provider: provider,
+                issuer: resolved_issuer,
+                account_id: existing_id,
+              )
+              # TOKEN-LESS informational redirect — the token is only in the email.
+              redirect '/signin?auth_notice=link_verification_sent'
+            end
+
+            # Delivery failed → do not leave an un-notified token live; fall through.
+            verification.delete!
           end
 
-          # SSO-only account (no password to challenge) → UNCHANGED H-3 refusal.
+          # SSO-only account, tenant surface (or platform mailbox delivery failed)
+          # → UNCHANGED H-3 refusal.
           #
           # RECOVERY (Phase 2, shipped): a password-first user who hits this
           # refusal self-resolves by signing in with their password, then
@@ -633,6 +744,7 @@ module Auth::Config::Hooks
         '/signin?auth_error=sso_failed'
       end
     end
+    # rubocop:enable Metrics/PerceivedComplexity
 
     # Does the located account have a password the Phase 3 interstitial can
     # challenge? True when a Rodauth password hash exists, OR (coverage) when a

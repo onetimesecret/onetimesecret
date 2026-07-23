@@ -211,13 +211,19 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
   end
 
   # ==========================================================================
-  # Scenario 2 — PLATFORM path + trust flag OFF -> H-3 refusal (unchanged)
+  # Scenario 2 — PLATFORM path + trust flag OFF -> no trusted-provider auto-link
   # ==========================================================================
+  #
+  # This test's property is the TRUST gate: with trust off, the trusted-provider
+  # auto-link branch is skipped and no identity row is created. The post-skip
+  # redirect is incidental — a passwordless account now takes the Phase 4 mailbox
+  # path (link_verification_sent, asserted in sso_link_confirm_mailbox_proof_spec.rb)
+  # rather than the old H-3 refusal — so it is not pinned here.
 
   describe 'platform path, trust flag OFF' do
     before { enable_platform_fallback }
 
-    it 'refuses to auto-link, creates no identity row, and fires the refusal event' do
+    it 'refuses to auto-link and creates no identity row when trust is off' do
       email = "refuse-#{SecureRandom.hex(6)}@company.example.com"
       uid   = "sub-#{SecureRandom.hex(8)}"
       seed_existing_account(email)
@@ -233,20 +239,19 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
           skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
         end
 
-        # H-3 refusal: redirect (halt) to the stable auth_error code.
+        # A 302 redirect is issued; its target is incidental to the TRUST property
+        # (a passwordless account now takes the Phase 4 mailbox path, asserted in
+        # sso_link_confirm_mailbox_proof_spec.rb), so it is not pinned here.
         expect(last_response.status).to eq(302),
-          "Expected a 302 refusal redirect, got #{last_response.status}: #{last_response.body}"
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "Expected the H-3 refusal redirect, got: #{last_response.location.inspect}"
+          "Expected a 302 redirect, got #{last_response.status}: #{last_response.body}"
 
-        # No auto-link: the (provider, uid) row must not exist. The halt happens
-        # before create_omniauth_identity, so the caller's IdP identity is never
-        # bound to the victim account.
+        # No auto-link: the (provider, uid) row must not exist. The trusted-link
+        # branch is skipped when trust is off, so the caller's IdP identity is never
+        # auto-bound to the pre-existing account.
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
-          'H-3 refusal must NOT create an account_identities row'
+          'Trust OFF must NOT create an account_identities row'
 
-        expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
+        # And the trusted-provider auto-link event never fires.
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_email_linked_trusted_provider, anything)
       ensure

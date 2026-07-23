@@ -15,6 +15,7 @@ require_relative 'operations/disable_mfa'
 require_relative 'operations/detect_mfa_requirement'
 require_relative 'operations/mfa_state_checker'
 require_relative 'operations/bind_sso_identity'
+require_relative 'operations/confirm_sso_link'
 require_relative 'operations/prepare_mfa_session'
 require_relative 'operations/migrate_password_from_redis'
 

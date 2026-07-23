@@ -491,6 +491,50 @@
     "context": "Fallback error for #3840 Phase 3 sign-in interstitial challenge-context / verify failures that are neither a wrong password nor an expired token.",
     "content_hash": "f727c174"
   },
+  "web.sso_link_confirm.title": {
+    "text": "Confirm connecting your account",
+    "context": "Heading + page title for the #3840 Phase 4 mailbox-proof SSO linking consent page. Reached via a link emailed to a PASSWORDLESS account whose email matched an SSO sign-in; opening the link proves mailbox control."
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "You signed in with {provider}, which matches your account {email}. Confirm to connect {provider} to this account and finish signing in.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof."
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Confirm and connect",
+    "context": "Primary CTA on the #3840 Phase 4 mailbox-proof SSO linking page. Triggers POST /auth/sso-link-confirm: binds the SSO identity and signs the user in. There is no password field — mailbox possession is the proof."
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Cancel",
+    "context": "Cancel action on the #3840 Phase 4 mailbox-proof SSO linking page; abandons linking and returns the user to the sign-in page."
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "This linking request can't be completed",
+    "context": "Heading of the terminal panel on the #3840 Phase 4 mailbox-proof SSO linking page, shown when the single-use token is missing/expired/used or the confirm fails (conflict / credentials changed)."
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "For your security, this request to connect your sign-in method is no longer valid. Sign in with your provider again and we'll email you a fresh link.",
+    "context": "Default body of the terminal panel on the #3840 Phase 4 mailbox-proof SSO linking page (e.g. the token was missing from the URL). A specific error message replaces this when the failure was classified."
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Return to sign in",
+    "context": "Primary action on the terminal panel of the #3840 Phase 4 mailbox-proof SSO linking page; routes to /signin so a passwordless user can start SSO again (which re-issues the email)."
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "This linking request has expired or was already used. Sign in with your provider again and we'll email you a fresh link.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when the single-use token is missing, expired, or already consumed (backend error_code link_expired; also the GET dead-end)."
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "We couldn't connect this sign-in method. Your account may have changed, or this provider is already linked to another account. Sign in with your provider again to continue.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when the account was re-emailed since the link was issued, or the identity is already bound to a different account (backend error_code link_conflict, HTTP 409)."
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Your account credentials changed after this link was sent, so it's no longer valid. Sign in with your provider again and we'll email you a fresh link.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when a credential change advanced the account's password watermark after the token was issued (backend error_code link_invalidated, HTTP 409)."
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "We couldn't confirm this connection. Please sign in with your provider again.",
+    "context": "Fallback error for #3840 Phase 4 mailbox-proof SSO linking page failures that are neither expired, a conflict, nor a credential change (e.g. an unexpected server error or a missing token)."
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "Warning: {count} login attempt(s) remaining",
     "content_hash": "151dcb5e"

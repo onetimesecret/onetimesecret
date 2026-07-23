@@ -1,0 +1,39 @@
+<%# Body content only. Shared shell, header, and footer come from layout.html.erb. -%>
+<!-- Title -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
+  <p style="margin: 0;"><%= t('email.sso_link_verification.title') %></p>
+</div>
+
+<!-- Body -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
+  <p><%= h(t('email.sso_link_verification.request_notice', provider: provider, email_address: email_address, product_name: product_name)) %></p>
+
+  <div style="margin: 24px 0;">
+    <a href="<%= confirm_url %>" style="display: inline-block; padding: 12px 24px; background-color: <%= brand_color %>; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
+      <%= h(t('email.sso_link_verification.confirm_button', provider: provider)) %>
+    </a>
+  </div>
+
+  <p style="color: #666666; font-size: 12px;">
+    <%= t('email.sso_link_verification.copy_link_prompt') %><br />
+    <a href="<%= confirm_url %>" style="color: <%= brand_color %>; word-break: break-all;"><%= confirm_url %></a>
+  </p>
+
+  <p style="color: #666666; background-color: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 24px;">
+    <%= t('email.sso_link_verification.expiration_notice') %>
+  </p>
+
+  <p style="color: #666666; background-color: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 12px;">
+    <%= h(t('email.sso_link_verification.ignore_notice', provider: provider)) %>
+  </p>
+</div>
+
+<!-- Signature -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
+  <p style="margin: 0;"><%= h(signature_name || t('email.sso_link_verification.signature')) %></p>
+</div>
+
+<!-- Postscript -->
+<p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 24px;">
+  <%= h(t('email.sso_link_verification.postscript', email_address: email_address)) %>
+</p>

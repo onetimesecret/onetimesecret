@@ -40,6 +40,12 @@ const signupEnabled = computed(
 // Handle auth errors passed via query params (from SSO/magic link failures)
 const authError = ref<string | null>(null);
 
+// Handle informational notices passed via query params. Distinct from auth_error:
+// these are non-failure prompts a backend redirect drops the user here with — e.g.
+// after issuing a mailbox-proof SSO link (#3840 Phase 4), the callback redirects to
+// /signin?auth_notice=link_verification_sent (token-less; the token is emailed).
+const authNotice = ref<string | null>(null);
+
 // Post-verification return: useAuth.verifyAccount() sends the user here after
 // they click the link in their welcome email. The "just verified" signal
 // arrives via router history state (SIGNIN_VERIFIED_STATE_KEY), not the URL:
@@ -80,6 +86,12 @@ const authErrorMessages: Record<string, string> = {
   org_join_failed: 'web.login.errors.org_join_failed',
 };
 
+// Informational notices (not failures). Only known codes render — an unknown
+// notice is silently ignored rather than shown as a generic banner.
+const authNoticeMessages: Record<string, string> = {
+  link_verification_sent: 'web.login.notices.link_verification_sent',
+};
+
 onMounted(() => {
   const errorCode = route.query.auth_error;
   if (typeof errorCode === 'string' && errorCode.length > 0) {
@@ -92,6 +104,18 @@ onMounted(() => {
     authError.value = t(messageKey);
     // Clear the query param to prevent showing error on refresh
     router.replace({ query: { ...route.query, auth_error: undefined } });
+  }
+
+  const noticeCode = route.query.auth_notice;
+  if (typeof noticeCode === 'string' && noticeCode.length > 0) {
+    // Unlike auth_error there is no generic fallback: an unrecognized notice is
+    // not a failure to surface, so ignore it rather than guess a message.
+    const messageKey = authNoticeMessages[noticeCode];
+    if (messageKey) {
+      authNotice.value = t(messageKey);
+    }
+    // Clear the query param either way so a refresh does not re-show it.
+    router.replace({ query: { ...route.query, auth_notice: undefined } });
   }
 });
 
@@ -168,6 +192,25 @@ const handleModeChange = (_mode: AuthMode) => {
             class="size-5 shrink-0 text-green-500 dark:text-green-400"
             aria-hidden="true" />
           <span>{{ t('web.login.verified_notice') }}</span>
+        </div>
+
+        <!-- Informational notice from redirects (e.g. mailbox-proof SSO link sent —
+             #3840 Phase 4). Non-failure "check your inbox" prompt, styled distinctly
+             from the red error banner. -->
+        <!-- prettier-ignore-attribute class -->
+        <div
+          v-if="authNotice"
+          role="status"
+          class="
+            mb-4 flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 p-3
+            text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+          data-testid="signin-auth-notice">
+          <OIcon
+            collection="heroicons"
+            name="envelope"
+            class="size-5 shrink-0 text-blue-500 dark:text-blue-400"
+            aria-hidden="true" />
+          <span>{{ authNotice }}</span>
         </div>
 
         <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
