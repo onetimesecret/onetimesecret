@@ -54,6 +54,9 @@
 #   end
 #
 
+require 'onetime/operations/sessions/store'
+require 'onetime/session/codec'
+
 module Auth
   module Operations
     class CloseAccount
@@ -174,8 +177,16 @@ module Auth
       end
 
       # Deletes all Redis sessions associated with the given external_id.
-      # Sessions are stored in Redis with keys like "session:<session_id>"
-      # and contain external_id in their JSON data.
+      # Sessions are stored in Redis with keys like "session:<session_id>".
+      #
+      # Session values are AES-256-GCM encrypted + HMAC-signed
+      # ("base64(iv+tag+ciphertext)--hmac"), so they MUST be decoded through
+      # the same SessionCodec the middleware writes with. The previous
+      # `JSON.parse(Base64.decode64(...))` treated the value as base64(json):
+      # for authenticated sessions the base64 decodes to binary ciphertext, the
+      # parse raised, and every authenticated session was silently skipped —
+      # closing an account left its live sessions untouched. {Store.load_data}
+      # decodes first and falls back to legacy plaintext JSON.
       #
       # @param extid [String] The customer's external ID
       # @return [Integer] Number of sessions deleted
@@ -184,30 +195,30 @@ module Auth
 
         dbclient      = Familia.dbclient
         deleted_count = 0
+        # from_config resolves the SAME secret chain the middleware writer is
+        # mounted with (session_config['secret'] → site.secret). Any other
+        # chain — e.g. ENV['SESSION_SECRET'], which the middleware never
+        # reads — can build a codec with the wrong key, and every encrypted
+        # session silently fails to decode and survives the sweep.
+        codec         = Onetime::SessionCodec.from_config
 
-        # Scan for all session keys
-        dbclient.scan_each(match: 'session:*') do |key|
-            raw_value = dbclient.get(key)
-            next unless raw_value
-
-            # Session data format: "base64(json)--hmac"
-            # We need to decode the base64 part to check external_id
-            data_part = raw_value.split('--').first
-            next unless data_part
-
-            json_data    = Base64.decode64(data_part)
-            session_data = JSON.parse(json_data)
+        # Scan for all session keys. STRING-typed like Store.scan_keys: the
+        # loose match also catches non-string keys (the entitlement-preview
+        # SETs) that would WRONGTYPE on GET.
+        dbclient.scan_each(match: 'session:*', type: 'string') do |key|
+            session_data = Onetime::Operations::Sessions::Store.load_data(dbclient, key, codec: codec)
+            next unless session_data.is_a?(Hash)
 
             # Check if this session belongs to the user being deleted
             session_extid = session_data['external_id'] || session_data['account_external_id']
-            if session_extid == extid
-              dbclient.del(key)
-              deleted_count += 1
-              OT.ld "[close-account] Deleted Redis session: #{key[0..30]}..."
-            end
-        rescue JSON::ParserError, ArgumentError => ex
-            # Skip malformed sessions
-            OT.ld "[close-account] Skipping malformed session #{key}: #{ex.message}"
+            next unless session_extid == extid
+
+            dbclient.del(key)
+            deleted_count += 1
+            OT.ld "[close-account] Deleted Redis session: #{key[0..30]}..."
+        rescue StandardError => ex
+            # One malformed/undecodable key must never abort the whole sweep.
+            OT.ld "[close-account] Skipping session #{key}: #{ex.message}"
         end
 
         deleted_count

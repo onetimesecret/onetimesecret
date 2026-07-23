@@ -139,6 +139,48 @@ skip_without_db(false) do
 end
 #=> false
 
+# --- delete_redis_sessions: AES-GCM session decode ---
+#
+# delete_redis_sessions SCANs session:* for blobs whose codec-DECODED
+# external_id matches the closing account and deletes each match. Sessions are
+# AES-256-GCM encrypted, so the sweep MUST decode through the codec -- the old
+# JSON.parse(base64) path raised on every authenticated blob and silently
+# skipped it, leaving live sessions behind on account closure. These cases
+# assert the real Redis effects (the method swallows all errors, so nothing
+# else could catch a regression). Redis-only: no auth DB required, so they run
+# even when the accounts DB is absent (db: passed non-nil to skip the connect).
+require 'onetime/session/codec'
+
+## an authenticated, AES-GCM-encrypted session blob for the closing account is
+## deleted, while a DIFFERENT account's blob survives -- proving the encrypted
+## blob actually decodes (a plain JSON.parse skipped every authenticated
+## session)
+# Plant blobs with the middleware writer's own secret resolution
+# (session_config['secret'], the chain middleware_stack mounts the session
+# with) — the sweep's SessionCodec.from_config must resolve the SAME secret
+# for the encrypted blob to decode and match.
+@ca_secret = Onetime.session_config['secret']
+@ca_codec  = Onetime::SessionCodec.new(@ca_secret)
+@ca_db     = Familia.dbclient
+@ca_extid  = "extid_close_#{SecureRandom.hex(6)}"
+@ca_sid    = SecureRandom.hex(32)
+@ca_blob   = "session:#{@ca_sid}"
+@ca_other_sid  = SecureRandom.hex(32)
+@ca_other_blob = "session:#{@ca_other_sid}"
+@ca_op = Auth::Operations::CloseAccount.new(extid: @ca_extid, db: :redis_only)
+@ca_db.set(@ca_blob, @ca_codec.encode({ 'external_id' => @ca_extid, 'authenticated' => true }), ex: 3600)
+@ca_db.set(@ca_other_blob, @ca_codec.encode({ 'external_id' => 'someone_else', 'authenticated' => true }), ex: 3600)
+@ca_op.send(:delete_redis_sessions, @ca_extid)
+[@ca_db.exists(@ca_blob), @ca_db.exists(@ca_other_blob)]
+#=> [0, 1]
+
+## the sweep reports the count of blobs it deleted (one matching account)
+@ca_db.set(@ca_blob, @ca_codec.encode({ 'external_id' => @ca_extid }), ex: 3600)
+@ca_result = @ca_op.send(:delete_redis_sessions, @ca_extid)
+@ca_db.del(@ca_blob, @ca_other_blob)
+@ca_result
+#=> 1
+
 # Teardown
 if @db
   begin
