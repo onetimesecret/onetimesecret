@@ -13,7 +13,7 @@ require 'onetime/security/login_rate_limiter'
 # (/link-sso/:token). These endpoints back that page:
 #
 #   GET  /auth/link-sso/:token  → { provider, email }         (display only)
-#   POST /auth/link-sso         → verify existing password, bind identity, log in
+#   POST /auth/link-sso         → verify existing password, log in, bind on full auth
 #
 # SECURITY MODEL (the invariant: email may LOCATE, only a credential may BIND):
 #   - The challenge token is NOT proof of ownership — it only proves someone
@@ -37,6 +37,14 @@ require 'onetime/security/login_rate_limiter'
 #     (rodauth.login('password')) — NOT hand-rolled — so after_login runs
 #     (Redis session blob via SyncSession, active_sessions registration, MFA
 #     detection). That blob, not the Rodauth SQL row, is the real app auth gate.
+#   - MFA-SAFE BIND (#3840 review, Item 1): the identity is bound ONLY when the
+#     password login FULLY authenticates. If the account has a pending second
+#     factor, the bind is DEFERRED — login still proceeds and returns mfa_required
+#     (the SAME body POST /auth/login emits), but no identity is linked this round.
+#     Binding before 2FA would attach an MFA-EXEMPT SSO login path (SSO logins
+#     bypass MFA) to an account whose owner never passed the second factor — a
+#     password-only attacker could then sign in via SSO and defeat MFA. Completing
+#     the bind after MFA is a documented follow-up.
 #   - PLATFORM-only: challenges are minted solely on the platform callback path,
 #     so the tenant surface is never offered this interstitial (#3849).
 #
@@ -59,7 +67,8 @@ module Auth
       #                      located account vanished between mint and POST
       #   invalid_password— the existing password did not verify (token consumed)
       #   link_conflict   — the email now resolves to a different account than the
-      #                      one snapshotted at mint (defence-in-depth)
+      #                      one snapshotted at mint, OR the (provider,issuer,uid)
+      #                      is already bound to a different account (defence-in-depth)
       #   link_rate_limited— too many password attempts for this account/IP (429);
       #                      carries retry_after seconds
       def handle_link_sso_routes(r)
@@ -119,9 +128,20 @@ module Auth
             # generic StandardError rescue that would otherwise mask it as a 500).
             check_login_rate_limit!(login, client_ip)
 
-            # SINGLE-USE: consume the token NOW, before verifying the password, so
-            # a token is worth exactly one guess (see the security note above).
-            challenge.delete!
+            # SINGLE-USE (atomic — #3840 review, Item 2): consume the token NOW,
+            # before verifying the password, so a token is worth exactly one guess.
+            # #delete! returns the Redis DEL count; because DEL is atomic, exactly
+            # ONE of two concurrent POSTs gets 1 (the winner) and the loser gets 0.
+            # A 0 means the token was already spent by a racing request (or expired
+            # between load and here) -> reject as spent, closing the load-then-delete
+            # TOCTOU that would otherwise let both racers reach the password check.
+            unless challenge.delete! == 1
+              response.status = 401
+              next {
+                error: 'This linking request has expired. Please sign in with SSO again.',
+                error_code: 'link_expired',
+              }
+            end
 
             # Verify the EXISTING password via Rodauth's internal request. This
             # routes through the password_match? override (Redis→Rodauth password
@@ -158,28 +178,67 @@ module Auth
               next { error: 'This linking request could not be completed.', error_code: 'link_conflict' }
             end
 
-            # Bind the (provider, issuer, uid) identity to the proven account.
-            # Shape mirrors omniauth_identity_insert_hash
-            # (config/features/omniauth.rb): { account_id, provider, uid, issuer }.
-            bind_sso_identity(challenge, account_id)
+            # LOGIN-FIRST, BIND-ON-FULL-AUTH (#3840 review, Item 1).
+            #
+            # Rodauth's login('password') THROWS its JSON response (Roda :halt) and
+            # never returns to this route, so we cannot inspect the login result
+            # after the fact and then bind. Instead we make the SAME MFA decision
+            # the after_login hook makes (hooks/login.rb — a pure function of the
+            # located account's stored factors, via_omniauth: false) HERE, and gate
+            # the bind on it. Security-equivalent to "login, then bind only when
+            # fully authenticated": we bind ONLY when no second factor is pending.
+            #
+            # WHY: SSO logins are MFA-EXEMPT (DetectMfaRequirement bypasses MFA for
+            # via_omniauth: true). Binding the (provider, issuer, uid) row before a
+            # second factor is satisfied would leave an MFA-bypassing SSO login path
+            # attached to the account — a password-only attacker who cannot pass the
+            # victim's OTP could bind their own IdP identity and then sign in via
+            # SSO, defeating MFA. So for an MFA account we DEFER the bind: the login
+            # below proceeds to the OTP step (emits mfa_required, unchanged) and the
+            # identity is left UNLINKED this round (a follow-up completes it after
+            # MFA). Moot for default installs (MFA off) but load-bearing for
+            # AUTH_MFA_ENABLED deployments.
+            if link_sso_second_factor_pending?(account_id)
+              auth_logger.warn 'SSO link deferred: second factor pending, identity NOT bound this round',
+                {
+                  account_id: account_id,
+                  provider: challenge.provider,
+                }
+            else
+              # Fully authenticated by password alone -> safe to bind now. Shape
+              # mirrors omniauth_identity_insert_hash (config/features/omniauth.rb):
+              # { account_id, provider, uid, issuer }.
+              if bind_sso_identity(challenge, account_id) == :conflict
+                # Item 3 defence-in-depth: the (provider, issuer, uid) row is already
+                # owned by a DIFFERENT account. Never report success (that would log
+                # the caller in as if the identity were theirs) — surface a conflict.
+                response.status = 409
+                next {
+                  error: 'This linking request could not be completed.',
+                  error_code: 'link_conflict',
+                }
+              end
 
-            # Verified credential -> clear the throttle so the just-linked user is
-            # not held under a stale per-IP lockout on their next password login
-            # (same keys as a normal successful login would clear).
+              auth_logger.warn 'SSO identity linked via password challenge',
+                {
+                  account_id: account_id,
+                  provider: challenge.provider,
+                }
+            end
+
+            # Verified credential -> clear the throttle so the user is not held under
+            # a stale per-IP lockout on their next password login (same keys a normal
+            # successful login clears). Cleared in BOTH branches: the password was
+            # correct regardless of the MFA outcome.
             clear_login_rate_limit!(login, client_ip)
-
-            auth_logger.warn 'SSO identity linked via password challenge',
-              {
-                account_id: account_id,
-                provider: challenge.provider,
-              }
 
             # Establish the session through Rodauth's proven login machinery.
             # login('password') runs before_login/login_session/after_login (Redis
-            # session blob via SyncSession, active_sessions, MFA detection) and
-            # then throws Rodauth's JSON login response (200 { success: ... },
-            # plus mfa_required / billing_redirect when applicable) — exactly the
-            # shape POST /auth/login returns, which the SPA already handles.
+            # session blob via SyncSession, active_sessions, MFA detection) and then
+            # THROWS Rodauth's JSON login response — 200 { success: ... } for a
+            # non-MFA account, or the SAME mfa_required body POST /auth/login returns
+            # for an MFA account (authSuccessWithMfaSchema). The response passes
+            # through unchanged; the SPA already handles both shapes.
             rodauth.login('password')
           rescue Onetime::LimitExceeded => ex
             # Must precede the generic StandardError rescue below (which would turn
@@ -224,25 +283,59 @@ module Auth
       end
 
       # Insert the identity row for the proven account, issuer-scoped and
-      # idempotent. A concurrent bind that already inserted the row (unique index
-      # on provider, issuer, uid) is treated as success.
+      # idempotent. Returns :ok when the row is inserted OR already exists for the
+      # SAME account. Returns :conflict when a row for this (provider, issuer, uid)
+      # already exists for a DIFFERENT account — the caller surfaces that as 409
+      # link_conflict rather than logging the user in onto an identity that is not
+      # theirs (#3840 review, Item 3 defence-in-depth). The unique index on
+      # (provider, issuer, uid) plus "challenge minted only when no identity row
+      # exists" makes cross-account escalation impossible, so this only ever fires
+      # as a benign idempotency guard — but we verify ownership at BOTH the
+      # pre-check and the concurrent-insert (UniqueConstraintViolation) site so a
+      # mismatch can never masquerade as success.
       def bind_sso_identity(challenge, account_id)
-        ds      = rodauth.db[:account_identities]
-        already = ds.where(
+        ds       = rodauth.db[:account_identities]
+        criteria = {
           provider: challenge.provider,
           issuer: challenge.issuer.to_s,
           uid: challenge.uid,
-        ).any?
-        return if already
+        }
 
-        ds.insert(
-          account_id: account_id,
-          provider: challenge.provider,
-          uid: challenge.uid,
-          issuer: challenge.issuer.to_s,
-        )
+        existing = ds.where(criteria).first
+        return owned_or_conflict(existing, account_id) if existing
+
+        ds.insert(criteria.merge(account_id: account_id))
+        :ok
       rescue Sequel::UniqueConstraintViolation
-        nil
+        # A concurrent bind inserted the row first — re-read and apply the SAME
+        # ownership check to the winner.
+        owned_or_conflict(ds.where(criteria).first, account_id)
+      end
+
+      # :ok when the existing identity row belongs to the account we authenticated,
+      # :conflict otherwise (including a row that vanished between checks).
+      def owned_or_conflict(row, account_id)
+        row && row[:account_id].to_s == account_id.to_s ? :ok : :conflict
+      end
+
+      # Would completing this PASSWORD login leave a second factor pending? Mirrors
+      # the after_login hook's MFA decision (hooks/login.rb) for via_omniauth: false
+      # — a pure function of the located account's stored factors — evaluated HERE so
+      # the identity bind can be gated on FULL authentication (Item 1). When the OTP
+      # feature is not loaded (MFA disabled — the default), no second factor can be
+      # pending, so this returns false and the bind proceeds. A read error propagates
+      # to the POST handler's rescue (uniform with the unguarded MfaStateChecker call
+      # in after_login) rather than binding without certainty of full auth.
+      def link_sso_second_factor_pending?(account_id)
+        return false unless rodauth.respond_to?(:otp_auth_route)
+
+        mfa_state = Auth::Operations::MfaStateChecker.new(rodauth.db).check(account_id)
+        Auth::Operations::DetectMfaRequirement.call(
+          account_id: account_id,
+          has_otp_secret: mfa_state.has_otp_secret,
+          has_recovery_codes: mfa_state.has_recovery_codes,
+          via_omniauth: false,
+        ).requires_mfa?
       end
     end
   end
