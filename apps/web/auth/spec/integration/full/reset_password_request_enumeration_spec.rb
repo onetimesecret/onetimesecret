@@ -29,6 +29,7 @@
 
 require_relative '../../spec_helper'
 require 'rack/test'
+require 'argon2'
 
 RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: :integration do
   include Rack::Test::Methods
@@ -56,8 +57,16 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
   let(:created_account_ids) { [] }
 
   after do
+    db = Auth::Database.connection
     created_account_ids.each do |account_id|
-      Auth::Database.connection[:accounts].where(id: account_id).delete
+      # Delete child rows before the parent. On PostgreSQL the FK from
+      # account_password_reset_keys / account_password_hashes -> accounts makes a
+      # bare accounts delete raise; the rescue below would then swallow it and the
+      # rows would leak. (On SQLite FKs are off by default so order is moot, but we
+      # keep the correct order so cleanup is real on either backend.)
+      db[:account_password_reset_keys].where(id: account_id).delete
+      db[:account_password_hashes].where(id: account_id).delete
+      db[:accounts].where(id: account_id).delete
     rescue StandardError
       # Non-fatal cleanup error
     end
@@ -80,8 +89,8 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
     )
     created_account_ids << account_id
 
-    require 'argon2'
-    # Cost params match test config in config/features/argon2.rb
+    # Cost params match test config in config/features/argon2.rb (argon2 is
+    # required at the top of the file).
     hasher = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
     db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
 
@@ -91,7 +100,9 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
   # Establish a fresh session, fetch the CSRF token from GET /auth, then POST a
   # JSON reset-password-request to the Rodauth endpoint (mounted at /auth). The
   # full Rack app enforces CSRF, so the shrimp token is included (mirrors the
-  # csrf_login helper in pending_plan_intent_flow_spec.rb).
+  # csrf_login helper in pending_plan_intent_flow_spec.rb). "shrimp" is this
+  # app's name for the CSRF authenticity token (the Rack authenticity_param is
+  # literally 'shrimp'; see lib/onetime/middleware/security.rb).
   #
   # @return [Rack::MockResponse] the last response
   def request_password_reset(login)
@@ -145,6 +156,26 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
       # And it is the success shape, not a shared error shape.
       expect(existing_body).not_to have_key('field-error')
       expect(existing_body['success']).to match(/email has been sent/i)
+    end
+  end
+
+  describe 'happy path (existing verified account)' do
+    it 'still enqueues exactly one reset email for a valid, verified account' do
+      verified = unique_test_email('happy')
+      create_account(email: verified)
+
+      status, body = probe(verified)
+
+      # Closing the oracle must not suppress real functionality: a valid, open,
+      # non-throttled account still gets its reset email. probe() touches only
+      # this one account, so exactly one enqueue to this address is expected.
+      expect(status).to eq(200)
+      expect(body['success']).to match(/email has been sent/i)
+      # enqueue_email_raw is called with a message hash (to:/subject:/body:/from:)
+      # then delivery options; assert exactly one reset email addressed to the
+      # verified account.
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
+        .with(hash_including(to: include(verified)), any_args).once
     end
   end
 
