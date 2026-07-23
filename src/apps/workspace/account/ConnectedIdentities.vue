@@ -45,14 +45,16 @@
   const connectLabel = (provider: SsoProvider): string =>
     provider.display_name?.trim() ? provider.display_name : providerLabel(provider.route_name);
 
-  // Connecting reuses the sign-in form POST (see submitSsoLogin): the backend
-  // hook binds the returned identity to the logged-in account. `redirect` brings
-  // the user back to this panel after the IdP round-trip.
+  // Connecting reuses the sign-in form POST (see submitSsoLogin) but marks it
+  // with connect: true so the backend hook binds the returned identity to the
+  // logged-in account (a plain sign-in stays unmarked and never binds).
+  // `redirect` brings the user back to this panel after the IdP round-trip.
   const handleConnect = (provider: SsoProvider) => {
     submitSsoLogin({
       routeName: provider.route_name,
       shrimp: csrfStore.shrimp,
       redirect: CONNECT_REDIRECT,
+      connect: true,
     });
   };
 

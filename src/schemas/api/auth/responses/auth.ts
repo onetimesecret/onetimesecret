@@ -166,6 +166,8 @@ export function isAuthError(
     | EmailChangeConfirmResponse
     | EmailChangeResendResponse
     | ResendVerificationEmailResponse
+    | IdentitiesResponse
+    | RemoveIdentityResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -193,6 +195,10 @@ export function isAuthSuccess(
     | VerifyAccountResponse
     | ChangePasswordResponse
     | CloseAccountResponse
+    // RemoveIdentityResponse is a { success } | { error } union, so the success
+    // guard sensibly applies. IdentitiesResponse is deliberately NOT included:
+    // it is a { identities: [...] } list container with neither field.
+    | RemoveIdentityResponse
 ): response is z.infer<typeof authSuccessSchema> {
   return 'success' in response;
 }
