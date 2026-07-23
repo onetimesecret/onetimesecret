@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/sessions/store'
+require 'onetime/session/sidecar'
 require 'onetime/models/admin_audit_event'
 
 module Onetime
@@ -53,6 +54,11 @@ module Onetime
 
           # Same mutation the CLI performed inline, preserved verbatim.
           db.del(key)
+
+          # The sid's per-value sidecar keys (Onetime::SessionSidecar) go with
+          # the blob — an exact O(registry) DEL by name, format-gated inside
+          # purge so legacy non-hex ids no-op harmlessly.
+          Onetime::SessionSidecar.purge(@session_id, dbclient: db)
 
           # One audit event per successful mutation. The session id is a public
           # identifier; never put session contents (tokens, etc.) into detail.

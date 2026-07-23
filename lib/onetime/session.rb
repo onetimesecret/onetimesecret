@@ -11,6 +11,7 @@ require 'familia'
 
 require_relative 'logger_methods'
 require_relative 'session/codec'
+require_relative 'session/sidecar'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
@@ -166,6 +167,23 @@ module Onetime
             deleted: result,
             operation: 'delete',
           }
+
+        # The sid's per-value sidecar keys die with the blob (exact O(registry)
+        # DEL, no SCAN). Own rescue: purge is best-effort hygiene — a failure
+        # must not disturb the delete flow, and any orphans it leaves are
+        # TTL-bounded by the sidecar clamp (they can never outlive the blob's
+        # would-have-been lifetime).
+        begin
+          Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+        rescue StandardError => ex
+          session_logger.error 'Sidecar purge failed (orphans are TTL-bounded)',
+            {
+              session_id: sid_string,
+              error: ex.message,
+              error_class: ex.class.name,
+              operation: 'delete',
+            }
+        end
 
       else
         session_logger.trace 'No session found to delete',
@@ -337,7 +355,7 @@ module Onetime
     #
     # In all failure cases, env['rack.session'][:account_id] is nil/missing,
     # so Rodauth's logged_in? returns false.
-    def find_session(_request, sid)
+    def find_session(request, sid)
       # Parent class already extracts sid from cookies
       # sid may be a SessionId object or nil
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
@@ -455,6 +473,30 @@ module Onetime
         # Example: {"account_id":123,"awaiting_mfa":true}
         session_data = Familia::JsonSerializer.parse(decrypted_data)
 
+        # Overlay externalized per-value fields (sidecar keys with their own
+        # TTLs) onto the decoded hash. The sidecar value wins over any stale
+        # blob-resident copy (rolling-deploy back-compat). Runs ONLY on this
+        # authentic-blob path — a missing/tampered blob must present as {} with
+        # its sidecars inert. Own rescue: a sidecar read failure degrades to
+        # "unmerged" (fields simply absent — the safe state by the admission
+        # rule); it must never fall through to the outer rescue below, which
+        # would mint a fresh sid and log the user out over a convenience read.
+        # The merged field list is stashed in the env so write_session can
+        # translate an app-side `sess.delete(field)` into a sidecar DEL.
+        begin
+          merged       = Onetime::SessionSidecar.merge(sid_string, session_data, dbclient: @dbclient, codec: @codec)
+          session_data = merged[:data]
+          request.env['onetime.session.sidecar_merged'] = merged[:fields] if request.respond_to?(:env)
+        rescue StandardError => ex
+          session_logger.error 'Sidecar merge failed (skipped)',
+            {
+              session_id: sid_string,
+              error: ex.message,
+              error_class: ex.class.name,
+              operation: 'read',
+            }
+        end
+
         session_logger.trace 'Session loaded successfully',
           {
             session_id: sid_string,
@@ -522,6 +564,37 @@ module Onetime
           session_data_class: session_data.class.name,
           operation: 'write',
         }
+
+      # Externalize registered per-value fields BEFORE serialization: commit
+      # strips them from the hash and stores them as sibling keys with their
+      # own (blob-clamped) TTLs, DELeting any field the app removed since the
+      # read-side merge (the env stash). Own rescue, same contract as the
+      # TrackMetadata sidecar below: a failure here must NEVER reach this
+      # method's outer rescue (which returns false and drops the cookie) — on
+      # error the original hash is preserved, so the fields simply stay in the
+      # blob for this cycle (data safe; only the independent TTL degrades to
+      # the blob's). This runs before anything reads `authenticated` /
+      # `external_id`, and those fields are never externalized, so the
+      # TrackMetadata gate below is unaffected.
+      begin
+        merged_fields = request.respond_to?(:env) ? request.env['onetime.session.sidecar_merged'] : nil
+        # ceiling: on a FIRST commit the blob key does not exist yet, so the
+        # sidecar's TTL-clamp fallback would come from global config — pass this
+        # middleware's own expire_after so its value wins. A live blob's
+        # remaining TTL still takes precedence inside commit.
+        session_data  = Onetime::SessionSidecar.commit(
+          sid_string, session_data, merged: merged_fields, dbclient: @dbclient, codec: @codec,
+          ceiling: @expire_after
+        )
+      rescue StandardError => ex
+        session_logger.error 'Sidecar commit failed (fields stay in blob)',
+          {
+            session_id: sid_string,
+            error: ex.message,
+            error_class: ex.class.name,
+            operation: 'write',
+          }
+      end
 
       # Step 1: Serialize session data to JSON
       # Example: {"account_id":123,"awaiting_mfa":true}

@@ -120,9 +120,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       expect(logic.stay).to be true
     end
 
-    it 'sets session TTL to 30 days when stay is true' do
+    it 'reports the session TTL the middleware actually applies (configured expire_after)' do
       logic.process_params
-      expect(logic.session_ttl).to eq(30 * 24 * 60 * 60) # 30 days in seconds
+      # session_config falls back to SESSION_DEFAULTS (24h) when site.session
+      # is not configured — the same value write_session re-applies per commit.
+      expect(logic.session_ttl).to eq(86_400)
+      expect(logic.session_ttl).to eq(Onetime.session_config['expire_after'].to_i)
     end
 
     it 'sets objid when customer exists and passphrase matches' do

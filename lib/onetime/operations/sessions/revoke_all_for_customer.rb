@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/sessions/store'
+require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/admin_audit_event'
 
@@ -146,6 +147,10 @@ module Onetime
             next false unless key
 
             db.del(key)
+            # A revoked sid's per-value sidecar keys must die with the blob —
+            # exact registry-derived names, format-gated (legacy non-hex ids
+            # no-op).
+            Onetime::SessionSidecar.purge(sid, dbclient: db)
             true
           end
         end
@@ -180,6 +185,9 @@ module Onetime
             next unless IDENTITY_FIELDS.any? { |f| data[f].to_s == extid }
 
             db.del(key)
+            # Untracked (pre-sidecar-index) sessions can still own per-value
+            # sidecar keys; those must not survive the blob either.
+            Onetime::SessionSidecar.purge(sid, dbclient: db)
             deleted += 1
           end
 

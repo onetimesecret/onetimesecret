@@ -45,6 +45,16 @@ module Onetime
         # Common prefixes stripped to recover the bare session id from a key.
         KEY_PREFIX_PATTERN = /^(session:|rack:session:)/
 
+        # Per-value sidecar keys (Onetime::SessionSidecar, issue #3858):
+        # "session:" + a full hex sid + ":" + field. They are STRINGs, so the
+        # scan's `type: 'string'` filter alone would sweep them into every
+        # `*session*` consumer (listings, counts, revoke sweeps). No legacy
+        # blob shape has anything after the sid ({key_patterns}), so this
+        # cannot match a blob — including the bare-sid and
+        # session:rack:session:<sid> shapes. The sidecar's own sid format
+        # guard guarantees every key it creates matches this pattern.
+        SIDECAR_KEY_PATTERN = /\Asession:[a-f0-9]{64,}:/
+
         # The candidate keys a bare session id can live under. Identical to the
         # historic CLI list — order matters (first existing key wins).
         #
@@ -150,13 +160,19 @@ module Onetime
         # real session values are strings, but the loose `*session*` match also
         # catches non-string keys such as the entitlement-preview SETs
         # (`session:<sid>:entitlement_preview_*`), which would WRONGTYPE on GET.
-        # {load_data} stays defensive for anything a filter can't anticipate.
+        # Sidecar keys ({SIDECAR_KEY_PATTERN}) ARE strings, so they need the
+        # client-side reject — kept lazy to preserve the bounded-cursor
+        # property, with {MAX_SCAN} bounding POST-filter keys (the budget that
+        # matters to consumers). {load_data} stays defensive for anything a
+        # filter can't anticipate.
         #
         # @param dbclient [Object]
         # @param pattern [String]
         # @return [Array<String>] the matched keys (scan order, capped)
         def scan_keys(dbclient, pattern: SESSION_SCAN_PATTERN)
-          dbclient.scan_each(match: pattern, type: 'string').first(MAX_SCAN)
+          dbclient.scan_each(match: pattern, type: 'string')
+                  .lazy.reject { |key| key.match?(SIDECAR_KEY_PATTERN) }
+                  .first(MAX_SCAN)
         end
 
         # Count session keys via the same bounded, string-typed scan the listing

@@ -54,6 +54,8 @@
 #   end
 #
 
+require 'onetime/operations/sessions/store'
+
 module Auth
   module Operations
     class CloseAccount
@@ -187,6 +189,11 @@ module Auth
 
         # Scan for all session keys
         dbclient.scan_each(match: 'session:*') do |key|
+            # Per-value sidecar keys (session:<sid>:<field>) are not session
+            # blobs; their envelopes would only fall into the malformed-skip
+            # rescue below, so skipping them up front keeps the sweep honest.
+            next if key.match?(Onetime::Operations::Sessions::Store::SIDECAR_KEY_PATTERN)
+
             raw_value = dbclient.get(key)
             next unless raw_value
 

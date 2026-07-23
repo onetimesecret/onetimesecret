@@ -25,6 +25,7 @@ require_relative '../../../support/test_helpers'
 
 OT.boot! :test
 
+require 'securerandom'
 require 'onetime/operations/sessions/track_metadata'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 
@@ -49,7 +50,10 @@ DB    = Familia.dbclient
 @other.save
 
 # Two TRACKED sessions (sidecar + index + blob), via the real write path.
-@tracked = ["tryall_a_#{@nonce}", "tryall_b_#{@nonce}"]
+# REAL 64-hex sids (#3858): the per-value sidecar purge is format-gated to
+# real sids, and this file must prove BOTH purge paths (guaranteed tracked
+# kill AND best-effort untracked sweep) run it.
+@tracked = [SecureRandom.hex(32), SecureRandom.hex(32)]
 @tracked.each do |sid|
   Onetime::Operations::Sessions::TrackMetadata.new(
     session_id: sid,
@@ -62,9 +66,15 @@ end
 
 # One UNTRACKED session: a real blob for the target, but NO sidecar and NOT in
 # the index (a pre-sidecar session). Only the best-effort scan can catch it.
-@untracked = "tryall_untracked_#{@nonce}"
+@untracked = SecureRandom.hex(32)
 DB.set("session:#{@untracked}", @codec.encode({ 'authenticated' => true,
                                                 'external_id' => @extid, 'email' => @cust.email }))
+
+# Per-value sidecar keys (#3858) next to a TRACKED blob and the UNTRACKED
+# blob — the guaranteed kill and the best-effort sweep must each purge their
+# sid's keys.
+DB.set("session:#{@tracked[0]}:awaiting_mfa", 'sidecar-envelope')
+DB.set("session:#{@untracked}:domain_context", 'sidecar-envelope')
 
 # CAP-PROOF regression: a blob that is IN @cust's index (tracked) but whose blob
 # identity does NOT match @cust. Under a scan-first design the identity match
@@ -95,6 +105,10 @@ DB.set("session:#{@other_sid}", @codec.encode({ 'authenticated' => true,
 ## the index tracks the two normal sids plus the mislabeled one (not the untracked)
 @cust.active_sessions.revrange(0, -1).sort == (@tracked + [@mislabeled]).sort
 #=> true
+
+## [#3858] the seeded per-value sidecar keys exist before the revoke
+DB.exists("session:#{@tracked[0]}:awaiting_mfa", "session:#{@untracked}:domain_context")
+#=> 2
 
 # ---- revoke-all: guaranteed tracked kill + best-effort sweep + audit ---
 
@@ -130,6 +144,11 @@ AE.events.clear
 Store.find_key(DB, @other_sid).nil?
 #=> false
 
+## [#3858] BOTH purge paths ran: the tracked sid's AND the untracked sid's
+## per-value sidecar keys died with their blobs
+DB.exists("session:#{@tracked[0]}:awaiting_mfa", "session:#{@untracked}:domain_context")
+#=> 0
+
 ## every sidecar is destroyed and the index is cleared
 [SM.load(@tracked[0]).nil?, SM.load(@tracked[1]).nil?, @cust.active_sessions.revrange(0, -1)]
 #=> [true, true, []]
@@ -164,6 +183,8 @@ AE.count
 DB.del("session:#{@untracked}")
 DB.del("session:#{@mislabeled}")
 DB.del("session:#{@other_sid}")
+DB.del("session:#{@tracked[0]}:awaiting_mfa")
+DB.del("session:#{@untracked}:domain_context")
 @cust.active_sessions.clear
 @cust.destroy!
 @other.destroy!

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/sessions/store'
+require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 
 module Onetime
@@ -191,6 +192,12 @@ module Onetime
             end
 
             db.del(key)
+            # Sidecar purge runs ONLY on this deleted branch: the preserved
+            # current session and any watermark-spared session stay fully
+            # alive, per-value keys included (killing e.g. a live
+            # awaiting_mfa/domain_context out from under a spared session
+            # would corrupt the very session this op promises to keep).
+            Onetime::SessionSidecar.purge(sid, dbclient: db)
             true
           end
           [deleted, spared]
@@ -222,6 +229,9 @@ module Onetime
             next if watermark.positive? && spared_by_watermark?(data, watermark)
 
             db.del(key)
+            # Deleted-blob branch only — current/spared sids never reach here,
+            # so their per-value sidecar keys survive with them.
+            Onetime::SessionSidecar.purge(sid, dbclient: db)
             deleted += 1
           end
 
