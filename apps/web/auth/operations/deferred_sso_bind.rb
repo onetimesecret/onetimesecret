@@ -135,17 +135,20 @@ module Auth
           # write returns the effective TTL, or nil when no key was written
           # (a sid that fails the sidecar's format guard).
           written = !Onetime::SessionSidecar.write(
-            sid, FIELD, payload, dbclient: dbclient, codec: codec,
+            sid, FIELD, payload, dbclient: dbclient, codec: codec
           ).nil?
           unless written
             logger.warn 'Deferred SSO bind not stashed: session id unavailable',
-              account_id: account_id, provider: provider
+              account_id: account_id,
+              provider: provider
           end
           written
         rescue StandardError => ex
           logger.warn 'Deferred SSO bind not stashed: sidecar write failed',
-            account_id: account_id, provider: provider,
-            error: ex.message, error_class: ex.class.name
+            account_id: account_id,
+            provider: provider,
+            error: ex.message,
+            error_class: ex.class.name
           false
         end
 
@@ -163,8 +166,13 @@ module Auth
         # @return [:none, :ok, :conflict, :mismatch]
         def complete(db:, sid:, account_id:, session: nil, logger: nil, dbclient: nil, codec: nil)
           new(
-            db: db, sid: sid, account_id: account_id, session: session,
-            logger: logger, dbclient: dbclient, codec: codec,
+            db: db,
+            sid: sid,
+            account_id: account_id,
+            session: session,
+            logger: logger,
+            dbclient: dbclient,
+            codec: codec,
           ).complete
         end
 
