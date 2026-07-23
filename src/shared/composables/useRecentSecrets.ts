@@ -410,13 +410,9 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
   };
 
   // Scope properties (only relevant for authenticated users)
-  const currentScope = computed(() =>
-    isAuthenticated.value ? api.currentScope.value : undefined
-  );
+  const currentScope = computed(() => (isAuthenticated.value ? api.currentScope.value : undefined));
 
-  const scopeLabel = computed(() =>
-    isAuthenticated.value ? api.scopeLabel.value : null
-  );
+  const scopeLabel = computed(() => (isAuthenticated.value ? api.scopeLabel.value : null));
 
   return {
     records,

@@ -1,15 +1,11 @@
 // src/apps/admin/stores/useAdminDomains.ts
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { z } from 'zod';
-
 
 type ColonelCustomDomainsResponse = z.infer<typeof colonelCustomDomainsResponseSchema>;
 

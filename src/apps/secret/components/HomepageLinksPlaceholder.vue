@@ -1,7 +1,6 @@
 <!-- src/apps/secret/components/HomepageLinksPlaceholder.vue -->
 
 <script setup lang="ts">
-
   defineProps({
     title: { type: String, default: 'No secrets yet' },
     description: { type: String, default: 'Create a secret above to get started.' },
@@ -37,6 +36,4 @@
   </div>
 </template>
 
-<style>
-
-</style>
+<style></style>

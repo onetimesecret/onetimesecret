@@ -197,8 +197,8 @@
     <!-- Timeline connector line -->
     <span
       v-if="!isLast"
-      class="absolute left-4 top-9 -ml-px h-[calc(100%-0.5rem)] w-0.5 bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-700/50"
-      aria-hidden="true" ></span>
+      class="absolute top-9 left-4 -ml-px h-[calc(100%-0.5rem)] w-0.5 bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-700/50"
+      aria-hidden="true"></span>
 
     <div :class="rowClasses">
       <!-- Index number -->
@@ -222,7 +222,7 @@
                   type="text"
                   maxlength="100"
                   :placeholder="t('web.LABELS.add_memo')"
-                  class="w-full max-w-xs rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+                  class="w-full max-w-xs rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
                   @keydown="handleMemoKeydown"
                   @blur="saveMemo" />
               </template>
@@ -321,7 +321,7 @@
             <router-link :to="`/receipt/${record.extid}`">
               <time
                 :datetime="record.createdAt.toISOString()"
-                class="whitespace-nowrap text-xs tabular-nums text-gray-400 dark:text-gray-500">
+                class="text-xs whitespace-nowrap text-gray-400 tabular-nums dark:text-gray-500">
                 {{ formattedDate }}
               </time>
             </router-link>
@@ -368,7 +368,7 @@
                   leave-to-class="opacity-0 scale-95">
                   <div
                     v-if="isCopied"
-                    class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-gray-700">
+                    class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-lg dark:bg-gray-700">
                     {{ t('web.STATUS.copied') }}
                   </div>
                 </Transition>

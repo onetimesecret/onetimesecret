@@ -26,7 +26,8 @@
   });
 
   const mainClasses = computed(() => {
-    const base = 'container mx-auto flex min-w-[320px] max-w-2xl flex-1 flex-col px-4 justify-start';
+    const base =
+      'container mx-auto flex min-w-[320px] max-w-2xl flex-1 flex-col px-4 justify-start';
     return props.displayMasthead ? `${base} py-8` : `${base} pt-16 pb-8`;
   });
 </script>

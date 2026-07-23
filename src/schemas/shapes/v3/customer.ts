@@ -3,11 +3,7 @@
 // V3 wire-format shapes for customers.
 // Derives from contracts, adding V3-specific transforms (number -> Date, native types).
 
-import {
-  customerCanonical,
-  customerRoleSchema,
-  featureFlagsSchema,
-} from '@/schemas/contracts';
+import { customerCanonical, customerRoleSchema, featureFlagsSchema } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 

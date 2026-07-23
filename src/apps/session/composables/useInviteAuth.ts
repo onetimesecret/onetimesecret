@@ -151,7 +151,9 @@ export function useInviteAuth() {
 
       // Check for "account exists" in error response
       const axiosErr = e as AxiosLikeError;
-      const accountExists = axiosErr.response?.data?.error?.toLowerCase().includes('already exists');
+      const accountExists = axiosErr.response?.data?.error
+        ?.toLowerCase()
+        .includes('already exists');
       return { success: false, error: info.message, accountExists };
     } finally {
       isLoading.value = false;

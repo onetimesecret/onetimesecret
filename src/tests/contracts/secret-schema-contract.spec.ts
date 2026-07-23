@@ -31,24 +31,17 @@ describe('Secret schema contract (safe_dump_fields)', () => {
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
     // (or it appears in the explicit exclusion list).
-    const backendFields = SECRET_SAFE_DUMP_FIELDS.filter(
-      (f) => !(f in INTENTIONAL_EXCLUSIONS)
-    );
+    const backendFields = SECRET_SAFE_DUMP_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS));
 
-    it.each(backendFields)(
-      'secretSchema declares backend field "%s"',
-      (field) => {
-        expect(schemaKeys).toContain(field);
-      }
-    );
+    it.each(backendFields)('secretSchema declares backend field "%s"', (field) => {
+      expect(schemaKeys).toContain(field);
+    });
 
     it('all intentional exclusions reference real backend fields', () => {
       // Guard against stale exclusions: every key in INTENTIONAL_EXCLUSIONS
       // must actually exist in the backend field list.
       for (const excluded of Object.keys(INTENTIONAL_EXCLUSIONS)) {
-        expect(
-          SECRET_SAFE_DUMP_FIELDS as readonly string[]
-        ).toContain(excluded);
+        expect(SECRET_SAFE_DUMP_FIELDS as readonly string[]).toContain(excluded);
       }
     });
 

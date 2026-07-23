@@ -22,8 +22,16 @@ import { z } from 'zod';
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical, cornerStyleValues, fontFamilyValues, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
-import { disabledHomepageConfigSchema, disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
+import {
+  brandSettingsCanonical,
+  cornerStyleValues,
+  fontFamilyValues,
+  homepageConfigCanonical,
+} from '@/schemas/contracts/custom-domain';
+import {
+  disabledHomepageConfigSchema,
+  disabledHomepageVariantSchema,
+} from '@/schemas/contracts/disabled-homepage';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -530,9 +538,7 @@ export const bootstrapSchema = z.object({
 
   // Frontend rendering config for the disabled-homepage view. All knobs
   // optional with auto-detection defaults; backend may omit entirely.
-  disabled_homepage: disabledHomepageConfigSchema.default(
-    disabledHomepageConfigSchema.parse({})
-  ),
+  disabled_homepage: disabledHomepageConfigSchema.default(disabledHomepageConfigSchema.parse({})),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Brand fields (per-installation defaults from OT.conf['brand'])

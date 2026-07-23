@@ -114,7 +114,8 @@
           {{ t('web.domains.add_this_hostname_to_your_dns_configuration') }}
         </p>
 
-        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
+        <div
+          class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             :label="t('web.COMMON.type')"
             :value="recordType" />

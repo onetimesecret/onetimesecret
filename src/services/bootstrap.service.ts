@@ -105,7 +105,12 @@ export function getBootstrapValue<K extends keyof BootstrapPayload>(
     }
   }
 
-  debugLog.features('BootstrapService.getBootstrapValue', { source: 'not-found', key, consumed, hasSnapshot: !!bootstrapSnapshot });
+  debugLog.features('BootstrapService.getBootstrapValue', {
+    source: 'not-found',
+    key,
+    consumed,
+    hasSnapshot: !!bootstrapSnapshot,
+  });
   return undefined;
 }
 

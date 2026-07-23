@@ -4,15 +4,15 @@
 // Derives from contracts, adding V3-specific timestamp transforms (number → Date).
 
 import {
-    ReceiptState,
-    isValidReceiptState,
-    receiptBaseCanonical,
-    receiptCanonical,
-    receiptDetailsCanonical,
-    receiptListCanonical,
-    receiptListDetailsCanonical,
-    receiptStateSchema,
-    receiptStateValues,
+  ReceiptState,
+  isValidReceiptState,
+  receiptBaseCanonical,
+  receiptCanonical,
+  receiptDetailsCanonical,
+  receiptListCanonical,
+  receiptListDetailsCanonical,
+  receiptStateSchema,
+  receiptStateValues,
 } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -60,7 +60,10 @@ const v3TimestampOverrides = {
  */
 export const receiptBaseSchema = receiptBaseCanonical.extend({
   ...v3TimestampOverrides,
-  has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
+  has_passphrase: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
 });
 
 /**
@@ -68,7 +71,10 @@ export const receiptBaseSchema = receiptBaseCanonical.extend({
  */
 export const receiptSchema = receiptCanonical.extend({
   ...v3TimestampOverrides,
-  has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
+  has_passphrase: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
   // Nullable: null for a consumed/expired secret (see receiptCanonical, #3424).
   expiration: transforms.fromNumber.toDateNullable,
 });
@@ -79,8 +85,14 @@ export const receiptSchema = receiptCanonical.extend({
  * Adds null → false transforms for nullable boolean fields.
  */
 export const receiptDetailsSchema = receiptDetailsCanonical.extend({
-  has_passphrase: z.boolean().nullable().transform((v) => v ?? false),
-  can_decrypt: z.boolean().nullable().transform((v) => v ?? false),
+  has_passphrase: z
+    .boolean()
+    .nullable()
+    .transform((v) => v ?? false),
+  can_decrypt: z
+    .boolean()
+    .nullable()
+    .transform((v) => v ?? false),
 });
 
 /**
@@ -88,7 +100,10 @@ export const receiptDetailsSchema = receiptDetailsCanonical.extend({
  */
 export const receiptListSchema = receiptListCanonical.extend({
   ...v3TimestampOverrides,
-  has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
+  has_passphrase: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
 });
 
 /**

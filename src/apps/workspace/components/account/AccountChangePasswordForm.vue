@@ -2,18 +2,18 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { usePasswordChange } from '@/shared/composables/usePasswordChange';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { usePasswordChange } from '@/shared/composables/usePasswordChange';
 
-interface Props {
-  apitoken?: string;
-}
+  interface Props {
+    apitoken?: string;
+  }
 
-const { t } = useI18n();
-defineProps<Props>();
-const emit = defineEmits(['update:password']);
+  const { t } = useI18n();
+  defineProps<Props>();
+  const emit = defineEmits(['update:password']);
 
-const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(emit);
+  const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(emit);
 </script>
 
 <template>
@@ -124,10 +124,14 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
     </div>
 
     <!-- Notification messages -->
-    <div v-if="formState.error" class="mb-4 text-red-500">
+    <div
+      v-if="formState.error"
+      class="mb-4 text-red-500">
       {{ formState.error }}
     </div>
-    <div v-if="formState.success" class="mb-4 text-green-500">
+    <div
+      v-if="formState.success"
+      class="mb-4 text-green-500">
       {{ formState.success }}
     </div>
 
@@ -136,7 +140,11 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
       :disabled="!isValid || formState.isSubmitting"
       class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 disabled:opacity-50">
       <i class="fas fa-save mr-2"></i>
-      {{ formState.isSubmitting ? t('web.account.changePassword.updating') : t('web.account.changePassword.updatePassword') }}
+      {{
+        formState.isSubmitting
+          ? t('web.account.changePassword.updating')
+          : t('web.account.changePassword.updatePassword')
+      }}
     </button>
   </form>
 </template>

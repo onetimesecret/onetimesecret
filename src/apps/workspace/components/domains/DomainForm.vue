@@ -220,7 +220,9 @@
               tag="span"
               scope="global">
               <template #domain>
-                <span class="font-mono text-gray-700 dark:text-gray-300">{{ analysis.registrable }}</span>
+                <span class="font-mono text-gray-700 dark:text-gray-300">{{
+                  analysis.registrable
+                }}</span>
               </template>
             </i18n-t>
           </p>
@@ -231,7 +233,8 @@
             class="space-y-5">
             <!-- Popular subdomains: the low-consequence, recommended path -->
             <div class="space-y-2">
-              <p class="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              <p
+                class="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.domains.add.subdomains_label') }}
               </p>
               <label
@@ -250,7 +253,8 @@
                   name="apex-address"
                   :value="sub"
                   class="size-4 shrink-0 accent-brand-600 focus:outline-none dark:accent-brand-400" />
-                <span class="min-w-0 flex-1 font-mono text-sm break-all text-gray-900 dark:text-white">
+                <span
+                  class="min-w-0 flex-1 font-mono text-sm break-all text-gray-900 dark:text-white">
                   {{ sub }}.{{ analysis.registrable }}
                 </span>
                 <span
@@ -263,7 +267,8 @@
 
             <!-- Or use your whole domain: higher-consequence, amber caution -->
             <div class="space-y-2">
-              <p class="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              <p
+                class="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.domains.add.root_group_label') }}
               </p>
               <label
@@ -323,22 +328,13 @@
       </p>
 
       <div
-        class="flex flex-col-reverse
-        space-y-4 space-y-reverse sm:flex-row sm:space-y-0 sm:space-x-4">
+        class="flex flex-col-reverse space-y-4 space-y-reverse sm:flex-row sm:space-y-0 sm:space-x-4">
         <!-- Cancel/Back Button -->
         <button
           type="button"
           @click="$emit('back')"
           data-testid="domain-add-cancel-btn"
-          class="inline-flex w-full items-center justify-center rounded-md
-            border border-gray-300
-            bg-white px-4 py-2 text-base
-            font-medium text-gray-700 shadow-sm
-            hover:bg-gray-50
-            focus:ring-2
-            focus:ring-gray-500 focus:ring-offset-2 focus:outline-none sm:w-1/2
-            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200
-            dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+          class="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none sm:w-1/2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
           :aria-label="t('web.layout.go_back_to_previous_page')">
           <svg
             class="mr-2 -ml-1 size-5"
@@ -360,16 +356,7 @@
           type="submit"
           :disabled="isSubmitting || needsChoice"
           data-testid="domain-add-submit"
-          class="inline-flex w-full items-center justify-center rounded-md
-            border border-transparent
-            bg-brand-600 px-4 py-2 text-base
-            font-medium text-white shadow-sm
-            hover:bg-brand-700
-            focus:ring-2
-            focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed
-            disabled:opacity-50 sm:w-1/2
-            dark:bg-brand-500 dark:hover:bg-brand-400
-            dark:focus:ring-offset-gray-900"
+          class="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:w-1/2 dark:bg-brand-500 dark:hover:bg-brand-400 dark:focus:ring-offset-gray-900"
           aria-live="polite">
           <span
             v-if="isSubmitting"

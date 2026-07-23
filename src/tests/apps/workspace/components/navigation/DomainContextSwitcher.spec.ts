@@ -65,7 +65,11 @@ vi.mock('vue-i18n', () => ({
 
 // --- router ------------------------------------------------------------------
 const mockPush = vi.fn();
-const mockRoute = reactive<{ meta: Record<string, unknown>; params: Record<string, unknown>; matched: unknown[] }>({
+const mockRoute = reactive<{
+  meta: Record<string, unknown>;
+  params: Record<string, unknown>;
+  matched: unknown[];
+}>({
   meta: {},
   params: {},
   matched: [],
@@ -230,9 +234,7 @@ describe('DomainContextSwitcher closes on navigation', () => {
   it('closes the dropdown and navigates when the gear icon is clicked', async () => {
     wrapper = mount(DomainContextSwitcher);
 
-    await wrapper
-      .find('[aria-label="web.domains.domain_settings"]')
-      .trigger('click');
+    await wrapper.find('[aria-label="web.domains.domain_settings"]').trigger('click');
 
     expect(mockPush).toHaveBeenCalledWith('/org/org1/domains/cd1');
     expect(mockClose).toHaveBeenCalled();

@@ -72,9 +72,9 @@
       </div>
     </div>
 
-    <div class="bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+    <div class="bg-white shadow sm:rounded-lg dark:bg-gray-800">
       <div class="px-4 py-5 sm:p-6">
-        <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+        <h3 class="text-base leading-6 font-semibold text-gray-900 dark:text-white">
           {{ t('web.auth.close_account.title') }}
         </h3>
 
@@ -110,7 +110,7 @@
                 :disabled="isLoading"
                 :aria-invalid="fieldError?.[0] === 'password'"
                 :aria-describedby="fieldError?.[0] === 'password' ? 'password-error' : undefined"
-                class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
+                class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
               <button
                 type="button"
                 @click="togglePasswordVisibility"
@@ -175,13 +175,13 @@
               type="button"
               @click="$router.push('/account/settings')"
               :disabled="isLoading"
-              class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
               {{ t('web.auth.close_account.cancel') }}
             </button>
             <button
               type="submit"
               :disabled="!password || !confirmationChecked || isLoading"
-              class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
               {{ t('web.COMMON.continue') }}
             </button>
           </div>
@@ -233,14 +233,14 @@
               type="button"
               @click="handleCancel"
               :disabled="isLoading"
-              class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
               {{ t('web.auth.close_account.cancel') }}
             </button>
             <button
               type="button"
               @click="handleFinalSubmit"
               :disabled="!canSubmit"
-              class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
               <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
               <span v-else>{{ t('web.auth.close_account.button') }}</span>
             </button>

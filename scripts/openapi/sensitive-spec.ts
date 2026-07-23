@@ -58,9 +58,7 @@ export const API_MOUNT_PATHS: Record<string, string> = {
  * - Literal 'true'        -> true  (all :params in the path are sensitive)
  * - 'key1,key2'           -> Set<string> of named sensitive params
  */
-export function parseSensitiveSpec(
-  value: string | undefined
-): true | Set<string> | null {
+export function parseSensitiveSpec(value: string | undefined): true | Set<string> | null {
   if (value === undefined) return null;
   const trimmed = value.trim();
   if (trimmed === '') return null;

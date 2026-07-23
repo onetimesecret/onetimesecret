@@ -31,12 +31,7 @@
 
   // Form validation schema
   const privacyDefaultsSchema = z.object({
-    default_ttl: z
-      .number()
-      .int()
-      .positive()
-      .nullable()
-      .optional(),
+    default_ttl: z.number().int().positive().nullable().optional(),
     passphrase_required: z.boolean().default(false),
     notify_enabled: z.boolean().default(false),
   });
@@ -72,12 +67,12 @@
     }
   );
 
-  const hasChanges = computed(() => (
+  const hasChanges = computed(
+    () =>
       formData.value.default_ttl !== (props.brandSettings.default_ttl ?? null) ||
-      formData.value.passphrase_required !==
-        (props.brandSettings.passphrase_required ?? false) ||
+      formData.value.passphrase_required !== (props.brandSettings.passphrase_required ?? false) ||
       formData.value.notify_enabled !== (props.brandSettings.notify_enabled ?? false)
-    ));
+  );
 
   const validateForm = (): boolean => {
     try {
@@ -152,7 +147,7 @@
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <DialogPanel
-              class="relative overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              class="relative overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 dark:bg-gray-800">
               <!-- Header -->
               <div class="mb-4 flex items-start justify-between">
                 <div class="flex items-center gap-3">
@@ -166,13 +161,13 @@
                   </div>
                   <DialogTitle
                     as="h3"
-                    class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-100">
+                    class="text-lg leading-6 font-semibold text-gray-900 dark:text-gray-100">
                     {{ t('web.domains.privacy_defaults_title') }}
                   </DialogTitle>
                 </div>
                 <button
                   type="button"
-                  class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-500 dark:hover:text-gray-400"
+                  class="rounded-md text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-500 dark:hover:text-gray-400"
                   @click="handleCancel">
                   <span class="sr-only">{{ t('web.LABELS.close') }}</span>
                   <OIcon
@@ -202,7 +197,7 @@
                   <select
                     id="default_ttl"
                     v-model="formData.default_ttl"
-                    class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:text-sm">
+                    class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <option :value="null">
                       {{ t('web.domains.use_global_default') }}
                     </option>
@@ -285,24 +280,24 @@
                 <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                   <button
                     type="button"
-                    class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:w-auto"
+                    class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600"
                     @click="handleCancel">
                     {{ t('web.COMMON.word_cancel') }}
                   </button>
                   <button
                     type="submit"
                     :disabled="!hasChanges || isSaving"
-                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-gray-800 sm:w-auto">
+                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:focus:ring-offset-gray-800">
                     <OIcon
                       v-if="isSaving"
                       collection="mdi"
                       name="loading"
-                      class="-ml-0.5 mr-2 size-4 animate-spin motion-reduce:animate-none" />
+                      class="mr-2 -ml-0.5 size-4 animate-spin motion-reduce:animate-none" />
                     <OIcon
                       v-else
                       collection="mdi"
                       name="content-save"
-                      class="-ml-0.5 mr-2 size-4" />
+                      class="mr-2 -ml-0.5 size-4" />
                     {{ isSaving ? t('web.LABELS.saving') : t('web.LABELS.save') }}
                   </button>
                 </div>

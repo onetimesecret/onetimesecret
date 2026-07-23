@@ -23,12 +23,9 @@
     </h2>
 
     <!-- Read brand from -->
-    <div class="mt-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
-      Read brand from
-    </div>
+    <div class="mt-3 text-xs font-semibold text-gray-700 dark:text-gray-300">Read brand from</div>
     <div
-      class="mt-1.5 flex items-center gap-2 rounded-lg border border-gray-300
-        px-3 py-2 dark:border-gray-600">
+      class="mt-1.5 flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600">
       <OIcon
         collection="mdi"
         name="web"
@@ -40,8 +37,7 @@
     <!-- What we read -->
     <div class="mt-3 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
       <div
-        class="border-b border-gray-200 bg-gray-100 px-3 py-1.5 text-[10.5px] font-semibold
-          tracking-wide text-gray-500 uppercase dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300">
+        class="border-b border-gray-200 bg-gray-100 px-3 py-1.5 text-[10.5px] font-semibold tracking-wide text-gray-500 uppercase dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300">
         What we read from your site
       </div>
       <div class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -54,14 +50,18 @@
             <span
               class="size-3.5 rounded-full ring-1 ring-gray-200"
               :style="{ background: row.site }"></span>
-            <span class="font-mono text-[11px] text-gray-800 dark:text-gray-300">{{ row.site }}</span>
+            <span class="font-mono text-[11px] text-gray-800 dark:text-gray-300">{{
+              row.site
+            }}</span>
           </span>
           <span class="text-center text-xs text-gray-300">→</span>
           <span class="flex items-center gap-1.5">
             <span
               class="size-3.5 rounded-full ring-1 ring-gray-200"
               :style="{ background: row.page }"></span>
-            <span class="font-mono text-[11px] text-gray-800 dark:text-gray-300">{{ row.page }}</span>
+            <span class="font-mono text-[11px] text-gray-800 dark:text-gray-300">{{
+              row.page
+            }}</span>
           </span>
           <span
             class="justify-self-end text-[11px] font-medium"
@@ -73,8 +73,7 @@
     </div>
 
     <div
-      class="mt-3 flex h-10 items-center justify-center rounded-lg bg-brand-600
-        text-sm font-medium text-white">
+      class="mt-3 flex h-10 items-center justify-center rounded-lg bg-brand-600 text-sm font-medium text-white">
       Match my site
     </div>
   </div>

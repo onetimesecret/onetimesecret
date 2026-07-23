@@ -48,25 +48,33 @@ describe('useDomainStatus', () => {
 
   describe('isActive', () => {
     it('returns true for ACTIVE status', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'ACTIVE', last_monitored_unix: 123 } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'ACTIVE', last_monitored_unix: 123 } })
+      );
       const { isActive } = useDomainStatus(domain);
       expect(isActive.value).toBe(true);
     });
 
     it('returns true for ACTIVE_SSL status', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'ACTIVE_SSL', last_monitored_unix: 123 } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'ACTIVE_SSL', last_monitored_unix: 123 } })
+      );
       const { isActive } = useDomainStatus(domain);
       expect(isActive.value).toBe(true);
     });
 
     it('returns true for ACTIVE_SSL_PROXIED status', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'ACTIVE_SSL_PROXIED', last_monitored_unix: 123 } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'ACTIVE_SSL_PROXIED', last_monitored_unix: 123 } })
+      );
       const { isActive } = useDomainStatus(domain);
       expect(isActive.value).toBe(true);
     });
 
     it('returns false for PENDING status', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'PENDING', last_monitored_unix: null } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'PENDING', last_monitored_unix: null } })
+      );
       const { isActive } = useDomainStatus(domain);
       expect(isActive.value).toBe(false);
     });
@@ -80,13 +88,17 @@ describe('useDomainStatus', () => {
 
   describe('isWarning', () => {
     it('returns true for DNS_INCORRECT status', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null } })
+      );
       const { isWarning } = useDomainStatus(domain);
       expect(isWarning.value).toBe(true);
     });
 
     it('returns false for other statuses', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'ACTIVE', last_monitored_unix: 123 } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'ACTIVE', last_monitored_unix: 123 } })
+      );
       const { isWarning } = useDomainStatus(domain);
       expect(isWarning.value).toBe(false);
     });
@@ -94,13 +106,17 @@ describe('useDomainStatus', () => {
 
   describe('isError', () => {
     it('returns true when domain exists but is neither active nor warning', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'PENDING', last_monitored_unix: null } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'PENDING', last_monitored_unix: null } })
+      );
       const { isError } = useDomainStatus(domain);
       expect(isError.value).toBe(true);
     });
 
     it('returns false when domain is active', () => {
-      const domain = ref(createMockDomain({ vhost: { status: 'ACTIVE', last_monitored_unix: 123 } }));
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'ACTIVE', last_monitored_unix: 123 } })
+      );
       const { isError } = useDomainStatus(domain);
       expect(isError.value).toBe(false);
     });
@@ -155,37 +171,45 @@ describe('useDomainStatus', () => {
 
     it('returns "Unverified" when stale', () => {
       const now = Date.now() / 1000;
-      const domain = ref(createMockDomain({
-        vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
-        vhost_fetch_failed_at: now - 60,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
+          vhost_fetch_failed_at: now - 60,
+        })
+      );
       const { displayStatus } = useDomainStatus(domain);
       expect(displayStatus.value).toBe('Unverified');
     });
 
     it('returns "Active" for active domain', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { displayStatus } = useDomainStatus(domain);
       expect(displayStatus.value).toBe('Active');
     });
 
     it('returns "DNS Incorrect" for warning status', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { displayStatus } = useDomainStatus(domain);
       expect(displayStatus.value).toBe('DNS Incorrect');
     });
 
     it('returns "Inactive" for error status', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'PENDING', last_monitored_unix: null },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'PENDING', last_monitored_unix: null },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { displayStatus } = useDomainStatus(domain);
       expect(displayStatus.value).toBe('Inactive');
     });
@@ -200,28 +224,34 @@ describe('useDomainStatus', () => {
     });
 
     it('returns check-circle for active domain', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { statusIcon } = useDomainStatus(domain);
       expect(statusIcon.value).toBe('check-circle');
     });
 
     it('returns alert-circle for warning status', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { statusIcon } = useDomainStatus(domain);
       expect(statusIcon.value).toBe('alert-circle');
     });
 
     it('returns close-circle for error status', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'PENDING', last_monitored_unix: null },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'PENDING', last_monitored_unix: null },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { statusIcon } = useDomainStatus(domain);
       expect(statusIcon.value).toBe('close-circle');
     });
@@ -236,28 +266,34 @@ describe('useDomainStatus', () => {
     });
 
     it('returns emerald classes for active domain', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { statusColor } = useDomainStatus(domain);
       expect(statusColor.value).toBe('text-emerald-600 dark:text-emerald-400');
     });
 
     it('returns amber classes for warning status', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'DNS_INCORRECT', last_monitored_unix: null },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { statusColor } = useDomainStatus(domain);
       expect(statusColor.value).toBe('text-amber-500 dark:text-amber-400');
     });
 
     it('returns rose classes for error status', () => {
-      const domain = ref(createMockDomain({
-        vhost: { status: 'PENDING', last_monitored_unix: null },
-        vhost_fetch_failed_at: null,
-      }));
+      const domain = ref(
+        createMockDomain({
+          vhost: { status: 'PENDING', last_monitored_unix: null },
+          vhost_fetch_failed_at: null,
+        })
+      );
       const { statusColor } = useDomainStatus(domain);
       expect(statusColor.value).toBe('text-rose-600 dark:text-rose-500');
     });
@@ -265,9 +301,11 @@ describe('useDomainStatus', () => {
 
   describe('reactivity', () => {
     it('updates computed values when domain changes', async () => {
-      const domain = ref<CustomDomain | null>(createMockDomain({
-        vhost: { status: 'PENDING', last_monitored_unix: null },
-      }));
+      const domain = ref<CustomDomain | null>(
+        createMockDomain({
+          vhost: { status: 'PENDING', last_monitored_unix: null },
+        })
+      );
       const { isActive, displayStatus, statusColor } = useDomainStatus(domain);
 
       expect(isActive.value).toBe(false);
@@ -286,9 +324,11 @@ describe('useDomainStatus', () => {
     });
 
     it('handles domain becoming null', async () => {
-      const domain = ref<CustomDomain | null>(createMockDomain({
-        vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
-      }));
+      const domain = ref<CustomDomain | null>(
+        createMockDomain({
+          vhost: { status: 'ACTIVE', last_monitored_unix: 123 },
+        })
+      );
       const { isActive, displayStatus, isError } = useDomainStatus(domain);
 
       expect(isActive.value).toBe(true);

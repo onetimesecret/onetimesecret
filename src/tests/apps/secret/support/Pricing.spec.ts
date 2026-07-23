@@ -19,9 +19,15 @@ let mockRoutePathValue = '/pricing';
 // query-preserving behavior can set mockRoutePathValue to include a `?...`.
 vi.mock('vue-router', () => ({
   useRoute: () => ({
-    get params() { return mockRouteParamsValue; },
-    get path() { return mockRoutePathValue; },
-    get fullPath() { return mockRoutePathValue; },
+    get params() {
+      return mockRouteParamsValue;
+    },
+    get path() {
+      return mockRoutePathValue;
+    },
+    get fullPath() {
+      return mockRoutePathValue;
+    },
     query: {},
   }),
   RouterLink: {
@@ -78,7 +84,8 @@ vi.mock('@/schemas/errors', () => ({
 
 // Mock formatCurrency from billing types
 vi.mock('@/types/billing', () => ({
-  formatCurrency: (amount: number, currency: string = 'USD') => new Intl.NumberFormat('en-US', {
+  formatCurrency: (amount: number, currency: string = 'USD') =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
     }).format(amount / 100),
@@ -206,8 +213,8 @@ describe('Pricing.vue', () => {
       // Default is monthly - should show monthly paid plans (free is shown separately)
       const planCards = wrapper.findAll('[class*="flex-col rounded-2xl"]');
       const monthlyPaidPlanIds = defaultPlans
-        .filter(p => p.interval === 'month' && p.tier !== 'free')
-        .map(p => p.id);
+        .filter((p) => p.interval === 'month' && p.tier !== 'free')
+        .map((p) => p.id);
 
       expect(planCards.length).toBe(monthlyPaidPlanIds.length);
     });
@@ -275,9 +282,7 @@ describe('Pricing.vue', () => {
       await mountComponent({ freePlanStandalone: false });
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
-      expect(signupLink.attributes('href')).toBe(
-        '/signup?redirect=%2Fpricing'
-      );
+      expect(signupLink.attributes('href')).toBe('/signup?redirect=%2Fpricing');
     });
 
     it('includes product, interval, and redirect for paid plans', async () => {
@@ -357,9 +362,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
-      expect(signupLink.attributes('href')).toContain(
-        'redirect=%2Fpricing%3Futm_source%3Dblog'
-      );
+      expect(signupLink.attributes('href')).toContain('redirect=%2Fpricing%3Futm_source%3Dblog');
     });
   });
 
@@ -431,7 +434,7 @@ describe('Pricing.vue', () => {
     it('shows loading state while fetching', async () => {
       // Set up a promise that we can control when it resolves
       let resolvePromise: (value: { plans: BillingPlan[] }) => void;
-      const controlledPromise = new Promise<{ plans: BillingPlan[] }>(resolve => {
+      const controlledPromise = new Promise<{ plans: BillingPlan[] }>((resolve) => {
         resolvePromise = resolve;
       });
       mockListPlans.mockReturnValueOnce(controlledPromise);
@@ -445,7 +448,7 @@ describe('Pricing.vue', () => {
 
       // Wait a tick for Vue to process the mount lifecycle
       // This allows onMounted to run and set isLoadingPlans = true
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
       await wrapper.vm.$nextTick();
 
       // At this point, loadPlans should be in progress (promise pending).
@@ -498,8 +501,8 @@ describe('Pricing.vue', () => {
       expect(buttons.length).toBe(2);
 
       // Monthly should be pressed by default
-      const monthlyButton = buttons.find(b => b.text() === 'web.billing.plans.monthly');
-      const yearlyButton = buttons.find(b => b.text() === 'web.billing.plans.yearly');
+      const monthlyButton = buttons.find((b) => b.text() === 'web.billing.plans.monthly');
+      const yearlyButton = buttons.find((b) => b.text() === 'web.billing.plans.yearly');
 
       expect(monthlyButton?.attributes('aria-pressed')).toBe('true');
       expect(yearlyButton?.attributes('aria-pressed')).toBe('false');
@@ -509,12 +512,14 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       // Click yearly button
-      const yearlyButton = wrapper.findAll('button').find(b => b.text() === 'web.billing.plans.yearly');
+      const yearlyButton = wrapper
+        .findAll('button')
+        .find((b) => b.text() === 'web.billing.plans.yearly');
       await yearlyButton?.trigger('click');
 
       const buttons = wrapper.findAll('button[aria-pressed]');
-      const monthlyButton = buttons.find(b => b.text() === 'web.billing.plans.monthly');
-      const yearlyBtn = buttons.find(b => b.text() === 'web.billing.plans.yearly');
+      const monthlyButton = buttons.find((b) => b.text() === 'web.billing.plans.monthly');
+      const yearlyBtn = buttons.find((b) => b.text() === 'web.billing.plans.yearly');
 
       expect(monthlyButton?.attributes('aria-pressed')).toBe('false');
       expect(yearlyBtn?.attributes('aria-pressed')).toBe('true');

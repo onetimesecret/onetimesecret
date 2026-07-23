@@ -261,9 +261,7 @@ export function createMinimalMembership(
 export function createV2WireOrganizationMembership(
   canonical?: OrganizationMembershipCanonical
 ): V2WireOrganizationMembership {
-  return toV2WireOrganizationMembership(
-    canonical ?? createCanonicalOrganizationMembership()
-  );
+  return toV2WireOrganizationMembership(canonical ?? createCanonicalOrganizationMembership());
 }
 
 /**
@@ -272,9 +270,7 @@ export function createV2WireOrganizationMembership(
 export function createV3WireOrganizationMembership(
   canonical?: OrganizationMembershipCanonical
 ): V3WireOrganizationMembership {
-  return toV3WireOrganizationMembership(
-    canonical ?? createCanonicalOrganizationMembership()
-  );
+  return toV3WireOrganizationMembership(canonical ?? createCanonicalOrganizationMembership());
 }
 
 // -----------------------------------------------------------------------------
@@ -306,9 +302,7 @@ export function compareCanonicalOrganizationMembership(
 
   for (const field of primitiveFields) {
     if (a[field] !== b[field]) {
-      differences.push(
-        `${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`
-      );
+      differences.push(`${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`);
     }
   }
 

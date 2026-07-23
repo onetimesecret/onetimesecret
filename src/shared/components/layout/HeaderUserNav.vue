@@ -40,7 +40,9 @@
     <span
       class="ml-2 text-gray-400"
       aria-hidden="true"
-      role="separator">|</span>
+      role="separator"
+      >|</span
+    >
   </div>
 </template>
 

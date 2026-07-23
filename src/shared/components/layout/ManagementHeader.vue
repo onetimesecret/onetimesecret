@@ -40,7 +40,9 @@
     <!-- Single row header with Logo, Context Switchers, and User Menu -->
     <div :class="['container mx-auto min-w-[320px] px-4', colonel ? 'max-w-6xl' : 'max-w-4xl']">
       <div class="py-3">
-        <MastHead v-if="displayMasthead" v-bind="props">
+        <MastHead
+          v-if="displayMasthead"
+          v-bind="props">
           <!-- Pass context switchers to be rendered inline with logo -->
           <template #context-switchers>
             <slot></slot>
@@ -52,7 +54,7 @@
     <!-- Primary Navigation Bar (for authenticated users) - Hidden on mobile -->
     <div
       v-if="authenticated && displayNavigation && displayPrimaryNav"
-      class="hidden bg-gray-100 dark:bg-gray-800 md:block">
+      class="hidden bg-gray-100 md:block dark:bg-gray-800">
       <div :class="['container mx-auto min-w-[320px] px-4', colonel ? 'max-w-6xl' : 'max-w-4xl']">
         <ImprovedPrimaryNav />
       </div>

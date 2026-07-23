@@ -44,7 +44,8 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   default: {
     name: 'BasicFormAlerts',
-    template: '<div class="form-alerts" data-testid="form-alerts" :data-error="error">{{ error }}</div>',
+    template:
+      '<div class="form-alerts" data-testid="form-alerts" :data-error="error">{{ error }}</div>',
     props: ['error', 'success'],
   },
 }));
@@ -52,7 +53,8 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 vi.mock('@/apps/workspace/components/domains/DomainSignupConfigForm.vue', () => ({
   default: {
     name: 'DomainSignupConfigForm',
-    template: '<div class="domain-signup-config-form" data-testid="domain-signup-config-form" :data-domain-ext-id="domainExtId" />',
+    template:
+      '<div class="domain-signup-config-form" data-testid="domain-signup-config-form" :data-domain-ext-id="domainExtId" />',
     props: ['domainExtId'],
     // `can-save` drives the header's Save button (the form owns validity and
     // relays it up). Emit true on mount so the seam test can click an enabled
@@ -172,10 +174,12 @@ const i18n = createI18n({
           signup: {
             title: 'Domain Signup Configuration',
             access_denied: 'Access Denied',
-            upgrade_to_configure: 'You do not have permission to configure signup validation for this domain. Upgrade your plan to enable this feature.',
+            upgrade_to_configure:
+              'You do not have permission to configure signup validation for this domain. Upgrade your plan to enable this feature.',
             config_description: 'Configure signup validation for this domain.',
             not_configured_notice: 'Signup validation is not configured for this domain yet.',
-            site_signups_disabled_warning: 'Signups are disabled site-wide; this policy is currently dormant.',
+            site_signups_disabled_warning:
+              'Signups are disabled site-wide; this policy is currently dormant.',
           },
         },
         billing: {
@@ -184,7 +188,8 @@ const i18n = createI18n({
           },
         },
         branding: {
-          you_have_unsaved_changes_are_you_sure: 'You have unsaved changes. Are you sure you want to leave?',
+          you_have_unsaved_changes_are_you_sure:
+            'You have unsaved changes. Are you sure you want to leave?',
         },
         COMMON: {
           back: 'Back',

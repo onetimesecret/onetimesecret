@@ -13,11 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  isLegacyPlan,
-  getLegacyPlanInfo,
-  getPlanLabel,
-} from '@/types/billing';
+import { isLegacyPlan, getLegacyPlanInfo, getPlanLabel } from '@/types/billing';
 
 describe('Legacy Plan Utilities', () => {
   // ============================================================
@@ -233,7 +229,7 @@ describe('PlanSelector currentTier Logic', () => {
     if (!planid) return 'free';
 
     // Find the plan that matches the org's planid to get its tier
-    const matchingPlan = plans.find(p => p.id === planid);
+    const matchingPlan = plans.find((p) => p.id === planid);
     if (matchingPlan) return matchingPlan.tier;
 
     // Handle legacy plans that aren't in the active plans list.
@@ -245,7 +241,8 @@ describe('PlanSelector currentTier Logic', () => {
     // so a literal multi_team_* id still resolves to the top tier.
     if (planid.includes('multi_team')) return 'multi_team';
     if (planid.includes('team_plus') || planid.includes('single_team')) return 'single_team';
-    if (planid.includes('single_account') || planid.includes('identity_plus')) return 'single_account';
+    if (planid.includes('single_account') || planid.includes('identity_plus'))
+      return 'single_account';
 
     return 'free';
   }

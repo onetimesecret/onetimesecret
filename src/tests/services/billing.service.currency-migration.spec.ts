@@ -16,10 +16,7 @@ vi.mock('@/api', () => ({
 }));
 
 // Import after mocking
-import {
-  BillingService,
-  extractCurrencyConflict,
-} from '@/services/billing.service';
+import { BillingService, extractCurrencyConflict } from '@/services/billing.service';
 
 describe('Currency migration service methods', () => {
   beforeEach(() => {
@@ -43,10 +40,10 @@ describe('Currency migration service methods', () => {
         mode: 'graceful',
       });
 
-      expect(mockPost).toHaveBeenCalledWith(
-        '/billing/api/org/org_abc/migrate-currency',
-        { new_price_id: 'price_cad_123', mode: 'graceful' }
-      );
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_abc/migrate-currency', {
+        new_price_id: 'price_cad_123',
+        mode: 'graceful',
+      });
       expect(result.success).toBe(true);
       expect(result.migration.mode).toBe('graceful');
       expect(result.migration.cancel_at).toBe(1704067200);
@@ -71,10 +68,10 @@ describe('Currency migration service methods', () => {
         mode: 'immediate',
       });
 
-      expect(mockPost).toHaveBeenCalledWith(
-        '/billing/api/org/org_xyz/migrate-currency',
-        { new_price_id: 'price_eur_456', mode: 'immediate' }
-      );
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_xyz/migrate-currency', {
+        new_price_id: 'price_eur_456',
+        mode: 'immediate',
+      });
       expect(result.success).toBe(true);
       expect(result.migration.mode).toBe('immediate');
       expect(result.migration.checkout_session_url).toContain('stripe.com');

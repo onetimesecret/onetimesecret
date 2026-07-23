@@ -177,25 +177,28 @@ describe('Public Routes', () => {
 
     it('carries a deep-linked product param through the redirect', () => {
       authenticate(true);
-      expect(
-        redirectAuthenticatedToPlans(makeRoute({ params: { product: 'pro' } }))
-      ).toEqual({ path: '/billing/plans', query: { product: 'pro' } });
+      expect(redirectAuthenticatedToPlans(makeRoute({ params: { product: 'pro' } }))).toEqual({
+        path: '/billing/plans',
+        query: { product: 'pro' },
+      });
     });
 
     it('maps year-alias intervals (annual/year/yearly) to "yearly"', () => {
       authenticate(true);
       for (const alias of ['annual', 'year', 'yearly', 'ANNUAL']) {
-        expect(
-          redirectAuthenticatedToPlans(makeRoute({ params: { interval: alias } }))
-        ).toEqual({ path: '/billing/plans', query: { interval: 'yearly' } });
+        expect(redirectAuthenticatedToPlans(makeRoute({ params: { interval: alias } }))).toEqual({
+          path: '/billing/plans',
+          query: { interval: 'yearly' },
+        });
       }
     });
 
     it('maps any non-year interval to "monthly"', () => {
       authenticate(true);
-      expect(
-        redirectAuthenticatedToPlans(makeRoute({ params: { interval: 'month' } }))
-      ).toEqual({ path: '/billing/plans', query: { interval: 'monthly' } });
+      expect(redirectAuthenticatedToPlans(makeRoute({ params: { interval: 'month' } }))).toEqual({
+        path: '/billing/plans',
+        query: { interval: 'monthly' },
+      });
     });
 
     it('does not throw on array query params and collapses to the first value', () => {

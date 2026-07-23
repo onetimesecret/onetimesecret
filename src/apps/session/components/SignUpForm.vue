@@ -2,62 +2,65 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useAuth } from '@/shared/composables/useAuth';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import type { Jurisdiction } from '@/schemas/shapes/config';
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useAuth } from '@/shared/composables/useAuth';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import type { Jurisdiction } from '@/schemas/shapes/config';
+  import { ref } from 'vue';
+  import { useRoute } from 'vue-router';
 
-export interface Props {
-  enabled?: boolean;
-  jurisdiction?: Jurisdiction
-  locale?: string;
-}
-
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-  locale: 'en',
-})
-
-const route = useRoute();
-const bootstrapStore = useBootstrapStore();
-const { signup, isLoading, error, fieldError, clearErrors } = useAuth();
-
-const { t } = useI18n();
-
-// Prefill email from query param (e.g., from invitation flow)
-const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
-const email = ref(emailFromQuery);
-const password = ref('');
-const termsAgreed = ref(false);
-const showPassword = ref(false);
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
-
-const isSubmitting = ref(false);
-
-const handleSubmit = async () => {
-  if (isSubmitting.value) return;
-  isSubmitting.value = true;
-  try {
-    clearErrors();
-    // Best-effort token refresh: proceed with the existing CSRF token on failure.
-    // Plain try/catch (not useAsyncHandler) because this is intentionally non-fatal —
-    // Sentry reports and user notifications would fire for a non-event.
-    try {
-      await bootstrapStore.refresh();
-    } catch (refreshError) {
-      console.warn('[SignUpForm] Bootstrap refresh failed, proceeding with current token:', refreshError);
-    }
-    await signup(email.value, password.value, termsAgreed.value);
-    // Navigation handled by useAuth composable
-  } finally {
-    isSubmitting.value = false;
+  export interface Props {
+    enabled?: boolean;
+    jurisdiction?: Jurisdiction;
+    locale?: string;
   }
-};
+
+  withDefaults(defineProps<Props>(), {
+    enabled: true,
+    locale: 'en',
+  });
+
+  const route = useRoute();
+  const bootstrapStore = useBootstrapStore();
+  const { signup, isLoading, error, fieldError, clearErrors } = useAuth();
+
+  const { t } = useI18n();
+
+  // Prefill email from query param (e.g., from invitation flow)
+  const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
+  const email = ref(emailFromQuery);
+  const password = ref('');
+  const termsAgreed = ref(false);
+  const showPassword = ref(false);
+
+  const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+  };
+
+  const isSubmitting = ref(false);
+
+  const handleSubmit = async () => {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+    try {
+      clearErrors();
+      // Best-effort token refresh: proceed with the existing CSRF token on failure.
+      // Plain try/catch (not useAsyncHandler) because this is intentionally non-fatal —
+      // Sentry reports and user notifications would fire for a non-event.
+      try {
+        await bootstrapStore.refresh();
+      } catch (refreshError) {
+        console.warn(
+          '[SignUpForm] Bootstrap refresh failed, proceeding with current token:',
+          refreshError
+        );
+      }
+      await signup(email.value, password.value, termsAgreed.value);
+      // Navigation handled by useAuth composable
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
 </script>
 
 <template>
@@ -115,7 +118,9 @@ const handleSubmit = async () => {
               class="font-medium">
               {{ t('web.signup.email_error') }}: {{ fieldError[1] }}
             </p>
-            <p v-else id="form-error">
+            <p
+              v-else
+              id="form-error">
               {{ error }}
             </p>
           </div>
@@ -142,15 +147,7 @@ const handleSubmit = async () => {
           tabindex="0"
           :aria-invalid="fieldError && fieldError[0] === 'login' ? 'true' : undefined"
           :aria-describedby="fieldError && fieldError[0] === 'login' ? 'email-error' : undefined"
-          class="block w-full appearance-none rounded-md
-                      border
-                      border-gray-300 px-3
-                      py-2 text-lg
-                      text-gray-900 placeholder:text-gray-500
-                      focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                      disabled:cursor-not-allowed disabled:opacity-50
-                      dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
-                      dark:focus:border-brand-500 dark:focus:ring-brand-500"
+          class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
           :placeholder="t('web.COMMON.email_placeholder')"
           v-model="email"
           data-testid="signup-email-input" />
@@ -173,16 +170,12 @@ const handleSubmit = async () => {
             :disabled="isSubmitting || isLoading"
             tabindex="0"
             :aria-invalid="fieldError && fieldError[0] === 'password' ? 'true' : undefined"
-            :aria-describedby="fieldError && fieldError[0] === 'password' ? 'password-error' : 'password-requirements'"
-            class="block w-full appearance-none rounded-md
-                   border
-                   border-gray-300 px-3
-                   py-2 pr-10 text-lg
-                   text-gray-900 placeholder:text-gray-500
-                   focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                   disabled:cursor-not-allowed disabled:opacity-50
-                   dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
-                   dark:focus:border-brand-500 dark:focus:ring-brand-500"
+            :aria-describedby="
+              fieldError && fieldError[0] === 'password'
+                ? 'password-error'
+                : 'password-requirements'
+            "
+            class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 pr-10 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
             :placeholder="t('web.COMMON.password_placeholder')"
             v-model="password"
             data-testid="signup-password-input" />
@@ -190,7 +183,9 @@ const handleSubmit = async () => {
             type="button"
             @click="togglePasswordVisibility"
             :disabled="isSubmitting || isLoading"
-            :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
+            :aria-label="
+              showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
+            "
             class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50"
             data-testid="signup-toggle-password">
             <OIcon
@@ -202,7 +197,9 @@ const handleSubmit = async () => {
           </button>
         </div>
         <!-- Password requirements (screen reader only) -->
-        <span id="password-requirements" class="sr-only">
+        <span
+          id="password-requirements"
+          class="sr-only">
           {{ t('web.COMMON.password_requirements') }}
         </span>
       </div>
@@ -218,12 +215,7 @@ const handleSubmit = async () => {
           required
           :disabled="isSubmitting || isLoading"
           tabindex="0"
-          class="size-4 rounded border-gray-300
-                      text-brand-600
-                      focus:ring-brand-500
-                      disabled:cursor-not-allowed disabled:opacity-50
-                      dark:border-gray-600
-                      dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-brand-500"
+          class="size-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-brand-500"
           v-model="termsAgreed"
           data-testid="signup-terms-checkbox" />
         <label
@@ -232,16 +224,14 @@ const handleSubmit = async () => {
           {{ t('web.auth.terms.agree_prefix') }}
           <router-link
             to="/info/terms"
-            class="font-medium text-brand-600 hover:text-brand-500
-                     dark:text-brand-400 dark:hover:text-brand-300"
+            class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
             data-testid="signup-terms-link">
             {{ t('web.layout.terms_of_service') }}
           </router-link>
           and
           <router-link
             to="/info/privacy"
-            class="font-medium text-brand-600 hover:text-brand-500
-                     dark:text-brand-400 dark:hover:text-brand-300"
+            class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
             data-testid="signup-privacy-link">
             {{ t('web.layout.privacy_policy') }}
           </router-link>
@@ -254,17 +244,11 @@ const handleSubmit = async () => {
       <button
         type="submit"
         :disabled="isSubmitting || isLoading"
-        class="group relative flex w-full justify-center
-                     rounded-md
-                     border border-transparent
-                     bg-brand-600 px-4 py-2
-                     text-lg font-medium
-                     text-white hover:bg-brand-700
-                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                     disabled:cursor-not-allowed disabled:opacity-50
-                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+        class="group relative flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
         data-testid="signup-submit">
-        <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+        <span v-if="isSubmitting || isLoading">{{
+          t('web.COMMON.processing') || 'Processing...'
+        }}</span>
         <span v-else>{{ t('web.COMMON.button_create_account') }}</span>
       </button>
       <!-- Loading state announcement (screen reader only) -->

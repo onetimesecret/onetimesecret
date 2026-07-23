@@ -67,8 +67,7 @@ const mountReceipt = (
   recordRef.value = record;
   detailsRef.value = baseDetails();
 
-  const capabilities =
-    burnCapability === undefined ? {} : { burn: burnCapability };
+  const capabilities = burnCapability === undefined ? {} : { burn: burnCapability };
 
   return mount(ShowReceipt, {
     props: { receiptIdentifier: 'testkey' },

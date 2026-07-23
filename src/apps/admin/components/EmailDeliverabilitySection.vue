@@ -203,7 +203,10 @@
   }
 
   const suppressionColumns = computed<DataTableColumn<ColonelEmailSuppression>[]>(() => [
-    { key: 'address', label: t('web.admin.emailtools.deliverability.suppressions.columns.address') },
+    {
+      key: 'address',
+      label: t('web.admin.emailtools.deliverability.suppressions.columns.address'),
+    },
     { key: 'reason', label: t('web.admin.emailtools.deliverability.suppressions.columns.reason') },
     { key: 'source', label: t('web.admin.emailtools.deliverability.suppressions.columns.source') },
     { key: 'created', label: t('web.admin.emailtools.deliverability.suppressions.columns.added') },
@@ -447,9 +450,7 @@
     () => messagesData.value?.details?.messages ?? []
   );
   /** Structural: does the active transport expose a send log at all? */
-  const messagesCapability = computed(
-    () => messagesData.value?.details?.capability ?? true
-  );
+  const messagesCapability = computed(() => messagesData.value?.details?.capability ?? true);
   const messagesProvider = computed(() => messagesData.value?.details?.provider ?? '');
   /** Retryable failure: network throw OR a 200 payload with available=false. */
   const messagesFailed = computed(
@@ -527,7 +528,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="reloadSummary">
         <OIcon
           collection="heroicons"
@@ -581,7 +582,7 @@
           type="button"
           data-testid="deliverability-sync-button"
           :disabled="syncLoading"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           @click="onSyncClick">
           <OIcon
             collection="heroicons"
@@ -636,7 +637,9 @@
           {{ t('web.admin.emailtools.deliverability.sync.lastSynced') }}
           <span class="font-mono">{{ formatDisplayDateTime(entry.last_synced_at) }}</span>
           <span class="text-gray-400 dark:text-gray-500">
-            ({{ t('web.admin.emailtools.deliverability.sync.imported', { count: entry.imported }) }})
+            ({{
+              t('web.admin.emailtools.deliverability.sync.imported', { count: entry.imported })
+            }})
           </span>
         </li>
       </ul>
@@ -675,7 +678,7 @@
           type="submit"
           data-testid="deliverability-add-submit"
           :disabled="!addAddressValid || addLoading"
-          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
           <OIcon
             collection="heroicons"
             name="plus"
@@ -705,7 +708,7 @@
         <button
           type="submit"
           data-testid="deliverability-search-submit"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
           <OIcon
             collection="heroicons"
             name="magnifying-glass"
@@ -716,7 +719,7 @@
           v-if="activeSearch"
           type="button"
           data-testid="deliverability-search-clear"
-          class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-400 dark:hover:text-gray-200"
+          class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200"
           @click="onSearchClear">
           {{ t('web.admin.emailtools.deliverability.suppressions.clearButton') }}
         </button>
@@ -739,7 +742,9 @@
           :empty-text="suppressionsEmptyText"
           testid="deliverability-suppressions-table">
           <template #cell-address="{ row }">
-            <span class="font-mono text-sm text-gray-900 dark:text-gray-100">{{ row.address }}</span>
+            <span class="font-mono text-sm text-gray-900 dark:text-gray-100">{{
+              row.address
+            }}</span>
           </template>
           <template #cell-reason="{ row }">
             <span
@@ -752,13 +757,15 @@
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ row.source || '—' }}</span>
           </template>
           <template #cell-created="{ row }">
-            <span class="text-sm text-gray-500 dark:text-gray-400">{{ formatDisplayDateTime(row.created) }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">{{
+              formatDisplayDateTime(row.created)
+            }}</span>
           </template>
           <template #cell-actions="{ row }">
             <button
               type="button"
               :data-testid="`deliverability-remove-${row.address}`"
-              class="rounded px-2 py-1 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-900/30"
+              class="rounded px-2 py-1 text-sm font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:bg-red-900/30"
               @click="requestRemove(row.address)">
               {{ t('web.admin.emailtools.deliverability.suppressions.remove.button') }}
             </button>
@@ -804,7 +811,7 @@
           type="submit"
           data-testid="deliverability-lookup-submit"
           :disabled="lookupLoading"
-          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
           <OIcon
             collection="heroicons"
             name="magnifying-glass"
@@ -815,7 +822,7 @@
           v-if="activeLookupAddress"
           type="button"
           data-testid="deliverability-lookup-clear"
-          class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-400 dark:hover:text-gray-200"
+          class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200"
           @click="onLookupClear">
           {{ t('web.admin.emailtools.deliverability.suppressions.clearButton') }}
         </button>
@@ -830,16 +837,21 @@
         data-testid="deliverability-lookup-result">
         <!-- Local store (authoritative, always present). -->
         <div class="rounded-md border border-gray-200 p-4 dark:border-gray-800">
-          <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <h5
+            class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.emailtools.deliverability.lookup.local') }}
           </h5>
-          <p class="font-mono text-sm text-gray-900 dark:text-gray-100">{{ lookupResult.address }}</p>
+          <p class="font-mono text-sm text-gray-900 dark:text-gray-100">
+            {{ lookupResult.address }}
+          </p>
           <div class="mt-2 flex items-center gap-2">
             <span
               class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-              :class="lookupResult.local.suppressed
-                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'"
+              :class="
+                lookupResult.local.suppressed
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                  : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+              "
               data-testid="deliverability-lookup-local-status">
               {{
                 lookupResult.local.suppressed
@@ -861,9 +873,12 @@
 
         <!-- Live provider read (capability / available gated). -->
         <div class="rounded-md border border-gray-200 p-4 dark:border-gray-800">
-          <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <h5
+            class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.emailtools.deliverability.lookup.provider') }}
-            <span class="ml-1 font-normal normal-case text-gray-400 dark:text-gray-500">{{ lookupProvider }}</span>
+            <span class="ml-1 font-normal text-gray-400 normal-case dark:text-gray-500">{{
+              lookupProvider
+            }}</span>
           </h5>
 
           <p
@@ -884,9 +899,11 @@
             data-testid="deliverability-lookup-provider-result">
             <span
               class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-              :class="lookupResult.provider_result.suppressed
-                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'">
+              :class="
+                lookupResult.provider_result.suppressed
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                  : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+              ">
               {{
                 lookupResult.provider_result.suppressed
                   ? t('web.admin.emailtools.deliverability.lookup.suppressed')
@@ -930,7 +947,9 @@
           :empty-text="t('web.admin.emailtools.deliverability.events.empty')"
           testid="deliverability-events-table">
           <template #cell-created="{ row }">
-            <span class="text-sm text-gray-500 dark:text-gray-400">{{ formatDisplayDateTime(row.created) }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">{{
+              formatDisplayDateTime(row.created)
+            }}</span>
           </template>
           <template #cell-kind="{ row }">
             <span
@@ -940,7 +959,9 @@
             </span>
           </template>
           <template #cell-address="{ row }">
-            <span class="font-mono text-sm text-gray-900 dark:text-gray-100">{{ row.address }}</span>
+            <span class="font-mono text-sm text-gray-900 dark:text-gray-100">{{
+              row.address
+            }}</span>
           </template>
           <template #cell-source="{ row }">
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ row.source || '—' }}</span>
@@ -973,7 +994,11 @@
           size="5"
           class="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500" />
         <span class="text-sm text-gray-600 dark:text-gray-300">
-          {{ t('web.admin.emailtools.deliverability.messages.notSupported', { provider: messagesProvider }) }}
+          {{
+            t('web.admin.emailtools.deliverability.messages.notSupported', {
+              provider: messagesProvider,
+            })
+          }}
         </span>
       </div>
 
@@ -995,7 +1020,9 @@
             :empty-text="t('web.admin.emailtools.deliverability.messages.empty')"
             testid="deliverability-messages-table">
             <template #cell-created_at="{ row }">
-              <span class="text-sm text-gray-500 dark:text-gray-400">{{ row.created_at ? formatDisplayDateTime(row.created_at) : '—' }}</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">{{
+                row.created_at ? formatDisplayDateTime(row.created_at) : '—'
+              }}</span>
             </template>
             <template #cell-status="{ row }">
               <span
@@ -1008,7 +1035,9 @@
               <span class="text-sm text-gray-900 dark:text-gray-100">{{ row.subject || '—' }}</span>
             </template>
             <template #cell-to="{ row }">
-              <span class="font-mono text-sm text-gray-500 dark:text-gray-400">{{ row.to.join(', ') || '—' }}</span>
+              <span class="font-mono text-sm text-gray-500 dark:text-gray-400">{{
+                row.to.join(', ') || '—'
+              }}</span>
             </template>
           </DataTable>
         </div>

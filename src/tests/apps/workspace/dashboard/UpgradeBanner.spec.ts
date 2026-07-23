@@ -69,12 +69,14 @@ describe('UpgradeBanner', () => {
     localStorage.clear();
   });
 
-  function mountBanner(options: {
-    billingEnabled?: boolean;
-    planId?: string | undefined;
-    isStandalone?: boolean;
-    orgExtid?: string;
-  } = {}) {
+  function mountBanner(
+    options: {
+      billingEnabled?: boolean;
+      planId?: string | undefined;
+      isStandalone?: boolean;
+      orgExtid?: string;
+    } = {}
+  ) {
     const {
       billingEnabled = true,
       planId = 'free',
@@ -156,9 +158,7 @@ describe('UpgradeBanner', () => {
       // RouterLink renders as <a> via our mock; check for its presence
       // The link may not render if currentOrg?.extid is falsy in the store
       const links = wrapper.findAll('a');
-      const plansLink = links.find((l) =>
-        l.attributes('href')?.includes('/billing/')
-      );
+      const plansLink = links.find((l) => l.attributes('href')?.includes('/billing/'));
       if (plansLink) {
         expect(plansLink.attributes('href')).toBe('/billing/org_abc/plans');
       } else {

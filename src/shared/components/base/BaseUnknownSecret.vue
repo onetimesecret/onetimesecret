@@ -2,10 +2,7 @@
 
 <script setup lang="ts">
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
-  import {
-    cornerStyleClasses,
-    resolveBodyFontClass,
-  } from '@/shared/utils/brand-helpers';
+  import { cornerStyleClasses, resolveBodyFontClass } from '@/shared/utils/brand-helpers';
   import { computed } from 'vue';
 
   export interface Props {
@@ -27,13 +24,13 @@
     if (!props.branded) return 'rounded-lg';
     const bs = props.brandSettings;
     if (bs?.border_radius != null && bs.border_radius !== '') return 'rounded-brand';
-    return bs?.corner_style ? cornerStyleClasses[bs.corner_style] ?? 'rounded-lg' : 'rounded-lg';
+    return bs?.corner_style ? (cornerStyleClasses[bs.corner_style] ?? 'rounded-lg') : 'rounded-lg';
   });
 
   /**
    * Computes background color with 15% opacity for branded icon container
    */
-  const getBackgroundColor = (color?: string): string => color ? `${color}15` : '';
+  const getBackgroundColor = (color?: string): string => (color ? `${color}15` : '');
 </script>
 
 <template>
@@ -42,7 +39,7 @@
     :class="[
       cornerClass,
       branded ? 'w-full shadow-xl' : 'shadow-md',
-      branded ? resolveBodyFontClass(brandSettings) : ''
+      branded ? resolveBodyFontClass(brandSettings) : '',
     ]">
     <!-- Header slot for icon and title -->
     <slot

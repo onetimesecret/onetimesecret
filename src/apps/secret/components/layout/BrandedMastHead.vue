@@ -53,8 +53,7 @@
         to="/signup"
         :title="t('web.homepage.signup_individual_and_business_plans')"
         data-testid="branded-signup-link"
-        class="text-sm font-bold text-gray-600 transition-colors duration-200
-          hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+        class="text-sm font-bold text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
         {{ t('web.COMMON.header_create_account') }}
       </router-link>
       <span
@@ -69,8 +68,7 @@
         to="/signin"
         :title="t('web.homepage.log_in_to_onetime_secret')"
         data-testid="branded-signin-link"
-        class="text-sm text-gray-600 transition-colors duration-200
-          hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+        class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
         {{ t('web.COMMON.header_sign_in') }}
       </router-link>
     </nav>

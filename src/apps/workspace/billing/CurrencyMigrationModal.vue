@@ -1,107 +1,116 @@
 <!-- src/apps/workspace/billing/CurrencyMigrationModal.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { BillingService } from '@/services/billing.service';
-import { classifyError } from '@/schemas/errors';
-import type { CurrencyConflictError, MigrationMode } from '@/schemas/shapes/account/billing';
-import { formatDisplayDate } from '@/utils/format';
-import { computed, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import {
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+    TransitionChild,
+    TransitionRoot,
+  } from '@headlessui/vue';
+  import { BillingService } from '@/services/billing.service';
+  import { classifyError } from '@/schemas/errors';
+  import type { CurrencyConflictError, MigrationMode } from '@/schemas/shapes/account/billing';
+  import { formatDisplayDate } from '@/utils/format';
+  import { computed, ref, watch } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const props = defineProps<{
-  open: boolean;
-  orgExtId: string;
-  conflict: CurrencyConflictError | null;
-}>();
+  const props = defineProps<{
+    open: boolean;
+    orgExtId: string;
+    conflict: CurrencyConflictError | null;
+  }>();
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'graceful-confirmed', cancelAt: number): void;
-  (e: 'immediate-redirect', checkoutUrl: string): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'close'): void;
+    (e: 'graceful-confirmed', cancelAt: number): void;
+    (e: 'immediate-redirect', checkoutUrl: string): void;
+  }>();
 
-// State
-const isMigrating = ref(false);
-const error = ref('');
-const selectedMode = ref<MigrationMode>('graceful');
+  // State
+  const isMigrating = ref(false);
+  const error = ref('');
+  const selectedMode = ref<MigrationMode>('graceful');
 
-// Reset state when modal opens
-watch(() => props.open, (isOpen) => {
-  if (isOpen) {
-    error.value = '';
-    selectedMode.value = 'graceful';
-  }
-});
-
-// Computed
-const details = computed(() => props.conflict?.details ?? null);
-
-const formattedPeriodEnd = computed(() => {
-  if (!details.value?.current_plan?.current_period_end) return null;
-  return formatDisplayDate(new Date(details.value.current_plan.current_period_end * 1000));
-});
-
-const existingCurrencyUpper = computed(() =>
-  details.value?.existing_currency?.toUpperCase() ?? ''
-);
-
-const requestedCurrencyUpper = computed(() =>
-  details.value?.requested_currency?.toUpperCase() ?? ''
-);
-
-const hasCreditBalance = computed(() =>
-  details.value?.warnings.has_credit_balance ?? false
-);
-
-const hasWarnings = computed(() => {
-  if (!details.value?.warnings) return false;
-  const w = details.value.warnings;
-  return w.has_credit_balance || w.has_pending_invoice_items || w.has_incompatible_coupons;
-});
-
-async function handleConfirm() {
-  if (!details.value || !props.orgExtId) return;
-
-  isMigrating.value = true;
-  error.value = '';
-
-  try {
-    const result = await BillingService.migrateCurrency(props.orgExtId, {
-      mode: selectedMode.value,
-      new_price_id: details.value.requested_plan?.price_id ?? '',
-    });
-
-    if (result.success) {
-      if (result.migration.mode === 'graceful') {
-        emit('graceful-confirmed', result.migration.cancel_at);
-      } else {
-        emit('immediate-redirect', result.migration.checkout_url);
+  // Reset state when modal opens
+  watch(
+    () => props.open,
+    (isOpen) => {
+      if (isOpen) {
+        error.value = '';
+        selectedMode.value = 'graceful';
       }
-    } else {
-      error.value = t('web.billing.currency_migration.error');
     }
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.currency_migration.error');
-    console.error('[CurrencyMigrationModal] Migration error:', err);
-  } finally {
-    isMigrating.value = false;
-  }
-}
+  );
 
-function handleClose() {
-  if (!isMigrating.value) {
-    emit('close');
+  // Computed
+  const details = computed(() => props.conflict?.details ?? null);
+
+  const formattedPeriodEnd = computed(() => {
+    if (!details.value?.current_plan?.current_period_end) return null;
+    return formatDisplayDate(new Date(details.value.current_plan.current_period_end * 1000));
+  });
+
+  const existingCurrencyUpper = computed(
+    () => details.value?.existing_currency?.toUpperCase() ?? ''
+  );
+
+  const requestedCurrencyUpper = computed(
+    () => details.value?.requested_currency?.toUpperCase() ?? ''
+  );
+
+  const hasCreditBalance = computed(() => details.value?.warnings.has_credit_balance ?? false);
+
+  const hasWarnings = computed(() => {
+    if (!details.value?.warnings) return false;
+    const w = details.value.warnings;
+    return w.has_credit_balance || w.has_pending_invoice_items || w.has_incompatible_coupons;
+  });
+
+  async function handleConfirm() {
+    if (!details.value || !props.orgExtId) return;
+
+    isMigrating.value = true;
+    error.value = '';
+
+    try {
+      const result = await BillingService.migrateCurrency(props.orgExtId, {
+        mode: selectedMode.value,
+        new_price_id: details.value.requested_plan?.price_id ?? '',
+      });
+
+      if (result.success) {
+        if (result.migration.mode === 'graceful') {
+          emit('graceful-confirmed', result.migration.cancel_at);
+        } else {
+          emit('immediate-redirect', result.migration.checkout_url);
+        }
+      } else {
+        error.value = t('web.billing.currency_migration.error');
+      }
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.currency_migration.error');
+      console.error('[CurrencyMigrationModal] Migration error:', err);
+    } finally {
+      isMigrating.value = false;
+    }
   }
-}
+
+  function handleClose() {
+    if (!isMigrating.value) {
+      emit('close');
+    }
+  }
 </script>
 
 <template>
-  <TransitionRoot as="template" :show="open">
+  <TransitionRoot
+    as="template"
+    :show="open">
     <Dialog
       class="relative z-50"
       aria-describedby="currency-migration-description"
@@ -120,7 +129,8 @@ function handleClose() {
 
       <!-- Modal Content -->
       <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild
             as="template"
             enter="ease-out duration-300"
@@ -130,44 +140,53 @@ function handleClose() {
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <DialogPanel
-              class="relative overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-
+              class="relative overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 dark:bg-gray-800">
               <!-- Header -->
               <div class="sm:flex sm:items-start">
-                <div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-100 sm:mx-0 sm:size-10 dark:bg-amber-900/30">
+                <div
+                  class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-100 sm:mx-0 sm:size-10 dark:bg-amber-900/30">
                   <OIcon
                     collection="heroicons"
                     name="currency-dollar"
                     class="size-6 text-amber-600 dark:text-amber-400"
                     aria-hidden="true" />
                 </div>
-                <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                   <DialogTitle
                     as="h3"
-                    class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                    class="text-base leading-6 font-semibold text-gray-900 dark:text-white">
                     {{ t('web.billing.currency_migration.title') }}
                   </DialogTitle>
                   <div class="mt-2">
-                    <p id="currency-migration-description" class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ t('web.billing.currency_migration.description', {
-                        from: existingCurrencyUpper,
-                        to: requestedCurrencyUpper,
-                      }) }}
+                    <p
+                      id="currency-migration-description"
+                      class="text-sm text-gray-500 dark:text-gray-400">
+                      {{
+                        t('web.billing.currency_migration.description', {
+                          from: existingCurrencyUpper,
+                          to: requestedCurrencyUpper,
+                        })
+                      }}
                     </p>
                   </div>
                 </div>
               </div>
 
               <!-- Plan Details -->
-              <div v-if="details" class="mt-6">
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
+              <div
+                v-if="details"
+                class="mt-6">
+                <div
+                  class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
                   <div class="space-y-3 text-sm">
                     <div class="flex justify-between">
                       <span class="text-gray-600 dark:text-gray-400">
                         {{ t('web.billing.currency_migration.current_plan') }}
                       </span>
                       <span class="font-medium text-gray-900 dark:text-white">
-                        {{ details.current_plan?.name }} ({{ details.current_plan?.price_formatted }})
+                        {{ details.current_plan?.name }} ({{
+                          details.current_plan?.price_formatted
+                        }})
                       </span>
                     </div>
                     <div class="flex justify-between">
@@ -175,7 +194,9 @@ function handleClose() {
                         {{ t('web.billing.currency_migration.new_plan') }}
                       </span>
                       <span class="font-medium text-gray-900 dark:text-white">
-                        {{ details.requested_plan?.name }} ({{ details.requested_plan?.price_formatted }})
+                        {{ details.requested_plan?.name }} ({{
+                          details.requested_plan?.price_formatted
+                        }})
                       </span>
                     </div>
                     <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
@@ -203,15 +224,23 @@ function handleClose() {
                       class="size-5 shrink-0 text-amber-400"
                       aria-hidden="true" />
                     <div class="ml-3 space-y-1">
-                      <p v-if="hasCreditBalance" class="text-sm text-amber-700 dark:text-amber-300">
-                        {{ t('web.billing.currency_migration.warning_credit_balance', {
-                          currency: existingCurrencyUpper,
-                        }) }}
+                      <p
+                        v-if="hasCreditBalance"
+                        class="text-sm text-amber-700 dark:text-amber-300">
+                        {{
+                          t('web.billing.currency_migration.warning_credit_balance', {
+                            currency: existingCurrencyUpper,
+                          })
+                        }}
                       </p>
-                      <p v-if="details.warnings.has_pending_invoice_items" class="text-sm text-amber-700 dark:text-amber-300">
+                      <p
+                        v-if="details.warnings.has_pending_invoice_items"
+                        class="text-sm text-amber-700 dark:text-amber-300">
                         {{ t('web.billing.currency_migration.warning_pending_items') }}
                       </p>
-                      <p v-if="details.warnings.has_incompatible_coupons" class="text-sm text-amber-700 dark:text-amber-300">
+                      <p
+                        v-if="details.warnings.has_incompatible_coupons"
+                        class="text-sm text-amber-700 dark:text-amber-300">
                         {{ t('web.billing.currency_migration.warning_coupons') }}
                       </p>
                     </div>
@@ -230,7 +259,7 @@ function handleClose() {
                         'flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors',
                         selectedMode === 'graceful'
                           ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-900/20'
-                          : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-750',
+                          : 'dark:hover:bg-gray-750 border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800',
                       ]">
                       <input
                         v-model="selectedMode"
@@ -243,9 +272,11 @@ function handleClose() {
                           {{ t('web.billing.currency_migration.graceful_title') }}
                         </span>
                         <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
-                          {{ t('web.billing.currency_migration.graceful_description', {
-                            date: formattedPeriodEnd ?? '',
-                          }) }}
+                          {{
+                            t('web.billing.currency_migration.graceful_description', {
+                              date: formattedPeriodEnd ?? '',
+                            })
+                          }}
                         </span>
                       </div>
                     </label>
@@ -256,7 +287,7 @@ function handleClose() {
                         'flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors',
                         selectedMode === 'immediate'
                           ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-900/20'
-                          : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-750',
+                          : 'dark:hover:bg-gray-750 border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800',
                       ]">
                       <input
                         v-model="selectedMode"
@@ -312,15 +343,16 @@ function handleClose() {
                     name="arrow-path"
                     class="mr-2 size-4 animate-spin motion-reduce:animate-none"
                     aria-hidden="true" />
-                  {{ isMigrating
-                    ? t('web.COMMON.processing')
-                    : t('web.billing.currency_migration.confirm')
+                  {{
+                    isMigrating
+                      ? t('web.COMMON.processing')
+                      : t('web.billing.currency_migration.confirm')
                   }}
                 </button>
                 <button
                   type="button"
                   :disabled="isMigrating"
-                  class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto"
+                  class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0 sm:w-auto dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-600"
                   @click="handleClose">
                   {{ t('web.COMMON.word_cancel') }}
                 </button>

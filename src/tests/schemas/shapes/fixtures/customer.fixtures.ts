@@ -38,9 +38,7 @@ const ONE_HOUR_AGO = new Date('2024-01-15T09:00:00.000Z');
  * Creates a canonical customer with sensible defaults.
  * All timestamps are round seconds for epoch conversion safety.
  */
-export function createCanonicalCustomer(
-  overrides?: Partial<CustomerCanonical>
-): CustomerCanonical {
+export function createCanonicalCustomer(overrides?: Partial<CustomerCanonical>): CustomerCanonical {
   return {
     // Base model fields
     created: BASE_TIMESTAMP,
@@ -86,9 +84,7 @@ export function createCanonicalCustomer(
 /**
  * Creates a "colonel" role customer (admin).
  */
-export function createColonelCustomer(
-  overrides?: Partial<CustomerCanonical>
-): CustomerCanonical {
+export function createColonelCustomer(overrides?: Partial<CustomerCanonical>): CustomerCanonical {
   return createCanonicalCustomer({
     objid: 'c0l0n3l123ab',
     extid: 'ext_c0l0n3l123ab',
@@ -107,9 +103,7 @@ export function createColonelCustomer(
 /**
  * Creates a "recipient" role customer (anonymous secret receiver).
  */
-export function createRecipientCustomer(
-  overrides?: Partial<CustomerCanonical>
-): CustomerCanonical {
+export function createRecipientCustomer(overrides?: Partial<CustomerCanonical>): CustomerCanonical {
   return createCanonicalCustomer({
     objid: 'r3c1p13nt12ab',
     extid: 'ext_r3c1p13nt12ab',
@@ -132,9 +126,7 @@ export function createRecipientCustomer(
 /**
  * Creates a "user_deleted_self" role customer (soft-deleted).
  */
-export function createDeletedCustomer(
-  overrides?: Partial<CustomerCanonical>
-): CustomerCanonical {
+export function createDeletedCustomer(overrides?: Partial<CustomerCanonical>): CustomerCanonical {
   return createCanonicalCustomer({
     objid: 'd3l3t3d123ab',
     extid: 'ext_d3l3t3d123ab',
@@ -202,9 +194,7 @@ export function createContributorCustomer(
 /**
  * Creates a customer with null locale.
  */
-export function createNoLocaleCustomer(
-  overrides?: Partial<CustomerCanonical>
-): CustomerCanonical {
+export function createNoLocaleCustomer(overrides?: Partial<CustomerCanonical>): CustomerCanonical {
   return createCanonicalCustomer({
     locale: null,
     ...overrides,
@@ -245,18 +235,14 @@ export function createUnverifiedCustomer(
 /**
  * Creates V2 wire format from canonical.
  */
-export function createV2WireCustomer(
-  canonical?: CustomerCanonical
-): V2WireCustomer {
+export function createV2WireCustomer(canonical?: CustomerCanonical): V2WireCustomer {
   return toV2WireCustomer(canonical ?? createCanonicalCustomer());
 }
 
 /**
  * Creates V3 wire format from canonical.
  */
-export function createV3WireCustomer(
-  canonical?: CustomerCanonical
-): V3WireCustomer {
+export function createV3WireCustomer(canonical?: CustomerCanonical): V3WireCustomer {
   return toV3WireCustomer(canonical ?? createCanonicalCustomer());
 }
 
@@ -292,9 +278,7 @@ export function compareCanonicalCustomer(
 
   for (const field of primitiveFields) {
     if (a[field] !== b[field]) {
-      differences.push(
-        `${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`
-      );
+      differences.push(`${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`);
     }
   }
 

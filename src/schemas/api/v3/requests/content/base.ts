@@ -7,7 +7,5 @@ export const baseSecretPayloadSchema = z.object({
   share_domain: z.string(),
   recipient: z.string().optional(),
   passphrase: z.string().optional(),
-  ttl: z
-    .union([z.string().regex(/^\d+$/).transform(Number), z.number().int()])
-    .optional(),
+  ttl: z.union([z.string().regex(/^\d+$/).transform(Number), z.number().int()]).optional(),
 });

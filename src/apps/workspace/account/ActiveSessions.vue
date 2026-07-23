@@ -27,7 +27,7 @@
     isRevealed: isRemoveOneRevealed,
     reveal: revealRemoveOne,
     confirm: confirmRemoveOne,
-    cancel: cancelRemoveOne
+    cancel: cancelRemoveOne,
   } = useConfirmDialog();
 
   const pendingRemoveSessionId = ref<string | null>(null);
@@ -110,7 +110,7 @@
             <button
               @click="showRemoveAllConfirm = true"
               type="button"
-              class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-800">
+              class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:bg-red-700 dark:hover:bg-red-800">
               <OIcon
                 collection="heroicons"
                 name="arrow-right-on-rectangle-solid"
@@ -182,13 +182,13 @@
             <button
               @click="showRemoveAllConfirm = false"
               type="button"
-              class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+              class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               {{ t('web.LABELS.cancel') }}
             </button>
             <button
               @click="handleRemoveAllSessions"
               type="button"
-              class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+              class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none">
               {{ t('web.auth.sessions.remove_all') }}
             </button>
           </div>

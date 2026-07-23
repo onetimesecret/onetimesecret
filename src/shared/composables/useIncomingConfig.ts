@@ -67,10 +67,7 @@ function cloneFormState(state: IncomingConfigFormState): IncomingConfigFormState
 }
 
 /** Order-sensitive recipient equality. Order may matter for display. */
-function recipientsEqual(
-  a: DomainIncomingRecipient[],
-  b: DomainIncomingRecipient[],
-): boolean {
+function recipientsEqual(a: DomainIncomingRecipient[], b: DomainIncomingRecipient[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((recipient, idx) => {
     const other = b[idx];
@@ -78,10 +75,7 @@ function recipientsEqual(
   });
 }
 
-function formStatesEqual(
-  a: IncomingConfigFormState,
-  b: IncomingConfigFormState,
-): boolean {
+function formStatesEqual(a: IncomingConfigFormState, b: IncomingConfigFormState): boolean {
   if (a.enabled !== b.enabled) return false;
   return recipientsEqual(a.recipients, b.recipients);
 }
@@ -157,9 +151,7 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   const recipientCount = computed(() => formState.value.recipients.length);
 
   /** Whether more recipients can be added. */
-  const canAddMore = computed(
-    () => formState.value.recipients.length < maxRecipients.value,
-  );
+  const canAddMore = computed(() => formState.value.recipients.length < maxRecipients.value);
 
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
@@ -273,7 +265,7 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
       notifications.show(
         t('web.domains.incoming.max_recipients_reached', { max: maxRecipients.value }),
         'warning',
-        'top',
+        'top'
       );
       return false;
     }
@@ -281,7 +273,7 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
     const trimmedEmail = email.trim();
     const normalizedEmail = trimmedEmail.toLowerCase();
     const isDuplicate = formState.value.recipients.some(
-      (r) => r.email.toLowerCase() === normalizedEmail,
+      (r) => r.email.toLowerCase() === normalizedEmail
     );
 
     if (isDuplicate) {

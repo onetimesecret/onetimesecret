@@ -57,8 +57,7 @@ vi.mock('vue-i18n', () => ({
 const RECIPIENT_SELECTOR = '#workspace-recipient';
 
 const mountForm = (recipientCapability: boolean | undefined) => {
-  const capabilities =
-    recipientCapability === undefined ? {} : { recipient: recipientCapability };
+  const capabilities = recipientCapability === undefined ? {} : { recipient: recipientCapability };
   return mount(WorkspaceSecretForm, {
     global: {
       plugins: [

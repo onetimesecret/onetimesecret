@@ -181,7 +181,8 @@
           role="alert"
           class="rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-600 dark:bg-amber-900/20">
           <div class="flex items-start">
-            <i class="fas fa-exclamation-triangle mr-3 mt-0.5 text-amber-600 dark:text-amber-400"></i>
+            <i
+              class="fas fa-exclamation-triangle mt-0.5 mr-3 text-amber-600 dark:text-amber-400"></i>
             <p class="text-sm text-amber-800 dark:text-amber-200">
               {{ t('web.auth.recovery_codes.save_required') }}
             </p>
@@ -205,14 +206,14 @@
           <button
             @click="downloadCodes"
             type="button"
-            class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+            class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
             <i class="fas fa-download mr-2"></i>
             {{ t('web.auth.recovery_codes.download') }}
           </button>
           <button
             @click="copyCodes"
             type="button"
-            class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+            class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
             <i class="fas fa-copy mr-2"></i>
             {{ t('web.auth.recovery_codes.copy') }}
           </button>
@@ -223,12 +224,14 @@
           @click="closeCodesDisplay"
           type="button"
           :disabled="!codesSaved"
-          :aria-label="codesSaved ? t('web.COMMON.word_done') : t('web.auth.recovery_codes.save_required')"
+          :aria-label="
+            codesSaved ? t('web.COMMON.word_done') : t('web.auth.recovery_codes.save_required')
+          "
           :class="[
-            'w-full rounded-md px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'w-full rounded-md px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none',
             codesSaved
               ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
-              : 'cursor-not-allowed bg-gray-400 text-gray-200'
+              : 'cursor-not-allowed bg-gray-400 text-gray-200',
           ]">
           <i class="fas fa-check mr-2"></i>
           {{ t('web.COMMON.word_done') }}
@@ -271,7 +274,7 @@
           <button
             @click="showGenerateModal"
             type="button"
-            class="rounded-md border border-yellow-300 px-4 py-2 text-sm font-medium text-yellow-700 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/20">
+            class="rounded-md border border-yellow-300 px-4 py-2 text-sm font-medium text-yellow-700 hover:bg-yellow-50 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:outline-none dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/20">
             <i class="fas fa-sync mr-2"></i>
             {{ t('web.auth.recovery_codes.regenerate') }}
           </button>
@@ -288,7 +291,7 @@
         <button
           @click="showGenerateModal"
           type="button"
-          class="mt-4 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+          class="mt-4 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none">
           {{ t('web.auth.recovery_codes.regenerate') }}
         </button>
       </div>
@@ -330,7 +333,7 @@
                 autocomplete="current-password"
                 :disabled="isLoading"
                 :placeholder="t('web.auth.mfa.password_placeholder')"
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {{ t('web.auth.mfa.password_reason') }}
               </p>
@@ -352,13 +355,13 @@
                 @click="cancelGenerate"
                 type="button"
                 :disabled="isLoading"
-                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                 {{ t('web.COMMON.word_cancel') }}
               </button>
               <button
                 type="submit"
                 :disabled="isLoading || !regeneratePassword"
-                class="rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                class="rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
                 <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
                 <span v-else>{{ t('web.auth.recovery_codes.regenerate') }}</span>
               </button>

@@ -98,7 +98,12 @@ describe('colonelSecretDeleteResponseSchema (DeleteSecret)', () => {
       shrimp: '',
       record: {
         deleted: true,
-        secret: { secret_id: 'sec_objid', shortid: 'sh1', state: 'received', owner_id: 'ext_owner' },
+        secret: {
+          secret_id: 'sec_objid',
+          shortid: 'sh1',
+          state: 'received',
+          owner_id: 'ext_owner',
+        },
         metadata: { receipt_id: 'rec_objid', shortid: 'rh1' },
       },
       details: { message: 'Secret and associated receipt deleted successfully' },

@@ -198,7 +198,9 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
       await expect(continueAsBtn).toHaveText(/continue as/i);
 
       // Verify "Accept with this account" button is NOT present (removed in Phase 4)
-      const acceptMismatchButton = wrongUserPage.locator('[data-testid="accept-with-mismatch-btn"]');
+      const acceptMismatchButton = wrongUserPage.locator(
+        '[data-testid="accept-with-mismatch-btn"]'
+      );
       await expect(acceptMismatchButton).not.toBeVisible();
     } finally {
       await ownerContext.close();
@@ -262,9 +264,7 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
 test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('Clicking "Continue as" logs out user and redirects to invite page', async ({
-    browser,
-  }) => {
+  test('Clicking "Continue as" logs out user and redirects to invite page', async ({ browser }) => {
     const ownerContext = await browser.newContext(unauthenticatedContext);
     const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
@@ -401,7 +401,9 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
     }
   });
 
-  test('API rejects even with acknowledge_email_mismatch flag (security change)', async ({ browser }) => {
+  test('API rejects even with acknowledge_email_mismatch flag (security change)', async ({
+    browser,
+  }) => {
     const ownerContext = await browser.newContext(unauthenticatedContext);
     const wrongUserContext = await browser.newContext(unauthenticatedContext);
 

@@ -317,10 +317,9 @@ describe('AdminEmailTools (email tools — ticket #44)', () => {
     await wrapper.find('[data-testid="preview-run"]').trigger('click');
     await flushPromises();
 
-    expect(mockApi.get).toHaveBeenCalledWith(
-      `${TEMPLATES_URL}/secret_link/preview`,
-      { params: { format: 'text', locale: 'en' } }
-    );
+    expect(mockApi.get).toHaveBeenCalledWith(`${TEMPLATES_URL}/secret_link/preview`, {
+      params: { format: 'text', locale: 'en' },
+    });
     expect(wrapper.find('[data-testid="preview-body"]').text()).toContain('RENDERED TEXT');
     // Text format never uses the iframe.
     expect(wrapper.find('[data-testid="preview-iframe"]').exists()).toBe(false);

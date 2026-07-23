@@ -221,7 +221,9 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-DSSO-001: navigates from signin page to SSO modal via configure button', async ({ page }) => {
+  test('TC-DSSO-001: navigates from signin page to SSO modal via configure button', async ({
+    page,
+  }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -264,7 +266,9 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible();
 
     // Should still be on the signin page
-    await expect(page).toHaveURL(new RegExp(`/org/${org!.extid}/domains/${domains[0].extid}/signin`));
+    await expect(page).toHaveURL(
+      new RegExp(`/org/${org!.extid}/domains/${domains[0].extid}/signin`)
+    );
   });
 
   test('TC-DSSO-003: navigating to signin page and opening SSO modal works', async ({ page }) => {
@@ -283,9 +287,7 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify signin page loaded correctly (page has no <form>; anchor on heading)
-    await expect(
-      page.getByRole('heading', { name: /sign-in configuration/i })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /sign-in configuration/i })).toBeVisible();
 
     // Verify domain name is displayed in header
     await expect(page.getByText(domains[0].displayDomain)).toBeVisible();
@@ -578,7 +580,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
           message: 'Connection successful',
           details: {
             issuer: 'https://login.microsoftonline.com/test-tenant',
-            authorization_endpoint: 'https://login.microsoftonline.com/test-tenant/oauth2/v2.0/authorize',
+            authorization_endpoint:
+              'https://login.microsoftonline.com/test-tenant/oauth2/v2.0/authorize',
           },
         }),
       });
@@ -806,7 +809,10 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       await deleteButton.click();
 
       // Confirm deletion (confirmation dialog inside the modal)
-      const confirmButton = modal.locator('button').filter({ hasText: /confirm|delete/i }).last();
+      const confirmButton = modal
+        .locator('button')
+        .filter({ hasText: /confirm|delete/i })
+        .last();
       if (await confirmButton.isVisible()) {
         await confirmButton.click();
       }
@@ -982,7 +988,9 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     }
   });
 
-  test('TC-DSSO-020: signin page hides SSO configure button without manage_sso entitlement', async ({ page }) => {
+  test('TC-DSSO-020: signin page hides SSO configure button without manage_sso entitlement', async ({
+    page,
+  }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 

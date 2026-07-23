@@ -12,24 +12,17 @@
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   const productIdentity = useProductIdentity();
 
   withDefaults(defineProps<LayoutProps>(), {});
 
   const bootstrapStore = useBootstrapStore();
-  const {
-    regions_enabled,
-    regions,
-    authentication,
-    i18n_enabled,
-    ot_version,
-    ot_version_long,
-  } = storeToRefs(bootstrapStore);
+  const { regions_enabled, regions, authentication, i18n_enabled, ot_version, ot_version_long } =
+    storeToRefs(bootstrapStore);
 
   const { showVersionConfig } = useFooterConfig();
-
 </script>
 <template>
   <footer
@@ -41,11 +34,13 @@ const { t } = useI18n();
       <div
         class="flex flex-col-reverse items-center justify-between space-y-6 space-y-reverse md:flex-row md:space-y-0">
         <div
-          class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
+          class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 md:w-auto md:justify-start md:text-left dark:text-gray-400">
           <span
             v-if="displayVersion && showVersionConfig"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
-            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`">v{{ ot_version_long }}</a>
+            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
+              >v{{ ot_version_long }}</a
+            >
           </span>
         </div>
 

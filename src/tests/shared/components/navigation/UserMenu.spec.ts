@@ -170,7 +170,8 @@ describe('UserMenu', () => {
   const mountComponent = (
     props: Record<string, unknown> = {},
     bootstrapState: Record<string, unknown> = {}
-  ) => mount(UserMenu, {
+  ) =>
+    mount(UserMenu, {
       props: {
         cust: mockCustomer,
         colonel: false,
@@ -274,10 +275,7 @@ describe('UserMenu', () => {
 
   describe('Test Plan Mode - Visual Variants', () => {
     it('shows caution variant when test mode is active', async () => {
-      wrapper = mountComponent(
-        { colonel: true },
-        { entitlement_preview_planid: 'identity_v1' }
-      );
+      wrapper = mountComponent({ colonel: true }, { entitlement_preview_planid: 'identity_v1' });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -291,10 +289,7 @@ describe('UserMenu', () => {
     });
 
     it('shows default variant when test mode is inactive', async () => {
-      wrapper = mountComponent(
-        { colonel: true },
-        { entitlement_preview_planid: null }
-      );
+      wrapper = mountComponent({ colonel: true }, { entitlement_preview_planid: null });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -302,7 +297,7 @@ describe('UserMenu', () => {
 
       // Find the test plan menu item specifically
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      const testPlanItem = menuItems.find(item => {
+      const testPlanItem = menuItems.find((item) => {
         const html = item.html().toLowerCase();
         return html.includes('test') || html.includes('beaker');
       });
@@ -354,10 +349,7 @@ describe('UserMenu', () => {
 
     it('shows billing item when billing is enabled (owner)', async () => {
       mockCurrentOrganizationRef.value = { current_user_role: 'owner' };
-      wrapper = mountComponent(
-        { colonel: true },
-        { billing_enabled: true }
-      );
+      wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -368,10 +360,7 @@ describe('UserMenu', () => {
     });
 
     it('does not show billing item when billing is disabled', async () => {
-      wrapper = mountComponent(
-        { colonel: false },
-        { billing_enabled: false }
-      );
+      wrapper = mountComponent({ colonel: false }, { billing_enabled: false });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -419,9 +408,7 @@ describe('UserMenu', () => {
       await nextTick();
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      const logoutItem = menuItems.find(item =>
-        item.text().toLowerCase().includes('logout')
-      );
+      const logoutItem = menuItems.find((item) => item.text().toLowerCase().includes('logout'));
 
       if (logoutItem) {
         await logoutItem.trigger('click');
@@ -439,9 +426,7 @@ describe('UserMenu', () => {
       await nextTick();
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      const logoutItem = menuItems.find(item =>
-        item.text().toLowerCase().includes('logout')
-      );
+      const logoutItem = menuItems.find((item) => item.text().toLowerCase().includes('logout'));
 
       if (logoutItem) {
         const html = logoutItem.html().toLowerCase();
@@ -593,13 +578,13 @@ describe('UserMenu', () => {
       await nextTick();
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      return menuItems.map(item => item.text().toLowerCase());
+      return menuItems.map((item) => item.text().toLowerCase());
     };
 
     // Helper to check if menu contains specific items
     const expectMenuContains = (texts: string[], itemLabels: string[]) => {
       for (const label of itemLabels) {
-        const found = texts.some(t => t.includes(label.toLowerCase()));
+        const found = texts.some((t) => t.includes(label.toLowerCase()));
         expect(found, `Expected menu to contain "${label}"`).toBe(true);
       }
     };
@@ -607,7 +592,7 @@ describe('UserMenu', () => {
     // Helper to check if menu does NOT contain specific items
     const expectMenuNotContains = (texts: string[], itemLabels: string[]) => {
       for (const label of itemLabels) {
-        const found = texts.some(t => t.includes(label.toLowerCase()));
+        const found = texts.some((t) => t.includes(label.toLowerCase()));
         expect(found, `Expected menu NOT to contain "${label}"`).toBe(false);
       }
     };
@@ -648,7 +633,15 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Admin sees the full menu, but billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'colonel', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'recent',
+          'account',
+          'colonel',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
 
@@ -673,7 +666,16 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Owner sees all items
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'recent',
+          'billing',
+          'account',
+          'colonel',
+          'help',
+          'feedback',
+          'logout',
+        ]);
       });
 
       it('should see test plan mode when colonel', async () => {
@@ -697,7 +699,14 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Non-colonel members on canonical site see standard menu, but billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'recent',
+          'account',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -713,7 +722,14 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Users without organization on canonical see standard menu; billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'recent',
+          'account',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -730,7 +746,14 @@ describe('UserMenu', () => {
         wrapper = mountComponent({ colonel: false }, { billing_enabled: true });
         const menuTexts = await getVisibleMenuItemTexts();
 
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'recent',
+          'account',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -747,7 +770,14 @@ describe('UserMenu', () => {
 
         // MFA takes precedence - only MFA verification and logout should be visible
         expectMenuContains(menuTexts, ['mfa', 'logout']);
-        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'help', 'feedback']);
+        expectMenuNotContains(menuTexts, [
+          'dashboard',
+          'recent',
+          'billing',
+          'account',
+          'help',
+          'feedback',
+        ]);
       });
 
       it('should restrict menu when awaitingMfa=true even for custom domain owner', async () => {

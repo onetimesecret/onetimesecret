@@ -87,7 +87,7 @@ describe('SettingsLayout', () => {
             // Sidebar
             h('aside', { class: 'sidebar w-full md:w-72 md:shrink-0' }, [
               h('nav', { class: 'space-y-1', 'aria-label': 'Settings navigation' }, [
-                ...sections.map(item =>
+                ...sections.map((item) =>
                   h(
                     'a',
                     {
@@ -129,7 +129,8 @@ describe('SettingsLayout', () => {
     }
   });
 
-  const mountComponent = (slots: Record<string, () => unknown> = {}) => mount(SettingsLayoutStub, {
+  const mountComponent = (slots: Record<string, () => unknown> = {}) =>
+    mount(SettingsLayoutStub, {
       slots: {
         default: () => h('div', { class: 'test-content' }, 'Test Content'),
         ...slots,

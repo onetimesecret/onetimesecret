@@ -115,7 +115,9 @@ describe('VERIFIABLE_ID_PATTERN', () => {
   it('matches a 62-char id glued to trailing word characters (#3794 C3)', () => {
     const id62 = 'a'.repeat(62);
     VERIFIABLE_ID_PATTERN.lastIndex = 0;
-    expect(`?ref=${id62}xyz`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe('?ref=[REDACTED]xyz');
+    expect(`?ref=${id62}xyz`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe(
+      '?ref=[REDACTED]xyz'
+    );
   });
 
   it('matches a 62-char id delimited by non-word characters', () => {

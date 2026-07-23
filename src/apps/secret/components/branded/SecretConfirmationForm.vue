@@ -41,7 +41,9 @@
   const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
   const headingFontClass = computed(() => productIdentity.headingFontClass);
 
-  const buttonText = computed(() => props.isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue'));
+  const buttonText = computed(() =>
+    props.isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue')
+  );
 </script>
 
 <template>

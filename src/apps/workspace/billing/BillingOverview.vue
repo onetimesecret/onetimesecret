@@ -1,195 +1,195 @@
 <!-- src/apps/workspace/billing/BillingOverview.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
-import FederationNotification from './FederationNotification.vue';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { classifyError } from '@/schemas/errors';
-import { BillingService, type FederationNotification as FederationNotificationData } from '@/services/billing.service';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { PaymentMethod } from '@/types/billing';
-import { getPlanLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
-import type { Organization } from '@/types/organization';
-import { formatDisplayDate } from '@/utils/format';
-import { computed, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute } from 'vue-router';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
+  import FederationNotification from './FederationNotification.vue';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { classifyError } from '@/schemas/errors';
+  import {
+    BillingService,
+    type FederationNotification as FederationNotificationData,
+  } from '@/services/billing.service';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import type { PaymentMethod } from '@/types/billing';
+  import { getPlanLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
+  import type { Organization } from '@/types/organization';
+  import { formatDisplayDate } from '@/utils/format';
+  import { computed, onMounted, ref, watch } from 'vue';
 
-const { t } = useI18n();
-const route = useRoute();
-const organizationStore = useOrganizationStore();
+  const { t } = useI18n();
+  const route = useRoute();
+  const organizationStore = useOrganizationStore();
 
-// Org extid comes from URL (e.g., /billing/:extid/overview)
-const orgExtid = computed(() => route.params.extid as string);
+  // Org extid comes from URL (e.g., /billing/:extid/overview)
+  const orgExtid = computed(() => route.params.extid as string);
 
-const selectedOrg = ref<Organization | null>(null);
-const paymentMethod = ref<PaymentMethod | null>(null);
-const nextBillingDate = ref<Date | null>(null);
-const planFeatures = ref<string[]>([]);
-const federationNotification = ref<FederationNotificationData | null>(null);
-// Best practice: Initialize loading states to `true` to prevent uninitialized
-// content or empty states from briefly flashing on mount.
-const isLoading = ref(true);
-const error = ref('');
-const success = ref('');
+  const selectedOrg = ref<Organization | null>(null);
+  const paymentMethod = ref<PaymentMethod | null>(null);
+  const nextBillingDate = ref<Date | null>(null);
+  const planFeatures = ref<string[]>([]);
+  const federationNotification = ref<FederationNotificationData | null>(null);
+  // Best practice: Initialize loading states to `true` to prevent uninitialized
+  // content or empty states from briefly flashing on mount.
+  const isLoading = ref(true);
+  const error = ref('');
+  const success = ref('');
 
-// Billing email editing state
-const isSavingBillingEmail = ref(false);
-const isEditingBillingEmail = ref(false);
-const billingEmailForm = ref({
-  email: '',
-});
+  // Billing email editing state
+  const isSavingBillingEmail = ref(false);
+  const isEditingBillingEmail = ref(false);
+  const billingEmailForm = ref({
+    email: '',
+  });
 
-// Check for upgrade success from checkout redirect
-const showUpgradeSuccess = computed(() => route.query.upgraded === 'true');
-const successMessage = computed(() =>
-  showUpgradeSuccess.value ? t('web.billing.overview.upgrade_success') : '',
-);
+  // Check for upgrade success from checkout redirect
+  const showUpgradeSuccess = computed(() => route.query.upgraded === 'true');
+  const successMessage = computed(() =>
+    showUpgradeSuccess.value ? t('web.billing.overview.upgrade_success') : ''
+  );
 
-const organizations = computed(() => organizationStore.organizations);
+  const organizations = computed(() => organizationStore.organizations);
 
-const {
-  entitlements,
-  formatEntitlement,
-  initDefinitions,
-} = useEntitlements(selectedOrg);
+  const { entitlements, formatEntitlement, initDefinitions } = useEntitlements(selectedOrg);
 
-const planName = computed(() => {
-  if (!selectedOrg.value?.planid) return t('web.billing.plans.free_plan');
-  return getPlanLabel(selectedOrg.value.planid);
-});
+  const planName = computed(() => {
+    if (!selectedOrg.value?.planid) return t('web.billing.plans.free_plan');
+    return getPlanLabel(selectedOrg.value.planid);
+  });
 
-const planStatus = computed(() => {
-  const planid = selectedOrg.value?.planid;
-  if (!planid || isFreePlan(planid)) return 'free';
-  return 'active';
-});
+  const planStatus = computed(() => {
+    const planid = selectedOrg.value?.planid;
+    if (!planid || isFreePlan(planid)) return 'free';
+    return 'active';
+  });
 
-const hasPaidPlan = computed(() => planStatus.value === 'active');
+  const hasPaidPlan = computed(() => planStatus.value === 'active');
 
-// Legacy plan detection for grandfathered customers
-const isLegacyCustomer = computed(() =>
-  selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
-);
+  // Legacy plan detection for grandfathered customers
+  const isLegacyCustomer = computed(() =>
+    selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
+  );
 
-// Extract billing overview state updates to reduce complexity
-const applyBillingOverview = (overview: Awaited<ReturnType<typeof BillingService.getOverview>>) => {
-  nextBillingDate.value = overview.subscription?.period_end
-    ? new Date(overview.subscription.period_end * 1000)
-    : null;
-  planFeatures.value = overview.plan?.features || [];
-  paymentMethod.value = overview.payment_method || null;
-  federationNotification.value = overview.federation_notification || null;
-};
+  // Extract billing overview state updates to reduce complexity
+  const applyBillingOverview = (
+    overview: Awaited<ReturnType<typeof BillingService.getOverview>>
+  ) => {
+    nextBillingDate.value = overview.subscription?.period_end
+      ? new Date(overview.subscription.period_end * 1000)
+      : null;
+    planFeatures.value = overview.plan?.features || [];
+    paymentMethod.value = overview.payment_method || null;
+    federationNotification.value = overview.federation_notification || null;
+  };
 
-const loadOrganizationData = async (extid: string) => {
-  isLoading.value = true;
-  error.value = '';
-  try {
-    const org = await organizationStore.fetchOrganization(extid);
-    selectedOrg.value = org;
+  const loadOrganizationData = async (extid: string) => {
+    isLoading.value = true;
+    error.value = '';
+    try {
+      const org = await organizationStore.fetchOrganization(extid);
+      selectedOrg.value = org;
 
-    // Load billing overview data from API
-    if (org.extid) {
-      const overview = await BillingService.getOverview(org.extid);
-      applyBillingOverview(overview);
+      // Load billing overview data from API
+      if (org.extid) {
+        const overview = await BillingService.getOverview(org.extid);
+        applyBillingOverview(overview);
+      }
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.overview.load_error');
+      console.error('[BillingOverview] Error loading organization:', err);
+    } finally {
+      isLoading.value = false;
     }
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.overview.load_error');
-    console.error('[BillingOverview] Error loading organization:', err);
-  } finally {
-    isLoading.value = false;
-  }
-};
+  };
 
-const _formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
+  const _formatCardBrand = (brand: string): string =>
+    brand.charAt(0).toUpperCase() + brand.slice(1);
 
-const formatNextBillingDate = (date: Date): string => formatDisplayDate(date);
+  const formatNextBillingDate = (date: Date): string => formatDisplayDate(date);
 
-const daysUntilBilling = computed(() => {
-  if (!nextBillingDate.value) return null;
-  const diff = nextBillingDate.value.getTime() - Date.now();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-});
+  const daysUntilBilling = computed(() => {
+    if (!nextBillingDate.value) return null;
+    const diff = nextBillingDate.value.getTime() - Date.now();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  });
 
-// Billing email inline edit handlers
-const handleEditBillingEmail = () => {
-  billingEmailForm.value.email = selectedOrg.value?.billing_email
-    || selectedOrg.value?.contact_email
-    || '';
-  isEditingBillingEmail.value = true;
-};
+  // Billing email inline edit handlers
+  const handleEditBillingEmail = () => {
+    billingEmailForm.value.email =
+      selectedOrg.value?.billing_email || selectedOrg.value?.contact_email || '';
+    isEditingBillingEmail.value = true;
+  };
 
-const handleCancelBillingEmailEdit = () => {
-  billingEmailForm.value.email = selectedOrg.value?.billing_email
-    || selectedOrg.value?.contact_email
-    || '';
-  isEditingBillingEmail.value = false;
-};
-
-const handleSaveBillingEmail = async () => {
-  if (!selectedOrg.value) return;
-
-  const newEmail = billingEmailForm.value.email.trim();
-  const currentEmail = selectedOrg.value.billing_email || selectedOrg.value.contact_email || '';
-  if (newEmail === currentEmail) {
+  const handleCancelBillingEmailEdit = () => {
+    billingEmailForm.value.email =
+      selectedOrg.value?.billing_email || selectedOrg.value?.contact_email || '';
     isEditingBillingEmail.value = false;
-    return;
-  }
+  };
 
-  isSavingBillingEmail.value = true;
-  error.value = '';
-  success.value = '';
+  const handleSaveBillingEmail = async () => {
+    if (!selectedOrg.value) return;
 
-  try {
-    await organizationStore.updateOrganization(orgExtid.value, {
-      billing_email: newEmail,
-    });
+    const newEmail = billingEmailForm.value.email.trim();
+    const currentEmail = selectedOrg.value.billing_email || selectedOrg.value.contact_email || '';
+    if (newEmail === currentEmail) {
+      isEditingBillingEmail.value = false;
+      return;
+    }
 
-    success.value = t('web.organizations.billing_email_updated');
-    isEditingBillingEmail.value = false;
-    // Reload organization data to get the updated email
-    await loadOrganizationData(orgExtid.value);
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.update_error');
-    console.error('[BillingOverview] Error updating billing email:', err);
-  } finally {
-    isSavingBillingEmail.value = false;
-  }
-};
+    isSavingBillingEmail.value = true;
+    error.value = '';
+    success.value = '';
 
-// Watch for org changes to update billing email form
-watch(selectedOrg, (org) => {
-  if (org) {
-    billingEmailForm.value.email = org.billing_email || org.contact_email || '';
-  }
-});
+    try {
+      await organizationStore.updateOrganization(orgExtid.value, {
+        billing_email: newEmail,
+      });
 
-// Handle federation notification dismissal
-const handleFederationNotificationDismissed = () => {
-  federationNotification.value = null;
-};
-
-onMounted(async () => {
-  try {
-    // Initialize entitlement definitions for formatting
-    await initDefinitions();
-
-    // Load organization data using extid from URL
-    if (orgExtid.value) {
+      success.value = t('web.organizations.billing_email_updated');
+      isEditingBillingEmail.value = false;
+      // Reload organization data to get the updated email
       await loadOrganizationData(orgExtid.value);
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.organizations.update_error');
+      console.error('[BillingOverview] Error updating billing email:', err);
+    } finally {
+      isSavingBillingEmail.value = false;
     }
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.overview.load_error');
-    console.error('[BillingOverview] Error loading billing data:', err);
-  }
-});
+  };
+
+  // Watch for org changes to update billing email form
+  watch(selectedOrg, (org) => {
+    if (org) {
+      billingEmailForm.value.email = org.billing_email || org.contact_email || '';
+    }
+  });
+
+  // Handle federation notification dismissal
+  const handleFederationNotificationDismissed = () => {
+    federationNotification.value = null;
+  };
+
+  onMounted(async () => {
+    try {
+      // Initialize entitlement definitions for formatting
+      await initDefinitions();
+
+      // Load organization data using extid from URL
+      if (orgExtid.value) {
+        await loadOrganizationData(orgExtid.value);
+      }
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.overview.load_error');
+      console.error('[BillingOverview] Error loading billing data:', err);
+    }
+  });
 </script>
 
 <template>
@@ -224,16 +224,22 @@ onMounted(async () => {
         @dismissed="handleFederationNotificationDismissed" />
 
       <!-- Error Alert -->
-      <BasicFormAlerts v-if="error" :error="error" />
+      <BasicFormAlerts
+        v-if="error"
+        :error="error" />
 
       <!-- Success Alert -->
-      <BasicFormAlerts v-if="success" :success="success" />
+      <BasicFormAlerts
+        v-if="success"
+        :success="success" />
 
       <!-- Loading State -->
       <SettingsSkeleton v-if="isLoading" />
 
       <!-- Empty State: No Workspaces -->
-      <div v-else-if="organizations.length === 0" class="rounded-lg border border-gray-200/60 bg-white/60 p-12 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+      <div
+        v-else-if="organizations.length === 0"
+        class="rounded-lg border border-gray-200/60 bg-white/60 p-12 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <OIcon
           collection="heroicons"
           name="building-office-2"
@@ -260,9 +266,12 @@ onMounted(async () => {
       </div>
 
       <!-- Content -->
-      <div v-else-if="selectedOrg" class="space-y-6">
+      <div
+        v-else-if="selectedOrg"
+        class="space-y-6">
         <!-- Current Plan Card -->
-        <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+        <div
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               {{ t('web.billing.overview.current_plan') }}
@@ -286,7 +295,9 @@ onMounted(async () => {
                   data-testid="next-billing-date">
                   {{ t('web.billing.overview.next_billing_date') }}:
                   {{ formatNextBillingDate(nextBillingDate) }}
-                  <span v-if="daysUntilBilling" class="text-gray-500 dark:text-gray-500">
+                  <span
+                    v-if="daysUntilBilling"
+                    class="text-gray-500 dark:text-gray-500">
                     ({{ daysUntilBilling }} {{ t('web.billing.overview.days_remaining') }})
                   </span>
                 </p>
@@ -299,7 +310,13 @@ onMounted(async () => {
                   :name="isLegacyCustomer ? 'cog-6-tooth' : 'arrow-up-circle'"
                   class="size-4"
                   aria-hidden="true" />
-                {{ planStatus === 'free' ? t('web.billing.overview.upgrade_plan') : (isLegacyCustomer ? t('web.billing.overview.manage_subscription') : t('web.billing.overview.change_plan')) }}
+                {{
+                  planStatus === 'free'
+                    ? t('web.billing.overview.upgrade_plan')
+                    : isLegacyCustomer
+                      ? t('web.billing.overview.manage_subscription')
+                      : t('web.billing.overview.change_plan')
+                }}
               </router-link>
             </div>
 
@@ -310,18 +327,22 @@ onMounted(async () => {
               </p>
 
               <!-- Loading skeleton -->
-              <div v-if="isLoading" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div
+                v-if="isLoading"
+                class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
                   v-for="i in 4"
                   :key="i"
-                  class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
+                  class="flex animate-pulse items-center gap-2 motion-reduce:animate-none">
                   <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
                   <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
                 </div>
               </div>
 
               <!-- Features list (i18n locale keys) -->
-              <div v-else-if="planFeatures.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div
+                v-else-if="planFeatures.length > 0"
+                class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
                   v-for="feature in planFeatures"
                   :key="feature"
@@ -336,7 +357,9 @@ onMounted(async () => {
               </div>
 
               <!-- Fallback to entitlements if no features -->
-              <div v-else-if="entitlements.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div
+                v-else-if="entitlements.length > 0"
+                class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
                   v-for="ent in entitlements"
                   :key="ent"
@@ -351,7 +374,9 @@ onMounted(async () => {
               </div>
 
               <!-- No features -->
-              <div v-else class="text-sm text-gray-500 dark:text-gray-400">
+              <div
+                v-else
+                class="text-sm text-gray-500 dark:text-gray-400">
                 {{ t('web.billing.overview.no_entitlements') }}
               </div>
             </div>
@@ -375,9 +400,15 @@ onMounted(async () => {
               </label>
 
               <!-- Display Mode: Show email as text with Edit button -->
-              <div v-if="!isEditingBillingEmail" class="mt-2 flex items-center gap-3">
+              <div
+                v-if="!isEditingBillingEmail"
+                class="mt-2 flex items-center gap-3">
                 <span class="text-sm text-gray-900 dark:text-white">
-                  {{ selectedOrg?.billing_email || selectedOrg?.contact_email || t('web.COMMON.not_set') }}
+                  {{
+                    selectedOrg?.billing_email ||
+                    selectedOrg?.contact_email ||
+                    t('web.COMMON.not_set')
+                  }}
                 </span>
                 <button
                   type="button"
@@ -389,7 +420,9 @@ onMounted(async () => {
               </div>
 
               <!-- Edit Mode: Inline form -->
-              <div v-else class="mt-2 space-y-2">
+              <div
+                v-else
+                class="mt-2 space-y-2">
                 <div class="flex items-center gap-2">
                   <input
                     id="billing-email"
@@ -398,7 +431,7 @@ onMounted(async () => {
                     type="email"
                     required
                     :placeholder="t('web.organizations.contact_email')"
-                    class="block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+                    class="block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
                     @keyup.enter="handleSaveBillingEmail"
                     @keyup.escape="handleCancelBillingEmailEdit" />
                   <button
@@ -417,14 +450,15 @@ onMounted(async () => {
                     <span
                       v-if="isSavingBillingEmail"
                       class="sr-only"
-                      >{{ t('web.COMMON.loading') }}</span>
+                      >{{ t('web.COMMON.loading') }}</span
+                    >
                   </button>
                   <button
                     type="button"
                     data-testid="billing-email-cancel-btn"
                     @click="handleCancelBillingEmailEdit"
                     :disabled="isSavingBillingEmail"
-                    class="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                    class="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
                     {{ t('web.COMMON.word_cancel') }}
                   </button>
                 </div>

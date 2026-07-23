@@ -198,7 +198,9 @@ function investigateAck() {
         match: false,
         verdict: 'mismatch_detected',
         details: 'planid differs',
-        issues: [{ field: 'planid', local: 'free_v1', stripe: 'identity_plus_v1', severity: 'high' }],
+        issues: [
+          { field: 'planid', local: 'free_v1', stripe: 'identity_plus_v1', severity: 'high' },
+        ],
       },
     },
   };
@@ -239,7 +241,9 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     // Entitlement breakdown is shown on load (plan / grants / materialized).
     expect(wrapper.find('[data-testid="entitlements-plan"]').text()).toContain('create_secrets');
     expect(wrapper.find('[data-testid="entitlements-grants"]').text()).toContain('custom_domains');
-    expect(wrapper.find('[data-testid="entitlements-materialized"]').text()).toContain('custom_domains');
+    expect(wrapper.find('[data-testid="entitlements-materialized"]').text()).toContain(
+      'custom_domains'
+    );
     expect(wrapper.find('[data-testid="entitlements-insync"]').exists()).toBe(true);
 
     // Members + domains tables render.

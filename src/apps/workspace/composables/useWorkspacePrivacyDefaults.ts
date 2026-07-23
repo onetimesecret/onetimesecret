@@ -68,9 +68,7 @@ export function useWorkspacePrivacyDefaults(
   // Get global secret options for canonical domain defaults
   const bootstrapStore = useBootstrapStore();
   const { secret_options } = storeToRefs(bootstrapStore);
-  const globalDefaultTtl = computed(
-    () => secret_options.value?.default_ttl ?? 604800
-  ); // 7 days fallback
+  const globalDefaultTtl = computed(() => secret_options.value?.default_ttl ?? 604800); // 7 days fallback
   const globalPassphraseRequired = computed(
     () => secret_options.value?.passphrase?.required ?? false
   );

@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminCustomerDetail.vue -->
 
 <script setup lang="ts">
-
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
@@ -100,7 +99,9 @@
    */
   const planOptions = computed(() => {
     const options = [...availablePlans.value]
-      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0) || a.name.localeCompare(b.name))
+      .sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0) || a.name.localeCompare(b.name)
+      )
       .map((p) => ({ planid: p.planid, label: `${p.name} (${p.planid})` }));
     const current = record.value?.planid;
     if (current && !options.some((o) => o.planid === current)) {
@@ -154,11 +155,7 @@
   ): Promise<void> {
     const response =
       method === 'delete' ? await $api.delete(path) : await $api.post(path, body ?? {});
-    gracefulParse(
-      colonelUserMutationResponseSchema,
-      response.data,
-      'ColonelUserMutationResponse'
-    );
+    gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
   }
 
   const {
@@ -343,9 +340,7 @@
       {
         key: 'updated',
         label: t('web.admin.customers.detail.fields.updated'),
-        value: r.updated
-          ? formatDisplayDateTime(r.updated)
-          : t('web.admin.customers.detail.never'),
+        value: r.updated ? formatDisplayDateTime(r.updated) : t('web.admin.customers.detail.never'),
       },
       {
         key: 'lastLogin',
@@ -557,7 +552,8 @@
       class="space-y-6"
       data-testid="detail-content">
       <!-- Header -->
-      <div class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <div
+        class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           <RevealEmail :email="record.email" />
         </h2>
@@ -630,7 +626,8 @@
               v-for="field in profileFields"
               :key="field.key"
               :data-testid="`profile-${field.key}`">
-              <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              <dt
+                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ field.label }}
               </dt>
               <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
@@ -832,7 +829,8 @@
             v-for="field in billingFields"
             :key="field.key"
             :data-testid="`billing-${field.key}`">
-            <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            <dt
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ field.label }}
             </dt>
             <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
@@ -881,7 +879,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.secrets') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.secrets.count }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.secrets.count }})</span
+            >
           </h3>
         </div>
         <DataTable
@@ -894,7 +894,11 @@
             {{ formatDisplayDateTime(row.created) }}
           </template>
           <template #cell-expiration="{ row }">
-            {{ row.expiration ? formatDisplayDateTime(row.expiration) : t('web.admin.customers.detail.never') }}
+            {{
+              row.expiration
+                ? formatDisplayDateTime(row.expiration)
+                : t('web.admin.customers.detail.never')
+            }}
           </template>
         </DataTable>
       </section>
@@ -905,7 +909,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.receipts') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.receipts.count }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.receipts.count }})</span
+            >
           </h3>
         </div>
         <DataTable
@@ -926,7 +932,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.organizations.length }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.organizations.length }})</span
+            >
           </h3>
         </div>
         <ul

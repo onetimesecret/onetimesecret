@@ -70,9 +70,7 @@ describe('CheckEmail.vue', () => {
    * does not touch window.history, so the two are seeded independently, and the
    * afterEach hook clears the shared window.history.state between tests.
    */
-  const createWrapper = async (
-    opts: { email?: unknown; query?: Record<string, string> } = {}
-  ) => {
+  const createWrapper = async (opts: { email?: unknown; query?: Record<string, string> } = {}) => {
     router = createRouter({
       history: createMemoryHistory(),
       routes: [

@@ -9,13 +9,7 @@
 // These tests pin the resolution order so a partial port or refactor
 // cannot silently drop a rung (the class of bug that produced #3381).
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  vi,
-} from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { nextTick } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { DEFAULT_LOGO_COMPONENT, NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
@@ -298,7 +292,7 @@ describe('identityStore primaryColor resolution', () => {
     it('Ruby BrandSettings::DEFAULTS[:primary_color] matches TS constant', () => {
       const ruby = readFileSync(
         resolve(process.cwd(), 'lib/onetime/models/custom_domain/brand_settings.rb'),
-        'utf-8',
+        'utf-8'
       );
       // Match primary_color inside the DEFAULTS hash, not in comments or examples
       const defaultsBlock = ruby.match(/DEFAULTS\s*=\s*\{([^}]+)\}/s);
@@ -309,20 +303,14 @@ describe('identityStore primaryColor resolution', () => {
     });
 
     it('.env.reference BRAND_PRIMARY_COLOR example matches TS constant', () => {
-      const env = readFileSync(
-        resolve(process.cwd(), '.env.reference'),
-        'utf-8',
-      );
+      const env = readFileSync(resolve(process.cwd(), '.env.reference'), 'utf-8');
       const match = env.match(/BRAND_PRIMARY_COLOR='(#[0-9A-Fa-f]{6})'/);
       expect(match).not.toBeNull();
       expect(match![1].toUpperCase()).toBe(CANONICAL);
     });
 
     it('CSS @theme --color-brand-500 seed matches TS constant', () => {
-      const css = readFileSync(
-        resolve(process.cwd(), 'src/assets/style.css'),
-        'utf-8',
-      );
+      const css = readFileSync(resolve(process.cwd(), 'src/assets/style.css'), 'utf-8');
       const match = css.match(/--color-brand-500:\s*(#[0-9A-Fa-f]{6})/);
       expect(match).not.toBeNull();
       expect(match![1].toUpperCase()).toBe(CANONICAL);

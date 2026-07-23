@@ -13,15 +13,22 @@
     },
   });
 
-  const getLibraryInfo = (prefix: string) => Object.values(iconLibraries).find((lib) => prefix.startsWith(lib.usagePrefix));
+  const getLibraryInfo = (prefix: string) =>
+    Object.values(iconLibraries).find((lib) => prefix.startsWith(lib.usagePrefix));
 
-  const formatIconName = (iconId: string): string => iconId.split('-').slice(-1)[0].replace(/-/g, ' ');
+  const formatIconName = (iconId: string): string =>
+    iconId.split('-').slice(-1)[0].replace(/-/g, ' ');
 
-  const groupedIcons = computed(() => props.icons.reduce((groups, icon) => {
-      const group = groups[icon.name] || [];
-      groups[icon.name] = [...group, icon];
-      return groups;
-    }, {} as Record<string, IconSet[]>));
+  const groupedIcons = computed(() =>
+    props.icons.reduce(
+      (groups, icon) => {
+        const group = groups[icon.name] || [];
+        groups[icon.name] = [...group, icon];
+        return groups;
+      },
+      {} as Record<string, IconSet[]>
+    )
+  );
 </script>
 
 <template>
@@ -36,8 +43,7 @@
           </h2>
           <div
             v-if="getLibraryInfo(icons[0].prefix)"
-            class="text-sm text-gray-600 dark:text-gray-400">
-          </div>
+            class="text-sm text-gray-600 dark:text-gray-400"></div>
         </div>
 
         <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -50,7 +56,7 @@
                 <use :href="`#${icon.id}`" />
               </svg>
             </div>
-            <span class="mt-3 break-all text-center text-sm text-gray-600 dark:text-gray-400">
+            <span class="mt-3 text-center text-sm break-all text-gray-600 dark:text-gray-400">
               {{ formatIconName(icon.id) }}
             </span>
           </div>

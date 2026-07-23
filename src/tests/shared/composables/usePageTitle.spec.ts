@@ -34,10 +34,7 @@ vi.mock('@/i18n', () => ({
  * the active instance so useBootstrapStore() (called inside usePageTitle)
  * resolves against it.
  */
-const setupPinia = (bootstrap: {
-  display_domain?: string;
-  brand_product_name?: string | null;
-}) => {
+const setupPinia = (bootstrap: { display_domain?: string; brand_product_name?: string | null }) => {
   const pinia = createTestingPinia({
     createSpy: vi.fn,
     stubActions: false,

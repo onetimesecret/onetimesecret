@@ -1,160 +1,160 @@
 <!-- src/apps/workspace/domains/DomainEmail.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Email Configuration Page
- *
- * Page-level component that wires together the email config composable,
- * form component, and DNS records display. Follows the DomainSso page
- * structure: header -> entitlement gate -> fallback notice -> form -> DNS.
- */
-import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
-import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
-import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEmailDnsRecords.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useDomain } from '@/shared/composables/useDomain';
-import {
-  useEmailConfig,
-  buildDomainEmailDefaults,
-  type EmailConfigFormState,
-} from '@/shared/composables/useEmailConfig';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { ENTITLEMENTS } from '@/types/organization';
-import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
-import { onBeforeRouteLeave } from 'vue-router';
+  /**
+   * Domain Email Configuration Page
+   *
+   * Page-level component that wires together the email config composable,
+   * form component, and DNS records display. Follows the DomainSso page
+   * structure: header -> entitlement gate -> fallback notice -> form -> DNS.
+   */
+  import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+  import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
+  import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEmailDnsRecords.vue';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useDomain } from '@/shared/composables/useDomain';
+  import {
+    useEmailConfig,
+    buildDomainEmailDefaults,
+    type EmailConfigFormState,
+  } from '@/shared/composables/useEmailConfig';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
+  import { onBeforeRouteLeave } from 'vue-router';
 
-const { t } = useI18n();
-const router = useRouter();
+  const { t } = useI18n();
+  const router = useRouter();
 
-const props = defineProps<{
-  orgid: string;
-  extid: string;
-}>();
+  const props = defineProps<{
+    orgid: string;
+    extid: string;
+  }>();
 
-// ---------------------------------------------------------------------------
-// Domain data
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Domain data
+  // ---------------------------------------------------------------------------
 
-const {
-  domain: customDomainRecord,
-  isLoading: domainLoading,
-  error: domainError,
-  initialize: initializeDomain,
-} = useDomain(props.extid);
+  const {
+    domain: customDomainRecord,
+    isLoading: domainLoading,
+    error: domainError,
+    initialize: initializeDomain,
+  } = useDomain(props.extid);
 
-// ---------------------------------------------------------------------------
-// Entitlement check
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Entitlement check
+  // ---------------------------------------------------------------------------
 
-const organizationStore = useOrganizationStore();
-const { organizations } = storeToRefs(organizationStore);
-const organization = computed(() =>
-  organizations.value.find((o) => o.extid === props.orgid) ?? null
-);
-const { can } = useEntitlements(organization);
-const hasEntitlement = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
-const hasFlexibleFromDomain = computed(() => can(ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN));
-const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
-const displayDomain = computed(() => customDomainRecord.value?.display_domain);
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(
+    () => organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+  const hasEntitlement = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
+  const hasFlexibleFromDomain = computed(() => can(ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN));
+  const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+  const displayDomain = computed(() => customDomainRecord.value?.display_domain);
 
-/**
- * Sender defaults for a domain that has no saved email config yet, derived by
- * the shared `buildDomainEmailDefaults` helper (pre-fills `no-reply@<domain>`
- * and the organization name). Both fields remain editable before saving.
- */
-const emailDefaults = computed(() =>
-  buildDomainEmailDefaults(displayDomain.value, organization.value?.display_name)
-);
+  /**
+   * Sender defaults for a domain that has no saved email config yet, derived by
+   * the shared `buildDomainEmailDefaults` helper (pre-fills `no-reply@<domain>`
+   * and the organization name). Both fields remain editable before saving.
+   */
+  const emailDefaults = computed(() =>
+    buildDomainEmailDefaults(displayDomain.value, organization.value?.display_name)
+  );
 
-// ---------------------------------------------------------------------------
-// Email config composable
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Email config composable
+  // ---------------------------------------------------------------------------
 
-const {
-  isLoading: emailLoading,
-  isInitialized,
-  isSaving,
-  isValidating,
-  isDeleting,
-  isTesting,
-  testResult,
-  testError,
-  error: emailError,
-  emailConfig,
-  formState,
-  isConfigured,
-  dnsRecords,
-  validationStatus,
-  lastValidatedAt,
-  dnsCheckCompletedAt,
-  providerCheckCompletedAt,
-  lastError,
-  hasUnsavedChanges,
-  initialize: initializeEmailConfig,
-  saveConfig,
-  deleteConfig,
-  validateDomain,
-  sendTestEmail,
-  discardChanges,
-} = useEmailConfig(props.extid);
+  const {
+    isLoading: emailLoading,
+    isInitialized,
+    isSaving,
+    isValidating,
+    isDeleting,
+    isTesting,
+    testResult,
+    testError,
+    error: emailError,
+    emailConfig,
+    formState,
+    isConfigured,
+    dnsRecords,
+    validationStatus,
+    lastValidatedAt,
+    dnsCheckCompletedAt,
+    providerCheckCompletedAt,
+    lastError,
+    hasUnsavedChanges,
+    initialize: initializeEmailConfig,
+    saveConfig,
+    deleteConfig,
+    validateDomain,
+    sendTestEmail,
+    discardChanges,
+  } = useEmailConfig(props.extid);
 
-// ---------------------------------------------------------------------------
-// Form state handler
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Form state handler
+  // ---------------------------------------------------------------------------
 
-const handleFormStateUpdate = (state: EmailConfigFormState) => {
-  formState.value = state;
-};
+  const handleFormStateUpdate = (state: EmailConfigFormState) => {
+    formState.value = state;
+  };
 
-// The primary Save ("Update") lives in the page header. The form owns validity,
-// so it emits `can-save`; the header's Save button is disabled unless it's true.
-const formCanSave = ref(false);
+  // The primary Save ("Update") lives in the page header. The form owns validity,
+  // so it emits `can-save`; the header's Save button is disabled unless it's true.
+  const formCanSave = ref(false);
 
-// ---------------------------------------------------------------------------
-// Navigation
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
 
-const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
-};
+  const handleBack = () => {
+    router.push(`/org/${props.orgid}/domains/${props.extid}`);
+  };
 
-// Unsaved changes guard
-onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+  // Unsaved changes guard
+  onBeforeRouteLeave((_to, _from, next) => {
+    if (hasUnsavedChanges.value) {
+      const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
+      if (answer) next();
+      else next(false);
+    } else {
+      next();
+    }
+  });
 
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
 
-onMounted(async () => {
-  await initializeDomain();
+  onMounted(async () => {
+    await initializeDomain();
 
-  // Initialize email config if entitlement is already available
-  if (hasEntitlement.value) {
-    await initializeEmailConfig(emailDefaults.value);
-  }
-});
+    // Initialize email config if entitlement is already available
+    if (hasEntitlement.value) {
+      await initializeEmailConfig(emailDefaults.value);
+    }
+  });
 
-// Handle race condition: organizations may load after onMounted runs.
-// Watch for entitlement to become true and initialize if needed.
-watch(hasEntitlement, async (entitled) => {
-  if (entitled && !isInitialized.value) {
-    await initializeEmailConfig(emailDefaults.value);
-  }
-});
+  // Handle race condition: organizations may load after onMounted runs.
+  // Watch for entitlement to become true and initialize if needed.
+  watch(hasEntitlement, async (entitled) => {
+    if (entitled && !isInitialized.value) {
+      await initializeEmailConfig(emailDefaults.value);
+    }
+  });
 </script>
 
 <template>
@@ -181,7 +181,9 @@ watch(hasEntitlement, async (entitled) => {
       <SettingsSkeleton v-if="domainLoading" />
 
       <!-- Error State -->
-      <div v-else-if="domainError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <div
+        v-else-if="domainError"
+        class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <BasicFormAlerts :error="domainError.message" />
       </div>
 
@@ -215,11 +217,13 @@ watch(hasEntitlement, async (entitled) => {
       <!-- Main Content (entitled users) -->
       <template v-else>
         <!-- Card wrapper -->
-        <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div
+          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <!-- Card header -->
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <div class="flex items-center gap-3">
-              <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+              <div
+                class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
                 <OIcon
                   collection="heroicons"
                   name="envelope"

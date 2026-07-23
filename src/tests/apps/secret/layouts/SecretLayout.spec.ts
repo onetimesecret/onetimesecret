@@ -164,11 +164,15 @@ describe('SecretLayout', () => {
         (props.displayMasthead ? ' py-8' : ' pt-16 pb-8');
 
       return () =>
-        h(MockBaseLayout, { ...props }, {
-          header: () => h(MockTransactionalHeader, { ...props }),
-          main: () => h('main', { class: mainClasses }, [slots.default?.()]),
-          footer: () => h(MockTransactionalFooter, { ...props }),
-        });
+        h(
+          MockBaseLayout,
+          { ...props },
+          {
+            header: () => h(MockTransactionalHeader, { ...props }),
+            main: () => h('main', { class: mainClasses }, [slots.default?.()]),
+            footer: () => h(MockTransactionalFooter, { ...props }),
+          }
+        );
     },
   });
 

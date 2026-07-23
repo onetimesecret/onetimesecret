@@ -209,7 +209,11 @@ describe('useInviteAuth', () => {
       const result = await signupForInvite('dup@e.com', 'pw12345678', true, 'tok');
 
       // accountExists is always returned (false unless error contains "already exists")
-      expect(result).toEqual({ success: false, error: 'Unable to create account', accountExists: false });
+      expect(result).toEqual({
+        success: false,
+        error: 'Unable to create account',
+        accountExists: false,
+      });
       expect(error.value).toBe('Unable to create account');
       expect(fieldErrors.value).toEqual({ password: 'Password too weak' });
     });

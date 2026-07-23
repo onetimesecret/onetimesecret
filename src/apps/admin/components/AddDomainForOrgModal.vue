@@ -59,9 +59,7 @@
   // Minimal client-side gate mirroring the shared add-domain regex; the server
   // is authoritative and re-validates.
   const trimmed = computed(() => domain.value.trim().toLowerCase());
-  const isValid = computed(
-    () => /^[a-zA-Z0-9][a-zA-Z0-9-_.]+[a-zA-Z0-9]$/.test(trimmed.value)
-  );
+  const isValid = computed(() => /^[a-zA-Z0-9][a-zA-Z0-9-_.]+[a-zA-Z0-9]$/.test(trimmed.value));
   const canSubmit = computed(() => isValid.value && !props.loading);
 
   function onSubmit(): void {
@@ -91,9 +89,11 @@
       <p
         v-if="org"
         class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        {{ t('web.admin.domains.addDomain.forOrg', {
-          org: org.display_name || org.extid,
-        }) }}
+        {{
+          t('web.admin.domains.addDomain.forOrg', {
+            org: org.display_name || org.extid,
+          })
+        }}
       </p>
 
       <!-- Domain field -->

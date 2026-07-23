@@ -101,7 +101,11 @@
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
-              {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
+              {{
+                t('web.branding.powered_by_onetime_secret', {
+                  product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name,
+                })
+              }}
             </a>
           </span>
         </div>

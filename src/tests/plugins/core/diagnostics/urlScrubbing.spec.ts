@@ -6,10 +6,7 @@
 // Import from internal path (not the barrel) — see urlScrubbing.ts header for rationale.
 
 import { describe, expect, it } from 'vitest';
-import {
-  collectValuesToRedact,
-  scrubUrlWithValues,
-} from '@/plugins/core/diagnostics/urlScrubbing';
+import { collectValuesToRedact, scrubUrlWithValues } from '@/plugins/core/diagnostics/urlScrubbing';
 
 describe('collectValuesToRedact', () => {
   it('collects all params when paramsToScrub is undefined', () => {

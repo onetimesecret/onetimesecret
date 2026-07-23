@@ -115,8 +115,7 @@ describe('customDomainSigninConfigSchema', () => {
   });
 
   it('conforms to CustomDomainSigninConfig type', () => {
-    const result: CustomDomainSigninConfig =
-      customDomainSigninConfigSchema.parse(wireConfig);
+    const result: CustomDomainSigninConfig = customDomainSigninConfigSchema.parse(wireConfig);
     // Type-level assertion (compile time). Runtime: just confirm object.
     expect(typeof result).toBe('object');
   });

@@ -32,7 +32,6 @@ vi.mock('@/shared/composables/usePrivacyOptions', () => ({
   })),
 }));
 
-
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({

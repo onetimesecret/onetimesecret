@@ -19,13 +19,7 @@ import {
 } from '@/schemas/contracts/config/auth';
 import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
-export {
-  authConfigSchema,
-  authModeSchema,
-  simpleModeSchema,
-  fullModeSchema,
-  isAuthConfig,
-};
+export { authConfigSchema, authModeSchema, simpleModeSchema, fullModeSchema, isAuthConfig };
 
 export type {
   AuthConfig,

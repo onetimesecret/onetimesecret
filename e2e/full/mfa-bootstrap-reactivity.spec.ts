@@ -142,9 +142,7 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
   // ---------------------------------------------------------------------------
   // TC-MFA-001: Login with MFA sets awaiting_mfa to true
   // ---------------------------------------------------------------------------
-  test('TC-MFA-001: Login with MFA-enabled account sets awaiting_mfa to true', async ({
-    page,
-  }) => {
+  test('TC-MFA-001: Login with MFA-enabled account sets awaiting_mfa to true', async ({ page }) => {
     // Capture console logs for debugging
     const consoleLogs: string[] = [];
     page.on('console', (msg) => {
@@ -189,10 +187,7 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should be redirected to MFA verification
-      expect(
-        page.url(),
-        `Expected redirect to /mfa-verify from ${route}`
-      ).toContain('/mfa-verify');
+      expect(page.url(), `Expected redirect to /mfa-verify from ${route}`).toContain('/mfa-verify');
     }
 
     // Public routes should remain accessible but with limited functionality
@@ -218,13 +213,13 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     );
 
     // OTP input should be visible (may be custom component with multiple inputs)
-    const hasOtpInput = await otpInput.first().isVisible().catch(() => false);
+    const hasOtpInput = await otpInput
+      .first()
+      .isVisible()
+      .catch(() => false);
     const hasMultipleDigitInputs = (await page.locator('input[maxlength="1"]').count()) >= 6;
 
-    expect(
-      hasOtpInput || hasMultipleDigitInputs,
-      'OTP input field should be visible'
-    ).toBe(true);
+    expect(hasOtpInput || hasMultipleDigitInputs, 'OTP input field should be visible').toBe(true);
 
     // Verify button is present
     const verifyButton = page.locator('button').filter({ hasText: /verify/i });
@@ -384,9 +379,7 @@ test.describe('bootstrapStore State Visibility', () => {
 test.describe('MFA Flow - Edge Cases', () => {
   test.skip(!hasMfaCredentials, 'Skipping: MFA test credentials not configured');
 
-  test('TC-MFA-020: Invalid OTP shows error without clearing awaiting_mfa', async ({
-    page,
-  }) => {
+  test('TC-MFA-020: Invalid OTP shows error without clearing awaiting_mfa', async ({ page }) => {
     await loginWithMfaCredentials(page);
     await expect(page).toHaveURL(/\/mfa-verify/);
 
@@ -426,7 +419,9 @@ test.describe('MFA Flow - Edge Cases', () => {
     // Should redirect to signin (unauthenticated) or dashboard (authenticated)
     const currentUrl = page.url();
     expect(
-      currentUrl.includes('/signin') || currentUrl.includes('/dashboard') || currentUrl === page.url().replace('/mfa-verify', '/'),
+      currentUrl.includes('/signin') ||
+        currentUrl.includes('/dashboard') ||
+        currentUrl === page.url().replace('/mfa-verify', '/'),
       'Should redirect away from /mfa-verify when not awaiting MFA'
     ).toBe(true);
   });

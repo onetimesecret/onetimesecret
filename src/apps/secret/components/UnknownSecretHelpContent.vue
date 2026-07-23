@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   interface Props {}
   defineProps<Props>();
@@ -19,8 +19,7 @@ const { t } = useI18n();
 
     <div class="space-y-4">
       <div
-        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
-          dark:bg-gray-800/50 dark:ring-gray-700">
+        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{ t('web.errors.why_is_this_secret_unavailable') }}
         </h3>
@@ -30,8 +29,7 @@ const { t } = useI18n();
       </div>
 
       <div
-        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
-          dark:bg-gray-800/50 dark:ring-gray-700">
+        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{ t('web.errors.what_should_i_do_now') }}
         </h3>
@@ -41,8 +39,7 @@ const { t } = useI18n();
       </div>
 
       <div
-        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
-          dark:bg-gray-800/50 dark:ring-gray-700">
+        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{ t('web.secrets.is_it_secure') }}
         </h3>

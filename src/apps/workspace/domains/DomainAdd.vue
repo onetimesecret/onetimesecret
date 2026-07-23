@@ -14,12 +14,7 @@
   const { t } = useI18n();
   const route = useRoute();
 
-  const {
-    isLoading,
-    error,
-    handleAddDomain,
-    goBack,
-  } = useDomainsManager();
+  const { isLoading, error, handleAddDomain, goBack } = useDomainsManager();
 
   // Resolve the org backing this route by its extid (the :orgid URL param),
   // falling back to the active organization when the lookup hasn't loaded.
@@ -44,9 +39,7 @@
   // covers direct refresh / deep-link scenarios where role is known. Unknown
   // role (organization list not yet loaded) falls through to the form so we
   // don't flash an unauthorized message during normal navigation. See #3033.
-  const showAccessDenied = computed(
-    () => currentRole.value !== null && !canCreateDomain.value
-  );
+  const showAccessDenied = computed(() => currentRole.value !== null && !canCreateDomain.value);
 </script>
 
 <template>
@@ -68,7 +61,9 @@
     </div>
 
     <template v-else>
-      <ErrorDisplay v-if="error" :error="error" />
+      <ErrorDisplay
+        v-if="error"
+        :error="error" />
 
       <DomainForm
         :is-submitting="isLoading"

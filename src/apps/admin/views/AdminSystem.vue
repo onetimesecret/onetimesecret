@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminSystem.vue -->
 
 <script setup lang="ts">
-
   import { DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
@@ -55,9 +54,7 @@
   // Valkey reports both valkey_version and a Redis-compat redis_version. Prefer
   // Valkey when present so the page reflects the real engine (parity with the
   // legacy MainDB view).
-  const engineName = computed(() =>
-    db.value?.redis_info.valkey_version ? 'Valkey' : 'Redis'
-  );
+  const engineName = computed(() => (db.value?.redis_info.valkey_version ? 'Valkey' : 'Redis'));
   const engineVersion = computed(
     () => db.value?.redis_info.valkey_version ?? db.value?.redis_info.redis_version ?? '—'
   );
@@ -286,7 +283,8 @@
         <!-- Server info -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.server') }}
           </h4>
           <dl class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
@@ -344,7 +342,8 @@
         <!-- Memory -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.memory') }}
           </h4>
           <dl class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
@@ -387,7 +386,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="system-database-sizes">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.databases') }}
           </h4>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -400,7 +400,12 @@
               </div>
               <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
                 <template v-if="row.raw === null">
-                  {{ t('web.admin.system.database.dbSummary', { keys: num(row.keys), expires: num(row.expires) }) }}
+                  {{
+                    t('web.admin.system.database.dbSummary', {
+                      keys: num(row.keys),
+                      expires: num(row.expires),
+                    })
+                  }}
                 </template>
                 <template v-else>
                   {{ row.raw }}
@@ -459,17 +464,21 @@
         <div class="flex flex-wrap items-center gap-3">
           <span
             class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
-            :class="queue.connection.connected
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'
-              : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'"
+            :class="
+              queue.connection.connected
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'
+                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
+            "
             data-testid="queue-connection">
             <OIcon
               collection="heroicons"
               :name="queue.connection.connected ? 'check-circle' : 'x-circle'"
               size="3" />
-            {{ queue.connection.connected
-              ? t('web.admin.system.queue.connected')
-              : t('web.admin.system.queue.disconnected') }}
+            {{
+              queue.connection.connected
+                ? t('web.admin.system.queue.connected')
+                : t('web.admin.system.queue.disconnected')
+            }}
           </span>
           <span
             v-if="queue.connection.host"
@@ -480,12 +489,21 @@
             class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
             :class="healthBadgeClass(queue.worker_health.status)"
             data-testid="queue-health">
-            {{ t(`web.admin.system.queue.health.${queue.worker_health.status}`, queue.worker_health.status) }}
+            {{
+              t(
+                `web.admin.system.queue.health.${queue.worker_health.status}`,
+                queue.worker_health.status
+              )
+            }}
           </span>
           <span
             v-if="queue.worker_health.active_workers !== undefined"
             class="text-xs text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.system.queue.activeWorkers', { count: queue.worker_health.active_workers }) }}
+            {{
+              t('web.admin.system.queue.activeWorkers', {
+                count: queue.worker_health.active_workers,
+              })
+            }}
           </span>
         </div>
 
@@ -627,9 +645,11 @@
               collection="heroicons"
               :name="brand.fell_back_to_default ? 'exclamation-triangle' : 'check-circle'"
               size="3" />
-            {{ brand.fell_back_to_default
-              ? t('web.admin.system.brand.flags.fellBack.danger')
-              : t('web.admin.system.brand.flags.fellBack.ok') }}
+            {{
+              brand.fell_back_to_default
+                ? t('web.admin.system.brand.flags.fellBack.danger')
+                : t('web.admin.system.brand.flags.fellBack.ok')
+            }}
           </span>
           <span
             class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
@@ -639,9 +659,11 @@
               collection="heroicons"
               :name="brand.boot_vs_live_mismatch ? 'exclamation-triangle' : 'check-circle'"
               size="3" />
-            {{ brand.boot_vs_live_mismatch
-              ? t('web.admin.system.brand.flags.mismatch.danger')
-              : t('web.admin.system.brand.flags.mismatch.ok') }}
+            {{
+              brand.boot_vs_live_mismatch
+                ? t('web.admin.system.brand.flags.mismatch.danger')
+                : t('web.admin.system.brand.flags.mismatch.ok')
+            }}
           </span>
         </div>
 
@@ -668,7 +690,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-resolution">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.brand.resolution') }}
           </h4>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -695,7 +718,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-env-config">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.brand.envVsConfig') }}
           </h4>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -738,7 +762,8 @@
         <div
           class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-roots">
-          <h4 class="border-b border-gray-100 px-5 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
+          <h4
+            class="border-b border-gray-100 px-5 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
             {{ t('web.admin.system.brand.roots.title') }}
           </h4>
           <DataTable
@@ -758,9 +783,11 @@
                   collection="heroicons"
                   :name="row.exists ? 'check-circle' : 'x-circle'"
                   size="3" />
-                {{ row.exists
-                  ? t('web.admin.system.brand.exists.yes')
-                  : t('web.admin.system.brand.exists.no') }}
+                {{
+                  row.exists
+                    ? t('web.admin.system.brand.exists.yes')
+                    : t('web.admin.system.brand.exists.no')
+                }}
               </span>
             </template>
           </DataTable>
@@ -770,7 +797,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-manifest">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.brand.manifest.title') }}
           </h4>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -795,9 +823,11 @@
                     collection="heroicons"
                     :name="brand.manifest.exists ? 'check-circle' : 'x-circle'"
                     size="3" />
-                  {{ brand.manifest.exists
-                    ? t('web.admin.system.brand.exists.yes')
-                    : t('web.admin.system.brand.exists.no') }}
+                  {{
+                    brand.manifest.exists
+                      ? t('web.admin.system.brand.exists.yes')
+                      : t('web.admin.system.brand.exists.no')
+                  }}
                 </span>
               </dd>
             </div>
@@ -830,7 +860,8 @@
           <div
             class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             data-testid="brand-absorbed">
-            <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            <h4
+              class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ t('web.admin.system.brand.absorbed') }}
             </h4>
             <div
@@ -874,7 +905,8 @@
           <div
             class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             data-testid="brand-overlay-assets">
-            <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            <h4
+              class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ t('web.admin.system.brand.overlayAssets') }}
             </h4>
             <div

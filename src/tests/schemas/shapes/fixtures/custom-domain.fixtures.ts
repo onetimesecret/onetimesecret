@@ -116,9 +116,7 @@ const SSL_ACTIVE_UNTIL = new Date('2025-01-01T00:00:00.000Z');
 /**
  * Creates default VHost settings.
  */
-export function createCanonicalVHost(
-  overrides?: Partial<VHostCanonical>
-): VHostCanonical {
+export function createCanonicalVHost(overrides?: Partial<VHostCanonical>): VHostCanonical {
   return {
     target_address: '192.0.2.1',
     target_ports: '443',
@@ -344,9 +342,7 @@ export function createMinimalDomain(
 /**
  * Creates an older domain (different created/updated times).
  */
-export function createOldDomain(
-  overrides?: Partial<CustomDomainCanonical>
-): CustomDomainCanonical {
+export function createOldDomain(overrides?: Partial<CustomDomainCanonical>): CustomDomainCanonical {
   return createCanonicalCustomDomain({
     domainid: 'cd_old1234ab',
     extid: 'cd_old1234ab',
@@ -364,18 +360,14 @@ export function createOldDomain(
 /**
  * Creates V2 wire format from canonical.
  */
-export function createV2WireCustomDomain(
-  canonical?: CustomDomainCanonical
-): V2WireCustomDomain {
+export function createV2WireCustomDomain(canonical?: CustomDomainCanonical): V2WireCustomDomain {
   return toV2WireCustomDomain(canonical ?? createCanonicalCustomDomain());
 }
 
 /**
  * Creates V3 wire format from canonical.
  */
-export function createV3WireCustomDomain(
-  canonical?: CustomDomainCanonical
-): V3WireCustomDomain {
+export function createV3WireCustomDomain(canonical?: CustomDomainCanonical): V3WireCustomDomain {
   return toV3WireCustomDomain(canonical ?? createCanonicalCustomDomain());
 }
 
@@ -413,9 +405,7 @@ export function compareCanonicalCustomDomain(
 
   for (const field of primitiveFields) {
     if (a[field] !== b[field]) {
-      differences.push(
-        `${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`
-      );
+      differences.push(`${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`);
     }
   }
 
@@ -434,11 +424,15 @@ export function compareCanonicalCustomDomain(
 
   // Nested objects - simplified comparison
   if ((a.vhost === null) !== (b.vhost === null)) {
-    differences.push(`vhost: ${a.vhost === null ? 'null' : 'object'} !== ${b.vhost === null ? 'null' : 'object'}`);
+    differences.push(
+      `vhost: ${a.vhost === null ? 'null' : 'object'} !== ${b.vhost === null ? 'null' : 'object'}`
+    );
   }
 
   if ((a.brand === null) !== (b.brand === null)) {
-    differences.push(`brand: ${a.brand === null ? 'null' : 'object'} !== ${b.brand === null ? 'null' : 'object'}`);
+    differences.push(
+      `brand: ${a.brand === null ? 'null' : 'object'} !== ${b.brand === null ? 'null' : 'object'}`
+    );
   }
 
   return {

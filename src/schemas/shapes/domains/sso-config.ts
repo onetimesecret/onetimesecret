@@ -72,26 +72,37 @@ const timestampOverrides = {
  * console.log(config.created_at instanceof Date); // true
  * ```
  */
-export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
-  .extend({
-    // Timestamp transforms
-    ...timestampOverrides,
+export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical.extend({
+  // Timestamp transforms
+  ...timestampOverrides,
 
-    // Required field normalization: null → empty string
-    // These fields are required for form submission; null breaks .trim() calls
-    client_id: z.string().nullable().transform((v) => v ?? ''),
+  // Required field normalization: null → empty string
+  // These fields are required for form submission; null breaks .trim() calls
+  client_id: z
+    .string()
+    .nullable()
+    .transform((v) => v ?? ''),
 
-    // Optional field normalization: keep null (form layer converts to undefined)
-    tenant_id: z.string().nullish().transform((v) => v ?? null),
-    issuer: z.string().nullish().transform((v) => v ?? null),
+  // Optional field normalization: keep null (form layer converts to undefined)
+  tenant_id: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  issuer: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
 
-    // Array normalization: null → empty array
-    allowed_domains: z.array(z.string()).nullish().transform((v) => v ?? []),
+  // Array normalization: null → empty array
+  allowed_domains: z
+    .array(z.string())
+    .nullish()
+    .transform((v) => v ?? []),
 
-    // Boolean with default for resilience during rolling deploys
-    enforce_sso_only: z.boolean().default(false),
-    grant_org_scope: z.boolean().default(false),
-  });
+  // Boolean with default for resilience during rolling deploys
+  enforce_sso_only: z.boolean().default(false),
+  grant_org_scope: z.boolean().default(false),
+});
 
 export type CustomDomainSsoConfig = z.infer<typeof customDomainSsoConfigSchema>;
 

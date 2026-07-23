@@ -84,9 +84,7 @@
   );
 
   /** The gate: exact match (no trimming) between the typed input and the token. */
-  const tokenMatches = computed(
-    () => requiresTyped.value && typed.value === props.confirmToken
-  );
+  const tokenMatches = computed(() => requiresTyped.value && typed.value === props.confirmToken);
 
   /**
    * Confirm is disabled while loading, or — in typed mode — until the token
@@ -102,12 +100,8 @@
     () => requiresTyped.value && typed.value.length > 0 && !tokenMatches.value
   );
 
-  const resolvedConfirmText = computed(
-    () => props.confirmText ?? t('web.COMMON.word_confirm')
-  );
-  const resolvedCancelText = computed(
-    () => props.cancelText ?? t('web.COMMON.word_cancel')
-  );
+  const resolvedConfirmText = computed(() => props.confirmText ?? t('web.COMMON.word_confirm'));
+  const resolvedCancelText = computed(() => props.cancelText ?? t('web.COMMON.word_cancel'));
   const buttonText = computed(() =>
     props.loading ? t('web.COMMON.processing') : resolvedConfirmText.value
   );
@@ -184,7 +178,7 @@
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <DialogPanel
               data-testid="admin-confirm-dialog"
-              class="relative w-full max-w-md overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:p-6">
+              class="relative w-full max-w-md overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:p-6 dark:bg-gray-800">
               <form @submit.prevent="handleSubmit">
                 <!-- Header with icon -->
                 <div class="sm:flex sm:items-start">
@@ -198,7 +192,9 @@
                     <slot name="icon">
                       <OIcon
                         collection="heroicons"
-                        :name="variant === 'danger' ? 'exclamation-triangle' : 'question-mark-circle'"
+                        :name="
+                          variant === 'danger' ? 'exclamation-triangle' : 'question-mark-circle'
+                        "
                         class="size-6"
                         :class="
                           variant === 'danger'
@@ -209,10 +205,10 @@
                     </slot>
                   </div>
 
-                  <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <DialogTitle
                       as="h3"
-                      class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                      class="text-base leading-6 font-semibold text-gray-900 dark:text-white">
                       {{ title }}
                     </DialogTitle>
                     <div class="mt-2">
@@ -255,7 +251,7 @@
                     :aria-invalid="showMismatchHint ? 'true' : undefined"
                     :aria-describedby="showMismatchHint ? 'admin-confirm-hint' : undefined"
                     :placeholder="confirmToken"
-                    class="mt-2 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 font-mono text-base placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-400 dark:focus:ring-brand-400" />
+                    class="mt-2 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 font-mono text-base placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-400 dark:focus:ring-brand-400" />
                   <p
                     v-if="showMismatchHint"
                     id="admin-confirm-hint"
@@ -284,7 +280,7 @@
                       v-if="loading"
                       collection="heroicons"
                       name="arrow-path"
-                      class="-ml-1 mr-2 size-4 animate-spin motion-reduce:animate-none"
+                      class="mr-2 -ml-1 size-4 animate-spin motion-reduce:animate-none"
                       aria-hidden="true" />
                     {{ buttonText }}
                   </button>
@@ -293,7 +289,7 @@
                     type="button"
                     data-testid="admin-confirm-cancel"
                     :disabled="loading"
-                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto"
+                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 transition-colors ring-inset hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0 sm:w-auto dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-600"
                     @click="handleCancel">
                     {{ resolvedCancelText }}
                   </button>

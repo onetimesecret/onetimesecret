@@ -100,9 +100,7 @@ const featuresDomainsSchema = z.object({
   enabled: z.boolean().optional(),
   require_verified: z.boolean().optional(),
   default: nullableString,
-  validation_strategy: z
-    .enum(['passthrough', 'approximated', 'caddy_on_demand'])
-    .optional(),
+  validation_strategy: z.enum(['passthrough', 'approximated', 'caddy_on_demand']).optional(),
   approximated: featuresDomainsProxySchema.optional(),
   acme: featuresDomainsAcmeSchema.optional(),
 });

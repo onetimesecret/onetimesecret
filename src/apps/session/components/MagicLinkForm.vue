@@ -2,23 +2,23 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { useMagicLink } from '@/shared/composables/useMagicLink';
-import { ref } from 'vue';
+  import { useMagicLink } from '@/shared/composables/useMagicLink';
+  import { ref } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const { requestMagicLink, sent, isLoading, error, clearState } = useMagicLink();
+  const { requestMagicLink, sent, isLoading, error, clearState } = useMagicLink();
 
-const email = ref('');
+  const email = ref('');
 
-const handleSubmit = async () => {
-  await requestMagicLink(email.value);
-};
+  const handleSubmit = async () => {
+    await requestMagicLink(email.value);
+  };
 
-const handleTryAgain = () => {
-  clearState();
-  email.value = '';
-};
+  const handleTryAgain = () => {
+    clearState();
+    email.value = '';
+  };
 </script>
 
 <template>
@@ -86,7 +86,9 @@ const handleTryAgain = () => {
     <div>
       <label
         for="magic-link-email"
-        class="sr-only">{{ t('web.COMMON.email_address') }}</label>
+        class="sr-only"
+        >{{ t('web.COMMON.email_address') }}</label
+      >
       <input
         id="magic-link-email"
         name="email"
@@ -95,15 +97,7 @@ const handleTryAgain = () => {
         required
         :disabled="isLoading"
         v-model="email"
-        class="relative block w-full appearance-none rounded-md
-                      border
-                      border-gray-300 px-3
-                      py-2 text-lg
-                      text-gray-900 placeholder:text-gray-500
-                      focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                      disabled:cursor-not-allowed disabled:opacity-50
-                      dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
-                      dark:focus:border-brand-500 dark:focus:ring-brand-500"
+        class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-lg text-gray-900 placeholder:text-gray-500 focus:z-10 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
         :placeholder="t('web.auth.magicLink.emailPlaceholder')"
         data-testid="magic-link-email-input" />
     </div>
@@ -113,21 +107,13 @@ const handleTryAgain = () => {
       <button
         type="submit"
         :disabled="isLoading"
-        class="group relative flex w-full justify-center
-                     rounded-md
-                     border border-transparent
-                     bg-brand-600 px-4 py-2
-                     text-lg font-medium
-                     text-white hover:bg-brand-700
-                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                     disabled:cursor-not-allowed disabled:opacity-50
-                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+        class="group relative flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
         data-testid="magic-link-submit">
         <span
           v-if="isLoading"
           class="flex items-center">
           <svg
-            class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
+            class="mr-3 -ml-1 size-5 animate-spin text-white motion-reduce:animate-none"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

@@ -99,7 +99,12 @@ describe('MembersTable', () => {
 
   const defaultProps = {
     members: [
-      createMember({ extid: 'mem_owner', email: 'owner@example.com', role: 'owner', is_owner: true }),
+      createMember({
+        extid: 'mem_owner',
+        email: 'owner@example.com',
+        role: 'owner',
+        is_owner: true,
+      }),
       createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' }),
       createMember({ extid: 'mem_member', email: 'member@example.com', role: 'member' }),
     ],
@@ -379,7 +384,9 @@ describe('MembersTable', () => {
         members: [createMember({ role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       expect(removeButton.exists()).toBe(true);
     });
 
@@ -390,7 +397,9 @@ describe('MembersTable', () => {
         members: [createMember({ role: 'owner', is_owner: true })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       expect(removeButton.exists()).toBe(false);
 
       // Shows placeholder instead
@@ -407,7 +416,9 @@ describe('MembersTable', () => {
         isLoading: true,
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       expect(removeButton.attributes('disabled')).toBeDefined();
     });
   });
@@ -433,7 +444,9 @@ describe('MembersTable', () => {
         isLoading: true,
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       expect(removeButton.attributes('disabled')).toBeDefined();
       expect(removeButton.classes()).toContain('disabled:opacity-50');
       expect(removeButton.classes()).toContain('disabled:cursor-not-allowed');
@@ -449,7 +462,9 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       await removeButton.trigger('click');
 
       expect(mockReveal).toHaveBeenCalled();
@@ -472,7 +487,9 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       // Click triggers reveal() but doesn't await it yet
       removeButton.trigger('click');
       await nextTick();
@@ -501,7 +518,9 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       await removeButton.trigger('click');
       await flushPromises();
 
@@ -521,7 +540,9 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       await removeButton.trigger('click');
       await flushPromises();
 
@@ -540,7 +561,9 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       await removeButton.trigger('click');
       await flushPromises();
 
@@ -566,7 +589,9 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
+      const removeButton = wrapper.find(
+        'button[aria-label="web.organizations.members.remove_member_title"]'
+      );
       removeButton.trigger('click');
       await nextTick();
       await nextTick();

@@ -40,7 +40,10 @@ export interface RoundTripHarness<TCanonical, TV2Wire, TV3Wire> {
    * Compares two canonical objects for equality.
    * Should handle Date comparisons by timestamp.
    */
-  compareCanonical: (a: TCanonical, b: TCanonical) => {
+  compareCanonical: (
+    a: TCanonical,
+    b: TCanonical
+  ) => {
     equal: boolean;
     differences: string[];
   };

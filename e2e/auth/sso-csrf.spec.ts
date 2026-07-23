@@ -56,7 +56,8 @@ test.describe('SSO Form Submission', () => {
     // Check if SSO is enabled via bootstrap state
     const ssoEnabled = await page.evaluate(() => {
       type BootstrapState = { features?: { sso?: boolean | object } } | undefined;
-      const state = (window as Window & { __BOOTSTRAP_ME__?: BootstrapState | true }).__BOOTSTRAP_ME__;
+      const state = (window as Window & { __BOOTSTRAP_ME__?: BootstrapState | true })
+        .__BOOTSTRAP_ME__;
       // Bootstrap state may be consumed (set to true) or still an object
       if (state === true || state === undefined) {
         // Check if the SSO button is visible as fallback
@@ -120,7 +121,13 @@ test.describe('SSO Form Submission', () => {
 
     // Retrieve captured form data
     formSubmission = await page.evaluate(() => {
-      return (window as Window & { __capturedFormSubmission?: { action: string; method: string; shrimp: string | null } }).__capturedFormSubmission || null;
+      return (
+        (
+          window as Window & {
+            __capturedFormSubmission?: { action: string; method: string; shrimp: string | null };
+          }
+        ).__capturedFormSubmission || null
+      );
     });
 
     // Verify form was created and submitted
@@ -142,7 +149,8 @@ test.describe('SSO Form Submission', () => {
     // Get the shrimp value from bootstrap state before it's consumed
     // Note: Bootstrap state may already be consumed by the app
     const shrimpFromBootstrap = await page.evaluate(() => {
-      const state = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } | true }).__BOOTSTRAP_ME__;
+      const state = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } | true })
+        .__BOOTSTRAP_ME__;
 
       // If state is still an object, extract shrimp
       if (state && typeof state === 'object' && 'shrimp' in state) {
@@ -269,10 +277,11 @@ test.describe('SSO Form - Structure Validation', () => {
     await page.addInitScript(() => {
       HTMLFormElement.prototype.submit = function () {
         const inputs = Array.from(this.querySelectorAll('input')) as HTMLInputElement[];
-        (window as Window & { __formInputs?: Array<{ name: string; type: string }> }).__formInputs = inputs.map((el: HTMLInputElement) => ({
-          name: el.name,
-          type: el.type,
-        }));
+        (window as Window & { __formInputs?: Array<{ name: string; type: string }> }).__formInputs =
+          inputs.map((el: HTMLInputElement) => ({
+            name: el.name,
+            type: el.type,
+          }));
       };
     });
 
@@ -285,7 +294,10 @@ test.describe('SSO Form - Structure Validation', () => {
     await page.waitForFunction(() => '__formInputs' in window);
 
     formInputs = await page.evaluate(() => {
-      return (window as Window & { __formInputs?: Array<{ name: string; type: string }> }).__formInputs || [];
+      return (
+        (window as Window & { __formInputs?: Array<{ name: string; type: string }> })
+          .__formInputs || []
+      );
     });
 
     // Verify there's a hidden input named 'shrimp'

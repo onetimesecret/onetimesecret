@@ -116,9 +116,9 @@ describe('SigninConfigService', () => {
       const serverError = new Error('Internal Server Error');
       mockGet.mockRejectedValueOnce(serverError);
 
-      await expect(
-        SigninConfigService.getConfigForDomain(domainExtId)
-      ).rejects.toThrow('Internal Server Error');
+      await expect(SigninConfigService.getConfigForDomain(domainExtId)).rejects.toThrow(
+        'Internal Server Error'
+      );
     });
 
     it('transforms timestamps to Date objects', async () => {
@@ -193,9 +193,7 @@ describe('SigninConfigService', () => {
         signin_enabled: true,
       };
 
-      await expect(
-        SigninConfigService.putConfigForDomain(domainExtId, payload)
-      ).rejects.toThrow();
+      await expect(SigninConfigService.putConfigForDomain(domainExtId, payload)).rejects.toThrow();
     });
 
     it('throws when the PUT response omits details (required, PR #3817)', async () => {
@@ -238,9 +236,7 @@ describe('SigninConfigService', () => {
     it('throws on invalid delete response', async () => {
       mockDelete.mockResolvedValueOnce({ data: { invalid: true } });
 
-      await expect(
-        SigninConfigService.deleteConfigForDomain(domainExtId)
-      ).rejects.toThrow();
+      await expect(SigninConfigService.deleteConfigForDomain(domainExtId)).rejects.toThrow();
     });
   });
 });

@@ -257,11 +257,11 @@
     <div class="relative">
       <!-- Background watermark: oversized shortid, centered (hidden on mobile) -->
       <div
-        class="pointer-events-none absolute inset-0 hidden select-none items-center justify-center sm:flex"
+        class="pointer-events-none absolute inset-0 hidden items-center justify-center select-none sm:flex"
         aria-hidden="true">
         <span
           :class="[
-            'font-mono text-[clamp(3.5rem,8vw,4.5rem)] font-light uppercase leading-none tracking-[0.3em] transition-colors duration-150',
+            'font-mono text-[clamp(3.5rem,8vw,4.5rem)] leading-none font-light tracking-[0.3em] uppercase transition-colors duration-150',
             isTerminal
               ? 'text-gray-500/20 group-hover/row:text-gray-500/35 dark:text-gray-500/12 dark:group-hover/row:text-gray-500/25'
               : 'text-gray-500/25 group-hover/row:text-gray-500/45 dark:text-gray-500/18 dark:group-hover/row:text-gray-500/35',
@@ -276,7 +276,7 @@
         <router-link
           :to="receiptRoute"
           :aria-label="`${t('web.receipt.view_receipt')} #${index}`"
-          class="cursor-pointer select-none px-1 py-0.5 text-gray-400 no-underline hover:underline dark:text-gray-500"
+          class="cursor-pointer px-1 py-0.5 text-gray-400 no-underline select-none hover:underline dark:text-gray-500"
           @click.stop>
           #{{ index }}
         </router-link>
@@ -321,7 +321,7 @@
             leave-to-class="opacity-0 translate-y-1">
             <div
               v-if="showEncryptionTooltip"
-              class="absolute -top-8 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-gray-700">
+              class="absolute -top-8 left-1/2 z-20 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-lg dark:bg-gray-700">
               <template v-if="hasPassphrase">
                 {{ t('web.LABELS.encrypted') }}
                 <span class="text-teal-300"> + {{ t('web.LABELS.passphrase_protected') }}</span>
@@ -353,7 +353,7 @@
               type="text"
               maxlength="100"
               :placeholder="t('web.LABELS.add_memo')"
-              class="w-full max-w-xs rounded border border-gray-300 bg-white px-2 py-0.5 font-mono text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+              class="w-full max-w-xs rounded border border-gray-300 bg-white px-2 py-0.5 font-mono text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
               @keydown="handleMemoKeydown"
               @blur="saveMemo" />
           </template>
@@ -428,7 +428,7 @@
             :href="shareLink"
             target="_blank"
             rel="noopener noreferrer"
-            class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-2 sm:py-0.5"
+            class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 transition-colors hover:bg-gray-50 sm:px-2 sm:py-0.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             :title="t('web.COMMON.view_secret')">
             <!-- Mobile: icon only -->
             <OIcon
@@ -442,14 +442,14 @@
       </div>
 
       <!-- Metadata tree (full tree for active/previewed, minimal for terminal) -->
-      <div class="relative ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
+      <div class="relative mt-1 ml-4 space-y-0.5 text-gray-600 dark:text-gray-400">
         <template v-if="isActive">
           <!-- Domain line (only when share domain differs from site host) -->
           <div
             v-if="hasDifferentDomain"
             class="flex items-center">
             <span
-              class="mr-2 select-none text-gray-300 dark:text-gray-600"
+              class="mr-2 text-gray-300 select-none dark:text-gray-600"
               aria-hidden="true"
               >├─</span
             >
@@ -461,7 +461,7 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center">
               <span
-                class="mr-2 select-none text-gray-300 dark:text-gray-600"
+                class="mr-2 text-gray-300 select-none dark:text-gray-600"
                 aria-hidden="true"
                 >└─</span
               >
@@ -497,7 +497,7 @@
             v-if="hasDifferentDomain"
             class="flex items-center">
             <span
-              class="mr-2 select-none text-gray-300 dark:text-gray-600"
+              class="mr-2 text-gray-300 select-none dark:text-gray-600"
               aria-hidden="true"
               >├─</span
             >
@@ -508,7 +508,7 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center">
               <span
-                class="mr-2 select-none text-gray-300 dark:text-gray-600"
+                class="mr-2 text-gray-300 select-none dark:text-gray-600"
                 aria-hidden="true"
                 >└─</span
               >

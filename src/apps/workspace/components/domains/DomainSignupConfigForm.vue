@@ -1,192 +1,191 @@
 <!-- src/apps/workspace/components/domains/DomainSignupConfigForm.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Signup Validation Configuration Form
- *
- * Presentational component that receives signup config state via props
- * and emits events for actions. Parent (DomainSignup.vue) manages state
- * via useSignupConfig composable.
- *
- * The explicit-override flag (`enabled`) has no control here (ADR-024):
- * saving is the explicit configuration action — the composable forces
- * `enabled: true` on every PUT — and deleting the config is the way back
- * to inheriting workspace defaults. The signup-enabled select edits the
- * override VALUE (ANDed with the global capability; it can narrow, never
- * widen).
- */
-import {
-  SIGNUP_STRATEGY_METADATA,
-  type CustomDomainSignupConfig,
-  type SignupValidationStrategy,
-} from '@/schemas/shapes/domains/signup-config';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import type { SignupConfigFormState } from '@/shared/composables/useSignupConfig';
-import { computed, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+  /**
+   * Domain Signup Validation Configuration Form
+   *
+   * Presentational component that receives signup config state via props
+   * and emits events for actions. Parent (DomainSignup.vue) manages state
+   * via useSignupConfig composable.
+   *
+   * The explicit-override flag (`enabled`) has no control here (ADR-024):
+   * saving is the explicit configuration action — the composable forces
+   * `enabled: true` on every PUT — and deleting the config is the way back
+   * to inheriting workspace defaults. The signup-enabled select edits the
+   * override VALUE (ANDed with the global capability; it can narrow, never
+   * widen).
+   */
+  import {
+    SIGNUP_STRATEGY_METADATA,
+    type CustomDomainSignupConfig,
+    type SignupValidationStrategy,
+  } from '@/schemas/shapes/domains/signup-config';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import type { SignupConfigFormState } from '@/shared/composables/useSignupConfig';
+  import { computed, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Props
+  // ---------------------------------------------------------------------------
 
-const props = defineProps<{
-  domainExtId: string;
-  formState: SignupConfigFormState;
-  signupConfig: CustomDomainSignupConfig | null;
-  isLoading: boolean;
-  isSaving: boolean;
-  isDeleting: boolean;
-  hasUnsavedChanges: boolean;
-  isConfigured: boolean;
-}>();
+  const props = defineProps<{
+    domainExtId: string;
+    formState: SignupConfigFormState;
+    signupConfig: CustomDomainSignupConfig | null;
+    isLoading: boolean;
+    isSaving: boolean;
+    isDeleting: boolean;
+    hasUnsavedChanges: boolean;
+    isConfigured: boolean;
+  }>();
 
-// ---------------------------------------------------------------------------
-// Emits
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Emits
+  // ---------------------------------------------------------------------------
 
-const emit = defineEmits<{
-  (e: 'save'): void;
-  (e: 'delete'): void;
-  (e: 'discard'): void;
-  (e: 'update:formState', value: SignupConfigFormState): void;
-  /** Whether a save is currently possible — drives the header's Save button. */
-  (e: 'can-save', value: boolean): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'save'): void;
+    (e: 'delete'): void;
+    (e: 'discard'): void;
+    (e: 'update:formState', value: SignupConfigFormState): void;
+    /** Whether a save is currently possible — drives the header's Save button. */
+    (e: 'can-save', value: boolean): void;
+  }>();
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-// ---------------------------------------------------------------------------
-// Strategy options
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Strategy options
+  // ---------------------------------------------------------------------------
 
-const strategyOptions: { value: SignupValidationStrategy; label: string; description: string }[] = [
-  {
-    value: 'passthrough',
-    label: 'Passthrough',
-    description: SIGNUP_STRATEGY_METADATA.passthrough.description,
-  },
-  {
-    value: 'domain_allowlist',
-    label: 'Domain allowlist',
-    description: SIGNUP_STRATEGY_METADATA.domain_allowlist.description,
-  },
-  {
-    value: 'mx',
-    label: 'MX lookup',
-    description: SIGNUP_STRATEGY_METADATA.mx.description,
-  },
-  {
-    value: 'smtp',
-    label: 'SMTP probe',
-    description: SIGNUP_STRATEGY_METADATA.smtp.description,
-  },
-];
+  const strategyOptions: { value: SignupValidationStrategy; label: string; description: string }[] =
+    [
+      {
+        value: 'passthrough',
+        label: 'Passthrough',
+        description: SIGNUP_STRATEGY_METADATA.passthrough.description,
+      },
+      {
+        value: 'domain_allowlist',
+        label: 'Domain allowlist',
+        description: SIGNUP_STRATEGY_METADATA.domain_allowlist.description,
+      },
+      {
+        value: 'mx',
+        label: 'MX lookup',
+        description: SIGNUP_STRATEGY_METADATA.mx.description,
+      },
+      {
+        value: 'smtp',
+        label: 'SMTP probe',
+        description: SIGNUP_STRATEGY_METADATA.smtp.description,
+      },
+    ];
 
-// ---------------------------------------------------------------------------
-// Local UI state
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Local UI state
+  // ---------------------------------------------------------------------------
 
-const showDeleteConfirm = ref(false);
-const newDomain = ref('');
-const domainInputError = ref('');
+  const showDeleteConfirm = ref(false);
+  const newDomain = ref('');
+  const domainInputError = ref('');
 
-// ---------------------------------------------------------------------------
-// Form state helpers (emit updates to parent)
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Form state helpers (emit updates to parent)
+  // ---------------------------------------------------------------------------
 
-function updateField<K extends keyof SignupConfigFormState>(
-  field: K,
-  value: SignupConfigFormState[K]
-): void {
-  emit('update:formState', {
-    ...props.formState,
-    [field]: value,
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Computed: form validation and display logic
-// ---------------------------------------------------------------------------
-
-const isEditing = computed(() => props.isConfigured);
-
-const requiresAllowlist = computed(
-  () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.requiresAllowlist ?? false
-);
-
-const performsNetworkValidation = computed(
-  () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.networkValidation ?? false
-);
-
-const isFormValid = computed(() => {
-  if (requiresAllowlist.value && props.formState.allowed_signup_domains.length === 0) {
-    return false;
-  }
-  return true;
-});
-
-// ---------------------------------------------------------------------------
-// Handlers
-// ---------------------------------------------------------------------------
-
-const handleSave = () => {
-  if (!isFormValid.value || props.isSaving) return;
-  emit('save');
-};
-
-// The primary Save button now lives in the page header, so surface whether a
-// save is possible — same gating the in-form submit used (valid + not busy;
-// signup can save a fresh default config, so it's not gated on unsaved changes)
-// — and let the page relay it to DomainHeader's `save-disabled`.
-const canSave = computed(
-  () => isFormValid.value && !props.isSaving && !props.isDeleting
-);
-watch(canSave, (value) => emit('can-save', value), { immediate: true });
-
-const handleDelete = () => {
-  if (props.isDeleting) return;
-  emit('delete');
-  showDeleteConfirm.value = false;
-};
-
-const addDomain = () => {
-  const domain = newDomain.value.trim().toLowerCase();
-
-  if (!domain) return;
-
-  // Basic frontend validation for UX (backend does authoritative PublicSuffix check)
-  if (!domain.includes('.') || /\s/.test(domain)) {
-    domainInputError.value = t('web.domains.signup.invalid_domain');
-    return;
+  function updateField<K extends keyof SignupConfigFormState>(
+    field: K,
+    value: SignupConfigFormState[K]
+  ): void {
+    emit('update:formState', {
+      ...props.formState,
+      [field]: value,
+    });
   }
 
-  if (props.formState.allowed_signup_domains?.includes(domain)) {
-    domainInputError.value = t('web.domains.signup.domain_exists');
-    return;
-  }
+  // ---------------------------------------------------------------------------
+  // Computed: form validation and display logic
+  // ---------------------------------------------------------------------------
 
-  updateField('allowed_signup_domains', [
-    ...(props.formState.allowed_signup_domains || []),
-    domain,
-  ]);
-  newDomain.value = '';
-  domainInputError.value = '';
-};
+  const isEditing = computed(() => props.isConfigured);
 
-const removeDomain = (domain: string) => {
-  updateField(
-    'allowed_signup_domains',
-    props.formState.allowed_signup_domains?.filter((d) => d !== domain) ?? []
+  const requiresAllowlist = computed(
+    () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.requiresAllowlist ?? false
   );
-};
 
-// Clear domain input error when typing
-watch(newDomain, () => {
-  if (domainInputError.value) {
+  const performsNetworkValidation = computed(
+    () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.networkValidation ?? false
+  );
+
+  const isFormValid = computed(() => {
+    if (requiresAllowlist.value && props.formState.allowed_signup_domains.length === 0) {
+      return false;
+    }
+    return true;
+  });
+
+  // ---------------------------------------------------------------------------
+  // Handlers
+  // ---------------------------------------------------------------------------
+
+  const handleSave = () => {
+    if (!isFormValid.value || props.isSaving) return;
+    emit('save');
+  };
+
+  // The primary Save button now lives in the page header, so surface whether a
+  // save is possible — same gating the in-form submit used (valid + not busy;
+  // signup can save a fresh default config, so it's not gated on unsaved changes)
+  // — and let the page relay it to DomainHeader's `save-disabled`.
+  const canSave = computed(() => isFormValid.value && !props.isSaving && !props.isDeleting);
+  watch(canSave, (value) => emit('can-save', value), { immediate: true });
+
+  const handleDelete = () => {
+    if (props.isDeleting) return;
+    emit('delete');
+    showDeleteConfirm.value = false;
+  };
+
+  const addDomain = () => {
+    const domain = newDomain.value.trim().toLowerCase();
+
+    if (!domain) return;
+
+    // Basic frontend validation for UX (backend does authoritative PublicSuffix check)
+    if (!domain.includes('.') || /\s/.test(domain)) {
+      domainInputError.value = t('web.domains.signup.invalid_domain');
+      return;
+    }
+
+    if (props.formState.allowed_signup_domains?.includes(domain)) {
+      domainInputError.value = t('web.domains.signup.domain_exists');
+      return;
+    }
+
+    updateField('allowed_signup_domains', [
+      ...(props.formState.allowed_signup_domains || []),
+      domain,
+    ]);
+    newDomain.value = '';
     domainInputError.value = '';
-  }
-});
+  };
+
+  const removeDomain = (domain: string) => {
+    updateField(
+      'allowed_signup_domains',
+      props.formState.allowed_signup_domains?.filter((d) => d !== domain) ?? []
+    );
+  };
+
+  // Clear domain input error when typing
+  watch(newDomain, () => {
+    if (domainInputError.value) {
+      domainInputError.value = '';
+    }
+  });
 </script>
 
 <template>
@@ -280,7 +279,11 @@ watch(newDomain, () => {
           for="signup-domain-input"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.domains.signup.allowed_domains_label') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
+          <span
+            class="text-red-500"
+            aria-hidden="true"
+            >*</span
+          >
         </label>
         <p
           id="signup-allowed-domains-hint"
@@ -353,7 +356,8 @@ watch(newDomain, () => {
         </p>
 
         <!-- Signup Enabled (domain override) -->
-        <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div
+          class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
           <div>
             <label
               for="signup-domain-enabled"
@@ -370,7 +374,9 @@ watch(newDomain, () => {
             id="signup-domain-enabled"
             aria-describedby="signup-domain-enabled-hint"
             :value="String(formState.signup_enabled)"
-            @change="updateField('signup_enabled', ($event.target as HTMLSelectElement).value === 'true')"
+            @change="
+              updateField('signup_enabled', ($event.target as HTMLSelectElement).value === 'true')
+            "
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
             <option value="true">
               {{ t('web.COMMON.enabled') }}
@@ -382,7 +388,8 @@ watch(newDomain, () => {
         </div>
 
         <!-- Autoverify (domain override) -->
-        <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div
+          class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
           <div>
             <label
               for="signup-autoverify"
@@ -399,7 +406,9 @@ watch(newDomain, () => {
             id="signup-autoverify"
             aria-describedby="signup-autoverify-hint"
             :value="String(formState.autoverify)"
-            @change="updateField('autoverify', ($event.target as HTMLSelectElement).value === 'true')"
+            @change="
+              updateField('autoverify', ($event.target as HTMLSelectElement).value === 'true')
+            "
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
             <option value="true">
               {{ t('web.COMMON.enabled') }}
@@ -433,7 +442,9 @@ watch(newDomain, () => {
           </button>
         </template>
 
-        <div v-if="showDeleteConfirm" class="flex items-center gap-2">
+        <div
+          v-if="showDeleteConfirm"
+          class="flex items-center gap-2">
           <span class="text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.domains.signup.delete_confirm') }}
           </span>

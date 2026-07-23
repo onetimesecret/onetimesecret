@@ -45,16 +45,12 @@ describe('scrubbers', () => {
   describe('scrubSensitiveStrings', () => {
     it('scrubs email addresses', () => {
       const text = 'User user@example.com reported an error';
-      expect(scrubSensitiveStrings(text)).toBe(
-        'User [EMAIL_REDACTED] reported an error'
-      );
+      expect(scrubSensitiveStrings(text)).toBe('User [EMAIL_REDACTED] reported an error');
     });
 
     it('scrubs multiple email addresses', () => {
       const text = 'From: alice@example.com To: bob@test.org';
-      expect(scrubSensitiveStrings(text)).toBe(
-        'From: [EMAIL_REDACTED] To: [EMAIL_REDACTED]'
-      );
+      expect(scrubSensitiveStrings(text)).toBe('From: [EMAIL_REDACTED] To: [EMAIL_REDACTED]');
     });
 
     it('scrubs 62-char verifiable IDs', () => {
@@ -65,9 +61,7 @@ describe('scrubbers', () => {
 
     it('scrubs sensitive path patterns', () => {
       const text = 'Error at /secret/abc123 endpoint';
-      expect(scrubSensitiveStrings(text)).toBe(
-        'Error at /secret/[REDACTED] endpoint'
-      );
+      expect(scrubSensitiveStrings(text)).toBe('Error at /secret/[REDACTED] endpoint');
     });
 
     it('handles null/undefined gracefully', () => {
@@ -82,25 +76,15 @@ describe('scrubbers', () => {
 
   describe('scrubUrlWithPatterns', () => {
     it('scrubs sensitive path patterns', () => {
-      expect(scrubUrlWithPatterns('/api/v3/secret/abc123')).toBe(
-        '/api/v3/secret/[REDACTED]'
-      );
-      expect(scrubUrlWithPatterns('/api/v3/private/xyz789')).toBe(
-        '/api/v3/private/[REDACTED]'
-      );
-      expect(scrubUrlWithPatterns('/api/v3/receipt/token123')).toBe(
-        '/api/v3/receipt/[REDACTED]'
-      );
-      expect(scrubUrlWithPatterns('/api/v3/incoming/data456')).toBe(
-        '/api/v3/incoming/[REDACTED]'
-      );
+      expect(scrubUrlWithPatterns('/api/v3/secret/abc123')).toBe('/api/v3/secret/[REDACTED]');
+      expect(scrubUrlWithPatterns('/api/v3/private/xyz789')).toBe('/api/v3/private/[REDACTED]');
+      expect(scrubUrlWithPatterns('/api/v3/receipt/token123')).toBe('/api/v3/receipt/[REDACTED]');
+      expect(scrubUrlWithPatterns('/api/v3/incoming/data456')).toBe('/api/v3/incoming/[REDACTED]');
     });
 
     it('scrubs 62-char verifiable IDs', () => {
       const id62 = 'abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz';
-      expect(scrubUrlWithPatterns(`/api/v3/unknown/${id62}`)).toBe(
-        '/api/v3/unknown/[REDACTED]'
-      );
+      expect(scrubUrlWithPatterns(`/api/v3/unknown/${id62}`)).toBe('/api/v3/unknown/[REDACTED]');
     });
 
     it('scrubs email addresses in query params', () => {
@@ -116,15 +100,13 @@ describe('scrubbers', () => {
     });
 
     it('scrubs multiple emails in URL', () => {
-      expect(
-        scrubUrlWithPatterns('/api/share?from=alice@a.com&to=bob@b.com')
-      ).toBe('/api/share?from=[EMAIL_REDACTED]&to=[EMAIL_REDACTED]');
+      expect(scrubUrlWithPatterns('/api/share?from=alice@a.com&to=bob@b.com')).toBe(
+        '/api/share?from=[EMAIL_REDACTED]&to=[EMAIL_REDACTED]'
+      );
     });
 
     it('leaves non-sensitive URLs unchanged', () => {
-      expect(scrubUrlWithPatterns('/api/v3/colonel/status')).toBe(
-        '/api/v3/colonel/status'
-      );
+      expect(scrubUrlWithPatterns('/api/v3/colonel/status')).toBe('/api/v3/colonel/status');
       expect(scrubUrlWithPatterns('/api/health')).toBe('/api/health');
     });
 

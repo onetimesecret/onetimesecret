@@ -263,7 +263,9 @@ describe('receiptStore', () => {
         });
 
         // Attempt to fetch which should trigger error handling
-        await expect(store.fetch('test-key')).rejects.toThrow('Request failed with status code 404');
+        await expect(store.fetch('test-key')).rejects.toThrow(
+          'Request failed with status code 404'
+        );
 
         // Verify store state
         expect(store.record).toBeNull();
@@ -345,9 +347,12 @@ describe('receiptStore', () => {
         };
 
         // Simulate slow response with delay
-        axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(() => new Promise((resolve) => {
-            setTimeout(() => resolve([200, mockResponse]), 100);
-          }));
+        axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(
+          () =>
+            new Promise((resolve) => {
+              setTimeout(() => resolve([200, mockResponse]), 100);
+            })
+        );
 
         // Trigger multiple simultaneous requests
         const fetchPromises = [store.fetch(testKey), store.fetch(testKey), store.fetch(testKey)];

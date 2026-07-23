@@ -241,10 +241,7 @@ describe('beforeSend handler', () => {
 
       const event: ErrorEvent = {
         exception: {
-          values: [
-            { value: 'Error for user@example.com' },
-            { value: 'At path /private/xyz789' },
-          ],
+          values: [{ value: 'Error for user@example.com' }, { value: 'At path /private/xyz789' }],
         },
       };
 

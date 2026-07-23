@@ -1,11 +1,9 @@
 <!-- src/apps/secret/components/canonical/BaseSecretDisplay.vue -->
 
 <script setup lang="ts">
+  interface Props {}
 
-interface Props {}
-
-defineProps<Props>();
-
+  defineProps<Props>();
 </script>
 
 <template>

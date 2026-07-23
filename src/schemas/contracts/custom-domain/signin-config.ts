@@ -50,12 +50,7 @@ import { z } from 'zod';
  *
  * @category Contracts
  */
-export const signinRestrictToSchema = z.enum([
-  'password',
-  'email_auth',
-  'webauthn',
-  'sso',
-]);
+export const signinRestrictToSchema = z.enum(['password', 'email_auth', 'webauthn', 'sso']);
 
 export type SigninRestrictTo = z.infer<typeof signinRestrictToSchema>;
 
@@ -64,10 +59,13 @@ export type SigninRestrictTo = z.infer<typeof signinRestrictToSchema>;
  *
  * Used by forms to describe each restriction option and its implications.
  */
-export const SIGNIN_RESTRICT_TO_METADATA: Record<SigninRestrictTo, {
-  description: string;
-  requiresFeature: string;
-}> = {
+export const SIGNIN_RESTRICT_TO_METADATA: Record<
+  SigninRestrictTo,
+  {
+    description: string;
+    requiresFeature: string;
+  }
+> = {
   password: {
     description: 'Password-only — hides all other sign-in methods',
     requiresFeature: 'Password authentication (always available)',

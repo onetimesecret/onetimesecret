@@ -119,7 +119,7 @@
     <template v-if="isContainer">
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:hover:bg-gray-800"
+        class="inline-flex items-center gap-1 rounded hover:bg-gray-100 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:hover:bg-gray-800"
         :aria-expanded="expanded"
         @click="toggle">
         <OIcon
@@ -129,7 +129,9 @@
           class="text-gray-400 dark:text-gray-500" />
         <span
           v-if="keyLabel !== undefined"
-          class="text-gray-700 dark:text-gray-300">{{ keyLabel }}:</span>
+          class="text-gray-700 dark:text-gray-300"
+          >{{ keyLabel }}:</span
+        >
         <span class="text-gray-400 dark:text-gray-500">{{ summary }}</span>
       </button>
 
@@ -153,7 +155,9 @@
       class="flex items-baseline gap-1">
       <span
         v-if="keyLabel !== undefined"
-        class="text-gray-700 dark:text-gray-300">{{ keyLabel }}:</span>
+        class="text-gray-700 dark:text-gray-300"
+        >{{ keyLabel }}:</span
+      >
       <span :class="primitiveClass">{{ primitiveText }}</span>
     </div>
   </div>

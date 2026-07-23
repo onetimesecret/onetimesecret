@@ -40,7 +40,11 @@ export const useSystemSettingsStore = defineStore('systemSettings', () => {
 
     // Admin config schemas may lag behind server changes, so validation
     // failures degrade to raw data rather than blocking the admin UI.
-    const result = gracefulParse(responseSchemas.systemSettings, response.data, 'SystemSettingsResponse');
+    const result = gracefulParse(
+      responseSchemas.systemSettings,
+      response.data,
+      'SystemSettingsResponse'
+    );
     if (!result.ok) {
       details.value = response.data.details || {};
       return response.data;
@@ -56,7 +60,11 @@ export const useSystemSettingsStore = defineStore('systemSettings', () => {
    */
   async function update(newConfig: SystemSettingsDetails) {
     // Validate the config before sending to API, but allow partial configurations
-    const payloadResult = gracefulParse(systemSettingsSchema.partial(), newConfig, 'SystemSettingsPayload');
+    const payloadResult = gracefulParse(
+      systemSettingsSchema.partial(),
+      newConfig,
+      'SystemSettingsPayload'
+    );
     if (!payloadResult.ok) {
       const firstError = payloadResult.error?.issues[0];
       throw new Error(
@@ -69,7 +77,11 @@ export const useSystemSettingsStore = defineStore('systemSettings', () => {
     const response = await $api.post('/api/colonel/config', { config: newConfig });
 
     // Admin config schemas may lag behind server changes (see fetch above)
-    const responseResult = gracefulParse(responseSchemas.systemSettings, response.data, 'SystemSettingsResponse');
+    const responseResult = gracefulParse(
+      responseSchemas.systemSettings,
+      response.data,
+      'SystemSettingsResponse'
+    );
     if (!responseResult.ok) {
       record.value = response.data.record || {};
       details.value = response.data.details || {};

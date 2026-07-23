@@ -82,10 +82,10 @@
           :alt="displayName"
           class="mb-6 h-16 max-w-[200px] object-contain"
           @error="handleLogoError" />
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+        <h1 class="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
           {{ t('incoming.page_title') }}
         </h1>
-        <p class="mt-3 text-base text-gray-600 dark:text-gray-400 sm:text-lg">
+        <p class="mt-3 text-base text-gray-600 sm:text-lg dark:text-gray-400">
           {{ t('incoming.page_description') }}
         </p>
       </div>

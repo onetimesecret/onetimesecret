@@ -54,24 +54,14 @@ describe('validateSensitiveRoute', () => {
   describe('missing-param throw', () => {
     it('throws when sensitive=foo but :foo is not in the path', () => {
       expect(() =>
-        validateSensitiveRoute(
-          'GET',
-          '/api/v1/status/:other',
-          ['other'],
-          new Set(['foo'])
-        )
+        validateSensitiveRoute('GET', '/api/v1/status/:other', ['other'], new Set(['foo']))
       ).toThrow(/GET.*\/api\/v1\/status\/:other.*foo/);
     });
 
     it('error message names the HTTP method, full path, and missing param', () => {
       let caught: Error | null = null;
       try {
-        validateSensitiveRoute(
-          'DELETE',
-          '/api/v2/receipt/:id',
-          ['id'],
-          new Set(['token'])
-        );
+        validateSensitiveRoute('DELETE', '/api/v2/receipt/:id', ['id'], new Set(['token']));
       } catch (e) {
         caught = e as Error;
       }
@@ -85,12 +75,7 @@ describe('validateSensitiveRoute', () => {
     it('throws naming `bar` specifically when sensitive=foo,bar and :foo exists but :bar does not', () => {
       let caught: Error | null = null;
       try {
-        validateSensitiveRoute(
-          'POST',
-          '/api/v1/secret/:foo',
-          ['foo'],
-          new Set(['foo', 'bar'])
-        );
+        validateSensitiveRoute('POST', '/api/v1/secret/:foo', ['foo'], new Set(['foo', 'bar']));
       } catch (e) {
         caught = e as Error;
       }
@@ -120,9 +105,9 @@ describe('validateSensitiveRoute', () => {
     });
 
     it('error names the HTTP method and full path', () => {
-      expect(() =>
-        validateSensitiveRoute('POST', '/api/v2/health', [], true)
-      ).toThrow(/POST.*\/api\/v2\/health/);
+      expect(() => validateSensitiveRoute('POST', '/api/v2/health', [], true)).toThrow(
+        /POST.*\/api\/v2\/health/
+      );
     });
 
     it('does not throw on sensitive=true with at least one :param', () => {

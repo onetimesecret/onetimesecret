@@ -61,8 +61,10 @@
   <header
     v-if="displayHeader && headerEnabled"
     class="bg-white dark:bg-gray-900">
-    <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
-      <MastHead v-if="displayMasthead" v-bind="props" />
+    <div class="container mx-auto max-w-2xl min-w-[320px] p-4">
+      <MastHead
+        v-if="displayMasthead"
+        v-bind="props" />
 
       <!-- Minimal nav for custom domain pages without MastHead.
            max-w-xl aligns with BrandedHomepage content column. -->
@@ -77,12 +79,16 @@
             to="/signup"
             :title="t('web.homepage.signup_individual_and_business_plans')"
             data-testid="header-signup-link"
-            class="font-bold text-gray-600 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+            class="font-bold text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
             {{ t('web.COMMON.header_create_account') }}
           </router-link>
           <span
-            v-if="authentication?.signup && showDomainSignup && authentication?.signin && showDomainSignin"
+            v-if="
+              authentication?.signup &&
+              showDomainSignup &&
+              authentication?.signin &&
+              showDomainSignin
+            "
             class="mx-2 text-gray-400"
             aria-hidden="true"
             role="separator">
@@ -93,8 +99,7 @@
             to="/signin"
             :title="t('web.homepage.log_in_to_onetime_secret')"
             data-testid="header-signin-link"
-            class="text-gray-600 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+            class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
             {{ t('web.COMMON.header_sign_in') }}
           </router-link>
         </template>

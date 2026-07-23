@@ -1,37 +1,82 @@
 <!-- src/shared/components/ui/ActivityFeed.vue -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
-import { ref } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import {
+    Listbox,
+    ListboxButton,
+    ListboxLabel,
+    ListboxOption,
+    ListboxOptions,
+  } from '@headlessui/vue';
+  import { ref } from 'vue';
 
-interface ActivityItem {
-  id: number;
-  type: string;
-  person: { name: string; imageUrl?: string };
-  comment?: string;
-  date: string;
-  dateTime: string;
-}
+  interface ActivityItem {
+    id: number;
+    type: string;
+    person: { name: string; imageUrl?: string };
+    comment?: string;
+    date: string;
+    dateTime: string;
+  }
 
-const props = withDefaults(defineProps<{
-  activity?: ActivityItem[];
-  avatarUrl?: string;
-}>(), {
-  activity: () => [],
-  avatarUrl: '',
-});
+  const props = withDefaults(
+    defineProps<{
+      activity?: ActivityItem[];
+      avatarUrl?: string;
+    }>(),
+    {
+      activity: () => [],
+      avatarUrl: '',
+    }
+  );
 
-const moods = [
-  { name: 'Excited', value: 'excited', icon: 'fire', iconColor: 'text-white', bgColor: 'bg-red-500' },
-  { name: 'Loved', value: 'loved', icon: 'heart', iconColor: 'text-white', bgColor: 'bg-pink-400' },
-  { name: 'Happy', value: 'happy', icon: 'face-smile', iconColor: 'text-white', bgColor: 'bg-green-400' },
-  { name: 'Sad', value: 'sad', icon: 'face-frown', iconColor: 'text-white', bgColor: 'bg-yellow-400' },
-  { name: 'Thumbsy', value: 'thumbsy', icon: 'hand-thumb-up', iconColor: 'text-white', bgColor: 'bg-blue-500' },
-  { name: 'I feel nothing', value: '', icon: 'x-mark', iconColor: 'text-gray-400', bgColor: 'bg-transparent' },
-]
+  const moods = [
+    {
+      name: 'Excited',
+      value: 'excited',
+      icon: 'fire',
+      iconColor: 'text-white',
+      bgColor: 'bg-red-500',
+    },
+    {
+      name: 'Loved',
+      value: 'loved',
+      icon: 'heart',
+      iconColor: 'text-white',
+      bgColor: 'bg-pink-400',
+    },
+    {
+      name: 'Happy',
+      value: 'happy',
+      icon: 'face-smile',
+      iconColor: 'text-white',
+      bgColor: 'bg-green-400',
+    },
+    {
+      name: 'Sad',
+      value: 'sad',
+      icon: 'face-frown',
+      iconColor: 'text-white',
+      bgColor: 'bg-yellow-400',
+    },
+    {
+      name: 'Thumbsy',
+      value: 'thumbsy',
+      icon: 'hand-thumb-up',
+      iconColor: 'text-white',
+      bgColor: 'bg-blue-500',
+    },
+    {
+      name: 'I feel nothing',
+      value: '',
+      icon: 'x-mark',
+      iconColor: 'text-gray-400',
+      bgColor: 'bg-transparent',
+    },
+  ];
 
-const selected = ref(moods[5])
+  const selected = ref(moods[5]);
 </script>
 
 <template>
@@ -43,7 +88,10 @@ const selected = ref(moods[5])
       :key="activityItem.id"
       class="relative flex gap-x-4">
       <div
-        :class="[activityItemIdx === props.activity.length - 1 ? 'h-6' : '-bottom-6', 'absolute left-0 top-0 flex w-6 justify-center']">
+        :class="[
+          activityItemIdx === props.activity.length - 1 ? 'h-6' : '-bottom-6',
+          'absolute top-0 left-0 flex w-6 justify-center',
+        ]">
         <div class="w-px bg-gray-200"></div>
       </div>
       <template v-if="activityItem.type === 'commented'">
@@ -51,14 +99,17 @@ const selected = ref(moods[5])
           :src="activityItem.person.imageUrl"
           alt=""
           class="relative mt-3 size-6 flex-none rounded-full bg-gray-50" />
-        <div class="flex-auto rounded-md p-3 ring-1 ring-inset ring-gray-200">
+        <div class="flex-auto rounded-md p-3 ring-1 ring-gray-200 ring-inset">
           <div class="flex justify-between gap-x-4">
             <div class="py-0.5 text-xs leading-5 text-gray-500">
-              <span class="font-medium text-gray-900">{{ activityItem.person.name }}</span> commented
+              <span class="font-medium text-gray-900">{{ activityItem.person.name }}</span>
+              commented
             </div>
             <time
               :datetime="activityItem.dateTime"
-              class="flex-none py-0.5 text-xs leading-5 text-gray-500">{{ activityItem.date }}</time>
+              class="flex-none py-0.5 text-xs leading-5 text-gray-500"
+              >{{ activityItem.date }}</time
+            >
           </div>
           <p class="text-sm leading-6 text-gray-500">
             {{ activityItem.comment }}
@@ -78,12 +129,14 @@ const selected = ref(moods[5])
             class="size-1.5 rounded-full bg-gray-100 ring-1 ring-gray-300"></div>
         </div>
         <p class="flex-auto py-0.5 text-xs leading-5 text-gray-500">
-          <span class="font-medium text-gray-900">{{ activityItem.person.name }}</span> {{ activityItem.type }} the
-          invoice.
+          <span class="font-medium text-gray-900">{{ activityItem.person.name }}</span>
+          {{ activityItem.type }} the invoice.
         </p>
         <time
           :datetime="activityItem.dateTime"
-          class="flex-none py-0.5 text-xs leading-5 text-gray-500">{{ activityItem.date }}</time>
+          class="flex-none py-0.5 text-xs leading-5 text-gray-500"
+          >{{ activityItem.date }}</time
+        >
       </template>
     </li>
   </ul>
@@ -97,15 +150,17 @@ const selected = ref(moods[5])
       class="size-6 flex-none rounded-full bg-gray-50" />
     <div
       v-else
-      class="size-6 flex-none rounded-full bg-gray-200" ></div>
+      class="size-6 flex-none rounded-full bg-gray-200"></div>
     <form
       action="#"
       class="relative flex-auto">
       <div
-        class="overflow-hidden rounded-lg pb-12 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-indigo-600">
+        class="overflow-hidden rounded-lg pb-12 shadow-sm ring-1 ring-gray-300 ring-inset focus-within:ring-2 focus-within:ring-indigo-600">
         <label
           for="comment"
-          class="sr-only">Add your comment</label>
+          class="sr-only"
+          >Add your comment</label
+        >
         <textarea
           rows="2"
           name="comment"
@@ -114,7 +169,7 @@ const selected = ref(moods[5])
           placeholder="Add your comment..."></textarea>
       </div>
 
-      <div class="absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2">
+      <div class="absolute inset-x-0 bottom-0 flex justify-between py-2 pr-2 pl-3">
         <div class="flex items-center space-x-5">
           <div class="flex items-center">
             <button
@@ -132,9 +187,7 @@ const selected = ref(moods[5])
             <Listbox
               as="div"
               v-model="selected">
-              <ListboxLabel class="sr-only">
-                Your mood
-              </ListboxLabel>
+              <ListboxLabel class="sr-only"> Your mood </ListboxLabel>
               <div class="relative">
                 <ListboxButton
                   class="relative -m-2.5 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-500">
@@ -148,7 +201,11 @@ const selected = ref(moods[5])
                       <span class="sr-only">Add your mood</span>
                     </span>
                     <span v-if="selected.value">
-                      <span :class="[selected.bgColor, 'flex size-8 items-center justify-center rounded-full']">
+                      <span
+                        :class="[
+                          selected.bgColor,
+                          'flex size-8 items-center justify-center rounded-full',
+                        ]">
                         <OIcon
                           collection="heroicons"
                           :name="selected.icon"
@@ -173,9 +230,16 @@ const selected = ref(moods[5])
                       :value="mood"
                       v-slot="{ active }">
                       <li
-                        :class="[active ? 'bg-gray-100' : 'bg-white', 'relative cursor-default select-none px-3 py-2']">
+                        :class="[
+                          active ? 'bg-gray-100' : 'bg-white',
+                          'relative cursor-default px-3 py-2 select-none',
+                        ]">
                         <div class="flex items-center">
-                          <div :class="[mood.bgColor, 'flex size-8 items-center justify-center rounded-full']">
+                          <div
+                            :class="[
+                              mood.bgColor,
+                              'flex size-8 items-center justify-center rounded-full',
+                            ]">
                             <OIcon
                               collection="heroicons"
                               :name="mood.icon"
@@ -194,7 +258,7 @@ const selected = ref(moods[5])
         </div>
         <button
           type="submit"
-          class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+          class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50">
           Comment
         </button>
       </div>

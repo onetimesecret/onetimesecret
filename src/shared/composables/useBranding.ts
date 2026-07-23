@@ -275,7 +275,8 @@ export function useBranding(domainId?: string) {
         await domainsStore.fetchList();
       }
       const extid = resolveExtid(domainId);
-      if (!extid) throw createError('Could not resolve domain for favicon refresh', 'human', 'error');
+      if (!extid)
+        throw createError('Could not resolve domain for favicon refresh', 'human', 'error');
       await domainsStore.refreshFavicon(extid);
       notifications.show(t('web.branding.refresh_favicon_queued'), 'success', 'top');
       return true;
@@ -294,7 +295,8 @@ export function useBranding(domainId?: string) {
         await domainsStore.fetchList();
       }
       const extid = resolveExtid(domainId);
-      if (!extid) throw createError('Could not resolve domain for favicon upload', 'human', 'error');
+      if (!extid)
+        throw createError('Could not resolve domain for favicon upload', 'human', 'error');
       const uploadedIcon = await domainsStore.uploadIcon(extid, file);
       // Update local state with new favicon
       faviconImage.value = uploadedIcon;
@@ -316,7 +318,8 @@ export function useBranding(domainId?: string) {
         await domainsStore.fetchList();
       }
       const extid = resolveExtid(domainId);
-      if (!extid) throw createError('Could not resolve domain for favicon removal', 'human', 'error');
+      if (!extid)
+        throw createError('Could not resolve domain for favicon removal', 'human', 'error');
       await domainsStore.removeIcon(extid);
       // Clear local favicon state
       faviconImage.value = null;

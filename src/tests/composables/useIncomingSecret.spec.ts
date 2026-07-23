@@ -277,8 +277,8 @@ describe('useIncomingSecret', () => {
       const { form, errors, validateForm } = useIncomingSecret();
 
       form.value.memo = 'x'.repeat(51); // invalid memo
-      form.value.secret = '';            // invalid secret
-      form.value.recipientId = '';       // invalid recipient
+      form.value.secret = ''; // invalid secret
+      form.value.recipientId = ''; // invalid recipient
 
       const result = validateForm();
 
@@ -292,8 +292,8 @@ describe('useIncomingSecret', () => {
     it('does not short-circuit — collects all errors when secret fails', () => {
       const { form, errors, validateForm } = useIncomingSecret();
 
-      form.value.secret = '';       // invalid
-      form.value.recipientId = '';  // invalid
+      form.value.secret = ''; // invalid
+      form.value.recipientId = ''; // invalid
 
       validateForm();
 

@@ -34,7 +34,11 @@ export const useBrandStore = defineStore('brand', () => {
 
   async function fetchSettings(domainId: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/domains/${domainId}/brand`);
-    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    const result = gracefulParse(
+      responseSchemas.brandSettings,
+      response.data,
+      'BrandSettingsResponse'
+    );
     if (!result.ok) {
       settings.value[domainId] = { ...defaultBranding };
       return settings.value[domainId];
@@ -52,7 +56,11 @@ export const useBrandStore = defineStore('brand', () => {
     const response = await $api.put(`/api/domains/${domainId}/brand`, {
       brand: formattedUpdates,
     });
-    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    const result = gracefulParse(
+      responseSchemas.brandSettings,
+      response.data,
+      'BrandSettingsResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to update brand settings. Please try again.');
     }

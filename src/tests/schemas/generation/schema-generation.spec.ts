@@ -257,7 +257,8 @@ describe('transform fidelity with io:"input"', () => {
       });
       // Without io:"input", the anyOf degrades — no number branch
       const hasNumberBranch =
-        Array.isArray(js.anyOf) && js.anyOf.some((b: unknown) => (b as Record<string, unknown>).type === 'number');
+        Array.isArray(js.anyOf) &&
+        js.anyOf.some((b: unknown) => (b as Record<string, unknown>).type === 'number');
       expect(hasNumberBranch).toBe(false);
     });
   });

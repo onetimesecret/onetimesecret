@@ -20,10 +20,7 @@
 // new consumers appear — keeping this list narrow protects aggregators from
 // surprise re-export collisions).
 // ============================================================================
-export {
-  capabilitiesShape,
-  capabilityFlagsShape,
-} from './section/capabilities';
+export { capabilitiesShape, capabilityFlagsShape } from './section/capabilities';
 
 export { developmentShape } from './section/development';
 
@@ -74,10 +71,7 @@ export {
   mailValidationShape,
 } from './section/mail';
 
-export {
-  secretOptionsShape,
-  secretOptionBoundariesShape,
-} from './section/secret_options';
+export { secretOptionsShape, secretOptionBoundariesShape } from './section/secret_options';
 
 export {
   siteShape,
@@ -108,12 +102,7 @@ export {
 // ============================================================================
 // Top-level Shape Schemas
 // ============================================================================
-export {
-  authConfigShape,
-  authModeShape,
-  simpleModeShape,
-  fullModeShape,
-} from './auth';
+export { authConfigShape, authModeShape, simpleModeShape, fullModeShape } from './auth';
 
 export {
   loggingConfigShape,

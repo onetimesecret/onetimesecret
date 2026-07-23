@@ -266,9 +266,9 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
 
       const radiogroup = wrapper.find('[role="radiogroup"]');
-      const checked = radiogroup.findAll('[role="radio"]').filter(
-        (r) => r.attributes('aria-checked') === 'true'
-      );
+      const checked = radiogroup
+        .findAll('[role="radio"]')
+        .filter((r) => r.attributes('aria-checked') === 'true');
       // Exactly one radio in the group is checked, and it is the Mode B stand-in.
       expect(checked).toHaveLength(1);
       expect(checked[0].attributes('id')).toBe('signin-mode-one-active');
@@ -290,9 +290,9 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('#signin-mode-one-active').exists()).toBe(false);
 
       const radiogroup = wrapper.find('[role="radiogroup"]');
-      const checked = radiogroup.findAll('[role="radio"]').filter(
-        (r) => r.attributes('aria-checked') === 'true'
-      );
+      const checked = radiogroup
+        .findAll('[role="radio"]')
+        .filter((r) => r.attributes('aria-checked') === 'true');
       expect(checked).toHaveLength(1);
       expect(checked[0].attributes('id')).toBe('signin-mode-any');
     });
@@ -414,10 +414,7 @@ describe('DomainSigninConfigForm', () => {
       await wrapper.find('#signin-mode-any').trigger('click');
 
       const emitted = wrapper.emitted('auto-save');
-      expect(emitted![0]).toEqual([
-        { restrict_to: null, signin_enabled: true },
-        'restrict_to',
-      ]);
+      expect(emitted![0]).toEqual([{ restrict_to: null, signin_enabled: true }, 'restrict_to']);
     });
 
     // NOTE: "re-enabling via One specific method" was removed — that segment is
@@ -723,7 +720,9 @@ describe('DomainSigninConfigForm', () => {
       it('disables the email toggle and shows "Unavailable" reason when email_auth is off', () => {
         wrapper = mountForm({ globalAvailability: { ...allAvailable, email_auth: false } });
         expect(toggles(wrapper)[0].attributes('disabled')).toBeDefined();
-        expect(wrapper.find('#signin-email-auth-hint').text()).toContain(COPY.availabilityUnavailable);
+        expect(wrapper.find('#signin-email-auth-hint').text()).toContain(
+          COPY.availabilityUnavailable
+        );
       });
 
       it('shows "Allow on this domain" reason for email when available', () => {
@@ -938,17 +937,13 @@ describe('DomainSigninConfigForm', () => {
   describe('no save/discard buttons', () => {
     it('renders no Save or Discard button in Mode A', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      const saveOrDiscard = wrapper
-        .findAll('button')
-        .filter((b) => /save|discard/i.test(b.text()));
+      const saveOrDiscard = wrapper.findAll('button').filter((b) => /save|discard/i.test(b.text()));
       expect(saveOrDiscard).toHaveLength(0);
     });
 
     it('renders no Save or Discard button in Mode B', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
-      const saveOrDiscard = wrapper
-        .findAll('button')
-        .filter((b) => /save|discard/i.test(b.text()));
+      const saveOrDiscard = wrapper.findAll('button').filter((b) => /save|discard/i.test(b.text()));
       expect(saveOrDiscard).toHaveLength(0);
     });
   });
@@ -997,13 +992,17 @@ describe('DomainSigninConfigForm', () => {
   describe('reset flow', () => {
     it('shows the reset button when isConfigured', () => {
       wrapper = mountForm({ isConfigured: true });
-      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.resetToDefaults));
+      const resetBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes(COPY.resetToDefaults));
       expect(resetBtn).toBeTruthy();
     });
 
     it('does not show the reset button when not isConfigured', () => {
       wrapper = mountForm({ isConfigured: false });
-      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.resetToDefaults));
+      const resetBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes(COPY.resetToDefaults));
       expect(resetBtn).toBeUndefined();
     });
 
@@ -1026,7 +1025,9 @@ describe('DomainSigninConfigForm', () => {
 
       // Confirm button text is exactly reset_action; checking equality avoids
       // matching the now-hidden reset-to-defaults trigger.
-      const confirmBtn = wrapper.findAll('button').find((b) => b.text().trim() === COPY.resetAction)!;
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().trim() === COPY.resetAction)!;
       await confirmBtn.trigger('click');
 
       expect(wrapper.emitted('delete')).toBeTruthy();

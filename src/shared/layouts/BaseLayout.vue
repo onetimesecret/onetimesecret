@@ -23,7 +23,9 @@
   const { global_banner, global_banner_scope } = storeToRefs(bootstrapStore);
 
   // Component key cannot be null or undefined
-  const globalBroadcastKey = computed(() => global_banner.value ? 'globalBroadcast' : 'noBroadcast');
+  const globalBroadcastKey = computed(() =>
+    global_banner.value ? 'globalBroadcast' : 'noBroadcast'
+  );
 
   const identityStore = useProductIdentity();
 
@@ -59,10 +61,12 @@
 </script>
 
 <template>
-  <div data-testid="base-layout" class="flex min-h-screen flex-col">
+  <div
+    data-testid="base-layout"
+    class="flex min-h-screen flex-col">
     <!-- All along the watch tower -->
     <div
-      class="fixed left-0 top-0 z-50 h-1 w-full"
+      class="fixed top-0 left-0 z-50 h-1 w-full"
       :class="primaryColorClass"
       :style="primaryColorStyle"></div>
 

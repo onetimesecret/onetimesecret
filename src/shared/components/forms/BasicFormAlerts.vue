@@ -2,18 +2,18 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-defineProps({
-  success: [String, Array],
-  error: [String, Array],
-  errors: {
-    type: Array as () => string[],
-    default: () => []
-  }
-});
+  defineProps({
+    success: [String, Array],
+    error: [String, Array],
+    errors: {
+      type: Array as () => string[],
+      default: () => [],
+    },
+  });
 </script>
 
 <template>
@@ -40,8 +40,12 @@ defineProps({
             </p>
 
             <!-- Array of errors -->
-            <ul v-else-if="errors.length > 0 || (error && Array.isArray(error))" class="list-disc space-y-1 pl-5">
-              <li v-for="(err, index) in errors.length > 0 ? errors : error" :key="index">
+            <ul
+              v-else-if="errors.length > 0 || (error && Array.isArray(error))"
+              class="list-disc space-y-1 pl-5">
+              <li
+                v-for="(err, index) in errors.length > 0 ? errors : error"
+                :key="index">
                 {{ err }}
               </li>
             </ul>
@@ -72,8 +76,12 @@ defineProps({
             </p>
 
             <!-- Array of success messages -->
-            <ul v-else-if="Array.isArray(success)" class="list-disc space-y-1 pl-5">
-              <li v-for="(msg, index) in success" :key="index">
+            <ul
+              v-else-if="Array.isArray(success)"
+              class="list-disc space-y-1 pl-5">
+              <li
+                v-for="(msg, index) in success"
+                :key="index">
                 {{ msg }}
               </li>
             </ul>

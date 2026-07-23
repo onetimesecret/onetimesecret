@@ -70,33 +70,47 @@ const timestampOverrides = {
  * console.log(config.created_at instanceof Date); // true
  * ```
  */
-export const customDomainEmailConfigSchema = customDomainEmailConfigCanonical
-  .extend({
-    // Timestamp transforms
-    ...timestampOverrides,
+export const customDomainEmailConfigSchema = customDomainEmailConfigCanonical.extend({
+  // Timestamp transforms
+  ...timestampOverrides,
 
-    // Required field normalization: null -> empty string
-    // These fields are required for form submission; null breaks .trim() calls
-    from_address: z.string().nullable().transform((v) => v ?? ''),
-    from_name: z.string().nullable().transform((v) => v ?? ''),
+  // Required field normalization: null -> empty string
+  // These fields are required for form submission; null breaks .trim() calls
+  from_address: z
+    .string()
+    .nullable()
+    .transform((v) => v ?? ''),
+  from_name: z
+    .string()
+    .nullable()
+    .transform((v) => v ?? ''),
 
-    // Optional field normalization: keep null (form layer converts to undefined)
-    reply_to: z.string().nullish().transform((v) => v ?? null),
-    provider_domain_id: z.string().nullish().transform((v) => v ?? null),
+  // Optional field normalization: keep null (form layer converts to undefined)
+  reply_to: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  provider_domain_id: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
 
-    // Nullable timestamp -> nullable Date
-    last_validated_at: z.number().nullable().transform((v) =>
-      v !== null ? new Date(v * 1000) : null
-    ),
+  // Nullable timestamp -> nullable Date
+  last_validated_at: z
+    .number()
+    .nullable()
+    .transform((v) => (v !== null ? new Date(v * 1000) : null)),
 
-    dns_check_completed_at: z.number().nullable().transform((v) =>
-      v !== null ? new Date(v * 1000) : null
-    ),
+  dns_check_completed_at: z
+    .number()
+    .nullable()
+    .transform((v) => (v !== null ? new Date(v * 1000) : null)),
 
-    provider_check_completed_at: z.number().nullable().transform((v) =>
-      v !== null ? new Date(v * 1000) : null
-    ),
-  });
+  provider_check_completed_at: z
+    .number()
+    .nullable()
+    .transform((v) => (v !== null ? new Date(v * 1000) : null)),
+});
 
 export type CustomDomainEmailConfig = z.infer<typeof customDomainEmailConfigSchema>;
 

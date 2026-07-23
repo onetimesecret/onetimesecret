@@ -136,8 +136,7 @@ describe('ScopeSwitcher engine', () => {
       props: baseProps,
       slots: {
         trigger: () => h('span', { 'data-testid': 'trigger-visual' }, 'TRIG'),
-        'item-visual': (p: { item: ScopeSwitcherItem }) =>
-          h('span', { class: 'ivis' }, p.item.id),
+        'item-visual': (p: { item: ScopeSwitcherItem }) => h('span', { class: 'ivis' }, p.item.id),
         'item-badge': (p: { item: ScopeSwitcherItem }) =>
           p.item.id === 'a' ? h('span', { 'data-testid': 'badge-a' }, 'PAID') : null,
       },

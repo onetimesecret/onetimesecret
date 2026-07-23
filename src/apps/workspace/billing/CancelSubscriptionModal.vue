@@ -1,68 +1,77 @@
 <!-- src/apps/workspace/billing/CancelSubscriptionModal.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { BillingService } from '@/services/billing.service';
-import { classifyError } from '@/schemas/errors';
-import { formatDisplayDate } from '@/utils/format';
-import { computed, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import {
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+    TransitionChild,
+    TransitionRoot,
+  } from '@headlessui/vue';
+  import { BillingService } from '@/services/billing.service';
+  import { classifyError } from '@/schemas/errors';
+  import { formatDisplayDate } from '@/utils/format';
+  import { computed, ref } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const props = defineProps<{
-  open: boolean;
-  orgExtId: string;
-  /** Plan name for display */
-  planName: string;
-  /** Unix timestamp when current period ends */
-  periodEnd: number | null;
-}>();
+  const props = defineProps<{
+    open: boolean;
+    orgExtId: string;
+    /** Plan name for display */
+    planName: string;
+    /** Unix timestamp when current period ends */
+    periodEnd: number | null;
+  }>();
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'success'): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'close'): void;
+    (e: 'success'): void;
+  }>();
 
-const isCanceling = ref(false);
-const error = ref('');
+  const isCanceling = ref(false);
+  const error = ref('');
 
-const formattedPeriodEnd = computed(() => {
-  if (!props.periodEnd) return null;
-  return formatDisplayDate(new Date(props.periodEnd * 1000));
-});
+  const formattedPeriodEnd = computed(() => {
+    if (!props.periodEnd) return null;
+    return formatDisplayDate(new Date(props.periodEnd * 1000));
+  });
 
-const handleCancel = async () => {
-  if (isCanceling.value || !props.orgExtId) return;
+  const handleCancel = async () => {
+    if (isCanceling.value || !props.orgExtId) return;
 
-  isCanceling.value = true;
-  error.value = '';
+    isCanceling.value = true;
+    error.value = '';
 
-  try {
-    await BillingService.cancelSubscription(props.orgExtId);
-    emit('success');
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.cancel.error');
-    console.error('[CancelSubscriptionModal] Cancellation error:', err);
-  } finally {
-    isCanceling.value = false;
-  }
-};
+    try {
+      await BillingService.cancelSubscription(props.orgExtId);
+      emit('success');
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.cancel.error');
+      console.error('[CancelSubscriptionModal] Cancellation error:', err);
+    } finally {
+      isCanceling.value = false;
+    }
+  };
 
-const handleClose = () => {
-  if (!isCanceling.value) {
-    emit('close');
-  }
-};
+  const handleClose = () => {
+    if (!isCanceling.value) {
+      emit('close');
+    }
+  };
 </script>
 
 <template>
-  <TransitionRoot as="template" :show="open">
-    <Dialog as="div"
-class="relative z-50"
-@close="handleClose">
+  <TransitionRoot
+    as="template"
+    :show="open">
+    <Dialog
+      as="div"
+      class="relative z-50"
+      @close="handleClose">
       <TransitionChild
         as="template"
         enter="ease-out duration-300"
@@ -71,11 +80,12 @@ class="relative z-50"
         leave="ease-in duration-200"
         leave-from="opacity-100"
         leave-to="opacity-0">
-        <div class="fixed inset-0 bg-gray-500/75 transition-opacity dark:bg-gray-900/75" ></div>
+        <div class="fixed inset-0 bg-gray-500/75 transition-opacity dark:bg-gray-900/75"></div>
       </TransitionChild>
 
       <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild
             as="template"
             enter="ease-out duration-300"
@@ -85,9 +95,10 @@ class="relative z-50"
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <DialogPanel
-              class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 dark:bg-gray-800">
               <!-- Warning Icon -->
-              <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+              <div
+                class="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
                 <OIcon
                   collection="heroicons"
                   name="exclamation-triangle"
@@ -97,7 +108,9 @@ class="relative z-50"
 
               <!-- Title -->
               <div class="mt-3 text-center sm:mt-5">
-                <DialogTitle as="h3" class="text-lg font-semibold text-gray-900 dark:text-white">
+                <DialogTitle
+                  as="h3"
+                  class="text-lg font-semibold text-gray-900 dark:text-white">
                   {{ t('web.billing.cancel.title') }}
                 </DialogTitle>
               </div>
@@ -161,14 +174,14 @@ class="relative z-50"
                   type="button"
                   @click="handleClose"
                   :disabled="isCanceling"
-                  class="w-full rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:w-auto">
+                  class="w-full rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                   {{ t('web.billing.cancel.keep_subscription') }}
                 </button>
                 <button
                   type="button"
                   @click="handleCancel"
                   :disabled="isCanceling"
-                  class="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400 sm:w-auto">
+                  class="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-red-500 dark:hover:bg-red-400">
                   <span v-if="isCanceling">{{ t('web.COMMON.processing') }}</span>
                   <span v-else>{{ t('web.billing.cancel.confirm_cancel') }}</span>
                 </button>

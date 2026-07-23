@@ -229,9 +229,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   // branding is set (free tier with a custom domain).
   const isBranded = computed(() => isCustom.value && !!brand.value?.description);
 
-  const workspaceName = computed(
-    () => brand.value?.description?.trim() || displayName.value
-  );
+  const workspaceName = computed(() => brand.value?.description?.trim() || displayName.value);
 
   const monogramInitial = computed(() =>
     (workspaceName.value || displayDomain.value || 'A').trim().charAt(0).toUpperCase()
@@ -275,8 +273,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   );
   const showPromo = computed(
     () =>
-      hasSiteHost.value &&
-      applyOverride(disabled_homepage.value?.show_promo, showPromoAuto.value)
+      hasSiteHost.value && applyOverride(disabled_homepage.value?.show_promo, showPromoAuto.value)
   );
 
   const showSignin = computed(() => !!authentication.value?.signin);
@@ -328,22 +325,54 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   // so each getter re-reads its source computed and reactivity is preserved
   // through the spread. Plain destructuring would freeze values at call time.
   const props = {
-    get isBranded() { return isBranded.value; },
-    get workspaceName() { return workspaceName.value; },
-    get monogramInitial() { return monogramInitial.value; },
-    get primaryColor() { return primaryColor.value; },
-    get fontFamilyClass() { return fontFamilyClass.value; },
-    get headingFontClass() { return headingFontClass.value; },
-    get cornerClass() { return cornerClass.value; },
-    get logoUri() { return logoUri.value; },
-    get displayDomain() { return displayDomain.value; },
-    get showSignin() { return showSignin.value; },
-    get showWhatIsThis() { return showWhatIsThis.value; },
-    get whatIsThisHref() { return whatIsThisHref.value; },
-    get showPromo() { return showPromo.value; },
-    get promoHref() { return promoHref.value; },
-    get ssoOneClick() { return ssoOneClick.value; },
-    get ssoProviderName() { return ssoProvider.value?.display_name ?? null; },
+    get isBranded() {
+      return isBranded.value;
+    },
+    get workspaceName() {
+      return workspaceName.value;
+    },
+    get monogramInitial() {
+      return monogramInitial.value;
+    },
+    get primaryColor() {
+      return primaryColor.value;
+    },
+    get fontFamilyClass() {
+      return fontFamilyClass.value;
+    },
+    get headingFontClass() {
+      return headingFontClass.value;
+    },
+    get cornerClass() {
+      return cornerClass.value;
+    },
+    get logoUri() {
+      return logoUri.value;
+    },
+    get displayDomain() {
+      return displayDomain.value;
+    },
+    get showSignin() {
+      return showSignin.value;
+    },
+    get showWhatIsThis() {
+      return showWhatIsThis.value;
+    },
+    get whatIsThisHref() {
+      return whatIsThisHref.value;
+    },
+    get showPromo() {
+      return showPromo.value;
+    },
+    get promoHref() {
+      return promoHref.value;
+    },
+    get ssoOneClick() {
+      return ssoOneClick.value;
+    },
+    get ssoProviderName() {
+      return ssoProvider.value?.display_name ?? null;
+    },
     onSsoLogin,
   } satisfies DisabledHomepageProps;
 

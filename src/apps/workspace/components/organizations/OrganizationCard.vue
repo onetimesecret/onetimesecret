@@ -2,29 +2,29 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import type { Organization } from '@/types/organization';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import type { Organization } from '@/types/organization';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-defineProps<{
-  organization: Organization;
-}>();
+  defineProps<{
+    organization: Organization;
+  }>();
 
-const emit = defineEmits<{
-  (e: 'click'): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'click'): void;
+  }>();
 
-const handleClick = () => {
-  emit('click');
-};
+  const handleClick = () => {
+    emit('click');
+  };
 </script>
 
 <template>
   <button
     type="button"
     @click="handleClick"
-    class="group relative w-full rounded-lg border border-gray-200/60 bg-white/60 p-6 text-left shadow-sm backdrop-blur-sm transition-all hover:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-700/60 dark:bg-gray-800/60 dark:hover:border-brand-400 dark:focus:ring-brand-400">
+    class="group relative w-full rounded-lg border border-gray-200/60 bg-white/60 p-6 text-left shadow-sm backdrop-blur-sm transition-all hover:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-700/60 dark:bg-gray-800/60 dark:hover:border-brand-400 dark:focus:ring-brand-400">
     <div class="flex items-start justify-between">
       <div class="min-w-0 flex-1">
         <h3

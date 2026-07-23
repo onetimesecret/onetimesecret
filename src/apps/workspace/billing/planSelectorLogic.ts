@@ -15,10 +15,7 @@ import type { Plan as BillingPlan } from '@/services/billing.service';
  * STRICT id match: the "Current" badge belongs to the plan whose id equals the
  * org's planid. No tier comparison — tier is drift-prone metadata (#3824).
  */
-export function isPlanCurrent(
-  plan: BillingPlan,
-  orgPlanId: string | null | undefined
-): boolean {
+export function isPlanCurrent(plan: BillingPlan, orgPlanId: string | null | undefined): boolean {
   return plan.id === orgPlanId;
 }
 
@@ -26,10 +23,7 @@ export function isPlanCurrent(
  * Two currencies conflict only when both are present and differ. A missing
  * currency (new subscriber, or a plan without one) never conflicts.
  */
-function currenciesConflict(
-  a: string | null | undefined,
-  b: string | null | undefined
-): boolean {
+function currenciesConflict(a: string | null | undefined, b: string | null | undefined): boolean {
   return !!a && !!b && a !== b;
 }
 
@@ -71,10 +65,7 @@ export interface PlanButtonState {
  * scheduled (to reactivate); free is actionable only for active subscribers
  * (to downgrade); currency mismatches are never actionable.
  */
-export function isPlanButtonDisabled(
-  plan: BillingPlan,
-  state: PlanButtonState
-): boolean {
+export function isPlanButtonDisabled(plan: BillingPlan, state: PlanButtonState): boolean {
   return (
     (isPlanCurrent(plan, state.orgPlanId) && !state.isCancelScheduled) ||
     state.isCreatingCheckout ||
@@ -90,12 +81,7 @@ export function isPlanButtonDisabled(
  * Single source of truth — the component and its specs both consume this rather
  * than re-declaring the order (drift is exactly the #3824 failure mode).
  */
-export const TIER_ORDER = [
-  'free',
-  'single_account',
-  'single_team',
-  'multi_team',
-] as const;
+export const TIER_ORDER = ['free', 'single_account', 'single_team', 'multi_team'] as const;
 
 /**
  * Rank of a tier in TIER_ORDER. Falsy (unresolved/legacy) and unknown tiers

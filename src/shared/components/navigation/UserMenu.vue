@@ -26,300 +26,324 @@
 -->
 
 <script setup lang="ts">
-import FancyIcon from '@/shared/components/ctas/FancyIcon.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useAuth } from '@/shared/composables/useAuth';
-import { useTheme } from '@/shared/composables/useTheme';
-import { useDomainContext } from '@/shared/composables/useDomainContext';
-import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
-import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
-import { type Customer } from '@/schemas/shapes/v3';
-import { ENTITLEMENTS } from '@/types/organization';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useProductIdentity } from '@/shared/stores/identityStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
-import { storeToRefs } from 'pinia';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import FancyIcon from '@/shared/components/ctas/FancyIcon.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useAuth } from '@/shared/composables/useAuth';
+  import { useTheme } from '@/shared/composables/useTheme';
+  import { useDomainContext } from '@/shared/composables/useDomainContext';
+  import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
+  import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
+  import { type Customer } from '@/schemas/shapes/v3';
+  import { ENTITLEMENTS } from '@/types/organization';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-// Copy to clipboard helper
-const copyToClipboard = async (text: string, fieldName: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    showCopyFeedback(fieldName);
-  } catch {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    showCopyFeedback(fieldName);
-  }
-};
-
-const copiedField = ref<string | null>(null);
-const showCopyFeedback = (fieldName: string) => {
-  copiedField.value = fieldName;
-  setTimeout(() => {
-    copiedField.value = null;
-  }, 1500);
-};
-
-const props = defineProps<{
-  cust: Customer | null;
-  email?: string;  // Used when awaiting MFA (no customer object yet)
-  colonel?: boolean;
-  awaitingMfa?: boolean;
-}>();
-
-const { t } = useI18n();
-const { logout } = useAuth();
-const { isDarkMode, toggleDarkMode } = useTheme();
-
-const isPlanPreviewModalOpen = ref(false);
-
-// Test plan mode composable
-const { isPreviewModeActive } = usePreviewPlanMode();
-
-const bootstrapStore = useBootstrapStore();
-const { billing_enabled } = storeToRefs(bootstrapStore);
-
-// Custom domain filtering: non-owners on custom domains see limited menu
-const { isCustom } = storeToRefs(useProductIdentity());
-const organizationStore = useOrganizationStore();
-const { currentOrganization } = storeToRefs(organizationStore);
-
-const userRole = computed(() =>
-  currentOrganization.value?.current_user_role || null
-);
-
-// Org extid for display/copy (useful for support and testing)
-const orgExtid = computed(() => currentOrganization.value?.extid || null);
-
-// Only restrict members on custom domains — admins see the full menu like owners.
-// If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
-const isCustomDomainMember = computed(() => isCustom.value && !!userRole.value && userRole.value === 'member');
-
-const isElevatedRole = computed(() =>
-  userRole.value === 'owner' || userRole.value === 'admin'
-);
-
-// Reuse the org-switcher visibility logic so the header identity chip appears
-// and disappears in step with the organization context dropdown.
-const { isSoloDefaultContext } = useScopeSwitcherVisibility();
-
-// Whether the current org carries the manage_orgs entitlement (the same gate
-// the org switcher uses under billing). Absent entitlements → not granted.
-const hasManageOrgs = computed(() => {
-  const ents = currentOrganization.value?.entitlements;
-  return Array.isArray(ents) && ents.includes(ENTITLEMENTS.MANAGE_ORGS);
-});
-
-// The identity chip shown next to the domain in the menu header:
-// - 'role'  : the Owner/Admin badge — a real multi-user / multi-org context
-// - 'free'  : a "Free" plan chip linking to billing — a solo user without the
-//             manage_orgs entitlement on a billing-enabled install (plan hint)
-// - 'hidden': nothing — a solo user on a standalone (billing-disabled) install,
-//             so the chip only appears when the org switcher would too
-type IdentityChip = 'role' | 'free' | 'hidden';
-const identityChip = computed<IdentityChip>(() => {
-  if (!isElevatedRole.value || props.awaitingMfa) return 'hidden';
-  if (!isSoloDefaultContext.value) return 'role';
-  if (!billing_enabled.value) return 'hidden';
-  return hasManageOrgs.value ? 'role' : 'free';
-});
-
-// Domain context display in menu header
-const { currentContext, isContextActive } = useDomainContext();
-const showDomainContext = computed(() =>
-  isContextActive.value && !props.awaitingMfa
-);
-
-const isOpen = ref(false);
-const menuRef = ref<HTMLElement | null>(null);
-
-// Menu item type
-interface MenuItem {
-  id: string;
-  to?: string;
-  href?: string; // External link
-  label: string;
-  icon: {
-    collection: string;
-    name: string;
+  // Copy to clipboard helper
+  const copyToClipboard = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showCopyFeedback(fieldName);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showCopyFeedback(fieldName);
+    }
   };
-  variant?: 'default' | 'caution' | 'danger' | 'cta';
-  condition?: () => boolean;
-  onClick?: () => void | Promise<void>;
-}
 
-const openPlanPreviewModal = () => {
-  isPlanPreviewModalOpen.value = true;
-  closeMenu();
-};
+  const copiedField = ref<string | null>(null);
+  const showCopyFeedback = (fieldName: string) => {
+    copiedField.value = fieldName;
+    setTimeout(() => {
+      copiedField.value = null;
+    }, 1500);
+  };
 
-const closePlanPreviewModal = () => {
-  isPlanPreviewModalOpen.value = false;
-};
+  const props = defineProps<{
+    cust: Customer | null;
+    email?: string; // Used when awaiting MFA (no customer object yet)
+    colonel?: boolean;
+    awaitingMfa?: boolean;
+  }>();
 
-const menuItems = computed<MenuItem[]>(() => [
-  { id: 'mfa-verify', to: '/mfa-verify', label: t('web.auth.complete_mfa_verification'),
-    icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    variant: 'caution' as const, condition: () => props.awaitingMfa },
-  { id: 'dashboard', to: '/dashboard', label: t('web.TITLES.dashboard'),
-    icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    condition: () => !props.awaitingMfa },
-  { id: 'recent', to: '/recent', label: t('web.TITLES.recent'),
-    icon: { collection: 'heroicons', name: 'clock' },
-    condition: () => !props.awaitingMfa },
-  { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
-    icon: { collection: 'heroicons', name: 'credit-card' },
-    condition: () => !props.awaitingMfa && !!billing_enabled.value && userRole.value === 'owner' },
-  { id: 'account', to: '/account', label: t('web.TITLES.account'),
-    icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
-    condition: () => !props.awaitingMfa },
-  { id: 'colonel', href: '/colonel', label: t('web.colonel.admin'),
-    icon: { collection: 'mdi', name: 'star' },
-    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value },
-  {
-    id: 'test-plan',
-    label: t('web.colonel.previewPlanMode'),
-    icon: { collection: 'heroicons', name: 'beaker' },
-    variant: isPreviewModeActive.value ? 'caution' : 'default',
-    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
-    onClick: openPlanPreviewModal,
-  },
-  {
-    id: 'help',
-    href: 'https://docs.onetimesecret.com',
-    label: t('web.TITLES.help'),
-    icon: { collection: 'heroicons', name: 'question-mark-circle' },
-    condition: () => !props.awaitingMfa,
-  },
-  {
-    id: 'feedback',
-    to: '/feedback',
-    label: t('web.TITLES.feedback'),
-    icon: { collection: 'heroicons', name: 'chat-bubble-bottom-center-text' },
-    condition: () => !props.awaitingMfa && !isCustomDomainMember.value,
-  },
-  {
-    id: 'logout',
-    label: t('web.COMMON.header_logout'),
-    icon: { collection: 'heroicons', name: 'arrow-right-on-rectangle-solid' },
-    variant: 'danger' as const,
-    onClick: handleLogout,
-  },
-]);
+  const { t } = useI18n();
+  const { logout } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useTheme();
 
-// Visible menu items based on conditions
-const visibleMenuItems = computed(() =>
-  menuItems.value.filter(item => item.condition?.() ?? true)
-);
+  const isPlanPreviewModalOpen = ref(false);
 
-// Check if we should show a divider before a menu item
-const shouldShowDividerBefore = (item: MenuItem, index: number): boolean => {
-  if (index === 0) return false;
+  // Test plan mode composable
+  const { isPreviewModeActive } = usePreviewPlanMode();
 
-  // Show divider after MFA verification
-  if (visibleMenuItems.value[index - 1]?.id === 'mfa-verify') return true;
+  const bootstrapStore = useBootstrapStore();
+  const { billing_enabled } = storeToRefs(bootstrapStore);
 
-  // Show divider before upgrade/colonel section
-  if (item.id === 'upgrade' || item.id === 'colonel') return true;
+  // Custom domain filtering: non-owners on custom domains see limited menu
+  const { isCustom } = storeToRefs(useProductIdentity());
+  const organizationStore = useOrganizationStore();
+  const { currentOrganization } = storeToRefs(organizationStore);
 
-  // Show divider before help section
-  if (item.id === 'help') return true;
+  const userRole = computed(() => currentOrganization.value?.current_user_role || null);
 
-  // Show divider before logout
-  if (item.id === 'logout') return true;
+  // Org extid for display/copy (useful for support and testing)
+  const orgExtid = computed(() => currentOrganization.value?.extid || null);
 
-  return false;
-};
+  // Only restrict members on custom domains — admins see the full menu like owners.
+  // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
+  const isCustomDomainMember = computed(
+    () => isCustom.value && !!userRole.value && userRole.value === 'member'
+  );
 
-// Get CSS classes for menu item based on variant
-const getMenuItemClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta'): string => {
-  const baseClasses = 'group flex items-center gap-3 px-4 py-2 text-sm transition-colors';
+  const isElevatedRole = computed(() => userRole.value === 'owner' || userRole.value === 'admin');
 
-  switch (variant) {
-    case 'caution':
-      return `${baseClasses} font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20`;
-    case 'danger':
-      return `${baseClasses} text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20`;
-    case 'cta':
-      return `${baseClasses} text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/20`;
-    default:
-      return `${baseClasses} text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700`;
-  }
-};
+  // Reuse the org-switcher visibility logic so the header identity chip appears
+  // and disappears in step with the organization context dropdown.
+  const { isSoloDefaultContext } = useScopeSwitcherVisibility();
 
-// Get icon classes based on variant and item id
-const getIconClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta', itemId?: string): string => {
-  const baseClasses = 'size-5 transition-colors';
+  // Whether the current org carries the manage_orgs entitlement (the same gate
+  // the org switcher uses under billing). Absent entitlements → not granted.
+  const hasManageOrgs = computed(() => {
+    const ents = currentOrganization.value?.entitlements;
+    return Array.isArray(ents) && ents.includes(ENTITLEMENTS.MANAGE_ORGS);
+  });
 
-  // Special case for colonel icon
-  if (itemId === 'colonel') {
-    return `${baseClasses} text-brand-400 group-hover:text-brand-500 dark:text-brand-400 dark:group-hover:text-brand-300`;
+  // The identity chip shown next to the domain in the menu header:
+  // - 'role'  : the Owner/Admin badge — a real multi-user / multi-org context
+  // - 'free'  : a "Free" plan chip linking to billing — a solo user without the
+  //             manage_orgs entitlement on a billing-enabled install (plan hint)
+  // - 'hidden': nothing — a solo user on a standalone (billing-disabled) install,
+  //             so the chip only appears when the org switcher would too
+  type IdentityChip = 'role' | 'free' | 'hidden';
+  const identityChip = computed<IdentityChip>(() => {
+    if (!isElevatedRole.value || props.awaitingMfa) return 'hidden';
+    if (!isSoloDefaultContext.value) return 'role';
+    if (!billing_enabled.value) return 'hidden';
+    return hasManageOrgs.value ? 'role' : 'free';
+  });
+
+  // Domain context display in menu header
+  const { currentContext, isContextActive } = useDomainContext();
+  const showDomainContext = computed(() => isContextActive.value && !props.awaitingMfa);
+
+  const isOpen = ref(false);
+  const menuRef = ref<HTMLElement | null>(null);
+
+  // Menu item type
+  interface MenuItem {
+    id: string;
+    to?: string;
+    href?: string; // External link
+    label: string;
+    icon: {
+      collection: string;
+      name: string;
+    };
+    variant?: 'default' | 'caution' | 'danger' | 'cta';
+    condition?: () => boolean;
+    onClick?: () => void | Promise<void>;
   }
 
-  switch (variant) {
-    case 'caution':
-      return `${baseClasses} text-amber-500 group-hover:text-amber-600 dark:text-amber-400 dark:group-hover:text-amber-300`;
-    case 'danger':
-      return `${baseClasses} text-red-500 group-hover:text-red-600 dark:text-red-400 dark:group-hover:text-red-300`;
-    case 'cta':
-      return `${baseClasses} text-brand-500 group-hover:text-brand-600 dark:text-brand-400 dark:group-hover:text-brand-300`;
-    default:
-      return `${baseClasses} text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300`;
-  }
-};
-
-// Get email from either customer object or direct prop (when awaiting MFA)
-const userEmail = computed(() => props.cust?.email || props.email || '');
-
-// Display email (CSS truncation handles overflow, no JS truncation needed)
-const displayEmail = computed(() => userEmail.value || 'User');
-
-// Get user initials for avatar
-const userInitials = computed(() => {
-  const email = userEmail.value;
-  if (!email) return '?';
-  return email.charAt(0).toUpperCase();
-});
-
-// Toggle dropdown
-const toggleMenu = () => {
-  isOpen.value = !isOpen.value;
-};
-
-// Close dropdown
-const closeMenu = () => {
-  isOpen.value = false;
-};
-
-// Handle logout
-const handleLogout = async () => {
-  closeMenu();
-  await logout();
-};
-
-// Handle click outside
-const handleClickOutside = (event: MouseEvent) => {
-  if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
+  const openPlanPreviewModal = () => {
+    isPlanPreviewModalOpen.value = true;
     closeMenu();
-  }
-};
+  };
 
-// Lifecycle hooks
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-});
+  const closePlanPreviewModal = () => {
+    isPlanPreviewModalOpen.value = false;
+  };
 
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
+  const menuItems = computed<MenuItem[]>(() => [
+    {
+      id: 'mfa-verify',
+      to: '/mfa-verify',
+      label: t('web.auth.complete_mfa_verification'),
+      icon: { collection: 'heroicons', name: 'shield-check-solid' },
+      variant: 'caution' as const,
+      condition: () => props.awaitingMfa,
+    },
+    {
+      id: 'dashboard',
+      to: '/dashboard',
+      label: t('web.TITLES.dashboard'),
+      icon: { collection: 'heroicons', name: 'shield-check-solid' },
+      condition: () => !props.awaitingMfa,
+    },
+    {
+      id: 'recent',
+      to: '/recent',
+      label: t('web.TITLES.recent'),
+      icon: { collection: 'heroicons', name: 'clock' },
+      condition: () => !props.awaitingMfa,
+    },
+    {
+      id: 'billing',
+      to: '/billing',
+      label: t('web.navigation.billing'),
+      icon: { collection: 'heroicons', name: 'credit-card' },
+      condition: () => !props.awaitingMfa && !!billing_enabled.value && userRole.value === 'owner',
+    },
+    {
+      id: 'account',
+      to: '/account',
+      label: t('web.TITLES.account'),
+      icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
+      condition: () => !props.awaitingMfa,
+    },
+    {
+      id: 'colonel',
+      href: '/colonel',
+      label: t('web.colonel.admin'),
+      icon: { collection: 'mdi', name: 'star' },
+      condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
+    },
+    {
+      id: 'test-plan',
+      label: t('web.colonel.previewPlanMode'),
+      icon: { collection: 'heroicons', name: 'beaker' },
+      variant: isPreviewModeActive.value ? 'caution' : 'default',
+      condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
+      onClick: openPlanPreviewModal,
+    },
+    {
+      id: 'help',
+      href: 'https://docs.onetimesecret.com',
+      label: t('web.TITLES.help'),
+      icon: { collection: 'heroicons', name: 'question-mark-circle' },
+      condition: () => !props.awaitingMfa,
+    },
+    {
+      id: 'feedback',
+      to: '/feedback',
+      label: t('web.TITLES.feedback'),
+      icon: { collection: 'heroicons', name: 'chat-bubble-bottom-center-text' },
+      condition: () => !props.awaitingMfa && !isCustomDomainMember.value,
+    },
+    {
+      id: 'logout',
+      label: t('web.COMMON.header_logout'),
+      icon: { collection: 'heroicons', name: 'arrow-right-on-rectangle-solid' },
+      variant: 'danger' as const,
+      onClick: handleLogout,
+    },
+  ]);
+
+  // Visible menu items based on conditions
+  const visibleMenuItems = computed(() =>
+    menuItems.value.filter((item) => item.condition?.() ?? true)
+  );
+
+  // Check if we should show a divider before a menu item
+  const shouldShowDividerBefore = (item: MenuItem, index: number): boolean => {
+    if (index === 0) return false;
+
+    // Show divider after MFA verification
+    if (visibleMenuItems.value[index - 1]?.id === 'mfa-verify') return true;
+
+    // Show divider before upgrade/colonel section
+    if (item.id === 'upgrade' || item.id === 'colonel') return true;
+
+    // Show divider before help section
+    if (item.id === 'help') return true;
+
+    // Show divider before logout
+    if (item.id === 'logout') return true;
+
+    return false;
+  };
+
+  // Get CSS classes for menu item based on variant
+  const getMenuItemClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta'): string => {
+    const baseClasses = 'group flex items-center gap-3 px-4 py-2 text-sm transition-colors';
+
+    switch (variant) {
+      case 'caution':
+        return `${baseClasses} font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20`;
+      case 'danger':
+        return `${baseClasses} text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20`;
+      case 'cta':
+        return `${baseClasses} text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/20`;
+      default:
+        return `${baseClasses} text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700`;
+    }
+  };
+
+  // Get icon classes based on variant and item id
+  const getIconClasses = (
+    variant?: 'default' | 'caution' | 'danger' | 'cta',
+    itemId?: string
+  ): string => {
+    const baseClasses = 'size-5 transition-colors';
+
+    // Special case for colonel icon
+    if (itemId === 'colonel') {
+      return `${baseClasses} text-brand-400 group-hover:text-brand-500 dark:text-brand-400 dark:group-hover:text-brand-300`;
+    }
+
+    switch (variant) {
+      case 'caution':
+        return `${baseClasses} text-amber-500 group-hover:text-amber-600 dark:text-amber-400 dark:group-hover:text-amber-300`;
+      case 'danger':
+        return `${baseClasses} text-red-500 group-hover:text-red-600 dark:text-red-400 dark:group-hover:text-red-300`;
+      case 'cta':
+        return `${baseClasses} text-brand-500 group-hover:text-brand-600 dark:text-brand-400 dark:group-hover:text-brand-300`;
+      default:
+        return `${baseClasses} text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300`;
+    }
+  };
+
+  // Get email from either customer object or direct prop (when awaiting MFA)
+  const userEmail = computed(() => props.cust?.email || props.email || '');
+
+  // Display email (CSS truncation handles overflow, no JS truncation needed)
+  const displayEmail = computed(() => userEmail.value || 'User');
+
+  // Get user initials for avatar
+  const userInitials = computed(() => {
+    const email = userEmail.value;
+    if (!email) return '?';
+    return email.charAt(0).toUpperCase();
+  });
+
+  // Toggle dropdown
+  const toggleMenu = () => {
+    isOpen.value = !isOpen.value;
+  };
+
+  // Close dropdown
+  const closeMenu = () => {
+    isOpen.value = false;
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    closeMenu();
+    await logout();
+  };
+
+  // Handle click outside
+  const handleClickOutside = (event: MouseEvent) => {
+    if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
+      closeMenu();
+    }
+  };
+
+  // Lifecycle hooks
+  onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+  });
+
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
 </script>
 
 <template>
@@ -330,12 +354,7 @@ onUnmounted(() => {
     <button
       @click="toggleMenu"
       data-testid="user-menu-trigger"
-      class="flex items-center gap-2 rounded-md px-2 py-1.5
-        text-sm text-gray-600 transition-colors duration-200
-        hover:bg-gray-100 hover:text-gray-800
-        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-        dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white
-        dark:focus:ring-offset-gray-900"
+      class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white dark:focus:ring-offset-gray-900"
       :aria-expanded="isOpen"
       aria-haspopup="true"
       :aria-label="t('web.COMMON.user_menu')">
@@ -345,27 +364,25 @@ onUnmounted(() => {
           :class="[
             'flex size-8 items-center justify-center rounded-full',
             'text-sm font-semibold text-white transition-colors',
-            awaitingMfa
-              ? 'bg-amber-500 dark:bg-amber-600'
-              : 'bg-brand-500 dark:bg-brand-600'
+            awaitingMfa ? 'bg-amber-500 dark:bg-amber-600' : 'bg-brand-500 dark:bg-brand-600',
           ]">
           {{ userInitials }}
         </div>
         <!-- MFA Pending Badge -->
         <div
           v-if="awaitingMfa"
-          class="absolute -right-0.5 -top-0.5 size-2.5 rounded-full
-            bg-amber-400 ring-2 ring-white dark:bg-amber-300 dark:ring-gray-900"
+          class="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-400 ring-2 ring-white dark:bg-amber-300 dark:ring-gray-900"
           :title="t('web.auth.mfa_required')"
-          aria-label="MFA verification required">
-        </div>
+          aria-label="MFA verification required"></div>
       </div>
 
       <!-- Email & Chevron -->
       <div class="hidden items-center gap-1 sm:flex">
         <span
           class="max-w-[140px] truncate lg:max-w-[160px]"
-          :title="userEmail">{{ displayEmail }}</span>
+          :title="userEmail"
+          >{{ displayEmail }}</span
+        >
         <OIcon
           collection="heroicons"
           :name="isOpen ? 'chevron-up-solid' : 'chevron-down-solid'"
@@ -392,15 +409,11 @@ onUnmounted(() => {
       <div
         v-if="isOpen"
         data-testid="user-menu-dropdown"
-        class="absolute right-0 z-50 mt-2 w-64 origin-top-right
-          rounded-lg bg-white shadow-lg ring-1 ring-black/5
-          focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
+        class="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
         role="menu"
         :aria-label="t('web.COMMON.user_menu')">
         <!-- User Info Header -->
-        <div
-          class="border-b border-gray-200 px-4 py-3
-            dark:border-gray-700">
+        <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
           <!-- Email -->
           <p
             class="truncate text-sm font-medium text-gray-900 dark:text-white"
@@ -424,10 +437,7 @@ onUnmounted(() => {
                 @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
                 :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
                 :aria-label="t('web.COMMON.copy')"
-                class="shrink-0 rounded p-0.5 text-gray-300 transition-all
-                  sm:opacity-0 sm:group-hover/domain:opacity-100 sm:focus:opacity-100
-                  hover:bg-gray-100 hover:text-gray-500
-                  dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+                class="shrink-0 rounded p-0.5 text-gray-300 transition-all hover:bg-gray-100 hover:text-gray-500 sm:opacity-0 sm:group-hover/domain:opacity-100 sm:focus:opacity-100 dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
                 :class="{ 'text-green-500 opacity-100': copiedField === 'domain' }">
                 <OIcon
                   collection="mdi"
@@ -441,18 +451,18 @@ onUnmounted(() => {
               v-if="identityChip === 'role'"
               data-testid="user-menu-role-badge"
               :class="[
-                'shrink-0 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                'inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase',
                 'border shadow-xs',
                 userRole === 'owner'
                   ? 'border-brand-200/60 bg-brand-50 text-brand-600 dark:border-brand-700/40 dark:bg-brand-950/50 dark:text-brand-400'
-                  : 'border-violet-200/60 bg-violet-50 text-violet-600 dark:border-violet-700/40 dark:bg-violet-950/50 dark:text-violet-400'
+                  : 'border-violet-200/60 bg-violet-50 text-violet-600 dark:border-violet-700/40 dark:bg-violet-950/50 dark:text-violet-400',
               ]">
               <span
                 :class="[
                   'size-1.5 rounded-full',
                   userRole === 'owner'
                     ? 'bg-brand-500 dark:bg-brand-400'
-                    : 'bg-violet-500 dark:bg-violet-400'
+                    : 'bg-violet-500 dark:bg-violet-400',
                 ]"
                 aria-hidden="true"></span>
               {{ t(`web.organizations.members.roles.${userRole}`) }}
@@ -465,10 +475,10 @@ onUnmounted(() => {
               :title="t('web.navigation.billing')"
               @click="closeMenu"
               :class="[
-                'shrink-0 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                'inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase',
                 'border shadow-xs transition-colors',
                 'border-gray-200/70 bg-gray-50 text-gray-500 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-600',
-                'dark:border-gray-600/50 dark:bg-gray-700/40 dark:text-gray-400 dark:hover:border-brand-700/50 dark:hover:bg-brand-950/40 dark:hover:text-brand-400'
+                'dark:border-gray-600/50 dark:bg-gray-700/40 dark:text-gray-400 dark:hover:border-brand-700/50 dark:hover:bg-brand-950/40 dark:hover:text-brand-400',
               ]">
               <span
                 class="size-1.5 rounded-full bg-gray-400 dark:bg-gray-500"
@@ -481,14 +491,16 @@ onUnmounted(() => {
             v-if="awaitingMfa"
             data-testid="user-menu-mfa-badge"
             class="mt-2 flex items-center gap-2 rounded-md px-2 py-1.5">
-            <span class="text-sm font-medium ">
+            <span class="text-sm font-medium">
               {{ t('web.auth.mfa_verification_required') }}
             </span>
           </div>
         </div>
 
         <!-- Menu Items -->
-        <nav class="py-1" role="navigation">
+        <nav
+          class="py-1"
+          role="navigation">
           <template
             v-for="(item, index) in visibleMenuItems"
             :key="item.id">
@@ -545,15 +557,13 @@ onUnmounted(() => {
               class="flex items-center justify-between px-4 py-2">
               <button
                 data-testid="user-menu-logout"
-                class="group flex items-center gap-3 text-sm text-red-600 transition-colors
-                  hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                class="group flex items-center gap-3 text-sm text-red-600 transition-colors hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 @click="item.onClick"
                 role="menuitem">
                 <OIcon
                   :collection="item.icon.collection"
                   :name="item.icon.name"
-                  class="size-5 text-red-500 transition-colors group-hover:text-red-600
-                    dark:text-red-400 dark:group-hover:text-red-300"
+                  class="size-5 text-red-500 transition-colors group-hover:text-red-600 dark:text-red-400 dark:group-hover:text-red-300"
                   aria-hidden="true" />
                 {{ item.label }}
               </button>
@@ -563,10 +573,12 @@ onUnmounted(() => {
                 data-testid="user-menu-theme-toggle"
                 :aria-label="t('web.layout.toggle_dark_mode')"
                 :aria-pressed="isDarkMode"
-                :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
-                class="flex size-7 items-center justify-center rounded-md
-                  text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600
-                  dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                :title="
+                  isDarkMode
+                    ? t('web.layout.switch_to_blank_mode', ['light'])
+                    : t('web.layout.switch_to_blank_mode', ['dark'])
+                "
+                class="flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300">
                 <OIcon
                   collection="ph"
                   :name="isDarkMode ? 'moon' : 'sun'"
@@ -594,25 +606,19 @@ onUnmounted(() => {
         <!-- Menu Footer: Org ID for support/debugging -->
         <div
           v-if="!awaitingMfa && orgExtid"
-          class="group/extid flex items-center justify-between gap-2
-            border-t border-gray-100 bg-gray-50 px-4 py-2
-            dark:border-gray-700 dark:bg-gray-900/50">
+          class="group/extid flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-4 py-2 dark:border-gray-700 dark:bg-gray-900/50">
           <span
             class="flex items-center gap-1"
             :title="t('web.COMMON.org_id_tooltip')">
             <span class="text-[11px] text-gray-400 dark:text-gray-500">ID:</span>
-            <span
-              class="truncate font-mono text-[11px] text-gray-400 dark:text-gray-500">
+            <span class="truncate font-mono text-[11px] text-gray-400 dark:text-gray-500">
               {{ orgExtid }}
             </span>
           </span>
           <button
             @click.stop="copyToClipboard(orgExtid, 'orgExtid')"
             :title="copiedField === 'orgExtid' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
-            class="shrink-0 rounded p-0.5 text-gray-300 transition-all
-              sm:opacity-0 sm:group-hover/extid:opacity-100 sm:focus:opacity-100
-              hover:bg-gray-200 hover:text-gray-500
-              dark:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-400"
+            class="shrink-0 rounded p-0.5 text-gray-300 transition-all hover:bg-gray-200 hover:text-gray-500 sm:opacity-0 sm:group-hover/extid:opacity-100 sm:focus:opacity-100 dark:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-400"
             :class="{ 'text-green-500 opacity-100': copiedField === 'orgExtid' }">
             <OIcon
               collection="mdi"

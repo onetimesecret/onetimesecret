@@ -164,10 +164,7 @@ describe('Transform Usage Patterns', () => {
     const files = findTsFiles(v2Dir);
     const filesWithTransforms = files.filter((file) => {
       const content = readFileSync(file, 'utf-8');
-      return (
-        content.includes('transforms.fromString') ||
-        content.includes('fromString.')
-      );
+      return content.includes('transforms.fromString') || content.includes('fromString.');
     });
 
     // V2 should use string transforms for Redis-encoded values
@@ -179,10 +176,7 @@ describe('Transform Usage Patterns', () => {
     const files = findTsFiles(v3Dir);
     const filesWithTransforms = files.filter((file) => {
       const content = readFileSync(file, 'utf-8');
-      return (
-        content.includes('transforms.fromNumber') ||
-        content.includes('fromNumber.')
-      );
+      return content.includes('transforms.fromNumber') || content.includes('fromNumber.');
     });
 
     // V3 should use number transforms for native JSON types
@@ -213,22 +207,16 @@ describe('Response Registry Completeness', () => {
     { version: 'v3', path: join(SRC_DIR, 'api', 'v3', 'responses', 'registry.ts') },
   ];
 
-  it.each(registryFiles)(
-    '$version registry exports responseSchemas object',
-    ({ path }) => {
-      const content = readFileSync(path, 'utf-8');
-      expect(content).toContain('export const responseSchemas');
-      expect(content).toContain('} as const');
-    }
-  );
+  it.each(registryFiles)('$version registry exports responseSchemas object', ({ path }) => {
+    const content = readFileSync(path, 'utf-8');
+    expect(content).toContain('export const responseSchemas');
+    expect(content).toContain('} as const');
+  });
 
-  it.each(registryFiles)(
-    '$version registry exports ResponseTypes type',
-    ({ path }) => {
-      const content = readFileSync(path, 'utf-8');
-      expect(content).toContain('export type ResponseTypes');
-    }
-  );
+  it.each(registryFiles)('$version registry exports ResponseTypes type', ({ path }) => {
+    const content = readFileSync(path, 'utf-8');
+    expect(content).toContain('export type ResponseTypes');
+  });
 });
 
 // -----------------------------------------------------------------------------
@@ -255,8 +243,7 @@ describe('Shapes Contract Import Audit', () => {
       it(`${name} imports from contracts`, () => {
         const imports = extractImports(fullPath);
         const contractImports = imports.filter(
-          (imp) =>
-            imp.includes('/contracts') || imp.includes('@/schemas/contracts')
+          (imp) => imp.includes('/contracts') || imp.includes('@/schemas/contracts')
         );
         expect(contractImports.length).toBeGreaterThan(0);
       });

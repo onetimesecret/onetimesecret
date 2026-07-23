@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminSecrets.vue -->
 
 <script setup lang="ts">
-
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -46,8 +45,7 @@
 
   const keyReady = computed(() => secretKey.value.trim() !== '');
 
-  const receiptUrl = (): string =>
-    `/api/colonel/secrets/${encodeURIComponent(lookedUpKey.value)}`;
+  const receiptUrl = (): string => `/api/colonel/secrets/${encodeURIComponent(lookedUpKey.value)}`;
 
   const {
     data: receiptData,
@@ -124,16 +122,12 @@
       {
         key: 'updated',
         label: t('web.admin.secrets.fields.updated'),
-        value: r.updated
-          ? formatDisplayDateTime(r.updated)
-          : t('web.admin.secrets.detail.none'),
+        value: r.updated ? formatDisplayDateTime(r.updated) : t('web.admin.secrets.detail.none'),
       },
       {
         key: 'expiration',
         label: t('web.admin.secrets.fields.expiration'),
-        value: r.expiration
-          ? formatDisplayDateTime(r.expiration)
-          : t('web.admin.secrets.never'),
+        value: r.expiration ? formatDisplayDateTime(r.expiration) : t('web.admin.secrets.never'),
       },
       {
         key: 'age',
@@ -176,7 +170,11 @@
       ? m.recipients.join(', ')
       : (m.recipients ?? t('web.admin.secrets.detail.none'));
     return [
-      { key: 'receiptId', label: t('web.admin.secrets.receiptFields.receiptId'), value: m.receipt_id },
+      {
+        key: 'receiptId',
+        label: t('web.admin.secrets.receiptFields.receiptId'),
+        value: m.receipt_id,
+      },
       { key: 'shortId', label: t('web.admin.secrets.receiptFields.shortId'), value: m.shortid },
       { key: 'state', label: t('web.admin.secrets.receiptFields.state'), value: m.state },
       {
@@ -246,16 +244,10 @@
   } = useAdminMutation(async () => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
-    const response = await $api.delete(
-      `/api/colonel/secrets/${encodeURIComponent(secretId)}`
-    );
+    const response = await $api.delete(`/api/colonel/secrets/${encodeURIComponent(secretId)}`);
     // A 2xx means the secret was deleted server-side regardless of ack shape; the
     // parse keeps the contract a live tripwire without failing the action.
-    gracefulParse(
-      colonelSecretDeleteResponseSchema,
-      response.data,
-      'ColonelSecretDeleteResponse'
-    );
+    gracefulParse(colonelSecretDeleteResponseSchema, response.data, 'ColonelSecretDeleteResponse');
   });
 
   /** The exact string the operator must retype to enable the delete. */
@@ -409,7 +401,8 @@
 
       <!-- Secret record -->
       <section>
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.secret') }}
         </h4>
         <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -429,7 +422,8 @@
 
       <!-- Receipt metadata -->
       <section data-testid="secret-result-receipt">
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.receipt') }}
         </h4>
         <dl
@@ -456,7 +450,8 @@
 
       <!-- Owner -->
       <section data-testid="secret-result-owner">
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.owner') }}
         </h4>
         <dl
@@ -486,7 +481,8 @@
 
       <!-- Raw inspector -->
       <section>
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.raw') }}
         </h4>
         <JsonViewer
@@ -515,7 +511,9 @@
     <AdminConfirmDialog
       v-model:open="deleteDialogOpen"
       :title="t('web.admin.secrets.actions.delete.confirmTitle')"
-      :description="t('web.admin.secrets.actions.delete.confirmDescription', { shortid: deleteToken })"
+      :description="
+        t('web.admin.secrets.actions.delete.confirmDescription', { shortid: deleteToken })
+      "
       :confirm-token="deleteToken"
       variant="danger"
       :confirm-text="t('web.admin.secrets.actions.delete.button')"

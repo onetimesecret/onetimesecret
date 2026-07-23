@@ -16,14 +16,20 @@ const mockFetchOrganizations = vi.fn();
 
 vi.mock('@/shared/stores/bootstrapStore', () => ({
   useBootstrapStore: () => ({
-    get billing_enabled() { return mockBillingEnabled; },
+    get billing_enabled() {
+      return mockBillingEnabled;
+    },
   }),
 }));
 
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
-    get organizations() { return mockOrganizations; },
-    get currentOrganization() { return mockCurrentOrganization; },
+    get organizations() {
+      return mockOrganizations;
+    },
+    get currentOrganization() {
+      return mockCurrentOrganization;
+    },
     fetchOrganizations: mockFetchOrganizations,
   }),
 }));
@@ -39,11 +45,9 @@ import billingRoutes from '@/apps/workspace/routes/billing';
  * The /billing route uses [checkBillingEnabled, createBillingRedirect('overview')]
  */
 function getGuardsForPath(path: string) {
-  const route = billingRoutes.find(r => r.path === path);
+  const route = billingRoutes.find((r) => r.path === path);
   if (!route?.beforeEnter) return [];
-  return Array.isArray(route.beforeEnter)
-    ? route.beforeEnter
-    : [route.beforeEnter];
+  return Array.isArray(route.beforeEnter) ? route.beforeEnter : [route.beforeEnter];
 }
 
 describe('checkBillingEnabled guard', () => {
@@ -111,10 +115,7 @@ describe('createBillingRedirect guard', () => {
   });
 
   it('prefers currentOrganization over first in list', async () => {
-    mockOrganizations.push(
-      { extid: 'org_first' },
-      { extid: 'org_second' },
-    );
+    mockOrganizations.push({ extid: 'org_first' }, { extid: 'org_second' });
     mockCurrentOrganization = { extid: 'org_second' };
     const guards = getGuardsForPath('/billing');
     const redirect = guards[1] as () => Promise<{ path: string }>;
@@ -123,10 +124,7 @@ describe('createBillingRedirect guard', () => {
   });
 
   it('falls back to first org when no currentOrganization', async () => {
-    mockOrganizations.push(
-      { extid: 'org_first' },
-      { extid: 'org_second' },
-    );
+    mockOrganizations.push({ extid: 'org_first' }, { extid: 'org_second' });
     mockCurrentOrganization = null;
     const guards = getGuardsForPath('/billing');
     const redirect = guards[1] as () => Promise<{ path: string }>;

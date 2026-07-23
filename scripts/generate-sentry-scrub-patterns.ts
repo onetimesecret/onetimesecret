@@ -19,11 +19,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 import { parseAllApiRoutes, type OttoRoute } from './openapi/otto-routes-parser';
-import {
-  API_MOUNT_PATHS,
-  parseSensitiveSpec,
-  pathToRegexPattern,
-} from './openapi/sensitive-spec';
+import { API_MOUNT_PATHS, parseSensitiveSpec, pathToRegexPattern } from './openapi/sensitive-spec';
 
 // =============================================================================
 // Configuration
@@ -248,9 +244,7 @@ function main(): void {
   if (VERBOSE) {
     console.log('\nSensitive routes found:');
     for (const route of sensitiveRoutes) {
-      const params = route.pathParams.length > 0
-        ? ` (params: ${route.pathParams.join(', ')})`
-        : '';
+      const params = route.pathParams.length > 0 ? ` (params: ${route.pathParams.join(', ')})` : '';
       console.log(`  ${route.method.padEnd(6)} ${route.fullPath}${params}`);
     }
   }

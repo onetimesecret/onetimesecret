@@ -199,9 +199,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/email/confirm/:token',
     name: 'Confirm Email Change',
-    component: () => import(
-      '@/apps/workspace/account/settings/ConfirmEmailChange.vue'
-    ),
+    component: () => import('@/apps/workspace/account/settings/ConfirmEmailChange.vue'),
     meta: {
       title: 'web.TITLES.confirm_email_change',
       requiresAuth: false,

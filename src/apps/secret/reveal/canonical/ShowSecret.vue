@@ -20,7 +20,7 @@
   import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
   import SecretConfirmationForm from '@/apps/secret/components/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/apps/secret/components/canonical/SecretDisplayCase.vue';
-  import {  nextTick } from 'vue';
+  import { nextTick } from 'vue';
 
   import UnknownSecret from '../UnknownSecret.vue';
 
@@ -89,19 +89,20 @@
         <!-- Warning shown to creator before revealing their own secret -->
         <div
           v-if="uiConfig.showCreatorAlerts && !showSecret"
-          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700
-            dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
+          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert"
           aria-live="polite"
           data-testid="owner-warning">
           <button
             type="button"
-            class="float-right rounded-md p-1
-              hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
-              dark:hover:text-amber-50"
+            class="float-right rounded-md p-1 hover:text-amber-900 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:hover:text-amber-50"
             @click="closeWarning"
             :aria-label="t('web.errors.dismiss_warning')">
-            <span aria-hidden="true" class="text-lg">&times;</span>
+            <span
+              aria-hidden="true"
+              class="text-lg"
+              >&times;</span
+            >
           </button>
           <strong class="font-medium">{{ t('web.COMMON.warning') }}:</strong>
           {{ t('web.shared.you_created_this_secret') }}
@@ -110,18 +111,19 @@
         <!-- Notice shown to creator after viewing their own secret -->
         <div
           v-if="uiConfig.showCreatorAlerts && showSecret"
-          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700
-            dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
+          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
           role="alert"
           aria-live="polite">
           <button
             type="button"
-            class="float-right rounded-md p-1
-              hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500
-              dark:hover:text-brand-50"
+            class="float-right rounded-md p-1 hover:text-brand-900 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-50"
             @click="closeWarning"
             :aria-label="t('web.errors.dismiss_notification')">
-            <span aria-hidden="true" class="text-lg">&times;</span>
+            <span
+              aria-hidden="true"
+              class="text-lg"
+              >&times;</span
+            >
           </button>
           {{ t('web.shared.viewed_own_secret') }}
         </div>
@@ -130,7 +132,7 @@
 
     <!-- Confirmation slot -->
     <template #confirmation="{ record, details, error, isLoading, onConfirm }">
-      <div class="mx-auto max-w-2xl space-y-48 ">
+      <div class="mx-auto max-w-2xl space-y-48">
         <SecretConfirmationForm
           :secret-identifier="secretIdentifier"
           :record="record"
@@ -143,8 +145,7 @@
 
     <!-- Onboarding slot -->
     <template #onboarding="{ record }">
-      <div v-if="!record.verification">
-      </div>
+      <div v-if="!record.verification"></div>
     </template>
 
     <!-- Reveal slot -->

@@ -66,9 +66,7 @@ describe('emailChangeRequestResponseSchema', () => {
 
   describe('malformed payloads', () => {
     it('rejects empty object', () => {
-      expect(() =>
-        emailChangeRequestResponseSchema.parse({})
-      ).toThrow();
+      expect(() => emailChangeRequestResponseSchema.parse({})).toThrow();
     });
 
     it('rejects payload with wrong field name', () => {
@@ -154,9 +152,7 @@ describe('emailChangeConfirmResponseSchema', () => {
 
   describe('malformed payloads', () => {
     it('rejects empty object', () => {
-      expect(() =>
-        emailChangeConfirmResponseSchema.parse({})
-      ).toThrow();
+      expect(() => emailChangeConfirmResponseSchema.parse({})).toThrow();
     });
 
     it('rejects confirmed without redirect', () => {

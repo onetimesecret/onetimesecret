@@ -46,7 +46,7 @@
   <div
     role="status"
     aria-busy="true"
-    class="mx-auto flex max-w-[1600px] flex-wrap justify-center gap-6 animate-pulse motion-reduce:animate-none">
+    class="mx-auto flex max-w-[1600px] animate-pulse flex-wrap justify-center gap-6 motion-reduce:animate-none">
     <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
 
     <div

@@ -2,59 +2,59 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import type { Session } from '@/types/auth';
-import { formatDisplayDate } from '@/utils/format';
-import { computed } from 'vue';
+  import type { Session } from '@/types/auth';
+  import { formatDisplayDate } from '@/utils/format';
+  import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-interface Props {
-  session: Session;
-  isCurrent: boolean;
-}
+  interface Props {
+    session: Session;
+    isCurrent: boolean;
+  }
 
-const props = defineProps<Props>();
-const emit = defineEmits<{
-  remove: [sessionId: string];
-}>();
+  const props = defineProps<Props>();
+  const emit = defineEmits<{
+    remove: [sessionId: string];
+  }>();
 
-// Parse user agent to extract browser/device info
-const deviceInfo = computed(() => {
-  const ua = props.session.user_agent || 'Unknown Device';
+  // Parse user agent to extract browser/device info
+  const deviceInfo = computed(() => {
+    const ua = props.session.user_agent || 'Unknown Device';
 
-  // Simple parsing - can be enhanced with a library like ua-parser-js
-  if (ua.includes('Chrome')) return 'Chrome';
-  if (ua.includes('Firefox')) return 'Firefox';
-  if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
-  if (ua.includes('Edge')) return 'Edge';
-  if (ua.includes('Mobile')) return 'Mobile Browser';
+    // Simple parsing - can be enhanced with a library like ua-parser-js
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+    if (ua.includes('Edge')) return 'Edge';
+    if (ua.includes('Mobile')) return 'Mobile Browser';
 
-  return 'Unknown Browser';
-});
+    return 'Unknown Browser';
+  });
 
-// Format last activity time
-const lastActiveFormatted = computed(() => {
-  const date = new Date(props.session.last_activity_at);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+  // Format last activity time
+  const lastActiveFormatted = computed(() => {
+    const date = new Date(props.session.last_activity_at);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 
-  return formatDisplayDate(date);
-});
+    return formatDisplayDate(date);
+  });
 
-// Format creation time
-const createdFormatted = computed(() => formatDisplayDate(new Date(props.session.created_at)));
+  // Format creation time
+  const createdFormatted = computed(() => formatDisplayDate(new Date(props.session.created_at)));
 
-const handleRemove = () => {
-  emit('remove', props.session.id);
-};
+  const handleRemove = () => {
+    emit('remove', props.session.id);
+  };
 </script>
 
 <template>
@@ -87,7 +87,9 @@ const handleRemove = () => {
 
         <!-- Session details -->
         <div class="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
-          <div v-if="session.ip_address" class="flex items-center gap-2">
+          <div
+            v-if="session.ip_address"
+            class="flex items-center gap-2">
             <i class="fas fa-map-marker-alt w-4 text-xs"></i>
             <span>{{ t('web.auth.sessions.ip_address') }}: {{ session.ip_address }}</span>
           </div>
@@ -107,7 +109,7 @@ const handleRemove = () => {
         v-if="!isCurrent"
         @click="handleRemove"
         type="button"
-        class="ml-4 rounded-md px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:text-red-400 dark:hover:bg-red-900/20"
+        class="ml-4 rounded-md px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:text-red-400 dark:hover:bg-red-900/20"
         :aria-label="t('web.auth.sessions.remove')">
         <i class="fas fa-times mr-1"></i>
         {{ t('web.auth.sessions.remove') }}
@@ -115,11 +117,13 @@ const handleRemove = () => {
     </div>
 
     <!-- Full user agent (collapsed by default, can be expanded) -->
-    <details v-if="session.user_agent" class="text-xs text-gray-500 dark:text-gray-500">
+    <details
+      v-if="session.user_agent"
+      class="text-xs text-gray-500 dark:text-gray-500">
       <summary class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-400">
         View user agent
       </summary>
-      <p class="mt-1 break-all font-mono">
+      <p class="mt-1 font-mono break-all">
         {{ session.user_agent }}
       </p>
     </details>

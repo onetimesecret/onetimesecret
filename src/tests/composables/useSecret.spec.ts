@@ -76,9 +76,7 @@ describe('useSecret — error-code capture (#3424)', () => {
     // bug report cared about: a frontend parse failure must not look like a 404.
     const api = mountUseSecret();
     const store = useSecretStore();
-    store.fetch = vi
-      .fn()
-      .mockRejectedValue(new Error('Unable to load secret. Please try again.'));
+    store.fetch = vi.fn().mockRejectedValue(new Error('Unable to load secret. Please try again.'));
 
     await api.load();
 

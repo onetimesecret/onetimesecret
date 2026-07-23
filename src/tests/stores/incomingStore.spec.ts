@@ -1,18 +1,12 @@
 // src/tests/stores/incomingStore.spec.ts
 
-import {
-  incomingConfigSchema,
-  incomingSecretResponseSchema,
-} from '@/schemas/api/incoming';
+import { incomingConfigSchema, incomingSecretResponseSchema } from '@/schemas/api/incoming';
 import { useIncomingStore } from '@/shared/stores/incomingStore';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { setupTestPinia } from '../setup';
-import {
-  mockReceiptRecordRaw,
-  mockReceiptDetailsRaw,
-} from '../fixtures/receipt.fixture';
+import { mockReceiptRecordRaw, mockReceiptDetailsRaw } from '../fixtures/receipt.fixture';
 
 describe('incomingStore', () => {
   let axiosMock: AxiosMockAdapter;
@@ -887,9 +881,7 @@ describe('incomingStore', () => {
       const domainConfig = {
         enabled: true,
         memo_max_length: 300,
-        recipients: [
-          { digest: 'domain-recipient-1', display_name: 'Domain Support' },
-        ],
+        recipients: [{ digest: 'domain-recipient-1', display_name: 'Domain Support' }],
         default_ttl: 259200, // 3 days
       };
 
@@ -929,9 +921,7 @@ describe('incomingStore', () => {
       const configWithDisabledFeature = {
         enabled: false,
         memo_max_length: 100,
-        recipients: [
-          { digest: 'orphan-hash-1', display_name: 'Orphan Recipient' },
-        ],
+        recipients: [{ digest: 'orphan-hash-1', display_name: 'Orphan Recipient' }],
         default_ttl: 86400,
       };
 
@@ -1060,9 +1050,7 @@ describe('incomingStore', () => {
     };
 
     it('fetches receipt data for a valid key', async () => {
-      axiosMock
-        .onGet(`/api/v3/guest/receipt/${receiptKey}`)
-        .reply(200, mockReceiptApiResponse);
+      axiosMock.onGet(`/api/v3/guest/receipt/${receiptKey}`).reply(200, mockReceiptApiResponse);
 
       const result = await store.getReceipt(receiptKey);
 
@@ -1072,16 +1060,12 @@ describe('incomingStore', () => {
     });
 
     it('calls the correct API endpoint with the key', async () => {
-      axiosMock
-        .onGet(`/api/v3/guest/receipt/${receiptKey}`)
-        .reply(200, mockReceiptApiResponse);
+      axiosMock.onGet(`/api/v3/guest/receipt/${receiptKey}`).reply(200, mockReceiptApiResponse);
 
       await store.getReceipt(receiptKey);
 
       expect(axiosMock.history.get).toHaveLength(1);
-      expect(axiosMock.history.get[0].url).toBe(
-        `/api/v3/guest/receipt/${receiptKey}`
-      );
+      expect(axiosMock.history.get[0].url).toBe(`/api/v3/guest/receipt/${receiptKey}`);
     });
 
     it('throws on 404 server error', async () => {
@@ -1093,9 +1077,7 @@ describe('incomingStore', () => {
     });
 
     it('throws on network error', async () => {
-      axiosMock
-        .onGet(`/api/v3/guest/receipt/${receiptKey}`)
-        .networkError();
+      axiosMock.onGet(`/api/v3/guest/receipt/${receiptKey}`).networkError();
 
       await expect(store.getReceipt(receiptKey)).rejects.toThrow();
     });

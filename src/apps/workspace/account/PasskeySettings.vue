@@ -194,7 +194,8 @@
         <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
-              <div class="flex size-12 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+              <div
+                class="flex size-12 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
                 <OIcon
                   collection="heroicons"
                   name="finger-print-solid"
@@ -216,7 +217,7 @@
               @click="handleAddPasskeyClick"
               type="button"
               :disabled="isLoading"
-              class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
               <OIcon
                 collection="heroicons"
                 name="plus"
@@ -267,7 +268,9 @@
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{
                       passkey.last_used_at
-                        ? t('web.auth.passkeys.last_used', { time: formatDate(passkey.last_used_at) })
+                        ? t('web.auth.passkeys.last_used', {
+                            time: formatDate(passkey.last_used_at),
+                          })
                         : t('web.auth.passkeys.never_used')
                     }}
                   </p>
@@ -284,7 +287,8 @@
 
         <!-- Benefits section -->
         <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
-          <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <h3
+            class="mb-4 text-sm font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.LABELS.benefits') }}
           </h3>
           <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
@@ -317,7 +321,8 @@
 
         <!-- Quick links -->
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <h3
+            class="mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.LABELS.related_settings') }}
           </h3>
           <div class="space-y-2">

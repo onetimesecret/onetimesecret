@@ -501,7 +501,10 @@ describe('useScopeSwitcherVisibility', () => {
     });
 
     it('showOrgSwitcher is false for owner without manage_orgs entitlement (billing enabled)', () => {
-      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: ['create_secrets'] };
+      mockCurrentOrganization.value = {
+        current_user_role: 'owner',
+        entitlements: ['create_secrets'],
+      };
       mockBillingEnabled.value = true;
 
       const { showOrgSwitcher } = useScopeSwitcherVisibility();

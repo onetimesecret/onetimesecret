@@ -80,7 +80,11 @@ export function useDomain(domainId?: string) {
     wrap(async () => {
       if (!domainId) return;
       await store.verifyDomain(domainId);
-      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success', 'top');
+      notifications.show(
+        t('web.domains.domain_verification_initiated_successfully'),
+        'success',
+        'top'
+      );
       await initialize();
     });
 

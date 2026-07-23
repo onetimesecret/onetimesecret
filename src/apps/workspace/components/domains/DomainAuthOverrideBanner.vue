@@ -1,40 +1,40 @@
 <!-- src/apps/workspace/components/domains/DomainAuthOverrideBanner.vue -->
 
 <script setup lang="ts">
-/**
- * Effective-state banner for the per-domain auth override settings pages
- * (sign-in and sign-up). One definition, two consumers (ADR-024).
- *
- * Renders:
- * - A status line stating the resolver's effective output ("Sign-in on this
- *   domain: Enabled"). Driven by the backend's `details.effective_enabled`,
- *   so it can never contradict the runtime gate.
- * - A "Workspace default" badge while the domain has no explicit
- *   configuration; it disappears on the first explicit action.
- * - A dormant warning when the install-level capability is off (kill
- *   switch): per-domain settings stay editable — explicit configuration
- *   still pins behavior for future default changes — but nothing runs
- *   until the workspace-wide capability is re-enabled.
- */
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+  /**
+   * Effective-state banner for the per-domain auth override settings pages
+   * (sign-in and sign-up). One definition, two consumers (ADR-024).
+   *
+   * Renders:
+   * - A status line stating the resolver's effective output ("Sign-in on this
+   *   domain: Enabled"). Driven by the backend's `details.effective_enabled`,
+   *   so it can never contradict the runtime gate.
+   * - A "Workspace default" badge while the domain has no explicit
+   *   configuration; it disappears on the first explicit action.
+   * - A dormant warning when the install-level capability is off (kill
+   *   switch): per-domain settings stay editable — explicit configuration
+   *   still pins behavior for future default changes — but nothing runs
+   *   until the workspace-wide capability is re-enabled.
+   */
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const props = defineProps<{
-  /** Which feature's i18n namespace to use (web.domains.<feature>.*). */
-  feature: 'signin' | 'signup';
-  /** Resolver output for this domain; null while details are loading/absent. */
-  effectiveEnabled: boolean | null;
-  /** Install-level capability; null while details are loading/absent. */
-  globalEnabled: boolean | null;
-  /** True when the domain follows workspace defaults (no explicit config). */
-  workspaceDefault: boolean;
-}>();
+  const props = defineProps<{
+    /** Which feature's i18n namespace to use (web.domains.<feature>.*). */
+    feature: 'signin' | 'signup';
+    /** Resolver output for this domain; null while details are loading/absent. */
+    effectiveEnabled: boolean | null;
+    /** Install-level capability; null while details are loading/absent. */
+    globalEnabled: boolean | null;
+    /** True when the domain follows workspace defaults (no explicit config). */
+    workspaceDefault: boolean;
+  }>();
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const statusLabel = computed(() => t(`web.domains.${props.feature}.effective_status_label`));
-const dormantNotice = computed(() => t(`web.domains.${props.feature}.dormant_notice`));
+  const statusLabel = computed(() => t(`web.domains.${props.feature}.effective_status_label`));
+  const dormantNotice = computed(() => t(`web.domains.${props.feature}.dormant_notice`));
 </script>
 
 <template>

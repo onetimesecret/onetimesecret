@@ -24,10 +24,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
   import { storeToRefs } from 'pinia';
-  import {
-    DEFAULT_CORNER_CLASS,
-    DEFAULT_BUTTON_TEXT_LIGHT,
-  } from '@/shared/stores/identityStore';
+  import { DEFAULT_CORNER_CLASS, DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/stores/identityStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
@@ -72,13 +69,7 @@
 
   // Textarea setup with larger dimensions for workspace
   const maxLength = 10000;
-  const {
-    content,
-    charCount,
-    textareaRef,
-    checkContentLength,
-    clearTextarea,
-  } = useTextarea({
+  const { content, charCount, textareaRef, checkContentLength, clearTextarea } = useTextarea({
     maxLength,
     initialContent: '',
     maxHeight: 500,
@@ -88,9 +79,7 @@
   const { isHovering, formatNumber } = useCharCounter();
 
   // Computed properties for character counter
-  const showCounter = computed(
-    () => isHovering.value || charCount.value > maxLength / 2
-  );
+  const showCounter = computed(() => isHovering.value || charCount.value > maxLength / 2);
   const formattedCharCount = computed(() => formatNumber(charCount.value));
   const formattedMaxLength = computed(() => formatNumber(maxLength));
   const statusColor = computed(() => {
@@ -101,71 +90,70 @@
   });
 
   // Secret concealer with workspace mode behavior
-  const { form, validation, operations, isSubmitting, submit } =
-    useSecretConcealer({
-      onSuccess: async (response) => {
-        const timestamp = Date.now();
-        const action = selectedAction.value;
-        const domain = currentContext.value.domain;
+  const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
+    onSuccess: async (response) => {
+      const timestamp = Date.now();
+      const action = selectedAction.value;
+      const domain = currentContext.value.domain;
 
-        loggingService.debug('[WorkspaceSecretForm] onSuccess', {
+      loggingService.debug('[WorkspaceSecretForm] onSuccess', {
+        timestamp,
+        action,
+        domain,
+        receiptId: response?.record?.receipt?.identifier,
+        receiptShortid: response?.record?.receipt?.shortid,
+        workspaceMode: localReceiptStore.workspaceMode,
+        hasPassphrase: !!form.passphrase,
+        ttl: form.ttl,
+      });
+
+      if (!response) throw new Error('Response is missing');
+      const newMessage: LocalReceipt = {
+        id: nanoid(),
+        receiptExtid: response.record.receipt.identifier,
+        receiptShortid: response.record.receipt.shortid,
+        secretExtid: response.record.secret.identifier,
+        secretShortid: response.record.secret.shortid,
+        shareDomain: response.record.share_domain,
+        hasPassphrase: !!form.passphrase,
+        ttl: form.ttl as number,
+        createdAt: Date.now(),
+      };
+      // Add the message to the store
+      localReceiptStore.addReceipt(newMessage);
+
+      // Preserve TTL before reset (sticky setting)
+      const preservedTtl = form.ttl;
+
+      operations.reset();
+      clearTextarea();
+
+      // Restore TTL to previous value (sticky across submissions)
+      operations.updateField('ttl', preservedTtl as number);
+
+      loggingService.debug('[WorkspaceSecretForm] receipt created', {
+        timestamp,
+        action,
+        domain,
+        receiptShortid: newMessage.receiptShortid,
+        secretShortid: newMessage.secretShortid,
+      });
+      emit('created', newMessage);
+
+      // Navigate to receipt page if workspace mode is off OR if generating password
+      // (generated passwords must be viewed on receipt page since they're only shown once)
+      if (!localReceiptStore.workspaceMode || selectedAction.value === 'generate-password') {
+        router.push(`/receipt/${newMessage.receiptExtid}`);
+      } else {
+        loggingService.debug('[WorkspaceSecretForm] staying on page', {
           timestamp,
           action,
           domain,
-          receiptId: response?.record?.receipt?.identifier,
-          receiptShortid: response?.record?.receipt?.shortid,
-          workspaceMode: localReceiptStore.workspaceMode,
-          hasPassphrase: !!form.passphrase,
-          ttl: form.ttl,
+          workspaceMode: true,
         });
-
-        if (!response) throw new Error('Response is missing');
-        const newMessage: LocalReceipt = {
-          id: nanoid(),
-          receiptExtid: response.record.receipt.identifier,
-          receiptShortid: response.record.receipt.shortid,
-          secretExtid: response.record.secret.identifier,
-          secretShortid: response.record.secret.shortid,
-          shareDomain: response.record.share_domain,
-          hasPassphrase: !!form.passphrase,
-          ttl: form.ttl as number,
-          createdAt: Date.now(),
-        };
-        // Add the message to the store
-        localReceiptStore.addReceipt(newMessage);
-
-        // Preserve TTL before reset (sticky setting)
-        const preservedTtl = form.ttl;
-
-        operations.reset();
-        clearTextarea();
-
-        // Restore TTL to previous value (sticky across submissions)
-        operations.updateField('ttl', preservedTtl as number);
-
-        loggingService.debug('[WorkspaceSecretForm] receipt created', {
-          timestamp,
-          action,
-          domain,
-          receiptShortid: newMessage.receiptShortid,
-          secretShortid: newMessage.secretShortid,
-        });
-        emit('created', newMessage);
-
-        // Navigate to receipt page if workspace mode is off OR if generating password
-        // (generated passwords must be viewed on receipt page since they're only shown once)
-        if (!localReceiptStore.workspaceMode || selectedAction.value === 'generate-password') {
-          router.push(`/receipt/${newMessage.receiptExtid}`);
-        } else {
-          loggingService.debug('[WorkspaceSecretForm] staying on page', {
-            timestamp,
-            action,
-            domain,
-            workspaceMode: true,
-          });
-        }
-      },
-    });
+      }
+    },
+  });
 
   // Initialize TTL on mount: restore the user's last-used value when it is
   // still a valid option, otherwise fall back to the configured default.
@@ -193,9 +181,7 @@
   );
 
   // Compute whether the form has content
-  const hasContent = computed(
-    () => !!content.value && content.value.trim().length > 0
-  );
+  const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
 
   // Track selected action from SplitButton
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
@@ -209,8 +195,8 @@
 
   // Platform detection for keyboard hint (desktop only)
   const isDesktop = useMediaQuery('(min-width: 640px)');
-  const isMac = computed(() =>
-    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+  const isMac = computed(
+    () => typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
@@ -247,7 +233,7 @@
 </script>
 
 <template>
-  <div class="mx-auto min-w-[320px] max-w-full space-y-6">
+  <div class="mx-auto max-w-full min-w-[320px] space-y-6">
     <!-- Alert Display -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
@@ -260,12 +246,7 @@
       <!-- Main Content Card -->
       <div
         :class="[cornerClass]"
-        class="overflow-visible border border-gray-200/60
-          bg-gradient-to-br from-white to-gray-50/30
-          shadow-[0_4px_16px_rgb(0,0,0,0.08),0_1px_4px_rgb(0,0,0,0.06)]
-          backdrop-blur-sm
-          dark:border-gray-700/60 dark:from-slate-900 dark:to-slate-800/30
-          dark:shadow-[0_4px_16px_rgb(0,0,0,0.3),0_1px_4px_rgb(0,0,0,0.2)]">
+        class="overflow-visible border border-gray-200/60 bg-gradient-to-br from-white to-gray-50/30 shadow-[0_4px_16px_rgb(0,0,0,0.08),0_1px_4px_rgb(0,0,0,0.06)] backdrop-blur-sm dark:border-gray-700/60 dark:from-slate-900 dark:to-slate-800/30 dark:shadow-[0_4px_16px_rgb(0,0,0,0.3),0_1px_4px_rgb(0,0,0,0.2)]">
         <!-- Content Section -->
         <div class="p-6">
           <!-- Textarea for Create Link mode -->
@@ -285,22 +266,7 @@
                 :maxlength="maxLength"
                 :class="[cornerClass]"
                 style="min-height: 280px; max-height: 500px"
-                class="block w-full resize-none
-                  rounded-lg border border-gray-200/60 p-4
-                  font-mono text-base leading-relaxed
-                  text-gray-900 transition-all
-                  duration-300 placeholder:text-gray-400
-                  bg-white/80 backdrop-blur-sm
-                  hover:border-gray-300/80 hover:bg-white/90
-                  focus:border-blue-500/80 focus:bg-white
-                  focus:ring-4 focus:ring-blue-500/20
-                  disabled:bg-gray-50/80 disabled:text-gray-500
-                  dark:border-gray-700/60 dark:bg-slate-800/80
-                  dark:text-white dark:placeholder:text-gray-500
-                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800
-                  dark:focus:ring-blue-400/20
-                  dark:disabled:bg-slate-900/50"
+                class="block w-full resize-none rounded-lg border border-gray-200/60 bg-white/80 p-4 font-mono text-base leading-relaxed text-gray-900 backdrop-blur-sm transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300/80 hover:bg-white/90 focus:border-blue-500/80 focus:bg-white focus:ring-4 focus:ring-blue-500/20 disabled:bg-gray-50/80 disabled:text-gray-500 dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90 dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20 dark:disabled:bg-slate-900/50"
                 :placeholder="t('web.COMMON.secret_placeholder')"
                 aria-labelledby="workspaceSecretLabel">
               </textarea>
@@ -308,19 +274,11 @@
               <!-- Character Counter -->
               <div
                 v-if="showCounter"
-                class="pointer-events-none absolute bottom-4 right-4 flex
-                  select-none items-center gap-2
-                  rounded-full bg-white/95 px-3.5 py-1.5 text-sm
-                  shadow-[0_4px_12px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)]
-                  backdrop-blur-md transition-all duration-300
-                  border border-gray-200/40
-                  dark:bg-gray-800/95 dark:border-gray-700/40
-                  dark:shadow-[0_4px_12px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.2)]">
+                class="pointer-events-none absolute right-4 bottom-4 flex items-center gap-2 rounded-full border border-gray-200/40 bg-white/95 px-3.5 py-1.5 text-sm shadow-[0_4px_12px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] backdrop-blur-md transition-all duration-300 select-none dark:border-gray-700/40 dark:bg-gray-800/95 dark:shadow-[0_4px_12px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.2)]">
                 <span
                   :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
-                  aria-hidden="true" ></span>
-                <span
-                  class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
+                  aria-hidden="true"></span>
+                <span class="font-semibold text-gray-700 tabular-nums dark:text-gray-300">
                   {{ formattedCharCount }} / {{ formattedMaxLength }}
                 </span>
               </div>
@@ -345,15 +303,10 @@
                 autocomplete="email"
                 :placeholder="t('web.COMMON.email_placeholder')"
                 :class="[cornerClass]"
-                class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
-                  py-2.5 pl-4 pr-4 text-sm text-gray-900 placeholder:text-gray-400
-                  transition-colors duration-200
-                  hover:border-gray-300/80 hover:bg-white/90
-                  focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
-                  dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
-                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
-                @input="(e) => operations.updateField('recipient', (e.target as HTMLInputElement).value)" />
+                class="w-full border border-gray-200/60 bg-white/80 py-2.5 pr-4 pl-4 text-sm text-gray-900 backdrop-blur-sm transition-colors duration-200 placeholder:text-gray-400 hover:border-gray-300/80 hover:bg-white/90 focus:border-blue-500/80 focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:outline-none dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90 dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
+                @input="
+                  (e) => operations.updateField('recipient', (e.target as HTMLInputElement).value)
+                " />
             </div>
           </div>
 
@@ -361,32 +314,24 @@
           <div
             v-show="selectedAction === 'generate-password'"
             :class="[cornerClass]"
-            class="relative overflow-hidden rounded-lg border border-brand-200/50
-              bg-gradient-to-br from-brand-50/80 to-purple-50/40
-              shadow-[0_4px_20px_rgb(0,0,0,0.08)] backdrop-blur-sm
-              dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20
-              dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]"
+            class="relative overflow-hidden rounded-lg border border-brand-200/50 bg-gradient-to-br from-brand-50/80 to-purple-50/40 shadow-[0_4px_20px_rgb(0,0,0,0.08)] backdrop-blur-sm dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20 dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]"
             style="min-height: 280px"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc"
             role="region">
             <!-- Decorative blur orbs -->
             <div
-              class="pointer-events-none absolute -left-12 -top-12 size-32
-                rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl"
+              class="pointer-events-none absolute -top-12 -left-12 size-32 rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl"
               aria-hidden="true"></div>
             <div
-              class="pointer-events-none absolute -bottom-12 -right-12 size-32
-                rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl"
+              class="pointer-events-none absolute -right-12 -bottom-12 size-32 rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl"
               aria-hidden="true"></div>
 
-            <div class="relative z-10 flex h-full min-h-[280px] flex-col items-center justify-center space-y-4 p-6 text-center">
+            <div
+              class="relative z-10 flex h-full min-h-[280px] flex-col items-center justify-center space-y-4 p-6 text-center">
               <div class="flex justify-center">
                 <div
-                  class="animate-[pulse_2s_ease-in-out_infinite] rounded-full
-                    bg-gradient-to-br from-brand-100 to-purple-100 p-4
-                    shadow-[0_0_0_0_rgba(var(--color-brand-500),0.5)]
-                    dark:from-brand-900/50 dark:to-purple-900/50">
+                  class="animate-[pulse_2s_ease-in-out_infinite] rounded-full bg-gradient-to-br from-brand-100 to-purple-100 p-4 shadow-[0_0_0_0_rgba(var(--color-brand-500),0.5)] dark:from-brand-900/50 dark:to-purple-900/50">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -422,15 +367,13 @@
         <div class="border-t border-gray-200/50 dark:border-gray-700/50">
           <div class="p-4 sm:p-6">
             <!-- Main action row -->
-            <div
-              class="flex items-center justify-between gap-4">
+            <div class="flex items-center justify-between gap-4">
               <!-- Domain Context Indicator (sm+ only; on mobile it appears in the CTA button) -->
               <div
                 v-if="isContextActive"
-                class="hidden items-center text-base font-brand sm:flex">
+                class="hidden items-center font-brand text-base sm:flex">
                 <div
-                  class="inline-flex items-center gap-1.5 rounded-full px-3
-                    py-1.5 text-base font-medium transition-all duration-150"
+                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-base font-medium transition-all duration-150"
                   :class="
                     currentContext.isCanonical
                       ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
@@ -444,11 +387,7 @@
                   ">
                   <OIcon
                     collection="heroicons"
-                    :name="
-                      currentContext.isCanonical
-                        ? 'user-circle'
-                        : 'building-office'
-                    "
+                    :name="currentContext.isCanonical ? 'user-circle' : 'building-office'"
                     class="size-4"
                     aria-hidden="true" />
                   <span class="max-w-[180px] truncate">

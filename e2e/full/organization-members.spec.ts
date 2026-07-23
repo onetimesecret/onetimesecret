@@ -193,7 +193,6 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
   return invitation?.token || null;
 }
 
-
 // -----------------------------------------------------------------------------
 // SECTION 1: Member List Display
 // -----------------------------------------------------------------------------
@@ -442,7 +441,10 @@ test.describe('MBR-ROLE: Change Member Role', () => {
 
     // Check if there are members with editable roles (non-owners)
     // Look for a role dropdown (Listbox button)
-    const roleDropdown = page.locator('button').filter({ hasText: /member|admin/i }).first();
+    const roleDropdown = page
+      .locator('button')
+      .filter({ hasText: /member|admin/i })
+      .first();
 
     // If no dropdown visible, might be owner-only org or no members
     const hasDropdown = await roleDropdown.isVisible().catch(() => false);
@@ -497,7 +499,10 @@ test.describe('MBR-ROLE: Change Member Role', () => {
     }
 
     // Find owner badge - should be a static badge, not a dropdown
-    const ownerBadge = page.locator('span').filter({ hasText: /^owner$/i }).first();
+    const ownerBadge = page
+      .locator('span')
+      .filter({ hasText: /^owner$/i })
+      .first();
 
     if (!(await ownerBadge.isVisible().catch(() => false))) {
       test.skip(true, 'Owner badge not found');
@@ -506,7 +511,9 @@ test.describe('MBR-ROLE: Change Member Role', () => {
 
     // Owner role should be displayed as static badge, not dropdown button
     const parentRow = ownerBadge.locator('..').locator('..');
-    const roleDropdownInRow = parentRow.locator('button').filter({ hasText: /owner|admin|member/i });
+    const roleDropdownInRow = parentRow
+      .locator('button')
+      .filter({ hasText: /owner|admin|member/i });
 
     // If there's a dropdown in owner row, it should be for a different column
     // Or the owner row should not have an editable role dropdown
@@ -610,7 +617,10 @@ test.describe('MBR-REMOVE: Remove Member', () => {
     }
 
     // Find owner row
-    const ownerBadge = page.locator('span').filter({ hasText: /^owner$/i }).first();
+    const ownerBadge = page
+      .locator('span')
+      .filter({ hasText: /^owner$/i })
+      .first();
     if (!(await ownerBadge.isVisible().catch(() => false))) {
       test.skip(true, 'Owner badge not found');
       return;
@@ -892,9 +902,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
 
 test.describe('MBR-HIERARCHY: Role Hierarchy Enforcement', () => {
   // These tests require admin credentials
-  const hasAdminCredentials = !!(
-    process.env.TEST_ADMIN_EMAIL && process.env.TEST_ADMIN_PASSWORD
-  );
+  const hasAdminCredentials = !!(process.env.TEST_ADMIN_EMAIL && process.env.TEST_ADMIN_PASSWORD);
 
   test.skip(
     !hasTestCredentials || !hasAdminCredentials,
@@ -905,11 +913,7 @@ test.describe('MBR-HIERARCHY: Role Hierarchy Enforcement', () => {
     page,
   }) => {
     // Login as admin
-    await loginUser(
-      page,
-      process.env.TEST_ADMIN_EMAIL,
-      process.env.TEST_ADMIN_PASSWORD
-    );
+    await loginUser(page, process.env.TEST_ADMIN_EMAIL, process.env.TEST_ADMIN_PASSWORD);
 
     try {
       await navigateToOrgTeam(page);
@@ -938,11 +942,7 @@ test.describe('MBR-HIERARCHY: Role Hierarchy Enforcement', () => {
 
   test('MBR-HIERARCHY-002: Admin can remove members but not other admins', async ({ page }) => {
     // Login as admin
-    await loginUser(
-      page,
-      process.env.TEST_ADMIN_EMAIL,
-      process.env.TEST_ADMIN_PASSWORD
-    );
+    await loginUser(page, process.env.TEST_ADMIN_EMAIL, process.env.TEST_ADMIN_PASSWORD);
 
     try {
       await navigateToOrgTeam(page);
@@ -990,11 +990,7 @@ test.describe('MBR-PERM: Permission Denied States', () => {
 
   test('MBR-PERM-001: Member role user cannot invite new members', async ({ page }) => {
     // Login as regular member
-    await loginUser(
-      page,
-      process.env.TEST_MEMBER_EMAIL,
-      process.env.TEST_MEMBER_PASSWORD
-    );
+    await loginUser(page, process.env.TEST_MEMBER_EMAIL, process.env.TEST_MEMBER_PASSWORD);
 
     try {
       await navigateToOrgTeam(page);
@@ -1022,11 +1018,7 @@ test.describe('MBR-PERM: Permission Denied States', () => {
 
   test('MBR-PERM-002: Member role user cannot see remove buttons', async ({ page }) => {
     // Login as regular member
-    await loginUser(
-      page,
-      process.env.TEST_MEMBER_EMAIL,
-      process.env.TEST_MEMBER_PASSWORD
-    );
+    await loginUser(page, process.env.TEST_MEMBER_EMAIL, process.env.TEST_MEMBER_PASSWORD);
 
     try {
       await navigateToOrgTeam(page);

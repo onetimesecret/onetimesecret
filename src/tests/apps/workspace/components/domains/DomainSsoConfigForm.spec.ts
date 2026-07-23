@@ -53,19 +53,27 @@ vi.mock('@/shared/components/common/ToggleWithIcon.vue', () => ({
 vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   default: {
     name: 'BasicFormAlerts',
-    template: '<div class="form-alerts" data-testid="form-alerts" :data-error="error" :data-success="success" />',
+    template:
+      '<div class="form-alerts" data-testid="form-alerts" :data-error="error" :data-success="success" />',
     props: ['error', 'success'],
   },
 }));
-
 
 // Mock SSO provider metadata
 // Note: This mock matches the actual module path the component imports from.
 // If tests fail due to provider metadata behavior, verify the component import path.
 vi.mock('@/schemas/shapes/domains/sso-config', () => ({
   SSO_PROVIDER_METADATA: {
-    entra_id: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Microsoft Entra ID' },
-    google: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Google Workspace' },
+    entra_id: {
+      requiresDomainFilter: false,
+      idpControlsAccess: true,
+      description: 'Microsoft Entra ID',
+    },
+    google: {
+      requiresDomainFilter: false,
+      idpControlsAccess: true,
+      description: 'Google Workspace',
+    },
     github: { requiresDomainFilter: true, idpControlsAccess: false, description: 'GitHub OAuth' },
     oidc: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Generic OIDC' },
   },
@@ -244,35 +252,45 @@ describe('DomainSsoConfigForm', () => {
 
   describe('Provider-specific field visibility', () => {
     it('shows tenant_id field when Entra ID is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'entra_id' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'entra_id' },
+      });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       expect(tenantIdInput.exists()).toBe(true);
     });
 
     it('hides tenant_id field when Google is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'google' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'google' },
+      });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       expect(tenantIdInput.exists()).toBe(false);
     });
 
     it('shows issuer field when OIDC is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+      });
 
       const issuerInput = wrapper.find('#domain-sso-issuer');
       expect(issuerInput.exists()).toBe(true);
     });
 
     it('hides issuer field when Entra ID is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'entra_id' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'entra_id' },
+      });
 
       const issuerInput = wrapper.find('#domain-sso-issuer');
       expect(issuerInput.exists()).toBe(false);
     });
 
     it('hides both tenant_id and issuer for GitHub provider', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'github' },
+      });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       const issuerInput = wrapper.find('#domain-sso-issuer');
@@ -282,7 +300,9 @@ describe('DomainSsoConfigForm', () => {
     });
 
     it('does not show domain filter field (feature not yet enabled)', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'github' },
+      });
 
       const domainInput = wrapper.find('#domain-sso-domain-input');
       expect(domainInput.exists()).toBe(false);
@@ -357,7 +377,9 @@ describe('DomainSsoConfigForm', () => {
 
       // Find discard button (look for button that triggers discard)
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('Discard') || b.text().includes('Cancel'));
+      const discardButton = buttons.find(
+        (b) => b.text().includes('Discard') || b.text().includes('Cancel')
+      );
 
       if (discardButton) {
         await discardButton.trigger('click');
@@ -766,7 +788,9 @@ describe('DomainSsoConfigForm', () => {
     it('password toggle button has aria-label', async () => {
       wrapper = await mountComponent();
 
-      const toggleButton = wrapper.find('#domain-sso-client-secret + button, div:has(#domain-sso-client-secret) button');
+      const toggleButton = wrapper.find(
+        '#domain-sso-client-secret + button, div:has(#domain-sso-client-secret) button'
+      );
       // The button should have aria-label for accessibility
       expect(toggleButton.exists()).toBe(true);
     });

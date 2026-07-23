@@ -11,10 +11,10 @@
 -->
 
 <script setup lang="ts">
-defineProps<{
-  show: boolean;
-  message: string;
-}>();
+  defineProps<{
+    show: boolean;
+    message: string;
+  }>();
 </script>
 
 <template>
@@ -22,7 +22,7 @@ defineProps<{
     v-if="show"
     role="status"
     aria-live="polite"
-    class="absolute right-3 top-3 rounded-md bg-gray-900 px-3 py-1.5 text-sm text-white shadow-lg dark:bg-gray-700">
+    class="absolute top-3 right-3 rounded-md bg-gray-900 px-3 py-1.5 text-sm text-white shadow-lg dark:bg-gray-700">
     {{ message }}
   </div>
 </template>

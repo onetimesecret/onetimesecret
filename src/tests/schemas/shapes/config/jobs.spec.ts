@@ -6,10 +6,7 @@
 // index_rebuild, instances_rebuild, housekeeping).
 
 import { describe, it, expect } from 'vitest';
-import {
-  jobsSchema,
-  workerConfigSchema,
-} from '@/schemas/contracts/config/section/jobs';
+import { jobsSchema, workerConfigSchema } from '@/schemas/contracts/config/section/jobs';
 import {
   jobsShape,
   jobsWorkersShape,
@@ -234,9 +231,7 @@ describe('jobsMaintenanceShape — every sub-job tree applies defaults', () => {
   });
 
   it('rejects non-positive batch_size on phantom_cleanup', () => {
-    expect(() =>
-      jobsMaintenanceShape.parse({ phantom_cleanup: { batch_size: 0 } })
-    ).toThrow();
+    expect(() => jobsMaintenanceShape.parse({ phantom_cleanup: { batch_size: 0 } })).toThrow();
   });
 });
 

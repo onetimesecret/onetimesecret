@@ -6,10 +6,7 @@
 // Note: Canonical stamp is a Date object. V2 wire format uses string,
 // V3 wire format uses number (Unix epoch seconds).
 
-import type {
-  FeedbackCanonical,
-  FeedbackDetailsCanonical,
-} from '@/schemas/contracts/feedback';
+import type { FeedbackCanonical, FeedbackDetailsCanonical } from '@/schemas/contracts/feedback';
 import {
   toV2WireFeedback,
   toV2WireFeedbackDetails,
@@ -36,9 +33,7 @@ const BASE_TIMESTAMP = new Date('2024-01-15T10:00:00.000Z');
  * Creates a canonical feedback object with sensible defaults.
  * All timestamps are round seconds for epoch conversion safety.
  */
-export function createCanonicalFeedback(
-  overrides?: Partial<FeedbackCanonical>
-): FeedbackCanonical {
+export function createCanonicalFeedback(overrides?: Partial<FeedbackCanonical>): FeedbackCanonical {
   return {
     msg: 'This is a test feedback message for the application.',
     stamp: BASE_TIMESTAMP,
@@ -65,9 +60,7 @@ export function createCanonicalFeedbackDetails(
 /**
  * Creates feedback with maximum message length.
  */
-export function createMaxLengthFeedback(
-  overrides?: Partial<FeedbackCanonical>
-): FeedbackCanonical {
+export function createMaxLengthFeedback(overrides?: Partial<FeedbackCanonical>): FeedbackCanonical {
   return createCanonicalFeedback({
     msg: 'A'.repeat(1500), // Max length per V2 schema
     ...overrides,
@@ -77,9 +70,7 @@ export function createMaxLengthFeedback(
 /**
  * Creates feedback with minimum message length.
  */
-export function createMinLengthFeedback(
-  overrides?: Partial<FeedbackCanonical>
-): FeedbackCanonical {
+export function createMinLengthFeedback(overrides?: Partial<FeedbackCanonical>): FeedbackCanonical {
   return createCanonicalFeedback({
     msg: 'X', // Min length per V2 schema (min 1)
     ...overrides,
@@ -105,9 +96,7 @@ export function createReceivedFeedbackDetails(
 /**
  * Creates V2 wire format from canonical.
  */
-export function createV2WireFeedback(
-  canonical?: FeedbackCanonical
-): V2WireFeedback {
+export function createV2WireFeedback(canonical?: FeedbackCanonical): V2WireFeedback {
   return toV2WireFeedback(canonical ?? createCanonicalFeedback());
 }
 
@@ -120,9 +109,7 @@ export function createV2WireFeedbackDetails(
 /**
  * Creates V3 wire format from canonical.
  */
-export function createV3WireFeedback(
-  canonical?: FeedbackCanonical
-): V3WireFeedback {
+export function createV3WireFeedback(canonical?: FeedbackCanonical): V3WireFeedback {
   return toV3WireFeedback(canonical ?? createCanonicalFeedback());
 }
 

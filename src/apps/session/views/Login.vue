@@ -1,128 +1,138 @@
 <!-- src/apps/session/views/Login.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
-import AuthView from '@/apps/session/components/AuthView.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useProductIdentity } from '@/shared/stores/identityStore';
-import { useLanguageStore } from '@/shared/stores/languageStore';
-import { hasPasswordlessMethods } from '@/utils/features';
-import { storeToRefs } from 'pinia';
-import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+  import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
+  import AuthView from '@/apps/session/components/AuthView.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useLanguageStore } from '@/shared/stores/languageStore';
+  import { hasPasswordlessMethods } from '@/utils/features';
+  import { storeToRefs } from 'pinia';
+  import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
 
-const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
+  const { t } = useI18n();
+  const route = useRoute();
+  const router = useRouter();
 
-const languageStore = useLanguageStore();
-const bootstrapStore = useBootstrapStore();
-const { authentication, features } = storeToRefs(bootstrapStore);
+  const languageStore = useLanguageStore();
+  const bootstrapStore = useBootstrapStore();
+  const { authentication, features } = storeToRefs(bootstrapStore);
 
-// Per-domain sign-in disable (#3415). features.signin is the resolved
-// availability for THIS domain context (AND of global AUTH_SIGNIN and the
-// domain SigninConfig). Only an explicit false disables: the global-off case
-// never reaches this page (the requiresFeature route guard redirects to '/'),
-// so in practice this branch renders for domain-level disables.
-const signinDisabled = computed(() => features.value?.signin === false);
+  // Per-domain sign-in disable (#3415). features.signin is the resolved
+  // availability for THIS domain context (AND of global AUTH_SIGNIN and the
+  // domain SigninConfig). Only an explicit false disables: the global-off case
+  // never reaches this page (the requiresFeature route guard redirects to '/'),
+  // so in practice this branch renders for domain-level disables.
+  const signinDisabled = computed(() => features.value?.signin === false);
 
-// Custom domain branding: replace generic icon with domain logo on sign-in page
-const identityStore = useProductIdentity();
-const { isCustom } = storeToRefs(identityStore);
-const { logoUri, displayName } = identityStore;
-const signupEnabled = computed(
-  () => !isCustom.value && authentication.value?.enabled && authentication.value?.signup
-);
+  // Custom domain branding: replace generic icon with domain logo on sign-in page
+  const identityStore = useProductIdentity();
+  const { isCustom } = storeToRefs(identityStore);
+  const { logoUri, displayName } = identityStore;
+  const signupEnabled = computed(
+    () => !isCustom.value && authentication.value?.enabled && authentication.value?.signup
+  );
 
-// Handle auth errors passed via query params (from SSO/magic link failures)
-const authError = ref<string | null>(null);
+  // Handle auth errors passed via query params (from SSO/magic link failures)
+  const authError = ref<string | null>(null);
 
-// Post-verification return: useAuth.verifyAccount() sends the user here after
-// they click the link in their welcome email. The "just verified" signal
-// arrives via router history state (SIGNIN_VERIFIED_STATE_KEY), not the URL:
-//   - verifiedNotice: drives a persistent success banner (vs. the transient toast)
-//   - initialAuthMode: default to the password tab. Re-entering the password
-//     they just chose is less redundant than another email link and confirms it
-//     was typed correctly the first time.
-//
-// It is a one-shot flag: we clear it from history state right after reading, so a
-// manual refresh does not re-show the banner. Clearing touches only history
-// state — the route's path/query (and thus fullPath) are unchanged — so the
-// fullPath-keyed routed component in App.vue is NOT remounted and verifiedNotice
-// survives. (Stripping a ?verified=1 query param, by contrast, would change
-// fullPath, remount this view, and discard the banner it was meant to show.)
-const verifiedState = (typeof window !== 'undefined' ? window.history.state : null) as
-  | Record<string, unknown>
-  | null;
-const justVerified = verifiedState?.[SIGNIN_VERIFIED_STATE_KEY] === true;
-const verifiedNotice = ref(justVerified);
-const initialAuthMode = justVerified ? 'password' : undefined;
-if (justVerified && typeof window !== 'undefined') {
-  // Drop just our one-shot key; spread preserves vue-router's reserved state
-  // keys (back / current / forward / replaced / position / scroll).
-  window.history.replaceState({ ...window.history.state, [SIGNIN_VERIFIED_STATE_KEY]: undefined }, '');
-}
-
-const authErrorMessages: Record<string, string> = {
-  sso_failed: 'web.login.errors.sso_failed',
-  sso_not_configured: 'web.login.errors.sso_not_configured',
-  token_missing: 'web.login.errors.token_missing',
-  token_expired: 'web.login.errors.token_expired',
-  token_invalid: 'web.login.errors.token_invalid',
-  invalid_email: 'web.login.errors.invalid_email',
-  domain_not_allowed: 'web.login.errors.domain_not_allowed',
-};
-
-onMounted(() => {
-  const errorCode = route.query.auth_error;
-  if (typeof errorCode === 'string' && errorCode.length > 0) {
-    // Render a message for ANY auth_error code so a redirect from the auth
-    // backend never lands on a silent/blank page (the "frozen loading screen"
-    // in issue #3478). Known codes get their specific localized message;
-    // unrecognized codes — e.g. from a backend newer than this bundle —
-    // fall back to the generic SSO failure copy instead of rendering nothing.
-    const messageKey = authErrorMessages[errorCode] ?? 'web.login.errors.sso_failed';
-    authError.value = t(messageKey);
-    // Clear the query param to prevent showing error on refresh
-    router.replace({ query: { ...route.query, auth_error: undefined } });
+  // Post-verification return: useAuth.verifyAccount() sends the user here after
+  // they click the link in their welcome email. The "just verified" signal
+  // arrives via router history state (SIGNIN_VERIFIED_STATE_KEY), not the URL:
+  //   - verifiedNotice: drives a persistent success banner (vs. the transient toast)
+  //   - initialAuthMode: default to the password tab. Re-entering the password
+  //     they just chose is less redundant than another email link and confirms it
+  //     was typed correctly the first time.
+  //
+  // It is a one-shot flag: we clear it from history state right after reading, so a
+  // manual refresh does not re-show the banner. Clearing touches only history
+  // state — the route's path/query (and thus fullPath) are unchanged — so the
+  // fullPath-keyed routed component in App.vue is NOT remounted and verifiedNotice
+  // survives. (Stripping a ?verified=1 query param, by contrast, would change
+  // fullPath, remount this view, and discard the banner it was meant to show.)
+  const verifiedState = (typeof window !== 'undefined' ? window.history.state : null) as Record<
+    string,
+    unknown
+  > | null;
+  const justVerified = verifiedState?.[SIGNIN_VERIFIED_STATE_KEY] === true;
+  const verifiedNotice = ref(justVerified);
+  const initialAuthMode = justVerified ? 'password' : undefined;
+  if (justVerified && typeof window !== 'undefined') {
+    // Drop just our one-shot key; spread preserves vue-router's reserved state
+    // keys (back / current / forward / replaced / position / scroll).
+    window.history.replaceState(
+      { ...window.history.state, [SIGNIN_VERIFIED_STATE_KEY]: undefined },
+      ''
+    );
   }
-});
 
-// Check if any passwordless methods are enabled (magic links or webauthn)
-const passwordlessEnabled = hasPasswordlessMethods();
+  const authErrorMessages: Record<string, string> = {
+    sso_failed: 'web.login.errors.sso_failed',
+    sso_not_configured: 'web.login.errors.sso_not_configured',
+    token_missing: 'web.login.errors.token_missing',
+    token_expired: 'web.login.errors.token_expired',
+    token_invalid: 'web.login.errors.token_invalid',
+    invalid_email: 'web.login.errors.invalid_email',
+    domain_not_allowed: 'web.login.errors.domain_not_allowed',
+  };
 
-// Build signup link with preserved query params (email, redirect)
-const signupLink = computed(() => {
-  const query: Record<string, string> = {};
-  if (typeof route.query.email === 'string') {
-    query.email = route.query.email;
-  }
-  if (typeof route.query.redirect === 'string') {
-    query.redirect = route.query.redirect;
-  }
-  if (Object.keys(query).length > 0) {
-    return { path: '/signup', query };
-  }
-  return '/signup';
-});
+  onMounted(() => {
+    const errorCode = route.query.auth_error;
+    if (typeof errorCode === 'string' && errorCode.length > 0) {
+      // Render a message for ANY auth_error code so a redirect from the auth
+      // backend never lands on a silent/blank page (the "frozen loading screen"
+      // in issue #3478). Known codes get their specific localized message;
+      // unrecognized codes — e.g. from a backend newer than this bundle —
+      // fall back to the generic SSO failure copy instead of rendering nothing.
+      const messageKey = authErrorMessages[errorCode] ?? 'web.login.errors.sso_failed';
+      authError.value = t(messageKey);
+      // Clear the query param to prevent showing error on refresh
+      router.replace({ query: { ...route.query, auth_error: undefined } });
+    }
+  });
 
-type AuthMode = 'passkey' | 'passwordless' | 'password';
+  // Check if any passwordless methods are enabled (magic links or webauthn)
+  const passwordlessEnabled = hasPasswordlessMethods();
 
-// Reference to AuthMethodSelector (kept for potential future use)
-const authMethodSelectorRef = ref<ComponentPublicInstance<{ currentMode: AuthMode }> | null>(null);
+  // Build signup link with preserved query params (email, redirect)
+  const signupLink = computed(() => {
+    const query: Record<string, string> = {};
+    if (typeof route.query.email === 'string') {
+      query.email = route.query.email;
+    }
+    if (typeof route.query.redirect === 'string') {
+      query.redirect = route.query.redirect;
+    }
+    if (Object.keys(query).length > 0) {
+      return { path: '/signup', query };
+    }
+    return '/signup';
+  });
 
-// Mode change handler (kept for potential future use)
-const handleModeChange = (_mode: AuthMode) => {
-  // Footer is now consistent across modes, no need to track
-};
+  type AuthMode = 'passkey' | 'passwordless' | 'password';
+
+  // Reference to AuthMethodSelector (kept for potential future use)
+  const authMethodSelectorRef = ref<ComponentPublicInstance<{ currentMode: AuthMode }> | null>(
+    null
+  );
+
+  // Mode change handler (kept for potential future use)
+  const handleModeChange = (_mode: AuthMode) => {
+    // Footer is now consistent across modes, no need to track
+  };
 </script>
 
 <template>
   <AuthView
-    :heading="signinDisabled ? t('web.login.signin_disabled_heading') : t('web.COMMON.login_to_your_account')"
+    :heading="
+      signinDisabled
+        ? t('web.login.signin_disabled_heading')
+        : t('web.COMMON.login_to_your_account')
+    "
     heading-id="signin-heading"
     :title-logo="isCustom ? logoUri : null"
     :title="isCustom ? displayName : null"
@@ -191,7 +201,11 @@ const handleModeChange = (_mode: AuthMode) => {
             {{ t('web.login.need_help') }}
           </router-link>
           <template v-if="signupEnabled">
-            <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
+            <span
+              class="text-gray-300 dark:text-gray-600"
+              aria-hidden="true"
+              >&#8226;</span
+            >
             <router-link
               :to="signupLink"
               class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">

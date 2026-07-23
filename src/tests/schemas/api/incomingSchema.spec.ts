@@ -55,11 +55,13 @@ const baseSecret = {
 };
 
 /** Builds a valid response, applying field-level overrides. */
-function buildResponse(overrides: {
-  receipt?: Record<string, unknown>;
-  secret?: Record<string, unknown>;
-  details?: Record<string, unknown> | null;
-} = {}) {
+function buildResponse(
+  overrides: {
+    receipt?: Record<string, unknown>;
+    secret?: Record<string, unknown>;
+    details?: Record<string, unknown> | null;
+  } = {}
+) {
   return {
     success: true,
     message: null,
@@ -69,9 +71,10 @@ function buildResponse(overrides: {
       receipt: { ...baseReceipt, ...overrides.receipt },
       secret: { ...baseSecret, ...overrides.secret },
     },
-    details: overrides.details === null
-      ? null
-      : { memo: 'Test memo', recipient: 'abc123def45678', ...overrides.details },
+    details:
+      overrides.details === null
+        ? null
+        : { memo: 'Test memo', recipient: 'abc123def45678', ...overrides.details },
   };
 }
 
@@ -225,9 +228,7 @@ describe('incomingSecretResponseSchema', () => {
 
   describe('still rejects truly invalid data', () => {
     it('rejects response missing record entirely', () => {
-      expect(() =>
-        incomingSecretResponseSchema.parse({ success: true })
-      ).toThrow();
+      expect(() => incomingSecretResponseSchema.parse({ success: true })).toThrow();
     });
 
     it('rejects response where receipt identifier is null', () => {

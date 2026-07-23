@@ -12,7 +12,8 @@ import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
 vi.mock('@/shared/components/icons/KeyholeIcon.vue', () => ({
   default: {
     name: 'KeyholeIcon',
-    template: '<svg class="logo-icon" :width="size" :height="size" :aria-label="ariaLabel" :title="title" />',
+    template:
+      '<svg class="logo-icon" :width="size" :height="size" :aria-label="ariaLabel" :title="title" />',
     props: ['size', 'ariaLabel', 'title', 'class'],
   },
 }));
@@ -32,7 +33,8 @@ describe('DefaultLogo', () => {
     }
   });
 
-  const mountComponent = (props: Record<string, unknown> = {}) => mount(DefaultLogo, {
+  const mountComponent = (props: Record<string, unknown> = {}) =>
+    mount(DefaultLogo, {
       props: {
         isUserPresent: false,
         ...props,
@@ -295,9 +297,9 @@ describe('DefaultLogo', () => {
       wrapper = mountComponent({});
 
       expect(wrapper.find('[aria-label="Onetime Secret"]').exists()).toBe(false);
-      expect(
-        wrapper.find(`[aria-label="${NEUTRAL_BRAND_DEFAULTS.product_name}"]`).exists()
-      ).toBe(true);
+      expect(wrapper.find(`[aria-label="${NEUTRAL_BRAND_DEFAULTS.product_name}"]`).exists()).toBe(
+        true
+      );
     });
 
     it('an explicit ariaLabel prop still wins over the resolved fallback', () => {

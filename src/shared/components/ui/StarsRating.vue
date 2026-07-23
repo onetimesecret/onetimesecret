@@ -1,18 +1,17 @@
 <!-- src/shared/components/ui/StarsRating.vue -->
 
 <script setup lang="ts">
+  interface Props {
+    stars: number;
+  }
 
-interface Props {
-  stars: number;
-}
+  const props = withDefaults(defineProps<Props>(), {
+    stars: 2.5,
+  });
 
-const props = withDefaults(defineProps<Props>(), {
-  stars: 2.5
-});
-
-const fullStars = Math.floor(props.stars);
-const hasHalfStar = props.stars % 1 !== 0;
-const emptyStars = 5 - Math.ceil(props.stars);
+  const fullStars = Math.floor(props.stars);
+  const hasHalfStar = props.stars % 1 !== 0;
+  const emptyStars = 5 - Math.ceil(props.stars);
 </script>
 
 <template>

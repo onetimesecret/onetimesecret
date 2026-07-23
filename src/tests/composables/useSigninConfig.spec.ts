@@ -719,7 +719,10 @@ describe('useSigninConfig', () => {
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
-      const first = composable.autoSaveFields({ restrict_to: 'sso', sso_enabled: true }, 'restrict_to');
+      const first = composable.autoSaveFields(
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to'
+      );
       // Second concurrent multi-key call is dropped.
       await composable.autoSaveFields({ restrict_to: 'password' }, 'restrict_to');
 

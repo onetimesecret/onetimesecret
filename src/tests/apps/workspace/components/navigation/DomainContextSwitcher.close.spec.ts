@@ -34,7 +34,11 @@ vi.mock('vue-i18n', () => ({
 }));
 
 const mockPush = vi.fn();
-const mockRoute = reactive<{ meta: Record<string, unknown>; params: Record<string, unknown>; matched: unknown[] }>({
+const mockRoute = reactive<{
+  meta: Record<string, unknown>;
+  params: Record<string, unknown>;
+  matched: unknown[];
+}>({
   meta: {},
   params: {},
   matched: [],
@@ -83,8 +87,7 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
   }),
 }));
 
-const dropdown = (w: VueWrapper) =>
-  w.find('[data-testid="domain-context-switcher-dropdown"]');
+const dropdown = (w: VueWrapper) => w.find('[data-testid="domain-context-switcher-dropdown"]');
 
 async function openMenu(w: VueWrapper) {
   await w.get('[data-testid="domain-context-switcher-trigger"]').trigger('click');
@@ -115,9 +118,7 @@ describe('DomainContextSwitcher real-HeadlessUI close behaviour', () => {
     wrapper = mount(DomainContextSwitcher, { attachTo: document.body });
     await openMenu(wrapper);
 
-    await wrapper
-      .get('[aria-label="web.domains.domain_settings"]')
-      .trigger('click');
+    await wrapper.get('[aria-label="web.domains.domain_settings"]').trigger('click');
     await nextTick();
     await flushPromises();
 

@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminBilling.vue -->
 
 <script setup lang="ts">
-
   import { DataTable, DetailDrawer, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
@@ -230,20 +229,25 @@
           testid="stat-live" />
         <StatCard
           :label="t('web.admin.billing.stats.source')"
-          :value="isLocalConfig
-            ? t('web.admin.billing.source.localConfig')
-            : t('web.admin.billing.source.stripe')"
+          :value="
+            isLocalConfig
+              ? t('web.admin.billing.source.localConfig')
+              : t('web.admin.billing.source.stripe')
+          "
           icon="signal"
           testid="stat-source" />
         <StatCard
           :label="t('web.admin.billing.stats.drift')"
-          :value="drift?.in_sync
-            ? t('web.admin.billing.inSync')
-            : t('web.admin.billing.driftCount', {
-              count: (drift?.only_in_config.length ?? 0)
-                + (drift?.only_in_live.length ?? 0)
-                + (drift?.changed.length ?? 0),
-            })"
+          :value="
+            drift?.in_sync
+              ? t('web.admin.billing.inSync')
+              : t('web.admin.billing.driftCount', {
+                  count:
+                    (drift?.only_in_config.length ?? 0) +
+                    (drift?.only_in_live.length ?? 0) +
+                    (drift?.changed.length ?? 0),
+                })
+          "
           icon="rectangle-group"
           testid="stat-drift" />
       </div>
@@ -317,7 +321,8 @@
       testid="billing-diff-drawer">
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div>
-          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.billing.diff.config') }}
           </h4>
           <div
@@ -336,7 +341,8 @@
           </p>
         </div>
         <div>
-          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.billing.diff.live') }}
           </h4>
           <div

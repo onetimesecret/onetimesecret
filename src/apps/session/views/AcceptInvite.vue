@@ -125,7 +125,12 @@
    * Returns the organization's primary brand color, falling back to domain branding
    * or a default brand color.
    */
-  const primaryColor = computed(() => invitation.value?.branding?.primary_color || bootstrapStore.domain_branding?.primary_color || '#d45a2a');
+  const primaryColor = computed(
+    () =>
+      invitation.value?.branding?.primary_color ||
+      bootstrapStore.domain_branding?.primary_color ||
+      '#d45a2a'
+  );
 
   /**
    * Logs out the current user and redirects back to the invite page.
@@ -348,7 +353,8 @@
         </h1>
       </div>
 
-      <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+      <div
+        class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
         <div class="flex">
           <OIcon
             collection="heroicons"
@@ -436,14 +442,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
       </div>
 
       <!-- Inline Signup Form (handles its own error display) -->
@@ -458,9 +469,13 @@
         @decline="handleDecline"
         @account-exists="onAccountExists" />
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -498,14 +513,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
       </div>
 
       <!-- Sign-in Notice -->
@@ -540,9 +560,13 @@
           @decline="handleDecline" />
       </div>
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -583,14 +607,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
 
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
@@ -599,7 +628,7 @@
             @click="handleAccept"
             :disabled="isProcessing"
             data-testid="accept-invitation-btn"
-            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto">
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-brand-500 dark:hover:bg-brand-400">
             <span v-if="!isProcessing">
               {{ t('web.organizations.invitations.accept_invitation') }}
             </span>
@@ -610,14 +639,16 @@
             @click="handleDecline"
             :disabled="isProcessing"
             data-testid="decline-invitation-btn"
-            class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:w-auto">
+            class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
 
         <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.invitations.expires_at') }}
-          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDate(invitation.expires_at)
+          }}</span>
         </p>
       </div>
     </div>
@@ -659,14 +690,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
 
         <!-- Email Mismatch Notice -->
         <div
@@ -683,7 +719,12 @@
                 {{ t('web.organizations.invitations.email_mismatch_title') }}
               </p>
               <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                {{ t('web.organizations.invitations.email_mismatch_body', { invitedEmail: invitation?.email, currentEmail: bootstrapStore.email }) }}
+                {{
+                  t('web.organizations.invitations.email_mismatch_body', {
+                    invitedEmail: invitation?.email,
+                    currentEmail: bootstrapStore.email,
+                  })
+                }}
               </p>
               <div class="mt-3">
                 <button
@@ -691,8 +732,12 @@
                   @click="handleContinueAs"
                   :disabled="isProcessing"
                   data-testid="continue-as-btn"
-                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
-                  {{ t('web.organizations.invitations.continue_as_invited_email', { email: invitation?.email }) }}
+                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
+                  {{
+                    t('web.organizations.invitations.continue_as_invited_email', {
+                      email: invitation?.email,
+                    })
+                  }}
                 </button>
               </div>
             </div>
@@ -705,15 +750,16 @@
             @click="handleDecline"
             :disabled="isProcessing"
             data-testid="decline-invitation-btn"
-            class="text-sm font-medium text-gray-500 underline hover:text-gray-700
-                   dark:text-gray-400 dark:hover:text-gray-300">
+            class="text-sm font-medium text-gray-500 underline hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
 
         <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.invitations.expires_at') }}
-          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDate(invitation.expires_at)
+          }}</span>
         </p>
       </div>
     </div>

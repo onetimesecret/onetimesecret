@@ -51,10 +51,24 @@ describe('useEntitlements', () => {
   const mockApiResponse = {
     data: {
       entitlements: [
-        { key: 'api_access', display_name: 'web.billing.entitlements.api_access', category: 'infrastructure' },
-        { key: 'custom_domains', display_name: 'web.billing.entitlements.custom_domains', category: 'infrastructure' },
+        {
+          key: 'api_access',
+          display_name: 'web.billing.entitlements.api_access',
+          category: 'infrastructure',
+        },
+        {
+          key: 'custom_domains',
+          display_name: 'web.billing.entitlements.custom_domains',
+          category: 'infrastructure',
+        },
       ],
-      plans: [{ plan_id: 'identity_plus_v1', name: 'Identity Plus', entitlements: ['api_access', 'custom_domains'] }],
+      plans: [
+        {
+          plan_id: 'identity_plus_v1',
+          name: 'Identity Plus',
+          entitlements: ['api_access', 'custom_domains'],
+        },
+      ],
     },
   };
 
@@ -76,7 +90,11 @@ describe('useEntitlements', () => {
 
     it('sets isLoadingDefinitions during API call', async () => {
       let resolveApi: (value: unknown) => void;
-      mockGet.mockReturnValueOnce(new Promise((resolve) => { resolveApi = resolve; }));
+      mockGet.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveApi = resolve;
+        })
+      );
 
       const useEntitlements = await importFresh();
       const org = ref<Organization | null>(createMockOrganization());
@@ -111,13 +129,17 @@ describe('useEntitlements', () => {
 
       await initDefinitions();
       await nextTick();
-      expect(formatEntitlement('api_access')).toBe('translated:web.billing.entitlements.api_access');
+      expect(formatEntitlement('api_access')).toBe(
+        'translated:web.billing.entitlements.api_access'
+      );
     });
 
     it('falls back to hardcoded i18n keys when store has no data', async () => {
       const useEntitlements = await importFresh();
       const { formatEntitlement } = useEntitlements(ref(createMockOrganization()));
-      expect(formatEntitlement('api_access')).toBe('translated:web.billing.overview.entitlements.api_access');
+      expect(formatEntitlement('api_access')).toBe(
+        'translated:web.billing.overview.entitlements.api_access'
+      );
     });
 
     it('returns raw key when no mapping exists', async () => {
@@ -183,13 +205,17 @@ describe('useEntitlements', () => {
     it('falls back gracefully when API fails', async () => {
       mockGet.mockRejectedValueOnce(new Error('API unavailable'));
       const useEntitlements = await importFresh();
-      const org = ref<Organization | null>(createMockOrganization({ entitlements: ['api_access'] }));
+      const org = ref<Organization | null>(
+        createMockOrganization({ entitlements: ['api_access'] })
+      );
       const { initDefinitions, can, formatEntitlement } = useEntitlements(org);
 
       await initDefinitions();
       await nextTick();
       expect(can('api_access')).toBe(true);
-      expect(formatEntitlement('api_access')).toBe('translated:web.billing.overview.entitlements.api_access');
+      expect(formatEntitlement('api_access')).toBe(
+        'translated:web.billing.overview.entitlements.api_access'
+      );
     });
   });
 
@@ -219,7 +245,9 @@ describe('useEntitlements', () => {
   describe('upgradePath', () => {
     it('returns null when organization already has entitlement', async () => {
       const useEntitlements = await importFresh();
-      const { upgradePath } = useEntitlements(ref(createMockOrganization({ entitlements: ['api_access'] })));
+      const { upgradePath } = useEntitlements(
+        ref(createMockOrganization({ entitlements: ['api_access'] }))
+      );
       expect(upgradePath('api_access')).toBeNull();
     });
 

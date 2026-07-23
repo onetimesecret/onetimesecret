@@ -9,7 +9,7 @@
   import { formatDisplayDateTime } from '@/utils/format';
   import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   interface Props {
     record: Receipt;
@@ -71,8 +71,7 @@ const { t } = useI18n();
             class="text-sm text-gray-700 dark:text-gray-300">
             {{ formatDisplayDateTime(record.created) }}
           </time>
-          <p
-            class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+          <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             {{ formatTimeAgo(record.created) }}
           </p>
         </div>
@@ -205,8 +204,7 @@ const { t } = useI18n();
           <OIcon
             collection="material-symbols"
             name="timer-outline"
-            class="size-6 text-red-600 transition-transform duration-300 group-hover:rotate-12
-              dark:text-red-400"
+            class="size-6 text-red-600 transition-transform duration-300 group-hover:rotate-12 dark:text-red-400"
             aria-hidden="true" />
         </div>
         <div class="grow transition-transform duration-200 group-hover:translate-x-1">

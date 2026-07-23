@@ -2,43 +2,41 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import type { LockoutStatus } from '@/types/auth';
-import { computed } from 'vue';
+  import type { LockoutStatus } from '@/types/auth';
+  import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-interface Props {
-  lockout?: LockoutStatus | null;
-}
-
-const props = defineProps<Props>();
-
-// Computed property for countdown display
-const lockoutTimeRemaining = computed(() => {
-  if (!props.lockout?.unlock_at) return '';
-
-  const unlockTime = new Date(props.lockout.unlock_at);
-  const now = new Date();
-  const diff = unlockTime.getTime() - now.getTime();
-
-  if (diff <= 0) return '';
-
-  const minutes = Math.floor(diff / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
+  interface Props {
+    lockout?: LockoutStatus | null;
   }
-  return `${seconds}s`;
-});
 
-// Determine alert type and message
-const isLocked = computed(() => props.lockout?.locked === true);
-const hasAttemptsRemaining = computed(() =>
-  props.lockout &&
-  !isLocked.value &&
-  props.lockout.attempts_remaining !== undefined
-);
+  const props = defineProps<Props>();
+
+  // Computed property for countdown display
+  const lockoutTimeRemaining = computed(() => {
+    if (!props.lockout?.unlock_at) return '';
+
+    const unlockTime = new Date(props.lockout.unlock_at);
+    const now = new Date();
+    const diff = unlockTime.getTime() - now.getTime();
+
+    if (diff <= 0) return '';
+
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    }
+    return `${seconds}s`;
+  });
+
+  // Determine alert type and message
+  const isLocked = computed(() => props.lockout?.locked === true);
+  const hasAttemptsRemaining = computed(
+    () => props.lockout && !isLocked.value && props.lockout.attempts_remaining !== undefined
+  );
 </script>
 
 <template>
@@ -49,7 +47,7 @@ const hasAttemptsRemaining = computed(() =>
       role="alert"
       class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
       <div class="flex items-start">
-        <i class="fas fa-lock mr-3 mt-0.5 text-red-600 dark:text-red-400"></i>
+        <i class="fas fa-lock mt-0.5 mr-3 text-red-600 dark:text-red-400"></i>
         <div class="flex-1">
           <h3 class="font-semibold text-red-800 dark:text-red-300">
             {{ t('web.auth.lockout.account_locked') }}
@@ -75,7 +73,7 @@ const hasAttemptsRemaining = computed(() =>
       role="alert"
       class="mb-4 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
       <div class="flex items-start">
-        <i class="fas fa-exclamation-triangle mr-3 mt-0.5 text-yellow-600 dark:text-yellow-400"></i>
+        <i class="fas fa-exclamation-triangle mt-0.5 mr-3 text-yellow-600 dark:text-yellow-400"></i>
         <div class="flex-1">
           <p class="font-medium text-yellow-800 dark:text-yellow-300">
             {{ t('web.auth.lockout.attempts_remaining', { count: lockout.attempts_remaining }) }}

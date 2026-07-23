@@ -82,9 +82,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * @returns the session rows, or null on a schema mismatch (see validationError).
    * @throws the underlying network/HTTP error (rows are cleared first).
    */
-  async function fetchForCustomer(
-    userId: string
-  ): Promise<AdminCustomerSession[] | null> {
+  async function fetchForCustomer(userId: string): Promise<AdminCustomerSession[] | null> {
     loading.value = true;
     error.value = null;
     validationError.value = null;
@@ -119,9 +117,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * action on drift). Throws the network/HTTP error for useAdminMutation to catch.
    */
   async function revoke(userId: string, sessionId: string): Promise<void> {
-    const response = await $api.delete(
-      `${sessionsUrl(userId)}/${encodeURIComponent(sessionId)}`
-    );
+    const response = await $api.delete(`${sessionsUrl(userId)}/${encodeURIComponent(sessionId)}`);
     gracefulParse(
       colonelCustomerSessionRevokeResponseSchema,
       response.data,

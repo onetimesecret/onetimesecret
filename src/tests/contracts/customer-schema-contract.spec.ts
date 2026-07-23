@@ -32,24 +32,17 @@ describe('Customer schema contract (safe_dump_fields)', () => {
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
     // (or it appears in the explicit exclusion list).
-    const backendFields = CUSTOMER_SAFE_DUMP_FIELDS.filter(
-      (f) => !(f in INTENTIONAL_EXCLUSIONS)
-    );
+    const backendFields = CUSTOMER_SAFE_DUMP_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS));
 
-    it.each(backendFields)(
-      'customerSchema declares backend field "%s"',
-      (field) => {
-        expect(schemaKeys).toContain(field);
-      }
-    );
+    it.each(backendFields)('customerSchema declares backend field "%s"', (field) => {
+      expect(schemaKeys).toContain(field);
+    });
 
     it('all intentional exclusions reference real backend fields', () => {
       // Guard against stale exclusions: every key in INTENTIONAL_EXCLUSIONS
       // must actually exist in the backend field list.
       for (const excluded of Object.keys(INTENTIONAL_EXCLUSIONS)) {
-        expect(
-          CUSTOMER_SAFE_DUMP_FIELDS as readonly string[]
-        ).toContain(excluded);
+        expect(CUSTOMER_SAFE_DUMP_FIELDS as readonly string[]).toContain(excluded);
       }
     });
 
@@ -63,9 +56,7 @@ describe('Customer schema contract (safe_dump_fields)', () => {
     it('frontend-only fields are documented', () => {
       // Verify that any schema fields not in backend are documented
       const extraFields = schemaKeys.filter(
-        (f) =>
-          !CUSTOMER_SAFE_DUMP_FIELDS.includes(f as any) &&
-          !(f in FRONTEND_ONLY_FIELDS)
+        (f) => !CUSTOMER_SAFE_DUMP_FIELDS.includes(f as any) && !(f in FRONTEND_ONLY_FIELDS)
       );
       expect(extraFields).toEqual([]);
     });

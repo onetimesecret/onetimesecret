@@ -14,50 +14,51 @@
 -->
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+  import { ref, onMounted } from 'vue';
 
-// Define clipPath as a reactive reference
-const clipPath = ref('polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)');
+  // Define clipPath as a reactive reference
+  const clipPath = ref(
+    'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)'
+  );
 
-// Method to update clipPath
-function updateClipPath() {
-  const points = [];
-  for (let i = 0; i < 10; i++) {
-    const x = Math.random() * 100;
-    const y = Math.random() * 100;
-    points.push(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
+  // Method to update clipPath
+  function updateClipPath() {
+    const points = [];
+    for (let i = 0; i < 10; i++) {
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      points.push(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
+    }
+    clipPath.value = `polygon(${points.join(', ')})`;
   }
-  clipPath.value = `polygon(${points.join(', ')})`;
-}
 
-onMounted(() => {
-  // Set initial clipPath with a delay to ensure transition is applied
-  setTimeout(() => {
-    updateClipPath();
-    // Update clip-path at regular intervals
-    setInterval(updateClipPath, props.interval);
-  }, 0);
-});
+  onMounted(() => {
+    // Set initial clipPath with a delay to ensure transition is applied
+    setTimeout(() => {
+      updateClipPath();
+      // Update clip-path at regular intervals
+      setInterval(updateClipPath, props.interval);
+    }, 0);
+  });
 
-export interface Props {
-  fromColour: string;
-  toColour: string;
-  speed: string;
-  interval?: number;
-  scale: number;
-}
+  export interface Props {
+    fromColour: string;
+    toColour: string;
+    speed: string;
+    interval?: number;
+    scale: number;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  // Brand-token defaults so the decorative gradient follows the active brand
-  // palette (and stays neutral on private-label deployments) instead of
-  // hardcoding OTS colors. CSS vars resolve inside the inline linear-gradient.
-  fromColour: 'var(--color-brand-400)',
-  toColour: 'var(--color-brand-600)',
-  speed: '6s',
-  interval: 2000,
-  scale: 1,
-});
-
+  const props = withDefaults(defineProps<Props>(), {
+    // Brand-token defaults so the decorative gradient follows the active brand
+    // palette (and stays neutral on private-label deployments) instead of
+    // hardcoding OTS colors. CSS vars resolve inside the inline linear-gradient.
+    fromColour: 'var(--color-brand-400)',
+    toColour: 'var(--color-brand-600)',
+    speed: '6s',
+    interval: 2000,
+    scale: 1,
+  });
 </script>
 
 <template>
@@ -70,7 +71,7 @@ const props = withDefaults(defineProps<Props>(), {
         clipPath: clipPath,
         transition: `clip-path ${props.speed} ease`,
         background: `linear-gradient(to top right, ${props.fromColour}, ${props.toColour})`,
-        transform: `scale(${props.scale})`
+        transform: `scale(${props.scale})`,
       }"></div>
   </div>
 </template>

@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminEmailTools.vue -->
 
 <script setup lang="ts">
-
   import EmailDeliverabilitySection from '@/apps/admin/components/EmailDeliverabilitySection.vue';
   import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -75,9 +74,7 @@
    * operator needs warned about, so the banner covers the whole set.
    */
   const NON_DELIVERING_MODES = ['logger', 'disabled', 'none'];
-  const isLoggerMode = computed(() =>
-    NON_DELIVERING_MODES.includes(config.value?.provider ?? '')
-  );
+  const isLoggerMode = computed(() => NON_DELIVERING_MODES.includes(config.value?.provider ?? ''));
 
   function reloadConfig(): void {
     loadConfig().catch(() => {}); // read-only; a failure just hides the panel
@@ -109,9 +106,7 @@
   const psProvider = computed(() => providerStatus.value?.provider ?? '—');
   const psCapability = computed(() => providerStatus.value?.capability ?? false);
   /** Structural non-support: the transport has no read API at all. */
-  const psUnsupported = computed(
-    () => providerStatus.value !== null && !psCapability.value
-  );
+  const psUnsupported = computed(() => providerStatus.value !== null && !psCapability.value);
   /**
    * Retry-worthy failure: either the request threw (network/http) OR the live
    * call failed server-side (capability present, available=false). Both render
@@ -126,16 +121,12 @@
   const psErrorNote = computed(
     () =>
       providerStatus.value?.error ??
-      (providerStatusNetworkError.value
-        ? t('web.admin.emailtools.providerStatus.error')
-        : null)
+      (providerStatusNetworkError.value ? t('web.admin.emailtools.providerStatus.error') : null)
   );
-  const psOk = computed(
-    () => psCapability.value && providerStatus.value?.available === true
-  );
-  const psSes = computed(() => (psOk.value ? providerStatus.value?.ses ?? null : null));
+  const psOk = computed(() => psCapability.value && providerStatus.value?.available === true);
+  const psSes = computed(() => (psOk.value ? (providerStatus.value?.ses ?? null) : null));
   const psLettermint = computed(() =>
-    psOk.value ? providerStatus.value?.lettermint ?? null : null
+    psOk.value ? (providerStatus.value?.lettermint ?? null) : null
   );
 
   function reloadProviderStatus(): void {
@@ -306,7 +297,10 @@
     const ok = await runSend();
     if (!ok) return;
     sendDialogOpen.value = false;
-    notifications.show(t('web.admin.emailtools.test.success', { to: testTo.value.trim() }), 'success');
+    notifications.show(
+      t('web.admin.emailtools.test.success', { to: testTo.value.trim() }),
+      'success'
+    );
   }
 
   function onSendCancel(): void {
@@ -502,7 +496,7 @@
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
           @click="reloadProviderStatus">
           <OIcon
             collection="heroicons"
@@ -561,7 +555,11 @@
         data-testid="provider-status-lettermint">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
-            :label="t('web.admin.emailtools.providerStatus.stats.sent', { days: psLettermint.window_days })"
+            :label="
+              t('web.admin.emailtools.providerStatus.stats.sent', {
+                days: psLettermint.window_days,
+              })
+            "
             :value="psLettermint.sent"
             icon="paper-airplane"
             :loading="providerStatusLoading"
@@ -657,9 +655,7 @@
             v-model="previewFormat"
             data-testid="preview-format-select"
             class="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-            <option value="text">
-              text
-            </option>
+            <option value="text">text</option>
             <option
               value="html"
               :disabled="!htmlAvailable">
@@ -723,7 +719,9 @@
         <pre
           v-else
           data-testid="preview-body"
-          class="max-h-96 overflow-auto rounded bg-gray-50 p-4 font-mono text-sm break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ previewBody }}</pre>
+          class="max-h-96 overflow-auto rounded bg-gray-50 p-4 font-mono text-sm break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+          >{{ previewBody }}</pre
+        >
       </div>
     </section>
 
@@ -797,16 +795,36 @@
         class="mt-5 space-y-2 border-t border-gray-100 pt-4 text-sm dark:border-gray-800"
         data-testid="test-diagnostic">
         <div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
-          <div><span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.provider') }}:</span> <span class="font-mono">{{ testDiagnostic.provider }}</span></div>
-          <div><span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.host') }}:</span> <span class="font-mono">{{ testDiagnostic.host }}</span></div>
-          <div><span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.from') }}:</span> <span class="font-mono">{{ testDiagnostic.from }}</span></div>
+          <div>
+            <span class="text-gray-500 dark:text-gray-400"
+              >{{ t('web.admin.emailtools.test.provider') }}:</span
+            >
+            <span class="font-mono">{{ testDiagnostic.provider }}</span>
+          </div>
+          <div>
+            <span class="text-gray-500 dark:text-gray-400"
+              >{{ t('web.admin.emailtools.test.host') }}:</span
+            >
+            <span class="font-mono">{{ testDiagnostic.host }}</span>
+          </div>
+          <div>
+            <span class="text-gray-500 dark:text-gray-400"
+              >{{ t('web.admin.emailtools.test.from') }}:</span
+            >
+            <span class="font-mono">{{ testDiagnostic.from }}</span>
+          </div>
           <div class="sm:col-span-2">
-            <span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.subject') }}:</span> <span class="font-mono">{{ testDiagnostic.subject }}</span>
+            <span class="text-gray-500 dark:text-gray-400"
+              >{{ t('web.admin.emailtools.test.subject') }}:</span
+            >
+            <span class="font-mono">{{ testDiagnostic.subject }}</span>
           </div>
         </div>
         <pre
           data-testid="test-body"
-          class="max-h-48 overflow-auto rounded bg-gray-50 p-3 font-mono text-xs break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ testDiagnostic.text_body }}</pre>
+          class="max-h-48 overflow-auto rounded bg-gray-50 p-3 font-mono text-xs break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+          >{{ testDiagnostic.text_body }}</pre
+        >
       </div>
     </section>
 

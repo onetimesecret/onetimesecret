@@ -1,276 +1,277 @@
 <!-- src/apps/workspace/components/domains/DomainSsoConfigForm.vue -->
 
 <script setup lang="ts">
-/**
- * Domain SSO Configuration Form
- *
- * Presentational component that receives SSO config state via props
- * and emits events for actions. Parent (DomainSso.vue) manages state
- * via useSsoConfig composable.
- */
-import { useI18n } from 'vue-i18n';
-import { computed, ref, watch } from 'vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
-import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import { useClipboard } from '@/shared/composables/useClipboard';
-import {
-  type CustomDomainSsoConfig,
-  type SsoProviderType,
-} from '@/schemas/shapes/domains/sso-config';
-import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
-import type { TestSsoConnectionResponse } from '@/services/sso.service';
+  /**
+   * Domain SSO Configuration Form
+   *
+   * Presentational component that receives SSO config state via props
+   * and emits events for actions. Parent (DomainSso.vue) manages state
+   * via useSsoConfig composable.
+   */
+  import { useI18n } from 'vue-i18n';
+  import { computed, ref, watch } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
+  import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import { useClipboard } from '@/shared/composables/useClipboard';
+  import {
+    type CustomDomainSsoConfig,
+    type SsoProviderType,
+  } from '@/schemas/shapes/domains/sso-config';
+  import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
+  import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Props
+  // ---------------------------------------------------------------------------
 
-const props = defineProps<{
-  domainExtId: string;
-  domainHost: string;
-  orgId: string;
-  formState: SsoConfigFormState;
-  ssoConfig: CustomDomainSsoConfig | null;
-  isLoading: boolean;
-  isSaving: boolean;
-  isDeleting: boolean;
-  isTesting: boolean;
-  hasUnsavedChanges: boolean;
-  isConfigured: boolean;
-  clientSecretMasked: string | null;
-  testResult: TestSsoConnectionResponse | null;
-  testError: string;
-}>();
+  const props = defineProps<{
+    domainExtId: string;
+    domainHost: string;
+    orgId: string;
+    formState: SsoConfigFormState;
+    ssoConfig: CustomDomainSsoConfig | null;
+    isLoading: boolean;
+    isSaving: boolean;
+    isDeleting: boolean;
+    isTesting: boolean;
+    hasUnsavedChanges: boolean;
+    isConfigured: boolean;
+    clientSecretMasked: string | null;
+    testResult: TestSsoConnectionResponse | null;
+    testError: string;
+  }>();
 
-// ---------------------------------------------------------------------------
-// Emits
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Emits
+  // ---------------------------------------------------------------------------
 
-const emit = defineEmits<{
-  (e: 'save'): void;
-  (e: 'delete'): void;
-  (e: 'test'): void;
-  (e: 'discard'): void;
-  (e: 'update:formState', value: SsoConfigFormState): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'save'): void;
+    (e: 'delete'): void;
+    (e: 'test'): void;
+    (e: 'discard'): void;
+    (e: 'update:formState', value: SsoConfigFormState): void;
+  }>();
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-// ---------------------------------------------------------------------------
-// Provider options
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Provider options
+  // ---------------------------------------------------------------------------
 
-const providerOptions: { value: SsoProviderType; label: string; description: string }[] = [
-  {
-    value: 'entra_id',
-    label: 'Microsoft Entra ID',
-    description: 'Azure Active Directory / Microsoft 365',
-  },
-  {
-    value: 'google',
-    label: 'Google Workspace',
-    description: 'Google OAuth for Workspace domains',
-  },
-  {
-    value: 'github',
-    label: 'GitHub',
-    description: 'GitHub OAuth for organizations',
-  },
-  {
-    value: 'oidc',
-    label: 'Generic OIDC',
-    description: 'Any OpenID Connect provider',
-  },
-];
+  const providerOptions: { value: SsoProviderType; label: string; description: string }[] = [
+    {
+      value: 'entra_id',
+      label: 'Microsoft Entra ID',
+      description: 'Azure Active Directory / Microsoft 365',
+    },
+    {
+      value: 'google',
+      label: 'Google Workspace',
+      description: 'Google OAuth for Workspace domains',
+    },
+    {
+      value: 'github',
+      label: 'GitHub',
+      description: 'GitHub OAuth for organizations',
+    },
+    {
+      value: 'oidc',
+      label: 'Generic OIDC',
+      description: 'Any OpenID Connect provider',
+    },
+  ];
 
-// ---------------------------------------------------------------------------
-// Local UI state
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Local UI state
+  // ---------------------------------------------------------------------------
 
-const showDeleteConfirm = ref(false);
-const showClientSecret = ref(false);
-const newDomain = ref('');
-const domainInputError = ref('');
+  const showDeleteConfirm = ref(false);
+  const showClientSecret = ref(false);
+  const newDomain = ref('');
+  const domainInputError = ref('');
 
-// ---------------------------------------------------------------------------
-// Form state helpers (emit updates to parent)
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Form state helpers (emit updates to parent)
+  // ---------------------------------------------------------------------------
 
-function updateField<K extends keyof SsoConfigFormState>(
-  field: K,
-  value: SsoConfigFormState[K]
-): void {
-  emit('update:formState', {
-    ...props.formState,
-    [field]: value,
+  function updateField<K extends keyof SsoConfigFormState>(
+    field: K,
+    value: SsoConfigFormState[K]
+  ): void {
+    emit('update:formState', {
+      ...props.formState,
+      [field]: value,
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Computed: form validation and display logic
+  // ---------------------------------------------------------------------------
+
+  const isEditing = computed(() => props.isConfigured);
+
+  const requiresTenantId = computed(() => props.formState.provider_type === 'entra_id');
+
+  const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
+
+  const requiresClientSecret = computed(() => props.formState.provider_type !== 'oidc');
+
+  const PROVIDER_ROUTE_NAMES: Record<SsoProviderType, string> = {
+    oidc: 'oidc',
+    entra_id: 'entra',
+    google: 'google',
+    github: 'github',
+  };
+
+  const callbackUrl = computed(() => {
+    if (!props.domainHost) return null;
+    const route = PROVIDER_ROUTE_NAMES[props.formState.provider_type];
+    return `https://${props.domainHost}/auth/sso/${route}/callback`;
   });
-}
 
-// ---------------------------------------------------------------------------
-// Computed: form validation and display logic
-// ---------------------------------------------------------------------------
+  const showDomainFilter = computed(() => false);
 
-const isEditing = computed(() => props.isConfigured);
-
-const requiresTenantId = computed(() => props.formState.provider_type === 'entra_id');
-
-const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
-
-const requiresClientSecret = computed(() => props.formState.provider_type !== 'oidc');
-
-const PROVIDER_ROUTE_NAMES: Record<SsoProviderType, string> = {
-  oidc: 'oidc',
-  entra_id: 'entra',
-  google: 'google',
-  github: 'github',
-};
-
-const callbackUrl = computed(() => {
-  if (!props.domainHost) return null;
-  const route = PROVIDER_ROUTE_NAMES[props.formState.provider_type];
-  return `https://${props.domainHost}/auth/sso/${route}/callback`;
-});
-
-const showDomainFilter = computed(() => false);
-
-/**
- * "Grant org-wide access" is withheld from the UI pending further testing
- * (targeted for after v0.26.0) — but only for domains that don't already use
- * it. A config loaded with grant_org_scope=true keeps its toggle so the grant
- * stays revocable: hiding it outright would strand an irrevocable org-wide
- * grant that every save re-persists (configToFormState seeds it and saveConfig
- * always re-sends it). New/default configs (grant_org_scope=false) never see
- * the control.
- *
- * The latch keeps it visible for the whole edit session even after the admin
- * flips it off, so it doesn't vanish mid-edit. It is scoped per domain: this
- * instance is reused across domains (no :key in SsoCredentialsModal), so when
- * domainExtId changes the latch is recomputed from the incoming
- * grant_org_scope. A fresh domain with grant_org_scope=false therefore clears a
- * latch left true by a previously-loaded domain, rather than inheriting it.
- */
-const showGrantOrgScope = ref(false);
-watch(
-  () => [props.domainExtId, props.formState.grant_org_scope] as const,
-  ([domainExtId, granted], previous) => {
-    const domainChanged = !previous || domainExtId !== previous[0];
-    if (domainChanged) {
-      // New domain loaded (or initial mount): recompute the latch from the
-      // incoming config so a false grant clears any latch a prior domain left.
-      showGrantOrgScope.value = granted;
-    } else if (granted) {
-      // Same domain, admin (re-)granted mid-edit: keep the toggle visible.
-      showGrantOrgScope.value = true;
-    }
-  },
-  { immediate: true }
-);
-
-const currentProviderOption = computed(() =>
-  providerOptions.find((o) => o.value === props.formState.provider_type)
-);
-
-const isFormValid = computed(() => {
-  if (!props.formState.display_name.trim()) return false;
-  if (!props.formState.client_id.trim()) return false;
-
-  // client_secret required for new configs (except OIDC which supports public clients)
-  if (requiresClientSecret.value && !isEditing.value && !props.formState.client_secret?.trim()) return false;
-
-  // Provider-specific requirements
-  if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
-  if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
-
-  return true;
-});
-
-const clientSecretPlaceholder = computed(() => {
-  if (isEditing.value && props.clientSecretMasked) {
-    return props.clientSecretMasked;
-  }
-  return t('web.organizations.sso.client_secret_placeholder');
-});
-
-const discoveryUrl = computed(() => {
-  const issuer = props.formState.issuer?.trim();
-  if (!issuer) return null;
-  try {
-    const u = new URL(issuer);
-    if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
-    return `${issuer.replace(/\/+$/, '')}/.well-known/openid-configuration`;
-  } catch {
-    return null;
-  }
-});
-
-const { isCopied: isCallbackCopied, copyToClipboard } = useClipboard();
-
-const canTestConnection = computed(() => {
-  if (!props.formState.client_id.trim()) return false;
-
-  // Provider-specific requirements for testing
-  if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
-  if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
-
-  return true;
-});
-
-// ---------------------------------------------------------------------------
-// Handlers
-// ---------------------------------------------------------------------------
-
-const handleSave = () => {
-  if (!isFormValid.value || props.isSaving) return;
-  emit('save');
-};
-
-const handleDelete = () => {
-  if (props.isDeleting) return;
-  emit('delete');
-  showDeleteConfirm.value = false;
-};
-
-const handleTestConnection = () => {
-  if (!canTestConnection.value || props.isTesting) return;
-  emit('test');
-};
-
-const addDomain = () => {
-  const domain = newDomain.value.trim().toLowerCase();
-
-  if (!domain) return;
-
-  // Basic frontend validation for UX (backend does authoritative PublicSuffix check)
-  if (!domain.includes('.') || /\s/.test(domain)) {
-    domainInputError.value = t('web.organizations.sso.invalid_domain');
-    return;
-  }
-
-  // Check for duplicates
-  if (props.formState.allowed_domains?.includes(domain)) {
-    domainInputError.value = t('web.organizations.sso.domain_exists');
-    return;
-  }
-
-  updateField('allowed_domains', [...(props.formState.allowed_domains || []), domain]);
-  newDomain.value = '';
-  domainInputError.value = '';
-};
-
-const removeDomain = (domain: string) => {
-  updateField(
-    'allowed_domains',
-    props.formState.allowed_domains?.filter((d) => d !== domain) ?? []
+  /**
+   * "Grant org-wide access" is withheld from the UI pending further testing
+   * (targeted for after v0.26.0) — but only for domains that don't already use
+   * it. A config loaded with grant_org_scope=true keeps its toggle so the grant
+   * stays revocable: hiding it outright would strand an irrevocable org-wide
+   * grant that every save re-persists (configToFormState seeds it and saveConfig
+   * always re-sends it). New/default configs (grant_org_scope=false) never see
+   * the control.
+   *
+   * The latch keeps it visible for the whole edit session even after the admin
+   * flips it off, so it doesn't vanish mid-edit. It is scoped per domain: this
+   * instance is reused across domains (no :key in SsoCredentialsModal), so when
+   * domainExtId changes the latch is recomputed from the incoming
+   * grant_org_scope. A fresh domain with grant_org_scope=false therefore clears a
+   * latch left true by a previously-loaded domain, rather than inheriting it.
+   */
+  const showGrantOrgScope = ref(false);
+  watch(
+    () => [props.domainExtId, props.formState.grant_org_scope] as const,
+    ([domainExtId, granted], previous) => {
+      const domainChanged = !previous || domainExtId !== previous[0];
+      if (domainChanged) {
+        // New domain loaded (or initial mount): recompute the latch from the
+        // incoming config so a false grant clears any latch a prior domain left.
+        showGrantOrgScope.value = granted;
+      } else if (granted) {
+        // Same domain, admin (re-)granted mid-edit: keep the toggle visible.
+        showGrantOrgScope.value = true;
+      }
+    },
+    { immediate: true }
   );
-};
 
-// Clear domain input error when typing
-watch(newDomain, () => {
-  if (domainInputError.value) {
+  const currentProviderOption = computed(() =>
+    providerOptions.find((o) => o.value === props.formState.provider_type)
+  );
+
+  const isFormValid = computed(() => {
+    if (!props.formState.display_name.trim()) return false;
+    if (!props.formState.client_id.trim()) return false;
+
+    // client_secret required for new configs (except OIDC which supports public clients)
+    if (requiresClientSecret.value && !isEditing.value && !props.formState.client_secret?.trim())
+      return false;
+
+    // Provider-specific requirements
+    if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
+    if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
+
+    return true;
+  });
+
+  const clientSecretPlaceholder = computed(() => {
+    if (isEditing.value && props.clientSecretMasked) {
+      return props.clientSecretMasked;
+    }
+    return t('web.organizations.sso.client_secret_placeholder');
+  });
+
+  const discoveryUrl = computed(() => {
+    const issuer = props.formState.issuer?.trim();
+    if (!issuer) return null;
+    try {
+      const u = new URL(issuer);
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+      return `${issuer.replace(/\/+$/, '')}/.well-known/openid-configuration`;
+    } catch {
+      return null;
+    }
+  });
+
+  const { isCopied: isCallbackCopied, copyToClipboard } = useClipboard();
+
+  const canTestConnection = computed(() => {
+    if (!props.formState.client_id.trim()) return false;
+
+    // Provider-specific requirements for testing
+    if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
+    if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
+
+    return true;
+  });
+
+  // ---------------------------------------------------------------------------
+  // Handlers
+  // ---------------------------------------------------------------------------
+
+  const handleSave = () => {
+    if (!isFormValid.value || props.isSaving) return;
+    emit('save');
+  };
+
+  const handleDelete = () => {
+    if (props.isDeleting) return;
+    emit('delete');
+    showDeleteConfirm.value = false;
+  };
+
+  const handleTestConnection = () => {
+    if (!canTestConnection.value || props.isTesting) return;
+    emit('test');
+  };
+
+  const addDomain = () => {
+    const domain = newDomain.value.trim().toLowerCase();
+
+    if (!domain) return;
+
+    // Basic frontend validation for UX (backend does authoritative PublicSuffix check)
+    if (!domain.includes('.') || /\s/.test(domain)) {
+      domainInputError.value = t('web.organizations.sso.invalid_domain');
+      return;
+    }
+
+    // Check for duplicates
+    if (props.formState.allowed_domains?.includes(domain)) {
+      domainInputError.value = t('web.organizations.sso.domain_exists');
+      return;
+    }
+
+    updateField('allowed_domains', [...(props.formState.allowed_domains || []), domain]);
+    newDomain.value = '';
     domainInputError.value = '';
-  }
-});
+  };
+
+  const removeDomain = (domain: string) => {
+    updateField(
+      'allowed_domains',
+      props.formState.allowed_domains?.filter((d) => d !== domain) ?? []
+    );
+  };
+
+  // Clear domain input error when typing
+  watch(newDomain, () => {
+    if (domainInputError.value) {
+      domainInputError.value = '';
+    }
+  });
 </script>
 
 <template>
@@ -281,21 +282,27 @@ watch(newDomain, () => {
       :heading="false" />
 
     <!-- Form -->
-    <form v-else
-@submit.prevent="handleSave"
-class="space-y-6">
+    <form
+      v-else
+      @submit.prevent="handleSave"
+      class="space-y-6">
       <!-- Provider Selection (locked when editing, selectable when creating) -->
       <fieldset>
         <legend class="text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.organizations.sso.provider_type') }}
         </legend>
-        <p v-if="!isEditing" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p
+          v-if="!isEditing"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.provider_type_description') }}
         </p>
 
         <!-- Locked display when editing existing config -->
-        <div v-if="isEditing && currentProviderOption" class="mt-4">
-          <div class="relative flex rounded-lg border border-brand-500 bg-brand-50 p-4 dark:border-brand-400 dark:bg-brand-900/20">
+        <div
+          v-if="isEditing && currentProviderOption"
+          class="mt-4">
+          <div
+            class="relative flex rounded-lg border border-brand-500 bg-brand-50 p-4 dark:border-brand-400 dark:bg-brand-900/20">
             <span class="flex flex-1 flex-col">
               <span class="block text-sm font-medium text-brand-900 dark:text-brand-100">
                 {{ currentProviderOption.label }}
@@ -371,7 +378,11 @@ class="space-y-6">
           for="domain-sso-display-name"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.display_name') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
+          <span
+            class="text-red-500"
+            aria-hidden="true"
+            >*</span
+          >
         </label>
         <p
           id="domain-display-name-hint"
@@ -387,7 +398,7 @@ class="space-y-6">
           maxlength="100"
           :placeholder="t('web.organizations.sso.display_name_placeholder')"
           aria-describedby="domain-display-name-hint"
-          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
       </div>
 
       <!-- Client ID -->
@@ -396,7 +407,11 @@ class="space-y-6">
           for="domain-sso-client-id"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.client_id') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
+          <span
+            class="text-red-500"
+            aria-hidden="true"
+            >*</span
+          >
         </label>
         <input
           id="domain-sso-client-id"
@@ -406,7 +421,7 @@ class="space-y-6">
           required
           autocomplete="off"
           :placeholder="t('web.organizations.sso.client_id_placeholder')"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
       </div>
 
       <!-- Client Secret -->
@@ -415,9 +430,12 @@ class="space-y-6">
           for="domain-sso-client-secret"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.client_secret') }}
-          <span v-if="requiresClientSecret && !isEditing"
-class="text-red-500"
-aria-hidden="true">*</span>
+          <span
+            v-if="requiresClientSecret && !isEditing"
+            class="text-red-500"
+            aria-hidden="true"
+            >*</span
+          >
         </label>
         <p
           v-if="isEditing"
@@ -435,12 +453,14 @@ aria-hidden="true">*</span>
             autocomplete="new-password"
             :placeholder="clientSecretPlaceholder"
             :aria-describedby="isEditing ? 'domain-client-secret-hint' : undefined"
-            class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+            class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
           <button
             type="button"
             @click="showClientSecret = !showClientSecret"
             class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            :aria-label="showClientSecret ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')">
+            :aria-label="
+              showClientSecret ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
+            ">
             <OIcon
               collection="heroicons"
               :name="showClientSecret ? 'eye-slash' : 'eye'"
@@ -456,7 +476,11 @@ aria-hidden="true">*</span>
           for="domain-sso-tenant-id"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.tenant_id') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
+          <span
+            class="text-red-500"
+            aria-hidden="true"
+            >*</span
+          >
         </label>
         <p
           id="domain-tenant-id-hint"
@@ -472,7 +496,7 @@ aria-hidden="true">*</span>
           autocomplete="off"
           :placeholder="t('web.organizations.sso.tenant_id_placeholder')"
           aria-describedby="domain-tenant-id-hint"
-          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
       </div>
 
       <!-- Issuer URL (OIDC only) -->
@@ -481,7 +505,11 @@ aria-hidden="true">*</span>
           for="domain-sso-issuer"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.issuer') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
+          <span
+            class="text-red-500"
+            aria-hidden="true"
+            >*</span
+          >
         </label>
         <p
           id="domain-issuer-hint"
@@ -497,7 +525,7 @@ aria-hidden="true">*</span>
           autocomplete="off"
           :placeholder="t('web.organizations.sso.issuer_placeholder')"
           aria-describedby="domain-issuer-hint"
-          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
         <a
           v-if="discoveryUrl"
           :href="discoveryUrl"
@@ -509,7 +537,8 @@ aria-hidden="true">*</span>
       </div>
 
       <!-- Test Connection -->
-      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+      <div
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <h4 class="text-sm font-medium text-gray-900 dark:text-white">
@@ -523,7 +552,7 @@ aria-hidden="true">*</span>
             type="button"
             @click="handleTestConnection"
             :disabled="!canTestConnection || isTesting || isSaving"
-            class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+            class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
             <OIcon
               v-if="isTesting"
               collection="heroicons"
@@ -537,7 +566,11 @@ aria-hidden="true">*</span>
               name="signal"
               size="4"
               aria-hidden="true" />
-            {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
+            {{
+              isTesting
+                ? t('web.organizations.sso.testing')
+                : t('web.organizations.sso.test_button')
+            }}
           </button>
         </div>
 
@@ -590,19 +623,27 @@ aria-hidden="true">*</span>
                   v-if="testResult.details"
                   class="mt-2 text-sm text-red-700 dark:text-red-300">
                   <dl class="space-y-1">
-                    <div v-if="testResult.details.error_code" class="flex gap-2">
+                    <div
+                      v-if="testResult.details.error_code"
+                      class="flex gap-2">
                       <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
                       <dd>{{ testResult.details.error_code }}</dd>
                     </div>
-                    <div v-if="testResult.details.http_status" class="flex gap-2">
+                    <div
+                      v-if="testResult.details.http_status"
+                      class="flex gap-2">
                       <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
                       <dd>{{ testResult.details.http_status }}</dd>
                     </div>
-                    <div v-if="testResult.details.description" class="flex gap-2">
+                    <div
+                      v-if="testResult.details.description"
+                      class="flex gap-2">
                       <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
                       <dd>{{ testResult.details.description }}</dd>
                     </div>
-                    <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
+                    <div
+                      v-if="testResult.details.missing_fields?.length"
+                      class="flex gap-2">
                       <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
                       <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
                     </div>
@@ -703,12 +744,12 @@ aria-hidden="true">*</span>
               aria-describedby="domain-allowed-domains-hint domain-domain-input-error"
               :aria-invalid="!!domainInputError"
               @keydown.enter.prevent="addDomain"
-              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
           </div>
           <button
             type="button"
             @click="addDomain"
-            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.COMMON.add') }}
           </button>
         </div>
@@ -743,7 +784,8 @@ aria-hidden="true">*</span>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
+      <div
+        class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
         <!-- Left: Delete + Discard -->
         <div class="flex items-center gap-3">
           <!-- Delete button (only when editing existing config) -->
@@ -752,7 +794,7 @@ aria-hidden="true">*</span>
               type="button"
               @click="showDeleteConfirm = true"
               :disabled="isDeleting || isSaving"
-              class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+              class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-red-300 ring-inset hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
               <OIcon
                 collection="heroicons"
                 name="trash"
@@ -763,7 +805,9 @@ aria-hidden="true">*</span>
           </template>
 
           <!-- Delete confirmation -->
-          <div v-if="showDeleteConfirm" class="flex items-center gap-2">
+          <div
+            v-if="showDeleteConfirm"
+            class="flex items-center gap-2">
             <span class="text-sm text-gray-600 dark:text-gray-400">
               {{ t('web.organizations.sso.delete_confirm') }}
             </span>
@@ -778,7 +822,7 @@ aria-hidden="true">*</span>
               type="button"
               @click="showDeleteConfirm = false"
               :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
               {{ t('web.COMMON.word_cancel') }}
             </button>
           </div>
@@ -789,7 +833,7 @@ aria-hidden="true">*</span>
             type="button"
             @click="emit('discard')"
             :disabled="isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.domains.email.discard_changes') }}
           </button>
         </div>
@@ -806,7 +850,9 @@ aria-hidden="true">*</span>
             class="size-4 animate-spin motion-reduce:animate-none"
             aria-hidden="true" />
           <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
-          <span v-else>{{ isEditing ? t('web.COMMON.save_changes') : t('web.organizations.sso.save_config') }}</span>
+          <span v-else>{{
+            isEditing ? t('web.COMMON.save_changes') : t('web.organizations.sso.save_config')
+          }}</span>
         </button>
       </div>
     </form>

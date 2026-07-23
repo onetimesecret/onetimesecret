@@ -69,8 +69,7 @@ export interface GlobalMethodAvailability {
 export function resolveGlobalMethodAvailability(): GlobalMethodAvailability {
   const features = useBootstrapStore().features;
   const sso = features?.sso;
-  const ssoAvailable =
-    typeof sso === 'object' && sso !== null ? sso.enabled : sso !== false;
+  const ssoAvailable = typeof sso === 'object' && sso !== null ? sso.enabled : sso !== false;
   return {
     email_auth: features?.email_auth !== false,
     webauthn: features?.webauthn !== false,

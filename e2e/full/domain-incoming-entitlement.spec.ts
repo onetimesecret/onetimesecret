@@ -737,7 +737,10 @@ test.describe('Domain Incoming - Regression Prevention (#3479)', () => {
     // Count visible states
     const visibleStates: string[] = [];
     for (const state of states) {
-      const isVisible = await state.element.first().isVisible().catch(() => false);
+      const isVisible = await state.element
+        .first()
+        .isVisible()
+        .catch(() => false);
       if (isVisible) {
         visibleStates.push(state.name);
       }

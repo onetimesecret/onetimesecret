@@ -30,11 +30,11 @@ export type ApiMode = 'authenticated' | 'public';
 export const RECEIPT_STATUS = {
   NEW: 'new',
   SHARED: 'shared',
-  RECEIVED: 'received',     // @deprecated - use REVEALED
-  REVEALED: 'revealed',     // NEW: secret content was revealed
+  RECEIVED: 'received', // @deprecated - use REVEALED
+  REVEALED: 'revealed', // NEW: secret content was revealed
   BURNED: 'burned',
-  VIEWED: 'viewed',         // @deprecated - use PREVIEWED
-  PREVIEWED: 'previewed',   // NEW: link was accessed
+  VIEWED: 'viewed', // @deprecated - use PREVIEWED
+  PREVIEWED: 'previewed', // NEW: link was accessed
   ORPHANED: 'orphaned',
 } as const;
 
@@ -116,8 +116,8 @@ export const useReceiptStore = defineStore('receipt', () => {
     const validStates = [
       RECEIPT_STATUS.NEW,
       RECEIPT_STATUS.SHARED,
-      RECEIPT_STATUS.VIEWED,     // @deprecated - use PREVIEWED
-      RECEIPT_STATUS.PREVIEWED,  // NEW canonical state
+      RECEIPT_STATUS.VIEWED, // @deprecated - use PREVIEWED
+      RECEIPT_STATUS.PREVIEWED, // NEW canonical state
     ] as const;
 
     if (
@@ -143,11 +143,7 @@ export const useReceiptStore = defineStore('receipt', () => {
   async function fetch(key: string) {
     const endpoint = getEndpoint(`/receipt/${key}`);
     const response = await $api.get(endpoint);
-    const result = gracefulParse(
-      responseSchemas.receipt,
-      response.data,
-      'ReceiptResponse'
-    );
+    const result = gracefulParse(responseSchemas.receipt, response.data, 'ReceiptResponse');
 
     if (!result.ok) {
       throw new Error('Unable to load receipt. Please try again.');
@@ -181,11 +177,7 @@ export const useReceiptStore = defineStore('receipt', () => {
       continue: true,
     });
 
-    const result = gracefulParse(
-      responseSchemas.receipt,
-      response.data,
-      'ReceiptResponse'
-    );
+    const result = gracefulParse(responseSchemas.receipt, response.data, 'ReceiptResponse');
 
     if (!result.ok) {
       throw new Error('Unable to burn secret. Please try again.');

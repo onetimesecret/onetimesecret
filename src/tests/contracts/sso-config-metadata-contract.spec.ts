@@ -121,7 +121,8 @@ describe('customDomainSsoConfigCanonical schema', () => {
       const result = customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse(true);
       expect(result.success).toBe(true);
 
-      const invalidResult = customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse('true');
+      const invalidResult =
+        customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse('true');
       expect(invalidResult.success).toBe(false);
     });
 
@@ -129,7 +130,8 @@ describe('customDomainSsoConfigCanonical schema', () => {
       const result = customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse(false);
       expect(result.success).toBe(true);
 
-      const invalidResult = customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse('false');
+      const invalidResult =
+        customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse('false');
       expect(invalidResult.success).toBe(false);
     });
   });

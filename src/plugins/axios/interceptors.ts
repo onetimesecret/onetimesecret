@@ -1,9 +1,6 @@
 // src/plugins/axios/interceptors.ts
 
-import {
-  scrubSensitiveStrings,
-  scrubUrlWithPatterns,
-} from '@/plugins/core/diagnostics/scrubbers';
+import { scrubSensitiveStrings, scrubUrlWithPatterns } from '@/plugins/core/diagnostics/scrubbers';
 import { useLanguageStore } from '@/shared/stores';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';

@@ -12,16 +12,16 @@
 //   InlineToast        dark pill for ephemeral confirmations ("Copied!")
 
 // Global (store-driven, teleported to body)
-export {
-  NotificationHost,
-  NotificationPill,
-  NotificationCard,
-  NotificationBanner,
-} from './global';
+export { NotificationHost, NotificationPill, NotificationCard, NotificationBanner } from './global';
 
 // Inline (prop-driven, parent-relative)
 export { InlineToast } from './inline';
 
 // Shared severity config
-export { getSeverityMeta, getInvertedColors, getStandardColors, getBannerColors } from './severityConfig';
+export {
+  getSeverityMeta,
+  getInvertedColors,
+  getStandardColors,
+  getBannerColors,
+} from './severityConfig';
 export type { SeverityMeta, SeverityColors } from './severityConfig';

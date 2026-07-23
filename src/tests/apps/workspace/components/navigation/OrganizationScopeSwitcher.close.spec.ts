@@ -33,7 +33,11 @@ vi.mock('vue-i18n', () => ({
 }));
 
 const mockPush = vi.fn();
-const mockRoute = reactive<{ name?: string; meta: Record<string, unknown>; params: Record<string, unknown> }>({
+const mockRoute = reactive<{
+  name?: string;
+  meta: Record<string, unknown>;
+  params: Record<string, unknown>;
+}>({
   name: 'dashboard',
   meta: {},
   params: {},
@@ -52,7 +56,12 @@ type TestOrg = {
 };
 
 const acme: TestOrg = { objid: 'o1', extid: 'org1', display_name: 'Acme Inc' };
-const personal: TestOrg = { objid: 'o2', extid: 'org2', display_name: 'Personal', is_default: true };
+const personal: TestOrg = {
+  objid: 'o2',
+  extid: 'org2',
+  display_name: 'Personal',
+  is_default: true,
+};
 
 const mockOrganizations = ref<TestOrg[]>([acme, personal]);
 const mockCurrentOrganization = ref<TestOrg | null>(acme);
@@ -67,8 +76,7 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => mockOrgStore,
 }));
 
-const dropdown = (w: VueWrapper) =>
-  w.find('[data-testid="org-scope-switcher-dropdown"]');
+const dropdown = (w: VueWrapper) => w.find('[data-testid="org-scope-switcher-dropdown"]');
 
 async function openMenu(w: VueWrapper) {
   await w.get('[data-testid="org-scope-switcher-trigger"]').trigger('click');
@@ -99,7 +107,10 @@ describe('OrganizationScopeSwitcher real-HeadlessUI close behaviour', () => {
 
     // Gear for the non-current org avoids interference from the active row's
     // checkmark; org2 has an extid so its gear renders.
-    await wrapper.get('[data-testid="org-menu-item-org2"] [aria-label="web.organizations.organization_settings"]')
+    await wrapper
+      .get(
+        '[data-testid="org-menu-item-org2"] [aria-label="web.organizations.organization_settings"]'
+      )
       .trigger('click');
     await nextTick();
     await flushPromises();

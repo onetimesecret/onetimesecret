@@ -113,7 +113,7 @@
     </template>
 
     <!-- Footer slot -->
-    <template #footer="{ }">
+    <template #footer="{}">
       <div class="flex flex-col items-center space-y-8 py-8">
         <FooterAttribution
           :site-host="siteHost"
@@ -125,8 +125,8 @@
 </template>
 
 <style scoped>
-:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
+  :focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
 </style>

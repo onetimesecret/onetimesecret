@@ -149,7 +149,14 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
 
   it('renders the empty state when there are no domains', async () => {
     mockApi.get.mockResolvedValue({
-      data: { shrimp: '', record: {}, details: { domains: [], pagination: { page: 1, per_page: 50, total_count: 0, total_pages: 0 } } },
+      data: {
+        shrimp: '',
+        record: {},
+        details: {
+          domains: [],
+          pagination: { page: 1, per_page: 50, total_count: 0, total_pages: 0 },
+        },
+      },
     });
     wrapper = mountView();
     await flushPromises();
@@ -377,8 +384,9 @@ describe('AdminDomains — attach domain to organization', () => {
     // Bypass the search debounce by submitting the picker form directly.
     const input = w.find('[data-testid="org-search-input"]');
     await input.setValue('acme');
-    await w.find('[data-testid="org-search-input"]').element
-      .closest('form')!
+    await w
+      .find('[data-testid="org-search-input"]')
+      .element.closest('form')!
       .dispatchEvent(new Event('submit'));
     await flushPromises();
     await w.find('[data-testid="org-select-org_acme"]').trigger('click');

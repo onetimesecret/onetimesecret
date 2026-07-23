@@ -477,7 +477,10 @@ test.describe('Domain Email Config - Save and Delete', () => {
 
       // Confirmation dialog should appear
       const confirmDialog = page.locator('[role="dialog"], .modal');
-      const confirmButton = page.locator('button').filter({ hasText: /confirm|delete/i }).last();
+      const confirmButton = page
+        .locator('button')
+        .filter({ hasText: /confirm|delete/i })
+        .last();
 
       const hasConfirmation =
         (await confirmDialog.isVisible().catch(() => false)) ||

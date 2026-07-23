@@ -81,7 +81,8 @@ vi.mock('@/shared/components/modals/ConfirmDialog.vue', () => ({
 vi.mock('@/shared/components/common/ToggleWithIcon.vue', () => ({
   default: {
     name: 'ToggleWithIcon',
-    template: '<button type="button" class="toggle" @click="$emit(\'update:enabled\', !enabled)" />',
+    template:
+      '<button type="button" class="toggle" @click="$emit(\'update:enabled\', !enabled)" />',
     props: ['enabled', 'disabled'],
     emits: ['update:enabled'],
   },

@@ -26,7 +26,9 @@
   const i18n = useI18n();
   const { t } = i18n;
 
-  const isRevealed = computed(() => !!props.record?.secret_value && props.record.secret_value !== '');
+  const isRevealed = computed(
+    () => !!props.record?.secret_value && props.record.secret_value !== ''
+  );
 
   const productIdentity = useProductIdentity();
 
@@ -61,7 +63,9 @@
     setTimeout(() => announcement.remove(), 1000);
   };
 
-  const isCopiedText = computed(() => isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
+  const isCopiedText = computed(() =>
+    isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard')
+  );
 </script>
 
 <template>
@@ -76,9 +80,7 @@
     :is-revealed="isRevealed">
     <!-- Alert display -->
     <div
-      v-if="
-        submissionStatus?.status === 'error' || submissionStatus?.status === 'success'
-      "
+      v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
       :class="alertClasses"
       role="alert"
       aria-live="polite">
@@ -111,7 +113,9 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-                (submissionStatus.status === 'error' ? t('web.COMMON.an_error_occurred') : t('web.STATUS.success'))
+              (submissionStatus.status === 'error'
+                ? t('web.COMMON.an_error_occurred')
+                : t('web.STATUS.success'))
             }}
           </p>
         </div>
@@ -120,7 +124,11 @@
 
     <template #content>
       <div class="relative size-full p-0">
-        <div :class="[cornerClass, 'size-full overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800']">
+        <div
+          :class="[
+            cornerClass,
+            'size-full overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800',
+          ]">
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">
@@ -150,7 +158,11 @@
           productIdentity.buttonTextLight ? 'text-white' : 'text-gray-900',
         ]"
         aria-live="polite"
-        :aria-label="isCopied ? t('web.COMMON.secret_copied_to_clipboard') : t('web.COMMON.copy_secret_to_clipboard')"
+        :aria-label="
+          isCopied
+            ? t('web.COMMON.secret_copied_to_clipboard')
+            : t('web.COMMON.copy_secret_to_clipboard')
+        "
         :aria-pressed="isCopied">
         <svg
           v-if="!isCopied"

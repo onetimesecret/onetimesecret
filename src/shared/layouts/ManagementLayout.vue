@@ -76,8 +76,10 @@
 
     <template #main>
       <!-- pb-20 md:pb-0 accounts for mobile nav bar -->
-      <div data-testid="management-layout" class="min-h-screen bg-gray-50 pb-20 dark:bg-gray-900 md:pb-0">
-        <div class="container mx-auto min-w-[320px] max-w-4xl px-4 py-8">
+      <div
+        data-testid="management-layout"
+        class="min-h-screen bg-gray-50 pb-20 md:pb-0 dark:bg-gray-900">
+        <div class="container mx-auto max-w-4xl min-w-[320px] px-4 py-8">
           <div class="flex items-start gap-8">
             <!-- Sidebar (Left position) -->
             <aside
@@ -93,7 +95,9 @@
               <slot></slot>
 
               <!-- Mobile Quick Stats - Show below main content on small screens -->
-              <div v-if="showSidebar && sidebarPosition === 'right'" class="mt-8 md:hidden">
+              <div
+                v-if="showSidebar && sidebarPosition === 'right'"
+                class="mt-8 md:hidden">
                 <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
                   <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                     Quick Stats
@@ -156,16 +160,12 @@
                       <div class="space-y-2">
                         <router-link
                           to="/"
-                          class="block w-full rounded-lg bg-brand-500 px-3 py-2 text-center
-                                 text-sm font-medium text-white
-                                 transition-colors hover:bg-brand-600">
+                          class="block w-full rounded-lg bg-brand-500 px-3 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-brand-600">
                           Create New Secret
                         </router-link>
                         <router-link
                           to="/account/settings/api"
-                          class="block w-full rounded-lg border border-gray-300 px-3 py-2
-                                 text-center text-sm font-medium transition-colors
-                                 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                          class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm font-medium transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                           Generate API Key
                         </router-link>
                       </div>
@@ -180,17 +180,23 @@
                     <slot name="resources">
                       <ul class="space-y-2 text-sm">
                         <li>
-                          <a href="/docs" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                          <a
+                            href="/docs"
+                            class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
                             Documentation
                           </a>
                         </li>
                         <li>
-                          <a href="/api" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                          <a
+                            href="/api"
+                            class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
                             API Reference
                           </a>
                         </li>
                         <li>
-                          <a href="/support" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                          <a
+                            href="/support"
+                            class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
                             Get Support
                           </a>
                         </li>
@@ -212,10 +218,10 @@
 </template>
 
 <style scoped>
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  main {
-    max-width: 100%;
+  /* Responsive adjustments */
+  @media (max-width: 1024px) {
+    main {
+      max-width: 100%;
+    }
   }
-}
 </style>

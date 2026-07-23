@@ -279,7 +279,9 @@ describe('features utility', () => {
 
     it('returns false when no passwordless methods are enabled', () => {
       getBootstrapValueMock.mockReturnValue({
-        webauthn: false, magic_links: false, email_auth: false,
+        webauthn: false,
+        magic_links: false,
+        email_auth: false,
       });
 
       const result = hasPasswordlessMethods();
@@ -550,7 +552,10 @@ describe('features utility', () => {
   describe('getAuthFeatures', () => {
     it('returns correct object when all features enabled with sso restriction', () => {
       getBootstrapValueMock.mockReturnValue({
-        webauthn: true, magic_links: true, sso: true, restrict_to: 'sso',
+        webauthn: true,
+        magic_links: true,
+        sso: true,
+        restrict_to: 'sso',
       });
 
       expect(getAuthFeatures()).toEqual({
@@ -563,7 +568,9 @@ describe('features utility', () => {
 
     it('returns correct object when no features enabled', () => {
       getBootstrapValueMock.mockReturnValue({
-        webauthn: false, magic_links: false, sso: false,
+        webauthn: false,
+        magic_links: false,
+        sso: false,
       });
 
       expect(getAuthFeatures()).toEqual({

@@ -82,7 +82,9 @@ function getConfig() {
 function getDomainDisplayName(domain: string): string {
   const name = domain || getConfig().canonicalDomain;
   if (!name) {
-    console.error('[useDomainContext] getDomainDisplayName called with no domain and no canonicalDomain configured');
+    console.error(
+      '[useDomainContext] getDomainDisplayName called with no domain and no canonicalDomain configured'
+    );
   }
   return name || 'unknown';
 }
@@ -158,9 +160,7 @@ async function persistDomainContext(
  * Extracts domains for the current organization from the bulk permissions response.
  * @see src/tests/composables/useDomainContext.spec.ts
  */
-function createPermissionsFetcher(
-  organizationStore: ReturnType<typeof useOrganizationStore>,
-) {
+function createPermissionsFetcher(organizationStore: ReturnType<typeof useOrganizationStore>) {
   return async (): Promise<boolean> => {
     const { domainsEnabled } = getConfig();
     if (!domainsEnabled) return true;
@@ -181,7 +181,7 @@ function createPermissionsFetcher(
       const result = await permissionsInstance!.fetchAllPermissions();
       if (controller.signal.aborted) return false;
 
-      const orgPerms = result?.organizations.find(o => o.extid === orgExtid);
+      const orgPerms = result?.organizations.find((o) => o.extid === orgExtid);
       permissionsDomains.value = orgPerms?.domains ?? [];
       return true;
     } catch (error) {
@@ -320,10 +320,7 @@ export function useDomainContext() {
   const setContextByExtid = async (extid: string, skipBackendSync = true): Promise<void> => {
     const domain = getDomainByExtid(extid);
     if (domain) await setContext(domain, skipBackendSync);
-    else loggingService.debug(
-      '[useDomainContext] No domain found for extid',
-      { extid }
-    );
+    else loggingService.debug('[useDomainContext] No domain found for extid', { extid });
   };
 
   return {
@@ -333,7 +330,10 @@ export function useDomainContext() {
     availableDomains,
     isLoadingDomains: computed(() => isLoadingDomains.value),
     setContext,
-    resetContext: () => { currentDomain.value = getConfig().canonicalDomain || ''; sessionStorage.removeItem('domainContext'); },
+    resetContext: () => {
+      currentDomain.value = getConfig().canonicalDomain || '';
+      sessionStorage.removeItem('domainContext');
+    },
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
     getExtidByDomain: (domain: string) => findExtidByDomain(permissionsDomains.value, domain),

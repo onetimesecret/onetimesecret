@@ -748,9 +748,7 @@ export const colonelAvailablePlansResponseSchema = z.object({
 });
 
 export type ColonelAvailablePlan = z.infer<typeof colonelAvailablePlanSchema>;
-export type ColonelAvailablePlansResponse = z.infer<
-  typeof colonelAvailablePlansResponseSchema
->;
+export type ColonelAvailablePlansResponse = z.infer<typeof colonelAvailablePlansResponseSchema>;
 
 // ============================================================================
 // Wrapped response envelopes ({ record, details } across the API envelope).

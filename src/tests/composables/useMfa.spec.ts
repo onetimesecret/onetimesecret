@@ -195,8 +195,7 @@ describe('useMfa', () => {
       const setupResponse = {
         otp_setup: 'plain_secret',
         otp_raw_secret: 'JBSWY3DPEHPK3PXP',
-        provisioning_uri:
-          'otpauth://totp/OTS:test@example.com?secret=plain_secret&issuer=OTS',
+        provisioning_uri: 'otpauth://totp/OTS:test@example.com?secret=plain_secret&issuer=OTS',
       };
 
       axiosMock.onPost('/auth/otp-setup').reply(200, setupResponse);

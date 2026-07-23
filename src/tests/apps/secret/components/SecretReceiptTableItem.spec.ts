@@ -88,7 +88,9 @@ function createMockReceipt(overrides = {}) {
 }
 
 describe('SecretReceiptTableItem', () => {
-  let SecretReceiptTableItem: ReturnType<typeof import('@/apps/secret/components/SecretReceiptTableItem.vue')>['default'];
+  let SecretReceiptTableItem: ReturnType<
+    typeof import('@/apps/secret/components/SecretReceiptTableItem.vue')
+  >['default'];
 
   beforeEach(async () => {
     vi.resetModules();
@@ -125,15 +127,13 @@ describe('SecretReceiptTableItem', () => {
       })),
     }));
 
-    const mod = await import(
-      '@/apps/secret/components/SecretReceiptTableItem.vue'
-    );
+    const mod = await import('@/apps/secret/components/SecretReceiptTableItem.vue');
     SecretReceiptTableItem = mod.default;
   });
 
   function mountComponent(
     receiptOverrides = {},
-    extraProps = {},
+    extraProps = {}
   ): VueWrapper<ComponentPublicInstance> {
     return mount(SecretReceiptTableItem, {
       props: {

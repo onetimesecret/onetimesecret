@@ -74,7 +74,11 @@ vi.mock('@/utils/features', () => ({
 }));
 
 vi.mock('@/apps/workspace/components/dashboard/DomainHeader.vue', () => ({
-  default: { name: 'DomainHeader', template: '<div />', props: ['domain', 'hasUnsavedChanges', 'orgid', 'externalPath'] },
+  default: {
+    name: 'DomainHeader',
+    template: '<div />',
+    props: ['domain', 'hasUnsavedChanges', 'orgid', 'externalPath'],
+  },
 }));
 
 vi.mock('@/shared/components/modals/ConfirmDialog.vue', () => ({

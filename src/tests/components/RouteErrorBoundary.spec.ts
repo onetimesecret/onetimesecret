@@ -7,12 +7,7 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, ref, nextTick, type Component } from 'vue';
-import {
-  createRouter,
-  createMemoryHistory,
-  RouterView,
-  useRoute,
-} from 'vue-router';
+import { createRouter, createMemoryHistory, RouterView, useRoute } from 'vue-router';
 import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
 
 // Mirror production: the app installs `app.config.errorHandler`

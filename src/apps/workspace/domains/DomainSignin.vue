@@ -1,203 +1,203 @@
 <!-- src/apps/workspace/domains/DomainSignin.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Sign-In Configuration Page
- *
- * Page-level component that wires together the signin config composable and
- * form component. Controls which auth methods are available on the
- * domain's signin page: password, email_auth, webauthn, SSO, or restrict
- * to a single method.
- *
- * There is exactly ONE availability concept on this page: the effective
- * state (ADR-024). The banner shows the resolver's output; the form's mode
- * switch is the single control. The explicit-override flag (`enabled`) is
- * not user-facing — every save materializes it, and "Reset to defaults"
- * unpins.
- */
-import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
-import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
-import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
-import SsoCredentialsModal from '@/apps/workspace/components/domains/SsoCredentialsModal.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useDomain } from '@/shared/composables/useDomain';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import {
-  resolveGlobalMethodAvailability,
-  useSigninConfig,
-} from '@/shared/composables/useSigninConfig';
-import { useSsoConfig } from '@/shared/composables/useSsoConfig';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { ENTITLEMENTS } from '@/types/organization';
-import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
+  /**
+   * Domain Sign-In Configuration Page
+   *
+   * Page-level component that wires together the signin config composable and
+   * form component. Controls which auth methods are available on the
+   * domain's signin page: password, email_auth, webauthn, SSO, or restrict
+   * to a single method.
+   *
+   * There is exactly ONE availability concept on this page: the effective
+   * state (ADR-024). The banner shows the resolver's output; the form's mode
+   * switch is the single control. The explicit-override flag (`enabled`) is
+   * not user-facing — every save materializes it, and "Reset to defaults"
+   * unpins.
+   */
+  import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+  import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
+  import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
+  import SsoCredentialsModal from '@/apps/workspace/components/domains/SsoCredentialsModal.vue';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useDomain } from '@/shared/composables/useDomain';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import {
+    resolveGlobalMethodAvailability,
+    useSigninConfig,
+  } from '@/shared/composables/useSigninConfig';
+  import { useSsoConfig } from '@/shared/composables/useSsoConfig';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 
-const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
+  const { t } = useI18n();
+  const route = useRoute();
+  const router = useRouter();
 
-const props = defineProps<{
-  orgid: string;
-  extid: string;
-}>();
+  const props = defineProps<{
+    orgid: string;
+    extid: string;
+  }>();
 
-// ---------------------------------------------------------------------------
-// Domain data
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Domain data
+  // ---------------------------------------------------------------------------
 
-const {
-  domain: customDomainRecord,
-  isLoading: domainLoading,
-  error: domainError,
-  initialize: initializeDomain,
-} = useDomain(props.extid);
+  const {
+    domain: customDomainRecord,
+    isLoading: domainLoading,
+    error: domainError,
+    initialize: initializeDomain,
+  } = useDomain(props.extid);
 
-// ---------------------------------------------------------------------------
-// Organization
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Organization
+  // ---------------------------------------------------------------------------
 
-const organizationStore = useOrganizationStore();
-const { organizations } = storeToRefs(organizationStore);
-const organization = computed(() =>
-  organizations.value.find((o) => o.extid === props.orgid) ?? null
-);
-const { can } = useEntitlements(organization);
-const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
-const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
-const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(
+    () => organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+  const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+  const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
+  const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
-// ---------------------------------------------------------------------------
-// Global method availability (install-level config)
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Global method availability (install-level config)
+  // ---------------------------------------------------------------------------
 
-// Single definition in useSigninConfig (also seeds unconfigured domains);
-// wrapped in a computed so bootstrap feature reads stay reactive.
-const globalAvailability = computed(() => resolveGlobalMethodAvailability());
+  // Single definition in useSigninConfig (also seeds unconfigured domains);
+  // wrapped in a computed so bootstrap feature reads stay reactive.
+  const globalAvailability = computed(() => resolveGlobalMethodAvailability());
 
-// ---------------------------------------------------------------------------
-// Signin config composable
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Signin config composable
+  // ---------------------------------------------------------------------------
 
-const {
-  isLoading: signinLoading,
-  isInitialized,
-  isSaving,
-  isDeleting,
-  error: signinError,
-  formState,
-  savingField,
-  isConfigured,
-  hasUnsavedChanges,
-  globalEnabled,
-  effectiveEnabled,
-  isWorkspaceDefault,
-  initialize: initializeSigninConfig,
-  autoSaveFields,
-  deleteConfig,
-} = useSigninConfig(props.extid);
+  const {
+    isLoading: signinLoading,
+    isInitialized,
+    isSaving,
+    isDeleting,
+    error: signinError,
+    formState,
+    savingField,
+    isConfigured,
+    hasUnsavedChanges,
+    globalEnabled,
+    effectiveEnabled,
+    isWorkspaceDefault,
+    initialize: initializeSigninConfig,
+    autoSaveFields,
+    deleteConfig,
+  } = useSigninConfig(props.extid);
 
-// ---------------------------------------------------------------------------
-// SSO config composable
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // SSO config composable
+  // ---------------------------------------------------------------------------
 
-const {
-  isLoading: ssoConfigLoading,
-  isInitialized: ssoInitialized,
-  isSaving: ssoSaving,
-  isDeleting: ssoDeleting,
-  isTesting,
-  error: _ssoConfigError,
-  ssoConfig,
-  formState: ssoFormState,
-  testResult,
-  testError,
-  isConfigured: ssoIsConfigured,
-  hasUnsavedChanges: ssoHasUnsavedChanges,
-  clientSecretMasked,
-  initialize: initializeSsoConfig,
-  saveConfig: saveSsoConfig,
-  deleteConfig: deleteSsoConfig,
-  testConnection,
-  discardChanges: discardSsoChanges,
-} = useSsoConfig(props.extid);
+  const {
+    isLoading: ssoConfigLoading,
+    isInitialized: ssoInitialized,
+    isSaving: ssoSaving,
+    isDeleting: ssoDeleting,
+    isTesting,
+    error: _ssoConfigError,
+    ssoConfig,
+    formState: ssoFormState,
+    testResult,
+    testError,
+    isConfigured: ssoIsConfigured,
+    hasUnsavedChanges: ssoHasUnsavedChanges,
+    clientSecretMasked,
+    initialize: initializeSsoConfig,
+    saveConfig: saveSsoConfig,
+    deleteConfig: deleteSsoConfig,
+    testConnection,
+    discardChanges: discardSsoChanges,
+  } = useSsoConfig(props.extid);
 
-const showSsoModal = ref(false);
+  const showSsoModal = ref(false);
 
-// Deep link support: `?modal=sso` opens the SSO credentials modal on load,
-// e.g. from the org SSO tab's Configure link.
-const wantsSsoModal = computed(() => route.query.modal === 'sso');
+  // Deep link support: `?modal=sso` opens the SSO credentials modal on load,
+  // e.g. from the org SSO tab's Configure link.
+  const wantsSsoModal = computed(() => route.query.modal === 'sso');
 
-const handleOpenSsoModal = () => {
-  showSsoModal.value = true;
-};
+  const handleOpenSsoModal = () => {
+    showSsoModal.value = true;
+  };
 
-const handleCloseSsoModal = () => {
-  showSsoModal.value = false;
-  // Strip the deep-link param so a refresh doesn't reopen the modal.
-  if (wantsSsoModal.value) {
-    const { modal: _modal, ...query } = route.query;
-    router.replace({ query });
-  }
-};
+  const handleCloseSsoModal = () => {
+    showSsoModal.value = false;
+    // Strip the deep-link param so a refresh doesn't reopen the modal.
+    if (wantsSsoModal.value) {
+      const { modal: _modal, ...query } = route.query;
+      router.replace({ query });
+    }
+  };
 
-// ---------------------------------------------------------------------------
-// Navigation
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
 
-const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
-};
+  const handleBack = () => {
+    router.push(`/org/${props.orgid}/domains/${props.extid}`);
+  };
 
-// Unsaved changes guard. The signin form auto-saves, so its hasUnsavedChanges
-// is effectively always false; this now guards the SSO modal's pending edits.
-onBeforeRouteLeave((_to, _from, next) => {
-  if (ssoHasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+  // Unsaved changes guard. The signin form auto-saves, so its hasUnsavedChanges
+  // is effectively always false; this now guards the SSO modal's pending edits.
+  onBeforeRouteLeave((_to, _from, next) => {
+    if (ssoHasUnsavedChanges.value) {
+      const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
+      if (answer) next();
+      else next(false);
+    } else {
+      next();
+    }
+  });
 
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
 
-onMounted(async () => {
-  await initializeDomain();
+  onMounted(async () => {
+    await initializeDomain();
 
-  // Only fetch the signin config when the entitlement is available. Fetching
-  // without it returns a server error, which would surface as an inline alert
-  // instead of the access-denied upgrade prompt below.
-  if (canCustomSignin.value) {
-    await initializeSigninConfig();
-  }
+    // Only fetch the signin config when the entitlement is available. Fetching
+    // without it returns a server error, which would surface as an inline alert
+    // instead of the access-denied upgrade prompt below.
+    if (canCustomSignin.value) {
+      await initializeSigninConfig();
+    }
 
-  if (canManageSso.value) {
-    await initializeSsoConfig();
-    if (wantsSsoModal.value) showSsoModal.value = true;
-  }
-});
+    if (canManageSso.value) {
+      await initializeSsoConfig();
+      if (wantsSsoModal.value) showSsoModal.value = true;
+    }
+  });
 
-// Handle race condition: organizations (and thus entitlements) may load after
-// onMounted runs. Watch for the entitlement to become true and initialize then.
-watch(canCustomSignin, async (entitled) => {
-  if (entitled && !isInitialized.value) {
-    await initializeSigninConfig();
-  }
-});
+  // Handle race condition: organizations (and thus entitlements) may load after
+  // onMounted runs. Watch for the entitlement to become true and initialize then.
+  watch(canCustomSignin, async (entitled) => {
+    if (entitled && !isInitialized.value) {
+      await initializeSigninConfig();
+    }
+  });
 
-watch(canManageSso, async (entitled) => {
-  if (entitled && !ssoInitialized.value) {
-    await initializeSsoConfig();
-    if (wantsSsoModal.value) showSsoModal.value = true;
-  }
-});
+  watch(canManageSso, async (entitled) => {
+    if (entitled && !ssoInitialized.value) {
+      await initializeSsoConfig();
+      if (wantsSsoModal.value) showSsoModal.value = true;
+    }
+  });
 </script>
 
 <template>
@@ -224,8 +224,10 @@ watch(canManageSso, async (entitled) => {
       <SettingsSkeleton v-if="domainLoading || (canCustomSignin && signinLoading)" />
 
       <!-- Error State -->
-      <div v-else-if="domainError || signinError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-        <BasicFormAlerts :error="(domainError?.message ?? signinError?.message) ?? ''" />
+      <div
+        v-else-if="domainError || signinError"
+        class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <BasicFormAlerts :error="domainError?.message ?? signinError?.message ?? ''" />
       </div>
 
       <!-- Access Denied / Upgrade Banner -->
@@ -261,7 +263,8 @@ watch(canManageSso, async (entitled) => {
         class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
           <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+            <div
+              class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
               <OIcon
                 collection="heroicons"
                 name="arrow-right-on-rectangle"

@@ -101,9 +101,7 @@ export function useFetchData<T extends BaseApiRecord>({
   };
 }
 
-export function useFetchDataRecord<T extends BaseApiRecord>(
-  options: FetchDataOptions<T>
-) {
+export function useFetchDataRecord<T extends BaseApiRecord>(options: FetchDataOptions<T>) {
   const { records, details, isLoading, count, userId, status, fetchData, error } =
     useFetchData<T>(options);
 

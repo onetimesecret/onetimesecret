@@ -116,9 +116,7 @@ function buildMultiOrgPermissionsResponse(
  * Replaces the old setMockDomains which was synchronous.
  */
 function setMockDomains(orgExtid: string, domains: string[]) {
-  mockFetchAllPermissions.mockResolvedValue(
-    buildPermissionsResponse(orgExtid, domains)
-  );
+  mockFetchAllPermissions.mockResolvedValue(buildPermissionsResponse(orgExtid, domains));
 }
 
 describe('useDomainContext', () => {
@@ -157,7 +155,8 @@ describe('useDomainContext', () => {
     const bootstrapStore = useBootstrapStore();
     bootstrapStore.domains_enabled = config.domains_enabled ?? true;
     bootstrapStore.site_host = config.site_host ?? 'onetimesecret.com';
-    bootstrapStore.display_domain = config.display_domain ?? config.site_host ?? 'onetimesecret.com';
+    bootstrapStore.display_domain =
+      config.display_domain ?? config.site_host ?? 'onetimesecret.com';
     bootstrapStore.custom_domains = config.custom_domains ?? [];
     bootstrapStore.domain_strategy = config.domain_strategy ?? 'canonical';
 
@@ -192,9 +191,8 @@ describe('useDomainContext', () => {
       extid: 'org-ext-test-123',
     };
 
-    const { __resetDomainContextForTesting } = await import(
-      '@/shared/composables/useDomainContext'
-    );
+    const { __resetDomainContextForTesting } =
+      await import('@/shared/composables/useDomainContext');
     __resetDomainContextForTesting();
   });
 
@@ -1093,7 +1091,11 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains('org-ext-test-123', ['zebra.example.com', 'alpha.example.com', 'beta.example.com']);
+      setMockDomains('org-ext-test-123', [
+        'zebra.example.com',
+        'alpha.example.com',
+        'beta.example.com',
+      ]);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
@@ -1196,10 +1198,9 @@ describe('useDomainContext', () => {
 
       await setContext('acme.example.com');
 
-      expect(mockApiPost).toHaveBeenCalledWith(
-        '/api/account/update-domain-context',
-        { domain: 'acme.example.com' }
-      );
+      expect(mockApiPost).toHaveBeenCalledWith('/api/account/update-domain-context', {
+        domain: 'acme.example.com',
+      });
     });
 
     it('selecting a custom domain stores value in sessionStorage', async () => {

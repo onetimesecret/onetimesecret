@@ -69,9 +69,8 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
           authenticated: false,
           domain_strategy: storeState.domain_strategy ?? 'canonical',
           domain_logo: storeState.domain_logo ?? null,
-          homepage_config: storeState.homepage_config !== undefined
-            ? storeState.homepage_config
-            : null,
+          homepage_config:
+            storeState.homepage_config !== undefined ? storeState.homepage_config : null,
           ui: {
             // #3612: ui.header carries only layout knobs; brand identity
             // (logo asset, product name) lives in the flat brand_* fields.
@@ -105,7 +104,7 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
         stubs: {
           'router-link': {
             props: ['to'],
-            template: '<a :href="typeof to === \'string\' ? to : \'#\'"><slot /></a>',
+            template: "<a :href=\"typeof to === 'string' ? to : '#'\"><slot /></a>",
           },
         },
       },
@@ -114,10 +113,13 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
 
   it('always renders MastHead regardless of domain_strategy', async () => {
     // TransactionalHeader has no domain-aware branching — it always uses MastHead
-    wrapper = mountComponent({}, {
-      domain_strategy: 'custom',
-      domain_logo: null,
-    });
+    wrapper = mountComponent(
+      {},
+      {
+        domain_strategy: 'custom',
+        domain_logo: null,
+      }
+    );
 
     await nextTick();
     expect(wrapper.find('.masthead').exists()).toBe(true);
@@ -125,10 +127,13 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
   });
 
   it('renders MastHead on canonical domain (expected behavior)', async () => {
-    wrapper = mountComponent({}, {
-      domain_strategy: 'canonical',
-      domain_logo: null,
-    });
+    wrapper = mountComponent(
+      {},
+      {
+        domain_strategy: 'canonical',
+        domain_logo: null,
+      }
+    );
 
     await nextTick();
     expect(wrapper.find('.masthead').exists()).toBe(true);
@@ -137,10 +142,13 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
   it('renders MastHead on custom domain with logo (works but shows default OTS chrome)', async () => {
     // When domain_logo is set, MastHead renders the custom logo correctly.
     // But the surrounding TransactionalHeader still uses the OTS layout/style.
-    wrapper = mountComponent({}, {
-      domain_strategy: 'custom',
-      domain_logo: 'https://cdn.example.com/acme-logo.png',
-    });
+    wrapper = mountComponent(
+      {},
+      {
+        domain_strategy: 'custom',
+        domain_logo: 'https://cdn.example.com/acme-logo.png',
+      }
+    );
 
     await nextTick();
     expect(wrapper.find('.masthead').exists()).toBe(true);
@@ -149,12 +157,15 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
   it('does not pass domain-aware props to MastHead', async () => {
     // TransactionalHeader passes layout props but NOT domain context.
     // MastHead has to derive domain awareness from bootstrap store directly.
-    wrapper = mountComponent({
-      displayMasthead: true,
-      displayNavigation: false,
-    }, {
-      domain_strategy: 'custom',
-    });
+    wrapper = mountComponent(
+      {
+        displayMasthead: true,
+        displayNavigation: false,
+      },
+      {
+        domain_strategy: 'custom',
+      }
+    );
 
     await nextTick();
     // MastHead receives layout props, but nothing domain-specific
@@ -166,11 +177,14 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
   });
 
   it('hides MastHead when displayMasthead is false', async () => {
-    wrapper = mountComponent({
-      displayMasthead: false,
-    }, {
-      domain_strategy: 'custom',
-    });
+    wrapper = mountComponent(
+      {
+        displayMasthead: false,
+      },
+      {
+        domain_strategy: 'custom',
+      }
+    );
 
     await nextTick();
     // v-if="displayMasthead" prevents MastHead from rendering
@@ -338,10 +352,13 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
   // This guard is folded into the existing displayHeader check (both must hold).
   describe('HEADER_ENABLED gate', () => {
     it('removes the <header> element when header.enabled is false', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'canonical',
-        header: { enabled: false },
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'canonical',
+          header: { enabled: false },
+        }
+      );
 
       await nextTick();
       expect(wrapper.find('header').exists()).toBe(false);
@@ -350,10 +367,13 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
     });
 
     it('renders the <header> element when header.enabled is true', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'canonical',
-        header: { enabled: true },
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'canonical',
+          header: { enabled: true },
+        }
+      );
 
       await nextTick();
       expect(wrapper.find('header').exists()).toBe(true);
@@ -395,10 +415,13 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
     it('would show default OTS logo on /incoming for custom domain guests', async () => {
       // SecretLayout uses TransactionalHeader for unauthenticated users
       // On a custom domain with no logo, this shows the OTS default logo
-      wrapper = mountComponent({}, {
-        domain_strategy: 'custom',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'custom',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       // MastHead renders — it will show DefaultLogo via its internal fallback

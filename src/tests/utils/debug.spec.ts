@@ -133,10 +133,7 @@ describe('debug utilities', () => {
 
       debugLog.features('SettingsLayout.tabItems', { count: 5 });
 
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        '[SettingsLayout.tabItems]',
-        { count: 5 }
-      );
+      expect(consoleDebugSpy).toHaveBeenCalledWith('[SettingsLayout.tabItems]', { count: 5 });
     });
 
     it('passes through complex data objects', () => {

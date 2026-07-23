@@ -108,9 +108,7 @@ describe('ColorPicker', () => {
       expect(stringEmits.length).toBeGreaterThan(0);
 
       // None of the emissions should leak the raw object out to the parent
-      const objectLeaks = emitted.filter(
-        (args) => typeof args[0] === 'object' && args[0] !== null
-      );
+      const objectLeaks = emitted.filter((args) => typeof args[0] === 'object' && args[0] !== null);
       expect(objectLeaks).toHaveLength(0);
 
       // The normalized value should be an uppercase hex string
@@ -153,10 +151,7 @@ describe('ColorPicker', () => {
       let parent: HTMLElement | null = input.parentElement;
       let foundButtonAncestor = false;
       while (parent && parent !== document.body) {
-        if (
-          parent.tagName === 'BUTTON' ||
-          parent.getAttribute('role') === 'button'
-        ) {
+        if (parent.tagName === 'BUTTON' || parent.getAttribute('role') === 'button') {
           foundButtonAncestor = true;
           break;
         }

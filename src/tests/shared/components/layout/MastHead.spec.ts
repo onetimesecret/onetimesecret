@@ -912,9 +912,7 @@ describe('MastHead', () => {
       const logo = wrapper.find('.default-logo');
       expect(logo.exists()).toBe(true);
       expect(logo.attributes('data-show-site-name')).toBe('true');
-      expect(logo.find('.site-name').text()).toBe(
-        NEUTRAL_BRAND_DEFAULTS.product_name
-      );
+      expect(logo.find('.site-name').text()).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
     });
 
     it('uses brand_product_name as the wordmark text when configured (no install logo)', async () => {

@@ -114,7 +114,9 @@
             }}</span>
             <span
               :class="statusColor"
-              class="text-base">{{ domain?.vhost?.status_message }}</span>
+              class="text-base"
+              >{{ domain?.vhost?.status_message }}</span
+            >
           </div>
 
           <div class="flex flex-col">
@@ -139,9 +141,11 @@
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
               t('web.domains.ssl_renews')
             }}</span>
-            <span class="text-base text-gray-900 dark:text-white"><span v-if="domain?.vhost.ssl_active_until">{{
-              domain?.vhost.ssl_active_until
-            }}</span></span>
+            <span class="text-base text-gray-900 dark:text-white"
+              ><span v-if="domain?.vhost.ssl_active_until">{{
+                domain?.vhost.ssl_active_until
+              }}</span></span
+            >
           </div>
 
           <div class="flex flex-col">

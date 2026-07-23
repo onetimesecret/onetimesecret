@@ -1,63 +1,68 @@
 <!-- src/apps/workspace/dashboard/components/UpgradeBanner.vue -->
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useProductIdentity } from '@/shared/stores/identityStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { storeToRefs } from 'pinia';
+  import { computed, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { storeToRefs } from 'pinia';
 
-const { t } = useI18n();
-const organizationStore = useOrganizationStore();
+  const { t } = useI18n();
+  const organizationStore = useOrganizationStore();
 
-// Hide upgrade banners on custom domains (managed by org admin, not end users)
-const { isCustom } = storeToRefs(useProductIdentity());
+  // Hide upgrade banners on custom domains (managed by org admin, not end users)
+  const { isCustom } = storeToRefs(useProductIdentity());
 
-const STORAGE_KEY = 'ots_upgrade_banner_dismissed';
+  const STORAGE_KEY = 'ots_upgrade_banner_dismissed';
 
-// Initialize from localStorage for persistence across sessions
-const dismissed = ref(localStorage.getItem(STORAGE_KEY) === 'true');
+  // Initialize from localStorage for persistence across sessions
+  const dismissed = ref(localStorage.getItem(STORAGE_KEY) === 'true');
 
-// Get the first organization (default org for billing context)
-const currentOrg = computed(() => organizationStore.organizations[0] ?? null);
+  // Get the first organization (default org for billing context)
+  const currentOrg = computed(() => organizationStore.organizations[0] ?? null);
 
-const { planId, isStandaloneMode } = useEntitlements(currentOrg);
+  const { planId, isStandaloneMode } = useEntitlements(currentOrg);
 
-// Check if billing is enabled via bootstrapStore
-const bootstrapStore = useBootstrapStore();
-const { billing_enabled } = storeToRefs(bootstrapStore);
-const billingEnabled = computed(() => billing_enabled.value === true);
+  // Check if billing is enabled via bootstrapStore
+  const bootstrapStore = useBootstrapStore();
+  const { billing_enabled } = storeToRefs(bootstrapStore);
+  const billingEnabled = computed(() => billing_enabled.value === true);
 
-// Determine if user is on free plan (null, undefined, or 'free')
-const isFreePlan = computed(() => {
-  if (isStandaloneMode.value) return false;
-  const plan = planId.value;
-  return !plan || plan === 'free';
-});
+  // Determine if user is on free plan (null, undefined, or 'free')
+  const isFreePlan = computed(() => {
+    if (isStandaloneMode.value) return false;
+    const plan = planId.value;
+    return !plan || plan === 'free';
+  });
 
-// Only show upgrade prompts to organization owners (not members/admins)
-const isOwner = computed(() => {
-  const role = currentOrg.value?.current_user_role;
-  return role === 'owner';
-});
+  // Only show upgrade prompts to organization owners (not members/admins)
+  const isOwner = computed(() => {
+    const role = currentOrg.value?.current_user_role;
+    return role === 'owner';
+  });
 
-// Show banner only when:
-// - Not on custom domain (org members don't control billing)
-// - Billing is enabled
-// - User is org owner
-// - On free plan
-// - Not dismissed
-const showBanner = computed(() =>
-  !isCustom.value && billingEnabled.value && isOwner.value && isFreePlan.value && !dismissed.value
-);
+  // Show banner only when:
+  // - Not on custom domain (org members don't control billing)
+  // - Billing is enabled
+  // - User is org owner
+  // - On free plan
+  // - Not dismissed
+  const showBanner = computed(
+    () =>
+      !isCustom.value &&
+      billingEnabled.value &&
+      isOwner.value &&
+      isFreePlan.value &&
+      !dismissed.value
+  );
 
-const handleDismiss = () => {
-  dismissed.value = true;
-  localStorage.setItem(STORAGE_KEY, 'true');
-};
+  const handleDismiss = () => {
+    dismissed.value = true;
+    localStorage.setItem(STORAGE_KEY, 'true');
+  };
 </script>
 
 <template>
@@ -104,7 +109,7 @@ const handleDismiss = () => {
         <button
           type="button"
           @click="handleDismiss"
-          class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-500 dark:hover:text-gray-400"
+          class="rounded-md text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-500 dark:hover:text-gray-400"
           :aria-label="t('web.LABELS.dismiss')">
           <OIcon
             collection="heroicons"

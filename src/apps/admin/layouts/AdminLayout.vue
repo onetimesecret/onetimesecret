@@ -97,7 +97,9 @@
         </span>
         <!-- Default lock-up; hidden on hover. -->
         <span class="flex flex-col leading-none group-hover:hidden">
-          <span class="font-brand text-lg font-bold tracking-tight">{{ t('web.colonel.admin') }}</span>
+          <span class="font-brand text-lg font-bold tracking-tight">{{
+            t('web.colonel.admin')
+          }}</span>
           <span
             class="mt-1 font-brand text-[10px] font-semibold tracking-[0.2em] text-gray-400 uppercase dark:text-gray-500">
             {{ t('web.colonel.nav.consoleTag') }}

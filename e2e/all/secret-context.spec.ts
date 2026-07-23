@@ -86,7 +86,11 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
+        !error.includes('Non-Error promise rejection') &&
+        !error.includes('Script error') &&
+        !error.includes('WebSocket') &&
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(
@@ -146,7 +150,11 @@ test.describe('Secret Context - Actor Roles', () => {
     // Verify page loads without errors
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
+        !error.includes('Non-Error promise rejection') &&
+        !error.includes('Script error') &&
+        !error.includes('WebSocket') &&
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(
@@ -213,7 +221,11 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
+        !error.includes('Non-Error promise rejection') &&
+        !error.includes('Script error') &&
+        !error.includes('WebSocket') &&
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(
@@ -266,7 +278,11 @@ test.describe('Secret Context - Actor Roles', () => {
     // Verify no errors during passphrase handling
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
+        !error.includes('Non-Error promise rejection') &&
+        !error.includes('Script error') &&
+        !error.includes('WebSocket') &&
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(
@@ -319,7 +335,9 @@ test.describe('Secret Context - Actor Roles', () => {
     expect(bodyText).toBeTruthy();
 
     // Check for theme application (could verify CSS variables or computed styles)
-    const bodyStyle = await page.locator('body').evaluate((el) => window.getComputedStyle(el).backgroundColor);
+    const bodyStyle = await page
+      .locator('body')
+      .evaluate((el) => window.getComputedStyle(el).backgroundColor);
 
     expect(bodyStyle).toBeTruthy();
   });
@@ -367,7 +385,11 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
+        !error.includes('Non-Error promise rejection') &&
+        !error.includes('Script error') &&
+        !error.includes('WebSocket') &&
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(

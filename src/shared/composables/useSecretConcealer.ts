@@ -68,9 +68,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
    * Only includes passphrase field if user provided one - omitting the field
    * entirely signals "no passphrase protection" to the backend.
    */
-  const createPayload = (
-    type: SubmitType
-  ): ConcealPayload | GeneratePayload => {
+  const createPayload = (type: SubmitType): ConcealPayload | GeneratePayload => {
     const basePayload: Record<string, unknown> = {
       kind: type,
       secret: form.secret,

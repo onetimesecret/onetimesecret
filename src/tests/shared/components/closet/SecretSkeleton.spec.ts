@@ -14,8 +14,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
-const blocks = (wrapper: ReturnType<typeof mount>) =>
-  wrapper.findAll('[aria-hidden="true"]');
+const blocks = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('[aria-hidden="true"]');
 
 describe('SecretSkeleton', () => {
   it('keeps the bordered, padded container', () => {

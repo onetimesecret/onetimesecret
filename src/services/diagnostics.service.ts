@@ -37,7 +37,17 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/2964
  */
-const TAG_FIELDS = ['componentName', 'errorType', 'errorSeverity', 'schema', 'schemaField', 'service', 'jurisdiction', 'planid', 'role'] as const;
+const TAG_FIELDS = [
+  'componentName',
+  'errorType',
+  'errorSeverity',
+  'schema',
+  'schemaField',
+  'service',
+  'jurisdiction',
+  'planid',
+  'role',
+] as const;
 type _TagField = (typeof TAG_FIELDS)[number]; // Used for documentation; lookup via Set<string>
 const TAG_FIELDS_SET = new Set<string>(TAG_FIELDS);
 
@@ -107,10 +117,7 @@ export function isDiagnosticsEnabled(): boolean {
  * });
  * ```
  */
-export function captureException(
-  error: Error,
-  context?: Record<string, unknown>
-): void {
+export function captureException(error: Error, context?: Record<string, unknown>): void {
   if (diagnosticsClient) {
     const { client, scope: baseScope } = diagnosticsClient;
     const eventScope = baseScope.clone();
@@ -139,10 +146,7 @@ export function captureException(
  * Tag fields (errorType, schema, service, jurisdiction, planid, role) are
  * extracted and set via setTag() for Sentry indexing. Remaining fields use setExtras().
  */
-export function captureMessage(
-  message: string,
-  context?: Record<string, unknown>
-): void {
+export function captureMessage(message: string, context?: Record<string, unknown>): void {
   if (diagnosticsClient) {
     const { client, scope: baseScope } = diagnosticsClient;
     const eventScope = baseScope.clone();

@@ -2,49 +2,49 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { useFormSubmission } from '@/shared/composables/useFormSubmission';
-import { type Customer } from '@/schemas/shapes/v3';
-import { useCsrfStore } from '@/shared/stores/csrfStore';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { ref } from 'vue';
+  import { useFormSubmission } from '@/shared/composables/useFormSubmission';
+  import { type Customer } from '@/schemas/shapes/v3';
+  import { useCsrfStore } from '@/shared/stores/csrfStore';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { ref } from 'vue';
 
-const csrfStore = useCsrfStore();
-const { t } = useI18n();
+  const csrfStore = useCsrfStore();
+  const { t } = useI18n();
 
-interface Props {
-  apitoken?: string;
-  cust: Customer;
-}
+  interface Props {
+    apitoken?: string;
+    cust: Customer;
+  }
 
-defineProps<Props>();
-const emit = defineEmits(['delete:account']);
+  defineProps<Props>();
+  const emit = defineEmits(['delete:account']);
 
-const showDeleteModal = ref(false);
-const deletePassword = ref('');
+  const showDeleteModal = ref(false);
+  const deletePassword = ref('');
 
-const {
-  isSubmitting: isDeleting,
-  error: deleteError,
-  success: deleteSuccess,
-  submitForm: submitDeleteAccount
-} = useFormSubmission({
-  url: '/api/account/destroy',
-  successMessage: t('web.account.account_deleted_successfully'),
-  onSuccess: () => {
-    emit('delete:account');
+  const {
+    isSubmitting: isDeleting,
+    error: deleteError,
+    success: deleteSuccess,
+    submitForm: submitDeleteAccount,
+  } = useFormSubmission({
+    url: '/api/account/destroy',
+    successMessage: t('web.account.account_deleted_successfully'),
+    onSuccess: () => {
+      emit('delete:account');
+      showDeleteModal.value = false;
+      window.location.href = '/';
+    },
+  });
+
+  const openDeleteModal = () => {
+    showDeleteModal.value = true;
+  };
+
+  const closeDeleteModal = () => {
     showDeleteModal.value = false;
-    window.location.href = '/';
-  },
-});
-
-const openDeleteModal = () => {
-  showDeleteModal.value = true;
-};
-
-const closeDeleteModal = () => {
-  showDeleteModal.value = false;
-  deletePassword.value = '';
-};
+    deletePassword.value = '';
+  };
 </script>
 
 <template>
@@ -52,13 +52,23 @@ const closeDeleteModal = () => {
     {{ t('web.account.please_be_advised') }}
   </p>
   <ul class="mb-4 list-inside list-disc dark:text-gray-300">
-    <li><span class="font-bold">{{ t('web.account.secrets_will_remain_active_until_they_expire') }}</span></li>
     <li>
-      {{ t('web.account.any_secrets_you_wish_to_remove') }} <RouterLink
-        to="/recent"
-        class="underline hover:text-brand-600 dark:hover:text-brand-400">{{ t('web.account.burn_them_before_continuing') }}</RouterLink>.
+      <span class="font-bold">{{
+        t('web.account.secrets_will_remain_active_until_they_expire')
+      }}</span>
     </li>
-    <li>{{ t('web.account.deleting_your_account_is') }} <span class="italic">{{ t('web.account.permanent_and_non_reversible') }}</span></li>
+    <li>
+      {{ t('web.account.any_secrets_you_wish_to_remove') }}
+      <RouterLink
+        to="/recent"
+        class="underline hover:text-brand-600 dark:hover:text-brand-400"
+        >{{ t('web.account.burn_them_before_continuing') }}</RouterLink
+      >.
+    </li>
+    <li>
+      {{ t('web.account.deleting_your_account_is') }}
+      <span class="italic">{{ t('web.account.permanent_and_non_reversible') }}</span>
+    </li>
   </ul>
   <button
     @click="openDeleteModal"
@@ -108,7 +118,7 @@ const closeDeleteModal = () => {
             name="confirmation"
             type="password"
             data-testid="account-delete-password-input"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             autocomplete="confirmation"
             :placeholder="t('web.account.confirm_with_your_password')" />
         </div>
@@ -129,19 +139,19 @@ const closeDeleteModal = () => {
             @click="closeDeleteModal"
             type="button"
             data-testid="account-delete-cancel-btn"
-            class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+            class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 focus:ring-2 focus:ring-gray-400 focus:outline-none dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
             {{ t('web.COMMON.word_cancel') }}
           </button>
           <button
             type="submit"
             data-testid="account-delete-confirm-btn"
             :disabled="!deletePassword || isDeleting"
-            class="group flex items-center rounded-md bg-red-600 px-4 py-2 text-white transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800">
+            class="group flex items-center rounded-md bg-red-600 px-4 py-2 text-white transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800">
             <OIcon
               v-if="isDeleting"
               collection="heroicons"
               name="arrow-path"
-              class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none"
+              class="mr-3 -ml-1 size-5 animate-spin motion-reduce:animate-none"
               aria-hidden="true" />
             <!-- no-symbol: Reserved exclusively for destructive/irreversible actions -->
             <OIcon

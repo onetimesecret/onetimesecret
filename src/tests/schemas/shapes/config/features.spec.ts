@@ -55,9 +55,7 @@ describe('featuresRegionsShape — defaults', () => {
 
 describe('featuresRegions jurisdictions union (contract-side)', () => {
   it('accepts an array of structured jurisdictions', () => {
-    const value = [
-      { identifier: 'eu', display_name: 'Europe', domain: 'eu.example.com' },
-    ];
+    const value = [{ identifier: 'eu', display_name: 'Europe', domain: 'eu.example.com' }];
     expect(featuresRegionsSchema.parse({ jurisdictions: value }).jurisdictions).toEqual(value);
     expect(featuresRegionsShape.parse({ jurisdictions: value }).jurisdictions).toEqual(value);
   });

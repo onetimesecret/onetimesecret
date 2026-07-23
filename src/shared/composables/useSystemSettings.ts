@@ -244,7 +244,11 @@ export function useSystemSettings() {
         modifiedSections.value.delete(currentSection);
 
         saveSuccess.value = true;
-        notifications.show(t('web.colonel.sectionSaved', { section: sectionLabel }), 'success', 'top');
+        notifications.show(
+          t('web.colonel.sectionSaved', { section: sectionLabel }),
+          'success',
+          'top'
+        );
       } catch (error) {
         // The wrap function will handle notifications.show for errors
         throw error;

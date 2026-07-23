@@ -29,7 +29,9 @@
   const formHeadingId = computed(() => `form-heading-${props.secretIdentifier}`);
   const passphraseInputId = computed(() => `passphrase-${props.secretIdentifier}`);
   const passphraseHeadingId = computed(() => `passphrase-heading-${props.secretIdentifier}`);
-  const passphraseDescriptionId = computed(() => `passphrase-description-${props.secretIdentifier}`);
+  const passphraseDescriptionId = computed(
+    () => `passphrase-description-${props.secretIdentifier}`
+  );
 
   // Determine the primary status message based on record state
   const statusMessage = computed(() => {
@@ -151,7 +153,7 @@
         :disabled="isSubmitting"
         :class="[
           'w-full rounded-md bg-brand-500 px-6 py-3 text-2xl font-semibold text-white transition duration-150 ease-in-out',
-          'hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
+          'hover:bg-brand-600 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none',
           'disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-600 dark:focus:ring-brand-400',
         ]"
         data-testid="secret-reveal-submit">

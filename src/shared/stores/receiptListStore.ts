@@ -87,11 +87,7 @@ export const useReceiptListStore = defineStore('receiptList', () => {
 
     const response = await $api.get('/api/v3/receipt/recent', { params });
 
-    const result = gracefulParse(
-      responseSchemas.receiptList,
-      response.data,
-      'ReceiptListResponse'
-    );
+    const result = gracefulParse(responseSchemas.receiptList, response.data, 'ReceiptListResponse');
 
     if (!result.ok) {
       records.value = [];
@@ -123,9 +119,8 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     // Update the local record with the response from the API
     if (records.value && response.data?.record) {
       const updatedRecord = response.data.record;
-      const index = records.value.findIndex((r) =>
-        r.identifier === updatedRecord.identifier ||
-        r.key === updatedRecord.key
+      const index = records.value.findIndex(
+        (r) => r.identifier === updatedRecord.identifier || r.key === updatedRecord.key
       );
 
       if (index !== -1) {

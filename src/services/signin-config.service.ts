@@ -49,7 +49,11 @@ export const SigninConfigService = {
   async getConfigForDomain(domainExtId: string): Promise<SigninConfigResponse> {
     try {
       const response = await $api.get(`/api/domains/${domainExtId}/signin-config`);
-      const result = gracefulParse(getSigninConfigResponseSchema, response.data, 'GetSigninConfigResponse');
+      const result = gracefulParse(
+        getSigninConfigResponseSchema,
+        response.data,
+        'GetSigninConfigResponse'
+      );
       if (!result.ok) {
         return { record: null, details: null };
       }

@@ -19,13 +19,7 @@ import {
 } from '@/schemas/contracts/config/section/mail';
 import { augment } from '@/schemas/utils/augment';
 
-export {
-  emailerSchema,
-  mailSchema,
-  truemailSchema,
-  mailConnectionSchema,
-  mailValidationSchema,
-};
+export { emailerSchema, mailSchema, truemailSchema, mailConnectionSchema, mailValidationSchema };
 
 const emailerShape = augment(emailerSchema, {
   mode: (s) => s.default('smtp'),
@@ -84,10 +78,4 @@ const mailValidationShape = augment(mailValidationSchema, {
   },
 });
 
-export {
-  emailerShape,
-  mailShape,
-  truemailShape,
-  mailConnectionShape,
-  mailValidationShape,
-};
+export { emailerShape, mailShape, truemailShape, mailConnectionShape, mailValidationShape };

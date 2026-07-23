@@ -25,72 +25,158 @@ import { TLDS } from './tlds';
  */
 const MULTI_PART_SUFFIXES = new Set<string>([
   // United Kingdom
-  'co.uk', 'org.uk', 'gov.uk', 'ac.uk', 'me.uk', 'ltd.uk', 'plc.uk', 'net.uk', 'sch.uk',
+  'co.uk',
+  'org.uk',
+  'gov.uk',
+  'ac.uk',
+  'me.uk',
+  'ltd.uk',
+  'plc.uk',
+  'net.uk',
+  'sch.uk',
   // Australia
-  'com.au', 'net.au', 'org.au', 'edu.au', 'gov.au', 'id.au',
+  'com.au',
+  'net.au',
+  'org.au',
+  'edu.au',
+  'gov.au',
+  'id.au',
   // New Zealand
-  'co.nz', 'net.nz', 'org.nz', 'govt.nz', 'ac.nz', 'school.nz',
+  'co.nz',
+  'net.nz',
+  'org.nz',
+  'govt.nz',
+  'ac.nz',
+  'school.nz',
   // Japan
-  'co.jp', 'or.jp', 'ne.jp', 'go.jp', 'ac.jp',
+  'co.jp',
+  'or.jp',
+  'ne.jp',
+  'go.jp',
+  'ac.jp',
   // Brazil
-  'com.br', 'net.br', 'org.br', 'gov.br',
+  'com.br',
+  'net.br',
+  'org.br',
+  'gov.br',
   // South Africa
-  'co.za', 'org.za', 'net.za', 'gov.za',
+  'co.za',
+  'org.za',
+  'net.za',
+  'gov.za',
   // India
-  'co.in', 'net.in', 'org.in', 'gen.in', 'firm.in', 'ind.in', 'gov.in',
+  'co.in',
+  'net.in',
+  'org.in',
+  'gen.in',
+  'firm.in',
+  'ind.in',
+  'gov.in',
   // Mexico
-  'com.mx', 'org.mx', 'gob.mx',
+  'com.mx',
+  'org.mx',
+  'gob.mx',
   // Singapore
-  'com.sg', 'edu.sg', 'gov.sg', 'net.sg', 'org.sg',
+  'com.sg',
+  'edu.sg',
+  'gov.sg',
+  'net.sg',
+  'org.sg',
   // China
-  'com.cn', 'net.cn', 'org.cn', 'gov.cn',
+  'com.cn',
+  'net.cn',
+  'org.cn',
+  'gov.cn',
   // South Korea
-  'co.kr', 'or.kr', 'go.kr',
+  'co.kr',
+  'or.kr',
+  'go.kr',
   // Hong Kong
-  'com.hk', 'org.hk', 'edu.hk', 'gov.hk',
+  'com.hk',
+  'org.hk',
+  'edu.hk',
+  'gov.hk',
   // Taiwan
-  'com.tw', 'org.tw', 'gov.tw',
+  'com.tw',
+  'org.tw',
+  'gov.tw',
   // Israel
-  'co.il', 'org.il', 'gov.il', 'ac.il',
+  'co.il',
+  'org.il',
+  'gov.il',
+  'ac.il',
   // Turkey
-  'com.tr', 'org.tr', 'gov.tr',
+  'com.tr',
+  'org.tr',
+  'gov.tr',
   // Argentina
-  'com.ar', 'gob.ar', 'org.ar',
+  'com.ar',
+  'gob.ar',
+  'org.ar',
   // Indonesia
-  'co.id', 'or.id', 'go.id',
+  'co.id',
+  'or.id',
+  'go.id',
   // Malaysia
-  'com.my', 'org.my', 'gov.my',
+  'com.my',
+  'org.my',
+  'gov.my',
   // Philippines
-  'com.ph', 'org.ph', 'gov.ph',
+  'com.ph',
+  'org.ph',
+  'gov.ph',
   // Pakistan
-  'com.pk', 'org.pk', 'gov.pk',
+  'com.pk',
+  'org.pk',
+  'gov.pk',
   // Ukraine
-  'com.ua', 'co.ua',
+  'com.ua',
+  'co.ua',
   // Colombia
-  'com.co', 'net.co', 'org.co',
+  'com.co',
+  'net.co',
+  'org.co',
   // Nigeria
-  'com.ng', 'org.ng', 'gov.ng',
+  'com.ng',
+  'org.ng',
+  'gov.ng',
   // Saudi Arabia
-  'com.sa', 'org.sa', 'gov.sa',
+  'com.sa',
+  'org.sa',
+  'gov.sa',
   // Vietnam
-  'com.vn', 'net.vn', 'org.vn',
+  'com.vn',
+  'net.vn',
+  'org.vn',
   // Thailand
-  'co.th', 'in.th', 'or.th', 'go.th',
+  'co.th',
+  'in.th',
+  'or.th',
+  'go.th',
   // Kenya
-  'co.ke', 'or.ke', 'go.ke',
+  'co.ke',
+  'or.ke',
+  'go.ke',
   // Assorted Latin American commercial suffixes
-  'com.ec', 'com.pe', 'com.uy', 'com.ve', 'com.do', 'com.gt', 'com.py', 'com.bo',
+  'com.ec',
+  'com.pe',
+  'com.uy',
+  'com.ve',
+  'com.do',
+  'com.gt',
+  'com.py',
+  'com.bo',
 ]);
 
 export interface DomainAnalysis {
-  empty: boolean;        // trimmed input is empty
-  valid: boolean;        // a usable registrable domain OR a deeper hostname
-  apex: boolean;         // input is exactly the registrable domain (or www.<registrable>)
-  registrable: string;   // e.g. "acme.com" / "acme.co.uk"; '' when invalid
-  subdomain: string;     // labels left of registrable, e.g. "secrets"; '' for apex
-  full: string;          // cleaned input hostname
+  empty: boolean; // trimmed input is empty
+  valid: boolean; // a usable registrable domain OR a deeper hostname
+  apex: boolean; // input is exactly the registrable domain (or www.<registrable>)
+  registrable: string; // e.g. "acme.com" / "acme.co.uk"; '' when invalid
+  subdomain: string; // labels left of registrable, e.g. "secrets"; '' for apex
+  full: string; // cleaned input hostname
   reason: null | 'malformed' | 'suffix';
-  tld: string;           // public suffix, e.g. "com" / "co.uk"; '' when unknown
+  tld: string; // public suffix, e.g. "com" / "co.uk"; '' when unknown
 }
 
 /**
@@ -109,16 +195,28 @@ function clean(raw: string): string {
 /** Result for an empty (blank/whitespace-only) input. */
 function emptyResult(): DomainAnalysis {
   return {
-    empty: true, valid: false, apex: false,
-    registrable: '', subdomain: '', full: '', reason: null, tld: '',
+    empty: true,
+    valid: false,
+    apex: false,
+    registrable: '',
+    subdomain: '',
+    full: '',
+    reason: null,
+    tld: '',
   };
 }
 
 /** Result for a non-empty input we cannot use, tagged with why. */
 function invalidResult(full: string, reason: 'malformed' | 'suffix', tld = ''): DomainAnalysis {
   return {
-    empty: false, valid: false, apex: false,
-    registrable: '', subdomain: '', full, reason, tld,
+    empty: false,
+    valid: false,
+    apex: false,
+    registrable: '',
+    subdomain: '',
+    full,
+    reason,
+    tld,
   };
 }
 

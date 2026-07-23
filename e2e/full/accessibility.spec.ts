@@ -102,10 +102,7 @@ for (const theme of THEMES) {
 
         const baseline = loadBaseline(FULL_BASELINE_PATH);
         const cmp = compareToBaseline(violations, baseline);
-        expect(
-          cmp.regressions,
-          formatFailure(cmp, 'pnpm test:a11y:full:update')
-        ).toHaveLength(0);
+        expect(cmp.regressions, formatFailure(cmp, 'pnpm test:a11y:full:update')).toHaveLength(0);
       });
     }
   });

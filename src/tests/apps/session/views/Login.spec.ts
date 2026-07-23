@@ -47,7 +47,14 @@ vi.mock('@/apps/session/components/AuthView.vue', () => ({
       <slot name="footer" />
       <slot />
     </div>`,
-    props: ['heading', 'headingId', 'withSubheading', 'hideIcon', 'hideBackgroundIcon', 'showReturnHome'],
+    props: [
+      'heading',
+      'headingId',
+      'withSubheading',
+      'hideIcon',
+      'hideBackgroundIcon',
+      'showReturnHome',
+    ],
   }),
 }));
 

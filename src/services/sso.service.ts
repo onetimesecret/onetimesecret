@@ -90,7 +90,11 @@ export const SsoService = {
   async getConfigForDomain(domainExtId: string): Promise<SsoConfigResponse> {
     try {
       const response = await $api.get(`/api/domains/${domainExtId}/sso`);
-      const result = gracefulParse(getSsoConfigResponseSchema, response.data, 'GetSsoConfigResponse');
+      const result = gracefulParse(
+        getSsoConfigResponseSchema,
+        response.data,
+        'GetSsoConfigResponse'
+      );
       if (!result.ok) {
         // Degrade gracefully on parse failure - treat as missing config
         return { record: null };
@@ -160,7 +164,8 @@ export const SsoService = {
     domainExtId: string,
     payload: PutSsoConfigRequest | PatchSsoConfigRequest
   ): Promise<SsoConfigResponse> {
-    const hasClientSecret = 'client_secret' in payload && payload.client_secret && payload.client_secret.length > 0;
+    const hasClientSecret =
+      'client_secret' in payload && payload.client_secret && payload.client_secret.length > 0;
 
     if (hasClientSecret) {
       return this.putConfigForDomain(domainExtId, payload as PutSsoConfigRequest);

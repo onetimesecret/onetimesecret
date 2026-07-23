@@ -1,18 +1,17 @@
 <!-- src/apps/secret/components/SecretLinkLine.vue -->
 
 <script setup lang="ts">
-import { ref } from 'vue';
+  import { ref } from 'vue';
 
-const isCopied = ref(false);
-const displayLink = ref('https://link');
-const handleCopy = () => {
-  navigator.clipboard.writeText(displayLink.value);
-  isCopied.value = true;
-  setTimeout(() => {
-    isCopied.value = false;
-  }, 2000);
-};
-
+  const isCopied = ref(false);
+  const displayLink = ref('https://link');
+  const handleCopy = () => {
+    navigator.clipboard.writeText(displayLink.value);
+    isCopied.value = true;
+    setTimeout(() => {
+      isCopied.value = false;
+    }, 2000);
+  };
 </script>
 
 <template>
@@ -33,7 +32,7 @@ const handleCopy = () => {
         class="absolute inset-y-0 right-0 rounded-r-md border-l border-gray-200 bg-gray-100 p-2 px-3 transition-all hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
         :class="
           isCopied
-            ? 'bg-emerald-50 dark:bg-emerald-800/30 text-emerald-600 dark:text-emerald-400'
+            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-800/30 dark:text-emerald-400'
             : ''
         ">
         <OIcon

@@ -16,8 +16,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
-const blocks = (wrapper: ReturnType<typeof mount>) =>
-  wrapper.findAll('[aria-hidden="true"]');
+const blocks = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('[aria-hidden="true"]');
 
 describe('ListSkeleton', () => {
   it('exposes a busy status region with an sr-only loading label', () => {
@@ -63,9 +62,7 @@ describe('ListSkeleton', () => {
     const wrapper = mount(ListSkeleton, {
       props: { count: 1, icon: true, iconSize: 'w-10', iconRounded: 'rounded-full' },
     });
-    const iconBlock = blocks(wrapper).find(
-      (b) => b.classes().includes('rounded-full')
-    );
+    const iconBlock = blocks(wrapper).find((b) => b.classes().includes('rounded-full'));
     expect(iconBlock).toBeTruthy();
     // iconSize sizes both axes (w-10 → h-10) so the primitive's w-full/h-4
     // defaults do not leak onto the square block.

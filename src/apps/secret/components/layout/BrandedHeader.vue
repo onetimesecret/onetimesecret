@@ -48,7 +48,7 @@
     class="bg-white dark:bg-gray-900">
     <div
       v-if="displayMasthead"
-      class="container mx-auto min-w-[320px] max-w-2xl p-4">
+      class="container mx-auto max-w-2xl min-w-[320px] p-4">
       <BrandedMasthead
         v-if="productIdentity.isCustom"
         :headertext="headertext"

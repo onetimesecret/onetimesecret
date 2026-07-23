@@ -45,7 +45,9 @@ interface MountedLayout {
   store: ReturnType<typeof useBootstrapStore>;
 }
 
-async function mountLayout(initial: Parameters<ReturnType<typeof useBootstrapStore>['update']>[0]): Promise<MountedLayout> {
+async function mountLayout(
+  initial: Parameters<ReturnType<typeof useBootstrapStore>['update']>[0]
+): Promise<MountedLayout> {
   await setupTestPinia();
   const store = useBootstrapStore();
   // Hydrate from the authenticated baseline, then layer the test's overrides

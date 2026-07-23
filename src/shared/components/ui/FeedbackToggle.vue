@@ -32,23 +32,15 @@
   <div class="relative">
     <button
       @click="toggleFeedbackModal"
-      class="group inline-flex flex-nowrap items-center whitespace-nowrap rounded-md
-                 bg-gray-200 px-3
-                 py-1.5 text-sm
-                 font-medium text-gray-700
-                 transition-colors hover:bg-gray-300
-                 hover:text-gray-900 focus:outline-none focus:ring-2
-                 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white
-                 dark:bg-gray-600 dark:text-gray-300
-                 dark:ring-offset-gray-900 dark:hover:bg-gray-500 dark:hover:text-gray-100 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900 sm:space-x-2"
+      class="group inline-flex flex-nowrap items-center rounded-md bg-gray-200 px-3 py-1.5 text-sm font-medium whitespace-nowrap text-gray-700 transition-colors hover:bg-gray-300 hover:text-gray-900 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white focus:outline-none sm:space-x-2 dark:bg-gray-600 dark:text-gray-300 dark:ring-offset-gray-900 dark:hover:bg-gray-500 dark:hover:text-gray-100 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
       :aria-label="t('web.feedback.open_feedback_form')">
       <span
         v-if="!iconOnly"
-        class="hidden sm:inline sm:pl-1">{{ t('web.feedback.send_feedback') }}</span>
+        class="hidden sm:inline sm:pl-1"
+        >{{ t('web.feedback.send_feedback') }}</span
+      >
       <OIcon
-        class="size-5 text-gray-500 transition-colors
-             group-hover:text-brand-500 dark:text-gray-400
-             dark:group-hover:text-brand-400"
+        class="size-5 text-gray-500 transition-colors group-hover:text-brand-500 dark:text-gray-400 dark:group-hover:text-brand-400"
         collection="heroicons"
         name="chat-bubble-bottom-center-text" />
     </button>

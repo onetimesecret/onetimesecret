@@ -1,10 +1,6 @@
 // src/tests/utils/redirect.spec.ts
 
-import {
-  isAllowedCheckoutUrl,
-  setAllowedCheckoutHost,
-  validateRedirect,
-} from '@/utils/redirect';
+import { isAllowedCheckoutUrl, setAllowedCheckoutHost, validateRedirect } from '@/utils/redirect';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 describe('validateRedirect', () => {
@@ -178,9 +174,7 @@ describe('validateRedirect', () => {
     it('should handle mixed route properties according to vue-router types', () => {
       // Vue Router allows multiple properties in route objects
       expect(validateRedirect({ name: 'Home', path: '/dashboard' })).toBe(true);
-      expect(validateRedirect({ name: 'Profile', url: 'https://example.com' })).toBe(
-        true
-      );
+      expect(validateRedirect({ name: 'Profile', url: 'https://example.com' })).toBe(true);
       // Invalid properties should still fail
       expect(validateRedirect({ path: '/profile', query: '<script>' })).toBe(true);
     });
@@ -225,15 +219,11 @@ describe('isAllowedCheckoutUrl', () => {
 
   describe('when no custom checkout host is configured', () => {
     it('rejects the Stripe custom-domain host (not hardcoded)', () => {
-      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs_test_123')).toBe(
-        false
-      );
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs_test_123')).toBe(false);
     });
 
     it('still allows the shared Stripe host and the app origin', () => {
-      expect(isAllowedCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(
-        true
-      );
+      expect(isAllowedCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(true);
       expect(isAllowedCheckoutUrl('https://onetimesecret.com/billing/welcome')).toBe(true);
     });
   });
@@ -244,22 +234,16 @@ describe('isAllowedCheckoutUrl', () => {
     });
 
     it('allows the configured Stripe custom-domain Checkout host', () => {
-      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs_test_123')).toBe(
-        true
-      );
+      expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs_test_123')).toBe(true);
     });
 
     it('still allows the static baseline and same-origin', () => {
-      expect(isAllowedCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(
-        true
-      );
+      expect(isAllowedCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(true);
       expect(isAllowedCheckoutUrl('https://onetimesecret.com/billing/welcome')).toBe(true);
     });
 
     it('still rejects lookalike siblings of the configured host', () => {
-      expect(isAllowedCheckoutUrl('https://not-pay.onetimesecret.com.evil.com/')).toBe(
-        false
-      );
+      expect(isAllowedCheckoutUrl('https://not-pay.onetimesecret.com.evil.com/')).toBe(false);
       expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com.evil.com/')).toBe(false);
       expect(isAllowedCheckoutUrl('https://checkout.stripe.com.evil.com/')).toBe(false);
     });

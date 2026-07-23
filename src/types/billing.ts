@@ -108,15 +108,12 @@ export function getPlanLabel(planType: PlanType | string): string {
 
 export function getSubscriptionStatusLabel(
   status: SubscriptionStatus,
-  t: ComposerTranslation,
+  t: ComposerTranslation
 ): string {
   return t(`web.billing.subscription.${status}`);
 }
 
-export function getInvoiceStatusLabel(
-  status: InvoiceStatus,
-  t: ComposerTranslation,
-): string {
+export function getInvoiceStatusLabel(status: InvoiceStatus, t: ComposerTranslation): string {
   return t(`web.billing.invoices.${status}`);
 }
 

@@ -310,12 +310,14 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
           type: 'apiKey',
           in: 'cookie',
           name: 'rack.session',
-          description: 'Session-based authentication via browser cookies. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
+          description:
+            'Session-based authentication via browser cookies. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
         },
         basicAuth: {
           type: 'http',
           scheme: 'basic',
-          description: 'HTTP Basic authentication with username (email) and API token. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
+          description:
+            'HTTP Basic authentication with username (email) and API token. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
         },
       },
       schemas: {},
@@ -503,13 +505,20 @@ function buildResponses(
   errorCodes.push(404);
 
   // Include 429 for rate-limited endpoints (secret creation, feedback, passphrase-protected reveals)
-  const RATE_LIMITED_HANDLERS = ['ConcealSecret', 'GenerateSecret', 'ReceiveFeedback', 'ShowSecret', 'RevealSecret'];
+  const RATE_LIMITED_HANDLERS = [
+    'ConcealSecret',
+    'GenerateSecret',
+    'ReceiveFeedback',
+    'ShowSecret',
+    'RevealSecret',
+  ];
   const RATE_LIMITED_V1_METHODS = ['share', 'generate', 'create', 'show_secret'];
   const handlerLeaf = getHandlerLeaf(handler);
   const v1Method = handler.includes('#') ? handler.split('#').pop() : undefined;
   if (
     route.method === 'POST' &&
-    (RATE_LIMITED_HANDLERS.includes(handlerLeaf) || (v1Method && RATE_LIMITED_V1_METHODS.includes(v1Method)))
+    (RATE_LIMITED_HANDLERS.includes(handlerLeaf) ||
+      (v1Method && RATE_LIMITED_V1_METHODS.includes(v1Method)))
   ) {
     errorCodes.push(429);
   }
@@ -577,7 +586,14 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
   // Emit custom route params as x-o-route-* extensions.
   // Reserved params (consumed by the generator for structural purposes)
   // are excluded — only domain-specific annotations pass through.
-  const RESERVED_PARAMS = new Set(['response', 'auth', 'content', 'csrf', 'deprecated', 'sensitive']);
+  const RESERVED_PARAMS = new Set([
+    'response',
+    'auth',
+    'content',
+    'csrf',
+    'deprecated',
+    'sensitive',
+  ]);
   for (const [key, value] of Object.entries(route.params)) {
     if (RESERVED_PARAMS.has(key)) continue;
     operation[`x-otto-route-${key}`] = value;
@@ -586,9 +602,7 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
   // Emit sensitive param as x-sensitive extension for downstream consumers
   const sensitiveSpec = parseSensitiveSpec(route.params.sensitive);
   if (sensitiveSpec !== null) {
-    operation['x-sensitive'] = sensitiveSpec === true
-      ? true
-      : Array.from(sensitiveSpec);
+    operation['x-sensitive'] = sensitiveSpec === true ? true : Array.from(sensitiveSpec);
   }
 
   // Add security

@@ -65,7 +65,10 @@ function detectConvention(segment: string): KeyConvention['convention'] {
   }
 
   // Check for mixed (has both _ and - or uppercase with separators)
-  if ((segment.includes('_') && segment.includes('-')) || (/[A-Z]/.test(segment) && /[-_]/.test(segment))) {
+  if (
+    (segment.includes('_') && segment.includes('-')) ||
+    (/[A-Z]/.test(segment) && /[-_]/.test(segment))
+  ) {
     return 'mixed';
   }
 
@@ -219,7 +222,10 @@ Naming Convention Distribution:
       console.info(`
 Unique kebab-case keys: ${uniqueKeys.length}
 Sample patterns:
-${uniqueKeys.slice(0, 20).map((k) => `  - ${k}`).join('\n')}
+${uniqueKeys
+  .slice(0, 20)
+  .map((k) => `  - ${k}`)
+  .join('\n')}
       `);
 
       expect(uniqueKeys.length).toBeGreaterThanOrEqual(0);
@@ -255,7 +261,10 @@ ${uniqueKeys.slice(0, 20).map((k) => `  - ${k}`).join('\n')}
       if (mixedKeys.length > 0) {
         console.warn(`
 Found ${mixedKeys.length} mixed convention keys that need review:
-${[...new Set(mixedKeys.map((k) => k.key))].slice(0, 20).map((k) => `  - ${k}`).join('\n')}
+${[...new Set(mixedKeys.map((k) => k.key))]
+  .slice(0, 20)
+  .map((k) => `  - ${k}`)
+  .join('\n')}
         `);
       }
 
@@ -270,9 +279,8 @@ ${[...new Set(mixedKeys.map((k) => k.key))].slice(0, 20).map((k) => `  - ${k}`).
         ['kebab-case', 'camelCase', 'mixed'].includes(k.convention)
       );
 
-      const compliance = conventionAnalysis.length > 0
-        ? (snakeKeys.length / conventionAnalysis.length) * 100
-        : 100;
+      const compliance =
+        conventionAnalysis.length > 0 ? (snakeKeys.length / conventionAnalysis.length) * 100 : 100;
 
       console.info(`
 Target Convention Compliance (${TARGET_CONVENTION}):
@@ -330,7 +338,10 @@ Migration Effort Summary:
 
       console.info(`
 Common kebab-case segments (${sorted.length} unique):
-${sorted.slice(0, 30).map((s) => `  "${s}" -> "${s.replace(/-/g, '_')}"`).join('\n')}
+${sorted
+  .slice(0, 30)
+  .map((s) => `  "${s}" -> "${s.replace(/-/g, '_')}"`)
+  .join('\n')}
 ${sorted.length > 30 ? `  ... and ${sorted.length - 30} more` : ''}
       `);
 
@@ -355,7 +366,10 @@ ${sorted.length > 30 ? `  ... and ${sorted.length - 30} more` : ''}
 
       console.info(`
 Common camelCase segments (${sorted.length} unique):
-${sorted.slice(0, 30).map((s) => `  "${s}" -> "${toSnakeCase(s)}"`).join('\n')}
+${sorted
+  .slice(0, 30)
+  .map((s) => `  "${s}" -> "${toSnakeCase(s)}"`)
+  .join('\n')}
 ${sorted.length > 30 ? `  ... and ${sorted.length - 30} more` : ''}
       `);
 

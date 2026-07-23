@@ -72,7 +72,7 @@ function parseRouteLine(line: string, lineNumber: number): OttoRoute | null {
     handler,
     params,
     raw: line,
-    lineNumber
+    lineNumber,
   };
 }
 
@@ -94,7 +94,7 @@ export function parseRoutesFile(filePath: string): ParsedRoutes {
 
   return {
     routes,
-    filePath
+    filePath,
   };
 }
 
@@ -128,32 +128,30 @@ export function getAuthRequirements(route: OttoRoute): {
   }
 
   // Parse comma-separated auth schemes: auth=sessionauth,basicauth
-  const schemes = auth.split(',').map(s => s.trim());
+  const schemes = auth.split(',').map((s) => s.trim());
 
   // Normalize V1-era auth tokens to V2+ canonical names.
   // V1 routes use openapi_auth=basic,anonymous; V2+ use auth=basicauth,noauth.
   const schemeMap: Record<string, string> = {
-    'basic': 'basicauth',
-    'anonymous': 'noauth',
+    basic: 'basicauth',
+    anonymous: 'noauth',
   };
 
   // Check for role requirement in auth param: auth=role:colonel
   // or as separate param: role=colonel
-  const roleScheme = schemes.find(s => s.startsWith('role:'));
+  const roleScheme = schemes.find((s) => s.startsWith('role:'));
   const role = roleScheme ? roleScheme.split(':')[1] : route.params.role;
 
   // Filter out role from schemes, normalize V1 tokens
-  const authSchemes = schemes
-    .filter(s => !s.startsWith('role:'))
-    .map(s => schemeMap[s] ?? s);
+  const authSchemes = schemes.filter((s) => !s.startsWith('role:')).map((s) => schemeMap[s] ?? s);
 
   // An endpoint with only 'noauth' is fully public
-  const realAuthSchemes = authSchemes.filter(s => s !== 'noauth');
+  const realAuthSchemes = authSchemes.filter((s) => s !== 'noauth');
 
   return {
     required: realAuthSchemes.length > 0,
     schemes: authSchemes,
-    role
+    role,
   };
 }
 
@@ -215,7 +213,7 @@ export function groupRoutesByTag(routes: OttoRoute[]): Map<string, OttoRoute[]> 
 
   for (const route of routes) {
     // Extract first path segment as tag
-    const pathParts = route.path.split('/').filter(p => p);
+    const pathParts = route.path.split('/').filter((p) => p);
     const tag = pathParts[0] || 'default';
 
     if (!groups.has(tag)) {
@@ -239,9 +237,9 @@ export function discoverApiNames(): string[] {
 
     // Filter for directories that contain a 'routes.txt' file
     const apiNames = entries
-      .filter(entry => entry.isDirectory())
-      .map(entry => entry.name)
-      .filter(name => {
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .filter((name) => {
         const routesPath = join(apiDir, name, 'routes.txt');
         return existsSync(routesPath);
       });
@@ -250,7 +248,17 @@ export function discoverApiNames(): string[] {
   } catch (error) {
     console.warn('Warning: Could not discover API names, using fallback list:', error);
     // Fallback to known APIs if discovery fails
-    return ['account', 'colonel', 'domains', 'incoming', 'invite', 'organizations', 'v1', 'v2', 'v3'];
+    return [
+      'account',
+      'colonel',
+      'domains',
+      'incoming',
+      'invite',
+      'organizations',
+      'v1',
+      'v2',
+      'v3',
+    ];
   }
 }
 

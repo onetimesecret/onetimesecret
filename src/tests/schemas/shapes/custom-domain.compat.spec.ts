@@ -367,7 +367,10 @@ describe('Null Field Handling Compatibility', () => {
 
   describe('null status field handling', () => {
     it('V3 schema accepts null status and preserves null', () => {
-      const wire = createV3WireCustomDomain(createCanonicalCustomDomain()) as Record<string, unknown>;
+      const wire = createV3WireCustomDomain(createCanonicalCustomDomain()) as Record<
+        string,
+        unknown
+      >;
       wire.status = null;
 
       const result = v3CustomDomainSchema.safeParse(wire);
@@ -375,9 +378,7 @@ describe('Null Field Handling Compatibility', () => {
       // The status field itself is nullable; if parse fails, check that
       // status:null is not the cause (other missing fields like resolving may be)
       if (!result.success) {
-        const statusErrors = result.error.issues.filter(
-          (i) => i.path.includes('status')
-        );
+        const statusErrors = result.error.issues.filter((i) => i.path.includes('status'));
         // No validation errors should be about the status field
         expect(statusErrors).toHaveLength(0);
       } else {
@@ -386,16 +387,17 @@ describe('Null Field Handling Compatibility', () => {
     });
 
     it('V3 schema defaults status to pending when field is omitted', () => {
-      const wire = createV3WireCustomDomain(createCanonicalCustomDomain()) as Record<string, unknown>;
+      const wire = createV3WireCustomDomain(createCanonicalCustomDomain()) as Record<
+        string,
+        unknown
+      >;
       // Ensure status is absent
       delete wire.status;
 
       const result = v3CustomDomainSchema.safeParse(wire);
 
       if (!result.success) {
-        const statusErrors = result.error.issues.filter(
-          (i) => i.path.includes('status')
-        );
+        const statusErrors = result.error.issues.filter((i) => i.path.includes('status'));
         // No validation errors should be about the status field
         expect(statusErrors).toHaveLength(0);
       } else {
@@ -518,14 +520,10 @@ describe('Compatibility Summary', () => {
     const notes = {
       'domain parsing fields':
         'tld, sld, trd, subdomain, base_domain are parsed from display_domain via PublicSuffix',
-      'is_apex semantics':
-        'true when subdomain is null (apex domain like example.com)',
-      'nested objects':
-        'vhost and brand are nullable and have their own type transforms',
-      'vhost timestamps':
-        'created_at, last_monitored_unix, ssl_active_from/until are dates',
-      'brand booleans':
-        'button_text_light, passphrase_required, notify_enabled',
+      'is_apex semantics': 'true when subdomain is null (apex domain like example.com)',
+      'nested objects': 'vhost and brand are nullable and have their own type transforms',
+      'vhost timestamps': 'created_at, last_monitored_unix, ssl_active_from/until are dates',
+      'brand booleans': 'button_text_light, passphrase_required, notify_enabled',
       'DNS validation':
         'txt_validation_host and txt_validation_value for domain ownership verification',
     };

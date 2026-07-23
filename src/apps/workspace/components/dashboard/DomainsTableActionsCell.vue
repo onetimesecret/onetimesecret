@@ -4,13 +4,13 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import MinimalDropdownMenu from '@/shared/components/ui/MinimalDropdownMenu.vue';
-  import { CustomDomain } from '@/schemas/shapes/v3'
+  import { CustomDomain } from '@/schemas/shapes/v3';
   import { MenuItem } from '@headlessui/vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
   import { isApproximatedDomainValidation } from '@/utils/features';
   import { computed, toRef } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   interface Props {
     domain: CustomDomain;
@@ -68,18 +68,26 @@ const { t } = useI18n();
    */
   const dnsMenuItem = computed(() =>
     showVerificationStatus.value
-      ? { route: { name: 'DomainVerify', params: { orgid: props.orgid, extid: props.domain.extid } }, label: t('web.domains.verify_domain') }
-      : { route: { name: 'DomainDns', params: { orgid: props.orgid, extid: props.domain.extid } }, label: t('web.domains.detail.dns_title') }
+      ? {
+          route: {
+            name: 'DomainVerify',
+            params: { orgid: props.orgid, extid: props.domain.extid },
+          },
+          label: t('web.domains.verify_domain'),
+        }
+      : {
+          route: { name: 'DomainDns', params: { orgid: props.orgid, extid: props.domain.extid } },
+          label: t('web.domains.detail.dns_title'),
+        }
   );
 
   const emit = defineEmits<{
-    (e: 'delete', domain: string): void
+    (e: 'delete', domain: string): void;
   }>();
 
   const handleDelete = (domain: string) => {
     emit('delete', domain);
   };
-
 </script>
 
 <template>
@@ -99,100 +107,123 @@ const { t } = useI18n();
 
     <!-- Kebab menu for all actions -->
     <MinimalDropdownMenu>
-    <template #menu-items>
-      <div class="py-1">
-        <MenuItem v-if="canBrand" v-slot="{ active }">
-          <router-link
-            :to="{
-              name: 'DomainBrand',
-              params: { orgid: props.orgid, extid: domain.extid },
-            }"
-            :class="[
-              active
-                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-            ]">
-            {{ t('web.domains.manage_brand') }}
-          </router-link>
-        </MenuItem>
-        <MenuItem v-slot="{ active }">
-          <router-link
-            :to="dnsMenuItem.route"
-            :class="[
-              active
-                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-            ]">
-            {{ dnsMenuItem.label }}
-          </router-link>
-        </MenuItem>
-        <MenuItem v-if="canManageSso"
-:disabled="!canAdmin"
-v-slot="{ active }">
-          <router-link
-            :to="canAdmin ? { name: 'DomainSignin', params: { orgid: props.orgid, extid: domain.extid }, query: { modal: 'sso' } } : ''"
-            :class="[
-              active && canAdmin
-                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-              !canAdmin ? disabledItemClass : '',
-            ]"
-            @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
-            {{ t('web.domains.sso.configure_sso') }}
-          </router-link>
-        </MenuItem>
-        <MenuItem v-if="canEmailConfig"
-:disabled="!canAdmin"
-v-slot="{ active }">
-          <router-link
-            :to="canAdmin ? { name: 'DomainEmail', params: { orgid: props.orgid, extid: domain.extid } } : ''"
-            :class="[
-              active && canAdmin
-                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-              !canAdmin ? disabledItemClass : '',
-            ]"
-            @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
-            {{ t('web.domains.email.configure_email') }}
-          </router-link>
-        </MenuItem>
-        <MenuItem v-if="canIncomingSecrets"
-:disabled="!canAdmin"
-v-slot="{ active }">
-          <router-link
-            :to="canAdmin ? { name: 'DomainIncoming', params: { orgid: props.orgid, extid: domain.extid } } : ''"
-            :class="[
-              active && canAdmin
-                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-              !canAdmin ? disabledItemClass : '',
-            ]"
-            @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
-            {{ t('web.domains.incoming.configure_incoming') }}
-          </router-link>
-        </MenuItem>
-        <MenuItem v-if="canAdmin" v-slot="{ active }">
-          <button
-            @click="handleDelete(domain.extid)"
-            :class="[
-              active ? 'bg-gray-100 dark:bg-gray-800' : '',
-              'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500',
-            ]">
-            <OIcon
-              collection="heroicons"
-              name="trash-20-solid"
-              class="mr-2 size-4"
-              aria-hidden="true" />
-            {{ t('web.COMMON.remove') }}
-          </button>
-        </MenuItem>
-      </div>
-    </template>
-  </MinimalDropdownMenu>
+      <template #menu-items>
+        <div class="py-1">
+          <MenuItem
+            v-if="canBrand"
+            v-slot="{ active }">
+            <router-link
+              :to="{
+                name: 'DomainBrand',
+                params: { orgid: props.orgid, extid: domain.extid },
+              }"
+              :class="[
+                active
+                  ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-200',
+                'block px-4 py-2 text-sm transition-colors duration-200 focus:ring-2 focus:ring-brand-500 focus:outline-none focus:ring-inset',
+              ]">
+              {{ t('web.domains.manage_brand') }}
+            </router-link>
+          </MenuItem>
+          <MenuItem v-slot="{ active }">
+            <router-link
+              :to="dnsMenuItem.route"
+              :class="[
+                active
+                  ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-200',
+                'block px-4 py-2 text-sm transition-colors duration-200 focus:ring-2 focus:ring-brand-500 focus:outline-none focus:ring-inset',
+              ]">
+              {{ dnsMenuItem.label }}
+            </router-link>
+          </MenuItem>
+          <MenuItem
+            v-if="canManageSso"
+            :disabled="!canAdmin"
+            v-slot="{ active }">
+            <router-link
+              :to="
+                canAdmin
+                  ? {
+                      name: 'DomainSignin',
+                      params: { orgid: props.orgid, extid: domain.extid },
+                      query: { modal: 'sso' },
+                    }
+                  : ''
+              "
+              :class="[
+                active && canAdmin
+                  ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-200',
+                'block px-4 py-2 text-sm transition-colors duration-200 focus:ring-2 focus:ring-brand-500 focus:outline-none focus:ring-inset',
+                !canAdmin ? disabledItemClass : '',
+              ]"
+              @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
+              {{ t('web.domains.sso.configure_sso') }}
+            </router-link>
+          </MenuItem>
+          <MenuItem
+            v-if="canEmailConfig"
+            :disabled="!canAdmin"
+            v-slot="{ active }">
+            <router-link
+              :to="
+                canAdmin
+                  ? { name: 'DomainEmail', params: { orgid: props.orgid, extid: domain.extid } }
+                  : ''
+              "
+              :class="[
+                active && canAdmin
+                  ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-200',
+                'block px-4 py-2 text-sm transition-colors duration-200 focus:ring-2 focus:ring-brand-500 focus:outline-none focus:ring-inset',
+                !canAdmin ? disabledItemClass : '',
+              ]"
+              @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
+              {{ t('web.domains.email.configure_email') }}
+            </router-link>
+          </MenuItem>
+          <MenuItem
+            v-if="canIncomingSecrets"
+            :disabled="!canAdmin"
+            v-slot="{ active }">
+            <router-link
+              :to="
+                canAdmin
+                  ? { name: 'DomainIncoming', params: { orgid: props.orgid, extid: domain.extid } }
+                  : ''
+              "
+              :class="[
+                active && canAdmin
+                  ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-200',
+                'block px-4 py-2 text-sm transition-colors duration-200 focus:ring-2 focus:ring-brand-500 focus:outline-none focus:ring-inset',
+                !canAdmin ? disabledItemClass : '',
+              ]"
+              @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
+              {{ t('web.domains.incoming.configure_incoming') }}
+            </router-link>
+          </MenuItem>
+          <MenuItem
+            v-if="canAdmin"
+            v-slot="{ active }">
+            <button
+              @click="handleDelete(domain.extid)"
+              :class="[
+                active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none focus:ring-inset dark:text-red-400 dark:hover:text-red-300',
+              ]">
+              <OIcon
+                collection="heroicons"
+                name="trash-20-solid"
+                class="mr-2 size-4"
+                aria-hidden="true" />
+              {{ t('web.COMMON.remove') }}
+            </button>
+          </MenuItem>
+        </div>
+      </template>
+    </MinimalDropdownMenu>
   </div>
 </template>

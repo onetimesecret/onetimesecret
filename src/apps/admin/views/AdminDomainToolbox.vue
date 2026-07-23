@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminDomainToolbox.vue -->
 
 <script setup lang="ts">
-
   import {
     AdminConfirmDialog,
     DataTable,
@@ -62,9 +61,17 @@
   const orphanColumns = computed<DataTableColumn<ColonelOrphanedDomain>[]>(() => [
     { key: 'display_domain', label: t('web.admin.domaintoolbox.orphaned.columns.domain') },
     { key: 'verification_state', label: t('web.admin.domaintoolbox.orphaned.columns.state') },
-    { key: 'verified', label: t('web.admin.domaintoolbox.orphaned.columns.verified'), align: 'center' },
+    {
+      key: 'verified',
+      label: t('web.admin.domaintoolbox.orphaned.columns.verified'),
+      align: 'center',
+    },
     { key: 'created', label: t('web.admin.domaintoolbox.orphaned.columns.created') },
-    { key: 'actions', label: t('web.admin.domaintoolbox.orphaned.columns.actions'), align: 'right' },
+    {
+      key: 'actions',
+      label: t('web.admin.domaintoolbox.orphaned.columns.actions'),
+      align: 'right',
+    },
   ]);
 
   async function fetchOrphaned(targetPage = 1): Promise<void> {
@@ -97,9 +104,7 @@
     reset: resetProbe,
   } = useAdminMutation(async (extid: string) => {
     probeDetails.value = null;
-    const response = await $api.get(
-      `/api/colonel/domains/${encodeURIComponent(extid)}/probe`
-    );
+    const response = await $api.get(`/api/colonel/domains/${encodeURIComponent(extid)}/probe`);
     const parsed = gracefulParse(
       colonelDomainProbeResponseSchema,
       response.data,
@@ -138,14 +143,8 @@
     run: runVerify,
     reset: resetVerify,
   } = useAdminMutation(async (extid: string) => {
-    const response = await $api.post(
-      `/api/colonel/domains/${encodeURIComponent(extid)}/verify`
-    );
-    gracefulParse(
-      colonelDomainVerifyResponseSchema,
-      response.data,
-      'ColonelDomainVerifyResponse'
-    );
+    const response = await $api.post(`/api/colonel/domains/${encodeURIComponent(extid)}/verify`);
+    gracefulParse(colonelDomainVerifyResponseSchema, response.data, 'ColonelDomainVerifyResponse');
   });
 
   async function onReverify(): Promise<void> {
@@ -203,11 +202,7 @@
       `/api/colonel/domains/${encodeURIComponent(extid)}/repair`,
       repairBody(false)
     );
-    gracefulParse(
-      colonelDomainRepairResponseSchema,
-      response.data,
-      'ColonelDomainRepairResponse'
-    );
+    gracefulParse(colonelDomainRepairResponseSchema, response.data, 'ColonelDomainRepairResponse');
   });
 
   async function onRepairPreview(): Promise<void> {
@@ -400,7 +395,11 @@
               name="check-circle"
               size="5"
               class="inline text-green-600 dark:text-green-400" />
-            <span v-else class="text-gray-400 dark:text-gray-600">—</span>
+            <span
+              v-else
+              class="text-gray-400 dark:text-gray-600"
+              >—</span
+            >
           </template>
           <template #cell-created="{ row }">
             {{ row.created ? formatDisplayDateTime(row.created) : '—' }}
@@ -501,7 +500,9 @@
         class="mt-5 space-y-4 border-t border-gray-100 pt-4 dark:border-gray-800"
         data-testid="probe-result">
         <div class="flex items-center gap-3">
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('web.admin.domaintoolbox.probe.healthLabel') }}:</span>
+          <span class="text-sm text-gray-500 dark:text-gray-400"
+            >{{ t('web.admin.domaintoolbox.probe.healthLabel') }}:</span
+          >
           <span
             :class="[
               'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
@@ -510,7 +511,9 @@
             data-testid="probe-health">
             {{ probeDetails.health }}
           </span>
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ probeRecordDomain }}</span>
+          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
+            probeRecordDomain
+          }}</span>
         </div>
         <JsonViewer
           :data="probeDetails"
@@ -583,16 +586,24 @@
         data-testid="repair-plan">
         <p class="mb-2 text-sm text-gray-700 dark:text-gray-300">
           {{ t('web.admin.domaintoolbox.repair.statusLabel') }}:
-          <span class="font-mono font-medium" data-testid="repair-status">{{ repairPlan.status }}</span>
+          <span
+            class="font-mono font-medium"
+            data-testid="repair-status"
+            >{{ repairPlan.status }}</span
+          >
         </p>
         <ul
           v-if="repairPlan.issues.length"
           class="ml-4 list-disc space-y-1 text-sm text-gray-700 dark:text-gray-300">
-          <li v-for="(issue, i) in repairPlan.issues" :key="i">
+          <li
+            v-for="(issue, i) in repairPlan.issues"
+            :key="i">
             {{ issue }}
           </li>
         </ul>
-        <p v-else class="text-sm text-gray-500 dark:text-gray-400">
+        <p
+          v-else
+          class="text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.admin.domaintoolbox.repair.noIssues') }}
         </p>
 
@@ -693,7 +704,11 @@
               {{ t('web.admin.domaintoolbox.transfer.from') }}
             </dt>
             <dd class="font-mono text-gray-900 dark:text-white">
-              {{ transferPlan.from_org_id ? `${transferPlan.from_org_name || '—'} (${transferPlan.from_org_id})` : t('web.admin.domaintoolbox.transfer.orphaned') }}
+              {{
+                transferPlan.from_org_id
+                  ? `${transferPlan.from_org_name || '—'} (${transferPlan.from_org_id})`
+                  : t('web.admin.domaintoolbox.transfer.orphaned')
+              }}
             </dd>
           </div>
           <div>
@@ -725,7 +740,9 @@
     <AdminConfirmDialog
       v-model:open="repairDialogOpen"
       :title="t('web.admin.domaintoolbox.repair.confirmTitle')"
-      :description="t('web.admin.domaintoolbox.repair.confirmDescription', { domain: repairExtid.trim() })"
+      :description="
+        t('web.admin.domaintoolbox.repair.confirmDescription', { domain: repairExtid.trim() })
+      "
       :confirm-token="repairExtid.trim()"
       variant="danger"
       :confirm-text="t('web.admin.domaintoolbox.repair.applyButton')"
@@ -737,7 +754,9 @@
     <AdminConfirmDialog
       v-model:open="transferDialogOpen"
       :title="t('web.admin.domaintoolbox.transfer.confirmTitle')"
-      :description="t('web.admin.domaintoolbox.transfer.confirmDescription', { domain: transferExtid.trim() })"
+      :description="
+        t('web.admin.domaintoolbox.transfer.confirmDescription', { domain: transferExtid.trim() })
+      "
       :confirm-token="transferExtid.trim()"
       variant="danger"
       :confirm-text="t('web.admin.domaintoolbox.transfer.applyButton')"

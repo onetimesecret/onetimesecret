@@ -71,7 +71,13 @@ const registryByVersion: Record<string, ResponseSchemaRegistry> = {
  * When `extractVersion()` encounters a class name starting with one of these
  * prefixes, it returns 'internal' as the version identifier.
  */
-const INTERNAL_API_PREFIXES = ['AccountAPI', 'ColonelAPI', 'DomainsAPI', 'OrganizationAPI', 'InviteAPI'];
+const INTERNAL_API_PREFIXES = [
+  'AccountAPI',
+  'ColonelAPI',
+  'DomainsAPI',
+  'OrganizationAPI',
+  'InviteAPI',
+];
 
 /**
  * Ruby API module prefix for incoming webhooks and external integrations.
@@ -124,18 +130,18 @@ const SCAN_GLOBS = [
 // =============================================================================
 
 export interface SchemaEntry {
-  className: string;     // e.g. "V3::Logic::Secrets::ConcealSecret" or "V3::Logic::Meta.system_status"
-  filePath: string;      // relative path to the .rb file
+  className: string; // e.g. "V3::Logic::Secrets::ConcealSecret" or "V3::Logic::Meta.system_status"
+  filePath: string; // relative path to the .rb file
   schema: { model?: string; request?: string; response?: string };
-  description?: string;  // @api tag description from class/module comments
+  description?: string; // @api tag description from class/module comments
 }
 
 export interface ScanResult {
   entries: SchemaEntry[];
   covered: SchemaEntry[];
-  broken: SchemaEntry[];         // SCHEMA declared but key not in responseSchemas
-  uncoveredHandlers: string[];   // from routes, no SCHEMA
-  uncoveredModels: string[];     // model files scanned with no SCHEMA constant
+  broken: SchemaEntry[]; // SCHEMA declared but key not in responseSchemas
+  uncoveredHandlers: string[]; // from routes, no SCHEMA
+  uncoveredModels: string[]; // model files scanned with no SCHEMA constant
 }
 
 // =============================================================================
@@ -207,7 +213,7 @@ function isMethodKeyed(hash: any): boolean {
  * Returns an array of [methodName, schema] tuples.
  */
 function extractMethodKeyedSchemas(
-  hash: any,
+  hash: any
 ): Array<[string, { model?: string; request?: string; response?: string }]> {
   const results: Array<[string, { model?: string; request?: string; response?: string }]> = [];
   for (const element of hash.elements) {
@@ -554,7 +560,7 @@ function findUncoveredHandlers(handlerMap: Map<string, SchemaEntry>): string[] {
 function findUncoveredModels(entries: SchemaEntry[], projectRoot: string): string[] {
   const modelGlob = 'lib/onetime/models/*.rb';
   const modelFiles = globSync(modelGlob, { cwd: projectRoot, absolute: true });
-  const filesWithSchema = new Set(entries.map(e => join(projectRoot, e.filePath)));
+  const filesWithSchema = new Set(entries.map((e) => join(projectRoot, e.filePath)));
 
   const uncovered: string[] = [];
   for (const modelFile of modelFiles) {
@@ -592,7 +598,7 @@ export async function scanSchemas(globs?: string[]): Promise<ScanResult> {
   }
 
   // Filter out spec files
-  const rubyFiles = Array.from(allFiles).filter(f => {
+  const rubyFiles = Array.from(allFiles).filter((f) => {
     const rel = relative(projectRoot, f);
     return !rel.startsWith('spec/') && !rel.endsWith('_spec.rb') && !rel.includes('/spec/');
   });
@@ -630,7 +636,7 @@ function deriveModelName(relPath: string): string {
   const basename = relPath.split('/').pop()?.replace('.rb', '') ?? relPath;
   const pascal = basename
     .split('_')
-    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join('');
   return `Onetime::${pascal}`;
 }
@@ -701,13 +707,16 @@ function printReport(result: ScanResult): void {
 
   // Summary
   const totalHandlers = result.uncoveredHandlers.length + result.entries.length;
-  const totalModels = result.uncoveredModels.length +
-    result.entries.filter(e => e.filePath.startsWith('lib/onetime/models/')).length;
+  const totalModels =
+    result.uncoveredModels.length +
+    result.entries.filter((e) => e.filePath.startsWith('lib/onetime/models/')).length;
 
   console.log('Summary');
   console.log('───────────────────────');
   console.log(`Handlers with SCHEMA:  ${result.entries.length}/${totalHandlers}`);
-  console.log(`Models with SCHEMA:    ${totalModels - result.uncoveredModels.length}/${totalModels}`);
+  console.log(
+    `Models with SCHEMA:    ${totalModels - result.uncoveredModels.length}/${totalModels}`
+  );
   console.log(`Covered (valid keys):  ${result.covered.length}`);
   console.log(`Broken (invalid keys): ${result.broken.length}`);
   console.log(`Uncovered handlers:    ${result.uncoveredHandlers.length}`);
@@ -719,8 +728,8 @@ function printReport(result: ScanResult): void {
 // =============================================================================
 
 // Detect if this file is being run directly (ESM entry point detection)
-const isMainModule = process.argv[1]?.endsWith('schema-scanner.ts') ||
-  process.argv[1]?.endsWith('schema-scanner.js');
+const isMainModule =
+  process.argv[1]?.endsWith('schema-scanner.ts') || process.argv[1]?.endsWith('schema-scanner.js');
 
 if (isMainModule) {
   const result = await scanSchemas();

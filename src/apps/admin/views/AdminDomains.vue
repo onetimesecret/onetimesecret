@@ -1,14 +1,16 @@
 <!-- src/apps/admin/views/AdminDomains.vue -->
 
 <script setup lang="ts">
-
   import AddDomainForOrgModal from '@/apps/admin/components/AddDomainForOrgModal.vue';
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
   import AdminOrgSelectorModal from '@/apps/admin/components/AdminOrgSelectorModal.vue';
   import { AdminConfirmDialog, AdminRecordPanel, KitPagination } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
-  import type { ColonelCustomDomain, ColonelOrganization } from '@/schemas/api/internal/responses/colonel';
+  import type {
+    ColonelCustomDomain,
+    ColonelOrganization,
+  } from '@/schemas/api/internal/responses/colonel';
   import {
     colonelDomainDetailResponseSchema,
     colonelDomainVerifyResponseSchema,
@@ -123,9 +125,7 @@
     reset: resetVerify,
   } = useAdminMutation(async (extid: string) => {
     verifyResult.value = null;
-    const response = await $api.post(
-      `/api/colonel/domains/${encodeURIComponent(extid)}/verify`
-    );
+    const response = await $api.post(`/api/colonel/domains/${encodeURIComponent(extid)}/verify`);
     // Parse the ack so it stays a live tripwire. A 2xx means the verify ran
     // server-side regardless of ack shape; a mismatch is reported by
     // gracefulParse but does not fail the action (we fall back to a generic
@@ -225,15 +225,13 @@
     orgDomainsLoading.value = true;
     orgDomainsError.value = false;
     try {
-      const res = await $api.get(
-        `/api/colonel/organizations/${encodeURIComponent(org.extid)}`
-      );
+      const res = await $api.get(`/api/colonel/organizations/${encodeURIComponent(org.extid)}`);
       const parsed = gracefulParse(
         colonelOrganizationDetailResponseSchema,
         res.data,
         'ColonelOrganizationDetailResponse'
       );
-      orgDomains.value = parsed.ok ? parsed.data.details?.domains ?? [] : [];
+      orgDomains.value = parsed.ok ? (parsed.data.details?.domains ?? []) : [];
     } catch {
       orgDomainsError.value = true;
       orgDomains.value = [];
@@ -328,10 +326,7 @@
     if (!ok) return; // error stays in the modal for retry.
 
     addDomainOpen.value = false;
-    notifications.show(
-      t('web.admin.domains.addDomain.created', { domain }),
-      'success'
-    );
+    notifications.show(t('web.admin.domains.addDomain.created', { domain }), 'success');
     await loadOrgDomains();
     // Reveal the freshly created domain's DNS records.
     const extid = createdExtid.value;
@@ -352,7 +347,7 @@
         res.data,
         'ColonelDomainVerifyResponse'
       );
-      const state = parsed.ok ? parsed.data.details?.current_state ?? '' : '';
+      const state = parsed.ok ? (parsed.data.details?.current_state ?? '') : '';
       const messageKey = VERIFY_MESSAGE_KEYS[state] ?? 'web.admin.domains.verify.success.done';
       notifications.show(
         t(messageKey, { domain: domain.display_domain }),
@@ -377,7 +372,8 @@
   <div class="mx-auto max-w-6xl">
     <!-- Page header. The heavy bottom rule is the page's horizontal rule; the
          working-record panel sits between it and the list below. -->
-    <header class="mb-6 flex flex-wrap items-end justify-between gap-4 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+    <header
+      class="mb-6 flex flex-wrap items-end justify-between gap-4 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
       <div>
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ t('web.colonel.customDomains.title') }}
@@ -469,8 +465,12 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 :data-testid="`panel-domain-open-${domain.extid}`"
-                :aria-label="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                :title="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
+                :aria-label="
+                  t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                "
+                :title="
+                  t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                "
                 class="shrink-0 rounded text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
                 <OIcon
                   collection="heroicons"
@@ -509,7 +509,11 @@
                   collection="heroicons"
                   :name="panelVerifyingExtid === domain.extid ? 'arrow-path' : 'shield-check'"
                   size="4"
-                  :class="panelVerifyingExtid === domain.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+                  :class="
+                    panelVerifyingExtid === domain.extid
+                      ? 'animate-spin motion-reduce:animate-none'
+                      : ''
+                  " />
                 {{ t('web.admin.domains.verify.button') }}
               </button>
             </div>
@@ -707,8 +711,12 @@
                     target="_blank"
                     rel="noopener noreferrer"
                     :data-testid="`domain-open-${domain.extid}`"
-                    :aria-label="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                    :title="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
+                    :aria-label="
+                      t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                    "
+                    :title="
+                      t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                    "
                     class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
                     <OIcon
                       collection="heroicons"
@@ -725,7 +733,11 @@
                       collection="heroicons"
                       :name="verifyingExtid === domain.extid ? 'arrow-path' : 'shield-check'"
                       size="4"
-                      :class="verifyingExtid === domain.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+                      :class="
+                        verifyingExtid === domain.extid
+                          ? 'animate-spin motion-reduce:animate-none'
+                          : ''
+                      " />
                     {{ t('web.admin.domains.verify.button') }}
                   </button>
                 </div>

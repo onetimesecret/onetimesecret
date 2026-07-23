@@ -37,9 +37,8 @@ const hasSubscriberCredentials = !!(
 );
 
 // Also support TEST_USER_* for backwards compatibility with billing-blockers.spec.ts
-const hasTestCredentials = hasSubscriberCredentials || !!(
-  process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD
-);
+const hasTestCredentials =
+  hasSubscriberCredentials || !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 /**
  * Authenticate user via login form
@@ -72,10 +71,9 @@ async function navigateToPlansPage(page: Page): Promise<void> {
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for plans to load (either plan cards or empty state)
-  await page.waitForSelector(
-    '[class*="plan"], [class*="card"], text=/no.*plans available/i',
-    { timeout: 15000 }
-  );
+  await page.waitForSelector('[class*="plan"], [class*="card"], text=/no.*plans available/i', {
+    timeout: 15000,
+  });
 }
 
 /**
@@ -100,25 +98,31 @@ function getPlanCards(page: Page) {
 /**
  * Click a plan button to trigger plan change (for subscribers) or checkout (for free users)
  */
-async function _clickPlanButton(
-  page: Page,
-  planNamePattern: string | RegExp
-): Promise<void> {
+async function _clickPlanButton(page: Page, planNamePattern: string | RegExp): Promise<void> {
   // Find the plan card by name
-  const planCard = page.locator('[class*="plan"], [class*="card"]').filter({
-    has: page.locator(`h2, h3, [class*="title"]`).filter({ hasText: planNamePattern }),
-  }).first();
+  const planCard = page
+    .locator('[class*="plan"], [class*="card"]')
+    .filter({
+      has: page.locator(`h2, h3, [class*="title"]`).filter({ hasText: planNamePattern }),
+    })
+    .first();
 
   // Find and click the action button (Upgrade/Downgrade/Select)
-  const actionButton = planCard.locator('button').filter({
-    hasNotText: /current/i,
-  }).first();
+  const actionButton = planCard
+    .locator('button')
+    .filter({
+      hasNotText: /current/i,
+    })
+    .first();
 
   await actionButton.click();
 }
 
 test.describe('Plan Switching for Existing Subscribers - E2E', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_SUBSCRIBER_EMAIL and TEST_SUBSCRIBER_PASSWORD (or TEST_USER_*) required');
+  test.skip(
+    !hasTestCredentials,
+    'Skipping: TEST_SUBSCRIBER_EMAIL and TEST_SUBSCRIBER_PASSWORD (or TEST_USER_*) required'
+  );
 
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
@@ -136,9 +140,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber - cannot test plan switching');
 
       // Find an upgrade option (a plan that is NOT current)
-      const upgradeButton = page.locator('button').filter({
-        hasText: /upgrade/i,
-      }).first();
+      const upgradeButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade/i,
+        })
+        .first();
 
       const hasUpgradeOption = await upgradeButton.isVisible().catch(() => false);
       test.skip(!hasUpgradeOption, 'No upgrade option available for current plan');
@@ -165,15 +172,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(isSubscriber, 'Test account is a subscriber - cannot test new subscriber flow');
 
       // Find a paid plan button
-      const planButton = page.locator('button').filter({
-        hasText: /upgrade|select/i,
-      }).first();
+      const planButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade|select/i,
+        })
+        .first();
 
       const hasOption = await planButton.isVisible().catch(() => false);
       test.skip(!hasOption, 'No plan selection option available');
 
       // Set up listener for navigation to Stripe
-      const navigationPromise = page.waitForURL(/checkout\.stripe\.com|\/billing/, { timeout: 10000 });
+      const navigationPromise = page.waitForURL(/checkout\.stripe\.com|\/billing/, {
+        timeout: 10000,
+      });
 
       await planButton.click();
 
@@ -195,9 +207,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Click on a different plan to open modal
-      const planChangeButton = page.locator('button').filter({
-        hasText: /upgrade|downgrade/i,
-      }).first();
+      const planChangeButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade|downgrade/i,
+        })
+        .first();
 
       const hasButton = await planChangeButton.isVisible().catch(() => false);
       test.skip(!hasButton, 'No plan change button available');
@@ -212,21 +227,18 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       // These are the key elements from PlanChangeModal.vue
 
       // Current plan label
-      await expect(
-        modal.locator('text=/current plan/i')
-      ).toBeVisible({ timeout: 10000 });
+      await expect(modal.locator('text=/current plan/i')).toBeVisible({ timeout: 10000 });
 
       // New plan label
-      await expect(
-        modal.locator('text=/new plan/i')
-      ).toBeVisible();
+      await expect(modal.locator('text=/new plan/i')).toBeVisible();
 
       // Amount/price should be visible (currency symbol or number)
-      const hasAmount = await modal.locator('text=/\\$|EUR|\\d+\\.\\d{2}/').first().isVisible().catch(() => false);
-      expect(
-        hasAmount,
-        'Modal should display pricing information'
-      ).toBe(true);
+      const hasAmount = await modal
+        .locator('text=/\\$|EUR|\\d+\\.\\d{2}/')
+        .first()
+        .isVisible()
+        .catch(() => false);
+      expect(hasAmount, 'Modal should display pricing information').toBe(true);
     });
 
     test('TC-2314-004: Modal shows credit for downgrades', async ({ page }) => {
@@ -237,9 +249,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Look for downgrade button specifically
-      const downgradeButton = page.locator('button').filter({
-        hasText: /downgrade/i,
-      }).first();
+      const downgradeButton = page
+        .locator('button')
+        .filter({
+          hasText: /downgrade/i,
+        })
+        .first();
 
       const hasDowngrade = await downgradeButton.isVisible().catch(() => false);
       test.skip(!hasDowngrade, 'No downgrade option available for current plan');
@@ -252,13 +267,14 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       // For downgrades, credit should be displayed
       // The credit line shows: "Credit for unused time: -$X.XX"
       const creditLine = modal.locator('text=/credit|unused/i');
-      const _hasCredit = await creditLine.first().isVisible({ timeout: 10000 }).catch(() => false);
+      const _hasCredit = await creditLine
+        .first()
+        .isVisible({ timeout: 10000 })
+        .catch(() => false);
 
       // Credit may or may not be shown depending on proration calculation
       // Just verify the modal loaded with preview content
-      await expect(
-        modal.locator('text=/current plan|new plan/i').first()
-      ).toBeVisible();
+      await expect(modal.locator('text=/current plan|new plan/i').first()).toBeVisible();
     });
 
     test('TC-2314-005: Modal has confirm and cancel buttons', async ({ page }) => {
@@ -269,9 +285,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Open plan change modal
-      const planChangeButton = page.locator('button').filter({
-        hasText: /upgrade|downgrade/i,
-      }).first();
+      const planChangeButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade|downgrade/i,
+        })
+        .first();
 
       const hasButton = await planChangeButton.isVisible().catch(() => false);
       test.skip(!hasButton, 'No plan change button available');
@@ -282,15 +301,21 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await expect(modal).toBeVisible({ timeout: 5000 });
 
       // Confirm button (Confirm Upgrade or Confirm Downgrade)
-      const confirmButton = modal.locator('button').filter({
-        hasText: /confirm/i,
-      }).first();
+      const confirmButton = modal
+        .locator('button')
+        .filter({
+          hasText: /confirm/i,
+        })
+        .first();
       await expect(confirmButton).toBeVisible();
 
       // Cancel button
-      const cancelButton = modal.locator('button').filter({
-        hasText: /cancel/i,
-      }).first();
+      const cancelButton = modal
+        .locator('button')
+        .filter({
+          hasText: /cancel/i,
+        })
+        .first();
       await expect(cancelButton).toBeVisible();
     });
 
@@ -302,9 +327,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Open modal
-      const planChangeButton = page.locator('button').filter({
-        hasText: /upgrade|downgrade/i,
-      }).first();
+      const planChangeButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade|downgrade/i,
+        })
+        .first();
 
       const hasButton = await planChangeButton.isVisible().catch(() => false);
       test.skip(!hasButton, 'No plan change button available');
@@ -315,9 +343,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await expect(modal).toBeVisible({ timeout: 5000 });
 
       // Click cancel
-      const cancelButton = modal.locator('button').filter({
-        hasText: /cancel/i,
-      }).first();
+      const cancelButton = modal
+        .locator('button')
+        .filter({
+          hasText: /cancel/i,
+        })
+        .first();
       await cancelButton.click();
 
       // Modal should close
@@ -349,9 +380,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Find upgrade button
-      const upgradeButton = page.locator('button').filter({
-        hasText: /upgrade/i,
-      }).first();
+      const upgradeButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade/i,
+        })
+        .first();
 
       const hasUpgrade = await upgradeButton.isVisible().catch(() => false);
       test.skip(!hasUpgrade, 'No upgrade option available');
@@ -371,16 +405,19 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       );
 
       // Click confirm
-      const confirmButton = modal.locator('button').filter({
-        hasText: /confirm/i,
-      }).first();
+      const confirmButton = modal
+        .locator('button')
+        .filter({
+          hasText: /confirm/i,
+        })
+        .first();
       await confirmButton.click();
 
       // Wait for API response
       const response = await apiPromise;
       expect(response.status()).toBe(200);
 
-      const data = await response.json() as { success: boolean };
+      const data = (await response.json()) as { success: boolean };
       expect(data.success).toBe(true);
 
       // Modal should close after successful change
@@ -399,9 +436,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Find downgrade button
-      const downgradeButton = page.locator('button').filter({
-        hasText: /downgrade/i,
-      }).first();
+      const downgradeButton = page
+        .locator('button')
+        .filter({
+          hasText: /downgrade/i,
+        })
+        .first();
 
       const hasDowngrade = await downgradeButton.isVisible().catch(() => false);
       test.skip(!hasDowngrade, 'No downgrade option available');
@@ -421,16 +461,19 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       );
 
       // Click confirm
-      const confirmButton = modal.locator('button').filter({
-        hasText: /confirm/i,
-      }).first();
+      const confirmButton = modal
+        .locator('button')
+        .filter({
+          hasText: /confirm/i,
+        })
+        .first();
       await confirmButton.click();
 
       // Wait for API response
       const response = await apiPromise;
       expect(response.status()).toBe(200);
 
-      const data = await response.json() as { success: boolean };
+      const data = (await response.json()) as { success: boolean };
       expect(data.success).toBe(true);
 
       // Modal should close
@@ -460,9 +503,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Try to open plan change modal
-      const planChangeButton = page.locator('button').filter({
-        hasText: /upgrade|downgrade/i,
-      }).first();
+      const planChangeButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade|downgrade/i,
+        })
+        .first();
 
       const hasButton = await planChangeButton.isVisible().catch(() => false);
       test.skip(!hasButton, 'No plan change button available');
@@ -485,9 +531,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       test.skip(!isSubscriber, 'Test account is not a subscriber');
 
       // Find the current plan card (has "Current" badge)
-      const currentPlanCard = page.locator('[class*="plan"], [class*="card"]').filter({
-        has: page.locator('text=/current/i'),
-      }).first();
+      const currentPlanCard = page
+        .locator('[class*="plan"], [class*="card"]')
+        .filter({
+          has: page.locator('text=/current/i'),
+        })
+        .first();
 
       const hasCurrent = await currentPlanCard.isVisible().catch(() => false);
       test.skip(!hasCurrent, 'Cannot identify current plan');
@@ -525,7 +574,7 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       const response = await apiPromise;
       expect(response.status()).toBe(200);
 
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         has_active_subscription: boolean;
         current_plan?: string;
         current_price_id?: string;
@@ -555,9 +604,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       );
 
       // Open plan change modal to trigger preview API
-      const planChangeButton = page.locator('button').filter({
-        hasText: /upgrade|downgrade/i,
-      }).first();
+      const planChangeButton = page
+        .locator('button')
+        .filter({
+          hasText: /upgrade|downgrade/i,
+        })
+        .first();
 
       const hasButton = await planChangeButton.isVisible().catch(() => false);
       test.skip(!hasButton, 'No plan change button available');
@@ -567,7 +619,7 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       const response = await apiPromise;
       expect(response.status()).toBe(200);
 
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         amount_due: number;
         subtotal: number;
         credit_applied: number;
@@ -590,7 +642,9 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
   // TC-2314-015: Billing Interval Toggle
   // ---------------------------------------------------------------------------
   test.describe('Billing Interval Toggle', () => {
-    test('TC-2314-015: Toggle between monthly and yearly shows different prices', async ({ page }) => {
+    test('TC-2314-015: Toggle between monthly and yearly shows different prices', async ({
+      page,
+    }) => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
@@ -604,7 +658,11 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
 
       // Get price from a plan card
       const planCards = getPlanCards(page);
-      const monthlyPrice = await planCards.first().locator('text=/\\$\\d+|EUR \\d+/').first().textContent();
+      const monthlyPrice = await planCards
+        .first()
+        .locator('text=/\\$\\d+|EUR \\d+/')
+        .first()
+        .textContent();
 
       // Click yearly tab
       const yearlyTab = page.getByRole('button', { name: /yearly|annual/i });
@@ -614,7 +672,11 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await expect(yearlyTab).toHaveAttribute('aria-pressed', 'true');
 
       // Get price again - should be different (yearly pricing)
-      const yearlyPrice = await planCards.first().locator('text=/\\$\\d+|EUR \\d+/').first().textContent();
+      const yearlyPrice = await planCards
+        .first()
+        .locator('text=/\\$\\d+|EUR \\d+/')
+        .first()
+        .textContent();
 
       // Prices should be different (or yearly should show monthly equivalent)
       // This validates the toggle is working

@@ -3,14 +3,11 @@
 <script setup lang="ts">
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
-  import {
-    resolveBodyFontClass,
-    resolveHeadingFontClass,
-  } from '@/shared/utils/brand-helpers';
+  import { resolveBodyFontClass, resolveHeadingFontClass } from '@/shared/utils/brand-helpers';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   interface Props {
     brandSettings?: BrandSettings;
@@ -31,15 +28,12 @@ const { t } = useI18n();
     <!-- Header with icon and title -->
     <template #header>
       <div class="mb-8 flex items-center space-x-4">
-        <div
-          class="flex size-12 items-center justify-center rounded-full bg-brand-500/10">
+        <div class="flex size-12 items-center justify-center rounded-full bg-brand-500/10">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="size-6"
             :class="
-              brandSettings?.button_text_light
-                ? 'text-white'
-                : 'text-brand-600 dark:text-brand-400'
+              brandSettings?.button_text_light ? 'text-white' : 'text-brand-600 dark:text-brand-400'
             "
             fill="none"
             viewBox="0 0 24 24"
@@ -62,7 +56,7 @@ const { t } = useI18n();
     </template>
 
     <!-- Main message -->
-    <template #message="{ }">
+    <template #message="{}">
       <p
         class="text-gray-600 dark:text-gray-300"
         :class="fontClass">
@@ -76,7 +70,7 @@ const { t } = useI18n();
     </template>
 
     <!-- Action button -->
-    <template #action="{ }">
+    <template #action="{}">
       <!-- prettier-ignore-attribute class -->
       <router-link
         to="/"

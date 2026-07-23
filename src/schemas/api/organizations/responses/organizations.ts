@@ -5,7 +5,10 @@
  * Defines request/response schemas for organization management endpoints
  */
 
-import { organizationMemberSchema, organizationSchema } from '@/schemas/shapes/organizations/organization';
+import {
+  organizationMemberSchema,
+  organizationSchema,
+} from '@/schemas/shapes/organizations/organization';
 import { z } from 'zod';
 
 /**
@@ -40,7 +43,7 @@ export type OrganizationsResponse = z.infer<typeof organizationsResponseSchema>;
 export const deleteResponseSchema = z.object({
   user_id: z.string(),
   deleted: z.boolean(),
-  id: z.string(),  // External ID (extid) of deleted organization
+  id: z.string(), // External ID (extid) of deleted organization
 });
 
 export type DeleteResponse = z.infer<typeof deleteResponseSchema>;

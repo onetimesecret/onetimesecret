@@ -62,7 +62,7 @@
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-2xl">
+  <div class="container mx-auto max-w-2xl min-w-[320px]">
     <section
       :id="sectionId"
       aria-labelledby="dashboard-recent-heading"
@@ -89,8 +89,7 @@
             </h2>
           </div>
 
-          <div
-            class="flex items-center gap-3">
+          <div class="flex items-center gap-3">
             <span class="text-sm text-gray-500 dark:text-gray-400">
               {{ t('web.LABELS.items_count', { count: recordCount }) }}
             </span>

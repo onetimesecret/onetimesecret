@@ -6,7 +6,7 @@
   import { FocusTrap } from 'focus-trap-vue';
   import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   defineProps({
     isOpen: Boolean,
@@ -41,7 +41,7 @@ const { t } = useI18n();
   <teleport to="body">
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 dark:bg-black/70 sm:p-6"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-6 dark:bg-black/70"
       aria-labelledby="feedback-modal-title"
       role="dialog"
       aria-modal="true">
@@ -80,12 +80,12 @@ const { t } = useI18n();
 
           <FeedbackModalForm :show-red-button="true" />
 
-          <p class="mt-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
+          <p class="mt-6 text-center text-sm text-gray-500 italic dark:text-gray-400">
             <RouterLink
               to="/feedback"
               class="underline">
-              {{ t('web.feedback.help_us_improve') }}
-            </RouterLink>.
+              {{ t('web.feedback.help_us_improve') }} </RouterLink
+            >.
             {{ t('web.feedback.all_feedback_welcome') }}
           </p>
         </div>

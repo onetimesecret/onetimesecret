@@ -16,8 +16,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
-const cards = (wrapper: ReturnType<typeof mount>) =>
-  wrapper.findAll('.max-w-sm');
+const cards = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('.max-w-sm');
 
 describe('PlanCardSkeleton', () => {
   it('exposes a busy status region with an sr-only loading label', () => {

@@ -67,7 +67,7 @@ describe('receiptListStore', () => {
         details: {
           type: 'list',
           since: 3600 * 24 * 7,
-          now: Math.floor(Date.now() / 1000),  // V3: Unix epoch seconds
+          now: Math.floor(Date.now() / 1000), // V3: Unix epoch seconds
           has_items: false,
           revealed_receipts: [],
           pending_receipts: [],

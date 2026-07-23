@@ -51,14 +51,11 @@
     <!-- Recipient page. Dashed border (not solid) reads as a sample/preview,
          not a live surface — reinforcing the PREVIEW badge. -->
     <div
-      class="overflow-hidden rounded-xl border border-dashed border-gray-300 bg-white shadow-sm
-        dark:border-gray-600 dark:bg-gray-800">
+      class="overflow-hidden rounded-xl border border-dashed border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800">
       <div
-        class="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-3.5 py-2
-          dark:border-gray-700 dark:bg-gray-700/60">
+        class="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-3.5 py-2 dark:border-gray-700 dark:bg-gray-700/60">
         <span
-          class="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2 py-0.5 text-[10px]
-            font-semibold tracking-wide text-gray-600 uppercase dark:bg-gray-600 dark:text-gray-200">
+          class="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-gray-600 uppercase dark:bg-gray-600 dark:text-gray-200">
           <OIcon
             collection="mdi"
             name="eye-outline"

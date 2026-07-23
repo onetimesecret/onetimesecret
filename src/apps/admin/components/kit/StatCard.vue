@@ -70,7 +70,7 @@
     class="block rounded-lg border border-gray-200 bg-white p-4 transition-colors dark:border-gray-800 dark:bg-gray-900"
     :class="
       to
-        ? 'hover:border-brand-400 hover:bg-brand-50/40 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:border-brand-500/60 dark:hover:bg-brand-500/5'
+        ? 'hover:border-brand-400 hover:bg-brand-50/40 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:border-brand-500/60 dark:hover:bg-brand-500/5'
         : ''
     ">
     <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -84,8 +84,7 @@
             size="4" />
         </slot>
       </span>
-      <p
-        class="min-w-0 truncate font-brand text-[11px] font-semibold tracking-[0.12em] uppercase">
+      <p class="min-w-0 truncate font-brand text-[11px] font-semibold tracking-[0.12em] uppercase">
         {{ label }}
       </p>
     </div>

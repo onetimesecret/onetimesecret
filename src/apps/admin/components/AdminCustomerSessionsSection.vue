@@ -1,7 +1,6 @@
 <!-- src/apps/admin/components/AdminCustomerSessionsSection.vue -->
 
 <script setup lang="ts">
-
   import { AdminConfirmDialog, DataTable } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -35,9 +34,7 @@
   const store = useAdminCustomerSessions();
   const { sessions, currentSessionId, loading, error, validationError } = storeToRefs(store);
 
-  const loadFailed = computed(
-    () => error.value !== null || validationError.value !== null
-  );
+  const loadFailed = computed(() => error.value !== null || validationError.value !== null);
 
   /**
    * True for the acting colonel's OWN session row. Revoking it is a no-op (Rack
@@ -50,11 +47,18 @@
   }
 
   const columns = computed<DataTableColumn<AdminCustomerSession>[]>(() => [
-    { key: 'last_activity_at', label: t('web.admin.customers.detail.sessions.columns.lastActivity') },
+    {
+      key: 'last_activity_at',
+      label: t('web.admin.customers.detail.sessions.columns.lastActivity'),
+    },
     { key: 'ip_address', label: t('web.admin.customers.detail.sessions.columns.ipAddress') },
     { key: 'user_agent', label: t('web.admin.customers.detail.sessions.columns.device') },
     { key: 'auth_method', label: t('web.admin.customers.detail.sessions.columns.authMethod') },
-    { key: 'actions', label: t('web.admin.customers.detail.sessions.columns.actions'), align: 'right' },
+    {
+      key: 'actions',
+      label: t('web.admin.customers.detail.sessions.columns.actions'),
+      align: 'right',
+    },
   ]);
 
   /** Epoch fields arrive as bare Unix-second numbers. */
@@ -170,10 +174,13 @@
   <section
     class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
     data-testid="sessions-section">
-    <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+    <div
+      class="flex items-center justify-between gap-4 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
       <h3 class="text-lg font-medium text-gray-900 dark:text-white">
         {{ t('web.admin.customers.detail.sessions.title') }}
-        <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ sessions.length }})</span>
+        <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+          >({{ sessions.length }})</span
+        >
       </h3>
       <!-- Offboarding / takeover: kills EVERY session, incl. untracked ones. -->
       <button
@@ -224,11 +231,15 @@
       </template>
 
       <template #cell-ip_address="{ row }">
-        <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.ip_address || '—' }}</span>
+        <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
+          row.ip_address || '—'
+        }}</span>
       </template>
 
       <template #cell-user_agent="{ row }">
-        <span class="text-sm break-words text-gray-700 dark:text-gray-300">{{ row.user_agent || '—' }}</span>
+        <span class="text-sm break-words text-gray-700 dark:text-gray-300">{{
+          row.user_agent || '—'
+        }}</span>
       </template>
 
       <template #cell-auth_method="{ row }">

@@ -137,9 +137,7 @@ export const colonelCustomerSessionRevokeAllResponseSchema = createApiResponseSc
   colonelCustomerSessionRevokeAllDetailsSchema
 );
 
-export type ColonelCustomerSessionsResponse = z.infer<
-  typeof colonelCustomerSessionsResponseSchema
->;
+export type ColonelCustomerSessionsResponse = z.infer<typeof colonelCustomerSessionsResponseSchema>;
 export type ColonelCustomerSessionRevokeResponse = z.infer<
   typeof colonelCustomerSessionRevokeResponseSchema
 >;

@@ -58,7 +58,11 @@ describe('installPiiQueryDevWarning', () => {
     installPiiQueryDevWarning(router);
 
     const result = getGuard()(
-      route({ path: '/check-email', fullPath: '/check-email?email=x@y.com', query: { email: 'x@y.com' } })
+      route({
+        path: '/check-email',
+        fullPath: '/check-email?email=x@y.com',
+        query: { email: 'x@y.com' },
+      })
     );
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
@@ -74,7 +78,11 @@ describe('installPiiQueryDevWarning', () => {
     installPiiQueryDevWarning(router);
 
     const result = getGuard()(
-      route({ path: '/pricing', fullPath: '/pricing?product=identity', query: { product: 'identity' } })
+      route({
+        path: '/pricing',
+        fullPath: '/pricing?product=identity',
+        query: { product: 'identity' },
+      })
     );
 
     expect(warnSpy).not.toHaveBeenCalled();

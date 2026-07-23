@@ -65,8 +65,9 @@ describe('BrandFaviconField', () => {
     expect(trigger.exists()).toBe(true);
     // The label lives on this trigger and toggles with the current-icon presence.
     expect(trigger.text()).toContain('web.branding.upload_favicon');
-    expect(mountField(validFavicon).wrapper
-      .find('[data-testid="domain-favicon-upload"]').text()).toContain('web.branding.replace_favicon');
+    expect(
+      mountField(validFavicon).wrapper.find('[data-testid="domain-favicon-upload"]').text()
+    ).toContain('web.branding.replace_favicon');
   });
 
   it('opens the modal, closed by default, when the trigger is clicked', async () => {

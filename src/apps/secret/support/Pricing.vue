@@ -27,12 +27,8 @@
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
-  const signupEnabled = computed(
-    () => authentication?.enabled && authentication?.signup
-  );
-  const signinEnabled = computed(
-    () => authentication?.enabled && authentication?.signin
-  );
+  const signupEnabled = computed(() => authentication?.enabled && authentication?.signup);
+  const signinEnabled = computed(() => authentication?.enabled && authentication?.signin);
 
   // Map URL interval slugs to internal billing interval
   // Supports: month, monthly -> 'month' and year, yearly, annual -> 'year'
@@ -97,9 +93,7 @@
   );
 
   // Get the free plan (if available)
-  const freePlan = computed(() =>
-    plans.value.find((plan) => plan.tier === 'free')
-  );
+  const freePlan = computed(() => plans.value.find((plan) => plan.tier === 'free'));
 
   /**
    * Check if plan should show "Most Popular" badge.
@@ -247,12 +241,12 @@
           <RouterLink
             v-if="signupEnabled && freePlan"
             :to="getSignupUrl(freePlan)"
-            class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
+            class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-gray-300 transition-colors ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
             {{ t('web.pricing.get_started_free') }}
           </RouterLink>
           <span
             v-else
-            class="shrink-0 cursor-default rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-200 dark:bg-gray-800/50 dark:text-gray-500 dark:ring-gray-700"
+            class="shrink-0 cursor-default rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 ring-1 ring-gray-200 ring-inset dark:bg-gray-800/50 dark:text-gray-500 dark:ring-gray-700"
             aria-disabled="true">
             {{ t('web.pricing.get_started_free') }}
           </span>
@@ -279,12 +273,12 @@
                 'block w-full rounded-md px-4 py-2 text-center text-sm font-semibold transition-colors',
                 isPlanRecommended(currentPlan) || isPlanHighlighted(currentPlan)
                   ? 'bg-brand-600 text-white hover:bg-brand-500'
-                  : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700',
+                  : 'bg-white text-gray-700 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700',
               ]">
               {{ getCtaLabel(currentPlan) }}
             </RouterLink>
             <!-- Explicit empty slot content prevents PlanCard fallback button -->
-            <span v-else ></span>
+            <span v-else></span>
           </template>
         </PlanCard>
       </div>

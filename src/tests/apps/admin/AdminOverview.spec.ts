@@ -106,9 +106,7 @@ function infoPayload() {
 }
 
 /** Route each of the three independent dashboard reads by URL. */
-function routeGet(
-  overrides: Partial<Record<string, () => Promise<{ data: unknown }>>> = {}
-) {
+function routeGet(overrides: Partial<Record<string, () => Promise<{ data: unknown }>>> = {}) {
   mockApi.get.mockImplementation((url: string) => {
     const custom = overrides[url];
     if (custom) return custom();

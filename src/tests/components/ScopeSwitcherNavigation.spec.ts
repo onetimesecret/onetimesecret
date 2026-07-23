@@ -53,12 +53,19 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 
 // Mock domain context composable
 const mockDomainContext = {
-  currentContext: { domain: 'test.example.com', extid: 'domain123', displayName: 'test.example.com', isCanonical: false },
+  currentContext: {
+    domain: 'test.example.com',
+    extid: 'domain123',
+    displayName: 'test.example.com',
+    isCanonical: false,
+  },
   availableDomains: ['test.example.com', 'onetimesecret.com'],
   isContextActive: { value: true },
   setContext: vi.fn(),
   getDomainDisplayName: (domain: string) => domain,
-  getExtidByDomain: vi.fn((domain: string) => domain === 'test.example.com' ? 'domain123' : undefined),
+  getExtidByDomain: vi.fn((domain: string) =>
+    domain === 'test.example.com' ? 'domain123' : undefined
+  ),
 };
 
 vi.mock('@/shared/composables/useDomainContext', () => ({

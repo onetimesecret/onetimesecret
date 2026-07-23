@@ -151,9 +151,13 @@ export function usePageTitle() {
   const useComputedTitle = (titleGetter: () => string) => {
     const title = computed(titleGetter);
 
-    watch(title, (newTitle) => {
-      setTitle(newTitle);
-    }, { immediate: true });
+    watch(
+      title,
+      (newTitle) => {
+        setTitle(newTitle);
+      },
+      { immediate: true }
+    );
 
     return title;
   };

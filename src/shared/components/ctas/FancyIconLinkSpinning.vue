@@ -1,25 +1,21 @@
 <!-- src/shared/components/ctas/FancyIconLinkSpinning.vue -->
 
 <script setup lang="ts">
-/**
- * Props for FancyIconLink component
- */
-defineProps<{
-  text?: string;
-  to: string;
-  ariaLabel: string;
-}>();
+  /**
+   * Props for FancyIconLink component
+   */
+  defineProps<{
+    text?: string;
+    to: string;
+    ariaLabel: string;
+  }>();
 </script>
 
 <template>
   <router-link
     :to="to"
     :aria-label="ariaLabel"
-    class="inline-flex items-center rounded-md px-2 py-1 text-sm font-medium
-           text-gray-700 transition-colors
-           duration-150 ease-in-out hover:text-gray-900
-           focus:outline-none focus:ring-2
-           focus:ring-brandcomp-500 dark:text-gray-300 dark:hover:text-gray-100">
+    class="inline-flex items-center rounded-md px-2 py-1 text-sm font-medium text-gray-700 transition-colors duration-150 ease-in-out hover:text-gray-900 focus:ring-2 focus:ring-brandcomp-500 focus:outline-none dark:text-gray-300 dark:hover:text-gray-100">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       class="icon-glow mr-1 size-5"
@@ -98,7 +94,7 @@ defineProps<{
 </template>
 
 <style scoped>
-.icon-glow {
-  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
-}
+  .icon-glow {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
+  }
 </style>

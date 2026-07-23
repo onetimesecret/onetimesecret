@@ -66,14 +66,21 @@ test.describe('E2E - Settings Layout Refactoring', () => {
       await expect(page).toHaveURL(/\/account\/settings\/security/);
 
       // Verify content changed (looking for security-specific content)
-      await expect(page.locator('h1, h2').filter({ hasText: /security/i }).first()).toBeVisible();
+      await expect(
+        page
+          .locator('h1, h2')
+          .filter({ hasText: /security/i })
+          .first()
+      ).toBeVisible();
     });
 
     test('active navigation item is visually distinguished', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
       // Find the Profile nav item
-      const profileLink = page.locator('nav[aria-label="Settings navigation"] a:has-text("Profile")');
+      const profileLink = page.locator(
+        'nav[aria-label="Settings navigation"] a:has-text("Profile")'
+      );
 
       // Check it has active styling (brand color background)
       await expect(profileLink).toHaveClass(/bg-brand|active|selected/);
@@ -82,7 +89,9 @@ test.describe('E2E - Settings Layout Refactoring', () => {
       await page.click('nav[aria-label="Settings navigation"] a:has-text("Security")');
       await page.waitForURL(/\/account\/settings\/security/);
 
-      const securityLink = page.locator('nav[aria-label="Settings navigation"] a:has-text("Security")');
+      const securityLink = page.locator(
+        'nav[aria-label="Settings navigation"] a:has-text("Security")'
+      );
       await expect(securityLink).toHaveClass(/bg-brand|active|selected/);
 
       // Profile should no longer be active
@@ -153,8 +162,7 @@ test.describe('E2E - Settings Layout Refactoring', () => {
       await expect(content).toBeVisible();
 
       // Look for API-specific content
-      const hasApiContent =
-        (await page.locator('text=/api.*key|token|generate/i').count()) > 0;
+      const hasApiContent = (await page.locator('text=/api.*key|token|generate/i').count()) > 0;
 
       expect(hasApiContent).toBe(true);
     });
@@ -177,7 +185,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Mobile Responsive Behavior', () => {
     test('layout adapts to mobile viewport', async ({ page }) => {
-
       // Set mobile viewport
       await page.setViewportSize({ width: 375, height: 667 });
 
@@ -311,7 +318,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('direct URL navigation works', async ({ page }) => {
-
       // Navigate directly to various settings pages
       const pages = [
         '/account/settings/profile',
@@ -376,7 +382,9 @@ test.describe('E2E - Settings Layout Refactoring', () => {
       await page.goto('/account/settings/profile');
 
       // Focus on Security link
-      const securityLink = page.locator('nav[aria-label="Settings navigation"] a:has-text("Security")');
+      const securityLink = page.locator(
+        'nav[aria-label="Settings navigation"] a:has-text("Security")'
+      );
       await securityLink.focus();
 
       // Press Enter
@@ -389,7 +397,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Error Handling', () => {
     test('handles missing settings route gracefully', async ({ page }) => {
-
       await page.goto('/account/settings/nonexistent');
 
       // Should either redirect or show 404
@@ -402,7 +409,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('settings page recovers from failed API calls', async ({ page }) => {
-
       // Block API calls to simulate failure
       await page.route('**/api/**', (route) => route.abort());
 

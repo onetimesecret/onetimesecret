@@ -47,7 +47,9 @@
     return false;
   });
 
-  const processCornerClass = (cornerClass: string | undefined): { leftCorner: string, rightCorner: string } => {
+  const processCornerClass = (
+    cornerClass: string | undefined
+  ): { leftCorner: string; rightCorner: string } => {
     if (!cornerClass) {
       return { leftCorner: 'rounded-l-xl', rightCorner: 'rounded-r-xl' };
     }
@@ -60,11 +62,11 @@
       leftCorner: `rounded-l-${size}`,
       rightCorner: `rounded-r-${size}`,
     };
-  }
+  };
 
   // Get the correct equivalent left and right corner classes
   const corners = computed(() => processCornerClass(props.cornerClass));
-  const textColorClass = computed(() => props.buttonTextLight ? 'text-white' : 'text-gray-800');
+  const textColorClass = computed(() => (props.buttonTextLight ? 'text-white' : 'text-gray-800'));
   // Left button focus ring (respects left corner rounding)
   const leftButtonFocusClass = computed(() => `${corners.value.leftCorner}`);
 
@@ -72,7 +74,9 @@
   const rightButtonFocusClass = computed(() => `${corners.value.rightCorner}`);
 
   // Compute the ring color based on primaryColor availability
-  const ringColorStyle = computed(() => props.primaryColor ? props.primaryColor : 'var(--color-brand-600)');
+  const ringColorStyle = computed(() =>
+    props.primaryColor ? props.primaryColor : 'var(--color-brand-600)'
+  );
 
   // Button labels based on selected action
   const buttonLabel = computed(() => {
@@ -110,8 +114,8 @@
   });
 
   // Platform detection for keyboard hint
-  const isMac = computed(() =>
-    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+  const isMac = computed(
+    () => typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
@@ -150,12 +154,13 @@
         textColorClass,
         leftButtonFocusClass,
         'flex flex-1 items-center justify-center gap-2.5 px-5 py-3.5 text-lg font-semibold',
-        'transition-all duration-300 relative overflow-hidden group',
-        'focus:z-10 focus:outline-none focus:ring-4 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        'group relative overflow-hidden transition-all duration-300',
+        'focus:z-10 focus:ring-4 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-slate-900',
         'hover:shadow-[0_8px_20px_-4px_var(--button-shadow-color)]',
         'active:scale-[0.98]',
         {
-          'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60': isMainButtonDisabled,
+          'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60':
+            isMainButtonDisabled,
         },
       ]"
       :style="{
@@ -168,9 +173,12 @@
       :disabled="isMainButtonDisabled"
       :aria-label="buttonLabel">
       <!-- Gradient overlay for depth -->
-      <span class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"></span>
+      <span
+        class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        aria-hidden="true"></span>
 
-      <span class="flex items-center text-current relative z-10 transition-transform duration-300 group-hover:scale-110">
+      <span
+        class="relative z-10 flex items-center text-current transition-transform duration-300 group-hover:scale-110">
         <!-- Create Link Icon -->
         <svg
           v-if="selectedAction === 'create-link'"
@@ -182,12 +190,13 @@
           stroke="currentColor"
           stroke-width="2"
           class="size-5">
-          <rect x="3"
-y="11"
-width="18"
-height="11"
-rx="2"
-ry="2" />
+          <rect
+            x="3"
+            y="11"
+            width="18"
+            height="11"
+            rx="2"
+            ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
         <!-- Generate Password Icon -->
@@ -201,7 +210,8 @@ ry="2" />
           stroke="currentColor"
           stroke-width="2"
           class="size-5">
-          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+          <path
+            d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
         </svg>
       </span>
       <span class="relative z-10 flex flex-col items-start leading-tight">
@@ -214,8 +224,7 @@ ry="2" />
       </span>
       <kbd
         v-if="showKeyboardHint"
-        class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
-          text-xs font-normal opacity-70 sm:inline-block relative z-10">
+        class="relative z-10 ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal opacity-70 sm:inline-block">
         {{ shortcutHint }}
       </kbd>
     </button>
@@ -227,8 +236,8 @@ ry="2" />
         corners.rightCorner,
         textColorClass,
         rightButtonFocusClass,
-        'flex items-center justify-center relative overflow-hidden group',
-        'focus:z-10 focus:outline-none focus:ring-4 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        'group relative flex items-center justify-center overflow-hidden',
+        'focus:z-10 focus:ring-4 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-slate-900',
         'border-l p-3.5 transition-all duration-300',
         'hover:opacity-100 hover:shadow-[0_8px_20px_-4px_var(--button-shadow-color)]',
         'active:scale-[0.98]',
@@ -247,7 +256,9 @@ ry="2" />
       aria-haspopup="true"
       :aria-controls="isDropdownOpen ? 'split-button-dropdown' : undefined">
       <!-- Gradient overlay for depth -->
-      <span class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"></span>
+      <span
+        class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        aria-hidden="true"></span>
 
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -257,7 +268,10 @@ ry="2" />
         fill="none"
         stroke="currentColor"
         stroke-width="2"
-        :class="['size-5 relative z-10 transition-transform duration-300', isDropdownOpen ? 'rotate-180' : '']">
+        :class="[
+          'relative z-10 size-5 transition-transform duration-300',
+          isDropdownOpen ? 'rotate-180' : '',
+        ]">
         <polyline points="6 9 12 15 18 9" />
       </svg>
     </button>
@@ -284,7 +298,8 @@ ry="2" />
           group"
         @click="setAction('create-link')"
         data-testid="split-button-option-create-link">
-        <span class="flex items-center text-current transition-transform duration-200 group-hover:scale-110">
+        <span
+          class="flex items-center text-current transition-transform duration-200 group-hover:scale-110">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
@@ -318,7 +333,8 @@ ry="2" />
           group"
         @click="setAction('generate-password')"
         data-testid="split-button-option-generate-password">
-        <span class="flex items-center text-brand-500 dark:text-brand-400 transition-transform duration-200 group-hover:scale-110">
+        <span
+          class="flex items-center text-brand-500 transition-transform duration-200 group-hover:scale-110 dark:text-brand-400">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"

@@ -13,7 +13,7 @@
   <div
     role="status"
     aria-busy="true"
-    class="container mx-auto min-w-[320px] max-w-2xl animate-pulse motion-reduce:animate-none">
+    class="container mx-auto max-w-2xl min-w-[320px] animate-pulse motion-reduce:animate-none">
     <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
     <!-- Secret Form Skeleton -->
     <div class="mb-10 space-y-4">

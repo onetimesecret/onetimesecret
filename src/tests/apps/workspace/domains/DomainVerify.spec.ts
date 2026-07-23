@@ -389,7 +389,9 @@ describe('DomainVerify', () => {
   describe('DNS target address computation', () => {
     it('returns proxy_ip for apex domains', async () => {
       mockDomain.value = createMockDomain({ is_apex: true });
-      mockDetails.value = { cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }) };
+      mockDetails.value = {
+        cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }),
+      };
 
       const wrapper = await mountComponent();
 
@@ -399,7 +401,9 @@ describe('DomainVerify', () => {
 
     it('returns proxy_host for non-apex domains', async () => {
       mockDomain.value = createMockDomain({ is_apex: false });
-      mockDetails.value = { cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }) };
+      mockDetails.value = {
+        cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }),
+      };
 
       const wrapper = await mountComponent();
 

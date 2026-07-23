@@ -231,7 +231,9 @@ describe('DomainsTableDomainCell', () => {
 
       // Should show the i18n key for age (which contains formatDistanceToNow)
       // The actual rendered text will use i18n interpolation with the mocked date-fns
-      expect(wrapper.text()).toContain('web.domains.added_formatdistancetonow_domain_created_addsuffix_true');
+      expect(wrapper.text()).toContain(
+        'web.domains.added_formatdistancetonow_domain_created_addsuffix_true'
+      );
     });
   });
 

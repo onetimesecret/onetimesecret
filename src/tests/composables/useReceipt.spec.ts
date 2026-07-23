@@ -229,7 +229,11 @@ describe('useReceipt', () => {
       // Verify
       expect(store.fetch).toHaveBeenCalledWith('test-key');
       expect(isLoading.value).toBe(false);
-      expect(notifications.show).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error', 'top');
+      expect(notifications.show).toHaveBeenCalledWith(
+        'web.COMMON.unexpected_error',
+        'error',
+        'top'
+      );
       expect(error.value).toBeDefined();
       expect(error.value?.type).toBe('technical');
       expect(error.value?.severity).toBe('error');

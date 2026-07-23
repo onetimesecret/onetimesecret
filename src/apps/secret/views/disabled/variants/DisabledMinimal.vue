@@ -34,7 +34,8 @@
 </script>
 
 <template>
-  <div class="mx-auto flex w-full max-w-xl flex-col items-center px-4 pb-12 pt-20 text-center sm:pt-28">
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col items-center px-4 pt-20 pb-12 text-center sm:pt-28">
     <!-- Small mark — priority: configured custom-domain logo → branded monogram → neutral keyhole mark -->
     <div class="mb-6 flex items-center justify-center">
       <img
@@ -64,7 +65,7 @@
     <!-- Headline (smaller than V1, larger than closed) -->
     <h1
       :class="headingFontClass ?? fontFamilyClass ?? 'font-brand'"
-      class="text-balance text-2xl font-bold leading-tight tracking-tight text-gray-800 dark:text-gray-100 sm:text-3xl">
+      class="text-2xl leading-tight font-bold tracking-tight text-balance text-gray-800 sm:text-3xl dark:text-gray-100">
       <i18n-t
         v-if="isBranded"
         keypath="homepage_secrets.disabled.team_link_headline"
@@ -88,7 +89,7 @@
     </h1>
 
     <!-- Subtitle -->
-    <p class="mt-3 max-w-md text-pretty text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+    <p class="mt-3 max-w-md text-sm leading-relaxed text-pretty text-gray-600 dark:text-gray-400">
       <template v-if="isBranded">
         {{ $t('homepage_secrets.disabled.team_subtitle', { domain: displayDomain }) }}
       </template>
@@ -106,7 +107,7 @@
         type="button"
         data-testid="disabled-homepage-sso"
         :class="cornerClass ?? 'rounded-lg'"
-        class="inline-flex items-center gap-2 border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-800 cursor-pointer shadow-sm transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:focus:ring-offset-gray-900"
+        class="inline-flex cursor-pointer items-center gap-2 border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-800 shadow-sm transition-colors hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:focus:ring-offset-gray-900"
         @click="onSsoLogin">
         {{
           ssoProviderName
@@ -123,7 +124,7 @@
         to="/signin"
         data-testid="disabled-homepage-signin"
         :class="cornerClass ?? 'rounded-lg'"
-        class="inline-flex items-center gap-2 border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:focus:ring-offset-gray-900">
+        class="inline-flex items-center gap-2 border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:focus:ring-offset-gray-900">
         {{ $t('homepage_secrets.disabled.signin_cta') }}
         <OIcon
           collection="heroicons"
@@ -135,7 +136,7 @@
         :href="whatIsThisHref"
         target="_blank"
         rel="noopener noreferrer"
-        class="rounded-sm text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:ring-offset-gray-900">
+        class="rounded-sm text-sm font-medium text-gray-500 hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200 dark:focus:ring-offset-gray-900">
         {{ $t('homepage_secrets.disabled.what_is_this') }}
         <span class="sr-only">{{ $t('homepage_secrets.disabled.opens_in_new_tab') }}</span>
       </a>

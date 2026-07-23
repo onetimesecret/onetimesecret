@@ -31,9 +31,7 @@
   let previouslyFocusedElement: HTMLElement | null = null;
 
   const tabs = computed<Tab[]>(() => {
-    const tabsList = [
-      { id: 'general', label: t('web.COMMON.general') }
-    ];
+    const tabsList = [{ id: 'general', label: t('web.COMMON.general') }];
 
     if (regions_enabled.value) {
       tabsList.push({ id: 'data-region', label: t('web.regions.data_region') });
@@ -94,8 +92,7 @@
       case 'ArrowLeft':
       case 'ArrowUp':
         e.preventDefault();
-        activeTab.value =
-          tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
+        activeTab.value = tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
         // Focus the newly selected tab button
         nextTick(() => {
           document.getElementById(`tab-button-${activeTab.value}`)?.focus();
@@ -162,15 +159,13 @@
       {{ t('web.layout.customize_your_app_preferences_and_settings') }}
     </div>
 
-    <FocusTrap
-      :active="isOpen">
+    <FocusTrap :active="isOpen">
       <div
-        class="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-lg motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out dark:bg-gray-800 sm:max-w-md md:max-w-lg"
+        class="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-lg motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out sm:max-w-md md:max-w-lg dark:bg-gray-800"
         :class="{ 'scale-95 opacity-0': !isOpen, 'scale-100 opacity-100': isOpen }">
         <div class="flex h-[90vh] flex-col sm:h-[80vh]">
           <!-- Modal Header -->
-          <div
-            class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
+          <div class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
             <h2
               id="settings-modal-title"
               class="mb-0 text-2xl font-bold text-gray-900 dark:text-white">
@@ -178,7 +173,7 @@
             </h2>
             <button
               @click="closeModal"
-              class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
+              class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-600"
               :aria-label="t('web.layout.close_settings')">
               <svg
                 class="size-5"
@@ -211,9 +206,10 @@
               role="tab"
               :id="`tab-button-${tab.id}`"
               :tabindex="activeTab === tab.id ? 0 : -1"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 dark:text-gray-200"
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 focus:outline-none dark:text-gray-200"
               :class="{
-                'bg-brandcomp-100 dark:bg-brandcomp-900/50 dark:text-brandcomp-100': activeTab === tab.id,
+                'bg-brandcomp-100 dark:bg-brandcomp-900/50 dark:text-brandcomp-100':
+                  activeTab === tab.id,
                 'hover:bg-gray-200 dark:hover:bg-gray-700': activeTab !== tab.id,
               }">
               {{ tab.label }}
@@ -265,7 +261,7 @@
           <div class="flex shrink-0 justify-end bg-gray-50 p-4 dark:bg-gray-700">
             <button
               @click="closeModal"
-              class="rounded-md bg-brand-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+              class="rounded-md bg-brand-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none">
               {{ t('web.COMMON.done') }}
             </button>
           </div>
@@ -278,7 +274,7 @@
 <style scoped>
   /* Add focus styles that work in all color schemes */
   .focus-visible:focus {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800;
+    @apply ring-2 ring-brand-500 ring-offset-2 outline-none dark:ring-offset-gray-800;
   }
 
   /* Hide scrollbar but keep functionality */

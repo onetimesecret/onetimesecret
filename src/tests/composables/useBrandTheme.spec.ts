@@ -8,14 +8,7 @@
 // Test environment: vitest.config.ts sets `environment: 'jsdom'`
 // globally, so document.documentElement and friends are available.
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  vi,
-} from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
 import { generateBrandPalette, generateNamedScale } from '@/utils/brand-palette';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
@@ -31,13 +24,16 @@ const ALL_KEYS = Object.keys(generateBrandPalette(NEUTRAL_HEX));
 // them through storeToRefs(useProductIdentity()).
 
 const mockPrimaryColor = ref<string | null | undefined>(NEUTRAL_HEX);
-const mockBrand = ref<{
-  favicon_url?: string | null;
-  secondary_color?: string | null;
-  background_color?: string | null;
-  text_color?: string | null;
-  border_radius?: string | number | null;
-} | undefined>(undefined);
+const mockBrand = ref<
+  | {
+      favicon_url?: string | null;
+      secondary_color?: string | null;
+      background_color?: string | null;
+      text_color?: string | null;
+      border_radius?: string | number | null;
+    }
+  | undefined
+>(undefined);
 
 vi.mock('@/shared/stores/identityStore', () => ({
   useProductIdentity: () => ({}),
@@ -332,8 +328,16 @@ describe('useBrandTheme', () => {
 
       // Distinct, unambiguous hex inputs — the final value drives the assertion.
       const colors = [
-        '#ff0000', '#ff8800', '#ffff00', '#88ff00', '#00ff00',
-        '#00ff88', '#00ffff', '#0088ff', '#0000ff', '#8800ff',
+        '#ff0000',
+        '#ff8800',
+        '#ffff00',
+        '#88ff00',
+        '#00ff00',
+        '#00ff88',
+        '#00ffff',
+        '#0088ff',
+        '#0000ff',
+        '#8800ff',
       ];
 
       for (const c of colors) {

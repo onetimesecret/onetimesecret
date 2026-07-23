@@ -11,14 +11,11 @@
   /**
    * Props for controlling logo appearance
    */
-  const props = withDefaults(
-    defineProps<LogoConfig & { isColonelArea?: boolean }>(),
-    {
-      size: 64,
-      href: '/',
-      isColonelArea: false,
-    }
-  );
+  const props = withDefaults(defineProps<LogoConfig & { isColonelArea?: boolean }>(), {
+    size: 64,
+    href: '/',
+    isColonelArea: false,
+  });
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
@@ -73,7 +70,7 @@
       <div
         v-if="props.showSiteName && props.siteName"
         class="relative flex flex-col">
-        <div :class="[textSize, 'font-brand font-bold leading-tight']">
+        <div :class="[textSize, 'font-brand leading-tight font-bold']">
           {{ props.siteName }}
         </div>
         <!-- Colonel Overlay -->
@@ -82,7 +79,7 @@
           class="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span
             class="-rotate-6 transform-gpu rounded-lg bg-brand-500 px-2 py-1 text-sm font-bold tracking-widest text-white shadow-lg dark:bg-brand-600/90"
-            style="transform-origin: center;">
+            style="transform-origin: center">
             {{ t('web.layout.colonels_only_badge') }}
           </span>
         </div>

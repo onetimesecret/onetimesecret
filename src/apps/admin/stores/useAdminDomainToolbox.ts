@@ -4,10 +4,7 @@ import { defineStore } from 'pinia';
 import type { z } from 'zod';
 import { ref } from 'vue';
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelDomainsOrphanedResponseSchema } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
 import type { ColonelOrphanedDomain } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
 

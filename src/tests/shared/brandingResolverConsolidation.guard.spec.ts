@@ -18,8 +18,7 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { describe, expect, it } from 'vitest';
 
-const read = (relPath: string): string =>
-  readFileSync(resolve(process.cwd(), relPath), 'utf-8');
+const read = (relPath: string): string => readFileSync(resolve(process.cwd(), relPath), 'utf-8');
 
 /**
  * Strips comments so the "no re-derivation" assertions look only at executable
@@ -170,7 +169,7 @@ describe('branding resolver consolidation guardrail', () => {
 
 describe('stripComments (guard helper)', () => {
   it('strips a line comment but keeps the code before it', () => {
-    const out = stripComments("const x = 1; // brand_product_name in a comment");
+    const out = stripComments('const x = 1; // brand_product_name in a comment');
     expect(out).toContain('const x = 1;');
     expect(out).not.toContain('brand_product_name');
   });

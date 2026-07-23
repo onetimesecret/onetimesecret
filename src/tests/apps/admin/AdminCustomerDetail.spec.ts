@@ -142,7 +142,13 @@ function detailPayload(
       secrets: {
         count: 1,
         items: [
-          { secret_id: 's1', shortid: 'sh1', state: 'new', created: 1700000000, expiration: 1700003600 },
+          {
+            secret_id: 's1',
+            shortid: 'sh1',
+            state: 'new',
+            created: 1700000000,
+            expiration: 1700003600,
+          },
         ],
       },
       receipts: {
@@ -213,7 +219,9 @@ describe('AdminCustomerDetail (ticket #22)', () => {
     });
 
     it('renders the error panel on a non-404 failure', async () => {
-      mockApi.get.mockRejectedValue(Object.assign(new Error('boom'), { response: { status: 500 } }));
+      mockApi.get.mockRejectedValue(
+        Object.assign(new Error('boom'), { response: { status: 500 } })
+      );
       wrapper = mountView();
       await flushPromises();
 
@@ -280,9 +288,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
     });
 
     it('surfaces the backend error in the dialog and stays put on failure', async () => {
-      mockApi.delete.mockRejectedValue(
-        axiosError(422, { error: 'Cannot purge anonymous user' })
-      );
+      mockApi.delete.mockRejectedValue(axiosError(422, { error: 'Cannot purge anonymous user' }));
 
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
       await dialogInput(wrapper).setValue(PUBLIC_ID);
@@ -313,7 +319,10 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await flushPromises();
 
       expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/verify', {});
-      expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.verify.success', 'success');
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.customers.actions.verify.success',
+        'success'
+      );
       // Success refreshes the resource (an extra GET), never navigates away.
       expect(mockApi.get.mock.calls.length).toBe(getCallsBefore + 1);
       expect(pushMock).not.toHaveBeenCalled();
@@ -352,7 +361,11 @@ describe('AdminCustomerDetail (ticket #22)', () => {
     it('degrades to the unavailable note (still showing plan) when Stripe is unreachable', async () => {
       mockApi.get.mockResolvedValue({
         data: detailPayload({
-          billing: { enabled: true, stripeAvailable: false, stripeReason: 'Stripe unavailable: timeout' },
+          billing: {
+            enabled: true,
+            stripeAvailable: false,
+            stripeReason: 'Stripe unavailable: timeout',
+          },
         }),
       });
       wrapper = mountView();

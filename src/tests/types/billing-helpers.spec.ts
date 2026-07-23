@@ -67,60 +67,51 @@ describe('formatCurrency', () => {
 
 describe('getInvoiceStatusLabel', () => {
   it('returns i18n key for paid status', () => {
-    expect(getInvoiceStatusLabel('paid', mockT))
-      .toBe('web.billing.invoices.paid');
+    expect(getInvoiceStatusLabel('paid', mockT)).toBe('web.billing.invoices.paid');
   });
 
   it('returns i18n key for pending status', () => {
-    expect(getInvoiceStatusLabel('pending', mockT))
-      .toBe('web.billing.invoices.pending');
+    expect(getInvoiceStatusLabel('pending', mockT)).toBe('web.billing.invoices.pending');
   });
 
   it('returns i18n key for failed status', () => {
-    expect(getInvoiceStatusLabel('failed', mockT))
-      .toBe('web.billing.invoices.failed');
+    expect(getInvoiceStatusLabel('failed', mockT)).toBe('web.billing.invoices.failed');
   });
 
   it('returns i18n key for draft status', () => {
-    expect(getInvoiceStatusLabel('draft', mockT))
-      .toBe('web.billing.invoices.draft');
+    expect(getInvoiceStatusLabel('draft', mockT)).toBe('web.billing.invoices.draft');
   });
 
   it('returns i18n key for open status', () => {
-    expect(getInvoiceStatusLabel('open', mockT))
-      .toBe('web.billing.invoices.open');
+    expect(getInvoiceStatusLabel('open', mockT)).toBe('web.billing.invoices.open');
   });
 
   it('returns i18n key for uncollectible status', () => {
-    expect(getInvoiceStatusLabel('uncollectible', mockT))
-      .toBe('web.billing.invoices.uncollectible');
+    expect(getInvoiceStatusLabel('uncollectible', mockT)).toBe(
+      'web.billing.invoices.uncollectible'
+    );
   });
 
   it('returns i18n key for void status', () => {
-    expect(getInvoiceStatusLabel('void', mockT))
-      .toBe('web.billing.invoices.void');
+    expect(getInvoiceStatusLabel('void', mockT)).toBe('web.billing.invoices.void');
   });
 });
 
 describe('getSubscriptionStatusLabel', () => {
   it('returns i18n key for active status', () => {
-    expect(getSubscriptionStatusLabel('active', mockT))
-      .toBe('web.billing.subscription.active');
+    expect(getSubscriptionStatusLabel('active', mockT)).toBe('web.billing.subscription.active');
   });
 
   it('returns i18n key for inactive status', () => {
-    expect(getSubscriptionStatusLabel('inactive', mockT))
-      .toBe('web.billing.subscription.inactive');
+    expect(getSubscriptionStatusLabel('inactive', mockT)).toBe('web.billing.subscription.inactive');
   });
 
   it('returns i18n key for past_due status', () => {
-    expect(getSubscriptionStatusLabel('past_due', mockT))
-      .toBe('web.billing.subscription.past_due');
+    expect(getSubscriptionStatusLabel('past_due', mockT)).toBe('web.billing.subscription.past_due');
   });
 
   it('returns i18n key for canceled status', () => {
-    expect(getSubscriptionStatusLabel('canceled', mockT))
-      .toBe('web.billing.subscription.canceled');
+    expect(getSubscriptionStatusLabel('canceled', mockT)).toBe('web.billing.subscription.canceled');
   });
 });
 

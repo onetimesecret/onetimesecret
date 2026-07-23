@@ -82,9 +82,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import BrandedHomepage from '@/apps/secret/conceal/BrandedHomepage.vue';
 import type { HomepageConfigCanonical } from '@/schemas/contracts/custom-domain/homepage-config';
 
-function homepageConfig(
-  overrides: Partial<HomepageConfigCanonical> = {}
-): HomepageConfigCanonical {
+function homepageConfig(overrides: Partial<HomepageConfigCanonical> = {}): HomepageConfigCanonical {
   return {
     domain_id: 'd_123',
     enabled: true,

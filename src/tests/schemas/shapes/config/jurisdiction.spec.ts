@@ -41,9 +41,7 @@ describe('jurisdictionShape — identifier bounds (min 2, max 24)', () => {
   });
 
   it('accepts a 24-character identifier (upper bound)', () => {
-    expect(() =>
-      jurisdictionShape.parse({ ...minimal, identifier: 'a'.repeat(24) })
-    ).not.toThrow();
+    expect(() => jurisdictionShape.parse({ ...minimal, identifier: 'a'.repeat(24) })).not.toThrow();
   });
 
   it('rejects a one-character identifier', () => {
@@ -51,9 +49,7 @@ describe('jurisdictionShape — identifier bounds (min 2, max 24)', () => {
   });
 
   it('rejects a 25-character identifier', () => {
-    expect(() =>
-      jurisdictionShape.parse({ ...minimal, identifier: 'a'.repeat(25) })
-    ).toThrow();
+    expect(() => jurisdictionShape.parse({ ...minimal, identifier: 'a'.repeat(25) })).toThrow();
   });
 
   it('contract accepts the out-of-range identifiers the shape rejects', () => {
@@ -73,15 +69,11 @@ describe('regionsConfigShape — identifier bounds (no enabled default)', () => 
   };
 
   it('rejects one-character identifier on the shape', () => {
-    expect(() =>
-      regionsConfigShape.parse({ ...minimalRegion, identifier: 'x' })
-    ).toThrow();
+    expect(() => regionsConfigShape.parse({ ...minimalRegion, identifier: 'x' })).toThrow();
   });
 
   it('contract accepts the same one-character identifier', () => {
-    expect(() =>
-      regionsConfigSchema.parse({ ...minimalRegion, identifier: 'x' })
-    ).not.toThrow();
+    expect(() => regionsConfigSchema.parse({ ...minimalRegion, identifier: 'x' })).not.toThrow();
   });
 });
 

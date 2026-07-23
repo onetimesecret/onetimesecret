@@ -1,21 +1,21 @@
 <!-- src/apps/workspace/components/settings/SettingsPageHeader.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-defineProps<{
-  /** Page title (optional - defaults to Settings) */
-  title?: string;
-  /** Page subtitle/description (optional) */
-  subtitle?: string;
-}>();
+  defineProps<{
+    /** Page title (optional - defaults to Settings) */
+    title?: string;
+    /** Page subtitle/description (optional) */
+    subtitle?: string;
+  }>();
 
-defineSlots<{
-  /** Optional actions slot for buttons/controls */
-  actions?(): unknown;
-}>();
+  defineSlots<{
+    /** Optional actions slot for buttons/controls */
+    actions?(): unknown;
+  }>();
 </script>
 
 <template>
@@ -37,7 +37,7 @@ defineSlots<{
         </p>
       </div>
       <div v-if="$slots.actions">
-        <slot name="actions" ></slot>
+        <slot name="actions"></slot>
       </div>
     </div>
   </div>

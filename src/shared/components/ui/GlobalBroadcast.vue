@@ -8,7 +8,7 @@
   import DOMPurify from 'dompurify';
   import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   export interface Props {
     content: string | null; // Can contain HTML
@@ -34,10 +34,13 @@ const { t } = useI18n();
 
   // Use our composable to handle dismissal state with content-based ID generation
   // The banner ID will be generated asynchronously based on content
-  const { isVisible, dismiss } = useDismissableBanner({
-    prefix: 'gb', // gb for global-broadcast
-    content: props.content
-  }, props.expirationDays);
+  const { isVisible, dismiss } = useDismissableBanner(
+    {
+      prefix: 'gb', // gb for global-broadcast
+      content: props.content,
+    },
+    props.expirationDays
+  );
 
   // Function to decode HTML entities
   function decodeHTMLEntities(html: string) {
@@ -95,9 +98,9 @@ const { t } = useI18n();
 <template>
   <div
     v-if="shouldShow"
-    class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gray-50 px-6 py-2.5 dark:bg-gray-900 sm:px-3.5 sm:before:flex-1">
+    class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gray-50 px-6 py-2.5 sm:px-3.5 sm:before:flex-1 dark:bg-gray-900">
     <div
-      class="absolute left-[max(-7rem,calc(50%-52rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
+      class="absolute top-1/2 left-[max(-7rem,calc(50%-52rem))] -z-10 -translate-y-1/2 transform-gpu blur-2xl"
       aria-hidden="true">
       <div
         class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-brand-500 to-brand-100 opacity-30"
@@ -129,7 +132,7 @@ const { t } = useI18n();
       :interval="1000"
       :scale="2" />
     <div
-      class="absolute left-[max(45rem,calc(50%+8rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
+      class="absolute top-1/2 left-[max(45rem,calc(50%+8rem))] -z-10 -translate-y-1/2 transform-gpu blur-2xl"
       aria-hidden="true">
       <div
         class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-brand-500 to-brand-100 opacity-30"
@@ -154,7 +157,9 @@ const { t } = useI18n();
           );
         "></div>
     </div>
-    <div class="font-brand text-base leading-6 text-gray-900 dark:text-gray-100" role="status">
+    <div
+      class="font-brand text-base leading-6 text-gray-900 dark:text-gray-100"
+      role="status">
       <div class="relative flex items-center space-x-3">
         <svg
           class="size-6 opacity-60"

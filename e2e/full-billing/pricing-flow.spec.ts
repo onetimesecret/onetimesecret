@@ -88,10 +88,7 @@ test.describe('Pricing Page Deep Links', () => {
     const planCards = getPlanCards(page);
     const planCount = await planCards.count();
 
-    expect(
-      planCount,
-      'Pricing page should display at least one plan card'
-    ).toBeGreaterThan(0);
+    expect(planCount, 'Pricing page should display at least one plan card').toBeGreaterThan(0);
 
     // Verify billing interval toggle is present
     const monthlyButton = page.getByRole('button', { name: /monthly/i });
@@ -107,15 +104,15 @@ test.describe('Pricing Page Deep Links', () => {
 
     // Monthly toggle should be selected
     const isMonthly = await isMonthlySelected(page);
-    expect(
-      isMonthly,
-      'Monthly toggle should be selected when URL includes /monthly'
-    ).toBe(true);
+    expect(isMonthly, 'Monthly toggle should be selected when URL includes /monthly').toBe(true);
 
     // Plan should have yellow highlight ring (ring-yellow-500)
     // The highlighted plan card should have the yellow ring class
     const highlightedCard = page.locator('.ring-yellow-500, .ring-yellow-400');
-    const hasHighlightedCard = await highlightedCard.first().isVisible().catch(() => false);
+    const hasHighlightedCard = await highlightedCard
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     // If plans contain identity_plus, it should be highlighted
     // Note: This may not find a match if identity_plus plan doesn't exist in test data
@@ -134,10 +131,7 @@ test.describe('Pricing Page Deep Links', () => {
 
     // Yearly toggle should be selected
     const isYearly = await isYearlySelected(page);
-    expect(
-      isYearly,
-      'Yearly toggle should be selected when URL includes /yearly'
-    ).toBe(true);
+    expect(isYearly, 'Yearly toggle should be selected when URL includes /yearly').toBe(true);
 
     // Monthly should NOT be selected
     const isMonthly = await isMonthlySelected(page);
@@ -163,10 +157,7 @@ test.describe('Pricing Page Deep Links', () => {
 
     // Should default to monthly since 'weekly' is not a valid interval
     const isMonthly = await isMonthlySelected(page);
-    expect(
-      isMonthly,
-      'Invalid interval should default to monthly'
-    ).toBe(true);
+    expect(isMonthly, 'Invalid interval should default to monthly').toBe(true);
   });
 
   test('product-only deep link uses default monthly interval', async ({ page }) => {
@@ -176,10 +167,7 @@ test.describe('Pricing Page Deep Links', () => {
 
     // Should default to monthly
     const isMonthly = await isMonthlySelected(page);
-    expect(
-      isMonthly,
-      'Product-only deep link should default to monthly interval'
-    ).toBe(true);
+    expect(isMonthly, 'Product-only deep link should default to monthly interval').toBe(true);
   });
 });
 
@@ -304,10 +292,7 @@ test.describe('Billing Interval Toggle', () => {
     const yearlyCount = await getPlanCards(page).count();
 
     // Verify plans are still displayed (the toggle works)
-    expect(
-      yearlyCount,
-      'Yearly plans should be displayed after toggle'
-    ).toBeGreaterThanOrEqual(0);
+    expect(yearlyCount, 'Yearly plans should be displayed after toggle').toBeGreaterThanOrEqual(0);
 
     // Toggle back to monthly
     const monthlyButton = page.getByRole('button', { name: /monthly/i });
@@ -357,9 +342,11 @@ test.describe('Billing Interval Toggle', () => {
     await waitForPricingPageLoad(page);
 
     // Find a paid plan card
-    const paidPlanCard = getPlanCards(page).filter({
-      has: page.locator('text=/get started/i'),
-    }).first();
+    const paidPlanCard = getPlanCards(page)
+      .filter({
+        has: page.locator('text=/get started/i'),
+      })
+      .first();
 
     const isVisible = await paidPlanCard.isVisible().catch(() => false);
     test.skip(!isVisible, 'No paid yearly plan found to verify pricing display');
@@ -437,10 +424,7 @@ test.describe('Plan Card Display', () => {
     const featureItems = firstCard.locator('ul li');
     const featureCount = await featureItems.count();
 
-    expect(
-      featureCount,
-      'Plan card should have at least one feature listed'
-    ).toBeGreaterThan(0);
+    expect(featureCount, 'Plan card should have at least one feature listed').toBeGreaterThan(0);
 
     // Verify features have check icons
     const checkIcons = firstCard.locator('ul li [collection="heroicons"][name="check"]');

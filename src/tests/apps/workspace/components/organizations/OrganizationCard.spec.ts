@@ -60,7 +60,8 @@ describe('OrganizationCard', () => {
     }
   });
 
-  const mountComponent = (organization: Organization = createMockOrganization()) => mount(OrganizationCard, {
+  const mountComponent = (organization: Organization = createMockOrganization()) =>
+    mount(OrganizationCard, {
       props: {
         organization,
       },
@@ -404,8 +405,7 @@ describe('OrganizationCard', () => {
     });
 
     it('handles very long display_name with truncation', () => {
-      const longName =
-        'This Is A Very Long Organization Name That Should Be Truncated By CSS';
+      const longName = 'This Is A Very Long Organization Name That Should Be Truncated By CSS';
       wrapper = mountComponent(createMockOrganization({ display_name: longName }));
 
       const heading = wrapper.find('h3');
@@ -414,9 +414,7 @@ describe('OrganizationCard', () => {
     });
 
     it('handles special characters in display_name', () => {
-      wrapper = mountComponent(
-        createMockOrganization({ display_name: 'Acme & Partners <Corp>' })
-      );
+      wrapper = mountComponent(createMockOrganization({ display_name: 'Acme & Partners <Corp>' }));
 
       const heading = wrapper.find('h3');
       expect(heading.text()).toBe('Acme & Partners <Corp>');

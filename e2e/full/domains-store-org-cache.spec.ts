@@ -280,10 +280,13 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
 
       // Step 2: Navigate to A Second Organization's page via URL
       // Wait for domains API response to ensure store has re-fetched
-      const domainsResponsePromise = page.waitForResponse(
-        (resp) => resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
-        { timeout: 10000 }
-      ).catch(() => null); // Don't fail if no domains API call (empty org)
+      const domainsResponsePromise = page
+        .waitForResponse(
+          (resp) =>
+            resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
+          { timeout: 10000 }
+        )
+        .catch(() => null); // Don't fail if no domains API call (empty org)
 
       await page.goto(`/org/${secondOrg.extid}`);
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -311,10 +314,13 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
 
       // Step 3: Navigate back to Default Workspace dashboard
       // Wait for domains API response on return navigation
-      const returnDomainsPromise = page.waitForResponse(
-        (resp) => resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
-        { timeout: 10000 }
-      ).catch(() => null);
+      const returnDomainsPromise = page
+        .waitForResponse(
+          (resp) =>
+            resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
+          { timeout: 10000 }
+        )
+        .catch(() => null);
 
       await page.goto('/dashboard');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -342,7 +348,10 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
       test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
 
       // Log available orgs for debugging
-      console.log(`[TC-DSC-002] Found ${orgs.length} orgs:`, orgs.map((o) => `"${o.name}" (${o.extid})`).join(', '));
+      console.log(
+        `[TC-DSC-002] Found ${orgs.length} orgs:`,
+        orgs.map((o) => `"${o.name}" (${o.extid})`).join(', ')
+      );
 
       // Find named orgs - try exact match first, then partial
       const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
@@ -364,7 +373,9 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
         );
       }
 
-      console.log(`[TC-DSC-002] Using Default Workspace: "${defaultWorkspace.name}" (${defaultWorkspace.extid})`);
+      console.log(
+        `[TC-DSC-002] Using Default Workspace: "${defaultWorkspace.name}" (${defaultWorkspace.extid})`
+      );
       console.log(`[TC-DSC-002] Using Second Org: "${secondOrg.name}" (${secondOrg.extid})`);
 
       // Step 1: Navigate to Default Workspace's organization page (domains tab is default)
@@ -388,10 +399,13 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
 
       // Step 2: Navigate directly to A Second Organization's page via URL (domains tab is default)
       // Wait for domains API response to ensure store has re-fetched for new org
-      const domainsResponsePromise = page.waitForResponse(
-        (resp) => resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
-        { timeout: 10000 }
-      ).catch(() => null);
+      const domainsResponsePromise = page
+        .waitForResponse(
+          (resp) =>
+            resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
+          { timeout: 10000 }
+        )
+        .catch(() => null);
 
       await page.goto(`/org/${secondOrg.extid}`);
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -413,7 +427,9 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
       }
 
       console.log(`[TC-DSC-002] Default Workspace domains: ${defaultDomainNames.join(', ')}`);
-      console.log(`[TC-DSC-002] Second Org domains: ${secondOrgDomainNames.join(', ') || '(none)'}`);
+      console.log(
+        `[TC-DSC-002] Second Org domains: ${secondOrgDomainNames.join(', ') || '(none)'}`
+      );
 
       // KEY ISOLATION CHECK: Domains from Default Workspace must NOT appear on Second Org's page
       // A domain belongs to exactly ONE organization. If we see the same domain names,
@@ -428,10 +444,9 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
       // If Second Org has no domains, verify empty state is shown
       if (secondOrgDomainCount === 0) {
         const isEmptyState = await isEmptyDomainsState(page);
-        expect(
-          isEmptyState,
-          'Second Organization with no domains should show empty state'
-        ).toBe(true);
+        expect(isEmptyState, 'Second Organization with no domains should show empty state').toBe(
+          true
+        );
       }
     });
   });
@@ -478,10 +493,11 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
       apiCalls.length = 0; // Clear previous calls
 
       // Set up response listener before navigation
-      const dashboardDomainsPromise = page.waitForResponse(
-        (resp) => resp.url().includes('/api/') && resp.url().includes('domains'),
-        { timeout: 10000 }
-      ).catch(() => null);
+      const dashboardDomainsPromise = page
+        .waitForResponse((resp) => resp.url().includes('/api/') && resp.url().includes('domains'), {
+          timeout: 10000,
+        })
+        .catch(() => null);
 
       await page.goto('/dashboard');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -494,10 +510,11 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
       apiCalls.length = 0; // Clear to track new calls
 
       // Set up response listener before navigation to second org
-      const secondOrgDomainsPromise = page.waitForResponse(
-        (resp) => resp.url().includes('/api/') && resp.url().includes('domains'),
-        { timeout: 10000 }
-      ).catch(() => null);
+      const secondOrgDomainsPromise = page
+        .waitForResponse((resp) => resp.url().includes('/api/') && resp.url().includes('domains'), {
+          timeout: 10000,
+        })
+        .catch(() => null);
 
       await page.goto(`/org/${secondOrg.extid}`);
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -530,10 +547,9 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
       const callsWithOrgId = domainCallsForSecond.filter((call) => call.orgId !== null);
       if (callsWithOrgId.length > 0) {
         for (const call of callsWithOrgId) {
-          expect(
-            call.orgId,
-            `API call org_id should match A Second Organization's extid`
-          ).toBe(secondOrg.extid);
+          expect(call.orgId, `API call org_id should match A Second Organization's extid`).toBe(
+            secondOrg.extid
+          );
         }
       }
     });
@@ -560,7 +576,9 @@ test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
     const secondOrg = findOrgByName(orgs, 'Second Organization');
 
     if (!defaultWorkspace || !secondOrg) {
-      throw new Error('requires "Default Workspace" + "Second Organization" — second-org fixture (#3420)');
+      throw new Error(
+        'requires "Default Workspace" + "Second Organization" — second-org fixture (#3420)'
+      );
     }
 
     // Navigate to Default Workspace (domains tab is default)
@@ -637,10 +655,9 @@ test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
 
     // Verify empty state is still shown (no stale cache from another org)
     const isEmptyAfterRefresh = await isEmptyDomainsState(page);
-    expect(
-      isEmptyAfterRefresh,
-      'Second org should still show empty state after page refresh'
-    ).toBe(true);
+    expect(isEmptyAfterRefresh, 'Second org should still show empty state after page refresh').toBe(
+      true
+    );
   });
 });
 

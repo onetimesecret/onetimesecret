@@ -194,9 +194,7 @@ export const useAuthStore = defineStore('auth', () => {
    * False if MFA is pending, even if password auth succeeded.
    * Use this for route protection and access control.
    */
-  const isFullyAuthenticated = computed(() =>
-    isAuthenticated.value === true && !awaitingMfa.value
-  );
+  const isFullyAuthenticated = computed(() => isAuthenticated.value === true && !awaitingMfa.value);
 
   /**
    * Whether a user is present (logged in partially or fully).
@@ -245,7 +243,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Likely a server error page, preserve the stored auth state
       loggingService.warn(
         'Window state shows unauthenticated but server had valid session - ' +
-        'likely server error page, preserving auth state'
+          'likely server error page, preserving auth state'
       );
       isAuthenticated.value = true;
     } else {
@@ -307,7 +305,9 @@ export const useAuthStore = defineStore('auth', () => {
     });
 
     if (shouldSkip) {
-      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated and not awaiting MFA');
+      loggingService.debug(
+        '[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated and not awaiting MFA'
+      );
       return false;
     }
 

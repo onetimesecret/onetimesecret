@@ -1,9 +1,6 @@
 // src/shared/stores/identityStore.ts
 
-import {
-  brandSettingsSchema,
-  type BrandSettings,
-} from '@/schemas/shapes/v3/custom-domain';
+import { brandSettingsSchema, type BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 import {
   DEFAULT_LOGO_COMPONENT,
   NEUTRAL_BRAND_DEFAULTS,
@@ -96,14 +93,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const domainParsed = gracefulParse(primaryColorValidator, brandColor, 'PrimaryColor');
     const domainValidated = domainParsed.ok ? domainParsed.data : null;
 
-    const installParsed = gracefulParse(primaryColorValidator, bootstrapStore.brand_primary_color, 'InstallPrimaryColor');
+    const installParsed = gracefulParse(
+      primaryColorValidator,
+      bootstrapStore.brand_primary_color,
+      'InstallPrimaryColor'
+    );
     const installValidated = installParsed.ok ? installParsed.data : null;
 
-    return (
-      domainValidated ??
-      installValidated ??
-      NEUTRAL_BRAND_DEFAULTS.primary_color
-    );
+    return domainValidated ?? installValidated ?? NEUTRAL_BRAND_DEFAULTS.primary_color;
   }
 
   /**
@@ -111,7 +108,11 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * Handles validation and default values for branding fields
    */
   function getInitialState(): IdentityState {
-    const brandResult = gracefulParse(brandSettingsSchema, domain_branding.value ?? {}, 'BrandSettings');
+    const brandResult = gracefulParse(
+      brandSettingsSchema,
+      domain_branding.value ?? {},
+      'BrandSettings'
+    );
     const brand = brandResult.ok ? brandResult.data : null;
 
     const primaryColor = resolvePrimaryColor(brand?.primary_color);
@@ -171,9 +172,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * nested property access through the reactive proxy and survives
    * in-place $patch merges of homepage_config.
    */
-  const homepageSecretsMode = computed(
-    () => homepage_config.value?.secrets_mode ?? 'create'
-  );
+  const homepageSecretsMode = computed(() => homepage_config.value?.secrets_mode ?? 'create');
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
   watch(
@@ -214,12 +213,13 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const productName = computed(() => resolveProductName(brand_product_name?.value));
 
   /** Logo URL for custom domain, pre-computed by backend with correct extid */
-  const logoUri = computed(() =>
-    // Backend provides the correct logo URL using extid (external ID).
-    // Returns null if no logo is uploaded for this custom domain.
-    // Note: Client-side URL generation is not possible since we only have
-    // the internal domainId, not the public extid needed for the /imagine route.
-    domain_logo.value
+  const logoUri = computed(
+    () =>
+      // Backend provides the correct logo URL using extid (external ID).
+      // Returns null if no logo is uploaded for this custom domain.
+      // Note: Client-side URL generation is not possible since we only have
+      // the internal domainId, not the public extid needed for the /imagine route.
+      domain_logo.value
   );
 
   /**
@@ -247,9 +247,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    *
    * `||` (not `??`) so an empty-string config value reads as absent.
    */
-  const installLogoUri = computed(() =>
-    isCustom.value ? null : brand_logo_url?.value || null
-  );
+  const installLogoUri = computed(() => (isCustom.value ? null : brand_logo_url?.value || null));
 
   /**
    * Operator-supplied alt text for the install logo (BRAND_LOGO_ALT /
@@ -283,10 +281,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * is no longer read from `ui.header.branding`.
    */
   const logoSource = computed(
-    () =>
-      logoUri.value ||
-      installLogoUri.value ||
-      DEFAULT_LOGO_COMPONENT
+    () => logoUri.value || installLogoUri.value || DEFAULT_LOGO_COMPONENT
   );
 
   // border_radius (#3646) supersedes corner_style when set: it resolves to the
@@ -298,7 +293,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       return 'rounded-brand';
     }
     return state.brand?.corner_style
-      ? cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS
+      ? (cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS)
       : DEFAULT_CORNER_CLASS;
   });
 

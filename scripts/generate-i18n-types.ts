@@ -111,7 +111,7 @@ function generateTypeDeclaration(localeData: NestedObject, allKeys: string[]): s
   const sortedKeys = [...allKeys].sort();
 
   // Generate the union type of all valid keys
-  const keyUnionType = sortedKeys.map(k => `  | '${k}'`).join('\n');
+  const keyUnionType = sortedKeys.map((k) => `  | '${k}'`).join('\n');
 
   // Generate nested interface structure
   const nestedStructure = buildNestedInterface(localeData);

@@ -97,7 +97,9 @@ const domainSwitcher = {
     }),
   menuItems: (page: Page) => page.locator('[role="menuitem"]'),
   gearIcon: (page: Page) =>
-    page.locator('[data-testid^="domain-context-settings"], button[aria-label*="domain settings" i]'),
+    page.locator(
+      '[data-testid^="domain-context-settings"], button[aria-label*="domain settings" i]'
+    ),
   addLink: (page: Page) =>
     page.locator('[data-testid="domain-context-add-link"], button:has-text("Add Domain")'),
 };

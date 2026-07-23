@@ -63,7 +63,11 @@
               {{ t('web.regions.changing_regions_how_to') }}
             </p>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.regions.changing_regions_billing_note', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
+              {{
+                t('web.regions.changing_regions_billing_note', {
+                  product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name,
+                })
+              }}
             </p>
           </div>
 

@@ -420,9 +420,18 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 
       // Should have one of the status badges or configure link
       const hasBadge =
-        (await domainRow.locator('text=/enabled/i').isVisible().catch(() => false)) ||
-        (await domainRow.locator('text=/configured/i').isVisible().catch(() => false)) ||
-        (await domainRow.locator('text=/not configured/i').isVisible().catch(() => false));
+        (await domainRow
+          .locator('text=/enabled/i')
+          .isVisible()
+          .catch(() => false)) ||
+        (await domainRow
+          .locator('text=/configured/i')
+          .isVisible()
+          .catch(() => false)) ||
+        (await domainRow
+          .locator('text=/not configured/i')
+          .isVisible()
+          .catch(() => false));
 
       const hasConfigureLink = await domainRow
         .locator('a[href*="/signin"]')
@@ -476,7 +485,10 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 
     const isEntraSelected =
       (await entraRadio.isChecked().catch(() => false)) ||
-      (await entraLabel.locator('input').isChecked().catch(() => false));
+      (await entraLabel
+        .locator('input')
+        .isChecked()
+        .catch(() => false));
 
     // Open SSO modal for domain B and verify Google is selected
     const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
@@ -486,7 +498,10 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 
     const isGoogleSelected =
       (await googleRadio.isChecked().catch(() => false)) ||
-      (await googleLabel.locator('input').isChecked().catch(() => false));
+      (await googleLabel
+        .locator('input')
+        .isChecked()
+        .catch(() => false));
 
     // At least one verification should pass (mocked data may not fully load)
     // In production with real data, both would be true
@@ -627,9 +642,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     }
   });
 
-  test('TC-MPROV-006: configure link is visible for each domain in SSO hub', async ({
-    page,
-  }) => {
+  test('TC-MPROV-006: configure link is visible for each domain in SSO hub', async ({ page }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -642,9 +655,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
 
     // Verify the configure link is present in the hub for the first domain.
     // The hub now links to the domain signin page with the SSO modal deep-link.
-    const configureLink = page.locator(
-      `a[href*="/domains/${domains[0].extid}/signin"]`
-    );
+    const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/signin"]`);
     await expect(configureLink).toBeVisible();
 
     // Verify domain name is shown

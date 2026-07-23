@@ -72,22 +72,24 @@ const timestampOverrides = {
  * console.log(org.created instanceof Date); // true
  * ```
  */
-export const organizationSchema = organizationCanonical
-  .extend({
-    // Timestamp transforms
-    ...timestampOverrides,
+export const organizationSchema = organizationCanonical.extend({
+  // Timestamp transforms
+  ...timestampOverrides,
 
-    // Nullish normalization
-    is_default: z.boolean().nullish().transform((v) => v ?? false),
+  // Nullish normalization
+  is_default: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
 
-    // API-response fields (not in canonical model)
-    billing_email: z.string().email().nullish(),
-    member_count: z.number().int().min(0).nullish(),
-    current_user_role: organizationRoleSchema.nullish(),
-    entitlements: z.array(entitlementSchema).nullish(),
-    limits: organizationLimitsSchema.nullish(),
-    domain_count: z.number().int().min(0).nullish(),
-  });
+  // API-response fields (not in canonical model)
+  billing_email: z.string().email().nullish(),
+  member_count: z.number().int().min(0).nullish(),
+  current_user_role: organizationRoleSchema.nullish(),
+  entitlements: z.array(entitlementSchema).nullish(),
+  limits: organizationLimitsSchema.nullish(),
+  domain_count: z.number().int().min(0).nullish(),
+});
 
 export type Organization = z.infer<typeof organizationSchema>;
 

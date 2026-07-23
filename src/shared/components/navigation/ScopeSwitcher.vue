@@ -24,71 +24,71 @@
 -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 
-import type { ScopeSwitcherItem } from './scopeSwitcher';
+  import type { ScopeSwitcherItem } from './scopeSwitcher';
 
-interface Props {
-  /** Rows to display. */
-  items: ScopeSwitcherItem[];
-  /** Uppercase panel header label. */
-  header: string;
-  /** When true the trigger shows the current scope but the dropdown is disabled. */
-  locked?: boolean;
+  interface Props {
+    /** Rows to display. */
+    items: ScopeSwitcherItem[];
+    /** Uppercase panel header label. */
+    header: string;
+    /** When true the trigger shows the current scope but the dropdown is disabled. */
+    locked?: boolean;
+    /**
+     * Gates the divider + footer region. Adapters pass whatever "can manage this
+     * scope" means for them (owner/admin, entitlement, …); org always passes true
+     * because its "Manage" link is unconditional.
+     */
+    canManage?: boolean;
+    /** aria-label for the trigger button. */
+    triggerAriaLabel: string;
+    /** Trigger button title when unlocked (usually the current scope name). */
+    triggerTitle?: string;
+    /** Trigger button title when locked. */
+    lockedTitle: string;
+    /** aria-label for each row's settings (gear) button. */
+    settingsLabel: string;
+    /** Base test id: `${testid}` (root), `${testid}-trigger`, `${testid}-dropdown`. */
+    testid: string;
+    /** Row test id prefix: `${itemTestid}-${item.id}`. */
+    itemTestid: string;
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    locked: false,
+    canManage: false,
+    triggerTitle: undefined,
+  });
+
+  const emit = defineEmits<{
+    (e: 'select', id: string): void;
+    (e: 'open-settings', id: string): void;
+  }>();
+
   /**
-   * Gates the divider + footer region. Adapters pass whatever "can manage this
-   * scope" means for them (owner/admin, entitlement, …); org always passes true
-   * because its "Manage" link is unconditional.
+   * Row click. Selecting a MenuItem already auto-closes the menu, so `close()`
+   * here is a uniform belt-and-suspenders — it makes "every navigating action
+   * closes the dropdown" a single invariant rather than a per-row judgement call.
    */
-  canManage?: boolean;
-  /** aria-label for the trigger button. */
-  triggerAriaLabel: string;
-  /** Trigger button title when unlocked (usually the current scope name). */
-  triggerTitle?: string;
-  /** Trigger button title when locked. */
-  lockedTitle: string;
-  /** aria-label for each row's settings (gear) button. */
-  settingsLabel: string;
-  /** Base test id: `${testid}` (root), `${testid}-trigger`, `${testid}-dropdown`. */
-  testid: string;
-  /** Row test id prefix: `${itemTestid}-${item.id}`. */
-  itemTestid: string;
-}
+  const onSelect = (item: ScopeSwitcherItem, close: () => void): void => {
+    if (item.disabled) return;
+    close();
+    emit('select', item.id);
+  };
 
-const props = withDefaults(defineProps<Props>(), {
-  locked: false,
-  canManage: false,
-  triggerTitle: undefined,
-});
-
-const emit = defineEmits<{
-  (e: 'select', id: string): void;
-  (e: 'open-settings', id: string): void;
-}>();
-
-/**
- * Row click. Selecting a MenuItem already auto-closes the menu, so `close()`
- * here is a uniform belt-and-suspenders — it makes "every navigating action
- * closes the dropdown" a single invariant rather than a per-row judgement call.
- */
-const onSelect = (item: ScopeSwitcherItem, close: () => void): void => {
-  if (item.disabled) return;
-  close();
-  emit('select', item.id);
-};
-
-/**
- * Gear click. stopPropagation() keeps the row from also selecting, but it
- * suppresses HeadlessUI's built-in MenuItem auto-close — so we MUST close()
- * explicitly here. This is the exact bug that had to be fixed twice before;
- * now it lives in one place.
- */
-const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => void): void => {
-  event.stopPropagation();
-  close();
-  emit('open-settings', item.id);
-};
+  /**
+   * Gear click. stopPropagation() keeps the row from also selecting, but it
+   * suppresses HeadlessUI's built-in MenuItem auto-close — so we MUST close()
+   * explicitly here. This is the exact bug that had to be fixed twice before;
+   * now it lives in one place.
+   */
+  const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => void): void => {
+    event.stopPropagation();
+    close();
+    emit('open-settings', item.id);
+  };
 </script>
 
 <template>
@@ -147,7 +147,9 @@ const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => voi
             class="font-brand text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ header }}
           </span>
-          <slot name="header-action" :close="close"></slot>
+          <slot
+            name="header-action"
+            :close="close"></slot>
         </div>
 
         <!-- Scope Options -->
@@ -180,7 +182,9 @@ const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => voi
             :aria-disabled="item.disabled ? 'true' : undefined">
             <span class="flex items-center gap-2">
               <!-- Leading visual (icon / avatar) -->
-              <slot name="item-visual" :item="item"></slot>
+              <slot
+                name="item-visual"
+                :item="item"></slot>
 
               <!-- Scope Name -->
               <span
@@ -190,7 +194,9 @@ const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => voi
               </span>
 
               <!-- Trailing badge (e.g. paid-plan pill) -->
-              <slot name="item-badge" :item="item"></slot>
+              <slot
+                name="item-badge"
+                :item="item"></slot>
             </span>
 
             <!-- Right action area: checkmark (active) / gear icon (on hover) -->
@@ -228,7 +234,9 @@ const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => voi
             class="my-1 border-t border-gray-200 dark:border-gray-700"
             role="separator"
             aria-hidden="true"></div>
-          <slot name="footer" :close="close"></slot>
+          <slot
+            name="footer"
+            :close="close"></slot>
         </template>
       </MenuItems>
     </transition>

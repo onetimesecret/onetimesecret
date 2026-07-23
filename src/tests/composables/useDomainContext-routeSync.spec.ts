@@ -41,10 +41,7 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 /**
  * Build a BulkPermissionsResponse with domains for a given org extid.
  */
-function buildPermissionsResponse(
-  orgExtid: string,
-  domains: string[]
-): BulkPermissionsResponse {
+function buildPermissionsResponse(orgExtid: string, domains: string[]): BulkPermissionsResponse {
   return {
     organizations: [
       {
@@ -141,9 +138,8 @@ describe('useDomainContext route synchronization', () => {
       extid: 'org-ext-test-123',
     };
 
-    const { __resetDomainContextForTesting } = await import(
-      '@/shared/composables/useDomainContext'
-    );
+    const { __resetDomainContextForTesting } =
+      await import('@/shared/composables/useDomainContext');
     __resetDomainContextForTesting();
   });
 

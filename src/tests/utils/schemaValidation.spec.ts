@@ -560,13 +560,15 @@ describe('schemaValidation', () => {
     });
 
     it('handles refine validations', () => {
-      const RefinedSchema = z.object({
-        password: z.string().min(8),
-        confirmPassword: z.string(),
-      }).refine((data) => data.password === data.confirmPassword, {
-        message: 'Passwords must match',
-        path: ['confirmPassword'],
-      });
+      const RefinedSchema = z
+        .object({
+          password: z.string().min(8),
+          confirmPassword: z.string(),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: 'Passwords must match',
+          path: ['confirmPassword'],
+        });
 
       const validData = {
         password: 'password123',
@@ -773,15 +775,19 @@ describe('schemaValidation', () => {
       const ApiResponseSchema = z.object({
         success: z.boolean(),
         data: z.object({
-          items: z.array(z.object({
-            id: z.string(),
-            name: z.string(),
-          })),
+          items: z.array(
+            z.object({
+              id: z.string(),
+              name: z.string(),
+            })
+          ),
           total: z.number(),
         }),
-        meta: z.object({
-          timestamp: z.string(),
-        }).optional(),
+        meta: z
+          .object({
+            timestamp: z.string(),
+          })
+          .optional(),
       });
 
       const validResponse = {
@@ -808,15 +814,17 @@ describe('schemaValidation', () => {
     });
 
     it('validates user input with custom refinements', () => {
-      const RegistrationSchema = z.object({
-        username: z.string().min(3).max(20),
-        email: z.string().email(),
-        password: z.string().min(8),
-        confirmPassword: z.string(),
-      }).refine((data) => data.password === data.confirmPassword, {
-        message: 'Passwords do not match',
-        path: ['confirmPassword'],
-      });
+      const RegistrationSchema = z
+        .object({
+          username: z.string().min(3).max(20),
+          email: z.string().email(),
+          password: z.string().min(8),
+          confirmPassword: z.string(),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: 'Passwords do not match',
+          path: ['confirmPassword'],
+        });
 
       const validInput = {
         username: 'johndoe',
@@ -835,10 +843,12 @@ describe('schemaValidation', () => {
         apiUrl: z.string().url(),
         timeout: z.number().positive().default(5000),
         retries: z.number().int().min(0).max(10).default(3),
-        features: z.object({
-          darkMode: z.boolean(),
-          betaFeatures: z.boolean(),
-        }).default({ darkMode: false, betaFeatures: false }),
+        features: z
+          .object({
+            darkMode: z.boolean(),
+            betaFeatures: z.boolean(),
+          })
+          .default({ darkMode: false, betaFeatures: false }),
       });
 
       // Minimal config - defaults should be applied

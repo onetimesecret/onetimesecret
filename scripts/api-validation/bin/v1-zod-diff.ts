@@ -46,7 +46,9 @@ function extractRubyResponseFields(content: string, filename: string): Record<st
 
     // Detect method definitions that return hashes
     // Patterns: def receipt_hsh, def secret_hsh, def success_data, def error_data
-    const methodMatch = trimmed.match(/def\s+((?:receipt|secret|metadata|success|error|show)_?(?:hsh|hash|data|response)?)\b/);
+    const methodMatch = trimmed.match(
+      /def\s+((?:receipt|secret|metadata|success|error|show)_?(?:hsh|hash|data|response)?)\b/
+    );
     if (methodMatch) {
       currentMethod = methodMatch[1];
       methods[currentMethod] = [];
@@ -157,7 +159,8 @@ function extractZodFields(content: string): Record<string, ZodField[]> {
           zodType: zodExpr.replace(/,\s*$/, ''),
           optional: /\.optional\(\)/.test(zodExpr) || /\.nullish\(\)/.test(zodExpr),
           nullable: /\.nullable\(\)/.test(zodExpr) || /\.nullish\(\)/.test(zodExpr),
-          transform: /transform/.test(zodExpr) || /transforms\./.test(zodExpr) || /preprocess/.test(zodExpr),
+          transform:
+            /transform/.test(zodExpr) || /transforms\./.test(zodExpr) || /preprocess/.test(zodExpr),
           line: i + 1,
         });
       }
@@ -194,7 +197,7 @@ async function main() {
         'apps/api/v1/models/metadata.rb',
       ],
     },
-    'main': {
+    main: {
       ruby: [
         'apps/api/v1/controllers/index.rb',
         'apps/api/v1/logic/secrets/base_secret_action.rb',
@@ -224,10 +227,11 @@ async function main() {
   // Uses local git to read files at specific refs — no network or gh CLI needed
   function fetchFile(path: string, ref: string): string | null {
     try {
-      const result = execSync(
-        `git show ${ref}:${path}`,
-        { encoding: 'utf-8', timeout: 15000, cwd: process.cwd() }
-      );
+      const result = execSync(`git show ${ref}:${path}`, {
+        encoding: 'utf-8',
+        timeout: 15000,
+        cwd: process.cwd(),
+      });
       return result;
     } catch {
       console.log(`  [SKIP] Could not fetch ${path}@${ref}`);
@@ -319,14 +323,14 @@ async function main() {
   }
 
   // Fields in v0.23.6 Ruby but not in main Ruby
-  const removedFromRuby = [...v023AllFields].filter(f => !mainAllRubyFields.has(f));
+  const removedFromRuby = [...v023AllFields].filter((f) => !mainAllRubyFields.has(f));
   // Fields in main Ruby but not in v0.23.6
-  const addedToRuby = [...mainAllRubyFields].filter(f => !v023AllFields.has(f));
+  const addedToRuby = [...mainAllRubyFields].filter((f) => !v023AllFields.has(f));
 
   // Fields in main Zod but not in main Ruby (schema declares more than implementation sends)
-  const zodOnly = [...mainAllZodFields].filter(f => !mainAllRubyFields.has(f));
+  const zodOnly = [...mainAllZodFields].filter((f) => !mainAllRubyFields.has(f));
   // Fields in main Ruby but not in Zod (implementation sends more than schema declares)
-  const rubyOnly = [...mainAllRubyFields].filter(f => !mainAllZodFields.has(f));
+  const rubyOnly = [...mainAllRubyFields].filter((f) => !mainAllZodFields.has(f));
 
   console.log('Fields removed from Ruby (v0.23.6 -> main):', removedFromRuby);
   console.log('Fields added to Ruby (v0.23.6 -> main):', addedToRuby);

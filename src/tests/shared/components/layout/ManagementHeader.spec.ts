@@ -45,7 +45,8 @@ describe('ManagementHeader', () => {
   const mountComponent = (
     props: Record<string, unknown> = {},
     storeState: Record<string, unknown> = {}
-  ) => mount(ManagementHeader, {
+  ) =>
+    mount(ManagementHeader, {
       props: {
         displayMasthead: true,
         displayNavigation: true,

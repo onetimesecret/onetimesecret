@@ -40,7 +40,7 @@ import {
 function getBasePlan(plan: BillingPlan, allPlans: BillingPlan[]): BillingPlan | undefined {
   if (plan.tier === 'single_team') return undefined; // Identity Plus has no base
   // Find Identity Plus with same interval
-  return allPlans.find(p => p.tier === 'single_team' && p.interval === plan.interval);
+  return allPlans.find((p) => p.tier === 'single_team' && p.interval === plan.interval);
 }
 
 /**
@@ -54,7 +54,7 @@ function getNewFeatures(plan: BillingPlan, allPlans: BillingPlan[]): string[] {
   if (!basePlan) return plan.entitlements; // Show all for Identity Plus
 
   // Filter out features that exist in base plan
-  return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
+  return plan.entitlements.filter((ent) => !basePlan.entitlements.includes(ent));
 }
 
 /**
@@ -64,9 +64,7 @@ function getNewFeatures(plan: BillingPlan, allPlans: BillingPlan[]): string[] {
  * ISSUE: Uses amount / 12 for yearly plans (loses precision)
  * FIX: Should use monthly_equivalent_amount from API when available.
  */
-function getPlanPricePerMonth(
-  plan: BillingPlan & { monthly_equivalent_amount?: number }
-): number {
+function getPlanPricePerMonth(plan: BillingPlan & { monthly_equivalent_amount?: number }): number {
   // For yearly plans, prefer API-provided monthly equivalent
   if (plan.interval === 'year') {
     if (plan.monthly_equivalent_amount !== undefined) {
@@ -85,11 +83,9 @@ function getPlanPricePerMonth(
  * ISSUE: API may return duplicate plans (same plan_code, different price IDs)
  * FIX: Deduplicate by plan_code, keeping first occurrence.
  */
-function deduplicatePlans(
-  plans: (BillingPlan & { plan_code?: string })[]
-): BillingPlan[] {
+function deduplicatePlans(plans: (BillingPlan & { plan_code?: string })[]): BillingPlan[] {
   const seen = new Set<string>();
-  return plans.filter(plan => {
+  return plans.filter((plan) => {
     const key = plan.plan_code || plan.id;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -210,12 +206,8 @@ describe('PlanSelector Logic', () => {
     // OLD (buggy) pre-#3824 logic, reproduced verbatim: resolve the org's tier
     // from the plans list, else hardcode legacy 'identity' -> single_team, else
     // fall back to 'free'; then badge by tier equality.
-    const oldResolveTier = (
-      plans: BillingPlan[],
-      planid: string | null | undefined
-    ): string =>
-      plans.find((p) => p.id === planid)?.tier ??
-      (planid === 'identity' ? 'single_team' : 'free');
+    const oldResolveTier = (plans: BillingPlan[], planid: string | null | undefined): string =>
+      plans.find((p) => p.id === planid)?.tier ?? (planid === 'identity' ? 'single_team' : 'free');
     const isPlanCurrentOld = (
       plan: BillingPlan,
       plans: BillingPlan[],
@@ -262,9 +254,7 @@ describe('PlanSelector Logic', () => {
       // single_account is a unique tier in the grid (no collision), so the old
       // tier logic happens to agree here for this in-grid planid. Documents why
       // this positive case is safe under both logics.
-      const oldBadged = plans.filter((p) =>
-        isPlanCurrentOld(p, plans, 'identity_plus_v1')
-      );
+      const oldBadged = plans.filter((p) => isPlanCurrentOld(p, plans, 'identity_plus_v1'));
       expect(oldBadged.map((p) => p.id)).toEqual(['identity_plus_v1']);
     });
 
@@ -280,9 +270,7 @@ describe('PlanSelector Logic', () => {
       // OLD (buggy): unknown planid → silent 'free' fallback collides with
       // free_v1 → Free is mis-badged. Asserting it pins both the fixture and
       // the fallback that #3824 removed.
-      const oldBadged = plans.filter((p) =>
-        isPlanCurrentOld(p, plans, 'some_unknown_v9')
-      );
+      const oldBadged = plans.filter((p) => isPlanCurrentOld(p, plans, 'some_unknown_v9'));
       expect(oldBadged.map((p) => p.id)).toEqual(['free_v1']);
     });
 
@@ -358,13 +346,13 @@ describe('PlanSelector Logic', () => {
     });
 
     it('returns undefined for lowest tier (single_team)', () => {
-      const singleTeamPlan = allPlans.find(p => p.tier === 'single_team')!;
+      const singleTeamPlan = allPlans.find((p) => p.tier === 'single_team')!;
       expect(getBasePlan(singleTeamPlan, allPlans)).toBeUndefined();
     });
 
     it('returns single_team plan for multi_team tier', () => {
       const multiTeamPlan = allPlans.find(
-        p => p.tier === 'multi_team' && p.interval === 'month'
+        (p) => p.tier === 'multi_team' && p.interval === 'month'
       )!;
       const basePlan = getBasePlan(multiTeamPlan, allPlans);
       expect(basePlan).toBeDefined();
@@ -373,14 +361,14 @@ describe('PlanSelector Logic', () => {
 
     it('matches interval when finding base plan', () => {
       const multiTeamYearly = allPlans.find(
-        p => p.tier === 'multi_team' && p.interval === 'year'
+        (p) => p.tier === 'multi_team' && p.interval === 'year'
       )!;
       const basePlan = getBasePlan(multiTeamYearly, allPlans);
       expect(basePlan?.interval).toBe('year');
     });
 
     it('returns undefined when base plan not found in list', () => {
-      const onlyMultiTeam = allPlans.filter(p => p.tier === 'multi_team');
+      const onlyMultiTeam = allPlans.filter((p) => p.tier === 'multi_team');
       const multiTeamPlan = onlyMultiTeam[0];
       expect(getBasePlan(multiTeamPlan, onlyMultiTeam)).toBeUndefined();
     });
@@ -414,13 +402,13 @@ describe('PlanSelector Logic', () => {
     });
 
     it('returns all features for base tier (single_team)', () => {
-      const singleTeamPlan = allPlans.find(p => p.tier === 'single_team')!;
+      const singleTeamPlan = allPlans.find((p) => p.tier === 'single_team')!;
       const features = getNewFeatures(singleTeamPlan, allPlans);
       expect(features).toEqual(singleTeamPlan.entitlements);
     });
 
     it('returns only new features for higher tiers', () => {
-      const multiTeamPlan = allPlans.find(p => p.tier === 'multi_team')!;
+      const multiTeamPlan = allPlans.find((p) => p.tier === 'multi_team')!;
       const newFeatures = getNewFeatures(multiTeamPlan, allPlans);
 
       // Should NOT include base plan features
@@ -435,7 +423,7 @@ describe('PlanSelector Logic', () => {
     });
 
     it('returns correct count of new features', () => {
-      const multiTeamPlan = allPlans.find(p => p.tier === 'multi_team')!;
+      const multiTeamPlan = allPlans.find((p) => p.tier === 'multi_team')!;
       const newFeatures = getNewFeatures(multiTeamPlan, allPlans);
       expect(newFeatures).toHaveLength(3); // manage_teams, sso, audit_logs
     });
@@ -646,7 +634,7 @@ describe('PlanSelector Logic', () => {
         });
 
         // Filter by month interval
-        const monthlyPlans = [freePlan].filter(p => p.interval === 'month');
+        const monthlyPlans = [freePlan].filter((p) => p.interval === 'month');
         expect(monthlyPlans).toContainEqual(freePlan);
       });
 
@@ -722,9 +710,7 @@ describe('PlanSelector Logic', () => {
       // Default PlanButtonState for a fresh, non-subscribing visitor. Overrides
       // flip individual dimensions. The disable logic itself is imported from
       // planSelectorLogic (isPlanButtonDisabled), so it can't drift.
-      const buttonState = (
-        overrides: Partial<PlanButtonState> = {}
-      ): PlanButtonState => ({
+      const buttonState = (overrides: Partial<PlanButtonState> = {}): PlanButtonState => ({
         orgPlanId: 'single_team_v1',
         currentCurrency: null,
         isCreatingCheckout: false,
@@ -740,9 +726,9 @@ describe('PlanSelector Logic', () => {
           tier: 'free',
         });
 
-        expect(
-          isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: false }))
-        ).toBe(true);
+        expect(isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: false }))).toBe(
+          true
+        );
       });
 
       it('free plan action is enabled for an active subscriber (to downgrade)', () => {
@@ -753,9 +739,9 @@ describe('PlanSelector Logic', () => {
           tier: 'free',
         });
 
-        expect(
-          isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: true }))
-        ).toBe(false);
+        expect(isPlanButtonDisabled(freePlan, buttonState({ hasActiveSubscription: true }))).toBe(
+          false
+        );
       });
 
       it('free plan never resolves to a checkout action', () => {
@@ -774,9 +760,9 @@ describe('PlanSelector Logic', () => {
         };
 
         expect(resolvePlanSelectAction(freePlan, ctx)).toBe('noop');
-        expect(
-          resolvePlanSelectAction(freePlan, { ...ctx, hasActiveSubscription: true })
-        ).toBe('open-cancel-modal');
+        expect(resolvePlanSelectAction(freePlan, { ...ctx, hasActiveSubscription: true })).toBe(
+          'open-cancel-modal'
+        );
       });
     });
 
@@ -864,9 +850,7 @@ describe('PlanSelector Logic', () => {
       });
 
       it('plan without plan_code uses id for deduplication', () => {
-        const plans = [
-          createMockPlan({ id: 'free_v1', tier: 'free' }),
-        ];
+        const plans = [createMockPlan({ id: 'free_v1', tier: 'free' })];
 
         const deduplicated = deduplicatePlans(plans);
         expect(deduplicated).toHaveLength(1);
@@ -877,9 +861,7 @@ describe('PlanSelector Logic', () => {
       // Production template guard (PlanSelector.vue), imported so the test can't
       // drift from it:
       //   (hasActiveSubscription || isLegacyCustomer) && currentTier !== 'free' && !isCancelScheduled
-      const cancelLinkState = (
-        overrides: Partial<CancelLinkState> = {}
-      ): CancelLinkState => ({
+      const cancelLinkState = (overrides: Partial<CancelLinkState> = {}): CancelLinkState => ({
         hasActiveSubscription: false,
         isLegacyCustomer: false,
         currentTier: 'single_team',
@@ -889,26 +871,34 @@ describe('PlanSelector Logic', () => {
 
       it('shows cancel link for active paid subscriber on single_team tier', () => {
         expect(
-          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'single_team' }))
+          shouldShowCancelLink(
+            cancelLinkState({ hasActiveSubscription: true, currentTier: 'single_team' })
+          )
         ).toBe(true);
       });
 
       it('shows cancel link for active paid subscriber on multi_team tier', () => {
         expect(
-          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'multi_team' }))
+          shouldShowCancelLink(
+            cancelLinkState({ hasActiveSubscription: true, currentTier: 'multi_team' })
+          )
         ).toBe(true);
       });
 
       it('shows cancel link for a legacy customer without an active subscription', () => {
         // Grandfathered customers can still cancel even without an active sub.
         expect(
-          shouldShowCancelLink(cancelLinkState({ isLegacyCustomer: true, hasActiveSubscription: false }))
+          shouldShowCancelLink(
+            cancelLinkState({ isLegacyCustomer: true, hasActiveSubscription: false })
+          )
         ).toBe(true);
       });
 
       it('hides cancel link for free tier users', () => {
         expect(
-          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, currentTier: 'free' }))
+          shouldShowCancelLink(
+            cancelLinkState({ hasActiveSubscription: true, currentTier: 'free' })
+          )
         ).toBe(false);
       });
 
@@ -920,7 +910,9 @@ describe('PlanSelector Logic', () => {
       it('hides cancel link once a cancellation is already scheduled', () => {
         // The reactivate banner covers this state instead.
         expect(
-          shouldShowCancelLink(cancelLinkState({ hasActiveSubscription: true, isCancelScheduled: true }))
+          shouldShowCancelLink(
+            cancelLinkState({ hasActiveSubscription: true, isCancelScheduled: true })
+          )
         ).toBe(false);
       });
     });
@@ -955,7 +947,7 @@ describe('PlanSelector Logic', () => {
         const filtered = filterPlans(plans, 'month', false);
 
         expect(filtered).toHaveLength(2);
-        expect(filtered.some(p => p.tier === 'free')).toBe(true);
+        expect(filtered.some((p) => p.tier === 'free')).toBe(true);
       });
 
       it('excludes free plan from grid when freePlanStandalone is true', () => {
@@ -967,7 +959,7 @@ describe('PlanSelector Logic', () => {
         const filtered = filterPlans(plans, 'month', true);
 
         expect(filtered).toHaveLength(1);
-        expect(filtered.some(p => p.tier === 'free')).toBe(false);
+        expect(filtered.some((p) => p.tier === 'free')).toBe(false);
       });
 
       it('paid plans are filtered by interval regardless of freePlanStandalone', () => {
@@ -980,12 +972,12 @@ describe('PlanSelector Logic', () => {
         // Monthly view
         const monthlyFiltered = filterPlans(plans, 'month', false);
         expect(monthlyFiltered).toHaveLength(2); // free + monthly paid
-        expect(monthlyFiltered.find(p => p.id === 'identity_plus_yearly')).toBeUndefined();
+        expect(monthlyFiltered.find((p) => p.id === 'identity_plus_yearly')).toBeUndefined();
 
         // Yearly view
         const yearlyFiltered = filterPlans(plans, 'year', false);
         expect(yearlyFiltered).toHaveLength(2); // free + yearly paid
-        expect(yearlyFiltered.find(p => p.id === 'identity_plus_monthly')).toBeUndefined();
+        expect(yearlyFiltered.find((p) => p.id === 'identity_plus_monthly')).toBeUndefined();
       });
     });
   });

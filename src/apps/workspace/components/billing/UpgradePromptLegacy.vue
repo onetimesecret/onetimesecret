@@ -2,45 +2,45 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const props = withDefaults(
-  defineProps<{
-    entitlement: string;
-    upgradePlan: string;
-    message?: string;
-    compact?: boolean;
-  }>(),
-  {
-    message: '',
-    compact: false,
-  }
-);
+  const props = withDefaults(
+    defineProps<{
+      entitlement: string;
+      upgradePlan: string;
+      message?: string;
+      compact?: boolean;
+    }>(),
+    {
+      message: '',
+      compact: false,
+    }
+  );
 
-// Hide upgrade prompts when billing is disabled (self-hosted mode)
-const bootstrapStore = useBootstrapStore();
-const { billing_enabled } = storeToRefs(bootstrapStore);
-const billingEnabled = computed(() => billing_enabled.value || false);
+  // Hide upgrade prompts when billing is disabled (self-hosted mode)
+  const bootstrapStore = useBootstrapStore();
+  const { billing_enabled } = storeToRefs(bootstrapStore);
+  const billingEnabled = computed(() => billing_enabled.value || false);
 
-const displayMessage = computed(() => {
-  if (props.message) return props.message;
+  const displayMessage = computed(() => {
+    if (props.message) return props.message;
 
-  // Default messages based on entitlement
-  const entitlementMessages: Record<string, string> = {
-    manage_teams: t('web.billing.upgrade.needTeams'),
-    custom_domains: t('web.billing.upgrade.needCustomDomains'),
-    api_access: t('web.billing.upgrade.needApiAccess'),
-  };
+    // Default messages based on entitlement
+    const entitlementMessages: Record<string, string> = {
+      manage_teams: t('web.billing.upgrade.needTeams'),
+      custom_domains: t('web.billing.upgrade.needCustomDomains'),
+      api_access: t('web.billing.upgrade.needApiAccess'),
+    };
 
-  return entitlementMessages[props.entitlement] || t('web.billing.upgrade.required');
-});
+    return entitlementMessages[props.entitlement] || t('web.billing.upgrade.required');
+  });
 
-const upgradeUrl = computed(() => `/billing/plans?upgrade_to=${props.upgradePlan}`);
+  const upgradeUrl = computed(() => `/billing/plans?upgrade_to=${props.upgradePlan}`);
 </script>
 
 <template>
@@ -58,10 +58,7 @@ const upgradeUrl = computed(() => `/billing/plans?upgrade_to=${props.upgradePlan
         <OIcon
           collection="tabler"
           name="square-letter-s"
-          :class="[
-            'text-amber-600 dark:text-amber-400',
-            compact ? 'size-5' : 'size-6',
-          ]"
+          :class="['text-amber-600 dark:text-amber-400', compact ? 'size-5' : 'size-6']"
           aria-hidden="true" />
       </div>
 
@@ -71,11 +68,7 @@ const upgradeUrl = computed(() => `/billing/plans?upgrade_to=${props.upgradePlan
           class="text-base font-semibold text-gray-900 dark:text-white">
           {{ t('web.billing.upgrade.required') }}
         </h4>
-        <p
-          :class="[
-            'text-gray-700 dark:text-gray-300',
-            compact ? 'text-sm' : 'mt-1 text-sm',
-          ]">
+        <p :class="['text-gray-700 dark:text-gray-300', compact ? 'text-sm' : 'mt-1 text-sm']">
           {{ displayMessage }}
         </p>
       </div>

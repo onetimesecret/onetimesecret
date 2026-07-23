@@ -33,10 +33,7 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
     currentContext: computed(() => mockDomainContextState.currentContext),
     isContextActive: computed(() => mockDomainContextState.isContextActive),
     hasMultipleContexts: computed(() => true),
-    availableDomains: computed(() => [
-      'custom.example.com',
-      'onetimesecret.com',
-    ]),
+    availableDomains: computed(() => ['custom.example.com', 'onetimesecret.com']),
     setContext: vi.fn(),
   }),
 }));
@@ -44,8 +41,7 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
 // Stub child components
 const WorkspaceSecretFormStub = {
   name: 'WorkspaceSecretForm',
-  template:
-    '<div class="workspace-secret-form-stub">Workspace Secret Form</div>',
+  template: '<div class="workspace-secret-form-stub">Workspace Secret Form</div>',
   setup() {
     return {
       currentTtl: computed(() => 604800),
@@ -99,9 +95,7 @@ describe('DashboardIndex', () => {
 
   async function getComponent() {
     // Re-import after resetModules to pick up fresh mock state
-    const module = await import(
-      '@/apps/workspace/dashboard/DashboardIndex.vue'
-    );
+    const module = await import('@/apps/workspace/dashboard/DashboardIndex.vue');
     return module.default;
   }
 

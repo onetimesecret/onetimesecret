@@ -71,9 +71,7 @@ import { useAuthStore } from '@/shared/stores/authStore';
 /**
  * Creates a mock LocalReceipt for local (guest) mode testing.
  */
-function createMockLocalReceipt(
-  overrides: Partial<LocalReceipt> = {}
-): LocalReceipt {
+function createMockLocalReceipt(overrides: Partial<LocalReceipt> = {}): LocalReceipt {
   const id = overrides.id ?? `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return {
     id,
@@ -484,9 +482,7 @@ describe('useRecentSecrets', () => {
         isFullyAuthenticated: true,
       } as any);
 
-      mockApiRecords.value = [
-        createMockApiRecord({ secret_shortid: 'sec-1' }),
-      ];
+      mockApiRecords.value = [createMockApiRecord({ secret_shortid: 'sec-1' })];
 
       const { hasRecords } = useRecentSecrets();
       await nextTick();
@@ -544,9 +540,7 @@ describe('useRecentSecrets', () => {
 
     it('createdAt is always a Date object', async () => {
       const timestamp = Date.now();
-      mockConcealedMessages.value = [
-        createMockLocalReceipt({ createdAt: timestamp }),
-      ];
+      mockConcealedMessages.value = [createMockLocalReceipt({ createdAt: timestamp })];
       mockHasMessages.value = true;
 
       const { records } = useRecentSecrets();

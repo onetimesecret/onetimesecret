@@ -40,9 +40,7 @@ const mountHero = (props: HeroProps = {}, overrides: Overrides = {}): VueWrapper
         domain_strategy: 'custom',
         // `in` (not `??`) so an explicit null override reads as "no logo".
         domain_logo:
-          'domain_logo' in overrides
-            ? overrides.domain_logo
-            : 'https://cdn.example/acme-logo.png',
+          'domain_logo' in overrides ? overrides.domain_logo : 'https://cdn.example/acme-logo.png',
         domains_enabled: true,
         display_domain: 'secrets.acme.com',
         site_host: 'onetimesecret.com',
@@ -103,13 +101,16 @@ describe('BrandedHero font tokens', () => {
   });
 
   it('falls back to the body font on the h1 when heading_font is unset', async () => {
-    wrapper = mountHero({}, {
-      domain_branding: {
-        description: 'Acme Corp',
-        primary_color: '#36454F',
-        font_family: 'serif',
-      },
-    });
+    wrapper = mountHero(
+      {},
+      {
+        domain_branding: {
+          description: 'Acme Corp',
+          primary_color: '#36454F',
+          font_family: 'serif',
+        },
+      }
+    );
     await nextTick();
 
     expect(wrapper.find('h1').classes()).toContain('font-serif');

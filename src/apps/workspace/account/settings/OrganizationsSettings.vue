@@ -70,9 +70,7 @@
    * Determine if user can create multiple organizations based on entitlements.
    * Uses entitlement-based framework instead of hardcoded plan checks.
    */
-  const canCreateMultipleOrgs = computed(() =>
-    can(ENTITLEMENTS.MANAGE_ORGS)
-  );
+  const canCreateMultipleOrgs = computed(() => can(ENTITLEMENTS.MANAGE_ORGS));
 
   onMounted(async () => {
     isLoading.value = true;
@@ -182,13 +180,13 @@
                   <!-- Early Supporter badge for legacy plans -->
                   <span
                     v-if="org.planid && isLegacyPlan(org.planid)"
-                    class="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                    class="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-900/50 dark:text-amber-300">
                     {{ t('web.organizations.early_supporter_badge') }}
                   </span>
                   <!-- Pro badge for other paid plans -->
                   <span
                     v-else-if="hasPaidPlan(org)"
-                    class="inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+                    class="inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-xs font-semibold tracking-wide text-brand-700 uppercase dark:bg-brand-900/50 dark:text-brand-300">
                     {{ t('web.organizations.paid_badge') }}
                   </span>
                   <!-- Default badge -->
@@ -236,7 +234,9 @@
                     name="users"
                     class="size-4"
                     aria-hidden="true" />
-                  <span>{{ t('web.organizations.member_count', { count: org.member_count ?? 1 }) }}</span>
+                  <span>{{
+                    t('web.organizations.member_count', { count: org.member_count ?? 1 })
+                  }}</span>
                 </router-link>
 
                 <!-- Domains (links to org settings page, domains tab is default) -->

@@ -230,7 +230,10 @@ export const useBootstrapStore = defineStore('bootstrap', {
         });
       } catch (error) {
         // Fallback to defaults if snapshot parsing or hydration fails
-        console.error('[BootstrapStore.init] Failed to initialize from snapshot, using defaults:', error);
+        console.error(
+          '[BootstrapStore.init] Failed to initialize from snapshot, using defaults:',
+          error
+        );
         this._initialized = true;
       }
 

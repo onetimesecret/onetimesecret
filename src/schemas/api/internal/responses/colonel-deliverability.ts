@@ -370,9 +370,7 @@ export type ColonelEmailProviderStatusResponse = z.infer<
 export type ColonelEmailRecipientLookupResponse = z.infer<
   typeof colonelEmailRecipientLookupResponseSchema
 >;
-export type ColonelEmailMessagesResponse = z.infer<
-  typeof colonelEmailMessagesResponseSchema
->;
+export type ColonelEmailMessagesResponse = z.infer<typeof colonelEmailMessagesResponseSchema>;
 
 // Wrapped response schemas for the email Deliverability section (bounces /
 // complaints / suppression list) on the colonel Email Tools screen.

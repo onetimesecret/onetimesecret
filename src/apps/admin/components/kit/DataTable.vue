@@ -105,8 +105,7 @@
   function toggleSort(column: DataTableColumn<T>): void {
     if (!column.sortable || props.loading) return;
     const isActive = props.sort?.key === column.key;
-    const nextDirection =
-      isActive && props.sort?.direction === 'asc' ? 'desc' : 'asc';
+    const nextDirection = isActive && props.sort?.direction === 'asc' ? 'desc' : 'asc';
     emit('update:sort', { key: column.key, direction: nextDirection });
   }
 
@@ -187,8 +186,7 @@
         </tr>
       </thead>
 
-      <tbody
-        class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+      <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
         <tr
           v-for="row in rows"
           :key="rowIdentity(row)"

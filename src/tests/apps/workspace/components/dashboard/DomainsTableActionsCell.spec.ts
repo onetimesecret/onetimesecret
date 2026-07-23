@@ -302,9 +302,7 @@ describe('DomainsTableActionsCell', () => {
       mockApprox.mockReturnValue(true);
       const wrapper = mountComponent();
 
-      const verifyLink = wrapper
-        .findAll('a[data-to]')
-        .find((l) => toOf(l).name === 'DomainVerify');
+      const verifyLink = wrapper.findAll('a[data-to]').find((l) => toOf(l).name === 'DomainVerify');
 
       expect(verifyLink).toBeDefined();
       expect(verifyLink!.text()).toBe('Verify Domain');
@@ -332,9 +330,7 @@ describe('DomainsTableActionsCell', () => {
       mockApprox.mockReturnValue(false);
       const wrapper = mountComponent();
 
-      const manageLink = wrapper
-        .findAll('a[data-to]')
-        .find((l) => toOf(l).name === 'DomainDetail');
+      const manageLink = wrapper.findAll('a[data-to]').find((l) => toOf(l).name === 'DomainDetail');
 
       expect(manageLink).toBeDefined();
     });

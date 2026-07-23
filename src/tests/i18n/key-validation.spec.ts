@@ -29,21 +29,10 @@ const EN_LOCALE_FILE = path.join(LOCALES_DIR, 'en.json');
 
 // Patterns to match t() calls in Vue/TypeScript files
 // Matches: t('key'), t("key"), $t('key'), $t("key")
-const T_CALL_PATTERNS = [
-  /(?<!\w)t\(\s*['"]([^'"]+)['"]/g,
-  /\$t\(\s*['"]([^'"]+)['"]/g,
-];
+const T_CALL_PATTERNS = [/(?<!\w)t\(\s*['"]([^'"]+)['"]/g, /\$t\(\s*['"]([^'"]+)['"]/g];
 
 // Files/directories to exclude from scanning
-const EXCLUDE_PATTERNS = [
-  'node_modules',
-  'dist',
-  '.git',
-  '__tests__',
-  'tests',
-  '.spec.',
-  '.test.',
-];
+const EXCLUDE_PATTERNS = ['node_modules', 'dist', '.git', '__tests__', 'tests', '.spec.', '.test.'];
 
 interface ExtractedKey {
   key: string;

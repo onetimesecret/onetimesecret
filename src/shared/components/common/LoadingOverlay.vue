@@ -1,10 +1,10 @@
 <!-- src/shared/components/common/LoadingOverlay.vue -->
 
 <script setup lang="ts">
-defineProps<{
-  show: boolean;
-  message?: string;
-}>();
+  defineProps<{
+    show: boolean;
+    message?: string;
+  }>();
 </script>
 
 <template>

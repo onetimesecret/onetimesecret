@@ -220,7 +220,9 @@ describe('PlanSelector currency mismatch logic', () => {
   describe('resolveCompletePendingMigrationAction (migration guard)', () => {
     it('is currency-blocked when current currency differs from migration target', () => {
       const pending = createPendingMigration({ target_currency: 'eur' });
-      expect(resolveCompletePendingMigrationAction(pending, migCtx('cad'))).toBe('currency-blocked');
+      expect(resolveCompletePendingMigrationAction(pending, migCtx('cad'))).toBe(
+        'currency-blocked'
+      );
     });
 
     it('proceeds to checkout when current currency matches migration target', () => {
@@ -351,7 +353,9 @@ describe('PlanSelector currency mismatch logic', () => {
     it('pending migration blocked when old CAD sub still active for EUR target', () => {
       const pending = createPendingMigration({ target_currency: 'eur' });
       // Old subscription still active with CAD
-      expect(resolveCompletePendingMigrationAction(pending, migCtx('cad'))).toBe('currency-blocked');
+      expect(resolveCompletePendingMigrationAction(pending, migCtx('cad'))).toBe(
+        'currency-blocked'
+      );
     });
 
     it('pending migration allowed after old sub cancels (currency becomes null)', () => {

@@ -79,7 +79,7 @@
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <DialogPanel
-              class="relative overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+              class="relative overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6 dark:bg-gray-800">
               <!-- Header -->
               <div class="mb-4 flex items-start justify-between">
                 <div class="flex items-center gap-3">
@@ -93,13 +93,13 @@
                   </div>
                   <DialogTitle
                     as="h3"
-                    class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-100">
+                    class="text-lg leading-6 font-semibold text-gray-900 dark:text-gray-100">
                     {{ t('web.domains.sso.title') }}
                   </DialogTitle>
                 </div>
                 <button
                   type="button"
-                  class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-500 dark:hover:text-gray-400"
+                  class="rounded-md text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-500 dark:hover:text-gray-400"
                   @click="handleClose">
                   <span class="sr-only">{{ t('web.LABELS.close') }}</span>
                   <OIcon

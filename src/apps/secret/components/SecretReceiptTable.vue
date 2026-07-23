@@ -7,20 +7,20 @@
 -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import SecretReceiptTableItem from '@/apps/secret/components/SecretReceiptTableItem.vue';
-import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import SecretReceiptTableItem from '@/apps/secret/components/SecretReceiptTableItem.vue';
+  import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-interface Props {
-  pendingReceipts: ReceiptList[];
-  revealedReceipts: ReceiptList[];
-  isLoading: boolean;
-}
+  interface Props {
+    pendingReceipts: ReceiptList[];
+    revealedReceipts: ReceiptList[];
+    isLoading: boolean;
+  }
 
-defineProps<Props>();
+  defineProps<Props>();
 </script>
 
 <template>

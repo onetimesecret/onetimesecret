@@ -40,12 +40,7 @@ import { z } from 'zod';
  * }
  * ```
  */
-export const secretStateValues = [
-  'new',
-  'revealed',
-  'burned',
-  'previewed',
-] as const;
+export const secretStateValues = ['new', 'revealed', 'burned', 'previewed'] as const;
 
 export type SecretState = (typeof secretStateValues)[number];
 

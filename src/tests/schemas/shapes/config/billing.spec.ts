@@ -38,7 +38,7 @@ const validBillingConfig = {
 };
 
 describe('BillingConfigShape — match_fields default', () => {
-  it('applies the [\'plan_id\'] default when match_fields is omitted', () => {
+  it("applies the ['plan_id'] default when match_fields is omitted", () => {
     const result = BillingConfigShape.parse(validBillingConfig);
     expect(result.match_fields).toEqual(['plan_id']);
   });
@@ -83,7 +83,12 @@ describe('PlanDefinitionShape — required non-empty strings', () => {
       PlanDefinitionShape.parse({
         name: '',
         entitlements: ['x'],
-        limits: { organizations: 1, total_members_per_org: 1, custom_domains: 0, secret_lifetime: 1 },
+        limits: {
+          organizations: 1,
+          total_members_per_org: 1,
+          custom_domains: 0,
+          secret_lifetime: 1,
+        },
         prices: [{ interval: 'month', amount: 0 }],
       })
     ).toThrow();
@@ -95,7 +100,12 @@ describe('PlanDefinitionShape — required non-empty strings', () => {
         name: 'X',
         display_order: -5,
         entitlements: ['x'],
-        limits: { organizations: 1, total_members_per_org: 1, custom_domains: 0, secret_lifetime: 1 },
+        limits: {
+          organizations: 1,
+          total_members_per_org: 1,
+          custom_domains: 0,
+          secret_lifetime: 1,
+        },
         prices: [{ interval: 'month', amount: 0 }],
       })
     ).toThrow();

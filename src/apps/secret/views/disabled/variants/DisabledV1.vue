@@ -45,7 +45,8 @@
 </script>
 
 <template>
-  <div class="relative mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-12 pt-16 text-center sm:pt-24">
+  <div
+    class="relative mx-auto flex w-full max-w-2xl flex-col items-center px-4 pt-16 pb-12 text-center sm:pt-24">
     <!-- Mark — priority: configured custom-domain logo → branded monogram → neutral keyhole mark -->
     <div class="mb-8 flex items-center justify-center">
       <img
@@ -74,7 +75,7 @@
 
     <!-- Eyebrow badge -->
     <span
-      class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-brand-700 dark:text-brand-400">
+      class="inline-flex items-center gap-2 text-xs font-bold tracking-[0.15em] text-brand-700 uppercase dark:text-brand-400">
       <span
         class="size-[7px] rounded-full"
         :style="dotStyle"
@@ -90,7 +91,7 @@
     <!-- Headline -->
     <h1
       :class="headingFontClass ?? fontFamilyClass ?? 'font-brand'"
-      class="mt-5 max-w-2xl text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+      class="mt-5 max-w-2xl text-4xl leading-[1.05] font-extrabold tracking-tight text-balance text-gray-900 sm:text-5xl dark:text-white">
       <i18n-t
         v-if="isBranded"
         keypath="homepage_secrets.disabled.team_link_headline"
@@ -114,7 +115,8 @@
     </h1>
 
     <!-- Subtitle -->
-    <p class="mt-5 max-w-xl text-pretty text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+    <p
+      class="mt-5 max-w-xl text-base leading-relaxed text-pretty text-gray-600 sm:text-lg dark:text-gray-300">
       <template v-if="isBranded">
         {{ $t('homepage_secrets.disabled.team_subtitle', { domain: displayDomain }) }}
       </template>
@@ -132,7 +134,7 @@
         type="button"
         data-testid="disabled-homepage-sso"
         :class="cornerClass ?? 'rounded-xl'"
-        class="inline-flex cursor-pointer items-center gap-2 bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+        class="inline-flex cursor-pointer items-center gap-2 bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900"
         @click="onSsoLogin">
         {{
           ssoProviderName
@@ -149,7 +151,7 @@
         to="/signin"
         data-testid="disabled-homepage-signin"
         :class="cornerClass ?? 'rounded-xl'"
-        class="inline-flex items-center gap-2 bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+        class="inline-flex items-center gap-2 bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900">
         {{ $t('homepage_secrets.disabled.signin_cta') }}
         <OIcon
           collection="heroicons"
@@ -161,7 +163,7 @@
         :href="whatIsThisHref"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-1.5 rounded-md text-sm font-semibold text-gray-500 transition-colors hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:ring-offset-gray-900">
+        class="inline-flex items-center gap-1.5 rounded-md text-sm font-semibold text-gray-500 transition-colors hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200 dark:focus:ring-offset-gray-900">
         <OIcon
           collection="heroicons"
           name="information-circle"
@@ -213,7 +215,7 @@
             :href="promoHref"
             target="_blank"
             rel="noopener noreferrer"
-            class="ml-1 rounded-sm font-semibold text-brand-700 hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-brand-400 dark:focus:ring-offset-gray-900">
+            class="ml-1 rounded-sm font-semibold text-brand-700 hover:underline focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-brand-400 dark:focus:ring-offset-gray-900">
             {{ $t('homepage_secrets.disabled.promo_learn_how') }} &rarr;
             <span class="sr-only">{{ $t('homepage_secrets.disabled.opens_in_new_tab') }}</span>
           </a>

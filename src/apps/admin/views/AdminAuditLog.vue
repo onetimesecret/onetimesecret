@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminAuditLog.vue -->
 
 <script setup lang="ts">
-
   import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminAuditLog } from '@/apps/admin/stores/useAdminAuditLog';

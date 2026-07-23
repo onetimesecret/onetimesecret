@@ -306,7 +306,8 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
           message: 'Connection successful',
           details: {
             issuer: 'https://login.microsoftonline.com/tenant-id/v2.0',
-            authorization_endpoint: 'https://login.microsoftonline.com/tenant-id/oauth2/v2.0/authorize',
+            authorization_endpoint:
+              'https://login.microsoftonline.com/tenant-id/oauth2/v2.0/authorize',
             token_endpoint: 'https://login.microsoftonline.com/tenant-id/oauth2/v2.0/token',
           },
         },

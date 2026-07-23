@@ -2,22 +2,23 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import StarsRating from "@/shared/components/ui/StarsRating.vue";
-import { Testimonial } from "@/sources/testimonials";
+  import StarsRating from '@/shared/components/ui/StarsRating.vue';
+  import { Testimonial } from '@/sources/testimonials';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-// Define props using defineProps
-const props = defineProps<{
-  testimonial: Testimonial;
-}>();
-
+  // Define props using defineProps
+  const props = defineProps<{
+    testimonial: Testimonial;
+  }>();
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl px-4 pb-12 pt-24 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-2xl px-4 pt-24 pb-12 sm:px-6 lg:px-8">
     <h2 class="mb-8 text-left text-3xl font-bold text-gray-900 dark:text-white">
-      <span class="text-xl font-semibold text-gray-700 dark:text-gray-300">{{ t('web.testimonials.ai_generated_testimonials') }}</span>
+      <span class="text-xl font-semibold text-gray-700 dark:text-gray-300">{{
+        t('web.testimonials.ai_generated_testimonials')
+      }}</span>
       <br />
       <span>{{ t('web.testimonials.what_leading_ai_says_about_us') }}:</span>
     </h2>
@@ -30,10 +31,11 @@ const props = defineProps<{
           viewBox="0 0 24 24"
           width="20"
           height="20">
-          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+          <path
+            d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
         </svg>
 
-        <p class="mb-6 text-lg italic leading-relaxed text-gray-700 dark:text-gray-300">
+        <p class="mb-6 text-lg leading-relaxed text-gray-700 italic dark:text-gray-300">
           "{{ props.testimonial.quote }}"
         </p>
 
@@ -54,12 +56,18 @@ const props = defineProps<{
       </div>
 
       <div class="bg-gray-100 px-6 py-4 dark:bg-gray-700">
-        <p class="text-sm italic text-gray-600 dark:text-gray-400">
-          {{ t('web.COMMON.note') }}: <span class="">{{ t('web.testimonials.this_quote_was_generated_by') }} <a
-            href="https://www.anthropic.com/news/claude-3-5-sonnet"
-            class="underline"
-            rel="noopener noreferrer"
-            target="_blank">Claude 3.5</a></span>. {{ t('web.testimonials.it_was_based_on_the_content_of_the_page_and_does') }}
+        <p class="text-sm text-gray-600 italic dark:text-gray-400">
+          {{ t('web.COMMON.note') }}:
+          <span class=""
+            >{{ t('web.testimonials.this_quote_was_generated_by') }}
+            <a
+              href="https://www.anthropic.com/news/claude-3-5-sonnet"
+              class="underline"
+              rel="noopener noreferrer"
+              target="_blank"
+              >Claude 3.5</a
+            ></span
+          >. {{ t('web.testimonials.it_was_based_on_the_content_of_the_page_and_does') }}
         </p>
       </div>
     </div>

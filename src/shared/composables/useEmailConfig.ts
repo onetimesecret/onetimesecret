@@ -363,9 +363,10 @@ export function useEmailConfig(domainExtId: string) {
   /**
    * Check if validation has completed (not pending).
    */
-  const isValidationComplete = (config: CustomDomainEmailConfig): boolean => config.verification_status !== 'pending'
-      && config.dns_check_completed_at != null
-      && config.provider_check_completed_at != null;
+  const isValidationComplete = (config: CustomDomainEmailConfig): boolean =>
+    config.verification_status !== 'pending' &&
+    config.dns_check_completed_at != null &&
+    config.provider_check_completed_at != null;
 
   /**
    * Fetch and update email config from the store.

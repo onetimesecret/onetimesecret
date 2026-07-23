@@ -149,10 +149,7 @@ function filterCriticalErrors(errors: string[]): string[] {
 async function navigateToIncoming(page: Page, configResponse: object): Promise<void> {
   await mockIncomingConfig(page, configResponse);
   const response = await page.goto('/incoming');
-  expect(
-    response?.status(),
-    '/incoming should serve the SPA shell, not a 404'
-  ).not.toBe(404);
+  expect(response?.status(), '/incoming should serve the SPA shell, not a 404').not.toBe(404);
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 }
 
@@ -213,10 +210,7 @@ test.describe('Incoming Secrets - Form Loading', () => {
     });
 
     const response = await page.goto('/incoming');
-    expect(
-      response?.status(),
-      '/incoming should serve the SPA shell, not a 404'
-    ).not.toBe(404);
+    expect(response?.status(), '/incoming should serve the SPA shell, not a 404').not.toBe(404);
 
     // Wait for the app to finish booting.
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();

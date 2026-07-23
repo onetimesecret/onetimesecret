@@ -143,9 +143,8 @@ describe('RecentSecretsTable', () => {
       })),
     }));
 
-    const { default: RecentSecretsTable } = await import(
-      '@/apps/secret/components/RecentSecretsTable.vue'
-    );
+    const { default: RecentSecretsTable } =
+      await import('@/apps/secret/components/RecentSecretsTable.vue');
 
     return mount(RecentSecretsTable, {
       props: {
@@ -236,9 +235,7 @@ describe('RecentSecretsTable', () => {
       await flushPromises();
 
       const label = wrapper.find('label');
-      expect(label.attributes('title')).toBe(
-        'web.secrets.workspace_mode_description'
-      );
+      expect(label.attributes('title')).toBe('web.secrets.workspace_mode_description');
     });
 
     it('checkbox reflects false workspaceMode state', async () => {

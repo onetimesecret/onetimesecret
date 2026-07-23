@@ -8,18 +8,9 @@
 //   pnpm test src/tests/generated/sentry-scrub-patterns.spec.ts
 
 import { describe, it, expect } from 'vitest';
-import {
-  scrubSensitivePath,
-  SENSITIVE_PATH_PATTERNS,
-} from '@/generated/sentry-scrub-patterns';
-import {
-  scrubSensitiveStrings,
-  scrubUrlWithPatterns,
-} from '@/plugins/core/diagnostics/scrubbers';
-import {
-  PARAM_VALUE_PATTERN,
-  pathToRegexPattern,
-} from '../../../scripts/openapi/sensitive-spec';
+import { scrubSensitivePath, SENSITIVE_PATH_PATTERNS } from '@/generated/sentry-scrub-patterns';
+import { scrubSensitiveStrings, scrubUrlWithPatterns } from '@/plugins/core/diagnostics/scrubbers';
+import { PARAM_VALUE_PATTERN, pathToRegexPattern } from '../../../scripts/openapi/sensitive-spec';
 
 // A representative 20-char lowercase identifier.
 const ID20 = 'abcdefghijklmnopqrst';
@@ -110,15 +101,11 @@ describe('generated sentry-scrub-patterns', () => {
   describe('scrubSensitivePath', () => {
     describe('v1 API paths', () => {
       it('scrubs /api/v1/secret/:key', () => {
-        expect(scrubSensitivePath(`/api/v1/secret/${ID20}`)).toBe(
-          '/api/v1/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v1/secret/${ID20}`)).toBe('/api/v1/secret/[REDACTED]');
       });
 
       it('scrubs /api/v1/metadata/:key', () => {
-        expect(scrubSensitivePath(`/api/v1/metadata/${ID20}`)).toBe(
-          '/api/v1/metadata/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v1/metadata/${ID20}`)).toBe('/api/v1/metadata/[REDACTED]');
       });
 
       it('scrubs /api/v1/metadata/:key/burn', () => {
@@ -128,9 +115,7 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v1/private/:key', () => {
-        expect(scrubSensitivePath(`/api/v1/private/${ID20}`)).toBe(
-          '/api/v1/private/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v1/private/${ID20}`)).toBe('/api/v1/private/[REDACTED]');
       });
 
       it('scrubs /api/v1/private/:key/burn', () => {
@@ -140,9 +125,7 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v1/receipt/:key', () => {
-        expect(scrubSensitivePath(`/api/v1/receipt/${ID20}`)).toBe(
-          '/api/v1/receipt/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v1/receipt/${ID20}`)).toBe('/api/v1/receipt/[REDACTED]');
       });
 
       it('scrubs /api/v1/receipt/:key/burn', () => {
@@ -154,9 +137,7 @@ describe('generated sentry-scrub-patterns', () => {
 
     describe('v2 API paths', () => {
       it('scrubs /api/v2/secret/:identifier', () => {
-        expect(scrubSensitivePath(`/api/v2/secret/${ID20}`)).toBe(
-          '/api/v2/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v2/secret/${ID20}`)).toBe('/api/v2/secret/[REDACTED]');
       });
 
       it('scrubs /api/v2/secret/:identifier/reveal', () => {
@@ -172,9 +153,7 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v2/private/:identifier', () => {
-        expect(scrubSensitivePath(`/api/v2/private/${ID20}`)).toBe(
-          '/api/v2/private/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v2/private/${ID20}`)).toBe('/api/v2/private/[REDACTED]');
       });
 
       it('scrubs /api/v2/private/:identifier/burn', () => {
@@ -184,9 +163,7 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v2/receipt/:identifier', () => {
-        expect(scrubSensitivePath(`/api/v2/receipt/${ID20}`)).toBe(
-          '/api/v2/receipt/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v2/receipt/${ID20}`)).toBe('/api/v2/receipt/[REDACTED]');
       });
 
       it('scrubs /api/v2/receipt/:identifier/burn', () => {
@@ -202,9 +179,9 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v2/guest/secret/:identifier/reveal', () => {
-        expect(
-          scrubSensitivePath(`/api/v2/guest/secret/${ID20}/reveal`)
-        ).toBe('/api/v2/guest/secret/[REDACTED]/reveal');
+        expect(scrubSensitivePath(`/api/v2/guest/secret/${ID20}/reveal`)).toBe(
+          '/api/v2/guest/secret/[REDACTED]/reveal'
+        );
       });
 
       it('scrubs /api/v2/guest/receipt/:identifier', () => {
@@ -214,17 +191,15 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v2/guest/receipt/:identifier/burn', () => {
-        expect(
-          scrubSensitivePath(`/api/v2/guest/receipt/${ID20}/burn`)
-        ).toBe('/api/v2/guest/receipt/[REDACTED]/burn');
+        expect(scrubSensitivePath(`/api/v2/guest/receipt/${ID20}/burn`)).toBe(
+          '/api/v2/guest/receipt/[REDACTED]/burn'
+        );
       });
     });
 
     describe('v3 API paths', () => {
       it('scrubs /api/v3/secret/:identifier', () => {
-        expect(scrubSensitivePath(`/api/v3/secret/${ID20}`)).toBe(
-          '/api/v3/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v3/secret/${ID20}`)).toBe('/api/v3/secret/[REDACTED]');
       });
 
       it('scrubs /api/v3/secret/:identifier/reveal', () => {
@@ -240,9 +215,7 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v3/receipt/:identifier', () => {
-        expect(scrubSensitivePath(`/api/v3/receipt/${ID20}`)).toBe(
-          '/api/v3/receipt/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v3/receipt/${ID20}`)).toBe('/api/v3/receipt/[REDACTED]');
       });
 
       it('scrubs /api/v3/receipt/:identifier/burn', () => {
@@ -258,9 +231,9 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v3/guest/secret/:identifier/reveal', () => {
-        expect(
-          scrubSensitivePath(`/api/v3/guest/secret/${ID20}/reveal`)
-        ).toBe('/api/v3/guest/secret/[REDACTED]/reveal');
+        expect(scrubSensitivePath(`/api/v3/guest/secret/${ID20}/reveal`)).toBe(
+          '/api/v3/guest/secret/[REDACTED]/reveal'
+        );
       });
 
       it('scrubs /api/v3/guest/receipt/:identifier', () => {
@@ -270,9 +243,9 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('scrubs /api/v3/guest/receipt/:identifier/burn', () => {
-        expect(
-          scrubSensitivePath(`/api/v3/guest/receipt/${ID20}/burn`)
-        ).toBe('/api/v3/guest/receipt/[REDACTED]/burn');
+        expect(scrubSensitivePath(`/api/v3/guest/receipt/${ID20}/burn`)).toBe(
+          '/api/v3/guest/receipt/[REDACTED]/burn'
+        );
       });
     });
 
@@ -282,51 +255,39 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('leaves non-sensitive paths unchanged', () => {
-        expect(scrubSensitivePath('/api/v3/colonel/status')).toBe(
-          '/api/v3/colonel/status'
-        );
+        expect(scrubSensitivePath('/api/v3/colonel/status')).toBe('/api/v3/colonel/status');
         expect(scrubSensitivePath('/api/health')).toBe('/api/health');
         expect(scrubSensitivePath('/pricing')).toBe('/pricing');
       });
 
       it('scrubs full 62-char VerifiableIdentifier', () => {
-        expect(scrubSensitivePath(`/api/v3/secret/${ID62}`)).toBe(
-          '/api/v3/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v3/secret/${ID62}`)).toBe('/api/v3/secret/[REDACTED]');
       });
 
       it('scrubs uppercase identifiers (case-insensitive structural match)', () => {
         // Scrubbing is structural: anything in the :identifier slot gets
         // redacted regardless of case or grammar.
         const upper = 'ABCDEFGHIJKLMNOPQRSTUV';
-        expect(scrubSensitivePath(`/api/v3/secret/${upper}`)).toBe(
-          '/api/v3/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v3/secret/${upper}`)).toBe('/api/v3/secret/[REDACTED]');
       });
 
       it('scrubs mixed-case identifiers', () => {
         const mixed = 'Abcdefghijklmnopqrst';
-        expect(scrubSensitivePath(`/api/v3/secret/${mixed}`)).toBe(
-          '/api/v3/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v3/secret/${mixed}`)).toBe('/api/v3/secret/[REDACTED]');
       });
 
       it('scrubs short identifiers regardless of length', () => {
         // No MIN_IDENTIFIER_LENGTH gate — the structural match redacts
         // whatever value occupies the :identifier segment.
         const short = 'abc';
-        expect(scrubSensitivePath(`/api/v3/secret/${short}`)).toBe(
-          '/api/v3/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath(`/api/v3/secret/${short}`)).toBe('/api/v3/secret/[REDACTED]');
       });
 
       it('scrubs the full segment for hyphenated values (no half-scrub)', () => {
         // Regression: the old [a-zA-Z0-9]+ grammar produced half-scrubs like
         // abc-123 -> [REDACTED]-123. The permissive [^/\s]+ class captures
         // the entire path segment, so abc-123 becomes [REDACTED] atomically.
-        expect(scrubSensitivePath('/api/v3/secret/abc-123')).toBe(
-          '/api/v3/secret/[REDACTED]'
-        );
+        expect(scrubSensitivePath('/api/v3/secret/abc-123')).toBe('/api/v3/secret/[REDACTED]');
       });
 
       it('leaves a trailing-slash path with empty :identifier unchanged', () => {
@@ -376,16 +337,12 @@ describe('generated sentry-scrub-patterns', () => {
 
       it('scrubs full URLs with host prefix while preserving protocol/host', () => {
         const fullUrl = `https://example.com/api/v1/secret/${ID20}`;
-        expect(scrubUrlWithPatterns(fullUrl)).toBe(
-          'https://example.com/api/v1/secret/[REDACTED]'
-        );
+        expect(scrubUrlWithPatterns(fullUrl)).toBe('https://example.com/api/v1/secret/[REDACTED]');
       });
 
       it('scrubs paths with query string suffix while preserving the query', () => {
         const pathWithQuery = `/api/v1/secret/${ID20}?foo=bar`;
-        expect(scrubUrlWithPatterns(pathWithQuery)).toBe(
-          '/api/v1/secret/[REDACTED]?foo=bar'
-        );
+        expect(scrubUrlWithPatterns(pathWithQuery)).toBe('/api/v1/secret/[REDACTED]?foo=bar');
       });
 
       it('scrubs sensitive paths embedded in exception text, preserving trailing context', () => {
@@ -447,8 +404,7 @@ describe('generated sentry-scrub-patterns', () => {
         {
           name: 'multi-line stack frame after URL',
           input: `Error: bad request /api/v1/secret/${ID20}\n    at handler.js:42`,
-          expected:
-            'Error: bad request /api/v1/secret/[REDACTED]\n    at handler.js:42',
+          expected: 'Error: bad request /api/v1/secret/[REDACTED]\n    at handler.js:42',
         },
         {
           name: 'URL at end of string (no trailing whitespace)',
@@ -463,8 +419,7 @@ describe('generated sentry-scrub-patterns', () => {
         {
           name: 'two URLs on the same line',
           input: `First /api/v1/secret/${ID20} then /api/v1/metadata/${ID20}`,
-          expected:
-            'First /api/v1/secret/[REDACTED] then /api/v1/metadata/[REDACTED]',
+          expected: 'First /api/v1/secret/[REDACTED] then /api/v1/metadata/[REDACTED]',
         },
         {
           name: 'URL inside parens (paren eaten — cosmetic)',
@@ -479,8 +434,7 @@ describe('generated sentry-scrub-patterns', () => {
         {
           name: 'fully-qualified URL with query in free text',
           input: `GET https://example.com/api/v1/secret/${ID20}?token=abc HTTP/1.1`,
-          expected:
-            'GET https://example.com/api/v1/secret/[REDACTED] HTTP/1.1',
+          expected: 'GET https://example.com/api/v1/secret/[REDACTED] HTTP/1.1',
         },
         {
           name: 'metadata route embedded in log line',
@@ -503,10 +457,7 @@ describe('generated sentry-scrub-patterns', () => {
     });
 
     it('produces an unanchored, capturing pattern for spec=true', () => {
-      const { regex, captureCount } = pathToRegexPattern(
-        '/api/v1/secret/:key',
-        true
-      );
+      const { regex, captureCount } = pathToRegexPattern('/api/v1/secret/:key', true);
       expect(regex).toBe('\\/api\\/v1\\/secret\\/([^/\\s]+)');
       expect(captureCount).toBe(1);
 
@@ -528,10 +479,7 @@ describe('generated sentry-scrub-patterns', () => {
       // Route declares sensitive=missing but path has no :missing param.
       // The generator treats this as an error and throws before calling here;
       // this test exercises the raw counting behaviour directly.
-      const { captureCount } = pathToRegexPattern(
-        '/api/v1/thing/:other',
-        new Set(['missing'])
-      );
+      const { captureCount } = pathToRegexPattern('/api/v1/thing/:other', new Set(['missing']));
       expect(captureCount).toBe(0);
     });
 

@@ -315,10 +315,7 @@ describe('jurisdictionStore', () => {
     it('handles disabled jurisdictions', () => {
       const configWithDisabled: RegionsConfig = {
         ...mockRegionConfig,
-        jurisdictions: [
-          { ...mockJurisdictions[0], enabled: false },
-          mockJurisdictions[1],
-        ],
+        jurisdictions: [{ ...mockJurisdictions[0], enabled: false }, mockJurisdictions[1]],
       };
 
       store.init({ regions: configWithDisabled });
@@ -349,7 +346,7 @@ describe('jurisdictionStore', () => {
           regions: {
             ...mockRegionConfig,
             jurisdictions: [tooShortId],
-          }
+          },
         })
       ).toThrow(/Jurisdiction "us-east" not found/i);
 
@@ -358,7 +355,7 @@ describe('jurisdictionStore', () => {
           regions: {
             ...mockRegionConfig,
             jurisdictions: [tooLongId],
-          }
+          },
         })
       ).toThrow(/Jurisdiction "us-east" not found/i);
     });

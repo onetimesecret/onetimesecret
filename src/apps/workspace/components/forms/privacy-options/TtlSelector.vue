@@ -1,57 +1,58 @@
 <!-- src/apps/workspace/components/forms/privacy-options/TtlSelector.vue -->
 
 <script setup lang="ts">
-/**
- * TTL Selector
- *
- * A chip-styled dropdown for selecting secret expiration time.
- * Uses Headless UI Listbox for accessible keyboard navigation
- * and ARIA support.
- */
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from '@headlessui/vue';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+  /**
+   * TTL Selector
+   *
+   * A chip-styled dropdown for selecting secret expiration time.
+   * Uses Headless UI Listbox for accessible keyboard navigation
+   * and ARIA support.
+   */
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
+  import {
+    Listbox,
+    ListboxButton,
+    ListboxLabel,
+    ListboxOption,
+    ListboxOptions,
+  } from '@headlessui/vue';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-interface Props {
-  /** Current TTL value in seconds */
-  modelValue: number;
-  /** Disable when form is submitting */
-  disabled?: boolean;
-}
+  interface Props {
+    /** Current TTL value in seconds */
+    modelValue: number;
+    /** Disable when form is submitting */
+    disabled?: boolean;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  disabled: false,
-});
+  const props = withDefaults(defineProps<Props>(), {
+    disabled: false,
+  });
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: number): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'update:modelValue', value: number): void;
+  }>();
 
-const { formatDuration, lifetimeOptions } = usePrivacyOptions();
+  const { formatDuration, lifetimeOptions } = usePrivacyOptions();
 
-/** Find selected option object from current value */
-const selectedOption = computed(() => (
-    lifetimeOptions.value.find((opt) => opt.value === props.modelValue) ??
-    lifetimeOptions.value[0]
-  ));
+  /** Find selected option object from current value */
+  const selectedOption = computed(
+    () =>
+      lifetimeOptions.value.find((opt) => opt.value === props.modelValue) ??
+      lifetimeOptions.value[0]
+  );
 
-/** Handle selection change from Listbox */
-const handleSelect = (option: { value: number; label: string }) => {
-  emit('update:modelValue', option.value);
-};
+  /** Handle selection change from Listbox */
+  const handleSelect = (option: { value: number; label: string }) => {
+    emit('update:modelValue', option.value);
+  };
 
-/** Format display text for current selection */
-const displayText = computed(() => formatDuration(props.modelValue));
+  /** Format display text for current selection */
+  const displayText = computed(() => formatDuration(props.modelValue));
 </script>
 
 <template>
@@ -65,14 +66,7 @@ const displayText = computed(() => formatDuration(props.modelValue));
       </ListboxLabel>
 
       <ListboxButton
-        class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium
-          ring-1 ring-inset transition-all
-          bg-brand-50 text-brand-700 ring-brand-600/20
-          hover:bg-brand-100 hover:ring-brand-600/30
-          focus:outline-none focus:ring-2 focus:ring-brand-500
-          dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30
-          dark:hover:bg-brand-900/50
-          disabled:cursor-not-allowed disabled:opacity-50">
+        class="inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 ring-1 ring-brand-600/20 transition-all ring-inset hover:bg-brand-100 hover:ring-brand-600/30 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/50">
         <OIcon
           collection="mdi"
           name="timer-outline"
@@ -91,10 +85,7 @@ const displayText = computed(() => formatDuration(props.modelValue));
         leave-from-class="opacity-100"
         leave-to-class="opacity-0">
         <ListboxOptions
-          class="absolute left-0 top-full z-50 mt-1 max-h-60 w-48 overflow-auto rounded-md
-            bg-white py-1 text-sm shadow-lg ring-1 ring-black/5
-            focus:outline-none
-            dark:bg-gray-800 dark:ring-gray-700">
+          class="absolute top-full left-0 z-50 mt-1 max-h-60 w-48 overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
           <ListboxOption
             v-for="option in lifetimeOptions"
             :key="option.value"
@@ -103,7 +94,7 @@ const displayText = computed(() => formatDuration(props.modelValue));
             as="template">
             <li
               :class="[
-                'relative cursor-pointer select-none py-2 pl-3 pr-9',
+                'relative cursor-pointer py-2 pr-9 pl-3 select-none',
                 selected
                   ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                   : active

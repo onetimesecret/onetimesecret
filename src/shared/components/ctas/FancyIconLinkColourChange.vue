@@ -1,18 +1,18 @@
 <!-- src/shared/components/ctas/FancyIconLinkColourChange.vue -->
 
 <script setup lang="ts">
-defineProps<{
-  text?: string;
-  to: string;
-  ariaLabel: string;
-}>();
+  defineProps<{
+    text?: string;
+    to: string;
+    ariaLabel: string;
+  }>();
 </script>
 
 <template>
   <router-link
     :to="to"
     :aria-label="ariaLabel"
-    class="group inline-flex items-center space-x-2 text-sm font-medium text-gray-700 transition-colors duration-150 ease-in-out hover:text-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:text-brand-400 dark:focus:ring-offset-gray-900">
+    class="group inline-flex items-center space-x-2 text-sm font-medium text-gray-700 transition-colors duration-150 ease-in-out hover:text-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-300 dark:hover:text-brand-400 dark:focus:ring-offset-gray-900">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       class="size-5 transition-transform group-hover:scale-110"
@@ -68,9 +68,10 @@ defineProps<{
 </template>
 
 <style scoped>
-@media (prefers-reduced-motion: reduce) {
-  svg, svg * {
-    animation: none !important;
+  @media (prefers-reduced-motion: reduce) {
+    svg,
+    svg * {
+      animation: none !important;
+    }
   }
-}
 </style>

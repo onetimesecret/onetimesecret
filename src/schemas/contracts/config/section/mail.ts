@@ -110,17 +110,13 @@ const mailValidationSchema = z.object({
   smtp_fail_fast: z.boolean().optional(),
   smtp_safe_check: z.boolean().optional(),
   not_rfc_mx_lookup_flow: z.boolean().optional(),
-  logger: z.object({
-    tracking_event: z.string().optional(),
-    stdout: z.boolean().optional(),
-    log_absolute_path: z.string().optional(),
-  }).optional(),
+  logger: z
+    .object({
+      tracking_event: z.string().optional(),
+      stdout: z.boolean().optional(),
+      log_absolute_path: z.string().optional(),
+    })
+    .optional(),
 });
 
-export {
-  emailerSchema,
-  mailSchema,
-  truemailSchema,
-  mailConnectionSchema,
-  mailValidationSchema,
-};
+export { emailerSchema, mailSchema, truemailSchema, mailConnectionSchema, mailValidationSchema };

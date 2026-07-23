@@ -42,9 +42,7 @@ const sandboxLaunchOptions = existsSync(SANDBOX_CHROMIUM)
  */
 const chromiumLaunchOptions = {
   ...sandboxLaunchOptions,
-  ...(process.env.A11Y_CHROME_PATH
-    ? { executablePath: process.env.A11Y_CHROME_PATH }
-    : {}),
+  ...(process.env.A11Y_CHROME_PATH ? { executablePath: process.env.A11Y_CHROME_PATH } : {}),
 };
 
 /**

@@ -82,9 +82,7 @@ describe('StatusBadge — #3829 previewed display state', () => {
     const badge = wrapper.find('[role="status"]');
     expect(badge.classes()).toContain('text-blue-800');
     expect(badge.attributes('title')).toBe('web.STATUS.previewed_description');
-    expect(wrapper.findComponent(OIcon).attributes('name')).toBe(
-      'mark-email-unread-outline'
-    );
+    expect(wrapper.findComponent(OIcon).attributes('name')).toBe('mark-email-unread-outline');
   });
 
   it('terminal revealed state wins over is_previewed', () => {

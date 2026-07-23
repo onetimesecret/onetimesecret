@@ -14,7 +14,7 @@ import {
   getPathParams,
   toOpenAPIPath,
   groupRoutesByTag,
-  parseAllApiRoutes
+  parseAllApiRoutes,
 } from '../otto-routes-parser';
 
 console.log('🧪 Testing Otto Routes Parser...\n');
@@ -79,7 +79,7 @@ const testPaths = [
   '/receipt/:identifier',
   '/receipt/:identifier/burn',
   '/domains/:extid',
-  '/teams/:extid/members/:custid'
+  '/teams/:extid/members/:custid',
 ];
 
 for (const path of testPaths) {

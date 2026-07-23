@@ -35,11 +35,7 @@ export const BASELINE_PATH = path.join(SUPPORT_DIR, '..', 'accessibility-baselin
  * apart from the public baseline so the two suites' keys never collide and so
  * regenerating one doesn't touch the other.
  */
-export const FULL_BASELINE_PATH = path.join(
-  SUPPORT_DIR,
-  '..',
-  'accessibility-baseline.full.json'
-);
+export const FULL_BASELINE_PATH = path.join(SUPPORT_DIR, '..', 'accessibility-baseline.full.json');
 
 /**
  * Separate baseline for the INTERACTIVE-STATE scans (dropdown open, error
@@ -63,13 +59,7 @@ export const IS_UPDATE_BASELINE = !!process.env.A11Y_UPDATE_BASELINE;
  * Rule tags scanned. Covers WCAG 2.0/2.1 levels A and AA plus axe's
  * best-practice rules.
  */
-export const AXE_TAGS = [
-  'wcag2a',
-  'wcag2aa',
-  'wcag21a',
-  'wcag21aa',
-  'best-practice',
-] as const;
+export const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'] as const;
 
 export type Theme = 'light' | 'dark';
 
@@ -154,12 +144,7 @@ export interface FlatViolation {
 export type Baseline = Record<string, Omit<FlatViolation, 'key'>>;
 
 /** Build the stable identity key for a single violating node. */
-export function violationKey(
-  theme: Theme,
-  route: string,
-  ruleId: string,
-  target: string
-): string {
+export function violationKey(theme: Theme, route: string, ruleId: string, target: string): string {
   return `${theme}|${route}|${ruleId}|${target}`;
 }
 
@@ -202,9 +187,7 @@ export async function scanPage(
   testInfo: TestInfo,
   opts: { theme: Theme; route: string }
 ): Promise<FlatViolation[]> {
-  const results = await new AxeBuilder({ page })
-    .withTags([...AXE_TAGS])
-    .analyze();
+  const results = await new AxeBuilder({ page }).withTags([...AXE_TAGS]).analyze();
 
   await testInfo.attach(`axe-${routeSlug(opts.route)}-${opts.theme}.json`, {
     body: JSON.stringify(results, null, 2),
@@ -269,10 +252,7 @@ export interface CompareResult {
 }
 
 /** Compare a current scan against the baseline map. */
-export function compareToBaseline(
-  violations: FlatViolation[],
-  baseline: Baseline
-): CompareResult {
+export function compareToBaseline(violations: FlatViolation[], baseline: Baseline): CompareResult {
   const regressions = violations.filter((v) => !(v.key in baseline));
   const seriousOrCritical = regressions.filter(
     (v) => v.impact === 'serious' || v.impact === 'critical'
@@ -305,9 +285,7 @@ export function formatFailure(
       lines.push(`    [${v.impact}] ${v.ruleId} @ ${v.target} — ${v.help}`);
     }
   }
-  const others = cmp.regressions.filter(
-    (v) => v.impact !== 'serious' && v.impact !== 'critical'
-  );
+  const others = cmp.regressions.filter((v) => v.impact !== 'serious' && v.impact !== 'critical');
   if (others.length > 0) {
     lines.push(`  ${others.length} other new violation(s):`);
     for (const v of others) {

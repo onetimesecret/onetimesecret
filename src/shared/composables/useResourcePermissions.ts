@@ -42,10 +42,7 @@ export interface UseResourcePermissionsReturn {
   canEdit: (resourceType: ResourceType, resourceId: string) => Promise<boolean>;
 }
 
-function handleFetchError(
-  err: unknown,
-  errorRef: Ref<string | null>
-): void {
+function handleFetchError(err: unknown, errorRef: Ref<string | null>): void {
   const axiosErr = err as { response?: { status?: number; data?: { error?: string } } };
   if (axiosErr?.response?.status === 403) {
     errorRef.value = 'Access denied';
@@ -61,7 +58,7 @@ function findOrgPermissions(
   orgExtid: string
 ): OrganizationPermissions | null {
   if (!allPermissions) return null;
-  return allPermissions.organizations.find(org => org.extid === orgExtid) ?? null;
+  return allPermissions.organizations.find((org) => org.extid === orgExtid) ?? null;
 }
 
 function findDomainPermissions(
@@ -70,7 +67,7 @@ function findDomainPermissions(
 ): DomainPermissions | null {
   if (!allPermissions) return null;
   for (const org of allPermissions.organizations) {
-    const domain = org.domains.find(d => d.extid === domainExtid);
+    const domain = org.domains.find((d) => d.extid === domainExtid);
     if (domain) return domain;
   }
   return null;
@@ -123,9 +120,10 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
 
   async function canAccess(resourceType: ResourceType, resourceId: string): Promise<boolean> {
     if (allPermissions.value) {
-      const perms = resourceType === 'organization'
-        ? getOrgPermissions(resourceId)?.permissions
-        : getDomainPermissions(resourceId)?.permissions;
+      const perms =
+        resourceType === 'organization'
+          ? getOrgPermissions(resourceId)?.permissions
+          : getDomainPermissions(resourceId)?.permissions;
       return perms?.can_view ?? false;
     }
     const result = await fetchResourcePermissions(resourceType, resourceId);
@@ -134,9 +132,10 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
 
   async function canEdit(resourceType: ResourceType, resourceId: string): Promise<boolean> {
     if (allPermissions.value) {
-      const perms = resourceType === 'organization'
-        ? getOrgPermissions(resourceId)?.permissions
-        : getDomainPermissions(resourceId)?.permissions;
+      const perms =
+        resourceType === 'organization'
+          ? getOrgPermissions(resourceId)?.permissions
+          : getDomainPermissions(resourceId)?.permissions;
       return perms?.can_edit ?? false;
     }
     const result = await fetchResourcePermissions(resourceType, resourceId);
@@ -144,7 +143,14 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
   }
 
   return {
-    isLoading, error, fetchAllPermissions, fetchResourcePermissions,
-    allPermissions, getOrgPermissions, getDomainPermissions, canAccess, canEdit,
+    isLoading,
+    error,
+    fetchAllPermissions,
+    fetchResourcePermissions,
+    allPermissions,
+    getOrgPermissions,
+    getDomainPermissions,
+    canAccess,
+    canEdit,
   };
 }

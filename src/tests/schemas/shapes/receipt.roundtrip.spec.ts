@@ -862,10 +862,12 @@ describe('V3 List Schemas', () => {
     });
 
     it('parses list details with revealed receipts', () => {
-      const receiptWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
-        state: 'revealed',
-        is_revealed: true,
-      }));
+      const receiptWire = createV3WireReceiptListRecord(
+        createCanonicalReceiptListRecord({
+          state: 'revealed',
+          is_revealed: true,
+        })
+      );
 
       const wire = {
         type: 'list',
@@ -886,14 +888,18 @@ describe('V3 List Schemas', () => {
     });
 
     it('parses list details with both revealed and pending receipt arrays', () => {
-      const revealedWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
-        state: 'revealed',
-        identifier: 'x1y2z3a4b5c6',
-      }));
-      const pendingWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
-        state: 'new',
-        identifier: 'm9n8o7p6q5r4',
-      }));
+      const revealedWire = createV3WireReceiptListRecord(
+        createCanonicalReceiptListRecord({
+          state: 'revealed',
+          identifier: 'x1y2z3a4b5c6',
+        })
+      );
+      const pendingWire = createV3WireReceiptListRecord(
+        createCanonicalReceiptListRecord({
+          state: 'new',
+          identifier: 'm9n8o7p6q5r4',
+        })
+      );
 
       const wire = {
         type: 'list',

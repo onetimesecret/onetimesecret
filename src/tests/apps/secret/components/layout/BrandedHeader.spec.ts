@@ -19,7 +19,8 @@ const mastHeadSpy = vi.fn();
 vi.mock('@/apps/secret/components/layout/BrandedMastHead.vue', () => ({
   default: {
     name: 'BrandedMastHead',
-    template: '<div class="branded-masthead" :data-headertext="headertext" :data-subtext="subtext" />',
+    template:
+      '<div class="branded-masthead" :data-headertext="headertext" :data-subtext="subtext" />',
     props: ['headertext', 'subtext', 'displayMasthead', 'displayNavigation'],
     setup() {
       brandedMastHeadSpy();
@@ -82,9 +83,8 @@ describe('BrandedHeader', () => {
           domain_strategy: storeOverrides.domain_strategy ?? 'canonical',
           domain_logo: storeOverrides.domain_logo ?? null,
           domains_enabled: storeOverrides.domain_strategy === 'custom',
-          display_domain: storeOverrides.domain_strategy === 'custom'
-            ? 'secrets.acme.com'
-            : 'onetimesecret.com',
+          display_domain:
+            storeOverrides.domain_strategy === 'custom' ? 'secrets.acme.com' : 'onetimesecret.com',
           site_host: 'onetimesecret.com',
           canonical_domain: 'onetimesecret.com',
           domain_id: storeOverrides.domain_strategy === 'custom' ? 'cd_acme' : '',
@@ -131,10 +131,13 @@ describe('BrandedHeader', () => {
 
   describe('Component switching based on domain strategy', () => {
     it('renders MastHead on canonical domain', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'canonical',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'canonical',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       expect(wrapper.find('.standard-masthead').exists()).toBe(true);
@@ -144,10 +147,13 @@ describe('BrandedHeader', () => {
     });
 
     it('renders BrandedMastHead on custom domain', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/logo.png',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/logo.png',
+        }
+      );
 
       await nextTick();
       expect(wrapper.find('.branded-masthead').exists()).toBe(true);
@@ -160,10 +166,13 @@ describe('BrandedHeader', () => {
       // Key scenario: custom domain with no uploaded logo
       // BrandedHeader should still use BrandedMastHead (NOT MastHead)
       // because the switching is based on domain_strategy, not domain_logo
-      wrapper = mountComponent({}, {
-        domain_strategy: 'custom',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'custom',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       expect(wrapper.find('.branded-masthead').exists()).toBe(true);
@@ -173,16 +182,19 @@ describe('BrandedHeader', () => {
 
   describe('Header text on custom domains', () => {
     it('shows "Secure Links" when homepage_config is null/disabled', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/logo.png',
-        domain_branding: {
-          primary_color: '#ff4400',
-          corner_style: 'square',
-          font_family: 'sans',
-          button_text_light: false,
-        },
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/logo.png',
+          domain_branding: {
+            primary_color: '#ff4400',
+            corner_style: 'square',
+            font_family: 'sans',
+            button_text_light: false,
+          },
+        }
+      );
 
       await nextTick();
       const branded = wrapper.find('.branded-masthead');
@@ -193,22 +205,25 @@ describe('BrandedHeader', () => {
     });
 
     it('shows "Create a Secure Link" when homepage_config is enabled', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/logo.png',
-        domain_branding: {
-          primary_color: '#ff4400',
-          corner_style: 'square',
-          font_family: 'sans',
-          button_text_light: false,
-        },
-        homepage_config: {
-          domain_id: 'cd_acme',
-          enabled: true,
-          created_at: null,
-          updated_at: null,
-        },
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/logo.png',
+          domain_branding: {
+            primary_color: '#ff4400',
+            corner_style: 'square',
+            font_family: 'sans',
+            button_text_light: false,
+          },
+          homepage_config: {
+            domain_id: 'cd_acme',
+            enabled: true,
+            created_at: null,
+            updated_at: null,
+          },
+        }
+      );
 
       await nextTick();
       const branded = wrapper.find('.branded-masthead');
@@ -218,11 +233,14 @@ describe('BrandedHeader', () => {
 
   describe('Masthead visibility', () => {
     it('hides header content when displayMasthead is false', async () => {
-      wrapper = mountComponent({
-        displayMasthead: false,
-      }, {
-        domain_strategy: 'canonical',
-      });
+      wrapper = mountComponent(
+        {
+          displayMasthead: false,
+        },
+        {
+          domain_strategy: 'canonical',
+        }
+      );
 
       await nextTick();
       // The outer header exists but inner content is hidden via v-if
@@ -235,10 +253,13 @@ describe('BrandedHeader', () => {
   // <header> banner landmark — no empty landmark, no whitespace band.
   describe('HEADER_ENABLED gate', () => {
     it('removes the <header> element when header.enabled is false', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'canonical',
-        header: { enabled: false },
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'canonical',
+          header: { enabled: false },
+        }
+      );
 
       await nextTick();
       expect(wrapper.find('header').exists()).toBe(false);
@@ -248,10 +269,13 @@ describe('BrandedHeader', () => {
     });
 
     it('renders the <header> element when header.enabled is true', async () => {
-      wrapper = mountComponent({}, {
-        domain_strategy: 'canonical',
-        header: { enabled: true },
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          domain_strategy: 'canonical',
+          header: { enabled: true },
+        }
+      );
 
       await nextTick();
       expect(wrapper.find('header').exists()).toBe(true);

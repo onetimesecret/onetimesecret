@@ -75,9 +75,7 @@ export function ttlToNaturalLanguage(val: unknown): string | null {
   for (const interval of intervals) {
     const count = Math.floor(seconds / interval.seconds);
     if (count >= 1) {
-      return count === 1
-        ? `1 ${interval.label} from now`
-        : `${count} ${interval.label}s from now`;
+      return count === 1 ? `1 ${interval.label} from now` : `${count} ${interval.label}s from now`;
     }
   }
   return 'a few seconds from now';
@@ -110,12 +108,12 @@ export const formatISODateTime = (date: Date): string => format(date, 'yyyy-MM-d
  *  long      | March 21, 2026 | March 21, 2026 2:30 PM  | Formal / editorial
  */
 const DATE_FORMAT_PRESETS: Record<string, { date: string; datetime: string }> = {
-  iso8601:  { date: 'yyyy-MM-dd',    datetime: 'yyyy-MM-dd HH:mm:ss' },
-  us:       { date: 'MM/dd/yyyy',    datetime: 'MM/dd/yyyy h:mm:ss a' },
-  eu:       { date: 'dd/MM/yyyy',    datetime: 'dd/MM/yyyy HH:mm' },
-  'eu-dot': { date: 'dd.MM.yyyy',    datetime: 'dd.MM.yyyy HH:mm' },
-  uk:       { date: 'dd MMM yyyy',   datetime: 'dd MMM yyyy HH:mm' },
-  long:     { date: 'MMMM d, yyyy',  datetime: 'MMMM d, yyyy h:mm a' },
+  iso8601: { date: 'yyyy-MM-dd', datetime: 'yyyy-MM-dd HH:mm:ss' },
+  us: { date: 'MM/dd/yyyy', datetime: 'MM/dd/yyyy h:mm:ss a' },
+  eu: { date: 'dd/MM/yyyy', datetime: 'dd/MM/yyyy HH:mm' },
+  'eu-dot': { date: 'dd.MM.yyyy', datetime: 'dd.MM.yyyy HH:mm' },
+  uk: { date: 'dd MMM yyyy', datetime: 'dd MMM yyyy HH:mm' },
+  long: { date: 'MMMM d, yyyy', datetime: 'MMMM d, yyyy h:mm a' },
 };
 
 /**
@@ -125,10 +123,7 @@ const DATE_FORMAT_PRESETS: Record<string, { date: string; datetime: string }> = 
  * @param variant - Whether to resolve the 'date' or 'datetime' pattern
  * @returns The resolved pattern, or null when 'locale' (caller uses browser-native)
  */
-function resolveFormatPattern(
-  setting: string,
-  variant: 'date' | 'datetime',
-): string | null {
+function resolveFormatPattern(setting: string, variant: 'date' | 'datetime'): string | null {
   if (setting === 'locale') return null;
   const preset = DATE_FORMAT_PRESETS[setting];
   if (preset) return preset[variant];
@@ -175,17 +170,13 @@ export const formatDisplayDateTime = (date: Date): string => {
   // If datetime_format is explicitly configured, use it directly
   if (datetimeSetting !== 'locale') {
     const pattern = resolveFormatPattern(datetimeSetting, 'datetime');
-    return pattern
-      ? safeFormat(date, pattern, () => date.toLocaleString())
-      : date.toLocaleString();
+    return pattern ? safeFormat(date, pattern, () => date.toLocaleString()) : date.toLocaleString();
   }
 
   // Fall back to date_format's datetime variant (so `date_format: eu` covers both)
   const dateSetting = getBootstrapValue('date_format') ?? 'locale';
   const pattern = resolveFormatPattern(dateSetting, 'datetime');
-  return pattern
-    ? safeFormat(date, pattern, () => date.toLocaleString())
-    : date.toLocaleString();
+  return pattern ? safeFormat(date, pattern, () => date.toLocaleString()) : date.toLocaleString();
 };
 
 /**
@@ -229,11 +220,7 @@ export const formatRelativeTime = (date: Date | undefined): string => {
  * maskSensitiveText('short') // '••••••••' (too short to show ends)
  * maskSensitiveText('abcdefghij', 2, 2) // 'ab••••••ij'
  */
-export const maskSensitiveText = (
-  text: string,
-  visibleStart = 4,
-  visibleEnd = 4,
-): string => {
+export const maskSensitiveText = (text: string, visibleStart = 4, visibleEnd = 4): string => {
   if (!text) return '';
 
   const minLength = visibleStart + visibleEnd + 4; // Need at least 4 masked chars

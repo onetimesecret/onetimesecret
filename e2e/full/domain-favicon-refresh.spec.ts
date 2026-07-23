@@ -148,7 +148,9 @@ test.describe('Domain favicon refresh (#3780)', () => {
     }
   });
 
-  test('TC-FAV-003: clicking an enabled refresh queues a fetch (POST + toast)', async ({ page }) => {
+  test('TC-FAV-003: clicking an enabled refresh queues a fetch (POST + toast)', async ({
+    page,
+  }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -160,7 +162,10 @@ test.describe('Domain favicon refresh (#3780)', () => {
 
     // A user_upload icon disables the control (nothing to queue) — that path is
     // covered by TC-FAV-002; here we only exercise the queue-able state.
-    test.skip(await button!.isDisabled(), 'Icon is user-uploaded — refresh is (correctly) disabled');
+    test.skip(
+      await button!.isDisabled(),
+      'Icon is user-uploaded — refresh is (correctly) disabled'
+    );
 
     const refreshPost = page.waitForResponse(
       (res) =>
@@ -200,7 +205,10 @@ test.describe('Domain favicon refresh (#3780)', () => {
     // Reuse the entitlement gate: if the refresh button mounted, the whole
     // Simple panel (including the upload field) did too.
     const refreshButton = await gotoBrandRefreshButton(page, org!, domain!);
-    test.skip(!refreshButton, 'Brand editor unavailable — requires the custom_branding entitlement');
+    test.skip(
+      !refreshButton,
+      'Brand editor unavailable — requires the custom_branding entitlement'
+    );
 
     const uploadButton = page.getByTestId('domain-favicon-upload');
 

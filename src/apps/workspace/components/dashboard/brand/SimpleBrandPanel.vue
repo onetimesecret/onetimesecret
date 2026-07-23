@@ -118,7 +118,8 @@
 </script>
 
 <template>
-  <div class="rounded-2xl border border-gray-200 bg-white p-[18px] dark:border-gray-700 dark:bg-gray-800">
+  <div
+    class="rounded-2xl border border-gray-200 bg-white p-[18px] dark:border-gray-700 dark:bg-gray-800">
     <div class="flex items-baseline gap-2">
       <h2 class="font-brand-slab text-base font-bold text-gray-900 dark:text-gray-100">
         {{ t('web.branding.your_brand') }}
@@ -156,11 +157,7 @@
           data-testid="domain-favicon-refresh"
           :disabled="isUserUploadedFavicon"
           @click="onRefreshFavicon()"
-          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3
-            py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors
-            hover:border-gray-400 focus:ring-1 focus:ring-brand-500 focus:outline-none
-            disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800
-            dark:text-gray-200">
+          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:border-gray-400 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
           <OIcon
             collection="mdi"
             name="refresh"
@@ -198,8 +195,7 @@
       <!-- WCAG contrast warning (primary vs white) — advisory only, never blocks save -->
       <div
         v-if="showContrastWarning"
-        class="mt-2 flex w-fit items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1 text-xs
-          text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+        class="mt-2 flex w-fit items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
         role="alert">
         <OIcon
           collection="mdi"
@@ -227,17 +223,20 @@
           type="button"
           @click="updateBrandSetting('border_radius', corner.id)"
           :aria-pressed="activeCorner === corner.id"
-          class="flex items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors
-            hover:border-gray-400"
-          :class="activeCorner === corner.id
-            ? 'border-brand-500 border-2'
-            : 'border-gray-200 dark:border-gray-600'">
+          class="flex items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors hover:border-gray-400"
+          :class="
+            activeCorner === corner.id
+              ? 'border-2 border-brand-500'
+              : 'border-gray-200 dark:border-gray-600'
+          ">
           <OIcon
             collection=""
             :name="corner.icon"
             class="size-5 shrink-0 text-gray-600 dark:text-gray-300"
             aria-hidden="true" />
-          <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ corner.label }}</span>
+          <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{
+            corner.label
+          }}</span>
         </button>
       </div>
     </div>
@@ -251,9 +250,7 @@
         <select
           :value="bodyFont"
           @change="onFontChange"
-          class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
-            text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
-            focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
+          class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
           <option
             v-for="font in fontChoices"
             :key="`body-${font}`"

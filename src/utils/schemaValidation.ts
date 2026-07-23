@@ -24,9 +24,7 @@ import { loggingService } from '@/services/logging.service';
  * Discriminated union for parse results.
  * Avoids ambiguity when null could be a valid domain value.
  */
-export type ParseResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: z.ZodError | null };
+export type ParseResult<T> = { ok: true; data: T } | { ok: false; error: z.ZodError | null };
 
 /**
  * Determines if we're in a development or test environment.

@@ -41,8 +41,8 @@ import type { Plugin } from 'vite';
  * Note: Vite already provides BASE_URL, MODE, DEV, PROD, SSR in ImportMeta.env
  */
 interface ImportMetaEnv {
-  readonly VITE_AUTH_URL?: string
-  readonly VITE_APP_TITLE?: string
+  readonly VITE_AUTH_URL?: string;
+  readonly VITE_APP_TITLE?: string;
 }
 
 /**
@@ -70,7 +70,7 @@ declare module '*.vue' {
    * We import a special Vue type that describes components.
    * This is like telling TypeScript what a Vue component looks like.
    */
-  import type { DefineComponent } from 'vue'
+  import type { DefineComponent } from 'vue';
 
   /**
    * This line says: "Any .vue file is a Vue component."
@@ -84,12 +84,12 @@ declare module '*.vue' {
     Record<string, unknown>,
     // methods
     Record<string, (..._: unknown[]) => unknown>
-  >
+  >;
   /**
    * This makes the component available to use in other files.
    * It's like sharing your toy with friends so they can play too.
    */
-  export default component
+  export default component;
 }
 
 // src/build/plugins/addTrailingNewline.d.ts

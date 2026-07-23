@@ -19,13 +19,21 @@ vi.mock('vue-router', () => ({
   }),
 }));
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
-  default: { name: 'OIcon', template: '<span class="o-icon" />', props: ['collection', 'name', 'class'] },
+  default: {
+    name: 'OIcon',
+    template: '<span class="o-icon" />',
+    props: ['collection', 'name', 'class'],
+  },
 }));
 vi.mock('@/shared/components/layout/BillingLayout.vue', () => ({
   default: { name: 'BillingLayout', template: '<div class="billing-layout"><slot /></div>' },
 }));
 vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
-  default: { name: 'BasicFormAlerts', template: '<div class="form-alerts">{{ error }}</div>', props: ['error'] },
+  default: {
+    name: 'BasicFormAlerts',
+    template: '<div class="form-alerts">{{ error }}</div>',
+    props: ['error'],
+  },
 }));
 
 const mockGetOverview = vi.fn();
@@ -35,16 +43,32 @@ vi.mock('@/services/billing.service', () => ({
 
 // Lightweight org shape for store mock (not full Organization type)
 const mockOrganization = {
-  objid: 'org_123', extid: 'on1abc123', display_name: 'Test Organization',
-  description: null, owner_id: 'cust_456', contact_email: 'test@example.com',
-  planid: 'identity_plus_v1', entitlements: ['api_access'], limits: { teams: 1 }, is_default: true,
-  created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
+  objid: 'org_123',
+  extid: 'on1abc123',
+  display_name: 'Test Organization',
+  description: null,
+  owner_id: 'cust_456',
+  contact_email: 'test@example.com',
+  planid: 'identity_plus_v1',
+  entitlements: ['api_access'],
+  limits: { teams: 1 },
+  is_default: true,
+  created: new Date('2024-01-01'),
+  updated: new Date('2024-01-01'),
 };
 const mockFreeOrganization = {
-  objid: 'org_456', extid: 'on2def456', display_name: 'Free Org',
-  description: null, owner_id: 'cust_789', contact_email: 'free@example.com',
-  planid: '', entitlements: [] as string[], limits: { teams: 0 }, is_default: false,
-  created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
+  objid: 'org_456',
+  extid: 'on2def456',
+  display_name: 'Free Org',
+  description: null,
+  owner_id: 'cust_789',
+  contact_email: 'free@example.com',
+  planid: '',
+  entitlements: [] as string[],
+  limits: { teams: 0 },
+  is_default: false,
+  created: new Date('2024-01-01'),
+  updated: new Date('2024-01-01'),
 };
 
 type MockOrg = typeof mockOrganization;
@@ -54,7 +78,9 @@ const mockFetchOrganization = vi.fn();
 
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
-    get organizations() { return storeState.organizations; },
+    get organizations() {
+      return storeState.organizations;
+    },
     fetchOrganizations: mockFetchOrganizations,
     fetchOrganization: mockFetchOrganization,
   }),
@@ -71,7 +97,9 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
 }));
 
 vi.mock('@/schemas/errors', () => ({
-  classifyError: (err: unknown) => ({ message: err instanceof Error ? err.message : 'Unknown error' }),
+  classifyError: (err: unknown) => ({
+    message: err instanceof Error ? err.message : 'Unknown error',
+  }),
 }));
 vi.mock('@/types/billing', () => ({
   getPlanLabel: (id: string) => {
@@ -87,7 +115,12 @@ vi.mock('@/types/billing', () => ({
 
 // Use shared fixture factory for overview response
 const defaultOverviewResponse = createMockOverviewResponse({
-  organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
+  organization: {
+    id: 'org_123',
+    external_id: 'on1abc123',
+    display_name: 'Test Org',
+    billing_email: null,
+  },
 });
 
 const i18n = createTestI18n();
@@ -108,13 +141,15 @@ describe('BillingOverview', () => {
     mockGetOverview.mockResolvedValue(defaultOverviewResponse);
   });
 
-  afterEach(() => { wrapper?.unmount(); });
+  afterEach(() => {
+    wrapper?.unmount();
+  });
 
   const mountComponent = async (options: { organizations?: MockOrg[] } = {}) => {
     const orgs = options.organizations ?? [mockOrganization];
     storeState.organizations = orgs;
     mockFetchOrganization.mockImplementation(
-      async (extid: string) => orgs.find(o => o.extid === extid) || orgs[0]
+      async (extid: string) => orgs.find((o) => o.extid === extid) || orgs[0]
     );
     mockFetchOrganizations.mockImplementation(async () => {
       storeState.organizations = orgs;
@@ -133,7 +168,11 @@ describe('BillingOverview', () => {
     it('renders loading state initially', async () => {
       storeState.organizations = [mockOrganization];
       let resolveOrg: (value: MockOrg) => void;
-      mockFetchOrganization.mockReturnValue(new Promise(r => { resolveOrg = r; }));
+      mockFetchOrganization.mockReturnValue(
+        new Promise((r) => {
+          resolveOrg = r;
+        })
+      );
 
       wrapper = mount(BillingOverview, {
         global: { plugins: [i18n, pinia], stubs: { RouterLink: routerLinkStub } },
@@ -171,7 +210,12 @@ describe('BillingOverview', () => {
       let resolveOverview: (value: ReturnType<typeof createMockOverviewResponse>) => void;
       storeState.organizations = [mockOrganization];
       mockFetchOrganization.mockResolvedValue(mockOrganization);
-      mockGetOverview.mockImplementationOnce(() => new Promise(r => { resolveOverview = r; }));
+      mockGetOverview.mockImplementationOnce(
+        () =>
+          new Promise((r) => {
+            resolveOverview = r;
+          })
+      );
 
       wrapper = mount(BillingOverview, {
         global: { plugins: [i18n, pinia], stubs: { RouterLink: routerLinkStub } },
@@ -247,8 +291,20 @@ describe('BillingOverview', () => {
 
     it('does not display next billing date when subscription has no period_end', async () => {
       const noDateResponse = createMockOverviewResponse({
-        organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
-        subscription: { id: 'sub_123', status: 'active', period_end: 0, active: true, past_due: false, canceled: false },
+        organization: {
+          id: 'org_123',
+          external_id: 'on1abc123',
+          display_name: 'Test Org',
+          billing_email: null,
+        },
+        subscription: {
+          id: 'sub_123',
+          status: 'active',
+          period_end: 0,
+          active: true,
+          past_due: false,
+          canceled: false,
+        },
       });
       mockGetOverview.mockResolvedValueOnce(noDateResponse);
       wrapper = await mountComponent();

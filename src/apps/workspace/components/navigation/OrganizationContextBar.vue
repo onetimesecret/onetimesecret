@@ -17,98 +17,94 @@
 -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
-import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
-import { isOrganizationSwitcherEnabled } from '@/utils/features';
-import { computed, onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
-import axios from 'axios';
-const organizationStore = useOrganizationStore();
-const {
-  visibility,
-  showOrgSwitcher,
-  lockOrgSwitcher,
-  showDomainSwitcher,
-  lockDomainSwitcher,
-  isSoloDefaultContext,
-} = useScopeSwitcherVisibility();
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
+  import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
+  import { isOrganizationSwitcherEnabled } from '@/utils/features';
+  import { computed, onMounted, ref } from 'vue';
+  import { RouterLink } from 'vue-router';
+  import axios from 'axios';
+  const organizationStore = useOrganizationStore();
+  const {
+    visibility,
+    showOrgSwitcher,
+    lockOrgSwitcher,
+    showDomainSwitcher,
+    lockDomainSwitcher,
+    isSoloDefaultContext,
+  } = useScopeSwitcherVisibility();
 
-// The static org-name chip is the fallback when the switcher is hidden by role
-// (admins/members still need workspace context). It is suppressed for a solo
-// default org, where the switcher is hidden to declutter the new-user surface.
-const showStaticOrgName = computed(() =>
-  isLoaded.value &&
-  visibility.value.organization !== 'hide' &&
-  !showOrgSwitcher.value &&
-  !isSoloDefaultContext.value &&
-  isOrganizationSwitcherEnabled() &&
-  organizationStore.hasOrganizations &&
-  !!organizationStore.currentOrganization
-);
+  // The static org-name chip is the fallback when the switcher is hidden by role
+  // (admins/members still need workspace context). It is suppressed for a solo
+  // default org, where the switcher is hidden to declutter the new-user surface.
+  const showStaticOrgName = computed(
+    () =>
+      isLoaded.value &&
+      visibility.value.organization !== 'hide' &&
+      !showOrgSwitcher.value &&
+      !isSoloDefaultContext.value &&
+      isOrganizationSwitcherEnabled() &&
+      organizationStore.hasOrganizations &&
+      !!organizationStore.currentOrganization
+  );
 
-const orgDisplayName = computed(() =>
-  organizationStore.currentOrganization?.display_name || ''
-);
+  const orgDisplayName = computed(() => organizationStore.currentOrganization?.display_name || '');
 
-const orgIsDefault = computed(() =>
-  organizationStore.currentOrganization?.is_default ?? false
-);
+  const orgIsDefault = computed(() => organizationStore.currentOrganization?.is_default ?? false);
 
-const orgInitial = computed(() =>
-  (orgDisplayName.value || 'O').charAt(0).toUpperCase()
-);
+  const orgInitial = computed(() => (orgDisplayName.value || 'O').charAt(0).toUpperCase());
 
-const orgSettingsPath = computed(() => {
-  const org = organizationStore.currentOrganization;
-  if (!org?.extid) return null;
-  const role = org.current_user_role;
-  if (role !== 'owner' && role !== 'admin') return null;
-  return `/org/${org.extid}`;
-});
+  const orgSettingsPath = computed(() => {
+    const org = organizationStore.currentOrganization;
+    if (!org?.extid) return null;
+    const role = org.current_user_role;
+    if (role !== 'owner' && role !== 'admin') return null;
+    return `/org/${org.extid}`;
+  });
 
-const isLoaded = ref(false);
+  const isLoaded = ref(false);
 
-// Fetch organizations on mount to determine visibility
-// Use isListFetched (not hasOrganizations) to ensure full list is loaded.
-// hasOrganizations can be true if fetchOrganization() added a single org.
-onMounted(async () => {
-  if (!organizationStore.isListFetched) {
-    try {
-      await organizationStore.fetchOrganizations();
-    } catch (error) {
-      if (axios.isCancel(error)) {
-        // Expected when another component triggers a fetch - visible with DevTools "Verbose" level
-        console.debug('[OrganizationContextBar] Fetch canceled (expected):', error);
-      } else {
-        console.error('[OrganizationContextBar] Failed to fetch organizations:', error);
+  // Fetch organizations on mount to determine visibility
+  // Use isListFetched (not hasOrganizations) to ensure full list is loaded.
+  // hasOrganizations can be true if fetchOrganization() added a single org.
+  onMounted(async () => {
+    if (!organizationStore.isListFetched) {
+      try {
+        await organizationStore.fetchOrganizations();
+      } catch (error) {
+        if (axios.isCancel(error)) {
+          // Expected when another component triggers a fetch - visible with DevTools "Verbose" level
+          console.debug('[OrganizationContextBar] Fetch canceled (expected):', error);
+        } else {
+          console.error('[OrganizationContextBar] Failed to fetch organizations:', error);
+        }
       }
     }
-  }
 
-  // Initialize currentOrganization if not already set (restores from localStorage)
-  if (!organizationStore.currentOrganization && organizationStore.hasOrganizations) {
-    const initialOrg = organizationStore.restorePersistedSelection();
-    if (initialOrg) {
-      organizationStore.setCurrentOrganization(initialOrg);
+    // Initialize currentOrganization if not already set (restores from localStorage)
+    if (!organizationStore.currentOrganization && organizationStore.hasOrganizations) {
+      const initialOrg = organizationStore.restorePersistedSelection();
+      if (initialOrg) {
+        organizationStore.setCurrentOrganization(initialOrg);
+      }
     }
-  }
 
-  isLoaded.value = true;
-});
+    isLoaded.value = true;
+  });
 
-/**
- * Show context bar when user has any organizations (including default)
- * AND at least one switcher is visible based on route meta and feature flags.
- * Wait for initial load to avoid flash of content.
- */
-const shouldShow = computed(() =>
-  isLoaded.value &&
-  organizationStore.hasOrganizations &&
-  (showOrgSwitcher.value || showDomainSwitcher.value || showStaticOrgName.value)
-);
+  /**
+   * Show context bar when user has any organizations (including default)
+   * AND at least one switcher is visible based on route meta and feature flags.
+   * Wait for initial load to avoid flash of content.
+   */
+  const shouldShow = computed(
+    () =>
+      isLoaded.value &&
+      organizationStore.hasOrganizations &&
+      (showOrgSwitcher.value || showDomainSwitcher.value || showStaticOrgName.value)
+  );
 </script>
 
 <template>
@@ -127,9 +123,11 @@ const shouldShow = computed(() =>
       data-testid="org-context-static">
       <span
         class="flex size-5 items-center justify-center rounded text-xs font-bold"
-        :class="orgIsDefault
-          ? 'bg-gray-200 dark:bg-gray-700'
-          : 'bg-brand-500 text-white dark:bg-brand-500'"
+        :class="
+          orgIsDefault
+            ? 'bg-gray-200 dark:bg-gray-700'
+            : 'bg-brand-500 text-white dark:bg-brand-500'
+        "
         aria-hidden="true">
         <OIcon
           v-if="orgIsDefault"

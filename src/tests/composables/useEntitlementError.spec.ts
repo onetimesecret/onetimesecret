@@ -22,7 +22,9 @@ describe('useEntitlementError', () => {
     const { isUpgradeRequired, errorMessage, field } = useEntitlementError(error);
 
     expect(isUpgradeRequired.value).toBe(true);
-    expect(errorMessage.value).toBe('Member limit reached. Upgrade your plan to invite more members.');
+    expect(errorMessage.value).toBe(
+      'Member limit reached. Upgrade your plan to invite more members.'
+    );
     expect(field.value).toBe('email');
   });
 

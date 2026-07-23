@@ -96,11 +96,12 @@ export function useScopeSwitcherVisibility() {
   // Hide org switcher on custom domains (the domain IS the org scope), and for
   // a brand-new self-signup user whose only org is their solo default.
   const showOrgSwitcher = computed(
-    () => !isCustom.value
-      && visibility.value.organization !== 'hide'
-      && isOrganizationSwitcherEnabled()
-      && canManageOrgs.value
-      && !isSoloDefaultContext.value
+    () =>
+      !isCustom.value &&
+      visibility.value.organization !== 'hide' &&
+      isOrganizationSwitcherEnabled() &&
+      canManageOrgs.value &&
+      !isSoloDefaultContext.value
   );
   const lockOrgSwitcher = computed(() => visibility.value.organization === 'locked');
 

@@ -254,9 +254,7 @@ describe('Opaque Identifier Pattern', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       expect(() => assertExtId('bad-id', 'TestComponent')).toThrow('[TestComponent]');
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[TestComponent]')
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('[TestComponent]'));
 
       consoleSpy.mockRestore();
     });

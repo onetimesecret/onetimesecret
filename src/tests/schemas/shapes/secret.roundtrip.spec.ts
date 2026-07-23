@@ -403,7 +403,9 @@ describe('V3 Secret Round-Trip', () => {
 
       expect(v3SecretDetailsSchema.parse(createV3WireSecretDetails(withNull)).one_liner).toBeNull();
       expect(v3SecretDetailsSchema.parse(createV3WireSecretDetails(withTrue)).one_liner).toBe(true);
-      expect(v3SecretDetailsSchema.parse(createV3WireSecretDetails(withFalse)).one_liner).toBe(false);
+      expect(v3SecretDetailsSchema.parse(createV3WireSecretDetails(withFalse)).one_liner).toBe(
+        false
+      );
     });
   });
 

@@ -2,20 +2,20 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import type { ApplicationError } from '@/schemas/errors';
-import { computed } from 'vue';
-import { ZodError } from 'zod';
+  import type { ApplicationError } from '@/schemas/errors';
+  import { computed } from 'vue';
+  import { ZodError } from 'zod';
 
-const { t } = useI18n();
-const props = defineProps<{
-  error: ApplicationError;
-}>();
+  const { t } = useI18n();
+  const props = defineProps<{
+    error: ApplicationError;
+  }>();
 
-const isZodError = computed(() => props.error.original instanceof ZodError);
-const friendlyMessage = computed(() => {
-  if (!isZodError.value) return props.error.message;
-  return t('web.errors.unable_to_load_data_due_to_data_format_issues_pl');
-});
+  const isZodError = computed(() => props.error.original instanceof ZodError);
+  const friendlyMessage = computed(() => {
+    if (!isZodError.value) return props.error.message;
+    return t('web.errors.unable_to_load_data_due_to_data_format_issues_pl');
+  });
 </script>
 
 <template>

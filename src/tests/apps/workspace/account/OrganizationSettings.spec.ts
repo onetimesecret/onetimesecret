@@ -495,7 +495,9 @@ describe('OrganizationSettings', () => {
       await switchToSsoTab(wrapper);
 
       // When domains exist, the domain list is shown instead of EmptyState
-      const emptyState = wrapper.find('[data-testid="org-section-sso"] [data-testid="empty-state"]');
+      const emptyState = wrapper.find(
+        '[data-testid="org-section-sso"] [data-testid="empty-state"]'
+      );
       expect(emptyState.exists()).toBe(false);
     });
   });

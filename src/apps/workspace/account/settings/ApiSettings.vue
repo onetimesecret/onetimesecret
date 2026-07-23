@@ -85,5 +85,4 @@
       </div>
     </div>
   </SettingsLayout>
-
 </template>

@@ -111,12 +111,17 @@ function clearOverrides(): void {
  * editor PREVIEW (SecretPreview.vue) reads `domainBranding` inline, NOT these
  * <html> vars, so wire the preview separately when you wire a real view.
  */
-function applyExtendedTokens(brand: {
-  secondary_color?: string | null;
-  background_color?: string | null;
-  text_color?: string | null;
-  border_radius?: string | number | null;
-} | null | undefined): void {
+function applyExtendedTokens(
+  brand:
+    | {
+        secondary_color?: string | null;
+        background_color?: string | null;
+        text_color?: string | null;
+        border_radius?: string | number | null;
+      }
+    | null
+    | undefined
+): void {
   const el = document.documentElement;
 
   // Secondary color scale. NOT neutral-gated: unlike the primary palette (whose
@@ -227,29 +232,41 @@ export function useBrandTheme(): void {
     });
   }
 
-  watch(primaryColor, (newColor) => {
-    applyPalette(newColor);
-  }, { immediate: true });
+  watch(
+    primaryColor,
+    (newColor) => {
+      applyPalette(newColor);
+    },
+    { immediate: true }
+  );
 
   // Expanded vocabulary (#3646): secondary color scale + surface/ink/radius
   // tokens. Watches the whole brand object so any of these fields re-injects.
-  watch(brand, (newBrand) => {
-    wrap(async () => applyExtendedTokens(newBrand));
-  }, { immediate: true, deep: true });
+  watch(
+    brand,
+    (newBrand) => {
+      wrap(async () => applyExtendedTokens(newBrand));
+    },
+    { immediate: true, deep: true }
+  );
 
   // Favicon override: per-domain favicon_url takes priority, then
   // installation-level brand_favicon_url from bootstrap config.
-  const effectiveFaviconUrl = computed(() =>
-    brand.value?.favicon_url || bootstrapStore.brand_favicon_url
+  const effectiveFaviconUrl = computed(
+    () => brand.value?.favicon_url || bootstrapStore.brand_favicon_url
   );
 
-  watch(effectiveFaviconUrl, (faviconUrl) => {
-    if (faviconUrl) {
-      applyFavicon(faviconUrl);
-    } else {
-      restoreFavicons();
-    }
-  }, { immediate: true });
+  watch(
+    effectiveFaviconUrl,
+    (faviconUrl) => {
+      if (faviconUrl) {
+        applyFavicon(faviconUrl);
+      } else {
+        restoreFavicons();
+      }
+    },
+    { immediate: true }
+  );
 
   onScopeDispose(() => {
     clearOverrides();

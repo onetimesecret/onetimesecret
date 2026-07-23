@@ -67,9 +67,7 @@ describe('publicSecretOptionsShape (passphrase bounds)', () => {
   });
 
   it('enforces maximum passphrase minimum_length of 256', () => {
-    expect(() =>
-      publicSecretOptionsShape.parse({ passphrase: { minimum_length: 300 } })
-    ).toThrow();
+    expect(() => publicSecretOptionsShape.parse({ passphrase: { minimum_length: 300 } })).toThrow();
   });
 
   it('enforces maximum passphrase maximum_length of 1024', () => {

@@ -1,92 +1,101 @@
 <!-- src/apps/session/components/AuthMethodSelector.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { useProductIdentity } from '@/shared/stores/identityStore';
-import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode, isSsoEnforcedForDomain } from '@/utils/features';
-import { ref, computed } from 'vue';
-import { storeToRefs } from 'pinia';
+  import { useI18n } from 'vue-i18n';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import {
+    isMagicLinksEnabled,
+    isSsoEnabled,
+    isWebAuthnEnabled,
+    getSsoProviders,
+    isSsoOnlyMode,
+    isSsoEnforcedForDomain,
+  } from '@/utils/features';
+  import { ref, computed } from 'vue';
+  import { storeToRefs } from 'pinia';
 
-import PasswordlessFirstSignIn from './PasswordlessFirstSignIn.vue';
-import SignInForm from './SignInForm.vue';
-import SsoButton from './SsoButton.vue';
+  import PasswordlessFirstSignIn from './PasswordlessFirstSignIn.vue';
+  import SignInForm from './SignInForm.vue';
+  import SsoButton from './SsoButton.vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-export interface Props {
-  locale?: string;
-  /**
-   * Preselect a specific auth tab on first render (contextual default, not a
-   * persisted user choice). Forwarded to the passwordless-first tab UI. Used to
-   * land on "password" when the user returns right after email verification.
-   */
-  initialMode?: 'passkey' | 'passwordless' | 'password';
-}
+  export interface Props {
+    locale?: string;
+    /**
+     * Preselect a specific auth tab on first render (contextual default, not a
+     * persisted user choice). Forwarded to the passwordless-first tab UI. Used to
+     * land on "password" when the user returns right after email verification.
+     */
+    initialMode?: 'passkey' | 'passwordless' | 'password';
+  }
 
-withDefaults(defineProps<Props>(), {
-  locale: 'en',
-  initialMode: undefined,
-});
+  withDefaults(defineProps<Props>(), {
+    locale: 'en',
+    initialMode: undefined,
+  });
 
-type AuthMode = 'passwordless' | 'passkey' | 'password';
+  type AuthMode = 'passwordless' | 'passkey' | 'password';
 
-const emit = defineEmits<{
-  (e: 'mode-change', mode: AuthMode): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'mode-change', mode: AuthMode): void;
+  }>();
 
-// Custom domains force SSO-only authentication
-const { isCustom } = storeToRefs(useProductIdentity());
+  // Custom domains force SSO-only authentication
+  const { isCustom } = storeToRefs(useProductIdentity());
 
-// Check which methods are enabled
-const magicLinksEnabled = isMagicLinksEnabled();
-const webauthnEnabled = isWebAuthnEnabled();
-const ssoEnabled = isSsoEnabled();
-const ssoOnly = computed(() => isSsoOnlyMode());
+  // Check which methods are enabled
+  const magicLinksEnabled = isMagicLinksEnabled();
+  const webauthnEnabled = isWebAuthnEnabled();
+  const ssoEnabled = isSsoEnabled();
+  const ssoOnly = computed(() => isSsoOnlyMode());
 
-// Extract SSO providers via feature utility
-const ssoProviders = computed(() => getSsoProviders());
+  // Extract SSO providers via feature utility
+  const ssoProviders = computed(() => getSsoProviders());
 
-// SSO enforcement for custom domains
-const enforceSsoForDomain = computed(() => isSsoEnforcedForDomain());
+  // SSO enforcement for custom domains
+  const enforceSsoForDomain = computed(() => isSsoEnforcedForDomain());
 
-// SSO is required when either the global sso_only flag is on, or the
-// active custom domain has enforce_sso_only enabled.
-const ssoRequired = computed(
-  () => ssoOnly.value || (isCustom.value && enforceSsoForDomain.value)
-);
+  // SSO is required when either the global sso_only flag is on, or the
+  // active custom domain has enforce_sso_only enabled.
+  const ssoRequired = computed(
+    () => ssoOnly.value || (isCustom.value && enforceSsoForDomain.value)
+  );
 
-// SSO is usable when it's globally enabled and at least one provider is configured.
-const ssoConfigured = computed(() => ssoEnabled && ssoProviders.value.length > 0);
+  // SSO is usable when it's globally enabled and at least one provider is configured.
+  const ssoConfigured = computed(() => ssoEnabled && ssoProviders.value.length > 0);
 
-// SSO-only mode: show only SSO buttons when SSO is both required and configured.
-const showSsoOnly = computed(() => ssoRequired.value && ssoConfigured.value);
+  // SSO-only mode: show only SSO buttons when SSO is both required and configured.
+  const showSsoOnly = computed(() => ssoRequired.value && ssoConfigured.value);
 
-// Custom domain with SSO enforcement but SSO not properly configured:
-// show friendly "SSO required" message instead of standard auth forms.
-// This appears when:
-// - On a custom domain with enforce_sso_only=true
-// - But SSO is disabled OR no providers are configured (misconfiguration)
-const showCustomDomainNoSso = computed(() =>
-  isCustom.value && enforceSsoForDomain.value && !showSsoOnly.value
-);
+  // Custom domain with SSO enforcement but SSO not properly configured:
+  // show friendly "SSO required" message instead of standard auth forms.
+  // This appears when:
+  // - On a custom domain with enforce_sso_only=true
+  // - But SSO is disabled OR no providers are configured (misconfiguration)
+  const showCustomDomainNoSso = computed(
+    () => isCustom.value && enforceSsoForDomain.value && !showSsoOnly.value
+  );
 
-// Show passwordless-first UI when any passwordless method is enabled
-const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
+  // Show passwordless-first UI when any passwordless method is enabled
+  const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
 
-// Track current mode for footer context (emitted from PasswordlessFirstSignIn)
-const currentMode = ref<AuthMode>('passwordless');
+  // Track current mode for footer context (emitted from PasswordlessFirstSignIn)
+  const currentMode = ref<AuthMode>('passwordless');
 
-const handleModeChange = (mode: AuthMode) => {
-  currentMode.value = mode;
-  emit('mode-change', mode);
-};
+  const handleModeChange = (mode: AuthMode) => {
+    currentMode.value = mode;
+    emit('mode-change', mode);
+  };
 
-// Expose current mode for parent component (Login.vue) to use for footer
-defineExpose({ currentMode });
+  // Expose current mode for parent component (Login.vue) to use for footer
+  defineExpose({ currentMode });
 </script>
 
 <template>
-  <div class="space-y-6" data-testid="auth-standard-section">
+  <div
+    class="space-y-6"
+    data-testid="auth-standard-section">
     <!-- Custom domain without SSO: friendly availability message -->
     <template v-if="showCustomDomainNoSso">
       <div
@@ -104,7 +113,9 @@ defineExpose({ currentMode });
 
     <!-- SSO-only mode: render only SSO provider buttons -->
     <template v-else-if="showSsoOnly">
-      <div class="space-y-3" data-testid="auth-sso-only-section">
+      <div
+        class="space-y-3"
+        data-testid="auth-sso-only-section">
         <SsoButton
           v-for="provider in ssoProviders"
           :key="provider.route_name"
@@ -132,8 +143,12 @@ defineExpose({ currentMode });
       <!-- SSO section when SSO is enabled -->
       <template v-if="ssoConfigured">
         <!-- Divider -->
-        <div class="relative" data-testid="auth-sso-divider">
-          <div class="absolute inset-0 flex items-center" aria-hidden="true">
+        <div
+          class="relative"
+          data-testid="auth-sso-divider">
+          <div
+            class="absolute inset-0 flex items-center"
+            aria-hidden="true">
             <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
           </div>
           <div class="relative flex justify-center text-sm">

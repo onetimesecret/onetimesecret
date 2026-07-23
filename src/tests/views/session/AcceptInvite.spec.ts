@@ -158,8 +158,12 @@ describe('AcceptInvite', () => {
       const buttons = wrapper.findAll('button');
       const buttonTexts = buttons.map((b) => b.text());
 
-      expect(buttonTexts.some((t) => t.includes('web.organizations.invitations.accept_invitation'))).toBe(true);
-      expect(buttonTexts.some((t) => t.includes('web.organizations.invitations.decline_invitation'))).toBe(true);
+      expect(
+        buttonTexts.some((t) => t.includes('web.organizations.invitations.accept_invitation'))
+      ).toBe(true);
+      expect(
+        buttonTexts.some((t) => t.includes('web.organizations.invitations.decline_invitation'))
+      ).toBe(true);
     });
   });
 
@@ -374,7 +378,9 @@ describe('AcceptInvite', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.find('h1').text()).toContain('web.organizations.invitations.invitation_details');
+      expect(wrapper.find('h1').text()).toContain(
+        'web.organizations.invitations.invitation_details'
+      );
     });
 
     it('has proper container styling', async () => {

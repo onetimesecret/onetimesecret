@@ -10,10 +10,7 @@
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
-  import {
-    DEFAULT_BUTTON_TEXT_LIGHT,
-    DEFAULT_CORNER_CLASS,
-  } from '@/shared/stores/identityStore';
+  import { DEFAULT_BUTTON_TEXT_LIGHT, DEFAULT_CORNER_CLASS } from '@/shared/stores/identityStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
@@ -147,8 +144,8 @@
 
   // Platform detection for keyboard hint (desktop only)
   const isDesktop = useMediaQuery('(min-width: 640px)');
-  const isMac = computed(() =>
-    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+  const isMac = computed(
+    () => typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
@@ -186,7 +183,7 @@
 </script>
 
 <template>
-  <div class="mx-auto min-w-[320px] max-w-2xl space-y-6">
+  <div class="mx-auto max-w-2xl min-w-[320px] space-y-6">
     <!-- Enhanced Alert Display -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
@@ -208,12 +205,7 @@
       -->
       <div
         ref="div1"
-        class="overflow-visible rounded-lg border border-gray-200/50
-          bg-gradient-to-br from-white to-gray-50/30
-          shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)]
-          backdrop-blur-sm
-          dark:border-gray-700/50 dark:from-slate-900 dark:to-slate-800/30
-          dark:shadow-[0_8px_30px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
+        class="overflow-visible rounded-lg border border-gray-200/50 bg-gradient-to-br from-white to-gray-50/30 shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)] backdrop-blur-sm dark:border-gray-700/50 dark:from-slate-900 dark:to-slate-800/30 dark:shadow-[0_8px_30px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
         <!-- Main Content Section -->
         <div class="p-8">
           <!-- Secret Input Section -->
@@ -245,10 +237,10 @@
             ref="generatePasswordSection">
             <!-- Decorative blur orbs -->
             <div
-              class="pointer-events-none absolute -left-12 -top-12 size-32 rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl"
+              class="pointer-events-none absolute -top-12 -left-12 size-32 rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl"
               aria-hidden="true"></div>
             <div
-              class="pointer-events-none absolute -bottom-12 -right-12 size-32 rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl"
+              class="pointer-events-none absolute -right-12 -bottom-12 size-32 rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl"
               aria-hidden="true"></div>
 
             <div class="relative z-10 space-y-4 p-6 pb-8 text-center">
@@ -477,7 +469,7 @@
           class="relative flex items-start gap-3 overflow-hidden bg-gradient-to-r from-brandcomp-50/90 to-brandcomp-100/60 p-5 backdrop-blur-sm dark:from-brandcomp-900/30 dark:to-brandcomp-800/20">
           <!-- Decorative blur orb -->
           <div
-            class="pointer-events-none absolute -bottom-8 -right-8 size-24 rounded-full bg-brandcomp-200/40 blur-2xl dark:bg-brandcomp-700/30"
+            class="pointer-events-none absolute -right-8 -bottom-8 size-24 rounded-full bg-brandcomp-200/40 blur-2xl dark:bg-brandcomp-700/30"
             aria-hidden="true"></div>
           <OIcon
             collection="heroicons"
@@ -522,7 +514,7 @@
 
               <!-- Action Button (full-width on mobile, normal width on desktop) -->
               <div class="order-2 shrink-0 sm:order-2 sm:ml-auto">
-                <div class="mb-0 mt-3 sm:mt-0">
+                <div class="mt-3 mb-0 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"
                     :corner-class="cornerClass"

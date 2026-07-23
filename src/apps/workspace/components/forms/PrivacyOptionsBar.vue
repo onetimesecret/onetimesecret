@@ -52,9 +52,7 @@
   // Get passphrase config for minLength prop
   const bootstrapStore = useBootstrapStore();
   const { secret_options } = storeToRefs(bootstrapStore);
-  const minPassphraseLength = computed(
-    () => secret_options.value?.passphrase?.minimum_length || 0
-  );
+  const minPassphraseLength = computed(() => secret_options.value?.passphrase?.minimum_length || 0);
 
   const hasPassphrase = computed(() => !!props.currentPassphrase);
 
@@ -65,8 +63,7 @@
 <template>
   <div
     v-bind="$attrs"
-    class="relative z-10 rounded-lg border border-gray-200/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm
-      dark:border-gray-700/60 dark:bg-gray-800/80 sm:px-6">
+    class="relative z-10 rounded-lg border border-gray-200/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6 dark:border-gray-700/60 dark:bg-gray-800/80">
     <div class="flex flex-wrap items-center gap-4">
       <!-- Privacy Options Label (sm+ only; on mobile the shield is inside the pill) -->
       <div class="hidden items-center gap-2 sm:flex">
@@ -75,7 +72,7 @@
           name="shield-outline"
           class="size-5 text-gray-500 dark:text-gray-400"
           aria-hidden="true" />
-        <span class="text-sm font-medium font-brand text-gray-700 dark:text-gray-300">
+        <span class="font-brand text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.COMMON.secret_privacy_options') }}
         </span>
       </div>
@@ -100,14 +97,7 @@
         v-else
         type="button"
         :disabled="isSubmitting"
-        class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs
-          font-medium ring-1 ring-inset transition-all
-          bg-brand-50 text-brand-700 ring-brand-600/20
-          hover:bg-brand-100 hover:ring-brand-600/30
-          focus:outline-none focus:ring-2 focus:ring-brand-500
-          dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30
-          dark:hover:bg-brand-900/50
-          disabled:cursor-not-allowed disabled:opacity-50"
+        class="inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 ring-1 ring-brand-600/20 transition-all ring-inset hover:bg-brand-100 hover:ring-brand-600/30 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30 dark:hover:bg-brand-900/50"
         @click="showMobileSheet = true">
         <OIcon
           collection="material-symbols"
@@ -117,8 +107,7 @@
         <span>{{ t('web.COMMON.secret_privacy_options') }}</span>
         <span
           v-if="ttlChanged"
-          class="flex items-center justify-center rounded bg-brand-200/60 p-0.5
-            dark:bg-brand-700/40">
+          class="flex items-center justify-center rounded bg-brand-200/60 p-0.5 dark:bg-brand-700/40">
           <OIcon
             collection="heroicons"
             name="clock"
@@ -127,8 +116,7 @@
         </span>
         <span
           v-if="hasPassphrase"
-          class="flex items-center justify-center rounded bg-brand-200/60 p-0.5
-            dark:bg-brand-700/40">
+          class="flex items-center justify-center rounded bg-brand-200/60 p-0.5 dark:bg-brand-700/40">
           <OIcon
             collection="mdi"
             name="key"

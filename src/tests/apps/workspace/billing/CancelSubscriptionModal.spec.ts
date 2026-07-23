@@ -161,7 +161,7 @@ describe('CancelSubscriptionModal', () => {
     it('displays both action buttons', async () => {
       wrapper = await mountComponent();
       const buttons = wrapper.findAll('button');
-      const buttonTexts = buttons.map(btn => btn.text());
+      const buttonTexts = buttons.map((btn) => btn.text());
 
       expect(buttonTexts).toContain('web.billing.cancel.keep_subscription');
       expect(buttonTexts).toContain('web.billing.cancel.confirm_cancel');
@@ -178,9 +178,9 @@ describe('CancelSubscriptionModal', () => {
 
       wrapper = await mountComponent({ orgExtId: 'org_abc123' });
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
 
@@ -189,16 +189,16 @@ describe('CancelSubscriptionModal', () => {
 
     it('shows processing state while cancellation is in progress', async () => {
       let resolveCancel: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolveCancel = resolve;
       });
       mockCancelSubscription.mockReturnValueOnce(pendingPromise);
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
 
@@ -218,9 +218,9 @@ describe('CancelSubscriptionModal', () => {
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
       await nextTick();
@@ -231,9 +231,9 @@ describe('CancelSubscriptionModal', () => {
     it('does not call cancel when orgExtId is empty', async () => {
       wrapper = await mountComponent({ orgExtId: '' });
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
 
@@ -247,9 +247,9 @@ describe('CancelSubscriptionModal', () => {
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
       await nextTick();
@@ -264,9 +264,9 @@ describe('CancelSubscriptionModal', () => {
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
       await nextTick();
@@ -282,9 +282,9 @@ describe('CancelSubscriptionModal', () => {
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
       await nextTick();
@@ -299,9 +299,9 @@ describe('CancelSubscriptionModal', () => {
     it('emits close event when Keep Subscription button is clicked', async () => {
       wrapper = await mountComponent();
 
-      const keepButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.keep_subscription'
-      );
+      const keepButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.keep_subscription');
       await keepButton?.trigger('click');
 
       expect(wrapper.emitted('close')).toBeTruthy();
@@ -309,7 +309,7 @@ describe('CancelSubscriptionModal', () => {
 
     it('does not emit close while cancellation is in progress', async () => {
       let resolveCancel: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolveCancel = resolve;
       });
       mockCancelSubscription.mockReturnValueOnce(pendingPromise);
@@ -317,16 +317,16 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       // Start cancellation
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
 
       // Try to close
-      const keepButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.keep_subscription'
-      );
+      const keepButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.keep_subscription');
       await keepButton?.trigger('click');
 
       // Should not emit close while processing
@@ -341,21 +341,21 @@ describe('CancelSubscriptionModal', () => {
   describe('Button States', () => {
     it('disables both buttons while processing', async () => {
       let resolveCancel: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolveCancel = resolve;
       });
       mockCancelSubscription.mockReturnValueOnce(pendingPromise);
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
 
       const buttons = wrapper.findAll('button');
-      buttons.forEach(button => {
+      buttons.forEach((button) => {
         expect(button.attributes('disabled')).toBeDefined();
       });
 
@@ -369,16 +369,18 @@ describe('CancelSubscriptionModal', () => {
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
       await confirmButton?.trigger('click');
       await nextTick();
       await nextTick();
 
       // Find the confirm button again (text changed back from Processing)
       const buttons = wrapper.findAll('button');
-      const reenabledButton = buttons.find(btn => btn.text() === 'web.billing.cancel.confirm_cancel');
+      const reenabledButton = buttons.find(
+        (btn) => btn.text() === 'web.billing.cancel.confirm_cancel'
+      );
 
       // Should be enabled again after error
       expect(reenabledButton?.attributes('disabled')).toBeUndefined();
@@ -388,16 +390,16 @@ describe('CancelSubscriptionModal', () => {
   describe('Idempotency', () => {
     it('prevents double submission', async () => {
       let resolveCancel: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolveCancel = resolve;
       });
       mockCancelSubscription.mockReturnValueOnce(pendingPromise);
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text() === 'web.billing.cancel.confirm_cancel');
 
       // Click multiple times
       await confirmButton?.trigger('click');

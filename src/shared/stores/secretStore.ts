@@ -106,11 +106,7 @@ export const useSecretStore = defineStore('secrets', () => {
    */
   async function fetch(secretIdentifier: string) {
     const response = await $api.get(getEndpoint(`/secret/${secretIdentifier}`));
-    const result = gracefulParse(
-      responseSchemas.secret,
-      response.data,
-      'SecretResponse'
-    );
+    const result = gracefulParse(responseSchemas.secret, response.data, 'SecretResponse');
 
     if (!result.ok) {
       throw new Error('Unable to load secret. Please try again.');
@@ -176,11 +172,7 @@ export const useSecretStore = defineStore('secrets', () => {
       }
     );
 
-    const result = gracefulParse(
-      responseSchemas.secret,
-      response.data,
-      'SecretResponse'
-    );
+    const result = gracefulParse(responseSchemas.secret, response.data, 'SecretResponse');
 
     if (!result.ok) {
       throw new Error('Unable to reveal secret. Please try again.');

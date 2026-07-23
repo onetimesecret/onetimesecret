@@ -46,9 +46,10 @@
     // fresh entry, its absence). We deliberately avoid router.options.history
     // .state: RouterHistory is an @alpha interface, so window.history.state is
     // the upgrade-proof read. `typeof window` guards a non-browser render.
-    const state = (typeof window !== 'undefined' ? window.history.state : null) as
-      | Record<string, unknown>
-      | null;
+    const state = (typeof window !== 'undefined' ? window.history.state : null) as Record<
+      string,
+      unknown
+    > | null;
     return sanitizeDisplayEmail(state?.[CHECK_EMAIL_STATE_KEY]);
   });
 
@@ -121,11 +122,7 @@
               </HoverTooltip>
               <button
                 type="button"
-                class="flex items-center justify-center rounded-full text-gray-400
-                       transition-colors hover:text-gray-600 focus:outline-none
-                       focus-visible:ring-2 focus-visible:ring-brand-500
-                       focus-visible:ring-offset-2 dark:text-gray-500
-                       dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-900"
+                class="flex items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-900"
                 :aria-label="t('web.auth.check_email.help')"
                 aria-describedby="check-email-help-tooltip"
                 data-testid="check-email-help">

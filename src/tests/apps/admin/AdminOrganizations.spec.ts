@@ -36,7 +36,11 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 // The JsonViewer's copy affordance touches navigator.clipboard; stub it (same
 // shim the kit's JsonViewer.spec uses) so the investigate panel mounts cleanly.
 vi.mock('@/shared/components/ui/CopyButton.vue', () => ({
-  default: { name: 'CopyButton', template: '<button class="copy-button" />', props: ['text', 'tooltip', 'testid'] },
+  default: {
+    name: 'CopyButton',
+    template: '<button class="copy-button" />',
+    props: ['text', 'tooltip', 'testid'],
+  },
 }));
 
 // Render the headlessui dialogs synchronously in jsdom.

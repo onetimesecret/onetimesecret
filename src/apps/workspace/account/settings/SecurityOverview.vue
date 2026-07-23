@@ -82,7 +82,9 @@
           ? t('web.auth.account.mfa_enabled')
           : t('web.auth.account.mfa_disabled'),
         action: {
-          label: info.mfa_enabled ? t('web.settings.security.manage') : t('web.settings.security.enable'),
+          label: info.mfa_enabled
+            ? t('web.settings.security.manage')
+            : t('web.settings.security.enable'),
           to: '/account/settings/security/mfa',
         },
       },
@@ -118,7 +120,8 @@
           ? t('web.auth.passkeys.count', { count: passkeyCount }, passkeyCount)
           : t('web.auth.passkeys.not_configured'),
       action: {
-        label: passkeyCount > 0 ? t('web.settings.security.manage') : t('web.settings.security.enable'),
+        label:
+          passkeyCount > 0 ? t('web.settings.security.manage') : t('web.settings.security.enable'),
         to: '/account/settings/security/passkeys',
       },
     };

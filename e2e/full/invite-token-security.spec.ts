@@ -200,9 +200,7 @@ test.describe('SEC-INV-001: Garbage invite_token does NOT auto-login', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('SEC-INV-002: Garbage invite_token does NOT suppress verification', () => {
-  test('signup with garbage invite_token results in unverified account state', async ({
-    page,
-  }) => {
+  test('signup with garbage invite_token results in unverified account state', async ({ page }) => {
     // The full project starts authenticated via storageState; this scenario
     // asserts an *unauthenticated* outcome, so drop that session first.
     await page.context().clearCookies();

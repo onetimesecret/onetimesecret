@@ -15,18 +15,19 @@
   const { currentJurisdictionWithDisplayName } = useJurisdictionDisplayNames();
 
   const languageStore = useLanguageStore();
-  const currentJurisdiction = computed(() =>
-    currentJurisdictionWithDisplayName.value || {
-      identifier: t('web.regions.unknown_jurisdiction'),
-      display_name_i18n_key: 'web.regions.unknown_jurisdiction',
-      display_name: t('web.regions.unknown_jurisdiction'),
-      domain: '',
-      icon: {
-        collection: 'mdi',
-        name: 'help-circle',
-      },
-      enabled: false,
-    }
+  const currentJurisdiction = computed(
+    () =>
+      currentJurisdictionWithDisplayName.value || {
+        identifier: t('web.regions.unknown_jurisdiction'),
+        display_name_i18n_key: 'web.regions.unknown_jurisdiction',
+        display_name: t('web.regions.unknown_jurisdiction'),
+        domain: '',
+        icon: {
+          collection: 'mdi',
+          name: 'help-circle',
+        },
+        enabled: false,
+      }
   );
 
   const alternateProviders = [

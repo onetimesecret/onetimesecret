@@ -19,10 +19,7 @@ import type {
   PutSsoConfigRequest,
   PatchSsoConfigRequest,
 } from '@/schemas/api/domains/requests/sso-config';
-import type {
-  CustomDomainSsoConfig,
-  SsoProviderType,
-} from '@/schemas/shapes/domains/sso-config';
+import type { CustomDomainSsoConfig, SsoProviderType } from '@/schemas/shapes/domains/sso-config';
 import {
   SsoService,
   type TestSsoConnectionRequest,

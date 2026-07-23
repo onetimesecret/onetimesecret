@@ -6,7 +6,7 @@
   import { useTextarea } from '@/shared/composables/useTextarea';
   import { computed, watch } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   const props = withDefaults(
     defineProps<{
@@ -118,7 +118,7 @@ const { t } = useI18n();
       <span
         :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
         aria-hidden="true"></span>
-      <span class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
+      <span class="font-semibold text-gray-700 tabular-nums dark:text-gray-300">
         {{ formattedCharCount }} / {{ formattedMaxLength }}
       </span>
     </div>

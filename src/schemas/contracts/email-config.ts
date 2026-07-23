@@ -222,7 +222,11 @@ export const patchEmailConfigPayloadSchema = z.object({
   from_address: z.string().email('From address must be a valid email').optional(),
 
   /** Sender display name. */
-  from_name: z.string().min(1, 'From name is required').max(100, 'From name is too long').optional(),
+  from_name: z
+    .string()
+    .min(1, 'From name is required')
+    .max(100, 'From name is too long')
+    .optional(),
 
   /** Reply-to address. */
   reply_to: z.string().email('Reply-to must be a valid email').optional().or(z.literal('')),

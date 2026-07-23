@@ -68,7 +68,8 @@
     </div>
 
     <!-- Reveal instructions -->
-    <div class="rounded-2xl border border-gray-200 bg-white p-[18px] dark:border-gray-700 dark:bg-gray-800">
+    <div
+      class="rounded-2xl border border-gray-200 bg-white p-[18px] dark:border-gray-700 dark:bg-gray-800">
       <h3 class="font-brand-slab text-base font-bold text-gray-900 dark:text-gray-100">
         {{ t('web.branding.delivery_reveal_instructions') }}
       </h3>
@@ -87,9 +88,7 @@
             @focus="emit('instructions-focus', 'pre')"
             @input="(e) => onInstruction('instructions_pre_reveal', e)"
             :placeholder="t('web.branding.example_pre_reveal_instructions')"
-            class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
-              text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
-              focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100" />
+            class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100" />
         </label>
         <label class="block">
           <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
@@ -102,9 +101,7 @@
             @focus="emit('instructions-focus', 'post')"
             @input="(e) => onInstruction('instructions_post_reveal', e)"
             :placeholder="t('web.branding.example_post_reveal_instructions')"
-            class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
-              text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
-              focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100" />
+            class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100" />
         </label>
       </div>
     </div>

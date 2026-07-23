@@ -1,187 +1,187 @@
 <!-- src/apps/workspace/components/domains/DomainHomepageSelector.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Homepage Experience Selector
- *
- * Radio-card group choosing what anonymous visitors get on the domain
- * homepage: a private landing page (no interactive form), the classic
- * secret-creation form, or the incoming-secrets form.
- *
- * The backend stores this as two fields with merge semantics —
- * `enabled` (any interactive functionality at all) plus `secrets_mode`
- * (which kind) — but operators think in terms of one three-way choice,
- * so the UI presents exactly that.
- *
- * The incoming option is gated: hidden when the deployment disables
- * incoming secrets, locked behind the plan entitlement, and disabled
- * until the domain's incoming config is ready (enabled with at least one
- * recipient) — selecting it would otherwise create a homepage with
- * nowhere to deliver. The backend enforces the same rule on write.
- */
-import { computed, nextTick, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import type { RouteLocationRaw } from 'vue-router';
-import OIcon from '@/shared/components/icons/OIcon.vue';
+  /**
+   * Domain Homepage Experience Selector
+   *
+   * Radio-card group choosing what anonymous visitors get on the domain
+   * homepage: a private landing page (no interactive form), the classic
+   * secret-creation form, or the incoming-secrets form.
+   *
+   * The backend stores this as two fields with merge semantics —
+   * `enabled` (any interactive functionality at all) plus `secrets_mode`
+   * (which kind) — but operators think in terms of one three-way choice,
+   * so the UI presents exactly that.
+   *
+   * The incoming option is gated: hidden when the deployment disables
+   * incoming secrets, locked behind the plan entitlement, and disabled
+   * until the domain's incoming config is ready (enabled with at least one
+   * recipient) — selecting it would otherwise create a homepage with
+   * nowhere to deliver. The backend enforces the same rule on write.
+   */
+  import { computed, nextTick, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import type { RouteLocationRaw } from 'vue-router';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
 
-export type HomepageChoice = 'private' | 'create' | 'incoming';
+  export type HomepageChoice = 'private' | 'create' | 'incoming';
 
-interface Option {
-  key: HomepageChoice;
-  icon: string;
-  titleKey: string;
-  descriptionKey: string;
-}
-
-interface Props {
-  modelValue: HomepageChoice;
-  /** Disable the whole group (save in flight, insufficient role). */
-  disabled?: boolean;
-  /** Whether the incoming option is offered at all (deployment flag + entitlement). */
-  incomingAvailable?: boolean;
-  /** Whether incoming can be selected (enabled with >= 1 recipient). */
-  incomingReady?: boolean;
-  /** Route to the incoming recipients configuration page. */
-  incomingConfigRoute: RouteLocationRaw;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  disabled: false,
-  incomingAvailable: false,
-  incomingReady: false,
-});
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: HomepageChoice): void;
-}>();
-
-const { t } = useI18n();
-
-const options = computed<Option[]>(() => {
-  const base: Option[] = [
-    {
-      key: 'private',
-      icon: 'shield-check',
-      titleKey: 'web.domains.homepage.option_private_title',
-      descriptionKey: 'web.domains.homepage.option_private_description',
-    },
-    {
-      key: 'create',
-      icon: 'pencil-square',
-      titleKey: 'web.domains.homepage.option_create_title',
-      descriptionKey: 'web.domains.homepage.option_create_description',
-    },
-  ];
-  if (props.incomingAvailable) {
-    base.push({
-      key: 'incoming',
-      icon: 'inbox-arrow-down',
-      titleKey: 'web.domains.homepage.option_incoming_title',
-      descriptionKey: 'web.domains.homepage.option_incoming_description',
-    });
+  interface Option {
+    key: HomepageChoice;
+    icon: string;
+    titleKey: string;
+    descriptionKey: string;
   }
-  return base;
-});
 
-const isOptionDisabled = (key: HomepageChoice): boolean => {
-  if (props.disabled) return true;
-  if (key === 'incoming') return !props.incomingReady;
-  return false;
-};
+  interface Props {
+    modelValue: HomepageChoice;
+    /** Disable the whole group (save in flight, insufficient role). */
+    disabled?: boolean;
+    /** Whether the incoming option is offered at all (deployment flag + entitlement). */
+    incomingAvailable?: boolean;
+    /** Whether incoming can be selected (enabled with >= 1 recipient). */
+    incomingReady?: boolean;
+    /** Route to the incoming recipients configuration page. */
+    incomingConfigRoute: RouteLocationRaw;
+  }
 
-const select = (key: HomepageChoice) => {
-  if (isOptionDisabled(key) || key === props.modelValue) return;
-  emit('update:modelValue', key);
-};
+  const props = withDefaults(defineProps<Props>(), {
+    disabled: false,
+    incomingAvailable: false,
+    incomingReady: false,
+  });
 
-// Roving-tabindex focus management. A native radiogroup moves DOM focus with
-// the arrow keys; without this the selection (aria-checked + tab stop) moves
-// but focus stays put, so Space/Enter re-activates the previously focused
-// option. Selecting also triggers an async save that disables the whole
-// group and blurs the active button, so we additionally pull focus back to
-// the tab stop once the group re-enables. Mirrors DomainSigninConfigForm's
-// segmented keyboard nav.
-const optionEls = new Map<HomepageChoice, HTMLButtonElement>();
-const registerOptionEl = (key: HomepageChoice, el: unknown) => {
-  if (el) optionEls.set(key, el as HTMLButtonElement);
-  else optionEls.delete(key);
-};
+  const emit = defineEmits<{
+    (e: 'update:modelValue', value: HomepageChoice): void;
+  }>();
 
-const focusOption = async (key: HomepageChoice) => {
-  await nextTick();
-  optionEls.get(key)?.focus();
-};
+  const { t } = useI18n();
 
-// Set only when the user drives selection from the keyboard, so focus is
-// restored after the save-induced disable clears; cleared on pointer
-// interaction so a click never yanks focus back into the group.
-let restoreFocusAfterSave = false;
-
-const onOptionClick = (key: HomepageChoice) => {
-  restoreFocusAfterSave = false;
-  select(key);
-};
-
-// Shared by the tab stop and keyboard nav below so neither re-filters
-// `options` on every render/keypress.
-const enabledOptions = computed(() => options.value.filter((o) => !isOptionDisabled(o.key)));
-
-// Roving tabindex: the selected option is the tab stop; arrows move
-// selection between enabled options (standard radiogroup keyboard model).
-// When the current selection is disabled or hidden (stored mode 'incoming'
-// while incoming is unready, or the option gated away entirely), the first
-// enabled option takes the tab stop so the group stays keyboard-reachable.
-const tabStopKey = computed<HomepageChoice | null>(() => {
-  const selected = options.value.find((o) => o.key === props.modelValue);
-  if (selected && !isOptionDisabled(selected.key)) return selected.key;
-  return enabledOptions.value[0]?.key ?? null;
-});
-
-const optionTabindex = (key: HomepageChoice) => (key === tabStopKey.value ? 0 : -1);
-
-// Selecting via keyboard kicks off a save that disables (and blurs) the
-// group; when it re-enables, return focus to the tab stop so the keyboard
-// user is not dropped onto <body> and forced to Tab back in.
-watch(
-  () => props.disabled,
-  (isDisabled, wasDisabled) => {
-    if (wasDisabled && !isDisabled && restoreFocusAfterSave) {
-      restoreFocusAfterSave = false;
-      const key = tabStopKey.value;
-      if (key) focusOption(key);
+  const options = computed<Option[]>(() => {
+    const base: Option[] = [
+      {
+        key: 'private',
+        icon: 'shield-check',
+        titleKey: 'web.domains.homepage.option_private_title',
+        descriptionKey: 'web.domains.homepage.option_private_description',
+      },
+      {
+        key: 'create',
+        icon: 'pencil-square',
+        titleKey: 'web.domains.homepage.option_create_title',
+        descriptionKey: 'web.domains.homepage.option_create_description',
+      },
+    ];
+    if (props.incomingAvailable) {
+      base.push({
+        key: 'incoming',
+        icon: 'inbox-arrow-down',
+        titleKey: 'web.domains.homepage.option_incoming_title',
+        descriptionKey: 'web.domains.homepage.option_incoming_description',
+      });
     }
-  }
-);
+    return base;
+  });
 
-const onKeydown = (event: KeyboardEvent) => {
-  const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'];
-  if (!keys.includes(event.key)) return;
-  event.preventDefault();
+  const isOptionDisabled = (key: HomepageChoice): boolean => {
+    if (props.disabled) return true;
+    if (key === 'incoming') return !props.incomingReady;
+    return false;
+  };
 
-  const enabled = enabledOptions.value;
-  if (enabled.length === 0) return;
+  const select = (key: HomepageChoice) => {
+    if (isOptionDisabled(key) || key === props.modelValue) return;
+    emit('update:modelValue', key);
+  };
 
-  // Reference point for directional movement: the selection when it is
-  // enabled, otherwise the tab-stop option (a disabled/hidden selection is
-  // not in `enabled`, and -1 index math would land both arrows on the same
-  // option).
-  const referenceKey = enabled.some((o) => o.key === props.modelValue)
-    ? props.modelValue
-    : tabStopKey.value;
-  const currentIdx = enabled.findIndex((o) => o.key === referenceKey);
-  const delta = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
-  const nextIdx = (currentIdx + delta + enabled.length) % enabled.length;
-  const nextKey = enabled[nextIdx].key;
-  const changed = nextKey !== props.modelValue;
+  // Roving-tabindex focus management. A native radiogroup moves DOM focus with
+  // the arrow keys; without this the selection (aria-checked + tab stop) moves
+  // but focus stays put, so Space/Enter re-activates the previously focused
+  // option. Selecting also triggers an async save that disables the whole
+  // group and blurs the active button, so we additionally pull focus back to
+  // the tab stop once the group re-enables. Mirrors DomainSigninConfigForm's
+  // segmented keyboard nav.
+  const optionEls = new Map<HomepageChoice, HTMLButtonElement>();
+  const registerOptionEl = (key: HomepageChoice, el: unknown) => {
+    if (el) optionEls.set(key, el as HTMLButtonElement);
+    else optionEls.delete(key);
+  };
 
-  select(nextKey);
-  // Move focus with the selection (native radiogroup behaviour). Only arm the
-  // post-save restore when the selection actually changed — a wrap onto the
-  // already-selected option fires no save, so there is no disable to recover
-  // from and the flag must not linger for an unrelated later disable.
-  if (changed) restoreFocusAfterSave = true;
-  focusOption(nextKey);
-};
+  const focusOption = async (key: HomepageChoice) => {
+    await nextTick();
+    optionEls.get(key)?.focus();
+  };
+
+  // Set only when the user drives selection from the keyboard, so focus is
+  // restored after the save-induced disable clears; cleared on pointer
+  // interaction so a click never yanks focus back into the group.
+  let restoreFocusAfterSave = false;
+
+  const onOptionClick = (key: HomepageChoice) => {
+    restoreFocusAfterSave = false;
+    select(key);
+  };
+
+  // Shared by the tab stop and keyboard nav below so neither re-filters
+  // `options` on every render/keypress.
+  const enabledOptions = computed(() => options.value.filter((o) => !isOptionDisabled(o.key)));
+
+  // Roving tabindex: the selected option is the tab stop; arrows move
+  // selection between enabled options (standard radiogroup keyboard model).
+  // When the current selection is disabled or hidden (stored mode 'incoming'
+  // while incoming is unready, or the option gated away entirely), the first
+  // enabled option takes the tab stop so the group stays keyboard-reachable.
+  const tabStopKey = computed<HomepageChoice | null>(() => {
+    const selected = options.value.find((o) => o.key === props.modelValue);
+    if (selected && !isOptionDisabled(selected.key)) return selected.key;
+    return enabledOptions.value[0]?.key ?? null;
+  });
+
+  const optionTabindex = (key: HomepageChoice) => (key === tabStopKey.value ? 0 : -1);
+
+  // Selecting via keyboard kicks off a save that disables (and blurs) the
+  // group; when it re-enables, return focus to the tab stop so the keyboard
+  // user is not dropped onto <body> and forced to Tab back in.
+  watch(
+    () => props.disabled,
+    (isDisabled, wasDisabled) => {
+      if (wasDisabled && !isDisabled && restoreFocusAfterSave) {
+        restoreFocusAfterSave = false;
+        const key = tabStopKey.value;
+        if (key) focusOption(key);
+      }
+    }
+  );
+
+  const onKeydown = (event: KeyboardEvent) => {
+    const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'];
+    if (!keys.includes(event.key)) return;
+    event.preventDefault();
+
+    const enabled = enabledOptions.value;
+    if (enabled.length === 0) return;
+
+    // Reference point for directional movement: the selection when it is
+    // enabled, otherwise the tab-stop option (a disabled/hidden selection is
+    // not in `enabled`, and -1 index math would land both arrows on the same
+    // option).
+    const referenceKey = enabled.some((o) => o.key === props.modelValue)
+      ? props.modelValue
+      : tabStopKey.value;
+    const currentIdx = enabled.findIndex((o) => o.key === referenceKey);
+    const delta = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
+    const nextIdx = (currentIdx + delta + enabled.length) % enabled.length;
+    const nextKey = enabled[nextIdx].key;
+    const changed = nextKey !== props.modelValue;
+
+    select(nextKey);
+    // Move focus with the selection (native radiogroup behaviour). Only arm the
+    // post-save restore when the selection actually changed — a wrap onto the
+    // already-selected option fires no save, so there is no disable to recover
+    // from and the flag must not linger for an unrelated later disable.
+    if (changed) restoreFocusAfterSave = true;
+    focusOption(nextKey);
+  };
 </script>
 
 <template>

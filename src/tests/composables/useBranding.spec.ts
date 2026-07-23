@@ -204,11 +204,7 @@ describe('useBranding', () => {
       const result = await refreshFavicon();
 
       expect(mockRefreshFavicon).toHaveBeenCalledWith('domain-1');
-      expect(showSpy).toHaveBeenCalledWith(
-        'web.branding.refresh_favicon_queued',
-        'success',
-        'top'
-      );
+      expect(showSpy).toHaveBeenCalledWith('web.branding.refresh_favicon_queued', 'success', 'top');
       // Truthy success signal (wrap() resolves undefined on failure).
       expect(result).toBe(true);
     });

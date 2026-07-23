@@ -107,11 +107,13 @@ describe('CurrencyMigrationModal', () => {
     if (wrapper) wrapper.unmount();
   });
 
-  const mountComponent = async (props: Partial<{
-    open: boolean;
-    orgExtId: string;
-    conflict: typeof mockConflict | null;
-  }> = {}) => {
+  const mountComponent = async (
+    props: Partial<{
+      open: boolean;
+      orgExtId: string;
+      conflict: typeof mockConflict | null;
+    }> = {}
+  ) => {
     const mergedProps = {
       open: true,
       orgExtId: 'org_123',
@@ -215,9 +217,9 @@ describe('CurrencyMigrationModal', () => {
       });
 
       wrapper = await mountComponent();
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
 
@@ -243,9 +245,9 @@ describe('CurrencyMigrationModal', () => {
       await immediateRadio.setValue(true);
       await nextTick();
 
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
 
@@ -262,9 +264,9 @@ describe('CurrencyMigrationModal', () => {
       });
 
       wrapper = await mountComponent();
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
       await nextTick();
@@ -289,9 +291,9 @@ describe('CurrencyMigrationModal', () => {
       await immediateRadio.setValue(true);
       await nextTick();
 
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
       await nextTick();
@@ -308,9 +310,9 @@ describe('CurrencyMigrationModal', () => {
       mockMigrateCurrency.mockRejectedValueOnce(new Error('past_due subscription'));
 
       wrapper = await mountComponent();
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
       await nextTick();
@@ -322,9 +324,9 @@ describe('CurrencyMigrationModal', () => {
       mockMigrateCurrency.mockResolvedValueOnce({ success: false });
 
       wrapper = await mountComponent();
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
       await nextTick();
@@ -336,21 +338,23 @@ describe('CurrencyMigrationModal', () => {
   describe('Button States', () => {
     it('disables confirm when no conflict', async () => {
       wrapper = await mountComponent({ conflict: null });
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       expect(confirmBtn?.attributes('disabled')).toBeDefined();
     });
 
     it('shows processing text during migration', async () => {
       let resolve: (v: unknown) => void;
-      const pending = new Promise(r => { resolve = r; });
+      const pending = new Promise((r) => {
+        resolve = r;
+      });
       mockMigrateCurrency.mockReturnValueOnce(pending);
 
       wrapper = await mountComponent();
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
 
@@ -360,19 +364,19 @@ describe('CurrencyMigrationModal', () => {
 
     it('prevents close while migrating', async () => {
       let resolve: (v: unknown) => void;
-      const pending = new Promise(r => { resolve = r; });
+      const pending = new Promise((r) => {
+        resolve = r;
+      });
       mockMigrateCurrency.mockReturnValueOnce(pending);
 
       wrapper = await mountComponent();
-      const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('currency_migration.confirm')
-      );
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('currency_migration.confirm'));
       await confirmBtn?.trigger('click');
       await nextTick();
 
-      const cancelBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('word_cancel')
-      );
+      const cancelBtn = wrapper.findAll('button').find((btn) => btn.text().includes('word_cancel'));
       await cancelBtn?.trigger('click');
 
       expect(wrapper.emitted('close')).toBeFalsy();
@@ -383,9 +387,7 @@ describe('CurrencyMigrationModal', () => {
   describe('Events', () => {
     it('emits close when cancel is clicked', async () => {
       wrapper = await mountComponent();
-      const cancelBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('word_cancel')
-      );
+      const cancelBtn = wrapper.findAll('button').find((btn) => btn.text().includes('word_cancel'));
       await cancelBtn?.trigger('click');
       expect(wrapper.emitted('close')).toBeTruthy();
     });

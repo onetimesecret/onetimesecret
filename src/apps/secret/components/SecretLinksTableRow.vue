@@ -61,21 +61,15 @@
 
   // Async component loading for code splitting
   const variantComponents = {
-    timeline: defineAsyncComponent(
-      () => import('./SecretLinksTableRowTimeline.vue')
-    ),
-    console: defineAsyncComponent(
-      () => import('./SecretLinksTableRowConsole.vue')
-    ),
-    ledger: defineAsyncComponent(
-      () => import('./SecretLinksTableRowLedger.vue')
-    ),
-    slotmachine: defineAsyncComponent(
-      () => import('./SecretLinksTableRowSlotMachine.vue')
-    ),
+    timeline: defineAsyncComponent(() => import('./SecretLinksTableRowTimeline.vue')),
+    console: defineAsyncComponent(() => import('./SecretLinksTableRowConsole.vue')),
+    ledger: defineAsyncComponent(() => import('./SecretLinksTableRowLedger.vue')),
+    slotmachine: defineAsyncComponent(() => import('./SecretLinksTableRowSlotMachine.vue')),
   };
 
-  const ActiveComponent = computed(() => variantComponents[props.variant] ?? variantComponents.timeline);
+  const ActiveComponent = computed(
+    () => variantComponents[props.variant] ?? variantComponents.timeline
+  );
 </script>
 
 <template>
