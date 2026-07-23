@@ -133,12 +133,18 @@ module Onetime
           IDENTITY_FIELDS.any? { |f| !data[f].to_s.empty? }
         end
 
-        # Recover the bare session id from a full key.
+        # Recover the bare session id from a full key. Strips EVERY leading
+        # session:/rack:session: prefix, not just one — the legacy
+        # `session:rack:session:<sid>` shape ({key_patterns}) nests two, and a
+        # single strip would leave `rack:session:<sid>`, which then fails the
+        # sidecar sid-format guard so {SessionSidecar.purge} silently no-ops.
         #
         # @param key [String]
         # @return [String]
         def extract_id(key)
-          key.gsub(KEY_PREFIX_PATTERN, '')
+          id = key.to_s
+          id = id.sub(KEY_PREFIX_PATTERN, '') while id.match?(KEY_PREFIX_PATTERN)
+          id
         end
 
         # Bounded, non-blocking scan of every session key. Uses SCAN (via
@@ -150,6 +156,11 @@ module Onetime
         # real session values are strings, but the loose `*session*` match also
         # catches non-string keys such as the entitlement-preview SETs
         # (`session:<sid>:entitlement_preview_*`), which would WRONGTYPE on GET.
+        # Per-value sidecar keys (Onetime::SessionSidecar) ARE strings, but live
+        # under `sidecar:<sid>:<field>` — outside this match by construction
+        # (the prefix must never contain "session"; see SessionSidecar.key_for)
+        # — so no client-side reject is needed and `keys.size >= MAX_SCAN`
+        # remains an exact truncation signal for callers that report capping.
         # {load_data} stays defensive for anything a filter can't anticipate.
         #
         # @param dbclient [Object]

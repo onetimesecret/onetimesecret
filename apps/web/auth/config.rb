@@ -89,6 +89,10 @@ module Auth
       # Method overrides (replace Rodauth methods, not before/after hooks)
       Overrides::PasswordMigration.configure(self)
       Overrides::ErrorHandling.configure(self)
+      # Enumeration safety for the reset-password-request path (issue #3857).
+      # Runs after AccountManagement enables :reset_password above, so the
+      # overridden methods exist.
+      Overrides::ResetPasswordEnumeration.configure(self)
       RodauthOverrides.configure(self)
 
       # Lockout: brute force protection

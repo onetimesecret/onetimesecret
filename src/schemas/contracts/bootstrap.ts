@@ -170,8 +170,8 @@ export const homepagePublicLinksSchema = z.object({
 export const homepageUiConfigSchema = z.object({
   public_links: homepagePublicLinksSchema.optional(),
   /**
-   * Deployment-wide default disabled-homepage variant, from the
-   * `DEFAULT_DISABLED_HOMEPAGE_VARIANT` env var
+   * Deployment-wide default disabled-homepage variant for the CANONICAL site,
+   * from the `DEFAULT_DISABLED_HOMEPAGE_VARIANT` env var
    * (`site.interface.ui.homepage.disabled_variant`). Sits between the
    * per-domain `homepage_config.disabled_homepage_variant` and the frontend
    * `DEFAULT_DISABLED_HOMEPAGE_VARIANT` constant in the resolution chain.
@@ -180,6 +180,20 @@ export const homepageUiConfigSchema = z.object({
    * rather than failing the whole bootstrap parse.
    */
   disabled_variant: disabledHomepageVariantSchema.nullable().catch(null).optional(),
+  /**
+   * Deployment-wide default disabled-homepage variant for CUSTOM DOMAINS, from
+   * the `DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT` env var
+   * (`site.interface.ui.homepage.custom_disabled_variant`). Kept separate from
+   * `disabled_variant` so the canonical default and the custom-domain default
+   * stay decoupled (the canonical/custom split from `4effa3e3f5`). Sits between
+   * the per-domain `homepage_config.disabled_homepage_variant` and the frontend
+   * `DEFAULT_DISABLED_HOMEPAGE_VARIANT` constant — custom domains do NOT fall
+   * back to the canonical `disabled_variant`.
+   *
+   * `.catch(null)` so an unrecognised value degrades to the frontend default
+   * rather than failing the whole bootstrap parse.
+   */
+  custom_disabled_variant: disabledHomepageVariantSchema.nullable().catch(null).optional(),
 });
 
 export const uiInterfaceSchema = z.object({

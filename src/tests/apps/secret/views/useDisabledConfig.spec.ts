@@ -52,9 +52,14 @@ interface SetupOptions {
   /** Per-domain disabled-homepage variant. Null/omitted means
    *  "use the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT". */
   homepageVariant?: 'v1' | 'minimal' | 'closed' | null;
-  /** Deployment-wide default variant (ui.homepage.disabled_variant, from the
+  /** Deployment-wide default variant for the CANONICAL site
+   *  (ui.homepage.disabled_variant, from the
    *  DEFAULT_DISABLED_HOMEPAGE_VARIANT env var). */
   siteDefaultVariant?: 'v1' | 'minimal' | 'closed' | null;
+  /** Deployment-wide default variant for CUSTOM DOMAINS
+   *  (ui.homepage.custom_disabled_variant, from the
+   *  DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT env var). */
+  customSiteDefaultVariant?: 'v1' | 'minimal' | 'closed' | null;
   /** Tri-state operator overrides for the auto-detected affordances. */
   disabledHomepage?: {
     show_promo?: boolean | null;
@@ -107,6 +112,7 @@ function setup(opts: SetupOptions = {}) {
       homepage: {
         ...(bootstrap.ui.homepage ?? { matching_cidrs: [], mode_header: 'O-Homepage-Mode' }),
         disabled_variant: opts.siteDefaultVariant ?? null,
+        custom_disabled_variant: opts.customSiteDefaultVariant ?? null,
         public_links: {
           recipient_intro: opts.recipientIntroUrl ?? null,
         },
@@ -210,6 +216,67 @@ describe('useDisabledConfig', () => {
 
     it('per-domain homepage_config wins over the deployment-wide default', () => {
       const { config } = setup({ siteDefaultVariant: 'minimal', homepageVariant: 'v1' });
+      expect(config.variant.value).toBe('v1');
+    });
+
+    it('custom domains use ui.homepage.custom_disabled_variant, not the canonical default', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        siteDefaultVariant: 'minimal',
+        customSiteDefaultVariant: 'v1',
+      });
+      expect(config.variant.value).toBe('v1');
+    });
+
+    it('custom domains do NOT inherit the canonical disabled_variant (strict split)', () => {
+      // custom_disabled_variant is unset, so a custom domain goes straight to
+      // the frontend const — it must NOT fall back to the canonical 'minimal'.
+      const { config } = setup({
+        domainStrategy: 'custom',
+        siteDefaultVariant: 'minimal',
+        customSiteDefaultVariant: null,
+      });
+      expect(config.variant.value).toBe('closed');
+    });
+
+    it('the canonical site ignores custom_disabled_variant', () => {
+      const { config } = setup({
+        domainStrategy: 'canonical',
+        siteDefaultVariant: 'minimal',
+        customSiteDefaultVariant: 'v1',
+      });
+      expect(config.variant.value).toBe('minimal');
+    });
+
+    it('per-domain homepage_config wins over the custom-domain default', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        customSiteDefaultVariant: 'minimal',
+        homepageVariant: 'v1',
+      });
+      expect(config.variant.value).toBe('v1');
+    });
+
+    it('?variant override wins over the custom-domain default', () => {
+      window.history.replaceState({}, '', '/?variant=closed');
+      const { config } = setup({
+        domainStrategy: 'custom',
+        customSiteDefaultVariant: 'v1',
+      });
+      expect(config.variant.value).toBe('closed');
+    });
+
+    it('reacts when the domain strategy flips the deployment-wide tier', () => {
+      // Same site + custom defaults; flipping isCustom must swap which tier
+      // the resolution chain reads.
+      const { config, identity } = setup({
+        domainStrategy: 'canonical',
+        siteDefaultVariant: 'minimal',
+        customSiteDefaultVariant: 'v1',
+      });
+      expect(config.variant.value).toBe('minimal');
+
+      identity.$patch({ domainStrategy: 'custom' });
       expect(config.variant.value).toBe('v1');
     });
 

@@ -24,6 +24,7 @@ require_relative '../../../support/test_helpers'
 
 OT.boot! :test
 
+require 'securerandom'
 require 'onetime/operations/sessions/track_metadata'
 require 'onetime/operations/sessions/revoke_for_customer'
 
@@ -41,7 +42,10 @@ DB    = Familia.dbclient
 @cust.save
 @extid = @cust.extid
 
-@sid = "tryrevoke_#{@nonce}"
+# A REAL 64-hex sid (not a readable tryrevoke_* id): the per-value sidecar
+# purge (#3858) is format-gated to real sids, and this file must prove the
+# revoke kills those keys too.
+@sid = SecureRandom.hex(32)
 @key = "session:#{@sid}"
 SM.load(@sid)&.destroy!
 
@@ -57,6 +61,12 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 @codec = Onetime::SessionCodec.from_config
 DB.set(@key, @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
                              'email' => @cust.email }))
+
+# Per-value sidecar keys (#3858) seeded next to the blob: a revoke must purge
+# them with the blob, or short-TTL state (an MFA window, a UI context) would
+# outlive the session it belongs to.
+DB.set("sidecar:#{@sid}:awaiting_mfa", 'sidecar-envelope')
+DB.set("sidecar:#{@sid}:domain_context", 'sidecar-envelope')
 
 # Owner-mismatch fixtures (used by the mismatch test cases further down). A
 # SECOND customer @other owns @msid; @cust owns @msid2. Both are set up here in
@@ -108,6 +118,10 @@ DB.set(@nkey, @codec.encode({ 'authenticated' => true, 'external_id' => @extid }
 [Store.find_key(DB, @sid), SM.load(@sid).nil?, @cust.active_sessions.member?(@sid)]
 #=> [@key, false, true]
 
+## [#3858] ...and so do the seeded per-value sidecar keys
+DB.exists("sidecar:#{@sid}:awaiting_mfa", "sidecar:#{@sid}:domain_context")
+#=> 2
+
 # ---- revoke: invalidate + tidy + audit --------------------------------
 
 ## revoke deletes the live blob and reports blob_deleted:true, revoked:true
@@ -123,6 +137,11 @@ Store.find_key(DB, @sid)
 ## the sidecar is destroyed and the sid is ZREM'd from the customer index
 [SM.load(@sid).nil?, @cust.active_sessions.member?(@sid)]
 #=> [true, false]
+
+## [#3858] the per-value sidecar keys died with the blob — nothing of the
+## revoked session's state survives
+DB.exists("sidecar:#{@sid}:awaiting_mfa", "sidecar:#{@sid}:domain_context")
+#=> 0
 
 ## EXACTLY ONE audit event was written for the revoke
 AE.count
@@ -208,6 +227,8 @@ AE.events.clear
 # Cleanup
 SM.load(@sid)&.destroy!
 DB.del(@key)
+DB.del("sidecar:#{@sid}:awaiting_mfa")
+DB.del("sidecar:#{@sid}:domain_context")
 SM.load(@msid)&.destroy!
 DB.del(@mkey)
 SM.load(@msid2)&.destroy!
