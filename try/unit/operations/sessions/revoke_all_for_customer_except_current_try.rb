@@ -90,9 +90,9 @@ DB.set("session:#{@untracked}", @codec.encode({ 'authenticated' => true,
 # revoke must purge @revoked's and @untracked's; @current's must SURVIVE —
 # killing a live session's short-TTL state would corrupt the very session the
 # op promises to keep.
-DB.set("session:#{@current}:awaiting_mfa", 'sidecar-envelope')
-DB.set("session:#{@revoked}:awaiting_mfa", 'sidecar-envelope')
-DB.set("session:#{@untracked}:domain_context", 'sidecar-envelope')
+DB.set("sidecar:#{@current}:awaiting_mfa", 'sidecar-envelope')
+DB.set("sidecar:#{@revoked}:awaiting_mfa", 'sidecar-envelope')
+DB.set("sidecar:#{@untracked}:domain_context", 'sidecar-envelope')
 
 # The other customer's blob — different identity, not tracked by @cust, left alone.
 @other_sid = "tryxc_other_#{@nonce}"
@@ -141,8 +141,8 @@ Store.find_key(DB, @current).nil?
 ## [#3858] the revoked sids' per-value sidecar keys died with their blobs
 ## (tracked kill AND untracked sweep), while the PRESERVED current session
 ## keeps its sidecar keys — its live state stays fully intact
-[DB.exists("session:#{@revoked}:awaiting_mfa", "session:#{@untracked}:domain_context"),
- DB.exists("session:#{@current}:awaiting_mfa")]
+[DB.exists("sidecar:#{@revoked}:awaiting_mfa", "sidecar:#{@untracked}:domain_context"),
+ DB.exists("sidecar:#{@current}:awaiting_mfa")]
 #=> [0, 1]
 
 ## the OTHER customer's session is untouched
@@ -170,7 +170,7 @@ AE.count == @ae_before
 
 ## [#3858] once nothing spares it, the former current sid's sidecar keys are
 ## purged with its blob too
-DB.exists("session:#{@current}:awaiting_mfa")
+DB.exists("sidecar:#{@current}:awaiting_mfa")
 #=> 0
 
 # ---- scan_untracked: false skips the sweep (tracked-only kill) ---------
@@ -301,9 +301,9 @@ DB.set("session:#{@wm_after}", @codec.encode({ 'authenticated' => true, 'externa
 [@current, @revoked, @untracked, @other_sid, @st_tracked, @st_untracked,
  @wm_fresh, @wm_stale, @wm_ufresh, @wm_unstamp, @off_fresh,
  @wm_at, @wm_after].each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
-DB.del("session:#{@current}:awaiting_mfa")
-DB.del("session:#{@revoked}:awaiting_mfa")
-DB.del("session:#{@untracked}:domain_context")
+DB.del("sidecar:#{@current}:awaiting_mfa")
+DB.del("sidecar:#{@revoked}:awaiting_mfa")
+DB.del("sidecar:#{@untracked}:domain_context")
 @cust.active_sessions.clear
 @cust.destroy!
 @other.destroy!

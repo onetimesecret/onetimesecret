@@ -65,8 +65,8 @@ DB.set(@key, @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
 # Per-value sidecar keys (#3858) seeded next to the blob: a revoke must purge
 # them with the blob, or short-TTL state (an MFA window, a UI context) would
 # outlive the session it belongs to.
-DB.set("session:#{@sid}:awaiting_mfa", 'sidecar-envelope')
-DB.set("session:#{@sid}:domain_context", 'sidecar-envelope')
+DB.set("sidecar:#{@sid}:awaiting_mfa", 'sidecar-envelope')
+DB.set("sidecar:#{@sid}:domain_context", 'sidecar-envelope')
 
 # Owner-mismatch fixtures (used by the mismatch test cases further down). A
 # SECOND customer @other owns @msid; @cust owns @msid2. Both are set up here in
@@ -119,7 +119,7 @@ DB.set(@nkey, @codec.encode({ 'authenticated' => true, 'external_id' => @extid }
 #=> [@key, false, true]
 
 ## [#3858] ...and so do the seeded per-value sidecar keys
-DB.exists("session:#{@sid}:awaiting_mfa", "session:#{@sid}:domain_context")
+DB.exists("sidecar:#{@sid}:awaiting_mfa", "sidecar:#{@sid}:domain_context")
 #=> 2
 
 # ---- revoke: invalidate + tidy + audit --------------------------------
@@ -140,7 +140,7 @@ Store.find_key(DB, @sid)
 
 ## [#3858] the per-value sidecar keys died with the blob — nothing of the
 ## revoked session's state survives
-DB.exists("session:#{@sid}:awaiting_mfa", "session:#{@sid}:domain_context")
+DB.exists("sidecar:#{@sid}:awaiting_mfa", "sidecar:#{@sid}:domain_context")
 #=> 0
 
 ## EXACTLY ONE audit event was written for the revoke
@@ -227,8 +227,8 @@ AE.events.clear
 # Cleanup
 SM.load(@sid)&.destroy!
 DB.del(@key)
-DB.del("session:#{@sid}:awaiting_mfa")
-DB.del("session:#{@sid}:domain_context")
+DB.del("sidecar:#{@sid}:awaiting_mfa")
+DB.del("sidecar:#{@sid}:domain_context")
 SM.load(@msid)&.destroy!
 DB.del(@mkey)
 SM.load(@msid2)&.destroy!

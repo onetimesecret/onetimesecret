@@ -164,7 +164,7 @@ require 'onetime/session/sidecar'
 @ca_extid  = "extid_close_#{SecureRandom.hex(6)}"
 @ca_sid    = SecureRandom.hex(32) # 64 hex -- the shape the sidecar purge is gated on
 @ca_blob   = "session:#{@ca_sid}"
-@ca_mfa    = "session:#{@ca_sid}:awaiting_mfa"
+@ca_mfa    = "sidecar:#{@ca_sid}:awaiting_mfa"
 @ca_other_sid  = SecureRandom.hex(32)
 @ca_other_blob = "session:#{@ca_other_sid}"
 @ca_op = Auth::Operations::CloseAccount.new(extid: @ca_extid, db: :redis_only)

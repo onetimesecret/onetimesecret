@@ -182,12 +182,10 @@ module AccountAPI::Logic
         hmac_key           = Onetime::KeyDerivation.derive_session_subkey(session_secret, 'hmac')
         encryption_key_raw = [Onetime::KeyDerivation.derive_session_subkey(session_secret, 'encryption')].pack('H*')
 
+        # Per-value sidecar keys live under `sidecar:<sid>:<field>` — outside
+        # this match by construction — and are purged alongside their owning
+        # blob below.
         dbclient.scan_each(match: 'session:*') do |key|
-          # Per-value sidecar keys (session:<sid>:<field>) are not session
-          # blobs — they can never carry the extid and are purged alongside
-          # their owning blob below, so probing them is pure waste.
-          next if key.match?(Onetime::Operations::Sessions::Store::SIDECAR_KEY_PATTERN)
-
           session_extid = extract_session_extid(dbclient, key, hmac_key, encryption_key_raw)
           next unless session_extid == extid
 

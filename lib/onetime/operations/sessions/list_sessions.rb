@@ -59,7 +59,7 @@ module Onetime
         def call
           db    = @dbclient || Familia.dbclient
           codec = Onetime::SessionCodec.from_config
-          keys, scan_capped = Store.scan_keys_capped(db)
+          keys  = Store.scan_keys(db)
           rows  = collect(db, keys, codec)
 
           # Anonymous sessions (CSRF-token-only visitors) dominate the keyspace
@@ -85,7 +85,7 @@ module Onetime
             total_pages: total_pages,
             scanned: keys.size,
             anonymous_count: anonymous.size,
-            scan_capped: scan_capped,
+            scan_capped: keys.size >= Store::MAX_SCAN,
           )
         end
 

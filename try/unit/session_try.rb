@@ -63,10 +63,9 @@ end
 @session = Session.new(@app, @session_opts)
 
 # Sidecar (#3858) fixtures: a middleware instance on the DEFAULT 'session'
-# namespace so the blob and its per-value keys are true Redis siblings
-# (sidecar keys are ALWAYS session:<sid>:<field>, whatever the blob
-# namespace — which also means the TTL clamp can only see a blob under
-# 'session:'). The codec is built from the same secret so seeded envelopes
+# namespace, because the sidecar TTL clamp probes the blob at 'session:<sid>'
+# (sidecar keys are ALWAYS sidecar:<sid>:<field>, whatever the blob
+# namespace — a blob on any other namespace is invisible to the clamp). The codec is built from the same secret so seeded envelopes
 # verify against the middleware's own codec.
 @sidecar_session = Session.new(@app, {
   secret: @secret,
@@ -315,8 +314,8 @@ blob = @try_codec.decode(DB.get("session:#{@sc_sid}"))
 
 ## [#3858] ...the fields live as sibling keys with their own clamped TTLs
 ## (independent of — and never longer than — the blob's lifetime)
-mfa_ttl = DB.ttl("session:#{@sc_sid}:awaiting_mfa")
-dc_ttl  = DB.ttl("session:#{@sc_sid}:domain_context")
+mfa_ttl = DB.ttl("sidecar:#{@sc_sid}:awaiting_mfa")
+dc_ttl  = DB.ttl("sidecar:#{@sc_sid}:domain_context")
 [mfa_ttl.positive? && mfa_ttl <= 900, dc_ttl.positive? && dc_ttl <= 3600]
 #=> [true, true]
 
@@ -364,7 +363,7 @@ call_private_method(@sidecar_session, :write_session, @sw_req, @sw_sid, @sw_data
 @bm_sid = SecureRandom.hex(32)
 Onetime::SessionSidecar.write(@bm_sid, 'awaiting_mfa', true, codec: @try_codec)
 _bm_sid, bm_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @bm_sid)
-[bm_data, DB.exists("session:#{@bm_sid}:awaiting_mfa")]
+[bm_data, DB.exists("sidecar:#{@bm_sid}:awaiting_mfa")]
 #=> [{}, 1]
 
 ## [#3858] deleting a merged field deletes its sidecar on the next commit —
@@ -373,12 +372,12 @@ _bm_sid, bm_data = call_private_method(@sidecar_session, :find_session, MockRequ
 _dl_sid, dl_data = call_private_method(@sidecar_session, :find_session, @dl_req, @sc_sid)
 dl_data.delete('awaiting_mfa')
 call_private_method(@sidecar_session, :write_session, @dl_req, @sc_sid, dl_data, {})
-[DB.exists("session:#{@sc_sid}:awaiting_mfa"), DB.exists("session:#{@sc_sid}:domain_context")]
+[DB.exists("sidecar:#{@sc_sid}:awaiting_mfa"), DB.exists("sidecar:#{@sc_sid}:domain_context")]
 #=> [0, 1]
 
 ## [#3858] delete_session purges the sidecar keys along with the blob
 call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @sc_sid, {})
-[DB.exists("session:#{@sc_sid}"), DB.exists("session:#{@sc_sid}:domain_context")]
+[DB.exists("session:#{@sc_sid}"), DB.exists("sidecar:#{@sc_sid}:domain_context")]
 #=> [0, 0]
 
 # Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)

@@ -73,8 +73,8 @@ DB.set("session:#{@untracked}", @codec.encode({ 'authenticated' => true,
 # Per-value sidecar keys (#3858) next to a TRACKED blob and the UNTRACKED
 # blob — the guaranteed kill and the best-effort sweep must each purge their
 # sid's keys.
-DB.set("session:#{@tracked[0]}:awaiting_mfa", 'sidecar-envelope')
-DB.set("session:#{@untracked}:domain_context", 'sidecar-envelope')
+DB.set("sidecar:#{@tracked[0]}:awaiting_mfa", 'sidecar-envelope')
+DB.set("sidecar:#{@untracked}:domain_context", 'sidecar-envelope')
 
 # CAP-PROOF regression: a blob that is IN @cust's index (tracked) but whose blob
 # identity does NOT match @cust. Under a scan-first design the identity match
@@ -107,7 +107,7 @@ DB.set("session:#{@other_sid}", @codec.encode({ 'authenticated' => true,
 #=> true
 
 ## [#3858] the seeded per-value sidecar keys exist before the revoke
-DB.exists("session:#{@tracked[0]}:awaiting_mfa", "session:#{@untracked}:domain_context")
+DB.exists("sidecar:#{@tracked[0]}:awaiting_mfa", "sidecar:#{@untracked}:domain_context")
 #=> 2
 
 # ---- revoke-all: guaranteed tracked kill + best-effort sweep + audit ---
@@ -146,7 +146,7 @@ Store.find_key(DB, @other_sid).nil?
 
 ## [#3858] BOTH purge paths ran: the tracked sid's AND the untracked sid's
 ## per-value sidecar keys died with their blobs
-DB.exists("session:#{@tracked[0]}:awaiting_mfa", "session:#{@untracked}:domain_context")
+DB.exists("sidecar:#{@tracked[0]}:awaiting_mfa", "sidecar:#{@untracked}:domain_context")
 #=> 0
 
 ## every sidecar is destroyed and the index is cleared
@@ -183,8 +183,8 @@ AE.count
 DB.del("session:#{@untracked}")
 DB.del("session:#{@mislabeled}")
 DB.del("session:#{@other_sid}")
-DB.del("session:#{@tracked[0]}:awaiting_mfa")
-DB.del("session:#{@untracked}:domain_context")
+DB.del("sidecar:#{@tracked[0]}:awaiting_mfa")
+DB.del("sidecar:#{@untracked}:domain_context")
 @cust.active_sessions.clear
 @cust.destroy!
 @other.destroy!

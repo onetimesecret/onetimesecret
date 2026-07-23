@@ -14,7 +14,8 @@ module Onetime
   # state wants a SHORTER lifetime than the session itself (an MFA completion
   # window, a UI context hint, a one-shot nonce). Redis TTLs are per-key, not
   # per-hash-field, so independent lifetimes require one Redis key per
-  # (sid, field): the sibling STRING key `session:<sid>:<field>`.
+  # (sid, field): the STRING key `sidecar:<sid>:<field>` — deliberately
+  # OUTSIDE the `session:` namespace (see {key_for} for why).
   #
   # This module is that primitive. A closed registry ({FIELDS}) declares which
   # session fields may be externalized and under what policy. Registered
@@ -51,7 +52,7 @@ module Onetime
 
     # Same format Session#valid_session_id? enforces. Every mutator is gated on
     # it, which guarantees two things at once: (1) every key this module ever
-    # creates matches the Store scan-exclusion pattern (SIDECAR_KEY_PATTERN),
+    # creates has the canonical `sidecar:<hex-sid>:<registered-field>` shape,
     # and (2) a sid can never inject `:`-delimited segments into the keyspace.
     SID_FORMAT = /\A[a-f0-9]{64,}\z/
 
@@ -99,8 +100,7 @@ module Onetime
     #
     # UNREGISTERED FIELDS ARE REJECTED with ArgumentError. The registry IS the
     # cleanup contract: purge deletes exactly the registry's key names with no
-    # SCAN, and the Store scan exclusion is only justifiable because every
-    # sidecar key is enumerable. A permissive default would silently accumulate
+    # SCAN. A permissive default would silently accumulate
     # keys no deletion path knows about (the exact orphan pattern the
     # entitlement-preview keys already exhibit). Fail-fast at write time is a
     # developer-facing error, not a runtime hazard: writes come from app code,
@@ -126,16 +126,27 @@ module Onetime
       '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false },
     }.freeze
 
-    # Deterministic sibling-key derivation — no stored key names needed, which
-    # is what makes purge an exact O(registry) DEL. Callers are responsible for
-    # sid format (every public mutator here guards it); the field must be
+    # Deterministic key derivation — no stored key names needed, which is what
+    # makes purge an exact O(registry) DEL. Callers are responsible for sid
+    # format (every public mutator here guards it); the field must be
     # registered.
     #
-    # @return [String] "session:<sid>:<field>"
+    # The `sidecar:` prefix is DELIBERATELY outside the blob's `session:`
+    # namespace, and must never contain the substring "session": the shared
+    # `*session*` scan (Store::SESSION_SCAN_PATTERN — colonel listings, counts,
+    # revoke-all sweeps) and the `session:*` account-close/email-change sweeps
+    # would otherwise pick these STRING keys up as phantom blobs, forcing a
+    # client-side reject into every consumer — and the reject would run after
+    # the scan cap, corrupting truncation accounting. Keeping the namespace
+    # disjoint costs operators one extra glob (`sidecar:<sid>:*` alongside
+    # `session:<sid>`); in exchange no scan consumer needs to know sidecar
+    # keys exist.
+    #
+    # @return [String] "sidecar:<sid>:<field>"
     def key_for(sid, field)
       field = field.to_s
       ensure_registered!(field)
-      "session:#{sid}:#{field}"
+      "sidecar:#{sid}:#{field}"
     end
 
     # Store one field value under its own key + TTL. The TTL is always clamped

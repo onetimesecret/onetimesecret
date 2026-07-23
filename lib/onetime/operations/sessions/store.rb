@@ -45,16 +45,6 @@ module Onetime
         # Common prefixes stripped to recover the bare session id from a key.
         KEY_PREFIX_PATTERN = /^(session:|rack:session:)/
 
-        # Per-value sidecar keys (Onetime::SessionSidecar, issue #3858):
-        # "session:" + a full hex sid + ":" + field. They are STRINGs, so the
-        # scan's `type: 'string'` filter alone would sweep them into every
-        # `*session*` consumer (listings, counts, revoke sweeps). No legacy
-        # blob shape has anything after the sid ({key_patterns}), so this
-        # cannot match a blob — including the bare-sid and
-        # session:rack:session:<sid> shapes. The sidecar's own sid format
-        # guard guarantees every key it creates matches this pattern.
-        SIDECAR_KEY_PATTERN = /\Asession:[a-f0-9]{64,}:/
-
         # The candidate keys a bare session id can live under. Identical to the
         # historic CLI list — order matters (first existing key wins).
         #
@@ -166,42 +156,18 @@ module Onetime
         # real session values are strings, but the loose `*session*` match also
         # catches non-string keys such as the entitlement-preview SETs
         # (`session:<sid>:entitlement_preview_*`), which would WRONGTYPE on GET.
-        # Sidecar keys ({SIDECAR_KEY_PATTERN}) ARE strings, so they need the
-        # client-side reject.
-        #
-        # {MAX_SCAN} bounds the RAW cursor iterations (the safety property),
-        # then the sidecar reject runs — NOT the reverse. Rejecting first and
-        # capping the survivors would let a sidecar-dense keyspace pull far more
-        # than {MAX_SCAN} keys off the cursor to collect {MAX_SCAN} blobs,
-        # reopening the O(all-keys) walk the cap exists to prevent. The
-        # consequence: because the reject runs AFTER the cap, the surviving blob
-        # count is a floor, so truncation must be judged from the RAW (pre-reject)
-        # size — {scan_keys_capped} returns that flag; deriving it from the
-        # survivor count (`keys.size >= MAX_SCAN`) would silently under-report a
-        # capped scan whenever sidecars filled part of the first {MAX_SCAN} keys.
+        # Per-value sidecar keys (Onetime::SessionSidecar) ARE strings, but live
+        # under `sidecar:<sid>:<field>` — outside this match by construction
+        # (the prefix must never contain "session"; see SessionSidecar.key_for)
+        # — so no client-side reject is needed and `keys.size >= MAX_SCAN`
+        # remains an exact truncation signal for callers that report capping.
         # {load_data} stays defensive for anything a filter can't anticipate.
         #
         # @param dbclient [Object]
         # @param pattern [String]
-        # @return [Array(Array<String>, Boolean)] the matched non-sidecar keys
-        #   (scan order), and whether the raw cursor hit {MAX_SCAN} (truncated)
-        def scan_keys_capped(dbclient, pattern: SESSION_SCAN_PATTERN)
-          raw = dbclient.scan_each(match: pattern, type: 'string')
-                        .lazy
-                        .first(MAX_SCAN)
-          [raw.reject { |key| key.match?(SIDECAR_KEY_PATTERN) }, raw.size >= MAX_SCAN]
-        end
-
-        # The non-sidecar session keys from a bounded scan, dropping the
-        # truncation flag — for callers (counts) that don't report capping. See
-        # {scan_keys_capped} for the scan semantics and why capping is judged
-        # from the raw size, not the returned count.
-        #
-        # @param dbclient [Object]
-        # @param pattern [String]
-        # @return [Array<String>] the matched non-sidecar keys (scan order)
+        # @return [Array<String>] the matched keys (scan order, capped)
         def scan_keys(dbclient, pattern: SESSION_SCAN_PATTERN)
-          scan_keys_capped(dbclient, pattern: pattern).first
+          dbclient.scan_each(match: pattern, type: 'string').first(MAX_SCAN)
         end
 
         # Count session keys via the same bounded, string-typed scan the listing

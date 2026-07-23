@@ -6,8 +6,8 @@
 #   Onetime::SessionSidecar
 #
 # The session blob is one encrypted value with one TTL; this primitive stores a
-# REGISTERED subset of session fields as sibling STRING keys
-# `session:<sid>:<field>` with their own clamped TTLs. Run against real Valkey
+# REGISTERED subset of session fields as independent STRING keys
+# `sidecar:<sid>:<field>` with their own clamped TTLs. Run against real Valkey
 # (port 2121 via test_helpers) so SET+EX atomicity, TTL clamping, and GETDEL
 # semantics are genuine, not mocked. Covers:
 # - key derivation + the closed-registry gate (unregistered -> ArgumentError)
@@ -42,9 +42,9 @@ DB = Familia.dbclient
 @sid      = SecureRandom.hex(32) # 64 hex chars, matches SC::SID_FORMAT
 @sid2     = SecureRandom.hex(32)
 @blob_key = "session:#{@sid}"
-@key_mfa  = "session:#{@sid}:awaiting_mfa"
-@key_dc   = "session:#{@sid}:domain_context"
-@key_fl   = "session:#{@sid}:_flash"
+@key_mfa  = "sidecar:#{@sid}:awaiting_mfa"
+@key_dc   = "sidecar:#{@sid}:domain_context"
+@key_fl   = "sidecar:#{@sid}:_flash"
 
 # Clean slate for this run's keys.
 DB.del(@blob_key)
@@ -56,7 +56,7 @@ SC.purge(@sid2)
 ## key_for derives the sibling key name deterministically — no stored key
 ## names anywhere, which is what makes purge an exact DEL by name
 SC.key_for(@sid, 'awaiting_mfa')
-#=> "session:#{@sid}:awaiting_mfa"
+#=> "sidecar:#{@sid}:awaiting_mfa"
 
 ## an unregistered field is rejected loudly at write — the registry IS the
 ## cleanup contract (purge can only delete names it can enumerate)
@@ -86,12 +86,12 @@ end.uniq
 #=> [nil, nil, nil, false, 0, 0]
 
 ## ...and no stray key was created for the malformed sid
-DB.exists('session:nothex:awaiting_mfa')
+DB.exists('sidecar:nothex:awaiting_mfa')
 #=> 0
 
 # ---- write / read: encrypted envelope -----------------------------------
 
-## write stores the field under its own sibling key and returns the effective
+## write stores the field under its own key and returns the effective
 ## (clamped) TTL
 @ttl = SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
 [DB.exists(@key_mfa), @ttl.is_a?(Integer) && @ttl.positive? && @ttl <= 900]
@@ -156,7 +156,7 @@ SC.read(@sid, 'awaiting_mfa', codec: @codec)
 ## sid binding: replaying one session's envelope under ANOTHER sid reads as
 ## absent — a property the session blob itself does not have
 SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
-DB.set("session:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
+DB.set("sidecar:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
 SC.read(@sid2, 'awaiting_mfa', codec: @codec)
 #=> nil
 
@@ -220,8 +220,8 @@ SC.consume(@sid, 'awaiting_mfa', codec: @codec)
 ## consume verifies the sid binding exactly like read: a replayed value
 ## consumes to nil, and the planted key is still removed (spent either way)
 SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
-DB.set("session:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
-[SC.consume(@sid2, 'awaiting_mfa', codec: @codec), DB.exists("session:#{@sid2}:awaiting_mfa")]
+DB.set("sidecar:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
+[SC.consume(@sid2, 'awaiting_mfa', codec: @codec), DB.exists("sidecar:#{@sid2}:awaiting_mfa")]
 #=> [nil, 0]
 
 # ---- middleware hooks: commit / merge -----------------------------------

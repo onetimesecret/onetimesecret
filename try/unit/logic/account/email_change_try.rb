@@ -451,10 +451,10 @@ confirm.process
 #
 # delete_redis_sessions SCANs session:* for blobs whose HMAC-verified,
 # decrypted external_id matches the customer, deletes each matching blob AND
-# purges its per-value sidecar keys (session:<sid>:<field>), skipping
-# sidecar-shaped keys during the scan. The method deliberately swallows all
+# purges its per-value sidecar keys (sidecar:<sid>:<field>, a namespace the
+# session:\* scan never matches). The method deliberately swallows all
 # errors (best-effort cleanup), so these cases assert its actual REDIS effects
-# — without them, a regression (renamed SIDECAR_KEY_PATTERN, dropped require,
+# — without them, a regression (renamed sidecar prefix, dropped require,
 # changed extract_id) would raise on the first scan iteration, be silently
 # swallowed, and disable the entire email-change session sweep while every
 # other test stayed green.
@@ -475,7 +475,7 @@ confirm.process
 @sweep_cust.save
 @sweep_sid     = SecureRandom.hex(32) # 64 hex, the shape the purge is gated on
 @sweep_blob    = "session:#{@sweep_sid}"
-@sweep_sidecar = "session:#{@sweep_sid}:awaiting_mfa"
+@sweep_sidecar = "sidecar:#{@sweep_sid}:awaiting_mfa"
 @other_sid     = SecureRandom.hex(32)
 @other_blob    = "session:#{@other_sid}"
 @sweep_db.set(@sweep_blob,
@@ -503,7 +503,7 @@ Onetime::SessionSidecar.write(@sweep_sid, 'domain_context', 'example.com', codec
   MockStrategyResult.new(session: @sweep_sess, user: @sweep_cust), { 'token' => '' }
 )
 @sweep_obj2.send(:invalidate_sessions, @sweep_cust)
-[@sweep_db.exists(@sweep_blob), @sweep_db.exists("session:#{@sweep_sid}:domain_context"), @sweep_sess.empty?]
+[@sweep_db.exists(@sweep_blob), @sweep_db.exists("sidecar:#{@sweep_sid}:domain_context"), @sweep_sess.empty?]
 #=> [0, 0, true]
 
 # --- ConfirmEmailChange: Rodauth full-mode (SQLite accounts.email update) ---

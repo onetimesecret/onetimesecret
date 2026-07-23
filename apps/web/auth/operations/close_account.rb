@@ -198,12 +198,10 @@ module Auth
         codec         = session_codec
 
         # Scan for all session keys
+        # Per-value sidecar keys live under `sidecar:<sid>:<field>` — outside
+        # this match by construction — and are purged alongside their owning
+        # blob below.
         dbclient.scan_each(match: 'session:*') do |key|
-            # Per-value sidecar keys (session:<sid>:<field>) are not session
-            # blobs; they carry no external_id and are purged alongside their
-            # owning blob below, so skip them up front.
-            next if key.match?(Onetime::Operations::Sessions::Store::SIDECAR_KEY_PATTERN)
-
             session_data = Onetime::Operations::Sessions::Store.load_data(dbclient, key, codec: codec)
             next unless session_data.is_a?(Hash)
 
