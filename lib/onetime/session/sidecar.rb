@@ -136,6 +136,22 @@ module Onetime
       # and the codec's sid/field binding stops a Redis-writing attacker from
       # replaying one session's intent under another sid.
       'sso_connect_intent' => { ttl: 300, encrypted: true, merge_on_read: false, externalize: false },
+      # #3877 (#3840 Phase 4.A): the interstitial's deferred SSO identity bind
+      # — the password-proven (account_id, provider, issuer, uid) tuple carried
+      # across the MFA hand-off. EXPLICIT-USE: written by the link-sso route
+      # inside its rodauth.login block (AFTER login_session has re-keyed the
+      # sid), consumed (atomic GETDEL) when the second factor succeeds — see
+      # Auth::Operations::DeferredSsoBind, the single owner of this field. TTL
+      # matches awaiting_mfa's 900s MFA completion window (the two ride the
+      # same hand-off), so an abandoned half-done MFA login can no longer
+      # leave the pending bind live for the blob's full 24h. Absence is the
+      # safe state (admission rule): a miss means no bind — the login simply
+      # completes unlinked, which is the flow's documented audit-and-skip
+      # posture. Encrypted: the payload carries a forward authorization bound
+      # to an account id, and the codec's sid/field binding stops a
+      # Redis-writing attacker from replaying one session's pending bind under
+      # another sid.
+      'link_sso_pending_bind' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false },
     }.freeze
 
     # Deterministic key derivation — no stored key names needed, which is what

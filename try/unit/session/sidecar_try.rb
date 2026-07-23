@@ -246,6 +246,21 @@ SC.write(@sid, 'sso_connect_intent', 42, codec: @codec)
  SC.consume(@sid, 'sso_connect_intent', codec: @codec)]
 #=> [42, nil]
 
+## link_sso_pending_bind (#3877/#3858) is registered EXPLICIT-USE the same
+## way: encrypted, never merged or externalized, TTL matching awaiting_mfa's
+## 900s MFA completion window — the deferred SSO bind hand-off
+## (Auth::Operations::DeferredSsoBind) depends on this policy
+SC::FIELDS['link_sso_pending_bind']
+#=> { ttl: 900, encrypted: true, merge_on_read: false, externalize: false }
+
+## the pending-bind tuple round-trips through write + single-use consume with
+## its hash shape and string keys intact (the envelope is JSON both ways)
+@bind = { 'account_id' => '5', 'provider' => 'oidc', 'issuer' => 'https://idp', 'uid' => 'sub-1' }
+SC.write(@sid, 'link_sso_pending_bind', @bind, codec: @codec)
+[SC.consume(@sid, 'link_sso_pending_bind', codec: @codec),
+ SC.consume(@sid, 'link_sso_pending_bind', codec: @codec)]
+#=> [@bind, nil]
+
 # ---- middleware hooks: commit / merge -----------------------------------
 
 ## commit externalizes registered fields: strips them from the returned hash

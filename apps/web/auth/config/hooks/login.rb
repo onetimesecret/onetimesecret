@@ -200,19 +200,21 @@ module Auth::Config::Hooks
           session['awaiting_mfa'] = false
 
           # Self-heal a DEFERRED SSO bind whose MFA prediction went stale
-          # (#3877). The link-sso interstitial stashes a deferred bind (via the
-          # rodauth.login block, i.e. BEFORE this hook) only when its pre-login
-          # MFA check said a second factor was pending. If the decision just
-          # made HERE disagrees (the account's factors changed in the window
-          # between the two checks), no second factor will ever fire to
-          # complete the stash — so complete it now: the password verified
-          # moments ago and no factor is pending, which is exactly the
-          # authorization the interstitial's direct-bind branch requires. For
-          # every other login the stash cannot exist (login_session destroyed
-          # the previous session before this hook) and this is a no-op (:none).
+          # (#3877). The link-sso interstitial stashes a deferred bind (a
+          # sid-bound SessionSidecar key written in the rodauth.login block,
+          # i.e. BEFORE this hook — #3858) only when its pre-login MFA check
+          # said a second factor was pending. If the decision just made HERE
+          # disagrees (the account's factors changed in the window between the
+          # two checks), no second factor will ever fire to complete the stash
+          # — so complete it now: the password verified moments ago and no
+          # factor is pending, which is exactly the authorization the
+          # interstitial's direct-bind branch requires. For every other login
+          # the stash cannot exist (login_session re-keyed the sid before this
+          # hook, and sidecar keys are sid-bound) and this is a no-op (:none).
           Onetime::ErrorHandler.safe_execute('complete_deferred_sso_bind', account_id: account_id) do
             outcome = Auth::Operations::DeferredSsoBind.complete(
               db: db,
+              sid: session.id&.public_id,
               session: session,
               account_id: account_id,
             )

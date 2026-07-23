@@ -181,16 +181,18 @@ module Auth::Config::Hooks
         # link-sso interstitial verifies the existing password but must NOT bind
         # the (provider, issuer, uid) identity while a second factor is pending
         # (SSO logins are MFA-exempt — a pre-2FA bind would be an MFA-bypassing
-        # login path), so it stashes the authorized bind in the partial MFA
-        # session instead. The second factor has now succeeded — finish it.
-        # Single-use (the stash is consumed up front), account-bound, and
-        # audit-and-skip on conflict/mismatch: MFA already succeeded, so nothing
-        # here may fail the login — hence the best-effort wrapper. :none for
-        # every login that didn't come through the interstitial's deferred
-        # branch (the common case: one session-hash lookup, no DB access).
+        # login path), so it stashes the authorized bind in a short-TTL
+        # SessionSidecar key bound to the partial MFA session's sid (#3858).
+        # The second factor has now succeeded — finish it. Single-use (atomic
+        # GETDEL at the store), account-bound, and audit-and-skip on
+        # conflict/mismatch: MFA already succeeded, so nothing here may fail
+        # the login — hence the best-effort wrapper. :none for every login
+        # that didn't come through the interstitial's deferred branch (the
+        # common case: one Redis GETDEL, no DB access).
         Onetime::ErrorHandler.safe_execute('complete_deferred_sso_bind', account_id: account_id) do
           outcome = Auth::Operations::DeferredSsoBind.complete(
             db: db,
+            sid: session.id&.public_id,
             session: session,
             account_id: account_id,
           )
