@@ -343,4 +343,70 @@ describe('SsoLinkConfirm', () => {
       expect(mockPush).toHaveBeenCalledWith('/signin');
     });
   });
+
+  describe('Accessibility', () => {
+    // Focus assertions need a real document connection.
+    const mountAttached = () =>
+      mount(SsoLinkConfirm, { global: { plugins: [i18n] }, attachTo: document.body });
+
+    it('moves focus to the terminal-panel heading when the confirm dead-ends', async () => {
+      mockState.pendingLink.value = makeLink();
+      mockState.confirmLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'link_conflict';
+        mockState.error.value = 'web.sso_link_confirm.errors.link_conflict';
+        return null;
+      });
+      wrapper = mountAttached();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
+      await flushPromises();
+
+      // The CTA that had focus is unmounted; without this, focus falls to <body>
+      // and the reason is never announced.
+      const heading = wrapper.find('#sso-link-confirm-unavailable-title');
+      expect(heading.exists()).toBe(true);
+      expect(document.activeElement).toBe(heading.element);
+    });
+
+    it('keeps a single live region mounted so status changes are announced', async () => {
+      mockState.pendingLink.value = makeLink();
+      wrapper = mountComponent();
+      await flushPromises();
+
+      // Present (and empty) BEFORE the status changes — a region inserted with
+      // its text already in place is not reliably announced.
+      const region = wrapper.find('[data-testid="sso-link-confirm-status"]');
+      expect(region.exists()).toBe(true);
+      expect(region.attributes('aria-live')).toBe('polite');
+      expect(region.text()).toBe('');
+
+      mockState.isLoading.value = true;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="sso-link-confirm-status"]').text()).toBe(
+        'web.COMMON.form_processing'
+      );
+    });
+
+    it('gives every action a pointer cursor (Tailwind v4 drops the button default)', async () => {
+      mockState.pendingLink.value = makeLink();
+      wrapper = mountComponent();
+      await flushPromises();
+
+      for (const testid of ['sso-link-confirm-submit', 'sso-link-confirm-cancel']) {
+        expect(wrapper.find(`[data-testid="${testid}"]`).classes()).toContain('cursor-pointer');
+      }
+
+      wrapper.unmount();
+      mockState.pendingLink.value = null;
+      mockState.fetchPendingLink.mockResolvedValue(null);
+      wrapper = mountComponent();
+      await flushPromises();
+
+      expect(
+        wrapper.find('[data-testid="sso-link-confirm-unavailable-action"]').classes()
+      ).toContain('cursor-pointer');
+    });
+  });
 });

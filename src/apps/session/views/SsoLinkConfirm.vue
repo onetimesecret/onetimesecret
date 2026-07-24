@@ -12,7 +12,7 @@
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { isValidInternalPath } from '@/utils/redirect';
-  import { ref, onMounted, computed } from 'vue';
+  import { ref, onMounted, computed, nextTick, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
 
@@ -68,6 +68,26 @@
   const unavailableMessage = computed(
     () => error.value ?? t('web.sso_link_confirm.unavailable_message')
   );
+
+  // Single polite live region, rendered unconditionally. A live region has to be
+  // in the DOM BEFORE its content changes for assistive tech to announce it, so
+  // inserting an already-populated region (v-if) is unreliable — only the text
+  // swaps here.
+  const statusMessage = computed(() =>
+    isLoading.value ? t('web.COMMON.form_processing') : ''
+  );
+
+  // Heading of the terminal panel. The panel replaces the consent CTA in place,
+  // so whatever had focus (the Confirm button) is unmounted and focus falls back
+  // to <body>: keyboard users lose their place and the reason is never announced.
+  // Move focus to the heading instead (WCAG 2.4.3 / 3.2.2).
+  const unavailableHeadingRef = ref<HTMLElement | null>(null);
+
+  watch(linkUnavailable, async (unavailable) => {
+    if (!unavailable) return;
+    await nextTick();
+    unavailableHeadingRef.value?.focus();
+  });
 
   onMounted(async () => {
     // Already fully signed in (e.g. a stale link opened after a separate login):
@@ -161,11 +181,24 @@
     :with-subheading="false"
     :show-return-home="false">
     <template #form>
+      <!-- Always-present polite live region (see statusMessage). Kept OUTSIDE
+           the space-y-6 stack so it never participates in sibling spacing. -->
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        class="sr-only"
+        data-testid="sso-link-confirm-status">
+        {{ statusMessage }}
+      </div>
+
       <div class="space-y-6">
         <!-- Dead-end: token missing / expired / spent, or the confirm failed
-             (conflict / invalidated). Terminal — the single-use token is gone. -->
+             (conflict / invalidated). Terminal — the single-use token is gone.
+             Labelled + described so focusing the heading announces the reason. -->
         <div
           v-if="linkUnavailable"
+          role="group"
+          aria-labelledby="sso-link-confirm-unavailable-title"
           data-testid="sso-link-confirm-unavailable"
           class="space-y-4 text-center">
           <OIcon
@@ -173,25 +206,31 @@
             name="lock-closed"
             class="mx-auto size-10 text-gray-400 dark:text-gray-500"
             aria-hidden="true" />
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+          <h2
+            id="sso-link-confirm-unavailable-title"
+            ref="unavailableHeadingRef"
+            tabindex="-1"
+            aria-describedby="sso-link-confirm-unavailable-message"
+            class="text-lg font-medium text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-white">
             {{ t('web.sso_link_confirm.unavailable_title') }}
           </h2>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
+          <p
+            id="sso-link-confirm-unavailable-message"
+            class="text-sm text-gray-600 dark:text-gray-400">
             {{ unavailableMessage }}
           </p>
           <button
             @click="goToSignIn"
             type="button"
-            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
             data-testid="sso-link-confirm-unavailable-action">
             {{ t('web.sso_link_confirm.unavailable_action') }}
           </button>
         </div>
 
-        <!-- Loading the display context -->
+        <!-- Loading the display context (visual only; announced by the region above) -->
         <div
           v-else-if="isLoading && !pendingLink"
-          aria-live="polite"
           class="py-4 text-center text-sm text-gray-600 dark:text-gray-400"
           data-testid="sso-link-confirm-loading">
           {{ t('web.COMMON.form_processing') }}
@@ -211,22 +250,13 @@
             @click="handleConfirm"
             type="button"
             :disabled="isLoading"
-            :aria-disabled="isLoading ? 'true' : undefined"
+            :aria-busy="isLoading ? 'true' : undefined"
             aria-describedby="sso-link-confirm-instructions"
-            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="sso-link-confirm-submit">
             <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
             <span v-else>{{ t('web.sso_link_confirm.submit') }}</span>
           </button>
-
-          <!-- Loading state announcement (screen reader only) -->
-          <div
-            v-if="isLoading"
-            aria-live="polite"
-            aria-atomic="true"
-            class="sr-only">
-            {{ t('web.COMMON.form_processing') }}
-          </div>
         </template>
       </div>
     </template>
@@ -241,7 +271,7 @@
             @click="handleCancel"
             type="button"
             :disabled="isLoading"
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
+            class="cursor-pointer rounded-sm px-1 text-gray-500 underline-offset-2 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
             data-testid="sso-link-confirm-cancel">
             {{ t('web.sso_link_confirm.cancel') }}
           </button>
