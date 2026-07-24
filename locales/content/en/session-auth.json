@@ -148,6 +148,11 @@
     "context": "Shown on /signin after the #3840 Phase 3 sign-in interstitial is cancelled, its challenge token expires/is spent, or password linking otherwise dead-ends. Points the user at the Phase 2 Connected Identities flow; the interstitial routes here with ?redirect=/account/settings/security/connections so the panel opens after they sign in.",
     "content_hash": "49954127"
   },
+  "web.login.notices.link_verification_sent": {
+    "text": "Check your inbox — we emailed you a link to confirm connecting your account. Open it to finish signing in.",
+    "context": "Informational (non-error) notice shown on /signin via ?auth_notice=link_verification_sent after a passwordless account's SSO sign-in triggers a mailbox-proof linking email (#3840 Phase 4). The emailed link opens the /sso-link-confirm/:token consent page.",
+    "content_hash": "b251c8f3"
+  },
   "web.login.signin_disabled_heading": {
     "text": "Sign-in is not available",
     "context": "Page heading on /signin when sign-in is disabled for the current domain (per-domain SigninConfig).",

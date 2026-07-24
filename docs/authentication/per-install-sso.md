@@ -141,7 +141,9 @@ Account lookup by (provider, uid), then by email
     │     └─ Trusted-IdP flag OFF →
     │            ├─ account HAS a password → sign-in interstitial
     │            │      (prove existing password → link identity → sync session)
-    │            └─ account has NO password → refuse, redirect to /signin (default)
+    │            └─ account has NO password (passwordless) → mailbox-proof link
+    │                   (email single-use token to on-file address → user clicks →
+    │                    confirm → link identity → sign in), tenant surface → refuse
     └─ Email unknown → Create account + Customer + workspace, sync session
     │
     ▼
@@ -152,7 +154,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 ## Behavior
 
-**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Two paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)), and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)).
+**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Three paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)); a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default, platform surface — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)); and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)).
 
 **Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
@@ -205,6 +207,50 @@ This path needs no operator configuration. It is on by default and is the platfo
 **Session establishment reuses Rodauth's own machinery.** On a correct password the handler binds the `(provider, issuer, uid)` row (same shape as `omniauth_identity_insert_hash`) and then calls `rodauth.login('password')` rather than hand-rolling the session. That runs the normal `after_login` path — the Redis session blob via `SyncSession` (the real app auth gate), `active_sessions` registration, and MFA detection — so a password account that has OTP configured still gets the MFA gate, exactly as a direct `/auth/login` would.
 
 **Platform-only.** The interstitial is only ever offered on the platform callback path. The email branches in `account_from_omniauth` are reached solely when `session[:validated_omniauth_domain_id]` is `nil` (tenant callbacks bind by session or refuse earlier), so a tenant callback can never mint a challenge. Authenticated tenant-surface linking is a separate follow-up.
+
+### Mailbox-proof linking (passwordless accounts)
+
+The sign-in interstitial above proves ownership with the account's **existing password**. That leaves one case: a **passwordless** account (SSO-only, or migrated without a local password) whose owner now signs in through a *new* SSO identity. There is no password to challenge — but that account can still prove ownership the same way magic-link (email_auth) does: **control of its on-file mailbox.** So instead of dead-ending at the H-3 refusal, the callback **emails a single-use link to the account's on-file address**, and binding the `(provider, issuer, uid)` identity happens only when the user clicks it and confirms. Mailbox control is the demonstrated credential; the invariant holds.
+
+**The token travels only through the email — never the callback redirect.** The proof is mailbox control, so the callback redirects the browser to a **token-less** notice (`/signin?auth_notice=link_verification_sent`) and delivers the token *solely* to the on-file inbox. A caller who merely completed an SSO round-trip asserting the victim's email therefore never learns the token and cannot self-consume it.
+
+**What happens (unauthenticated callback, existing passwordless account, identity not linked, trust flag off, platform surface):**
+
+1. `account_from_omniauth` finds no challengeable password for the located account (Phase 3's SQL + Redis-migration probe both come up empty).
+2. It mints a single-use `Onetime::SsoLinkVerification` in Redis — a short-lived (15 min) token snapshotting `(provider, resolved_issuer, uid, normalized email, account id, initiating session id, password watermark)`.
+3. It emails the token to the account's **on-file address** (`fallback: :sync`, auth-critical), logs `sso_link_verification_issued` (level `warn`), and redirects to the token-less notice. If mail delivery *raises*, the token is consumed and the flow falls through to the H-3 refusal — the user is never told to check an inbox that got no mail (fail closed).
+
+**Consent screen + confirm endpoints** (`apps/web/auth/routes/sso_link_confirm.rb`):
+
+| Endpoint | Purpose | Response |
+|----------|---------|----------|
+| `GET /auth/sso-link-confirm/{token}` | Consent display context | `{ provider, email }` — names the requesting provider and echoes the claimed email; never the account id, uid, issuer, sid, or watermark. **Never consumes the token.** Missing/consumed/expired token → `404 { error, error_code: "link_expired" }`. |
+| `POST /auth/sso-link-confirm` | Consume token, bind identity, log in | Body `{ token }`. Success establishes the session and returns Rodauth's standard login JSON response (`200 { success, … }`, or `mfa_required` when a second factor is pending). Failures return `{ error, error_code }` (see below). |
+
+**Why GET is display-only and POST does the mutation.** The emailed link opens the SPA consent screen, which `GET`s the display context (the consent copy names the provider *and* the claimed email) and only mutates on an explicit user action — the `POST`. A GET must stay side-effect-free: mail clients and link-preview bots prefetch GET URLs, and a mutating GET would let such a prefetch silently consume the single-use token before the user ever consents.
+
+**POST error codes:**
+
+| Status | `error_code` | Meaning |
+|--------|--------------|---------|
+| 400 | `invalid_request` | token missing from the POST body |
+| 401 | `link_expired` | token missing / already consumed / expired, or the snapshotted account vanished or is no longer loginable |
+| 409 | `link_conflict` | the account was re-emailed since issuance, or the `(provider, issuer, uid)` is already bound to a different account |
+| 409 | `link_invalidated` | a credential change advanced the account's password watermark since the token was issued |
+
+**Single-use, atomically consumed.** `POST /auth/sso-link-confirm` deletes the token up front (`#delete!` — the atomic single-use gate) before binding, so it is worth exactly one confirmation. Two concurrent confirmations race on the delete count; only the winner proceeds. The 15-minute TTL bounds abandoned tokens.
+
+**Invalidated on any credential change (watermark, not a sweep).** The token snapshots the account's `Customer#last_password_update` at issuance. Every password set/reset/change stamps that watermark (via `Auth::Operations::UpdatePasswordMetadata` in the `after_*_password` hooks). At confirm time the op re-reads the current watermark and rejects (`link_invalidated`) if it advanced. This is a comparison, not a token-enumeration sweep — no need to find and delete outstanding tokens on every credential change. (This is why the credential-change hooks needed no modification.)
+
+**Soft, cross-device session binding.** The token records the id of the session that *initiated* the SSO round-trip, but the check is **compare-and-warn, not a hard gate**: mailbox proof is inherently cross-device (the user may open the link on their phone). A sid mismatch is logged (`sso_link_verification_cross_device`, level `info`) and tolerated.
+
+**Confirm logs the user in.** The account is passwordless and clicking the emailed link proves mailbox control — the *same* proof magic-link uses to authenticate — so on success the confirm route establishes the session through Rodauth's own `login` machinery (`rodauth.login('sso_link_confirm')`), not a hand-rolled session. That runs the normal `after_login` path (Redis session blob via `SyncSession` — the real app auth gate — plus `active_sessions` registration and MFA detection). The user lands signed in and their newly linked SSO works next time.
+
+**MFA-safe bind.** SSO logins are MFA-exempt, so if the passwordless account has a pending second factor the identity bind is **deferred** (the login still proceeds to the OTP step, emitting `mfa_required`); completing the bind after MFA is the same follow-up as the password interstitial (#3877). Moot for default installs (MFA off), load-bearing for `AUTH_MFA_ENABLED` deployments.
+
+**Platform-only.** Like the password interstitial, mailbox-proof linking is only offered on the platform callback path. A tenant admin controls their own IdP and could otherwise trigger link emails to arbitrary platform addresses, so tenant callbacks keep the unchanged H-3 refusal.
+
+**Audit events.** `sso_link_verification_issued` (issuance), `sso_link_verification_confirmed` (successful bind), plus `sso_link_verification_deferred_mfa`, `sso_link_verification_invalidated`, `sso_link_verification_conflict`, `sso_link_verification_cross_device`, and `sso_link_verification_send_FAILED` for the branch outcomes.
 
 ### The flag
 

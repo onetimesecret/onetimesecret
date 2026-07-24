@@ -8,7 +8,15 @@
   import { useConnectedIdentities } from '@/shared/composables/useConnectedIdentities';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { submitSsoLogin } from '@/shared/utils/sso';
-  import { getSsoProviders, type SsoProvider } from '@/utils/features';
+  // Two label helpers on purpose: linked rows name the provider canonically
+  // (providerLabel), connect buttons prefer the operator's display_name
+  // (configuredProviderLabel). See the docblocks in utils/features.ts.
+  import {
+    configuredProviderLabel,
+    getSsoProviders,
+    providerLabel,
+    type SsoProvider,
+  } from '@/utils/features';
   import { useConfirmDialog } from '@vueuse/core';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -17,17 +25,6 @@
   const csrfStore = useCsrfStore();
   const { identities, isLoading, error, errorCode, fetchIdentities, removeIdentity, clearError } =
     useConnectedIdentities();
-
-  // Friendly provider labels; unknown providers fall back to a capitalized name
-  // so a backend that adds a strategy still renders sensibly.
-  const PROVIDER_LABELS: Record<string, string> = {
-    oidc: 'OpenID Connect',
-    entra: 'Microsoft Entra',
-    github: 'GitHub',
-    google: 'Google',
-  };
-  const providerLabel = (provider: string): string =>
-    PROVIDER_LABELS[provider] ?? provider.charAt(0).toUpperCase() + provider.slice(1);
 
   // Providers the account can still link. A provider is "already linked" when
   // its route_name matches the `provider` of any existing identity row (both are
@@ -39,11 +36,6 @@
     const linked = new Set(identities.value.map((identity) => identity.provider));
     return getSsoProviders().filter((provider) => !linked.has(provider.route_name));
   });
-
-  // Prefer the backend display_name; fall back to the friendly PROVIDER_LABELS
-  // map so a blank display_name still renders a sensible button label.
-  const connectLabel = (provider: SsoProvider): string =>
-    provider.display_name?.trim() ? provider.display_name : providerLabel(provider.route_name);
 
   // Connecting reuses the sign-in form POST (see submitSsoLogin) but marks it
   // with connect: true so the backend hook binds the returned identity to the
@@ -273,7 +265,11 @@
                   name="link-solid"
                   class="size-5 shrink-0"
                   aria-hidden="true" />
-                {{ t('web.auth.connections.connect_action', { provider: connectLabel(provider) }) }}
+                {{
+                  t('web.auth.connections.connect_action', {
+                    provider: configuredProviderLabel(provider),
+                  })
+                }}
               </button>
             </div>
           </div>

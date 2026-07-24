@@ -339,7 +339,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   describe 'logged-in but WITHOUT connect intent (must not bind)' do
     before { enable_platform_fallback }
 
-    it 'does not bind onto the session account and falls through to the H-3 refusal' do
+    it 'does not bind onto the session account (a no-intent callback is treated as unauthenticated)' do
       actor_email = "actor-nointent-#{SecureRandom.hex(6)}@company.example.com"
       other_email = "other-#{SecureRandom.hex(6)}@company.example.com"
       uid         = "sub-#{SecureRandom.hex(8)}"
@@ -365,22 +365,22 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         skip 'OmniAuth route not registered' if last_response.status == 404
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "No-intent callback must fall through to H-3, not bind. Location: #{last_response.location.inspect}"
+        # The redirect target is incidental to this test's property (no intent =>
+        # no bind). The located account is passwordless, so it now takes the Phase 4
+        # mailbox path (asserted in sso_link_confirm_mailbox_proof_spec.rb); we do
+        # NOT pin the location here.
 
         # THE CRUX: the arriving identity did NOT attach to the session account.
         expect(identities.where(account_id: actor_id).count).to eq(0),
           'A plain sign-in without connect intent must NOT bind onto the session account'
-        # And no identity row exists at all (H-3 refuses to create one).
+        # And no identity row is bound at all (no direct-bind, no issuance-time bind).
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
 
-        # The connect event never fires; the intent-absent + H-3 events do.
+        # The connect event never fires; the intent-absent event does.
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connected, anything)
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc'))
-        expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
       ensure
         teardown_mock_auth
       end
@@ -439,8 +439,9 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "Expired-intent callback must fall through to H-3, not bind. Location: #{last_response.location.inspect}"
+        # Redirect target is incidental here (expired intent => no bind); the
+        # passwordless located account now takes the Phase 4 mailbox path, so the
+        # location is not pinned (see sso_link_confirm_mailbox_proof_spec.rb).
 
         # THE CRUX: the abandoned intent granted nothing to the later callback.
         expect(identities.where(account_id: actor_id).count).to eq(0),
@@ -510,8 +511,9 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "Plain sign-in after an abandoned connect must not bind. Location: #{last_response.location.inspect}"
+        # Redirect target is incidental (dangling intent cleared => no bind); the
+        # passwordless located account now takes the Phase 4 mailbox path, so the
+        # location is not pinned (see sso_link_confirm_mailbox_proof_spec.rb).
 
         expect(identities.where(account_id: actor_id).count).to eq(0),
           'A dangling connect intent must NOT let a plain sign-in bind onto the session account'
@@ -528,29 +530,36 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
-  # Scenario 3 — UNAUTHENTICATED, SSO-ONLY account -> unchanged H-3 refusal
+  # Scenario 3 — UNAUTHENTICATED, PASSWORDLESS account -> Phase 4 mailbox link
   # ==========================================================================
   #
   # The connect branch is gated on logged_in? + intent, so an unauthenticated
-  # callback never binds. For an existing account WITHOUT a password there is no
-  # credential to challenge, so the H-3 refusal stands unchanged.
-  #
-  # NOTE (#3840 Phase 3): a password-HOLDING account on this same unauthenticated
-  # path now diverts to the sign-in interstitial (/link-sso/:token) instead of the
-  # H-3 refusal — that branch is covered end-to-end in
-  # omniauth_signin_interstitial_spec.rb. Here the account is seeded WITHOUT a
-  # password, so it stays on the H-3 refusal and no challenge is minted.
+  # callback never binds. For an existing PASSWORDLESS account there is no password
+  # to challenge, so Phase 4 emails a single-use mailbox-proof link (superseding the
+  # old H-3 refusal); a password-HOLDING account instead diverts to the Phase 3
+  # sign-in interstitial (/link-sso/:token). Both linking flows are covered
+  # end-to-end in omniauth_signin_interstitial_spec.rb and
+  # sso_link_confirm_mailbox_proof_spec.rb — here we only assert this callback never
+  # direct-binds and, being passwordless, takes the mailbox path (not the challenge).
 
-  describe 'unauthenticated, SSO-only account (regression: connect branch gated + no interstitial)' do
+  describe 'unauthenticated, passwordless account (connect branch gated; Phase 4 mailbox link)' do
     before { enable_platform_fallback }
 
-    it 'falls through to the H-3 refusal, mints no challenge, and fires no connect event' do
+    it 'diverts to the Phase 4 mailbox link email, mints no challenge, and fires no connect event' do
       email = "anon-#{SecureRandom.hex(6)}@company.example.com"
       uid   = "sub-#{SecureRandom.hex(8)}"
-      seed_existing_account(email) # no password -> nothing to challenge
+      seed_existing_account(email) # passwordless -> nothing to challenge
 
-      # No login. trust flag defaults off -> H-3 refusal path.
+      # No login, trust off. A passwordless PLATFORM account no longer dead-ends at
+      # the H-3 refusal — Phase 4 emails a single-use mailbox-proof link instead.
       allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      # Stub the templated publisher to CAPTURE the enqueue and keep the :sync send
+      # deterministic (true == delivered, so the hook takes the notice redirect).
+      link_emails = []
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, data, **_opts|
+        link_emails << { template: template, data: data }
+        true
+      end
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
       setup_mock_auth(email: email, uid: uid)
@@ -560,15 +569,21 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         skip 'OmniAuth route not registered' if last_response.status == 404
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "SSO-only unauthenticated flow must keep the H-3 refusal. Location: #{last_response.location.inspect}"
-        # And it must NOT divert to the Phase 3 interstitial (no password = no challenge).
+        expect(last_response.location.to_s).to include('/signin?auth_notice=link_verification_sent'),
+          "Passwordless account must divert to the mailbox notice. Location: #{last_response.location.inspect}"
+        # NOT the Phase 3 password interstitial (no password = no challenge).
         expect(last_response.location.to_s).not_to match(%r{/link-sso/})
 
+        # A single-use verification email went to the on-file address; NO identity
+        # row is bound at issuance (mailbox proof binds only on confirm).
+        expect(link_emails.size).to eq(1), "Expected one link email, got: #{link_emails.inspect}"
+        expect(link_emails.first[:template]).to eq(:sso_link_verification)
+        expect(link_emails.first[:data][:email_address]).to eq(OT::Utils.normalize_email(email))
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
 
         expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
+          .with(:sso_link_verification_issued, hash_including(provider: 'oidc'))
+        # No password challenge, and the connect branch stays gated (unauthenticated).
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_link_challenge_issued, anything)
         expect(Auth::Logging).not_to have_received(:log_auth_event)

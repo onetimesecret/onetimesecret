@@ -170,6 +170,8 @@ export function isAuthError(
     | RemoveIdentityResponse
     | LinkSsoChallengeResponse
     | LinkSsoVerifyResponse
+    | SsoLinkConfirmDisplayResponse
+    | SsoLinkConfirmResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -390,6 +392,72 @@ export function linkSsoRequiresMfa(
 
 export const linkSsoVerifyResponseSchema = z.union([linkSsoVerifySuccessSchema, authErrorSchema]);
 export type LinkSsoVerifyResponse = z.infer<typeof linkSsoVerifyResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SSO link-confirm (#3840 Phase 4 — MAILBOX-PROOF linking, passwordless accounts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /auth/sso-link-confirm/:token → { provider, email } on 200.
+ *
+ * The Phase 4 counterpart to linkSsoChallengeSchema, but the account is
+ * PASSWORDLESS: the proof is not a password but MAILBOX CONTROL — the token
+ * reached the user only via an emailed link to <base_url>/sso-link-confirm/:token.
+ * The GET is DISPLAY-ONLY (it never consumes the token, so a mail/link prefetch
+ * cannot burn it); it returns solely the requesting provider name and the claimed
+ * email for the consent screen. A missing / consumed / expired token surfaces as
+ * an axios error (404 { error, error_code: 'link_expired' }); the union's error
+ * branch only covers the unusual 200-with-error body.
+ */
+export const ssoLinkConfirmDisplaySchema = z.object({
+  provider: z.string(),
+  email: z.string(),
+});
+export type SsoLinkConfirmDisplay = z.infer<typeof ssoLinkConfirmDisplaySchema>;
+
+export const ssoLinkConfirmDisplayResponseSchema = z.union([
+  ssoLinkConfirmDisplaySchema,
+  authErrorSchema,
+]);
+export type SsoLinkConfirmDisplayResponse = z.infer<typeof ssoLinkConfirmDisplayResponseSchema>;
+
+/**
+ * POST /auth/sso-link-confirm success body.
+ *
+ * The backend consumes the single-use token, binds (provider, issuer, uid) to the
+ * located account, and ESTABLISHES THE SESSION through Rodauth's OWN login path —
+ * the SAME machinery POST /auth/login uses. It therefore returns the STANDARD
+ * login success contract, in two variants (identical shapes to Phase 3's
+ * linkSsoVerifySuccessSchema — reuse authSuccessWithMfaSchema / the complete
+ * variant):
+ * - MFA account: the same mfa_required body login returns — a second factor is
+ *   still pending. mfa_required MUST be modelled first (union order matters: a
+ *   plain success schema would match an MFA body and silently strip the flag,
+ *   marking the user fully authenticated and skipping the OTP challenge).
+ * - Non-MFA account: { success, redirect? } — session established.
+ *
+ * Failure bodies (400 invalid_request / 401 link_expired / 409 link_conflict /
+ * 409 link_invalidated) are NOT modelled here — they arrive as axios errors and
+ * are classified by the composable via HTTP status + { error_code }.
+ */
+export const ssoLinkConfirmSuccessSchema = z.union([
+  authSuccessWithMfaSchema, // MFA variant — must precede plain success
+  linkSsoVerifyCompleteSchema, // { success, redirect? }
+]);
+export type SsoLinkConfirmSuccess = z.infer<typeof ssoLinkConfirmSuccessSchema>;
+
+/** Type guard: an sso-link-confirm success that still requires a second factor. */
+export function ssoLinkConfirmRequiresMfa(
+  response: SsoLinkConfirmSuccess
+): response is z.infer<typeof authSuccessWithMfaSchema> {
+  return 'mfa_required' in response && response.mfa_required === true;
+}
+
+export const ssoLinkConfirmResponseSchema = z.union([
+  ssoLinkConfirmSuccessSchema,
+  authErrorSchema,
+]);
+export type SsoLinkConfirmResponse = z.infer<typeof ssoLinkConfirmResponseSchema>;
 
 // OTP setup response
 // When HMAC is enabled, Rodauth returns an error response with only secrets on first request

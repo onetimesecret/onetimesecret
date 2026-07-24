@@ -4,6 +4,7 @@ import { mount, flushPromises, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { ref } from 'vue';
+import { createI18n } from 'vue-i18n';
 import { createTestI18n } from '@tests/setup';
 import type { ConnectedIdentity } from '@/schemas/api/auth/responses/auth';
 import type { IdentityErrorCode } from '@/shared/composables/useConnectedIdentities';
@@ -75,9 +76,13 @@ vi.mock('@/shared/composables/useConnectedIdentities', () => ({
 }));
 
 // Configured SSO providers (bootstrap-backed in prod) — controllable per test.
+// Partial mock: only getSsoProviders is stubbed. providerLabel and
+// configuredProviderLabel stay real so the deliberate precedence split between
+// them (built-in map vs. operator display_name) is exercised, not stubbed away.
 import type { SsoProvider } from '@/utils/features';
 const mockGetSsoProviders = vi.fn<() => SsoProvider[]>(() => []);
-vi.mock('@/utils/features', () => ({
+vi.mock('@/utils/features', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/features')>()),
   getSsoProviders: () => mockGetSsoProviders(),
 }));
 
@@ -319,6 +324,76 @@ describe('ConnectedIdentities', () => {
         redirect: '/account/settings/security/connections',
         connect: true,
       });
+    });
+  });
+
+  /**
+   * Label precedence with PRODUCTION display_name values.
+   *
+   * The fixtures above use display_name: 'OpenID Connect', which happens to match
+   * the built-in map and therefore cannot tell the two precedences apart. A stock
+   * deployment (OIDC_ISSUER + OIDC_CLIENT_ID, no OIDC_DISPLAY_NAME) ships the
+   * generic default 'SSO' / 'Microsoft' instead — the values that expose the
+   * split. Linked rows must stay canonical; connect buttons must honour the
+   * operator's name. Needs an i18n with a real interpolating message, since the
+   * shared pass-through i18n renders the bare key.
+   */
+  describe('Provider label precedence (stock backend display_name defaults)', () => {
+    const stockProviders: SsoProvider[] = [
+      { route_name: 'oidc', display_name: 'SSO' },
+      { route_name: 'entra', display_name: 'Microsoft' },
+    ];
+
+    const interpolatingI18n = createI18n({
+      legacy: false,
+      locale: 'en',
+      missingWarn: false,
+      fallbackWarn: false,
+      missing: (_: unknown, key: string) => key,
+      messages: {
+        en: { web: { auth: { connections: { connect_action: 'Connect {provider}' } } } },
+      },
+    });
+
+    const mountWithI18n = () =>
+      mount(ConnectedIdentities, {
+        global: {
+          plugins: [interpolatingI18n, createTestingPinia({ createSpy: vi.fn })],
+        },
+      });
+
+    it('labels a linked row canonically, ignoring the generic display_name', () => {
+      mockState.identities.value = [
+        makeIdentity({ id: 1, provider: 'oidc' }),
+        makeIdentity({ id: 2, provider: 'entra' }),
+      ];
+      mockGetSsoProviders.mockReturnValue(stockProviders);
+      wrapper = mountWithI18n();
+
+      const list = wrapper.find('[data-testid="connections-list"]').text();
+      expect(list).toContain('OpenID Connect');
+      expect(list).toContain('Microsoft Entra');
+    });
+
+    it('labels the connect button with the operator display_name', () => {
+      mockGetSsoProviders.mockReturnValue(stockProviders);
+      wrapper = mountWithI18n();
+
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').text()).toContain(
+        'Connect SSO'
+      );
+      expect(wrapper.find('[data-testid="connections-connect-entra"]').text()).toContain(
+        'Connect Microsoft'
+      );
+    });
+
+    it('falls back to the canonical label when display_name is blank', () => {
+      mockGetSsoProviders.mockReturnValue([{ route_name: 'oidc', display_name: '' }]);
+      wrapper = mountWithI18n();
+
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').text()).toContain(
+        'Connect OpenID Connect'
+      );
     });
   });
 

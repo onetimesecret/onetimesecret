@@ -19,6 +19,7 @@ require_relative 'views/secret_revealed'
 require_relative 'views/expiration_warning'
 require_relative 'views/organization_invitation'
 require_relative 'views/magic_link'
+require_relative 'views/sso_link_verification'
 require_relative 'views/email_change_confirmation'
 require_relative 'views/email_change_requested'
 require_relative 'views/email_changed'
@@ -257,6 +258,8 @@ module Onetime
             Templates::ExpirationWarning
           when :organization_invitation
             Templates::OrganizationInvitation
+          when :sso_link_verification
+            Templates::SsoLinkVerification
           when :email_change_confirmation
             Templates::EmailChangeConfirmation
           when :email_change_requested
