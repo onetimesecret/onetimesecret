@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/domain_validation/features'
-require 'onetime/domain_validation/strategy'
+require 'onetime/operations/domains/create'
 require_relative '../base'
 
 module ColonelAPI
@@ -26,15 +26,17 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       #
-      # Audit: one AdminAuditEvent per successful create (CONTRACT 4). No Operation
-      # has been extracted for the create verb yet, so the audit backstop lives in
-      # this logic layer — matching ReconcileOrganization / ManageEntitlementOverride.
+      # Audit: one AdminAuditEvent per successful create (CONTRACT 4), emitted by
+      # {Onetime::Operations::Domains::Create} — this adapter MUST NOT audit.
       # verb is 'domain.create' (the domain.* family: verify/repair/transfer),
       # target is the domain extid, and the org's extid is carried in detail.
+      #
+      # This class used to own the validate + create + cert + audit sequence
+      # inline (create was the last domain verb with no extracted op, so there
+      # was no CLI peer). That sequence now lives in the op; the HTTP contract —
+      # every error message, field and response key — is unchanged.
       class CreateCustomDomain < ColonelAPI::Logic::Base
-        AUDIT_VERB = 'domain.create'
-
-        attr_reader :org, :domain_input, :display_domain, :custom_domain
+        attr_reader :org, :domain_input, :display_domain, :custom_domain, :result
 
         def process_params
           # Sanitize plain text to strip HTML tags before PublicSuffix normalizes.
@@ -50,65 +52,28 @@ module ColonelAPI
           @org = load_organization
           raise_not_found('Organization not found') unless @org&.exists?
 
-          # Domain validation — identical to AddDomain#raise_concerns, minus the
-          # membership/entitlement gate. Reuse the model regex; don't reinvent it.
-          raise_form_error('Please enter a domain', field: :domain) if @domain_input.to_s.empty?
-          raise_form_error('Not a valid public domain', field: :domain) unless Onetime::CustomDomain.valid?(@domain_input)
-          raise_form_error('This domain overlaps with the default site domain', field: :domain) if Onetime::CustomDomain.overlaps_canonical_domain?(@domain_input)
+          # Refuse a bad request BEFORE #process. The rules (and their exact
+          # operator-facing messages) live in the op so the CLI cannot drift.
+          check = operation.validate
+          raise_form_error(check.message, field: :domain) unless check.status == :ok
 
-          # Normalise to the parsed display_domain (mirrors AddDomain).
-          parsed          = Onetime::CustomDomain.parse(@domain_input, @org.objid)
-          @display_domain = parsed.display_domain
+          @display_domain = check.display_domain
+          return unless check.claims_orphan
 
-          # Pre-check duplicates for precise errors (create! re-checks atomically).
-          existing = Onetime::CustomDomain.load_by_display_domain(@display_domain)
-          return unless existing
-
-          if existing.org_id.to_s == @org.objid.to_s
-            raise_form_error('Domain already registered in this organization', field: :domain)
-          end
-
-          unless existing.org_id.to_s.empty?
-            raise_form_error('Domain is registered to another organization', field: :domain)
-          end
-
-          # Orphaned domain (no org_id): create! claims it in #process.
           OT.info "[CreateCustomDomain] Found orphaned domain, will claim: #{@display_domain}"
         end
 
         def process
-          @custom_domain = Onetime::CustomDomain.create!(@display_domain, @org.objid)
+          @result = operation.call
 
-          begin
-            request_certificate
-          rescue HTTParty::ResponseError => ex
-            OT.le "[CreateCustomDomain.request_certificate error] org=#{org.extid} display_domain=#{@display_domain} exception=#{ex}"
-            # Continue: the domain exists; cert provisioning can be retried.
-          rescue StandardError => ex
-            OT.le "[CreateCustomDomain] Unexpected error during certificate request: #{ex}"
-            # Continue: the domain exists; cert provisioning can be retried.
-          end
+          # raise_concerns already validated; a rejection here means the state
+          # changed underneath us (a concurrent create claimed the name).
+          raise_form_error(result.message, field: :domain) unless result.status == :created
 
-          record_audit_event
-
-          OT.info "[CreateCustomDomain] #{@display_domain} -> org=#{org.extid} extid=#{custom_domain.extid}"
+          @custom_domain  = result.domain
+          @display_domain = result.display_domain
 
           success_data
-        end
-
-        def request_certificate
-          strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
-          result   = strategy.request_certificate(@custom_domain)
-
-          OT.info "[CreateCustomDomain.request_certificate] #{@display_domain} -> #{result[:status]}"
-
-          if result[:data]
-            @custom_domain.vhost   = result[:data].to_json
-            @custom_domain.updated = OT.now.to_i
-            @custom_domain.save
-          end
-
-          result
         end
 
         def success_data
@@ -116,6 +81,16 @@ module ColonelAPI
         end
 
         private
+
+        # Memoized so raise_concerns and process share one instance (and one
+        # set of resolved inputs).
+        def operation
+          @operation ||= Onetime::Operations::Domains::Create.new(
+            domain: @domain_input,
+            org: @org,
+            actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+          )
+        end
 
         # Resolve by PUBLIC id (extid) first — every admin surface routes by extid —
         # then fall back to objid. Mirrors GetOrganizationDetail#load_organization.
@@ -145,19 +120,6 @@ module ColonelAPI
 
         def domain_details
           { cluster: Onetime::DomainValidation::Features.safe_dump }
-        end
-
-        def record_audit_event
-          Onetime::AdminAuditEvent.record(
-            actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
-            verb: AUDIT_VERB,
-            target: custom_domain.extid,
-            result: :success,
-            detail: {
-              org_id: org.extid,
-              display_domain: custom_domain.display_domain,
-            },
-          )
         end
       end
     end
