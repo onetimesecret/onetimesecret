@@ -215,7 +215,6 @@ module Auth::Config::Hooks
             outcome = Auth::Operations::DeferredSsoBind.complete(
               db: db,
               sid: session.id&.public_id,
-              session: session,
               account_id: account_id,
             )
             unless outcome == :none

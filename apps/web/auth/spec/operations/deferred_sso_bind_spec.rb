@@ -35,9 +35,7 @@
 #   - BEST-EFFORT defer: a storage failure returns false instead of raising,
 #     so it can never abort a login whose password already verified;
 #   - :conflict passthrough: a (provider, issuer, uid) row owned by another
-#     account is never bound over and never reported as success;
-#   - rolling-deploy hygiene: a legacy BLOB-resident stash is discarded
-#     unconsumed, never completed.
+#     account is never bound over and never reported as success.
 #
 # The end-to-end MFA path (interstitial -> mfa_required -> OTP -> bound row)
 # is covered by integration/full_mfa/omniauth_signin_interstitial_mfa_spec.rb.
@@ -133,9 +131,9 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
     )
   end
 
-  def complete(as_account: account_id, for_sid: sid, session: nil)
+  def complete(as_account: account_id, for_sid: sid)
     described_class.complete(
-      db: db, sid: for_sid, account_id: as_account, session: session,
+      db: db, sid: for_sid, account_id: as_account,
       dbclient: redis, codec: codec, logger: logger,
     )
   end
@@ -288,21 +286,6 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
       )
 
       expect(complete).to eq(:none)
-      expect(identities.count).to eq(0)
-    end
-  end
-
-  describe '.complete with a legacy BLOB-resident stash (rolling deploy)' do
-    it 'discards the blob copy unconsumed — never completes from it' do
-      legacy_session = {
-        described_class::FIELD => {
-          'account_id' => account_id.to_s, 'provider' => provider,
-          'issuer' => issuer, 'uid' => uid,
-        },
-      }
-
-      expect(complete(session: legacy_session)).to eq(:none)
-      expect(legacy_session).not_to have_key(described_class::FIELD)
       expect(identities.count).to eq(0)
     end
   end

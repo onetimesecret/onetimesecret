@@ -68,6 +68,13 @@ require_relative 'bind_sso_identity'
 # then stable through the MFA hand-off — two_factor_authenticate never
 # re-keys the session — so the MFA-verify request presents the same sid.
 #
+# TRIPWIRE for that stability assumption: `.complete` cannot log a missing
+# stash (:none is its overwhelmingly common, legitimate outcome), so a future
+# refactor that re-keys sessions MID-flow would strand the hand-off silently
+# — except that the field is registered destroy_warn: true, and the session
+# middleware's delete_session warns whenever it destroys a session still
+# holding a live pending bind (Onetime::SessionSidecar#inflight_fields).
+#
 # ## Security model
 #
 #   - The stash is NOT an authorization: it can only be written by the
@@ -101,10 +108,10 @@ require_relative 'bind_sso_identity'
 module Auth
   module Operations
     class DeferredSsoBind
-      # The SessionSidecar registry field (and, historically, the session-blob
-      # key) for the pending-bind payload. Written only by `.defer` (from the
-      # interstitial's login block) and consumed only by `.complete` (from the
-      # MFA-success hook / the after_login self-heal).
+      # The SessionSidecar registry field for the pending-bind payload.
+      # Written only by `.defer` (from the interstitial's login block) and
+      # consumed only by `.complete` (from the MFA-success hook / the
+      # after_login self-heal).
       FIELD = 'link_sso_pending_bind'
 
       class << self
@@ -159,17 +166,13 @@ module Auth
         # @param sid [String] the session id carrying the sidecar stash
         # @param account_id [Integer, String] the account that completed the
         #   second factor (rodauth.account_id in the hook)
-        # @param session [Hash, nil] the Rack session, when the caller has one —
-        #   any blob-resident stash left by a pre-sidecar writer (rolling
-        #   deploy) is discarded UNCONSUMED, mirroring sso_connect_intent
         # @param logger [Logger, nil]
         # @return [:none, :ok, :conflict, :mismatch]
-        def complete(db:, sid:, account_id:, session: nil, logger: nil, dbclient: nil, codec: nil)
+        def complete(db:, sid:, account_id:, logger: nil, dbclient: nil, codec: nil)
           new(
             db: db,
             sid: sid,
             account_id: account_id,
-            session: session,
             logger: logger,
             dbclient: dbclient,
             codec: codec,
@@ -181,11 +184,10 @@ module Auth
         end
       end
 
-      def initialize(db:, sid:, account_id:, session: nil, logger: nil, dbclient: nil, codec: nil)
+      def initialize(db:, sid:, account_id:, logger: nil, dbclient: nil, codec: nil)
         @db         = db
         @sid        = sid
         @account_id = account_id
-        @session    = session
         @logger     = logger || self.class.default_logger
         @dbclient   = dbclient
         @codec      = codec
@@ -193,12 +195,6 @@ module Auth
 
       # @return [:none, :ok, :conflict, :mismatch]
       def complete
-        # Rolling-deploy hygiene: a stash written into the session BLOB by a
-        # pre-sidecar writer is discarded unconsumed (never completed) — the
-        # same posture the sso_connect_intent migration took. Fail-closed: the
-        # user stays unlinked and re-hits the interstitial next sign-in.
-        @session&.delete(FIELD)
-
         # SINGLE-USE, ATOMIC: GETDEL at the store, so no outcome — including
         # an exception from the insert below — leaves a retryable pending bind
         # behind, and two concurrent completions can never both see the stash.
