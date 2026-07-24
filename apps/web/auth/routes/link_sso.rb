@@ -4,6 +4,8 @@
 
 require 'onetime/security/login_rate_limiter'
 
+require_relative 'json_body'
+
 #
 # JSON API for the SSO sign-in interstitial (#3840 Phase 3 / #3838 item 1b).
 #
@@ -60,6 +62,9 @@ module Auth
       # (LinkSso is included into Auth::Router).
       include Onetime::Security::LoginRateLimiter
 
+      # Shared body parser for the custom (non-Rodauth) routes; see json_body.rb.
+      include Auth::Routes::JsonBody
+
       # Error codes returned to the SPA (LinkSso.vue maps these to copy + the
       # Phase 2 settings pointer /account/settings/security/connections):
       #   invalid_request — token or password missing
@@ -97,7 +102,7 @@ module Auth
             # Rodauth's JSON feature parses request bodies only for its OWN
             # routes; this is a custom Roda route, so parse the JSON body here
             # (falling back to form/query params).
-            params   = link_sso_params(request)
+            params   = json_body_params(request, :token, :password)
             token    = params[:token]
             password = params[:password]
 
@@ -268,27 +273,6 @@ module Auth
       end
 
       private
-
-      # Extract { token, password } from a JSON body (Content-Type
-      # application/json), falling back to form/query params. Returns string
-      # values ('' when absent). Rewinds the input so nothing downstream is
-      # surprised by a consumed body.
-      def link_sso_params(request)
-        raw = request.body&.read.to_s
-        request.body.rewind if request.body.respond_to?(:rewind)
-
-        parsed = begin
-          raw.empty? ? {} : JSON.parse(raw)
-        rescue JSON::ParserError
-          {}
-        end
-        parsed = {} unless parsed.is_a?(Hash)
-
-        {
-          token: (parsed['token'] || request.params['token']).to_s,
-          password: (parsed['password'] || request.params['password']).to_s,
-        }
-      end
 
       # Would completing this PASSWORD login leave a second factor pending? Mirrors
       # the after_login hook's MFA decision (hooks/login.rb) for via_omniauth: false

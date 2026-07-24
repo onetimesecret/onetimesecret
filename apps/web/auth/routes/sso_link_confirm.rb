@@ -2,7 +2,10 @@
 #
 # frozen_string_literal: true
 
+require 'auth/lib/logging'
 require 'auth/operations/confirm_sso_link'
+
+require_relative 'json_body'
 
 #
 # JSON API for the MAILBOX-PROOF SSO linking flow (#3840 Phase 4).
@@ -47,6 +50,9 @@ require 'auth/operations/confirm_sso_link'
 module Auth
   module Routes
     module SsoLinkConfirm
+      # Shared body parser for the custom (non-Rodauth) routes; see json_body.rb.
+      include Auth::Routes::JsonBody
+
       # Error codes returned to the SPA (SsoLinkConfirm.vue maps these to copy):
       #   invalid_request  — token missing from the POST body
       #   link_expired     — token missing / already consumed / expired, or the
@@ -56,6 +62,10 @@ module Auth
       #                      account (defence-in-depth)
       #   link_invalidated — a credential change advanced the account's password
       #                      watermark since the token was issued (criterion 3)
+      #   link_error       — the watermark could NOT be read (datastore outage /
+      #                      unresolvable Customer). Same 409 and same dead-end as
+      #                      link_invalidated, separate code so the copy does not
+      #                      tell the user their credentials changed when they did not
       def handle_sso_link_confirm_routes(r)
         r.on 'sso-link-confirm' do
           # GET /auth/sso-link-confirm/:token — consent display context.
@@ -83,7 +93,7 @@ module Auth
             # Rodauth's JSON feature parses request bodies only for its OWN routes;
             # this is a custom Roda route, so parse the JSON body here (falling back
             # to form/query params).
-            token = sso_link_confirm_params(request)[:token]
+            token = json_body_params(request, :token)[:token]
 
             if token.empty?
               response.status = 400
@@ -112,6 +122,17 @@ module Auth
               next {
                 error: 'Your account credentials changed after this link was sent. Please sign in with SSO again.',
                 error_code: 'link_invalidated',
+              }
+            when :link_error
+              # The op could not READ the credential watermark (datastore outage),
+              # so it fails secure — but nothing about this account changed. 409,
+              # NOT a 5xx: the token was already consumed before the probe ran, so
+              # this link can never succeed and a status that invites a retry of the
+              # SAME link would be a lie. Terminal, like every other failure here.
+              response.status = 409
+              next {
+                error: "We couldn't verify this linking request. Please sign in with SSO again.",
+                error_code: 'link_error',
               }
             end
 
@@ -152,29 +173,27 @@ module Auth
 
       private
 
-      # Extract { token } from a JSON body (Content-Type application/json), falling
-      # back to form/query params. Returns a string value ('' when absent). Rewinds
-      # the input so nothing downstream is surprised by a consumed body.
-      def sso_link_confirm_params(request)
-        raw = request.body&.read.to_s
-        request.body.rewind if request.body.respond_to?(:rewind)
-
-        parsed = begin
-          raw.empty? ? {} : JSON.parse(raw)
-        rescue JSON::ParserError
-          {}
-        end
-        parsed = {} unless parsed.is_a?(Hash)
-
-        { token: (parsed['token'] || request.params['token']).to_s }
-      end
-
       # Current request's session id, for the op's SOFT cross-device check. Best
       # effort: mailbox proof is inherently cross-device, so a nil here just means
       # the soft check is skipped — never a failure.
       def sso_link_confirm_current_sid
         rodauth.session.id&.public_id
-      rescue StandardError
+      rescue StandardError => ex
+        # Surface the swallowed error rather than resolving to nil in silence. We
+        # still fall through to nil (fail SOFT: the cross-device check is advisory
+        # and is simply skipped), but the sid feeds ONLY that check — and
+        # ConfirmSsoLink#warn_on_cross_device early-returns on an empty sid — so a
+        # SYSTEMIC session.id failure would stop the cross-device audit event
+        # emitting permanently and undetectably.
+        #
+        # SAME event name as the identical resolver in config/hooks/account.rb
+        # (after_change_password) so one audit query covers both sites.
+        Auth::Logging.log_auth_event(
+          :current_session_id_unresolved,
+          level: :warn,
+          route: :sso_link_confirm,
+          error: ex.message,
+        )
         nil
       end
     end
