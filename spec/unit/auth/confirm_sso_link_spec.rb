@@ -20,7 +20,9 @@ RSpec.describe Auth::Operations::ConfirmSsoLink do
   let(:identities) { db[:account_identities] }
 
   let(:account_id) { 42 }
-  let(:email)      { 'user@example.com' }
+  # Unique per example: seed_account pairs a REAL Customer with this address, and
+  # the test Customer email-index outlives delete! (see unique_email below).
+  let(:email)      { unique_email('confirm') }
   let(:provider)   { 'google' }
   let(:issuer)     { 'https://accounts.google.com' }
   let(:uid)        { 'sub-123' }
@@ -62,7 +64,13 @@ RSpec.describe Auth::Operations::ConfirmSsoLink do
     db
   end
 
-  def seed_account(id: account_id, account_email: email, external_id: nil, status_id: 2)
+  # Pairs a REAL Customer with the account by default. Any account that reaches the
+  # watermark probe NEEDS one: watermark_state fails SECURE on an unresolvable
+  # Customer (:link_error), the same pairing the mailbox-proof integration spec
+  # seeds. Callers whose account never reaches the probe — or that are proving the
+  # unresolvable case itself — pass with_customer: false.
+  def seed_account(id: account_id, account_email: email, external_id: nil, status_id: 2, with_customer: true)
+    external_id ||= customer_with_watermark(account_email, 0).extid if with_customer
     db[:accounts].insert(id: id, email: account_email, external_id: external_id, status_id: status_id)
     id
   end
@@ -187,7 +195,9 @@ RSpec.describe Auth::Operations::ConfirmSsoLink do
   describe 'conflict handling' do
     it 'returns :link_conflict without binding when the identity is owned by a DIFFERENT account' do
       seed_account
-      other = seed_account(id: 999, account_email: 'other@example.com')
+      # The rival owner is never probed (the confirm targets account_id), so no
+      # paired Customer — and none minted under a fixed, colliding address.
+      other = seed_account(id: 999, account_email: 'other@example.com', with_customer: false)
       identities.insert(provider: provider, issuer: issuer, uid: uid, account_id: other)
 
       expect(confirm(issue_token).status).to eq(:link_conflict)
@@ -198,7 +208,8 @@ RSpec.describe Auth::Operations::ConfirmSsoLink do
     end
 
     it 'returns :link_conflict when the account was re-emailed since issuance (no bind)' do
-      seed_account(account_email: 'changed@example.com')
+      # Email drift is caught BEFORE the watermark probe, so no paired Customer.
+      seed_account(account_email: 'changed@example.com', with_customer: false)
       token = issue_token(email: email) # token still carries the OLD email
 
       expect(confirm(token).status).to eq(:link_conflict)
@@ -226,6 +237,60 @@ RSpec.describe Auth::Operations::ConfirmSsoLink do
       token = issue_token(email: wm_email, password_watermark: 150)
 
       expect(confirm(token).status).to eq(:ok)
+    end
+  end
+
+  # An UNREADABLE watermark is not a pass — the guard exists precisely to be certain
+  # the credential did not change, and both unreadable shapes (a raising probe and
+  # an unresolvable Customer) must reject. Load-bearing: without these the probe
+  # could regress to fail-OPEN and every other example would stay green.
+  #
+  # They reject as :link_error, NOT :link_invalidated: a datastore outage is our
+  # failure, and reporting it as "your credentials changed" sends the user hunting
+  # for a change that never happened. The rejection is identical either way — what
+  # differs is only the blame the copy assigns.
+  describe 'unreadable watermark (probe failure, distinct from a credential change)' do
+    it 'REJECTS as :link_error when the watermark probe RAISES (fail-secure)' do
+      seed_account(with_customer: false)
+      events = with_captured_events
+      token  = issue_token
+
+      # Stub scoped to this example only — the suite runs against a REAL datastore.
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+        .and_raise(StandardError.new('datastore unreachable'))
+
+      expect(confirm(token).status).to eq(:link_error)
+      expect(identities.where(provider: provider, issuer: issuer, uid: uid).count).to eq(0)
+      expect(events).to include(:sso_link_verification_watermark_probe_error)
+      # The probe's own event carries the reason, so the terminal path adds none —
+      # an outage must never be audited as a credential-change invalidation.
+      expect(events).not_to include(:sso_link_verification_invalidated)
+
+      # Consume-before-probe: the token was already spent by the atomic #delete!,
+      # so the rejection costs the attempt rather than leaving a retryable token.
+      # This is why :link_error is terminal (409) and not a retryable 5xx.
+      expect(confirm(token).status).to eq(:link_expired)
+    end
+
+    it 'REJECTS as :link_error when the Customer does not resolve (fail-secure)' do
+      # No stub: the account is seeded WITHOUT its paired Customer, so the real
+      # lookup returns nil — the production shape (record absent / index miss),
+      # which a `&.last_password_update.to_i` would have read as watermark 0.
+      seed_account(with_customer: false)
+      events = with_captured_events
+      token  = issue_token
+
+      result = confirm(token)
+      expect(result.status).to eq(:link_error)
+      # Context still travels with the rejection (the route logs it).
+      expect(result).to have_attributes(
+        account_id: account_id.to_s, provider: provider, bound: false,
+      )
+      expect(identities.where(provider: provider, issuer: issuer, uid: uid).count).to eq(0)
+      expect(events).to include(:sso_link_verification_watermark_probe_missing)
+      expect(events).not_to include(:sso_link_verification_invalidated)
+
+      expect(confirm(token).status).to eq(:link_expired)
     end
   end
 

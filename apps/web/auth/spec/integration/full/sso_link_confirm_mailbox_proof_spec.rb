@@ -45,8 +45,14 @@
 #      no rebind.
 #   7. watermark invalidation: a credential change after issuance -> 409
 #      link_invalidated.
-#   8. refusal fail-closed: tenant surface OR a delivery failure ->
-#      account_exists_link_required and NO usable token remains.
+#   8. refusal fail-closed: tenant surface, a delivery failure, OR an unresolvable
+#      Customer -> account_exists_link_required and NO usable token remains.
+#      "Delivery failure" covers the NON-RAISING shapes too — the mail layer
+#      dispatching nothing, a suppressed recipient, EMAILER_MODE=disabled — because
+#      each of those returns normally and would otherwise be reported as "sent".
+#      "Unresolvable Customer" is the issuance/confirm SYMMETRY case: confirm rejects
+#      that state (:unreadable -> 409), so issuing would mail a permanently
+#      unredeemable link.
 #   9. MFA-deferred: pending second factor -> mfa_required, identity NOT bound
 #      (PENDING — needs an AUTH_MFA_ENABLED boot; see the example).
 #
@@ -76,6 +82,9 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
     require 'onetime'
     require 'onetime/application/registry'
     require 'onetime/auth_config'
+    # The delivery examples stub Onetime::Mail / Mailer directly; the hook only
+    # requires the mail stack lazily, so make sure the constants exist first.
+    require 'onetime/mail'
 
     Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
     Onetime::Application::Registry.reset! if Onetime::Application::Registry.respond_to?(:reset!)
@@ -112,6 +121,27 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
       email: normalized,
       status_id: AuthTestConstants::STATUS_VERIFIED,
       external_id: customer.extid,
+    )
+  end
+
+  # Seed a VERIFIED PASSWORDLESS account whose paired Customer CANNOT be resolved:
+  # the row carries an external_id no Customer holds, and no Customer exists at the
+  # address either — so Customer.load_by_extid_or_email (the identifier logic BOTH
+  # the issuance hook and ConfirmSsoLink#watermark_state use) returns nil.
+  #
+  # This is the terminal state of the field case the issuance gate exists for: in
+  # production `accounts.email` is citext (case-insensitive compare, case-PRESERVING
+  # storage) while the Customer email index is a case-SENSITIVE Redis hash, so a
+  # legacy mixed-case row that migrations/007_normalize_customer_emails.rb skipped
+  # probes the index and misses. That exact shape cannot be staged in this harness
+  # (SQLite compares TEXT case-sensitively, so the account itself would not be
+  # located), and a dangling external_id reaches the same nil through the same call —
+  # which is all the gate keys on.
+  def seed_account_without_customer(email)
+    auth_db[:accounts].insert(
+      email: OT::Utils.normalize_email(email),
+      status_id: AuthTestConstants::STATUS_VERIFIED,
+      external_id: "cust-missing-#{SecureRandom.hex(8)}",
     )
   end
 
@@ -197,10 +227,11 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   end
 
   # Stub the templated publisher and CAPTURE every enqueue_email call. Returns the
-  # capture buffer. Returning true means the hook treats the send as "delivered" and
-  # takes the link_verification_sent redirect. (Unstubbed, the sync fallback renders
-  # + delivers a real email in this harness — deterministic capture is cleaner and
-  # is how reset_password_request_enumeration_spec.rb isolates delivery.)
+  # capture buffer. Returning true means the message was QUEUED — the only outcome
+  # the hook accepts as "delivered" without delivering inline itself — so the flow
+  # takes the link_verification_sent redirect. (Unstubbed, the hook would render +
+  # deliver a real email in this harness; deterministic capture is cleaner and is
+  # how reset_password_request_enumeration_spec.rb isolates delivery.)
   def capture_link_emails
     captured = []
     allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, data, **opts|
@@ -265,7 +296,10 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
         expect(captured.size).to eq(1), "Expected one link email, got: #{captured.inspect}"
         mail = captured.first
         expect(mail[:template]).to eq(:sso_link_verification)
-        expect(mail[:opts][:fallback]).to eq(:sync)
+        # :none, NOT :sync — the hook refuses a fallback whose outcome it cannot
+        # read (Publisher discards the sync delivery's boolean), so a `true` here
+        # can only mean genuinely QUEUED. It delivers inline itself otherwise.
+        expect(mail[:opts][:fallback]).to eq(:none)
         expect(mail[:data][:email_address]).to eq(normalized)
         expect(mail[:data][:provider].to_s).to eq('oidc')
 
@@ -499,17 +533,18 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   # ==========================================================================
 
   describe 'refusal is fail-closed' do
-    # -- (8a) delivery failure ------------------------------------------------
-    #
-    # If the link email cannot be delivered, the just-issued token is consumed and
-    # the callback falls through to the UNCHANGED H-3 refusal — never leaving a live
-    # token whose recipient inbox got no mail.
-    it 'consumes the token and keeps the H-3 refusal when email delivery raises' do
-      email = "mp-fail-#{SecureRandom.hex(6)}@company.example.com"
-      uid   = "sub-#{SecureRandom.hex(8)}"
+    # Drive the passwordless platform callback under a delivery condition that must
+    # NOT be reported as "sent", and assert the whole fail-closed contract: the H-3
+    # refusal, NO link_verification_sent notice, no :issued audit, an audited send
+    # failure, and NO live token left behind. The block installs the condition (the
+    # normalized on-file address is yielded for per-address stubs) AFTER the account
+    # is seeded but BEFORE the callback runs.
+    def expect_fail_closed_delivery(label)
+      email      = "mp-#{label}-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      normalized = OT::Utils.normalize_email(email)
       seed_passwordless_account(email)
 
-      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_raise(StandardError.new('smtp unreachable'))
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
       # Capture the exact token that was minted so we can prove it no longer resolves.
@@ -519,27 +554,89 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
         minted
       end
 
+      yield normalized
+
       begin
         response = sso_callback(email: email, uid: uid)
         skip 'OmniAuth route not registered' if response.status == 404
 
         expect(response.status).to eq(302)
         expect(response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "Delivery failure must fall through to the H-3 refusal. Location: #{response.location.inspect}"
+          "Undelivered mail must fall through to the H-3 refusal. Location: #{response.location.inspect}"
         expect(response.location.to_s).not_to include('link_verification_sent')
 
-        # The send failure was audited AND the just-minted token was deleted.
+        # The send failure was audited, the "check your inbox" audit was NOT, and the
+        # just-minted token was deleted.
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:sso_link_verification_send_FAILED, hash_including(provider: 'oidc'))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:sso_link_verification_issued, anything)
         expect(minted).not_to be_nil
         expect(Onetime::SsoLinkVerification.load(minted.token)).to be_nil,
-          'A failed delivery must not leave a live, un-notified token behind.'
+          'An undelivered link must not leave a live, un-notified token behind.'
       ensure
         teardown_mock_auth
       end
     end
 
-    # -- (8b) tenant surface --------------------------------------------------
+    # -- (8a) delivery RAISES --------------------------------------------------
+    #
+    # If the link email cannot be delivered, the just-issued token is consumed and
+    # the callback falls through to the UNCHANGED H-3 refusal — never leaving a live
+    # token whose recipient inbox got no mail.
+    it 'consumes the token and keeps the H-3 refusal when email delivery raises' do
+      expect_fail_closed_delivery('fail') do
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_raise(StandardError.new('smtp unreachable'))
+      end
+    end
+
+    # -- (8b) delivery RETURNS without sending ---------------------------------
+    #
+    # The dangerous shape: nothing raises. Publisher reports "not queued" (jobs
+    # disabled / RabbitMQ down) and the inline delivery returns nil because the mail
+    # layer dispatched nothing (Delivery::Base#deliver returns nil for a suppressed
+    # recipient, Delivery::Disabled always does). A returned nil is NOT a send, so it
+    # must fail closed exactly like the raise — this is what the pre-fix code got
+    # wrong, unconditionally claiming success from a normal return.
+    it 'consumes the token and refuses when the mail layer returns without dispatching anything' do
+      expect_fail_closed_delivery('nodispatch') do
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(false)
+        allow(Onetime::Mail).to receive(:deliver).and_return(nil)
+      end
+    end
+
+    # -- (8c) suppressed recipient ---------------------------------------------
+    #
+    # A suppressed address is skipped silently by every send — including the QUEUED
+    # one, which could never report back to the callback. Probed up front, so nothing
+    # is queued and the user is never told to check an inbox that gets nothing.
+    it 'refuses without queuing anything when the on-file address is suppressed' do
+      expect_fail_closed_delivery('suppressed') do |normalized|
+        allow(Onetime::EmailSuppression).to receive(:suppressed?).and_call_original
+        allow(Onetime::EmailSuppression).to receive(:suppressed?).with(normalized).and_return(true)
+        # Would have claimed success had the hook queued it anyway.
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)
+      end
+
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+    end
+
+    # -- (8d) delivery disabled install-wide -----------------------------------
+    #
+    # EMAILER_MODE=disabled/none makes every delivery a silent no-op
+    # (Delivery::Disabled), on the queued path too. Mailbox proof is impossible on
+    # such an install, so the branch must refuse rather than mint a token nobody can
+    # ever receive.
+    it 'refuses without queuing anything when email delivery is disabled install-wide' do
+      expect_fail_closed_delivery('disabled') do
+        allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('disabled')
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)
+      end
+
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+    end
+
+    # -- (8e) tenant surface --------------------------------------------------
     #
     # A passwordless account reached via a TENANT callback must NEVER be offered
     # mailbox linking: a tenant admin controls their IdP and could otherwise trigger
@@ -590,6 +687,55 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
         ensure
           teardown_mock_auth
         end
+      end
+    end
+
+    # -- (8f) unresolvable Customer -------------------------------------------
+    #
+    # ISSUANCE/CONFIRM SYMMETRY. ConfirmSsoLink#watermark_state fails SECURE on an
+    # unresolvable Customer (nil -> :unreadable -> 409 link_error), and it re-derives
+    # the identifier with the SAME external_id-first logic the hook used at issuance —
+    # so a Customer that does not resolve at issuance will not resolve at confirm
+    # either. Minting anyway would mail a link guaranteed to 409 on EVERY click,
+    # permanently: this branch is passwordless-only, so the H-3 "sign in with your
+    # existing method" recovery does not exist for these accounts. The hook therefore
+    # gates issuance on the same resolution and falls through to the H-3 refusal — an
+    # actionable message now, rather than an unredeemable email later.
+    it 'refuses (H-3) and mints NO verification when the account Customer does not resolve' do
+      email = "mp-nocust-#{SecureRandom.hex(6)}@company.example.com"
+      uid   = "sub-#{SecureRandom.hex(8)}"
+      seed_account_without_customer(email)
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      allow(Onetime::SsoLinkVerification).to receive(:issue).and_call_original
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_call_original
+      allow(Onetime::Mail).to receive(:deliver).and_call_original
+
+      begin
+        response = sso_callback(email: email, uid: uid)
+        skip 'OmniAuth route not registered' if response.status == 404
+
+        expect(response.status).to eq(302)
+        expect(response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
+          "An unresolvable Customer must refuse at issuance. Location: #{response.location.inspect}"
+        expect(response.location.to_s).not_to include('link_verification_sent')
+
+        # Nothing minted, nothing mailed — on either delivery path.
+        expect(Onetime::SsoLinkVerification).not_to have_received(:issue)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+        expect(Onetime::Mail).not_to have_received(:deliver)
+
+        # Audited as the operator-actionable data problem it is, NOT as "sent".
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:sso_link_verification_customer_unresolved, hash_including(provider: 'oidc'))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:sso_link_verification_issued, anything)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
+
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+      ensure
+        teardown_mock_auth
       end
     end
   end

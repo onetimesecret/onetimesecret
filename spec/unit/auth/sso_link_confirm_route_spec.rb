@@ -26,13 +26,16 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
   let(:identities) { db[:account_identities] }
 
   let(:account_id) { 42 }
-  let(:email)      { 'user@example.com' }
+  # Unique per example: seed_account pairs a REAL Customer with this address, and the
+  # test Customer email-index outlives delete! (same reason as confirm_sso_link_spec).
+  let(:email)      { unique_email('route') }
   let(:provider)   { 'google' }
   let(:issuer)     { 'https://accounts.google.com' }
   let(:uid)        { 'sub-123' }
   let(:sid)        { 'a' * 64 }
 
-  let(:tokens)   { [] }
+  let(:tokens)    { [] }
+  let(:customers) { [] }
   let(:otp)      { false }
   let(:account_found) { true }
   let(:rodauth)  { FakeRodauth.new(db: db, otp: otp, account_found: account_found) }
@@ -56,7 +59,7 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
     end
 
     def session
-      nil # -> route's current-sid resolver rescues to nil (soft check skipped)
+      nil # -> nil.id raises; the route's current-sid resolver warns and returns nil
     end
 
     def account_from_login(login)
@@ -111,9 +114,28 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
     db
   end
 
-  def seed_account(id: account_id, account_email: email, external_id: nil)
+  # Pairs a REAL Customer with the account by default. Any account that reaches the
+  # watermark probe NEEDS one: the probe fails SECURE on an unresolvable Customer
+  # (:link_error), so an unpaired account would map to 409 link_error instead of
+  # whatever the example is actually asserting. Accounts that never reach the probe
+  # (the rival owner in the conflict case) pass with_customer: false.
+  def seed_account(id: account_id, account_email: email, external_id: nil, with_customer: true)
+    external_id ||= customer_with_watermark(account_email, 0).extid if with_customer
     db[:accounts].insert(id: id, email: account_email, external_id: external_id, status_id: 2)
     id
+  end
+
+  # Unique email per example so Customer's unique email-index (which delete! does not
+  # fully clear on the test DB) never collides across runs.
+  def unique_email(prefix)
+    "#{prefix}-#{SecureRandom.hex(4)}@example.com"
+  end
+
+  def customer_with_watermark(customer_email, watermark)
+    customer = Onetime::Customer.create!(customer_email)
+    customers << customer
+    customer.last_password_update! watermark
+    customer
   end
 
   def issue_token(**overrides)
@@ -130,6 +152,16 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
     record.token
   end
 
+  # Capture every audit event (name + payload) emitted during the block's request.
+  def with_captured_events
+    events = []
+    allow(Auth::Logging).to receive(:log_auth_event).and_wrap_original do |orig, event, **kw|
+      events << [event, kw]
+      orig.call(event, **kw)
+    end
+    events
+  end
+
   def json_post(token)
     post '/sso-link-confirm', JSON.generate({ token: token }), { 'CONTENT_TYPE' => 'application/json' }
   end
@@ -140,6 +172,7 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
 
   after do
     tokens.each { |t| Onetime::SsoLinkVerification.load(t)&.delete! rescue nil }
+    customers.each { |c| c.delete! rescue nil }
   end
 
   describe 'GET /sso-link-confirm/:token (consent display)' do
@@ -176,7 +209,9 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
 
     it 'maps an identity owned by a different account to 409 link_conflict' do
       seed_account
-      other = seed_account(id: 999, account_email: 'other@example.com')
+      # The rival owner is never probed (the confirm targets account_id), so no
+      # paired Customer — and none minted under a fixed, colliding address.
+      other = seed_account(id: 999, account_email: 'other@example.com', with_customer: false)
       identities.insert(provider: provider, issuer: issuer, uid: uid, account_id: other)
 
       json_post(issue_token)
@@ -197,6 +232,34 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
       customer&.delete!
     end
 
+    # An UNREADABLE watermark shares the 409 with a real credential change, so the
+    # error_code is the ONLY thing that separates them — and it has to, because
+    # link_invalidated's copy tells the user their credentials changed. Here they
+    # did not: the probe simply could not read them.
+    it 'maps an unreadable watermark to 409 link_error (NOT link_invalidated)' do
+      seed_account
+
+      # Stub scoped to this example only — the suite runs against a REAL datastore.
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+        .and_raise(StandardError.new('datastore unreachable'))
+
+      token = issue_token
+      json_post(token)
+
+      expect(last_response.status).to eq(409)
+      expect(body['error_code']).to eq('link_error')
+      expect(body['error']).not_to include('credentials changed')
+      # Nothing bound, and no session established.
+      expect(identities.where(provider: provider, issuer: issuer, uid: uid).count).to eq(0)
+      expect(rodauth.login_calls).to be_empty
+
+      # 409 rather than a retryable 5xx is load-bearing: the op consumed the token
+      # BEFORE probing, so replaying the same link can only ever be link_expired.
+      json_post(token)
+      expect(last_response.status).to eq(401)
+      expect(body['error_code']).to eq('link_expired')
+    end
+
     it 'on success binds, logs in via Rodauth, and returns the login response' do
       seed_account
       token = issue_token
@@ -210,6 +273,30 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
       expect(rodauth.login_calls).to eq(['sso_link_confirm'])
       # The identity was actually bound.
       expect(identities.where(provider: provider, issuer: issuer, uid: uid).count).to eq(1)
+    end
+
+    # The sid feeds ONLY the op's SOFT cross-device check, which early-returns on an
+    # empty sid — so a SYSTEMIC session.id failure would silently stop the
+    # cross-device audit event emitting. The swallow must therefore be observable.
+    # FakeRodauth#session returns nil (so nil.id raises) and EVERY POST example above
+    # drives this branch incidentally; this one names and asserts it.
+    it 'warns :current_session_id_unresolved when the sid cannot be resolved, and still confirms' do
+      seed_account
+      events = with_captured_events
+
+      json_post(issue_token)
+
+      # Fails SOFT: the confirmation completes despite the unresolved sid.
+      expect(last_response.status).to eq(200)
+      expect(rodauth.login_calls).to eq(['sso_link_confirm'])
+
+      entry = events.find { |(event, _)| event == :current_session_id_unresolved }
+      expect(entry).not_to be_nil
+      # Same event name the after_change_password resolver uses (hooks/account.rb),
+      # discriminated by route, so one audit query covers both sites.
+      expect(entry.last).to include(level: :warn, route: :sso_link_confirm)
+      expect(entry.last[:error]).to be_a(String)
+      expect(entry.last[:error]).not_to be_empty
     end
 
     context 'when the account is no longer loginable at login time' do

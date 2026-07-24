@@ -21,8 +21,8 @@ vi.mock('@/shared/stores/csrfStore', () => ({
  * Verifies the GET display-context fetch and the POST confirm (NO password —
  * mailbox possession is the proof), plus the typed error classification the view
  * branches on. Every failure is terminal; they differ only in the reason:
- * link_expired / link_conflict / link_invalidated / invalid_request — distinguished
- * by the backend { error_code } and, defensively, the HTTP status.
+ * link_expired / link_conflict / link_invalidated / link_error / invalid_request —
+ * distinguished by the backend { error_code } and, defensively, the HTTP status.
  */
 describe('useSsoLinkConfirm', () => {
   let axiosMock: AxiosMockAdapter;
@@ -87,14 +87,52 @@ describe('useSsoLinkConfirm', () => {
       expect(errorCode.value).toBe('link_expired');
     });
 
-    it('dead-ends (link_expired) on an unexpected server error (500)', async () => {
+    // The route returns a bare 500 { error } (NO error_code) when the token-store
+    // read raises. The token is untouched and live for its full TTL, so blaming
+    // an expired link would push an outage victim back through SSO needlessly.
+    it('blames the outage, not the link, on a code-less 500 (link_error)', async () => {
       axiosMock.onGet('/auth/sso-link-confirm/boom').reply(500, { error: 'failed to load' });
 
-      const { fetchPendingLink, errorCode } = useSsoLinkConfirm();
+      const { fetchPendingLink, error, errorCode } = useSsoLinkConfirm();
       const result = await fetchPendingLink('boom');
 
-      // Any GET failure means no usable context; the fetch biases to link_expired.
       expect(result).toBeNull();
+      expect(errorCode.value).toBe('link_error');
+      expect(error.value).toBe('web.sso_link_confirm.errors.link_error');
+      expect(error.value).not.toBe('web.sso_link_confirm.errors.link_expired');
+    });
+
+    // Same reasoning for a transport failure: nothing reached the backend, so
+    // nothing was consumed.
+    it('blames the outage on a network failure with no response (link_error)', async () => {
+      axiosMock.onGet('/auth/sso-link-confirm/offline').networkError();
+
+      const { fetchPendingLink, errorCode } = useSsoLinkConfirm();
+      const result = await fetchPendingLink('offline');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('link_error');
+    });
+
+    // An explicit backend code still wins over the 5xx bias.
+    it('honours an explicit error_code on a 5xx over the outage bias', async () => {
+      axiosMock
+        .onGet('/auth/sso-link-confirm/coded')
+        .reply(503, { error: 'gone', error_code: 'link_expired' });
+
+      const { fetchPendingLink, errorCode } = useSsoLinkConfirm();
+      await fetchPendingLink('coded');
+
+      expect(errorCode.value).toBe('link_expired');
+    });
+
+    // 4xx without a code really does mean missing / consumed / expired.
+    it('still dead-ends (link_expired) on a code-less 404', async () => {
+      axiosMock.onGet('/auth/sso-link-confirm/nope').reply(404, { error: 'not found' });
+
+      const { fetchPendingLink, errorCode } = useSsoLinkConfirm();
+      await fetchPendingLink('nope');
+
       expect(errorCode.value).toBe('link_expired');
     });
   });
@@ -184,6 +222,25 @@ describe('useSsoLinkConfirm', () => {
       expect(result).toBeNull();
       expect(errorCode.value).toBe('link_invalidated');
       expect(error.value).toBe('web.sso_link_confirm.errors.link_invalidated');
+    });
+
+    // A backend that could not READ the watermark shares the 409 with a real
+    // credential change; only the error_code separates them. Mis-mapping this to
+    // link_invalidated would tell an outage victim their credentials changed.
+    it('classifies an unreadable-watermark backend failure (409 link_error)', async () => {
+      axiosMock
+        .onPost('/auth/sso-link-confirm')
+        .reply(409, { error: "couldn't verify", error_code: 'link_error' });
+
+      const { confirmLink, error, errorCode } = useSsoLinkConfirm();
+      const result = await confirmLink('tok123');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('link_error');
+      expect(error.value).toBe('web.sso_link_confirm.errors.link_error');
+      // Terminal, exactly like link_invalidated: the token was consumed before the
+      // probe ran, so the view must dead-end rather than offer a retry.
+      expect(error.value).not.toBe('web.sso_link_confirm.errors.link_invalidated');
     });
 
     // MFA account: the backend returns the SAME body POST /auth/login returns for

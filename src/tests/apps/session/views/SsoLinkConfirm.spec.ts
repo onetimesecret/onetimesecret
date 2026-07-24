@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { defineComponent, ref } from 'vue';
 import { createI18n } from 'vue-i18n';
 import type { SsoLinkConfirmDisplay } from '@/schemas/api/auth/responses/auth';
+import { _resetForTesting, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import type { SsoLinkConfirmErrorCode } from '@/shared/composables/useSsoLinkConfirm';
 
 // Router: controllable route (params.token, query.redirect) + spyable push.
@@ -122,6 +123,9 @@ describe('SsoLinkConfirm', () => {
 
   afterEach(() => {
     if (wrapper) wrapper.unmount();
+    // Drop any bootstrap seeded by the provider-label regression test so it
+    // cannot leak into sibling specs.
+    _resetForTesting();
   });
 
   describe('Mount / display fetch', () => {
@@ -189,6 +193,36 @@ describe('SsoLinkConfirm', () => {
       wrapper = mountComponent();
       await flushPromises();
       expect(wrapper.find('[data-testid="sso-link-confirm-prompt"]').text()).toContain('Okta');
+    });
+
+    /**
+     * Regression guard: the prompt must stay canonical even when bootstrap DOES
+     * carry providers. Every stock deployment ships a generic display_name
+     * ('SSO' for oidc, 'Microsoft' for entra — lib/onetime/auth_config.rb's
+     * `sso_display_name || 'SSO'` default), so a display_name-first label helper
+     * renders "You signed in with SSO" in production while the default empty
+     * bootstrap keeps the other assertions green.
+     */
+    it('ignores the generic bootstrap display_name and names the provider canonically', async () => {
+      updateBootstrapSnapshot({
+        features: {
+          sso: {
+            enabled: true,
+            providers: [
+              { route_name: 'entra', display_name: 'Microsoft' },
+              { route_name: 'oidc', display_name: 'SSO' },
+            ],
+          },
+        },
+      } as unknown as Parameters<typeof updateBootstrapSnapshot>[0]);
+
+      mockState.pendingLink.value = makeLink({ provider: 'entra' });
+      wrapper = mountComponent();
+      await flushPromises();
+
+      const prompt = wrapper.find('[data-testid="sso-link-confirm-prompt"]').text();
+      expect(prompt).toContain('Microsoft Entra');
+      expect(prompt).not.toContain('with Microsoft,');
     });
   });
 
