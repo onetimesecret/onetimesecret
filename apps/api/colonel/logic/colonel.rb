@@ -25,6 +25,9 @@ require_relative 'colonel/list_secrets'
 require_relative 'colonel/get_secret_receipt'
 require_relative 'colonel/delete_secret'
 
+# Shared identifier handling (email-tolerant account lookup)
+require_relative 'colonel/account_identifier'
+
 # User management
 require_relative 'colonel/list_users'
 require_relative 'colonel/get_user_details'
@@ -117,8 +120,9 @@ require_relative 'colonel/get_email_provider_status'
 require_relative 'colonel/lookup_email_recipient'
 require_relative 'colonel/list_email_messages'
 
-# Billing catalog (ticket #45)
+# Billing catalog (ticket #45) + the Stripe-linked organization roster
 require_relative 'colonel/get_billing_catalog'
+require_relative 'colonel/list_stripe_organizations'
 
 # Observability: audit trail reader + daily activity trends
 require_relative 'colonel/list_audit_events'
