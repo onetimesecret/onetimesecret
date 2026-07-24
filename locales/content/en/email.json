@@ -171,39 +171,48 @@
   },
   "email.sso_link_verification.subject": {
     "text": "Confirm linking %{provider} to your %{product_name} account",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "65e70296"
   },
   "email.sso_link_verification.title": {
     "text": "Confirm your SSO sign-in",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "35bce6cc"
   },
   "email.sso_link_verification.request_notice": {
     "text": "Someone signed in with %{provider} using the email %{email_address}. To finish connecting %{provider} to your %{product_name} account, confirm below.",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "baeb18c0"
   },
   "email.sso_link_verification.confirm_button": {
     "text": "Confirm and link %{provider}",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "9809e210"
   },
   "email.sso_link_verification.copy_link_prompt": {
     "text": "Or copy and paste this link:",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "88c72144"
   },
   "email.sso_link_verification.expiration_notice": {
     "text": "This link expires in 15 minutes and can be used only once.",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "1a437f42"
   },
   "email.sso_link_verification.ignore_notice": {
     "text": "If you did not try to sign in with %{provider}, you can safely ignore this email — nothing will be connected to your account.",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "d7317d30"
   },
   "email.sso_link_verification.signature": {
     "text": "Support Team",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "dc75bf9f"
   },
   "email.sso_link_verification.postscript": {
     "text": "P.S. This email was sent to %{email_address}.",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "You've received a secret message",

@@ -150,7 +150,8 @@
   },
   "web.login.notices.link_verification_sent": {
     "text": "Check your inbox — we emailed you a link to confirm connecting your account. Open it to finish signing in.",
-    "context": "Informational (non-error) notice shown on /signin via ?auth_notice=link_verification_sent after a passwordless account's SSO sign-in triggers a mailbox-proof linking email (#3840 Phase 4). The emailed link opens the /sso-link-confirm/:token consent page."
+    "context": "Informational (non-error) notice shown on /signin via ?auth_notice=link_verification_sent after a passwordless account's SSO sign-in triggers a mailbox-proof linking email (#3840 Phase 4). The emailed link opens the /sso-link-confirm/:token consent page.",
+    "content_hash": "b251c8f3"
   },
   "web.login.signin_disabled_heading": {
     "text": "Sign-in is not available",
