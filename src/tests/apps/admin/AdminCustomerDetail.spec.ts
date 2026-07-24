@@ -69,6 +69,8 @@ import { createTestI18n } from '@tests/setup';
 const i18n = createTestI18n();
 
 const PUBLIC_ID = 'ur_alice';
+/** Purge is gated on the account EMAIL (suspend still uses the public id). */
+const PURGE_TOKEN = 'alice@example.com';
 
 type BillingOverride = {
   enabled?: boolean;
@@ -238,7 +240,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await flushPromises();
     });
 
-    it('opens a danger dialog whose confirm stays disabled until the public id is retyped', async () => {
+    it('opens a danger dialog whose confirm stays disabled until the account email is retyped', async () => {
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
       await flushPromises();
 
@@ -250,8 +252,12 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await dialogInput(wrapper).setValue('not-the-id');
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
-      // …exact public id enables it.
+      // …the public id is NOT the purge token any more; only the email is.
       await dialogInput(wrapper).setValue(PUBLIC_ID);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+
+      // …exact account email enables it.
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
     });
 
@@ -259,7 +265,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       mockApi.delete.mockResolvedValue({ data: mutationAck() });
 
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
-      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
@@ -285,7 +291,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       );
 
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
-      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
