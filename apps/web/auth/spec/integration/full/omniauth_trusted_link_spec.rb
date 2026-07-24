@@ -120,21 +120,10 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
       .with(route).and_return(enabled)
   end
 
-  # Seed a pre-existing VERIFIED account (accounts row + linked Customer) that
-  # _account_from_login will locate by normalized email. status_id = 2 (Verified)
-  # both satisfies the lookup's status filter AND makes open_account? true so the
-  # gem skips its verify-account branch. Returns the account_id.
-  def seed_existing_account(email)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-  end
-
+  # seed_existing_account — the pre-existing VERIFIED account (accounts row +
+  # linked Customer) that _account_from_login locates by normalized email —
+  # comes from support/account_seed_helper.rb.
+  #
   # setup_mock_auth/teardown_mock_auth — the OmniAuth test-mode mock for a
   # successful IdP assertion of `email`/`uid` — come from
   # support/omniauth_test_helper.rb.

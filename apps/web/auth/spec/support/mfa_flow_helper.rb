@@ -4,6 +4,7 @@
 
 require_relative 'auth_test_constants'
 require_relative 'auth_request_helper'
+require_relative 'account_seed_helper'
 
 # =============================================================================
 # MFA Lane Helper (integration/full_mfa/)
@@ -47,9 +48,10 @@ require_relative 'auth_request_helper'
 #   end
 #
 # Request plumbing (csrf_json_post, fetch_csrf_token, json_body,
-# clear_body_headers) comes from support/auth_request_helper.rb — included
-# here explicitly so this helper stands on its own, not on the config-level
-# auto-include.
+# clear_body_headers) comes from support/auth_request_helper.rb, and subject
+# seeding (seed_existing_account, seed_account_with_password) from
+# support/account_seed_helper.rb — both included here explicitly so this helper
+# stands on its own, not on the config-level auto-include.
 #
 # =============================================================================
 
@@ -61,6 +63,7 @@ module MfaFlowHelper
   def self.included(base)
     base.include Rack::Test::Methods
     base.include AuthRequestHelper
+    base.include AccountSeedHelper
 
     # Hard-fail (not skip): this lane EXISTS to cover the MFA path, so a boot
     # without the OTP feature is harness breakage, not an environment quirk.
@@ -79,37 +82,6 @@ module MfaFlowHelper
 
   def app
     Onetime::Application::Registry.generate_rack_url_map
-  end
-
-  # ==========================================================================
-  # Subject seeding
-  # ==========================================================================
-
-  # Seed a VERIFIED account WITH a password AND its paired Customer.
-  #
-  # The password is the OTP-PROVISIONING VEHICLE: this deploy sets
-  # two_factor_modifications_require_password?, so Rodauth's real setup flow —
-  # the only way to get a production-shaped (HMAC'd) OTP key — needs one. Specs
-  # for passwordless subjects still seed it for that reason alone; see their
-  # headers.
-  #
-  # The paired Customer matters to any flow that probes customer state (e.g.
-  # the SSO mailbox-proof watermark check reads Customer#last_password_update
-  # via load_by_extid_or_email, which resolves :unchanged rather than
-  # :unreadable only when the Customer exists).
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    account_id = auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-    require 'argon2'
-    hasher = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
   end
 
   # ==========================================================================

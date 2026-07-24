@@ -89,28 +89,8 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
     allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
   end
 
-  # Seed a VERIFIED account WITHOUT a password (SSO-only account).
-  def seed_existing_account(email)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-  end
-
-  # Seed a VERIFIED account WITH an Argon2 password hash. Cost params match the
-  # test config in config/features/argon2.rb.
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    account_id = seed_existing_account(email)
-    require 'argon2'
-    hasher     = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
-  end
-
+  # seed_existing_account (SSO-only, no password) and
+  # seed_account_with_password (support/account_seed_helper.rb),
   # setup_mock_auth/teardown_mock_auth (support/omniauth_test_helper.rb) and
   # clear_body_headers/fetch_csrf_token (support/auth_request_helper.rb) are
   # shared. fetch_csrf_token establishes a fresh session; the challenge lives in

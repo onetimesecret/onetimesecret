@@ -75,6 +75,7 @@ require 'rack/test'
 # Load OmniAuth test helper for additional helper methods
 require_relative 'support/omniauth_test_helper'
 require_relative 'support/auth_request_helper'
+require_relative 'support/account_seed_helper'
 require_relative 'support/auth_test_constants'
 require_relative 'support/mock_omniauth_strategy'
 require_relative 'support/config_recreator'
@@ -572,6 +573,9 @@ RSpec.configure do |config|
   # clear_body_headers). Distinct names from ProductionConfigHelper#json_post,
   # which is CSRF-blind and stays for the non-Rodauth routes.
   config.include AuthRequestHelper, type: :integration
+
+  # Subject seeding (seed_existing_account, seed_account_with_password).
+  config.include AccountSeedHelper, type: :integration
 
   # Capture AUTH_* env vars before integration suite to prevent leakage
   # between spec files that set different feature flags.
