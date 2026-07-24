@@ -326,87 +326,157 @@ module Auth::Config::Hooks
             # to arbitrary platform addresses, so tenant callbacks fall through to the
             # H-3 refusal below (authenticated tenant-surface linking is a follow-up,
             # #3849).
+            #
+            # TWO email identities here, deliberately NOT interchangeable — DO NOT
+            # UNIFY THEM. Both halves are security-load-bearing:
+            #   on_file_email (existing[:email], the RAW address of record) is the
+            #     DELIVERY target. The mailbox-proof credential must go to the
+            #     address WE hold, never to the IdP-asserted string, or the proof
+            #     proves nothing.
+            #   normalized_email (the token's :email, below) is what the confirm-time
+            #     OWNERSHIP RE-CHECK compares against — the check in
+            #     operations/confirm_sso_link.rb normalizes the reloaded account email
+            #     before the ==. Storing the raw address here would make every legacy
+            #     mixed-case row (the rows migrations/007_normalize_customer_emails.rb
+            #     exists for) fail that check as a spurious :link_conflict.
             on_file_email = existing[:email]
 
-            # Snapshot the account's credential watermark so ANY later credential
-            # change (password set/reset/change stamps Customer#last_password_update
-            # via UpdatePasswordMetadata) invalidates this token at consume time.
-            watermark = begin
+            # ONE customer load serves BOTH the watermark snapshot and the locale.
+            # external_id-first (load_by_extid_or_email), NOT find_by_email: confirm
+            # time re-derives the watermark with the SAME external_id-first identifier
+            # logic (ConfirmSsoLink#watermark_advanced?), and resolving to a different
+            # record than confirm time surfaces as a spurious :link_invalidated with no
+            # way forward for the user.
+            customer = begin
               custid = existing[:external_id].to_s.empty? ? on_file_email : existing[:external_id]
-              Onetime::Customer.load_by_extid_or_email(custid)&.last_password_update.to_i
+              Onetime::Customer.load_by_extid_or_email(custid)
             rescue StandardError
-              0
+              nil
             end
 
-            verification = Onetime::SsoLinkVerification.issue(
-              provider: provider,
-              issuer: resolved_issuer,
-              uid: omniauth_uid,
-              email: normalized_email,
-              account_id: existing_id,
-              sid: session.id&.public_id,
-              password_watermark: watermark,
-            )
-
-            locale = begin
-              cust = Onetime::Customer.find_by_email(on_file_email)
-              loc  = cust&.locale
-              loc.to_s.strip.empty? ? OT.default_locale : loc
-            rescue StandardError
-              OT.default_locale
-            end
-
-            # Deliver to the ON-FILE address. Auth-critical → :sync. Fail CLOSED: a
-            # RETURN (true or false) both mean "sent" — false only means "delivered
-            # via the sync fallback rather than queued" — while a RAISE means the
-            # send failed. On failure, consume the just-issued token and fall through
-            # to the H-3 refusal rather than telling the user to check an inbox that
-            # got no mail.
-            sent = begin
-              Onetime::Jobs::Publisher.enqueue_email(
-                :sso_link_verification,
-                {
-                  email_address: on_file_email,
-                  confirm_url: "#{request.base_url}/sso-link-confirm/#{verification.token}",
-                  provider: provider,
-                  baseuri: request.base_url,
-                  product_name: OT.conf.dig('site', 'product_name'),
-                  display_domain: request.host,
-                  locale: locale,
-                },
-                fallback: :sync,
+            # ISSUANCE GATE — symmetric with the confirm-time watermark probe.
+            #
+            # ConfirmSsoLink#watermark_state fails SECURE on an unresolvable Customer:
+            # nil → :unreadable → :link_error (409). Confirm re-derives the identifier
+            # with the SAME external_id-first logic used above, so a Customer that does
+            # not resolve HERE will not resolve THERE either — minting anyway would mail
+            # a link that is guaranteed to 409 on every click, forever, with no other way
+            # in (this branch is reached only for PASSWORDLESS accounts, so the H-3
+            # "sign in with your existing method" recovery does not exist for them).
+            #
+            # This is not hypothetical: `accounts.email` is citext (case-insensitive
+            # compare, case-PRESERVING storage) and migrations/007_normalize_customer_
+            # emails.rb is a MANUAL migration that bails on duplicates, so mixed-case
+            # rows survive in the field. An external_id-less row stored as
+            # 'User@Example.com' probes the Customer email index — whose Redis hash keys
+            # ARE case-sensitive (customer.rb:282) and hold only the normalized
+            # 'user@example.com' — and misses.
+            #
+            # Do NOT "fix" this by normalizing the identifier on this side alone: the
+            # issue-time and confirm-time identifiers must stay derived identically, or
+            # the two sides resolve different records and the drift reappears as a
+            # spurious :link_invalidated. Refuse instead — the user gets the actionable
+            # H-3 message immediately rather than an unredeemable email — and audit it,
+            # because an account row whose Customer cannot be resolved also cannot
+            # authenticate app-side (BaseSessionAuthStrategy → CUSTOMER_NOT_FOUND) and
+            # needs an operator to reconcile it.
+            if customer.nil?
+              Auth::Logging.log_auth_event(
+                :sso_link_verification_customer_unresolved,
+                level: :error,
+                email: OT::Utils.obscure_email(on_file_email),
+                provider: provider,
+                account_id: existing_id,
               )
-              true
-            rescue StandardError => ex
+            else
+              # Snapshot the account's credential watermark so ANY later credential
+              # change (password set/reset/change stamps Customer#last_password_update
+              # via UpdatePasswordMetadata) invalidates this token at consume time.
+              # Independent fallback (0) — a failure to read the watermark must not
+              # silently default the locale, or vice versa.
+              watermark = begin
+                customer.last_password_update.to_i
+              rescue StandardError
+                0
+              end
+
+              verification = Onetime::SsoLinkVerification.issue(
+                provider: provider,
+                issuer: resolved_issuer,
+                uid: omniauth_uid,
+                # NORMALIZED, not on_file_email — see the do-not-unify note above (the
+                # confirm-time ownership re-check compares the normalized form).
+                email: normalized_email,
+                account_id: existing_id,
+                sid: session.id&.public_id,
+                password_watermark: watermark,
+              )
+
+              locale = begin
+                loc = customer.locale
+                loc.to_s.strip.empty? ? OT.default_locale : loc
+              rescue StandardError
+                OT.default_locale
+              end
+
+              # Deliver to the ON-FILE address. Auth-critical → fail CLOSED, where
+              # "sent" must mean SENT: deliver_sso_link_verification (below) performs
+              # the send in a way whose outcome this call site can actually observe,
+              # and documents why Publisher's return value cannot answer that. Both
+              # shapes of failure — a raise AND a "returned without dispatching
+              # anything" — consume the just-issued token and fall through to the H-3
+              # refusal, rather than telling the user to check an inbox that got no
+              # mail while the token lives out its TTL orphaned.
+              link_email = {
+                email_address: on_file_email,
+                confirm_url: "#{request.base_url}/sso-link-confirm/#{verification.token}",
+                provider: provider,
+                baseuri: request.base_url,
+                product_name: OT.conf.dig('site', 'product_name'),
+                display_domain: request.host,
+                locale: locale,
+              }
+
+              delivery_error = nil
+              sent           = begin
+                Auth::Config::Hooks::OmniAuth.deliver_sso_link_verification(link_email)
+              rescue StandardError => ex
+                delivery_error = ex.message
+                false
+              end
+
+              if sent
+                Auth::Logging.log_auth_event(
+                  :sso_link_verification_issued,
+                  level: :warn,
+                  email: OT::Utils.obscure_email(on_file_email),
+                  provider: provider,
+                  issuer: resolved_issuer,
+                  account_id: existing_id,
+                )
+                # TOKEN-LESS informational redirect — the token is only in the email.
+                # Halts, so everything below is the NOT-sent path.
+                redirect '/signin?auth_notice=link_verification_sent'
+              end
+
+              # Not sent — either a raise or a "returned without dispatching
+              # anything". One audit event for both shapes.
               Auth::Logging.log_auth_event(
                 :sso_link_verification_send_FAILED,
                 level: :error,
                 email: OT::Utils.obscure_email(on_file_email),
                 provider: provider,
-                error: ex.message,
+                error: delivery_error || 'not dispatched (suppressed, delivery disabled, or nothing sent)',
               )
-              false
-            end
 
-            if sent
-              Auth::Logging.log_auth_event(
-                :sso_link_verification_issued,
-                level: :warn,
-                email: OT::Utils.obscure_email(on_file_email),
-                provider: provider,
-                issuer: resolved_issuer,
-                account_id: existing_id,
-              )
-              # TOKEN-LESS informational redirect — the token is only in the email.
-              redirect '/signin?auth_notice=link_verification_sent'
+              # Delivery failed → do not leave an un-notified token live; fall through.
+              verification.delete!
             end
-
-            # Delivery failed → do not leave an un-notified token live; fall through.
-            verification.delete!
           end
 
-          # SSO-only account, tenant surface (or platform mailbox delivery failed)
-          # → UNCHANGED H-3 refusal.
+          # SSO-only account, tenant surface (or platform mailbox delivery failed,
+          # or the account's Customer did not resolve so no redeemable link could
+          # be minted) → UNCHANGED H-3 refusal.
           #
           # RECOVERY (Phase 2, shipped): a password-first user who hits this
           # refusal self-resolves by signing in with their password, then
@@ -780,6 +850,79 @@ module Auth::Config::Hooks
         error: ex.message,
       )
       false
+    end
+
+    # Send the Phase 4 mailbox-proof link and report whether it was ACTUALLY
+    # dispatched.
+    #
+    # The obvious call — Publisher.enqueue_email(..., fallback: :sync) — CANNOT
+    # answer that question, and this is the one send in the app where a wrong
+    # answer strands the user: the callback redirects them to "check your inbox"
+    # while the only credential that completes the link never arrives, and the
+    # token lives out its TTL orphaned. Publisher returns true when QUEUED and
+    # false when the fallback ran, and execute_fallback DISCARDS
+    # send_synchronously's boolean (lib/onetime/jobs/publisher.rb:551-553), which
+    # itself swallows Onetime::Mail::DeliveryError by contract (publisher.rb:595-600,
+    # 621-623) — so a REJECTED send is indistinguishable from a queued one. Two
+    # further paths are silent successes at the MAIL layer, on the QUEUED route
+    # too: a suppressed recipient (Delivery::Base#deliver returns nil,
+    # mail/delivery/base.rb:55-58) and EMAILER_MODE=disabled (Delivery::Disabled,
+    # mail/delivery/disabled.rb:21-23).
+    #
+    # So this auth-critical call site does the send itself:
+    #   1. probe the two silent-drop conditions BEFORE claiming anything;
+    #   2. hand the message to RabbitMQ with fallback: :none, so a true return
+    #      means genuinely QUEUED and never "fell back to something I cannot
+    #      see" — the queued happy path stays non-blocking for the callback;
+    #   3. when nothing was queued (jobs disabled, RabbitMQ down), deliver INLINE
+    #      through the same mail path the worker uses, where a nil return (nothing
+    #      dispatched) and a raised DeliveryError are both visible to us.
+    #
+    # NOT fallback: :raise — that refuses to deliver at all when RabbitMQ is down,
+    # turning a degraded-but-working install into a broken one. Publisher's own
+    # semantics are deliberately left ALONE: every other mailer in the app shares
+    # them and none of them are auth-critical in this way.
+    #
+    # @param data [Hash] :sso_link_verification template data (email_address,
+    #   confirm_url, provider, locale, ...)
+    # @return [Boolean] true only when queued or observably dispatched
+    # @raise [StandardError] transport/delivery errors from the inline path; the
+    #   caller audits them and fails closed
+    def self.deliver_sso_link_verification(data)
+      require 'onetime/mail'
+
+      recipient = data[:email_address].to_s
+
+      # Silent-drop probe 1: the install has no delivery at all (EMAILER_MODE=
+      # disabled/none). Config-only query, no backend instantiated.
+      return false if %w[disabled none].include?(Onetime::Mail::Mailer.determine_provider.to_s)
+
+      # Silent-drop probe 2: the recipient is suppressed, so every send to it is
+      # skipped — including the queued one, which could never report back here.
+      # FAIL-OPEN on a probe error, matching the mail layer's own guard contract
+      # (mail/delivery/base.rb:133-141): a suppression-check failure must never
+      # block a send. The real send re-runs the same guard.
+      suppressed = begin
+        defined?(Onetime::EmailSuppression) && Onetime::EmailSuppression.suppressed?(recipient)
+      rescue StandardError => ex
+        OT.le "[sso-link] suppression probe failed (failing open): #{ex.message}"
+        false
+      end
+      return false if suppressed
+
+      # Queued delivery is the happy path: non-blocking for the callback, and the
+      # worker owns retry/DLQ from there.
+      return true if Onetime::Jobs::Publisher.enqueue_email(:sso_link_verification, data, fallback: :none)
+
+      # Nothing queued → deliver here and READ the outcome. nil means the mail
+      # layer dispatched nothing; a transport failure raises DeliveryError, which
+      # the caller treats as not-sent. Locale is passed the way EmailWorker passes
+      # it (jobs/workers/email_worker.rb:156-165) — Publisher's in-process fallback
+      # drops it and always renders 'en'.
+      locale = data[:locale].to_s.strip
+      locale = OT.default_locale if locale.empty?
+
+      !Onetime::Mail.deliver(:sso_link_verification, data, locale: locale).nil?
     end
   end
 end
