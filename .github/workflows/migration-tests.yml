@@ -92,7 +92,7 @@ jobs:
         run: sudo sysctl -w vm.overcommit_memory=1
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
         if: inputs.debug_enabled == true
         with:
           detached: true
@@ -187,7 +187,7 @@ jobs:
         run: sudo sysctl -w vm.overcommit_memory=1
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
         if: inputs.debug_enabled == true
         with:
           detached: true
@@ -313,7 +313,7 @@ jobs:
         run: sudo sysctl -w vm.overcommit_memory=1
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
         if: inputs.debug_enabled == true
         with:
           detached: true
