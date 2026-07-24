@@ -5,8 +5,9 @@
 # No reverse proxy, no message queue, no workers.
 #
 # Uses pre-built images from Docker Hub, pinned by default to the same
-# release the root README documents. Override with:
-#   OTS_IMAGE_TAG=latest docker compose up
+# release the root README documents. Override to run a different pinned
+# release (never `latest` — pre-1.0 minor releases can carry breaking changes):
+#   OTS_IMAGE_TAG=v0.26.0 docker compose up
 #
 # To build from source instead, use Docker Bake:
 #   docker buildx bake -f docker/bake.hcl main
