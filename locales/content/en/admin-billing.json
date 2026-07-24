@@ -122,5 +122,65 @@
   "web.admin.billing.diff.absentLive": {
     "text": "This plan is not present in the live Stripe-synced cache.",
     "content_hash": "c53f31c3"
+  },
+  "web.admin.billing.diff.backToCatalog": {
+    "text": "Back to billing catalog"
+  },
+  "web.admin.billing.diff.driftedFields": {
+    "text": "Fields that differ:"
+  },
+  "web.admin.billing.diff.notFound": {
+    "text": "Plan not in the catalog"
+  },
+  "web.admin.billing.diff.notFoundDescription": {
+    "text": "No plan with the id {planid} was found in the configured catalog or the live Stripe-synced cache."
+  },
+  "web.admin.billing.stripeOrgs.title": {
+    "text": "Stripe customers"
+  },
+  "web.admin.billing.stripeOrgs.description": {
+    "text": "Organizations linked to a Stripe customer record."
+  },
+  "web.admin.billing.stripeOrgs.searchPlaceholder": {
+    "text": "Search by Stripe customer ID"
+  },
+  "web.admin.billing.stripeOrgs.empty": {
+    "text": "No organizations have a Stripe customer ID."
+  },
+  "web.admin.billing.stripeOrgs.emptySearch": {
+    "text": "No Stripe customer ID matches that search."
+  },
+  "web.admin.billing.stripeOrgs.loadError": {
+    "text": "Could not load the Stripe customers list."
+  },
+  "web.admin.billing.stripeOrgs.unavailable": {
+    "text": "The Stripe customers list is not available on this server yet."
+  },
+  "web.admin.billing.stripeOrgs.none": {
+    "text": "None"
+  },
+  "web.admin.billing.stripeOrgs.capped": {
+    "text": "The index scan hit its limit, so the total is a lower bound — narrow the search to see the rest."
+  },
+  "web.admin.billing.stripeOrgs.stale": {
+    "text": "{count} index entry/entries on this page point at an organization that no longer loads and were skipped."
+  },
+  "web.admin.billing.stripeOrgs.copyStripeId": {
+    "text": "Copy Stripe customer ID"
+  },
+  "web.admin.billing.stripeOrgs.columns.organization": {
+    "text": "Organization"
+  },
+  "web.admin.billing.stripeOrgs.columns.owner": {
+    "text": "Owner"
+  },
+  "web.admin.billing.stripeOrgs.columns.plan": {
+    "text": "Plan"
+  },
+  "web.admin.billing.stripeOrgs.columns.subscription": {
+    "text": "Subscription"
+  },
+  "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
+    "text": "Stripe customer ID"
   }
 }
