@@ -19,10 +19,17 @@
   import { useI18n } from 'vue-i18n';
 
   /**
-   * Secrets screen (ticket #30) — LOOKUP-FIRST by design review: on a
+   * Secret Records screen (ticket #30) — LOOKUP-FIRST by design review: on a
    * zero-knowledge platform there is nothing to gain from browsing every
    * secret, so the paginated browse-all table was removed (the list endpoint
    * still exists server-side; this screen never calls it).
+   *
+   * NAMING: operator-facing copy says "record", never "secret content". The
+   * screen reads the RECORD kept about a secret (state, timestamps, receipt,
+   * owner, ciphertext length) — `GET /api/colonel/secrets/:secret_id` returns
+   * `has_ciphertext` and `ciphertext_length`, never the ciphertext or the
+   * plaintext. The capability note in the header states that in the UI so the
+   * screen's title can never be read as "operators can see secrets".
    *
    * - LOOKUP: the operator pastes a secret's key (identifier); the screen loads
    *   GET /api/colonel/secrets/:secret_id via {@link useResourceFetch} and
@@ -296,6 +303,48 @@
       </p>
     </header>
 
+    <!--
+      Capability note: states what this screen can and cannot reach, so the
+      section title is never read as "operators can see secret content".
+    -->
+    <section
+      class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40"
+      data-testid="secret-capability-note">
+      <h3
+        class="font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400">
+        {{ t('web.admin.secrets.capability.title') }}
+      </h3>
+      <ul class="mt-2 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
+        <li class="flex items-start gap-2">
+          <OIcon
+            collection="heroicons"
+            name="eye"
+            size="4"
+            class="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500"
+            aria-hidden="true" />
+          <span>{{ t('web.admin.secrets.capability.canRead') }}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <OIcon
+            collection="heroicons"
+            name="lock-closed"
+            size="4"
+            class="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500"
+            aria-hidden="true" />
+          <span>{{ t('web.admin.secrets.capability.cannotRead') }}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <OIcon
+            collection="heroicons"
+            name="trash"
+            size="4"
+            class="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500"
+            aria-hidden="true" />
+          <span>{{ t('web.admin.secrets.capability.canDelete') }}</span>
+        </li>
+      </ul>
+    </section>
+
     <!-- Lookup -->
     <section
       class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -317,6 +366,7 @@
             spellcheck="false"
             data-testid="secret-lookup-input"
             :placeholder="t('web.admin.secrets.lookup.placeholder')"
+            aria-describedby="secret-key-hint"
             class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
         </div>
         <button
@@ -332,6 +382,11 @@
           {{ t('web.admin.secrets.lookup.button') }}
         </button>
       </form>
+      <p
+        id="secret-key-hint"
+        class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.secrets.lookup.hint') }}
+      </p>
     </section>
 
     <!-- Loading -->
