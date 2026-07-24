@@ -154,7 +154,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 ## Behavior
 
-**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Three paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)); a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default, platform surface — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)); and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)).
+**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Three paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)); a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default, platform surface — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)); and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can also link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
 
 **Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
@@ -174,11 +174,102 @@ Concretely: an SSO login is identified by the `(provider, uid)` pair recorded in
 
 This is the correct default for a multi-tenant platform. It is *not* what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
 
+### Connected Identities: authenticated linking from account settings
+
+The invariant says a *demonstrated credential* is what binds an identity. The cleanest such credential is one the user has **already** demonstrated: an active, authenticated session. So the primary way to attach an SSO identity to an existing account is not a callback heuristic at all — it is a deliberate action the signed-in user takes from **Security settings → Connected identities** (`/account/settings/security/connections`, `src/apps/workspace/account/ConnectedIdentities.vue`).
+
+This is the surface the other paths point at: the H-3 refusal flash names it, and the interstitial and mailbox-proof flows send `link_expired` / `link_conflict` here rather than re-minting a token.
+
+**The panel** lists the account's linked identities — canonical provider label, the `issuer` (hidden for the `''` sentinel on legacy / OAuth2-only rows), and a **masked** `uid` — with a Remove action behind a confirmation dialog, plus a Connect button for each configured provider **not** already linked. "Already linked" is decided by route name (`provider.route_name` vs the row's `provider`), which is correct on the platform surface where one route maps to one issuer.
+
+```
+Signed-in user clicks "Connect {provider}"
+    │
+    ▼
+Form POST /auth/sso/{provider} with connect=1  (submitSsoLogin, src/shared/utils/sso.ts)
+    │
+    ▼
+omniauth_request_validation_phase → write sidecar:<sid>:sso_connect_intent = <account id>
+    │
+    ▼
+IdP round-trip → callback → account_from_omniauth
+    │
+    ▼
+Consume the intent (atomic GETDEL)
+    ├─ matches the current session account → bind (provider, issuer, uid) to it, re-affirm session
+    ├─ tenant callback on a platform session → refuse (identity_connect_conflict)
+    ├─ session account no longer open       → refuse (identity_connect_conflict)
+    └─ absent / expired / other account     → fall through to the email branches (never bind)
+    │
+    ▼
+Back to /account/settings/security/connections
+```
+
+#### Two signals are required to bind, not one
+
+`logged_in?` alone is **not** connect intent. Tabs share cookies, so an ordinary second-tab or shared-browser SSO *sign-in* arriving on an already-authenticated session would otherwise be routed through the bind path and permanently attach the arriving IdP identity to whoever happens to be signed in. Binding therefore requires **both**:
+
+1. an authenticated session (`session_value`), and
+2. an **account-bound connect intent** established at initiation.
+
+The division of labour: OAuth `state`/CSRF proves *"this browser initiated a request"*; the intent nonce proves *"this browser initiated a **connect** for **this account**"*.
+
+#### The connect-intent nonce (#3859)
+
+| Property | Behavior |
+|----------|----------|
+| Written | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1` |
+| Stored as | `sidecar:<sid>:sso_connect_intent` = the **session account id** (not a bare boolean), short TTL (~5 min — one IdP round-trip) |
+| Consumed | Atomic GETDEL in `account_from_omniauth`, before any email-based branch |
+| Binds when | The consumed value equals the *current* session account id |
+| Abandoned connect | Needs no cleanup — the key expires. Additionally, any **non**-connect SSO initiation deletes a dangling intent, so a later plain `connect=0` callback can never consume one that is still in TTL |
+| Failure mode | Fail-closed — a failed write or a miss means no intent, and no intent means no bind |
+
+It is a sidecar key rather than a field in the session blob on purpose. A blob-resident nonce was only ever cleared at the callback, so an abandoned connect (user cancels at the IdP, the IdP errors, the tab closes) left it live for the *next* callback on that session — even a plain sign-in — to consume and bind on, which is exactly the shared-browser bind the nonce exists to prevent. Blob copies written by pre-#3859 code are discarded unconsumed.
+
+#### Email plays no part in the decision
+
+The connect branch is evaluated **first** — ahead of the trusted-provider auto-link and the H-3 refusal — because a proven session credential outranks the email-only heuristics those branches rely on. Within it, the account is loaded **by session id** (`_account_from_session`, which also applies the open-status filter), never by email. The IdP-supplied email appears only in the audit event, obscured.
+
+That ordering is the point: matching a connect to an email-*located* account would be the pre-account-hijacking anti-pattern — an attacker who controls an IdP that emits a victim's email would be routed to the victim's account. Routing by session leaves the victim untouched no matter what the IdP claims.
+
+"Already linked elsewhere" cannot arise on this path: an existing `(provider, issuer, uid)` row routes the gem to `account_from_omniauth_identity` instead, so this hook is only ever reached for a **new** identity.
+
+#### Refusals
+
+| Condition | Outcome | Audit event |
+|-----------|---------|-------------|
+| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `tenant_surface` |
+| Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
+| Logged in, but no valid intent (second tab, shared browser, intent for a different account) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`) |
+| Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
+
+Refusing rather than falling back matters in the first row: a tenant admin controls their own IdP's assertions, so binding a tenant-issuer identity onto a platform-session account would hand them a login into that account.
+
+#### Managing linked identities (`GET` / `DELETE /auth/identities`)
+
+`apps/web/auth/routes/identities.rb`, mirroring `routes/active_sessions.rb`:
+
+| Endpoint | Purpose | Response |
+|----------|---------|----------|
+| `GET /auth/identities` | List the current account's identities | `{ identities: [{ id, provider, issuer, uid }] }` — `uid` is masked (`abcd…wxyz`, or `***` when ≤ 8 chars); the row `id` is the delete handle, so the full `sub` is never sent to the client. No `created_at`: migrations 006/008 do not add one. |
+| `DELETE /auth/identities/:id` | Remove one identity | `200 { success }`; `404` unknown/not-yours; `409 { error_code: "last_credential" }`; `401` unauthenticated |
+
+**No IDOR by construction.** Every query derives from one dataset pinned to `account_id = rodauth.session_value`, and the dataset is never widened. A cross-account id filters to zero rows and yields `404` — never a delete of someone else's identity. The `:id` segment is an integer matcher, so a non-numeric segment falls through to the router's 404.
+
+**Last-credential guard.** An SSO-only account (no usable password) may not remove its **final** identity — that would lock it out. Accounts that have a password may remove identities freely. The existence check, the guard, and the delete run in **one transaction** with an account-scoped row lock (`for_update.all`), closing a TOCTOU where two concurrent DELETEs for *different* ids of the same SSO-only account could each observe two rows, both pass the guard, and strip every sign-in method. Note the shape: materialize the locked rows and count in Ruby — `identities_ds.for_update.count` emits `SELECT count(*) … FOR UPDATE`, which PostgreSQL rejects. Removals are logged (`SSO identity disconnected`, level `warn`).
+
+**Issuer column.** Binds on this path go through the same `(provider, issuer, uid)` shape as the callback, with `issuer` coerced to the `''` sentinel rather than `NULL` so it matches the issuer-scoped unique index (see migration `008_issuer_scoped_identities.rb`).
+
+#### Platform-only
+
+The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface needs org-membership verification before a tenant-issuer identity may be bound to an account, and is a deliberate follow-up (#3849).
+
 ### Sign-in interstitial (password-challenge linking)
 
 The refusal is the *right* default, but for one common case it is unnecessarily blunt: a user who already has a **password** account and now signs in through SSO for the first time. That user *can* demonstrate a credential — their existing password — so instead of dead-ending them, the callback offers a **sign-in interstitial** that collects and verifies that password before binding the identity. This keeps the invariant intact: email still only *locates* the account; the existing password is the credential that *binds*.
 
-This path needs no operator configuration. It is on by default and is the platform-surface recovery for a password user's first SSO sign-in (the counterpart to the authenticated "Connect SSO" panel in account settings, which serves users who signed in with their password first).
+This path needs no operator configuration. It is on by default and is the platform-surface recovery for a password user's first SSO sign-in (the counterpart to the authenticated [Connected Identities panel](#connected-identities-authenticated-linking-from-account-settings), which serves users who signed in with their password first).
 
 **What happens (unauthenticated callback, existing account, identity not linked, trust flag off):**
 
@@ -246,7 +337,7 @@ The sign-in interstitial above proves ownership with the account's **existing pa
 
 **Confirm logs the user in.** The account is passwordless and clicking the emailed link proves mailbox control — the *same* proof magic-link uses to authenticate — so on success the confirm route establishes the session through Rodauth's own `login` machinery (`rodauth.login('sso_link_confirm')`), not a hand-rolled session. That runs the normal `after_login` path (Redis session blob via `SyncSession` — the real app auth gate — plus `active_sessions` registration and MFA detection). The user lands signed in and their newly linked SSO works next time.
 
-**MFA-safe bind.** SSO logins are MFA-exempt, so if the passwordless account has a pending second factor the identity bind is **deferred** (the login still proceeds to the OTP step, emitting `mfa_required`); completing the bind after MFA is the same follow-up as the password interstitial (#3877). Moot for default installs (MFA off), load-bearing for `AUTH_MFA_ENABLED` deployments.
+**MFA-safe bind, completed after the second factor.** SSO logins are MFA-exempt, so if the passwordless account has a pending second factor the identity bind is **deferred** rather than performed at confirm time — a pre-2FA bind would be an MFA-bypassing login path. The authorized bind is stashed by `Auth::Operations::DeferredSsoBind` in a short-TTL `SessionSidecar` key bound to the partial-MFA session's sid (#3858), the login proceeds to the OTP step (emitting `mfa_required`, logged as `sso_link_verification_deferred_mfa`), and `after_two_factor_authentication` (`config/hooks/mfa.rb`) completes the bind once the second factor succeeds — OTP *or* recovery code. Completion is single-use (atomic GETDEL at the store), account-bound, and audit-and-skip on conflict/mismatch (`sso_deferred_bind_completed`): MFA has already succeeded, so nothing on that path may fail the login. For a login that never went through a deferred branch the check is one Redis GETDEL and no DB access. Moot for default installs (MFA off), load-bearing for `AUTH_MFA_ENABLED` deployments. The password interstitial uses the same machinery (#3877/#3879).
 
 **Platform-only.** Like the password interstitial, mailbox-proof linking is only offered on the platform callback path. A tenant admin controls their own IdP and could otherwise trigger link emails to arbitrary platform addresses, so tenant callbacks keep the unchanged H-3 refusal.
 
