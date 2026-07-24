@@ -236,6 +236,23 @@
     font-family: 'Zilla Slab', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   }
 
+  /*
+   * Restores the pointer cursor on buttons. Tailwind v3's Preflight shipped
+   * `button, [role="button"] { cursor: pointer }`; v4 dropped it to match the
+   * browser default (`cursor: default`), so every button that does not set
+   * `cursor-pointer` itself lost its affordance on upgrade.
+   *
+   * Scoped with `:not(:disabled)` so a disabled button falls through to the
+   * browser default rather than misleadingly showing a pointer. Utilities
+   * still win over this rule: `disabled:cursor-not-allowed` (and any explicit
+   * `cursor-*`) emit into the `utilities` layer, which the cascade orders
+   * after `base` regardless of selector specificity.
+   */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
   h1 {
     @apply mb-3 text-4xl font-bold text-gray-900;
   }
