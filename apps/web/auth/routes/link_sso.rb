@@ -272,6 +272,12 @@ module Auth
             # clear_session (login_session destroys the previous session) and
             # precedes after_login's MFA hand-off (PrepareMfaSession). Stash the
             # deferred bind there so after_two_factor_authentication can complete it.
+            #
+            # VERSION-SENSITIVE: that block position is Rodauth internals (verified
+            # against rodauth 2.44.0, base.rb #login). If an upgrade moves the block
+            # relative to login_session/after_login, the stash is either destroyed
+            # or written too late — caught by the end-to-end example in
+            # spec/integration/full_mfa/ (the deferred bind would never land).
             rodauth.login('password') do
               if deferred_bind
                 Auth::Operations::DeferredSsoBind.defer(session: session, **deferred_bind)
@@ -327,6 +333,14 @@ module Auth
       # pending, so this returns false and the bind proceeds. A read error propagates
       # to the POST handler's rescue (uniform with the unguarded MfaStateChecker call
       # in after_login) rather than binding without certainty of full auth.
+      #
+      # KNOWN TRADEOFF: after_login repeats these two lookups (account_otp_keys,
+      # account_recovery_codes) moments later — a deliberate double-read. This
+      # prediction must happen BEFORE rodauth.login (the bind gate), after_login's
+      # decision is Rodauth's hook boundary, and neither can see the other. The
+      # stale-prediction race between the two reads is self-healed by the no-MFA
+      # branch in hooks/login.rb, so caching the prediction would add coupling to
+      # shave two indexed lookups off an interstitial-only path.
       def link_sso_second_factor_pending?(account_id)
         return false unless rodauth.respond_to?(:otp_auth_route)
 

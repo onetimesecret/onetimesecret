@@ -28,8 +28,18 @@
 #     account is never bound over and never reported as success.
 #
 # The end-to-end MFA path (interstitial -> mfa_required -> OTP -> bound row)
-# needs an AUTH_MFA_ENABLED integration harness — tracked in #3877 alongside
-# the pending example in integration/full/omniauth_signin_interstitial_spec.rb.
+# is covered by the dedicated AUTH_MFA_ENABLED lane:
+# spec/integration/full_mfa/omniauth_signin_interstitial_mfa_spec.rb.
+#
+# KNOWN COVERAGE GAP: `.complete` has a second caller — the no-MFA branch of
+# after_login (hooks/login.rb), which self-heals a stash whose MFA prediction
+# went stale between the interstitial's pre-login check and after_login's
+# decision. That race window cannot be opened deterministically from the
+# integration lane (it would need MfaStateChecker to disagree with itself
+# mid-request), so the self-heal branch is exercised only through this file's
+# contract examples plus the hook's shared safe_execute wrapper. If the
+# self-heal ever regresses, the visible symptom is a stash surviving into an
+# authenticated non-MFA session.
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/deferred_sso_bind_spec.rb
 
@@ -95,6 +105,20 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
         session: session, account_id: account_id, provider: provider, issuer: nil, uid: uid,
       )
       expect(session[described_class::SESSION_KEY]['issuer']).to eq('')
+    end
+
+    it 'stores a string account_id as-is and still matches the integer Rodauth presents' do
+      # Locks BOTH directions of the .to_s coercion: the integer-in case is the
+      # payload-shape example above; here a string goes in, and completion under
+      # the integer account id Rodauth hands the hook still binds.
+      session = {}
+      described_class.defer(
+        session: session, account_id: account_id.to_s, provider: provider, issuer: issuer, uid: uid,
+      )
+      expect(session[described_class::SESSION_KEY]['account_id']).to eq(account_id.to_s)
+
+      expect(complete(session, as_account: account_id)).to eq(:ok)
+      expect(identities.where(criteria).first[:account_id]).to eq(account_id)
     end
   end
 
