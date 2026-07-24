@@ -237,7 +237,7 @@ DB.set("sidecar:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
 ## merged or externalized (merge/commit ignore it), TTL bounded to one IdP
 ## round-trip — the policy the omniauth connect-intent nonce depends on
 SC::FIELDS['sso_connect_intent']
-#=> { ttl: 300, encrypted: true, merge_on_read: false, externalize: false }
+#=> { ttl: 300, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true }
 
 ## the intent nonce round-trips through write + single-use consume: first
 ## consume yields the bound account id and spends the key, second is nil
@@ -245,6 +245,51 @@ SC.write(@sid, 'sso_connect_intent', 42, codec: @codec)
 [SC.consume(@sid, 'sso_connect_intent', codec: @codec),
  SC.consume(@sid, 'sso_connect_intent', codec: @codec)]
 #=> [42, nil]
+
+## link_sso_pending_bind (#3877/#3858) is registered EXPLICIT-USE the same
+## way: encrypted, never merged or externalized, TTL matching awaiting_mfa's
+## 900s MFA completion window — the deferred SSO bind hand-off
+## (Auth::Operations::DeferredSsoBind) depends on this policy
+SC::FIELDS['link_sso_pending_bind']
+#=> { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true }
+
+## the pending-bind tuple round-trips through write + single-use consume with
+## its hash shape and string keys intact (the envelope is JSON both ways)
+@bind = { 'account_id' => '5', 'provider' => 'oidc', 'issuer' => 'https://idp', 'uid' => 'sub-1' }
+SC.write(@sid, 'link_sso_pending_bind', @bind, codec: @codec)
+[SC.consume(@sid, 'link_sso_pending_bind', codec: @codec),
+ SC.consume(@sid, 'link_sso_pending_bind', codec: @codec)]
+#=> [@bind, nil]
+
+# ---- inflight_fields: the destroyed-with-in-flight-state probe ------------
+
+## inflight_fields reports destroy_warn fields holding a live TRUTHY value —
+## the probe behind delete_session's destroyed-with-in-flight-state warning
+## (the tripwire for the sid-stability assumption the hand-off fields ride on)
+SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
+SC.write(@sid, 'link_sso_pending_bind', @bind, codec: @codec)
+SC.inflight_fields(@sid, codec: @codec).sort
+#=> ['awaiting_mfa', 'link_sso_pending_bind']
+
+## TRUTHY is the line, not key existence: a stored FALSY value is healthy
+## residue, not an uncompleted hand-off — e.g. an awaiting_mfa=false parked
+## by a pre-absent_when_falsy worker (rolling deploy) that no newer commit
+## has converged to a DEL yet — and must NOT read as in-flight, else those
+## logouts would fire the warning and drown the signal
+SC.write(@sid, 'awaiting_mfa', false, codec: @codec)
+SC.inflight_fields(@sid, codec: @codec)
+#=> ['link_sso_pending_bind']
+
+## non-destroy_warn fields never appear, however live: domain_context is
+## routinely live on healthy sessions and losing it costs a UI hint, not a
+## hand-off
+SC.write(@sid, 'domain_context', 'example.com', codec: @codec)
+SC.inflight_fields(@sid, codec: @codec)
+#=> ['link_sso_pending_bind']
+
+## a malformed sid reads as nothing in flight, and purge clears the probe
+[SC.inflight_fields('nothex', codec: @codec), SC.purge(@sid) > 0, SC.inflight_fields(@sid, codec: @codec)]
+#=> [[], true, []]
 
 # ---- middleware hooks: commit / merge -----------------------------------
 
@@ -276,11 +321,13 @@ SC.write(@sid, 'sso_connect_intent', 42, codec: @codec)
 #=> [false, true]
 
 ## ...and the next healthy commit HEALS the stale sidecar from the blob copy —
-## the documented one-cycle degradation, not a permanent lockout: the sidecar
-## now reads back false, not the stale true
-SC.commit(@sid, @conflict[:data], merged: @conflict[:fields], codec: @codec)
-SC.read(@sid, 'awaiting_mfa', codec: @codec)
-#=> false
+## the documented one-cycle degradation, not a permanent lockout. awaiting_mfa
+## is absent_when_falsy (every reader treats absence as false), so the heal is
+## a DEL, not a re-SET: the stale true is gone and the field has converged to
+## absent everywhere instead of a parked false refreshed on every commit
+@healed = SC.commit(@sid, @conflict[:data], merged: @conflict[:fields], codec: @codec)
+[SC.read(@sid, 'awaiting_mfa', codec: @codec), DB.exists(@key_mfa), @healed.key?('awaiting_mfa')]
+#=> [nil, 0, false]
 
 ## commit with the merged stash translates an app-side deletion into a sidecar
 ## DEL: awaiting_mfa was merged in, then deleted before write-back
@@ -293,6 +340,27 @@ DB.exists(@key_mfa)
 SC.commit(@sid, { 'domain_context' => nil }, codec: @codec)
 DB.exists(@key_dc)
 #=> 0
+
+## awaiting_mfa is registered absent_when_falsy: falsy-is-absent is a REGISTRY
+## policy, safe only because every reader treats absence as false (the M-11
+## guard checks `== true`) — it is NOT the default for externalized fields
+[SC::FIELDS['awaiting_mfa'][:absent_when_falsy], SC::FIELDS['domain_context'][:absent_when_falsy]]
+#=> [true, nil]
+
+## for an absent_when_falsy field, committing a present FALSE is also a
+## DELETE, not a parked sidecar key: the healing false the MFA-success hook
+## writes converges to absent-everywhere on the next healthy commit instead
+## of being re-SET with a fresh TTL on every request for the session's life
+SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
+@false_out = SC.commit(@sid, { 'account_id' => 7, 'awaiting_mfa' => false }, codec: @codec)
+[@false_out, DB.exists(@key_mfa)]
+#=> [{ 'account_id' => 7 }, 0]
+
+## a falsy commit for a field WITHOUT the policy still SETs: domain_context
+## has no falsy-is-absent contract, so an explicit false round-trips intact
+SC.commit(@sid, { 'domain_context' => false }, codec: @codec)
+SC.read(@sid, 'domain_context', codec: @codec)
+#=> false
 
 ## a declared-but-not-externalized field (_flash) stays in the blob hash —
 ## commit never touches it
