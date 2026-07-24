@@ -209,8 +209,14 @@ module Auth::Config::Hooks
           correlation_id: correlation_id,
         )
 
-        # Clear awaiting_mfa flag
-        session[:awaiting_mfa] = false
+        # Clear awaiting_mfa flag.
+        # String key deliberately: BaseSessionAuthStrategy enforces MFA by reading
+        # session['awaiting_mfa'] (a symbol :awaiting_mfa would silently never
+        # match). SyncSession above already deletes both key forms, but it runs
+        # inside safe_execute and swallows errors — so on a sync failure this line
+        # is the only remaining clear, and it must target the string key or the
+        # user stays locked in the awaiting-MFA state after completing MFA.
+        session['awaiting_mfa'] = false
 
         # Clean up correlation ID after successful completion
         session.delete(:auth_correlation_id)
