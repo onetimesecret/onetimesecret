@@ -4,10 +4,16 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
-import { createApiResponseSchema } from '@/schemas/api/base';
+import {
+  colonelStripeOrganizationSchema,
+  colonelStripeOrganizationsDetailsSchema,
+  colonelStripeOrganizationsResponseSchema,
+  type ColonelStripeOrganization,
+  type ColonelStripeOrganizationsResponse,
+  type StripeOrganizationsPageMeta,
+} from '@/schemas/api/internal/responses/colonel-billing';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { z } from 'zod';
 
 /**
  * Per-resource admin store for the billing screen's Stripe-customer roster.
@@ -28,78 +34,24 @@ import { z } from 'zod';
 // Response contract
 // ============================================================================
 //
-// TEMPORARY HOME. These schemas belong beside the rest of the billing contracts
-// in `src/schemas/api/internal/responses/colonel-billing.ts`; they live here
-// only because that file is owned by a concurrent change. See the handoff note
-// in the PR — move them (re-exporting the types) once the endpoint lands.
-//
-// GET /api/colonel/billing/stripe-organizations → ListStripeOrganizations
-//
-// Every field except the two identity keys is `.nullish()` on purpose: the
-// endpoint is landing concurrently, and a lenient row shape means a partial or
-// still-evolving payload renders a degraded row rather than blanking the whole
-// table through a `gracefulParse` failure.
+// GET /api/colonel/billing/stripe-organizations → ListStripeOrganizations,
+// whose `SCHEMAS = { response: 'colonelStripeOrganizations' }` resolves through
+// the registry to the schema imported below. The contract itself lives beside
+// the other billing contracts in the schemas tree (the OpenAPI scanner asserts
+// every declared SCHEMA constant resolves); it is re-exported here so existing
+// consumers keep importing from the store.
 
-/** One organization that has a Stripe customer id. */
-export const colonelStripeOrganizationSchema = z.object({
-  /** The organization's PUBLIC id — routes to /colonel/organizations/:id. */
-  extid: z.string(),
-  /** The Stripe customer id (`cus_…`) — the index field this list is keyed by. */
-  stripe_customer_id: z.string(),
-  org_id: z.string().nullish(),
-  display_name: z.string().nullish(),
-  owner_email: z.string().nullish(),
-  billing_email: z.string().nullish(),
-  planid: z.string().nullish(),
-  stripe_subscription_id: z.string().nullish(),
-  subscription_status: z.string().nullish(),
-  subscription_period_end: z.string().nullish(),
-  sync_status: z.string().nullish(),
-});
+export {
+  colonelStripeOrganizationSchema,
+  colonelStripeOrganizationsDetailsSchema,
+  colonelStripeOrganizationsResponseSchema,
+};
 
-/**
- * The canonical four-field pagination envelope ({@link PageMeta}) plus the two
- * bound signals this index-backed read carries:
- *
- * - `capped`      the HSCAN hit its entry bound, so `total_count` UNDERSTATES
- *                 the real population. Never render "showing X of Y" as exact.
- * - `stale_count` index entries on THIS page whose organization no longer
- *                 loads; they are dropped, so a page can be short.
- *
- * Both are optional: they are read wherever the adapter puts them (pagination
- * envelope or the details root — see {@link colonelStripeOrganizationsDetailsSchema}).
- */
-const stripeOrganizationsPaginationSchema = z.object({
-  page: z.number(),
-  per_page: z.number(),
-  total_count: z.number(),
-  total_pages: z.number(),
-  capped: z.boolean().optional(),
-  stale_count: z.number().optional(),
-});
-
-export const colonelStripeOrganizationsDetailsSchema = z.object({
-  organizations: z.array(colonelStripeOrganizationSchema),
-  pagination: stripeOrganizationsPaginationSchema,
-  /** Server echo of the applied filters. Optional — never read for state. */
-  filters: z.object({ search: z.string().nullish() }).optional(),
-  // Accepted at the details root too, since the HTTP adapter for this op is
-  // landing concurrently and may hang the bound signals here instead.
-  capped: z.boolean().optional(),
-  stale_count: z.number().optional(),
-});
-
-export type StripeOrganizationsPageMeta = z.infer<typeof stripeOrganizationsPaginationSchema>;
-
-export const colonelStripeOrganizationsResponseSchema = createApiResponseSchema(
-  z.object({}),
-  colonelStripeOrganizationsDetailsSchema
-);
-
-export type ColonelStripeOrganization = z.infer<typeof colonelStripeOrganizationSchema>;
-export type ColonelStripeOrganizationsResponse = z.infer<
-  typeof colonelStripeOrganizationsResponseSchema
->;
+export type {
+  ColonelStripeOrganization,
+  ColonelStripeOrganizationsResponse,
+  StripeOrganizationsPageMeta,
+};
 
 /** Server-side filters the endpoint honours. */
 export interface StripeOrganizationFilters {
