@@ -94,10 +94,10 @@ anything to do.
 
 The compose files default `OTS_IMAGE_TAG` to a pinned release — the same
 version the root README's `docker run` quick start uses — so a fresh
-`docker compose up` is reproducible. Because pre-1.0 minor releases can
-carry breaking changes, we recommend pinning a specific `vX.Y.Z` tag
-rather than a moving tag like `latest`. Override it in `.env` or inline
-to run a different release:
+`docker compose up` is reproducible. Because releases before 1.0 can
+introduce breaking changes between minor versions, we recommend pinning a
+specific `vX.Y.Z` tag rather than a moving tag like `latest`. Override it
+in `.env` or inline to run a different release:
 
 ```bash
 OTS_IMAGE_TAG=v0.26.0 docker compose up

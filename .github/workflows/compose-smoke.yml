@@ -16,16 +16,16 @@
 #                      Caddy. Source-built so it guards the repo's Dockerfile
 #                      and compose wiring together (and the /app/data named-
 #                      volume ownership contract), not last release's image.
-#   full-stack-pinned  (weekly cron + manual): bring up the full stack with NO
-#                      OTS_IMAGE_TAG override, so it pulls the PUBLISHED pinned
-#                      image the compose default names and boots it against the
-#                      current compose file. full-stack-smoke builds from source
-#                      and so can't see when a pinned release predates the
-#                      compose file's runtime contract (#3892 — v0.25.11 + the
-#                      /app/data named volume = root-owned mount, sqlite boot
-#                      migration can't write). Cron/manual, not PR: a release PR
-#                      may bump the pin to a tag that isn't published yet (the
-#                      static check-version-pins.sh guard covers PR-time drift).
+#   app-boot-pinned    (weekly cron + manual): boot the app from the full
+#                      compose config with NO OTS_IMAGE_TAG override, so it
+#                      pulls the PUBLISHED pinned image the default names and
+#                      boots it against the current compose file. full-stack-
+#                      smoke builds from source and so can't see when a pinned
+#                      release predates the compose file's runtime contract
+#                      (#3892 — v0.25.11 + the /app/data named volume = root-
+#                      owned mount, sqlite boot migration can't write). Cron/
+#                      manual, not PR: a release PR may bump the pin to a tag
+#                      not published yet (check-version-pins.sh covers PR drift).
 #   docker-run-readme  (weekly cron + manual): the README `docker run` quick
 #                      start, verbatim, against the exact published tag the
 #                      README shows — the only thing that catches "the docs
@@ -141,35 +141,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      # Same interpolation story as compose-smoke above: SECRET into the job
-      # env for `${SECRET:?}` interpolation, repo-root .env for `env_file:`.
-      # This job also runs AUTHENTICATION_MODE=full (Rodauth), which enables
-      # rodauth-tools' hmac_secret_guard and account_id_obfuscation — both
-      # fail-closed in production (unset RACK_ENV counts as production) when
-      # AUTH_SECRET / ACCOUNT_ID_SECRET are blank, so seed those into the job
-      # env too (docker-compose.full.yml interpolates them the same way as
-      # SECRET, via `${AUTH_SECRET:-}` / `${ACCOUNT_ID_SECRET:-}`).
-      - name: Seed SECRET (interpolation) and .env (env_file target)
-        run: |
-          secret="$(openssl rand -hex 32)"
-          auth_secret="$(openssl rand -hex 32)"
-          account_id_secret="$(openssl rand -hex 32)"
-          echo "SECRET=$secret" >> "$GITHUB_ENV"
-          echo "AUTH_SECRET=$auth_secret" >> "$GITHUB_ENV"
-          echo "ACCOUNT_ID_SECRET=$account_id_secret" >> "$GITHUB_ENV"
-          echo "SECRET=$secret" > .env
-          # H-2: VALKEY_URL / maindb requirepass and RabbitMQ user/pass are now
-          # ${VAR:?...} fail-fast required. Supply throwaways so `config`/`build`/
-          # `up` interpolate (both $GITHUB_ENV for interpolation and .env for
-          # env_file: at container runtime).
-          valkey_password="$(openssl rand -hex 32)"
-          rabbitmq_pass="$(openssl rand -hex 16)"
-          echo "VALKEY_PASSWORD=$valkey_password" >> "$GITHUB_ENV"
-          echo "RABBITMQ_USER=ots" >> "$GITHUB_ENV"
-          echo "RABBITMQ_PASS=$rabbitmq_pass" >> "$GITHUB_ENV"
-          echo "VALKEY_PASSWORD=$valkey_password" >> .env
-          echo "RABBITMQ_USER=ots" >> .env
-          echo "RABBITMQ_PASS=$rabbitmq_pass" >> .env
+      # Seed throwaway secrets into $GITHUB_ENV (compose interpolation) and
+      # repo-root .env (the `env_file:` target). Shared with app-boot-pinned;
+      # see the script header for what each target covers and why full auth
+      # mode needs AUTH_SECRET / ACCOUNT_ID_SECRET.
+      - name: Seed throwaway secrets (compose interpolation + .env)
+        run: bash scripts/test-install/seed-compose-env.sh
 
       # Build the app image FROM SOURCE via the same bake config releases
       # use, tagged so the compose default `onetimesecret/onetimesecret:
@@ -271,8 +248,8 @@ jobs:
         if: always()
         run: docker compose -f docker/compose/docker-compose.full.yml down -v
 
-  full-stack-pinned:
-    name: docker compose up (full, pinned image)
+  app-boot-pinned:
+    name: docker compose up (app boot, pinned image)
     # Pulls the PUBLISHED image the compose default names; on a release PR that
     # bumps the pin, that tag may not exist yet — so cron/manual only, like
     # docker-run-readme. check-version-pins.sh is the PR-time drift guard.
@@ -283,27 +260,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      # Same interpolation + fail-fast story as full-stack-smoke: SECRET into
-      # the job env for `${SECRET:?}`, repo-root .env for `env_file:`, plus the
-      # full-mode secrets (AUTH_SECRET / ACCOUNT_ID_SECRET fail closed in
-      # production) and the ${VAR:?} Valkey/RabbitMQ credentials.
-      - name: Seed SECRET (interpolation) and .env (env_file target)
-        run: |
-          secret="$(openssl rand -hex 32)"
-          auth_secret="$(openssl rand -hex 32)"
-          account_id_secret="$(openssl rand -hex 32)"
-          echo "SECRET=$secret" >> "$GITHUB_ENV"
-          echo "AUTH_SECRET=$auth_secret" >> "$GITHUB_ENV"
-          echo "ACCOUNT_ID_SECRET=$account_id_secret" >> "$GITHUB_ENV"
-          echo "SECRET=$secret" > .env
-          valkey_password="$(openssl rand -hex 32)"
-          rabbitmq_pass="$(openssl rand -hex 16)"
-          echo "VALKEY_PASSWORD=$valkey_password" >> "$GITHUB_ENV"
-          echo "RABBITMQ_USER=ots" >> "$GITHUB_ENV"
-          echo "RABBITMQ_PASS=$rabbitmq_pass" >> "$GITHUB_ENV"
-          echo "VALKEY_PASSWORD=$valkey_password" >> .env
-          echo "RABBITMQ_USER=ots" >> .env
-          echo "RABBITMQ_PASS=$rabbitmq_pass" >> .env
+      # Shared with full-stack-smoke — same $GITHUB_ENV + .env seeding, incl.
+      # the full-mode AUTH_SECRET / ACCOUNT_ID_SECRET. See the script header.
+      - name: Seed throwaway secrets (compose interpolation + .env)
+        run: bash scripts/test-install/seed-compose-env.sh
 
       # No OTS_IMAGE_TAG override and no bake: compose resolves the pinned
       # default and pulls it from the registry (--quiet-pull). Bring up `app`
