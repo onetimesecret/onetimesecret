@@ -35,6 +35,10 @@
 #        -> account_from_omniauth returns the SESSION account, the gem persists
 #           the (provider, issuer, uid) row bound to it, and the
 #           :omniauth_identity_connected warn event fires. No refusal.
+#   1b. logged-in + connect intent, IdP asserts NO email claim at all
+#        -> still binds on (provider, issuer, uid). The absence of an email
+#           cannot block a bind that never consults one; the invalid_email
+#           refusal is create-path-only and must not be reachable here.
 #   2. logged-in + connect intent, IdP asserts a DIFFERENT account's email
 #        -> binds to the SESSION account anyway; the other (victim) account gets
 #           NO row and is untouched; no duplicate account. :omniauth_identity_
@@ -145,16 +149,28 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     header 'Content-Length', nil
   end
 
+  # email: nil models an IdP that asserts NO email claim. The key is OMITTED
+  # from info/raw_info rather than set to nil — that is what a minimal-scope
+  # OIDC response actually looks like, and it makes omniauth_email nil via the
+  # gem's `omniauth_info[info_key] if omniauth_info` accessor
+  # (rodauth-omniauth 0.6.2 omniauth_base.rb:69).
   def setup_mock_auth(email:, uid:, provider: :oidc)
+    info     = { name: 'Connect User' }
+    raw_info = { sub: uid, name: 'Connect User' }
+    if email
+      info     = info.merge(email: email, email_verified: true)
+      raw_info = raw_info.merge(email: email, email_verified: true)
+    end
+
     OmniAuth.config.test_mode               = true
     OmniAuth.config.allowed_request_methods = [:get, :post]
     OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
       {
         provider: provider.to_s,
         uid: uid,
-        info: { email: email, name: 'Connect User', email_verified: true },
+        info: info,
         credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: { sub: uid, email: email, name: 'Connect User', email_verified: true } },
+        extra: { raw_info: raw_info },
       },
     )
   end
@@ -247,6 +263,94 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
         # Single-use (#3859): the successful bind CONSUMED the nonce (atomic
         # GETDEL) — nothing is left for a later callback to replay.
+        expect(intent_live?(sid)).to be(false),
+          'The consumed intent must not survive the bind'
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 1b — logged-in connect, IdP asserts NO email claim -> still binds
+  # ==========================================================================
+  #
+  # The corollary of "the IdP email plays NO role": if email is not an input to
+  # the bind decision, its ABSENCE cannot block the bind. An IdP scoped to
+  # openid-only (no email/profile) emits an auth hash with no email claim, and
+  # connecting such a provider from account settings must still work — the
+  # session is the authorization, the uid is the identifier.
+  #
+  # This is a REGRESSION GUARD, not a happy-path duplicate. The connect branch
+  # currently survives a nil email only incidentally:
+  #   - normalize_email(nil) -> '' (Utils::Strings, .to_s.strip) rather than a
+  #     raise, and the '' is used ONLY for the obscured audit-log field;
+  #   - the invalid_email refusal lives in before_omniauth_create_account, which
+  #     the gem runs on the CREATE path only — the connect branch returns an
+  #     account, so omniauth_create_account (and that hook) never runs.
+  # Both are one refactor away from breaking: hoisting the email-shape check out
+  # of before_omniauth_create_account, or making normalized_email load-bearing
+  # above the connect branch, would turn every no-email-claim connect into a
+  # /signin?auth_error=invalid_email dead-end with no way to attach the provider.
+  # Nothing else in the suite exercises a nil omniauth_email, so pin it here.
+
+  describe 'logged-in connect, IdP asserts no email claim' do
+    before { enable_platform_fallback }
+
+    it 'binds on the uid alone and never hits the invalid_email refusal' do
+      email      = "connect-noemail-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+
+      csrf_login(email)
+      expect(last_response.status).to be_between(200, 302),
+        "Precondition failed: password login did not succeed (#{last_response.status}: #{last_response.body})"
+
+      accounts_before = auth_db[:accounts].count
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      # THE VARIABLE UNDER TEST: no email claim anywhere in the auth hash.
+      setup_mock_auth(email: nil, uid: uid)
+      begin
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if initiate_sso_connect == 404
+
+        sid = current_sid
+        expect(intent_live?(sid)).to be(true),
+          'Connect initiation must set the intent sidecar key'
+
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
+
+        # The crux: a missing email claim must not be read as an INVALID one.
+        expect(last_response.location.to_s).not_to include('auth_error=invalid_email'),
+          "A connect needs no email claim. Location: #{last_response.location.inspect}"
+        expect(last_response.location.to_s).not_to include('identity_connect_conflict'),
+          "Connect must NOT refuse. Location: #{last_response.location.inspect}"
+        expect(last_response.status).to eq(302),
+          "Expected a post-login redirect, got #{last_response.status}: #{last_response.body}"
+
+        # The bind happened on (provider, issuer, uid) — no email involved.
+        rows = identities.where(provider: 'oidc', uid: uid).all
+        expect(rows.size).to eq(1),
+          "Expected exactly one bound identity row, got #{rows.size}: #{rows.inspect}"
+        expect(rows.first[:account_id]).to eq(account_id),
+          'Bound identity must attach to the already-authenticated account'
+        expect(rows.first[:issuer]).not_to be_nil
+
+        # An emailless callback must never reach the JIT-create path (a nil login
+        # would violate the accounts.email NOT NULL/unique index).
+        expect(auth_db[:accounts].count).to eq(accounts_before),
+          'Connect must NOT create an account'
+
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_identity_connected, hash_including(provider: 'oidc', account_id: account_id))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_invalid_email, anything)
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, anything)
+
         expect(intent_live?(sid)).to be(false),
           'The consumed intent must not survive the bind'
       ensure
