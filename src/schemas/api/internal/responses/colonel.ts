@@ -657,17 +657,27 @@ export const colonelUserBillingSchema = z.object({
  * The `details` payload of GetUserDetails: everything a support agent needs to
  * read out a customer without SSH — secrets (count + items), receipts, orgs,
  * billing and lifetime stats. `count` is authoritative and equals
- * `items.length` (the endpoint sources it from the same bounded SCAN, not the
- * drifting counter). `billing` is optional so pre-billing payloads keep parsing.
+ * `items.length` (the endpoint sources it from the per-owner index page it just
+ * rendered, not from the drifting counter). `billing` is optional so
+ * pre-billing payloads keep parsing.
+ *
+ * `truncated` says the list is a PARTIAL view — more exist than are shown
+ * (another index page, pre-index historical data, a bounded fallback scan that
+ * hit its deadline, or a section that failed to load). The UI must surface it:
+ * a short list that reads as complete is worse than an honest partial one. It
+ * is optional + defaulted so payloads from a server predating the flag parse as
+ * "not truncated" rather than failing validation.
  */
 export const colonelUserDetailsSchema = z.object({
   secrets: z.object({
     count: z.number(),
     items: z.array(colonelUserDetailSecretSchema),
+    truncated: z.boolean().optional().default(false),
   }),
   receipts: z.object({
     count: z.number(),
     items: z.array(colonelUserDetailReceiptSchema),
+    truncated: z.boolean().optional().default(false),
   }),
   organizations: z.array(colonelUserDetailOrganizationSchema),
   billing: colonelUserBillingSchema.optional(),

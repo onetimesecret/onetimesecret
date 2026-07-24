@@ -317,7 +317,15 @@ module Onetime
         # is missed. Anonymous/ownerless creates are skipped inside the helper.
         # This counter drifts UP (no expire/reveal decrement) and is corrected by
         # the nightly SecretCountReconcileJob — see counter_fields.rb.
-        Onetime::Customer.increment_secrets_active(owner_id)
+        #
+        # The same call maintains the owner's per-secret index
+        # (customer:<objid>:secrets, member = secret objid, score = created), so
+        # the colonel customer-detail view can list a customer's secrets without
+        # walking the whole `secret:*:object` keyspace. Index and counter are
+        # written together here so they can only drift together.
+        Onetime::Customer.increment_secrets_active(
+          owner_id, secret_id: secret.objid, score: secret.created
+        )
 
         # Count the creation in today's daily-trend bucket (admin dashboard).
         # Same chokepoint rationale as the counter above; fire-and-forget —

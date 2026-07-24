@@ -17,6 +17,13 @@
    * boundary. Toggling reveal exposes the address plus a copy affordance.
    *
    * Null/empty → an em dash (matches the rest of the admin read-outs).
+   *
+   * CLICK CONTAINMENT: this component is rendered inside CLICKABLE TABLE ROWS
+   * across the console (customers, sessions, organizations), where the row's
+   * `@click` opens a detail drawer. Its interactive controls therefore stop
+   * propagation — revealing or copying an address must not also open the
+   * drawer. The address TEXT deliberately does NOT stop propagation, so
+   * clicking the cell still activates the row like every other cell.
    */
   const props = defineProps<{
     /** The address to display, or null/empty for the em-dash placeholder. */
@@ -90,16 +97,23 @@
       :aria-pressed="revealed"
       data-testid="reveal-email-toggle"
       class="shrink-0 rounded text-gray-400 hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-500 dark:hover:text-gray-200"
-      @click="toggle">
+      @click.stop="toggle">
       <OIcon
         collection="heroicons"
         :name="revealed ? 'eye-slash' : 'eye'"
         size="4" />
     </button>
-    <CopyButton
+    <!-- CopyButton is a shared, app-wide primitive, so containment is applied
+         here (at this component's boundary) rather than changing copy
+         behaviour for every other consumer in the app. -->
+    <span
       v-if="revealed && email"
-      :text="email"
-      :tooltip="t('web.admin.kit.revealEmail.copy')"
-      testid="reveal-email-copy" />
+      class="inline-flex shrink-0"
+      @click.stop>
+      <CopyButton
+        :text="email"
+        :tooltip="t('web.admin.kit.revealEmail.copy')"
+        testid="reveal-email-copy" />
+    </span>
   </span>
 </template>

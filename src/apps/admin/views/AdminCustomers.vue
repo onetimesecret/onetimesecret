@@ -76,6 +76,7 @@
     { key: 'secrets', label: t('web.admin.customers.columns.secrets'), align: 'right' },
     { key: 'created', label: t('web.admin.customers.columns.created') },
     { key: 'lastLogin', label: t('web.admin.customers.columns.lastLogin') },
+    { key: 'actions', label: t('web.admin.customers.columns.actions'), align: 'right' },
   ]);
 
   /** Fetch one server page with the active filters. Errors surface via the store. */
@@ -143,6 +144,11 @@
   // row data already in hand — no second fetch — carries the two row-scoped
   // actions (verify/unverify, purge) in its footer, and offers "Open full page"
   // for the rest (role, plan, suspend, billing) on AdminCustomerDetail.
+  //
+  // The row's `actions` cell ALSO links straight to AdminCustomerDetail for the
+  // operator who already knows they want the full record — see the cell-actions
+  // template. It is a real router-link (middle-click / new-tab must work), not a
+  // second path through this handler.
   const drawerOpen = ref(false);
   const selectedCustomer = ref<ColonelUser | null>(null);
 
@@ -409,6 +415,27 @@
           <span class="text-gray-500 tabular-nums dark:text-gray-400">{{
             row.last_login ? formatDisplayDateTime(row.last_login) : t('web.admin.customers.detail.never')
           }}</span>
+        </template>
+
+        <!-- Row escalation: straight to the full page, skipping the drawer.
+             A real <router-link> (not a JS handler) so middle-click and
+             open-in-new-tab work; @click.stop so it doesn't ALSO open the
+             drawer behind it. Mirrors the domains table's row action. -->
+        <template #cell-actions="{ row }">
+          <div class="flex items-center justify-end">
+            <router-link
+              :to="{ name: 'AdminCustomerDetail', params: { id: row.user_id } }"
+              :data-testid="`customer-detail-${row.user_id}`"
+              :aria-label="t('web.admin.customers.detail.openFullPage')"
+              :title="t('web.admin.customers.detail.openFullPage')"
+              class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400"
+              @click.stop>
+              <OIcon
+                collection="heroicons"
+                name="arrow-right"
+                size="4" />
+            </router-link>
+          </div>
         </template>
       </DataTable>
     </div>

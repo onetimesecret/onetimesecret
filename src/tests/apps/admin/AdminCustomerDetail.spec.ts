@@ -205,6 +205,34 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(wrapper.find('[data-testid="organizations-list"]').text()).toContain('Acme');
     });
 
+    // The endpoint reads a bounded page off the per-owner index, so a short
+    // list is not proof of a short history. `truncated` is how the server says
+    // "this is partial" — the view must never render a partial list as if it
+    // were the whole record.
+    it('says nothing about truncation when the payload is complete', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="secrets-truncated"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="receipts-truncated"]').exists()).toBe(false);
+    });
+
+    it('flags a partial secrets/receipts list when the server truncated it', async () => {
+      const payload = detailPayload();
+      payload.details.secrets.truncated = true;
+      payload.details.receipts.truncated = true;
+      mockApi.get.mockResolvedValue({ data: payload });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="secrets-truncated"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="receipts-truncated"]').exists()).toBe(true);
+      // The rest of the record still renders — truncation is not an error state.
+      expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="secrets-table"]').text()).toContain('sh1');
+    });
+
     it('renders the not-found panel on a 404', async () => {
       mockApi.get.mockRejectedValue(Object.assign(new Error('nf'), { response: { status: 404 } }));
       wrapper = mountView();

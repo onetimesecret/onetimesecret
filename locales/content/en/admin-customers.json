@@ -81,6 +81,10 @@
     "text": "Last login",
     "content_hash": "0d39602d"
   },
+  "web.admin.customers.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
   "web.admin.customers.detail.backToList": {
     "text": "Back to customers",
     "content_hash": "077807fb"
@@ -273,9 +277,17 @@
     "text": "No secrets",
     "content_hash": "c37ab3f7"
   },
+  "web.admin.customers.detail.secrets.partial": {
+    "text": "Partial list — showing the {count} most recent. This customer owns more secrets than are shown here.",
+    "content_hash": "a537c8f3"
+  },
   "web.admin.customers.detail.receipts.empty": {
     "text": "No receipts",
     "content_hash": "fb425a68"
+  },
+  "web.admin.customers.detail.receipts.partial": {
+    "text": "Partial list — showing the {count} most recent. This customer has more receipts than are shown here.",
+    "content_hash": "127fd4db"
   },
   "web.admin.customers.detail.organizations.empty": {
     "text": "No organizations",

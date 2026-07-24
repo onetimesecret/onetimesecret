@@ -919,6 +919,21 @@
             {{ t('web.admin.customers.detail.sections.secrets') }}
             <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.secrets.count }})</span>
           </h3>
+          <!-- The server told us this list is PARTIAL. Say so plainly — the
+               count beside the heading is what is on screen, not the total. -->
+          <p
+            v-if="details.secrets.truncated"
+            class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400"
+            data-testid="secrets-truncated">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              size="4"
+              class="mt-px shrink-0" />
+            <span>{{
+              t('web.admin.customers.detail.secrets.partial', { count: details.secrets.count })
+            }}</span>
+          </p>
         </div>
         <DataTable
           :columns="secretColumns"
@@ -943,6 +958,19 @@
             {{ t('web.admin.customers.detail.sections.receipts') }}
             <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.receipts.count }})</span>
           </h3>
+          <p
+            v-if="details.receipts.truncated"
+            class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400"
+            data-testid="receipts-truncated">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              size="4"
+              class="mt-px shrink-0" />
+            <span>{{
+              t('web.admin.customers.detail.receipts.partial', { count: details.receipts.count })
+            }}</span>
+          </p>
         </div>
         <DataTable
           :columns="receiptColumns"
