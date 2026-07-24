@@ -27,6 +27,9 @@
 #      outcome :ok.
 #   c. A FAILED second-factor attempt binds nothing and does NOT lose the
 #      pending bind — the next successful attempt still completes it.
+#   d. The RECOVERY-CODE second factor completes the bind too:
+#      after_two_factor_authentication is factor-agnostic, so the deferred
+#      bind must land for any factor Rodauth accepts, not just TOTP.
 #
 # WHY A DEDICATED LANE: Auth::Config is one-shot per process
 # (apps/web/auth/docs/auth-config-one-shot.md) — the shared full-mode
@@ -176,7 +179,9 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
   #            HMAC'd key the authenticator uses), otp_raw_secret }
   #   phase 2: POST /auth/otp-setup {otp_setup, otp_raw_secret, otp_code,
   #            password}                          -> 200, recovery codes added
-  # Returns the authenticator secret (the otp_setup value) for computing codes.
+  # Returns [authenticator secret (the otp_setup value), recovery codes] —
+  # auto_add_recovery_codes? is on, and the app's after hook surfaces the
+  # generated codes in the phase-2 JSON response (hooks/mfa.rb).
   # ==========================================================================
 
   def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD)
@@ -202,19 +207,40 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
     )
     expect(last_response.status).to eq(200),
       "Phase-2 otp-setup should confirm the secret (#{last_response.status}: #{last_response.body})"
+    recovery_codes = Array(json_body['recovery_codes'])
 
     # Drop the setup session entirely: the interstitial flow below must start
     # from an UNAUTHENTICATED browser, like a user on a fresh device.
     clear_cookies
-    secret
+    [secret, recovery_codes]
   end
 
   # Rodauth's OTP reuse guard (otp_update_last_use) rejects any code within one
   # interval (30s) of last_use — and setup just stamped last_use=now. Rewind it
   # so the auth step can accept a fresh code immediately instead of sleeping
   # out the window in the test.
+  #
+  # One rewind covers a failed-then-retry sequence: Rodauth stamps last_use
+  # only on SUCCESSFUL validation (`otp_valid_code? && otp_update_last_use`
+  # short-circuits), so a rejected code leaves the rewound value in place and
+  # the subsequent good code is still accepted without a second rewind.
   def allow_immediate_otp_reuse!(account_id)
     auth_db[:account_otp_keys].where(id: account_id).update(last_use: Time.now - 300)
+  end
+
+  # A code guaranteed to be rejected RIGHT NOW: Rodauth validates with
+  # otp_drift (30s), so the previous and next interval's codes are accepted
+  # too — a candidate must differ from all three, not just the current code.
+  # Counter-based so every candidate stays six digits by construction (at most
+  # four iterations: the valid set has exactly three elements).
+  def wrong_otp_code(secret)
+    totp  = ROTP::TOTP.new(secret)
+    now   = Time.now.to_i
+    valid = [totp.at(now - 30), totp.at(now), totp.at(now + 30)]
+    (0..valid.size).each do |i|
+      candidate = i.to_s.rjust(6, '0')
+      return candidate unless valid.include?(candidate)
+    end
   end
 
   # Drive the SSO callback for an OTP-enabled password account up to the point
@@ -267,7 +293,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
     email      = "mfa-ok-#{SecureRandom.hex(6)}@company.example.com"
     uid        = "sub-#{SecureRandom.hex(8)}"
     account_id = seed_account_with_password(email)
-    secret     = provision_totp(email)
+    secret, _codes = provision_totp(email)
 
     allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
@@ -302,19 +328,42 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
     email      = "mfa-retry-#{SecureRandom.hex(6)}@company.example.com"
     uid        = "sub-#{SecureRandom.hex(8)}"
     account_id = seed_account_with_password(email)
-    secret     = provision_totp(email)
+    secret, _codes = provision_totp(email)
+
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
     begin
-      password_step_expecting_mfa(email: email, uid: uid, account_id: account_id)
+      issuer, _token = password_step_expecting_mfa(email: email, uid: uid, account_id: account_id)
 
       # A wrong code must not complete the login — and must not bind.
       allow_immediate_otp_reuse!(account_id)
-      good_code  = ROTP::TOTP.new(secret).now
-      wrong_code = good_code == '000000' ? '000001' : '000000'
-      json_post('/auth/otp-auth', otp_code: wrong_code)
-      expect(last_response.status).not_to eq(200)
+      json_post('/auth/otp-auth', otp_code: wrong_otp_code(secret))
+
+      # Pin the SPECIFIC rejection, not just "non-200": Rodauth's OTP failure
+      # path is 401 (invalid_key_error_status) with a field-error on the OTP
+      # param. A 404 from a routing regression or a 401 from an earlier guard
+      # (require_login, lockout) would prove nothing about the MFA gate and
+      # must not pass this example vacuously.
+      expect(last_response.status).to eq(401),
+        "A wrong OTP code must be rejected with 401, got #{last_response.status}: #{last_response.body}"
+      body = json_body
+      expect(body['field-error']).to be_an(Array),
+        "Expected Rodauth's field-error on the OTP param, got: #{body.inspect}"
+      expect(body['field-error'].first).to eq('otp_code')
+      expect(body['error']).not_to be_nil
+
+      # The rejection came from OTP VALIDATION itself — the app's
+      # after_otp_authentication_failure hook fired for this account.
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:mfa_verification_failure, hash_including(account_id: account_id))
+
+      # Positive intermediate state: nothing bound anywhere, and the deferred
+      # completion hook never ran (not even with a non-:ok outcome).
       expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
         'A failed second factor must not bind the identity'
+      expect(identities.where(account_id: account_id).count).to eq(0)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:sso_deferred_bind_completed, any_args)
 
       # The pending bind survives the failed attempt: the next successful
       # factor still completes it (the stash is consumed on SUCCESS, not on
@@ -326,6 +375,47 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
       rows = identities.where(provider: 'oidc', uid: uid).all
       expect(rows.size).to eq(1)
       expect(rows.first[:account_id]).to eq(account_id)
+      expect(rows.first[:issuer]).to eq(issuer)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:sso_deferred_bind_completed, hash_including(outcome: :ok, account_id: account_id))
+        .once
+    ensure
+      teardown_mock_auth
+    end
+  end
+
+  # ==========================================================================
+  # (d) the recovery-code factor completes the bind too
+  # ==========================================================================
+
+  it 'completes the deferred bind when the second factor is a recovery code' do
+    email      = "mfa-recovery-#{SecureRandom.hex(6)}@company.example.com"
+    uid        = "sub-#{SecureRandom.hex(8)}"
+    account_id = seed_account_with_password(email)
+    _secret, recovery_codes = provision_totp(email)
+    expect(recovery_codes).not_to be_empty,
+      'Precondition failed: phase-2 otp-setup should surface auto-generated recovery codes'
+
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+    begin
+      issuer, _token = password_step_expecting_mfa(email: email, uid: uid, account_id: account_id)
+
+      # after_two_factor_authentication fires for ANY accepted factor, so the
+      # deferred bind must land via /auth/recovery-auth exactly as via OTP —
+      # this locks in the hook's factor-agnostic placement (hooks/mfa.rb).
+      json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
+      expect(last_response.status).to eq(200),
+        "Recovery-code auth should succeed, got #{last_response.status}: #{last_response.body}"
+
+      rows = identities.where(provider: 'oidc', uid: uid).all
+      expect(rows.size).to eq(1), "Expected exactly one bound row, got #{rows.inspect}"
+      expect(rows.first[:account_id]).to eq(account_id)
+      expect(rows.first[:issuer]).to eq(issuer)
+
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:sso_deferred_bind_completed, hash_including(outcome: :ok, account_id: account_id))
+        .once
     ensure
       teardown_mock_auth
     end

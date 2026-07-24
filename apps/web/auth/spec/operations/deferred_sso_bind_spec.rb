@@ -38,7 +38,19 @@
 #     account is never bound over and never reported as success.
 #
 # The end-to-end MFA path (interstitial -> mfa_required -> OTP -> bound row)
-# is covered by integration/full_mfa/omniauth_signin_interstitial_mfa_spec.rb.
+# is covered by the dedicated AUTH_MFA_ENABLED lane:
+# spec/integration/full_mfa/omniauth_signin_interstitial_mfa_spec.rb.
+#
+# KNOWN COVERAGE GAP: `.complete` has a second caller — the no-MFA branch of
+# after_login (hooks/login.rb), which self-heals a stash whose MFA prediction
+# went stale between the interstitial's pre-login check and after_login's
+# decision. That race window cannot be opened deterministically from the
+# integration lane (it would need MfaStateChecker to disagree with itself
+# mid-request), so the self-heal branch is exercised only through this file's
+# contract examples plus the hook's shared safe_execute wrapper. If the
+# self-heal ever regresses, the visible symptom is a bind that silently never
+# lands for stale-prediction logins (the sidecar stash expires with its 900s
+# TTL either way).
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/deferred_sso_bind_spec.rb
 
@@ -166,6 +178,17 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
       defer(issuer_value: nil)
 
       expect(codec.decode(redis.get(key))['v']['issuer']).to eq('')
+    end
+
+    it 'stores a string account_id as-is and still matches the integer Rodauth presents' do
+      # Locks BOTH directions of the .to_s coercion: the integer-in case is the
+      # envelope-shape example above; here a string goes in, and completion under
+      # the integer account id Rodauth hands the hook still binds.
+      defer(for_account: account_id.to_s)
+      expect(codec.decode(redis.get(key))['v']['account_id']).to eq(account_id.to_s)
+
+      expect(complete(as_account: account_id)).to eq(:ok)
+      expect(identities.where(criteria).first[:account_id]).to eq(account_id)
     end
 
     it 'returns false (and writes nothing) when no usable sid is available' do
