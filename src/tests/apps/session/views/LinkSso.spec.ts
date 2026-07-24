@@ -368,4 +368,71 @@ describe('LinkSso', () => {
       });
     });
   });
+
+  describe('Accessibility', () => {
+    // Focus assertions need a real document connection.
+    const mountAttached = () =>
+      mount(LinkSso, { global: { plugins: [i18n] }, attachTo: document.body });
+
+    it('moves focus to the dead-end panel heading when the token expires mid-flow', async () => {
+      mockState.challenge.value = makeChallenge();
+      mockState.verifyLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'invalid_token';
+        mockState.error.value = 'web.link_sso.errors.invalid_token';
+        return null;
+      });
+      wrapper = mountAttached();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      // The form that held focus is unmounted; without this, focus falls to
+      // <body> and the refusal is never announced.
+      const heading = wrapper.find('#link-sso-unavailable-title');
+      expect(heading.exists()).toBe(true);
+      expect(document.activeElement).toBe(heading.element);
+    });
+
+    it('keeps a single live region mounted so status changes are announced', async () => {
+      mockState.challenge.value = makeChallenge();
+      wrapper = mountComponent();
+      await flushPromises();
+
+      // Present (and empty) BEFORE the status changes — a region inserted with
+      // its text already in place is not reliably announced.
+      const region = wrapper.find('[data-testid="link-sso-status"]');
+      expect(region.exists()).toBe(true);
+      expect(region.attributes('aria-live')).toBe('polite');
+      expect(region.text()).toBe('');
+
+      mockState.isLoading.value = true;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="link-sso-status"]').text()).toBe(
+        'web.COMMON.form_processing'
+      );
+    });
+
+    it('gives every action a pointer cursor (Tailwind v4 drops the button default)', async () => {
+      mockState.challenge.value = makeChallenge();
+      wrapper = mountComponent();
+      await flushPromises();
+
+      for (const testid of ['link-sso-submit', 'link-sso-cancel']) {
+        expect(wrapper.find(`[data-testid="${testid}"]`).classes()).toContain('cursor-pointer');
+      }
+
+      wrapper.unmount();
+      mockState.challenge.value = null;
+      mockState.fetchChallenge.mockResolvedValue(null);
+      wrapper = mountComponent();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="link-sso-unavailable-action"]').classes()).toContain(
+        'cursor-pointer'
+      );
+    });
+  });
 });
