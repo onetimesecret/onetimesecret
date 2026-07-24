@@ -237,7 +237,7 @@ DB.set("sidecar:#{@sid2}:awaiting_mfa", DB.get(@key_mfa))
 ## merged or externalized (merge/commit ignore it), TTL bounded to one IdP
 ## round-trip — the policy the omniauth connect-intent nonce depends on
 SC::FIELDS['sso_connect_intent']
-#=> { ttl: 300, encrypted: true, merge_on_read: false, externalize: false }
+#=> { ttl: 300, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true }
 
 ## the intent nonce round-trips through write + single-use consume: first
 ## consume yields the bound account id and spends the key, second is nil
@@ -251,7 +251,7 @@ SC.write(@sid, 'sso_connect_intent', 42, codec: @codec)
 ## 900s MFA completion window — the deferred SSO bind hand-off
 ## (Auth::Operations::DeferredSsoBind) depends on this policy
 SC::FIELDS['link_sso_pending_bind']
-#=> { ttl: 900, encrypted: true, merge_on_read: false, externalize: false }
+#=> { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true }
 
 ## the pending-bind tuple round-trips through write + single-use consume with
 ## its hash shape and string keys intact (the envelope is JSON both ways)
@@ -260,6 +260,34 @@ SC.write(@sid, 'link_sso_pending_bind', @bind, codec: @codec)
 [SC.consume(@sid, 'link_sso_pending_bind', codec: @codec),
  SC.consume(@sid, 'link_sso_pending_bind', codec: @codec)]
 #=> [@bind, nil]
+
+# ---- inflight_fields: the destroyed-with-in-flight-state probe ------------
+
+## inflight_fields reports destroy_warn fields holding a live TRUTHY value —
+## the probe behind delete_session's destroyed-with-in-flight-state warning
+## (the tripwire for the sid-stability assumption the hand-off fields ride on)
+SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
+SC.write(@sid, 'link_sso_pending_bind', @bind, codec: @codec)
+SC.inflight_fields(@sid, codec: @codec).sort
+#=> ['awaiting_mfa', 'link_sso_pending_bind']
+
+## TRUTHY is the line, not key existence: every authenticated login PARKS
+## awaiting_mfa=false (healthy state, refreshed each commit), so a parked
+## false must NOT read as in-flight — else every logout would fire the warning
+SC.write(@sid, 'awaiting_mfa', false, codec: @codec)
+SC.inflight_fields(@sid, codec: @codec)
+#=> ['link_sso_pending_bind']
+
+## non-destroy_warn fields never appear, however live: domain_context is
+## routinely live on healthy sessions and losing it costs a UI hint, not a
+## hand-off
+SC.write(@sid, 'domain_context', 'example.com', codec: @codec)
+SC.inflight_fields(@sid, codec: @codec)
+#=> ['link_sso_pending_bind']
+
+## a malformed sid reads as nothing in flight, and purge clears the probe
+[SC.inflight_fields('nothex', codec: @codec), SC.purge(@sid) > 0, SC.inflight_fields(@sid, codec: @codec)]
+#=> [[], true, []]
 
 # ---- middleware hooks: commit / merge -----------------------------------
 

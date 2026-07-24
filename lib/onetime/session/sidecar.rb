@@ -73,6 +73,16 @@ module Onetime
     #   externalize   — write_session strips it from the blob and owns the
     #                   sidecar key (false = declared/policy-reviewed but still
     #                   blob-resident, or explicit-use only)
+    #   destroy_warn  — in-flight hand-off state: destroying a session while
+    #                   this field holds a live TRUTHY value takes an
+    #                   uncompleted hand-off with it, and the middleware's
+    #                   delete_session logs a warning naming the field (via
+    #                   #inflight_fields). This is the tripwire for the
+    #                   sid-stability assumption the short-TTL hand-off fields
+    #                   ride on: their consume sides cannot log a miss (absence
+    #                   is their common case), so a future refactor that
+    #                   re-keys sessions mid-flow would strand them SILENTLY —
+    #                   except for this warning at the destroy site.
     #
     # ADMISSION RULE (the security contract): a field may set externalize: true
     # ONLY if its absence is the safe state. awaiting_mfa qualifies: with it
@@ -106,11 +116,16 @@ module Onetime
     FIELDS = {
       # 15-minute MFA completion window instead of riding the 24h blob — the
       # point of #3858 for this field. Expiry strands a half-done MFA login as
-      # unauthenticated (user restarts login): fail-closed.
-      'awaiting_mfa'   => { ttl: 900,   encrypted: true,  merge_on_read: true, externalize: true  },
+      # unauthenticated (user restarts login): fail-closed. destroy_warn: true
+      # only fires on a TRUTHY value (an MFA login actually pending) — every
+      # authenticated login PARKS awaiting_mfa=false, which is healthy state,
+      # not an in-flight hand-off.
+      'awaiting_mfa'   => { ttl: 900,   encrypted: true,  merge_on_read: true, externalize: true, destroy_warn: true },
       # Post-AddDomain UI context; cosmetic on expiry. Same value is plaintext
       # in CustomDomain records, so a plaintext envelope leaks nothing new.
-      'domain_context' => { ttl: 3_600, encrypted: false, merge_on_read: true, externalize: true  },
+      # No destroy_warn: routinely live on healthy sessions, and losing it
+      # costs a UI hint, not a hand-off.
+      'domain_context' => { ttl: 3_600, encrypted: false, merge_on_read: true, externalize: true, destroy_warn: false },
       # One-shot Roda flash messages (may embed email addresses — mild PII,
       # hence encrypted). Declared but NOT externalized: the Roda flash plugin
       # writes it mid-request via its own delete-then-rewrite cycle, which must
@@ -121,7 +136,7 @@ module Onetime
       # externalize:false->true flip with no risk of leaving the two flags out
       # of step. (This is why it is neither an externalized field nor an
       # explicit-use field — a third, declared-pending-audit state.)
-      '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false },
+      '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false, destroy_warn: false },
       # #3859: the SSO account-bound connect-intent nonce (value = the session
       # account id). EXPLICIT-USE: written by omniauth_request_validation_phase
       # when a logged-in caller POSTs connect=1, consumed (atomic GETDEL) by
@@ -135,7 +150,7 @@ module Onetime
       # the value is an account id bound to the session — capability-adjacent —
       # and the codec's sid/field binding stops a Redis-writing attacker from
       # replaying one session's intent under another sid.
-      'sso_connect_intent' => { ttl: 300, encrypted: true, merge_on_read: false, externalize: false },
+      'sso_connect_intent' => { ttl: 300, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
       # #3877 (#3840 Phase 4.A): the interstitial's deferred SSO identity bind
       # — the password-proven (account_id, provider, issuer, uid) tuple carried
       # across the MFA hand-off. EXPLICIT-USE: written by the link-sso route
@@ -151,7 +166,7 @@ module Onetime
       # to an account id, and the codec's sid/field binding stops a
       # Redis-writing attacker from replaying one session's pending bind under
       # another sid.
-      'link_sso_pending_bind' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false },
+      'link_sso_pending_bind' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
     }.freeze
 
     # Deterministic key derivation — no stored key names needed, which is what
@@ -258,6 +273,33 @@ module Onetime
 
       db = dbclient || Familia.dbclient
       db.exists(key_for(sid, field)).to_i.positive?
+    end
+
+    # Report which destroy_warn fields currently hold a live TRUTHY value for
+    # this sid — the probe behind the middleware's destroyed-with-in-flight-
+    # state warning (Session#delete_session), the tripwire for the
+    # sid-stability assumption the hand-off fields ride on.
+    #
+    # TRUTHY, not merely present, is the line: several fields PARK a falsy
+    # value on healthy sessions (every authenticated login leaves
+    # awaiting_mfa=false behind, refreshed each commit), so key existence
+    # would flag every logout and drown the signal. One pipelined GET over
+    # the destroy_warn subset; tampered/unauthentic values read as absent,
+    # exactly like #read.
+    #
+    # @return [Array<String>] destroy_warn field names holding a truthy value.
+    def inflight_fields(sid, dbclient: nil, codec: nil)
+      fields = FIELDS.select { |_f, policy| policy[:destroy_warn] }.keys
+      return [] if fields.empty? || !valid_sid?(sid)
+
+      db   = dbclient || Familia.dbclient
+      raws = db.pipelined do |pipe|
+        fields.each { |field| pipe.get(key_for(sid, field)) }
+      end
+
+      fields.zip(raws).select do |field, raw|
+        decode_envelope(sid, field, raw, FIELDS[field], codec)
+      end.map(&:first)
     end
 
     # Delete one field's key.
