@@ -54,7 +54,7 @@ services:
   app:
     # Default tag is kept in lockstep with the README quick-start pin.
     # Bump both together at release time (see docker/README.md).
-    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.25.11}
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.26.1}
     container_name: onetime-app
     depends_on:
       maindb:
@@ -189,7 +189,7 @@ services:
       start_period: 30s
 
   worker-email:
-    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.25.11}
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.26.1}
     container_name: onetime-worker-email
     depends_on:
       maindb:
@@ -232,7 +232,7 @@ services:
       - app-data:/app/data
 
   scheduler:
-    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.25.11}
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.26.1}
     container_name: onetime-scheduler
     depends_on:
       maindb:

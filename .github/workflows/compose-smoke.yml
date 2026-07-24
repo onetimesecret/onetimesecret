@@ -16,6 +16,16 @@
 #                      Caddy. Source-built so it guards the repo's Dockerfile
 #                      and compose wiring together (and the /app/data named-
 #                      volume ownership contract), not last release's image.
+#   full-stack-pinned  (weekly cron + manual): bring up the full stack with NO
+#                      OTS_IMAGE_TAG override, so it pulls the PUBLISHED pinned
+#                      image the compose default names and boots it against the
+#                      current compose file. full-stack-smoke builds from source
+#                      and so can't see when a pinned release predates the
+#                      compose file's runtime contract (#3892 — v0.25.11 + the
+#                      /app/data named volume = root-owned mount, sqlite boot
+#                      migration can't write). Cron/manual, not PR: a release PR
+#                      may bump the pin to a tag that isn't published yet (the
+#                      static check-version-pins.sh guard covers PR-time drift).
 #   docker-run-readme  (weekly cron + manual): the README `docker run` quick
 #                      start, verbatim, against the exact published tag the
 #                      README shows — the only thing that catches "the docs
@@ -252,6 +262,71 @@ jobs:
             exit 1
           fi
           echo "Caddy ingress OK (200)"
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f docker/compose/docker-compose.full.yml logs --no-color
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker/compose/docker-compose.full.yml down -v
+
+  full-stack-pinned:
+    name: docker compose up (full, pinned image)
+    # Pulls the PUBLISHED image the compose default names; on a release PR that
+    # bumps the pin, that tag may not exist yet — so cron/manual only, like
+    # docker-run-readme. check-version-pins.sh is the PR-time drift guard.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # Same interpolation + fail-fast story as full-stack-smoke: SECRET into
+      # the job env for `${SECRET:?}`, repo-root .env for `env_file:`, plus the
+      # full-mode secrets (AUTH_SECRET / ACCOUNT_ID_SECRET fail closed in
+      # production) and the ${VAR:?} Valkey/RabbitMQ credentials.
+      - name: Seed SECRET (interpolation) and .env (env_file target)
+        run: |
+          secret="$(openssl rand -hex 32)"
+          auth_secret="$(openssl rand -hex 32)"
+          account_id_secret="$(openssl rand -hex 32)"
+          echo "SECRET=$secret" >> "$GITHUB_ENV"
+          echo "AUTH_SECRET=$auth_secret" >> "$GITHUB_ENV"
+          echo "ACCOUNT_ID_SECRET=$account_id_secret" >> "$GITHUB_ENV"
+          echo "SECRET=$secret" > .env
+          valkey_password="$(openssl rand -hex 32)"
+          rabbitmq_pass="$(openssl rand -hex 16)"
+          echo "VALKEY_PASSWORD=$valkey_password" >> "$GITHUB_ENV"
+          echo "RABBITMQ_USER=ots" >> "$GITHUB_ENV"
+          echo "RABBITMQ_PASS=$rabbitmq_pass" >> "$GITHUB_ENV"
+          echo "VALKEY_PASSWORD=$valkey_password" >> .env
+          echo "RABBITMQ_USER=ots" >> .env
+          echo "RABBITMQ_PASS=$rabbitmq_pass" >> .env
+
+      # No OTS_IMAGE_TAG override and no bake: compose resolves the pinned
+      # default and pulls it from the registry (--quiet-pull). Bring up `app`
+      # (+ its maindb dep), NOT the proxy — the proxy needs a source build and
+      # is unrelated to the boot-migration/volume contract this lane guards.
+      # AUTHENTICATION_MODE defaults to full, so the app runs its sqlite auth.db
+      # migrations at boot inside the app-data named volume; --wait on the app
+      # healthcheck fails here if the volume mount is root-owned (#3892). The
+      # shared-volume contract is identical for worker-email/scheduler.
+      - name: Bring up the app against the pinned published image (--wait)
+        run: |
+          docker compose -f docker/compose/docker-compose.full.yml \
+            up -d --wait --wait-timeout 300 --quiet-pull app
+
+      # POL_CREATE_ACCOUNT stays off (unlike full-stack-smoke): a published
+      # release may predate the bin/ots CLI contract the account step depends
+      # on. Steps 1-3 are HTTP/API-only and stable across releases; a 200 from
+      # /api/v2/status already proves the boot migration wrote to the volume.
+      - name: Proof of life (inside the app container)
+        run: |
+          docker compose -f docker/compose/docker-compose.full.yml \
+            exec -T app bash -s -- http://127.0.0.1:3000 \
+            < scripts/test-install/proof-of-life.sh
 
       - name: Dump logs on failure
         if: failure()
