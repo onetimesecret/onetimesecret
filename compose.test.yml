@@ -43,7 +43,7 @@ services:
       retries: 5
 
   postgres:
-    image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
+    image: postgres:17@sha256:a426e44bac0b759c95894d68e1a0ac03ecc20b619f498a91aae373bf06d8508d
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
