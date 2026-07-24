@@ -4,6 +4,7 @@
 
 require 'auth/lib/logging'
 require 'auth/operations/confirm_sso_link'
+require 'auth/operations/deferred_sso_bind'
 
 require_relative 'json_body'
 
@@ -162,7 +163,27 @@ module Auth
             # The auth_type string is only the authenticated_by label; login does not
             # re-verify a credential (there is none — mailbox proof already authorized
             # this), matching how magic-link establishes a passwordless session.
-            rodauth.login('sso_link_confirm')
+            #
+            # DEFERRED BIND (#3877): when the op deferred the bind for a pending
+            # second factor (bound: false), stash the authorized bind tuple so
+            # after_two_factor_authentication completes it once the OTP succeeds —
+            # otherwise an MFA passwordless account would re-hit this flow forever,
+            # never linked. Mirrors the interstitial (Auth::Routes::LinkSso): the
+            # login block is the ONLY point that sees the login's FINAL sid
+            # (login_session re-keys the session; a stash keyed to the old sid would
+            # never be found) and precedes after_login. Best-effort by contract — a
+            # failed stash is logged inside `.defer` and the login proceeds unlinked.
+            rodauth.login('sso_link_confirm') do
+              if result.second_factor_pending
+                Auth::Operations::DeferredSsoBind.defer(
+                  sid: session.id&.public_id,
+                  account_id: result.account_id,
+                  provider: result.provider,
+                  issuer: result.issuer,
+                  uid: result.uid,
+                )
+              end
+            end
           rescue StandardError => ex
             auth_logger.error 'Error completing SSO link confirmation', { exception: ex }
             response.status = 500

@@ -65,6 +65,11 @@ module Auth
       # @!attribute account_id [String, nil] the bound/target account id (for the route's login)
       # @!attribute email [String, nil] the normalized login the route logs in as
       # @!attribute provider [String, nil] provider name (logging + response context)
+      # @!attribute issuer [String, nil] resolved IdP issuer. Carried on a DEFERRED
+      #   MFA bind (:ok + second_factor_pending) so the route can stash the pending
+      #   bind tuple for after_two_factor_authentication to complete (#3877); nil on
+      #   the failure statuses, which never bind.
+      # @!attribute uid [String, nil] provider-scoped subject id (same deferred-bind use)
       # @!attribute bound [Boolean] whether the identity row was actually bound this call
       # @!attribute second_factor_pending [Boolean] whether the bind was deferred for MFA
       Result = Struct.new(
@@ -72,6 +77,8 @@ module Auth
         :account_id,
         :email,
         :provider,
+        :issuer,
+        :uid,
         :bound,
         :second_factor_pending,
         keyword_init: true,
@@ -136,13 +143,22 @@ module Auth
             level: :warn,
             email: OT::Utils.obscure_email(verification.email),
             provider: verification.provider,
+            issuer: verification.issuer,
             account_id: account_id,
           )
+          # DEFERRED BIND (#3877): the bind is authorized (mailbox proof consumed
+          # above) but must NOT land before the second factor — an MFA-exempt SSO
+          # row bound pre-2FA is an MFA-bypass. Surface issuer/uid so the route can
+          # stash the pending bind inside its rodauth.login block (the only place
+          # the login's FINAL re-keyed sid exists); after_two_factor_authentication
+          # then completes it via DeferredSsoBind, exactly like the interstitial.
           return Result.new(
             status: :ok,
             account_id: account_id,
             email: verification.email,
             provider: verification.provider,
+            issuer: verification.issuer,
+            uid: verification.uid,
             bound: false,
             second_factor_pending: true,
           )
@@ -171,6 +187,8 @@ module Auth
           account_id: account_id,
           email: verification.email,
           provider: verification.provider,
+          issuer: verification.issuer,
+          uid: verification.uid,
           bound: true,
           second_factor_pending: false,
         )

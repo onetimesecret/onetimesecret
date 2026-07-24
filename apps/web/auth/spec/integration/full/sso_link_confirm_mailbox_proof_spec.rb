@@ -749,17 +749,21 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   # login): the op returns second_factor_pending, the route logs the user in via
   # rodauth.login('sso_link_confirm') which THROWS the SAME mfa_required body
   # POST /auth/login emits, and the (provider,issuer,uid) row stays UNLINKED this
-  # round.
+  # round — but the authorized bind tuple is STASHED inside the login block
+  # (DeferredSsoBind.defer, #3858) and COMPLETED by after_two_factor_authentication
+  # once the OTP succeeds (#3877), exactly like the password interstitial. Without
+  # that stash an MFA passwordless account would re-hit this flow on every SSO
+  # sign-in and never link.
   #
   # Exercising this end-to-end needs the OTP feature loaded (AUTH_MFA_ENABLED) so
   # rodauth.respond_to?(:otp_auth_route) is true and after_login emits mfa_required.
   # This shared integration harness boots ONCE (before(:all)) with MFA disabled and
   # cannot toggle the Rodauth feature set per-example (the same boot-time-feature
   # constraint that pends the Phase 3 interstitial MFA example). Left PENDING so the
-  # gap stays visible; verified in isolation by the ConfirmSsoLink#second_factor_pending?
-  # unit coverage. Manual follow-up: #3877 (deferred bind after MFA) needs an
-  # AUTH_MFA_ENABLED full-boot lane.
-  describe 'MFA account defers the identity bind (#3877)' do
-    it 'returns mfa_required and binds no identity (needs an AUTH_MFA_ENABLED harness)'
+  # gap stays visible; the defer→complete wiring is covered in isolation by
+  # deferred_sso_bind_spec.rb. A full end-to-end assertion needs an AUTH_MFA_ENABLED
+  # full-boot lane.
+  describe 'MFA account defers the identity bind, completing it after 2FA (#3877)' do
+    it 'returns mfa_required, stashes the bind, and links after OTP (needs an AUTH_MFA_ENABLED harness)'
   end
 end
