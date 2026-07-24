@@ -41,7 +41,10 @@ on:
     paths:
       - 'docker-compose.yml'
       - 'docker/compose/**'
+      # Named individually, not globbed: scripts/test-install/ also holds
+      # helpers for five other workflows, and this lane is a ~15min build+up.
       - 'scripts/test-install/proof-of-life.sh'
+      - 'scripts/test-install/seed-compose-env.sh'
       - '.github/workflows/compose-smoke.yml'
       # full-stack-smoke builds from source, so image-definition changes
       # must exercise it too.
