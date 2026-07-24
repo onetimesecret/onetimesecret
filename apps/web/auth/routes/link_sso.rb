@@ -43,8 +43,12 @@ require 'onetime/security/login_rate_limiter'
 #     (the SAME body POST /auth/login emits), but no identity is linked this round.
 #     Binding before 2FA would attach an MFA-EXEMPT SSO login path (SSO logins
 #     bypass MFA) to an account whose owner never passed the second factor — a
-#     password-only attacker could then sign in via SSO and defeat MFA. Completing
-#     the bind after MFA is a documented follow-up.
+#     password-only attacker could then sign in via SSO and defeat MFA. The
+#     deferred bind is stashed in a short-TTL SessionSidecar key bound to the
+#     partial MFA session's sid (DeferredSsoBind.defer, #3858) and completed by
+#     after_two_factor_authentication once the second factor succeeds (#3877 /
+#     Phase 4.A), so MFA accounts end up linked exactly like non-MFA accounts —
+#     just one factor later.
 #   - PLATFORM-only: challenges are minted solely on the platform callback path,
 #     so the tenant surface is never offered this interstitial (#3849).
 #
@@ -194,12 +198,28 @@ module Auth
             # attached to the account — a password-only attacker who cannot pass the
             # victim's OTP could bind their own IdP identity and then sign in via
             # SSO, defeating MFA. So for an MFA account we DEFER the bind: the login
-            # below proceeds to the OTP step (emits mfa_required, unchanged) and the
-            # identity is left UNLINKED this round (a follow-up completes it after
-            # MFA). Moot for default installs (MFA off) but load-bearing for
+            # below proceeds to the OTP step (emits mfa_required, unchanged), the
+            # identity stays UNLINKED this round, and the stashed bind is completed
+            # by after_two_factor_authentication once the second factor succeeds
+            # (#3877). Moot for default installs (MFA off) but load-bearing for
             # AUTH_MFA_ENABLED deployments.
+            deferred_bind = nil
             if link_sso_second_factor_pending?(account_id)
-              auth_logger.warn 'SSO link deferred: second factor pending, identity NOT bound this round',
+              # DEFERRED BIND (#3877 / Phase 4.A): the password HAS verified, so
+              # the bind is authorized — only its timing moves. Snapshot the
+              # challenge tuple here (the single-use token is already consumed;
+              # this local is the last place it exists) and stash it INSIDE the
+              # login block below as a short-TTL SessionSidecar key bound to
+              # the partial MFA session's sid (#3858), to be consumed by
+              # after_two_factor_authentication (hooks/mfa.rb), which completes
+              # the bind once the second factor succeeds.
+              deferred_bind = {
+                account_id: account_id,
+                provider: challenge.provider,
+                issuer: challenge.issuer,
+                uid: challenge.uid,
+              }
+              auth_logger.warn 'SSO link deferred: second factor pending, bind completes after MFA',
                 {
                   account_id: account_id,
                   provider: challenge.provider,
@@ -247,7 +267,29 @@ module Auth
             # non-MFA account, or the SAME mfa_required body POST /auth/login returns
             # for an MFA account (authSuccessWithMfaSchema). The response passes
             # through unchanged; the SPA already handles both shapes.
-            rodauth.login('password')
+            #
+            # The block Rodauth yields runs between login_session and after_login —
+            # the ONLY point that both sees the login's FINAL sid (login_session
+            # destroys the previous session, minting a new sid; a stash keyed to
+            # the old sid would never be found) and precedes after_login (whose
+            # stale-prediction self-heal in hooks/login.rb is the earliest
+            # reader). Stash the deferred bind there — a sid-bound SessionSidecar
+            # key (#3858) — so after_two_factor_authentication can consume it.
+            # Best-effort by contract: a failed stash write is logged inside
+            # `.defer` and the login proceeds unlinked (fail-closed).
+            #
+            # VERSION-SENSITIVE: that block position is Rodauth internals (verified
+            # against rodauth 2.44.0, base.rb #login). If an upgrade moves the block
+            # relative to login_session/after_login, the stash is keyed to a
+            # destroyed sid or written too late — caught by the end-to-end example
+            # in spec/integration/full_mfa/ (the deferred bind would never land).
+            rodauth.login('password') do
+              if deferred_bind
+                Auth::Operations::DeferredSsoBind.defer(
+                  sid: session.id&.public_id, **deferred_bind,
+                )
+              end
+            end
           rescue Onetime::LimitExceeded => ex
             # Must precede the generic StandardError rescue below (which would turn
             # this into a 500). Translate to the ADR-013-style 429 the SPA surfaces.
@@ -298,6 +340,14 @@ module Auth
       # pending, so this returns false and the bind proceeds. A read error propagates
       # to the POST handler's rescue (uniform with the unguarded MfaStateChecker call
       # in after_login) rather than binding without certainty of full auth.
+      #
+      # KNOWN TRADEOFF: after_login repeats these two lookups (account_otp_keys,
+      # account_recovery_codes) moments later — a deliberate double-read. This
+      # prediction must happen BEFORE rodauth.login (the bind gate), after_login's
+      # decision is Rodauth's hook boundary, and neither can see the other. The
+      # stale-prediction race between the two reads is self-healed by the no-MFA
+      # branch in hooks/login.rb, so caching the prediction would add coupling to
+      # shave two indexed lookups off an interstitial-only path.
       def link_sso_second_factor_pending?(account_id)
         return false unless rodauth.respond_to?(:otp_auth_route)
 
