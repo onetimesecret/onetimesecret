@@ -4,6 +4,7 @@
 
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import {
+    AdminConfirmDialog,
     DataTable,
     DetailDrawer,
     FilterBar,
@@ -11,9 +12,11 @@
     StatCard,
   } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
+  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
   import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -32,11 +35,17 @@
    * address or an id). Columns are non-sortable on purpose: the endpoint returns a
    * FIXED most-recently-modified ordering (epic #20 CONTRACT 6), so there is no
    * server `sort` param to drive a controlled re-fetch.
+   *
+   * The drawer also carries the two row-scoped operator actions (ticket #22
+   * follow-up): manual VERIFY/UNVERIFY (simple confirm — reversible) and PURGE
+   * (danger, typed-confirmation on the account's email). Both run through the
+   * store + `useAdminMutation` + notifications idiom; audit is server-side.
    */
   const { t } = useI18n();
 
   const store = useAdminCustomers();
   const { customers, pagination, loading, error } = storeToRefs(store);
+  const notifications = useNotificationsStore();
 
   /** Assignable roles, mirrored from the backend SetRole::VALID_ROLES. */
   const ROLE_OPTIONS = ['colonel', 'admin', 'staff', 'customer'] as const;
@@ -131,8 +140,9 @@
   // Detail is a slide-over drawer (the console's standard inspect pattern, same
   // as organizations / sessions) rather than a full-page route, so a row click
   // never yanks you out of the list you're scanning. The drawer renders from the
-  // row data already in hand — no second fetch — and offers "Open full page" for
-  // the deep, mutating actions that live on AdminCustomerDetail.
+  // row data already in hand — no second fetch — carries the two row-scoped
+  // actions (verify/unverify, purge) in its footer, and offers "Open full page"
+  // for the rest (role, plan, suspend, billing) on AdminCustomerDetail.
   const drawerOpen = ref(false);
   const selectedCustomer = ref<ColonelUser | null>(null);
 
@@ -167,6 +177,108 @@
   function openDetail(row: ColonelUser): void {
     selectedCustomer.value = row;
     drawerOpen.value = true;
+  }
+
+  // ---- Drawer actions (CONTRACT 3 / D4) -------------------------------------
+  // ONE confirm dialog per page (the kit hard-codes its element ids), driven by
+  // an activeAction state machine — the console's standard multi-action shape.
+
+  type ActionKey = 'verify' | 'unverify' | 'purge';
+
+  const dialogOpen = ref(false);
+  const activeAction = ref<ActionKey | null>(null);
+  /** The row the confirm dialog is gating (request target + typed token source). */
+  const actionTarget = ref<ColonelUser | null>(null);
+
+  const {
+    loading: mutationLoading,
+    error: mutationError,
+    run: runMutation,
+    reset: resetMutation,
+  } = useAdminMutation(async () => {
+    const target = actionTarget.value;
+    const action = activeAction.value;
+    if (!target || !action) throw new Error('No customer selected');
+
+    if (action === 'purge') {
+      await store.purge(target.user_id);
+      return;
+    }
+    // The store patches the row in place on a 2xx; re-point the drawer at the
+    // new object so the verification state flips with no page reload.
+    const updated = await store.setVerification(target.user_id, action === 'verify');
+    if (!updated) return;
+    actionTarget.value = updated;
+    if (selectedCustomer.value?.user_id === updated.user_id) {
+      selectedCustomer.value = updated;
+    }
+  });
+
+  const SUCCESS_MESSAGE_KEY: Record<ActionKey, string> = {
+    verify: 'web.admin.customers.actions.verify.success',
+    unverify: 'web.admin.customers.actions.unverify.success',
+    purge: 'web.admin.customers.actions.purge.success',
+  };
+
+  const dialogConfig = computed(() => {
+    const action = activeAction.value;
+    const email = actionTarget.value?.email ?? '';
+    if (!action) {
+      return {
+        title: '',
+        description: undefined,
+        confirmToken: undefined,
+        variant: 'default' as const,
+        confirmText: undefined,
+      };
+    }
+    return {
+      title: t(`web.admin.customers.actions.${action}.confirmTitle`),
+      description: t(`web.admin.customers.actions.${action}.confirmDescription`, { email }),
+      // Purge is irreversible: gate confirm behind retyping the account's email.
+      // Verify/unverify are reversible, so they degrade to a one-click confirm.
+      confirmToken: action === 'purge' ? email : undefined,
+      variant: action === 'purge' ? ('danger' as const) : ('default' as const),
+      confirmText: t(`web.admin.customers.actions.${action}.button`),
+    };
+  });
+
+  function requestAction(key: ActionKey, row: ColonelUser): void {
+    activeAction.value = key;
+    actionTarget.value = row;
+    resetMutation(); // clear any error left from a previous attempt
+    dialogOpen.value = true;
+  }
+
+  async function onConfirm(): Promise<void> {
+    const action = activeAction.value;
+    if (!action) return;
+
+    const ok = await runMutation();
+    if (!ok) return; // Failure message stays in the dialog for retry/cancel.
+
+    dialogOpen.value = false;
+    notifications.show(t(SUCCESS_MESSAGE_KEY[action]), 'success');
+    activeAction.value = null;
+    actionTarget.value = null;
+
+    if (action === 'purge') {
+      // The record is gone: close the drawer, then re-read the page under it
+      // (the store already dropped the row; totals/pagination move server-side).
+      drawerOpen.value = false;
+      selectedCustomer.value = null;
+      await fetchPage(pagination.value?.page ?? 1);
+    }
+    // Verify/unverify deliberately do NOT refetch: the ack already told us the
+    // new state and the store patched the row, so a re-read would only risk
+    // flickering back to a stale list read.
+  }
+
+  function onCancel(): void {
+    dialogOpen.value = false;
+    activeAction.value = null;
+    actionTarget.value = null;
+    resetMutation();
   }
 
   onMounted(() => fetchPage(1));
@@ -328,6 +440,31 @@
           {{ t('web.admin.customers.suspended.badge') }}
         </div>
 
+        <!-- Verification state, stated plainly: the operator decides between
+             verify and unverify from this, so it is a pill (amber = attention,
+             never red — red is reserved for destructive/suspended). -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1 rounded px-2 py-0.5 font-brand text-[11px] font-semibold tracking-wide uppercase"
+            :class="
+              selectedCustomer.verified
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'
+                : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+            "
+            data-testid="customer-drawer-verification">
+            <OIcon
+              collection="heroicons"
+              :name="selectedCustomer.verified ? 'check-circle' : 'exclamation-triangle'"
+              size="3"
+              class="shrink-0" />
+            {{
+              selectedCustomer.verified
+                ? t('web.admin.customers.verification.verified')
+                : t('web.admin.customers.verification.unverified')
+            }}
+          </span>
+        </div>
+
         <section>
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
@@ -378,7 +515,8 @@
           </dl>
         </section>
 
-        <!-- Escalation: the deep, mutating actions live on the full page. -->
+        <!-- Escalation: verify/unverify + purge are in the footer below; role,
+             plan, suspend and the full read-out live on the detail page. -->
         <section class="border-t border-gray-200 pt-6 dark:border-gray-800">
           <router-link
             :to="{ name: 'AdminCustomerDetail', params: { id: selectedCustomer.user_id } }"
@@ -392,6 +530,70 @@
           </router-link>
         </section>
       </div>
+
+      <!-- Operator actions. Same guarded flow as the full page, so a support
+           agent never has to leave the list they are scanning. -->
+      <template #footer>
+        <div
+          v-if="selectedCustomer"
+          class="flex flex-wrap items-center gap-2">
+          <button
+            v-if="!selectedCustomer.verified"
+            type="button"
+            data-testid="drawer-verify-button"
+            class="inline-flex items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click="requestAction('verify', selectedCustomer)">
+            <OIcon
+              collection="heroicons"
+              name="check-circle"
+              size="4" />
+            {{ t('web.admin.customers.actions.verify.button') }}
+          </button>
+          <button
+            v-else
+            type="button"
+            data-testid="drawer-unverify-button"
+            class="inline-flex items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click="requestAction('unverify', selectedCustomer)">
+            <OIcon
+              collection="heroicons"
+              name="x-circle"
+              size="4" />
+            {{ t('web.admin.customers.actions.unverify.button') }}
+          </button>
+
+          <button
+            type="button"
+            data-testid="drawer-purge-button"
+            class="ml-auto inline-flex items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+            @click="requestAction('purge', selectedCustomer)">
+            <OIcon
+              collection="heroicons"
+              name="trash"
+              size="4" />
+            {{ t('web.admin.customers.actions.purge.button') }}
+          </button>
+        </div>
+      </template>
     </DetailDrawer>
+
+    <!-- Single guarded-action dialog (typed-confirm on the email for purge). -->
+    <AdminConfirmDialog
+      v-model:open="dialogOpen"
+      :title="dialogConfig.title"
+      :description="dialogConfig.description"
+      :confirm-token="dialogConfig.confirmToken"
+      :variant="dialogConfig.variant"
+      :confirm-text="dialogConfig.confirmText"
+      :loading="mutationLoading"
+      :error="mutationError"
+      @confirm="onConfirm"
+      @cancel="onCancel">
+      <!-- Only purge is in typed mode here, so the prompt can name the email
+           outright — the operator must see exactly what to type, and why. -->
+      <template #prompt="{ token }">
+        {{ t('web.admin.customers.actions.purge.typePrompt', { token: token ?? '' }) }}
+      </template>
+    </AdminConfirmDialog>
   </div>
 </template>

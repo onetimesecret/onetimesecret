@@ -47,6 +47,12 @@
     "text": "Suspended",
     "content_hash": "e392a389"
   },
+  "web.admin.customers.verification.verified": {
+    "text": "Verified"
+  },
+  "web.admin.customers.verification.unverified": {
+    "text": "Not verified"
+  },
   "web.admin.customers.columns.email": {
     "text": "Email",
     "content_hash": "969ccbd3"
@@ -410,6 +416,9 @@
   "web.admin.customers.actions.purge.success": {
     "text": "Customer purged.",
     "content_hash": "6145e5c8"
+  },
+  "web.admin.customers.actions.purge.typePrompt": {
+    "text": "To confirm, type the account email address {token} below"
   },
   "web.admin.customers.detail.sessions.title": {
     "text": "Active Sessions",

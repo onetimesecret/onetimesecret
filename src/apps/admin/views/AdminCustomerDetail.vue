@@ -205,8 +205,20 @@
     purge: 'purge',
   };
 
-  /** Destructive actions gate confirm behind retyping the public id. */
+  /** Destructive actions gate confirm behind a typed-confirmation token. */
   const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend'];
+
+  /**
+   * The exact string the operator must retype, or undefined for a one-click
+   * confirm. PURGE is irreversible, so it asks for the account's EMAIL — the
+   * identifier the operator can check against the ticket they are working,
+   * rather than an id they just copied off this page. Suspend is reversible and
+   * keeps the public id.
+   */
+  function confirmTokenFor(action: ActionKey): string | undefined {
+    if (!DANGER_ACTIONS.includes(action)) return undefined;
+    return action === 'purge' ? record.value?.email : publicId.value;
+  }
 
   const dialogConfig = computed(() => {
     const action = activeAction.value;
@@ -231,12 +243,22 @@
     return {
       title: t(`web.admin.customers.actions.${key}.confirmTitle`),
       description: t(`web.admin.customers.actions.${key}.confirmDescription`, args),
-      // Typed-confirmation gate: retype the public id to enable confirm.
-      confirmToken: isDanger ? publicId.value : undefined,
+      confirmToken: confirmTokenFor(action),
       variant: isDanger ? ('danger' as const) : ('default' as const),
       confirmText: isDanger ? t(`web.admin.customers.actions.${key}.button`) : undefined,
     };
   });
+
+  /**
+   * Prompt copy above the typed-confirmation input. Purge names the email
+   * explicitly; everything else falls back to the kit's generic prompt.
+   */
+  function promptFor(token: string | undefined): string {
+    const args = { token: token ?? '' };
+    return activeAction.value === 'purge'
+      ? t('web.admin.customers.actions.purge.typePrompt', args)
+      : t('web.admin.kit.confirmDialog.typePrompt', args);
+  }
 
   const successMessageKey: Record<ActionKey, string> = {
     setRole: 'web.admin.customers.actions.role.success',
@@ -570,14 +592,28 @@
           ">
           {{ t(`web.admin.customers.roles.${record.role}`, record.role) }}
         </span>
+        <!-- Verification state, both ways: the action panel only offers the verb
+             that matches this, so it must never be ambiguous. Amber (attention),
+             not red — red stays reserved for destructive/suspended. -->
         <span
           v-if="record.verified"
-          class="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
+          class="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200"
+          data-testid="verified-badge">
           <OIcon
             collection="heroicons"
             name="check-circle"
             size="3" />
-          {{ t('web.admin.customers.detail.fields.verified') }}
+          {{ t('web.admin.customers.verification.verified') }}
+        </span>
+        <span
+          v-else
+          class="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+          data-testid="unverified-badge">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            size="3" />
+          {{ t('web.admin.customers.verification.unverified') }}
         </span>
         <span
           v-if="record.suspended"
@@ -964,7 +1000,7 @@
       <AdminCustomerSessionsSection :user-id="publicId" />
     </div>
 
-    <!-- Shared guarded-action dialog (typed-confirm for purge). -->
+    <!-- Shared guarded-action dialog (typed-confirm for purge + suspend). -->
     <AdminConfirmDialog
       v-model:open="dialogOpen"
       :title="dialogConfig.title"
@@ -975,6 +1011,10 @@
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"
-      @cancel="onCancel" />
+      @cancel="onCancel">
+      <template #prompt="{ token }">
+        {{ promptFor(token) }}
+      </template>
+    </AdminConfirmDialog>
   </div>
 </template>
