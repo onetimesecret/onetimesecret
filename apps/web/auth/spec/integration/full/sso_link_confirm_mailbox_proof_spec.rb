@@ -741,7 +741,7 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   end
 
   # ==========================================================================
-  # (9) MFA-DEFERRED bind (needs an AUTH_MFA_ENABLED harness).
+  # (9) MFA-DEFERRED bind (covered in the AUTH_MFA_ENABLED lane).
   # ==========================================================================
   #
   # When the located account has a pending second factor the identity bind must be
@@ -757,13 +757,16 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   #
   # Exercising this end-to-end needs the OTP feature loaded (AUTH_MFA_ENABLED) so
   # rodauth.respond_to?(:otp_auth_route) is true and after_login emits mfa_required.
-  # This shared integration harness boots ONCE (before(:all)) with MFA disabled and
-  # cannot toggle the Rodauth feature set per-example (the same boot-time-feature
-  # constraint that pends the Phase 3 interstitial MFA example). Left PENDING so the
-  # gap stays visible; the defer→complete wiring is covered in isolation by
-  # deferred_sso_bind_spec.rb. A full end-to-end assertion needs an AUTH_MFA_ENABLED
-  # full-boot lane.
-  describe 'MFA account defers the identity bind, completing it after 2FA (#3877)' do
-    it 'returns mfa_required, stashes the bind, and links after OTP (needs an AUTH_MFA_ENABLED harness)'
-  end
+  # THIS shared harness boots ONCE (before(:all)) with MFA disabled and cannot
+  # toggle the Rodauth feature set per-example (Auth::Config is one-shot —
+  # auth-config-one-shot.md), so the coverage lives elsewhere:
+  #   - END-TO-END: integration/full_mfa/sso_link_confirm_mailbox_proof_mfa_spec.rb
+  #     runs in its OWN process with AUTH_MFA_ENABLED=true (rake
+  #     spec:integration:full:mfa, chained from spec:integration:full) and locks
+  #     in the full sequence — mfa_required + token consumed + NO row at the
+  #     confirm step, then the bound row after the second factor (OTP AND recovery
+  #     code) succeeds.
+  #   - MECHANICS: spec/operations/deferred_sso_bind_spec.rb (session contract,
+  #     single-use, account-bound, conflict passthrough).
+  # No pending example here: the gap this placeholder kept visible is closed.
 end
