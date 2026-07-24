@@ -85,7 +85,11 @@ RSpec.describe Auth::Operations::MfaStateChecker do
     context 'when the account has an OTP secret only' do
       let(:account_id) { create_account('otp@example.com') }
 
-      before { add_otp_key(account_id) }
+      # A fixed, whole-second UTC time so we can assert the exact value the DB
+      # read returns, not merely that it is present.
+      let(:otp_last_use) { Time.utc(2026, 1, 15, 10, 30, 45) }
+
+      before { add_otp_key(account_id, last_use: otp_last_use) }
 
       it 'reads has_otp_secret=true from account_otp_keys' do
         state = checker.check(account_id)
@@ -93,10 +97,19 @@ RSpec.describe Auth::Operations::MfaStateChecker do
         expect(state.has_otp_secret).to be(true)
         expect(state.has_recovery_codes).to be(false)
         expect(state.unused_recovery_code_count).to eq(0)
-        expect(state.otp_last_use).not_to be_nil
         expect(state.mfa_enabled?).to be(true)
         expect(state.available_methods).to eq([:otp])
         expect(state.reason).to eq('otp_configured')
+      end
+
+      # #query_mfa_state selects last_use and passes it through untouched; this
+      # asserts the value actually round-trips (guards a wrong column / dropped
+      # select), not just that something non-nil came back.
+      it 'round-trips the stored otp_last_use timestamp from the DB' do
+        state = checker.check(account_id)
+
+        expect(state.otp_last_use).to be_a(Time)
+        expect(state.otp_last_use.getutc.to_i).to eq(otp_last_use.to_i)
       end
     end
 
