@@ -73,6 +73,28 @@ module Onetime
     #   externalize   — write_session strips it from the blob and owns the
     #                   sidecar key (false = declared/policy-reviewed but still
     #                   blob-resident, or explicit-use only)
+    #   absent_when_falsy — commit treats a present FALSY value exactly like an
+    #                   app-side deletion: DEL the sidecar key and strip the
+    #                   field from the blob, instead of parking the falsy value
+    #                   as a sidecar key refreshed on every commit. Only for
+    #                   fields whose readers already treat absence as false
+    #                   (awaiting_mfa's guard checks `== true`). The falsy
+    #                   WRITE stays load-bearing for one request: on commit
+    #                   failure the middleware's rescue keeps it in the BLOB,
+    #                   where blob-wins lets it outrank a stale truthy sidecar
+    #                   copy (see #merge) — a deletion could not win that
+    #                   conflict. The next healthy commit then converges the
+    #                   field to absent everywhere.
+    #   destroy_warn  — in-flight hand-off state: destroying a session while
+    #                   this field holds a live TRUTHY value takes an
+    #                   uncompleted hand-off with it, and the middleware's
+    #                   delete_session logs a warning naming the field (via
+    #                   #inflight_fields). This is the tripwire for the
+    #                   sid-stability assumption the short-TTL hand-off fields
+    #                   ride on: their consume sides cannot log a miss (absence
+    #                   is their common case), so a future refactor that
+    #                   re-keys sessions mid-flow would strand them SILENTLY —
+    #                   except for this warning at the destroy site.
     #
     # ADMISSION RULE (the security contract): a field may set externalize: true
     # ONLY if its absence is the safe state. awaiting_mfa qualifies: with it
@@ -106,11 +128,26 @@ module Onetime
     FIELDS = {
       # 15-minute MFA completion window instead of riding the 24h blob — the
       # point of #3858 for this field. Expiry strands a half-done MFA login as
-      # unauthenticated (user restarts login): fail-closed.
-      'awaiting_mfa'   => { ttl: 900,   encrypted: true,  merge_on_read: true, externalize: true  },
+      # unauthenticated (user restarts login): fail-closed. absent_when_falsy:
+      # every reader treats absence as false (the M-11 guard checks `== true`),
+      # so the healing false the MFA-success hook writes (hooks/mfa.rb) is
+      # converged to absent by the next healthy commit instead of parked as a
+      # sidecar key refreshed forever. destroy_warn: true only fires on a
+      # TRUTHY value (an MFA login actually pending) — a lingering stored
+      # false is healthy residue, not an in-flight hand-off.
+      'awaiting_mfa' => {
+        ttl: 900,
+        encrypted: true,
+        merge_on_read: true,
+        externalize: true,
+        absent_when_falsy: true,
+        destroy_warn: true,
+      },
       # Post-AddDomain UI context; cosmetic on expiry. Same value is plaintext
       # in CustomDomain records, so a plaintext envelope leaks nothing new.
-      'domain_context' => { ttl: 3_600, encrypted: false, merge_on_read: true, externalize: true  },
+      # No destroy_warn: routinely live on healthy sessions, and losing it
+      # costs a UI hint, not a hand-off.
+      'domain_context' => { ttl: 3_600, encrypted: false, merge_on_read: true, externalize: true, destroy_warn: false },
       # One-shot Roda flash messages (may embed email addresses — mild PII,
       # hence encrypted). Declared but NOT externalized: the Roda flash plugin
       # writes it mid-request via its own delete-then-rewrite cycle, which must
@@ -121,7 +158,7 @@ module Onetime
       # externalize:false->true flip with no risk of leaving the two flags out
       # of step. (This is why it is neither an externalized field nor an
       # explicit-use field — a third, declared-pending-audit state.)
-      '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false },
+      '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false, destroy_warn: false },
       # #3859: the SSO account-bound connect-intent nonce (value = the session
       # account id). EXPLICIT-USE: written by omniauth_request_validation_phase
       # when a logged-in caller POSTs connect=1, consumed (atomic GETDEL) by
@@ -135,7 +172,23 @@ module Onetime
       # the value is an account id bound to the session — capability-adjacent —
       # and the codec's sid/field binding stops a Redis-writing attacker from
       # replaying one session's intent under another sid.
-      'sso_connect_intent' => { ttl: 300, encrypted: true, merge_on_read: false, externalize: false },
+      'sso_connect_intent' => { ttl: 300, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
+      # #3877 (#3840 Phase 4.A): the interstitial's deferred SSO identity bind
+      # — the password-proven (account_id, provider, issuer, uid) tuple carried
+      # across the MFA hand-off. EXPLICIT-USE: written by the link-sso route
+      # inside its rodauth.login block (AFTER login_session has re-keyed the
+      # sid), consumed (atomic GETDEL) when the second factor succeeds — see
+      # Auth::Operations::DeferredSsoBind, the single owner of this field. TTL
+      # matches awaiting_mfa's 900s MFA completion window (the two ride the
+      # same hand-off), so an abandoned half-done MFA login can no longer
+      # leave the pending bind live for the blob's full 24h. Absence is the
+      # safe state (admission rule): a miss means no bind — the login simply
+      # completes unlinked, which is the flow's documented audit-and-skip
+      # posture. Encrypted: the payload carries a forward authorization bound
+      # to an account id, and the codec's sid/field binding stops a
+      # Redis-writing attacker from replaying one session's pending bind under
+      # another sid.
+      'link_sso_pending_bind' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
     }.freeze
 
     # Deterministic key derivation — no stored key names needed, which is what
@@ -244,6 +297,33 @@ module Onetime
       db.exists(key_for(sid, field)).to_i.positive?
     end
 
+    # Report which destroy_warn fields currently hold a live TRUTHY value for
+    # this sid — the probe behind the middleware's destroyed-with-in-flight-
+    # state warning (Session#delete_session), the tripwire for the
+    # sid-stability assumption the hand-off fields ride on.
+    #
+    # TRUTHY, not merely present, is the line: a stored FALSY value is healthy
+    # residue, not an uncompleted hand-off — e.g. an awaiting_mfa=false parked
+    # by a pre-absent_when_falsy worker (rolling deploy) that hasn't been
+    # converged to a DEL by a newer commit yet. Key existence would flag those
+    # logouts and drown the signal. One pipelined GET over the destroy_warn
+    # subset; tampered/unauthentic values read as absent, exactly like #read.
+    #
+    # @return [Array<String>] destroy_warn field names holding a truthy value.
+    def inflight_fields(sid, dbclient: nil, codec: nil)
+      fields = FIELDS.select { |_f, policy| policy[:destroy_warn] }.keys
+      return [] if fields.empty? || !valid_sid?(sid)
+
+      db   = dbclient || Familia.dbclient
+      raws = db.pipelined do |pipe|
+        fields.each { |field| pipe.get(key_for(sid, field)) }
+      end
+
+      fields.zip(raws).select do |field, raw|
+        decode_envelope(sid, field, raw, FIELDS[field], codec)
+      end.map(&:first)
+    end
+
     # Delete one field's key.
     #
     # @return [Integer] number of keys removed (0 or 1).
@@ -289,7 +369,9 @@ module Onetime
     # `false` each request, be re-committed with a fresh TTL, and lock the
     # authenticated session out of every gated route indefinitely. Blob-wins
     # keeps that degradation to the documented single cycle: the next
-    # successful commit re-externalizes the blob copy and heals the sidecar.
+    # successful commit heals the sidecar from the blob copy — re-externalizing
+    # it, or (absent_when_falsy; exactly the awaiting_mfa=false case above)
+    # DELing the stale key so the field converges to absent everywhere.
     #
     # NOT called on the blob-miss or tamper/new-sid paths: a revoked/expired
     # session must present as {}; its sidecar keys are inert until purged or
@@ -341,6 +423,9 @@ module Onetime
     #                             commit, tracking the blob's per-request TTL
     #                             refresh); field removed from the hash copy
     #   present, nil           -> DEL; field removed from the hash copy
+    #   present, falsy, and the field is absent_when_falsy
+    #                          -> DEL; field removed from the hash copy (falsy
+    #                             means absent for these fields — see FIELDS)
     #   absent, but in merged: -> DEL (the app deleted a field the read-side
     #                             overlaid this request — e.g. SyncSession
     #                             clearing awaiting_mfa)
@@ -378,7 +463,7 @@ module Onetime
 
         if data.key?(field)
           value = data[field]
-          if value.nil?
+          if value.nil? || (policy[:absent_when_falsy] && !value)
             deletes << field
           else
             # Envelopes are encoded before the pipeline opens so a codec

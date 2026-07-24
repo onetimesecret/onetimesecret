@@ -44,10 +44,11 @@ require 'onetime/security/login_rate_limiter'
 #     Binding before 2FA would attach an MFA-EXEMPT SSO login path (SSO logins
 #     bypass MFA) to an account whose owner never passed the second factor — a
 #     password-only attacker could then sign in via SSO and defeat MFA. The
-#     deferred bind is stashed in the partial MFA session (DeferredSsoBind.defer)
-#     and completed by after_two_factor_authentication once the second factor
-#     succeeds (#3877 / Phase 4.A), so MFA accounts end up linked exactly like
-#     non-MFA accounts — just one factor later.
+#     deferred bind is stashed in a short-TTL SessionSidecar key bound to the
+#     partial MFA session's sid (DeferredSsoBind.defer, #3858) and completed by
+#     after_two_factor_authentication once the second factor succeeds (#3877 /
+#     Phase 4.A), so MFA accounts end up linked exactly like non-MFA accounts —
+#     just one factor later.
 #   - PLATFORM-only: challenges are minted solely on the platform callback path,
 #     so the tenant surface is never offered this interstitial (#3849).
 #
@@ -207,9 +208,9 @@ module Auth
               # DEFERRED BIND (#3877 / Phase 4.A): the password HAS verified, so
               # the bind is authorized — only its timing moves. Snapshot the
               # challenge tuple here (the single-use token is already consumed;
-              # this local is the last place it exists) and stash it into the
-              # session INSIDE the login block below, where it survives the
-              # login-time clear_session and rides the partial MFA session to
+              # this local is the last place it exists) and stash it INSIDE the
+              # login block below as a short-TTL SessionSidecar key bound to
+              # the partial MFA session's sid (#3858), to be consumed by
               # after_two_factor_authentication (hooks/mfa.rb), which completes
               # the bind once the second factor succeeds.
               deferred_bind = {
@@ -268,19 +269,25 @@ module Auth
             # through unchanged; the SPA already handles both shapes.
             #
             # The block Rodauth yields runs between login_session and after_login —
-            # the ONLY point where a session write both survives the login-time
-            # clear_session (login_session destroys the previous session) and
-            # precedes after_login's MFA hand-off (PrepareMfaSession). Stash the
-            # deferred bind there so after_two_factor_authentication can complete it.
+            # the ONLY point that both sees the login's FINAL sid (login_session
+            # destroys the previous session, minting a new sid; a stash keyed to
+            # the old sid would never be found) and precedes after_login (whose
+            # stale-prediction self-heal in hooks/login.rb is the earliest
+            # reader). Stash the deferred bind there — a sid-bound SessionSidecar
+            # key (#3858) — so after_two_factor_authentication can consume it.
+            # Best-effort by contract: a failed stash write is logged inside
+            # `.defer` and the login proceeds unlinked (fail-closed).
             #
             # VERSION-SENSITIVE: that block position is Rodauth internals (verified
             # against rodauth 2.44.0, base.rb #login). If an upgrade moves the block
-            # relative to login_session/after_login, the stash is either destroyed
-            # or written too late — caught by the end-to-end example in
-            # spec/integration/full_mfa/ (the deferred bind would never land).
+            # relative to login_session/after_login, the stash is keyed to a
+            # destroyed sid or written too late — caught by the end-to-end example
+            # in spec/integration/full_mfa/ (the deferred bind would never land).
             rodauth.login('password') do
               if deferred_bind
-                Auth::Operations::DeferredSsoBind.defer(session: session, **deferred_bind)
+                Auth::Operations::DeferredSsoBind.defer(
+                  sid: session.id&.public_id, **deferred_bind,
+                )
               end
             end
           rescue Onetime::LimitExceeded => ex
