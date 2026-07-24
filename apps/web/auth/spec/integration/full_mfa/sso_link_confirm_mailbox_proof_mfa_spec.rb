@@ -32,9 +32,17 @@
 #      exactly one identity row, on the proven account, with the token's
 #      (provider, issuer, uid), and :sso_deferred_bind_completed fires with
 #      outcome :ok.
-#   c. The RECOVERY-CODE second factor completes the bind too:
-#      after_two_factor_authentication is factor-agnostic, so the mailbox-proof
-#      deferral must complete for any factor Rodauth accepts, not just TOTP.
+#   c. The RECOVERY-CODE second factor completes the bind too. NOTE the modest
+#      scope: the hook's factor-agnosticism itself is already pinned by
+#      full_mfa/omniauth_signin_interstitial_mfa_spec.rb (d), and the completion
+#      path is shared and route-agnostic once the stash is written — so this
+#      example cannot fail unless (b) also fails. What it does pin is that
+#      nothing in the MAILBOX-written stash (routes/sso_link_confirm.rb, keyed
+#      off the verification token rather than an interstitial challenge) is
+#      specific to the otp-auth route that happens to consume it. Kept because
+#      it is nearly free next to this lane's fixed cost (own process, full-mode
+#      migration) and makes the mailbox contract readable without reading the
+#      interstitial spec — not because it adds independent failure detection.
 #
 # WHY SEED A PASSWORD FOR A "PASSWORDLESS" SUBJECT: the mailbox-proof flow is
 # ISSUED only for passwordless accounts (config/hooks/omniauth.rb), but the
@@ -73,90 +81,20 @@
 
 require_relative '../../spec_helper'
 
-# Must be set before the suite's FIRST boot (FullModeSuiteDatabase.setup! runs
-# from a config-level before(:context) hook, ahead of any group-level hook) so
-# config.rb loads the Rodauth OTP feature set. The rake lane already exports it;
-# this load-time set makes a direct `rspec <this file>` invocation work too.
-ENV['AUTH_MFA_ENABLED'] = 'true'
-
-require 'rotp'
+# Sets AUTH_MFA_ENABLED at load time (before the suite's first boot) and brings
+# Rack::Test, `app`, `identities`, the OTP-feature guard, and the OTP
+# provisioning machinery. See the helper's header.
+require_relative '../../support/mfa_flow_helper'
 
 RSpec.describe 'SSO mailbox-proof link confirm: deferred bind after MFA (#3840 Phase 4 / #3877)',
   :full_auth_mode, type: :integration do
-  include Rack::Test::Methods
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
-  before(:all) do
-    # Hard-fail (not skip): this lane EXISTS to cover the MFA path, so a boot
-    # without the OTP feature is harness breakage, not an environment quirk.
-    otp_loaded = Auth::Config.method_defined?(:otp_auth_route) ||
-                 Auth::Config.private_method_defined?(:otp_auth_route)
-    unless otp_loaded
-      raise 'Rodauth OTP feature not loaded — this suite must boot with ' \
-            'AUTH_MFA_ENABLED=true in a fresh process (run via ' \
-            '`bundle exec rake spec:integration:full:mfa`; Auth::Config is one-shot)'
-    end
-  end
-
-  let(:identities) { auth_db[:account_identities] }
+  include MfaFlowHelper
 
   # ==========================================================================
-  # Helpers (mirror integration/full/sso_link_confirm_mailbox_proof_spec.rb and
-  # integration/full_mfa/omniauth_signin_interstitial_mfa_spec.rb)
+  # Route driving for THIS flow (mirrors
+  # integration/full/sso_link_confirm_mailbox_proof_spec.rb). The shared OTP
+  # machinery lives in support/mfa_flow_helper.rb.
   # ==========================================================================
-
-  # Seed a VERIFIED account WITH a password AND its paired Customer. The password
-  # is the OTP-provisioning vehicle only (see the header); the Customer makes the
-  # confirm-time watermark probe (Customer#last_password_update via
-  # load_by_extid_or_email) resolve to :unchanged rather than :unreadable.
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    account_id = auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-    require 'argon2'
-    hasher = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
-  end
-
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  def fetch_csrf_token
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    last_response.headers['X-CSRF-Token']
-  end
-
-  # JSON POST with the CSRF token in both header and body (shrimp), matching what
-  # the SPA sends and what the Rodauth routes (otp-setup, otp-auth, recovery-auth)
-  # require.
-  def json_post(path, params = {})
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post path, JSON.generate(params.merge(shrimp: csrf))
-    last_response
-  end
-
-  def json_body
-    JSON.parse(last_response.body)
-  rescue JSON::ParserError
-    {}
-  end
 
   # GET /auth/sso-link-confirm/:token — the display-only consent context.
   def get_confirm(token)
@@ -194,49 +132,6 @@ RSpec.describe 'SSO mailbox-proof link confirm: deferred bind after MFA (#3840 P
       sid: sid,
       password_watermark: password_watermark,
     )
-  end
-
-  # OTP provisioning through Rodauth's OWN JSON setup flow (matches production key
-  # shape, HMAC'd). Requires a password login (two_factor_modifications_require_
-  # password?), which is why the subject is seeded with a password. Returns
-  # [authenticator secret, recovery codes]. Clears cookies so the confirm flow
-  # below starts from an UNAUTHENTICATED browser, like a user clicking the emailed
-  # link on a fresh device.
-  def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD)
-    json_post('/auth/login', login: email, password: password)
-    expect(last_response.status).to eq(200),
-      "Precondition failed: password login for OTP setup (#{last_response.status}: #{last_response.body})"
-
-    json_post('/auth/otp-setup', {})
-    expect(last_response.status).to eq(422),
-      "Phase-1 otp-setup should return the generated secret with a field error (#{last_response.status}: #{last_response.body})"
-    setup_body = json_body
-    secret     = setup_body['otp_setup']
-    raw_secret = setup_body['otp_raw_secret']
-    expect(secret).not_to be_nil
-    expect(raw_secret).not_to be_nil
-
-    json_post(
-      '/auth/otp-setup',
-      otp_setup: secret,
-      otp_raw_secret: raw_secret,
-      otp_code: ROTP::TOTP.new(secret).now,
-      password: password,
-    )
-    expect(last_response.status).to eq(200),
-      "Phase-2 otp-setup should confirm the secret (#{last_response.status}: #{last_response.body})"
-    recovery_codes = Array(json_body['recovery_codes'])
-
-    clear_cookies
-    [secret, recovery_codes]
-  end
-
-  # Rodauth's OTP reuse guard (otp_update_last_use) rejects any code within one
-  # interval (30s) of last_use — and setup just stamped last_use=now. Rewind it so
-  # the auth step can accept a fresh code immediately instead of sleeping out the
-  # window in the test.
-  def allow_immediate_otp_reuse!(account_id)
-    auth_db[:account_otp_keys].where(id: account_id).update(last_use: Time.now - 300)
   end
 
   # Drive the mailbox-proof confirm up to the MFA hand-off: mint a verification,
@@ -322,9 +217,9 @@ RSpec.describe 'SSO mailbox-proof link confirm: deferred bind after MFA (#3840 P
 
     issuer = confirm_step_expecting_mfa(email: email, uid: uid, account_id: account_id)
 
-    # after_two_factor_authentication fires for ANY accepted factor, so the
-    # mailbox-proof deferral must land via /auth/recovery-auth exactly as via OTP
-    # — locking in the hook's factor-agnostic placement from the mailbox entry.
+    # The mailbox-written stash is consumed by whichever 2FA route runs: swap
+    # otp-auth for recovery-auth and the bind still lands. See header note (c)
+    # for why this is a readability guard rather than independent coverage.
     json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
     expect(last_response.status).to eq(200),
       "Recovery-code auth should succeed, got #{last_response.status}: #{last_response.body}"
