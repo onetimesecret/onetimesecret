@@ -310,5 +310,122 @@
   "web.admin.organizations.detail.reconcile.mode.entitlements_only": {
     "text": "Entitlements only",
     "content_hash": "8cf49a5d"
+  },
+  "web.admin.organizations.addMember.button": {
+    "text": "Add existing account"
+  },
+  "web.admin.organizations.addMember.title": {
+    "text": "Add an existing account"
+  },
+  "web.admin.organizations.addMember.description": {
+    "text": "Add someone who already has an account to {org}. Use this when a person signed up on their own and cannot be invited because the account already exists."
+  },
+  "web.admin.organizations.addMember.searchLabel": {
+    "text": "Email address or account id"
+  },
+  "web.admin.organizations.addMember.searchPlaceholder": {
+    "text": "Search by email address"
+  },
+  "web.admin.organizations.addMember.searchHint": {
+    "text": "Matches part of an email address, or an exact account id."
+  },
+  "web.admin.organizations.addMember.searchError": {
+    "text": "Could not search accounts. Check the connection and try again."
+  },
+  "web.admin.organizations.addMember.searchParseError": {
+    "text": "The account search returned an unexpected response. Results may be incomplete."
+  },
+  "web.admin.organizations.addMember.idle": {
+    "text": "Enter an email address to find the account."
+  },
+  "web.admin.organizations.addMember.noResults": {
+    "text": "No account matches “{term}”."
+  },
+  "web.admin.organizations.addMember.noResultsHint": {
+    "text": "Only existing accounts can be added here. If the person has never signed up, invite them instead."
+  },
+  "web.admin.organizations.addMember.select": {
+    "text": "Select"
+  },
+  "web.admin.organizations.addMember.selectedEyebrow": {
+    "text": "Selected account"
+  },
+  "web.admin.organizations.addMember.change": {
+    "text": "Choose a different account"
+  },
+  "web.admin.organizations.addMember.createdOn": {
+    "text": "Signed up {date}"
+  },
+  "web.admin.organizations.addMember.badges.verified": {
+    "text": "Verified"
+  },
+  "web.admin.organizations.addMember.badges.unverified": {
+    "text": "Not verified"
+  },
+  "web.admin.organizations.addMember.badges.suspended": {
+    "text": "Suspended"
+  },
+  "web.admin.organizations.addMember.badges.alreadyMember": {
+    "text": "Already a member"
+  },
+  "web.admin.organizations.addMember.fields.created": {
+    "text": "Signed up"
+  },
+  "web.admin.organizations.addMember.fields.verified": {
+    "text": "Verification"
+  },
+  "web.admin.organizations.addMember.fields.lastLogin": {
+    "text": "Last sign-in"
+  },
+  "web.admin.organizations.addMember.fields.organizations": {
+    "text": "Current organizations"
+  },
+  "web.admin.organizations.addMember.organizationsUnavailable": {
+    "text": "Could not load this account's current organizations."
+  },
+  "web.admin.organizations.addMember.defaultOrg": {
+    "text": "default"
+  },
+  "web.admin.organizations.addMember.roleLabel": {
+    "text": "Role in this organization"
+  },
+  "web.admin.organizations.addMember.roles.member": {
+    "text": "Member"
+  },
+  "web.admin.organizations.addMember.roles.admin": {
+    "text": "Admin"
+  },
+  "web.admin.organizations.addMember.roles.owner": {
+    "text": "Owner"
+  },
+  "web.admin.organizations.addMember.roleHints.member": {
+    "text": "Everyday access to the organization's secrets and domains."
+  },
+  "web.admin.organizations.addMember.roleHints.admin": {
+    "text": "Can manage members, domains, and organization settings."
+  },
+  "web.admin.organizations.addMember.roleHints.owner": {
+    "text": "Full control, including billing. Grant this only when asked to."
+  },
+  "web.admin.organizations.addMember.submit": {
+    "text": "Add to organization"
+  },
+  "web.admin.organizations.addMember.success": {
+    "text": "Added {account} as {role}."
+  },
+  "web.admin.organizations.addMember.errors.alreadyMember": {
+    "text": "This account is already a member of this organization, with the role {role}. Adding does not change an existing role — use the set-role action for that."
+  },
+  "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
+    "text": "This account is already a member of this organization. Adding does not change an existing role."
+  },
+  "web.admin.organizations.addMember.errors.notFound": {
+    "text": "That account or organization no longer exists. Search again to confirm the account."
+  },
+  "web.admin.organizations.addMember.errors.invalidRole": {
+    "text": "That role was rejected. Choose one of the listed roles and try again."
+  },
+  "web.admin.organizations.addMember.errors.noSelection": {
+    "text": "No account selected."
   }
 }
