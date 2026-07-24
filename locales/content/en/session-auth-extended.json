@@ -541,6 +541,11 @@
     "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when a credential change advanced the account's password watermark after the token was issued (backend error_code link_invalidated, HTTP 409).",
     "content_hash": "db88cb1d"
   },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Something went wrong on our side and we couldn't verify this link. Sign in with your provider again and we'll email you a fresh one.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when the backend could not READ the account's password watermark (datastore outage / unresolvable customer record) — an infrastructure failure, NOT a credential change (backend error_code link_error, HTTP 409). Deliberately distinct from errors.link_invalidated so a transient outage is never reported as 'your credentials changed'.",
+    "content_hash": "ec24e0a1"
+  },
   "web.sso_link_confirm.errors.generic": {
     "text": "We couldn't confirm this connection. Please sign in with your provider again.",
     "context": "Fallback error for #3840 Phase 4 mailbox-proof SSO linking page failures that are neither expired, a conflict, nor a credential change (e.g. an unexpected server error or a missing token).",
