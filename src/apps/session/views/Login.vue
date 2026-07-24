@@ -12,11 +12,10 @@ import { hasPasswordlessMethods } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
-const router = useRouter();
 
 const languageStore = useLanguageStore();
 const bootstrapStore = useBootstrapStore();
@@ -92,6 +91,23 @@ const authNoticeMessages: Record<string, string> = {
   link_verification_sent: 'web.login.notices.link_verification_sent',
 };
 
+// Strip a consumed one-shot query param (auth_error / auth_notice) from the
+// address bar so a manual refresh does not re-show the banner. Uses
+// window.history.replaceState — NOT router.replace — deliberately: App.vue keys
+// <router-view> by $route.fullPath and forces a fresh component instance on any
+// route change (query-only changes included), so a router.replace() dropping the
+// param would REMOUNT this view and discard the banner we just set — the same
+// fullPath-remount trap the verifiedNotice handling above sidesteps. replaceState
+// updates only the URL bar, leaving Vue Router's route (and this instance)
+// intact, so the banner survives while a refresh no longer re-shows it.
+const stripConsumedQueryParam = (name: string) => {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(name)) return;
+  url.searchParams.delete(name);
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+};
+
 onMounted(() => {
   const errorCode = route.query.auth_error;
   if (typeof errorCode === 'string' && errorCode.length > 0) {
@@ -102,8 +118,9 @@ onMounted(() => {
     // fall back to the generic SSO failure copy instead of rendering nothing.
     const messageKey = authErrorMessages[errorCode] ?? 'web.login.errors.sso_failed';
     authError.value = t(messageKey);
-    // Clear the query param to prevent showing error on refresh
-    router.replace({ query: { ...route.query, auth_error: undefined } });
+    // Clear the query param to prevent showing error on refresh (URL-bar only;
+    // see stripConsumedQueryParam — a router nav here would remount and wipe it).
+    stripConsumedQueryParam('auth_error');
   }
 
   const noticeCode = route.query.auth_notice;
@@ -114,8 +131,9 @@ onMounted(() => {
     if (messageKey) {
       authNotice.value = t(messageKey);
     }
-    // Clear the query param either way so a refresh does not re-show it.
-    router.replace({ query: { ...route.query, auth_notice: undefined } });
+    // Clear the query param either way so a refresh does not re-show it
+    // (URL-bar only — see stripConsumedQueryParam).
+    stripConsumedQueryParam('auth_notice');
   }
 });
 
