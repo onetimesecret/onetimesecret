@@ -16,6 +16,9 @@
 #     necessity — this guard keeps the duplication in lockstep; C8 → C9)
 #   - docker/compose/*.yml  ${OTS_IMAGE_TAG:-vX.Y.Z} app-image default ==
 #     README quick-start pin (the source of truth the compose headers cite).
+#     Every compose file is scanned; overlays that ship no app image (the
+#     mailpit sidecar) are skipped, but the two stacks that must pin one
+#     (full, simple) fail the guard if the pattern stops matching there.
 #     Drift here ships a `docker compose up` that pulls an image predating the
 #     compose file's own runtime contract — e.g. the /app/data volume-ownership
 #     fix that only landed in v0.26.0 (issue #3892). A non-vX.Y.Z *default* (a
@@ -109,17 +112,35 @@ fi
 # `docker compose up` pulls an image that predates the compose file's own
 # runtime contract (#3892). README is authoritative — it is also the tag the
 # docker-run-readme smoke lane runs verbatim.
-readme_pin="$(grep -oE 'onetimesecret/onetimesecret:v[0-9]+\.[0-9]+\.[0-9]+' README.md | head -n1 | cut -d: -f2)"
+# `|| true` keeps a no-match grep from tripping `set -o pipefail` and killing
+# the script before the explicit check below can name what went wrong.
+readme_pin="$(grep -oE 'onetimesecret/onetimesecret:v[0-9]+\.[0-9]+\.[0-9]+' README.md | head -n1 | cut -d: -f2 || true)"
 [[ -n "$readme_pin" ]] || fail "no pinned onetimesecret/onetimesecret:vX.Y.Z tag found in README.md"
 
-for cf in docker/compose/docker-compose.full.yml docker/compose/docker-compose.simple.yml; do
-  [[ -f "$cf" ]] || fail "$cf not found"
+# The stacks that must always pin an app image. Other compose files are still
+# scanned, but a zero-match in one of these means the pattern moved (a silent
+# skip is the failure mode this guard exists to prevent).
+must_pin=(
+  "docker/compose/docker-compose.full.yml"
+  "docker/compose/docker-compose.simple.yml"
+)
+for required in "${must_pin[@]}"; do
+  [[ -f "$required" ]] || fail "$required not found"
+done
 
+for cf in docker/compose/*.yml; do
   # Total app-image references vs. those with a parseable vX.Y.Z default. A
   # mismatch means a reference the pin pattern can't see (e.g. a `latest`
   # default, or a reshaped interpolation) — fail rather than skip it silently.
   refs="$(grep -cE 'onetimesecret/onetimesecret:\$\{OTS_IMAGE_TAG' "$cf" || true)"
-  [[ "$refs" -gt 0 ]] || fail "$cf pins no onetimesecret app image via \${OTS_IMAGE_TAG:-...} — pattern moved?"
+  if [[ "$refs" -eq 0 ]]; then
+    for required in "${must_pin[@]}"; do
+      if [[ "$cf" == "$required" ]]; then
+        fail "$cf pins no onetimesecret app image via \${OTS_IMAGE_TAG:-...} — pattern moved?"
+      fi
+    done
+    continue  # overlay with no app image of its own (e.g. the mailpit sidecar)
+  fi
 
   pinned=0
   while IFS= read -r tag; do

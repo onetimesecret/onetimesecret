@@ -100,7 +100,7 @@ specific `vX.Y.Z` tag rather than a moving tag like `latest`. Override it
 in `.env` or inline to run a different release:
 
 ```bash
-OTS_IMAGE_TAG=v0.26.0 docker compose up
+OTS_IMAGE_TAG=vX.Y.Z docker compose up
 ```
 
 At release time, bump the pinned tag in the root README and in the

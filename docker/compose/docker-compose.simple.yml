@@ -7,8 +7,8 @@
 # Uses pre-built images from Docker Hub, pinned by default to the same
 # release the root README documents. We recommend a specific release over a
 # moving tag, since releases before 1.0 can introduce breaking changes between
-# minor versions; override with:
-#   OTS_IMAGE_TAG=v0.26.0 docker compose up
+# minor versions; override with the release you want:
+#   OTS_IMAGE_TAG=vX.Y.Z docker compose up
 #
 # To build from source instead, use Docker Bake:
 #   docker buildx bake -f docker/bake.hcl main
