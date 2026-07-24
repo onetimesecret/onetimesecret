@@ -3,15 +3,21 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'account_identifier'
 
 module ColonelAPI
   module Logic
     module Colonel
       class GetUserDetails < ColonelAPI::Logic::Base
+        include AccountIdentifier
+
         attr_reader :user_id, :user, :user_secrets, :user_receipts, :organizations, :billing
 
         def process_params
-          @user_id = sanitize_identifier(params['user_id'])
+          # sanitize_account_identifier (NOT sanitize_identifier) — the latter
+          # strips '@' and '.', which silently destroyed the documented email
+          # arm below. See AccountIdentifier.
+          @user_id = sanitize_account_identifier(params['user_id'])
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 
@@ -23,8 +29,7 @@ module ColonelAPI
           # then objid. Mirrors Auth::Operations::Customers::Show#resolve
           # (show.rb): a plain Customer.load only resolves the internal objid
           # (identifier_field :objid), so an extid would 404.
-          @user = Onetime::Customer.load_by_extid_or_email(user_id) ||
-                  Onetime::Customer.load(user_id)
+          @user = resolve_account(user_id)
           raise_not_found('User not found') unless user&.exists?
         end
 
