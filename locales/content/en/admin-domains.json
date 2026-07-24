@@ -190,5 +190,260 @@
   "web.admin.domains.orgPicker.select": {
     "text": "Select",
     "content_hash": "2a78025d"
+  },
+  "web.admin.domains.list.searchPlaceholder": {
+    "text": "Search by domain name or ID"
+  },
+  "web.admin.domains.list.stateFilter": {
+    "text": "State"
+  },
+  "web.admin.domains.list.emptyFilter": {
+    "text": "No domains match the current filters."
+  },
+  "web.admin.domains.columns.domain": {
+    "text": "Domain"
+  },
+  "web.admin.domains.columns.organization": {
+    "text": "Organization"
+  },
+  "web.admin.domains.columns.state": {
+    "text": "Verification"
+  },
+  "web.admin.domains.columns.tls": {
+    "text": "TLS"
+  },
+  "web.admin.domains.columns.created": {
+    "text": "Created"
+  },
+  "web.admin.domains.columns.actions": {
+    "text": "Actions"
+  },
+  "web.admin.domains.tls.serving": {
+    "text": "Serving"
+  },
+  "web.admin.domains.tls.resolving": {
+    "text": "Resolving"
+  },
+  "web.admin.domains.tls.none": {
+    "text": "Not serving"
+  },
+  "web.admin.domains.fields.publicId": {
+    "text": "Public ID"
+  },
+  "web.admin.domains.fields.domainId": {
+    "text": "Internal ID"
+  },
+  "web.admin.domains.fields.organization": {
+    "text": "Organization"
+  },
+  "web.admin.domains.fields.baseDomain": {
+    "text": "Base domain"
+  },
+  "web.admin.domains.fields.subdomain": {
+    "text": "Subdomain"
+  },
+  "web.admin.domains.fields.apex": {
+    "text": "Apex domain"
+  },
+  "web.admin.domains.fields.status": {
+    "text": "Status"
+  },
+  "web.admin.domains.fields.created": {
+    "text": "Created"
+  },
+  "web.admin.domains.fields.updated": {
+    "text": "Updated"
+  },
+  "web.admin.domains.fields.verified": {
+    "text": "Verified"
+  },
+  "web.admin.domains.fields.resolving": {
+    "text": "Resolving"
+  },
+  "web.admin.domains.fields.ready": {
+    "text": "Ready"
+  },
+  "web.admin.domains.detail.openFullPage": {
+    "text": "Open full page"
+  },
+  "web.admin.domains.detail.backToList": {
+    "text": "Back to domains"
+  },
+  "web.admin.domains.detail.notFound": {
+    "text": "Domain not found"
+  },
+  "web.admin.domains.detail.notFoundDescription": {
+    "text": "This domain does not exist, or it has already been removed."
+  },
+  "web.admin.domains.detail.loadError": {
+    "text": "Could not load this domain."
+  },
+  "web.admin.domains.detail.retry": {
+    "text": "Retry"
+  },
+  "web.admin.domains.detail.never": {
+    "text": "Never"
+  },
+  "web.admin.domains.detail.none": {
+    "text": "None"
+  },
+  "web.admin.domains.detail.yes": {
+    "text": "Yes"
+  },
+  "web.admin.domains.detail.no": {
+    "text": "No"
+  },
+  "web.admin.domains.detail.sections.overview": {
+    "text": "Overview"
+  },
+  "web.admin.domains.detail.sections.actions": {
+    "text": "Actions"
+  },
+  "web.admin.domains.detail.sections.organization": {
+    "text": "Owning organization"
+  },
+  "web.admin.domains.detail.sections.dns": {
+    "text": "DNS"
+  },
+  "web.admin.domains.detail.sections.diagnostics": {
+    "text": "Diagnostics"
+  },
+  "web.admin.domains.detail.sections.operations": {
+    "text": "Ownership operations"
+  },
+  "web.admin.domains.detail.sections.operationsHint": {
+    "text": "Each operation previews first. Nothing is written until you confirm the apply step."
+  },
+  "web.admin.domains.detail.organization.open": {
+    "text": "Open organization"
+  },
+  "web.admin.domains.detail.organization.unknown": {
+    "text": "The owning organization is not included in this response. Open this domain from the domains list to see it."
+  },
+  "web.admin.domains.actions.preview": {
+    "text": "Preview"
+  },
+  "web.admin.domains.actions.probe.button": {
+    "text": "Probe"
+  },
+  "web.admin.domains.probe.healthLabel": {
+    "text": "Health"
+  },
+  "web.admin.domains.probe.certInvalid": {
+    "text": "Certificate not usable"
+  },
+  "web.admin.domains.probe.noCertificate": {
+    "text": "No certificate was returned — the connection failed before TLS."
+  },
+  "web.admin.domains.probe.fields.httpStatus": {
+    "text": "HTTP status"
+  },
+  "web.admin.domains.probe.fields.httpError": {
+    "text": "HTTP error"
+  },
+  "web.admin.domains.probe.fields.sslError": {
+    "text": "TLS error"
+  },
+  "web.admin.domains.probe.fields.issuer": {
+    "text": "Certificate issuer"
+  },
+  "web.admin.domains.probe.fields.subject": {
+    "text": "Certificate subject"
+  },
+  "web.admin.domains.probe.fields.notAfter": {
+    "text": "Certificate expires"
+  },
+  "web.admin.domains.probe.fields.expiresIn": {
+    "text": "{date} ({days} days)"
+  },
+  "web.admin.domains.actions.repair.title": {
+    "text": "Repair organization link"
+  },
+  "web.admin.domains.actions.repair.description": {
+    "text": "Find and fix broken links between this domain and its organization. Preview first to see what would change."
+  },
+  "web.admin.domains.actions.repair.orgIdLabel": {
+    "text": "Organization ID (orphaned domains only)"
+  },
+  "web.admin.domains.actions.repair.orgIdPlaceholder": {
+    "text": "Leave blank unless the domain has no owner"
+  },
+  "web.admin.domains.actions.repair.statusLabel": {
+    "text": "Status:"
+  },
+  "web.admin.domains.actions.repair.noIssues": {
+    "text": "No problems found — nothing to repair."
+  },
+  "web.admin.domains.actions.repair.button": {
+    "text": "Apply repair"
+  },
+  "web.admin.domains.actions.repair.confirmTitle": {
+    "text": "Apply repair?"
+  },
+  "web.admin.domains.actions.repair.confirmDescription": {
+    "text": "This rewrites the organization link for {domain}. Retype the domain's public ID to continue."
+  },
+  "web.admin.domains.actions.repair.success": {
+    "text": "Repair applied."
+  },
+  "web.admin.domains.actions.transfer.title": {
+    "text": "Transfer to another organization"
+  },
+  "web.admin.domains.actions.transfer.description": {
+    "text": "Move this domain to a different organization. Preview first to confirm both sides of the move."
+  },
+  "web.admin.domains.actions.transfer.toOrgLabel": {
+    "text": "Destination organization ID"
+  },
+  "web.admin.domains.actions.transfer.fromOrgLabel": {
+    "text": "Expected current organization ID (optional)"
+  },
+  "web.admin.domains.actions.transfer.fromOrgPlaceholder": {
+    "text": "Assert the current owner before moving"
+  },
+  "web.admin.domains.actions.transfer.from": {
+    "text": "From"
+  },
+  "web.admin.domains.actions.transfer.to": {
+    "text": "To"
+  },
+  "web.admin.domains.actions.transfer.orphaned": {
+    "text": "No organization (orphaned)"
+  },
+  "web.admin.domains.actions.transfer.button": {
+    "text": "Apply transfer"
+  },
+  "web.admin.domains.actions.transfer.confirmTitle": {
+    "text": "Transfer domain?"
+  },
+  "web.admin.domains.actions.transfer.confirmDescription": {
+    "text": "This moves {domain} to organization {org}. Retype the domain's public ID to continue."
+  },
+  "web.admin.domains.actions.transfer.success": {
+    "text": "Domain transferred."
+  },
+  "web.admin.domains.actions.remove.button": {
+    "text": "Remove domain"
+  },
+  "web.admin.domains.actions.remove.previewButton": {
+    "text": "Preview removal"
+  },
+  "web.admin.domains.actions.remove.previewStatus": {
+    "text": "Status:"
+  },
+  "web.admin.domains.actions.remove.previewOrg": {
+    "text": "Organization:"
+  },
+  "web.admin.domains.actions.remove.reassertsSurvivor": {
+    "text": "Another record claims the same domain name and will take over the lookup index."
+  },
+  "web.admin.domains.actions.remove.confirmTitle": {
+    "text": "Remove domain?"
+  },
+  "web.admin.domains.actions.remove.confirmDescription": {
+    "text": "This permanently deletes {domain} and its branding, DNS and configuration records. It cannot be undone. Retype the domain's public ID to continue."
+  },
+  "web.admin.domains.actions.remove.success": {
+    "text": "Domain removed."
   }
 }

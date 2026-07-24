@@ -88,6 +88,26 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    // Domain detail. `:id` is the domain's PUBLIC id (extid) — the colonel
+    // domain endpoints resolve by extid ONLY (an objid or display_domain 404s).
+    // `sentryScrubParams` is OMITTED so the default (scrub all params) redacts
+    // the id from breadcrumbs, mirroring `/colonel/customers/:id`.
+    //
+    // Declared after the list route, and any future literal sibling (the
+    // backend's `/domains/orphaned` vs `/domains/:extid` split) must be declared
+    // ABOVE this record — vue-router ranks static segments over dynamic ones, so
+    // declaration order is only the tie-break, but keeping literals first keeps
+    // the file readable against the backend's routes.txt ordering.
+    path: '/colonel/domains/:id',
+    name: 'AdminDomainDetail',
+    component: () => import('@/apps/admin/views/AdminDomainDetail.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.colonel.titles.domains',
+    },
+    props: true,
+  },
+  {
     // Organizations list + billing-investigate + entitlement overrides (ticket #32).
     path: '/colonel/organizations',
     name: 'AdminOrganizations',
@@ -213,6 +233,24 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.admin.billing.title',
       sentryScrubParams: false,
     },
+  },
+  {
+    // Plan diff (billing): the config-vs-live comparison for ONE plan, promoted
+    // out of the billing screen's slide-over because it renders two JSON
+    // documents side by side and a drawer cannot show them without cramping.
+    // `:planid` is a catalog id (e.g. `identity_plus_v1`) — not key material and
+    // not customer-identifying — so `sentryScrubParams: false` matches the other
+    // non-sensitive routes in this file rather than the customer/org/domain
+    // detail routes, which OMIT the key to get the scrub-all default.
+    path: '/colonel/billing/plans/:planid',
+    name: 'AdminPlanDiff',
+    component: () => import('@/apps/admin/views/AdminPlanDiff.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.billing.title',
+      sentryScrubParams: false,
+    },
+    props: true,
   },
 ];
 
