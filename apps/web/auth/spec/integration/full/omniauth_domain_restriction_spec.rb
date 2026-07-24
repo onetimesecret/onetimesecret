@@ -93,40 +93,8 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
       "Expected auth_error=#{code} in Location, got: #{last_response.location.inspect}"
   end
 
-  # Sets up OmniAuth test mode with a mock auth hash for the given email
-  def setup_mock_auth(email:, provider: :oidc, uid: nil)
-    OmniAuth.config.test_mode = true
-    OmniAuth.config.allowed_request_methods = %i[get post]
-
-    OmniAuth.config.mock_auth[provider] = OmniAuth::AuthHash.new({
-      provider: provider.to_s,
-      uid: uid || "test-uid-#{SecureRandom.hex(8)}",
-      info: {
-        email: email,
-        name: 'Test User',
-        email_verified: true,
-      },
-      credentials: {
-        token: 'mock_access_token',
-        refresh_token: 'mock_refresh_token',
-        expires_at: Time.now.to_i + 3600,
-        expires: true,
-      },
-      extra: {
-        raw_info: {
-          sub: uid || "test-uid-#{SecureRandom.hex(8)}",
-          email: email,
-          name: 'Test User',
-          email_verified: true,
-        },
-      },
-    })
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # setup_mock_auth/teardown_mock_auth come from support/omniauth_test_helper.rb.
+  # This spec passes only email:, so every example gets a fresh random uid.
 
   # Configures allowed_signup_domains in OT.conf
   # Pass nil to remove restrictions

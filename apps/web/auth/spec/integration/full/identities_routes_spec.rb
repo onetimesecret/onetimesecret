@@ -88,10 +88,7 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
     { id: id, uid: uid }
   end
 
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
+  # clear_body_headers/json_body come from support/auth_request_helper.rb.
 
   # Establish an authenticated session via password login.
   def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
@@ -123,10 +120,6 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
     token = last_response.headers['X-CSRF-Token']
     header 'X-CSRF-Token', token if token
     delete "/auth/identities/#{id}"
-  end
-
-  def json_body
-    JSON.parse(last_response.body)
   end
 
   # ==========================================================================

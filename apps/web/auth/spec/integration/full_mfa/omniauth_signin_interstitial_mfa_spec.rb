@@ -74,24 +74,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
     allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
   end
 
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: { email: email, name: 'MFA Interstitial User', email_verified: true },
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: { sub: uid, email: email, name: 'MFA Interstitial User', email_verified: true } },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # setup_mock_auth/teardown_mock_auth come from support/omniauth_test_helper.rb.
 
   def sso_callback(email:, uid:, provider: :oidc)
     setup_mock_auth(email: email, uid: uid, provider: provider)
@@ -105,7 +88,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
   end
 
   def post_link_sso(token:, password:)
-    json_post('/auth/link-sso', token: token, password: password)
+    csrf_json_post('/auth/link-sso', token: token, password: password)
   end
 
   # Drive the SSO callback for an OTP-enabled password account up to the point
@@ -167,7 +150,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
 
       # Complete the second factor in the SAME session the hand-off prepared.
       allow_immediate_otp_reuse!(account_id)
-      json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
+      csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
       expect(last_response.status).to eq(200),
         "OTP verification should succeed, got #{last_response.status}: #{last_response.body}"
 
@@ -202,7 +185,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
 
       # A wrong code must not complete the login — and must not bind.
       allow_immediate_otp_reuse!(account_id)
-      json_post('/auth/otp-auth', otp_code: wrong_otp_code(secret))
+      csrf_json_post('/auth/otp-auth', otp_code: wrong_otp_code(secret))
 
       # Pin the SPECIFIC rejection, not just "non-200": Rodauth's OTP failure
       # path is 401 (invalid_key_error_status) with a field-error on the OTP
@@ -233,7 +216,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
       # The pending bind survives the failed attempt: the next successful
       # factor still completes it (the stash is consumed on SUCCESS, not on
       # the first attempt).
-      json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
+      csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
       expect(last_response.status).to eq(200),
         "OTP retry should succeed, got #{last_response.status}: #{last_response.body}"
 
@@ -269,7 +252,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
       # after_two_factor_authentication fires for ANY accepted factor, so the
       # deferred bind must land via /auth/recovery-auth exactly as via OTP —
       # this locks in the hook's factor-agnostic placement (hooks/mfa.rb).
-      json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
+      csrf_json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
       expect(last_response.status).to eq(200),
         "Recovery-code auth should succeed, got #{last_response.status}: #{last_response.body}"
 

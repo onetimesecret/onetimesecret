@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'auth_test_constants'
+require_relative 'auth_request_helper'
 
 # =============================================================================
 # MFA Lane Helper (integration/full_mfa/)
@@ -41,9 +42,14 @@ require_relative 'auth_test_constants'
 #       account_id     = seed_account_with_password(email)
 #       secret, codes  = provision_totp(email)
 #       allow_immediate_otp_reuse!(account_id)
-#       json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
+#       csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
 #     end
 #   end
+#
+# Request plumbing (csrf_json_post, fetch_csrf_token, json_body,
+# clear_body_headers) comes from support/auth_request_helper.rb — included
+# here explicitly so this helper stands on its own, not on the config-level
+# auto-include.
 #
 # =============================================================================
 
@@ -54,6 +60,7 @@ require 'rotp'
 module MfaFlowHelper
   def self.included(base)
     base.include Rack::Test::Methods
+    base.include AuthRequestHelper
 
     # Hard-fail (not skip): this lane EXISTS to cover the MFA path, so a boot
     # without the OTP feature is harness breakage, not an environment quirk.
@@ -72,41 +79,6 @@ module MfaFlowHelper
 
   def app
     Onetime::Application::Registry.generate_rack_url_map
-  end
-
-  # ==========================================================================
-  # Request plumbing
-  # ==========================================================================
-
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  def fetch_csrf_token
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    last_response.headers['X-CSRF-Token']
-  end
-
-  # JSON POST with the CSRF token in both header and body (shrimp), matching
-  # what the SPA sends and what the Rodauth routes (otp-setup, otp-auth,
-  # recovery-auth) require.
-  def json_post(path, params = {})
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post path, JSON.generate(params.merge(shrimp: csrf))
-    last_response
-  end
-
-  def json_body
-    JSON.parse(last_response.body)
-  rescue JSON::ParserError
-    {}
   end
 
   # ==========================================================================
@@ -156,11 +128,11 @@ module MfaFlowHelper
   # ==========================================================================
 
   def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD)
-    json_post('/auth/login', login: email, password: password)
+    csrf_json_post('/auth/login', login: email, password: password)
     expect(last_response.status).to eq(200),
       "Precondition failed: password login for OTP setup (#{last_response.status}: #{last_response.body})"
 
-    json_post('/auth/otp-setup', {})
+    csrf_json_post('/auth/otp-setup', {})
     expect(last_response.status).to eq(422),
       "Phase-1 otp-setup should return the generated secret with a field error (#{last_response.status}: #{last_response.body})"
     setup_body = json_body
@@ -169,7 +141,7 @@ module MfaFlowHelper
     expect(secret).not_to be_nil
     expect(raw_secret).not_to be_nil
 
-    json_post(
+    csrf_json_post(
       '/auth/otp-setup',
       otp_setup: secret,
       otp_raw_secret: raw_secret,

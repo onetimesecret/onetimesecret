@@ -111,31 +111,10 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
     account_id
   end
 
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: { email: email, name: 'Interstitial User', email_verified: true },
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: { sub: uid, email: email, name: 'Interstitial User', email_verified: true } },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
-
-  # Content-Type/Content-Length leak from a prior JSON POST and make the next
-  # bodyless request try to parse an empty JSON body. Clear them.
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
+  # setup_mock_auth/teardown_mock_auth (support/omniauth_test_helper.rb) and
+  # clear_body_headers/fetch_csrf_token (support/auth_request_helper.rb) are
+  # shared. fetch_csrf_token establishes a fresh session; the challenge lives in
+  # Redis, not the session, so that does not disturb it.
 
   # Drive the UNAUTHENTICATED SSO callback and return the response. No login and
   # no connect intent — this is the plain sign-in that resolves to an existing
@@ -150,16 +129,6 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   # Extract the challenge token from a /link-sso/:token redirect Location.
   def token_from_location(location)
     location.to_s.split('/link-sso/').last.to_s.split(/[?#]/).first
-  end
-
-  # Fetch a CSRF token from the app bootstrap (mirrors csrf_login). The challenge
-  # lives in Redis, not the session, so establishing a fresh session here does
-  # not disturb it.
-  def fetch_csrf_token
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    last_response.headers['X-CSRF-Token']
   end
 
   def get_link_context(token)

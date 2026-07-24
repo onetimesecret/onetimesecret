@@ -135,29 +135,9 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
     )
   end
 
-  # OmniAuth test-mode mock for a successful IdP assertion of `email`/`uid`.
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode = true
-    OmniAuth.config.allowed_request_methods = %i[get post]
-    OmniAuth.config.mock_auth[provider] = OmniAuth::AuthHash.new({
-      provider: provider.to_s,
-      uid: uid,
-      info: { email: email, name: 'Trusted Link User', email_verified: true },
-      credentials: {
-        token: 'mock_access_token',
-        expires_at: Time.now.to_i + 3600,
-        expires: true,
-      },
-      extra: {
-        raw_info: { sub: uid, email: email, name: 'Trusted Link User', email_verified: true },
-      },
-    })
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # setup_mock_auth/teardown_mock_auth — the OmniAuth test-mode mock for a
+  # successful IdP assertion of `email`/`uid` — come from
+  # support/omniauth_test_helper.rb.
 
   # ==========================================================================
   # Scenario 1 — PLATFORM path + trust flag ON -> auto-link

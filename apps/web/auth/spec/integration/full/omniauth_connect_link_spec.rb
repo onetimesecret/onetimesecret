@@ -142,43 +142,15 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     token
   end
 
-  # Content-Type/Content-Length leak from a prior JSON POST and make the next
-  # bodyless callback POST try to parse an empty JSON body. Clear them.
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  # email: nil models an IdP that asserts NO email claim. The key is OMITTED
-  # from info/raw_info rather than set to nil — that is what a minimal-scope
-  # OIDC response actually looks like, and it makes omniauth_email nil via the
-  # gem's `omniauth_info[info_key] if omniauth_info` accessor
-  # (rodauth-omniauth 0.6.2 omniauth_base.rb:69).
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    info     = { name: 'Connect User' }
-    raw_info = { sub: uid, name: 'Connect User' }
-    if email
-      info     = info.merge(email: email, email_verified: true)
-      raw_info = raw_info.merge(email: email, email_verified: true)
-    end
-
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: info,
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: raw_info },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # clear_body_headers (support/auth_request_helper.rb) and setup_mock_auth /
+  # teardown_mock_auth (support/omniauth_test_helper.rb) are shared.
+  #
+  # setup_mock_auth(email: nil, ...) below models an IdP that asserts NO email
+  # claim: the shared helper OMITS the key from info/raw_info rather than
+  # setting it to nil — that is what a minimal-scope OIDC response actually
+  # looks like, and it makes omniauth_email nil via the gem's
+  # `omniauth_info[info_key] if omniauth_info` accessor (rodauth-omniauth 0.6.2
+  # omniauth_base.rb:69).
 
   # Run the SSO REQUEST phase carrying the connect-intent signal (connect=1),
   # exactly as the Connected Identities panel does at initiation. In OmniAuth

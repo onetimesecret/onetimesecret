@@ -144,10 +144,9 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     })
   end
 
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # teardown_mock_auth comes from support/omniauth_test_helper.rb. The SETUP
+  # stays local: the shared setup_mock_auth omits an absent email claim, while
+  # #3478 needs info.email PRESENT and nil/blank.
 
   # Posts the SSO callback, self-skipping if the route isn't registered in this
   # boot (e.g. the :entra route when Entra credentials/orgs_sso aren't present).

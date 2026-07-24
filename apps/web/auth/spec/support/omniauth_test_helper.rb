@@ -4,6 +4,7 @@
 
 require 'webmock/rspec'
 require 'omniauth'
+require 'securerandom'
 
 # =============================================================================
 # OmniAuth Test Helpers
@@ -100,15 +101,26 @@ module OmniAuthTestHelper
 
   # Mock a successful OIDC authentication hash
   # Use for testing callback handling
-  def mock_oidc_success(email: 'test@example.com', name: 'Test User', uid: 'test-uid-123')
-    OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
-      provider: 'oidc',
+  #
+  # provider: registers under a provider other than :oidc (the callback route
+  #   segment and the auth hash's provider value are the same string).
+  # email: nil models an IdP that returns NO email claim — the claim is OMITTED
+  #   from info and raw_info rather than sent as null, which is what a real
+  #   emailless response looks like and what the app's missing-email paths must
+  #   handle. Note '' is not nil: an empty-string claim is still a claim, and
+  #   the domain-restriction specs rely on it being passed through.
+  def mock_oidc_success(email: 'test@example.com', name: 'Test User', uid: 'test-uid-123', provider: :oidc)
+    info     = { name: name }
+    raw_info = { sub: uid, name: name }
+    unless email.nil?
+      info     = info.merge(email: email, email_verified: true)
+      raw_info = raw_info.merge(email: email, email_verified: true)
+    end
+
+    OmniAuth.config.mock_auth[provider.to_sym] = OmniAuth::AuthHash.new({
+      provider: provider.to_s,
       uid: uid,
-      info: {
-        email: email,
-        name: name,
-        email_verified: true,
-      },
+      info: info,
       credentials: {
         token: 'mock_access_token',
         refresh_token: 'mock_refresh_token',
@@ -116,14 +128,39 @@ module OmniAuthTestHelper
         expires: true,
       },
       extra: {
-        raw_info: {
-          sub: uid,
-          email: email,
-          name: name,
-          email_verified: true,
-        },
+        raw_info: raw_info,
       },
     })
+  end
+
+  # Put OmniAuth in test mode AND register a mock auth hash for `provider` —
+  # the pair every callback-driving spec needs, previously mirrored in seven of
+  # them. Callers that need a non-default hash shape can still reach for
+  # mock_oidc_success/mock_entra_success/etc. directly.
+  #
+  # uid defaults to a fresh random value, used for BOTH uid and raw_info.sub
+  # (the copies in omniauth_domain_restriction_spec.rb generated the fallback
+  # twice, so uid and sub disagreed for every example that omitted uid).
+  #
+  # Pair with teardown_mock_auth in an ensure block, or let the :omniauth_mock
+  # tag's after hook (reset_omniauth_config) handle it.
+  def setup_mock_auth(email:, uid: nil, provider: :oidc, name: 'Test User')
+    enable_omniauth_test_mode
+    mock_oidc_success(
+      email: email,
+      name: name,
+      uid: uid || "test-uid-#{SecureRandom.hex(8)}",
+      provider: provider,
+    )
+  end
+
+  # Leave OmniAuth out of test mode with no mocks registered. Narrower than
+  # reset_omniauth_config on purpose: it does not touch allowed_request_methods,
+  # so a spec that tears down mid-example can set up again without re-enabling
+  # GET callbacks.
+  def teardown_mock_auth
+    OmniAuth.config.test_mode = false
+    OmniAuth.config.mock_auth.clear
   end
 
   # Mock a failed OIDC authentication

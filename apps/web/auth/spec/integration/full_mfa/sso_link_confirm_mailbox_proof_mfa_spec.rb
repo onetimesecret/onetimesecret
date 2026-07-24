@@ -105,7 +105,7 @@ RSpec.describe 'SSO mailbox-proof link confirm: deferred bind after MFA (#3840 P
   end
 
   # POST /auth/sso-link-confirm { token } — the atomic consume + (deferred) bind
-  # + login handoff. Carries shrimp in the body like json_post; the custom route
+  # + login handoff. Carries shrimp in the body like csrf_json_post; the custom route
   # accepts the header token too, but sending both matches the SPA.
   def post_confirm(token:)
     csrf = fetch_csrf_token
@@ -186,7 +186,7 @@ RSpec.describe 'SSO mailbox-proof link confirm: deferred bind after MFA (#3840 P
 
     # Complete the second factor in the SAME session the hand-off prepared.
     allow_immediate_otp_reuse!(account_id)
-    json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
+    csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
     expect(last_response.status).to eq(200),
       "OTP verification should succeed, got #{last_response.status}: #{last_response.body}"
 
@@ -220,7 +220,7 @@ RSpec.describe 'SSO mailbox-proof link confirm: deferred bind after MFA (#3840 P
     # The mailbox-written stash is consumed by whichever 2FA route runs: swap
     # otp-auth for recovery-auth and the bind still lands. See header note (c)
     # for why this is a readability guard rather than independent coverage.
-    json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
+    csrf_json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
     expect(last_response.status).to eq(200),
       "Recovery-code auth should succeed, got #{last_response.status}: #{last_response.body}"
 
