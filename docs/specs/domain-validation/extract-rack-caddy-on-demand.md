@@ -4,7 +4,7 @@ Extraction is feasible and the seam is clean — but only if you invert the depe
 
 ## What's actually in there
 
-`apps/internal/acme/application.rb` is ~160 lines, of which the portable core is small: the `AskHandler` (parse `domain`, 200/400/403), the `LocalhostOnly` middleware, and the fail-closed `domain_allowed?` wrapper. The rest is coupling:
+`apps/internal/acme/application.rb` is ~160 lines, of which the portable core is small — roughly 60 lines: the `AskHandler` (parse `domain`; 200/400/403), the `LocalhostOnly` middleware (401 on any non-loopback `REMOTE_ADDR`), and the fail-closed `domain_allowed?` wrapper. The gem's full response surface is therefore 200/400/401/403. The rest is coupling:
 
 - `Onetime::Application::Base` (306 lines) which pulls in the universal `MiddlewareStack` (414 lines), Familia's JSON serializer, and OT logging.
 - `OT.conf` for `should_skip_loading?` and host/port; `OT.ld/info/le` for logging.
@@ -15,9 +15,9 @@ Extraction is feasible and the seam is clean — but only if you invert the depe
 ## Gem shape
 
 ```ruby
-# gem side — depends on rack only
-use Rack::Caddy::Ask::LoopbackOnly   # or an explicit allowlist
-run Rack::Caddy::Ask.new(
+# gem side — depends on rack only (namespace settled under Naming below: rack-caddy-on-demand)
+use Rack::Caddy::OnDemand::LoopbackOnly   # or an explicit allowlist
+run Rack::Caddy::OnDemand.new(
   resolver: ->(domain) { ... true/false ... },  # fail-closed on raise
   logger: my_logger
 )
@@ -28,23 +28,31 @@ resolver: ->(d) { Onetime::CustomDomain.load_by_display_domain(d)&.ready? || fal
 
 The gem owns: param validation, status codes, loopback check, fail-closed exception handling, optional logging hooks. The host app owns: the resolver, config, boot, mounting (standalone rackup or mounted in the main process — both of your current modes keep working).
 
+**Resolver contract** — the sole integration point, so pin it down. It's a callable `#call(domain) → truthy/falsy`:
+
+- Validate it responds to `#call` at construction time (fail fast on boot, not per request).
+- A raise is caught and treated as **deny** (fail-closed).
+- A `nil` or `false` return is **deny**; any truthy return is **allow**.
+- A slow resolver blocks the TLS handshake, so a bounded timeout belongs here too — default it, and time-out to deny.
+- Keep policy flags like `check_verification` out of the contract entirely; the caller collapses them into the boolean before returning.
+
 ## Concerns, taken in turn
 
 **Security.** Two-sided:
 
 - _Improves clarity_: the current `LocalhostOnly` silently depends on `IPPrivacyMiddleware` having rewritten `REMOTE_ADDR` first (noted in the code comment). A standalone gem must own its trust boundary explicitly — it should check raw `REMOTE_ADDR` by default and require an explicit opt-in (`trusted_proxies:`) before honoring forwarded headers, otherwise a spoofed `X-Forwarded-For: 127.0.0.1` becomes a cert-issuance bypass in someone else's deployment. Getting this default right is the single most important design decision in the gem.
 - _New risk_: the gem sits in the certificate-issuance path. A compromised release = certs for arbitrary domains for every user. That means minimal dependencies (rack only), MFA on rubygems, and treating it as security-sensitive despite its size. As a file in your repo it inherits your repo's supply-chain posture; as a gem it needs its own.
-- _Housekeeping either way_: the README and `config.ru` comments still document a `check_verification=false` query parameter that the handler deliberately removed ("removed from the HTTP interface to prevent … bypassing DNS verification"). That doc drift is worth fixing regardless of extraction — someone following the README's Caddyfile example would believe they're skipping verification when they aren't.
+- _Housekeeping either way_: the README (`apps/internal/acme/README.md`, lines 24/30/81/85/130) still documents a `check_verification=false` query parameter that the handler deliberately removed **from the HTTP interface** ("removed … to prevent any local process from bypassing DNS verification via query string"). The drift is HTTP-surface only: the Ruby method still carries `domain_allowed?(domain, check_verification: true)` as a keyword — `AskHandler` just never forwards the query param to it. (`config.ru` doesn't mention the parameter at all.) Two actions, both worth doing regardless of extraction: fix the README so nobody following its Caddyfile example believes they're skipping verification when the handler ignores it; and during extraction, **delete the `check_verification` keyword outright** — the resolver contract is `(domain) → bool`, so a lingering `check_verification: false` code path is a silent verification-bypass footgun that must not survive into the gem or its OTS adapter.
 
-**Does the base architecture make it harder than necessary?** Yes, mildly — and that's an argument _for_ extraction, not against. `Onetime::Application::Base` + Otto + registry is overkill for one route; the gem version is plain Rack and simpler than what exists today. The genuine architectural friction is boot, not the app: the standalone `config.ru` runs `Onetime.boot! :app` just to reach Redis. A gem doesn't fix that — the adapter still needs CustomDomain loaded — so the standalone-process mode remains as heavy as it is now. (The alternative, having the resolver hit Redis directly, would duplicate CustomDomain's key/verification logic — don't.)
+**Does the base architecture make it harder than necessary?** Yes, mildly — and that's an argument _for_ extraction, not against. `Onetime::Application::Base` + Otto + registry is overkill for one route; the gem version is plain Rack and simpler than what exists today. The genuine architectural friction is boot, not the app: the standalone `config.ru` runs `Onetime.boot! :app` just to reach Redis. A gem doesn't fix that — the adapter still needs CustomDomain loaded — so the standalone-process mode remains as heavy as it is now. Post-extraction, the standalone `config.ru` still runs `Onetime.boot! :app` and injects the OTS resolver into the mounted gem — boot stays OTS's concern, the gem is mount-only. (The alternative, having the resolver hit Redis directly, would duplicate CustomDomain's key/verification logic — don't.)
 
 **Maintenance constraints.** The real cost. A ~150-line gem still needs release ceremony, a CI matrix (Ruby versions × Rack 2/3 — your lowercase headers are already Rack 3-safe), CVE responsibility, and tracking Caddy: `ask` is now sugar for the `http` permission module (`permission http` since Caddy 2.7), and the gem's docs need to track that terminology and any future protocol change. Version skew between the gem and OTS is a new failure mode that doesn't exist today. Given the protocol is tiny and stable, the burden is low but nonzero — the main risk is the gem going stale publicly with your name on it.
 
-**Naming.** Convention: dashes mirror the require path. Suggestions, in order of preference:
+**Naming.** Convention: dashes mirror the require path. These are first-pass suggestions and are **superseded** by the Supplemental and "Invert the dependency" sections below, which land on **`rack-caddy-on-demand`** after accounting for Caddy's deprecation of `ask`. Kept here to show the reasoning:
 
-1. **`rack-caddy-ask`** → `require 'rack/caddy/ask'` — says exactly what it is (Rack, Caddy, the `ask` endpoint).
+1. `rack-caddy-ask` → `require 'rack/caddy/ask'` — says exactly what it is (Rack, Caddy, the `ask` endpoint), but names against a keyword Caddy has since deprecated (see below).
 2. `rack-on-demand-tls` — more future-proof against Caddy renaming `ask`, less discoverable.
-3. Avoid `caddy-*` as the prefix — reads as official. "Caddy" is trademarked (Stack Holdings); nominative use in `rack-caddy-ask` is fine, but the README should note it's unaffiliated, and don't use their logo.
+3. Avoid `caddy-*` as the prefix — reads as official. "Caddy" is trademarked (Stack Holdings); nominative use in a `rack-caddy-*` name is fine, but the README should note it's unaffiliated, and don't use their logo.
 
 I didn't find an existing Ruby gem for this niche, which supports both the "useful to others" and the blog-post angle.
 
@@ -58,7 +66,7 @@ I didn't find an existing Ruby gem for this niche, which supports both the "usef
 
 ## Recommendation
 
-Do it, sized honestly: a weekend-scale extraction, with the ongoing cost being stewardship rather than code. Concretely: (1) publish `rack-caddy-ask` with resolver injection, loopback-by-default trust, fail-closed semantics, and a hard "no verification-bypass via query string" stance; (2) shrink `apps/internal/acme` to a subclass/adapter that mounts the gem through your registry so `should_skip_loading?`, config, and both deployment modes keep working unchanged; (3) fix the `check_verification` doc drift as part of it. The blog post writes itself around the two interesting decisions: the forwarded-header trust boundary and fail-closed cert gating.
+Do it, sized honestly: a weekend-scale extraction, with the ongoing cost being stewardship rather than code. Concretely: (1) publish `rack-caddy-on-demand` (naming settled under Supplemental / "Invert the dependency" below — **not** `rack-caddy-ask`, since Caddy has deprecated `ask`) with resolver injection, loopback-by-default trust, fail-closed semantics, and a hard "no verification-bypass via query string" stance; (2) shrink `apps/internal/acme` to a subclass/adapter that mounts the gem through your registry so `should_skip_loading?`, config, and both deployment modes keep working unchanged; (3) fix the README `check_verification` drift and delete the keyword during extraction. The blog post writes itself around the two interesting decisions: the forwarded-header trust boundary and fail-closed cert gating.
 
 ## Supplemental
 
