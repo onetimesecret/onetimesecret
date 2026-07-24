@@ -5,8 +5,8 @@
 # background workers, and scheduler.
 #
 # App uses pre-built images from Docker Hub, pinned by default to the same
-# release the root README documents. Override to run a different pinned
-# release (never `latest` — pre-1.0 minor releases can carry breaking changes):
+# release the root README documents. We recommend a specific release over a
+# moving tag (pre-1.0 minors can carry breaking changes); override with:
 #   OTS_IMAGE_TAG=v0.26.0 docker compose up
 #
 # Caddy proxy requires building (plugins: ratelimit, security, transform-encoder):
