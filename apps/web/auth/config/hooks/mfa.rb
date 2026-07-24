@@ -239,8 +239,20 @@ module Auth::Config::Hooks
           correlation_id: correlation_id,
         )
 
-        # Clear awaiting_mfa flag
-        session[:awaiting_mfa] = false
+        # Write the healing FALSE over the hand-off flag (STRING key — the one
+        # PrepareMfaSession wrote and the M-11 guard reads; SyncSession already
+        # deleted both key forms above). Not parked state: the sidecar commit
+        # treats a falsy awaiting_mfa as a DELETE (absent_when_falsy), so on
+        # success this request converges the field to absent everywhere. The
+        # write is load-bearing for exactly one failure case: if this request's
+        # sidecar commit FAILS, the DEL of the stale sidecar awaiting_mfa=true
+        # is lost with it — but write_session's rescue keeps this false in the
+        # BLOB, where blob-wins outranks the stale true on the next read and
+        # the next healthy commit heals it. A deletion here could not win that
+        # conflict: the blob would carry nothing, and the stale true would
+        # re-merge (and re-commit with a fresh TTL) on every request — an
+        # authenticated session locked out of every gated route indefinitely.
+        session['awaiting_mfa'] = false
 
         # Clean up correlation ID after successful completion
         session.delete(:auth_correlation_id)

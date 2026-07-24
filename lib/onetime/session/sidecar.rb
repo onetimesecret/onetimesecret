@@ -73,6 +73,18 @@ module Onetime
     #   externalize   — write_session strips it from the blob and owns the
     #                   sidecar key (false = declared/policy-reviewed but still
     #                   blob-resident, or explicit-use only)
+    #   absent_when_falsy — commit treats a present FALSY value exactly like an
+    #                   app-side deletion: DEL the sidecar key and strip the
+    #                   field from the blob, instead of parking the falsy value
+    #                   as a sidecar key refreshed on every commit. Only for
+    #                   fields whose readers already treat absence as false
+    #                   (awaiting_mfa's guard checks `== true`). The falsy
+    #                   WRITE stays load-bearing for one request: on commit
+    #                   failure the middleware's rescue keeps it in the BLOB,
+    #                   where blob-wins lets it outrank a stale truthy sidecar
+    #                   copy (see #merge) — a deletion could not win that
+    #                   conflict. The next healthy commit then converges the
+    #                   field to absent everywhere.
     #   destroy_warn  — in-flight hand-off state: destroying a session while
     #                   this field holds a live TRUTHY value takes an
     #                   uncompleted hand-off with it, and the middleware's
@@ -116,11 +128,21 @@ module Onetime
     FIELDS = {
       # 15-minute MFA completion window instead of riding the 24h blob — the
       # point of #3858 for this field. Expiry strands a half-done MFA login as
-      # unauthenticated (user restarts login): fail-closed. destroy_warn: true
-      # only fires on a TRUTHY value (an MFA login actually pending) — every
-      # authenticated login PARKS awaiting_mfa=false, which is healthy state,
-      # not an in-flight hand-off.
-      'awaiting_mfa'   => { ttl: 900,   encrypted: true,  merge_on_read: true, externalize: true, destroy_warn: true },
+      # unauthenticated (user restarts login): fail-closed. absent_when_falsy:
+      # every reader treats absence as false (the M-11 guard checks `== true`),
+      # so the healing false the MFA-success hook writes (hooks/mfa.rb) is
+      # converged to absent by the next healthy commit instead of parked as a
+      # sidecar key refreshed forever. destroy_warn: true only fires on a
+      # TRUTHY value (an MFA login actually pending) — a lingering stored
+      # false is healthy residue, not an in-flight hand-off.
+      'awaiting_mfa' => {
+        ttl: 900,
+        encrypted: true,
+        merge_on_read: true,
+        externalize: true,
+        absent_when_falsy: true,
+        destroy_warn: true,
+      },
       # Post-AddDomain UI context; cosmetic on expiry. Same value is plaintext
       # in CustomDomain records, so a plaintext envelope leaks nothing new.
       # No destroy_warn: routinely live on healthy sessions, and losing it
@@ -280,12 +302,12 @@ module Onetime
     # state warning (Session#delete_session), the tripwire for the
     # sid-stability assumption the hand-off fields ride on.
     #
-    # TRUTHY, not merely present, is the line: several fields PARK a falsy
-    # value on healthy sessions (every authenticated login leaves
-    # awaiting_mfa=false behind, refreshed each commit), so key existence
-    # would flag every logout and drown the signal. One pipelined GET over
-    # the destroy_warn subset; tampered/unauthentic values read as absent,
-    # exactly like #read.
+    # TRUTHY, not merely present, is the line: a stored FALSY value is healthy
+    # residue, not an uncompleted hand-off — e.g. an awaiting_mfa=false parked
+    # by a pre-absent_when_falsy worker (rolling deploy) that hasn't been
+    # converged to a DEL by a newer commit yet. Key existence would flag those
+    # logouts and drown the signal. One pipelined GET over the destroy_warn
+    # subset; tampered/unauthentic values read as absent, exactly like #read.
     #
     # @return [Array<String>] destroy_warn field names holding a truthy value.
     def inflight_fields(sid, dbclient: nil, codec: nil)
@@ -347,7 +369,9 @@ module Onetime
     # `false` each request, be re-committed with a fresh TTL, and lock the
     # authenticated session out of every gated route indefinitely. Blob-wins
     # keeps that degradation to the documented single cycle: the next
-    # successful commit re-externalizes the blob copy and heals the sidecar.
+    # successful commit heals the sidecar from the blob copy — re-externalizing
+    # it, or (absent_when_falsy; exactly the awaiting_mfa=false case above)
+    # DELing the stale key so the field converges to absent everywhere.
     #
     # NOT called on the blob-miss or tamper/new-sid paths: a revoked/expired
     # session must present as {}; its sidecar keys are inert until purged or
@@ -399,6 +423,9 @@ module Onetime
     #                             commit, tracking the blob's per-request TTL
     #                             refresh); field removed from the hash copy
     #   present, nil           -> DEL; field removed from the hash copy
+    #   present, falsy, and the field is absent_when_falsy
+    #                          -> DEL; field removed from the hash copy (falsy
+    #                             means absent for these fields — see FIELDS)
     #   absent, but in merged: -> DEL (the app deleted a field the read-side
     #                             overlaid this request — e.g. SyncSession
     #                             clearing awaiting_mfa)
@@ -436,7 +463,7 @@ module Onetime
 
         if data.key?(field)
           value = data[field]
-          if value.nil?
+          if value.nil? || (policy[:absent_when_falsy] && !value)
             deletes << field
           else
             # Envelopes are encoded before the pipeline opens so a codec

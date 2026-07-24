@@ -271,9 +271,11 @@ SC.write(@sid, 'link_sso_pending_bind', @bind, codec: @codec)
 SC.inflight_fields(@sid, codec: @codec).sort
 #=> ['awaiting_mfa', 'link_sso_pending_bind']
 
-## TRUTHY is the line, not key existence: every authenticated login PARKS
-## awaiting_mfa=false (healthy state, refreshed each commit), so a parked
-## false must NOT read as in-flight — else every logout would fire the warning
+## TRUTHY is the line, not key existence: a stored FALSY value is healthy
+## residue, not an uncompleted hand-off — e.g. an awaiting_mfa=false parked
+## by a pre-absent_when_falsy worker (rolling deploy) that no newer commit
+## has converged to a DEL yet — and must NOT read as in-flight, else those
+## logouts would fire the warning and drown the signal
 SC.write(@sid, 'awaiting_mfa', false, codec: @codec)
 SC.inflight_fields(@sid, codec: @codec)
 #=> ['link_sso_pending_bind']
@@ -319,11 +321,13 @@ SC.inflight_fields(@sid, codec: @codec)
 #=> [false, true]
 
 ## ...and the next healthy commit HEALS the stale sidecar from the blob copy —
-## the documented one-cycle degradation, not a permanent lockout: the sidecar
-## now reads back false, not the stale true
-SC.commit(@sid, @conflict[:data], merged: @conflict[:fields], codec: @codec)
-SC.read(@sid, 'awaiting_mfa', codec: @codec)
-#=> false
+## the documented one-cycle degradation, not a permanent lockout. awaiting_mfa
+## is absent_when_falsy (every reader treats absence as false), so the heal is
+## a DEL, not a re-SET: the stale true is gone and the field has converged to
+## absent everywhere instead of a parked false refreshed on every commit
+@healed = SC.commit(@sid, @conflict[:data], merged: @conflict[:fields], codec: @codec)
+[SC.read(@sid, 'awaiting_mfa', codec: @codec), DB.exists(@key_mfa), @healed.key?('awaiting_mfa')]
+#=> [nil, 0, false]
 
 ## commit with the merged stash translates an app-side deletion into a sidecar
 ## DEL: awaiting_mfa was merged in, then deleted before write-back
@@ -336,6 +340,27 @@ DB.exists(@key_mfa)
 SC.commit(@sid, { 'domain_context' => nil }, codec: @codec)
 DB.exists(@key_dc)
 #=> 0
+
+## awaiting_mfa is registered absent_when_falsy: falsy-is-absent is a REGISTRY
+## policy, safe only because every reader treats absence as false (the M-11
+## guard checks `== true`) — it is NOT the default for externalized fields
+[SC::FIELDS['awaiting_mfa'][:absent_when_falsy], SC::FIELDS['domain_context'][:absent_when_falsy]]
+#=> [true, nil]
+
+## for an absent_when_falsy field, committing a present FALSE is also a
+## DELETE, not a parked sidecar key: the healing false the MFA-success hook
+## writes converges to absent-everywhere on the next healthy commit instead
+## of being re-SET with a fresh TTL on every request for the session's life
+SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
+@false_out = SC.commit(@sid, { 'account_id' => 7, 'awaiting_mfa' => false }, codec: @codec)
+[@false_out, DB.exists(@key_mfa)]
+#=> [{ 'account_id' => 7 }, 0]
+
+## a falsy commit for a field WITHOUT the policy still SETs: domain_context
+## has no falsy-is-absent contract, so an explicit false round-trips intact
+SC.commit(@sid, { 'domain_context' => false }, codec: @codec)
+SC.read(@sid, 'domain_context', codec: @codec)
+#=> false
 
 ## a declared-but-not-externalized field (_flash) stays in the blob hash —
 ## commit never touches it
