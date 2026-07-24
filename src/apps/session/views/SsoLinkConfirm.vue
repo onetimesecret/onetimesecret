@@ -11,6 +11,7 @@
   import { useSsoLinkConfirm } from '@/shared/composables/useSsoLinkConfirm';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { providerLabel } from '@/utils/features';
   import { isValidInternalPath } from '@/utils/redirect';
   import { ref, onMounted, computed, nextTick, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -24,16 +25,6 @@
 
   const { pendingLink, confirmLink, fetchPendingLink, isLoading, error, clearError } =
     useSsoLinkConfirm();
-
-  // Friendly provider labels; unknown providers fall back to a capitalized name
-  // so a backend that adds a strategy still renders sensibly. Mirrors
-  // ConnectedIdentities.vue / LinkSso.vue.
-  const PROVIDER_LABELS: Record<string, string> = {
-    oidc: 'OpenID Connect',
-    entra: 'Microsoft Entra',
-    github: 'GitHub',
-    google: 'Google',
-  };
 
   // Set when the display context cannot be loaded (GET failed) OR any confirm
   // (POST) fails: the single-use token is spent or the account moved, so there is
@@ -56,11 +47,11 @@
     return isValidInternalPath(redirect) ? redirect : null;
   });
 
-  const providerLabel = computed(() => {
-    const provider = pendingLink.value?.provider;
-    if (!provider) return '';
-    return PROVIDER_LABELS[provider] ?? provider.charAt(0).toUpperCase() + provider.slice(1);
-  });
+  // Shared label resolution (features.providerLabel): the built-in canonical
+  // label, else a capitalized route name. NOT the bootstrap display_name — the
+  // backend defaults that to 'SSO'/'Microsoft', which would read wrong in the
+  // prose below ("You signed in with SSO"). See utils/features.ts.
+  const providerDisplayName = computed(() => providerLabel(pendingLink.value?.provider ?? ''));
 
   // Terminal-panel body: the specific dead-end reason when one was classified
   // (expired / conflict / invalidated), else the generic expired copy (e.g. the
@@ -243,7 +234,12 @@
             id="sso-link-confirm-instructions"
             class="text-center text-gray-600 dark:text-gray-400"
             data-testid="sso-link-confirm-prompt">
-            {{ t('web.sso_link_confirm.prompt', { provider: providerLabel, email: pendingLink.email }) }}
+            {{
+              t('web.sso_link_confirm.prompt', {
+                provider: providerDisplayName,
+                email: pendingLink.email,
+              })
+            }}
           </p>
 
           <button

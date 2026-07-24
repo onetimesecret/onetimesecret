@@ -11,6 +11,7 @@
   import { useLinkSso } from '@/shared/composables/useLinkSso';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { providerLabel } from '@/utils/features';
   import { isValidInternalPath } from '@/utils/redirect';
   import { ref, onMounted, computed, nextTick, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -29,16 +30,6 @@
   // cancel / dead-end. An UNAUTHENTICATED user cannot open it directly, so we
   // route through /signin carrying this as the post-login destination.
   const CONNECT_REDIRECT = '/account/settings/security/connections';
-
-  // Friendly provider labels; unknown providers fall back to a capitalized name
-  // so a backend that adds a strategy still renders sensibly. Mirrors
-  // ConnectedIdentities.vue.
-  const PROVIDER_LABELS: Record<string, string> = {
-    oidc: 'OpenID Connect',
-    entra: 'Microsoft Entra',
-    github: 'GitHub',
-    google: 'Google',
-  };
 
   const password = ref('');
   const passwordInputRef = ref<HTMLInputElement | null>(null);
@@ -61,11 +52,11 @@
     return isValidInternalPath(redirect) ? redirect : null;
   });
 
-  const providerLabel = computed(() => {
-    const provider = challenge.value?.provider;
-    if (!provider) return '';
-    return PROVIDER_LABELS[provider] ?? provider.charAt(0).toUpperCase() + provider.slice(1);
-  });
+  // Shared label resolution (features.providerLabel): the built-in canonical
+  // label, else a capitalized route name. NOT the bootstrap display_name — the
+  // backend defaults that to 'SSO'/'Microsoft', which would read wrong in the
+  // prose below ("You signed in with SSO"). See utils/features.ts.
+  const providerDisplayName = computed(() => providerLabel(challenge.value?.provider ?? ''));
 
   // Single polite live region, rendered unconditionally. A live region has to be
   // in the DOM BEFORE its content changes for assistive tech to announce it, so
@@ -246,7 +237,12 @@
             id="link-sso-instructions"
             class="text-center text-gray-600 dark:text-gray-400"
             data-testid="link-sso-prompt">
-            {{ t('web.link_sso.prompt', { provider: providerLabel, email: challenge.email }) }}
+            {{
+              t('web.link_sso.prompt', {
+                provider: providerDisplayName,
+                email: challenge.email,
+              })
+            }}
           </p>
 
           <form
