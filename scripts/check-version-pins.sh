@@ -14,6 +14,17 @@
 #   - .devcontainer/devcontainer.json node feature version == .node-version major
 #     (devcontainer features can't read pin files, so those are duplicated by
 #     necessity — this guard keeps the duplication in lockstep; C8 → C9)
+#   - docker/compose/*.yml  ${OTS_IMAGE_TAG:-vX.Y.Z} app-image default ==
+#     README quick-start pin (the source of truth the compose headers cite).
+#     Every compose file is scanned; overlays that ship no app image (the
+#     mailpit sidecar) are skipped, but the two stacks that must pin one
+#     (full, simple) fail the guard if the pattern stops matching there.
+#     Drift here ships a `docker compose up` that pulls an image predating the
+#     compose file's own runtime contract — e.g. the /app/data volume-ownership
+#     fix that only landed in v0.26.0 (issue #3892). A non-vX.Y.Z *default* (a
+#     moving tag like `latest`) also fails the guard — the shipped quick-start
+#     must name an immutable release (a runtime OTS_IMAGE_TAG override is the
+#     caller's choice and out of scope).
 #
 set -euo pipefail
 
@@ -93,6 +104,57 @@ if [[ -f "$dc_json" ]]; then
 else
   fail "$dc_json not found"
 fi
+
+# --- Compose app-image pin matches the README quick-start pin ---------
+# The compose files pin onetimesecret/onetimesecret via ${OTS_IMAGE_TAG:-vX.Y.Z}.
+# That default must match the tag the root README quick-start documents (the
+# single source of truth the compose headers cite as "lockstep"), or a fresh
+# `docker compose up` pulls an image that predates the compose file's own
+# runtime contract (#3892). README is authoritative — it is also the tag the
+# docker-run-readme smoke lane runs verbatim.
+# `|| true` keeps a no-match grep from tripping `set -o pipefail` and killing
+# the script before the explicit check below can name what went wrong.
+readme_pin="$(grep -oE 'onetimesecret/onetimesecret:v[0-9]+\.[0-9]+\.[0-9]+' README.md | head -n1 | cut -d: -f2 || true)"
+[[ -n "$readme_pin" ]] || fail "no pinned onetimesecret/onetimesecret:vX.Y.Z tag found in README.md"
+
+# The stacks that must always pin an app image. Other compose files are still
+# scanned, but a zero-match in one of these means the pattern moved (a silent
+# skip is the failure mode this guard exists to prevent).
+must_pin=(
+  "docker/compose/docker-compose.full.yml"
+  "docker/compose/docker-compose.simple.yml"
+)
+for required in "${must_pin[@]}"; do
+  [[ -f "$required" ]] || fail "$required not found"
+done
+
+for cf in docker/compose/*.yml; do
+  # Total app-image references vs. those with a parseable vX.Y.Z default. A
+  # mismatch means a reference the pin pattern can't see (e.g. a `latest`
+  # default, or a reshaped interpolation) — fail rather than skip it silently.
+  refs="$(grep -cE 'onetimesecret/onetimesecret:\$\{OTS_IMAGE_TAG' "$cf" || true)"
+  if [[ "$refs" -eq 0 ]]; then
+    for required in "${must_pin[@]}"; do
+      if [[ "$cf" == "$required" ]]; then
+        fail "$cf pins no onetimesecret app image via \${OTS_IMAGE_TAG:-...} — pattern moved?"
+      fi
+    done
+    continue  # overlay with no app image of its own (e.g. the mailpit sidecar)
+  fi
+
+  pinned=0
+  while IFS= read -r tag; do
+    pinned=$((pinned + 1))
+    if [[ "$tag" == "$readme_pin" ]]; then
+      echo "PASS: $cf OTS_IMAGE_TAG default ($tag) matches README pin ($readme_pin)"
+    else
+      fail "$cf OTS_IMAGE_TAG default ($tag) != README quick-start pin ($readme_pin) — bump both together (#3892)"
+    fi
+  done < <(grep -oE 'onetimesecret/onetimesecret:\$\{OTS_IMAGE_TAG:-v[0-9]+\.[0-9]+\.[0-9]+\}' "$cf" \
+             | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+
+  [[ "$pinned" -eq "$refs" ]] || fail "$cf has $refs app-image reference(s) but only $pinned parseable vX.Y.Z default(s) — a non-vX.Y.Z default (e.g. 'latest') escapes the pin guard"
+done
 
 echo "PASS: all version pins are in sync"
 exit 0

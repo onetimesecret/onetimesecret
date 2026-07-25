@@ -93,16 +93,19 @@ anything to do.
 ## Image Version (OTS_IMAGE_TAG)
 
 The compose files default `OTS_IMAGE_TAG` to a pinned release — the same
-version the root README's `docker run` quick start uses — rather than
-`latest`, so a fresh `docker compose up` is reproducible. Override it in
-`.env` or inline:
+version the root README's `docker run` quick start uses — so a fresh
+`docker compose up` is reproducible. Because releases before 1.0 can
+introduce breaking changes between minor versions, we recommend pinning a
+specific `vX.Y.Z` tag rather than a moving tag like `latest`. Override it
+in `.env` or inline to run a different release:
 
 ```bash
-OTS_IMAGE_TAG=latest docker compose up
+OTS_IMAGE_TAG=vX.Y.Z docker compose up
 ```
 
 At release time, bump the pinned tag in the root README and in the
-`docker/compose/*.yml` defaults together (grep for the old version).
+`docker/compose/*.yml` defaults together.
+`scripts/check-version-pins.sh` fails CI if they drift (see #3892).
 
 ## Data Persistence
 
