@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminBilling.spec.ts
 
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockApi = {
@@ -92,24 +92,20 @@ function localConfigPayload() {
   };
 }
 
-// Stub JsonViewer (avoid clipboard machinery) and DetailDrawer (always render
-// its slot so the diff content is assertable without headlessui teleport).
+// Stub JsonViewer (avoid clipboard machinery). The side-by-side diff is no
+// longer a drawer on this page — it is the AdminPlanDiff route, so the row
+// action is a router-link and RouterLinkStub is what we assert against.
 const jsonViewerStub = {
   name: 'JsonViewer',
   props: ['data', 'expandDepth', 'testid'],
   template: '<div :data-testid="testid" />',
-};
-const detailDrawerStub = {
-  name: 'DetailDrawer',
-  props: ['open', 'title', 'subtitle', 'testid'],
-  template: '<div :data-testid="testid"><slot /></div>',
 };
 
 const mountView = (pinia: ReturnType<typeof createPinia>) =>
   mount(AdminBilling, {
     global: {
       plugins: [pinia, i18n],
-      stubs: { JsonViewer: jsonViewerStub, DetailDrawer: detailDrawerStub },
+      stubs: { JsonViewer: jsonViewerStub, RouterLink: RouterLinkStub },
     },
   });
 
@@ -150,29 +146,32 @@ describe('AdminBilling (read-only billing catalog drift — ticket #45)', () => 
     expect(wrapper.find('[data-testid="billing-in-sync"]').exists()).toBe(false);
   });
 
-  it('opens the side-by-side diff drawer for a plan present on both sides', async () => {
+  // The drawer was replaced by the deep-linkable /colonel/billing/plans/:planid
+  // page. Panel/placeholder rendering is asserted in AdminPlanDiff.spec.ts;
+  // here we only pin that every row links to the right route + params.
+  it('links each plan row to the full-page diff (no drawer)', async () => {
     mockApi.get.mockResolvedValue({ data: catalogPayload() });
     wrapper = mountView(pinia);
     await flushPromises();
 
-    await wrapper.find('[data-testid="billing-diff-identity_plus_v1"]').trigger('click');
-    await flushPromises();
+    const bothSides = wrapper.findComponent<typeof RouterLinkStub>(
+      '[data-testid="billing-diff-identity_plus_v1"]'
+    );
+    expect(bothSides.exists()).toBe(true);
+    expect(bothSides.props('to')).toEqual({
+      name: 'AdminPlanDiff',
+      params: { planid: 'identity_plus_v1' },
+    });
 
-    // Both config and live JSON panels render for a plan on both sides.
-    expect(wrapper.find('[data-testid="billing-diff-config-json"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="billing-diff-live-json"]').exists()).toBe(true);
-  });
-
-  it('shows a config-absent placeholder in the diff for a live-only plan', async () => {
-    mockApi.get.mockResolvedValue({ data: catalogPayload() });
-    wrapper = mountView(pinia);
-    await flushPromises();
-
-    await wrapper.find('[data-testid="billing-diff-new_v2"]').trigger('click');
-    await flushPromises();
-
-    expect(wrapper.find('[data-testid="billing-diff-config-absent"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="billing-diff-live-json"]').exists()).toBe(true);
+    // …including a plan that exists only on the live side.
+    const liveOnly = wrapper.findComponent<typeof RouterLinkStub>(
+      '[data-testid="billing-diff-new_v2"]'
+    );
+    expect(liveOnly.exists()).toBe(true);
+    expect(liveOnly.props('to')).toEqual({
+      name: 'AdminPlanDiff',
+      params: { planid: 'new_v2' },
+    });
   });
 
   it('warns when the source is local_config (drift cannot be evaluated)', async () => {

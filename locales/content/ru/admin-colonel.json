@@ -563,10 +563,6 @@
     "text": "Управление пользователями",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Управление секретами",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Пользовательские домены",
     "source_hash": "6170ab94"

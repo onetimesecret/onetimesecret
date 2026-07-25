@@ -111,3 +111,86 @@ export const colonelBillingCatalogResponseSchema = createApiResponseSchema(
 );
 
 export type ColonelBillingCatalogResponse = z.infer<typeof colonelBillingCatalogResponseSchema>;
+
+// ============================================================================
+// Stripe-customer roster — GET /billing/stripe-organizations
+// ============================================================================
+//
+// Sibling endpoint to the catalog above, NOT an extension of it: the catalog is
+// an unpaginated config-vs-live snapshot, this is a paginated, index-backed
+// roster of the tenants that are actually billed. Different cadence, different
+// failure mode, different pagination — so a separate schema.
+//
+// Backed by ColonelAPI::Logic::Colonel::ListStripeOrganizations
+// (SCHEMAS = { response: 'colonelStripeOrganizations' }) over
+// Onetime::Operations::Billing::StripeOrganizations.
+//
+// Every field except the two identity keys is `.nullish()` on purpose: a
+// partial or evolving payload should degrade ONE row rather than blank the
+// whole table through a gracefulParse failure.
+
+/** One organization that carries a Stripe customer id. */
+export const colonelStripeOrganizationSchema = z.object({
+  /** The organization's PUBLIC id — routes to /colonel/organizations/:id. */
+  extid: z.string(),
+  /** The Stripe customer id (`cus_…`) — the index field this list is keyed by. */
+  stripe_customer_id: z.string(),
+  org_id: z.string().nullish(),
+  display_name: z.string().nullish(),
+  owner_email: z.string().nullish(),
+  billing_email: z.string().nullish(),
+  planid: z.string().nullish(),
+  stripe_subscription_id: z.string().nullish(),
+  /** NOTE: a STRING (or null) on the wire, not a unix number. */
+  subscription_period_end: z.string().nullish(),
+  subscription_status: z.string().nullish(),
+  sync_status: z.string().nullish(),
+});
+
+/**
+ * The canonical four-field pagination envelope plus the two bound signals this
+ * index-backed read carries:
+ *
+ * - `capped`      the HSCAN hit its entry bound (5,000), so `total_count`
+ *                 UNDERSTATES the real population. Never render "showing X of
+ *                 Y" as exact.
+ * - `stale_count` index entries on THIS page whose organization no longer
+ *                 loads; they are dropped, so a page can be SHORT. Do not
+ *                 derive counts from rendered row length.
+ *
+ * The server emits both at the details root; they are accepted here as well so
+ * the store can normalize from one place.
+ */
+export const colonelStripeOrganizationsPaginationSchema = z.object({
+  page: z.number(),
+  per_page: z.number(),
+  total_count: z.number(),
+  total_pages: z.number(),
+  capped: z.boolean().optional(),
+  stale_count: z.number().optional(),
+});
+
+export const colonelStripeOrganizationsDetailsSchema = z.object({
+  organizations: z.array(colonelStripeOrganizationSchema),
+  pagination: colonelStripeOrganizationsPaginationSchema,
+  /** Server echo of the applied filters. Optional — never read for state. */
+  filters: z.object({ search: z.string().nullish() }).optional(),
+  capped: z.boolean().optional(),
+  stale_count: z.number().optional(),
+  /** HLEN of the index, ignoring `search`. Informational only. */
+  indexed_total: z.number().optional(),
+});
+
+/** The record is empty ({}); everything lives under `details`. */
+export const colonelStripeOrganizationsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelStripeOrganizationsDetailsSchema
+);
+
+export type ColonelStripeOrganization = z.infer<typeof colonelStripeOrganizationSchema>;
+export type StripeOrganizationsPageMeta = z.infer<
+  typeof colonelStripeOrganizationsPaginationSchema
+>;
+export type ColonelStripeOrganizationsResponse = z.infer<
+  typeof colonelStripeOrganizationsResponseSchema
+>;

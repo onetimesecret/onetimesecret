@@ -563,10 +563,6 @@
     "text": "Správa uživatelů",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Správa tajemství",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Vlastní domény",
     "source_hash": "6170ab94"

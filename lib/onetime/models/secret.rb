@@ -58,8 +58,12 @@ module Onetime
     # SecretCountReconcileJob remains the correctness mechanism for that path.
     # The helper is fail-open and clamps at zero; see counter_fields.rb (#60).
     def destroy!
+      # Capture the identity BEFORE super — destroy! clears the record, and the
+      # owner index needs the member name to remove.
+      oid    = objid
+      owner  = owner_id
       result = super
-      Onetime::Customer.decrement_secrets_active(owner_id)
+      Onetime::Customer.decrement_secrets_active(owner, secret_id: oid)
       result
     end
 

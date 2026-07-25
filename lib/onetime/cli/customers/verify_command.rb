@@ -19,6 +19,14 @@
 # don't go through that path. Load the op explicitly so the call site
 # resolves at runtime. The admin wrapper reuses SetCustomerVerification
 # and adds the AdminAuditEvent for this operator-initiated change.
+#
+# Auth::Database has to be required alongside it: SetCustomerVerification
+# reaches for `Auth::Database.connection` at call time WITHOUT requiring it
+# (set_customer_verification.rb:95). Under the autoloader that resolves; from
+# the CLI it raised `uninitialized constant Auth::Database` and this command
+# could never verify anyone. The unverify path only hit it when there was an
+# actual state change, which is why it looked like it worked.
+require 'auth/database'
 require 'auth/operations/customers/set_verification'
 
 module Onetime

@@ -26,6 +26,13 @@ module Onetime
         puts format('%d custom domains (%d in display_domain_index index)', domain_count, index_count)
         puts
         puts 'Usage:'
+        puts '  bin/ots domains list                       # List domains (filters available)'
+        puts '  bin/ots domains info DOMAIN                # Show domain details'
+        puts '  bin/ots domains create DOMAIN --org EXTID  # Register a domain for an org'
+        puts '  bin/ots domains verify DOMAIN              # Run DNS/TLS verification'
+        puts '  bin/ots domains transfer DOMAIN --to-org X # Move a domain between orgs'
+        puts '  bin/ots domains remove DOMAIN              # Permanently delete a domain'
+        puts '  bin/ots domains orphaned                   # Domains with no organization'
         puts '  bin/ots domains doctor --all               # Check all domains'
         puts '  bin/ots domains migrate-sso FQDN           # Bulk-migrate SSO users (dry run)'
         puts '  bin/ots domains migrate-sso FQDN --run     # Bulk-migrate SSO users (execute)'

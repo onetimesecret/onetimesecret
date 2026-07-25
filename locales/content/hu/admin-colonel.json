@@ -563,10 +563,6 @@
     "text": "Felhasználók kezelése",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Titkok kezelése",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Egyéni domainek",
     "source_hash": "6170ab94"
