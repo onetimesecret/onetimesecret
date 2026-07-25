@@ -412,9 +412,8 @@
     "content_hash": "3bc44ac2"
   },
   "web.auth.connections.errors.last_credential": {
-    "text": "This is your only way to sign in. Add a password or link another provider before removing it, so you don't get locked out.",
-    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential)",
-    "content_hash": "edfbc970"
+    "text": "This is your only way to sign in. Connect another provider first, or sign out and use \"Forgot password\" to set a password, so you don't get locked out.",
+    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential). Must only reference actions available to passwordless accounts: connecting a provider (same panel) or the signed-out Forgot password flow — there is no in-app set-password page."
   },
   "web.auth.connections.errors.not_found": {
     "text": "That connected identity could not be found. It may have already been removed.",

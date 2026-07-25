@@ -203,8 +203,11 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
 
       expect(last_response.status).to eq(409)
       expect(json_body['error_code']).to eq('last_credential')
-      expect(identities.where(id: row[:id]).count).to eq(1),
-        'The only sign-in method must not be removed'
+      # Copy must name a path available to a passwordless account — connecting
+      # another provider — never the nonexistent in-app set-password page
+      # (SecurityOverview hides the password card when !hasPw).
+      expect(json_body['error']).to include('Connect another provider')
+      expect(identities.where(id: row[:id]).count).to eq(1), 'The only sign-in method must not be removed'
     end
 
     it 'allows removing the final identity when the account has a password' do
