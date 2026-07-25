@@ -48,10 +48,12 @@
     "content_hash": "e392a389"
   },
   "web.admin.customers.verification.verified": {
-    "text": "Verified"
+    "text": "Verified",
+    "content_hash": "4f783840"
   },
   "web.admin.customers.verification.unverified": {
-    "text": "Not verified"
+    "text": "Not verified",
+    "content_hash": "15133907"
   },
   "web.admin.customers.columns.email": {
     "text": "Email",
@@ -430,7 +432,8 @@
     "content_hash": "6145e5c8"
   },
   "web.admin.customers.actions.purge.typePrompt": {
-    "text": "To confirm, type the account email address {token} below"
+    "text": "To confirm, type the account email address {token} below",
+    "content_hash": "8b2a1819"
   },
   "web.admin.customers.detail.sessions.title": {
     "text": "Active Sessions",

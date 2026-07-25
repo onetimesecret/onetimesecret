@@ -36,16 +36,20 @@
     "content_hash": "966aa580"
   },
   "web.admin.audit.filters.actorLabel": {
-    "text": "Actor"
+    "text": "Actor",
+    "content_hash": "449995c4"
   },
   "web.admin.audit.filters.searchButton": {
-    "text": "Search"
+    "text": "Search",
+    "content_hash": "49c266ba"
   },
   "web.admin.audit.filters.searchHint": {
-    "text": "Type an actor, then press Enter or choose Search to run it. The list does not update while you type."
+    "text": "Type an actor, then press Enter or choose Search to run it. The list does not update while you type.",
+    "content_hash": "45eceb12"
   },
   "web.admin.audit.filters.pendingSearch": {
-    "text": "Not searched yet — press Enter or choose Search to apply this actor."
+    "text": "Not searched yet — press Enter or choose Search to apply this actor.",
+    "content_hash": "f76095c2"
   },
   "web.admin.audit.filters.actionLabel": {
     "text": "Action",
