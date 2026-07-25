@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'auth/lib/logging'
 require 'onetime/session/sidecar'
 
 require_relative 'bind_sso_identity'
@@ -117,10 +118,12 @@ module Auth
       class << self
         # Stash a pending bind for the (already re-keyed) login session.
         #
-        # BEST-EFFORT: a storage failure is logged and swallowed — the login
-        # (whose password already verified) must proceed; the user just stays
-        # unlinked this round (fail-closed) and re-hits the interstitial on
-        # their next SSO sign-in.
+        # BEST-EFFORT: a storage failure is swallowed — the login (whose password
+        # already verified) must proceed; the user just stays unlinked this round
+        # (fail-closed) and re-hits the interstitial on their next SSO sign-in.
+        # Both failure shapes emit :sso_deferred_bind_stash_failed to the auth
+        # audit stream (see #stash_failed), so "silent for the user" never means
+        # "silent for the operator".
         #
         # @param sid [String] the session id — read it AFTER login_session has
         #   run (inside the rodauth.login block), or the login-time re-key
@@ -130,9 +133,8 @@ module Auth
         # @param issuer [String, nil] resolved IdP issuer; nil → '' sentinel
         # @param uid [String] provider-scoped subject id
         # @return [Boolean] whether the stash was written
-        def defer(sid:, account_id:, provider:, issuer:, uid:, logger: nil, dbclient: nil, codec: nil)
-          logger ||= default_logger
-          payload  = {
+        def defer(sid:, account_id:, provider:, issuer:, uid:, dbclient: nil, codec: nil)
+          payload = {
             'account_id' => account_id.to_s,
             'provider' => provider.to_s,
             'issuer' => issuer.to_s,
@@ -144,18 +146,10 @@ module Auth
           written = !Onetime::SessionSidecar.write(
             sid, FIELD, payload, dbclient: dbclient, codec: codec
           ).nil?
-          unless written
-            logger.warn 'Deferred SSO bind not stashed: session id unavailable',
-              account_id: account_id,
-              provider: provider
-          end
+          stash_failed(:sid_unavailable, account_id, provider) unless written
           written
         rescue StandardError => ex
-          logger.warn 'Deferred SSO bind not stashed: sidecar write failed',
-            account_id: account_id,
-            provider: provider,
-            error: ex.message,
-            error_class: ex.class.name
+          stash_failed(:write_error, account_id, provider, error: ex.message, error_class: ex.class.name)
           false
         end
 
@@ -181,6 +175,35 @@ module Auth
 
         def default_logger
           Onetime.get_logger('Auth::DeferredSsoBind')
+        end
+
+        private
+
+        # A stash that was never written is a SILENT degradation: the login
+        # proceeds (best-effort by contract) and the user simply stays unlinked,
+        # so nothing downstream ever reports the miss — `.complete` cannot, since
+        # :none is its normal outcome. It therefore goes to the AUTH AUDIT STREAM
+        # (Auth::Logging), not this class's own category logger: the completion
+        # side is already audited there as :sso_deferred_bind_completed by both
+        # callers (hooks/mfa.rb, hooks/login.rb), and a write side visible only
+        # under Auth::DeferredSsoBind means a SYSTEMIC sidecar failure degrades
+        # linking for every MFA user without ever appearing in the stream this
+        # flow is queried through.
+        #
+        # ONE event name carrying a `reason`, not two: the alertable signal is
+        # the stash-failure RATE (paired with the completion metric — hence
+        # log_metric), and both shapes degrade linking identically. The reason
+        # separates a nil/malformed sid from a datastore outage for triage.
+        def stash_failed(reason, account_id, provider, **extra)
+          Auth::Logging.log_auth_event(
+            :sso_deferred_bind_stash_failed,
+            level: :warn,
+            log_metric: true,
+            reason: reason,
+            account_id: account_id,
+            provider: provider,
+            **extra,
+          )
         end
       end
 

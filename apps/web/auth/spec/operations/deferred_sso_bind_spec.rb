@@ -116,8 +116,17 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
   let(:criteria) { { provider: provider, issuer: issuer, uid: uid } }
 
   # Quiet logger accepting the (message, **fields) call shape of Onetime loggers
-  # (stdlib Logger would reject the keyword fields).
+  # (stdlib Logger would reject the keyword fields). `.complete` only — `.defer`
+  # reports its failures as auth EVENTS (see the Auth::Logging stub below).
   let(:logger) { double('logger', info: nil, warn: nil) }
+
+  # `.defer`'s failure branches are audit events, not category logging: a stash
+  # that never lands degrades linking for every MFA user with no other signal
+  # (`.complete` cannot report it — :none is its normal outcome), so it has to
+  # reach the same stream as :sso_deferred_bind_completed. Stubbed rather than
+  # called through: these examples assert the CONTRACT (event name, reason),
+  # not the formatting.
+  before { allow(Auth::Logging).to receive(:log_auth_event) }
 
   let(:account_id) { seed_account(5) }
 
@@ -139,7 +148,7 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
   def defer(for_account: account_id, for_sid: sid, issuer_value: issuer)
     described_class.defer(
       sid: for_sid, account_id: for_account, provider: provider, issuer: issuer_value, uid: uid,
-      dbclient: redis, codec: codec, logger: logger,
+      dbclient: redis, codec: codec,
     )
   end
 
@@ -193,7 +202,8 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
 
     it 'returns false (and writes nothing) when no usable sid is available' do
       expect(defer(for_sid: nil)).to be(false)
-      expect(logger).to have_received(:warn)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:sso_deferred_bind_stash_failed, hash_including(reason: :sid_unavailable))
     end
 
     it 'is BEST-EFFORT: a storage failure returns false instead of raising' do
@@ -203,7 +213,29 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
       allow(redis).to receive(:set).and_raise(StandardError, 'redis connection refused')
 
       expect(defer).to be(false)
-      expect(logger).to have_received(:warn)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:sso_deferred_bind_stash_failed, hash_including(reason: :write_error))
+    end
+
+    it 'reports a stash failure to the AUTH AUDIT STREAM, with the metric the alert reads' do
+      # The regression this guards: a systemic sidecar outage degrades linking
+      # for every MFA account, and the only witness is this event. Downgrading it
+      # to category logging (or dropping log_metric) makes that outage invisible
+      # next to the :sso_deferred_bind_completed rate it must be compared against.
+      allow(redis).to receive(:set).and_raise(StandardError, 'redis connection refused')
+
+      defer
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :sso_deferred_bind_stash_failed,
+        hash_including(
+          level: :warn,
+          log_metric: true,
+          account_id: account_id,
+          provider: provider,
+          error: 'redis connection refused',
+        ),
+      )
     end
   end
 
