@@ -239,19 +239,28 @@ module Auth::Config::Hooks
           correlation_id: correlation_id,
         )
 
-        # Write the healing FALSE over the hand-off flag (STRING key — the one
-        # PrepareMfaSession wrote and the M-11 guard reads; SyncSession already
-        # deleted both key forms above). Not parked state: the sidecar commit
-        # treats a falsy awaiting_mfa as a DELETE (absent_when_falsy), so on
-        # success this request converges the field to absent everywhere. The
-        # write is load-bearing for exactly one failure case: if this request's
-        # sidecar commit FAILS, the DEL of the stale sidecar awaiting_mfa=true
-        # is lost with it — but write_session's rescue keeps this false in the
-        # BLOB, where blob-wins outranks the stale true on the next read and
-        # the next healthy commit heals it. A deletion here could not win that
-        # conflict: the blob would carry nothing, and the stale true would
-        # re-merge (and re-commit with a fresh TTL) on every request — an
-        # authenticated session locked out of every gated route indefinitely.
+        # Write the healing FALSE over the hand-off flag.
+        #
+        # STRING key deliberately (#3854): it is the key PrepareMfaSession wrote,
+        # and BaseSessionAuthStrategy enforces MFA by reading
+        # session['awaiting_mfa'] — a symbol :awaiting_mfa would silently never
+        # match. SyncSession above already deletes both key forms, but it runs
+        # inside safe_execute and swallows errors, so on a sync failure this line
+        # is the only remaining clear and it must target the string key or the
+        # user stays locked in the awaiting-MFA state after completing MFA.
+        #
+        # FALSE rather than a delete (#3858): this is not parked state — the
+        # sidecar commit treats a falsy awaiting_mfa as a DELETE
+        # (absent_when_falsy), so on success this request converges the field to
+        # absent everywhere. The write is load-bearing for exactly one failure
+        # case: if this request's sidecar commit FAILS, the DEL of the stale
+        # sidecar awaiting_mfa=true is lost with it — but write_session's rescue
+        # keeps this false in the BLOB, where blob-wins outranks the stale true
+        # on the next read and the next healthy commit heals it. A deletion here
+        # could not win that conflict: the blob would carry nothing, and the
+        # stale true would re-merge (and re-commit with a fresh TTL) on every
+        # request — an authenticated session locked out of every gated route
+        # indefinitely.
         session['awaiting_mfa'] = false
 
         # Clean up correlation ID after successful completion

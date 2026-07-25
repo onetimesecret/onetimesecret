@@ -18,6 +18,11 @@
 # don't go through that path. Load the op explicitly so the call site
 # resolves at runtime. The admin wrapper reuses SetCustomerVerification
 # and adds the AdminAuditEvent for this operator-initiated change.
+#
+# Auth::Database is required alongside it because SetCustomerVerification
+# reaches for `Auth::Database.connection` at call time without requiring it
+# (set_customer_verification.rb:95) — see the note in verify_command.rb.
+require 'auth/database'
 require 'auth/operations/customers/set_verification'
 
 module Onetime

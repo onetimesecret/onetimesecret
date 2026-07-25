@@ -563,10 +563,6 @@
     "text": "Gestione utenti",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Gestione segreti",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Domini personalizzati",
     "source_hash": "6170ab94"

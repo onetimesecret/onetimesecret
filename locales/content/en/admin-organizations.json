@@ -310,5 +310,161 @@
   "web.admin.organizations.detail.reconcile.mode.entitlements_only": {
     "text": "Entitlements only",
     "content_hash": "8cf49a5d"
+  },
+  "web.admin.organizations.addMember.button": {
+    "text": "Add existing account",
+    "content_hash": "45a3b757"
+  },
+  "web.admin.organizations.addMember.title": {
+    "text": "Add an existing account",
+    "content_hash": "2f676a94"
+  },
+  "web.admin.organizations.addMember.description": {
+    "text": "Add someone who already has an account to {org}. Use this when a person signed up on their own and cannot be invited because the account already exists.",
+    "content_hash": "bb41faa6"
+  },
+  "web.admin.organizations.addMember.searchLabel": {
+    "text": "Email address or account id",
+    "content_hash": "82b3040b"
+  },
+  "web.admin.organizations.addMember.searchPlaceholder": {
+    "text": "Search by email address",
+    "content_hash": "b75cc66c"
+  },
+  "web.admin.organizations.addMember.searchHint": {
+    "text": "Matches part of an email address, or an exact account id.",
+    "content_hash": "84547a60"
+  },
+  "web.admin.organizations.addMember.searchError": {
+    "text": "Could not search accounts. Check the connection and try again.",
+    "content_hash": "4b6caa41"
+  },
+  "web.admin.organizations.addMember.searchParseError": {
+    "text": "The account search returned an unexpected response. Results may be incomplete.",
+    "content_hash": "0c814231"
+  },
+  "web.admin.organizations.addMember.idle": {
+    "text": "Enter an email address to find the account.",
+    "content_hash": "f6340d35"
+  },
+  "web.admin.organizations.addMember.noResults": {
+    "text": "No account matches “{term}”.",
+    "content_hash": "199b662a"
+  },
+  "web.admin.organizations.addMember.noResultsHint": {
+    "text": "Only existing accounts can be added here. If the person has never signed up, invite them instead.",
+    "content_hash": "ee90aeeb"
+  },
+  "web.admin.organizations.addMember.select": {
+    "text": "Select",
+    "content_hash": "2a78025d"
+  },
+  "web.admin.organizations.addMember.selectedEyebrow": {
+    "text": "Selected account",
+    "content_hash": "8b63d947"
+  },
+  "web.admin.organizations.addMember.change": {
+    "text": "Choose a different account",
+    "content_hash": "d4fe39ab"
+  },
+  "web.admin.organizations.addMember.createdOn": {
+    "text": "Signed up {date}",
+    "content_hash": "cfc0e19f"
+  },
+  "web.admin.organizations.addMember.badges.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.organizations.addMember.badges.unverified": {
+    "text": "Not verified",
+    "content_hash": "15133907"
+  },
+  "web.admin.organizations.addMember.badges.suspended": {
+    "text": "Suspended",
+    "content_hash": "e392a389"
+  },
+  "web.admin.organizations.addMember.badges.alreadyMember": {
+    "text": "Already a member",
+    "content_hash": "1739ed7c"
+  },
+  "web.admin.organizations.addMember.fields.created": {
+    "text": "Signed up",
+    "content_hash": "486b3fe0"
+  },
+  "web.admin.organizations.addMember.fields.verified": {
+    "text": "Verification",
+    "content_hash": "7140f4f1"
+  },
+  "web.admin.organizations.addMember.fields.lastLogin": {
+    "text": "Last sign-in",
+    "content_hash": "0b70af7a"
+  },
+  "web.admin.organizations.addMember.fields.organizations": {
+    "text": "Current organizations",
+    "content_hash": "cbb5b92f"
+  },
+  "web.admin.organizations.addMember.organizationsUnavailable": {
+    "text": "Could not load this account's current organizations.",
+    "content_hash": "a35b6bfc"
+  },
+  "web.admin.organizations.addMember.defaultOrg": {
+    "text": "default",
+    "content_hash": "37a8eec1"
+  },
+  "web.admin.organizations.addMember.roleLabel": {
+    "text": "Role in this organization",
+    "content_hash": "817475fa"
+  },
+  "web.admin.organizations.addMember.roles.member": {
+    "text": "Member",
+    "content_hash": "7c968fb7"
+  },
+  "web.admin.organizations.addMember.roles.admin": {
+    "text": "Admin",
+    "content_hash": "c1c224b0"
+  },
+  "web.admin.organizations.addMember.roles.owner": {
+    "text": "Owner",
+    "content_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.addMember.roleHints.member": {
+    "text": "Everyday access to the organization's secrets and domains.",
+    "content_hash": "d0c7439e"
+  },
+  "web.admin.organizations.addMember.roleHints.admin": {
+    "text": "Can manage members, domains, and organization settings.",
+    "content_hash": "beaa50d7"
+  },
+  "web.admin.organizations.addMember.roleHints.owner": {
+    "text": "Full control, including billing. Grant this only when asked to.",
+    "content_hash": "614ace63"
+  },
+  "web.admin.organizations.addMember.submit": {
+    "text": "Add to organization",
+    "content_hash": "0e0cb636"
+  },
+  "web.admin.organizations.addMember.success": {
+    "text": "Added {account} as {role}.",
+    "content_hash": "533be0dc"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMember": {
+    "text": "This account is already a member of this organization, with the role {role}. Adding does not change an existing role — use the set-role action for that.",
+    "content_hash": "cb6a4774"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
+    "text": "This account is already a member of this organization. Adding does not change an existing role.",
+    "content_hash": "035641ec"
+  },
+  "web.admin.organizations.addMember.errors.notFound": {
+    "text": "That account or organization no longer exists. Search again to confirm the account.",
+    "content_hash": "bd88db18"
+  },
+  "web.admin.organizations.addMember.errors.invalidRole": {
+    "text": "That role was rejected. Choose one of the listed roles and try again.",
+    "content_hash": "eb696a8f"
+  },
+  "web.admin.organizations.addMember.errors.noSelection": {
+    "text": "No account selected.",
+    "content_hash": "dd15bb5b"
   }
 }

@@ -9,7 +9,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -19,9 +19,14 @@
    * {@link useAdminAuditLog} store (no `src/apps/colonel/*` / `colonelInfoStore`).
    *
    * - LIST: DataTable + KitPagination, timestamp/actor/action/target/result/detail.
-   * - FILTERS: the FilterBar search box drives the server-side `actor` filter
-   *   (case-insensitive substring, debounced like the sessions search) and a
-   *   category `<select>` drives the `verb` filter (prefix match server-side).
+   * - ACTOR SEARCH: MANUAL, never as-you-type. The operator submits with Enter
+   *   or the Search button; typing alone changes nothing. This is deliberate —
+   *   any `actor` filter puts the endpoint on its slow path (it loads up to
+   *   MAX_EVENTS = 10k events into Ruby and matches there), so a debounced
+   *   as-you-type box turned every pause into a full-set scan.
+   * - ACTION CATEGORY: applies immediately on change. A `<select>` commits one
+   *   deliberate value per interaction, so there is nothing to debounce and no
+   *   half-typed intermediate state to fire on.
    * - READ-ONLY: viewing the log never writes an audit event (CONTRACT 4), so
    *   there are no mutations — and deliberately no way to edit or delete
    *   entries from the UI.
@@ -33,10 +38,22 @@
 
   // ---- Filters ---------------------------------------------------------------
 
+  /** The raw input value. Editing this NEVER issues a request. */
   const actorTerm = ref('');
+  /** The actor term actually applied to the last fetch — the request reads this. */
   const activeActor = ref('');
   const verbCategory = ref('');
-  const hasActiveFilters = computed(() => actorTerm.value !== '' || verbCategory.value !== '');
+
+  const hasActiveFilters = computed(
+    () => actorTerm.value !== '' || activeActor.value !== '' || verbCategory.value !== ''
+  );
+
+  /**
+   * True when the box holds a term that has not been submitted yet. Manual
+   * search means the table can legitimately disagree with the input, so we say
+   * so rather than letting the operator read stale rows as a result set.
+   */
+  const searchPending = computed(() => actorTerm.value.trim() !== activeActor.value);
 
   /**
    * Action categories = the dotted-verb prefixes the ops layer writes today
@@ -93,25 +110,30 @@
     }
   }
 
-  // Debounce actor input so we issue one request per pause, not per keystroke.
-  let actorTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(actorTerm, (value) => {
-    if (actorTimer) clearTimeout(actorTimer);
-    actorTimer = setTimeout(() => {
-      activeActor.value = value.trim();
-      fetchPage(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (actorTimer) clearTimeout(actorTimer);
-  });
+  /**
+   * Commit the typed actor term and fetch page 1. The ONLY path from the actor
+   * box to a request — bound to Enter (keydown) and to the Search button
+   * (submit), so keyboard and mouse have parity. No timers, nothing to clean up
+   * on unmount.
+   *
+   * The term is normalised in place so a stray trailing space cannot leave the
+   * "not applied yet" hint stuck on after a successful search.
+   */
+  function runSearch(): void {
+    const term = actorTerm.value.trim();
+    actorTerm.value = term;
+    activeActor.value = term;
+    fetchPage(1);
+  }
 
+  /** The action category is a discrete choice — apply it immediately. */
   function onFilterChange(key: string, value: string): void {
     if (key !== 'verb') return;
     verbCategory.value = value;
     fetchPage(1);
   }
 
+  /** Reset every filter (typed and applied) and return to the unfiltered list. */
   function onClear(): void {
     actorTerm.value = '';
     activeActor.value = '';
@@ -185,16 +207,69 @@
       </button>
     </div>
 
-    <!-- Filters: actor substring (search box) + action category (select) -->
+    <!--
+      Filters: MANUAL actor search (Enter or the Search button) + an action
+      category select that applies immediately. `show-search` is off because the
+      kit search box is an as-you-type control; the bespoke form below is the
+      submit-driven replacement and `order-first` keeps it in the usual
+      search-leftmost position.
+    -->
     <div class="mb-4">
       <FilterBar
-        v-model:search="actorTerm"
-        :search-placeholder="t('web.admin.audit.filters.actorPlaceholder')"
+        :show-search="false"
         :filters="filters"
         :has-active-filters="hasActiveFilters"
         testid="audit-filterbar"
         @filter-change="onFilterChange"
-        @clear="onClear" />
+        @clear="onClear">
+        <form
+          class="order-first flex min-w-[18rem] flex-1 flex-wrap items-end gap-2"
+          data-testid="audit-actor-form"
+          @submit.prevent="runSearch">
+          <div class="min-w-0 flex-1">
+            <label
+              for="audit-actor-input"
+              class="font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.admin.audit.filters.actorLabel') }}
+            </label>
+            <input
+              id="audit-actor-input"
+              v-model="actorTerm"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              data-testid="audit-actor-input"
+              :placeholder="t('web.admin.audit.filters.actorPlaceholder')"
+              aria-describedby="audit-actor-hint"
+              class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+              @keydown.enter.prevent="runSearch" />
+          </div>
+          <button
+            type="submit"
+            data-testid="audit-actor-search"
+            :disabled="loading"
+            class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600">
+            <OIcon
+              collection="heroicons"
+              name="magnifying-glass"
+              size="4" />
+            {{ t('web.admin.audit.filters.searchButton') }}
+          </button>
+        </form>
+      </FilterBar>
+
+      <!-- Announced to screen readers; the visible cue is the pending line. -->
+      <p
+        id="audit-actor-hint"
+        class="sr-only">
+        {{ t('web.admin.audit.filters.searchHint') }}
+      </p>
+      <p
+        v-if="searchPending"
+        class="mt-2 text-xs text-amber-700 dark:text-amber-300"
+        data-testid="audit-search-pending">
+        {{ t('web.admin.audit.filters.pendingSearch') }}
+      </p>
     </div>
 
     <!-- Table -->

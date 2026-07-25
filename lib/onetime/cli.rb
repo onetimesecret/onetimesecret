@@ -79,6 +79,7 @@ require_relative 'cli/customers/shared'
 require_relative 'cli/customers/sync_auth_accounts_command'
 require_relative 'cli/customers/dates_command'
 require_relative 'cli/customers/purge_command'
+require_relative 'cli/customers/purge_one_command'
 require_relative 'cli/customers/show_command'
 require_relative 'cli/customers/list_command'
 require_relative 'cli/customers/create_command'
@@ -97,6 +98,7 @@ require_relative 'cli/memberships/remove_command'
 require_relative 'cli/memberships_command'
 require_relative 'cli/domains/doctor_command'
 require_relative 'cli/domains/migrate_sso_command'
+require_relative 'cli/domains/create_command'
 require_relative 'cli/domains_command'
 require_relative 'cli/sso/backfill_issuer_command'
 require_relative 'cli/sso_command'
@@ -152,6 +154,14 @@ require_relative 'cli/diagnostics/sentry/check_dsn_command'
 
 # Load install CLI commands
 require_relative 'cli/install_command'
+
+# Billing read-only views shared with the colonel API. The `billing` and
+# `billing catalog` / `billing orgs` parents are registered by the billing app
+# (auto-discovered below); Dry::CLI's registry is a tree, so registration order
+# does not matter — but the parents MUST exist or `bin/ots billing --help`
+# walks a nil node.
+require_relative 'cli/billing/catalog_drift_command'
+require_relative 'cli/billing/orgs_stripe_command'
 
 # Load queue CLI commands
 require_relative 'cli/queue/init_command'

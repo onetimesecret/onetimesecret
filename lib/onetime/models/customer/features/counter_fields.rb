@@ -55,6 +55,14 @@ module Onetime::Customer::Features
       base.class_counter :emails_sent
     end
 
+    # Newest-first cap on the per-owner `secrets` index (Customer#secrets).
+    # The index exists to answer "which secrets does this customer own" for the
+    # colonel detail view, which renders one bounded page — it is not an
+    # archive. Trimming on write means the key size is bounded by construction
+    # rather than by hoping expiry keeps up, and readers stay honest by
+    # reporting truncation instead of a silently short list.
+    SECRET_INDEX_LIMIT = 1_000
+
     module ClassMethods
       # Increment a customer's per-customer live-secret counter (secrets_active)
       # by object id, without loading the full Customer record.
@@ -69,13 +77,32 @@ module Onetime::Customer::Features
       # counter issues a single INCR on `customer:<objid>:secrets_active` — the
       # same key the reconciliation resets and the colonel list reads. See #60.
       #
+      # When `secret_id` is supplied the owner's `secrets` sorted-set index is
+      # maintained in the SAME call, so the "how many" counter and the "which
+      # ones" index are written at one chokepoint and can only drift together.
+      # The index backs the colonel customer-detail view, which previously had
+      # to walk the entire `secret:*:object` keyspace to answer the same
+      # question. Callers that pass no secret_id (tests, the nightly
+      # reconciliation's callers) keep the pre-index behaviour exactly.
+      #
       # @param owner_id [String, nil] the secret owner's Customer objid
+      # @param secret_id [String, nil] the created secret's objid; when present,
+      #   added to the owner's `secrets` index
+      # @param score [Numeric, nil] index score (defaults to now); pass the
+      #   secret's `created` so the index orders by creation time
       # @return [void]
-      def increment_secrets_active(owner_id)
+      def increment_secrets_active(owner_id, secret_id: nil, score: nil)
         oid = owner_id.to_s
         return if oid.empty? || oid == 'anon'
 
-        new(objid: oid).secrets_active.increment
+        cust = new(objid: oid)
+        # A bare Customer.new(objid:) is "dirty" (the initializer runs the objid
+        # setter), and SortedSet writes warn/raise on a dirty parent. Nothing
+        # here is a deferred scalar write, so clear the flag rather than trip a
+        # false unsaved-parent diagnostic.
+        cust.clear_dirty!
+        cust.secrets_active.increment
+        index_secret(cust, secret_id, score)
       rescue StandardError => ex
         # A counter bump must never break secret creation. Log and move on; the
         # nightly reconciliation will correct any missed increment.
@@ -101,17 +128,47 @@ module Onetime::Customer::Features
       # loses live-secret information; reconciliation still SETs the truth daily.
       #
       # @param owner_id [String, nil] the secret owner's Customer objid
+      # @param secret_id [String, nil] the destroyed secret's objid; when
+      #   present, removed from the owner's `secrets` index so index and
+      #   counter move together
       # @return [void]
-      def decrement_secrets_active(owner_id)
+      def decrement_secrets_active(owner_id, secret_id: nil)
         oid = owner_id.to_s
         return if oid.empty? || oid == 'anon'
 
-        counter = new(objid: oid).secrets_active
+        cust    = new(objid: oid)
+        cust.clear_dirty! # see increment_secrets_active
+        counter = cust.secrets_active
         counter.increment if counter.decrement.negative?
+        unindex_secret(cust, secret_id)
       rescue StandardError => ex
         # A counter bump must never break secret destruction. Log and move on;
         # the nightly reconciliation will correct any missed decrement.
         OT.le "[decrement_secrets_active] #{ex.class}: #{ex.message} (owner_id=#{oid})"
+      end
+
+      private
+
+      # Add a secret to its owner's newest-first index and trim to
+      # SECRET_INDEX_LIMIT. ZADD + ZREMRANGEBYRANK are both O(log n); the trim
+      # is what keeps the key bounded without a sweeper job.
+      def index_secret(cust, secret_id, score)
+        sid = secret_id.to_s
+        return if sid.empty?
+
+        cust.secrets.add(sid, (score || Familia.now).to_f)
+        # Drop everything outside the newest SECRET_INDEX_LIMIT (lowest scores
+        # rank first, so the excess sits at the head).
+        limit = Onetime::Customer::Features::CounterFields::SECRET_INDEX_LIMIT
+        cust.secrets.remrangebyrank(0, -(limit + 1))
+      end
+
+      # Mirror of {index_secret} — drop the member on early destruction.
+      def unindex_secret(cust, secret_id)
+        sid = secret_id.to_s
+        return if sid.empty?
+
+        cust.secrets.remove_element(sid)
       end
     end
 

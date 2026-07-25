@@ -13,16 +13,41 @@ module ColonelAPI
       #   organizations, including verification state, brand settings,
       #   logo/icon presence, and the owning organization. Requires
       #   colonel role.
+      #
+      # Optional server-side filters (all additive; omitting them reproduces the
+      # previous unfiltered behaviour byte-for-byte):
+      #
+      #   search  — case-insensitive substring over display_domain / base_domain,
+      #             or an exact extid / domain_id match.
+      #   status  — exact verification_state ('verified', 'pending', ...).
+      #   org_id  — exact owning-org match; accepts the org extid or objid.
+      #
+      # Scaling note: this endpoint loads every CustomDomain before slicing (the
+      # incumbent behaviour). Filtering happens in the same in-memory pass, so it
+      # does not make the read heavier — but a genuinely index-backed page read
+      # is still the right fix if the domain population grows. Filters are
+      # applied BEFORE pagination, so total_count reflects the filtered set.
       class ListCustomDomains < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'customDomains' }.freeze
 
-        attr_reader :domains, :total_count, :page, :per_page, :total_pages
+        attr_reader :domains,
+          :total_count,
+          :page,
+          :per_page,
+          :total_pages,
+          :search_term,
+          :status_filter,
+          :org_filter
 
         def process_params
           @page     = (params['page'] || 1).to_i
           @per_page = (params['per_page'] || 50).to_i
           @per_page = 100 if @per_page > 100 # Max 100 per page
           @page     = 1 if @page < 1
+
+          @search_term   = sanitize_plain_text(params['search'], max_length: 255).to_s.strip
+          @status_filter = sanitize_identifier(params['status']).to_s
+          @org_filter    = sanitize_identifier(params['org_id']).to_s
         end
 
         def raise_concerns
@@ -33,6 +58,7 @@ module ColonelAPI
           # Get all custom domains using efficient loading
           all_domain_ids = Onetime::CustomDomain.instances.to_a
           all_domains    = Onetime::CustomDomain.load_multi(all_domain_ids).compact
+          all_domains    = apply_filters(all_domains)
 
           @total_count = all_domains.size
           @total_pages = (@total_count.to_f / @per_page).ceil
@@ -138,8 +164,46 @@ module ColonelAPI
                 total_count: total_count,
                 total_pages: total_pages,
               },
+              # Server echo of the applied filters (additive key; mirrors
+              # ListOrganizations). Never read for state by the frontend.
+              filters: {
+                search: search_term,
+                status: status_filter,
+                org_id: org_filter,
+              },
             },
           }
+        end
+
+        private
+
+        # All three filters are AND-ed. Empty/absent filters are no-ops, so an
+        # unfiltered request returns exactly the previous result set.
+        def apply_filters(all_domains)
+          result = all_domains
+
+          unless status_filter.empty?
+            result = result.select { |d| d.verification_state.to_s == status_filter }
+          end
+
+          unless org_filter.empty?
+            # Accept the org extid (what every admin surface routes by) or the
+            # internal objid, which is what CustomDomain#org_id actually stores.
+            org     = Onetime::Organization.find_by_extid(org_filter)
+            org_ids = [org_filter, org&.objid].compact.map(&:to_s)
+            result  = result.select { |d| org_ids.include?(d.org_id.to_s) }
+          end
+
+          return result if search_term.empty?
+
+          needle = search_term.downcase
+          result.select do |d|
+            next true if d.extid.to_s == search_term
+            next true if d.domainid.to_s == search_term
+
+            d.display_domain.to_s.downcase.include?(needle) ||
+              d.base_domain.to_s.downcase.include?(needle)
+          end
         end
       end
     end

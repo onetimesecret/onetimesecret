@@ -30,7 +30,10 @@ module ColonelAPI
 
         def process_params
           @org_id      = sanitize_identifier(params['org_id'])
-          @customer_id = sanitize_identifier(params['customer'])
+          # Email-tolerant: the docstring above advertises
+          # {"customer": "user@example.com"} and sanitize_identifier would strip
+          # the '@' and '.' out of it. See AccountIdentifier.
+          @customer_id = sanitize_account_identifier(params['customer'])
           @role        = sanitize_plain_text(params['role']).to_s.downcase
           @role        = 'member' if @role.empty?
         end

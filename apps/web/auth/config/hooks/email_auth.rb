@@ -52,7 +52,7 @@
 # 5. USER COMPLETES MFA
 #    - User enters TOTP code or uses WebAuthn device
 #    - POST /auth/otp-auth or POST /auth/webauthn-auth
-#    - If valid: session[:awaiting_mfa] = false
+#    - If valid: session['awaiting_mfa'] = false
 #    - User now fully authenticated
 #
 # 6. FULLY AUTHENTICATED SESSION
