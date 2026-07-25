@@ -171,9 +171,12 @@ Onetime::CustomDomain::SigninConfig.global_auth_enabled({})
 ## around the call to prove the path (restored immediately after)
 @auth_conf     = OT.conf['site']['authentication']
 @saved_enabled = @auth_conf['enabled']
-@auth_conf['enabled'] = false
-@masterkill_result = Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil, domain_id: @sso_only_domain)
-@auth_conf['enabled'] = @saved_enabled
+begin
+  @auth_conf['enabled'] = false
+  @masterkill_result = Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil, domain_id: @sso_only_domain)
+ensure
+  @auth_conf['enabled'] = @saved_enabled
+end
 @masterkill_result
 #=> false
 

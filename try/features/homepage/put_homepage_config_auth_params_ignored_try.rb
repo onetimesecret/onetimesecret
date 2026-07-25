@@ -90,6 +90,28 @@ end
 [@stored.signup_enabled?, @stored.signin_enabled?]
 #=> [false, false]
 
+## The deprecation warning is emitted exactly when deprecated params are
+## present, and not on a clean PUT — intercept OT.lw so the logged half of
+## the contract can't regress silently
+captured = []
+original_lw = OT.method(:lw)
+OT.define_singleton_method(:lw) { |*msgs, **_payload| captured << msgs.join(' ') }
+begin
+  run_put(@test_cust, @test_domain, {
+    'enabled' => true,
+    'signup_enabled' => true,
+    'signin_enabled' => true,
+  })
+  @deprecation_warning_count = captured.grep(/deprecated params ignored \(signup_enabled, signin_enabled\)/).length
+  captured.clear
+  run_put(@test_cust, @test_domain, { 'enabled' => true })
+  @clean_put_warning_count = captured.grep(/deprecated params ignored/).length
+ensure
+  OT.define_singleton_method(:lw, original_lw)
+end
+[@deprecation_warning_count, @clean_put_warning_count]
+#=> [1, 0]
+
 ## Other submitted fields still persist alongside the ignored params
 @result = run_put(@test_cust, @test_domain, {
   'enabled' => true,
@@ -123,6 +145,10 @@ end
 [@result[:record][:enabled], @result[:record][:signup_enabled], @result[:record][:signin_enabled]]
 #=> [false, false, false]
 
-# Teardown
-@test_domain.destroy!
-@test_cust.destroy!
+# Teardown — destroy each fixture independently so one failure doesn't leak
+# the rest across runs
+[@test_domain, @test_org, @test_cust].each do |record|
+  record.destroy!
+rescue StandardError => e
+  OT.le "[teardown] #{record.class} destroy failed: #{e.message}"
+end

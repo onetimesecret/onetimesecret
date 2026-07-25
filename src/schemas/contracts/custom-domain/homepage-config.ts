@@ -78,8 +78,9 @@ export const homepageConfigCanonical = z.object({
    * - Admin homepage-config API responses: deprecated echo of the stored
    *   HomepageConfig field, which carries no display authority (all false
    *   since the 2026-07-03 migration). PUT /homepage-config ignores the
-   *   param; auth links are managed on the /domains/:id/signup settings
-   *   page. Kept until the stored field is removed in a later release.
+   *   param; auth links are managed on the /org/:orgid/domains/:extid/signup
+   *   settings page. Kept until the stored field is removed in a later
+   *   release.
    */
   signup_enabled: z.boolean().default(false),
 
@@ -90,7 +91,7 @@ export const homepageConfigCanonical = z.object({
    * resolver-computed from SigninConfig in the bootstrap payload; a
    * deprecated no-authority stored-value echo in admin homepage-config
    * API responses. PUT /homepage-config ignores the param; manage the
-   * link on the /domains/:id/signin settings page.
+   * link on the /org/:orgid/domains/:extid/signin settings page.
    */
   signin_enabled: z.boolean().default(false),
 
