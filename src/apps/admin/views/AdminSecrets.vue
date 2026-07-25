@@ -19,7 +19,7 @@
   import { useI18n } from 'vue-i18n';
 
   /**
-   * Secret Records screen (ticket #30) — LOOKUP-FIRST by design review: on a
+   * Secret Receipts screen (ticket #30) — LOOKUP-FIRST by design review: on a
    * zero-knowledge platform there is nothing to gain from browsing every
    * secret, so the paginated browse-all table was removed (the list endpoint
    * still exists server-side; this screen never calls it).

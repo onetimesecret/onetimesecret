@@ -563,10 +563,6 @@
     "text": "Gebruikersbeheer",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Berichtenbeheer",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Aangepaste domeinen",
     "source_hash": "6170ab94"

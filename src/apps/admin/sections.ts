@@ -93,7 +93,10 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
   },
   {
     key: 'secrets',
-    labelKey: 'web.colonel.titles.secrets',
+    // Single source for this label: the nav item, the route title and the page
+    // heading all read web.admin.secrets.title. The old web.colonel.titles.secrets
+    // duplicate was removed so a future rename cannot miss one of them.
+    labelKey: 'web.admin.secrets.title',
     icon: 'key',
     group: 'platform',
     hide: false,

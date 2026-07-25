@@ -563,10 +563,6 @@
     "text": "Gestão de utilizadores",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Gestão de mensagens confidenciais",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Domínios personalizados",
     "source_hash": "6170ab94"
