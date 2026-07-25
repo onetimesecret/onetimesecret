@@ -413,7 +413,8 @@
   },
   "web.auth.connections.errors.last_credential": {
     "text": "This is your only way to sign in. Connect another provider first, or sign out and use \"Forgot password\" to set a password, so you don't get locked out.",
-    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential). Must only reference actions available to passwordless accounts: connecting a provider (same panel) or the signed-out Forgot password flow — there is no in-app set-password page."
+    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential). Must only reference actions available to passwordless accounts: connecting a provider (same panel) or the signed-out Forgot password flow — there is no in-app set-password page.",
+    "content_hash": "4e0794b4"
   },
   "web.auth.connections.errors.not_found": {
     "text": "That connected identity could not be found. It may have already been removed.",
@@ -547,7 +548,8 @@
   },
   "web.sso_link_confirm.errors.confirm_rate_limited": {
     "text": "Too many attempts from your device. Please wait a few minutes, then open the emailed link again or sign in with your provider for a fresh one.",
-    "context": "Error on the #3840 Phase 4 mailbox-proof SSO linking page when the per-client rate limit on the confirm endpoint trips (backend error_code confirm_rate_limited, HTTP 429). Unlike the other errors the link itself is NOT consumed — the copy must say 'wait', never that the link is dead."
+    "context": "Error on the #3840 Phase 4 mailbox-proof SSO linking page when the per-client rate limit on the confirm endpoint trips (backend error_code confirm_rate_limited, HTTP 429). Unlike the other errors the link itself is NOT consumed — the copy must say 'wait', never that the link is dead.",
+    "content_hash": "f29af782"
   },
   "web.sso_link_confirm.errors.generic": {
     "text": "We couldn't confirm this connection. Please sign in with your provider again.",
