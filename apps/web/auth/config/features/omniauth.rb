@@ -76,6 +76,23 @@ module Auth::Config::Features
     #   3. TENANT path: issuer-exact ONLY — NEVER the '' fallback. The legacy
     #      fallback on the tenant path IS the item-5 takeover.
     #
+    # ISSUERLESS PROVIDERS (GitHub, Google) — the gap Approach A cannot close.
+    # Issuer-scoping isolates tenants because each OIDC/Entra tenant resolves a
+    # DISTINCT issuer. OAuth2 providers with no issuer concept resolve to the ''
+    # sentinel on EVERY surface (resolve_issuer #4), so a TENANT callback's step-1
+    # EXACT lookup (provider, '', uid) — which carries no platform_path gate —
+    # matches a PLATFORM- or OTHER-TENANT-created (provider, '', uid) row, exactly
+    # the (provider, uid) cross-surface bind the re-key was meant to end. (A tenant
+    # admin cannot forge a GitHub/Google uid — the provider attests it — so this is
+    # not the item-5 uid-forgery takeover; but it still lets a tenant callback
+    # AUTHENTICATE, and additively org-join, an account first linked on another
+    # surface, breaking the surface-isolation invariant item 3 and the tenant
+    # refusals in hooks/omniauth.rb enforce.) There is no per-tenant issuer to scope
+    # on, so we FAIL CLOSED: refuse_issuerless_on_tenant? rejects issuerless
+    # providers on the tenant surface BEFORE any lookup (wired into
+    # retrieve_omniauth_identity). OIDC/Entra carry a real, tenant-distinct issuer
+    # and are unaffected; issuerless SSO stays available on the PLATFORM surface.
+    #
     # The pure decision functions below are driven verbatim by the auth-class
     # helpers wired in configure_issuer_scoped_identities, and unit/integration
     # tested directly.
@@ -130,6 +147,23 @@ module Auth::Config::Features
     # @return [Boolean] true when this is a platform (non-tenant) callback
     def self.platform_path?(validated_domain_id)
       validated_domain_id.nil? || validated_domain_id.to_s.empty?
+    end
+
+    # SECURITY-CRITICAL (#3840 follow-up / PR #3900 P1 "Issuerless identities
+    # cross tenant boundaries"): must a callback be refused because it is an
+    # issuerless provider (resolved issuer == '' sentinel) arriving on the TENANT
+    # surface? Such a callback's exact (provider, '', uid) lookup would otherwise
+    # match a platform- or other-tenant-created row (see the ISSUERLESS PROVIDERS
+    # note above). Refusing here fails closed: no cross-surface match AND no JIT
+    # '' row that could later collide on the platform side. Platform issuerless
+    # callbacks (platform_path true) and tenant OIDC/Entra callbacks (non-''
+    # issuer) are NOT refused.
+    #
+    # @param platform_path [Boolean] omniauth_platform_path?
+    # @param resolved_issuer [String] resolve_issuer output for this callback
+    # @return [Boolean] true when the callback must be refused
+    def self.refuse_issuerless_on_tenant?(platform_path:, resolved_issuer:)
+      !platform_path && resolved_issuer.to_s == ISSUER_SENTINEL
     end
 
     # Issuer-scoped identity lookup (Approach A). Returns the identity row hash
@@ -220,6 +254,31 @@ module Auth::Config::Features
       # omniauth_uid). The block MUST accept them or every callback 500s with
       # ArgumentError (wrong number of arguments).
       auth.retrieve_omniauth_identity do |provider, uid|
+        issuer        = resolved_issuer
+        platform_path = omniauth_platform_path?
+
+        # SECURITY-CRITICAL: refuse issuerless providers (GitHub/Google) on the
+        # tenant surface BEFORE any identity match. Their '' issuer is shared
+        # across surfaces, so the exact (provider, '', uid) lookup below would
+        # otherwise resolve a platform- or other-tenant-created row and log this
+        # callback into it (and the additive org-join would pull that account
+        # into this tenant's org). Halting here — before lookup_identity, so no
+        # match — also blocks the create path (a tenant JIT-created '' row that
+        # could later collide on the platform side). See
+        # refuse_issuerless_on_tenant? and the ISSUERLESS PROVIDERS note above.
+        # `redirect` throws :halt, caught by Roda in _handle_omniauth_callback
+        # (the same mechanism the hooks/omniauth.rb refusals use).
+        if Auth::Config::Features::OmniAuth.refuse_issuerless_on_tenant?(
+          platform_path: platform_path, resolved_issuer: issuer,
+        )
+          Auth::Logging.log_auth_event(
+            :omniauth_tenant_issuerless_refused,
+            level: :warn,
+            provider: provider,
+          )
+          redirect '/signin?auth_error=sso_not_configured'
+        end
+
         Auth::Config::Features::OmniAuth.lookup_identity(
           ds: omniauth_identities_ds,
           id_col: omniauth_identities_id_column,
@@ -228,8 +287,8 @@ module Auth::Config::Features
           issuer_col: :issuer,
           provider: provider,
           uid: uid,
-          resolved_issuer: resolved_issuer,
-          platform_path: omniauth_platform_path?,
+          resolved_issuer: issuer,
+          platform_path: platform_path,
         )
       end
 

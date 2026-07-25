@@ -156,4 +156,58 @@ RSpec.describe 'Issuer-scoped SSO identity lookup', type: :integration do
       expect(ds.where(id: identity_id).get(:issuer)).to eq('')
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # (d) Issuerless providers (GitHub/Google) cannot cross the tenant boundary.
+  #
+  # PR #3900 P1 "Issuerless identities cross tenant boundaries": OAuth2 providers
+  # with no issuer resolve to the '' sentinel on EVERY surface, so a tenant
+  # callback's exact (provider, '', uid) lookup matches a platform-created row —
+  # the (provider, uid) collision issuer-scoping closed for OIDC/Entra but CANNOT
+  # close for issuerless providers. Case (c) proves the tenant no-grace invariant
+  # ONLY for a NON-'' tenant issuer; with the '' sentinel the exact lookup DOES
+  # cross-match. The fix refuses issuerless providers on the tenant surface BEFORE
+  # the lookup runs (features/omniauth.rb retrieve_omniauth_identity ->
+  # refuse_issuerless_on_tenant?), so the collision demonstrated below is never
+  # reached in production.
+  # ---------------------------------------------------------------------------
+  describe '(d) issuerless providers: cross-surface collision + tenant refusal' do
+    let(:uid) { "gh-#{SecureRandom.hex(6)}" }
+    # A PLATFORM-created GitHub identity: issuer is the '' sentinel (GitHub has no
+    # issuer). This is the row a tenant callback must NEVER be able to resolve.
+    let!(:platform_acct) { create_account(unique_email('platform-github')) }
+    let!(:identity_id) { insert_identity(account_id: platform_acct, provider: 'github', issuer: '', uid: uid) }
+
+    it 'the raw lookup WOULD cross-match a tenant callback onto the platform row (the bug the guard prevents)' do
+      # Demonstrates why the guard is load-bearing: with issuer='' on BOTH
+      # surfaces, the step-1 EXACT (github, '', uid) query — which carries no
+      # platform_path gate — returns the platform identity even on the tenant
+      # path. (The platform-only '' fallback at step 2 is NOT what matches here;
+      # the exact query at step 1 does, because the tenant callback's resolved
+      # issuer is ALSO the '' sentinel.)
+      row = feature.lookup_identity(ds: ds, **cols, provider: 'github', uid: uid,
+                                                    resolved_issuer: '',
+                                                    platform_path: false)
+      expect(row).not_to be_nil
+      expect(row[:account_id]).to eq(platform_acct)
+    end
+
+    it 'refuses a tenant callback carrying the "" sentinel issuer (issuerless provider)' do
+      expect(
+        feature.refuse_issuerless_on_tenant?(platform_path: false, resolved_issuer: ''),
+      ).to be true
+    end
+
+    it 'does NOT refuse a tenant callback carrying a real (OIDC/Entra) issuer' do
+      expect(
+        feature.refuse_issuerless_on_tenant?(platform_path: false, resolved_issuer: 'https://tenant-idp.example'),
+      ).to be false
+    end
+
+    it 'does NOT refuse a PLATFORM issuerless callback (issuerless SSO stays available on the platform)' do
+      expect(
+        feature.refuse_issuerless_on_tenant?(platform_path: true, resolved_issuer: ''),
+      ).to be false
+    end
+  end
 end
