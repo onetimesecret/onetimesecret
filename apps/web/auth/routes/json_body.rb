@@ -18,10 +18,17 @@ module Auth
       private
 
       # Extract the named keys from a JSON body (Content-Type application/json),
-      # falling back to form/query params. Returns a Hash keyed by the given SYMBOLS
-      # with string values ('' when absent), so callers can treat a missing field
-      # and an empty one identically. Rewinds the input so nothing downstream is
-      # surprised by a consumed body.
+      # falling back to form/query params ONLY for keys ABSENT from the parsed
+      # body. Presence is decided with Hash#key?, not truthiness (PR #3900
+      # review): an explicit JSON `false`, `0`, or `null` is a value the caller
+      # sent and must win over a form/query param of the same name — `parsed[k]
+      # || fallback` would silently re-read the form param and change the
+      # request's meaning for any route accepting boolean/numeric JSON fields.
+      #
+      # Returns a Hash keyed by the given SYMBOLS with string values ('' when
+      # absent; an explicit JSON null also stringifies to ''), so callers can
+      # treat a missing field and an empty one identically. Rewinds the input so
+      # nothing downstream is surprised by a consumed body.
       def json_body_params(request, *keys)
         raw = request.body&.read.to_s
         request.body.rewind if request.body.respond_to?(:rewind)
@@ -33,7 +40,10 @@ module Auth
         end
         parsed = {} unless parsed.is_a?(Hash)
 
-        keys.to_h { |key| [key.to_sym, (parsed[key.to_s] || request.params[key.to_s]).to_s] }
+        keys.to_h do |key|
+          value = parsed.key?(key.to_s) ? parsed[key.to_s] : request.params[key.to_s]
+          [key.to_sym, value.to_s]
+        end
       end
     end
   end
