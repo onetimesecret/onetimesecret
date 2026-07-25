@@ -54,6 +54,10 @@ Onetime::Organization.chore :standardize_owner_id do |org|
     next
   end
 
+  # EXPECTED CAUSE: `bin/ots org transfer-ownership` moves owner_id but never
+  # created_by (immutable audit field, ADR-012), so every transferred org trips
+  # this branch forever. That is by design, not corruption.
+  #
   # Branch 3b: both present but disagree → don't overwrite, warn.
   if !owner_id.empty? && !created_by.empty? && owner_id != created_by
     logger.warn 'Skipping inconsistent owner_id and created_by',
