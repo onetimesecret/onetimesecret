@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Covers `bin/ots domains doctor` after it was rewired to delegate its one
-# overlapping repair (check #5, org.domains membership) to
+# overlapping repair (check #4, org.domains membership) to
 # Onetime::Operations::Domains::Repair, and `bin/ots domains bulk-repair` after
 # it became a deprecation shim.
 #
@@ -17,7 +17,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
   let(:org_domains) do
     double(
       'OrgDomainsSortedSet',
-      member?: false, # domain is NOT in the collection -> check #5 fires
+      member?: false, # domain is NOT in the collection -> check #4 fires
       to_a: [],
       add: true,
       remove: true,
@@ -218,6 +218,75 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
 
       expect(Onetime::Operations::Domains::Repair).not_to have_received(:new)
       expect(org_domains).not_to have_received(:add)
+    end
+  end
+
+  # Regression guard for the double-count/double-delete bug: doctor used to run
+  # two byte-identical passes over Onetime::CustomDomain.display_domain_index
+  # (check_display_domain_index_integrity and
+  # check_display_domain_index_hash_integrity), so N stale entries were reported
+  # as 2N issues at two severities and repaired 2N times.
+  describe 'display_domain_index integrity' do
+    let(:stale_index) do
+      double(
+        'DisplayDomainIndex',
+        hgetall: { 'stale.example.com' => 'gone999' },
+        remove: true,
+        remove_field: true,
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(stale_index)
+      # No domain-level subjects: this example isolates the index sweep.
+      allow(Onetime::CustomDomain).to receive(:instances).and_return([])
+      allow(Onetime::CustomDomain).to receive(:load).with('gone999').and_return(nil)
+    end
+
+    it 'reports one stale entry exactly once, at high severity' do
+      output = run_cli_command_quietly('domains', 'doctor', '--all', '--json')
+      report = JSON.parse(output[:stdout])
+
+      index_groups = report['issues'].select { |group| group['type'] == 'indexes' }
+      expect(index_groups.size).to eq(1)
+
+      issues = index_groups.first['issues']
+      expect(issues.size).to eq(1)
+      expect(issues.first['check']).to eq('display_domain_index_stale')
+      expect(issues.first['severity']).to eq('high')
+      expect(issues.first['total_stale']).to eq(1)
+
+      expect(report['repaired']).to be_empty
+      expect(stale_index).not_to have_received(:remove)
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'deletes the entry once and records one repair with count 1' do
+      output = run_cli_command_quietly('domains', 'doctor', '--all', '--repair', '--json')
+      report = JSON.parse(output[:stdout])
+
+      expect(report['repaired'].size).to eq(1)
+      expect(report['repaired'].first['action']).to eq('display_domain_index_cleaned')
+      expect(report['repaired'].first['count']).to eq(1)
+
+      # Canonical delete: lib/onetime/models/custom_domain.rb uses .remove on
+      # display_domain_index. (.remove_field is an alias of the same HashKey
+      # method, so this pins the form, not the behaviour.)
+      expect(stale_index).to have_received(:remove).with('stale.example.com').once
+      expect(stale_index).not_to have_received(:remove_field)
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'flags an FQDN mismatch once, not once per pass' do
+      mismatched = double('MismatchedDomain', display_domain: 'other.example.com')
+      allow(Onetime::CustomDomain).to receive(:load).with('gone999').and_return(mismatched)
+
+      output = run_cli_command_quietly('domains', 'doctor', '--all', '--json')
+      report = JSON.parse(output[:stdout])
+
+      issues = report['issues'].find { |group| group['type'] == 'indexes' }['issues']
+      expect(issues.size).to eq(1)
+      expect(issues.first['stale_entries'].first['reason']).to include('FQDN mismatch')
     end
   end
 
