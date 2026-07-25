@@ -1,0 +1,7 @@
+{
+  "strictness": 3,
+  "commentTypes": ["logic"],
+  "summarySection": { "included": false },
+  "issuesTableSection": { "included": false },
+  "confidenceScoreSection": { "included": false }
+}
