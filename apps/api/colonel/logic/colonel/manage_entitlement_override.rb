@@ -60,6 +60,14 @@ module ColonelAPI
         # renders the past-tense string.
         ACTION_PAST_TENSE = Onetime::Operations::Org::EntitlementOverride::ACTION_PAST_TENSE
 
+        # Derived from the op's ACTIONS so the operator-facing message cannot
+        # drift from what is actually accepted. 'clear' IS valid here: DELETE
+        # /entitlements/overrides carries no action param and maps to it, so a
+        # message naming only grant/revoke misleads on that surface.
+        VALID_ACTIONS_MESSAGE = "Action must be one of: #{
+          Onetime::Operations::Org::EntitlementOverride::ACTIONS.join(', ')
+        }".freeze
+
         attr_reader :org, :entitlement, :action, :result
 
         def process_params
@@ -75,7 +83,7 @@ module ColonelAPI
           raise_form_error('Organization ID is required', field: :org_id) if @org_id.to_s.empty?
 
           unless Onetime::Operations::Org::EntitlementOverride::ACTIONS.include?(@action)
-            raise_form_error('Action must be grant or revoke', field: :action)
+            raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           end
 
           if @action != 'clear' && @entitlement.to_s.empty?
@@ -137,7 +145,7 @@ module ColonelAPI
         def handle_result_status(result)
           case result.status
           when :invalid_action
-            raise_form_error('Action must be grant or revoke', field: :action)
+            raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           when :missing_entitlement
             raise_form_error('Entitlement is required for grant/revoke', field: :entitlement)
           end
