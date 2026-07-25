@@ -66,7 +66,7 @@ module Onetime
         boot_application!
 
         target  = resolve_domain(domain, json: json)
-        seconds = coerce_timeout(timeout, json: json)
+        seconds = validate_timeout(timeout, json: json)
 
         # Delegate the probe to the single op implementation (read-only, no
         # audit). The op returns the SAME result Hash the CLI previously built
@@ -89,21 +89,19 @@ module Onetime
 
       private
 
-      # dry-cli 1.4.1 does NOT coerce `type: :integer` — Option#parser_options
-      # never hands OptionParser an Integer class, so an explicit `--timeout 30`
-      # arrives as the String "30" while the declared default stays an Integer.
-      # A String reaches Net::HTTP#open_timeout= and then blows up inside
-      # IO.select, so coerce (and reject garbage) at the adapter boundary.
+      # Range check only. Onetime::CLI::OptionTypes now coerces every declared
+      # `type: :integer` option before `call` runs and rejects non-numeric input
+      # with the same error shape, so this no longer parses the value -- it only
+      # enforces the bound that is specific to a timeout. A String reaching
+      # Net::HTTP#open_timeout= blows up inside IO.select, and 0 would mean "give
+      # up immediately".
       #
       # Deliberately NOT clamped to an upper bound: the colonel's MAX_TIMEOUT=30
       # exists to stop an HTTP request hanging a web worker, and a shell has no
       # such constraint.
-      def coerce_timeout(value, json:)
-        seconds = Integer(value)
+      def validate_timeout(seconds, json:)
         error_exit('--timeout must be a positive number of seconds', json: json) unless seconds.positive?
         seconds
-      rescue ArgumentError, TypeError
-        error_exit("--timeout must be an integer (got #{value.inspect})", json: json)
       end
 
       def display_probe_result(domain, result)

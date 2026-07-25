@@ -9,12 +9,24 @@ require 'onetime/migration'
 
 require 'v2/logic'
 
+require_relative 'cli/option_types'
+
 module Onetime
   module CLI
     extend Dry::CLI::Registry
 
     # Base command class that boots the application
     class Command < Dry::CLI::Command
+      # Dry::CLI 1.4.1 never coerces `type: :integer` / `type: :float`, so a
+      # supplied flag reaches `call` as a String while an omitted one keeps the
+      # declared numeric default. See lib/onetime/cli/option_types.rb for the
+      # full analysis; note the prepend must target every subclass, not just
+      # this base, or a subclass's own `call` sits ahead of the coercion.
+      def self.inherited(subclass)
+        super
+        subclass.prepend(OptionTypes::Coercion)
+      end
+
       def boot_application!
         # Make sure all the models are loaded before calling boot
         OT.boot! :cli
@@ -46,6 +58,12 @@ module Onetime
 
     # Command class that delays boot (for commands that handle boot themselves)
     class DelayBootCommand < Dry::CLI::Command
+      # See Command.inherited above.
+      def self.inherited(subclass)
+        super
+        subclass.prepend(OptionTypes::Coercion)
+      end
+
       protected
 
       def require_sudo
