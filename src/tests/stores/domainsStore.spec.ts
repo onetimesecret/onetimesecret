@@ -677,6 +677,49 @@ describe('domainsStore', () => {
       expect(bootstrapStore.homepage_config?.secrets_mode).toBe('incoming');
     });
 
+    it('preserves resolver-computed auth links in bootstrap (deprecated stored echoes ignored)', async () => {
+      await seedDomainRecord();
+      const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
+      const bootstrapStore = useBootstrapStore();
+      // Live bootstrap values: resolver-computed from SigninConfig/
+      // SignupConfig (SSO carve-out included). The PUT response echoes the
+      // deprecated stored HomepageConfig fields — false since the 2026-07-03
+      // migration — which must not clobber these (#3672, ADR-030).
+      bootstrapStore.$patch({
+        homepage_config: {
+          domain_id: 'domain-hp-1',
+          enabled: true,
+          secrets_mode: 'create',
+          signup_enabled: true,
+          signin_enabled: true,
+          disabled_homepage_variant: null,
+          created_at: 1700000000,
+          updated_at: 1700000001,
+        },
+      });
+
+      axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
+        user_id: 'u_1',
+        record: homepageRecord({
+          secrets_mode: 'incoming',
+          signin_enabled: false,
+          signup_enabled: false,
+          effective_enabled: true,
+        }),
+      });
+
+      await store.putHomepageConfig(extid, { enabled: true, secrets_mode: 'incoming' });
+
+      // Masthead auth links keep the live resolver values...
+      expect(bootstrapStore.homepage_config?.signin_enabled).toBe(true);
+      expect(bootstrapStore.homepage_config?.signup_enabled).toBe(true);
+      // ...while the rest of the slot still updates from the PUT.
+      expect(bootstrapStore.homepage_config?.secrets_mode).toBe('incoming');
+      expect(bootstrapStore.homepage_config?.enabled).toBe(true);
+      // The workspace record keeps the full stored echo (admin edit truth).
+      expect(store.records?.[0].homepage_config?.signin_enabled).toBe(false);
+    });
+
     it('falls back to the stored enabled flag when effective_enabled is absent (older backend)', async () => {
       await seedDomainRecord();
       axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
