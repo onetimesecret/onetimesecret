@@ -104,7 +104,13 @@ jobs:
             If nothing meets the bar, say exactly that in one sentence.
 
             Read AGENTS.md for repo invariants that must not be reported
-            as defects.
+            as defects. Those exemptions cover the current mechanisms only:
+            if this PR modifies the mechanism enforcing an invariant, the
+            invariant is in scope and must be reviewed.
+
+            Structural or architectural observations without a failure
+            scenario may be raised as explicitly non-blocking follow-up
+            suggestions, at most two per review, clearly marked as such.
 
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
           use_sticky_comment: true

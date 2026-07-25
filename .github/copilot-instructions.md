@@ -21,4 +21,14 @@ input or state leading to wrong output, data loss, or a security consequence.
 No scenario, no comment. Finding nothing that meets this bar is an acceptable
 review outcome.
 
-See AGENTS.md for repo invariants that must not be reported as defects.
+## Non-blocking observations
+
+Structural or architectural observations that lack a failure scenario may be
+raised as explicitly non-blocking follow-up suggestions — at most two per
+review, clearly marked non-blocking.
+
+## Invariants
+
+See AGENTS.md for repo invariants that must not be reported as defects. Those
+exemptions apply to the current mechanisms only: a PR that modifies the
+mechanism enforcing an invariant puts that invariant in scope for review.
