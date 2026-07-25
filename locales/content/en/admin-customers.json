@@ -4,7 +4,7 @@
     "content_hash": "aabe76f1"
   },
   "web.admin.customers.description": {
-    "text": "Find a customer and resolve support issues without SSH.",
+    "text": "Find a customer and resolve support issues.",
     "content_hash": "c8487e68"
   },
   "web.admin.customers.list.roleFilter": {
