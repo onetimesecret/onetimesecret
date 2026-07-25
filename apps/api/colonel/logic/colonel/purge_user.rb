@@ -20,7 +20,7 @@ module ColonelAPI
       class PurgeUser < ColonelAPI::Logic::Base
         include AccountIdentifier
 
-        attr_reader :user_id, :user, :purged_extid, :purged_objid
+        attr_reader :user_id, :user, :purged_extid, :purged_objid, :result
 
         def process_params
           # sanitize_account_identifier (NOT sanitize_identifier) — the latter
@@ -49,10 +49,14 @@ module ColonelAPI
           @purged_extid = user.extid
           @purged_objid = user.objid
 
-          Auth::Operations::Customers::Purge.new(
+          @result = Auth::Operations::Customers::Purge.new(
             customer: user,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
           ).call
+
+          handle_result_status
+
+          OT.info "[PurgeUser] user=#{purged_extid} status=#{result.status}"
 
           success_data
         end
@@ -68,6 +72,27 @@ module ColonelAPI
               message: 'User purged successfully',
             },
           }
+        end
+
+        private
+
+        # Purge::Result#status is a CLOSED contract (purge.rb): :success or
+        # :not_found, nothing else.
+        #
+        # :not_found means DeleteCustomer found nothing to destroy — the record
+        # vanished between raise_concerns and the destroy — and in that case the
+        # op records NO AdminAuditEvent. Reporting `deleted: true` would invent
+        # both a deletion and an audit trail. The CLI peer (`bin/ots customers
+        # purge-one`) applies the same discipline by exiting 1 on this status.
+        #
+        # The else arm exists so a future status added to the op fails loudly
+        # here instead of being swallowed back into a success response.
+        def handle_result_status
+          case result.status
+          when :success   then nil
+          when :not_found then raise_not_found('User not found')
+          else raise_form_error("Purge did not complete (#{result.status})", field: :user_id)
+          end
         end
       end
     end
