@@ -211,6 +211,25 @@ RSpec.describe 'customers change-email', type: :cli do
       expect(last_exit_code).to eq(1)
     end
 
+    # The swap LANDED, so this is not :partial — but the account is still marked
+    # verified on an address nobody has proven they own. It must not read as
+    # success and must not tell the operator to retry the change.
+    it 'surfaces :verification_not_reset with the remediation and exits non-zero' do
+      allow(op).to receive(:call).and_return(
+        build_result(status: :verification_not_reset, auth_row_updated: true,
+          warnings: %i[verification_reset_failed verification_still_set]),
+      )
+
+      output = run_cli_command_quietly('customers', 'change-email',
+        'old@example.com', 'new@example.com', '--apply', '--yes')
+
+      expect(output[:stdout]).to include('VERIFICATION WAS NOT RESET')
+      expect(output[:stdout]).not_to include('Changed ur_target')
+      expect(output[:stdout]).to include('customers unverify ur_target')
+      expect(output[:stdout]).to include('verification_still_set')
+      expect(last_exit_code).to eq(1)
+    end
+
     it 'exits 1 on :email_taken and names the closed-account escape hatch' do
       allow(op).to receive(:call).and_return(build_result(status: :email_taken))
 
@@ -287,6 +306,21 @@ RSpec.describe 'customers change-email', type: :cli do
 
       expect(payload['from']).not_to eq('old@example.com')
       expect(payload['from']).to eq(OT::Utils.obscure_email('old@example.com'))
+    end
+
+    it 'exits 1 while still emitting the payload on :verification_not_reset' do
+      allow(op).to receive(:call).and_return(
+        build_result(status: :verification_not_reset, warnings: %i[verification_still_set]),
+      )
+
+      output  = run_cli_command_quietly('customers', 'change-email',
+        'old@example.com', 'new@example.com', '--apply', '--yes', '--json')
+      payload = JSON.parse(output[:stdout])
+
+      expect(payload['status']).to eq('verification_not_reset')
+      expect(payload['verification_reset']).to be(false)
+      expect(payload['warnings']).to eq(['verification_still_set'])
+      expect(last_exit_code).to eq(1)
     end
 
     it 'exits 1 while still emitting the payload on :partial' do

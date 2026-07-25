@@ -128,6 +128,13 @@ module AccountAPI::Logic
         # :partial — SQL committed, the Redis side did not complete. The op has
         # already recorded the audit event and compensated where it safely
         # could; `customers doctor --check auth_email_drift` is the remediation.
+        #
+        # `:verification_not_reset` cannot reach this branch: it is only produced
+        # when `require_verification: true`, and this adapter always passes false
+        # (D34 — the redeemed token is the proof of ownership). It falls into the
+        # fail-closed `else` deliberately rather than being whitelisted above, so
+        # if that parameter is ever changed the surface refuses instead of
+        # reporting a clean success.
         else
           auth_logger.error '[confirm-email-change] Email change did not fully land',
             extid: @owner.extid,

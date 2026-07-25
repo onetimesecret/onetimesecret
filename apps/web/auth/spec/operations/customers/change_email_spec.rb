@@ -53,11 +53,21 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     allow(cust).to receive(:update_in_class_email_index) { |old| trace << [:class_index_rekey, old] }
     allow(cust).to receive(:update_in_organization_email_index) { |org, old| trace << [:org_index_rekey, org, old] }
     allow(cust).to receive(:save) { trace << [:customer_save] }
+    # Verification state, only consulted on the forced-clear fallback. `hget` is
+    # the PERSISTED field and is what the fallback reads; `verified?` is the
+    # in-memory predicate. They are deliberately separate doubles because the
+    # wrapper assigns the attribute before saving, so the two disagree exactly
+    # when the fallback matters.
+    allow(cust).to receive(:verified?).and_return(true)
+    allow(cust).to receive(:hget).with('verified').and_return('true')
+    allow(cust).to receive(:verified=) { |value| trace << [:customer_verified_assigned, value] }
+    allow(cust).to receive(:verified_by=)
     cust
   end
 
   # --- Redis index doubles -------------------------------------------------
-  let(:email_index)         { double('Customer.email_index', get: nil) }
+  # hsetnx: 1 == "the claim was ours" (simple mode only; full mode never calls it)
+  let(:email_index)         { double('Customer.email_index', get: nil, hsetnx: 1) }
   let(:contact_email_index) { double('Organization.contact_email_index', get: nil) }
 
   # --- SQL doubles ---------------------------------------------------------
@@ -69,6 +79,11 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   let(:by_external_id) { double('by_external_id') }
   let(:by_email)       { double('by_email') }
   let(:by_id)          { double('by_id') }
+  # The row-scoped, status-conditional filter used by the forced verification
+  # clear. A DISTINCT leaf from `by_id` on purpose: the whole point of that write
+  # is that it can only ever touch a row that is still status_id 2.
+  let(:by_id_verified) { double('by_id_verified') }
+  let(:account_status) { { status_id: 2 } }
   let(:accounts)       { double('accounts') }
   let(:db)             { double('db') }
 
@@ -103,6 +118,16 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       trace << [:sql_update, attrs[:email]]
       1
     end
+
+    # Forced-verification-clear wiring (row-scoped + status-conditional) and the
+    # status probe the :no_change path uses.
+    allow(accounts).to receive(:where).with(id: 42, status_id: 2).and_return(by_id_verified)
+    allow(by_id_verified).to receive(:update) do |attrs|
+      trace << [:sql_status_update, attrs[:status_id]]
+      1
+    end
+    allow(by_id).to receive(:select).with(:status_id).and_return(by_id)
+    allow(by_id).to receive(:first) { account_status }
   end
 
   def op(**overrides)
@@ -514,14 +539,190 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(Auth::Operations::Customers::SetVerification).not_to have_received(:new)
       expect(result.verification_reset).to be false
     end
+  end
 
-    it 'warns instead of raising when the verification reset fails after the swap' do
-      allow(verifier).to receive(:call).and_raise(StandardError, 'no auth db')
+  # =========================================================================
+  # An account left flagged VERIFIED on an address nobody has proven ownership
+  # of is the exact state require_verification exists to prevent. The swap has
+  # already committed by the time the reset runs, so this must not raise — but
+  # it must not read as clean success either.
+  describe 'verification reset failure (the swap has already committed)' do
+    context 'when the wrapper RAISES' do
+      before { allow(verifier).to receive(:call).and_raise(StandardError, 'no auth db') }
 
-      result = op.call
+      it 'force-clears the flag row-scoped and reports it, without raising' do
+        result = op.call
 
-      expect(result.status).to eq(:success)
-      expect(result.warnings).to include(:verification_reset_failed)
+        expect(result.status).to eq(:success)
+        expect(result.verification_reset).to be true
+        expect(result.warnings).to include(:verification_reset_failed, :verification_force_cleared)
+        expect(trace).to include([:sql_status_update, 1], [:customer_verified_assigned, false])
+      end
+
+      it 'clears the row by id AND status, never by email (a sibling row must not move)' do
+        op.call
+
+        expect(accounts).to have_received(:where).with(id: 42, status_id: 2)
+      end
+
+      it 'records the forced clear under its own verb so the trail stays replayable' do
+        op.call
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+          actor: 'cli',
+          verb: 'customer.set_verification',
+          target: 'ur_c',
+          result: :success,
+          detail: { verified: false, forced: true },
+        )
+      end
+
+      it 'returns :verification_not_reset when the forced clear ALSO fails' do
+        allow(by_id_verified).to receive(:update).and_raise(StandardError, 'db gone')
+
+        result = op.call
+
+        expect(result.status).to eq(:verification_not_reset)
+        expect(result.verification_reset).to be false
+        expect(result.warnings).to include(:verification_reset_failed, :verification_still_set)
+      end
+
+      it 'audits the change under the downgraded status, not :success' do
+        allow(by_id_verified).to receive(:update).and_raise(StandardError, 'db gone')
+
+        op.call
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+          hash_including(verb: 'customer.change_email', result: :verification_not_reset)
+        )
+      end
+
+      it 'still reports the swap itself as applied' do
+        allow(by_id_verified).to receive(:update).and_raise(StandardError, 'db gone')
+
+        result = op.call
+
+        expect(result.auth_row_updated).to be true
+        expect(result.to).to eq(new_email)
+      end
+
+      # REGRESSION. SetVerification assigns `verified = false` in memory and
+      # THEN saves (set_customer_verification.rb:112-116). When that save is
+      # what raises, the in-memory predicate already reads false while the
+      # datastore still holds 'true'. A fallback that guarded on
+      # `@customer.verified?` would see false, skip the write, and report a
+      # reset that never happened — in simple mode, where Redis IS the login
+      # authority. The guard must read the persisted field.
+      context 'and the in-memory flag was already flipped before the save blew up' do
+        before { allow(customer).to receive(:verified?).and_return(false) }
+
+        it 'still clears the PERSISTED flag rather than trusting memory' do
+          op.call
+
+          expect(trace).to include([:customer_verified_assigned, false])
+        end
+
+        it 'never reports a reset that did not reach the datastore' do
+          # Only the SECOND save (the forced verification clear) blows up. The
+          # first is the email commit — letting that one raise would produce
+          # :partial and never exercise the fallback at all.
+          saves = 0
+          allow(customer).to receive(:save) do
+            saves += 1
+            trace << [:customer_save]
+            raise StandardError, 'redis blip' if saves > 1
+
+            true
+          end
+          allow(by_id_verified).to receive(:update).and_raise(StandardError, 'db gone')
+
+          result = op.call
+
+          expect(result.status).to eq(:verification_not_reset)
+          expect(result.verification_reset).to be false
+          expect(result.warnings).to include(:verification_still_set)
+        end
+      end
+
+      # The mirror image: the field really is down in the datastore, so there is
+      # nothing to force and no spurious forced-clear audit should be emitted.
+      context 'and the datastore agrees the flag is already down' do
+        before do
+          allow(customer).to receive(:hget).with('verified').and_return('false')
+          # ...and the accounts row is already Unverified, so the row-scoped,
+          # status-conditional update matches nothing. Both stores agree.
+          allow(by_id_verified).to receive(:update).and_return(0)
+        end
+
+        it 'does not record a forced clear it did not perform' do
+          result = op.call
+
+          expect(result.warnings).not_to include(:verification_force_cleared)
+          expect(trace).not_to include([:customer_verified_assigned, false])
+        end
+      end
+    end
+
+    # SetVerification returns :no_change WITHOUT raising when the Redis mirror
+    # already reads unverified — and it returns before touching SQL. If the
+    # authoritative accounts row still says Verified, nothing was reset.
+    context 'when the wrapper returns :no_change (no exception at all)' do
+      before { allow(verifier).to receive(:call).and_return(:no_change) }
+
+      it 'is a clean no-op when the accounts row already agrees' do
+        account_status.replace(status_id: 1)
+
+        result = op.call
+
+        expect(result.status).to eq(:success)
+        expect(result.verification_reset).to be true
+        expect(result.warnings).to eq([])
+        expect(trace).not_to include([:sql_status_update, 1])
+      end
+
+      it 'detects the mirror/SQL drift and force-clears the authoritative row' do
+        account_status.replace(status_id: 2)
+
+        result = op.call
+
+        expect(result.status).to eq(:success)
+        expect(result.warnings).to include(:verification_mirror_drift, :verification_force_cleared)
+        expect(trace).to include([:sql_status_update, 1])
+      end
+
+      it 'fails CLOSED when the status probe itself cannot answer' do
+        allow(by_id).to receive(:first).and_raise(StandardError, 'db down')
+
+        result = op.call
+
+        expect(result.warnings).to include(:verification_probe_failed)
+        expect(trace).to include([:sql_status_update, 1])
+      end
+    end
+
+    # SetCustomerVerification#update_rodauth_account! keys on `where(email:)`,
+    # so with two rows sharing the address it would also move the CLOSED row
+    # from 3 back to 1 — resurrecting a closed account.
+    context 'when a sibling accounts row may share the address' do
+      it 'bypasses the wrapper for closed-account reuse and clears row-scoped' do
+        collision_rows.replace([{ id: 99, status_id: 3 }])
+
+        result = op(allow_closed_account_reuse: true).call
+
+        expect(Auth::Operations::Customers::SetVerification).not_to have_received(:new)
+        expect(result.status).to eq(:success)
+        expect(trace).to include([:sql_status_update, 1])
+      end
+
+      it 'bypasses the wrapper when the collision probe could not answer' do
+        allow(by_email).to receive(:all).and_raise(StandardError, 'db down')
+
+        result = op.call
+
+        expect(Auth::Operations::Customers::SetVerification).not_to have_received(:new)
+        expect(result.status).to eq(:success)
+        expect(result.warnings).to include(:sql_collision_probe_failed)
+      end
     end
   end
 
@@ -592,6 +793,43 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   describe 'simple mode (no auth database)' do
     before { allow(Auth::Database).to receive(:connection).and_return(nil) }
 
+    # THE case the forced clear exists for. No accounts row means Redis alone
+    # is the login authority, so a fallback that skipped its write here would
+    # leave the account verified on an address nobody proved they own — while
+    # reporting :success with verification_reset: true.
+    context 'when the wrapper raised after flipping the flag in memory' do
+      before do
+        allow(verifier).to receive(:call).and_raise(StandardError, 'redis blip')
+        allow(customer).to receive(:verified?).and_return(false)
+        allow(customer).to receive(:hget).with('verified').and_return('true')
+      end
+
+      it 'clears the persisted flag even though memory already reads unverified' do
+        op(db: nil).call
+
+        expect(trace).to include([:customer_verified_assigned, false])
+      end
+
+      it 'reports the forced clear rather than a clean reset' do
+        result = op(db: nil).call
+
+        expect(result.warnings).to include(:verification_reset_failed, :verification_force_cleared)
+      end
+    end
+
+    # Winning the HSETNX claim is a MUTATION (the old pre-write check was a pure
+    # read). If the Redis phase then fails, the index entry points at a customer
+    # that never took the address and nothing rolls it back.
+    it 'flags the orphaned index claim when the Redis phase fails after claiming' do
+      allow(email_index).to receive(:hsetnx).and_return(true)
+      allow(customer).to receive(:update_in_class_email_index).and_raise(StandardError, 'redis gone')
+
+      result = op(db: nil).call
+
+      expect(result.status).to eq(:partial)
+      expect(result.warnings).to include(:email_index_claim_orphaned)
+    end
+
     it 'degrades to Redis-only and reports auth_row_updated: false, never a phantom success' do
       result = op(db: nil).call
 
@@ -606,15 +844,57 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       )
     end
 
-    # The last-moment re-read narrows the window; it is NOT a CAS and cannot
-    # close it (Familia's update_in_class_email_index is a blind MULTI).
-    it 'aborts with :email_taken when the late re-read finds the address claimed' do
-      allow(email_index).to receive(:get).with(new_email).and_return(nil, 'obj_other')
+    # There is no SQL guard here, so the index entry is claimed with HSETNX:
+    # the check and the write are one atomic operation, so a concurrent claim
+    # can no longer be silently overwritten by us.
+    it 'claims the index entry atomically rather than re-reading it' do
+      expect(email_index).to receive(:hsetnx).with(new_email, 'obj_c').and_return(1)
 
-      result = op(db: nil).call
+      expect(op(db: nil).call.status).to eq(:success)
+    end
 
-      expect(result.status).to eq(:email_taken)
-      expect(customer).not_to have_received(:save)
+    # The client boolifies HSETNX; the raw protocol answers 1/0. Both mean the
+    # same thing and neither may be read as "someone else holds it".
+    [1, true].each do |won|
+      it "treats a #{won.inspect} reply as a won claim" do
+        allow(email_index).to receive(:hsetnx).and_return(won)
+
+        expect(op(db: nil).call.status).to eq(:success)
+      end
+    end
+
+    [0, false].each do |lost|
+      it "treats a #{lost.inspect} reply as a lost claim and aborts with :email_taken" do
+        allow(email_index).to receive(:hsetnx).and_return(lost)
+        allow(email_index).to receive(:get).with(new_email).and_return(nil, 'obj_other')
+
+        result = op(db: nil).call
+
+        expect(result.status).to eq(:email_taken)
+        expect(customer).not_to have_received(:save)
+      end
+    end
+
+    # A losing claim whose holder is US is pre-existing index drift, not a
+    # collision — proceed and let the re-key repair it.
+    it 'proceeds when the existing claim already points at the target customer' do
+      allow(email_index).to receive(:hsetnx).and_return(false)
+      allow(email_index).to receive(:get).with(new_email).and_return(nil, 'obj_c')
+
+      expect(op(db: nil).call.status).to eq(:success)
+    end
+
+  end
+
+  # =========================================================================
+  # Full mode is serialized by the unique index on accounts.email, which every
+  # writer passes through BEFORE its Redis write — no Redis-level claim needed,
+  # and a lost race surfaces as the UniqueConstraintViolation covered above.
+  describe 'full mode does not need the Redis claim' do
+    it 'never touches the index claim when an auth database is present' do
+      op.call
+
+      expect(email_index).not_to have_received(:hsetnx)
     end
   end
 end

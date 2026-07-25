@@ -139,7 +139,8 @@ module Onetime
 
       # Statuses that mean "nothing is wrong": the preview ran, the change
       # landed, or it was already the current address. Everything else — including
-      # :partial — exits non-zero.
+      # :partial and :verification_not_reset (the swap landed but the account is
+      # still verified on an unproven address) — exits non-zero.
       SUCCESS_STATUSES = [:planned, :success, :no_change].freeze
 
       private
@@ -175,6 +176,8 @@ module Onetime
           puts "  verification reset: #{result.verification_reset}"
         when :no_change
           puts "#{customer.extid} already uses #{result.to}"
+        when :verification_not_reset
+          print_verification_not_reset(result, customer)
         when :partial
           print_partial(result, customer)
         when :email_taken
@@ -192,6 +195,17 @@ module Onetime
         print_warnings(result)
       end
       # rubocop:enable Metrics/MethodLength
+
+      # The swap LANDED but the account is still flagged verified on an address
+      # nobody has proven ownership of. Distinct from :partial (the stores agree
+      # here) and it must not read as success — the operator has to clear the flag
+      # by hand before the account is safe to leave alone.
+      def print_verification_not_reset(result, customer)
+        puts '!! The email changed but VERIFICATION WAS NOT RESET.'
+        puts "   customer: #{customer.extid} #{OT::Utils.obscure_email(result.from.to_s)} -> #{result.to}"
+        puts '   The account is still marked verified on an address nobody has proven they own.'
+        puts "   Run `bin/ots customers unverify #{result.extid}` now, then investigate the warnings below."
+      end
 
       # :partial means the SQL side committed and the Redis side did not finish.
       # It must never read as success — it is the one outcome that leaves the two

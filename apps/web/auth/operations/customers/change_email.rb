@@ -61,20 +61,30 @@ module Auth
       # holder is treated as `:email_taken` unless the caller explicitly passes
       # `allow_closed_account_reuse: true`.
       #
-      # ## KNOWN, UNCLOSED GAP: simple mode has no uniqueness guard at all
+      # ## Uniqueness under concurrency: guarded in full mode, one-sided in simple
       #
-      # In full mode the partial unique index is a real guard — a lost TOCTOU race
-      # surfaces as `Sequel::UniqueConstraintViolation`, which we rescue and map to
-      # `:email_taken`. In SIMPLE mode there is no SQL at all, and the Familia
-      # re-key (`update_in_class_email_index`, unique_index_generators.rb:470-483)
-      # is a blind `MULTI` of `HDEL old` + `HSET new` — NOT a compare-and-set. A
-      # concurrent signup that claims the address between our check and our write
-      # has its index entry SILENTLY STOLEN. Familia exposes
-      # `guard_unique_email_index!` but it is a plain read-then-raise, so it
-      # narrows the window without closing it. Closing it needs a Lua CAS (cf. the
-      # HSETNX-on-declared-field trap already known in this codebase). We re-check
-      # immediately before the write to narrow the window and we do not pretend to
-      # have closed it.
+      # FULL MODE is guarded, and the guard is the accounts row, not this code.
+      # `accounts.email` carries a unique index (partial on `status_id in (1,2)`
+      # under PostgreSQL — migrations/001_initial.rb:31-35) and every writer goes
+      # through it BEFORE it touches Redis: this op updates SQL first (step 1) and
+      # signup INSERTs the accounts row before `after_create_account` creates the
+      # Customer (config/hooks/account.rb:176-200). So the database serializes the
+      # claim, the loser never reaches its Redis write at all, and our own loss
+      # surfaces as `Sequel::UniqueConstraintViolation`, which is rescued and
+      # mapped to `:email_taken`.
+      #
+      # SIMPLE MODE has no SQL and therefore no such serialization point. We claim
+      # the index entry with `HSETNX` (`simple_mode_race_lost?`), which IS atomic:
+      # a concurrent claimant can no longer slip between our check and our write
+      # and have its entry silently stolen by us. What HSETNX cannot do is stop
+      # the reverse — Familia auto-adds class `unique_index` entries on EVERY save
+      # with a blind `HSET` (indexing.rb:64-67, unique_index_generators.rb:430-438;
+      # `update_in_class_email_index` is likewise a blind MULTI of HDEL+HSET), so a
+      # writer that lands after our claim still overwrites it. Closing that
+      # direction means making every writer claim-once (a Lua CAS inside Familia,
+      # since the HSETNX-on-declared-field trap rules out the naive fix for object
+      # fields). That is a Familia-level change and is deliberately not attempted
+      # here.
       #
       # ## Audit: one event per VERB, not one per call
       #
@@ -93,6 +103,15 @@ module Auth
       # (create_default_workspace.rb:33-51) gates a pending cross-region federated
       # subscription claim on verification, so a reset can strip a paying
       # customer's federated benefit until they re-verify (D34).
+      #
+      # When it IS requested it is not best-effort. The swap has already committed
+      # by the time the reset runs, so a raise here would destroy the audit of a
+      # change that DID happen (D38) — but "does not raise" must not degrade into
+      # "goes unnoticed". An account left flagged VERIFIED on an address nobody
+      # has proven ownership of is precisely the state verification exists to
+      # prevent. So every failure path is force-cleared row-scoped
+      # (`force_clear_verification!`), and if even that cannot confirm the flag is
+      # down the call returns `:verification_not_reset` — NOT `:success`.
       #
       # ## Deliberately NOT touched
       #
@@ -132,6 +151,12 @@ module Auth
         #                      the unique constraint itself)
         #     :partial       — SQL committed but the Redis side did not complete;
         #                      see `warnings` for which way the drift runs
+        #     :verification_not_reset
+        #                    — the swap LANDED but `require_verification: true`
+        #                      could not be honoured: the account is still marked
+        #                      verified on an address nobody has proven ownership
+        #                      of. Terminal and NOT success; the operator must run
+        #                      `bin/ots customers unverify <extid>`.
         # @!attribute warnings [r]
         #   @return [Array<Symbol>] surfaced-but-not-acted-on conditions
         Result = Data.define(
@@ -215,9 +240,9 @@ module Auth
             raise
           end
 
-          # Simple mode has no SQL guard at all, so re-read the index as LATE as
-          # possible — the last statement before the first Redis write. This
-          # narrows the race; it does not close it (see class docs).
+          # Simple mode has no SQL serialization point, so the index entry is
+          # CLAIMED (atomically) as late as possible — the last statement before
+          # the first Redis write. No-op in full mode (see class docs).
           return terminal(:email_taken, old_email) if simple_mode_race_lost?
 
           # --- 2. REDIS (compensable). ---
@@ -231,19 +256,25 @@ module Auth
             return partial(old_email, auth_row_updated, customer_committed, ex)
           end
 
-          # --- 3. BEST-EFFORT FOLLOW-UP (never invalidates the swap). ---
+          # --- 3. FOLLOW-UP. Never invalidates the swap, but see below: the
+          # verification reset is allowed to downgrade the STATUS. ---
           sessions_revoked   = revoke_sessions
-          verification_reset = reset_verification
+          verification_state = reset_verification
           send_notifications(old_email)
 
-          record_audit(:success, old_email, auth_row_updated)
+          # The swap landed either way — that is why this is a status and not a
+          # raise. But an account still flagged verified on an unproven address
+          # must not be reported as a clean success.
+          status = verification_state == :still_verified ? :verification_not_reset : :success
 
-          OT.info "[customer.change_email] #{@customer.extid} " \
+          record_audit(status, old_email, auth_row_updated)
+
+          OT.info "[customer.change_email] #{@customer.extid} status=#{status} " \
                   "#{OT::Utils.obscure_email(old_email)} -> #{OT::Utils.obscure_email(@new_email)} " \
                   "auth_row=#{auth_row_updated} orgs=#{@orgs_reindexed} warnings=#{@warnings.inspect}"
 
           Result.new(
-            status: :success,
+            status: status,
             extid: @customer.extid,
             from: old_email,
             to: @new_email,
@@ -251,7 +282,7 @@ module Auth
             auth_row_updated: auth_row_updated,
             orgs_reindexed: @orgs_reindexed,
             sessions_revoked: sessions_revoked,
-            verification_reset: verification_reset,
+            verification_reset: verification_state == :reset,
             warnings: @warnings.uniq,
           )
         end
@@ -388,15 +419,51 @@ module Auth
           true
         end
 
-        # Simple mode only: a last-moment re-read of the global email index. It
-        # NARROWS the window between the collision check and the blind MULTI
-        # re-key; it does NOT close it. Do not mistake it for a CAS.
-        # Returns false in full mode — there the SQL unique constraint is the
-        # real guard and its violation is rescued on the UPDATE.
+        # Simple mode only: ATOMICALLY claim the global email index entry.
+        # Returns false in full mode — there the unique index on accounts.email is
+        # the real guard, it is consulted before any Redis write, and its
+        # violation is rescued on the UPDATE.
+        #
+        # `HSETNX` sets the field only if it does not already exist, so the check
+        # and the claim are one operation and a concurrent claimant can no longer
+        # be overwritten by us. (Safe here precisely because these fields are
+        # index entries keyed BY ADDRESS, not declared Familia fields — declared
+        # fields are persisted as the literal string "null", which is why HSETNX
+        # never fires on them.)
+        #
+        # A pre-existing entry pointing at OURSELVES is index drift, not a
+        # collision: proceed and let the re-key repair it.
+        #
+        # RESIDUAL (deliberate, documented in the class docs): this closes the
+        # direction where WE steal someone else's claim. It cannot close the
+        # reverse — Familia's auto-index on save is a blind HSET, so a writer that
+        # lands after our claim still overwrites it. That needs a claim-once
+        # primitive inside Familia itself.
+        #
+        # NOT rescued: in simple mode nothing has committed at this point, so a
+        # datastore error here is a clean abort with nothing to compensate.
+        # @return [Boolean] true when another account holds the address
         def simple_mode_race_lost?
           return false if connection
 
-          redis_holder_conflict?
+          index = Onetime::Customer.email_index
+          if index_claimed?(index.hsetnx(@new_email, @customer.objid))
+            # Remember that WE created this entry. Unlike the old pure-read
+            # check, winning the claim is a mutation, so if the Redis phase then
+            # fails the entry is left pointing at a customer that never took the
+            # address. `partial` reports that rather than leaving it silent.
+            @index_claim_created = true
+            return false
+          end
+
+          index.get(@new_email).to_s != @customer.objid.to_s
+        end
+
+        # The client boolifies HSETNX (`true`/`false`), the raw protocol answers
+        # 1/0, and Familia's own signature documents the Integer. Accept both
+        # rather than depending on which layer answers.
+        def index_claimed?(reply)
+          reply == true || reply.to_s == '1'
         end
 
         # The org-scoped index (`organization:<objid>:email_index`) is NOT
@@ -519,26 +586,166 @@ module Auth
 
         # Delegated to the admin verification wrapper so the SQL status_id and the
         # Redis mirror move together (and so the reset is itself audited).
-        # Best-effort: the email swap has already committed, so a raise here must
-        # not destroy the audit of a change that DID happen.
-        # @return [Boolean]
+        #
+        # Does not raise — the swap has already committed and a raise would lose
+        # its audit (D38) — but every way of NOT resetting is caught and either
+        # force-cleared or escalated to `:verification_not_reset`. No path here
+        # leaves the account verified and still reports plain success.
+        #
+        # @return [Symbol] :skipped (not requested) | :reset | :still_verified
         def reset_verification
-          return false unless @require_verification
+          return :skipped unless @require_verification
 
-          result = Auth::Operations::Customers::SetVerification.new(
-            customer: @customer,
-            verified: false,
+          # The wrapper's SQL write keys on `where(email:)`
+          # (set_customer_verification.rb:102-106). When a sibling row may share
+          # this address that update moves THAT row too — including a CLOSED (3)
+          # account back to Unverified (1), which resurrects it. Both paths that
+          # knowingly proceed without a clean single-holder answer therefore use
+          # the row-scoped clear instead.
+          return force_clear_verification! if sibling_row_possible?
+
+          begin
+            result = Auth::Operations::Customers::SetVerification.new(
+              customer: @customer,
+              verified: false,
+              actor: @actor,
+              verified_by: nil,
+              db: @db,
+            ).call
+            return :reset if result == :success
+
+            # :no_change. The wrapper decides on the REDIS mirror alone and
+            # returns before touching SQL (set_customer_verification.rb:76), so
+            # this only means "already unverified" when the two stores agree.
+            # When they do not, the authoritative login gate (accounts.status_id)
+            # is STILL Verified and nothing was reset — the quietest version of
+            # exactly the state this reset exists to prevent.
+            return :reset unless auth_row_verified?
+
+            @warnings << :verification_mirror_drift
+          rescue StandardError => ex
+            auth_logger.error '[customer.change_email] verification reset failed',
+              extid: @customer.extid,
+              exception: ex
+            @warnings << :verification_reset_failed
+          end
+
+          force_clear_verification!
+        end
+
+        # True when a second `accounts` row could share the new address — the only
+        # case where the wrapper's `where(email:)` update is unsafe.
+        def sibling_row_possible?
+          @warnings.include?(:new_address_held_by_closed_account) ||
+            @warnings.include?(:sql_collision_probe_failed)
+        end
+
+        # Fail-closed fallback for every path where the wrapper did not leave the
+        # account unverified. Row-scoped and conditional, so it can only ever
+        # REMOVE access: it cannot touch a sibling row sharing the address and it
+        # cannot move a CLOSED account back to Unverified.
+        # @return [Symbol] :reset | :still_verified
+        def force_clear_verification!
+          sql   = clear_auth_row_verification!
+          redis = clear_customer_verification!
+
+          if sql == :failed || redis == :failed
+            @warnings << :verification_still_set
+            return :still_verified
+          end
+
+          return :reset if sql == :unchanged && redis == :unchanged
+
+          @warnings << :verification_force_cleared
+          # The wrapper never got far enough to record its own verb, and a
+          # verification state change with no event is a hole in the trail. Same
+          # verb and shape the wrapper would have emitted (epic #20 CONTRACT 4).
+          Onetime::AdminAuditEvent.record(
             actor: @actor,
-            verified_by: nil,
-            db: @db,
-          ).call
-          result == :success
+            verb: 'customer.set_verification',
+            target: @customer.extid,
+            result: :success,
+            detail: { verified: false, forced: true },
+          )
+          :reset
+        end
+
+        # @return [Symbol] :unchanged | :cleared | :failed
+        def clear_auth_row_verification!
+          db = connection
+          return :unchanged unless db
+
+          account_id = auth_account_id(db)
+          return :unchanged unless account_id
+
+          rows = db.transaction do
+            db[:accounts]
+              .where(id: account_id, status_id: STATUS_VERIFIED)
+              .update(status_id: STATUS_UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
+          end
+          rows.to_i.positive? ? :cleared : :unchanged
         rescue StandardError => ex
-          auth_logger.error '[customer.change_email] verification reset failed',
+          auth_logger.error '[customer.change_email] forced verification clear failed (SQL)',
             extid: @customer.extid,
             exception: ex
-          @warnings << :verification_reset_failed
-          false
+          :failed
+        end
+
+        # @return [Symbol] :unchanged | :cleared | :failed
+        def clear_customer_verification!
+          # Decided on the PERSISTED field, never `@customer.verified?`. The
+          # wrapper assigns the attribute before saving
+          # (set_customer_verification.rb:112-116), so when that save raises the
+          # in-memory flag already reads false while the datastore still holds
+          # 'true' — precisely the state this fallback exists to clear. Reading
+          # memory here would turn the fallback into a no-op and report a reset
+          # that never happened.
+          return :unchanged unless stored_verified?
+
+          @customer.verified    = false
+          @customer.verified_by = nil
+          @customer.save
+          :cleared
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] forced verification clear failed (Redis)',
+            extid: @customer.extid,
+            exception: ex
+          :failed
+        end
+
+        # The verified flag as the datastore holds it, independent of any
+        # in-memory assignment. Matches the model's own authority
+        # (Customer#verified? is `verified == 'true'`, status.rb:46), so an
+        # unset field reads as NOT verified and no needless clear is recorded.
+        # A RAISED read fails closed — treated as still set so the clear runs.
+        # @return [Boolean]
+        def stored_verified?
+          @customer.hget('verified').to_s == 'true'
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] stored verification read failed',
+            extid: @customer.extid,
+            exception: ex
+          true
+        end
+
+        # Does the AUTHORITATIVE login gate still say Verified? Consulted only on
+        # the wrapper's :no_change path. Fails CLOSED: an unanswerable probe is
+        # treated as "may still be verified" so the forced clear runs.
+        def auth_row_verified?
+          db = connection
+          return false unless db
+
+          account_id = auth_account_id(db)
+          return false unless account_id
+
+          row = db[:accounts].where(id: account_id).select(:status_id).first
+          !row.nil? && row[:status_id] == STATUS_VERIFIED
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] verification status probe failed',
+            extid: @customer.extid,
+            exception: ex
+          @warnings << :verification_probe_failed
+          true
         end
 
         # Read-only observations the operator must see but that this op must NOT
@@ -662,6 +869,13 @@ module Auth
             # indexes are behind. `customers doctor` repairs those.
             @warnings << :secondary_writes_incomplete
           end
+
+          # Simple mode: the claim we took at :246 is a write, and nothing here
+          # rolls it back — the customer never took the address, so the index
+          # entry now points at a record that does not hold it.
+          # `customers doctor` check_email_index detects and repairs exactly
+          # this mismatch; the warning is what tells the operator to run it.
+          @warnings << :email_index_claim_orphaned if @index_claim_created && !customer_committed
 
           record_audit(:partial, old_email, auth_row_updated && !rolled_back)
 

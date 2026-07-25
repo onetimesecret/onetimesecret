@@ -131,13 +131,17 @@ module ColonelAPI
         # Non-success statuses that mutated NOTHING are surfaced as 4xx form
         # errors. `:no_change` is an idempotent 200 and `:planned` is the preview.
         #
-        # `:partial` is the odd one out and it MUST NOT return 200: SQL committed
-        # and the Redis side did not finish, so the two authoritative stores may
-        # disagree. The logic base exposes no 5xx helper, so it raises a form
-        # error whose message says explicitly that the change PARTIALLY applied
-        # and names the remediation — a silent 200 here would tell the operator
-        # the swap landed when it did not. The op has already recorded its audit
-        # event with `result: :partial` (D38), so the trail survives this raise.
+        # `:partial` and `:verification_not_reset` are the odd ones out and
+        # neither MAY return 200. `:partial` means SQL committed and the Redis
+        # side did not finish, so the two authoritative stores may disagree.
+        # `:verification_not_reset` means the swap DID land but the account is
+        # still flagged verified on an address nobody has proven ownership of —
+        # the exact state `require_verification` exists to prevent, and one the
+        # operator has to clear by hand. The logic base exposes no 5xx helper, so
+        # both raise a form error whose message says what actually happened and
+        # names the remediation; a silent 200 would tell the operator everything
+        # is fine when it is not. The op has already recorded its audit event with
+        # the matching result (D38), so the trail survives these raises.
         def handle_result_status
           case result.status
           when :invalid_email
@@ -154,6 +158,14 @@ module ColonelAPI
               'PARTIAL: the email change did not complete and the auth database ' \
               'and Redis may now disagree. Run `bin/ots customers doctor` ' \
               '(check :auth_email_drift) before retrying.',
+              field: :new_email,
+            )
+          when :verification_not_reset
+            raise_form_error(
+              "The email change APPLIED, but verification could not be reset: #{result.extid} " \
+              'is still marked verified on an address nobody has proven they own. ' \
+              "Do not retry the change — run `bin/ots customers unverify #{result.extid}` now. " \
+              "(#{result.warnings.join(', ')})",
               field: :new_email,
             )
           end
