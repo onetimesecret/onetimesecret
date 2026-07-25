@@ -36,20 +36,44 @@
 # Fixing the declaration is one change; fixing the call sites is thirty-six
 # changes plus every future one.
 #
-# WHY IT PREPENDS TO EVERY SUBCLASS
+# WHY IT HOOKS DISPATCH RATHER THAN THE COMMAND CLASSES
 #
-# A prepended module only precedes the methods of the class it is prepended to.
-# `DlqListCommand < DlqBase < Command` defines its own `call`, so prepending to
-# `DlqBase` alone would leave `DlqListCommand#call` ahead of the coercion in the
-# ancestor chain and silently bypass it. `Command.inherited` therefore prepends
-# to each subclass unconditionally, and the module legitimately appears more
-# than once in a chain like DlqListCommand's. That is harmless: the second pass
-# sees a value that is no longer a String and skips it.
+# The obvious implementation prepends a `call` wrapper to every command class.
+# It works, but it puts a foreign method at the head of each command's ancestor
+# chain, and `Klass.instance_method(:call)` then resolves to the wrapper instead
+# of the command's own method. Several tryouts introspect exactly that -- for
+# the declared keyword names (`.parameters`) and for the command's source text
+# (`.source_location` fed to File.read) -- so the wrapper silently answered for
+# a file the caller never asked about.
 #
-# NOT COVERED: `Onetime::CLI::SessionCommand` (lib/onetime/cli/session_command.rb)
-# subclasses `Dry::CLI::Command` directly rather than either project base class,
-# so it does not get this hook. It declares no numeric options today.
+# Dry::CLI funnels every invocation through one private method. Both entry
+# points -- `Dry::CLI#perform_command` (single-command CLI) and
+# `Dry::CLI#perform_registry` (our case, `Dry::CLI.new(Onetime::CLI)`) -- open
+# with `command, args = parse(...)`, and `parse` returns the built command
+# instance alongside the parsed args. Prepending there gives one interception
+# point, covers every command whether or not it descends from a project base
+# class, and leaves each command's ancestor chain exactly as written.
+#
+# Coercion happens BEFORE `result.before_callbacks.run(command, **args)`, not
+# between the callbacks and `call`. Callbacks receive the same `**args` splat
+# the command does, so a callback reading a numeric option has the identical
+# defect; there is one args shape for the whole dispatch and no window in which
+# a half-coerced hash exists.
+#
+# NEWLY COVERED: `Onetime::CLI::SessionCommand` (lib/onetime/cli/session_command.rb)
+# subclasses `Dry::CLI::Command` directly rather than either project base class.
+# The per-class implementation skipped it; a dispatch-level hook cannot. It
+# declares no numeric options today, but the hole is closed rather than
+# documented.
+#
+# THE COUPLING, STATED PLAINLY
+#
+# `parse` is `@api private` in dry-cli. A gem upgrade that renames it or changes
+# its return shape disables coercion silently. spec/cli/option_types_spec.rb
+# pins the method's owner, arity and return contract so that upgrade fails a
+# test instead of shipping.
 
+require 'dry/cli'
 require 'json'
 
 module Onetime
@@ -69,12 +93,24 @@ module Onetime
         float: 'a number',
       }.freeze
 
-      # Prepended to every command class by Command.inherited /
-      # DelayBootCommand.inherited (lib/onetime/cli.rb).
-      module Coercion
-        def call(**args)
-          super(**OptionTypes.coerce(self.class.params, args))
+      # Prepended to Dry::CLI itself (below), NOT to the command classes.
+      module Dispatch
+        private
+
+        # `super` returns `[built_command, parsed_args]`, or raises SystemExit
+        # via Dry::CLI#help / #error -- in which case nothing here runs.
+        def parse(command, arguments, names)
+          built, args = super
+          [built, OptionTypes.coerce(OptionTypes.params_for(built), args)]
         end
+      end
+
+      # Declared params (arguments + options) of a built command. Dry::CLI
+      # registers classes, and `parse` hands back an instance, but a registry
+      # may also be given an already-built command -- hence the Class check.
+      def self.params_for(command)
+        klass = command.is_a?(Class) ? command : command.class
+        klass.respond_to?(:params) ? klass.params : []
       end
 
       # Coerce every declared numeric param that is present in `args`.
@@ -112,3 +148,7 @@ module Onetime
     end
   end
 end
+
+# Install the hook at load time: the module and its single installation site
+# belong together, and Ruby makes a repeated prepend a no-op.
+Dry::CLI.prepend(Onetime::CLI::OptionTypes::Dispatch)

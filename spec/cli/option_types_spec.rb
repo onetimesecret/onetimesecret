@@ -44,7 +44,8 @@ RSpec.describe Onetime::CLI::OptionTypes, type: :cli do
   end
 
   # Mirrors DlqListCommand < DlqBase < Command: an intermediate base declares the
-  # option and the leaf defines its own `call`.
+  # option and the leaf defines its own `call`. Params are inherited, so the
+  # dispatch hook sees `count` even though the leaf never declares it.
   let(:base_command) do
     Class.new(Onetime::CLI::Command) do
       option :count, type: :integer, default: 3
@@ -143,9 +144,6 @@ RSpec.describe Onetime::CLI::OptionTypes, type: :cli do
     end
   end
 
-  # A prepended module only precedes the methods of the class it is prepended
-  # to, so prepending to the intermediate base alone would leave the leaf's own
-  # `call` ahead of the coercion in the ancestor chain.
   describe 'a leaf command whose option is declared on an intermediate base' do
     it 'still coerces' do
       run(registry, 'leaf', '--count', '9')
@@ -153,27 +151,109 @@ RSpec.describe Onetime::CLI::OptionTypes, type: :cli do
     end
   end
 
-  # Regression guard for the whole class of defect: a new command that skips
-  # both project base classes would silently reintroduce it.
-  describe 'coverage across the real command tree' do
-    it 'coerces every declared numeric param on every registered command' do
-      # Singleton classes of command instances (RSpec creates one whenever it
-      # stubs a method on an instance) satisfy `< Dry::CLI::Command` but never
-      # ran through `Dry::CLI::Command.inherited`, so they have no @_mutex and
-      # `params` raises. They are not commands.
-      commands = ObjectSpace.each_object(Class).select do |klass|
-        klass < Dry::CLI::Command && !klass.singleton_class?
+  # Coverage is structural: the hook sits in dispatch, so a command reaches
+  # `call` coerced whether or not it descends from a project base class.
+  # Onetime::CLI::SessionCommand subclasses Dry::CLI::Command directly and is
+  # covered for exactly this reason.
+  describe 'a command that subclasses Dry::CLI::Command directly' do
+    let(:bare_command) do
+      Class.new(Dry::CLI::Command) do
+        class << self; attr_accessor :received; end
+
+        option :limit, type: :integer, default: 20
+
+        def call(**args)
+          self.class.received = args
+        end
       end
+    end
 
-      uncovered = commands.filter_map do |klass|
-        numeric = klass.params.select { |param| %i[integer float].include?(param.type) }
-        next if numeric.empty?
-        next if klass.ancestors.include?(described_class::Coercion)
+    let(:registry) do
+      reg = Module.new { extend Dry::CLI::Registry }
+      reg.register 'bare', bare_command
+      reg
+    end
 
-        "#{klass}: #{numeric.map(&:name).join(', ')}"
-      end
+    it 'does not inherit from either project base class' do
+      expect(bare_command.ancestors).not_to include(Onetime::CLI::Command)
+    end
 
-      expect(uncovered).to be_empty
+    it 'is still coerced' do
+      run(registry, 'bare', '--limit', '7')
+      expect(bare_command.received[:limit]).to eq(7).and be_a(Integer)
+    end
+  end
+
+  # Everything above drives throwaway classes. This drives a real registered
+  # command with a real `type: :integer` declaration, through the real registry
+  # dispatch, down to the Operation that receives the value.
+  describe 'the real domains probe command' do
+    let(:registry) do
+      reg = Module.new { extend Dry::CLI::Registry }
+      reg.register 'probe', Onetime::CLI::DomainsProbeCommand
+      reg
+    end
+
+    # A Struct rather than a double: the command only needs #display_domain, and
+    # Onetime::CustomDomain may itself be stubbed out by cli_spec_helper.
+    let(:domain) { Struct.new(:display_domain).new('example.com') }
+
+    before do
+      probe_op = instance_double(Onetime::Operations::Domains::Probe, call: { health: 'healthy' })
+
+      allow_any_instance_of(Onetime::CLI::DomainsProbeCommand) # rubocop:disable RSpec/AnyInstance
+        .to receive(:resolve_domain).and_return(domain)
+      allow(Onetime::Operations::Domains::Probe).to receive(:new).and_return(probe_op)
+    end
+
+    it 'hands the operation an Integer timeout' do
+      run(registry, 'probe', 'example.com', '--timeout', '30', '--json')
+
+      expect(Onetime::Operations::Domains::Probe)
+        .to have_received(:new).with(hash_including(timeout: 30))
+    end
+
+    it 'exits 1 on non-numeric input without reaching the operation' do
+      result = run(registry, 'probe', 'example.com', '--timeout', 'abc')
+
+      expect(result[:exit_code]).to eq(1)
+      expect(result[:stdout]).to include('--timeout must be an integer (got "abc")')
+      expect(Onetime::Operations::Domains::Probe).not_to have_received(:new)
+    end
+  end
+
+  # The hook leaves command classes untouched, which several tryouts depend on:
+  # they read `instance_method(:call).parameters` for the declared keyword names
+  # and `.source_location` to assert on the command's own source text.
+  describe 'command ancestor chains' do
+    it 'leaves a command\'s own #call at the head of its chain' do
+      expect(probe_command.instance_method(:call).owner).to eq(probe_command)
+      expect(probe_command.instance_method(:call).source_location.first)
+        .to eq(__FILE__)
+    end
+  end
+
+  # Dry::CLI#parse is @api private. If a gem upgrade renames it or changes its
+  # return shape, coercion would stop happening silently -- fail here instead.
+  describe 'the dry-cli integration point' do
+    let(:hook) { described_class::Dispatch }
+
+    it 'is installed ahead of Dry::CLI' do
+      expect(Dry::CLI.ancestors.index(hook)).to be < Dry::CLI.ancestors.index(Dry::CLI)
+    end
+
+    it 'overrides a real Dry::CLI method with the expected signature' do
+      overridden = Dry::CLI.instance_method(:parse).super_method
+
+      expect(overridden.owner).to eq(Dry::CLI)
+      expect(overridden.parameters).to eq([[:req, :command], [:req, :arguments], [:req, :names]])
+    end
+
+    it 'is reached from both dispatch entry points' do
+      source = File.read(Dry::CLI.instance_method(:parse).super_method.source_location.first)
+
+      expect(source).to include('def perform_command').and include('def perform_registry')
+      expect(source.scan('command, args = parse(').length).to eq(2)
     end
   end
 end
