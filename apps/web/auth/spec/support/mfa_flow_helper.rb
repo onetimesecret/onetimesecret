@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 require_relative 'auth_test_constants'
+require_relative 'auth_request_helper'
+require_relative 'account_seed_helper'
 
 # =============================================================================
 # MFA Lane Helper (integration/full_mfa/)
@@ -16,9 +18,13 @@ require_relative 'auth_test_constants'
 # two_factor_modifications_require_password?, the otp_setup/otp_raw_secret/
 # recovery-code param names, the two-phase otp-setup contract). A Rodauth
 # upgrade or a config flip breaks every copy at once, so a mirrored copy is a
-# second place to forget. Route DRIVING stays in each spec — that is the part
-# that genuinely differs (link-sso vs sso-link-confirm) and the part a mirror
-# is for. Compare support/oauth_flow_helper.rb, included by four full/ specs.
+# second place to forget. Compare support/oauth_flow_helper.rb, included by
+# four full/ specs.
+#
+# Route DRIVING is NOT here — but it is not mirrored per spec either: the
+# link-sso and sso-link-confirm drivers live in support/sso_link_flow_helper.rb,
+# because the route is identical across the full/ and full_mfa/ lanes and only
+# the ASSERTIONS differ. What stays in each spec is the expectations.
 #
 # LOAD-TIME SIDE EFFECT — AUTH_MFA_ENABLED: requiring this file sets
 # AUTH_MFA_ENABLED=true. It must be set before the suite's FIRST boot
@@ -41,9 +47,15 @@ require_relative 'auth_test_constants'
 #       account_id     = seed_account_with_password(email)
 #       secret, codes  = provision_totp(email)
 #       allow_immediate_otp_reuse!(account_id)
-#       json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
+#       csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
 #     end
 #   end
+#
+# Request plumbing (csrf_json_post, fetch_csrf_token, json_body,
+# clear_body_headers) comes from support/auth_request_helper.rb, and subject
+# seeding (seed_existing_account, seed_account_with_password) from
+# support/account_seed_helper.rb — both included here explicitly so this helper
+# stands on its own, not on the config-level auto-include.
 #
 # =============================================================================
 
@@ -54,6 +66,8 @@ require 'rotp'
 module MfaFlowHelper
   def self.included(base)
     base.include Rack::Test::Methods
+    base.include AuthRequestHelper
+    base.include AccountSeedHelper
 
     # Hard-fail (not skip): this lane EXISTS to cover the MFA path, so a boot
     # without the OTP feature is harness breakage, not an environment quirk.
@@ -68,76 +82,6 @@ module MfaFlowHelper
     end
 
     base.let(:identities) { auth_db[:account_identities] }
-  end
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
-  # ==========================================================================
-  # Request plumbing
-  # ==========================================================================
-
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  def fetch_csrf_token
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    last_response.headers['X-CSRF-Token']
-  end
-
-  # JSON POST with the CSRF token in both header and body (shrimp), matching
-  # what the SPA sends and what the Rodauth routes (otp-setup, otp-auth,
-  # recovery-auth) require.
-  def json_post(path, params = {})
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post path, JSON.generate(params.merge(shrimp: csrf))
-    last_response
-  end
-
-  def json_body
-    JSON.parse(last_response.body)
-  rescue JSON::ParserError
-    {}
-  end
-
-  # ==========================================================================
-  # Subject seeding
-  # ==========================================================================
-
-  # Seed a VERIFIED account WITH a password AND its paired Customer.
-  #
-  # The password is the OTP-PROVISIONING VEHICLE: this deploy sets
-  # two_factor_modifications_require_password?, so Rodauth's real setup flow —
-  # the only way to get a production-shaped (HMAC'd) OTP key — needs one. Specs
-  # for passwordless subjects still seed it for that reason alone; see their
-  # headers.
-  #
-  # The paired Customer matters to any flow that probes customer state (e.g.
-  # the SSO mailbox-proof watermark check reads Customer#last_password_update
-  # via load_by_extid_or_email, which resolves :unchanged rather than
-  # :unreadable only when the Customer exists).
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    account_id = auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-    require 'argon2'
-    hasher = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
   end
 
   # ==========================================================================
@@ -156,11 +100,11 @@ module MfaFlowHelper
   # ==========================================================================
 
   def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD)
-    json_post('/auth/login', login: email, password: password)
+    csrf_json_post('/auth/login', login: email, password: password)
     expect(last_response.status).to eq(200),
       "Precondition failed: password login for OTP setup (#{last_response.status}: #{last_response.body})"
 
-    json_post('/auth/otp-setup', {})
+    csrf_json_post('/auth/otp-setup', {})
     expect(last_response.status).to eq(422),
       "Phase-1 otp-setup should return the generated secret with a field error (#{last_response.status}: #{last_response.body})"
     setup_body = json_body
@@ -169,7 +113,7 @@ module MfaFlowHelper
     expect(secret).not_to be_nil
     expect(raw_secret).not_to be_nil
 
-    json_post(
+    csrf_json_post(
       '/auth/otp-setup',
       otp_setup: secret,
       otp_raw_secret: raw_secret,

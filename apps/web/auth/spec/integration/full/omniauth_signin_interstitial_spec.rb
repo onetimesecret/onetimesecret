@@ -52,13 +52,11 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/oauth_flow_helper'
+require_relative '../../support/sso_link_flow_helper'
 
 RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integration do
   include Rack::Test::Methods
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
+  include SsoLinkFlowHelper
 
   before(:all) do
     require 'onetime'
@@ -82,100 +80,17 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   # Helpers (mirrors omniauth_connect_link_spec.rb)
   # ==========================================================================
 
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path, and
-  # lets a non-tenant callback proceed on platform credentials instead of
-  # redirecting to sso_not_configured.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
-  # Seed a VERIFIED account WITHOUT a password (SSO-only account).
-  def seed_existing_account(email)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-  end
-
-  # Seed a VERIFIED account WITH an Argon2 password hash. Cost params match the
-  # test config in config/features/argon2.rb.
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    account_id = seed_existing_account(email)
-    require 'argon2'
-    hasher     = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
-  end
-
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: { email: email, name: 'Interstitial User', email_verified: true },
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: { sub: uid, email: email, name: 'Interstitial User', email_verified: true } },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
-
-  # Content-Type/Content-Length leak from a prior JSON POST and make the next
-  # bodyless request try to parse an empty JSON body. Clear them.
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  # Drive the UNAUTHENTICATED SSO callback and return the response. No login and
-  # no connect intent — this is the plain sign-in that resolves to an existing
-  # account by email.
-  def sso_callback(email:, uid:, provider: :oidc)
-    setup_mock_auth(email: email, uid: uid, provider: provider)
-    clear_body_headers
-    post "/auth/sso/#{provider}/callback"
-    last_response
-  end
-
-  # Extract the challenge token from a /link-sso/:token redirect Location.
-  def token_from_location(location)
-    location.to_s.split('/link-sso/').last.to_s.split(/[?#]/).first
-  end
-
-  # Fetch a CSRF token from the app bootstrap (mirrors csrf_login). The challenge
-  # lives in Redis, not the session, so establishing a fresh session here does
-  # not disturb it.
-  def fetch_csrf_token
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    last_response.headers['X-CSRF-Token']
-  end
+  # seed_existing_account (SSO-only, no password) and
+  # seed_account_with_password (support/account_seed_helper.rb),
+  # setup_mock_auth/teardown_mock_auth (support/omniauth_test_helper.rb) and
+  # clear_body_headers/fetch_csrf_token (support/auth_request_helper.rb) are
+  # shared. fetch_csrf_token establishes a fresh session; the challenge lives in
+  # Redis, not the session, so that does not disturb it.
 
   def get_link_context(token)
     clear_body_headers
     header 'Accept', 'application/json'
     get "/auth/link-sso/#{token}"
-    last_response
-  end
-
-  def post_link_sso(token:, password:)
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post '/auth/link-sso', JSON.generate(token: token, password: password)
     last_response
   end
 

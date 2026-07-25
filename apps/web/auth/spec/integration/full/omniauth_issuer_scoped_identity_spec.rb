@@ -60,8 +60,12 @@ RSpec.describe 'Issuer-scoped SSO identity lookup', type: :integration do
     created_account_ids.each { |id| db[:accounts].where(id: id).delete }
   end
 
+  # Status is irrelevant here — these examples exercise the account_identities
+  # schema and its (provider, issuer, uid) constraint, and the account row is
+  # only an FK target. Named rather than a bare 1 so it doesn't read as a
+  # meaningful choice.
   def create_account(email)
-    id = db[:accounts].insert(email: email, status_id: 1)
+    id = db[:accounts].insert(email: email, status_id: AuthTestConstants::STATUS_UNVERIFIED)
     created_account_ids << id
     id
   end

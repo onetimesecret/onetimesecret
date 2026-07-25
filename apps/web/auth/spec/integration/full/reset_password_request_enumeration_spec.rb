@@ -64,10 +64,6 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
   # moment a new flow touches another table — which is exactly what a stricter
   # version of this block surfaced during review.
 
-  def unique_test_email(prefix = 'reset-enum')
-    "#{prefix}-#{SecureRandom.hex(8)}@integration-test.example.com"
-  end
-
   # Creates an account with a password hash. status_id defaults to verified.
   def create_account(email:, status_id: AuthTestConstants::STATUS_VERIFIED, password: 'TestPassword123!')
     db    = Auth::Database.connection

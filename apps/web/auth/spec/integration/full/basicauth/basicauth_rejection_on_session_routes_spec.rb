@@ -61,10 +61,7 @@ RSpec.describe 'BasicAuth rejection on session-only routes', type: :integration,
     get path
   end
 
-  # Parse JSON response body.
-  def json_body
-    JSON.parse(last_response.body)
-  end
+  # json_body comes from support/auth_request_helper.rb.
 
   # =====================================================================
   # Positive control: BasicAuth strategy authenticates with valid creds

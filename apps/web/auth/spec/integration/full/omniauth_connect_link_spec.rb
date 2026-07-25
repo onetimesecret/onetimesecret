@@ -73,10 +73,6 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Password is AuthTestConstants::TEST_PASSWORD (shared across spec files so a
   # top-level constant isn't redefined when both specs load in one process).
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     require 'onetime'
     require 'onetime/application/registry'
@@ -99,86 +95,19 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Helpers
   # ==========================================================================
 
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
+  # seed_existing_account (the SSO-only / victim account) and
+  # seed_account_with_password (the subject csrf_login can authenticate as)
+  # come from support/account_seed_helper.rb.
 
-  # Seed a VERIFIED account WITHOUT a password (SSO-only / victim account).
-  def seed_existing_account(email)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-  end
-
-  # Seed a VERIFIED account WITH an Argon2 password hash so csrf_login can
-  # establish a real authenticated session for it. Cost params match the test
-  # config in config/features/argon2.rb.
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    account_id = seed_existing_account(email)
-    require 'argon2'
-    hasher     = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
-  end
-
-  # Establish a session, fetch the CSRF token, then POST a JSON login. The full
-  # Rack app enforces CSRF, so the shrimp token is required.
-  def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    token = last_response.headers['X-CSRF-Token']
-
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', token if token
-    post '/auth/login', JSON.generate(login: email, password: password, shrimp: token)
-    token
-  end
-
-  # Content-Type/Content-Length leak from a prior JSON POST and make the next
-  # bodyless callback POST try to parse an empty JSON body. Clear them.
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  # email: nil models an IdP that asserts NO email claim. The key is OMITTED
-  # from info/raw_info rather than set to nil — that is what a minimal-scope
-  # OIDC response actually looks like, and it makes omniauth_email nil via the
-  # gem's `omniauth_info[info_key] if omniauth_info` accessor
-  # (rodauth-omniauth 0.6.2 omniauth_base.rb:69).
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    info     = { name: 'Connect User' }
-    raw_info = { sub: uid, name: 'Connect User' }
-    if email
-      info     = info.merge(email: email, email_verified: true)
-      raw_info = raw_info.merge(email: email, email_verified: true)
-    end
-
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: info,
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: raw_info },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # clear_body_headers (support/auth_request_helper.rb) and setup_mock_auth /
+  # teardown_mock_auth (support/omniauth_test_helper.rb) are shared.
+  #
+  # setup_mock_auth(email: nil, ...) below models an IdP that asserts NO email
+  # claim: the shared helper OMITS the key from info/raw_info rather than
+  # setting it to nil — that is what a minimal-scope OIDC response actually
+  # looks like, and it makes omniauth_email nil via the gem's
+  # `omniauth_info[info_key] if omniauth_info` accessor (rodauth-omniauth 0.6.2
+  # omniauth_base.rb:69).
 
   # Run the SSO REQUEST phase carrying the connect-intent signal (connect=1),
   # exactly as the Connected Identities panel does at initiation. In OmniAuth

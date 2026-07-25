@@ -73,10 +73,6 @@ require_relative '../../support/oauth_flow_helper'
 RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: :integration do
   include Rack::Test::Methods
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     # Mirror the proven boot in omniauth_domain_restriction_spec.rb: force a
     # clean reboot so provider registration runs against this suite's WebMock
@@ -103,14 +99,6 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
   # Helpers
   # ==========================================================================
 
-  # Enables platform credential fallback for non-tenant requests. Tests run on
-  # example.org (Rack::Test default), which isn't the canonical domain, so
-  # without this the tenant hook blocks the callback before account lookup.
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
   # Force the trust flag decision for a given route without touching the
   # auth_config plumbing (owned by another agent / tested separately). Any other
   # provider falls through to the real implementation.
@@ -120,44 +108,13 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
       .with(route).and_return(enabled)
   end
 
-  # Seed a pre-existing VERIFIED account (accounts row + linked Customer) that
-  # _account_from_login will locate by normalized email. status_id = 2 (Verified)
-  # both satisfies the lookup's status filter AND makes open_account? true so the
-  # gem skips its verify-account branch. Returns the account_id.
-  def seed_existing_account(email)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-  end
-
-  # OmniAuth test-mode mock for a successful IdP assertion of `email`/`uid`.
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode = true
-    OmniAuth.config.allowed_request_methods = %i[get post]
-    OmniAuth.config.mock_auth[provider] = OmniAuth::AuthHash.new({
-      provider: provider.to_s,
-      uid: uid,
-      info: { email: email, name: 'Trusted Link User', email_verified: true },
-      credentials: {
-        token: 'mock_access_token',
-        expires_at: Time.now.to_i + 3600,
-        expires: true,
-      },
-      extra: {
-        raw_info: { sub: uid, email: email, name: 'Trusted Link User', email_verified: true },
-      },
-    })
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # seed_existing_account — the pre-existing VERIFIED account (accounts row +
+  # linked Customer) that _account_from_login locates by normalized email —
+  # comes from support/account_seed_helper.rb.
+  #
+  # setup_mock_auth/teardown_mock_auth — the OmniAuth test-mode mock for a
+  # successful IdP assertion of `email`/`uid` — come from
+  # support/omniauth_test_helper.rb.
 
   # ==========================================================================
   # Scenario 1 — PLATFORM path + trust flag ON -> auto-link
