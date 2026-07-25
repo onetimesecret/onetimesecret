@@ -34,7 +34,20 @@ module AuthRequestHelper
   # carried this identical one-liner; a group that needs different construction
   # (e.g. basicauth_rejection_on_session_routes_spec.rb, which memoizes around
   # a Registry.reset!) still defines its own and wins on ancestor order.
+  #
+  # The empty-registry guard is what a per-spec copy used to buy implicitly: a
+  # group that never boots gets an EMPTY Rack::URLMap rather than an error, and
+  # every request in it 404s. Auto-inclusion means no author is forced to think
+  # about mounting any more, so the check has to be here — a named harness
+  # failure instead of a spec that reads as "the route is broken".
   def app
+    if Onetime::Application::Registry.mount_mappings.empty?
+      raise 'Application registry has no mounts, so `app` would be an empty ' \
+            'Rack::URLMap and every request in this group would 404. The group ' \
+            'needs a before(:all) that calls Onetime.boot! then ' \
+            'Onetime::Application::Registry.prepare_application_registry.'
+    end
+
     Onetime::Application::Registry.generate_rack_url_map
   end
 
