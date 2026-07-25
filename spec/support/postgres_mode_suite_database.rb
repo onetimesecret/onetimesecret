@@ -51,7 +51,8 @@ require_relative 'factories/auth_account_factory'
 #
 module PostgresModeSuiteDatabase
   REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
-  EXPECTED_SCHEMA_VERSION = 7
+  # Bumped to 8 by migration 008 (issuer-scoped SSO identities, #3840 Phase 0).
+  EXPECTED_SCHEMA_VERSION = 8
 
   class << self
     attr_reader :database, :migration_database

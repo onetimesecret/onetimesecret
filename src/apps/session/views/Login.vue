@@ -1,7 +1,6 @@
 <!-- src/apps/session/views/Login.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -12,11 +11,11 @@ import { useLanguageStore } from '@/shared/stores/languageStore';
 import { hasPasswordlessMethods } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
-const router = useRouter();
 
 const languageStore = useLanguageStore();
 const bootstrapStore = useBootstrapStore();
@@ -39,6 +38,12 @@ const signupEnabled = computed(
 
 // Handle auth errors passed via query params (from SSO/magic link failures)
 const authError = ref<string | null>(null);
+
+// Handle informational notices passed via query params. Distinct from auth_error:
+// these are non-failure prompts a backend redirect drops the user here with — e.g.
+// after issuing a mailbox-proof SSO link (#3840 Phase 4), the callback redirects to
+// /signin?auth_notice=link_verification_sent (token-less; the token is emailed).
+const authNotice = ref<string | null>(null);
 
 // Post-verification return: useAuth.verifyAccount() sends the user here after
 // they click the link in their welcome email. The "just verified" signal
@@ -74,6 +79,33 @@ const authErrorMessages: Record<string, string> = {
   token_invalid: 'web.login.errors.token_invalid',
   invalid_email: 'web.login.errors.invalid_email',
   domain_not_allowed: 'web.login.errors.domain_not_allowed',
+  account_exists_link_required: 'web.login.errors.account_exists_link_required',
+  identity_connect_conflict: 'web.login.errors.identity_connect_conflict',
+  link_sso_failed: 'web.login.errors.link_sso_failed',
+  org_join_failed: 'web.login.errors.org_join_failed',
+};
+
+// Informational notices (not failures). Only known codes render — an unknown
+// notice is silently ignored rather than shown as a generic banner.
+const authNoticeMessages: Record<string, string> = {
+  link_verification_sent: 'web.login.notices.link_verification_sent',
+};
+
+// Strip a consumed one-shot query param (auth_error / auth_notice) from the
+// address bar so a manual refresh does not re-show the banner. Uses
+// window.history.replaceState — NOT router.replace — deliberately: App.vue keys
+// <router-view> by $route.fullPath and forces a fresh component instance on any
+// route change (query-only changes included), so a router.replace() dropping the
+// param would REMOUNT this view and discard the banner we just set — the same
+// fullPath-remount trap the verifiedNotice handling above sidesteps. replaceState
+// updates only the URL bar, leaving Vue Router's route (and this instance)
+// intact, so the banner survives while a refresh no longer re-shows it.
+const stripConsumedQueryParam = (name: string) => {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(name)) return;
+  url.searchParams.delete(name);
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
 };
 
 onMounted(() => {
@@ -86,8 +118,22 @@ onMounted(() => {
     // fall back to the generic SSO failure copy instead of rendering nothing.
     const messageKey = authErrorMessages[errorCode] ?? 'web.login.errors.sso_failed';
     authError.value = t(messageKey);
-    // Clear the query param to prevent showing error on refresh
-    router.replace({ query: { ...route.query, auth_error: undefined } });
+    // Clear the query param to prevent showing error on refresh (URL-bar only;
+    // see stripConsumedQueryParam — a router nav here would remount and wipe it).
+    stripConsumedQueryParam('auth_error');
+  }
+
+  const noticeCode = route.query.auth_notice;
+  if (typeof noticeCode === 'string' && noticeCode.length > 0) {
+    // Unlike auth_error there is no generic fallback: an unrecognized notice is
+    // not a failure to surface, so ignore it rather than guess a message.
+    const messageKey = authNoticeMessages[noticeCode];
+    if (messageKey) {
+      authNotice.value = t(messageKey);
+    }
+    // Clear the query param either way so a refresh does not re-show it
+    // (URL-bar only — see stripConsumedQueryParam).
+    stripConsumedQueryParam('auth_notice');
   }
 });
 
@@ -150,10 +196,13 @@ const handleModeChange = (_mode: AuthMode) => {
       <template v-else>
         <!-- Post-verification success: persistent confirmation that the email
              was verified, shown until the user leaves the page. -->
+        <!-- prettier-ignore-attribute class -->
         <div
           v-if="verifiedNotice"
           role="status"
-          class="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
+          class="
+            mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3
+            text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
           data-testid="signin-verified-notice">
           <OIcon
             collection="heroicons"
@@ -163,11 +212,33 @@ const handleModeChange = (_mode: AuthMode) => {
           <span>{{ t('web.login.verified_notice') }}</span>
         </div>
 
+        <!-- Informational notice from redirects (e.g. mailbox-proof SSO link sent —
+             #3840 Phase 4). Non-failure "check your inbox" prompt, styled distinctly
+             from the red error banner. -->
+        <!-- prettier-ignore-attribute class -->
+        <div
+          v-if="authNotice"
+          role="status"
+          class="
+            mb-4 flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 p-3
+            text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+          data-testid="signin-auth-notice">
+          <OIcon
+            collection="heroicons"
+            name="envelope"
+            class="size-5 shrink-0 text-blue-500 dark:text-blue-400"
+            aria-hidden="true" />
+          <span>{{ authNotice }}</span>
+        </div>
+
         <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
+        <!-- prettier-ignore-attribute class -->
         <div
           v-if="authError"
           role="alert"
-          class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          class="
+            mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700
+            dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {{ authError }}
         </div>
 
@@ -185,16 +256,22 @@ const handleModeChange = (_mode: AuthMode) => {
         class="flex items-center justify-center gap-2 text-sm">
         <!-- Consistent footer for all modes when passwordless methods enabled -->
         <template v-if="passwordlessEnabled">
+          <!-- prettier-ignore-attribute class -->
           <router-link
             to="/help"
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
+            class="
+              text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline
+              dark:text-gray-400 dark:hover:text-gray-300">
             {{ t('web.login.need_help') }}
           </router-link>
           <template v-if="signupEnabled">
             <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
+            <!-- prettier-ignore-attribute class -->
             <router-link
               :to="signupLink"
-              class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
+              class="
+                text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline
+                dark:text-gray-400 dark:hover:text-gray-300">
               {{ t('web.login.create_account') }}
             </router-link>
           </template>
@@ -205,9 +282,12 @@ const handleModeChange = (_mode: AuthMode) => {
             {{ t('web.login.alternate_prefix') }}
           </span>
           {{ ' ' }}
+          <!-- prettier-ignore-attribute class -->
           <router-link
             :to="signupLink"
-            class="font-medium text-brand-600 underline transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+            class="
+              font-medium text-brand-600 underline transition-colors duration-200
+              hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
             {{ t('web.login.need_an_account') }}
           </router-link>
         </template>

@@ -1,11 +1,11 @@
 // src/utils/features.ts
 
-import { getBootstrapValue } from '@/services/bootstrap.service';
 import {
   featuresSchema,
   type AuthenticationSettings,
   type Features,
 } from '@/schemas/contracts/bootstrap';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { debugLog } from '@/utils/debug';
 
 /**
@@ -134,16 +134,23 @@ export function isPasswordRequirementsEnabled(): boolean {
 }
 
 /**
+ * Pure predicate: SSO authentication enabled in the given state.
+ *
+ * `sso` can be a boolean (false) or an object with an `enabled` property.
+ */
+export function isSsoEnabledOf(state: { features?: Features }): boolean {
+  const sso = state.features?.sso;
+  if (typeof sso === 'boolean') return sso;
+  return sso?.enabled === true;
+}
+
+/**
  * Checks if SSO authentication is enabled
  */
 export function isSsoEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const features = getBootstrapValue('features');
-  // sso can be boolean (false) or object with enabled property
-  const sso = features?.sso;
-  if (typeof sso === 'boolean') return sso;
-  return sso?.enabled === true;
+  return isSsoEnabledOf({ features: getBootstrapValue('features') });
 }
 
 /**
@@ -178,6 +185,63 @@ export function getSsoProviders(): SsoProvider[] {
   }
 
   return [];
+}
+
+/**
+ * Built-in friendly labels for the omniauth strategies shipped with the app.
+ *
+ * Keyed on the omniauth ROUTE NAME ('entra'), NOT the domain-SSO strategy id
+ * ('entra_id') — that is a separate surface with its own label list (see
+ * DomainSsoConfigForm.vue).
+ */
+const PROVIDER_LABELS: Record<string, string> = {
+  oidc: 'OpenID Connect',
+  entra: 'Microsoft Entra',
+  github: 'GitHub',
+  google: 'Google',
+};
+
+/**
+ * Canonical display label for an omniauth route name ('entra' → 'Microsoft Entra').
+ *
+ * Resolution order:
+ * 1. The built-in label above.
+ * 2. The capitalized route name, so a backend that adds a strategy still renders
+ *    sensibly.
+ *
+ * DELIBERATELY does NOT consult the bootstrap `display_name`. The backend always
+ * populates that field with a generic default — lib/onetime/auth_config.rb
+ * resolves it to `sso_display_name || 'SSO'`, so a stock OIDC install (no
+ * OIDC_DISPLAY_NAME set) ships display_name: 'SSO' and entra ships 'Microsoft'.
+ * Preferring it here would make this map unreachable in production and silently
+ * downgrade prose like "You signed in with OpenID Connect" to "…with SSO".
+ *
+ * Use this wherever the provider is named in prose or in a linked-identity row:
+ * ConnectedIdentities linked rows, LinkSso, SsoLinkConfirm.
+ * Use configuredProviderLabel() — NOT this — for the Connect buttons, where the
+ * operator's chosen name is what should win. Do not collapse the two into one
+ * helper: the precedence difference is intentional and user-visible.
+ */
+export function providerLabel(routeName: string): string {
+  if (!routeName) return '';
+
+  return PROVIDER_LABELS[routeName] ?? routeName.charAt(0).toUpperCase() + routeName.slice(1);
+}
+
+/**
+ * Display label for a CONFIGURED provider, operator `display_name` first.
+ *
+ * The inverse precedence of providerLabel(): an operator who sets
+ * OIDC_DISPLAY_NAME='Acme SSO' expects the Connect button to read
+ * "Connect Acme SSO" with no frontend change. Falls back to providerLabel()
+ * (built-in map, then capitalized route name) when display_name is blank.
+ *
+ * Only the ConnectedIdentities connect buttons use this — see providerLabel()
+ * for why the other label sites must not.
+ */
+export function configuredProviderLabel(provider: SsoProvider): string {
+  const name = provider.display_name?.trim();
+  return name ? name : providerLabel(provider.route_name);
 }
 
 /**

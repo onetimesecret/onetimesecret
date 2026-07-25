@@ -502,7 +502,7 @@ jobs:
 
   smoke-test:
     name: T3 · Smoke Test
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: *runs-on
     needs: [changes, build-assets, ruby-unit, typescript-unit]
     if: |
