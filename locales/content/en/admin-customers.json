@@ -5,7 +5,7 @@
   },
   "web.admin.customers.description": {
     "text": "Find a customer and resolve support issues.",
-    "content_hash": "c8487e68"
+    "content_hash": "00961ea3"
   },
   "web.admin.customers.list.roleFilter": {
     "text": "Role",
