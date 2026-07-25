@@ -64,6 +64,10 @@ RSpec.describe Onetime::Receipt do
         allow(secret_double).to receive(:save).and_return(true)
         allow(secret_double).to receive(:objid).and_return('secret-objid-abc123')
         allow(secret_double).to receive(:shortid).and_return('secret-o')
+        # spawn_pair passes secret.created as the owner-index score; without
+        # this stub the null object returns itself and to_f trips the
+        # verifying double.
+        allow(secret_double).to receive(:created).and_return(Familia.now.to_i)
         allow(Onetime::Secret).to receive(:new).and_return(secret_double)
 
         Onetime::Receipt.spawn_pair(owner_id, lifespan, content, domain: domain, kind: kind)
