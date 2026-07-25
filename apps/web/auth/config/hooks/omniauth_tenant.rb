@@ -119,22 +119,28 @@ module Auth::Config::Hooks
         end
 
         # Look up domain-specific SSO configuration (credentials store) and
-        # gate it on SigninConfig.sso_permitted_for? — the shared activation
-        # authority. This is the runtime half of the parity gate; the display
-        # half lives in config_serializer.rb#resolve_tenant_sso_config and
-        # consults the same predicate. The two MUST produce the same
+        # gate it on SsoConfig.tenant_sso_available_for? — the shared
+        # availability authority (enabled credentials + SigninConfig's
+        # sso_permitted_for? activation gate + the AUTH_ENABLED master
+        # switch). This is the runtime half of the parity gate; the display
+        # halves (masthead link via DomainSerializer#effective_signin_enabled?,
+        # /signin page via config_serializer.rb#resolve_tenant_sso_config)
+        # consult the same predicate. All gates MUST produce the same
         # active/inactive decision for any domain so the SSO button is never
         # shown when this route would reject (and never hidden when it works).
+        # AUTH_ENABLED=false therefore lands in handle_missing_tenant_config
+        # like any unconfigured tenant — reject, or platform fallback per
+        # policy — matching the darkened display surfaces for that state.
         sso_config    = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
-        sso_permitted = Onetime::CustomDomain::SigninConfig.sso_permitted_for?(custom_domain.identifier)
+        sso_available = Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(custom_domain.identifier)
 
-        unless sso_config&.enabled? && sso_permitted
+        unless sso_config && sso_available
           Auth::Logging.log_auth_event(
             :omniauth_tenant_sso_not_enabled,
             level: :info,
             host: host,
             domain_id: custom_domain.identifier,
-            sso_permitted: sso_permitted,
+            sso_available: sso_available,
           )
 
           # Check if we should fall back to platform credentials

@@ -22,6 +22,11 @@
 # false. Sign-up has no carve-out by design: SSO signup flows through the
 # signin path.
 #
+# The carve-out ignores the password-signin `global` param (AUTH_SIGNIN does
+# not govern SSO) but NOT the master switch: tenant_sso_available_for?
+# consults SigninConfig.global_auth_enabled (AUTH_ENABLED) itself, so a
+# master kill darkens SSO-only display surfaces too (#3901 follow-up).
+#
 # See: #3672, ADR-024 (resolution invariants), ADR-030 (config layering).
 # Complements try/unit/models/custom_domain_auth_killswitch_try.rb, which
 # covers the shared canonical resolvers (resolve_signin_enabled /
@@ -136,11 +141,41 @@ Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(tru
 Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, signin_config(enabled: true, signin_enabled: false), domain_id: @sso_only_domain)
 #=> false
 
-## carve-out does not consult the password-signin global: SSO availability is
-## governed by the SsoConfig gates (enabled? + sso_permitted_for?), not
-## AUTH_SIGNIN — the asymmetry the resolver docstring records as intentional
+## carve-out does not consult the password-signin global param: SSO
+## availability is governed by the SsoConfig gates (enabled? +
+## sso_permitted_for?) plus the AUTH_ENABLED master switch (on in test
+## config), not AUTH_SIGNIN — the asymmetry the resolver docstring records
+## as intentional
 Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(false, nil, domain_id: @sso_only_domain)
 #=> true
+
+## master switch gates the carve-out (#3901 follow-up): AUTH_ENABLED=false
+## suppresses an SSO-only tenant's sign-in availability — sessionauth is
+## never registered when the master switch is off, so an SSO sign-in could
+## only mint a session the app ignores. Injectable auth hash exercises the
+## gate without mutating boot config.
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, auth: { 'enabled' => false })
+#=> false
+
+## master switch on via the same injection: gate passes and availability is
+## governed by the SsoConfig gates as before
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, auth: { 'enabled' => true })
+#=> true
+
+## strict-boolean master switch: an absent enabled key reads as off
+Onetime::CustomDomain::SigninConfig.global_auth_enabled({})
+#=> false
+
+## resolver wiring: the carve-out reaches the master-switch gate through
+## tenant_sso_available_for?'s default OT.conf read — flip the live setting
+## around the call to prove the path (restored immediately after)
+@auth_conf     = OT.conf['site']['authentication']
+@saved_enabled = @auth_conf['enabled']
+@auth_conf['enabled'] = false
+@masterkill_result = Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil, domain_id: @sso_only_domain)
+@auth_conf['enabled'] = @saved_enabled
+@masterkill_result
+#=> false
 
 # --- SignupConfig.resolve_signup_enabled_for_custom_domain ---
 

@@ -383,9 +383,20 @@ module Onetime
         # honors fallback) without lighting up a masthead link. See
         # ConfigSerializer#build_sso_config.
         #
+        # Master-switch gate (#3901 follow-up): AUTH_ENABLED=false resolves
+        # false before the credential checks. With the master switch off,
+        # sessionauth is never registered and every session reads as
+        # unauthenticated, so an SSO sign-in could only mint a session the
+        # app ignores — display surfaces must not advertise it and the
+        # omniauth runtime hook must not inject tenant credentials for it.
+        # AUTH_SIGNIN is deliberately NOT consulted: it retires only the
+        # password/email path (see SigninConfig.global_auth_enabled).
+        #
         # @param domain_id [String] CustomDomain identifier (objid)
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
         # @return [Boolean] true if tenant SSO can be used to sign in
-        def tenant_sso_available_for?(domain_id)
+        def tenant_sso_available_for?(domain_id, auth: nil)
+          return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
           return false unless find_by_domain_id(domain_id)&.enabled?
 
           Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
