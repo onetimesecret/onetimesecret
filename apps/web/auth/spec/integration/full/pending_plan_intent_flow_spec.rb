@@ -86,10 +86,6 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     end
   end
 
-  def unique_test_email(prefix = 'plan-intent')
-    "#{prefix}-#{SecureRandom.hex(8)}@integration-test.example.com"
-  end
-
   def create_test_account(email:, extid: nil)
     db = Auth::Database.connection
     extid ||= SecureRandom.uuid
@@ -102,25 +98,6 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     )
     created_account_ids << account_id
     { id: account_id, email: email, external_id: extid, extid: extid }
-  end
-
-  # Establish a session, fetch the CSRF token, then POST a JSON login to the
-  # rodauth endpoint (mounted at /auth). The full Rack app enforces CSRF, so a
-  # raw post without the shrimp token returns 403 Forbidden.
-  def csrf_login(email, password = TEST_PASSWORD)
-    # Clear headers that leaked from previous POST (Content-Type triggers body
-    # parsing in Rack::Parser; when applied to a GET with no body, rack.input
-    # is nil and .read fails)
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-    header 'Accept', 'application/json'
-    get '/auth'
-    token = last_response.headers['X-CSRF-Token']
-
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', token if token
-    post '/auth/login', JSON.generate(login: email, password: password, shrimp: token)
   end
 
   # ==========================================================================

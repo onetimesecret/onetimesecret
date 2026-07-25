@@ -73,10 +73,6 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Password is AuthTestConstants::TEST_PASSWORD (shared across spec files so a
   # top-level constant isn't redefined when both specs load in one process).
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     require 'onetime'
     require 'onetime/application/registry'
@@ -99,29 +95,9 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Helpers
   # ==========================================================================
 
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
   # seed_existing_account (the SSO-only / victim account) and
   # seed_account_with_password (the subject csrf_login can authenticate as)
   # come from support/account_seed_helper.rb.
-
-  # Establish a session, fetch the CSRF token, then POST a JSON login. The full
-  # Rack app enforces CSRF, so the shrimp token is required.
-  def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    token = last_response.headers['X-CSRF-Token']
-
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', token if token
-    post '/auth/login', JSON.generate(login: email, password: password, shrimp: token)
-    token
-  end
 
   # clear_body_headers (support/auth_request_helper.rb) and setup_mock_auth /
   # teardown_mock_auth (support/omniauth_test_helper.rb) are shared.

@@ -73,10 +73,6 @@ require_relative '../../support/oauth_flow_helper'
 RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: :integration do
   include Rack::Test::Methods
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     # Mirror the proven boot in omniauth_domain_restriction_spec.rb: force a
     # clean reboot so provider registration runs against this suite's WebMock
@@ -102,14 +98,6 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
   # ==========================================================================
   # Helpers
   # ==========================================================================
-
-  # Enables platform credential fallback for non-tenant requests. Tests run on
-  # example.org (Rack::Test default), which isn't the canonical domain, so
-  # without this the tenant hook blocks the callback before account lookup.
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
 
   # Force the trust flag decision for a given route without touching the
   # auth_config plumbing (owned by another agent / tested separately). Any other

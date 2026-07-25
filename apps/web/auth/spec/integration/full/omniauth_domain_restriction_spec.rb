@@ -31,10 +31,6 @@ require_relative '../../spec_helper'
 RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
   include Rack::Test::Methods
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     # Boot the full Onetime application for integration tests.
     # require 'onetime' unconditionally — the `Onetime` constant can be
@@ -83,38 +79,8 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
   # Helper Methods
   # ==========================================================================
 
-  # Asserts the OmniAuth callback ended in a redirect to /signin with the given
-  # stable auth_error code. Matches the convention shared with email_auth and
-  # omniauth_on_failure (Login.vue dispatches the code to a localized message).
-  def expect_auth_error_redirect(code)
-    expect(last_response.status).to eq(302),
-      "Expected 302 redirect for #{code}, got #{last_response.status}: #{last_response.body}"
-    expect(last_response.location.to_s).to include("/signin?auth_error=#{code}"),
-      "Expected auth_error=#{code} in Location, got: #{last_response.location.inspect}"
-  end
-
   # setup_mock_auth/teardown_mock_auth come from support/omniauth_test_helper.rb.
   # This spec passes only email:, so every example gets a fresh random uid.
-
-  # Configures allowed_signup_domains in OT.conf
-  # Pass nil to remove restrictions
-  def configure_allowed_domains(domains)
-    # Deep clone to avoid mutating original
-    config = Marshal.load(Marshal.dump(OT.conf))
-
-    config['site'] ||= {}
-    config['site']['authentication'] ||= {}
-    config['site']['authentication']['allowed_signup_domains'] = domains
-
-    allow(OT).to receive(:conf).and_return(config)
-  end
-
-  # Enables platform credential fallback for non-tenant requests.
-  # Required because tests run on `example.org` which isn't the canonical
-  # domain, so without this the tenant hook blocks before domain validation.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
 
   # ==========================================================================
   # Tests: Domain Restrictions Configured

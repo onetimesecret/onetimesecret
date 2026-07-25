@@ -52,13 +52,11 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/oauth_flow_helper'
+require_relative '../../support/sso_link_flow_helper'
 
 RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integration do
   include Rack::Test::Methods
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
+  include SsoLinkFlowHelper
 
   before(:all) do
     require 'onetime'
@@ -82,13 +80,6 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   # Helpers (mirrors omniauth_connect_link_spec.rb)
   # ==========================================================================
 
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path, and
-  # lets a non-tenant callback proceed on platform credentials instead of
-  # redirecting to sso_not_configured.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
   # seed_existing_account (SSO-only, no password) and
   # seed_account_with_password (support/account_seed_helper.rb),
   # setup_mock_auth/teardown_mock_auth (support/omniauth_test_helper.rb) and
@@ -96,35 +87,10 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   # shared. fetch_csrf_token establishes a fresh session; the challenge lives in
   # Redis, not the session, so that does not disturb it.
 
-  # Drive the UNAUTHENTICATED SSO callback and return the response. No login and
-  # no connect intent — this is the plain sign-in that resolves to an existing
-  # account by email.
-  def sso_callback(email:, uid:, provider: :oidc)
-    setup_mock_auth(email: email, uid: uid, provider: provider)
-    clear_body_headers
-    post "/auth/sso/#{provider}/callback"
-    last_response
-  end
-
-  # Extract the challenge token from a /link-sso/:token redirect Location.
-  def token_from_location(location)
-    location.to_s.split('/link-sso/').last.to_s.split(/[?#]/).first
-  end
-
   def get_link_context(token)
     clear_body_headers
     header 'Accept', 'application/json'
     get "/auth/link-sso/#{token}"
-    last_response
-  end
-
-  def post_link_sso(token:, password:)
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post '/auth/link-sso', JSON.generate(token: token, password: password)
     last_response
   end
 

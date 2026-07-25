@@ -85,54 +85,18 @@ require_relative '../../spec_helper'
 # Rack::Test, `app`, `identities`, the OTP-feature guard, and the OTP
 # provisioning machinery. See the helper's header.
 require_relative '../../support/mfa_flow_helper'
+require_relative '../../support/sso_link_flow_helper'
 
 RSpec.describe 'SSO mailbox-proof link confirm: deferred bind after MFA (#3840 Phase 4 / #3877)',
   :full_auth_mode, type: :integration do
   include MfaFlowHelper
+  include SsoLinkFlowHelper
 
   # ==========================================================================
   # Route driving for THIS flow (mirrors
   # integration/full/sso_link_confirm_mailbox_proof_spec.rb). The shared OTP
   # machinery lives in support/mfa_flow_helper.rb.
   # ==========================================================================
-
-  # GET /auth/sso-link-confirm/:token — the display-only consent context.
-  def get_confirm(token)
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get "/auth/sso-link-confirm/#{token}"
-    last_response
-  end
-
-  # POST /auth/sso-link-confirm { token } — the atomic consume + (deferred) bind
-  # + login handoff. Carries shrimp in the body like csrf_json_post; the custom route
-  # accepts the header token too, but sending both matches the SPA.
-  def post_confirm(token:)
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post '/auth/sso-link-confirm', JSON.generate(token: token, shrimp: csrf)
-    last_response
-  end
-
-  # Mint a verification directly — the POST endpoint carries the snapshot the op
-  # reloads, so it needs no SSO round-trip. Default watermark 0 matches a freshly
-  # seeded Customer (never had last_password_update stamped), so watermark_state
-  # resolves :unchanged.
-  def mint_verification(email:, uid:, account_id:, provider: 'oidc',
-                        issuer: 'https://issuer.example.com', sid: nil, password_watermark: 0)
-    Onetime::SsoLinkVerification.issue(
-      provider: provider,
-      issuer: issuer,
-      uid: uid,
-      email: OT::Utils.normalize_email(email),
-      account_id: account_id,
-      sid: sid,
-      password_watermark: password_watermark,
-    )
-  end
 
   # Drive the mailbox-proof confirm up to the MFA hand-off: mint a verification,
   # POST it, and assert the deferral contract — mfa_required, the token CONSUMED

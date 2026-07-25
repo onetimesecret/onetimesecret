@@ -59,11 +59,6 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     end
   end
 
-  # Helper to generate unique test emails
-  def unique_test_email(prefix = 'test')
-    "#{prefix}-#{SecureRandom.hex(8)}@integration-test.example.com"
-  end
-
   # Helper to create a test account in the database
   def create_test_account(email:)
     db = Auth::Database.connection

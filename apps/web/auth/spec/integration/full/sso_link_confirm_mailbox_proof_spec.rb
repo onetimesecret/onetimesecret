@@ -70,13 +70,11 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/oauth_flow_helper'
+require_relative '../../support/sso_link_flow_helper'
 
 RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integration do
   include Rack::Test::Methods
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
+  include SsoLinkFlowHelper
 
   before(:all) do
     require 'onetime'
@@ -102,13 +100,6 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   # ==========================================================================
   # Helpers (mirror omniauth_signin_interstitial_spec.rb / omniauth_connect_link_spec.rb)
   # ==========================================================================
-
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path, so a
-  # non-tenant callback proceeds on platform credentials rather than redirecting to
-  # sso_not_configured.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
 
   # Seed a VERIFIED account WITHOUT a password (a PASSWORDLESS / SSO-only account —
   # the Phase 4 subject). Also seeds the paired Customer so the watermark probe
@@ -153,50 +144,6 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   # establishing a fresh session there does not disturb it — and (for the
   # cross-device example) it deliberately makes the POST's current_sid DIFFER
   # from the token's snapshotted sid.
-
-  # Drive the UNAUTHENTICATED SSO callback and return the response.
-  def sso_callback(email:, uid:, provider: :oidc)
-    setup_mock_auth(email: email, uid: uid, provider: provider)
-    clear_body_headers
-    post "/auth/sso/#{provider}/callback"
-    last_response
-  end
-
-  # GET /auth/sso-link-confirm/:token — the display-only consent context.
-  def get_confirm(token)
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get "/auth/sso-link-confirm/#{token}"
-    last_response
-  end
-
-  # POST /auth/sso-link-confirm { token } — the atomic consume + bind + login.
-  def post_confirm(token:)
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post '/auth/sso-link-confirm', JSON.generate(token: token)
-    last_response
-  end
-
-  # Mint a verification directly — the POST endpoint can be exercised without a full
-  # SSO round-trip, since the token carries the snapshot the op reloads. account_id,
-  # sid, and password_watermark are caller-supplied so tests can drive the conflict,
-  # cross-device, and watermark branches deterministically.
-  def mint_verification(email:, uid:, account_id:, provider: 'oidc',
-                        issuer: 'https://issuer.example.com', sid: nil, password_watermark: 0)
-    Onetime::SsoLinkVerification.issue(
-      provider: provider,
-      issuer: issuer,
-      uid: uid,
-      email: OT::Utils.normalize_email(email),
-      account_id: account_id,
-      sid: sid,
-      password_watermark: password_watermark,
-    )
-  end
 
   # Stub the templated publisher and CAPTURE every enqueue_email call. Returns the
   # capture buffer. Returning true means the message was QUEUED — the only outcome

@@ -59,10 +59,12 @@ require_relative '../../spec_helper'
 # Rack::Test, `app`, `identities`, the OTP-feature guard, and the OTP
 # provisioning machinery. See the helper's header.
 require_relative '../../support/mfa_flow_helper'
+require_relative '../../support/sso_link_flow_helper'
 
 RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
   :full_auth_mode, type: :integration do
   include MfaFlowHelper
+  include SsoLinkFlowHelper
 
   # ==========================================================================
   # Route driving for THIS flow (mirrors
@@ -70,26 +72,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
   # machinery lives in support/mfa_flow_helper.rb.
   # ==========================================================================
 
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
   # setup_mock_auth/teardown_mock_auth come from support/omniauth_test_helper.rb.
-
-  def sso_callback(email:, uid:, provider: :oidc)
-    setup_mock_auth(email: email, uid: uid, provider: provider)
-    clear_body_headers
-    post "/auth/sso/#{provider}/callback"
-    last_response
-  end
-
-  def token_from_location(location)
-    location.to_s.split('/link-sso/').last.to_s.split(/[?#]/).first
-  end
-
-  def post_link_sso(token:, password:)
-    csrf_json_post('/auth/link-sso', token: token, password: password)
-  end
 
   # Drive the SSO callback for an OTP-enabled password account up to the point
   # where the interstitial has verified the password and handed off to MFA.

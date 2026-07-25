@@ -37,10 +37,6 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
   # Password is AuthTestConstants::TEST_PASSWORD (shared across spec files so a
   # top-level constant isn't redefined when both specs load in one process).
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     require 'onetime'
     require 'onetime/application/registry'
@@ -76,21 +72,6 @@ RSpec.describe 'Linked identities management API (#3840 Phase 2)', type: :integr
   end
 
   # clear_body_headers/json_body come from support/auth_request_helper.rb.
-
-  # Establish an authenticated session via password login.
-  def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    token = last_response.headers['X-CSRF-Token']
-
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', token if token
-    post '/auth/login', JSON.generate(login: email, password: password, shrimp: token)
-    expect(last_response.status).to be_between(200, 302),
-      "Precondition failed: login for #{email} returned #{last_response.status}: #{last_response.body}"
-  end
 
   def get_identities
     clear_body_headers

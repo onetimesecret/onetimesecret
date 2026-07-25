@@ -53,10 +53,6 @@ require_relative '../../spec_helper'
 RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   include Rack::Test::Methods
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     # Boot the full Onetime application for integration tests. Mirrors the
     # sibling omniauth_domain_restriction_spec.rb boot — see its comments for
@@ -96,16 +92,6 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   # ==========================================================================
   # Helpers
   # ==========================================================================
-
-  # Asserts the OmniAuth callback ended in a 302 redirect to /signin with the
-  # given stable auth_error code. The 302 (vs 500/timeout) is itself the
-  # regression guard against the "frozen loading screen" symptom.
-  def expect_auth_error_redirect(code)
-    expect(last_response.status).to eq(302),
-      "Expected 302 redirect for #{code}, got #{last_response.status}: #{last_response.body}"
-    expect(last_response.location.to_s).to include("/signin?auth_error=#{code}"),
-      "Expected auth_error=#{code} in Location, got: #{last_response.location.inspect}"
-  end
 
   # Builds an OmniAuth mock shaped like a Microsoft Entra ID v2.0 id_token.
   #
@@ -155,18 +141,6 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     return unless last_response.status == 404
 
     skip "OmniAuth route /auth/sso/#{provider}/callback not registered in this boot"
-  end
-
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
-  def configure_allowed_domains(domains)
-    config = Marshal.load(Marshal.dump(OT.conf))
-    config['site'] ||= {}
-    config['site']['authentication'] ||= {}
-    config['site']['authentication']['allowed_signup_domains'] = domains
-    allow(OT).to receive(:conf).and_return(config)
   end
 
   # ==========================================================================
