@@ -158,9 +158,12 @@ module Onetime::Customer::Features
 
         cust.secrets.add(sid, (score || Familia.now).to_f)
         # Drop everything outside the newest SECRET_INDEX_LIMIT (lowest scores
-        # rank first, so the excess sits at the head).
-        limit = Onetime::Customer::Features::CounterFields::SECRET_INDEX_LIMIT
-        cust.secrets.remrangebyrank(0, -(limit + 1))
+        # rank first, so the excess sits at the head). Bare constant on purpose:
+        # it resolves lexically, so a namespace move can't turn this into a
+        # NameError — which the caller's `rescue StandardError` would swallow
+        # (logged via OT.le, never raised), stopping the trim indefinitely
+        # while secret creation kept reporting success.
+        cust.secrets.remrangebyrank(0, -(SECRET_INDEX_LIMIT + 1))
       end
 
       # Mirror of {index_secret} — drop the member on early destruction.
