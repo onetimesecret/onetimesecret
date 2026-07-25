@@ -243,6 +243,23 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   # and independent degradation.
   # ---------------------------------------------------------------------------
   describe 'GetUserDetails activity read-out' do
+    # These examples persist REAL Secrets via spawn_pair: identifier
+    # generation needs VERIFIABLE_ID_HMAC_SECRET and ciphertext= needs the
+    # encryption keys, both provisioned by configure_familia during FULL
+    # boot. An earlier spec's partial or failed boot can leave the process
+    # without either (PR #3817 seed-60018 failure class), so guard-boot
+    # like the sibling integration specs, and seed the env var for the
+    # case where a partial boot already marked the state ready.
+    before(:all) do
+      ENV['VERIFIABLE_ID_HMAC_SECRET'] ||= SecureRandom.hex(32)
+      begin
+        OT.boot! :test unless OT.ready?
+      rescue Redis::CannotConnectError, Redis::ConnectionError => e
+        puts "SKIP: Requires Redis connection (#{e.class})"
+        exit 0
+      end
+    end
+
     def user_details(target)
       logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
         strategy_result_for(colonel), { 'user_id' => target.extid },
