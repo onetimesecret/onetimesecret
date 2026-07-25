@@ -530,5 +530,9 @@
   "web.admin.domains.actions.remove.success": {
     "text": "Domain removed.",
     "content_hash": "2ccaa6d3"
+  },
+  "web.admin.domains.actions.remove.notApplied": {
+    "text": "The server previewed the removal instead of applying it — the domain was NOT removed. Retry, and report this if it persists.",
+    "content_hash": "dc6d70ae"
   }
 }

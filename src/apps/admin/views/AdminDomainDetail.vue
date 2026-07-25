@@ -294,9 +294,20 @@
           dryRun: false,
         });
         return;
-      case 'remove':
-        await store.remove(publicId.value, false);
+      case 'remove': {
+        // The endpoint DEFAULTS dry_run to true and the false flag rides the
+        // query string, so the ack must PROVE the apply happened: only
+        // `details.dry_run === false` is a real removal. A missing/malformed
+        // ack or a dry_run echo (query param lost to a proxy strip / backend
+        // drift) means the server only PREVIEWED — reporting success would
+        // toast "removed", drop the cached row and navigate away while the
+        // domain still exists.
+        const removeAck = await store.remove(publicId.value, false);
+        if (!removeAck || removeAck.dry_run !== false) {
+          throw new Error(t('web.admin.domains.actions.remove.notApplied'));
+        }
         return;
+      }
       default:
         throw new Error('No active action');
     }

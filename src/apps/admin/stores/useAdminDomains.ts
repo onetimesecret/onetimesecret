@@ -117,7 +117,10 @@ export interface DomainTransferOptions {
 // binds them to the injected Axios instance below. Every one THROWS on a
 // network/HTTP failure (so the caller's useAdminMutation can classify it into
 // the confirm dialog) and resolves `null` when a 2xx ack fails its Zod contract
-// — the mutation still happened server-side, acks are tripwires, not gates.
+// — for most verbs the mutation still happened server-side, so those acks are
+// tripwires, not gates. Exception: `remove`, where a 2xx can be a dry-run
+// preview (`details.dry_run: true`) that changed nothing — its caller must
+// gate on the ack before reporting a removal.
 // Audit is written SERVER-SIDE by each operation (CONTRACT 4).
 // ---------------------------------------------------------------------------
 
