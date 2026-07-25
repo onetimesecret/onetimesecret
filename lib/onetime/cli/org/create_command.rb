@@ -27,10 +27,11 @@
 #   --is-default    is_default: true makes the org UNDELETABLE; signup owns it.
 require 'json'
 require 'onetime/operations/org/create'
-# Org::Shared must exist before `include Org::Shared` below. Required here (not
-# only from the lib/onetime/cli.rb manifest) so this file cannot be loaded in a
-# broken order.
+# Org::Shared / Customers::Shared must exist before the `include`s below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
 require_relative 'shared'
+require_relative '../customers/shared'
 
 module Onetime
   module CLI

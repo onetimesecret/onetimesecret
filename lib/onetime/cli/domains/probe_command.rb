@@ -34,6 +34,10 @@
 
 require 'json'
 require 'onetime/operations/domains/probe'
+# Domains::Shared must exist before `include Domains::Shared` below. Required
+# here (not only from the lib/onetime/cli.rb manifest) so this file cannot be
+# loaded in a broken order.
+require_relative 'shared'
 
 module Onetime
   module CLI

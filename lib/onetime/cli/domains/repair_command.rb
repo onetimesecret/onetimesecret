@@ -36,6 +36,11 @@
 
 require 'json'
 require 'onetime/operations/domains/repair'
+# Customers::Shared / Domains::Shared must exist before the `include`s below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative '../customers/shared'
+require_relative 'shared'
 
 module Onetime
   module CLI
