@@ -435,6 +435,10 @@
     "text": "To confirm, type the account email address {token} below",
     "content_hash": "8b2a1819"
   },
+  "web.admin.customers.actions.purge.unavailable": {
+    "text": "Purge is unavailable: this account has no email address to retype as confirmation.",
+    "content_hash": "5f20f7e5"
+  },
   "web.admin.customers.detail.sessions.title": {
     "text": "Active Sessions",
     "content_hash": "b58fa4e0"
