@@ -24,6 +24,7 @@ vi.mock('@/shared/stores/csrfStore', () => ({
  * link_expired / link_conflict / link_invalidated / link_error / invalid_request —
  * distinguished by the backend { error_code } and, defensively, the HTTP status.
  */
+// eslint-disable-next-line max-lines-per-function -- exhaustive error-code matrix; matches the composable's own pragma
 describe('useSsoLinkConfirm', () => {
   let axiosMock: AxiosMockAdapter;
 
@@ -273,6 +274,35 @@ describe('useSsoLinkConfirm', () => {
 
       expect(result).toBeNull();
       expect(errorCode.value).toBe('link_conflict');
+    });
+
+    // The rate-limited refusal happens BEFORE the backend consumes the token, so
+    // unlike every other POST failure the link is still live — the copy key must
+    // be the dedicated "wait" message, never one that declares the link dead.
+    it('classifies a throttled client (429 confirm_rate_limited)', async () => {
+      axiosMock
+        .onPost('/auth/sso-link-confirm')
+        .reply(429, { error: 'too many attempts', error_code: 'confirm_rate_limited', retry_after: 900 });
+
+      const { confirmLink, error, errorCode } = useSsoLinkConfirm();
+      const result = await confirmLink('tok123');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('confirm_rate_limited');
+      expect(error.value).toBe('web.sso_link_confirm.errors.confirm_rate_limited');
+      expect(error.value).not.toBe('web.sso_link_confirm.errors.link_expired');
+    });
+
+    // Defensive status-family fallback: a bare 429 (proxy-level throttle that
+    // strips the body) still classifies as rate-limited, not generic.
+    it('classifies a code-less 429 via the status fallback', async () => {
+      axiosMock.onPost('/auth/sso-link-confirm').reply(429);
+
+      const { confirmLink, errorCode } = useSsoLinkConfirm();
+      const result = await confirmLink('tok123');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('confirm_rate_limited');
     });
 
     it('falls back to a generic error for an unclassifiable failure (500)', async () => {

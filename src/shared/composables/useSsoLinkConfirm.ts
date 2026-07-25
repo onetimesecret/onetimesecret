@@ -50,6 +50,12 @@
  *                                                        watermark (its outage, not a
  *                                                        credential change); still terminal —
  *                                                        the token was consumed first
+ *                                429 confirm_rate_limited => too many confirm attempts from
+ *                                                        this client; the token is NOT
+ *                                                        consumed — waiting out the lockout
+ *                                                        and retrying (or re-issuing via SSO)
+ *                                                        can succeed, so the copy says "wait",
+ *                                                        never "the link is dead"
  *   The failure branch is distinguished by an { error_code } field and, defensively,
  *   the HTTP status.
  *
@@ -79,10 +85,11 @@ import { useI18n } from 'vue-i18n';
  * Typed failure the view maps to copy. They differ in WHY the link can't be
  * completed and therefore in the message shown before sending the user back to
  * sign in. All are terminal for the current attempt — there is no retryable
- * input on this page. The one code whose UNDERLYING token may still be live is
- * 'link_error' raised by the GET path (our outage, nothing consumed), so its
- * copy must never claim the link expired; returning to sign in re-issues a fresh
- * email and works regardless.
+ * input on this page. Two codes leave the UNDERLYING token live:
+ * 'link_error' raised by the GET path (our outage, nothing consumed) and
+ * 'confirm_rate_limited' (the POST was refused BEFORE consuming the token), so
+ * their copy must never claim the link expired; returning to sign in re-issues
+ * a fresh email and works regardless.
  */
 export type SsoLinkConfirmErrorCode =
   | 'link_expired'
@@ -90,6 +97,7 @@ export type SsoLinkConfirmErrorCode =
   | 'link_invalidated'
   | 'link_error'
   | 'invalid_request'
+  | 'confirm_rate_limited'
   | null;
 
 /** Minimal shape of the axios error's carried response (status + parsed body). */
@@ -104,7 +112,7 @@ interface ErrorResponseLike {
  * falls back to the status family only defensively. Returns null when the failure
  * is neither (e.g. an unclassifiable 5xx) so the caller surfaces a generic message.
  *
- * The five codes below are exactly the set apps/web/auth/routes/sso_link_confirm.rb
+ * The six codes below are exactly the set apps/web/auth/routes/sso_link_confirm.rb
  * emits — keep them in lockstep with that route.
  *
  * link_invalidated and link_error share HTTP 409, so ONLY the explicit backend code
@@ -121,10 +129,12 @@ function resolveConfirmErrorCode(
   if (backendCode === 'link_conflict') return 'link_conflict';
   if (backendCode === 'invalid_request') return 'invalid_request';
   if (backendCode === 'link_expired') return 'link_expired';
+  if (backendCode === 'confirm_rate_limited') return 'confirm_rate_limited';
   // Status-family fallback (backend always sends a code; this is defence only).
   if (status === 401 || status === 404 || status === 410) return 'link_expired';
   if (status === 409) return 'link_conflict';
   if (status === 400) return 'invalid_request';
+  if (status === 429) return 'confirm_rate_limited';
   return null;
 }
 
@@ -181,6 +191,8 @@ export function useSsoLinkConfirm() {
     if (code === 'link_conflict') return t('web.sso_link_confirm.errors.link_conflict');
     if (code === 'link_invalidated') return t('web.sso_link_confirm.errors.link_invalidated');
     if (code === 'link_error') return t('web.sso_link_confirm.errors.link_error');
+    if (code === 'confirm_rate_limited')
+      return t('web.sso_link_confirm.errors.confirm_rate_limited');
     return t('web.sso_link_confirm.errors.generic');
   }
 

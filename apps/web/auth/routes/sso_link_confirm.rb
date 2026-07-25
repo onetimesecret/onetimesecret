@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/login_rate_limiter'
+
 require 'auth/lib/logging'
 require 'auth/operations/confirm_sso_link'
 require 'auth/operations/deferred_sso_bind'
@@ -35,6 +37,11 @@ require_relative 'json_body'
 #   - The token is delivered ONLY to the on-file inbox, so holding it is the proof.
 #   - SINGLE-USE: the POST consumes the token atomically (#delete!) before binding,
 #     so it is good for exactly one confirmation (Auth::Operations::ConfirmSsoLink).
+#   - RATE LIMITED (#3840 PR #3900 review): single-use caps attempts per TOKEN, but
+#     nothing bounded how many GUESSED tokens one client could probe. The POST runs
+#     the canonical Onetime::Security::LoginRateLimiter keyed per CLIENT IP before
+#     the op touches the token — see #sso_link_confirm_throttle_subject for why the
+#     key differs from the interstitial's email+IP (a guessed token carries no email).
 #   - CREDENTIAL-CHANGE INVALIDATION: the token snapshots the account's password
 #     watermark; a change since issuance rejects it (:link_invalidated).
 #   - MFA-SAFE BIND: when a second factor is pending the bind is DEFERRED (SSO paths
@@ -51,6 +58,12 @@ require_relative 'json_body'
 module Auth
   module Routes
     module SsoLinkConfirm
+      # Canonical credential-submission throttle, here throttling token GUESSES per
+      # client (see #sso_link_confirm_throttle_subject for the keying rationale).
+      # Included so its check/record/clear methods are available in the route block
+      # (SsoLinkConfirm is included into Auth::Router), mirroring LinkSso.
+      include Onetime::Security::LoginRateLimiter
+
       # Shared body parser for the custom (non-Rodauth) routes; see json_body.rb.
       include Auth::Routes::JsonBody
 
@@ -67,6 +80,11 @@ module Auth
       #                      unresolvable Customer). Same 409 and same dead-end as
       #                      link_invalidated, separate code so the copy does not
       #                      tell the user their credentials changed when they did not
+      #   confirm_rate_limited — too many confirm attempts from this client (429);
+      #                      carries retry_after seconds. Distinct from the
+      #                      interstitial's link_rate_limited: this one is about the
+      #                      CLIENT, not the link — the copy must say "wait", never
+      #                      "the link is dead"
       def handle_sso_link_confirm_routes(r)
         r.on 'sso-link-confirm' do
           # GET /auth/sso-link-confirm/:token — consent display context.
@@ -101,6 +119,13 @@ module Auth
               next { error: 'A linking token is required.', error_code: 'invalid_request' }
             end
 
+            # RATE LIMIT (#3840 PR #3900 review) — gate BEFORE the op consumes the
+            # token, keyed per client (see #sso_link_confirm_throttle_subject).
+            # Raises Onetime::LimitExceeded when locked -> 429 (rescued below,
+            # ahead of the generic StandardError rescue that would mask it as 500).
+            throttle_subject = sso_link_confirm_throttle_subject(request.ip)
+            check_login_rate_limit!(throttle_subject) if throttle_subject
+
             result = Auth::Operations::ConfirmSsoLink.call(
               db: rodauth.db,
               token: token,
@@ -110,6 +135,11 @@ module Auth
 
             case result.status
             when :link_expired
+              # The guessable credential HERE is the token itself, so a token that
+              # resolves to nothing IS the failed-guess signal — count it toward the
+              # per-client throttle. (The other failure statuses required a REAL
+              # token to reach, so they are not guesses and are not recorded.)
+              record_failed_login_attempt!(throttle_subject) if throttle_subject
               response.status = 401
               next {
                 error: 'This linking request has expired. Please sign in with SSO again.',
@@ -136,6 +166,12 @@ module Auth
                 error_code: 'link_error',
               }
             end
+
+            # Verified credential (the token resolved and every check passed) ->
+            # clear the per-client throttle so a legitimate user who burned attempts
+            # on stale emailed links is not left one failure from lockout. Mirrors
+            # the interstitial's clear-on-verified-credential.
+            clear_login_rate_limit!(throttle_subject) if throttle_subject
 
             # result.status == :ok — the identity is bound (or deferred for MFA).
             # Establish the session through Rodauth's OWN login machinery so
@@ -184,6 +220,19 @@ module Auth
                 )
               end
             end
+          rescue Onetime::LimitExceeded => ex
+            # Must precede the generic StandardError rescue below (which would turn
+            # this into a 500). Same ADR-013-style 429 shape as the interstitial's
+            # link_rate_limited, under its own code: this failure is about the
+            # CLIENT, not the link, so the SPA copy says "wait", not "link is dead".
+            auth_logger.warn 'SSO link confirm rate limited', { retry_after: ex.retry_after }
+            response.status                 = 429
+            response.headers['Retry-After'] = ex.retry_after.to_s if ex.retry_after
+            {
+              error: 'Too many attempts. Please try again later.',
+              error_code: 'confirm_rate_limited',
+              retry_after: ex.retry_after,
+            }
           rescue StandardError => ex
             auth_logger.error 'Error completing SSO link confirmation', { exception: ex }
             response.status = 500
@@ -216,6 +265,36 @@ module Auth
           error: ex.message,
         )
         nil
+      end
+
+      # Throttle subject for the confirm POST, or nil when no client IP resolved.
+      #
+      # WHY PER-CLIENT-IP, NOT PER-EMAIL: on the interstitial (link_sso) the
+      # guessable credential is the account PASSWORD, and the challenge — loaded
+      # before the check — supplies the email subject. Here the guessable
+      # credential IS the token (mailbox proof): a guessed token resolves to no
+      # record, so there is no email to key on at exactly the moment throttling
+      # matters. The only stable identifier a guess carries is the client IP —
+      # request.ip here is the privacy-MASKED address (Otto's IPPrivacyMiddleware
+      # rewrites REMOTE_ADDR upstream), the same value the interstitial's
+      # email+IP tier keys on, so the throttle granularity matches.
+      #
+      # The IP is embedded in the SUBJECT with a nil ip argument — the limiter's
+      # documented "global tier only" path — giving one per-client key pair
+      # (login:attempts:sso-link-confirm:{ip}) capped at GLOBAL_MAX_ATTEMPTS per
+      # window. Passing a FIXED subject with the ip argument instead would also
+      # create a single global bucket shared by ALL clients: GLOBAL_MAX_ATTEMPTS
+      # bogus POSTs from anyone would lock every user's mailbox confirm for
+      # LOCKOUT_DURATION — a trivial DoS. Per-client keys cannot be poisoned
+      # across users. An EMPTY IP skips the throttle (nil) for the same reason:
+      # a shared fallback bucket would reopen that DoS. The token is 256-bit
+      # (SecureRandom.urlsafe_base64(32)), so this limiter is defence-in-depth
+      # bounding probe volume, not the primary guard against guessing.
+      def sso_link_confirm_throttle_subject(client_ip)
+        ip = client_ip.to_s
+        return nil if ip.empty?
+
+        "sso-link-confirm:#{ip}"
       end
     end
   end

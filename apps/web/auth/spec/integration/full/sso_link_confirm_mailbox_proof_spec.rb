@@ -53,7 +53,10 @@
 #      "Unresolvable Customer" is the issuance/confirm SYMMETRY case: confirm rejects
 #      that state (:unreadable -> 409), so issuing would mail a permanently
 #      unredeemable link.
-#   9. MFA-deferred: pending second factor -> mfa_required, identity NOT bound
+#   9. rate limiting: a locked client (per-IP subject on the canonical
+#      LoginRateLimiter) -> 429 confirm_rate_limited BEFORE the token is consumed;
+#      a lone guessed token stays a plain 401.
+#  10. MFA-deferred: pending second factor -> mfa_required, identity NOT bound
 #      (PENDING — needs an AUTH_MFA_ENABLED boot; see the example).
 #
 # REQUIREMENTS:
@@ -660,7 +663,78 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   end
 
   # ==========================================================================
-  # (9) MFA-DEFERRED bind (covered in the AUTH_MFA_ENABLED lane).
+  # (9) POST /auth/sso-link-confirm is rate limited (PR #3900 review)
+  # ==========================================================================
+  #
+  # Single-use caps attempts per TOKEN, but nothing bounded how many GUESSED
+  # tokens one client could probe. The route runs the canonical
+  # Onetime::Security::LoginRateLimiter keyed per CLIENT IP — the subject is
+  # "sso-link-confirm:{ip}" on the limiter's GLOBAL tier, because a guessed
+  # token resolves to no record and therefore carries no email to key on (the
+  # interstitial's email+IP keying needs the challenge to resolve first).
+  # A per-client key also cannot be poisoned into a cross-user lockout the way
+  # a shared bucket could.
+
+  describe 'POST /auth/sso-link-confirm rate limiting' do
+    let(:rl_limiter) { Object.new.extend(Onetime::Security::LoginRateLimiter) }
+    let(:rl_redis)   { Onetime::Customer.dbclient }
+
+    # Clear every throttle key for this endpoint so the discovery below (and any
+    # later example) starts from a clean slate.
+    def clear_confirm_throttle_keys
+      stale = rl_redis.keys('login:attempts:sso-link-confirm:*') +
+              rl_redis.keys('login:locked:sso-link-confirm:*')
+      rl_redis.del(*stale) unless stale.empty?
+    end
+
+    before { clear_confirm_throttle_keys }
+    after  { clear_confirm_throttle_keys }
+
+    it 'refuses with 429 confirm_rate_limited once the client is locked; a lone guess is a plain 401' do
+      email      = "mp-rl-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_passwordless_account(email)
+
+      # A lone guessed token is a normal 401 — the limiter does NOT trip on the
+      # first try (it records it toward the per-client counter).
+      result = post_confirm(token: "guess-#{SecureRandom.hex(16)}")
+      expect(result.status).to eq(401)
+      expect(JSON.parse(result.body)['error_code']).to eq('link_expired')
+
+      # DISCOVER the subject the route derived rather than assuming the client
+      # IP: Otto's IPPrivacyMiddleware rewrites REMOTE_ADDR to a privacy-masked
+      # address before the route reads request.ip, so a pinned REMOTE_ADDR is
+      # NOT the key the route records under. The guess above must have recorded
+      # exactly one per-client attempts key — which doubles as end-to-end proof
+      # that unresolvable tokens are counted.
+      keys = rl_redis.keys('login:attempts:sso-link-confirm:*')
+      expect(keys.size).to eq(1),
+        "Expected the guessed token to record one per-client attempts key, got #{keys.inspect}"
+      subject_key = keys.first.delete_prefix('login:attempts:')
+
+      # Lock the client's subject via the canonical limiter (no bespoke keys),
+      # then a POST with a REAL token is refused BEFORE the op consumes it.
+      Onetime::Security::LoginRateLimiter::GLOBAL_MAX_ATTEMPTS.times do
+        rl_limiter.record_failed_login_attempt!(subject_key, nil)
+      end
+
+      verification = mint_verification(email: email, uid: uid, account_id: account_id)
+      result       = post_confirm(token: verification.token)
+
+      expect(result.status).to eq(429),
+        "A locked client must be throttled, got #{result.status}: #{result.body}"
+      body = JSON.parse(result.body)
+      expect(body['error_code']).to eq('confirm_rate_limited')
+      expect(body['retry_after']).to be_a(Integer)
+
+      # Throttled BEFORE consumption: the single-use token survives, nothing bound.
+      expect(Onetime::SsoLinkVerification.load(verification.token)).not_to be_nil
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+    end
+  end
+
+  # ==========================================================================
+  # (10) MFA-DEFERRED bind (covered in the AUTH_MFA_ENABLED lane).
   # ==========================================================================
   #
   # When the located account has a pending second factor the identity bind must be

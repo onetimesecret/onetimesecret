@@ -311,4 +311,93 @@ RSpec.describe Auth::Routes::SsoLinkConfirm, type: :rack do
       end
     end
   end
+
+  # ==========================================================================
+  # Rate limiting (#3840 PR #3900 review)
+  # ==========================================================================
+  #
+  # The guessable credential on this endpoint is the TOKEN itself, so the
+  # throttle is keyed per CLIENT IP ("sso-link-confirm:{ip}" on the limiter's
+  # global tier — a guessed token resolves to no record, so there is no email to
+  # key on). REMOTE_ADDR is pinned per example so the locked subject and the
+  # subject the route derives from request.ip are the same Redis keys.
+  describe 'POST /sso-link-confirm rate limiting' do
+    let(:limiter) { Object.new.extend(Onetime::Security::LoginRateLimiter) }
+
+    def throttle_subject(ip)
+      "sso-link-confirm:#{ip}"
+    end
+
+    def lock_subject(ip)
+      Onetime::Security::LoginRateLimiter::GLOBAL_MAX_ATTEMPTS.times do
+        limiter.record_failed_login_attempt!(throttle_subject(ip), nil)
+      end
+    end
+
+    def json_post_from(ip, token)
+      post '/sso-link-confirm', JSON.generate({ token: token }),
+        { 'CONTENT_TYPE' => 'application/json', 'REMOTE_ADDR' => ip }
+    end
+
+    it 'refuses with 429 confirm_rate_limited once the client is locked, BEFORE consuming the token' do
+      ip = '198.51.100.7'
+      seed_account
+      lock_subject(ip)
+
+      token = issue_token
+      json_post_from(ip, token)
+
+      expect(last_response.status).to eq(429)
+      expect(body['error_code']).to eq('confirm_rate_limited')
+      expect(body['retry_after']).to be_a(Integer)
+      expect(last_response.headers['Retry-After']).to eq(body['retry_after'].to_s)
+      # Throttled BEFORE the op ran: the single-use token survives, no login.
+      expect(Onetime::SsoLinkVerification.load(token)).not_to be_nil
+      expect(rodauth.login_calls).to be_empty
+    ensure
+      limiter.clear_login_rate_limit!(throttle_subject(ip), nil)
+    end
+
+    it 'counts an unresolvable token as a failed guess (locks at the threshold)' do
+      ip = '198.51.100.8'
+      seed_account
+      # One short of the threshold; the guessed-token 401 records the final one.
+      (Onetime::Security::LoginRateLimiter::GLOBAL_MAX_ATTEMPTS - 1).times do
+        limiter.record_failed_login_attempt!(throttle_subject(ip), nil)
+      end
+
+      json_post_from(ip, 'guessed-token')
+      expect(last_response.status).to eq(401)
+      expect(body['error_code']).to eq('link_expired')
+
+      # That guess tripped the lockout: even a REAL token is now refused.
+      token = issue_token
+      json_post_from(ip, token)
+      expect(last_response.status).to eq(429)
+      expect(body['error_code']).to eq('confirm_rate_limited')
+      expect(Onetime::SsoLinkVerification.load(token)).not_to be_nil
+    ensure
+      limiter.clear_login_rate_limit!(throttle_subject(ip), nil)
+    end
+
+    it 'clears the throttle on a successful confirm (verified credential)' do
+      ip = '198.51.100.9'
+      seed_account
+      # One short of the threshold — a lockout away.
+      (Onetime::Security::LoginRateLimiter::GLOBAL_MAX_ATTEMPTS - 1).times do
+        limiter.record_failed_login_attempt!(throttle_subject(ip), nil)
+      end
+
+      json_post_from(ip, issue_token)
+      expect(last_response.status).to eq(200)
+
+      # Had the success not cleared, this single failure would be the one that
+      # trips the lockout; after the clear it is failure #1 of a fresh window.
+      limiter.record_failed_login_attempt!(throttle_subject(ip), nil)
+      expect { limiter.check_login_rate_limit!(throttle_subject(ip), nil) }
+        .not_to raise_error
+    ensure
+      limiter.clear_login_rate_limit!(throttle_subject(ip), nil)
+    end
+  end
 end

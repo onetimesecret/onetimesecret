@@ -545,6 +545,10 @@
     "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when the backend could not READ the account's password watermark (datastore outage / unresolvable customer record) — an infrastructure failure, NOT a credential change (backend error_code link_error, HTTP 409). Deliberately distinct from errors.link_invalidated so a transient outage is never reported as 'your credentials changed'.",
     "content_hash": "ec24e0a1"
   },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Too many attempts from your device. Please wait a few minutes, then open the emailed link again or sign in with your provider for a fresh one.",
+    "context": "Error on the #3840 Phase 4 mailbox-proof SSO linking page when the per-client rate limit on the confirm endpoint trips (backend error_code confirm_rate_limited, HTTP 429). Unlike the other errors the link itself is NOT consumed — the copy must say 'wait', never that the link is dead."
+  },
   "web.sso_link_confirm.errors.generic": {
     "text": "We couldn't confirm this connection. Please sign in with your provider again.",
     "context": "Fallback error for #3840 Phase 4 mailbox-proof SSO linking page failures that are neither expired, a conflict, nor a credential change (e.g. an unexpected server error or a missing token).",
