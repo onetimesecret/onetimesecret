@@ -24,6 +24,9 @@ DELETE /secrets/:secret_id                ColonelAPI::Logic::Colonel::DeleteSecr
 GET    /users                             ColonelAPI::Logic::Colonel::ListUsers response=json auth=sessionauth role=colonel scope=internal
 GET    /users/:user_id                    ColonelAPI::Logic::Colonel::GetUserDetails response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/plan               ColonelAPI::Logic::Colonel::UpdateUserPlan response=json auth=sessionauth role=colonel scope=internal
+# Change account email (#3731 PR-C3, D43). Destructive + cross-store: dry_run
+# defaults to TRUE, so the console previews then re-issues with dry_run=false.
+POST   /users/:user_id/email              ColonelAPI::Logic::Colonel::ChangeUserEmail response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/role               ColonelAPI::Logic::Colonel::SetUserRole response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/verify             ColonelAPI::Logic::Colonel::VerifyUser response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/unverify           ColonelAPI::Logic::Colonel::UnverifyUser response=json auth=sessionauth role=colonel scope=internal

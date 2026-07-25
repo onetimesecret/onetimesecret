@@ -27,8 +27,11 @@ require 'securerandom'
 require 'onetime/session/codec'
 require 'onetime/session/sidecar'
 
-# Build a minimal in-memory SQLite DB that matches the schema used by
-# update_auth_database and invalidate_sessions in ConfirmEmailChange.
+# Build a minimal in-memory SQLite DB that matches the schema the full-mode half
+# of the confirm path touches: `accounts` (rewritten by
+# Auth::Operations::Customers::ChangeEmail#update_auth_row!) and
+# `account_active_session_keys` (cleared by
+# Onetime::Operations::Sessions::RevokeAllForCustomer#purge_rodauth_rows).
 def build_test_sqlite_db
   db = Sequel.sqlite  # in-memory
 
@@ -82,6 +85,38 @@ ensure
   # Restore original connection state (nil in simple mode)
   Auth::Database.instance_variable_set(:@connection, original_connection)
 end
+
+# Stand-in for the redeemed verification Secret. ConfirmEmailChange#process
+# reads exactly one thing off @secret — the new address ciphertext — so this is
+# all the token half of the flow needs to supply.
+PendingEmailTicket = Struct.new(:decrypted_secret_value)
+
+# Drive ConfirmEmailChange#process directly, pre-loaded with what raise_concerns
+# would have resolved (@owner, @secret).
+#
+# Why the token is injected instead of minted: RequestEmailChange#process mints a
+# verification Secret via Familia::VerifiableIdentifier, which raises KeyError
+# unless VERIFIABLE_ID_HMAC_SECRET is exported — the pre-existing error on every
+# E2E case in this file. Injecting the two values raise_concerns produces keeps
+# the mutation half — the real Auth::Operations::Customers::ChangeEmail call, the
+# real session revoke, the real Rack-session clear — completely unstubbed.
+# raise_concerns itself is covered by the token-lookup cases above.
+def build_confirm(customer, session_hash, new_email)
+  obj = AccountAPI::Logic::Account::ConfirmEmailChange.new(
+    MockStrategyResult.new(session: session_hash, user: customer), { 'token' => '' }
+  )
+  obj.instance_variable_set(:@owner, customer)
+  obj.instance_variable_set(:@secret, PendingEmailTicket.new(new_email))
+  obj
+end
+
+# Session blobs are planted with the middleware writer's own secret resolution
+# (Onetime.session_config['secret'], the chain middleware_stack mounts the
+# session with), which the revoke op's Onetime::SessionCodec.from_config must
+# mirror — only a matching-keyed blob reaches its match -> del -> purge branch.
+@sweep_secret = Onetime.session_config['secret']
+@sweep_codec  = Onetime::SessionCodec.new(@sweep_secret)
+@sweep_db     = Familia.dbclient
 
 # Setup common variables
 @password = 'testpass123'
@@ -380,47 +415,81 @@ obj.success_data
 #=> { confirmed: true, redirect: '/signin' }
 
 # --- ConfirmEmailChange: Session Invalidation ---
+#
+# #3731 PR-C2 deleted this adapter's hand-rolled `invalidate_sessions` /
+# `delete_redis_sessions` pair. Revocation now belongs to
+# Auth::Operations::Customers::ChangeEmail, which delegates to
+# Onetime::Operations::Sessions::RevokeAllForCustomer — index-first and
+# cap-proof, where the deleted scan-first sweep could exhaust its cap before
+# reaching the target's blobs and still report success at ~200k accounts
+# (revoke_all_for_customer.rb:34-43). The ADAPTER still owns exactly one line,
+# `sess.clear if sess`, because the current request's in-memory Rack session is
+# written back by the session middleware after process returns and would
+# otherwise re-create the blob the op just revoked.
+#
+# So these cases assert the same guarantees through the surviving public entry
+# point, ConfirmEmailChange#process, via build_confirm (see setup).
 
-## invalidate_sessions clears the rack session hash
-session_hash = { 'sid' => 'abc123', 'user' => 'test' }
-strategy = MockStrategyResult.new(session: session_hash, user: @cust)
-obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
-obj.send(:invalidate_sessions, @cust)
-session_hash.empty?
+## Confirming an email change clears the current request's Rack session
+## (adapter-owned; the middleware would otherwise write the revoked blob back)
+@clear_cust = Onetime::Customer.new email: generate_unique_test_email('sessclear')
+@clear_cust.save
+@clear_session = { 'sid' => 'abc123', 'user' => 'test' }
+build_confirm(@clear_cust, @clear_session, generate_unique_test_email('sessclear-new')).process
+@clear_session.empty?
 #=> true
 
-## invalidate_sessions does not crash when sess is nil
-strategy = MockStrategyResult.new(session: nil, user: @cust)
-obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
+## Confirming does not crash when there is no Rack session at all
+## (`sess.clear if sess` — the nil guard). MockStrategyResult coerces a nil
+## session to {}, so @sess is nulled directly to actually reach the guard.
+@nosess_cust = Onetime::Customer.new email: generate_unique_test_email('nosess')
+@nosess_cust.save
+obj = build_confirm(@nosess_cust, {}, generate_unique_test_email('nosess-new'))
+obj.instance_variable_set(:@sess, nil)
 begin
-  obj.send(:invalidate_sessions, @cust)
-  true
+  [obj.sess.nil?, obj.process]
 rescue => e
   e.message
 end
-#=> true
+#=> [true, { confirmed: true, redirect: '/signin' }]
 
-## invalidate_sessions handles customer with no extid gracefully
-@bare_cust = Onetime::Customer.new email: generate_unique_test_email('bare')
-strategy = MockStrategyResult.new(session: {}, user: @bare_cust)
-obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
-begin
-  obj.send(:invalidate_sessions, @bare_cust)
-  true
-rescue => e
-  e.message
-end
-#=> true
+## Confirming for a customer the revoke cannot RESOLVE (never persisted, so it
+## is absent from the extid index) completes normally AND sweeps nobody: a
+## bystander's session blob survives. This is the blank-identity guard —
+## matching an empty extid against every blob would nuke the keyspace, so
+## RevokeAllForCustomer bails before scanning (purge_untracked).
+@bare_cust = Onetime::Customer.new email: generate_unique_test_email('bare') # deliberately NOT saved
+@bystander_cust = Onetime::Customer.new email: generate_unique_test_email('bystander')
+@bystander_cust.save
+@bystander_sid  = SecureRandom.hex(32)
+@bystander_blob = "session:#{@bystander_sid}"
+@sweep_db.set(@bystander_blob,
+              @sweep_codec.encode({ 'external_id' => @bystander_cust.extid, 'authenticated' => true }),
+              ex: 3600)
+[
+  build_confirm(@bare_cust, {}, generate_unique_test_email('bare-new')).process,
+  @sweep_db.exists(@bystander_blob),
+]
+#=> [{ confirmed: true, redirect: '/signin' }, 1]
 
-## invalidate_sessions skips DB path in simple auth mode
-# In test env, auth mode is simple so full_enabled? is false.
-# The method should complete without touching Auth::Database.
-session_hash = { 'key' => 'value' }
-strategy = MockStrategyResult.new(session: session_hash, user: @cust)
-obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
-obj.send(:invalidate_sessions, @cust)
-[session_hash.empty?, Onetime.auth_config.full_enabled?]
-#=> [true, false]
+## Simple auth mode skips the Rodauth SQL path and still clears the session
+# In test env auth mode is simple, so full_enabled? is false and there is no
+# Auth::Database to touch. `auth_row_updated: false` is the operation's own
+# report that the SQL half was SKIPPED (not that it failed), and
+# `sessions_revoked: true` is the delegation itself — the adapter passed
+# revoke_sessions: true and the op ran RevokeAllForCustomer.
+@simple_cust = Onetime::Customer.new email: generate_unique_test_email('simplemode')
+@simple_cust.save
+@simple_session = { 'key' => 'value' }
+obj = build_confirm(@simple_cust, @simple_session, generate_unique_test_email('simplemode-new'))
+obj.process
+[
+  @simple_session.empty?,
+  Onetime.auth_config.full_enabled?,
+  obj.change_result.auth_row_updated,
+  obj.change_result.sessions_revoked,
+]
+#=> [true, false, false, true]
 
 ## E2E: session is cleared after email change confirmation
 @inv_old_email = generate_unique_test_email('inv-old')
@@ -447,34 +516,32 @@ confirm.process
 @inv_session.empty?
 #=> true
 
-# --- ConfirmEmailChange: Redis session sweep (delete_redis_sessions, #3858) ---
+# --- ConfirmEmailChange: Redis session sweep (#3858) ---
 #
-# delete_redis_sessions SCANs session:* for blobs whose HMAC-verified,
-# decrypted external_id matches the customer, deletes each matching blob AND
-# purges its per-value sidecar keys (sidecar:<sid>:<field>, a namespace the
-# session:\* scan never matches). The method deliberately swallows all
-# errors (best-effort cleanup), so these cases assert its actual REDIS effects
-# — without them, a regression (renamed sidecar prefix, dropped require,
-# changed extract_id) would raise on the first scan iteration, be silently
-# swallowed, and disable the entire email-change session sweep while every
-# other test stayed green.
-#
-# Blobs are planted with the middleware writer's own secret resolution
-# (Onetime.session_config['secret'], the chain middleware_stack mounts the
-# session with), which #resolve_session_secret must mirror — only a
-# matching-keyed blob reaches the match -> del -> purge branch.
+# Confirming an email change must destroy every STORED session for the account:
+# the encrypted `session:<sid>` blob AND its per-value sidecar keys
+# (`sidecar:<sid>:<field>`, a namespace a `session:*` scan never matches). That
+# work now lives in RevokeAllForCustomer behind ChangeEmail, but the guarantee
+# is still the adapter's to honour, and the whole revoke is best-effort on both
+# sides (ChangeEmail#revoke_sessions rescues into a :sessions_revoke_failed
+# warning; the op itself never raises). A regression — renamed sidecar prefix,
+# dropped require, mis-wired codec, revoke_sessions silently flipped false —
+# would therefore be swallowed and leave every other case green. So these two
+# assert the actual REDIS effects of a real ConfirmEmailChange#process.
 
-## delete_redis_sessions deletes the matching customer's session blob AND its
-## per-value sidecar keys, while a different customer's blob survives (the
-## identity match is exact)
-@sweep_secret = Onetime.session_config['secret']
-@sweep_codec  = Onetime::SessionCodec.new(@sweep_secret)
-@sweep_db     = Familia.dbclient
-@sweep_cust   = Onetime::Customer.new email: generate_unique_test_email('sweep')
+## Confirming deletes the target's session blob AND its per-value sidecar keys,
+## while a DIFFERENT customer's blob survives — the identity match is exact.
+## This is the load-bearing one: a revoke that over-matches logs out strangers,
+## and one that under-matches leaves the changed account reachable on its old
+## credentials. (Mirrors, at this layer, the op's own case at
+## try/unit/operations/sessions/revoke_all_for_customer_try.rb:143.)
+@sweep_cust = Onetime::Customer.new email: generate_unique_test_email('sweep')
 @sweep_cust.save
 @sweep_sid     = SecureRandom.hex(32) # 64 hex, the shape the purge is gated on
 @sweep_blob    = "session:#{@sweep_sid}"
 @sweep_sidecar = "sidecar:#{@sweep_sid}:awaiting_mfa"
+@other_cust    = Onetime::Customer.new email: generate_unique_test_email('sweep-other')
+@other_cust.save
 @other_sid     = SecureRandom.hex(32)
 @other_blob    = "session:#{@other_sid}"
 @sweep_db.set(@sweep_blob,
@@ -482,26 +549,21 @@ confirm.process
               ex: 3600)
 Onetime::SessionSidecar.write(@sweep_sid, 'awaiting_mfa', true, codec: @sweep_codec)
 @sweep_db.set(@other_blob,
-              @sweep_codec.encode({ 'external_id' => 'extid_of_someone_else', 'authenticated' => true }),
+              @sweep_codec.encode({ 'external_id' => @other_cust.extid, 'authenticated' => true }),
               ex: 3600)
-@sweep_obj = AccountAPI::Logic::Account::ConfirmEmailChange.new(
-  MockStrategyResult.new(session: {}, user: @sweep_cust), { 'token' => '' }
-)
-@sweep_obj.send(:delete_redis_sessions, @sweep_cust)
+build_confirm(@sweep_cust, {}, generate_unique_test_email('sweep-new')).process
 [@sweep_db.exists(@sweep_blob), @sweep_db.exists(@sweep_sidecar), @sweep_db.exists(@other_blob)]
 #=> [0, 0, 1]
 
-## the sweep runs through invalidate_sessions too: the blob + sidecar die and
-## the rack session clears in the same call
+## The op-owned revoke and the adapter-owned clear happen in the SAME process
+## call: a re-planted blob + a fresh sidecar field die while the current
+## request's rack session empties
 @sweep_db.set(@sweep_blob,
               @sweep_codec.encode({ 'external_id' => @sweep_cust.extid, 'authenticated' => true }),
               ex: 3600)
 Onetime::SessionSidecar.write(@sweep_sid, 'domain_context', 'example.com', codec: @sweep_codec)
 @sweep_sess = { 'sid' => 'current', 'authenticated' => true }
-@sweep_obj2 = AccountAPI::Logic::Account::ConfirmEmailChange.new(
-  MockStrategyResult.new(session: @sweep_sess, user: @sweep_cust), { 'token' => '' }
-)
-@sweep_obj2.send(:invalidate_sessions, @sweep_cust)
+build_confirm(@sweep_cust, @sweep_sess, generate_unique_test_email('sweep-newer')).process
 [@sweep_db.exists(@sweep_blob), @sweep_db.exists("sidecar:#{@sweep_sid}:domain_context"), @sweep_sess.empty?]
 #=> [0, 0, true]
 
@@ -656,10 +718,15 @@ noacct_result[:confirmed]
 
 # Cleanup
 if defined?(@sweep_db) && @sweep_db
-  @sweep_db.del(@sweep_blob, @other_blob)
+  @sweep_db.del(@sweep_blob, @other_blob, @bystander_blob)
   Onetime::SessionSidecar.purge(@sweep_sid)
 end
 @sweep_cust.delete! if defined?(@sweep_cust) && @sweep_cust
+@other_cust.delete! if defined?(@other_cust) && @other_cust
+@bystander_cust.delete! if defined?(@bystander_cust) && @bystander_cust
+@clear_cust.delete! if defined?(@clear_cust) && @clear_cust
+@nosess_cust.delete! if defined?(@nosess_cust) && @nosess_cust
+@simple_cust.delete! if defined?(@simple_cust) && @simple_cust
 @bare_cust.delete! if defined?(@bare_cust) && @bare_cust
 @inv_cust.delete! if defined?(@inv_cust) && @inv_cust
 @rod_cust.delete! if defined?(@rod_cust) && @rod_cust
