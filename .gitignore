@@ -81,10 +81,10 @@ public/branding/*
 
 # Files
 .DS_Store
-AGENTS.md
 CLAUDE.md
 !.oci-build.json
 .github/*md
+!.github/copilot-instructions.md
 .eslintcache
 .rspec*
 .qodo

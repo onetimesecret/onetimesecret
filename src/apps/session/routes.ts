@@ -183,6 +183,65 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: false,
     },
   },
+  // Sign-in interstitial (SSO password-challenge linking — #3840 Phase 3).
+  // Reached UNAUTHENTICATED via a backend redirect after an SSO sign-in whose
+  // IdP email matched an existing password-holding account. The single-use
+  // challenge token rides in the path (`:token`). Meta mirrors /mfa-verify
+  // (another post-credential, pre-fully-authenticated interstitial), EXCEPT the
+  // token is sensitive: sentryScrubParams: ['token'] redacts it from diagnostics
+  // (mfa-verify has no path param, so it opts out with `false`).
+  {
+    path: '/link-sso/:token',
+    name: 'Link SSO',
+    component: () => import('@/apps/session/views/LinkSso.vue'),
+    meta: {
+      title: 'web.link_sso.title',
+      requiresAuth: false,
+      isAuthRoute: true,
+      requiresFeature: 'signin',
+      excludeSsoOnly: true,
+      layout: AuthLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+      sentryScrubParams: ['token'],
+    },
+  },
+  // Mailbox-proof SSO linking consent page (#3840 Phase 4). Reached
+  // UNAUTHENTICATED via an emailed link after an SSO sign-in whose IdP email
+  // matched an existing PASSWORDLESS account: the backend emails a single-use
+  // token to the on-file address, so opening this link proves mailbox control.
+  // The token rides the path (`:token`) and is EMAIL-DELIVERED — sentryScrubParams:
+  // ['token'] redacts it from diagnostics. Meta mirrors /link-sso (another
+  // post-issuance, pre-fully-authenticated interstitial); the GET is display-only
+  // and the mutating confirm is an explicit user action (never auto-POST on load).
+  {
+    path: '/sso-link-confirm/:token',
+    name: 'SSO Link Confirm',
+    component: () => import('@/apps/session/views/SsoLinkConfirm.vue'),
+    meta: {
+      title: 'web.sso_link_confirm.title',
+      requiresAuth: false,
+      isAuthRoute: true,
+      requiresFeature: 'signin',
+      excludeSsoOnly: true,
+      layout: AuthLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+      sentryScrubParams: ['token'],
+    },
+  },
   {
     path: '/email-login',
     name: 'Email Login',

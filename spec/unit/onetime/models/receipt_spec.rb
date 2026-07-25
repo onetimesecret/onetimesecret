@@ -64,10 +64,15 @@ RSpec.describe Onetime::Receipt do
         allow(secret_double).to receive(:save).and_return(true)
         allow(secret_double).to receive(:objid).and_return('secret-objid-abc123')
         allow(secret_double).to receive(:shortid).and_return('secret-o')
-        # spawn_pair passes secret.created as the owner-index score; without
-        # this stub the null object returns itself and to_f trips the
-        # verifying double.
-        allow(secret_double).to receive(:created).and_return(Familia.now.to_i)
+
+        # spawn_pair passes `secret.created` as the owner-index score, and
+        # Customer.index_secret calls `.to_f` on it. An unstubbed null object
+        # answers `created` (a real Secret instance method) with ITSELF, and the
+        # verifying double then rejects `to_f` -- which Secret does not define --
+        # with a MockExpectationError. That error subclasses Exception, so
+        # increment_secrets_active's `rescue StandardError` does not swallow it
+        # and it escapes spawn_pair. Return a real numeric instead.
+        allow(secret_double).to receive(:created).and_return(Familia.now)
         allow(Onetime::Secret).to receive(:new).and_return(secret_double)
 
         Onetime::Receipt.spawn_pair(owner_id, lifespan, content, domain: domain, kind: kind)

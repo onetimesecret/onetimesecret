@@ -1,0 +1,8 @@
+{
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "description": "Repo invariants (transaction boundaries, session key lifecycles, OAuth state handling) that must not be reported as defects unless this PR modifies the mechanism enforcing them."
+    }
+  ]
+}

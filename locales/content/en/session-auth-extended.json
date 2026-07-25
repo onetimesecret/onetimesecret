@@ -331,6 +331,231 @@
     "context": "Navigation link title",
     "content_hash": "c87ccdb4"
   },
+  "web.auth.connections.title": {
+    "text": "Connected Identities",
+    "context": "Title / nav label for the SSO account-linking panel (#3840 Phase 2)",
+    "content_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Manage the single sign-on providers linked to your account.",
+    "context": "Subheading under the Connected Identities page title",
+    "content_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Single sign-on",
+    "context": "Card header for the list of linked SSO identities",
+    "content_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Identity providers you can use to sign in to this account",
+    "context": "Card subheader for the list of linked SSO identities",
+    "content_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Connect a provider",
+    "context": "Header for the section that lets a logged-in user link a new SSO identity provider (#3840 Phase 2)",
+    "content_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Link another single sign-on provider you can use to sign in to this account.",
+    "context": "Subtext under the Connect-a-provider header",
+    "content_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Connect {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "content_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Issuer",
+    "context": "Label preceding the identity provider issuer URL in a connected-identity row",
+    "content_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifier",
+    "context": "Label preceding the masked subject/identifier in a connected-identity row",
+    "content_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Remove",
+    "context": "Button to unlink a single connected identity",
+    "content_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Remove connected identity",
+    "context": "Title of the confirmation dialog shown before unlinking an identity",
+    "content_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Are you sure you want to remove this connected identity? You will no longer be able to sign in with it.",
+    "context": "Body of the confirmation dialog shown before unlinking an identity",
+    "content_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Connected identity removed",
+    "context": "Toast shown after an identity is successfully unlinked",
+    "content_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "No connected identities",
+    "context": "Empty-state title when the account has no linked SSO identities",
+    "content_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "You haven't linked any single sign-on providers to this account yet.",
+    "context": "Empty-state description when the account has no linked SSO identities",
+    "content_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Single sign-on",
+    "context": "Status badge text on the Security Overview card for connected identities",
+    "content_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "This is your only way to sign in. Connect another provider first, or sign out and use \"Forgot password\" to set a password, so you don't get locked out.",
+    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential). Must only reference actions available to passwordless accounts: connecting a provider (same panel) or the signed-out Forgot password flow — there is no in-app set-password page.",
+    "content_hash": "4e0794b4"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "That connected identity could not be found. It may have already been removed.",
+    "context": "Error shown when unlinking an identity returns 404 (not owned by the caller or already gone)",
+    "content_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Your session has expired. Please sign in again.",
+    "context": "Error shown when a connected-identities request returns 401",
+    "content_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "We couldn't complete that action. Please try again.",
+    "context": "Fallback error for connected-identities fetch/remove failures",
+    "content_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Link your sign-in method",
+    "context": "Heading + page title for the #3840 Phase 3 sign-in interstitial: an unauthenticated SSO sign-in whose email matches an existing password account is asked to prove the password before the provider is linked.",
+    "content_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "You signed in with {provider}, which matches the existing account {email}. Enter that account's password to link {provider} and continue.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "content_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Password",
+    "context": "Label for the existing-account password field on the #3840 Phase 3 sign-in interstitial.",
+    "content_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Your existing password",
+    "context": "Placeholder for the existing-account password field on the #3840 Phase 3 sign-in interstitial.",
+    "content_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Link and continue",
+    "context": "Submit button on the #3840 Phase 3 sign-in interstitial: verifies the existing password, binds the SSO identity, and completes sign-in.",
+    "content_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Cancel",
+    "context": "Cancel action on the #3840 Phase 3 sign-in interstitial; returns the user to sign in with their existing method.",
+    "content_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "This linking request has expired",
+    "context": "Heading of the dead-end panel on the #3840 Phase 3 sign-in interstitial, shown when the single-use challenge token is missing, expired, or already used.",
+    "content_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "For your security, the request to link this sign-in method is no longer valid. Sign in with your existing password, then connect this provider under Security settings → Connected identities.",
+    "context": "Body of the dead-end panel on the #3840 Phase 3 sign-in interstitial (expired/spent challenge token). Points the user at the Phase 2 Connected Identities flow.",
+    "content_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Continue to sign in",
+    "context": "Primary action on the dead-end panel of the #3840 Phase 3 sign-in interstitial; routes to /signin carrying the Connected Identities panel as the post-login destination.",
+    "content_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "That password doesn't match this account. Please try again.",
+    "context": "Inline error on the #3840 Phase 3 sign-in interstitial when the entered password fails to verify (retryable). Deliberately does not confirm the account exists beyond the already-displayed claimed email.",
+    "content_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "This linking request has expired or was already used. Sign in with your existing password, then connect this provider from your account settings.",
+    "context": "Error on the #3840 Phase 3 sign-in interstitial when the single-use challenge token is expired, spent, or unknown (dead-end, not retryable).",
+    "content_hash": "541f9127"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "We couldn't link your account. Please try again.",
+    "context": "Fallback error for #3840 Phase 3 sign-in interstitial challenge-context / verify failures that are neither a wrong password nor an expired token.",
+    "content_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Confirm connecting your account",
+    "context": "Heading + page title for the #3840 Phase 4 mailbox-proof SSO linking consent page. Reached via a link emailed to a PASSWORDLESS account whose email matched an SSO sign-in; opening the link proves mailbox control.",
+    "content_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "You signed in with {provider}, which matches your account {email}. Confirm to connect {provider} to this account and finish signing in.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "content_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Confirm and connect",
+    "context": "Primary CTA on the #3840 Phase 4 mailbox-proof SSO linking page. Triggers POST /auth/sso-link-confirm: binds the SSO identity and signs the user in. There is no password field — mailbox possession is the proof.",
+    "content_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Cancel",
+    "context": "Cancel action on the #3840 Phase 4 mailbox-proof SSO linking page; abandons linking and returns the user to the sign-in page.",
+    "content_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "This linking request can't be completed",
+    "context": "Heading of the terminal panel on the #3840 Phase 4 mailbox-proof SSO linking page, shown when the single-use token is missing/expired/used or the confirm fails (conflict / credentials changed).",
+    "content_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "For your security, this request to connect your sign-in method is no longer valid. Sign in with your provider again and we'll email you a fresh link.",
+    "context": "Default body of the terminal panel on the #3840 Phase 4 mailbox-proof SSO linking page (e.g. the token was missing from the URL). A specific error message replaces this when the failure was classified.",
+    "content_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Return to sign in",
+    "context": "Primary action on the terminal panel of the #3840 Phase 4 mailbox-proof SSO linking page; routes to /signin so a passwordless user can start SSO again (which re-issues the email).",
+    "content_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "This linking request has expired or was already used. Sign in with your provider again and we'll email you a fresh link.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when the single-use token is missing, expired, or already consumed (backend error_code link_expired; also the GET dead-end).",
+    "content_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "We couldn't connect this sign-in method. Your account may have changed, or this provider is already linked to another account. Sign in with your provider again to continue.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when the account was re-emailed since the link was issued, or the identity is already bound to a different account (backend error_code link_conflict, HTTP 409).",
+    "content_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Your account credentials changed after this link was sent, so it's no longer valid. Sign in with your provider again and we'll email you a fresh link.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when a credential change advanced the account's password watermark after the token was issued (backend error_code link_invalidated, HTTP 409).",
+    "content_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Something went wrong on our side and we couldn't verify this link. Sign in with your provider again and we'll email you a fresh one.",
+    "context": "Terminal error on the #3840 Phase 4 mailbox-proof SSO linking page when the backend could not READ the account's password watermark (datastore outage / unresolvable customer record) — an infrastructure failure, NOT a credential change (backend error_code link_error, HTTP 409). Deliberately distinct from errors.link_invalidated so a transient outage is never reported as 'your credentials changed'.",
+    "content_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Too many attempts from your device. Please wait a few minutes, then open the emailed link again or sign in with your provider for a fresh one.",
+    "context": "Error on the #3840 Phase 4 mailbox-proof SSO linking page when the per-client rate limit on the confirm endpoint trips (backend error_code confirm_rate_limited, HTTP 429). Unlike the other errors the link itself is NOT consumed — the copy must say 'wait', never that the link is dead.",
+    "content_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "We couldn't confirm this connection. Please sign in with your provider again.",
+    "context": "Fallback error for #3840 Phase 4 mailbox-proof SSO linking page failures that are neither expired, a conflict, nor a credential change (e.g. an unexpected server error or a missing token).",
+    "content_hash": "076fa25a"
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "Warning: {count} login attempt(s) remaining",
     "content_hash": "151dcb5e"

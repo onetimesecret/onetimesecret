@@ -59,17 +59,17 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     end
   end
 
-  # Helper to generate unique test emails
-  def unique_test_email(prefix = 'test')
-    "#{prefix}-#{SecureRandom.hex(8)}@integration-test.example.com"
-  end
-
-  # Helper to create a test account in the database
+  # Helper to create a test account in the database.
+  #
+  # Status is UNVERIFIED, and that is correct for these examples even though
+  # nothing here reads it: CreateCustomer hard-codes `verified: false` (the
+  # account's own status never reaches it — after_verify_account flips the
+  # Customer later), so an account fresh out of signup is the honest subject.
   def create_test_account(email:)
     db = Auth::Database.connection
     account_id = db[:accounts].insert(
       email: email,
-      status_id: 1, # verified status
+      status_id: AuthTestConstants::STATUS_UNVERIFIED,
       created_at: Time.now,
       updated_at: Time.now
     )
