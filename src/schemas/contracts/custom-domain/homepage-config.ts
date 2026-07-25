@@ -69,17 +69,28 @@ export const homepageConfigCanonical = z.object({
 
   /**
    * Whether the Sign Up link renders on this domain's homepage.
-   * Defaults to false (link hidden) — operators opt in per-domain via
-   * PUT /homepage-config. The site-level authentication.signup flag
-   * remains the master switch — the frontend ANDs both layers.
+   *
+   * Dual meaning depending on which payload carries this shape (#3672,
+   * ADR-030):
+   * - Bootstrap payload: LIVE resolver-computed value from the domain's
+   *   SignupConfig ANDed with the site-level flag — this is what the
+   *   branded masthead reads.
+   * - Admin homepage-config API responses: deprecated echo of the stored
+   *   HomepageConfig field, which carries no display authority (all false
+   *   since the 2026-07-03 migration). PUT /homepage-config ignores the
+   *   param; auth links are managed on the /domains/:id/signup settings
+   *   page. Kept until the stored field is removed in a later release.
    */
   signup_enabled: z.boolean().default(false),
 
   /**
    * Whether the Sign In link renders on this domain's homepage.
-   * Defaults to false (link hidden) — operators opt in per-domain via
-   * PUT /homepage-config. The site-level authentication.signin flag
-   * remains the master switch — the frontend ANDs both layers.
+   *
+   * Same dual meaning as `signup_enabled` above (#3672, ADR-030):
+   * resolver-computed from SigninConfig in the bootstrap payload; a
+   * deprecated no-authority stored-value echo in admin homepage-config
+   * API responses. PUT /homepage-config ignores the param; manage the
+   * link on the /domains/:id/signin settings page.
    */
   signin_enabled: z.boolean().default(false),
 
