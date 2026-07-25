@@ -2,126 +2,65 @@
 #
 # frozen_string_literal: true
 
-require_relative 'helpers'
+# DEPRECATED — `bin/ots domains bulk-repair` is retired. Use:
+#
+#   bin/ots domains doctor --all --repair
+#
+# The command is a shim that prints the replacement and exits non-zero. It is
+# NOT a thin wrapper: the old behaviour is deliberately gone, because it was
+# wrong in two ways that a wrapper would have preserved.
+#
+#   1. The scan compared `org.list_domains` (an array of CustomDomain OBJECTS)
+#      against `domain.domainid` (a String), so the membership test was ALWAYS
+#      false. Every org-owned domain in the system was reported as "mismatched"
+#      and then "repaired" — the scan summary was meaningless.
+#
+#   2. The mutation loop recorded NO AdminAuditEvent. It walked every custom
+#      domain in the install and mutated org collections with zero audit trail.
+#
+# `domains doctor --all --repair` already scans every domain, detects the same
+# org.domains membership issue with a correct O(1) test, delegates the fix to
+# Onetime::Operations::Domains::Repair (which owns the cross-org guard and the
+# single `domain.repair` audit event), and additionally checks index integrity
+# that bulk-repair knew nothing about. `domains orphaned` covers the orphan
+# tally that was bulk-repair's only unique output.
+#
+# Orphaned domains still require a per-domain human decision:
+#   bin/ots domains repair DOMAIN --org-id ORG
 
 module Onetime
   module CLI
-    # Bulk repair domains
+    # Deprecation shim for the retired `domains bulk-repair` verb.
     class DomainsBulkRepairCommand < Command
-      include DomainsHelpers
+      desc 'DEPRECATED: use `domains doctor --all --repair`'
 
-      desc 'Find and fix all domain relationship issues'
-
+      # The old flags stay declared so an existing invocation reaches this
+      # message instead of dying on an unknown option. They are ignored.
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Preview changes without applying'
+        desc: 'Ignored (deprecated)'
 
       option :force,
         type: :boolean,
         default: false,
-        desc: 'Skip confirmation prompt'
+        desc: 'Ignored (deprecated)'
 
-      def call(dry_run: false, force: false, **)
-        boot_application!
-
-        puts 'Scanning for domain relationship issues...'
-        puts
-
-        all_domain_ids = Onetime::CustomDomain.instances.all
-        all_domains    = all_domain_ids.map do |did|
-          Onetime::CustomDomain.find_by_identifier(did)
-        end.compact
-
-        orphaned_domains   = []
-        mismatched_domains = []
-
-        all_domains.each do |domain|
-          if domain.org_id.to_s.empty?
-            orphaned_domains << domain
-          else
-            org = load_organization(domain.org_id, silent: true)
-            if org
-              domains_in_org = org.list_domains
-              unless domains_in_org.include?(domain.domainid)
-                mismatched_domains << [domain, org]
-              end
-            end
-          end
-        end
-
-        puts 'Scan Results:'
-        puts "  Total domains:        #{all_domains.size}"
-        puts "  Orphaned domains:     #{orphaned_domains.size}"
-        puts "  Mismatched domains:   #{mismatched_domains.size}"
-        puts
-
-        if orphaned_domains.empty? && mismatched_domains.empty?
-          puts 'No issues found - all domain relationships are consistent'
-          return
-        end
-
-        # Show orphaned domains
-        if orphaned_domains.any?
-          puts 'Orphaned Domains (no org_id):'
-          orphaned_domains.first(10).each do |domain|
-            puts "  - #{domain.display_domain}"
-          end
-          puts "  ... and #{orphaned_domains.size - 10} more" if orphaned_domains.size > 10
-          puts
-        end
-
-        # Show mismatched domains
-        if mismatched_domains.any?
-          puts 'Mismatched Domains (org_id set but not in organization collection):'
-          mismatched_domains.first(10).each do |domain, org|
-            puts "  - #{domain.display_domain} (org: #{org.org_id})"
-          end
-          puts "  ... and #{mismatched_domains.size - 10} more" if mismatched_domains.size > 10
-          puts
-        end
-
-        if dry_run
-          puts 'Dry run - no changes made'
-          puts
-          puts 'To apply repairs: ots domains bulk-repair [--force]'
-          return
-        end
-
-        unless force
-          print "Repair #{mismatched_domains.size} mismatched domains? (Note: Orphaned domains require manual assignment) [y/N]: "
-          response = $stdin.gets.chomp
-          unless response.downcase == 'y'
-            puts 'Cancelled'
-            return
-          end
-        end
-
-        # Repair mismatched domains
-        repaired = 0
-        failed   = 0
-
-        mismatched_domains.each do |domain, org|
-            org.add_domain(domain.domainid)
-            domain.updated = OT.now.to_i
-            domain.save
-            repaired      += 1
-            print '.'
-        rescue StandardError => ex
-            failed += 1
-            print 'F'
-            OT.le "[CLI] Failed to repair #{domain.display_domain}: #{ex.message}"
-        end
-
-        puts
-        puts
-        puts 'Bulk Repair Summary:'
-        puts "  Repaired:             #{repaired}"
-        puts "  Failed:               #{failed}"
-        puts "  Orphaned (skipped):   #{orphaned_domains.size}"
-        puts
-        puts 'Note: Orphaned domains require manual assignment with:'
-        puts '  ots domains repair <domain> --org-id=<org-id>'
+      def call(**)
+        # No boot_application! — there is nothing to do and nothing to load.
+        warn 'ERROR: `domains bulk-repair` has been removed.'
+        warn ''
+        warn 'use: bin/ots domains doctor --all --repair'
+        warn ''
+        warn 'It scans every domain, applies the same org.domains membership repair'
+        warn 'through the audited Operations::Domains::Repair path, and also checks'
+        warn 'index integrity. The old command mis-detected every org-owned domain'
+        warn 'and mutated without an audit trail.'
+        warn ''
+        warn 'Orphaned domains still need a per-domain decision:'
+        warn '  bin/ots domains repair DOMAIN --org-id ORG'
+        warn '  bin/ots domains orphaned            # list them'
+        exit 1
       end
     end
   end

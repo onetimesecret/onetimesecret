@@ -13,12 +13,37 @@
 #   6. org.domains sorted set entries have valid domain objects (MEDIUM)
 #   7. verification_state fields are coherent (WARNING)
 #   8. txt_validation_value format is valid (LOW)
+#   9. domain has no org_id at all — ORPHANED (HIGH, report-only)
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
 #                     covers any declared unique_index, multi_index, and
 #                     participates_in relationships automatically. Findings are
 #                     appended to the issues array as type :familia_audit.
+#
+# ## Relationship to `bin/ots domains repair` (SIBLINGS, not overlapping)
+#
+#   bin/ots domains repair DOMAIN [--org-id X]
+#     Targeted, single-domain, ORG-ASSIGNMENT-capable, audited. The only verb
+#     that can adopt an orphaned domain into an organization.
+#
+#   bin/ots domains doctor [--all|--org] [--repair]
+#     Broad multi-check scanner including index integrity. Never assigns an org.
+#
+# Exactly one check (#5, org.domains membership) is shared between them, and
+# doctor DELEGATES that repair to Onetime::Operations::Domains::Repair so there
+# is a single implementation, a single cross-org guard, and a single
+# `domain.repair` AdminAuditEvent. Check #9 reports orphans so a single
+# `doctor --all` gives the complete picture, but never fixes them — assigning an
+# organization is a human decision (use `domains repair --org-id`).
+#
+# ## Audit coverage gap (known, deliberate for now)
+#
+# Doctor's index-housekeeping repairs (display_domain_index, index hash, stale
+# org.domains entries) mutate with an OT.info line but NO AdminAuditEvent. They
+# have no single extid-identified target and no colonel surface; extracting an
+# Operations::Domains::RepairIndexes op is tracked separately. Only the #5
+# membership repair is audited today, by the op it delegates to.
 #
 # Usage:
 #   bin/ots domains doctor secrets.example.com      # Check single domain
@@ -29,6 +54,9 @@
 #   bin/ots domains doctor --all --familia-audit    # Include Familia audit
 
 require 'json'
+require 'onetime/operations/domains/repair'
+
+require_relative '../customers/shared'
 
 module Onetime
   module CLI
@@ -79,7 +107,7 @@ module Onetime
           return
         end
 
-        report = { checked: 0, healthy: 0, issues: [], repaired: [] }
+        report = { checked: 0, healthy: 0, issues: [], repaired: [], failed_repairs: [] }
 
         run_familia_health_check(report) if familia_audit
 
@@ -135,7 +163,11 @@ module Onetime
             6. org.domains entries have valid domain objects (MEDIUM)
             7. verification_state is coherent (WARNING)
             8. txt_validation_value format is valid (LOW)
+            9. domain has no org_id - ORPHANED (HIGH, report-only)
             +. Familia.health_check (opt-in via --familia-audit)
+
+          Doctor never assigns an organization. To adopt an orphaned domain:
+            bin/ots domains repair DOMAIN --org-id ORG
         USAGE
       end
 
@@ -185,6 +217,9 @@ module Onetime
 
         # CHECK: org_id points to existing organization
         check_stale_org_reference(domain, issues)
+
+        # CHECK: domain has an org at all (report-only)
+        check_orphaned_domain(domain, issues)
 
         # CHECK: display_domain is not empty
         check_display_domain_missing(domain, issues)
@@ -392,6 +427,26 @@ module Onetime
         }
       end
 
+      # CHECK: domain has no org_id at all (ORPHANED)
+      #
+      # REPORT-ONLY, deliberately. Both check_stale_org_reference and
+      # check_org_domains_membership early-return on a blank org_id, so without
+      # this check `doctor --all` is blind to every orphan and the operator has
+      # to know to also run `domains orphaned`. Doctor still never assigns an
+      # organization — that is a human decision carried by the audited
+      # `domains repair DOMAIN --org-id ORG` verb.
+      def check_orphaned_domain(domain, issues)
+        return unless domain.org_id.to_s.strip.empty?
+
+        issues << {
+          check: :orphaned_domain,
+          severity: :high,
+          message: 'domain has no org_id (orphaned)',
+          repairable: false,
+          repair_action: "Assign an organization: bin/ots domains repair #{domain.display_domain} --org-id <ORG>",
+        }
+      end
+
       # CHECK: display_domain is not empty
       def check_display_domain_missing(domain, issues)
         return unless domain.display_domain.to_s.empty?
@@ -425,12 +480,57 @@ module Onetime
 
         return unless repair
 
-        organization.domains.add(domain.objid, domain.created.to_i)
-        OT.info "[domains doctor] Added #{domain.display_domain} to org.domains for #{organization.extid}"
+        apply_membership_repair(domain, organization, report)
+      end
+
+      # Delegate the MUTATION for check #5 to Onetime::Operations::Domains::Repair.
+      #
+      # Detection stays on organization.domains.member? above: it is O(1), while
+      # the op's own check does a load_multi of the whole collection. Do not
+      # "unify" the two into the slow path — that makes --all quadratic. The two
+      # mechanisms can in principle disagree (member? sees a set entry whose
+      # record fails to load; list_domains .compacts it away), so any non
+      # :repaired status here is recorded as a failed repair rather than
+      # silently swallowed.
+      #
+      # The op resolves the domain object, enforces the cross-org guard in
+      # Organization#add_domain (which RAISES when the domain already belongs to
+      # another org — the raw sorted-set add this replaced bypassed it), and
+      # records the single `domain.repair` AdminAuditEvent. Doctor must never
+      # record its own.
+      #
+      # Wrapped per domain so one cross-org conflict cannot abort an --all scan.
+      def apply_membership_repair(domain, organization, report)
+        result = Onetime::Operations::Domains::Repair.new(
+          domain: domain,
+          actor: Onetime::CLI::Customers::Shared::CLI_ACTOR,
+          dry_run: false,
+        ).call
+
+        unless result.status == :repaired
+          return record_failed_repair(domain, organization, report, "repair op returned #{result.status}")
+        end
+
+        OT.info "[domains doctor] Added #{domain.display_domain} to org.domains for #{organization.extid} " \
+                'via Operations::Domains::Repair'
         report[:repaired] << {
           domain: domain.display_domain,
           action: :added_to_org_domains,
           org: organization.extid,
+          repairs_applied: result.repairs_applied,
+        }
+      rescue StandardError => ex
+        record_failed_repair(domain, organization, report, ex.message)
+      end
+
+      def record_failed_repair(domain, organization, report, reason)
+        OT.le "[domains doctor] Failed to repair #{domain.display_domain} " \
+              "for #{organization.extid}: #{reason}"
+        report[:failed_repairs] << {
+          domain: domain.display_domain,
+          action: :added_to_org_domains,
+          org: organization.extid,
+          error: reason,
         }
       end
 
@@ -654,6 +754,14 @@ module Onetime
           puts
         end
 
+        if report[:failed_repairs].any?
+          puts 'Failed repairs:'
+          report[:failed_repairs].each do |failure|
+            puts "  #{failure[:domain]} (org #{failure[:org]}): #{failure[:error]}"
+          end
+          puts
+        end
+
         return if report[:issues].empty?
 
         puts 'Issues Found:'
@@ -708,6 +816,10 @@ module Onetime
       end
 
       def exit_with_status(report, repair:)
+        # A repair we attempted and did not land is a hard failure, even when
+        # every other domain in the scan was fixed. Fail loud, not silently.
+        exit 1 if report[:failed_repairs].any?
+
         return if report[:issues].empty?
 
         all_issues     = report[:issues].flat_map { |group| group[:issues] }
