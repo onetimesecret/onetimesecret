@@ -31,8 +31,12 @@
 #   d. POST with the WRONG password -> refused (invalid_password), NO bind, and
 #      the token is CONSUMED (single-use closes the no-lockout password oracle).
 #   e. missing/expired/invalid token -> refused (link_expired), no bind.
-#   f. SSO-only account (no password) -> UNCHANGED H-3 refusal; no interstitial,
-#      no challenge minted.
+#   f. SSO-only / PASSWORDLESS account -> Phase 4 mailbox-proof link EMAIL: a
+#      single-use SsoLinkVerification is issued to the on-file address and the
+#      browser gets the TOKEN-LESS /signin?auth_notice=link_verification_sent
+#      notice. NO password interstitial (nothing to challenge) and NO password
+#      challenge minted. (This SUPERSEDES the old H-3 refusal for passwordless
+#      accounts on the platform surface — see #3840 Phase 4.)
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -48,13 +52,11 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/oauth_flow_helper'
+require_relative '../../support/sso_link_flow_helper'
 
 RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integration do
   include Rack::Test::Methods
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
+  include SsoLinkFlowHelper
 
   before(:all) do
     require 'onetime'
@@ -78,100 +80,17 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   # Helpers (mirrors omniauth_connect_link_spec.rb)
   # ==========================================================================
 
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path, and
-  # lets a non-tenant callback proceed on platform credentials instead of
-  # redirecting to sso_not_configured.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
-  # Seed a VERIFIED account WITHOUT a password (SSO-only account).
-  def seed_existing_account(email)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-  end
-
-  # Seed a VERIFIED account WITH an Argon2 password hash. Cost params match the
-  # test config in config/features/argon2.rb.
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    account_id = seed_existing_account(email)
-    require 'argon2'
-    hasher     = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
-  end
-
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: { email: email, name: 'Interstitial User', email_verified: true },
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: { sub: uid, email: email, name: 'Interstitial User', email_verified: true } },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
-
-  # Content-Type/Content-Length leak from a prior JSON POST and make the next
-  # bodyless request try to parse an empty JSON body. Clear them.
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  # Drive the UNAUTHENTICATED SSO callback and return the response. No login and
-  # no connect intent — this is the plain sign-in that resolves to an existing
-  # account by email.
-  def sso_callback(email:, uid:, provider: :oidc)
-    setup_mock_auth(email: email, uid: uid, provider: provider)
-    clear_body_headers
-    post "/auth/sso/#{provider}/callback"
-    last_response
-  end
-
-  # Extract the challenge token from a /link-sso/:token redirect Location.
-  def token_from_location(location)
-    location.to_s.split('/link-sso/').last.to_s.split(/[?#]/).first
-  end
-
-  # Fetch a CSRF token from the app bootstrap (mirrors csrf_login). The challenge
-  # lives in Redis, not the session, so establishing a fresh session here does
-  # not disturb it.
-  def fetch_csrf_token
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    last_response.headers['X-CSRF-Token']
-  end
+  # seed_existing_account (SSO-only, no password) and
+  # seed_account_with_password (support/account_seed_helper.rb),
+  # setup_mock_auth/teardown_mock_auth (support/omniauth_test_helper.rb) and
+  # clear_body_headers/fetch_csrf_token (support/auth_request_helper.rb) are
+  # shared. fetch_csrf_token establishes a fresh session; the challenge lives in
+  # Redis, not the session, so that does not disturb it.
 
   def get_link_context(token)
     clear_body_headers
     header 'Accept', 'application/json'
     get "/auth/link-sso/#{token}"
-    last_response
-  end
-
-  def post_link_sso(token:, password:)
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post '/auth/link-sso', JSON.generate(token: token, password: password)
     last_response
   end
 
@@ -362,28 +281,55 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   end
 
   # ==========================================================================
-  # (f) SSO-only account -> UNCHANGED H-3 refusal (no interstitial, no token)
+  # (f) SSO-only / PASSWORDLESS account -> Phase 4 mailbox-proof link EMAIL
   # ==========================================================================
+  #
+  # SUPERSEDES the old H-3 refusal for passwordless accounts (#3840 Phase 4). A
+  # passwordless account has no password to challenge, so the password interstitial
+  # cannot help — but mailbox control CAN prove ownership. On the platform surface
+  # the callback now issues a single-use SsoLinkVerification, EMAILS the token to the
+  # on-file address, and redirects the browser TOKEN-LESSLY to the
+  # auth_notice=link_verification_sent notice (the token rides ONLY the email). The
+  # full end-to-end confirm flow is locked in by
+  # sso_link_confirm_mailbox_proof_spec.rb; here we just assert the callback diverts
+  # to the mailbox EMAIL rather than the refusal or the password interstitial.
 
-  describe 'SSO-only account (no password)' do
-    it 'keeps the H-3 refusal and does not mint a challenge' do
+  describe 'SSO-only / passwordless account (no password)' do
+    it 'sends a mailbox-proof link email (Phase 4) and mints no password challenge' do
       email = "ssoonly-#{SecureRandom.hex(6)}@company.example.com"
       uid   = "sub-#{SecureRandom.hex(8)}"
-      seed_existing_account(email) # no password
+      seed_existing_account(email) # passwordless
 
+      # The full-boot :sync fallback would actually render + deliver; stub the
+      # templated publisher to CAPTURE the enqueue and keep the send deterministic
+      # (returning true == "delivered", so the hook takes the notice redirect).
+      link_emails = []
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, data, **_opts|
+        link_emails << { template: template, data: data }
+        true
+      end
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
       begin
         response = sso_callback(email: email, uid: uid)
         skip 'OmniAuth route not registered' if response.status == 404
 
+        # Phase 4: TOKEN-LESS mailbox notice — NOT the old H-3 refusal and NOT the
+        # password interstitial (there is no password to challenge).
         expect(response.status).to eq(302)
-        expect(response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "SSO-only account must keep the H-3 refusal. Location: #{response.location.inspect}"
+        expect(response.location.to_s).to include('/signin?auth_notice=link_verification_sent'),
+          "Passwordless account must divert to the mailbox notice. Location: #{response.location.inspect}"
+        expect(response.location.to_s).not_to include('account_exists_link_required')
         expect(response.location.to_s).not_to match(%r{/link-sso/})
 
+        # A single-use verification email went to the on-file address.
+        expect(link_emails.size).to eq(1), "Expected one link email, got: #{link_emails.inspect}"
+        expect(link_emails.first[:template]).to eq(:sso_link_verification)
+        expect(link_emails.first[:data][:email_address]).to eq(OT::Utils.normalize_email(email))
+
         expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
+          .with(:sso_link_verification_issued, hash_including(provider: 'oidc'))
+        # Still NO password challenge — there is no password to challenge.
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_link_challenge_issued, anything)
       ensure

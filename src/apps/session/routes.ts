@@ -212,6 +212,36 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: ['token'],
     },
   },
+  // Mailbox-proof SSO linking consent page (#3840 Phase 4). Reached
+  // UNAUTHENTICATED via an emailed link after an SSO sign-in whose IdP email
+  // matched an existing PASSWORDLESS account: the backend emails a single-use
+  // token to the on-file address, so opening this link proves mailbox control.
+  // The token rides the path (`:token`) and is EMAIL-DELIVERED — sentryScrubParams:
+  // ['token'] redacts it from diagnostics. Meta mirrors /link-sso (another
+  // post-issuance, pre-fully-authenticated interstitial); the GET is display-only
+  // and the mutating confirm is an explicit user action (never auto-POST on load).
+  {
+    path: '/sso-link-confirm/:token',
+    name: 'SSO Link Confirm',
+    component: () => import('@/apps/session/views/SsoLinkConfirm.vue'),
+    meta: {
+      title: 'web.sso_link_confirm.title',
+      requiresAuth: false,
+      isAuthRoute: true,
+      requiresFeature: 'signin',
+      excludeSsoOnly: true,
+      layout: AuthLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+      sentryScrubParams: ['token'],
+    },
+  },
   {
     path: '/email-login',
     name: 'Email Login',

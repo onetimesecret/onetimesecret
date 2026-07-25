@@ -35,6 +35,10 @@
 #        -> account_from_omniauth returns the SESSION account, the gem persists
 #           the (provider, issuer, uid) row bound to it, and the
 #           :omniauth_identity_connected warn event fires. No refusal.
+#   1b. logged-in + connect intent, IdP asserts NO email claim at all
+#        -> still binds on (provider, issuer, uid). The absence of an email
+#           cannot block a bind that never consults one; the invalid_email
+#           refusal is create-path-only and must not be reachable here.
 #   2. logged-in + connect intent, IdP asserts a DIFFERENT account's email
 #        -> binds to the SESSION account anyway; the other (victim) account gets
 #           NO row and is untouched; no duplicate account. :omniauth_identity_
@@ -69,10 +73,6 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Password is AuthTestConstants::TEST_PASSWORD (shared across spec files so a
   # top-level constant isn't redefined when both specs load in one process).
 
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
   before(:all) do
     require 'onetime'
     require 'onetime/application/registry'
@@ -95,74 +95,19 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # Helpers
   # ==========================================================================
 
-  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path.
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
+  # seed_existing_account (the SSO-only / victim account) and
+  # seed_account_with_password (the subject csrf_login can authenticate as)
+  # come from support/account_seed_helper.rb.
 
-  # Seed a VERIFIED account WITHOUT a password (SSO-only / victim account).
-  def seed_existing_account(email)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-  end
-
-  # Seed a VERIFIED account WITH an Argon2 password hash so csrf_login can
-  # establish a real authenticated session for it. Cost params match the test
-  # config in config/features/argon2.rb.
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    account_id = seed_existing_account(email)
-    require 'argon2'
-    hasher     = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
-  end
-
-  # Establish a session, fetch the CSRF token, then POST a JSON login. The full
-  # Rack app enforces CSRF, so the shrimp token is required.
-  def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    token = last_response.headers['X-CSRF-Token']
-
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', token if token
-    post '/auth/login', JSON.generate(login: email, password: password, shrimp: token)
-    token
-  end
-
-  # Content-Type/Content-Length leak from a prior JSON POST and make the next
-  # bodyless callback POST try to parse an empty JSON body. Clear them.
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: { email: email, name: 'Connect User', email_verified: true },
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: { sub: uid, email: email, name: 'Connect User', email_verified: true } },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
+  # clear_body_headers (support/auth_request_helper.rb) and setup_mock_auth /
+  # teardown_mock_auth (support/omniauth_test_helper.rb) are shared.
+  #
+  # setup_mock_auth(email: nil, ...) below models an IdP that asserts NO email
+  # claim: the shared helper OMITS the key from info/raw_info rather than
+  # setting it to nil — that is what a minimal-scope OIDC response actually
+  # looks like, and it makes omniauth_email nil via the gem's
+  # `omniauth_info[info_key] if omniauth_info` accessor (rodauth-omniauth 0.6.2
+  # omniauth_base.rb:69).
 
   # Run the SSO REQUEST phase carrying the connect-intent signal (connect=1),
   # exactly as the Connected Identities panel does at initiation. In OmniAuth
@@ -256,6 +201,94 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
+  # Scenario 1b — logged-in connect, IdP asserts NO email claim -> still binds
+  # ==========================================================================
+  #
+  # The corollary of "the IdP email plays NO role": if email is not an input to
+  # the bind decision, its ABSENCE cannot block the bind. An IdP scoped to
+  # openid-only (no email/profile) emits an auth hash with no email claim, and
+  # connecting such a provider from account settings must still work — the
+  # session is the authorization, the uid is the identifier.
+  #
+  # This is a REGRESSION GUARD, not a happy-path duplicate. The connect branch
+  # currently survives a nil email only incidentally:
+  #   - normalize_email(nil) -> '' (Utils::Strings, .to_s.strip) rather than a
+  #     raise, and the '' is used ONLY for the obscured audit-log field;
+  #   - the invalid_email refusal lives in before_omniauth_create_account, which
+  #     the gem runs on the CREATE path only — the connect branch returns an
+  #     account, so omniauth_create_account (and that hook) never runs.
+  # Both are one refactor away from breaking: hoisting the email-shape check out
+  # of before_omniauth_create_account, or making normalized_email load-bearing
+  # above the connect branch, would turn every no-email-claim connect into a
+  # /signin?auth_error=invalid_email dead-end with no way to attach the provider.
+  # Nothing else in the suite exercises a nil omniauth_email, so pin it here.
+
+  describe 'logged-in connect, IdP asserts no email claim' do
+    before { enable_platform_fallback }
+
+    it 'binds on the uid alone and never hits the invalid_email refusal' do
+      email      = "connect-noemail-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+
+      csrf_login(email)
+      expect(last_response.status).to be_between(200, 302),
+        "Precondition failed: password login did not succeed (#{last_response.status}: #{last_response.body})"
+
+      accounts_before = auth_db[:accounts].count
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      # THE VARIABLE UNDER TEST: no email claim anywhere in the auth hash.
+      setup_mock_auth(email: nil, uid: uid)
+      begin
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if initiate_sso_connect == 404
+
+        sid = current_sid
+        expect(intent_live?(sid)).to be(true),
+          'Connect initiation must set the intent sidecar key'
+
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
+
+        # The crux: a missing email claim must not be read as an INVALID one.
+        expect(last_response.location.to_s).not_to include('auth_error=invalid_email'),
+          "A connect needs no email claim. Location: #{last_response.location.inspect}"
+        expect(last_response.location.to_s).not_to include('identity_connect_conflict'),
+          "Connect must NOT refuse. Location: #{last_response.location.inspect}"
+        expect(last_response.status).to eq(302),
+          "Expected a post-login redirect, got #{last_response.status}: #{last_response.body}"
+
+        # The bind happened on (provider, issuer, uid) — no email involved.
+        rows = identities.where(provider: 'oidc', uid: uid).all
+        expect(rows.size).to eq(1),
+          "Expected exactly one bound identity row, got #{rows.size}: #{rows.inspect}"
+        expect(rows.first[:account_id]).to eq(account_id),
+          'Bound identity must attach to the already-authenticated account'
+        expect(rows.first[:issuer]).not_to be_nil
+
+        # An emailless callback must never reach the JIT-create path (a nil login
+        # would violate the accounts.email NOT NULL/unique index).
+        expect(auth_db[:accounts].count).to eq(accounts_before),
+          'Connect must NOT create an account'
+
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_identity_connected, hash_including(provider: 'oidc', account_id: account_id))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_invalid_email, anything)
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, anything)
+
+        expect(intent_live?(sid)).to be(false),
+          'The consumed intent must not survive the bind'
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
   # Scenario 2 — logged-in, IdP asserts a DIFFERENT account's email
   #              -> bind to the SESSION account; the victim is untouched
   # ==========================================================================
@@ -339,7 +372,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   describe 'logged-in but WITHOUT connect intent (must not bind)' do
     before { enable_platform_fallback }
 
-    it 'does not bind onto the session account and falls through to the H-3 refusal' do
+    it 'does not bind onto the session account (a no-intent callback is treated as unauthenticated)' do
       actor_email = "actor-nointent-#{SecureRandom.hex(6)}@company.example.com"
       other_email = "other-#{SecureRandom.hex(6)}@company.example.com"
       uid         = "sub-#{SecureRandom.hex(8)}"
@@ -365,22 +398,22 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         skip 'OmniAuth route not registered' if last_response.status == 404
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "No-intent callback must fall through to H-3, not bind. Location: #{last_response.location.inspect}"
+        # The redirect target is incidental to this test's property (no intent =>
+        # no bind). The located account is passwordless, so it now takes the Phase 4
+        # mailbox path (asserted in sso_link_confirm_mailbox_proof_spec.rb); we do
+        # NOT pin the location here.
 
         # THE CRUX: the arriving identity did NOT attach to the session account.
         expect(identities.where(account_id: actor_id).count).to eq(0),
           'A plain sign-in without connect intent must NOT bind onto the session account'
-        # And no identity row exists at all (H-3 refuses to create one).
+        # And no identity row is bound at all (no direct-bind, no issuance-time bind).
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
 
-        # The connect event never fires; the intent-absent + H-3 events do.
+        # The connect event never fires; the intent-absent event does.
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connected, anything)
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc'))
-        expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
       ensure
         teardown_mock_auth
       end
@@ -439,8 +472,9 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "Expired-intent callback must fall through to H-3, not bind. Location: #{last_response.location.inspect}"
+        # Redirect target is incidental here (expired intent => no bind); the
+        # passwordless located account now takes the Phase 4 mailbox path, so the
+        # location is not pinned (see sso_link_confirm_mailbox_proof_spec.rb).
 
         # THE CRUX: the abandoned intent granted nothing to the later callback.
         expect(identities.where(account_id: actor_id).count).to eq(0),
@@ -510,8 +544,9 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "Plain sign-in after an abandoned connect must not bind. Location: #{last_response.location.inspect}"
+        # Redirect target is incidental (dangling intent cleared => no bind); the
+        # passwordless located account now takes the Phase 4 mailbox path, so the
+        # location is not pinned (see sso_link_confirm_mailbox_proof_spec.rb).
 
         expect(identities.where(account_id: actor_id).count).to eq(0),
           'A dangling connect intent must NOT let a plain sign-in bind onto the session account'
@@ -528,29 +563,36 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
-  # Scenario 3 — UNAUTHENTICATED, SSO-ONLY account -> unchanged H-3 refusal
+  # Scenario 3 — UNAUTHENTICATED, PASSWORDLESS account -> Phase 4 mailbox link
   # ==========================================================================
   #
   # The connect branch is gated on logged_in? + intent, so an unauthenticated
-  # callback never binds. For an existing account WITHOUT a password there is no
-  # credential to challenge, so the H-3 refusal stands unchanged.
-  #
-  # NOTE (#3840 Phase 3): a password-HOLDING account on this same unauthenticated
-  # path now diverts to the sign-in interstitial (/link-sso/:token) instead of the
-  # H-3 refusal — that branch is covered end-to-end in
-  # omniauth_signin_interstitial_spec.rb. Here the account is seeded WITHOUT a
-  # password, so it stays on the H-3 refusal and no challenge is minted.
+  # callback never binds. For an existing PASSWORDLESS account there is no password
+  # to challenge, so Phase 4 emails a single-use mailbox-proof link (superseding the
+  # old H-3 refusal); a password-HOLDING account instead diverts to the Phase 3
+  # sign-in interstitial (/link-sso/:token). Both linking flows are covered
+  # end-to-end in omniauth_signin_interstitial_spec.rb and
+  # sso_link_confirm_mailbox_proof_spec.rb — here we only assert this callback never
+  # direct-binds and, being passwordless, takes the mailbox path (not the challenge).
 
-  describe 'unauthenticated, SSO-only account (regression: connect branch gated + no interstitial)' do
+  describe 'unauthenticated, passwordless account (connect branch gated; Phase 4 mailbox link)' do
     before { enable_platform_fallback }
 
-    it 'falls through to the H-3 refusal, mints no challenge, and fires no connect event' do
+    it 'diverts to the Phase 4 mailbox link email, mints no challenge, and fires no connect event' do
       email = "anon-#{SecureRandom.hex(6)}@company.example.com"
       uid   = "sub-#{SecureRandom.hex(8)}"
-      seed_existing_account(email) # no password -> nothing to challenge
+      seed_existing_account(email) # passwordless -> nothing to challenge
 
-      # No login. trust flag defaults off -> H-3 refusal path.
+      # No login, trust off. A passwordless PLATFORM account no longer dead-ends at
+      # the H-3 refusal — Phase 4 emails a single-use mailbox-proof link instead.
       allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      # Stub the templated publisher to CAPTURE the enqueue and keep the :sync send
+      # deterministic (true == delivered, so the hook takes the notice redirect).
+      link_emails = []
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, data, **_opts|
+        link_emails << { template: template, data: data }
+        true
+      end
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
       setup_mock_auth(email: email, uid: uid)
@@ -560,15 +602,21 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         skip 'OmniAuth route not registered' if last_response.status == 404
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
-          "SSO-only unauthenticated flow must keep the H-3 refusal. Location: #{last_response.location.inspect}"
-        # And it must NOT divert to the Phase 3 interstitial (no password = no challenge).
+        expect(last_response.location.to_s).to include('/signin?auth_notice=link_verification_sent'),
+          "Passwordless account must divert to the mailbox notice. Location: #{last_response.location.inspect}"
+        # NOT the Phase 3 password interstitial (no password = no challenge).
         expect(last_response.location.to_s).not_to match(%r{/link-sso/})
 
+        # A single-use verification email went to the on-file address; NO identity
+        # row is bound at issuance (mailbox proof binds only on confirm).
+        expect(link_emails.size).to eq(1), "Expected one link email, got: #{link_emails.inspect}"
+        expect(link_emails.first[:template]).to eq(:sso_link_verification)
+        expect(link_emails.first[:data][:email_address]).to eq(OT::Utils.normalize_email(email))
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
 
         expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc'))
+          .with(:sso_link_verification_issued, hash_including(provider: 'oidc'))
+        # No password challenge, and the connect branch stays gated (unauthenticated).
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_link_challenge_issued, anything)
         expect(Auth::Logging).not_to have_received(:log_auth_event)

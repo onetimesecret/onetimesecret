@@ -1,12 +1,12 @@
-// src/tests/apps/session/views/LinkSso.spec.ts
+// src/tests/apps/session/views/SsoLinkConfirm.spec.ts
 
 import { mount, flushPromises, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { defineComponent, ref } from 'vue';
 import { createI18n } from 'vue-i18n';
-import type { LinkSsoChallenge } from '@/schemas/api/auth/responses/auth';
+import type { SsoLinkConfirmDisplay } from '@/schemas/api/auth/responses/auth';
 import { _resetForTesting, updateBootstrapSnapshot } from '@/services/bootstrap.service';
-import type { LinkSsoErrorCode } from '@/shared/composables/useLinkSso';
+import type { SsoLinkConfirmErrorCode } from '@/shared/composables/useSsoLinkConfirm';
 
 // Router: controllable route (params.token, query.redirect) + spyable push.
 const mockPush = vi.fn();
@@ -51,19 +51,19 @@ vi.mock('@/shared/stores/bootstrapStore', () => ({
 
 // Composable: controllable reactive state + spies.
 const mockState = {
-  challenge: ref<LinkSsoChallenge | null>(null),
+  pendingLink: ref<SsoLinkConfirmDisplay | null>(null),
   isLoading: ref(false),
   error: ref<string | null>(null),
-  errorCode: ref<LinkSsoErrorCode>(null),
-  fetchChallenge: vi.fn(),
-  verifyLink: vi.fn(),
+  errorCode: ref<SsoLinkConfirmErrorCode>(null),
+  fetchPendingLink: vi.fn(),
+  confirmLink: vi.fn(),
   clearError: vi.fn(),
 };
-vi.mock('@/shared/composables/useLinkSso', () => ({
-  useLinkSso: () => mockState,
+vi.mock('@/shared/composables/useSsoLinkConfirm', () => ({
+  useSsoLinkConfirm: () => mockState,
 }));
 
-import LinkSso from '@/apps/session/views/LinkSso.vue';
+import SsoLinkConfirm from '@/apps/session/views/SsoLinkConfirm.vue';
 
 // Pass-through i18n (keys render as-is), EXCEPT the prompt is given a real
 // interpolating message so the provider label + claimed email are observable in
@@ -77,7 +77,7 @@ const i18n = createI18n({
   messages: {
     en: {
       web: {
-        link_sso: {
+        sso_link_confirm: {
           prompt: 'You signed in with {provider}, matching {email}.',
         },
       },
@@ -85,38 +85,39 @@ const i18n = createI18n({
   },
 });
 
-const makeChallenge = (overrides: Partial<LinkSsoChallenge> = {}): LinkSsoChallenge => ({
+const makeLink = (overrides: Partial<SsoLinkConfirmDisplay> = {}): SsoLinkConfirmDisplay => ({
   provider: 'entra',
   email: 'user@example.com',
   ...overrides,
 });
 
 /**
- * LinkSso Component Tests (#3840 Phase 3 — sign-in interstitial)
+ * SsoLinkConfirm Component Tests (#3840 Phase 4 — mailbox-proof linking)
  *
- * Verifies the password-proof interstitial an unauthenticated SSO sign-in is
- * redirected to when its IdP email matches an existing password account:
- * - fetches the challenge context on mount and names provider + claimed email
- * - collects the EXISTING password and completes sign-in on success
- * - keeps the user on the form for a wrong password (retry)
- * - dead-ends (settings pointer) for a missing / expired / spent token
- * - cancel routes to /signin carrying the Connected Identities destination
+ * Verifies the consent page an emailed link opens for a PASSWORDLESS account:
+ * - fetches the display context on mount and names provider + claimed email
+ * - confirms via a single CTA (NO password — mailbox possession is the proof)
+ *   and completes sign-in on success
+ * - hands an MFA account off to /mfa-verify without completing sign-in
+ * - dead-ends (terminal panel) for a missing / expired / spent token OR any
+ *   confirm failure (conflict / invalidated) — a single-use token has no retry
+ * - cancel / dead-end action route to /signin (passwordless: re-do SSO)
  */
-describe('LinkSso', () => {
+describe('SsoLinkConfirm', () => {
   let wrapper: VueWrapper;
 
-  const mountComponent = () => mount(LinkSso, { global: { plugins: [i18n] } });
+  const mountComponent = () => mount(SsoLinkConfirm, { global: { plugins: [i18n] } });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRoute.params = { token: 'challenge-token-123' };
+    mockRoute.params = { token: 'confirm-token-123' };
     mockRoute.query = {};
-    mockState.challenge.value = null;
+    mockState.pendingLink.value = null;
     mockState.isLoading.value = false;
     mockState.error.value = null;
     mockState.errorCode.value = null;
-    mockState.fetchChallenge.mockResolvedValue(makeChallenge());
-    mockState.verifyLink.mockResolvedValue({ success: 'ok' });
+    mockState.fetchPendingLink.mockResolvedValue(makeLink());
+    mockState.confirmLink.mockResolvedValue({ success: 'ok' });
     mockAuthStore.isFullyAuthenticated = false;
   });
 
@@ -127,11 +128,18 @@ describe('LinkSso', () => {
     _resetForTesting();
   });
 
-  describe('Mount / challenge fetch', () => {
-    it('fetches the challenge with the token from the route path param', async () => {
+  describe('Mount / display fetch', () => {
+    it('fetches the display context with the token from the route path param', async () => {
       wrapper = mountComponent();
       await flushPromises();
-      expect(mockState.fetchChallenge).toHaveBeenCalledWith('challenge-token-123');
+      expect(mockState.fetchPendingLink).toHaveBeenCalledWith('confirm-token-123');
+    });
+
+    it('does NOT confirm (POST) on load — only on explicit consent', async () => {
+      wrapper = mountComponent();
+      await flushPromises();
+      // Never auto-POST: a mail/link prefetch of the page must not burn the token.
+      expect(mockState.confirmLink).not.toHaveBeenCalled();
     });
 
     it('redirects a fully authenticated user home and does not fetch', async () => {
@@ -139,53 +147,52 @@ describe('LinkSso', () => {
       wrapper = mountComponent();
       await flushPromises();
       expect(mockPush).toHaveBeenCalledWith('/');
-      expect(mockState.fetchChallenge).not.toHaveBeenCalled();
+      expect(mockState.fetchPendingLink).not.toHaveBeenCalled();
     });
 
     it('dead-ends without fetching when the token is missing', async () => {
       mockRoute.params = {};
       wrapper = mountComponent();
       await flushPromises();
-      expect(mockState.fetchChallenge).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(true);
+      expect(mockState.fetchPendingLink).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="sso-link-confirm-unavailable"]').exists()).toBe(true);
     });
 
-    it('dead-ends when the challenge fetch fails (expired / spent token)', async () => {
-      mockState.fetchChallenge.mockResolvedValue(null);
+    it('dead-ends when the display fetch fails (expired / spent token)', async () => {
+      mockState.fetchPendingLink.mockResolvedValue(null);
       wrapper = mountComponent();
       await flushPromises();
-      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="link-sso-password-input"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-link-confirm-unavailable"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-link-confirm-submit"]').exists()).toBe(false);
     });
   });
 
-  describe('Challenge display', () => {
+  describe('Consent display', () => {
     beforeEach(() => {
-      mockState.challenge.value = makeChallenge();
+      mockState.pendingLink.value = makeLink();
     });
 
     it('names the provider (friendly label) and the claimed email', async () => {
       wrapper = mountComponent();
       await flushPromises();
-      const prompt = wrapper.find('[data-testid="link-sso-prompt"]');
+      const prompt = wrapper.find('[data-testid="sso-link-confirm-prompt"]');
       expect(prompt.exists()).toBe(true);
-      // i18n is pass-through; interpolated params are substituted into the key text.
       expect(prompt.text()).toContain('Microsoft Entra');
       expect(prompt.text()).toContain('user@example.com');
     });
 
-    it('renders the password form', async () => {
+    it('renders the confirm CTA and NO password field', async () => {
       wrapper = mountComponent();
       await flushPromises();
-      expect(wrapper.find('[data-testid="link-sso-password-input"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="link-sso-submit"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-link-confirm-submit"]').exists()).toBe(true);
+      expect(wrapper.find('input[type="password"]').exists()).toBe(false);
     });
 
     it('falls back to a capitalized provider name for unknown providers', async () => {
-      mockState.challenge.value = makeChallenge({ provider: 'okta' });
+      mockState.pendingLink.value = makeLink({ provider: 'okta' });
       wrapper = mountComponent();
       await flushPromises();
-      expect(wrapper.find('[data-testid="link-sso-prompt"]').text()).toContain('Okta');
+      expect(wrapper.find('[data-testid="sso-link-confirm-prompt"]').text()).toContain('Okta');
     });
 
     /**
@@ -209,41 +216,39 @@ describe('LinkSso', () => {
         },
       } as unknown as Parameters<typeof updateBootstrapSnapshot>[0]);
 
-      mockState.challenge.value = makeChallenge({ provider: 'entra' });
+      mockState.pendingLink.value = makeLink({ provider: 'entra' });
       wrapper = mountComponent();
       await flushPromises();
 
-      const prompt = wrapper.find('[data-testid="link-sso-prompt"]').text();
+      const prompt = wrapper.find('[data-testid="sso-link-confirm-prompt"]').text();
       expect(prompt).toContain('Microsoft Entra');
       expect(prompt).not.toContain('with Microsoft,');
     });
   });
 
-  describe('Verify success', () => {
+  describe('Confirm success', () => {
     beforeEach(() => {
-      mockState.challenge.value = makeChallenge();
+      mockState.pendingLink.value = makeLink();
     });
 
-    it('completes sign-in and navigates to the dashboard by default', async () => {
+    it('confirms with the token, completes sign-in, and navigates home by default', async () => {
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('correct horse');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
-      expect(mockState.verifyLink).toHaveBeenCalledWith('challenge-token-123', 'correct horse');
+      expect(mockState.confirmLink).toHaveBeenCalledWith('confirm-token-123');
       expect(mockSetAuthenticated).toHaveBeenCalledWith(true);
       expect(mockPush).toHaveBeenCalledWith('/');
     });
 
     it('prefers the redirect target returned by the backend when it is internal', async () => {
-      mockState.verifyLink.mockResolvedValue({ success: 'ok', redirect: '/dashboard' });
+      mockState.confirmLink.mockResolvedValue({ success: 'ok', redirect: '/dashboard' });
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
@@ -254,52 +259,38 @@ describe('LinkSso', () => {
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
       expect(mockPush).toHaveBeenCalledWith('/account/settings');
     });
 
     it('ignores an external redirect target from the backend', async () => {
-      mockState.verifyLink.mockResolvedValue({ success: 'ok', redirect: 'https://evil.example/' });
+      mockState.confirmLink.mockResolvedValue({ success: 'ok', redirect: 'https://evil.example/' });
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
       expect(mockPush).toHaveBeenCalledWith('/');
     });
-
-    it('does not submit an empty password', async () => {
-      wrapper = mountComponent();
-      await flushPromises();
-      await wrapper.find('form').trigger('submit');
-      await flushPromises();
-      expect(mockState.verifyLink).not.toHaveBeenCalled();
-    });
   });
 
-  describe('Verify success — MFA required', () => {
+  describe('Confirm success — MFA required', () => {
     beforeEach(() => {
-      mockState.challenge.value = makeChallenge();
+      mockState.pendingLink.value = makeLink();
     });
 
     it('does NOT mark fully authenticated and hands off to /mfa-verify', async () => {
-      // MFA account: password proven but a second factor is still required.
-      mockState.verifyLink.mockResolvedValue({ success: 'ok', mfa_required: true });
+      mockState.confirmLink.mockResolvedValue({ success: 'ok', mfa_required: true });
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('correct pw');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
-      // Not fully authenticated — the OTP challenge is not skipped.
       expect(mockSetAuthenticated).not.toHaveBeenCalled();
-      // Marked awaiting MFA so the route guard permits /mfa-verify (mirrors Login).
       expect(mockBootstrapUpdate).toHaveBeenCalledWith({
         awaiting_mfa: true,
         authenticated: false,
@@ -309,12 +300,11 @@ describe('LinkSso', () => {
 
     it('preserves the ?redirect query when handing off to /mfa-verify', async () => {
       mockRoute.query = { redirect: '/account/settings' };
-      mockState.verifyLink.mockResolvedValue({ success: 'ok', mfa_required: true });
+      mockState.confirmLink.mockResolvedValue({ success: 'ok', mfa_required: true });
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
       expect(mockPush).toHaveBeenCalledWith({
@@ -324,119 +314,103 @@ describe('LinkSso', () => {
     });
   });
 
-  describe('Verify failure', () => {
+  describe('Confirm failure', () => {
     beforeEach(() => {
-      mockState.challenge.value = makeChallenge();
+      mockState.pendingLink.value = makeLink();
     });
 
-    it('keeps the user on the form and clears the password on a wrong password', async () => {
-      mockState.verifyLink.mockImplementation(async () => {
-        mockState.errorCode.value = 'invalid_password';
-        mockState.error.value = 'web.link_sso.errors.invalid_password';
+    it('flips to the terminal panel (no retry) and does not authenticate on a conflict', async () => {
+      mockState.confirmLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'link_conflict';
+        mockState.error.value = 'web.sso_link_confirm.errors.link_conflict';
         return null;
       });
       wrapper = mountComponent();
       await flushPromises();
 
-      const input = wrapper.find<HTMLInputElement>('[data-testid="link-sso-password-input"]');
-      await input.setValue('wrong');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
-      // No navigation, still on the form, error surfaced, password cleared.
       expect(mockSetAuthenticated).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="link-sso-error"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(false);
-      expect(input.element.value).toBe('');
+      expect(wrapper.find('[data-testid="sso-link-confirm-unavailable"]').exists()).toBe(true);
+      // The consent CTA is gone — a single-use token has no retry path.
+      expect(wrapper.find('[data-testid="sso-link-confirm-submit"]').exists()).toBe(false);
     });
 
-    it('dead-ends to the settings pointer when the token expired mid-flow', async () => {
-      mockState.verifyLink.mockImplementation(async () => {
-        mockState.errorCode.value = 'invalid_token';
-        mockState.error.value = 'web.link_sso.errors.invalid_token';
+    it('shows the classified reason in the terminal panel body', async () => {
+      mockState.confirmLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'link_invalidated';
+        mockState.error.value = 'web.sso_link_confirm.errors.link_invalidated';
         return null;
       });
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
-      expect(mockSetAuthenticated).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-link-confirm-unavailable"]').text()).toContain(
+        'web.sso_link_confirm.errors.link_invalidated'
+      );
     });
   });
 
   describe('Cancel / dead-end navigation', () => {
-    it('cancel routes to /signin carrying the connections destination + pointer', async () => {
-      mockState.challenge.value = makeChallenge();
+    it('cancel routes to /signin (passwordless: re-do SSO)', async () => {
+      mockState.pendingLink.value = makeLink();
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-cancel"]').trigger('click');
+      await wrapper.find('[data-testid="sso-link-confirm-cancel"]').trigger('click');
 
-      expect(mockPush).toHaveBeenCalledWith({
-        path: '/signin',
-        query: {
-          auth_error: 'link_sso_failed',
-          redirect: '/account/settings/security/connections',
-        },
-      });
+      expect(mockPush).toHaveBeenCalledWith('/signin');
     });
 
-    it('the dead-end panel action routes to /signin with the same pointer', async () => {
-      mockState.fetchChallenge.mockResolvedValue(null);
+    it('the dead-end panel action routes to /signin', async () => {
+      mockState.fetchPendingLink.mockResolvedValue(null);
       wrapper = mountComponent();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-unavailable-action"]').trigger('click');
+      await wrapper.find('[data-testid="sso-link-confirm-unavailable-action"]').trigger('click');
 
-      expect(mockPush).toHaveBeenCalledWith({
-        path: '/signin',
-        query: {
-          auth_error: 'link_sso_failed',
-          redirect: '/account/settings/security/connections',
-        },
-      });
+      expect(mockPush).toHaveBeenCalledWith('/signin');
     });
   });
 
   describe('Accessibility', () => {
     // Focus assertions need a real document connection.
     const mountAttached = () =>
-      mount(LinkSso, { global: { plugins: [i18n] }, attachTo: document.body });
+      mount(SsoLinkConfirm, { global: { plugins: [i18n] }, attachTo: document.body });
 
-    it('moves focus to the dead-end panel heading when the token expires mid-flow', async () => {
-      mockState.challenge.value = makeChallenge();
-      mockState.verifyLink.mockImplementation(async () => {
-        mockState.errorCode.value = 'invalid_token';
-        mockState.error.value = 'web.link_sso.errors.invalid_token';
+    it('moves focus to the terminal-panel heading when the confirm dead-ends', async () => {
+      mockState.pendingLink.value = makeLink();
+      mockState.confirmLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'link_conflict';
+        mockState.error.value = 'web.sso_link_confirm.errors.link_conflict';
         return null;
       });
       wrapper = mountAttached();
       await flushPromises();
 
-      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
-      await wrapper.find('form').trigger('submit');
+      await wrapper.find('[data-testid="sso-link-confirm-submit"]').trigger('click');
       await flushPromises();
 
-      // The form that held focus is unmounted; without this, focus falls to
-      // <body> and the refusal is never announced.
-      const heading = wrapper.find('#link-sso-unavailable-title');
+      // The CTA that had focus is unmounted; without this, focus falls to <body>
+      // and the reason is never announced.
+      const heading = wrapper.find('#sso-link-confirm-unavailable-title');
       expect(heading.exists()).toBe(true);
       expect(document.activeElement).toBe(heading.element);
     });
 
     it('keeps a single live region mounted so status changes are announced', async () => {
-      mockState.challenge.value = makeChallenge();
+      mockState.pendingLink.value = makeLink();
       wrapper = mountComponent();
       await flushPromises();
 
       // Present (and empty) BEFORE the status changes — a region inserted with
       // its text already in place is not reliably announced.
-      const region = wrapper.find('[data-testid="link-sso-status"]');
+      const region = wrapper.find('[data-testid="sso-link-confirm-status"]');
       expect(region.exists()).toBe(true);
       expect(region.attributes('aria-live')).toBe('polite');
       expect(region.text()).toBe('');
@@ -444,29 +418,29 @@ describe('LinkSso', () => {
       mockState.isLoading.value = true;
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.find('[data-testid="link-sso-status"]').text()).toBe(
+      expect(wrapper.find('[data-testid="sso-link-confirm-status"]').text()).toBe(
         'web.COMMON.form_processing'
       );
     });
 
     it('gives every action a pointer cursor (Tailwind v4 drops the button default)', async () => {
-      mockState.challenge.value = makeChallenge();
+      mockState.pendingLink.value = makeLink();
       wrapper = mountComponent();
       await flushPromises();
 
-      for (const testid of ['link-sso-submit', 'link-sso-cancel']) {
+      for (const testid of ['sso-link-confirm-submit', 'sso-link-confirm-cancel']) {
         expect(wrapper.find(`[data-testid="${testid}"]`).classes()).toContain('cursor-pointer');
       }
 
       wrapper.unmount();
-      mockState.challenge.value = null;
-      mockState.fetchChallenge.mockResolvedValue(null);
+      mockState.pendingLink.value = null;
+      mockState.fetchPendingLink.mockResolvedValue(null);
       wrapper = mountComponent();
       await flushPromises();
 
-      expect(wrapper.find('[data-testid="link-sso-unavailable-action"]').classes()).toContain(
-        'cursor-pointer'
-      );
+      expect(
+        wrapper.find('[data-testid="sso-link-confirm-unavailable-action"]').classes()
+      ).toContain('cursor-pointer');
     });
   });
 });

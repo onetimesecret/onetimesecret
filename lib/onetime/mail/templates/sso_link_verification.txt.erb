@@ -1,0 +1,11 @@
+<%= t('email.sso_link_verification.request_notice', provider: provider, email_address: email_address, product_name: product_name) %>
+
+<%= confirm_url %>
+
+<%= t('email.sso_link_verification.expiration_notice') %>
+
+<%= t('email.sso_link_verification.ignore_notice', provider: provider) %>
+
+<%= signature_name || t('email.sso_link_verification.signature') %>
+
+<%= t('email.sso_link_verification.postscript', email_address: email_address) %>

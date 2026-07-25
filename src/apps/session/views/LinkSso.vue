@@ -11,8 +11,9 @@
   import { useLinkSso } from '@/shared/composables/useLinkSso';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { providerLabel } from '@/utils/features';
   import { isValidInternalPath } from '@/utils/redirect';
-  import { ref, onMounted, computed } from 'vue';
+  import { ref, onMounted, computed, nextTick, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
 
@@ -29,16 +30,6 @@
   // cancel / dead-end. An UNAUTHENTICATED user cannot open it directly, so we
   // route through /signin carrying this as the post-login destination.
   const CONNECT_REDIRECT = '/account/settings/security/connections';
-
-  // Friendly provider labels; unknown providers fall back to a capitalized name
-  // so a backend that adds a strategy still renders sensibly. Mirrors
-  // ConnectedIdentities.vue.
-  const PROVIDER_LABELS: Record<string, string> = {
-    oidc: 'OpenID Connect',
-    entra: 'Microsoft Entra',
-    github: 'GitHub',
-    google: 'Google',
-  };
 
   const password = ref('');
   const passwordInputRef = ref<HTMLInputElement | null>(null);
@@ -61,10 +52,29 @@
     return isValidInternalPath(redirect) ? redirect : null;
   });
 
-  const providerLabel = computed(() => {
-    const provider = challenge.value?.provider;
-    if (!provider) return '';
-    return PROVIDER_LABELS[provider] ?? provider.charAt(0).toUpperCase() + provider.slice(1);
+  // Shared label resolution (features.providerLabel): the built-in canonical
+  // label, else a capitalized route name. NOT the bootstrap display_name — the
+  // backend defaults that to 'SSO'/'Microsoft', which would read wrong in the
+  // prose below ("You signed in with SSO"). See utils/features.ts.
+  const providerDisplayName = computed(() => providerLabel(challenge.value?.provider ?? ''));
+
+  // Single polite live region, rendered unconditionally. A live region has to be
+  // in the DOM BEFORE its content changes for assistive tech to announce it, so
+  // inserting an already-populated region (v-if) is unreliable — only the text
+  // swaps here.
+  const statusMessage = computed(() => (isLoading.value ? t('web.COMMON.form_processing') : ''));
+
+  // Heading of the dead-end panel. The panel replaces the password form in place,
+  // so whatever had focus (the Submit button, or the password input) is unmounted
+  // and focus falls back to <body>: keyboard users lose their place and the
+  // refusal is never announced. Move focus to the heading instead
+  // (WCAG 2.4.3 / 3.2.2).
+  const unavailableHeadingRef = ref<HTMLElement | null>(null);
+
+  watch(challengeUnavailable, async (unavailable) => {
+    if (!unavailable) return;
+    await nextTick();
+    unavailableHeadingRef.value?.focus();
   });
 
   onMounted(async () => {
@@ -166,11 +176,24 @@
     :with-subheading="false"
     :show-return-home="false">
     <template #form>
+      <!-- Always-present polite live region (see statusMessage). Kept OUTSIDE
+           the space-y-6 stack so it never participates in sibling spacing. -->
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        class="sr-only"
+        data-testid="link-sso-status">
+        {{ statusMessage }}
+      </div>
+
       <div class="space-y-6">
         <!-- Dead-end: token missing / expired / spent. Keep the H-3 refusal and
-             point the user at the Phase 2 settings flow. -->
+             point the user at the Phase 2 settings flow. Labelled + described so
+             focusing the heading announces the refusal. -->
         <div
           v-if="challengeUnavailable"
+          role="group"
+          aria-labelledby="link-sso-unavailable-title"
           data-testid="link-sso-unavailable"
           class="space-y-4 text-center">
           <OIcon
@@ -178,25 +201,31 @@
             name="lock-closed"
             class="mx-auto size-10 text-gray-400 dark:text-gray-500"
             aria-hidden="true" />
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+          <h2
+            id="link-sso-unavailable-title"
+            ref="unavailableHeadingRef"
+            tabindex="-1"
+            aria-describedby="link-sso-unavailable-message"
+            class="text-lg font-medium text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-white">
             {{ t('web.link_sso.unavailable_title') }}
           </h2>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
+          <p
+            id="link-sso-unavailable-message"
+            class="text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.link_sso.unavailable_message') }}
           </p>
           <button
             @click="goToSignInFallback"
             type="button"
-            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
             data-testid="link-sso-unavailable-action">
             {{ t('web.link_sso.unavailable_action') }}
           </button>
         </div>
 
-        <!-- Loading the challenge context -->
+        <!-- Loading the challenge context (visual only; announced by the region above) -->
         <div
           v-else-if="isLoading && !challenge"
-          aria-live="polite"
           class="py-4 text-center text-sm text-gray-600 dark:text-gray-400"
           data-testid="link-sso-loading">
           {{ t('web.COMMON.form_processing') }}
@@ -208,7 +237,12 @@
             id="link-sso-instructions"
             class="text-center text-gray-600 dark:text-gray-400"
             data-testid="link-sso-prompt">
-            {{ t('web.link_sso.prompt', { provider: providerLabel, email: challenge.email }) }}
+            {{
+              t('web.link_sso.prompt', {
+                provider: providerDisplayName,
+                email: challenge.email,
+              })
+            }}
           </p>
 
           <form
@@ -251,21 +285,12 @@
             <button
               type="submit"
               :disabled="!password || isLoading"
-              :aria-disabled="!password || isLoading ? 'true' : undefined"
-              class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              :aria-busy="isLoading ? 'true' : undefined"
+              class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="link-sso-submit">
               <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
               <span v-else>{{ t('web.link_sso.submit') }}</span>
             </button>
-
-            <!-- Loading state announcement (screen reader only) -->
-            <div
-              v-if="isLoading"
-              aria-live="polite"
-              aria-atomic="true"
-              class="sr-only">
-              {{ t('web.COMMON.form_processing') }}
-            </div>
           </form>
         </template>
       </div>
@@ -281,7 +306,7 @@
             @click="handleCancel"
             type="button"
             :disabled="isLoading"
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
+            class="cursor-pointer rounded-sm px-1 text-gray-500 underline-offset-2 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
             data-testid="link-sso-cancel">
             {{ t('web.link_sso.cancel') }}
           </button>

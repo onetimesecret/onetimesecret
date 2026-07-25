@@ -55,193 +55,24 @@
 
 require_relative '../../spec_helper'
 
-# Must be set before the suite's FIRST boot (FullModeSuiteDatabase.setup! runs
-# from a config-level before(:context) hook, ahead of any group-level hook) so
-# config.rb loads the Rodauth OTP feature set. The rake lane already exports it;
-# this load-time set makes a direct `rspec <this file>` invocation work too.
-ENV['AUTH_MFA_ENABLED'] = 'true'
-
-require 'rotp'
+# Sets AUTH_MFA_ENABLED at load time (before the suite's first boot) and brings
+# Rack::Test, `app`, `identities`, the OTP-feature guard, and the OTP
+# provisioning machinery. See the helper's header.
+require_relative '../../support/mfa_flow_helper'
+require_relative '../../support/sso_link_flow_helper'
 
 RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
   :full_auth_mode, type: :integration do
-  include Rack::Test::Methods
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
-  end
-
-  before(:all) do
-    # Hard-fail (not skip): this lane EXISTS to cover the MFA path, so a boot
-    # without the OTP feature is harness breakage, not an environment quirk.
-    otp_loaded = Auth::Config.method_defined?(:otp_auth_route) ||
-                 Auth::Config.private_method_defined?(:otp_auth_route)
-    unless otp_loaded
-      raise 'Rodauth OTP feature not loaded — this suite must boot with ' \
-            'AUTH_MFA_ENABLED=true in a fresh process (run via ' \
-            '`bundle exec rake spec:integration:full:mfa`; Auth::Config is one-shot)'
-    end
-  end
-
-  let(:identities) { auth_db[:account_identities] }
+  include MfaFlowHelper
+  include SsoLinkFlowHelper
 
   # ==========================================================================
-  # Helpers (mirror integration/full/omniauth_signin_interstitial_spec.rb)
+  # Route driving for THIS flow (mirrors
+  # integration/full/omniauth_signin_interstitial_spec.rb). The shared OTP
+  # machinery lives in support/mfa_flow_helper.rb.
   # ==========================================================================
 
-  def enable_platform_fallback
-    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-  end
-
-  def seed_account_with_password(email, password: AuthTestConstants::TEST_PASSWORD)
-    normalized = OT::Utils.normalize_email(email)
-    customer   = Onetime::Customer.new(email: normalized)
-    customer.save
-    account_id = auth_db[:accounts].insert(
-      email: normalized,
-      status_id: AuthTestConstants::STATUS_VERIFIED,
-      external_id: customer.extid,
-    )
-    require 'argon2'
-    hasher = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
-    auth_db[:account_password_hashes].insert(id: account_id, password_hash: hasher.create(password))
-    account_id
-  end
-
-  def setup_mock_auth(email:, uid:, provider: :oidc)
-    OmniAuth.config.test_mode               = true
-    OmniAuth.config.allowed_request_methods = [:get, :post]
-    OmniAuth.config.mock_auth[provider]     = OmniAuth::AuthHash.new(
-      {
-        provider: provider.to_s,
-        uid: uid,
-        info: { email: email, name: 'MFA Interstitial User', email_verified: true },
-        credentials: { token: 'mock_access_token', expires_at: Time.now.to_i + 3600, expires: true },
-        extra: { raw_info: { sub: uid, email: email, name: 'MFA Interstitial User', email_verified: true } },
-      },
-    )
-  end
-
-  def teardown_mock_auth
-    OmniAuth.config.test_mode = false
-    OmniAuth.config.mock_auth.clear
-  end
-
-  def clear_body_headers
-    header 'Content-Type', nil
-    header 'Content-Length', nil
-  end
-
-  def sso_callback(email:, uid:, provider: :oidc)
-    setup_mock_auth(email: email, uid: uid, provider: provider)
-    clear_body_headers
-    post "/auth/sso/#{provider}/callback"
-    last_response
-  end
-
-  def token_from_location(location)
-    location.to_s.split('/link-sso/').last.to_s.split(/[?#]/).first
-  end
-
-  def fetch_csrf_token
-    clear_body_headers
-    header 'Accept', 'application/json'
-    get '/auth'
-    last_response.headers['X-CSRF-Token']
-  end
-
-  # JSON POST with the CSRF token in both header and body (shrimp), matching
-  # what the SPA sends and what the other integration specs do.
-  def json_post(path, params = {})
-    csrf = fetch_csrf_token
-    clear_body_headers
-    header 'Content-Type', 'application/json'
-    header 'Accept', 'application/json'
-    header 'X-CSRF-Token', csrf if csrf
-    post path, JSON.generate(params.merge(shrimp: csrf))
-    last_response
-  end
-
-  def post_link_sso(token:, password:)
-    json_post('/auth/link-sso', token: token, password: password)
-  end
-
-  def json_body
-    JSON.parse(last_response.body)
-  rescue JSON::ParserError
-    {}
-  end
-
-  # ==========================================================================
-  # OTP provisioning — through Rodauth's OWN JSON setup flow, exactly as the
-  # SPA does it, so the stored key shape (HMAC) matches production:
-  #   phase 1: POST /auth/otp-setup {}            -> 422 + { otp_setup (the
-  #            HMAC'd key the authenticator uses), otp_raw_secret }
-  #   phase 2: POST /auth/otp-setup {otp_setup, otp_raw_secret, otp_code,
-  #            password}                          -> 200, recovery codes added
-  # Returns [authenticator secret (the otp_setup value), recovery codes] —
-  # auto_add_recovery_codes? is on, and the app's after hook surfaces the
-  # generated codes in the phase-2 JSON response (hooks/mfa.rb).
-  # ==========================================================================
-
-  def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD)
-    json_post('/auth/login', login: email, password: password)
-    expect(last_response.status).to eq(200),
-      "Precondition failed: password login for OTP setup (#{last_response.status}: #{last_response.body})"
-
-    json_post('/auth/otp-setup', {})
-    expect(last_response.status).to eq(422),
-      "Phase-1 otp-setup should return the generated secret with a field error (#{last_response.status}: #{last_response.body})"
-    setup_body = json_body
-    secret     = setup_body['otp_setup']
-    raw_secret = setup_body['otp_raw_secret']
-    expect(secret).not_to be_nil
-    expect(raw_secret).not_to be_nil
-
-    json_post(
-      '/auth/otp-setup',
-      otp_setup: secret,
-      otp_raw_secret: raw_secret,
-      otp_code: ROTP::TOTP.new(secret).now,
-      password: password,
-    )
-    expect(last_response.status).to eq(200),
-      "Phase-2 otp-setup should confirm the secret (#{last_response.status}: #{last_response.body})"
-    recovery_codes = Array(json_body['recovery_codes'])
-
-    # Drop the setup session entirely: the interstitial flow below must start
-    # from an UNAUTHENTICATED browser, like a user on a fresh device.
-    clear_cookies
-    [secret, recovery_codes]
-  end
-
-  # Rodauth's OTP reuse guard (otp_update_last_use) rejects any code within one
-  # interval (30s) of last_use — and setup just stamped last_use=now. Rewind it
-  # so the auth step can accept a fresh code immediately instead of sleeping
-  # out the window in the test.
-  #
-  # One rewind covers a failed-then-retry sequence: Rodauth stamps last_use
-  # only on SUCCESSFUL validation (`otp_valid_code? && otp_update_last_use`
-  # short-circuits), so a rejected code leaves the rewound value in place and
-  # the subsequent good code is still accepted without a second rewind.
-  def allow_immediate_otp_reuse!(account_id)
-    auth_db[:account_otp_keys].where(id: account_id).update(last_use: Time.now - 300)
-  end
-
-  # A code guaranteed to be rejected RIGHT NOW: Rodauth validates with
-  # otp_drift (30s), so the previous and next interval's codes are accepted
-  # too — a candidate must differ from all three, not just the current code.
-  # Counter-based so every candidate stays six digits by construction (at most
-  # four iterations: the valid set has exactly three elements).
-  def wrong_otp_code(secret)
-    totp  = ROTP::TOTP.new(secret)
-    now   = Time.now.to_i
-    valid = [totp.at(now - 30), totp.at(now), totp.at(now + 30)]
-    (0..valid.size).each do |i|
-      candidate = i.to_s.rjust(6, '0')
-      return candidate unless valid.include?(candidate)
-    end
-  end
+  # setup_mock_auth/teardown_mock_auth come from support/omniauth_test_helper.rb.
 
   # Drive the SSO callback for an OTP-enabled password account up to the point
   # where the interstitial has verified the password and handed off to MFA.
@@ -302,7 +133,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
 
       # Complete the second factor in the SAME session the hand-off prepared.
       allow_immediate_otp_reuse!(account_id)
-      json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
+      csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
       expect(last_response.status).to eq(200),
         "OTP verification should succeed, got #{last_response.status}: #{last_response.body}"
 
@@ -337,7 +168,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
 
       # A wrong code must not complete the login — and must not bind.
       allow_immediate_otp_reuse!(account_id)
-      json_post('/auth/otp-auth', otp_code: wrong_otp_code(secret))
+      csrf_json_post('/auth/otp-auth', otp_code: wrong_otp_code(secret))
 
       # Pin the SPECIFIC rejection, not just "non-200": Rodauth's OTP failure
       # path is 401 (invalid_key_error_status) with a field-error on the OTP
@@ -368,7 +199,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
       # The pending bind survives the failed attempt: the next successful
       # factor still completes it (the stash is consumed on SUCCESS, not on
       # the first attempt).
-      json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
+      csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
       expect(last_response.status).to eq(200),
         "OTP retry should succeed, got #{last_response.status}: #{last_response.body}"
 
@@ -404,7 +235,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
       # after_two_factor_authentication fires for ANY accepted factor, so the
       # deferred bind must land via /auth/recovery-auth exactly as via OTP —
       # this locks in the hook's factor-agnostic placement (hooks/mfa.rb).
-      json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
+      csrf_json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
       expect(last_response.status).to eq(200),
         "Recovery-code auth should succeed, got #{last_response.status}: #{last_response.body}"
 
