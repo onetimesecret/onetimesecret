@@ -131,10 +131,17 @@ module Auth::Config::Hooks
         # AUTH_ENABLED=false therefore lands in handle_missing_tenant_config
         # like any unconfigured tenant — reject, or platform fallback per
         # policy — matching the darkened display surfaces for that state.
+        # Load once and hand the record to the predicate: the availability
+        # check needs the same SsoConfig this hook already loaded for
+        # credential injection, so passing it avoids a second identical Redis
+        # read per request. A nil record is definitionally unavailable (the
+        # predicate's enabled? check fails on absence), so skip the call.
         sso_config    = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
-        sso_available = Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(custom_domain.identifier)
+        sso_available = !sso_config.nil? && Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
+          custom_domain.identifier, sso_config: sso_config
+        )
 
-        unless sso_config && sso_available
+        unless sso_available
           Auth::Logging.log_auth_event(
             :omniauth_tenant_sso_not_enabled,
             level: :info,

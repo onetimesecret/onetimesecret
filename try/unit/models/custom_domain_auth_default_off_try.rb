@@ -162,6 +162,29 @@ Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, aut
 Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, auth: { 'enabled' => true })
 #=> true
 
+## preloaded-record pass-through: a caller that already holds the domain's
+## SsoConfig (the omniauth request hook) hands it in and the predicate skips
+## its own lookup — proven by making find_by_domain_id raise for the call
+preloaded   = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@sso_only_domain)
+original_fn = Onetime::CustomDomain::SsoConfig.method(:find_by_domain_id)
+Onetime::CustomDomain::SsoConfig.define_singleton_method(:find_by_domain_id) { |*| raise 'unexpected second lookup' }
+begin
+  @passthrough_result = Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
+    @sso_only_domain, sso_config: preloaded, auth: { 'enabled' => true }
+  )
+ensure
+  Onetime::CustomDomain::SsoConfig.define_singleton_method(:find_by_domain_id, original_fn)
+end
+@passthrough_result
+#=> true
+
+## mismatch guard: a preloaded record for a DIFFERENT domain is ignored and
+## the honest lookup runs — @sso_disabled_domain's own record is disabled,
+## so the enabled foreign record must not flip the verdict
+foreign = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@sso_only_domain)
+Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_disabled_domain, sso_config: foreign, auth: { 'enabled' => true })
+#=> false
+
 ## strict-boolean master switch: an absent enabled key reads as off
 Onetime::CustomDomain::SigninConfig.global_auth_enabled({})
 #=> false

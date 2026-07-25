@@ -394,10 +394,18 @@ module Onetime
         #
         # @param domain_id [String] CustomDomain identifier (objid)
         # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] the caller's
+        #   already-loaded record for domain_id, skipping the redundant lookup
+        #   (the omniauth request hook loads it anyway for credential
+        #   injection). A record whose domain_id does not match is ignored and
+        #   the lookup runs — the availability verdict must never be computed
+        #   from another domain's record.
         # @return [Boolean] true if tenant SSO can be used to sign in
-        def tenant_sso_available_for?(domain_id, auth: nil)
+        def tenant_sso_available_for?(domain_id, auth: nil, sso_config: nil)
           return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
-          return false unless find_by_domain_id(domain_id)&.enabled?
+
+          config = sso_config&.domain_id == domain_id ? sso_config : find_by_domain_id(domain_id)
+          return false unless config&.enabled?
 
           Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
         end
