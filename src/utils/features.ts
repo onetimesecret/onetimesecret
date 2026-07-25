@@ -240,9 +240,8 @@ export function providerLabel(routeName: string): string {
  * for why the other label sites must not.
  */
 export function configuredProviderLabel(provider: SsoProvider): string {
-  return provider.display_name?.trim()
-    ? provider.display_name
-    : providerLabel(provider.route_name);
+  const name = provider.display_name?.trim();
+  return name ? name : providerLabel(provider.route_name);
 }
 
 /**

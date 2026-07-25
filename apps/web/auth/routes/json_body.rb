@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'json'
+
 module Auth
   module Routes
     # JSON body parsing for the HAND-ROLLED Roda routes in this directory.
