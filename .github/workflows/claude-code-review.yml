@@ -90,14 +90,21 @@ jobs:
 
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            Review this PR for defects. Report only findings you can state
+            as a concrete failure scenario (specific input or state leading
+            to wrong output, data loss, or a security consequence), with
+            file and line.
 
-            Be constructive and helpful in your feedback.
+            Do not comment on: style or formatting (rubocop/eslint/prettier
+            gate these in CI), locale content_hash values (CI gates these),
+            missing stdlib requires, typos, test file organization, or
+            pre-existing code outside this PR's changes.
+
+            Do not summarize the PR, restate the diff, or praise the code.
+            If nothing meets the bar, say exactly that in one sentence.
+
+            Read AGENTS.md for repo invariants that must not be reported
+            as defects.
 
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
           use_sticky_comment: true

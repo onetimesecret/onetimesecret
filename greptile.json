@@ -1,0 +1,17 @@
+{
+  "strictness": 3,
+  "commentTypes": ["logic"],
+  "instructions": "Skip findings you cannot state as a concrete failure scenario in the changed lines. Do not comment on style, naming, formatting, docs wording, test organization, or locale content hashes; linters and CI gates cover those. Do not flag pre-existing code as introduced by this PR. If a finding depends on an invariant outside the diff (transaction boundaries, session key lifecycles, OAuth state handling), ask a question rather than asserting a P1. See AGENTS.md for invariants that are not defects.",
+  "customContext": {
+    "rules": [
+      {
+        "id": "oauth-state-binding",
+        "rule": "Do not flag OAuth connect-intent flows as unbound or non-atomic. Binding is enforced transitively through the single session['omniauth.state'] slot; omniauth-oauth2 >= 1.9 rejects callbacks whose state does not match."
+      },
+      {
+        "id": "sidecar-ttl-semantics",
+        "rule": "Do not flag SessionSidecar per-key TTL expiry or delete-on-read as lost session state. Single-use, short-TTL keys are the intended mechanism."
+      }
+    ]
+  }
+}
