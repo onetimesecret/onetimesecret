@@ -330,12 +330,13 @@ module Core
         # and gates it on SigninConfig.sso_permitted_for? — the shared
         # activation authority. Tenant SSO config is returned only when the
         # credentials store is enabled AND the SigninConfig permits SSO. Both
-        # conditions are expressed through SsoConfig.tenant_sso_available_for?,
-        # the single source of truth this display half of the parity gate now
-        # shares with the branded-masthead link gate
-        # (Core::Views::DomainSerializer#effective_signin_enabled?). The runtime
-        # half lives in apps/web/auth/config/hooks/omniauth_tenant.rb and
-        # consults the same sso_permitted_for? predicate. SigninConfig.sso_enabled
+        # conditions are expressed through SsoConfig.tenant_sso_available_for?
+        # (which also enforces the AUTH_ENABLED master switch), the single
+        # source of truth this display half of the parity gate shares with the
+        # branded-masthead link gate
+        # (Core::Views::DomainSerializer#effective_signin_enabled?) and with
+        # the runtime half in apps/web/auth/config/hooks/omniauth_tenant.rb,
+        # which consults the same predicate. SigninConfig.sso_enabled
         # governs the TENANT's SSO only; build_sso_config's platform-fallback
         # policy is unchanged.
         #
