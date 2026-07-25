@@ -18,9 +18,13 @@ require_relative 'account_seed_helper'
 # two_factor_modifications_require_password?, the otp_setup/otp_raw_secret/
 # recovery-code param names, the two-phase otp-setup contract). A Rodauth
 # upgrade or a config flip breaks every copy at once, so a mirrored copy is a
-# second place to forget. Route DRIVING stays in each spec — that is the part
-# that genuinely differs (link-sso vs sso-link-confirm) and the part a mirror
-# is for. Compare support/oauth_flow_helper.rb, included by four full/ specs.
+# second place to forget. Compare support/oauth_flow_helper.rb, included by
+# four full/ specs.
+#
+# Route DRIVING is NOT here — but it is not mirrored per spec either: the
+# link-sso and sso-link-confirm drivers live in support/sso_link_flow_helper.rb,
+# because the route is identical across the full/ and full_mfa/ lanes and only
+# the ASSERTIONS differ. What stays in each spec is the expectations.
 #
 # LOAD-TIME SIDE EFFECT — AUTH_MFA_ENABLED: requiring this file sets
 # AUTH_MFA_ENABLED=true. It must be set before the suite's FIRST boot
@@ -78,10 +82,6 @@ module MfaFlowHelper
     end
 
     base.let(:identities) { auth_db[:account_identities] }
-  end
-
-  def app
-    Onetime::Application::Registry.generate_rack_url_map
   end
 
   # ==========================================================================

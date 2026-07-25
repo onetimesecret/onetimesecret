@@ -154,6 +154,44 @@ module OmniAuthTestHelper
     )
   end
 
+  # Drive the SSO callback for a mocked IdP assertion and return the response.
+  #
+  # Unauthenticated by default — the plain sign-in path. A caller that needs the
+  # AUTHENTICATED (connect-intent) variant logs in first; the mock and the POST
+  # are the same either way.
+  def sso_callback(email:, uid:, provider: :oidc)
+    setup_mock_auth(email: email, uid: uid, provider: provider)
+    clear_body_headers
+    post "/auth/sso/#{provider}/callback"
+    last_response
+  end
+
+  # Leaves session[:validated_omniauth_domain_id] nil == the PLATFORM path, and
+  # lets a non-tenant callback proceed on platform credentials instead of
+  # redirecting to sso_not_configured.
+  def enable_platform_fallback
+    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+  end
+
+  # Deep-clone OT.conf before mutating: the stub must not leak the domain list
+  # into the next example through the shared config object.
+  def configure_allowed_domains(domains)
+    config = Marshal.load(Marshal.dump(OT.conf))
+    config['site'] ||= {}
+    config['site']['authentication'] ||= {}
+    config['site']['authentication']['allowed_signup_domains'] = domains
+    allow(OT).to receive(:conf).and_return(config)
+  end
+
+  # Assert the callback bounced to the SPA sign-in page carrying `code`, which
+  # is how every refusal in the OmniAuth callback chain surfaces.
+  def expect_auth_error_redirect(code)
+    expect(last_response.status).to eq(302),
+      "Expected 302 redirect for #{code}, got #{last_response.status}: #{last_response.body}"
+    expect(last_response.location.to_s).to include("/signin?auth_error=#{code}"),
+      "Expected auth_error=#{code} in Location, got: #{last_response.location.inspect}"
+  end
+
   # Leave OmniAuth out of test mode with no mocks registered. Narrower than
   # reset_omniauth_config on purpose: it does not touch allowed_request_methods,
   # so a spec that tears down mid-example can set up again without re-enabling

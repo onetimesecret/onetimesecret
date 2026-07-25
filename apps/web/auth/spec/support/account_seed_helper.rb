@@ -33,6 +33,13 @@ require_relative 'auth_test_constants'
 # =============================================================================
 
 module AccountSeedHelper
+  # A collision-free address on a domain that is not routable and not a
+  # configured signup domain. Every call site passes its own prefix — the
+  # default only keeps the signature usable from a console.
+  def unique_test_email(prefix = 'test')
+    "#{prefix}-#{SecureRandom.hex(8)}@integration-test.example.com"
+  end
+
   # Seed a VERIFIED account (accounts row + linked Customer) WITHOUT a
   # password — an SSO-only subject. Returns the account_id.
   def seed_existing_account(email)

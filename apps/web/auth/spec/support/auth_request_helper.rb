@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'auth_test_constants'
+
 # =============================================================================
 # CSRF-aware request plumbing (auto-included into `type: :integration`)
 # =============================================================================
@@ -28,6 +30,14 @@
 # =============================================================================
 
 module AuthRequestHelper
+  # The full mounted Rack stack, as Rack::Test::Methods requires. Eight specs
+  # carried this identical one-liner; a group that needs different construction
+  # (e.g. basicauth_rejection_on_session_routes_spec.rb, which memoizes around
+  # a Registry.reset!) still defines its own and wins on ancestor order.
+  def app
+    Onetime::Application::Registry.generate_rack_url_map
+  end
+
   # Drop the sticky body headers Rack::Test carries over from a previous POST.
   # Call before any GET, and before a POST whose body length differs.
   def clear_body_headers
@@ -52,6 +62,19 @@ module AuthRequestHelper
     header 'Accept', 'application/json'
     header 'X-CSRF-Token', csrf if csrf
     post path, JSON.generate(params.merge(shrimp: csrf))
+    last_response
+  end
+
+  # Establish an authenticated session through the real login route.
+  #
+  # The status assertion is a PRECONDITION, not the subject of any caller: a
+  # silently failed login here surfaces three lines later as a confusing 401 on
+  # the route actually under test. 200 (JSON) and 302 (HTML redirect) are both
+  # success — which one comes back depends on the Accept negotiation.
+  def csrf_login(email, password: AuthTestConstants::TEST_PASSWORD)
+    csrf_json_post('/auth/login', login: email, password: password)
+    expect(last_response.status).to be_between(200, 302),
+      "Precondition failed: login for #{email} returned #{last_response.status}: #{last_response.body}"
     last_response
   end
 
