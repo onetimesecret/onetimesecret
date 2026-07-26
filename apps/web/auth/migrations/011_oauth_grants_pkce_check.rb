@@ -1,4 +1,4 @@
-# apps/web/auth/migrations/010_oauth_grants_pkce_check.rb
+# apps/web/auth/migrations/011_oauth_grants_pkce_check.rb
 #
 # frozen_string_literal: true
 

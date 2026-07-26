@@ -1,4 +1,4 @@
-# apps/web/auth/migrations/008_oauth_applications.rb
+# apps/web/auth/migrations/009_oauth_applications.rb
 #
 # frozen_string_literal: true
 

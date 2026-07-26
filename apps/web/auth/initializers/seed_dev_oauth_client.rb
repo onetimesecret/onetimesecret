@@ -22,7 +22,7 @@ module Auth
     # column stores its bcrypt hash (rodauth-oauth's `secret_hash` default,
     # see oauth_base.rb:442 → `password_hash` → `BCrypt::Password.create(..., cost: BCrypt::Engine::DEFAULT_COST)`).
     #
-    # @see apps/web/auth/migrations/008_oauth_applications.rb
+    # @see apps/web/auth/migrations/009_oauth_applications.rb
     # @see https://github.com/onetimesecret/onetimesecret/issues/3104
     class SeedDevOAuthClient < Onetime::Boot::Initializer
       @depends_on = [:rodauth_schema]
