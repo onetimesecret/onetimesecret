@@ -68,7 +68,7 @@ module ColonelAPI
         rescue Auth::Operations::SetCustomerVerification::AccountNotFound => ex
           raise_not_found("#{ex.message}. Run auth-account reconciliation.")
         rescue Auth::Operations::SetCustomerVerification::AccountClosed => ex
-          raise_form_error("#{ex.message}. Verification cannot be changed on a closed account.")
+          raise_form_error(ex.message)
         end
 
         def success_data
