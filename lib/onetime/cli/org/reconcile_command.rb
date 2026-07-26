@@ -21,8 +21,11 @@ require 'json'
 require 'onetime/operations/org/reconcile'
 # Org::Shared must exist before `include Org::Shared` below. Required here (not
 # only from the lib/onetime/cli.rb manifest) so this file cannot be loaded in a
-# broken order.
+# broken order. Customers::Shared is referenced by constant only (CLI_ACTOR), so
+# it is required but NOT included — including it would drag its resolver methods
+# into a command that resolves orgs, not customers.
 require_relative 'shared'
+require_relative '../customers/shared'
 
 module Onetime
   module CLI
