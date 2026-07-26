@@ -436,8 +436,17 @@ module Core
         # This is the original behavior - reading SSO providers from
         # AuthConfig which derives them from environment variables.
         #
+        # Gated on the AUTH_ENABLED master switch (mirroring
+        # SsoConfig.tenant_sso_unavailable_reason) so platform SSO buttons
+        # go dark on the canonical host too, not just tenant fallback —
+        # hence the guard lives here rather than in allow_platform_fallback?.
+        #
         # @return [Boolean, Hash] false if disabled, otherwise config hash
         def build_platform_sso_config
+          unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
+            return { 'enabled' => false, 'providers' => [] }
+          end
+
           return false unless Onetime.auth_config.sso_enabled?
 
           providers = Onetime.auth_config.sso_providers
