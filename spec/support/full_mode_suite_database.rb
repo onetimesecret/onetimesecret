@@ -46,12 +46,15 @@ module FullModeSuiteDatabase
       @using_postgres = database_url &&
                         database_url.start_with?('postgresql://', 'postgres://')
 
+      # date_arithmetic on EVERY engine, not just PG: Rodauth features literalize
+      # Sequel.date_add through the connection (e.g. otp's last-use reuse guard),
+      # so a SQLite suite without the extension raises on first OTP auth.
       @database = if @using_postgres
         Sequel.connect(database_url).tap { |db| db.extension :date_arithmetic }
       elsif database_url && database_url.start_with?('sqlite')
-        Sequel.connect(database_url)
+        Sequel.connect(database_url).tap { |db| db.extension :date_arithmetic }
       else
-        Sequel.sqlite
+        Sequel.sqlite.tap { |db| db.extension :date_arithmetic }
       end
 
       if @using_postgres

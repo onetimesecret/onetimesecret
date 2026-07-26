@@ -25,6 +25,11 @@ module AuthTestConstants
   STATUS_VERIFIED = 2
   STATUS_CLOSED = 3
 
+  # Shared password for integration specs that seed an Argon2 hash and then log
+  # in through the real Rack stack. Defined here (not per-file) so two specs
+  # loaded in one RSpec process don't warn on constant redefinition.
+  TEST_PASSWORD = 'TestPassword123!'
+
   # Tables whose rows must survive per-example cleanup (clear_auth_database):
   #   - schema_info / schema_migrations: Sequel's migration bookkeeping
   #   - account_statuses: seed-once reference table backing accounts.status_id;

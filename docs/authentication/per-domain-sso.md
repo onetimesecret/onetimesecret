@@ -141,6 +141,8 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 
 **Security:** Tenant context (domain_id) stored in session during request phase, validated on callback to prevent cross-tenant redirect attacks.
 
+**Identity linking is platform-only.** The three linking paths documented for platform SSO — the authenticated [Connected Identities panel](per-install-sso.md#connected-identities-authenticated-linking-from-account-settings), the [sign-in interstitial](per-install-sso.md#sign-in-interstitial-password-challenge-linking), and [mailbox-proof linking](per-install-sso.md#mailbox-proof-linking-passwordless-accounts) — are **not** offered on a tenant callback, and the trusted-IdP email-linking flag has no effect here. Each of those paths is gated on `session[:validated_omniauth_domain_id]` being `nil`, which a tenant callback always sets. A tenant admin controls their own IdP's assertions, so a tenant-issuer identity must not be bound to an account located by email (or to whatever account happens to hold the current platform session). Tenant SSO keeps the refusal: an unlinked identity whose email matches an existing account is refused with `account_exists_link_required`. Authenticated tenant-surface linking requires org-membership verification first and is tracked in #3849.
+
 ## Troubleshooting
 
 ### SSO Tab Not Appearing

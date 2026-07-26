@@ -284,4 +284,67 @@ RSpec.describe 'Auth::Migrator SQLite Integration', :sqlite_database do
       expect(get_schema_version(db: test_db)).to eq(latest_version)
     end
   end
+
+  # Regression (#3840 Phase 0 / #3838 item 5): the issuer-scoped migration re-keys
+  # account_identities from (provider, uid) to (provider, issuer, uid) to close a
+  # cross-tenant SSO takeover. On SQLite the `down` path restores (provider, uid)
+  # as a STANDALONE unique index; the `up` path's drop_constraint rebuilds the
+  # table but cannot see that index (it re-creates it). Without the explicit
+  # idempotent DROP INDEX in `up`, an up->down->up cycle left the stale
+  # (provider, uid) unique in place and silently re-imposed the old key —
+  # defeating issuer-scoping. This guards that cycle.
+  describe 'issuer-scoped migration (008) reversibility' do
+    # issuer_migration_version and insert_account come from MigrationTestHelpers.
+    it 'preserves (provider, issuer, uid) uniqueness after an up->down->up cycle' do
+      v = issuer_migration_version
+
+      # up to the migration, roll it back (down), then re-apply it (up).
+      Sequel::Migrator.run(test_db, migrations_dir, target: v)
+      Sequel::Migrator.run(test_db, migrations_dir, target: v - 1)
+      Sequel::Migrator.run(test_db, migrations_dir, target: v)
+
+      acct_a = insert_account(test_db, 'cycle-a@example.com')
+      acct_b = insert_account(test_db, 'cycle-b@example.com')
+      ids = test_db[:account_identities]
+
+      # Two IdPs asserting the same sub (uid) under different issuers must coexist.
+      ids.insert(account_id: acct_a, provider: 'oidc', issuer: 'https://idp-a.example', uid: 'shared-sub')
+      expect do
+        ids.insert(account_id: acct_b, provider: 'oidc', issuer: 'https://idp-b.example', uid: 'shared-sub')
+      end.not_to raise_error
+      expect(ids.where(provider: 'oidc', uid: 'shared-sub').count).to eq(2)
+
+      # A true (provider, issuer, uid) duplicate is still rejected.
+      expect do
+        ids.insert(account_id: acct_b, provider: 'oidc', issuer: 'https://idp-a.example', uid: 'shared-sub')
+      end.to raise_error(Sequel::UniqueConstraintViolation)
+
+      # The stale (provider, uid) unique index must be gone.
+      uniques = test_db.indexes(:account_identities).values.select { |i| i[:unique] }.map { |i| i[:columns] }
+      expect(uniques).to include(%i[provider issuer uid])
+      expect(uniques).not_to include(%i[provider uid])
+    end
+
+    # The `down` block documents that a rollback CANNOT collapse two issuers back
+    # onto a single (provider, uid) key. Pin that it fails LOUDLY (rather than
+    # silently dropping a row and re-opening the takeover) and preserves the data.
+    it 'refuses to roll back when colliding-issuer rows exist' do
+      v = issuer_migration_version
+      Sequel::Migrator.run(test_db, migrations_dir, target: v)
+
+      acct_a = insert_account(test_db, 'rollback-a@example.com')
+      acct_b = insert_account(test_db, 'rollback-b@example.com')
+      ids = test_db[:account_identities]
+      ids.insert(account_id: acct_a, provider: 'oidc', issuer: 'https://idp-a.example', uid: 'dup-sub')
+      ids.insert(account_id: acct_b, provider: 'oidc', issuer: 'https://idp-b.example', uid: 'dup-sub')
+
+      expect do
+        Sequel::Migrator.run(test_db, migrations_dir, target: v - 1)
+      end.to raise_error(Sequel::DatabaseError)
+
+      # Rollback aborted: schema stays at v and both rows survive (no silent loss).
+      expect(get_schema_version(db: test_db)).to eq(v)
+      expect(ids.where(uid: 'dup-sub').count).to eq(2)
+    end
+  end
 end

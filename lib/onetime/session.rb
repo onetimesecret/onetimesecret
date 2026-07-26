@@ -174,7 +174,35 @@ module Onetime
         # TTL-bounded by the sidecar clamp (they can never outlive the blob's
         # would-have-been lifetime).
         begin
+          # Tripwire for the sid-stability assumption the short-TTL hand-off
+          # fields ride on (awaiting_mfa, the SSO connect/bind stashes): a
+          # session destroyed while one of them still holds a live truthy
+          # value takes an uncompleted hand-off with it. Today that means the
+          # user abandoned the flow and re-keyed (restarted login, logged out
+          # mid-MFA) — expected, rare, and worth a line. If a future auth
+          # refactor re-keys sessions MID-flow, this warning is what surfaces
+          # the silently-stranded hand-off: the consume sides cannot log a
+          # miss (absence is their overwhelmingly common case). This is a
+          # request-path (middleware) tripwire only — the admin/colonel revoke
+          # operations destroy sessions deliberately, where killing in-flight
+          # state is the point, not a signal. Probe failure degrades to "no
+          # warning" and must never block the purge.
+          doomed = begin
+            Onetime::SessionSidecar.inflight_fields(sid_string, dbclient: @dbclient, codec: @codec)
+          rescue StandardError
+            []
+          end
+
           Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+
+          unless doomed.empty?
+            session_logger.warn 'Session destroyed with in-flight sidecar state',
+              {
+                session_id: sid_string,
+                fields: doomed,
+                operation: 'delete',
+              }
+          end
         rescue StandardError => ex
           session_logger.error 'Sidecar purge failed (orphans are TTL-bounded)',
             {

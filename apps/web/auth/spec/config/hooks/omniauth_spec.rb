@@ -215,25 +215,45 @@ RSpec.describe 'OmniAuth hooks' do
         accounts_store[normalized_email]
       end
 
-      # Simulates the full _account_from_omniauth method AFTER the H-3 fix.
+      # Simulates the full _account_from_omniauth method AFTER the H-3 fix and the
+      # #3840 Phase 3 sign-in interstitial.
       #
       # SECURITY (H-3): the production hook no longer returns an existing account
       # for auto-linking by email — that is the account-takeover vector. When an
-      # existing account matches the normalized IdP email, the hook logs, sets an
-      # error flash, and `redirect`s to account_exists_link_required, which HALTS
-      # the callback (Roda throw :halt) so create_omniauth_identity never links
-      # the caller's (provider, uid) and never logs them in. We can't redirect in
-      # this pure-logic harness, so we model the halt as a refusal marker carrying
-      # the redirect target. Only a genuinely new email returns nil (JIT create).
+      # existing account matches the normalized IdP email, the hook either:
+      #   - (Phase 3) mints a single-use challenge and `redirect`s to the sign-in
+      #     interstitial (/link-sso/:token) IFF the account HAS a password — the
+      #     user proves ownership by re-entering it before any bind; or
+      #   - (SSO-only, no password) logs, sets an error flash, and `redirect`s to
+      #     account_exists_link_required.
+      # Both HALT the callback (Roda throw :halt) so create_omniauth_identity never
+      # links the caller's (provider, uid) by email. We can't redirect in this
+      # pure-logic harness, so we model the halt as a marker carrying the redirect
+      # target. Only a genuinely new email returns nil (JIT create).
       #
       # HONESTY: this is a REIMPLEMENTATION of the decision boundary — it does NOT
-      # drive the production `_account_from_omniauth`. The real hook's redirect/halt
-      # path is NOT yet integration-covered end-to-end (follow-up filed); these unit
-      # assertions verify the intended logic only.
-      def account_from_omniauth(omniauth_email)
+      # drive the production `_account_from_omniauth`. End-to-end coverage of the
+      # interstitial + H-3 halt lives in
+      # apps/web/auth/spec/integration/full/omniauth_signin_interstitial_spec.rb;
+      # these unit assertions verify the intended decision logic only.
+      #
+      # `has_password:` models "does the located account have a password hash",
+      # which the production hook derives from a direct password_hash_table lookup
+      # (has_password? is unusable on the unauthenticated path). `tenant_domain_id:`
+      # models session[:validated_omniauth_domain_id] — non-nil on a TENANT callback.
+      # The interstitial is PLATFORM-only: on the tenant surface the mint branch's
+      # platform-surface guard is skipped, so even a password account keeps the H-3
+      # refusal (Finding 1 — closes the tenant-surface password-guessing oracle).
+      def account_from_omniauth(omniauth_email, has_password: false, tenant_domain_id: nil)
         normalized_email = normalize_email(omniauth_email)
         existing         = find_account_by_email(normalized_email)
-        return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' } if existing
+        platform_surface = tenant_domain_id.nil?
+
+        if existing
+          return { interstitial: true, redirect: '/link-sso/<token>' } if has_password && platform_surface
+
+          return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' }
+        end
 
         nil
       end
@@ -304,6 +324,64 @@ RSpec.describe 'OmniAuth hooks' do
         end
       end
 
+      # ======================================================================
+      # #3840 Phase 3 — password-holding account diverts to the interstitial
+      # ======================================================================
+      #
+      # The decision split H-3 gained: an existing account that HAS a password is
+      # not dead-ended. The hook mints a single-use challenge and redirects to the
+      # sign-in interstitial, where the EXISTING password is verified before any
+      # bind. An SSO-only account (no password) keeps the H-3 refusal. Either way
+      # the located account is NEVER returned for auto-link-by-email.
+      context 'existing account WITH a password (Phase 3 interstitial)' do
+        it 'redirects to the sign-in interstitial instead of the H-3 refusal' do
+          result = account_from_omniauth('user@example.com', has_password: true)
+          expect(result).to include(interstitial: true)
+          expect(result[:redirect]).to match(%r{^/link-sso/})
+          expect(result).not_to include(refused: true)
+        end
+
+        it 'diverts regardless of IdP email casing (same normalization)' do
+          result = account_from_omniauth('USER@EXAMPLE.COM', has_password: true)
+          expect(result).to include(interstitial: true)
+        end
+
+        it 'still never surfaces the located account record (no auto-link)' do
+          result = account_from_omniauth('user@example.com', has_password: true)
+          expect(result).not_to include(:id)
+          expect(result).not_to include(:email)
+        end
+      end
+
+      context 'existing account WITHOUT a password (SSO-only keeps H-3)' do
+        it 'refuses to the account_exists_link_required redirect' do
+          result = account_from_omniauth('user@example.com', has_password: false)
+          expect(result).to include(refused: true)
+          expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+          expect(result).not_to include(:interstitial)
+        end
+      end
+
+      # Finding 1 (adversarial review): an unauthenticated TENANT callback whose
+      # asserted email matches a PASSWORD-holding platform account must NOT get the
+      # interstitial — the mint branch is platform-only, so it falls through to the
+      # unchanged H-3 refusal. Without the guard this is a tenant-controlled,
+      # un-lockable password-guessing oracle against arbitrary platform accounts.
+      context 'existing password account on the TENANT surface (Finding 1: no interstitial)' do
+        it 'keeps the H-3 refusal — the interstitial is platform-only' do
+          result = account_from_omniauth('user@example.com', has_password: true, tenant_domain_id: 'domain-123')
+          expect(result).to include(refused: true)
+          expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+          expect(result).not_to include(:interstitial)
+        end
+
+        it 'still refuses an SSO-only account on the tenant surface' do
+          result = account_from_omniauth('user@example.com', has_password: false, tenant_domain_id: 'domain-123')
+          expect(result).to include(refused: true)
+          expect(result).not_to include(:interstitial)
+        end
+      end
+
       context 'with non-existing account' do
         it 'returns nil for unknown email (allows account creation flow)' do
           account = account_from_omniauth('newuser@example.com')
@@ -368,6 +446,105 @@ RSpec.describe 'OmniAuth hooks' do
         # RFC 5321 allows various characters in local part
         email = "user!#$%&'*+-/=?^_`{|}~@example.com"
         expect(normalize_email(email)).to eq("user!#$%&'*+-/=?^_`{|}~@example.com")
+      end
+    end
+  end
+
+  # ==========================================================================
+  # #3836: trusted-provider email-linking escape hatch
+  # ==========================================================================
+  #
+  # WHAT THIS TESTS:
+  #   The decision boundary added to _account_from_omniauth: when the operator
+  #   has declared a provider trusted (trust flag on) AND we are on the PLATFORM
+  #   path (session[:validated_omniauth_domain_id] is nil — no tenant callback),
+  #   an existing account located by email is RETURNED for auto-linking instead
+  #   of being refused by H-3.
+  #
+  # HONESTY: like the H-3 block above, this is a REIMPLEMENTATION of the
+  # decision boundary — it does NOT drive the production _account_from_omniauth
+  # (which needs a real Rodauth callback + datastore). It mirrors the exact
+  # gate order in the hook: existing && platform-path && trust-flag -> link.
+  # End-to-end coverage of the return/upsert path is a follow-up.
+  describe '#3836 trusted-provider email linking (decision boundary)' do
+    let(:accounts_store) do
+      { 'user@example.com' => { id: 1, email: 'user@example.com' } }
+    end
+
+    def normalize_email(omniauth_email)
+      omniauth_email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+    end
+
+    def find_account_by_email(normalized_email)
+      accounts_store[normalized_email]
+    end
+
+    # Mirrors the production gate order in _account_from_omniauth:
+    #   1. trust-link (existing && platform path && trust flag on) -> account
+    #   2. H-3 refusal (existing) -> refused/redirect
+    #   3. new email -> nil (JIT create)
+    #
+    # `tenant_domain_id` models session[:validated_omniauth_domain_id]: nil on
+    # the platform path, set on a tenant callback.
+    def account_from_omniauth(omniauth_email, trust_flag:, tenant_domain_id: nil)
+      normalized_email = normalize_email(omniauth_email)
+      existing         = find_account_by_email(normalized_email)
+
+      if existing && tenant_domain_id.nil? && trust_flag
+        return { linked: true, account: existing }
+      end
+
+      return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' } if existing
+
+      nil
+    end
+
+    context 'trust flag ON, platform path, existing account' do
+      it 'returns the located account for auto-linking (not a refusal)' do
+        result = account_from_omniauth('user@example.com', trust_flag: true)
+        expect(result).to include(linked: true)
+        expect(result[:account]).to eq(id: 1, email: 'user@example.com')
+      end
+
+      it 'links regardless of IdP email casing (uses the same normalization)' do
+        result = account_from_omniauth('USER@EXAMPLE.COM', trust_flag: true)
+        expect(result).to include(linked: true)
+      end
+    end
+
+    context 'trust flag ON, TENANT path (validated_omniauth_domain_id set)' do
+      it 'still refuses — the flag never applies to the multi-tenant surface' do
+        result = account_from_omniauth(
+          'user@example.com', trust_flag: true, tenant_domain_id: 'dom_abc123'
+        )
+        expect(result).to include(refused: true)
+        expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+        expect(result).not_to include(:linked)
+      end
+    end
+
+    context 'trust flag OFF (unchanged H-3 behavior)' do
+      it 'refuses on the platform path' do
+        result = account_from_omniauth('user@example.com', trust_flag: false)
+        expect(result).to include(refused: true)
+        expect(result).not_to include(:linked)
+      end
+
+      it 'refuses on the tenant path' do
+        result = account_from_omniauth(
+          'user@example.com', trust_flag: false, tenant_domain_id: 'dom_abc123'
+        )
+        expect(result).to include(refused: true)
+      end
+    end
+
+    context 'genuinely new email (JIT create), regardless of trust flag' do
+      it 'returns nil when the trust flag is ON' do
+        expect(account_from_omniauth('new@example.com', trust_flag: true)).to be_nil
+      end
+
+      it 'returns nil when the trust flag is OFF' do
+        expect(account_from_omniauth('new@example.com', trust_flag: false)).to be_nil
       end
     end
   end
@@ -682,4 +859,199 @@ RSpec.describe 'OmniAuth hooks' do
   # - Organization creation with is_default flag
   # - Idempotency guarantees
   #
+
+  # ==========================================================================
+  # Issuer-scoped identity lookup (#3840 Phase 0 / #3838 item 5)
+  # ==========================================================================
+  #
+  # Unlike the pure-logic REIMPLEMENTATIONS elsewhere in this file, this block
+  # drives the SHIPPED production functions in
+  # Auth::Config::Features::OmniAuth against an in-memory SQLite dataset (real
+  # Sequel queries + a real UPDATE for the lazy upgrade). This is the item-5
+  # cross-tenant takeover regression coverage.
+  describe 'issuer-scoped identity lookup (Auth::Config::Features::OmniAuth)' do
+    before(:all) do
+      require 'sequel'
+      # Drives real code; the feature file only pulls in OmniAuth strategy gems
+      # at require time (no app boot, no DB connection).
+      require_relative '../../../config/features/omniauth'
+    end
+
+    let(:feature) { Auth::Config::Features::OmniAuth }
+
+    # Fresh in-memory schema mirroring migration 008 / create_omniauth_tables.
+    let(:db) do
+      d = Sequel.sqlite
+      d.create_table(:account_identities) do
+        primary_key :id, type: :Bignum
+        Integer :account_id, null: false
+        String :provider, null: false
+        String :issuer, null: false, default: ''
+        String :uid, null: false
+        index %i[provider issuer uid], unique: true
+      end
+      d
+    end
+    let(:ds) { db[:account_identities] }
+    let(:cols) { { id_col: :id, provider_col: :provider, uid_col: :uid, issuer_col: :issuer } }
+
+    describe '.resolve_issuer' do
+      it 'prefers the strategy option issuer (authoritative)' do
+        result = feature.resolve_issuer(
+          strategy_options: { issuer: 'https://idp-a.example' },
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('https://idp-a.example')
+      end
+
+      it 'falls back to ENV OIDC_ISSUER for a discovery (OIDC) strategy' do
+        result = feature.resolve_issuer(
+          strategy_options: { discovery: true },
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('https://env.example')
+      end
+
+      it 'falls back to ENV OIDC_ISSUER when provider matches the OIDC route name' do
+        result = feature.resolve_issuer(
+          strategy_options: nil,
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('https://env.example')
+      end
+
+      it 'returns the "" sentinel for non-OIDC providers (never nil)' do
+        result = feature.resolve_issuer(
+          strategy_options: {},
+          provider: 'github', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+        )
+        expect(result).to eq('')
+      end
+
+      it 'returns the "" sentinel when no issuer is resolvable' do
+        result = feature.resolve_issuer(
+          strategy_options: { issuer: '' },
+          provider: 'github', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+        )
+        expect(result).to eq('')
+      end
+
+      # Entra ID exposes :tenant_id (not :issuer) in strategy options, so the
+      # option branch misses; the validated `iss` claim from the id-token
+      # (extra.raw_info) is the tenant-distinguishing issuer. Without this,
+      # every Entra tenant collapses to '' (#3838 item 5 regression).
+      it 'uses the token iss claim when the strategy exposes no issuer option (Entra)' do
+        result = feature.resolve_issuer(
+          strategy_options: { tenant_id: 'tenant-guid' },
+          provider: 'entra', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: 'https://login.microsoftonline.com/tenant-guid/v2.0',
+        )
+        expect(result).to eq('https://login.microsoftonline.com/tenant-guid/v2.0')
+      end
+
+      it 'distinguishes two Entra tenants by their token iss' do
+        opts = { strategy_options: { tenant_id: 'x' }, provider: 'entra',
+                 oidc_route_name: 'oidc', env_oidc_issuer: nil }
+        a = feature.resolve_issuer(**opts, token_issuer: 'https://login.microsoftonline.com/aaa/v2.0')
+        b = feature.resolve_issuer(**opts, token_issuer: 'https://login.microsoftonline.com/bbb/v2.0')
+        expect(a).not_to eq(b)
+      end
+
+      it 'prefers the strategy option issuer over the token iss' do
+        result = feature.resolve_issuer(
+          strategy_options: { issuer: 'https://discovery.example' },
+          provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: 'https://token.example',
+        )
+        expect(result).to eq('https://discovery.example')
+      end
+
+      it 'ignores a blank token iss and falls through to the sentinel' do
+        result = feature.resolve_issuer(
+          strategy_options: { tenant_id: 'x' },
+          provider: 'entra', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          token_issuer: '',
+        )
+        expect(result).to eq('')
+      end
+    end
+
+    describe '.platform_path?' do
+      it 'is true when no validated tenant domain is present' do
+        expect(feature.platform_path?(nil)).to be true
+        expect(feature.platform_path?('')).to be true
+      end
+
+      it 'is false on a tenant callback (validated domain present)' do
+        expect(feature.platform_path?('domain-123')).to be false
+      end
+    end
+
+    describe '.lookup_identity' do
+      # ITEM-5 REGRESSION: two IdPs (issuers) assert the same sub under the same
+      # strategy name. Under the old (provider, uid) key the second collided
+      # with the first → takeover. With (provider, issuer, uid) they are two
+      # distinct rows and the lookup discriminates by issuer.
+      context 'same (provider, uid) with different issuer (item-5)' do
+        before do
+          ds.insert(account_id: 10, provider: 'oidc', issuer: 'https://idp-a', uid: 'sub-shared')
+          ds.insert(account_id: 20, provider: 'oidc', issuer: 'https://idp-b', uid: 'sub-shared')
+        end
+
+        it 'stores them as two distinct rows (composite unique permits)' do
+          expect(ds.count).to eq(2)
+        end
+
+        it 'rejects a true duplicate (provider, issuer, uid)' do
+          expect do
+            ds.insert(account_id: 99, provider: 'oidc', issuer: 'https://idp-a', uid: 'sub-shared')
+          end.to raise_error(Sequel::UniqueConstraintViolation)
+        end
+
+        it 'resolves issuer-A to account 10 and issuer-B to account 20 (no cross-bind)' do
+          a = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'sub-shared',
+                                                      resolved_issuer: 'https://idp-a', platform_path: false)
+          b = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'sub-shared',
+                                                      resolved_issuer: 'https://idp-b', platform_path: false)
+          expect(a[:account_id]).to eq(10)
+          expect(b[:account_id]).to eq(20)
+          expect(a[:account_id]).not_to eq(b[:account_id])
+        end
+      end
+
+      context 'platform grace + lazy upgrade' do
+        before { ds.insert(account_id: 30, provider: 'oidc', issuer: '', uid: 'legacy-sub') }
+
+        it 'matches the legacy "" row and upgrades its issuer in the DB' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'legacy-sub',
+                                                           resolved_issuer: 'https://real-idp', platform_path: true)
+          expect(result[:account_id]).to eq(30)
+          expect(result[:issuer]).to eq('https://real-idp')
+          expect(ds.first(account_id: 30)[:issuer]).to eq('https://real-idp')
+        end
+      end
+
+      context 'tenant path: issuer-exact only (no grace)' do
+        before { ds.insert(account_id: 40, provider: 'oidc', issuer: '', uid: 'legacy-sub-2') }
+
+        it 'does NOT match the legacy "" row and leaves it untouched' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'oidc', uid: 'legacy-sub-2',
+                                                           resolved_issuer: 'https://tenant-idp', platform_path: false)
+          expect(result).to be_nil
+          expect(ds.first(account_id: 40)[:issuer]).to eq('')
+        end
+      end
+
+      context 'sentinel issuer (non-OIDC) with a legacy "" row on the platform path' do
+        before { ds.insert(account_id: 50, provider: 'github', issuer: '', uid: 'gh-1') }
+
+        it 'matches via the exact query without a pointless "" -> "" upgrade' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'github', uid: 'gh-1',
+                                                           resolved_issuer: '', platform_path: true)
+          expect(result[:account_id]).to eq(50)
+          expect(ds.first(account_id: 50)[:issuer]).to eq('')
+        end
+      end
+    end
+  end
 end
