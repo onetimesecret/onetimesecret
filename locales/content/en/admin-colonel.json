@@ -759,10 +759,6 @@
     "text": "User Management",
     "content_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Secret Management",
-    "content_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Custom Domains",
     "content_hash": "6170ab94"

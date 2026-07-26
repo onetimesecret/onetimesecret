@@ -46,10 +46,21 @@ export const adminCustomerSessionSchema = z.object({
   mfa_used: z.boolean().nullable(),
 });
 
-/** ListCustomerSessions `details`: the customer's session rows + a count. */
+/**
+ * ListCustomerSessions `details`: the customer's session rows + a count.
+ *
+ * `current_session_id` is the acting colonel's OWN request session id whenever
+ * it can be identified, regardless of whether it appears among these rows. The
+ * UI matches it against the rows: on a match (colonel viewing their own customer
+ * detail) it badges that row and disables its per-row revoke, since a
+ * self-revoke is a no-op (Rack re-persists the current session's blob at the end
+ * of the same request). Null/absent only when the current session can't be
+ * identified (e.g. a Hash session under JSON auth).
+ */
 export const colonelCustomerSessionsDetailsSchema = z.object({
   sessions: z.array(adminCustomerSessionSchema),
   count: z.number(),
+  current_session_id: z.string().nullable().optional(),
 });
 
 // ============================================================================

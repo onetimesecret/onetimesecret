@@ -563,10 +563,6 @@
     "text": "用户管理",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "内容管理",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "自定义域名",
     "source_hash": "6170ab94"

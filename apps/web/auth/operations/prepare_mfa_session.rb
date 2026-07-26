@@ -97,9 +97,12 @@ module Auth
           @session['external_id'] = @external_id
         end
 
-        # Store correlation ID for flow tracking
+        # Store correlation ID for flow tracking.
+        # String key deliberately: every session key this operation writes is a
+        # String so the data round-trips consistently through Rack session
+        # serialization (a symbol key can come back stringified from the store).
         if @correlation_id
-          @session[:mfa_correlation_id] = @correlation_id
+          @session['mfa_correlation_id'] = @correlation_id
         end
 
         # Log successful preparation
@@ -115,11 +118,11 @@ module Auth
       private
 
       # Get list of session keys that were set (for logging)
-      # @return [Array<String, Symbol>]
+      # @return [Array<String>]
       def session_keys_set
         keys = %w[awaiting_mfa account_id email]
         keys << 'external_id' if @external_id
-        keys << :mfa_correlation_id if @correlation_id
+        keys << 'mfa_correlation_id' if @correlation_id
         keys
       end
     end

@@ -5,6 +5,7 @@ import i18n from '@/i18n';
 import { setupRouterGuards } from '@/router/guards.routes';
 import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
 import { loggingService } from '@/services/logging.service';
+import { setAllowedCheckoutHost } from '@/utils/redirect';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
@@ -46,7 +47,7 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  *
  * We separate this from the main plugin to interface for testing purposes.
  */
-/*eslint max-statements: ["error", 23]*/
+/*eslint max-statements: ["error", 24]*/
 function initializeApp(app: App, options: AppInitializerOptions) {
   // Consume bootstrap data early, before Pinia is installed.
   // This populates the snapshot for getBootstrapValue() calls.
@@ -56,6 +57,13 @@ function initializeApp(app: App, options: AppInitializerOptions) {
   const d9sEnabled = getBootstrapValue('d9s_enabled');
   const displayDomain = getBootstrapValue('display_domain');
   const siteHost = getBootstrapValue('site_host');
+
+  // Seed the checkout-URL host allowlist with this deployment's Stripe
+  // custom-domain host (bare host, empty when unconfigured). Must run before
+  // any billing/checkout response is parsed; checkout only happens on user
+  // action, well after init.
+  setAllowedCheckoutHost(getBootstrapValue('checkout_host'));
+
   const router = options.router;
   const pinia = createPinia();
   const api = options.api ?? createApi();

@@ -153,30 +153,50 @@ module Core
 
       protected
 
-      # Runtime gate for POST /signin. Delegates to the shared resolver so the
-      # global kill switch (AUTH_ENABLED / AUTH_SIGNIN) always wins: a per-domain
-      # SigninConfig can only narrow availability, never re-enable sign-in that
-      # is disabled globally. Keep in lockstep with ConfigSerializer#resolve_signin.
-      # Resolution semantics: ADR-024.
+      # Runtime gate for POST /signin.
+      #
+      # Custom domains default OFF: sign-in is closed unless the domain owner
+      # explicitly opted in via an enabled SigninConfig (same resolution as the
+      # branded masthead's Sign In link — link and route stay in lockstep, so a
+      # domain that hides the link cannot still accept credentials at /signin).
+      # Canonical / subdomain requests follow the global default (ADR-024
+      # invariant #2). Either way the global kill switch (AUTH_ENABLED /
+      # AUTH_SIGNIN) always wins: a per-domain config can only narrow. SSO login
+      # is unaffected — it runs through the omniauth routes, gated separately by
+      # SsoConfig. Keep in lockstep with ConfigSerializer#resolve_signin.
       def signin_enabled?
-        Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(
-          Onetime::CustomDomain::SigninConfig.global_signin_enabled(auth_settings),
-          domain_signin_config,
-        )
+        global = Onetime::CustomDomain::SigninConfig.global_signin_enabled(auth_settings)
+        if custom_domain_request?
+          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(global, domain_signin_config)
+        else
+          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, domain_signin_config)
+        end
       end
 
-      # Runtime gate for POST /signup. Same AND semantics as signin_enabled?:
-      # a per-domain SignupConfig can only narrow availability, never re-enable
-      # signup that is disabled globally (AUTH_ENABLED / AUTH_SIGNUP).
-      # Resolution semantics: ADR-024.
+      # Runtime gate for POST /signup. Same custom-domain-default-OFF / opt-in
+      # polarity as signin_enabled?: a custom domain never accepts account
+      # creation unless an enabled SignupConfig opts in, while canonical /
+      # subdomain requests follow the global default. The global kill switch
+      # (AUTH_ENABLED / AUTH_SIGNUP) always wins.
       def signup_enabled?
-        Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(
-          Onetime::CustomDomain::SignupConfig.global_signup_enabled(auth_settings),
-          domain_signup_config,
-        )
+        global = Onetime::CustomDomain::SignupConfig.global_signup_enabled(auth_settings)
+        if custom_domain_request?
+          Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(global, domain_signup_config)
+        else
+          Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(global, domain_signup_config)
+        end
       end
 
       private
+
+      # True when the current request is served on a customer's custom domain
+      # (as classified by Onetime::Middleware::DomainStrategy). Canonical and
+      # subdomain requests are the operator's own surfaces and follow the global
+      # auth defaults; custom domains must opt in. Mirrors
+      # ConfigSerializer#tenant_domain?.
+      def custom_domain_request?
+        req.env['onetime.domain_strategy'] == :custom
+      end
 
       def auth_settings
         OT.conf.dig('site', 'authentication')

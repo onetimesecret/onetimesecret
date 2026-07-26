@@ -30,6 +30,7 @@ module Onetime
           EmailTranslations.translate(
             'email.mfa_enabled.subject',
             locale: locale,
+            display_domain: display_domain,
           )
         end
 

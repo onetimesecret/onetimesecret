@@ -42,6 +42,12 @@ enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
 stripe_key: <%= ENV['STRIPE_API_KEY'] || 'nostripekey' %>
 webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
 stripe_api_version: "2025-12-15.clover"
+
+# Stripe custom Checkout domain host (bare host, no scheme). Empty unless
+# this deployment configures a Stripe "custom domain" for Checkout. When set,
+# the frontend allowlists checkout URLs served from this host.
+checkout_host: <%= ENV['STRIPE_CHECKOUT_HOST'] || '' %>
+
 currency: <%= ENV['BILLING_CURRENCY'] || ENV['CURRENCY'] || 'cad' %>
 
 # Product Matching Configuration

@@ -43,10 +43,19 @@ module Onetime
         # @return [Result]
         # @raise [ArgumentError] when the kind is unknown.
         def call
-          keys = Registry.keys_for(@kind, @subject)
-          raise ArgumentError, "Unknown rate limiter: #{@kind.inspect}" unless keys
+          exact_keys = Registry.keys_for(@kind, @subject)
+          raise ArgumentError, "Unknown rate limiter: #{@kind.inspect}" unless exact_keys
 
-          db      = Registry.dbclient_for(@kind)
+          db = Registry.dbclient_for(@kind)
+
+          # Two-tier limiters (passphrase, login) also write per-IP keys with a
+          # variable {ip} suffix. The exact key set can't name them, so SCAN the
+          # registry's patterns and fold the matches in — otherwise a
+          # /24-collision-locked recipient stays locked with no operator remedy
+          # (RL-1). Bounded per subject (a locked tier stops accruing new IPs).
+          scanned = Registry.scan_patterns_for(@kind, @subject).flat_map { |pattern| scan_matches(db, pattern) }
+          keys    = (exact_keys + scanned).uniq
+
           deleted = db.del(*keys).to_i
 
           # No key existed → nothing mutated → idempotent no-op, records no audit.
@@ -66,6 +75,22 @@ module Onetime
           )
 
           Result.new(status: :success, kind: @kind, subject: @subject, keys: keys, deleted: deleted)
+        end
+
+        private
+
+        # Cursor-scan (non-blocking, unlike KEYS) for the concrete keys matching
+        # a registry SCAN pattern. Scoped to one subject's variable-suffix tier,
+        # so the returned set is bounded even though SCAN walks the keyspace.
+        def scan_matches(db, pattern)
+          found  = []
+          cursor = '0'
+          loop do
+            cursor, batch = db.scan(cursor, match: pattern, count: 100)
+            found.concat(batch)
+            break if cursor == '0'
+          end
+          found
         end
       end
     end

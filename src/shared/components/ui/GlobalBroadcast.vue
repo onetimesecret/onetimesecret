@@ -46,15 +46,47 @@ const { t } = useI18n();
     return txt.value;
   }
 
+  // [S4] Narrowed sanitizer config for operator-controlled broadcast content.
+  //
+  // ALLOWED_URI_REGEXP restricts href schemes to https/http/mailto (relative
+  // URLs also pass — they carry no scheme). Mirrors the structure of
+  // DOMPurify's default pattern with the scheme allowlist reduced; blocks
+  // javascript:, data:, vbscript:, etc.
+  const ALLOWED_URI_REGEXP = /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i;
+
+  const SANITIZE_CONFIG = {
+    ALLOWED_TAGS: ['a'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    ALLOWED_URI_REGEXP,
+  };
+
+  // [S4] Post-sanitize hardening for anchors: force rel="noopener noreferrer"
+  // and only permit target="_blank" (any other target is stripped) so broadcast
+  // links can never reach window.opener or retarget named frames.
+  function hardenAnchor(node: Element): void {
+    if (node.tagName !== 'A') return;
+    const target = node.getAttribute('target');
+    if (target !== null && target !== '_blank') {
+      node.removeAttribute('target');
+    }
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+
+  function sanitizeBroadcastContent(html: string): string {
+    // Hook is added/removed around each call: DOMPurify hooks are global to
+    // the module instance and must not leak into other sanitize() callers.
+    DOMPurify.addHook('afterSanitizeAttributes', hardenAnchor);
+    try {
+      return DOMPurify.sanitize(html, SANITIZE_CONFIG);
+    } finally {
+      DOMPurify.removeHook('afterSanitizeAttributes');
+    }
+  }
+
   // Computed property for decoded and sanitized content
-  const sanitizedContent = computed(() => {
-    const decodedContent = decodeHTMLEntities(props.content ?? '');
-    const sanitizeConfig = {
-      ALLOWED_TAGS: ['a'],
-      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
-    };
-    return DOMPurify.sanitize(decodedContent, sanitizeConfig);
-  });
+  const sanitizedContent = computed(() =>
+    sanitizeBroadcastContent(decodeHTMLEntities(props.content ?? ''))
+  );
 
   // Should show banner only if (1) parent says to show it AND (2) user hasn't dismissed it
   const shouldShow = computed(() => props.show && isVisible.value);

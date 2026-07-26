@@ -363,6 +363,84 @@ module Onetime
           nil
         end
 
+        # Why tenant SSO is NOT an available sign-in path for a custom domain,
+        # or nil when it IS available.
+        #
+        # This method owns the availability ladder; tenant_sso_available_for? is
+        # the boolean face of it, so there is exactly one implementation of the
+        # decision. Callers that only branch use the predicate; callers that
+        # must also report WHY (the omniauth runtime hook logs the rejection
+        # cause on :omniauth_tenant_sso_not_enabled) use this one.
+        #
+        # Available only when the domain has its OWN enabled SsoConfig
+        # (credentials store) AND SigninConfig.sso_permitted_for? allows SSO —
+        # the identical two conditions ConfigSerializer#resolve_tenant_sso_config
+        # uses to hand back the tenant provider. Domain-id-only (no request
+        # context), so it is the single source of truth shared by the
+        # branded-masthead link gate
+        # (Core::Views::DomainSerializer#effective_signin_enabled?) and the
+        # /signin page gate (via resolve_tenant_sso_config), keeping the masthead
+        # Sign In link and the /signin page in agreement for an SSO-only tenant
+        # (enabled SsoConfig, no SigninConfig) — the case the link previously hid
+        # while the page it points to worked.
+        #
+        # Scope: TENANT SsoConfig only, not the operator's platform-SSO fallback
+        # (allow_platform_fallback_for_tenants?). A branded front door advertises
+        # what the DOMAIN OWNER opted into, not a global operator fallback, so a
+        # platform-fallback-only domain keeps its /signin page (resolve_signin
+        # honors fallback) without lighting up a masthead link. See
+        # ConfigSerializer#build_sso_config.
+        #
+        # Master-switch gate (#3901 follow-up): AUTH_ENABLED=false resolves
+        # :auth_disabled before the credential checks. With the master switch
+        # off, sessionauth is never registered and every session reads as
+        # unauthenticated, so an SSO sign-in could only mint a session the
+        # app ignores — display surfaces must not advertise it and the
+        # omniauth runtime hook must not inject tenant credentials for it.
+        # AUTH_SIGNIN is deliberately NOT consulted: it retires only the
+        # password/email path (see SigninConfig.global_signin_enabled).
+        #
+        # Reasons (rung order matches the checks below):
+        #   :auth_disabled       - AUTH_ENABLED master switch is off
+        #   :no_sso_config       - no SsoConfig record for the domain
+        #   :sso_config_disabled - record present, its enabled switch is off
+        #   :sso_not_permitted   - SigninConfig withholds SSO for the domain
+        #
+        # @param domain_id [String] CustomDomain identifier (objid)
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] the caller's
+        #   already-loaded record for domain_id, skipping the redundant lookup
+        #   (the omniauth request hook loads it anyway for credential
+        #   injection). A record whose domain_id does not match is ignored and
+        #   the lookup runs — the availability verdict must never be computed
+        #   from another domain's record.
+        # @return [Symbol, nil] the failing rung, or nil when tenant SSO is available
+        def tenant_sso_unavailable_reason(domain_id, auth: nil, sso_config: nil)
+          return :auth_disabled unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
+
+          config = sso_config&.domain_id == domain_id ? sso_config : find_by_domain_id(domain_id)
+          return :no_sso_config if config.nil?
+          return :sso_config_disabled unless config.enabled?
+          return :sso_not_permitted unless Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
+
+          nil
+        end
+
+        # Whether tenant SSO is an available sign-in path for a custom domain.
+        #
+        # Boolean face of tenant_sso_unavailable_reason — see that method for
+        # the full semantics (gate ladder, scope, master switch, and the
+        # sso_config: pass-through contract). Identical parameters.
+        #
+        # @param domain_id [String] CustomDomain identifier (objid)
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] caller's
+        #   already-loaded record for domain_id (mismatched records ignored)
+        # @return [Boolean] true if tenant SSO can be used to sign in
+        def tenant_sso_available_for?(domain_id, auth: nil, sso_config: nil)
+          tenant_sso_unavailable_reason(domain_id, auth: auth, sso_config: sso_config).nil?
+        end
+
         # Check if a domain has SSO configured.
         #
         # @param domain_id [String] CustomDomain identifier

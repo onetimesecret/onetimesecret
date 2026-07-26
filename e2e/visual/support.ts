@@ -189,6 +189,14 @@ export function collectConsoleErrors(page: Page): () => string[] {
  *  - time / time + p: absolute timestamps and their relative
  *    "x ago" / "in x" companions (TimelineDisplay renders each <time>
  *    followed by a relative-time <p>)
+ *  - .group:has(time): the full TimelineDisplay event row. Masking the bare
+ *    <time>/<p> is not enough: those elements shrink-wrap their text inside
+ *    a shrink-wrapped flex column, so the mask rectangle's right edge tracks
+ *    the clocked string's width ("Jul 9" vs "Jul 17", "1 minute ago" vs
+ *    "a few seconds ago"). The edge sliver between two runs' mask boxes is
+ *    ~100 px — right at maxDiffPixels — and flaked the receipt lane. The
+ *    event row is a block-level flex container, so its bounding box is set
+ *    by the card layout, not the text: stable geometry every run.
  *  - receipt-status .h-2: the expiration progress bar, whose fill width
  *    tracks wall-clock time since seeding
  *  - releases/tag link: the footer version string (`v<pkg> (<commit>)`,
@@ -203,6 +211,7 @@ export function visualMasks(page: Page, extra: Locator[] = []): Locator[] {
     page.getByTestId('incoming-reference-id'),
     page.locator('time'),
     page.locator('time + p'),
+    page.locator('.group:has(time)'),
     page.getByTestId('receipt-status').locator('.h-2'),
     page.locator('a[href*="/releases/tag/"]'),
     ...extra,

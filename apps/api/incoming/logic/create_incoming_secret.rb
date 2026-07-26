@@ -4,6 +4,7 @@
 
 require 'onetime/jobs/publisher'
 require 'onetime/incoming/recipient_resolver'
+require 'onetime/security/incoming_rate_limiter'
 
 require_relative 'base'
 
@@ -37,6 +38,7 @@ module Incoming
     #   secret metadata on success.
     class CreateIncomingSecret < Incoming::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Security::IncomingRateLimiter
 
       SCHEMAS = { response: 'incomingSecret' }.freeze
 
@@ -79,6 +81,12 @@ module Incoming
         raise_form_error 'Secret content is required' if secret_value.empty?
         validate_secret_size(secret_value)
         raise_form_error 'Recipient is required' if @recipient_hash.to_s.empty?
+
+        # AZ9: throttle anonymous submissions BEFORE any resolver I/O, secret
+        # creation, or email enqueue. Keyed per client IP and per client-supplied
+        # recipient hash. Raises Onetime::LimitExceeded (mapped by the controller
+        # like the login path) when a tier is over its window cap.
+        enforce_incoming_rate_limit!(incoming_client_ip, @recipient_hash)
 
         # Now safe to perform resolver I/O (entitlement verified)
         resolve_recipient_and_config
@@ -140,6 +148,14 @@ module Incoming
       end
 
       private
+
+      # Edge-masked client IP from the same StrategyResult metadata the login
+      # limiter reads (authenticate_session.rb#login_rate_limit_ip). nil when
+      # unavailable, in which case the rate limiter falls back to the
+      # per-recipient tier only.
+      def incoming_client_ip
+        strategy_result&.metadata&.[](:ip)
+      end
 
       def resolver
         @resolver ||= Onetime::Incoming::RecipientResolver.new(
@@ -269,6 +285,10 @@ module Incoming
         # selection (nil on the canonical domain).
         domain_id = resolved_domain_id
 
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
         Onetime::Jobs::Publisher.enqueue_email(
           :incoming_secret,
           {
@@ -277,7 +297,7 @@ module Incoming
             recipient: recipient_email,
             memo: memo,
             has_passphrase: !passphrase.to_s.empty?,
-            locale: locale || OT.default_locale,
+            locale: email_locale,
           },
           domain_id: domain_id,
         )

@@ -53,8 +53,18 @@ module Onetime::Receipt::Features
       # server to see the changes.
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
       base.safe_dump_field :key, ->(obj) { obj.identifier }
-      base.safe_dump_field :custid
-      base.safe_dump_field :owner_id
+      # custid / owner_id are creator identifiers. Withhold them for
+      # guest-submitted (incoming) provenance so the unauthenticated batch
+      # endpoint (V3::Logic::Secrets::ShowMultipleReceipts serializes via
+      # safe_dump and never runs a logic-layer gate) cannot leak the creator's
+      # customer id to anonymous callers. Same provenance gate as
+      # secret_identifier below (Receipt#shows_share_link? — false for
+      # 'incoming'). Incoming receipts store custid='anon' already; standard /
+      # owner-path receipts are unchanged. The frontend contract keeps both
+      # fields nullish (src/schemas/contracts/receipt.ts custid/owner_id), so
+      # returning nil is shape-preserving.
+      base.safe_dump_field :custid, ->(m) { m.shows_share_link? ? m.custid : nil }
+      base.safe_dump_field :owner_id, ->(m) { m.shows_share_link? ? m.owner_id : nil }
       base.safe_dump_field :state
       base.safe_dump_field :secret_shortid,
         ->(m) {

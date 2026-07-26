@@ -19,6 +19,11 @@
 require 'json'
 require 'onetime/operations/email/preview_template'
 
+# AVAILABLE_TEMPLATES must be defined before the option `desc:` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative '../email'
+
 module Onetime
   module CLI
     module Email

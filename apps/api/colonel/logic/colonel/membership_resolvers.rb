@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'account_identifier'
+
 module ColonelAPI
   module Logic
     module Colonel
@@ -14,6 +16,8 @@ module ColonelAPI
       # lookup order is membership-specific — other colonel logic resolves orgs
       # with a different precedence (see transfer_domain.rb).
       module MembershipResolvers
+        include AccountIdentifier
+
         private
 
         # extid first, then objid — user-facing colonel input is an extid.
@@ -25,8 +29,14 @@ module ColonelAPI
         # normalize_email is a safe pass-through for an extid (extids are
         # already lowercase ASCII); it only matters when the identifier is an
         # email. load_by_extid_or_email tries extid before email.
+        #
+        # NOTE: the caller MUST sanitize the raw param with
+        # {AccountIdentifier#sanitize_account_identifier}, not
+        # `sanitize_identifier` — the latter strips '@' and '.', turning
+        # `user@example.com` into `userexamplecom` and making this email arm
+        # permanently unreachable.
         def resolve_customer(identifier)
-          Onetime::Customer.load_by_extid_or_email(OT::Utils.normalize_email(identifier))
+          resolve_account(identifier)
         end
       end
     end

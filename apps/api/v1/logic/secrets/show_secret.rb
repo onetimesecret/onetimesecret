@@ -32,7 +32,7 @@ module V1::Logic
 
         # Check passphrase rate limit before allowing passphrase attempts
         # This prevents brute-force attacks on secrets with passphrases
-        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+        check_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
       end
 
       def process
@@ -47,10 +47,10 @@ module V1::Logic
         if secret.has_passphrase? && !passphrase.empty?
           if correct_passphrase
             # Clear rate limit on successful passphrase
-            clear_passphrase_rate_limit!(secret.identifier)
+            clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip)
           else
             # Record failed attempt
-            record_failed_passphrase_attempt!(secret.identifier)
+            record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
           end
         end
 
@@ -166,6 +166,19 @@ module V1::Logic
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
         secret_value.to_s.scan(/\n/).size.zero?
+      end
+
+      private
+
+      # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). V1
+      # logic is constructed with (sess, cust, params, locale) and has no
+      # strategy_result / per-request IP plumbing, so this is nil today and the
+      # limiter falls back to the global per-secret backstop. Kept as a single
+      # seam so v1 can adopt the per-IP tier if an IP is ever threaded in.
+      def passphrase_client_ip
+        return unless respond_to?(:strategy_result)
+
+        strategy_result&.metadata&.[](:ip)
       end
     end
 

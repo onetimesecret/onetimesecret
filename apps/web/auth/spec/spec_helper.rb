@@ -77,6 +77,8 @@ require 'rack/test'
 
 # Load OmniAuth test helper for additional helper methods
 require_relative 'support/omniauth_test_helper'
+require_relative 'support/auth_request_helper'
+require_relative 'support/account_seed_helper'
 require_relative 'support/auth_test_constants'
 require_relative 'support/mock_omniauth_strategy'
 require_relative 'support/config_recreator'
@@ -275,13 +277,20 @@ module RodauthTestHelper
   end
 
   # Creates tables for OmniAuth (SSO identity linking)
+  #
+  # MUST mirror migrations/008_issuer_scoped_identities.rb — specs build the
+  # schema from HERE, not the migration. The identity is keyed on
+  # (provider, issuer, uid) to close the #3838 item-5 cross-tenant takeover;
+  # `issuer` is NOT NULL with the '' sentinel (never NULL — a NULL vs ''
+  # split would break the unique index).
   def self.create_omniauth_tables(db)
     db.create_table(:account_identities) do
       primary_key :id, type: :Bignum
       foreign_key :account_id, :accounts, type: :Bignum, null: false
       String :provider, null: false
+      String :issuer, null: false, default: ''
       String :uid, null: false
-      index [:provider, :uid], unique: true
+      index [:provider, :issuer, :uid], unique: true
     end
   end
 
@@ -617,6 +626,14 @@ RSpec.configure do |config|
   # Integration test helpers (for tests requiring full app boot)
   config.include Rack::Test::Methods, type: :integration
   config.include ProductionConfigHelper, type: :integration
+
+  # CSRF-aware request plumbing (csrf_json_post, fetch_csrf_token, json_body,
+  # clear_body_headers). Distinct names from ProductionConfigHelper#json_post,
+  # which is CSRF-blind and stays for the non-Rodauth routes.
+  config.include AuthRequestHelper, type: :integration
+
+  # Subject seeding (seed_existing_account, seed_account_with_password).
+  config.include AccountSeedHelper, type: :integration
 
   # Capture AUTH_* env vars before integration suite to prevent leakage
   # between spec files that set different feature flags.

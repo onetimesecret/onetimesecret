@@ -124,6 +124,16 @@ module Core
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
+      # Widen the CSP form-action directive with the active SSO IdP origins so
+      # Chromium permits the SSO form POST that 302-redirects to the provider
+      # (form-action is enforced across the redirect chain). No-op when no SSO
+      # provider is configured (policy stays byte-identical) and inert when CSP
+      # is disabled (RequestSetup emits nothing unless site.security.csp.enabled).
+      sso_origins = Onetime.auth_config.sso_form_action_origins
+      unless sso_origins.empty?
+        router.security_config.merge_csp_directives('form-action' => "'self' #{sso_origins.join(' ')}")
+      end
+
       # Register authentication strategies for Web Core
       Core::AuthStrategies.register_essential(router)
 

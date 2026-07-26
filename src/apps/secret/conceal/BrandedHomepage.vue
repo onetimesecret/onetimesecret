@@ -4,6 +4,7 @@
   import BrandedHero from '@/apps/secret/components/branded/BrandedHero.vue';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import IncomingSecretFormBody from '@/apps/secret/components/incoming/IncomingSecretFormBody.vue';
+  import DisabledHomepage from '@/apps/secret/views/DisabledHomepage.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useIncomingStore } from '@/shared/stores/incomingStore';
@@ -35,9 +36,9 @@
   // The bootstrap payload only says incoming mode is active when the
   // backend judged it servable, but the config still loads at runtime and
   // can fail (entitlement lapse, recipients emptied moments ago, network).
-  // Any such failure degrades to the same private trust card the disabled
-  // homepage shows — an anonymous visitor must never see upgrade/billing
-  // or misconfiguration copy on the branded front door.
+  // Any such failure degrades to the same private disabled-homepage view an
+  // anonymous visitor would otherwise see — they must never be shown
+  // upgrade/billing or misconfiguration copy on the branded front door.
   // ---------------------------------------------------------------------
 
   const incomingStore = useIncomingStore();
@@ -62,7 +63,7 @@
       try {
         await incomingStore.loadConfig();
       } catch {
-        // Degrade to the trust card; the store captures error state.
+        // Degrade to the disabled-homepage view; the store captures error state.
       } finally {
         incomingLoading.value = false;
       }
@@ -73,7 +74,11 @@
   const showIncomingForm = computed(
     () => incomingMode.value && !incomingLoading.value && incomingAvailable.value
   );
-  const showTrustCard = computed(
+  // The private front door: the homepage is not public, or incoming mode was
+  // active but degraded at runtime. Presentation is delegated to the
+  // disabled-homepage variant dispatcher (DisabledHomepage.vue), which is
+  // brand-aware and honours the per-domain / deployment-wide variant defaults.
+  const showDisabledHomepage = computed(
     () =>
       !allowPublicHomepage.value ||
       (incomingMode.value && !incomingLoading.value && !incomingAvailable.value)
@@ -81,8 +86,8 @@
 
   // Send-a-secret copy only while the incoming form is (or is about to be)
   // the content below it. Once the runtime check degrades incoming to the
-  // trust card, fall back to the neutral copy the private branch has always
-  // shown — a "Send a secret" headline over a members-only notice reads as
+  // disabled-homepage view, fall back to the neutral copy the create branch
+  // shows — a "Send a secret" headline over a members-only notice reads as
   // a broken page.
   const incomingCopy = computed(
     () => incomingMode.value && (incomingLoading.value || incomingAvailable.value)
@@ -100,111 +105,73 @@
 </script>
 
 <template>
-  <div
-    :class="fontFamilyClass"
-    class="relative mx-auto w-full max-w-xl px-4">
-    <BrandedHero
-      class="mb-8"
-      :title="headline"
-      :subtitle="subline" />
+  <!--
+    Custom Domain Homepage (branded landing for self-hosted workspaces)
 
+    Audiences:
+    - Recipients arriving via a shared link
+    - Team members who need to sign in (via TransactionalHeader)
+    - Admins verifying the branded landing page
+
+    BrandedHomepage owns the public-vs-private decision
+    (allowPublicHomepage + the runtime incoming-degradation guard) and
+    delegates presentation:
+    - Public create mode: branded hero + secret creation form
+    - Public incoming mode (secrets_mode=incoming): branded hero + incoming
+      secrets form; degrades to the disabled-homepage view below if incoming
+      becomes unavailable at runtime
+    - Private mode: hands off to the disabled-homepage variant dispatcher,
+      which renders the operator-selected variant (closed / minimal / v1)
+      with full brand awareness
+  -->
+  <div class="w-full">
     <!--
-      Custom Domain Homepage (branded landing for self-hosted workspaces)
-
-      Audiences:
-      - Recipients arriving via a shared link
-      - Team members who need to sign in (via TransactionalHeader)
-      - Admins verifying the branded landing page
-
-      Design notes:
-      - Minimal, trust-focused with brand color accents
-      - Sign In handled at layout level, not here
-      - Public create mode: shows the secret creation form
-      - Public incoming mode (secrets_mode=incoming): shows the incoming
-        secrets form; degrades to the private trust card if incoming
-        becomes unavailable at runtime
-      - Private mode: status card with trust signals, no form
+      Private (or incoming unavailable): delegate to the disabled-homepage
+      variant dispatcher. It is brand-aware via useDisabledConfig and honours
+      the per-domain homepage_config.disabled_homepage_variant plus the
+      deployment-wide DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT default.
+      The variant owns its own hero, so BrandedHero is suppressed here.
     -->
+    <DisabledHomepage v-if="showDisabledHomepage" />
 
-    <!-- Public create mode: secret form -->
-    <SecretForm
-      v-if="allowPublicHomepage && !incomingMode"
-      class="mb-8"
-      :primary-color="primaryColor"
-      :button-text-light="buttonTextLight"
-      :corner-class="cornerClass"
-      :with-recipient="false"
-      :with-asterisk="false"
-      :with-generate="false" />
-
-    <!-- Public incoming mode: send-a-secret form -->
-    <IncomingSecretFormBody
-      v-else-if="showIncomingForm"
-      class="mb-8"
-      data-testid="homepage-incoming-form"
-      :primary-color="primaryColor" />
-
-    <!-- Incoming config loading: quiet placeholder to avoid a content flash -->
+    <!-- Public create/incoming mode: branded hero over the active form -->
     <div
-      v-else-if="incomingMode && incomingLoading"
-      class="mb-8 flex justify-center py-12"
-      data-testid="homepage-incoming-loading">
-      <OIcon
-        collection="heroicons"
-        name="arrow-path"
-        class="size-6 animate-spin text-gray-400"
-        aria-hidden="true" />
-    </div>
+      v-else
+      :class="fontFamilyClass"
+      class="relative mx-auto w-full max-w-xl px-4">
+      <BrandedHero
+        class="mb-8"
+        :title="headline"
+        :subtitle="subline" />
 
-    <!-- Private (or incoming unavailable): trust signals only -->
-    <div
-      v-else-if="showTrustCard"
-      class="space-y-8">
-      <!-- Status Card -->
+      <!-- Public create mode: secret form -->
+      <SecretForm
+        v-if="allowPublicHomepage && !incomingMode"
+        class="mb-8"
+        :primary-color="primaryColor"
+        :button-text-light="buttonTextLight"
+        :corner-class="cornerClass"
+        :with-recipient="false"
+        :with-asterisk="false"
+        :with-generate="false" />
+
+      <!-- Public incoming mode: send-a-secret form -->
+      <IncomingSecretFormBody
+        v-else-if="showIncomingForm"
+        class="mb-8"
+        data-testid="homepage-incoming-form"
+        :primary-color="primaryColor" />
+
+      <!-- Incoming config loading: quiet placeholder to avoid a content flash -->
       <div
-        class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-none">
-        <!-- Brand accent line -->
-        <div class="absolute inset-x-0 top-0 h-1 bg-brand-500"></div>
-
-        <!-- Status indicator -->
-        <div class="mb-6 flex items-center gap-3">
-          <div
-            class="flex size-10 items-center justify-center rounded-full bg-brand-500/10">
-            <OIcon
-              collection="heroicons"
-              name="shield-check"
-              class="size-5 text-brand-500" />
-          </div>
-          <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white/90">
-              {{ t('web.homepage.this_is_a_private_instance_only_authorized_team_') }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Feature pills -->
-        <div class="flex flex-wrap gap-3">
-          <div
-            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-white/10 dark:bg-white/5">
-            <OIcon
-              collection="heroicons"
-              name="lock-closed"
-              class="size-4 text-gray-500 dark:text-white/60" />
-            <span class="text-sm text-gray-600 dark:text-white/70">
-              {{ t('web.secrets.secure_encrypted_storage') }}
-            </span>
-          </div>
-          <div
-            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-white/10 dark:bg-white/5">
-            <OIcon
-              collection="heroicons"
-              name="clock"
-              class="size-4 text-gray-500 dark:text-white/60" />
-            <span class="text-sm text-gray-600 dark:text-white/70">
-              {{ t('web.secrets.auto_expire_after_viewing') }}
-            </span>
-          </div>
-        </div>
+        v-else-if="incomingMode && incomingLoading"
+        class="mb-8 flex justify-center py-12"
+        data-testid="homepage-incoming-loading">
+        <OIcon
+          collection="heroicons"
+          name="arrow-path"
+          class="size-6 animate-spin text-gray-400"
+          aria-hidden="true" />
       </div>
     </div>
   </div>

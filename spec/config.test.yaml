@@ -104,6 +104,10 @@ features:
       port: <%= ENV['ACME_PORT'] || '12020' %>
   incoming:
     recipients: []
+    # Disabled under test so existing incoming tryouts/specs are not throttled;
+    # AZ9 limiter tests enable it in-process. See incoming_rate_limiter.rb.
+    rate_limit:
+      enabled: false
   organizations:
     enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>

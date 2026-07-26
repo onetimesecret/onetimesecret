@@ -2,9 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'digest'
-require 'base64'
-
 require_relative '../key_derivation'
 
 module Onetime
@@ -26,14 +23,16 @@ module Onetime
       # writes (C10 §3.3 rotation chain). Pure so the mapping is unit-testable
       # without booting.
       #
-      # No SECRET_PREVIOUS (the overwhelmingly common case): byte-identical
-      # to the pre-C10 configuration — v1 (legacy SHA-256) and v2 (HKDF)
-      # derive from the current SECRET, writes are tagged :v2.
+      # No SECRET_PREVIOUS (the overwhelmingly common case): v2 (HKDF)
+      # derives from the current SECRET and writes are tagged :v2. (The
+      # legacy v1 unsalted-SHA-256 decrypt fallback was retired 2026-07-18 once
+      # the TTL window closed on all v1-tagged data — see
+      # docs/security/assessment-2026-06-22/resolutions/C6-*.md.)
       #
       # SECRET_PREVIOUS set (comma-separated, OLDEST first — append the
       # outgoing SECRET on each rotation; docs/runbooks/secret-rotation.md):
-      #   - :v1/:v2 map to the OLDEST previous secret's derived keys. Every
-      #     v1/v2-tagged envelope predates the first rotation (each rotation
+      #   - :v2 maps to the OLDEST previous secret's derived key. Every
+      #     v2-tagged envelope predates the first rotation (each rotation
       #     moves writes onto a content-addressed tag), so they were all
       #     written under that secret.
       #   - every previous secret also registers decrypt-only under its own
@@ -52,7 +51,6 @@ module Onetime
 
         if previous.empty?
           keys = {
-            v1: Base64.strict_encode64(Digest::SHA256.digest(secret_key)),
             v2: Onetime::KeyDerivation.derive_base64(secret_key, :familia_enc),
           }
           return [keys, :v2]
@@ -60,7 +58,6 @@ module Onetime
 
         oldest = previous.first
         keys   = {
-          v1: Base64.strict_encode64(Digest::SHA256.digest(oldest)),
           v2: Onetime::KeyDerivation.derive_base64(oldest, :familia_enc),
         }
         previous.each do |prev|
@@ -110,8 +107,8 @@ module Onetime
 
         # Encryption keys with versioning for key rotation.
         #
-        # v1: Legacy SHA-256 derivation (reads existing encrypted data)
-        # v2: HKDF derivation (RFC 5869, used for new writes)
+        # v2: HKDF derivation (RFC 5869, used for new writes). The legacy v1
+        #     unsalted-SHA-256 fallback was retired 2026-07-18.
         #
         # SECRET_PREVIOUS (C10 §3.3) registers previous SECRETs' derived keys
         # decrypt-only so old envelopes keep decrypting across a rotation;

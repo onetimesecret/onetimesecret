@@ -39,6 +39,7 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
 const mockMfaEnabled = ref(true);
 const mockWebAuthnEnabled = ref(true);
 const mockHasPassword = ref(true);
+const mockSsoEnabled = ref(false);
 vi.mock('@/utils/features', () => ({
   isMfaEnabled: () => mockMfaEnabled.value,
   isWebAuthnEnabled: () => mockWebAuthnEnabled.value,
@@ -49,6 +50,10 @@ vi.mock('@/utils/features', () => ({
   isMfaEnabledOf: () => mockMfaEnabled.value,
   isWebAuthnEnabledOf: () => mockWebAuthnEnabled.value,
   hasPasswordOf: () => mockHasPassword.value,
+  // Connected identities (#3840) card is gated on SSO enablement. Default OFF
+  // so the pre-existing card matrix is unchanged; the dedicated block below
+  // flips it on.
+  isSsoEnabledOf: () => mockSsoEnabled.value,
 }));
 
 // Mock useAccount composable
@@ -99,6 +104,7 @@ describe('SecurityOverview', () => {
     mockMfaEnabled.value = true;
     mockWebAuthnEnabled.value = true;
     mockHasPassword.value = true;
+    mockSsoEnabled.value = false;
     mockAccountInfo.value = {
       email_verified: true,
       mfa_enabled: false,
@@ -191,6 +197,39 @@ describe('SecurityOverview', () => {
 
       const passkeyCard = findCardByIcon('finger-print-solid');
       expect(passkeyCard?.find('[data-icon="finger-print-solid"]').exists()).toBe(true);
+    });
+  });
+
+  describe('Connected Identities Card (SSO Feature Flag)', () => {
+    it('shows connections card when SSO is enabled', () => {
+      mockSsoEnabled.value = true;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('globe-alt-solid')).toBeDefined();
+    });
+
+    it('hides connections card when SSO is disabled', () => {
+      mockSsoEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('globe-alt-solid')).toBeUndefined();
+    });
+
+    it('displays connections card title and description', () => {
+      mockSsoEnabled.value = true;
+      wrapper = mountComponent();
+
+      const card = findCardByIcon('globe-alt-solid');
+      expect(card?.text()).toContain('web.auth.connections.title');
+      expect(card?.text()).toContain('web.auth.connections.description');
+    });
+
+    it('is not password-dependent: shows for SSO-only accounts (no password)', () => {
+      mockSsoEnabled.value = true;
+      mockHasPassword.value = false;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('globe-alt-solid')).toBeDefined();
     });
   });
 

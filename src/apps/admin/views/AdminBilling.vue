@@ -2,7 +2,8 @@
 
 <script setup lang="ts">
 
-  import { DataTable, DetailDrawer, JsonViewer, StatCard } from '@/apps/admin/components/kit';
+  import StripeOrganizationsSection from '@/apps/admin/components/billing/StripeOrganizationsSection.vue';
+  import { DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
@@ -11,7 +12,7 @@
   } from '@/schemas/api/internal/responses/colonel-billing';
   import { colonelBillingCatalogResponseSchema } from '@/schemas/api/internal/responses/colonel-billing';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -28,6 +29,15 @@
    * The endpoint returns BOTH the configured catalog (billing.yaml) and the live
    * plans (Stripe-synced cache) plus a computed drift summary, so the operator
    * can see "config says X, live says Y" at a glance — that is the whole value.
+   *
+   * Alongside the catalog sits the Stripe-customer roster
+   * ({@link StripeOrganizationsSection}) — the organizations that are actually
+   * billed, read from the existing `stripe_customer_id` index. "What we sell"
+   * and "who is paying" belong on one screen.
+   *
+   * The per-plan config-vs-live comparison is a full PAGE (`AdminPlanDiff`), not
+   * a drawer: it renders two JSON documents side by side and a slide-over cannot
+   * show them without cramping.
    *
    * Read-only: nothing here mutates, so nothing is audited (CONTRACT 4). Catalog
    * sync stays CLI-only until this view is trusted (spec).
@@ -126,23 +136,6 @@
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
     }
-  }
-
-  // ---- Side-by-side diff drawer --------------------------------------------
-
-  const selectedPlanid = ref<string | null>(null);
-  const drawerOpen = ref(false);
-
-  const selectedConfig = computed(() =>
-    selectedPlanid.value ? (configById.value[selectedPlanid.value] ?? null) : null
-  );
-  const selectedLive = computed(() =>
-    selectedPlanid.value ? (liveById.value[selectedPlanid.value] ?? null) : null
-  );
-
-  function openDiff(planid: string): void {
-    selectedPlanid.value = planid;
-    drawerOpen.value = true;
   }
 
   onMounted(() => {
@@ -292,69 +285,26 @@
               </span>
             </template>
             <template #cell-actions="{ row }">
-              <button
-                type="button"
+              <!-- Full page, not a drawer: the diff is two JSON blobs wide. -->
+              <router-link
+                :to="{ name: 'AdminPlanDiff', params: { planid: row.planid } }"
                 class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
-                :data-testid="`billing-diff-${row.planid}`"
-                @click="openDiff(row.planid)">
+                :data-testid="`billing-diff-${row.planid}`">
                 <OIcon
                   collection="heroicons"
                   name="rectangle-group"
                   size="3" />
                 {{ t('web.admin.billing.plans.viewDiff') }}
-              </button>
+              </router-link>
             </template>
           </DataTable>
         </div>
       </section>
     </div>
 
-    <!-- Side-by-side config vs live diff -->
-    <DetailDrawer
-      v-model:open="drawerOpen"
-      :title="t('web.admin.billing.diff.title', { planid: selectedPlanid ?? '' })"
-      :subtitle="t('web.admin.billing.diff.subtitle')"
-      testid="billing-diff-drawer">
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div>
-          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-            {{ t('web.admin.billing.diff.config') }}
-          </h4>
-          <div
-            v-if="selectedConfig"
-            class="rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
-            <JsonViewer
-              :data="selectedConfig"
-              :expand-depth="2"
-              testid="billing-diff-config-json" />
-          </div>
-          <p
-            v-else
-            class="rounded-lg border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
-            data-testid="billing-diff-config-absent">
-            {{ t('web.admin.billing.diff.absentConfig') }}
-          </p>
-        </div>
-        <div>
-          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-            {{ t('web.admin.billing.diff.live') }}
-          </h4>
-          <div
-            v-if="selectedLive"
-            class="rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
-            <JsonViewer
-              :data="selectedLive"
-              :expand-depth="2"
-              testid="billing-diff-live-json" />
-          </div>
-          <p
-            v-else
-            class="rounded-lg border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
-            data-testid="billing-diff-live-absent">
-            {{ t('web.admin.billing.diff.absentLive') }}
-          </p>
-        </div>
-      </div>
-    </DetailDrawer>
+    <!-- Stripe customers roster. Deliberately OUTSIDE the catalog's
+         loading/error chain: it is an independent read, so a failing catalog
+         must not hide the billed-organizations list (and vice versa). -->
+    <StripeOrganizationsSection class="mt-8" />
   </div>
 </template>

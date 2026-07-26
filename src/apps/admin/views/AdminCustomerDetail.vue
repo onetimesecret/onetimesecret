@@ -185,6 +185,9 @@
       case 'unsuspend':
         return callMutation('post', `${userUrl()}/unsuspend`);
       case 'purge':
+        // Last line of the fail-closed gate: no typed token, no DELETE — even
+        // if the dialog were somehow reached with a blank one.
+        if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
         return callMutation('delete', userUrl());
       default:
         throw new Error('No active action');
@@ -205,8 +208,37 @@
     purge: 'purge',
   };
 
-  /** Destructive actions gate confirm behind retyping the public id. */
+  /** Destructive actions gate confirm behind a typed-confirmation token. */
   const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend'];
+
+  /**
+   * The exact string the operator must retype, or undefined for a one-click
+   * confirm. PURGE is irreversible, so it asks for the account's EMAIL — the
+   * identifier the operator can check against the ticket they are working,
+   * rather than an id they just copied off this page. Suspend is reversible and
+   * keeps the public id.
+   *
+   * FAILS CLOSED: a record with a blank email yields undefined, and purge is
+   * then UNAVAILABLE (disabled button + a stated reason) rather than silently
+   * dropping AdminConfirmDialog into one-click simple-confirm mode — or asking
+   * for the email while accepting some substitute identifier.
+   */
+  function confirmTokenFor(action: ActionKey): string | undefined {
+    if (!DANGER_ACTIONS.includes(action)) return undefined;
+    if (action !== 'purge') return publicId.value;
+    return record.value?.email?.trim() || undefined;
+  }
+
+  /** True when purge must be unavailable: no email to type as confirmation. */
+  const purgeBlocked = computed(() => !confirmTokenFor('purge'));
+
+  /** Why purge is unavailable — rendered beside the disabled button. */
+  const purgeBlockedReason = computed(() =>
+    t(
+      'web.admin.customers.actions.purge.unavailable',
+      'Purge is unavailable: this account has no email address to retype as confirmation.'
+    )
+  );
 
   const dialogConfig = computed(() => {
     const action = activeAction.value;
@@ -231,12 +263,22 @@
     return {
       title: t(`web.admin.customers.actions.${key}.confirmTitle`),
       description: t(`web.admin.customers.actions.${key}.confirmDescription`, args),
-      // Typed-confirmation gate: retype the public id to enable confirm.
-      confirmToken: isDanger ? publicId.value : undefined,
+      confirmToken: confirmTokenFor(action),
       variant: isDanger ? ('danger' as const) : ('default' as const),
       confirmText: isDanger ? t(`web.admin.customers.actions.${key}.button`) : undefined,
     };
   });
+
+  /**
+   * Prompt copy above the typed-confirmation input. Purge names the email
+   * explicitly; everything else falls back to the kit's generic prompt.
+   */
+  function promptFor(token: string | undefined): string {
+    const args = { token: token ?? '' };
+    return activeAction.value === 'purge'
+      ? t('web.admin.customers.actions.purge.typePrompt', args)
+      : t('web.admin.kit.confirmDialog.typePrompt', args);
+  }
 
   const successMessageKey: Record<ActionKey, string> = {
     setRole: 'web.admin.customers.actions.role.success',
@@ -249,6 +291,9 @@
   };
 
   function requestAction(key: ActionKey): void {
+    // Fail closed: never open a danger dialog whose typed token is blank —
+    // AdminConfirmDialog runs an empty token as a one-click simple confirm.
+    if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
@@ -570,14 +615,28 @@
           ">
           {{ t(`web.admin.customers.roles.${record.role}`, record.role) }}
         </span>
+        <!-- Verification state, both ways: the action panel only offers the verb
+             that matches this, so it must never be ambiguous. Amber (attention),
+             not red — red stays reserved for destructive/suspended. -->
         <span
           v-if="record.verified"
-          class="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
+          class="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200"
+          data-testid="verified-badge">
           <OIcon
             collection="heroicons"
             name="check-circle"
             size="3" />
-          {{ t('web.admin.customers.detail.fields.verified') }}
+          {{ t('web.admin.customers.verification.verified') }}
+        </span>
+        <span
+          v-else
+          class="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+          data-testid="unverified-badge">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            size="3" />
+          {{ t('web.admin.customers.verification.unverified') }}
         </span>
         <span
           v-if="record.suspended"
@@ -798,12 +857,17 @@
               </button>
             </div>
 
-            <!-- Purge (destructive, typed-confirm) -->
+            <!-- Purge (destructive, typed-confirm). Disabled with a stated
+                 reason when there is no email to retype: a destructive gate
+                 must fail closed, and a dead button with no explanation reads
+                 as a bug. -->
             <div class="border-t border-gray-200 pt-4 dark:border-gray-800">
               <button
                 type="button"
                 data-testid="purge-button"
-                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+                :disabled="purgeBlocked"
+                :aria-describedby="purgeBlocked ? 'purge-blocked-reason' : undefined"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestAction('purge')">
                 <OIcon
                   collection="heroicons"
@@ -811,6 +875,13 @@
                   size="4" />
                 {{ t('web.admin.customers.actions.purge.button') }}
               </button>
+              <p
+                v-if="purgeBlocked"
+                id="purge-blocked-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="purge-blocked-reason">
+                {{ purgeBlockedReason }}
+              </p>
             </div>
           </div>
         </section>
@@ -883,6 +954,21 @@
             {{ t('web.admin.customers.detail.sections.secrets') }}
             <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.secrets.count }})</span>
           </h3>
+          <!-- The server told us this list is PARTIAL. Say so plainly — the
+               count beside the heading is what is on screen, not the total. -->
+          <p
+            v-if="details.secrets.truncated"
+            class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400"
+            data-testid="secrets-truncated">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              size="4"
+              class="mt-px shrink-0" />
+            <span>{{
+              t('web.admin.customers.detail.secrets.partial', { count: details.secrets.count })
+            }}</span>
+          </p>
         </div>
         <DataTable
           :columns="secretColumns"
@@ -907,6 +993,19 @@
             {{ t('web.admin.customers.detail.sections.receipts') }}
             <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.receipts.count }})</span>
           </h3>
+          <p
+            v-if="details.receipts.truncated"
+            class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400"
+            data-testid="receipts-truncated">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              size="4"
+              class="mt-px shrink-0" />
+            <span>{{
+              t('web.admin.customers.detail.receipts.partial', { count: details.receipts.count })
+            }}</span>
+          </p>
         </div>
         <DataTable
           :columns="receiptColumns"
@@ -964,7 +1063,7 @@
       <AdminCustomerSessionsSection :user-id="publicId" />
     </div>
 
-    <!-- Shared guarded-action dialog (typed-confirm for purge). -->
+    <!-- Shared guarded-action dialog (typed-confirm for purge + suspend). -->
     <AdminConfirmDialog
       v-model:open="dialogOpen"
       :title="dialogConfig.title"
@@ -975,6 +1074,10 @@
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"
-      @cancel="onCancel" />
+      @cancel="onCancel">
+      <template #prompt="{ token }">
+        {{ promptFor(token) }}
+      </template>
+    </AdminConfirmDialog>
   </div>
 </template>

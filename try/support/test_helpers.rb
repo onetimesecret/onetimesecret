@@ -58,6 +58,47 @@ ensure
   ENV[key] = original
 end
 
+# Mint a masked CSRF token bound to a session hash.
+#
+# The session-gated CSRF middleware (Onetime::Middleware::Security) requires a
+# valid X-CSRF-Token on every non-GET request that carries a cookie-authenticated
+# session — this is exactly what the admin SPA sends. Rack::Protection's
+# AuthenticityToken.token mutates the passed session hash to set the raw :csrf
+# key (if absent) and returns a fresh BREACH-masked token that validates against
+# it. Pass the SAME session hash that is injected into env['rack.session'] and
+# add the returned value under 'HTTP_X_CSRF_TOKEN' on non-GET requests.
+#
+# @param session [Hash] the injected rack.session hash
+# @return [String] a masked CSRF token valid for that session
+def tryouts_csrf_token(session)
+  require 'rack/protection'
+  Rack::Protection::AuthenticityToken.token(session)
+end
+
+# Inject a CSRF token into a Rack::Test call's argument list.
+#
+# Rack::Test verbs take (uri, params = {}, env = {}); the env hash carries the
+# injected 'rack.session'. For state-changing requests under a session, the
+# CSRF middleware requires a matching X-CSRF-Token. Given the wrapper's *args,
+# this returns args with 'HTTP_X_CSRF_TOKEN' minted from env['rack.session']
+# (via tryouts_csrf_token). Requests with no session (anonymous) or that already
+# carry a token are returned unchanged, so 401-on-anonymous paths still exercise
+# the auth layer rather than the CSRF gate.
+#
+# @param args [Array] the wrapper's forwarded *args
+# @return [Array] args, possibly with a CSRF token added to the env hash
+def with_csrf(args)
+  env = args[2]
+  return args unless env.is_a?(Hash)
+  session = env['rack.session']
+  return args unless session.is_a?(Hash)
+  return args if env.key?('HTTP_X_CSRF_TOKEN')
+
+  args = args.dup
+  args[2] = env.merge('HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(session))
+  args
+end
+
 def generate_random_email
   # Generate a random username
   username = (0...8).map { ('a'..'z').to_a[rand(26)] }.join

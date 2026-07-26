@@ -54,8 +54,10 @@
    *
    * States:
    * - loading: Initial fetch in progress
-   * - signup_required: Unauthenticated, no existing account for invited email
-   * - signin_required: Unauthenticated, account exists for invited email
+   * - signup_required: Unauthenticated default (the API deliberately does not
+   *   reveal whether an account exists — see show-invite schema note)
+   * - signin_required: Unauthenticated, account known to exist (discovered via
+   *   a failed signup attempt with an account-exists error)
    * - direct_accept: Authenticated with correct email, can accept immediately
    * - wrong_email: Authenticated but with different email than invitation
    * - already_accepted: Invitation was already accepted (status: active)
@@ -79,6 +81,11 @@
   // the action row from re-rendering during the redirect delay window.
   const actionResult = ref<'accepted' | 'declined' | null>(null);
 
+  // Whether we've learned (via a failed signup attempt) that an account
+  // already exists for the invited email. The show endpoint intentionally
+  // carries no account_exists signal, so signup is the default entry path.
+  const knownAccountExists = ref(false);
+
   const inviteState = computed<InviteState>(() => {
     if (isLoading.value) return 'loading';
     if (actionResult.value) return actionResult.value;
@@ -94,7 +101,7 @@
 
     // Invitation is actionable (pending, not expired)
     if (!authStore.isAuthenticated) {
-      return invitation.value.account_exists ? 'signin_required' : 'signup_required';
+      return knownAccountExists.value ? 'signin_required' : 'signup_required';
     }
 
     // User is authenticated
@@ -252,9 +259,7 @@
    * Updates invitation state to trigger signin flow instead.
    */
   function onAccountExists() {
-    if (invitation.value) {
-      invitation.value.account_exists = true;
-    }
+    knownAccountExists.value = true;
   }
 </script>
 
@@ -431,8 +436,8 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
-            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
             as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
@@ -493,8 +498,8 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
-            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
             as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
@@ -578,8 +583,8 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
-            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
             as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
@@ -654,8 +659,8 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
-            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
             as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.

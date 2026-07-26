@@ -19,7 +19,7 @@
  *    config. The domain_id field is the identifier.
  *
  * 2. Explicit Booleans: Boolean fields are non-nullable with conservative
- *    defaults (signin on, optional methods off until explicitly enabled).
+ *    defaults (signin and optional methods off until explicitly enabled).
  *
  * 3. restrict_to: Mirrors auth.defaults.yaml full.restrict_to. When set,
  *    only that single method is shown on the login page. The underlying
@@ -107,7 +107,7 @@ export const customDomainSigninConfigCanonical = z.object({
 
   /**
    * Whether sign-in is enabled on this custom domain.
-   * Defaults to true (conservative: don't lock users out).
+   * Defaults to false (conservative: off until explicitly enabled, #3814).
    */
   signin_enabled: z.boolean(),
 
@@ -162,7 +162,7 @@ export const putSigninConfigPayloadSchema = z.object({
   /** Whether the per-domain config is active. Defaults to false. */
   enabled: z.boolean().optional(),
 
-  /** Whether sign-in is enabled. Defaults to true. */
+  /** Whether sign-in is enabled. Defaults to false. */
   signin_enabled: z.boolean().optional(),
 
   /** Restrict login page to a single method. Null to show all enabled methods. */

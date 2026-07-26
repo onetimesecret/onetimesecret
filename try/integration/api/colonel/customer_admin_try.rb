@@ -61,8 +61,9 @@ AE = Onetime::AdminAuditEvent
 
 @colonel_session = { 'authenticated' => true, 'external_id' => @colonel.extid, 'email' => @colonel.email }
 @regular_session = { 'authenticated' => true, 'external_id' => @regular.extid, 'email' => @regular.email }
-@colonel_headers = { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-@regular_headers = { 'rack.session' => @regular_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+# Session-authenticated non-GET requests require a valid X-CSRF-Token.
+@colonel_headers = { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@colonel_session) }
+@regular_headers = { 'rack.session' => @regular_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@regular_session) }
 
 # ---- Authorization (both-auth-layers) ---------------------------------
 
@@ -128,7 +129,7 @@ post "/api/colonel/users/#{@verify_target.objid}/unverify", {}.to_json, @colonel
 
 ## Purge (DELETE) returns 200, destroys the user, audits once
 AE.events.clear
-delete "/api/colonel/users/#{@purge_target.objid}", {}, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
+delete "/api/colonel/users/#{@purge_target.objid}", {}, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@colonel_session) }
 @purge_resp = JSON.parse(last_response.body)
 [last_response.status, @purge_resp['record']['deleted'], Onetime::Customer.load(@purge_target_objid).nil?, AE.count, AE.recent(1).first['verb']]
 #=> [200, true, true, 1, "customer.purge"]

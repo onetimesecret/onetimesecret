@@ -16,15 +16,17 @@
 // │  ├ MFA           │ hasPassword        │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
 // │  ├ Sessions      │ —                  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
 // │  ├ Recovery      │ hasPassword        │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
-// │  └ Passkeys      │ isWebAuthnEnabled  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
+// │  ├ Passkeys      │ isWebAuthnEnabled  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
+// │  └ Connections   │ isSsoEnabled       │ ✓†     │ ✓†     │ ✓†     │ ✓†     │ ✓†     │ ✓†     │
 // │ API              │ —                  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
 // │ Region           │ isOwnerOrAdmin     │ ✓*     │ ✓*     │ ✓*     │ ✓*     │ —      │ —      │
 // │ Caution          │ isOwnerOrAdmin     │ ✓*     │ ✓*     │ ✓*     │ ✓*     │ —      │ —      │
 // │                  │                    │        │        │        │        │        │        │
 // │ * also requires isFullAuthMode        │        │        │        │        │        │        │
+// │ † only when SSO is enabled (isSsoEnabled)                                    │        │
 // └──────────────────┴────────────────────┴────────┴────────┴────────┴────────┴────────┴────────┘
 
-import { hasPassword, isFullAuthMode, isSsoOnlyMode, isOwnerOrAdmin, isWebAuthnEnabled } from '@/utils/features';
+import { hasPassword, isFullAuthMode, isSsoEnabled, isSsoOnlyMode, isOwnerOrAdmin, isWebAuthnEnabled } from '@/utils/features';
 import type { ComposerTranslation } from 'vue-i18n';
 
 /**
@@ -41,6 +43,7 @@ export interface NavigationFeatures {
   isSsoOnlyMode: boolean;
   isOwnerOrAdmin: boolean;
   isWebAuthnEnabled: boolean;
+  isSsoEnabled: boolean;
 }
 
 function resolveFeatures(features?: NavigationFeatures): NavigationFeatures {
@@ -51,6 +54,7 @@ function resolveFeatures(features?: NavigationFeatures): NavigationFeatures {
       isSsoOnlyMode: isSsoOnlyMode(),
       isOwnerOrAdmin: isOwnerOrAdmin(),
       isWebAuthnEnabled: isWebAuthnEnabled(),
+      isSsoEnabled: isSsoEnabled(),
     }
   );
 }
@@ -179,6 +183,17 @@ function getSecuritySection(
         icon: { collection: 'heroicons', name: 'finger-print-solid' },
         label: t('web.auth.passkeys.title'),
         visible: () => f.isWebAuthnEnabled,
+      },
+      {
+        // Connected SSO identities (#3840). Gated on isSsoEnabled — like
+        // passkeys are gated on isWebAuthnEnabled — NOT on hasPassword: an SSO
+        // identity is an alternative credential, and SSO-only accounts are the
+        // primary audience for managing their linked identities.
+        id: 'connections',
+        to: '/account/settings/security/connections',
+        icon: { collection: 'heroicons', name: 'globe-alt-solid' },
+        label: t('web.auth.connections.title'),
+        visible: () => f.isSsoEnabled,
       },
     ],
   };

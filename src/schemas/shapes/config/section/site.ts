@@ -86,11 +86,11 @@ const middlewareTree: AugmentTree = {
   authenticity_token: (b) => b.default(true),
   http_origin: (b) => b.default(false),
   xss_header: (b) => b.default(false),
-  frame_options: (b) => b.default(false),
-  path_traversal: (b) => b.default(false),
+  frame_options: (b) => b.default(true),
+  path_traversal: (b) => b.default(true),
   cookie_tossing: (b) => b.default(false),
   ip_spoofing: (b) => b.default(false),
-  strict_transport: (b) => b.default(false),
+  strict_transport: (b) => b.default(true),
 };
 
 const passphraseTree: AugmentTree = {

@@ -22,10 +22,20 @@ module Auth
       # bounded even on a `--all --repair` sweep. Per-action OT.info logging is
       # unchanged and remains the fine-grained trail.
       #
+      # ## Email-drift checks (#3731 PR-C1)
+      #
+      # Three checks exist specifically to make a half-completed email change
+      # visible: `:auth_email_drift` (the ONLY Redis-vs-SQL comparison here — a
+      # `ChangeEmail` op returning `:partial` is invisible without it),
+      # `:org_email_index_stale` (the org-scoped index, which Familia never
+      # auto-populates) and `:org_contact_email_stale` (default workspaces still
+      # contacting a dead address). See each method for its scoping rules.
+      #
       # NOTE: `VALID_ROLES` here is intentionally the doctor's own narrower set
       # ([customer, anonymous, colonel]) — the historical data-shape checker — and
       # is deliberately NOT the assignable-role list in SetRole::VALID_ROLES. They
       # answer different questions and must not be merged (preserved bit-for-bit).
+      # rubocop:disable Metrics/ClassLength
       class Doctor
         include Onetime::LoggerMethods
 
@@ -62,6 +72,9 @@ module Auth
 
           check_orphan_default_org(issues, repaired)
           check_email_index_entry(issues, repaired)
+          check_auth_email_drift(issues, repaired)
+          check_org_email_index(issues, repaired)
+          check_org_contact_email(issues, repaired)
           check_org_membership_sync(issues, repaired)
           check_role_validity(issues)
           check_verified_consistency(issues, repaired)
@@ -238,6 +251,202 @@ module Auth
           end
         end
 
+        # CHECK: the Rodauth accounts row agrees with the Customer record
+        #
+        # THE ONLY CROSS-STORE CHECK IN THIS DOCTOR. Every other check compares
+        # Redis against Redis, which means a half-completed cross-store email
+        # change (Auth::Operations::Customers::ChangeEmail returning `:partial`)
+        # was previously UNDETECTABLE: Redis is internally consistent on one
+        # address while Postgres holds the other, so the customer signs in with an
+        # address the app does not show them (or vice versa).
+        #
+        # Direction of repair is Redis -> SQL only. The Customer record is what
+        # every Redis index is keyed against; rewriting it to match SQL would
+        # invalidate `customer:email_index`, the org-scoped index and the org
+        # contact index in one move. Pushing the Customer's address into
+        # `accounts` reconciles authentication to what the rest of the system
+        # already believes.
+        #
+        # A MISSING accounts row is deliberately not reported here — that is a
+        # provisioning gap, not drift, and `bin/ots customers sync-auth-accounts`
+        # owns it.
+        #
+        # COST: one SQL round trip per customer. On a `--all` sweep over a large
+        # authdb this is the dominant cost of the doctor run. Skipped entirely in
+        # simple mode (no auth database).
+        def check_auth_email_drift(issues, repaired)
+          db = auth_db
+          return if db.nil?
+
+          extid = @customer.extid.to_s
+          return if extid.empty?
+          return if @customer.email.to_s.empty?
+
+          account = db[:accounts].where(external_id: extid).select(:id, :email).first
+          return if account.nil?
+
+          sql_email = account[:email].to_s
+          return if sql_email.downcase == @customer.email.to_s.downcase
+
+          issues << {
+            check: :auth_email_drift,
+            severity: :critical,
+            message: "auth account email #{OT::Utils.obscure_email(sql_email)} != customer email " \
+                     "#{@customer.obscure_email} (cross-store split-brain)",
+            auth_email: OT::Utils.obscure_email(sql_email),
+            repairable: true,
+            repair_action: 'Write the Customer email into the Rodauth accounts row',
+          }
+
+          return unless @repair
+
+          db.transaction do
+            db[:accounts].where(id: account[:id]).update(
+              email: @customer.email, updated_at: Sequel::CURRENT_TIMESTAMP,
+            )
+          end
+          OT.info "[customers doctor] Repaired auth email drift for #{@customer.extid}"
+          repaired << {
+            customer: @customer.extid,
+            action: :auth_email_drift_repaired,
+          }
+        rescue StandardError => ex
+          # A doctor check must never abort the sweep over one unreachable DB.
+          OT.le "[customers doctor] auth_email_drift check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
+        # CHECK: the ORG-SCOPED email index (organization:<objid>:email_index)
+        #
+        # Distinct from check_email_index_entry, which only ever looks at the
+        # GLOBAL `customer:email_index`. The org-scoped index is not
+        # auto-populated on save (Familia only auto-adds class-level indexes), so
+        # it is the first thing to go stale after an email change — a stale entry
+        # under the OLD address plus a missing entry under the new one.
+        #
+        # A key that points at a DIFFERENT customer is reported but NOT repaired:
+        # overwriting it would steal that customer's index entry, and this doctor
+        # has no way to tell which of the two is the rightful holder.
+        def check_org_email_index(issues, repaired)
+          email = @customer.email.to_s
+          return if email.empty?
+
+          objid = @customer.objid.to_s
+
+          customer_organizations.each do |org|
+            index   = org.email_index
+            indexed = index.get(email).to_s
+            stale   = index.hgetall.select { |key, value| value.to_s == objid && key != email }.keys
+
+            if !indexed.empty? && indexed != objid
+              issues << {
+                check: :org_email_index_stale,
+                severity: :high,
+                message: "#{org.extid}.email_index[#{@customer.obscure_email}] points to #{indexed}, " \
+                         "expected #{objid}",
+                org_extid: org.extid,
+                repairable: false,
+                repair_action: 'Manual decision required: org email_index entry is held by another customer',
+              }
+              next
+            end
+
+            next if !indexed.empty? && stale.empty?
+
+            issues << {
+              check: :org_email_index_stale,
+              severity: :high,
+              message: org_email_index_message(org, indexed, stale),
+              org_extid: org.extid,
+              stale_keys: stale.size,
+              repairable: true,
+              repair_action: 'Re-key the org-scoped email index',
+            }
+
+            next unless @repair
+
+            # Add the correct entry BEFORE removing the stale ones, so there is
+            # no window in which the customer is unfindable within the org.
+            index[email] = objid
+            stale.each { |key| index.remove_field(key) }
+            OT.info "[customers doctor] Re-keyed #{org.extid}.email_index for #{@customer.extid} " \
+                    "(removed #{stale.size} stale)"
+            repaired << {
+              customer: @customer.extid,
+              action: :org_email_index_rekeyed,
+              org: org.extid,
+              stale_keys: stale.size,
+            }
+          end
+        rescue StandardError => ex
+          OT.le "[customers doctor] org_email_index check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
+        # CHECK: a personal workspace still contacting a dead address
+        #
+        # `CreateDefaultWorkspace` seeds the auto-created workspace's
+        # contact_email from the customer's address and nothing ever updated it,
+        # so every self-service email change left the default org (and
+        # `organization:contact_email_index`) pointing at an address no account
+        # holds. That matters because the signup repair path looks orgs up BY
+        # contact_email.
+        #
+        # Scoped hard to avoid false positives and cross-customer damage:
+        #   * only `is_default` workspaces the customer OWNS
+        #   * only when the contact address resolves to NO live customer — a
+        #     contact deliberately set to a colleague's account address is left
+        #     alone. A deliberate non-account address (billing@acme.com) is the
+        #     known false positive; it is reported at :warning, and repair is
+        #     opt-in, never automatic.
+        def check_org_contact_email(issues, repaired)
+          email = @customer.email.to_s
+          return if email.empty?
+
+          customer_organizations.each do |org|
+            next unless default_org?(org)
+
+            contact = org.contact_email.to_s
+            next if contact.empty?
+            next if contact.downcase == email.downcase
+            next unless Onetime::Customer.email_index.get(contact).nil?
+            next unless org.owner?(@customer)
+
+            holder     = Onetime::Organization.contact_email_index.get(email)
+            conflicted = !holder.nil? && holder.to_s != org.identifier.to_s
+
+            issues << {
+              check: :org_contact_email_stale,
+              severity: :warning,
+              message: "#{org.extid} (default workspace) contact_email " \
+                       "#{OT::Utils.obscure_email(contact)} belongs to no account",
+              org_extid: org.extid,
+              repairable: !conflicted,
+              repair_action: if conflicted
+                               'Manual decision required: another org already holds the customer address'
+                             else
+                               'Point contact_email at the customer address'
+                             end,
+            }
+
+            next if conflicted
+            next unless @repair
+
+            org.contact_email = email
+            org.update_in_class_contact_email_index(contact)
+            org.save
+            OT.info "[customers doctor] Updated #{org.extid}.contact_email for #{@customer.extid}"
+            repaired << {
+              customer: @customer.extid,
+              action: :org_contact_email_updated,
+              org: org.extid,
+            }
+          end
+        rescue StandardError => ex
+          OT.le "[customers doctor] org_contact_email check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
         # CHECK: participation reverse index sync with org.members
         def check_org_membership_sync(issues, repaired)
           org_objids = @customer.participating_ids_for_target(Onetime::Organization, ['members'])
@@ -403,6 +612,36 @@ module Auth
           }
         end
 
+        # Auth database handle, or nil in simple mode / when unreachable.
+        def auth_db
+          return @auth_db if defined?(@auth_db)
+
+          @auth_db = defined?(Auth::Database) ? Auth::Database.connection : nil
+        rescue StandardError
+          @auth_db = nil
+        end
+
+        # Memoized once per Doctor instance — three checks iterate it.
+        def customer_organizations
+          @customer_organizations ||= @customer.organization_instances.to_a
+        rescue StandardError
+          @customer_organizations = []
+        end
+
+        # `is_default` is a conservative boolean: absent/blank means NOT default.
+        def default_org?(org)
+          org.respond_to?(:is_default) && org.is_default.to_s == 'true'
+        end
+
+        def org_email_index_message(org, indexed, stale)
+          if indexed.empty?
+            "#{org.extid}.email_index has no entry for #{@customer.obscure_email} " \
+              "(#{stale.size} stale key(s) point here)"
+          else
+            "#{org.extid}.email_index has #{stale.size} stale key(s) still pointing at #{@customer.extid}"
+          end
+        end
+
         # Checks whether a raw Redis value is a valid JSON literal. See the CLI
         # docs for the empty-string / bare-primitive caveats (preserved verbatim).
         def properly_serialized?(raw_value)
@@ -427,6 +666,7 @@ module Auth
           )
         end
       end
+      # rubocop:enable Metrics/ClassLength
     end
   end
 end

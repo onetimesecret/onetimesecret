@@ -74,7 +74,7 @@ jobs:
       - *checkout-step
 
       - name: Setup Ruby 4.0.2 (may fail on bundle install)
-        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         continue-on-error: true
         with:
           ruby-version: '4.0.2'

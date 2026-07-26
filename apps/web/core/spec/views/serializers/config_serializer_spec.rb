@@ -123,7 +123,12 @@ RSpec.describe Core::Views::ConfigSerializer do
 
   before do
     allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
-    allow(OT).to receive(:conf).and_return({})
+    # Master switch on: tenant_sso_available_for? consults
+    # SigninConfig.global_auth_enabled (AUTH_ENABLED) before the credential
+    # checks, and these examples exercise the credential/permission gates.
+    allow(OT).to receive(:conf).and_return(
+      { 'site' => { 'authentication' => { 'enabled' => true } } }
+    )
   end
 
   describe '.output_template' do

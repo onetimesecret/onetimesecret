@@ -6,6 +6,7 @@
 
 require 'yaml'
 require 'erb'
+require 'uri'
 require 'singleton'
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
@@ -258,6 +259,68 @@ module Onetime
       sso_config['allow_platform_fallback_for_tenants'] == true
     end
 
+    # Whether an SSO identity may auto-link to an account LOCATED purely by
+    # email, for the given provider route name (#3836).
+    #
+    # This is the ONE sanctioned exception to the invariant that email may
+    # LOCATE an account but only a demonstrated credential may BIND. It is an
+    # explicit, opt-in operator declaration that the IdP is inside the trust
+    # boundary — safe only when the operator controls both OTS and the IdP
+    # (self-hosted single-tenant). It has NO effect on the multi-tenant
+    # (tenant SsoConfig) surface; the callers gate that separately.
+    #
+    # Precedence:
+    #   1. Per-provider ENV override (e.g. OIDC_TRUST_EMAIL_FOR_LINKING) when
+    #      that var is present — 'true' enables, anything else disables.
+    #   2. Deprecated global fallback (sso.trust_email_for_linking, from
+    #      SSO_TRUST_EMAIL_FOR_LINKING) for the single-OIDC case and any
+    #      provider without its own trust var set.
+    #   3. Default: false.
+    #
+    # @param route_name [String, Symbol] the OmniAuth provider/route name
+    # @return [Boolean]
+    def trust_email_for_linking?(route_name)
+      defn = provider_definition_for_route(route_name)
+
+      # 1. Explicit per-provider override wins when the var is present.
+      # trust_var is optional: providers outside the email-linking escape
+      # hatch (the local dev IdP) omit it, so guard before ENV.key?.
+      if defn && defn[:trust_var] && ENV.key?(defn[:trust_var])
+        return ENV[defn[:trust_var]] == 'true'
+      end
+
+      # 2. Deprecated global / platform-wide fallback.
+      return true if sso_trust_email_for_linking?
+
+      # 3. Provider default (false), or false for unknown route names.
+      defn ? !!defn[:trust_default] : false
+    end
+
+    # Whether the email-linking trust flag is EFFECTIVELY enabled for at least
+    # one provider. Used by the boot guard to decide whether to warn about the
+    # multi-tenant surface (a clean install with the flag off boots silently).
+    #
+    # Delegates to #trust_email_for_linking? per provider so the SAME precedence
+    # applies: an explicit per-provider *_TRUST_EMAIL_FOR_LINKING wins over the
+    # deprecated global SSO_TRUST_EMAIL_FOR_LINKING fallback. Consequently a
+    # global `true` with EVERY provider explicitly opted out
+    # (*_TRUST_EMAIL_FOR_LINKING=false) returns false — no provider is actually
+    # trusted, so the guard stays silent rather than warning on a dead flag.
+    #
+    # Only definitions that declare a trust_var participate: the local dev IdP
+    # has no email-linking trust semantics, so it must not keep the guard alive
+    # (via the deprecated global fallback) after every real provider opts out.
+    #
+    # @return [Boolean]
+    def trust_email_for_linking_enabled?
+      provider_definitions.any? do |defn|
+        next false unless defn[:trust_var]
+
+        route_name = ENV.fetch(defn[:route_var], defn[:route_default])
+        trust_email_for_linking?(route_name)
+      end
+    end
+
     # DEPRECATED: Use sso_display_name
     def omniauth_provider_name
       sso_display_name
@@ -298,6 +361,41 @@ module Onetime
       end
     end
 
+    # The SSO identity-provider origins that must be allowed in the CSP
+    # form-action directive.
+    #
+    # Since otto 2.5+, the app emits a CSP header with `form-action 'self'`.
+    # Chromium enforces form-action across the whole redirect chain, so the
+    # SSO flow — a DOM form POST to /auth/sso/:provider that 302-redirects to
+    # the IdP (e.g. login.microsoftonline.com) — is blocked unless the IdP
+    # origin is present in form-action. This returns those origins so the
+    # router can widen the directive at boot.
+    #
+    # Provider-derived origins reuse the SAME gating as #sso_providers (SSO
+    # feature enabled AND the provider's required env vars present), so they
+    # can never drift from the providers that actually register. The
+    # SSO_FORM_ACTION_ORIGINS override is merged in unconditionally — it covers
+    # sovereign clouds, an OIDC issuer that differs from its authorization
+    # endpoint, and org-level SSO whose issuers are unknown at boot.
+    #
+    # Returns a de-duplicated Array of origin strings (scheme://host[:port]),
+    # or [] when nothing is configured. Side-effect free and safe to call at
+    # router-build time (no auth-app boot required).
+    def sso_form_action_origins
+      provider_origins = active_provider_origins
+      override_origins = override_form_action_origins
+
+      # An override set with zero auto-derived provider origins (SSO disabled or
+      # no active providers) is a config smell worth surfacing: form-action is
+      # being widened without any provider that actually registers.
+      if provider_origins.empty? && !ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.strip.empty?
+        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action but ' \
+              'no SSO provider origins are active (SSO disabled or no active providers)'
+      end
+
+      (provider_origins + override_origins).uniq
+    end
+
     # DEPRECATED: Use email_auth_enabled?
     def magic_links_enabled?
       email_auth_enabled?
@@ -317,6 +415,13 @@ module Onetime
     # the restrict_to key.
     def legacy_sso_only?
       sso_config['sso_only'] == true
+    end
+
+    # Global (deprecated single-OIDC) email-linking trust flag.
+    # Read from sso.trust_email_for_linking (rendered from
+    # SSO_TRUST_EMAIL_FOR_LINKING in auth.defaults.yaml).
+    def sso_trust_email_for_linking?
+      sso_config['trust_email_for_linking'] == true
     end
 
     # SSO configuration section from full mode config.
@@ -346,6 +451,18 @@ module Onetime
 
     # Provider definitions for sso_providers. Each entry defines the env
     # vars that gate the provider and where to read its route/display names.
+    #
+    # trust_var / trust_default gate the #3836 email-linking escape hatch:
+    # an explicit, per-provider operator declaration that the IdP is inside
+    # the trust boundary, so an SSO identity may auto-link to an account
+    # LOCATED by email. See #trust_email_for_linking?.
+    #
+    # idp_origin / idp_origin_from feed #sso_form_action_origins: a static
+    # :idp_origin for providers whose IdP host is fixed, or :idp_origin_from
+    # naming an env var whose URL the origin is derived from (OIDC's issuer).
+    # ENTRA is static because the OmniAuth strategy hard-pins the commercial
+    # cloud (login.microsoftonline.com); there is no sovereign-cloud authority
+    # env in this app — use SSO_FORM_ACTION_ORIGINS for those.
     def provider_definitions
       [
         {
@@ -354,6 +471,9 @@ module Onetime
           route_default: 'oidc',
           display_var: 'OIDC_DISPLAY_NAME',
           display_default: sso_display_name || 'SSO',
+          trust_var: 'OIDC_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
+          idp_origin_from: 'OIDC_ISSUER',
         },
         {
           required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
@@ -361,6 +481,9 @@ module Onetime
           route_default: 'entra',
           display_var: 'ENTRA_DISPLAY_NAME',
           display_default: 'Microsoft',
+          trust_var: 'ENTRA_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
+          idp_origin: 'https://login.microsoftonline.com',
         },
         {
           required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
@@ -368,6 +491,9 @@ module Onetime
           route_default: 'google',
           display_var: 'GOOGLE_DISPLAY_NAME',
           display_default: 'Google',
+          trust_var: 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
+          idp_origin: 'https://accounts.google.com',
         },
         {
           required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
@@ -375,6 +501,9 @@ module Onetime
           route_default: 'github',
           display_var: 'GITHUB_DISPLAY_NAME',
           display_default: 'GitHub',
+          trust_var: 'GITHUB_TRUST_EMAIL_FOR_LINKING',
+          trust_default: false,
+          idp_origin: 'https://github.com',
         },
         # Local IdP — see configure_local_idp_provider in features/omniauth.rb.
         # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
@@ -390,6 +519,100 @@ module Onetime
           display_default: 'Local IdP',
         },
       ]
+    end
+
+    # Reverse-map a route/provider name to its provider definition.
+    #
+    # Keys on the ROUTE NAME (the value returned by omniauth_provider and
+    # stored in account_identities.provider), NOT the env prefix or the
+    # provider_type. A provider's route name is ENV[route_var] when set,
+    # otherwise route_default (e.g. 'oidc', 'entra', 'google', 'github').
+    #
+    # @param route_name [String] the OmniAuth provider/route name
+    # @return [Hash, nil] the matching provider definition, or nil
+    def provider_definition_for_route(route_name)
+      route_name = route_name.to_s
+      return nil if route_name.empty?
+
+      provider_definitions.find do |defn|
+        ENV.fetch(defn[:route_var], defn[:route_default]) == route_name
+      end
+    end
+
+    # Origins for the providers that pass #sso_providers' gate (SSO enabled and
+    # all required env vars present). Reuses provider_definitions so it can
+    # never register an origin for a provider that would not register.
+    # filter_map drops a provider whose origin cannot be resolved (e.g. a
+    # malformed OIDC_ISSUER), so a bad issuer is skipped, never raised.
+    def active_provider_origins
+      return [] unless sso_enabled?
+
+      provider_definitions.filter_map do |defn|
+        next unless defn[:required_vars].all? { |var| env_present?(var) }
+
+        provider_origin(defn)
+      end
+    end
+
+    # Resolve a single provider definition to its IdP origin: a static
+    # :idp_origin, or one derived from the URL in the env var named by
+    # :idp_origin_from. Returns nil when unresolvable.
+    def provider_origin(defn)
+      return defn[:idp_origin] if defn[:idp_origin]
+      return origin_from_url(ENV.fetch(defn[:idp_origin_from], nil)) if defn[:idp_origin_from]
+
+      nil
+    end
+
+    # The SSO_FORM_ACTION_ORIGINS override: a space-separated origin list,
+    # merged into #sso_form_action_origins independent of any provider gating.
+    #
+    # Each token is routed through #origin_from_url and filter_map-dropped
+    # unless it resolves to a clean http(s) origin. Passing raw tokens straight
+    # into the CSP form-action directive is unsafe: a token like
+    # "https://idp.example.com;" or "https://a b.com" would inject into the
+    # header and otto's per-request reject_injection! would raise, 500-ing every
+    # request. Dropped tokens are logged so a misconfiguration is visible.
+    def override_form_action_origins
+      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.filter_map do |token|
+        origin = origin_from_url(token)
+        OT.lw "[auth_config] dropping invalid SSO_FORM_ACTION_ORIGINS token: #{token.inspect}" if origin.nil?
+        origin
+      end
+    end
+
+    # Derive an origin (scheme://host[:port]) from a URL, omitting a default
+    # port (80/443). Returns nil for a blank, schemeless, hostless, or
+    # otherwise malformed URL — never raises. Note that URI.parse sets #host to
+    # an empty string (not nil) for a scheme-present, hostless URL such as
+    # "https://" or "https:///path", so an empty/whitespace host is treated the
+    # same as nil to avoid emitting a degenerate "https://" origin.
+    def origin_from_url(url)
+      str = url.to_s.strip
+      return nil if str.empty?
+
+      uri = URI.parse(str)
+
+      # Only http(s) may widen the CSP form-action directive. Plain http is
+      # kept on purpose: internal OIDC providers commonly run without TLS.
+      return nil unless %w[http https].include?(uri.scheme&.downcase)
+
+      host = uri.host.to_s.strip
+      return nil if host.empty?
+
+      # Reject a host carrying CSP-hostile characters (whitespace, ';', ',',
+      # quotes, brackets, control chars). URI.parse keeps a trailing ';' on the
+      # host ("idp.example.com;" from "https://idp.example.com;"), and such an
+      # origin would break the form-action directive — otto's per-request
+      # reject_injection! raises, 500-ing every request. Guard here so a
+      # returned origin is always CSP-safe.
+      return nil if host.match?(/[\s;,'"()<>]/) || host.match?(/[\x00-\x1f]/)
+
+      origin  = "#{uri.scheme}://#{host}"
+      origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
+      origin
+    rescue URI::Error
+      nil
     end
 
     # Check if an environment variable is present and non-empty

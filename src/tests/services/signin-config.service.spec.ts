@@ -39,7 +39,9 @@ describe('SigninConfigService', () => {
   const domainExtId = 'dm_test_domain_456';
   const baseUrl = `/api/domains/${domainExtId}/signin-config`;
 
-  // Wire-format response (pre-transform: timestamps are numbers)
+  // Wire-format response (pre-transform: timestamps are numbers).
+  // `details` is required on GET/PUT responses (PR #3817): the settings UI
+  // seeds from it, so a details-less payload must fail validation.
   const mockSigninConfigResponse = {
     record: {
       domain_id: domainExtId,
@@ -50,6 +52,11 @@ describe('SigninConfigService', () => {
       sso_enabled: false,
       created_at: 1234567890,
       updated_at: 1234567890,
+    },
+    details: {
+      global_enabled: true,
+      effective_enabled: true,
+      global_restrict_to: null,
     },
   };
 
@@ -92,6 +99,19 @@ describe('SigninConfigService', () => {
       expect(result.record).toBeNull();
     });
 
+    it('fails parse when details is missing (record + details both null = failed load, PR #3817)', async () => {
+      // details is required by the response schema: without it the composable
+      // would seed a guess about the inherited state that an autosave then
+      // materializes as an explicit override.
+      const { details: _omit, ...withoutDetails } = mockSigninConfigResponse;
+      mockGet.mockResolvedValueOnce({ data: withoutDetails });
+
+      const result = await SigninConfigService.getConfigForDomain(domainExtId);
+
+      expect(result.record).toBeNull();
+      expect(result.details).toBeNull();
+    });
+
     it('rethrows non-404 errors', async () => {
       const serverError = new Error('Internal Server Error');
       mockGet.mockRejectedValueOnce(serverError);
@@ -112,6 +132,7 @@ describe('SigninConfigService', () => {
 
     it('preserves restrict_to value from response', async () => {
       const restricted = {
+        ...mockSigninConfigResponse,
         record: {
           ...mockSigninConfigResponse.record,
           restrict_to: 'sso',
@@ -174,6 +195,18 @@ describe('SigninConfigService', () => {
 
       await expect(
         SigninConfigService.putConfigForDomain(domainExtId, payload)
+      ).rejects.toThrow();
+    });
+
+    it('throws when the PUT response omits details (required, PR #3817)', async () => {
+      const { details: _omit, ...withoutDetails } = mockSigninConfigResponse;
+      mockPut.mockResolvedValueOnce({ data: withoutDetails });
+
+      await expect(
+        SigninConfigService.putConfigForDomain(domainExtId, {
+          enabled: true,
+          signin_enabled: true,
+        })
       ).rejects.toThrow();
     });
   });

@@ -53,7 +53,7 @@ module PostgresModeSuiteDatabase
   REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
   # Latest schema version, derived from the migration files rather than
   # hardcoded so this constant does not need hand-editing each time a migration
-  # lands (the gap that left it at 7 after OAuth migrations 008–010). Uses the
+  # lands (the gap that left it at 7 after OAuth migrations 009–011). Uses the
   # highest migration number — which is what Sequel's schema_info.version
   # records — rather than the file count, so it stays correct even if the
   # numbering is ever non-contiguous. Mirrors the sibling SQLite migration spec.

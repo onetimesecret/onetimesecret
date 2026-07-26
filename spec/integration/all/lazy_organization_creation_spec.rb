@@ -23,7 +23,11 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
     begin
-      OT.boot! :test, false unless OT.ready?
+      # Full boot, not partial (`:test, false`): a partial boot skips
+      # configure_familia (VERIFIABLE_ID_HMAC_SECRET, encryption keys) yet
+      # marks boot complete, so later files' plain `boot!` re-entries no-op
+      # and inherit the partial state (PR #3817 seed-60018 CI failure).
+      OT.boot! :test unless OT.ready?
     rescue Redis::CannotConnectError, Redis::ConnectionError => e
       puts "SKIP: Requires Redis connection (#{e.class})"
       exit 0
@@ -136,7 +140,11 @@ RSpec.describe 'Federation Application on Workspace Creation', type: :integratio
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
     begin
-      OT.boot! :test, false unless OT.ready?
+      # Full boot, not partial (`:test, false`): a partial boot skips
+      # configure_familia (VERIFIABLE_ID_HMAC_SECRET, encryption keys) yet
+      # marks boot complete, so later files' plain `boot!` re-entries no-op
+      # and inherit the partial state (PR #3817 seed-60018 CI failure).
+      OT.boot! :test unless OT.ready?
     rescue Redis::CannotConnectError, Redis::ConnectionError => e
       puts "SKIP: Requires Redis connection (#{e.class})"
       exit 0
@@ -201,7 +209,11 @@ RSpec.describe 'Billing Webhook Organization Creation Paths', type: :integration
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
     begin
-      OT.boot! :test, false unless OT.ready?
+      # Full boot, not partial (`:test, false`): a partial boot skips
+      # configure_familia (VERIFIABLE_ID_HMAC_SECRET, encryption keys) yet
+      # marks boot complete, so later files' plain `boot!` re-entries no-op
+      # and inherit the partial state (PR #3817 seed-60018 CI failure).
+      OT.boot! :test unless OT.ready?
     rescue Redis::CannotConnectError, Redis::ConnectionError => e
       puts "SKIP: Requires Redis connection (#{e.class})"
       exit 0
@@ -302,7 +314,11 @@ RSpec.describe 'OrganizationContext in Logic Classes', type: :integration, order
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
     begin
-      OT.boot! :test, false unless OT.ready?
+      # Full boot, not partial (`:test, false`): a partial boot skips
+      # configure_familia (VERIFIABLE_ID_HMAC_SECRET, encryption keys) yet
+      # marks boot complete, so later files' plain `boot!` re-entries no-op
+      # and inherit the partial state (PR #3817 seed-60018 CI failure).
+      OT.boot! :test unless OT.ready?
     rescue Redis::CannotConnectError, Redis::ConnectionError => e
       puts "SKIP: Requires Redis connection (#{e.class})"
       exit 0

@@ -81,10 +81,10 @@ public/branding/*
 
 # Files
 .DS_Store
-AGENTS.md
 CLAUDE.md
 !.oci-build.json
 .github/*md
+!.github/copilot-instructions.md
 .eslintcache
 .rspec*
 .qodo
@@ -106,6 +106,7 @@ support/schemas/
 Procfile.*
 !Procfile*.example
 !Procfile.production
+onetimesecret_*
 
 # Auto-generated files
 src/auto-imports.d.ts

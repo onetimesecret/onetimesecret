@@ -254,6 +254,20 @@ module Onetime
             # Familia.dbclient.set returns true if SET NX succeeded, false if key existed
             Familia.dbclient.set("job:processed:#{msg_id}", '1', nx: true, ex: ttl)
           end
+
+          # Release a previously-taken idempotency claim. Call this from a
+          # failure path BEFORE reject!: without it, a DLQ replay of the same
+          # message_id within the claim TTL is silently ack'd as a duplicate
+          # no-op instead of re-running. Only safe for workers whose work is
+          # idempotent. A never-claimed msg_id is a harmless no-op delete.
+          #
+          # @param msg_id [String, nil] Message ID whose claim to release
+          # @return [Boolean] true if a claim key was deleted
+          def release_processing_claim(msg_id)
+            return false unless msg_id
+
+            Familia.dbclient.del("job:processed:#{msg_id}").positive?
+          end
         end
       end
     end

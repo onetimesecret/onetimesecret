@@ -14,6 +14,12 @@
 // 8. Per-field loading feedback via savingField
 // 9. Delete confirmation two-step
 // 10. Accessibility (radiogroup roles, aria-describedby, role="switch")
+//
+// NOTE: The "One specific method" segment is hidden pending testing
+// (showRestrictMode=false); its button is not rendered and the mode-switch
+// order is now [Sign-in disabled, Any available method]. Mode B's picker logic
+// is still exercised by driving formState.restrict_to directly — the picker
+// renders whenever a restriction is already set.
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -219,13 +225,76 @@ describe('DomainSigninConfigForm', () => {
     it('defaults to "Any available method" when restrict_to is null', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
       expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
-      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
+      expect(wrapper.find('#signin-mode-disabled').attributes('aria-checked')).toBe('false');
     });
 
-    it('is in "One specific method" mode when restrict_to is set', () => {
+    it('renders the restrict picker (Mode B) when restrict_to is set, though its segment is hidden', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
-      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('true');
+      // The "One specific method" segment is hidden (showRestrictMode=false),
+      // but an existing restriction still drives Mode B: the picker renders and
+      // "Any available method" is not the active mode.
+      expect(wrapper.find('#signin-mode-one').exists()).toBe(false);
+      expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
       expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('false');
+    });
+
+    it('keeps the mode-switch keyboard-reachable in hidden Mode B (a visible segment holds tabindex 0)', () => {
+      // Regression guard: Mode B's segment (index 2) is hidden, so if
+      // checkedModeIndex pointed at it, every visible segment would get
+      // tabindex=-1 and the radiogroup would drop out of the tab order
+      // (WCAG 2.1.1). checkedModeIndex falls back to the first visible segment.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+
+      const disabled = wrapper.find('#signin-mode-disabled');
+      const any = wrapper.find('#signin-mode-any');
+      // Exactly one visible segment is in the tab order.
+      expect(disabled.attributes('tabindex')).toBe('0');
+      expect(any.attributes('tabindex')).toBe('-1');
+      // aria-checked stays accurate on the visible segments: neither is the
+      // active mode (Mode B is the active mode, represented separately below).
+      expect(disabled.attributes('aria-checked')).toBe('false');
+      expect(any.attributes('aria-checked')).toBe('false');
+    });
+
+    it('exposes exactly one checked radio reflecting active Mode B while its segment is hidden', () => {
+      // WCAG 2.1 SC 4.1.2 (Name, Role, Value): the interactive Mode B segment
+      // is withheld (showRestrictMode=false), so if the radiogroup relied on the
+      // visible segments alone it would report NO selection while restrict_to is
+      // set. An sr-only, non-interactive radio carries the true selection so AT
+      // announces the active mode; it stays out of the tab order (tabindex=-1 /
+      // aria-disabled) and cannot switch INTO the withheld mode.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+
+      const radiogroup = wrapper.find('[role="radiogroup"]');
+      const checked = radiogroup.findAll('[role="radio"]').filter(
+        (r) => r.attributes('aria-checked') === 'true'
+      );
+      // Exactly one radio in the group is checked, and it is the Mode B stand-in.
+      expect(checked).toHaveLength(1);
+      expect(checked[0].attributes('id')).toBe('signin-mode-one-active');
+
+      const active = wrapper.find('#signin-mode-one-active');
+      expect(active.exists()).toBe(true);
+      expect(active.classes()).toContain('sr-only');
+      // Announced but not a tab stop, and not interactive (can't switch into it).
+      expect(active.attributes('tabindex')).toBe('-1');
+      expect(active.attributes('aria-disabled')).toBe('true');
+      // A visible segment still owns the tab stop (keyboard reachability intact).
+      expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('0');
+    });
+
+    it('does not render the Mode B stand-in radio when Mode B is not active', () => {
+      // The sr-only stand-in only exists to represent an otherwise-unrepresentable
+      // active Mode B. In Mode A the "Any" segment carries aria-checked itself.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      expect(wrapper.find('#signin-mode-one-active').exists()).toBe(false);
+
+      const radiogroup = wrapper.find('[role="radiogroup"]');
+      const checked = radiogroup.findAll('[role="radio"]').filter(
+        (r) => r.attributes('aria-checked') === 'true'
+      );
+      expect(checked).toHaveLength(1);
+      expect(checked[0].attributes('id')).toBe('signin-mode-any');
     });
 
     it('clicking "Any available method" with a restriction set auto-saves restrict_to: null', async () => {
@@ -246,14 +315,10 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
 
-    it('clicking "One specific method" reveals the picker without auto-saving', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      await wrapper.find('#signin-mode-one').trigger('click');
-
-      // Picker is revealed (radio list rendered) but nothing persisted yet.
-      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-      expect(wrapper.emitted('auto-save')).toBeFalsy();
-    });
+    // NOTE: "clicking the One-specific-method segment reveals the picker" was
+    // removed — the segment is hidden (showRestrictMode=false). Mode B is now
+    // reached only when restrict_to is already set (covered by the picker
+    // tests below, driven via formState).
   });
 
   // -----------------------------------------------------------------------
@@ -270,7 +335,7 @@ describe('DomainSigninConfigForm', () => {
       signin_enabled: false,
     };
 
-    it('renders the third segment in the mode switch', () => {
+    it('renders the disabled segment (first) in the mode switch', () => {
       wrapper = mountForm();
       expect(wrapper.find('#signin-mode-disabled').exists()).toBe(true);
       expect(wrapper.find('#signin-mode-disabled').attributes('role')).toBe('radio');
@@ -280,13 +345,13 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ formState: disabledFormState });
       expect(wrapper.find('#signin-mode-disabled').attributes('aria-checked')).toBe('true');
       expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('false');
-      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
     });
 
     it('wins over a preserved restrict_to for display', () => {
       wrapper = mountForm({ formState: { ...disabledFormState, restrict_to: 'sso' } });
       expect(wrapper.find('#signin-mode-disabled').attributes('aria-checked')).toBe('true');
-      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
+      // Mode B's picker must not render while disabled, even with a restriction.
+      expect(wrapper.find('#signin-restrict-sso').exists()).toBe(false);
     });
 
     it('clicking "Sign-in disabled" auto-saves signin_enabled=false', async () => {
@@ -355,17 +420,9 @@ describe('DomainSigninConfigForm', () => {
       ]);
     });
 
-    it('re-enabling via "One specific method" saves signin_enabled=true immediately', async () => {
-      // Unlike the Any→One transition (which persists nothing until a method
-      // is picked), leaving the disabled state must persist signin_enabled
-      // right away — the public page should stop showing the notice.
-      wrapper = mountForm({ formState: disabledFormState });
-      await wrapper.find('#signin-mode-one').trigger('click');
-
-      const emitted = wrapper.emitted('auto-save');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual([{ signin_enabled: true }, 'signin_enabled']);
-    });
+    // NOTE: "re-enabling via One specific method" was removed — that segment is
+    // hidden (showRestrictMode=false). Re-enabling via "Any available method" is
+    // covered above.
 
     it('mode switch segments are disabled while saving', () => {
       wrapper = mountForm({ isSaving: true });
@@ -724,10 +781,10 @@ describe('DomainSigninConfigForm', () => {
       expect(toggles(wrapper)).toHaveLength(0);
     });
 
-    it('switching into Mode B via the segment removes the switches', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      expect(toggles(wrapper)).toHaveLength(2);
-      await wrapper.find('#signin-mode-one').trigger('click');
+    it('Mode B (restrict_to set) shows zero availability switches', async () => {
+      // The "switch into Mode B via the segment" path is gone (segment hidden);
+      // Mode B is reached via an existing restriction instead.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
       expect(toggles(wrapper)).toHaveLength(0);
     });
   });
@@ -735,33 +792,12 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
   // Invariant 4 — Mode-switch save semantics
   //
-  // Existing tests cover: Any→clears (auto-save null), Any→null no-op, One
-  // reveals picker without save. Gaps filled here:
-  //   - bouncing One then Any while restrict_to stays null saves nothing
-  //   - the local "intent" flag does not leak a save on its own
+  // The former tests here bounced the "One specific method" segment to prove
+  // the local "intent" flag never leaks a save. That segment is now hidden
+  // (showRestrictMode=false), so those UI paths are unreachable and the tests
+  // were removed. Any-mode save semantics remain covered in the "mode switch"
+  // block above.
   // -----------------------------------------------------------------------
-
-  describe('invariant 4: mode-switch save semantics', () => {
-    it('One then Any (restrict_to never left null) emits no auto-save at all', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      await wrapper.find('#signin-mode-one').trigger('click');
-      await wrapper.find('#signin-mode-any').trigger('click');
-      // Nothing was ever persisted: no method chosen, restrict_to stayed null.
-      expect(wrapper.emitted('auto-save')).toBeFalsy();
-    });
-
-    it('returning to Any after picker is revealed shows Mode A again with no save', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      await wrapper.find('#signin-mode-one').trigger('click');
-      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-
-      await wrapper.find('#signin-mode-any').trigger('click');
-      // Back to Mode A: switches present, picker gone, still nothing saved.
-      expect(toggles(wrapper)).toHaveLength(2);
-      expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
-      expect(wrapper.emitted('auto-save')).toBeFalsy();
-    });
-  });
 
   // -----------------------------------------------------------------------
   // Invariant 5 — restrict_to reverting to null externally returns to Mode A
@@ -775,9 +811,9 @@ describe('DomainSigninConfigForm', () => {
 
   describe('invariant 5: external restrict_to revert returns to Mode A', () => {
     it('reverts to Mode A when restrict_to is cleared after a method was set', async () => {
-      // Start in Mode B with a method selected.
+      // Start in Mode B with a method selected (segment is hidden, but an
+      // existing restriction still renders the picker).
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
-      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('true');
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
 
       // Parent deletes the config: restrict_to returns to null.
@@ -785,26 +821,14 @@ describe('DomainSigninConfigForm', () => {
 
       // Form is back in Mode A: availability fieldset shown, picker gone.
       expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
-      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
       expect(toggles(wrapper)).toHaveLength(2);
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
     });
 
-    it('reverts to Mode A when restrict_to clears after entering Mode B via the segment', async () => {
-      // Enter Mode B locally (oneSelectedIntent = true) without a method set.
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      await wrapper.find('#signin-mode-one').trigger('click');
-      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-
-      // A method gets picked (restrict_to set), then the config is reset to null.
-      await wrapper.setProps({ formState: { ...defaultFormState, restrict_to: 'sso' } });
-      await wrapper.setProps({ formState: { ...defaultFormState, restrict_to: null } });
-
-      // The lingering intent flag is cleared: Mode A is shown, not a stale Mode B.
-      expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
-      expect(toggles(wrapper)).toHaveLength(2);
-      expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
-    });
+    // NOTE: "reverts to Mode A after entering Mode B via the segment" was
+    // removed — the segment (and thus the local oneSelectedIntent path) is
+    // hidden. The external-revert case above still covers the watcher clearing
+    // the picker when restrict_to returns to null.
   });
 
   // -----------------------------------------------------------------------
@@ -860,30 +884,10 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
 
-    it('clicking "One" when the inherited state already restricts to a method emits an empty pin patch', async () => {
-      // Seeded global restrict_to pre-activates Mode B; the click changes
-      // nothing value-wise but must still pin.
-      wrapper = mountForm({
-        workspaceDefault: true,
-        formState: { ...defaultFormState, restrict_to: 'sso', sso_enabled: true },
-      });
-      await wrapper.find('#signin-mode-one').trigger('click');
-
-      const emitted = wrapper.emitted('auto-save');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual([{}, 'restrict_to']);
-    });
-
-    it('clicking "One" with no inherited restriction still only reveals the picker (nothing to pin until a method is chosen)', async () => {
-      wrapper = mountForm({
-        workspaceDefault: true,
-        formState: { ...defaultFormState, restrict_to: null, signin_enabled: true },
-      });
-      await wrapper.find('#signin-mode-one').trigger('click');
-
-      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-      expect(wrapper.emitted('auto-save')).toBeFalsy();
-    });
+    // NOTE: the two "clicking the One segment" materialization tests were
+    // removed — that segment is hidden (showRestrictMode=false). The remaining
+    // ADR-024 tests exercise Mode B's pin behavior via the restrict_to radios
+    // (reached because the picker renders whenever a restriction is set).
 
     it('clicking the pre-checked (inherited) method radio re-saves via the click path (radios fire no change when checked)', async () => {
       wrapper = mountForm({
@@ -1056,7 +1060,7 @@ describe('DomainSigninConfigForm', () => {
     it('mode switch segments expose role="radio"', () => {
       wrapper = mountForm();
       expect(wrapper.find('#signin-mode-any').attributes('role')).toBe('radio');
-      expect(wrapper.find('#signin-mode-one').attributes('role')).toBe('radio');
+      expect(wrapper.find('#signin-mode-disabled').attributes('role')).toBe('radio');
     });
 
     it('Mode B method radios have aria-describedby linking to description', () => {
@@ -1094,7 +1098,6 @@ describe('DomainSigninConfigForm', () => {
       it('only the checked segment is in the tab order', () => {
         wrapper = mountForm(); // defaults to mode Any
         expect(wrapper.find('#signin-mode-any').attributes('tabindex')).toBe('0');
-        expect(wrapper.find('#signin-mode-one').attributes('tabindex')).toBe('-1');
         expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('-1');
       });
 
@@ -1102,22 +1105,22 @@ describe('DomainSigninConfigForm', () => {
         wrapper = mountForm({ formState: { ...defaultFormState, signin_enabled: false } });
         expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('0');
         expect(wrapper.find('#signin-mode-any').attributes('tabindex')).toBe('-1');
-        expect(wrapper.find('#signin-mode-one').attributes('tabindex')).toBe('-1');
       });
 
-      it('ArrowRight moves focus to the next segment without selecting', async () => {
-        wrapper = mountForm();
+      // Two visible segments, in order [signin-mode-disabled, signin-mode-any].
+      it('ArrowRight from the last segment wraps to the first without selecting', async () => {
+        wrapper = mountForm(); // defaults to mode Any (the last segment)
         const any = wrapper.find('#signin-mode-any');
         (any.element as HTMLElement).focus();
         await any.trigger('keydown', { key: 'ArrowRight' });
 
-        expect(document.activeElement?.id).toBe('signin-mode-one');
+        expect(document.activeElement?.id).toBe('signin-mode-disabled');
         // Focus moved, nothing selected or saved.
         expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
         expect(wrapper.emitted('auto-save')).toBeFalsy();
       });
 
-      it('ArrowLeft wraps from the first to the last segment', async () => {
+      it('ArrowLeft moves focus to the previous segment', async () => {
         wrapper = mountForm();
         const any = wrapper.find('#signin-mode-any');
         (any.element as HTMLElement).focus();
@@ -1128,23 +1131,27 @@ describe('DomainSigninConfigForm', () => {
 
       it('End jumps to the last segment, Home back to the first', async () => {
         wrapper = mountForm();
-        const any = wrapper.find('#signin-mode-any');
-        (any.element as HTMLElement).focus();
-        await any.trigger('keydown', { key: 'End' });
-        expect(document.activeElement?.id).toBe('signin-mode-disabled');
-
-        await wrapper.find('#signin-mode-disabled').trigger('keydown', { key: 'Home' });
+        const disabled = wrapper.find('#signin-mode-disabled');
+        (disabled.element as HTMLElement).focus();
+        await disabled.trigger('keydown', { key: 'End' });
         expect(document.activeElement?.id).toBe('signin-mode-any');
+
+        await wrapper.find('#signin-mode-any').trigger('keydown', { key: 'Home' });
+        expect(document.activeElement?.id).toBe('signin-mode-disabled');
       });
 
       it('activating a segment via keyboard (Enter→click) switches mode', async () => {
-        wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+        wrapper = mountForm(); // defaults to mode Any, signin_enabled: true
         // Native <button> fires click on Enter/Space; @vue/test-utils routes a
-        // keyboard activation through the click handler.
-        await wrapper.find('#signin-mode-one').trigger('keydown.enter');
-        await wrapper.find('#signin-mode-one').trigger('click');
-        expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('true');
-        expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+        // keyboard activation through the click handler. State is prop-controlled,
+        // so the auto-save emit — not a local aria-checked flip — is the
+        // observable effect of activating "Sign-in disabled".
+        await wrapper.find('#signin-mode-disabled').trigger('keydown.enter');
+        await wrapper.find('#signin-mode-disabled').trigger('click');
+
+        const emitted = wrapper.emitted('auto-save');
+        expect(emitted).toBeTruthy();
+        expect(emitted![0]).toEqual([{ signin_enabled: false }, 'signin_enabled']);
       });
     });
   });

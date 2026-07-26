@@ -356,6 +356,40 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       expect(result[:record][:previous_role]).to eq('member')
       expect(result[:record][:role]).to eq('admin')
     end
+
+    # #3812 regression: Customer locales load as "" from Redis, which is truthy
+    # and would slip past a bare `@target_member.locale || OT.default_locale`,
+    # queueing a :role_changed email with a locale I18n cannot resolve.
+    describe 'locale normalization on the :role_changed email' do
+      def enqueued_role_changed_locale
+        captured = []
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, payload, **_kwargs|
+          captured << payload[:locale] if template == :role_changed
+          nil
+        end
+
+        logic.process
+
+        expect(captured.size).to eq(1),
+          "Expected exactly one :role_changed email, got #{captured.size}"
+        captured.first
+      end
+
+      it 'falls back to the default locale when the member locale is blank' do
+        allow(target_member).to receive(:locale).and_return('')
+        expect(enqueued_role_changed_locale).to eq(OT.default_locale)
+      end
+
+      it 'falls back to the default locale when the member locale is whitespace-only' do
+        allow(target_member).to receive(:locale).and_return('   ')
+        expect(enqueued_role_changed_locale).to eq(OT.default_locale)
+      end
+
+      it 'carries a set member locale through to the payload' do
+        allow(target_member).to receive(:locale).and_return('fr')
+        expect(enqueued_role_changed_locale).to eq('fr')
+      end
+    end
   end
 
   describe '#success_data' do

@@ -58,12 +58,15 @@ module Auth
       # attempted before a one-shot console script exits, but a delivery
       # failure must not fail (or raise out of) the recovery operation.
       def notify_customer
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = @customer.respond_to?(:locale) ? @customer.locale : nil
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
         Onetime::Jobs::Publisher.enqueue_email(
           :mfa_disabled,
           {
             email_address: @email,
             disabled_at: Time.now.utc.iso8601,
-            locale: (@customer.respond_to?(:locale) ? @customer.locale : nil) || OT.default_locale,
+            locale: email_locale,
           },
           fallback: :sync,
         )

@@ -14,6 +14,10 @@
 # - Customer.increment_secrets_active guards anon/nil/blank owner ids
 # - Customer.decrement_secrets_active clamps at zero
 # - a fresh Customer.new(objid:) reads the same counter key (no full load)
+# - the per-owner `secrets` INDEX is written at the same two chokepoints as the
+#   counter, so "how many" and "which ones" can only drift together. The index
+#   is what lets the colonel customer-detail view list a customer's secrets
+#   without a full `secret:*:object` keyspace walk.
 #
 # Run: try --agent try/unit/models/secret_active_counter_try.rb
 
@@ -95,6 +99,47 @@ Onetime::Customer.increment_secrets_active(@direct.objid)
 @direct.secrets_active.to_i
 #=> 1
 
+## the per-owner secrets INDEX is written at the create chokepoint
+@indexed = Onetime::Customer.create!(email: "indexed_#{@stamp}@ctr.example")
+_receipt, @first = Onetime::Receipt.spawn_pair(@indexed.objid, 3600, 'indexed one')
+@indexed.secrets.member?(@first.objid)
+#=> true
+
+## the index score is the secret's created time (so revrange is newest-first)
+@indexed.secrets.score(@first.objid).to_i == @first.created.to_i
+#=> true
+
+## index and counter stay in step across a second create
+_receipt, @second = Onetime::Receipt.spawn_pair(@indexed.objid, 3600, 'indexed two')
+[@indexed.secrets.element_count, @indexed.secrets_active.to_i]
+#=> [2, 2]
+
+## a newest-first read returns the most recent secret first
+@indexed.secrets.revrange(0, 0)
+#=> [@second.objid]
+
+## destroy! removes the member — the mirror of the create-side add
+@second.destroy!
+[@indexed.secrets.member?(@second.objid), @indexed.secrets.element_count]
+#=> [false, 1]
+
+## a reveal (same destroy! chokepoint) also unindexes
+_receipt, @revealed = Onetime::Receipt.spawn_pair(@indexed.objid, 3600, 'to reveal')
+@revealed.revealed!
+[@indexed.secrets.member?(@revealed.objid), @indexed.secrets.element_count]
+#=> [false, 1]
+
+## anonymous creates touch no per-owner index
+Onetime::Receipt.spawn_pair('anon', 3600, 'anon indexed')
+Onetime::Customer.new(objid: 'anon').secrets.element_count
+#=> 0
+
+## increment_secrets_active without a secret_id bumps the counter but not the index
+@countonly = Onetime::Customer.create!(email: "countonly_#{@stamp}@ctr.example")
+Onetime::Customer.increment_secrets_active(@countonly.objid)
+[@countonly.secrets_active.to_i, @countonly.secrets.element_count]
+#=> [1, 0]
+
 # TEARDOWN
 
-[@cust, @direct, @zeroed].each { |c| c.destroy! rescue nil }
+[@cust, @direct, @zeroed, @indexed, @countonly].each { |c| c.destroy! rescue nil }

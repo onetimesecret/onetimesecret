@@ -97,6 +97,10 @@ module Billing
           owner = org.owner
           return unless owner&.email
 
+          # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+          email_locale = owner.respond_to?(:locale) ? owner.locale : nil
+          email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
           Onetime::Jobs::Publisher.enqueue_email(
             :subscription_changed,
             {
@@ -104,7 +108,7 @@ module Billing
               old_plan: old_plan,
               new_plan: new_plan,
               effective_date: Time.now.utc.iso8601,
-              locale: (owner.respond_to?(:locale) ? owner.locale : nil) || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :async_thread,
           )
