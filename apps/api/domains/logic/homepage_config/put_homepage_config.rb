@@ -37,6 +37,8 @@ module DomainsAPI
       #   a form with nowhere to deliver.
       #
       class PutHomepageConfig < Base
+        include Onetime::LoggerMethods
+
         attr_reader :homepage_config
 
         def process_params
@@ -69,13 +71,13 @@ module DomainsAPI
         end
 
         def process
-          OT.ld "[PutHomepageConfig] domain=#{@custom_domain.identifier} extid=#{@domain_id} " \
-                "enabled=#{@enabled} org=#{@organization.identifier} user=#{cust.extid}"
+          logger.debug "[PutHomepageConfig] domain=#{@custom_domain.identifier} extid=#{@domain_id} " \
+                       "enabled=#{@enabled} org=#{@organization.identifier} user=#{cust.extid}"
 
           if @deprecated_auth_params.any?
-            OT.lw "[PutHomepageConfig] deprecated params ignored (#{@deprecated_auth_params.join(', ')}) " \
-                  "domain=#{@custom_domain.identifier} user=#{cust.extid} — per-domain homepage auth " \
-                  'links are governed by the SigninConfig/SignupConfig settings, not this endpoint (#3672)'
+            logger.warn "[PutHomepageConfig] deprecated params ignored (#{@deprecated_auth_params.join(', ')}) " \
+                        "domain=#{@custom_domain.identifier} user=#{cust.extid} — per-domain homepage auth " \
+                        'links are governed by the SigninConfig/SignupConfig settings, not this endpoint (#3672)'
           end
 
           @homepage_config = Onetime::CustomDomain::HomepageConfig.upsert(
@@ -85,11 +87,11 @@ module DomainsAPI
             secrets_mode: @secrets_mode,
           )
 
-          OT.ld "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} " \
-                "enabled=#{@homepage_config.enabled?} signup=#{@homepage_config.signup_enabled?} " \
-                "signin=#{@homepage_config.signin_enabled?} " \
-                "variant=#{@homepage_config.disabled_homepage_variant_value.inspect} " \
-                "updated=#{@homepage_config.updated}"
+          logger.debug "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} " \
+                       "enabled=#{@homepage_config.enabled?} signup=#{@homepage_config.signup_enabled?} " \
+                       "signin=#{@homepage_config.signin_enabled?} " \
+                       "variant=#{@homepage_config.disabled_homepage_variant_value.inspect} " \
+                       "updated=#{@homepage_config.updated}"
 
           success_data
         end

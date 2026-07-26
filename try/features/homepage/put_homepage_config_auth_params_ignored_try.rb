@@ -58,9 +58,29 @@ def create_strategy_with_domain(customer, domain_fqdn, domain_strategy: :custom)
   )
 end
 
-def run_put(customer, domain, params)
+# Warning-capture stand-in for the LoggerMethods seam: PutHomepageConfig logs
+# through its instance `logger`, so injecting this per-instance captures the
+# deprecation warning without touching any global state.
+class CaptureLogger
+  attr_reader :warnings
+
+  def initialize
+    @warnings = []
+  end
+
+  def warn(msg, _payload = nil)
+    @warnings << msg
+  end
+
+  def debug(*); end
+  def info(*); end
+  def error(*); end
+end
+
+def run_put(customer, domain, params, logger: nil)
   strategy = create_strategy_with_domain(customer, domain.display_domain)
   logic = PutHomepageConfig.new(strategy, params.merge('extid' => domain.extid))
+  logic.define_singleton_method(:logger) { logger } if logger
   logic.process_params
   logic.raise_concerns
   logic.process
@@ -91,30 +111,20 @@ end
 #=> [false, false]
 
 ## The deprecation warning is emitted exactly when deprecated params are
-## present, and not on a clean PUT — intercept OT.lw so the logged half of
-## the contract can't regress silently
-captured = []
-# The stub shadows ClassMethods#lw on OT's singleton class; remove_method in
-# the ensure resurfaces the original. That restore is only valid while lw's
-# owner is the mixed-in module — fail loud if the definition ever moves.
-unless OT.method(:lw).owner == Onetime::ClassMethods
-  raise "OT.lw owner is #{OT.method(:lw).owner}; shadow/remove_method restore no longer valid"
-end
-OT.define_singleton_method(:lw) { |*msgs, **_payload| captured << msgs.join(' ') }
-begin
-  run_put(@test_cust, @test_domain, {
-    'enabled' => true,
-    'signup_enabled' => true,
-    'signin_enabled' => true,
-  })
-  @deprecation_warning_count = captured.grep(/deprecated params ignored \(signup_enabled, signin_enabled\)/).length
-  captured.clear
-  run_put(@test_cust, @test_domain, { 'enabled' => true })
-  @clean_put_warning_count = captured.grep(/deprecated params ignored/).length
-ensure
-  OT.singleton_class.send(:remove_method, :lw)
-end
-[@deprecation_warning_count, @clean_put_warning_count]
+## present, and not on a clean PUT — a capture logger injected per logic
+## instance pins the logged half of the contract; nothing global to restore
+deprecated_capture = CaptureLogger.new
+run_put(@test_cust, @test_domain, {
+  'enabled' => true,
+  'signup_enabled' => true,
+  'signin_enabled' => true,
+}, logger: deprecated_capture)
+clean_capture = CaptureLogger.new
+run_put(@test_cust, @test_domain, { 'enabled' => true }, logger: clean_capture)
+[
+  deprecated_capture.warnings.grep(/deprecated params ignored \(signup_enabled, signin_enabled\)/).length,
+  clean_capture.warnings.grep(/deprecated params ignored/).length,
+]
 #=> [1, 0]
 
 ## Other submitted fields still persist alongside the ignored params
