@@ -105,20 +105,25 @@ resolution behind proxies — but no filtering primitive.
    (`otto-2.6.0/lib/otto/privacy/ip_privacy.rb:38-43`); `/32` allowlist
    entries can never match because the client always arrives as
    `203.0.113.0`. `REMOTE_ADDR` is overwritten with the same masked value.
-   This is the binding granularity constraint for the whole feature.
+   This was the binding granularity constraint for the feature — resolved
+   2026-07-25 by the `otto.ip_match` capability (§3), which decouples
+   matching precision from masking.
 2. **No allow/deny-list primitive.** No `allow_ip`/`deny_ip`, no exposed
    CIDR-set matcher (`Config#trusted_proxy?` is the only one and it is
-   single-purpose), no per-route IP policy interpretation.
+   single-purpose), no per-route IP policy interpretation. *Addressed:
+   `Otto::Utils.ip_in_cidrs?` implemented 2026-07-25 (§3).*
 3. **`filter` mode's XFF walk is leftmost-first and therefore spoofable**
    (`utils.rb:166-172`) unless the proxy tier *replaces* inbound XFF.
    Depth mode is the robust option but permanently disables
    `Request#secure?`'s forwarded-proto trust (modes are mutually
    exclusive, so `otto.via_trusted_proxy` is always false in depth mode).
-4. **Geo headers are trusted unconditionally**
+4. **Geo headers are trusted unconditionally** in the released 2.6.0
    (`otto-2.6.0/lib/otto/privacy/geo_resolver.rb:164-197`): `CF-IPCountry`
    et al. are honored with no trusted-proxy gate, and the built-in range
    table is a toy. Country-based blocking on this foundation would be
-   client-spoofable.
+   client-spoofable. *Already fixed on otto main (unreleased): geo headers
+   are now honored only when the request arrived via a configured CIDR
+   trusted proxy (`geo_headers_trusted?`), and the guess table is removed.*
 5. **Rate limiting is not IP-resolution-aware**: the throttle key is
    Rack::Attack's `request.ip` computed *outside* Otto, so
    `trusted_proxies`/`trusted_proxy_depth` have no effect on it, and
@@ -143,15 +148,15 @@ silently never match. Its doc comment even suggests office-VPN CIDRs.
 
 ---
 
-## 3. What Otto could provide (upstream proposals)
+## 3. Otto changes (implemented 2026-07-25, pending release)
 
 Per the prior repo decision (`0622-otto-homepage-matching-cidrs-CONSIDER.txt`):
-policy stays in OTS; Otto should grow small, reusable primitives.
+policy stays in OTS; Otto grows small, reusable primitives.
 
 Otto's privacy-by-default frame is right for a public open-source project,
 but private/compliance deployments invert the priority: granular
-auditability supersedes. The organizing principle for upstream work is to
-separate two axes the current design conflates:
+auditability supersedes. The organizing principle is to separate two axes
+the pre-change design conflated:
 
 - **Observability posture** — what persists where anyone can see it (env
   keys, logs, fingerprints, error reports). A global invariant; the place
@@ -159,48 +164,61 @@ separate two axes the current design conflates:
 - **Policy precision** — what an access-control *decision* may examine,
   ephemerally, at resolution time. A capability; the place for opt-in.
 
-Today the only route to /32 matching is `disable_ip_privacy!` — changing
-the observability posture (unmasking logs) to gain a filter. The proposals
-below decouple them so precise filtering composes with any posture.
+Before these changes the only route to /32 matching was
+`disable_ip_privacy!` — changing the observability posture (unmasking
+logs) to gain a filter. The changes below decouple the axes so precise
+filtering composes with any posture. Implemented on the otto checkout
+(`~/Projects/dev/delano/otto`, uncommitted on main; full suite 1749
+examples green; changelog fragment
+`changelog.d/20260725_ip_precision_and_privacy_profiles.rst`):
 
-1. **`Otto::Utils.ip_in_cidrs?(ip, cidrs)`** — a public CIDR-set matcher
-   with the same parse-once, `#native`-folding, family-aware semantics as
-   `trusted_proxy?`. Today the only reuse path is abusing a second
-   `Security::Config` instance as a CIDR-set holder.
-2. **Named privacy profiles as validated presets** (observability axis):
-   `configure_ip_privacy(profile: :anonymous | :masked | :audit)` —
-   `:masked` = today's default, `:anonymous` = `enable_full_ip_privacy!`,
-   `:audit` = `disable_ip_privacy!` with documented operator retention
-   responsibility. Sugar over existing knobs
-   (`otto/privacy/core.rb:23-96`), but a declared posture is reviewable
-   and validatable — precedent: the mutually-exclusive trusted-proxy modes
-   that fail fast on conflict (`PROXY_MODE_CONFLICT_MESSAGE`).
-3. **Pre-masking `ip_policy` hook with a verdict-only contract** (precision
-   axis): a boot-registered callback invoked inside `IPPrivacyMiddleware`
-   after `resolve_client_ip` but before masking, receiving the unmasked IP
-   and returning `:allow`/`:deny`/`nil`. The unmasked value exists only in
-   the hook's stack frame; env, logs, and fingerprints stay masked. This
-   makes /32 filtering "just another opt-in" under any profile —
-   `:masked` + hook keeps the privacy posture intact (the configuration
-   OTS would run). `octet_precision` cannot substitute: valid values are
-   {1, 2} and 1 (= /24) is already the finest.
+1. **`Otto::Utils.ip_in_cidrs?(ip, cidrs)`** (`lib/otto/utils.rb`) — the
+   public CIDR-set matcher, sharing the trusted-proxy matcher's semantics:
+   port stripping, `IPAddr#native` folding of IPv4-mapped IPv6,
+   family-aware range skipping. Asymmetric strictness by design: runtime
+   `ip` input fails closed (nil/blank/malformed → false), configuration
+   `cidrs` entries fail fast (invalid → `IPAddr::InvalidAddressError`),
+   because silently skipping an entry narrows an allowlist or widens a
+   denylist. Accepts pre-parsed `IPAddr` entries for hot paths.
+2. **Named privacy profiles** (observability axis) —
+   `configure_ip_privacy(profile: :anonymous | :masked | :audit)`, also
+   accepted by `Privacy::Config.new`. Validated presets over the existing
+   knobs (`:masked` = default posture; `:anonymous` = mask everything;
+   `:audit` = privacy disabled, operator owns retention). Explicit options
+   in the same call override the preset; `Config#profile` is derived from
+   live knob state so the label can never go stale; unknown names raise.
+3. **`env['otto.ip_match']` verdict-only capability** (precision axis) —
+   `IPPrivacyMiddleware` installs a closure over the resolved, *unmasked*
+   client IP on every path that resolves one (masked, private-exempt, and
+   `:audit`), before masking destroys the raw material. Downstream policy
+   code calls it with a CIDR array and gets true/false at full /32–/128
+   precision under any profile. Fails closed (returns false) when no
+   client IP resolved; not installed when the idempotency guard trips
+   (a prior instance already ran — and already installed it).
 
-   An unmasked env key (e.g. `otto.client_ip_unmasked`) is **rejected** as
-   an alternative: env is ambient — every middleware, logger, and error
-   reporter that serializes it silently joins the privacy trusted base,
-   and the privacy-by-default claim stops being checkable. It is also
-   unnecessary once the hook exists. Downstream recomputation is not an
-   option either: IPPrivacy overwrites `REMOTE_ADDR` and rewrites
-   XFF/X-Real-IP to masked values, so the raw material is gone after it
-   runs — which is exactly why the hook must live inside it.
-4. **Trusted-proxy-gated geo headers** in `GeoResolver` — honor
-   `CF-IPCountry` etc. only when `otto.via_trusted_proxy`. Prerequisite
-   for any future country-based rules.
-5. **Ancestry-aware error-handler lookup**, so
-   `class DomainAccessDenied < Otto::ForbiddenError` inherits the 403 path.
-6. **First-class `IPFilterMiddleware`** (host- or route-scoped allow/deny,
-   fail-closed, `LocalhostGuard`-style) — nice-to-have once 1–3 exist; OTS
-   does not need it to ship this feature.
+   This is a deliberate refinement of the earlier "boot-registered
+   pre-masking hook" idea: a hook inside IPPrivacy cannot serve OTS's
+   per-domain policy, because at that stack position (line 296) the
+   domain is not yet resolved (line 379). The closure moves the *verdict*
+   to where the policy context exists while keeping the contract: the
+   unmasked IP never lands in env as data — a Proc serializes to nothing
+   useful, so env dumps, loggers, and error reporters cannot leak it
+   accidentally. (Deliberate in-process reconstruction via adaptive
+   queries remains possible, but in-process code is already trusted; the
+   invariant defended is accidental persistence.) The previously
+   considered unmasked env key stays **rejected** — ambient authority
+   that every env consumer silently joins.
+
+Related, already on otto main before this change set (also unreleased):
+trusted-proxy-gated geo headers (`geo_headers_trusted?` — prerequisite
+for any future country rules) and removal of the `KNOWN_RANGES` guess
+table. Not implemented, not needed for this feature: ancestry-aware
+error-handler lookup (OTS middleware returns its own Rack tuple) and a
+first-class `IPFilterMiddleware` (the capability + `ip_in_cidrs?` cover
+it).
+
+**Dependency**: this feature requires the next otto release; the OTS
+Gemfile constraint `'~> 2.5'` already admits it.
 
 ---
 
@@ -221,19 +239,21 @@ below decouple them so precise filtering composes with any posture.
   with tokens) are *not* gated. This is the intrinsic break-glass: owners
   manage the allowlist from the canonical domain, so a bad list can always
   be fixed. Document this in the UI copy.
-- **Client IP**: `env['otto.client_ip']` with
-  `Otto::Utils.resolve_client_ip(env, env['otto.security_config'])`
-  fallback — the canonical pattern from
-  `admin_network_isolation.rb:120-128`. Never read XFF directly; never
-  read `REMOTE_ADDR` (overwritten with the masked value).
-- **Fail-closed on unresolvable IP** when a policy is enforcing (matches
+- **Client IP matching**: exclusively via `env['otto.ip_match']` (§3.3) —
+  the verdict-only closure over the resolved, unmasked client IP. Never
+  read XFF directly; never match against `REMOTE_ADDR` or
+  `env['otto.client_ip']` (both masked). Logging of blocked requests uses
+  the masked `otto.client_ip` — the observability posture is unchanged.
+- **Fail-closed** when a policy is enforcing and either the capability
+  returns false with no resolvable IP, or `otto.ip_match` is absent
+  entirely (stack misconfiguration — log loudly; matches
   `AdminNetworkIsolation` and `LocalhostGuard` posture). Fail-open (no-op)
   when no config exists, config is disabled, or the entry list is empty.
-- **Granularity: /24 (IPv4) and /48 (IPv6) minimum prefix.** A functional
-  necessity given IP masking, not just privacy policy. Reuse
-  `validate_cidr_privacy` (`lib/onetime/helpers/homepage_mode_helpers.rb:132-135`)
-  verbatim at write time; reject narrower prefixes with an explanatory
-  validation error ("entries must be /24 or wider").
+- **Granularity: full precision** — /32 (IPv4) and /128 (IPv6) entries are
+  supported via the capability; the former /24–/48 floor (an artifact of
+  matching against the masked IP) is lifted. The homepage-mode
+  `validate_cidr_privacy` rule stays as-is for its own feature — it
+  matches against the masked IP by design.
 
 ### Default polarity — deliberate divergence from signin/signup
 
@@ -249,8 +269,9 @@ closed would brick every existing custom domain on deploy.
 New `Onetime::Middleware::DomainAccessControl`, mounted in
 `lib/onetime/application/middleware_stack.rb` **immediately after
 `DomainStrategy` (line 379)**. This is the only correct slot: it needs
-`otto.client_ip` (set at line 296) and `onetime.domain_strategy`/
-`onetime.display_domain` (set at line 379). The existing CIDR precedent
+`otto.ip_match` (installed by `IPPrivacyMiddleware` at line 296) and
+`onetime.domain_strategy`/`onetime.display_domain` (set at line 379).
+The existing CIDR precedent
 `AdminNetworkIsolation` (line 322) runs *before* host detection and cannot
 be extended for this.
 
@@ -260,9 +281,13 @@ Flow per request:
 2. Load the domain's `AccessConfig`; pass through unless present, enabled,
    and non-empty. (Dev note: the domain-context override forces `:custom`
    for any non-canonical host — the no-record path must pass through.)
-3. Resolve client IP; if unresolvable → block (enforce) / log (monitor).
-4. Match against compiled `IPAddr` entries (family-aware, `#native`-folded).
-5. Miss + `mode: monitor` → structured `warn` log, pass through.
+3. `allowed = env['otto.ip_match']&.call(compiled_entries)` — pre-parsed
+   `IPAddr` entries; the capability handles family awareness and
+   `#native` folding. `false` covers both "outside every range" and "no
+   resolvable client IP"; a missing capability is treated as a miss and
+   logged as a stack error.
+4. Miss + `mode: monitor` → structured `warn` log (masked IP), pass
+   through.
    Miss + `mode: enforce` → block response.
 
 Blocked response: **403** with a branded human-readable explanation page for
@@ -298,9 +323,11 @@ Onetime::CustomDomain::AccessConfig < Familia::Horreum
 ```
 
 - Cap: 100 entries per domain (GitHub/Okta territory; raise later if asked).
-- Validation at write: parseable `IPAddr`, prefix ≥ /24 v4 / ≥ /48 v6,
-  label ≤ 100 chars, de-dup by normalized CIDR. String keys throughout
-  (Redis/REST boundary convention).
+- Validation at write: parseable `IPAddr` (any prefix incl. /32 and /128 —
+  invalid entries would raise from `ip_in_cidrs?` at request time, so
+  write-time validation is mandatory), label ≤ 100 chars, de-dup by
+  normalized CIDR. String keys throughout (Redis/REST boundary
+  convention).
 - Wire into the `CustomDomain` delegator/cleanup lists
   (`custom_domain.rb:334-362`, `:453`) and add a
   `models/domain-access-config` schema doc like its siblings.
@@ -378,7 +405,8 @@ recoverable).
 ### Explicit non-goals (v1)
 
 Deny lists, named reusable zones shared across domains, geo/ASN dynamic
-rules (blocked upstream on Otto gap #4), step-up-instead-of-block,
+rules (unblocked upstream now that geo headers are proxy-gated on otto
+main, but still out of scope for v1), step-up-instead-of-block,
 login-only enforcement mode, Terraform provider.
 
 ---
@@ -393,41 +421,40 @@ login-only enforcement mode, Terraform provider.
 | 4 | TS contract + workspace view/form + route | `src/schemas/contracts/custom-domain/`; `dashboard.ts:183-184` |
 | 5 | Colonel read-only block + CLI info line | `AdminDomainDetail.vue`; `cli/info_command.rb:79` |
 | 6 | Audit events + blocked-request logging/counter | `audit_trail.rb:60` |
-| 7 | Tests: middleware spec (strategy gating, monitor/enforce, fail-closed, exemptions, dev override), model tryouts (validation matrix incl. /25 rejection), logic specs, contract vitest | `spec/unit/onetime/application/middleware_stack_spec.rb` neighborhood |
+| 7 | Tests: middleware spec (strategy gating, monitor/enforce, fail-closed incl. missing `otto.ip_match`, exemptions, dev override, /32 precision), model tryouts (validation matrix), logic specs, contract vitest | `spec/unit/onetime/application/middleware_stack_spec.rb` neighborhood |
 | 8 | Docs: scope contract + lockout guidance; locales (`locales:hashes` run) | this file |
-| 9 | Separate fix: `AdminNetworkIsolation` narrow-CIDR latent bug (validate or widen at boot, warn loudly) | `admin_network_isolation.rb:136-145` |
-| 10 | Upstream Otto issues: `ip_in_cidrs?` primitive; pre-masking hook/unmasked key; geo-header proxy gate; ancestry-aware error dispatch | §3 |
+| 9 | Separate fix: `AdminNetworkIsolation` narrow-CIDR latent bug — migrate its matching to `env['otto.ip_match']` once the otto release lands, which makes `/32` admin CIDRs work instead of merely rejecting them | `admin_network_isolation.rb:110-145` |
+| 10 | ~~Upstream Otto~~ **done 2026-07-25** (`ip_in_cidrs?`, privacy profiles, `otto.ip_match`; geo gate pre-existing on main). Remaining: commit/release otto, then bump the gem here | §3; `~/Projects/dev/delano/otto` |
 
-Suggested sequencing: 1–2 (enforcement path, shippable dark), 3 (API), 4–5
-(UI), 6–8 alongside; 9–10 independent.
+Suggested sequencing: 10 first (otto release is the dependency), then 1–2
+(enforcement path, shippable dark), 3 (API), 4–5 (UI), 6–8 alongside;
+9 after the gem bump.
 
 ## 6. Open questions
 
-1. **Granularity**: is /24 (v4) / /48 (v6) minimum acceptable to product?
-   Finer cleanly requires the Otto pre-masking hook (§3.3) first.
-   Recommendation: ship at /24–/48; the masking constraint conveniently
-   matches the existing privacy-preserving CIDR policy. Interim path if
-   product rejects /24 before upstream lands: mount the filter *upstream*
-   of `IPPrivacyMiddleware` (before `middleware_stack.rb:296`) and call
-   the public `Otto::Utils.resolve_client_ip` on the raw env directly —
-   ephemeral use, nothing stored, same idea as the hook implemented in
-   our stack. Costs: duplicated IP resolution and moving host detection
-   (`DetectHost`/`DomainStrategy`) ahead of the privacy middleware, a
-   stack reshuffle with its own regression risk.
-2. **ACME**: confirm with ops where HTTP-01 challenges are served for
+1. **ACME**: confirm with ops where HTTP-01 challenges are served for
    custom domains (upstream Caddy vs in-app) before enabling enforcement
    anywhere.
-3. **Entitlement key**: new `ip_allowlist` vs existing security-tier
+2. **Entitlement key**: new `ip_allowlist` vs existing security-tier
    entitlement; plan mapping in `apps/web/billing/metadata.rb`.
-4. **Downgrade behavior**: freeze-but-enforce (v1 default) vs
+3. **Downgrade behavior**: freeze-but-enforce (v1 default) vs
    denormalized disable-on-downgrade.
+
+Resolved: ~~granularity~~ — full /32–/128 precision via `otto.ip_match`
+(§3, implemented 2026-07-25); no interim in-OTS workaround (rejected in
+favor of the immediate Otto change).
 
 ## Implementation references
 
-- Otto gem: `otto-2.6.0/lib/otto/utils.rb` (resolution),
+- Otto gem (released 2.6.0): `otto-2.6.0/lib/otto/utils.rb` (resolution),
   `lib/otto/security/config.rb` (trusted proxies),
   `lib/otto/security/middleware/ip_privacy_middleware.rb` (masking),
   `lib/otto/caddy_tls/localhost_guard.rb` (filter template)
+- Otto dev checkout with the §3 changes: `~/Projects/dev/delano/otto` —
+  `lib/otto/utils.rb` (`ip_in_cidrs?`), `lib/otto/privacy/config.rb`
+  (`PROFILES`), `lib/otto/security/middleware/ip_privacy_middleware.rb`
+  (`install_ip_match`), `lib/otto/env_keys.rb` (`IP_MATCH`),
+  `spec/otto/ip_precision_capability_spec.rb`
 - Stack order: `lib/onetime/application/middleware_stack.rb:246-411`
 - Domain resolution: `lib/onetime/middleware/domain_strategy.rb`
 - CIDR precedents: `lib/onetime/middleware/admin_network_isolation.rb`,
