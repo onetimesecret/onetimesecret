@@ -30,7 +30,7 @@ module Auth
       # Return value and error classes are passed through unchanged so existing
       # adapters keep their exact control flow:
       #   :success | :no_change  (symbols, same as the underlying op)
-      #   raises SetCustomerVerification::{NoAuthDatabase, AccountNotFound}
+      #   raises SetCustomerVerification::{NoAuthDatabase, AccountNotFound, AccountClosed}
       class SetVerification
         # @param customer [Onetime::Customer] target (caller ensures non-nil,
         #   non-anonymous)
@@ -49,7 +49,8 @@ module Auth
         end
 
         # @return [Symbol] :success or :no_change (passthrough from the inner op)
-        # @raise [SetCustomerVerification::NoAuthDatabase, SetCustomerVerification::AccountNotFound]
+        # @raise [SetCustomerVerification::NoAuthDatabase, SetCustomerVerification::AccountNotFound,
+        #   SetCustomerVerification::AccountClosed]
         def call
           result = Auth::Operations::SetCustomerVerification.new(
             customer: @customer,

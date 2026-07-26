@@ -56,9 +56,10 @@ module Auth
       # `where status_id in (1, 2)` (migrations/001_initial.rb:26,32). A CLOSED
       # account (status_id 3) therefore holds an address that is invisible to
       # BOTH the Redis index and the unique constraint. Reusing such an address
-      # is a real hazard, because `SetCustomerVerification#update_rodauth_account!`
-      # keys on `where(email:)` and would then update TWO rows. So a closed-account
-      # holder is treated as `:email_taken` unless the caller explicitly passes
+      # is still ambiguous for any email-keyed lookup (#3916 re-keyed
+      # `SetCustomerVerification#update_rodauth_account!` on external_id for
+      # exactly this reason), so a closed-account holder is treated as
+      # `:email_taken` unless the caller explicitly passes
       # `allow_closed_account_reuse: true`.
       #
       # ## Uniqueness under concurrency: guarded in full mode, one-sided in simple

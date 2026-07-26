@@ -8,12 +8,16 @@
 # - Idempotency when already in target state
 # - Simple-mode verify/unverify (Redis only)
 # - Full-mode verify/unverify (SQL update + Redis save)
-# - Failure modes: no auth DB, no account row, SQL exception
-# - SQL update always keys off customer.email (not the caller's identifier)
+# - Failure modes: no auth DB, no account row, closed account, SQL exception
+# - SQL update keys on external_id, constrained to live statuses; legacy
+#   NULL-external_id rows fall back to email + live statuses — never bare
+#   email (#3916). Partial-index semantics are exercised for real in
+#   set_customer_verification_sql_spec.rb.
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/set_customer_verification_spec.rb
 
 require 'spec_helper'
+require 'auth/database'
 require 'auth/operations/set_customer_verification'
 
 RSpec.describe Auth::Operations::SetCustomerVerification do
@@ -30,14 +34,26 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     )
   end
 
-  # Sequel-shaped double: db.transaction yields and returns the block
-  # value; db[:accounts].where(...).update(...) returns the affected
-  # row count.
-  let(:accounts_dataset) { double('accounts_dataset', where: filtered_dataset) }
-  let(:filtered_dataset) { double('filtered_dataset', update: 1) }
+  # Sequel-shaped doubles, one per WHERE filter: the op resolves the row by
+  # external_id, then updates by id constrained to live statuses (1, 2);
+  # legacy rows (NULL external_id) go through the email fallback scope.
+  let(:by_external_id) { double('by_external_id', get: 42) }
+  let(:live_scope)     { double('live_scope', update: 1) }
+  let(:by_id)          { double('by_id', where: live_scope) }
+  let(:legacy_scope)   { double('legacy_scope', empty?: false, where: live_scope) }
+  let(:accounts_dataset) do
+    ds = double('accounts_dataset')
+    allow(ds).to receive(:where) do |cond|
+      if cond.key?(:id)       then by_id
+      elsif cond.key?(:email) then legacy_scope
+      else                         by_external_id
+      end
+    end
+    ds
+  end
   let(:db) do
     db_dbl = double('db', :[] => accounts_dataset)
-    allow(db_dbl).to receive(:transaction).and_yield.and_return(1)
+    allow(db_dbl).to receive(:transaction) { |&blk| blk.call }
     db_dbl
   end
 
@@ -136,8 +152,9 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       expect(op.call).to eq(:success)
       expect(db).to have_received(:transaction)
-      expect(accounts_dataset).to have_received(:where).with(email: 'user@example.com')
-      expect(filtered_dataset).to have_received(:update)
+      expect(accounts_dataset).to have_received(:where).with(external_id: 'ur_test_123')
+      expect(accounts_dataset).to have_received(:where).with(id: 42)
+      expect(live_scope).to have_received(:update)
         .with(hash_including(status_id: 2))
       expect(customer).to have_received(:save)
     end
@@ -153,8 +170,21 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       )
 
       expect(op.call).to eq(:success)
-      expect(filtered_dataset).to have_received(:update)
+      expect(live_scope).to have_received(:update)
         .with(hash_including(status_id: 1))
+    end
+
+    it 'constrains the UPDATE to live statuses so a Closed row is never touched' do
+      op = described_class.new(
+        customer: customer,
+        verified: true,
+        verified_by: 'cli_provision',
+        db: db,
+      )
+
+      op.call
+      expect(by_id).to have_received(:where)
+        .with(status_id: described_class::LIVE_STATUS_IDS)
     end
 
     it 'falls back to Auth::Database.connection when db: not injected' do
@@ -186,9 +216,9 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       expect(customer).not_to have_received(:save)
     end
 
-    it 'raises AccountNotFound when SQL update affects 0 rows; Redis untouched' do
-      allow(filtered_dataset).to receive(:update).and_return(0)
-      allow(db).to receive(:transaction).and_yield.and_return(0)
+    it 'raises AccountNotFound when no row matches by external_id or legacy email; Redis untouched' do
+      allow(by_external_id).to receive(:get).and_return(nil)
+      allow(legacy_scope).to receive(:empty?).and_return(true)
 
       op = described_class.new(
         customer: customer,
@@ -199,7 +229,24 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       expect { op.call }.to raise_error(
         described_class::AccountNotFound,
-        /user@example\.com/,
+        /ur_test_123/,
+      )
+      expect(customer).not_to have_received(:save)
+    end
+
+    it 'raises AccountClosed when the row exists but the live-status UPDATE hits 0 rows; Redis untouched' do
+      allow(live_scope).to receive(:update).and_return(0)
+
+      op = described_class.new(
+        customer: customer,
+        verified: true,
+        verified_by: 'cli_provision',
+        db: db,
+      )
+
+      expect { op.call }.to raise_error(
+        described_class::AccountClosed,
+        /ur_test_123/,
       )
       expect(customer).not_to have_received(:save)
     end
@@ -218,12 +265,10 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       expect(customer).not_to have_received(:save)
     end
 
-    it 'always uses customer.email for SQL WHERE, ignoring how the caller looked the customer up' do
-      # Simulate: caller looked up the customer by extid; the canonical
-      # email lives on the customer record and is the only correct key
-      # for the Rodauth accounts join.
-      allow(customer).to receive(:email).and_return('canonical@example.com')
-
+    it 'keys the SQL WHERE on external_id, never bare email (#3916)' do
+      # A bare-email WHERE would sweep Closed rows sharing the address:
+      # resurrection in the one-row case, a partial-unique-index violation
+      # in the two-row case.
       op = described_class.new(
         customer: customer,
         verified: true,
@@ -232,8 +277,25 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       )
 
       op.call
+      expect(accounts_dataset).to have_received(:where).with(external_id: 'ur_test_123')
+      expect(accounts_dataset).not_to have_received(:where).with(hash_including(:email))
+    end
+
+    it 'falls back to email + NULL external_id for legacy rows, never bare email' do
+      allow(by_external_id).to receive(:get).and_return(nil)
+
+      op = described_class.new(
+        customer: customer,
+        verified: true,
+        verified_by: 'cli_provision',
+        db: db,
+      )
+
+      expect(op.call).to eq(:success)
       expect(accounts_dataset).to have_received(:where)
-        .with(email: 'canonical@example.com')
+        .with(email: 'user@example.com', external_id: nil)
+      expect(legacy_scope).to have_received(:where)
+        .with(status_id: described_class::LIVE_STATUS_IDS)
     end
   end
 

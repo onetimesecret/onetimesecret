@@ -33,6 +33,7 @@
 #   Failure modes:
 #     - SQL raises  → Redis untouched (clean rollback)
 #     - No SQL row  → AccountNotFound, Redis untouched
+#     - Closed row  → AccountClosed, Redis untouched (see #3916)
 #     - SQL ok, Redis raises → Rodauth fresh, Customer stale.
 #       Auth state (the important one) is correct; display of
 #       Customer#verified? will be wrong until next save.
@@ -46,6 +47,13 @@ module Auth
 
       class NoAuthDatabase < StandardError; end
       class AccountNotFound < StandardError; end
+      class AccountClosed < StandardError; end
+
+      # Rodauth account statuses (mirrors change_email.rb and the
+      # account_statuses reference table in migrations/001_initial.rb).
+      STATUS_UNVERIFIED = 1
+      STATUS_VERIFIED   = 2
+      LIVE_STATUS_IDS   = [STATUS_UNVERIFIED, STATUS_VERIFIED].freeze
 
       # @param customer    [Onetime::Customer] target (caller ensures non-nil,
       #                    non-anonymous)
@@ -70,7 +78,10 @@ module Auth
       # @return [Symbol] :success or :no_change
       # @raise [NoAuthDatabase] full auth mode + DB unreachable
       #   (not raised when rodauth_already_synced: true)
-      # @raise [AccountNotFound] full auth mode + no accounts row for email
+      # @raise [AccountNotFound] full auth mode + no accounts row for the
+      #   customer (not raised when rodauth_already_synced: true)
+      # @raise [AccountClosed] full auth mode + the customer's accounts row
+      #   is Closed; verification only moves between Unverified and Verified
       #   (not raised when rodauth_already_synced: true)
       def call
         return :no_change if @customer.verified? == @verified
@@ -95,18 +106,51 @@ module Auth
         db = @db || Auth::Database.connection
         raise NoAuthDatabase, 'Auth database unreachable' unless db
 
-        # status_id: 1=Unverified, 2=Verified (per Rodauth convention,
-        # mirrors lib/onetime/cli/customers/create_command.rb).
         # Sequel::CURRENT_TIMESTAMP lets the DB own updated_at — matches
         # sync_auth_accounts_command.rb and avoids any client-side TZ drift.
+        # The status_id predicate makes the UPDATE a no-op on a Closed row,
+        # atomically: no read-then-write window in which a concurrent close
+        # could slip through.
         rows = db.transaction do
-          db[:accounts]
-            .where(email: @customer.email)
-            .update(status_id: @verified ? 2 : 1, updated_at: Sequel::CURRENT_TIMESTAMP)
-        end
-        return unless rows.zero?
+          scope = account_scope(db)
+          raise AccountNotFound, "No Rodauth account for customer #{@customer.extid}" unless scope
 
-        raise AccountNotFound, "No Rodauth account for #{@customer.email}"
+          scope
+            .where(status_id: LIVE_STATUS_IDS)
+            .update(status_id: @verified ? STATUS_VERIFIED : STATUS_UNVERIFIED,
+              updated_at: Sequel::CURRENT_TIMESTAMP,
+            )
+        end
+        return if rows.positive?
+
+        # A row exists but none of it is live: the account is Closed. Refuse —
+        # verification only ever moves between Unverified and Verified;
+        # resurrecting a Closed account is a different, deliberate operation.
+        raise AccountClosed, "Rodauth account for customer #{@customer.extid} is closed"
+      end
+
+      # Locate this customer's accounts row, keyed on external_id — never bare
+      # email. The unique index on accounts.email is PARTIAL
+      # (`where status_id in (1, 2)`, migrations/001_initial.rb), so a Closed
+      # row may share a live row's address: a bare-email UPDATE would either
+      # resurrect the Closed account (one-row case) or trip the partial index
+      # mid-statement (two-row case). See #3916.
+      #
+      # Rows predating the external_id backfill fall back to email, restricted
+      # to unlinked rows (external_id IS NULL) — a linked row holding this
+      # address belongs to a different customer.
+      #
+      # @return [Sequel::Dataset, nil] scope over the customer's row(s), or
+      #   nil when no row exists at all
+      def account_scope(db)
+        extid = @customer.extid.to_s
+        unless extid.empty?
+          account_id = db[:accounts].where(external_id: extid).get(:id)
+          return db[:accounts].where(id: account_id) if account_id
+        end
+
+        legacy = db[:accounts].where(email: @customer.email, external_id: nil)
+        legacy.empty? ? nil : legacy
       end
 
       def update_customer!
