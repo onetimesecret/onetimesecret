@@ -300,14 +300,32 @@ RSpec.describe Onetime::Operations::Org::Create do
     # #3907: create! itself writes the objid, so the signup path
     # (CreateOrganization), which calls create! WITHOUT this op's D31
     # normalization, also lands orgs that satisfy doctor checks 1, 2 and 4.
-    # Provable only by bypassing the op — through it, normalize_owner_id!
-    # would mask a create! regression.
+    # Provable only by bypassing the op.
     it 'needs no D31 normalization: bare Organization.create! writes the objid' do
       org = Onetime::Organization.create!("Bare #{suffix}", @owner)
       @orgs << org
 
       expect(org.owner_id).to eq(@owner.objid)
       expect(org_doctor_issues(org)).to be_empty
+    end
+
+    # A fresh customer has custid == objid (Customer#init custid ||= objid), so
+    # the example above passes whichever space create! writes. Only an owner
+    # whose custid DIVERGED — the legacy v1 email-custid shape — tells the two
+    # apart; this is the assertion that fails if create! reverts to custid.
+    it 'writes the objid even when the owner custid diverged (legacy v1 shape)' do
+      legacy = track_customer(Onetime::Customer.create!(email: "legacy_#{suffix}@onetimesecret.com"))
+      legacy.custid = legacy.email
+      legacy.save
+
+      org = Onetime::Organization.create!("Legacy #{suffix}", legacy)
+      @orgs << org
+
+      expect(org.owner_id).to eq(legacy.objid)
+      expect(org.owner_id).not_to eq(legacy.custid)
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, legacy.objid)
+      membership.destroy! if membership.respond_to?(:exists?) && membership.exists?
     end
 
     it 'lands exactly one active owner membership' do
