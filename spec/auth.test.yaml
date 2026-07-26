@@ -33,7 +33,14 @@ full:
     active_sessions: true
     remember_me: true
     verify_account: false  # Disabled in test mode
-    mfa: false
+    # Env-aware like sso/oauth below: the dedicated MFA lane (rake
+    # spec:integration:full:mfa) exports AUTH_MFA_ENABLED=true and needs the
+    # REAL AuthConfig to report mfa enabled — the auth spec_helper's eager
+    # application pre-load (#3234) runs Auth::Config's one-shot configure
+    # before AuthModeHelpers::MockAuthConfig is installed, so a hardcoded
+    # false here permanently strips the Rodauth OTP feature set from that
+    # process. All other lanes leave the var unset and still get false.
+    mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
     email_auth: false
     webauthn: false
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
