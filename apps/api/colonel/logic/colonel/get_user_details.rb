@@ -120,7 +120,12 @@ module ColonelAPI
         #
         # FALLBACK: secrets created before the index existed are not in it. When
         # the index is empty but the maintained counter says the user owns
-        # secrets, fall back to a bounded scan (see #scan_secrets_bounded).
+        # secrets, fall back to a bounded scan (see #scan_secrets_bounded). A
+        # MIXED account (index present but provably incomplete — see
+        # #index_incomplete?) pays for the same bounded scan and gets the union
+        # (see #merge_secret_sources): without the merge, pre-index secrets were
+        # permanently invisible on any account with even one indexed secret,
+        # regardless of paging.
         #
         # COUNT CONTRACT (#60, unchanged): `details.secrets.count` equals
         # `items.size` — the detail view renders ITEMS, so the count must match
@@ -145,9 +150,15 @@ module ColonelAPI
             return scan_secrets_bounded
           end
 
-          indexed               = read_secret_index
-          indexed[:truncated] ||= index_incomplete?(index_size)
-          indexed
+          indexed = read_secret_index
+          return indexed unless index_incomplete?(index_size)
+
+          # MIXED account: the index exists but provably does not cover every
+          # secret this user owns (pre-index secrets, or members trimmed off by
+          # SECRET_INDEX_LIMIT). Merely flagging `truncated` here left those
+          # secrets permanently invisible — no page ever surfaced them. Run the
+          # same bounded scan the pre-index account pays for and merge.
+          merge_secret_sources(indexed, scan_secrets_bounded)
         end
 
         # Does the index provably NOT hold every secret this user owns?
@@ -159,11 +170,36 @@ module ColonelAPI
         # is therefore real missing coverage (secrets created before the index
         # existed, or trimmed off by SECRET_INDEX_LIMIT), never expiry drift.
         #
-        # Comparing against the rendered item count instead would flag "partial"
-        # for every account with an expired secret — a flag that fires constantly
-        # is a flag operators learn to ignore.
+        # Comparing against the rendered item count instead would fire for
+        # every account with an expired secret — and since this predicate now
+        # gates the bounded-scan merge (see #collect_secrets), a constantly
+        # firing predicate would mean paying the scan on nearly every page.
         def index_incomplete?(index_size)
           user.secrets_active.to_i > index_size
+        end
+
+        # Union of the indexed page and the bounded-scan rows for MIXED
+        # accounts. The scan re-finds every indexed secret too, so dedupe by
+        # secret_id; re-sort newest-first with the same `created.to_f` key the
+        # scan path uses (resilient to legacy String `created` values — see
+        # #scan_secrets_bounded); slice back to one page. Both inputs are
+        # already sliced to INDEX_PAGE_SIZE, which is lossless here: the top
+        # page of a union equals the union of each source's top page.
+        #
+        # `truncated` stays honest for the union: a further indexed page, a
+        # capped scan, or an over-full merged page each mean "there may be more
+        # than shown". Conversely, when the scan ran to completion un-capped,
+        # the union IS every secret that still exists — a counter that outruns
+        # it then reflects expired (unshowable) secrets, so the flag clears
+        # instead of crying wolf forever.
+        def merge_secret_sources(indexed, scanned)
+          merged = (indexed[:items] + scanned[:items]).uniq { |row| row[:secret_id] }
+          merged.sort_by! { |row| -row[:created].to_f }
+
+          {
+            items: merged.first(INDEX_PAGE_SIZE),
+            truncated: indexed[:truncated] || scanned[:truncated] || merged.size > INDEX_PAGE_SIZE,
+          }
         end
 
         # Bounded, newest-first read of the per-owner secret index.
@@ -389,7 +425,16 @@ module ColonelAPI
 
         # Deep link to this customer in the Stripe dashboard. Keys tell us the
         # mode: test-mode keys need the /test/ path segment.
+        #
+        # Shape guard: `customer_id` is a stored field (org.stripe_customer_id),
+        # not user input, but a corrupt value would make the URL structurally
+        # wrong or log-injectable. Stripe customer ids are `cus_` plus
+        # alphanumerics; anything else gets no deep link — nil degrades
+        # gracefully in both callers (fetch_stripe_billing / stripe_unavailable
+        # already carry a nullable dashboard_url).
         def stripe_dashboard_url(customer_id)
+          return nil unless customer_id.to_s.match?(/\Acus_[A-Za-z0-9]+\z/)
+
           test_mode = Onetime.billing_config.stripe_key.to_s.start_with?('sk_test', 'rk_test')
           "https://dashboard.stripe.com/#{'test/' if test_mode}customers/#{customer_id}"
         end

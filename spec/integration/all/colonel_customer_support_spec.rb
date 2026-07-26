@@ -228,6 +228,35 @@ RSpec.describe 'Colonel customer support features', type: :integration do
           'https://dashboard.stripe.com/test/customers/cus_test123',
         )
       end
+
+      context 'when the stored Stripe customer id is not cus_-shaped' do
+        let(:billing_org) do
+          double(
+            'Organization',
+            extid: 'og_billing',
+            display_name: 'Billing Org',
+            planid: 'identity_plus_v1',
+            subscription_status: 'active',
+            subscription_period_end: '1700003600',
+            # Starts with cus_ but carries URL/log metacharacters: the guard
+            # must be a full-shape match, not a bare prefix check.
+            stripe_customer_id: "cus_evil\n/../admin?x=1",
+            stripe_subscription_id: '',
+            is_default: true,
+          )
+        end
+
+        it 'omits the dashboard deep link while the rest of the card renders' do
+          stub_const('Stripe', Module.new)
+          stub_const('Stripe::Invoice', double('InvAPI', list: double(data: [])))
+
+          billing = details_with_org(target)[:details][:billing]
+
+          expect(billing[:stripe][:available]).to be(true)
+          expect(billing[:stripe][:customer_id]).to eq("cus_evil\n/../admin?x=1")
+          expect(billing[:stripe][:dashboard_url]).to be_nil
+        end
+      end
     end
   end
 
@@ -312,9 +341,38 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       expect(receipts[:truncated]).to be(false)
     end
 
-    it 'flags truncation instead of implying the short list is complete' do
-      # Counter says there are more secrets than the index can show (the
-      # pre-index / straddling-rollout case).
+    it 'merges scanned pre-index secrets into an indexed page (mixed account)' do
+      # PR #3914 P1 regression: an account straddling the index rollout has
+      # BOTH indexed and pre-index secrets. The old guard ran the bounded
+      # scan only when the index was completely empty, so pre-index secrets
+      # were permanently invisible for mixed accounts, regardless of paging.
+      _r1, pre_index = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'pre-index era')
+      _r2, indexed   = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'indexed era')
+
+      # Simulate the straddling shape: the older secret's object and the
+      # shared counter exist, but the per-owner index never saw it.
+      owner.secrets.remove_element(pre_index.objid)
+      expect(owner.secrets.element_count).to eq(1)
+      expect(owner.secrets_active.to_i).to eq(2)
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      # The pre-index secret is surfaced, the doubly-found indexed secret is
+      # deduped, and the union is newest first.
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([indexed.objid, pre_index.objid])
+      expect(secrets[:count]).to eq(2)
+      # The scan completed un-capped over the (small, test) keyspace, so the
+      # union is everything that exists: the flag honestly reports complete.
+      expect(secrets[:truncated]).to be(false)
+    end
+
+    it 'clears the incompleteness flag when a completed scan proves nothing live is missing' do
+      # Counter says there are more secrets than the index holds (the mixed /
+      # straddling-rollout shape), but the extra counted secrets no longer
+      # exist anywhere (expired). Pre-merge this rendered a permanent
+      # `truncated: true`; now the bounded scan goes and looks, and a scan
+      # that ran to completion proves the indexed secret is all there is. (A
+      # scan that hits its ROUNDS/DEADLINE caps still reports truncated.)
       Onetime::Receipt.spawn_pair(owner.objid, 3600, 'only indexed one')
       owner.secrets_active.reset(5)
 
@@ -322,7 +380,7 @@ RSpec.describe 'Colonel customer support features', type: :integration do
 
       expect(secrets[:items].size).to eq(1)
       expect(secrets[:count]).to eq(1)
-      expect(secrets[:truncated]).to be(true)
+      expect(secrets[:truncated]).to be(false)
     end
 
     it 'scan fallback survives legacy String created values, newest first' do
@@ -375,6 +433,67 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       expect(data[:record][:email]).to eq(owner.email)
       expect(data[:details][:receipts][:truncated]).to be(false)
       expect(data[:details][:billing]).to include(:enabled, :plan_id)
+    end
+  end
+
+  # Unit-level: merge_secret_sources is a pure function, so exercise the
+  # truncated-propagation branches with synthetic rows instead of building
+  # 100+ real secrets. The integration examples above cover the
+  # truncated: false cases; these pin every way the flag must stay true.
+  describe 'GetUserDetails#merge_secret_sources truncation contract' do
+    let(:logic_class) { ColonelAPI::Logic::Colonel::GetUserDetails }
+    let(:page_size)   { logic_class::INDEX_PAGE_SIZE }
+
+    def merge(indexed, scanned)
+      logic_class.allocate.send(:merge_secret_sources, indexed, scanned)
+    end
+
+    def rows(prefix, count, newest_first_from: count)
+      Array.new(count) do |i|
+        { secret_id: "#{prefix}#{i}", created: (newest_first_from - i).to_f }
+      end
+    end
+
+    it 'keeps truncated when the scan hit its caps, even if the union fits a page' do
+      result = merge(
+        { items: rows('idx', 2), truncated: false },
+        { items: rows('scan', 3), truncated: true },
+      )
+
+      expect(result[:truncated]).to be(true)
+      expect(result[:items].size).to eq(5)
+    end
+
+    it 'keeps truncated when a further indexed page exists' do
+      result = merge(
+        { items: rows('idx', 2), truncated: true },
+        { items: [], truncated: false },
+      )
+
+      expect(result[:truncated]).to be(true)
+    end
+
+    it 'sets truncated and slices newest-first when the deduped union overflows a page' do
+      indexed = { items: rows('idx', page_size, newest_first_from: 500), truncated: false }
+      scanned = { items: rows('scan', 10, newest_first_from: 1000), truncated: false }
+
+      result = merge(indexed, scanned)
+
+      expect(result[:truncated]).to be(true)
+      expect(result[:items].size).to eq(page_size)
+      # The 10 scanned rows are newest (created 1000..991), so they lead the page.
+      expect(result[:items].first(10).map { |r| r[:secret_id] }).to eq(scanned[:items].map { |r| r[:secret_id] })
+    end
+
+    it 'dedupes scan re-finds by secret_id without inflating the union size' do
+      shared = { secret_id: 'both', created: 5.0 }
+      result = merge(
+        { items: [shared], truncated: false },
+        { items: [shared.dup, { secret_id: 'scan-only', created: 4.0 }], truncated: false },
+      )
+
+      expect(result[:items].map { |r| r[:secret_id] }).to eq(%w[both scan-only])
+      expect(result[:truncated]).to be(false)
     end
   end
 
