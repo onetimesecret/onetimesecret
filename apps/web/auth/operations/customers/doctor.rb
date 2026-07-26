@@ -327,6 +327,14 @@ module Auth
         # A key that points at a DIFFERENT customer is reported but NOT repaired:
         # overwriting it would steal that customer's index entry, and this doctor
         # has no way to tell which of the two is the rightful holder.
+        #
+        # COST: the stale-key sweep reads the org's ENTIRE email index once per
+        # (customer, org) pair, so a `--all` run is O(customers x org-index-size).
+        # Bounded in practice — a personal workspace holds one entry — but a large
+        # shared org is re-read once per member. HSCAN would not reduce that: the
+        # sweep matches on the index VALUE (objid) while MATCH filters on the field
+        # (email), so a cursor walk reads the same bytes in batches and still needs
+        # a full-size seen-map to absorb HSCAN's at-least-once yields.
         def check_org_email_index(issues, repaired)
           email = @customer.email.to_s
           return if email.empty?

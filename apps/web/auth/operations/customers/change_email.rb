@@ -75,8 +75,13 @@ module Auth
       # surfaces as `Sequel::UniqueConstraintViolation`, which is rescued and
       # mapped to `:email_taken`.
       #
+      # That guard depends on there BEING an accounts row. A customer without one
+      # (a provisioning gap `bin/ots customers sync-auth-accounts` owns) updates
+      # nothing in step 1, so no constraint ever fires — which is why the claim
+      # below keys on the accounts row, not on the connection.
+      #
       # SIMPLE MODE has no SQL and therefore no such serialization point. We claim
-      # the index entry with `HSETNX` (`simple_mode_race_lost?`), which IS atomic:
+      # the index entry with `HSETNX` (`index_claim_race_lost?`), which IS atomic:
       # a concurrent claimant can no longer slip between our check and our write
       # and have its entry silently stolen by us. What HSETNX cannot do is stop
       # the reverse — Familia auto-adds class `unique_index` entries on EVERY save
@@ -115,6 +120,12 @@ module Auth
       # (`force_clear_verification!`), and if even that cannot confirm the flag is
       # down the call returns `:verification_not_reset` — NOT `:success`.
       #
+      # The reset is owed on the landed-`:partial` sub-case too, on the same
+      # gate: the swap committed there as well, so "flagged verified on an
+      # unproven address" is the same unsafe state. That path cannot downgrade a
+      # status that is already `:partial`, so it carries the identical signal as
+      # the `:verification_not_reset` WARNING instead.
+      #
       # ## Deliberately NOT touched
       #
       # * `Organization#billing_email` / `#stripe_checkout_email` / `#email_hash`
@@ -134,6 +145,27 @@ module Auth
         include Onetime::LoggerMethods
 
         AUDIT_VERB = 'customer.change_email'
+
+        # Compare-and-delete on the global email index: drop the field ONLY while
+        # it still names us (`release_index_claim`). A read-then-HDEL is NOT good
+        # enough and the difference is a real unindexing bug: `@index_claim_created`
+        # proves we won the HSETNX, not that we still hold the field. Familia's
+        # auto-index on save is a blind HSET (indexing.rb:64-67), so a customer who
+        # completed signup on this address in between already owns the entry — and
+        # a bare HDEL would unindex a LIVE account, leaving it findable by neither
+        # `Customer.find_by_email` nor its owner. Same Lua-CAS shape ADR-019 uses
+        # for the one-way claim on `secret_value_shown_at` (access_timeline.rb).
+        #
+        # Comparing RAW stored bytes is sound only because a `unique_index`
+        # hashkey is declared `reference: true` (familia
+        # unique_index_generators.rb:88-95), so a String identifier is stored
+        # verbatim rather than JSON-encoded — the objid we pass IS what HSETNX
+        # wrote. A non-reference collection would need the encoded form.
+        # @return [Integer] 1 when the entry was ours and is now gone, else 0
+        RELEASE_INDEX_CLAIM_SCRIPT = <<~LUA
+          if redis.call('HGET', KEYS[1], ARGV[1]) ~= ARGV[2] then return 0 end
+          return redis.call('HDEL', KEYS[1], ARGV[1])
+        LUA
 
         # @!attribute status [r]
         #   @return [Symbol] one of:
@@ -235,10 +267,11 @@ module Auth
             raise
           end
 
-          # Simple mode has no SQL serialization point, so the index entry is
-          # CLAIMED (atomically) as late as possible — the last statement before
-          # the first Redis write. No-op in full mode (see class docs).
-          return terminal(:email_taken, old_email) if simple_mode_race_lost?
+          # With no SQL serialization point the index entry is CLAIMED
+          # (atomically) as late as possible — the last statement before the
+          # first Redis write. No-op once an accounts row carries the claim for
+          # us (see class docs).
+          return terminal(:email_taken, old_email) if index_claim_race_lost?
 
           # --- 2. REDIS (compensable). ---
           customer_committed = false
@@ -415,10 +448,16 @@ module Auth
           true
         end
 
-        # Simple mode only: ATOMICALLY claim the global email index entry.
-        # Returns false in full mode — there the unique index on accounts.email is
-        # the real guard, it is consulted before any Redis write, and its
+        # ATOMICALLY claim the global email index entry whenever no SQL
+        # constraint will serialize the claim for us. Skipped only when this
+        # customer HAS an accounts row — there the unique index on accounts.email
+        # is the real guard, it is consulted before any Redis write, and its
         # violation is rescued on the UPDATE.
+        #
+        # Keyed on the accounts row rather than on the connection: a full-mode
+        # customer with NO row (a provisioning gap `sync-auth-accounts` owns)
+        # updates nothing in `update_auth_row!`, so no constraint ever fires and
+        # this claim is the only guard left.
         #
         # `HSETNX` sets the field only if it does not already exist, so the check
         # and the claim are one operation and a concurrent claimant can no longer
@@ -436,18 +475,20 @@ module Auth
         # lands after our claim still overwrites it. That needs a claim-once
         # primitive inside Familia itself.
         #
-        # NOT rescued: in simple mode nothing has committed at this point, so a
-        # datastore error here is a clean abort with nothing to compensate.
+        # NOT rescued: with no accounts row nothing has committed at this point,
+        # so a datastore error here is a clean abort with nothing to compensate.
         # @return [Boolean] true when another account holds the address
-        def simple_mode_race_lost?
-          return false if connection
+        def index_claim_race_lost?
+          db = connection
+          return false if db && auth_account_id(db)
 
           index = Onetime::Customer.email_index
           if index_claimed?(index.hsetnx(@new_email, @customer.objid))
             # Remember that WE created this entry. Unlike the old pure-read
             # check, winning the claim is a mutation, so if the Redis phase then
-            # fails the entry is left pointing at a customer that never took the
-            # address. `partial` reports that rather than leaving it silent.
+            # fails the entry would point at a customer that never took the
+            # address. `partial` releases it (best effort, `release_index_claim`)
+            # and only warns when even that cannot be done.
             @index_claim_created = true
             return false
           end
@@ -863,7 +904,9 @@ module Auth
             extid: @customer.extid,
             exception: exception
 
-          rolled_back = false
+          rolled_back        = false
+          sessions_revoked   = false
+          verification_state = :skipped
           if auth_row_updated && !customer_committed
             rolled_back = compensate_auth_row!(old_email)
             @warnings << (rolled_back ? :auth_row_rolled_back : :auth_row_rollback_failed)
@@ -871,14 +914,38 @@ module Auth
             # Authoritative stores agree on the NEW address; only secondary
             # indexes are behind. `customers doctor` repairs those.
             @warnings << :secondary_writes_incomplete
+
+            # The swap LANDED in this sub-case, so the follow-up work is owed in
+            # FULL, exactly as it is on :success — same three calls, same order,
+            # same `require_verification` gate. Returning without it would drop
+            # the "an email change revokes every session" property on precisely
+            # the messy path, leave the account holder with no notice of a change
+            # that stuck, and — worst of the three — leave the account flagged
+            # VERIFIED on an address nobody has proven ownership of, which is the
+            # exact state `require_verification` exists to prevent. All three
+            # already swallow their own failures into warnings.
+            sessions_revoked   = revoke_sessions
+            verification_state = reset_verification
+            send_notifications(old_email)
+
+            # On :success a reset that could not be confirmed downgrades the
+            # STATUS to :verification_not_reset. Here the status is already
+            # :partial and there is nothing below it, so the WARNING carries the
+            # same signal under the same name — the operator reads the identical
+            # symbol and owes the identical remediation
+            # (`bin/ots customers unverify <extid>`), not just the doctor run
+            # :partial asks for on its own.
+            @warnings << :verification_not_reset if verification_state == :still_verified
           end
 
-          # Simple mode: the claim we took at :246 is a write, and nothing here
-          # rolls it back — the customer never took the address, so the index
-          # entry now points at a record that does not hold it.
-          # `customers doctor` check_email_index detects and repairs exactly
-          # this mismatch; the warning is what tells the operator to run it.
-          @warnings << :email_index_claim_orphaned if @index_claim_created && !customer_committed
+          # The claim taken in `index_claim_race_lost?` is a write, and nothing
+          # else rolls it back — the customer never took the address, so the
+          # entry points at a record that does not hold it. Released here by
+          # compare-and-delete; anything it cannot cleanly release raises
+          # `:email_index_claim_orphaned`, which tells the operator to run
+          # `customers doctor` (check_email_index detects and repairs exactly
+          # this mismatch).
+          release_index_claim if @index_claim_created && !customer_committed
 
           record_audit(:partial, old_email, auth_row_updated && !rolled_back)
 
@@ -890,10 +957,38 @@ module Auth
             dry_run: false,
             auth_row_updated: auth_row_updated && !rolled_back,
             orgs_reindexed: @orgs_reindexed.to_i,
-            sessions_revoked: false,
-            verification_reset: false,
+            sessions_revoked: sessions_revoked,
+            verification_reset: verification_state == :reset,
             warnings: @warnings.uniq,
           )
+        end
+
+        # Undo of our own HSETNX claim, by the compare-and-delete above. Only
+        # ever reached when WE created the entry AND the Customer hash never took
+        # the address, so the entry points at a record that does not hold it.
+        #
+        # ANY outcome other than "we deleted our own entry" warns: a superseded
+        # field means someone else's blind HSET landed on top of a claim we were
+        # about to abandon, which is exactly the state `customers doctor`
+        # check_email_index reconciles. Staying silent there is what leaves that
+        # account unindexed with nobody told to run it.
+        def release_index_claim
+          index    = Onetime::Customer.email_index
+          released = index.dbclient.eval(
+            RELEASE_INDEX_CLAIM_SCRIPT,
+            keys: [index.dbkey],
+            argv: [@new_email.to_s, @customer.objid.to_s],
+          )
+          return if released.to_i == 1
+
+          auth_logger.warn '[customer.change_email] index claim no longer ours; left in place',
+            extid: @customer.extid
+          @warnings << :email_index_claim_orphaned
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] orphaned index claim release failed',
+            extid: @customer.extid,
+            exception: ex
+          @warnings << :email_index_claim_orphaned
         end
 
         # EXACTLY ONE event, from the op, obscured addresses only. `:partial` is

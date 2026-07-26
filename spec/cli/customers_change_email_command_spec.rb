@@ -29,7 +29,18 @@ RSpec.describe 'customers change-email', type: :cli do
 
   let(:op) { instance_double(Auth::Operations::Customers::ChangeEmail) }
 
+  # Defaults mirror the op's reporting under this command's default flags
+  # (require_verification: true, revoke_sessions: true): the swap-landed
+  # statuses — :success, :verification_not_reset, and the :partial carrying
+  # :secondary_writes_incomplete — report the auth-row write and the follow-up
+  # revocation; everything else reports false. `verification_reset` is false
+  # exactly where the op says the reset did NOT land: the downgraded status and
+  # the warning of the same name.
   def build_result(status:, **overrides)
+    warnings = overrides.fetch(:warnings, [])
+    landed   = %i[success verification_not_reset].include?(status) ||
+      (status == :partial && warnings.include?(:secondary_writes_incomplete))
+
     result_class.new(
       **{
         status: status,
@@ -37,11 +48,12 @@ RSpec.describe 'customers change-email', type: :cli do
         from: 'old@example.com',
         to: 'new@example.com',
         dry_run: status == :planned,
-        auth_row_updated: status == :success,
+        auth_row_updated: landed,
         orgs_reindexed: 0,
-        sessions_revoked: false,
-        verification_reset: false,
-        warnings: [],
+        sessions_revoked: landed,
+        verification_reset: landed && status != :verification_not_reset &&
+          !warnings.include?(:verification_not_reset),
+        warnings: warnings,
       }.merge(overrides),
     )
   end
@@ -197,8 +209,7 @@ RSpec.describe 'customers change-email', type: :cli do
   describe 'non-success statuses' do
     it 'surfaces :partial distinctly and exits non-zero' do
       allow(op).to receive(:call).and_return(
-        build_result(status: :partial, auth_row_updated: true,
-          warnings: %i[secondary_writes_incomplete]),
+        build_result(status: :partial, warnings: %i[secondary_writes_incomplete]),
       )
 
       output = run_cli_command_quietly('customers', 'change-email',
@@ -216,7 +227,7 @@ RSpec.describe 'customers change-email', type: :cli do
     # success and must not tell the operator to retry the change.
     it 'surfaces :verification_not_reset with the remediation and exits non-zero' do
       allow(op).to receive(:call).and_return(
-        build_result(status: :verification_not_reset, auth_row_updated: true,
+        build_result(status: :verification_not_reset,
           warnings: %i[verification_reset_failed verification_still_set]),
       )
 
@@ -324,7 +335,11 @@ RSpec.describe 'customers change-email', type: :cli do
     end
 
     it 'exits 1 while still emitting the payload on :partial' do
-      allow(op).to receive(:call).and_return(build_result(status: :partial))
+      # The op never emits a warnings-less :partial; this is the rolled-back
+      # sub-case shape.
+      allow(op).to receive(:call).and_return(
+        build_result(status: :partial, warnings: %i[auth_row_rolled_back]),
+      )
 
       output  = run_cli_command_quietly('customers', 'change-email',
         'old@example.com', 'new@example.com', '--apply', '--yes', '--json')

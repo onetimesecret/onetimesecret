@@ -154,21 +154,49 @@ module ColonelAPI
           when :not_found
             raise_not_found('User has no usable email address')
           when :partial
+            # A partial whose Customer hash already committed ran the full
+            # follow-up phase, so it can carry :verification_not_reset (or
+            # :verification_still_set): the swap LANDED and the account is still
+            # flagged verified on an unproven address. Telling that operator to
+            # doctor-then-retry sends them the wrong way — the change already
+            # stuck, and the obligation is the same "unverify now" the dedicated
+            # status below spells out. The remaining warnings stay interpolated
+            # either way: they are the only channel a colonel operator has,
+            # where the CLI gets print_warnings for free.
+            if result.warnings.intersect?([:verification_not_reset, :verification_still_set])
+              raise_form_error(
+                'PARTIAL: the email change LANDED but verification could not ' \
+                "be reset: #{result.extid} is still marked verified on an " \
+                'address nobody has proven they own. Do not retry the change — ' \
+                "run `bin/ots customers unverify #{result.extid}` now, then " \
+                '`bin/ots customers doctor` for the remaining drift.' \
+                "#{warnings_suffix}",
+                field: :new_email,
+              )
+            end
+
             raise_form_error(
               'PARTIAL: the email change did not complete and the auth database ' \
               'and Redis may now disagree. Run `bin/ots customers doctor` ' \
-              '(check :auth_email_drift) before retrying.',
+              "(check :auth_email_drift) before retrying.#{warnings_suffix}",
               field: :new_email,
             )
           when :verification_not_reset
             raise_form_error(
               "The email change APPLIED, but verification could not be reset: #{result.extid} " \
               'is still marked verified on an address nobody has proven they own. ' \
-              "Do not retry the change — run `bin/ots customers unverify #{result.extid}` now. " \
-              "(#{result.warnings.join(', ')})",
+              "Do not retry the change — run `bin/ots customers unverify #{result.extid}` now." \
+              "#{warnings_suffix}",
               field: :new_email,
             )
           end
+        end
+
+        # The op's partial() has one sub-case (no auth-row write, no Customer
+        # commit) that appends nothing, so a bare "()" is reachable and reads
+        # as a rendering bug rather than "no warnings".
+        def warnings_suffix
+          result.warnings.empty? ? '' : " (#{result.warnings.join(', ')})"
         end
 
         def status_message
