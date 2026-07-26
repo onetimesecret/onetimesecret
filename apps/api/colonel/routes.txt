@@ -73,6 +73,10 @@ POST   /organizations/:org_id/members                   ColonelAPI::Logic::Colon
 POST   /organizations/:org_id/members/:member_id/role   ColonelAPI::Logic::Colonel::SetMembershipRole response=json auth=sessionauth role=colonel scope=internal
 DELETE /organizations/:org_id/members/:member_id         ColonelAPI::Logic::Colonel::RemoveMembership response=json auth=sessionauth role=colonel scope=internal
 
+# Membership Entitlement Overrides (#3907: per-membership grant/revoke, shared with `bin/ots memberships entitlement`)
+POST   /organizations/:org_id/members/:member_id/entitlements/:action   ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
+DELETE /organizations/:org_id/members/:member_id/entitlements/overrides ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
+
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth role=colonel scope=internal
 

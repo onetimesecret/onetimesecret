@@ -77,6 +77,48 @@ export type ColonelEntitlementOverrideResponse = z.infer<
   typeof colonelEntitlementOverrideResponseSchema
 >;
 
+/**
+ * The recomputed MEMBERSHIP entitlement-override state after a grant / revoke
+ * / clear (#3907) — the membership-scoped sibling of
+ * `colonelEntitlementOverrideRecordSchema`, returned by
+ * `ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride`:
+ *   POST   /api/colonel/organizations/:org_id/members/:member_id/entitlements/grant
+ *   POST   /api/colonel/organizations/:org_id/members/:member_id/entitlements/revoke
+ *   DELETE /api/colonel/organizations/:org_id/members/:member_id/entitlements/overrides
+ *
+ * Same shape one scope down: `org_id` and `member_id` are both PUBLIC extids,
+ * `entitlement` is null on a full clear, and `effective_entitlements` is the
+ * membership's materialised result
+ * ((org ∩ role template) + grants - revokes).
+ */
+export const colonelMembershipEntitlementOverrideRecordSchema = z.object({
+  org_id: z.string(),
+  member_id: z.string(),
+  entitlement: z.string().nullable().optional(),
+  action: z.enum(['granted', 'revoked', 'cleared']),
+  effective_entitlements: z.array(z.string()),
+  grants: z.array(z.string()),
+  revokes: z.array(z.string()),
+});
+
+export type ColonelMembershipEntitlementOverrideRecord = z.infer<
+  typeof colonelMembershipEntitlementOverrideRecordSchema
+>;
+
+/**
+ * Membership entitlement-override endpoints → `{ record }` ack.
+ * `ManageMembershipEntitlementOverride` returns only `record` (no `details`),
+ * which `createApiResponseSchema` already makes optional. Registered as
+ * `colonelMembershipEntitlementOverride` in `registry.ts`.
+ */
+export const colonelMembershipEntitlementOverrideResponseSchema = createApiResponseSchema(
+  colonelMembershipEntitlementOverrideRecordSchema
+);
+
+export type ColonelMembershipEntitlementOverrideResponse = z.infer<
+  typeof colonelMembershipEntitlementOverrideResponseSchema
+>;
+
 // ============================================================================
 // Organization DETAIL + reconcile schemas (colonel org audit remediation)
 //

@@ -36,6 +36,7 @@ import {
 import { colonelDomainVerifyResponseSchema } from './colonel-domains';
 import {
   colonelEntitlementOverrideResponseSchema,
+  colonelMembershipEntitlementOverrideResponseSchema,
   colonelOrganizationDetailResponseSchema,
   colonelReconcileOrganizationResponseSchema,
 } from './colonel-organizations';
@@ -166,6 +167,7 @@ export const responseSchemas = {
   investigateOrganization: investigateOrganizationResponseSchema,
   colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
+  colonelMembershipEntitlementOverride: colonelMembershipEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
   brandDiagnostics: brandDiagnosticsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,
