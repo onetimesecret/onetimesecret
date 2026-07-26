@@ -28,18 +28,18 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
     Sequel::Migrator.run(connection, migrations_dir, use_transactions: true)
     connection
   end
+  let(:auth_config) { double('AuthConfig', mode: 'full') }
 
   after do
     db.disconnect
-    File.delete(test_db_file) if File.exist?(test_db_file)
+    FileUtils.rm_f(test_db_file)
   end
-
-  let(:auth_config) { double('AuthConfig', mode: 'full') }
 
   before { allow(Onetime).to receive(:auth_config).and_return(auth_config) }
 
   def build_customer(extid:, email:)
-    double('Customer',
+    double(
+      'Customer',
       extid: extid,
       email: email,
       verified?: false,

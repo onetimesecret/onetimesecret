@@ -24,7 +24,8 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
   # The op only touches scalar fields and the SQL accounts table; the
   # double exposes just those plus the predicates the op consults.
   let(:customer) do
-    double('Customer',
+    double(
+      'Customer',
       extid: 'ur_test_123',
       email: 'user@example.com',
       verified?: false,
@@ -53,7 +54,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
   end
   let(:db) do
     db_dbl = double('db', :[] => accounts_dataset)
-    allow(db_dbl).to receive(:transaction) { |&blk| blk.call }
+    allow(db_dbl).to receive(:transaction).and_yield
     db_dbl
   end
 
