@@ -334,6 +334,12 @@ RSpec.describe Onetime::Operations::Org::Create do
       expect(org.owner_id).to eq(legacy.objid)
       expect(org.owner_id).not_to eq(legacy.custid)
 
+      # created_by is born in lock-step with owner_id (chore Branch 1 steady
+      # state) — a custid write here would put the legacy email into an
+      # immutable, safe-dumped field and strand the org in Branch 3b.
+      expect(org.created_by).to eq(legacy.objid)
+      expect(org.created_by).to eq(org.owner_id)
+
       membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, legacy.objid)
       membership.destroy! if membership.respond_to?(:exists?) && membership.exists?
     end

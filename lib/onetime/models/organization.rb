@@ -66,7 +66,7 @@ module Onetime
     field :display_name
     field :description
     field :owner_id       # DEPRECATED: Use created_by for audit trail, OrganizationMembership role='owner' for authority. Retained until membership migration completes everywhere.
-    field :created_by     # Immutable audit field — custid of organization creator. Set once at create!. See ADR-012.
+    field :created_by     # Immutable audit field — objid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
     field :archived_at      # Epoch timestamp: set when workspace is soft-archived by bulk migration
@@ -450,10 +450,15 @@ module Onetime
         # objid-keyed members set; Operations::Org::TransferOwnership writes the
         # same space). Do NOT write custid here: the two only coincide because
         # `Customer#init` defaults `custid ||= objid` (#3907).
+        #
+        # created_by is born in lock-step with owner_id (same objid space) so
+        # the standardize_owner_id chore's Branch 1 steady state holds. A
+        # legacy owner's custid can be an email — writing it here would put
+        # PII into an immutable, safe-dumped audit field.
         org = new(
           display_name: display_name,
           owner_id: owner_customer.objid,
-          created_by: owner_customer.custid,
+          created_by: owner_customer.objid,
           contact_email: contact_email,
           **,
         )
