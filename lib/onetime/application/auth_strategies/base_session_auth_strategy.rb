@@ -29,6 +29,14 @@ module Onetime
           session = env['rack.session']
           return failure('[SESSION_MISSING] No session available') unless session
 
+          # Defense-in-depth (M-11): a session mid-MFA must never authenticate a
+          # request, even if some future code path sets authenticated=true without
+          # clearing this flag. PrepareMfaSession writes the STRING key
+          # 'awaiting_mfa'; SyncSession deletes it when MFA completes. Read the
+          # string key deliberately — a symbol :awaiting_mfa would silently never
+          # match. Guard is nil/false-safe: only == true blocks.
+          return failure('[SESSION_AWAITING_MFA] MFA not completed') if session['awaiting_mfa'] == true
+
           # Check if session is authenticated
           unless session['authenticated'] == true
             return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
@@ -48,6 +56,16 @@ module Onetime
           # could not see (encrypted payloads). Reversible trust & safety
           # state — see Auth::Operations::Customers::SetSuspension.
           return failure('[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
+
+          # Credential watermark (#3810): reject any session authenticated before
+          # the customer's last password change/reset. This per-request check —
+          # not the enumerative blob deletion in the password hooks, which is
+          # hygiene — is the authoritative revocation boundary, so even a blob
+          # the hooks never found dies here. See Helpers for the fail-secure /
+          # never-mass-logout semantics.
+          if session_predates_credential_change?(session, cust)
+            return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
+          end
 
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)

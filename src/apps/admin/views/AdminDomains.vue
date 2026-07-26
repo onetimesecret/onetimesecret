@@ -5,48 +5,64 @@
   import AddDomainForOrgModal from '@/apps/admin/components/AddDomainForOrgModal.vue';
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
   import AdminOrgSelectorModal from '@/apps/admin/components/AdminOrgSelectorModal.vue';
-  import { AdminConfirmDialog, AdminRecordPanel, KitPagination } from '@/apps/admin/components/kit';
+  import DomainStateBadge from '@/apps/admin/components/domains/DomainStateBadge.vue';
+  import {
+    AdminConfirmDialog,
+    AdminRecordPanel,
+    DataTable,
+    DetailDrawer,
+    FilterBar,
+    KitPagination,
+    StatCard,
+  } from '@/apps/admin/components/kit';
+  import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
   import type { ColonelCustomDomain, ColonelOrganization } from '@/schemas/api/internal/responses/colonel';
-  import {
-    colonelDomainDetailResponseSchema,
-    colonelDomainVerifyResponseSchema,
-    type ColonelDomainCluster,
-    type ColonelDomainDetailRecord,
+  import type {
+    ColonelDomainCluster,
+    ColonelDomainDetailRecord,
+    ColonelDomainVerifyDetails,
   } from '@/schemas/api/internal/responses/colonel-domains';
-  import type { ColonelDomainVerifyResponse } from '@/schemas/api/internal/responses/colonel-domains';
+  import { colonelDomainDetailResponseSchema } from '@/schemas/api/internal/responses/colonel-domains';
   import {
     colonelOrganizationDetailResponseSchema,
     type ColonelOrganizationDetailDomain,
   } from '@/schemas/api/internal/responses/colonel-organizations';
-  import CardGridSkeleton from '@/shared/components/closet/CardGridSkeleton.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
-   * Domains screen — dense domain table + per-domain verify (ticket #31,
-   * Phase-2 parity port), plus the admin "attach a domain to a specific
-   * organization" flow.
+   * Domains list — the User-Management-grade console surface for custom domains.
    *
-   * - LIST via {@link useAdminDomains} (a per-resource paginated store over the
-   *   existing `GET /api/colonel/domains`) + {@link KitPagination}.
-   * - The VERIFY action POSTs to `/api/colonel/domains/:extid/verify` and
-   *   surfaces the op's real DNS/SSL outcome HONESTLY (never faked).
-   * - The ATTACH flow: a CTA opens {@link AdminOrgSelectorModal} to pick an org
-   *   by objid/extid/email; the chosen org is pinned into an
-   *   {@link AdminRecordPanel} between the header rule and the list. From there
-   *   the operator adds a domain ({@link AddDomainForOrgModal} →
-   *   `POST /api/colonel/domains`) and inspects each domain's DNS-validation
-   *   records, status, and re-verify ({@link AdminDomainDnsDetails} +
-   *   `GET /api/colonel/domains/:extid`). The panel + picker are reusable kit /
-   *   components so other console screens can adopt the single-record pattern.
+   * Structure mirrors AdminCustomers.vue so a row behaves the same everywhere in
+   * the console: FilterBar + {@link DataTable} + {@link KitPagination} over the
+   * {@link useAdminDomains} store, a row click opens a read-only
+   * {@link DetailDrawer} rendered from data already in hand (no second fetch),
+   * and the drawer escalates to the full page (AdminDomainDetail) for the deep,
+   * mutating verbs (probe / repair / transfer / remove).
+   *
+   * Filters are SERVER-SIDE (`search` + `status` on GET /api/colonel/domains,
+   * applied before pagination) with the same 300 ms debounce and no-op guard
+   * AdminCustomers uses. `search` matches display_domain / base_domain plus an
+   * exact extid / domain_id — NOT the organization name.
+   *
+   * One deliberate difference from the customers list: VERIFY stays on the row.
+   * It is the one high-frequency, low-risk domain verb, so keeping it inline
+   * preserves the capability the previous card grid had and saves a round trip
+   * through the detail page.
+   *
+   * The admin "attach a domain to a specific organization" flow is unchanged: a
+   * CTA opens {@link AdminOrgSelectorModal}, the chosen org is pinned into an
+   * {@link AdminRecordPanel}, and from there the operator adds a domain
+   * ({@link AddDomainForOrgModal}) and inspects each domain's DNS records
+   * ({@link AdminDomainDnsDetails}).
    */
   const { t } = useI18n();
   const $api = useApi();
@@ -55,46 +71,85 @@
   const store = useAdminDomains();
   const { domains, pagination, loading, error } = storeToRefs(store);
 
-  // ---- Status badges (parity with the legacy screen) ------------------------
-
-  /** Verification-state badge colours, keyed by the op's state symbol. */
-  function stateBadgeClass(state: string): string {
-    switch (state) {
-      case 'verified':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'resolving':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-    }
-  }
-
-  const stateLabels = computed<Record<string, string>>(() => ({
-    verified: t('web.colonel.customDomains.status.verified'),
-    resolving: t('web.colonel.customDomains.status.resolving'),
-    pending: t('web.colonel.customDomains.status.pending'),
-  }));
-
-  function stateLabel(state: string): string {
-    return stateLabels.value[state] ?? state;
-  }
-
   /** External URL for an operator to open/test a domain in a new tab. */
   function domainUrl(displayDomain: string): string {
     return `https://${displayDomain}`;
   }
 
-  // ---- List fetching --------------------------------------------------------
+  // ---- Filters + list fetching ----------------------------------------------
+  //
+  // Both filters are SERVER-SIDE (`search` / `status` on
+  // GET /api/colonel/domains) and are applied before pagination, so the pager's
+  // total_count always describes the filtered population.
 
+  const searchTerm = ref('');
+  const activeSearch = ref('');
+  const stateFilter = ref('');
+
+  /** States the backend emits (CustomDomain#verification_state). */
+  const STATE_OPTIONS = ['verified', 'resolving', 'pending'] as const;
+
+  const filters = computed<FilterConfig[]>(() => [
+    {
+      key: 'state',
+      label: t('web.admin.domains.list.stateFilter'),
+      value: stateFilter.value,
+      options: STATE_OPTIONS.map((state) => ({
+        value: state,
+        label: t(`web.colonel.customDomains.status.${state}`, state),
+      })),
+    },
+  ]);
+
+  const hasActiveFilters = computed(
+    () => searchTerm.value !== '' || stateFilter.value !== ''
+  );
+
+  /** Fetch one server page with the active filters. Errors surface via the store. */
   async function fetchPage(targetPage = 1): Promise<void> {
     try {
-      await store.fetchPage(targetPage);
+      await store.fetchPage(targetPage, {
+        search: activeSearch.value || undefined,
+        status: stateFilter.value || undefined,
+      });
     } catch {
       // Network/HTTP failure is captured in `store.error`; the banner + retry
       // below handle it. Swallow so it doesn't become an unhandled rejection.
     }
+  }
+
+  // Debounce search input so we issue one request per pause, not per keystroke
+  // (the fixed AdminCustomers wiring, including the no-op guard).
+  let searchTimer: ReturnType<typeof setTimeout> | null = null;
+  watch(searchTerm, (value) => {
+    if (searchTimer) clearTimeout(searchTimer);
+    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
+    // already issues its own fetch) so clearing doesn't double-fetch.
+    if (value.trim() === activeSearch.value) return;
+    searchTimer = setTimeout(() => {
+      activeSearch.value = value.trim();
+      fetchPage(1);
+    }, 300);
+  });
+  onBeforeUnmount(() => {
+    if (searchTimer) clearTimeout(searchTimer);
+  });
+
+  function onFilterChange(key: string, value: string): void {
+    if (key === 'state') {
+      stateFilter.value = value;
+      fetchPage(1);
+    }
+  }
+
+  function onClear(): void {
+    // Cancel any in-flight debounce so the reset below doesn't fire a second,
+    // late request on top of this one.
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTerm.value = '';
+    activeSearch.value = '';
+    stateFilter.value = '';
+    fetchPage(1);
   }
 
   function onPageChange(targetPage: number): void {
@@ -102,19 +157,35 @@
   }
 
   function onPerPageChange(perPage: number): void {
+    // The composable owns perPage (reconciled from the server echo); set it then
+    // re-fetch the first page at the new size.
     store.perPage = perPage;
     fetchPage(1);
   }
 
-  // ---- Guarded verify action (list rows) ------------------------------------
+  // ---- Columns --------------------------------------------------------------
+  //
+  // Non-sortable on purpose: the endpoint returns a FIXED ordering and takes no
+  // `sort` param, so a sortable header would promise a re-fetch we cannot make.
+
+  const columns = computed<DataTableColumn<ColonelCustomDomain>[]>(() => [
+    { key: 'domain', label: t('web.admin.domains.columns.domain') },
+    { key: 'organization', label: t('web.admin.domains.columns.organization') },
+    { key: 'state', label: t('web.admin.domains.columns.state') },
+    { key: 'tls', label: t('web.admin.domains.columns.tls') },
+    { key: 'created', label: t('web.admin.domains.columns.created') },
+    { key: 'actions', label: t('web.admin.domains.columns.actions'), align: 'right' },
+  ]);
+
+  // ---- Guarded verify action (row + drawer) ---------------------------------
 
   const dialogOpen = ref(false);
   /** The domain awaiting confirmation, or currently being verified. */
   const activeDomain = ref<ColonelCustomDomain | null>(null);
-  /** extid of the domain whose verify request is in flight (per-card spinner). */
+  /** extid of the domain whose verify request is in flight (per-row spinner). */
   const verifyingExtid = ref<string | null>(null);
-  /** The last parsed verify ack, read in onConfirm to pick an honest message. */
-  const verifyResult = ref<ColonelDomainVerifyResponse | null>(null);
+  /** The last verify outcome, read in onConfirm to pick an honest message. */
+  const verifyResult = ref<ColonelDomainVerifyDetails | null>(null);
 
   const {
     loading: verifyLoading,
@@ -122,20 +193,11 @@
     run: runVerify,
     reset: resetVerify,
   } = useAdminMutation(async (extid: string) => {
-    verifyResult.value = null;
-    const response = await $api.post(
-      `/api/colonel/domains/${encodeURIComponent(extid)}/verify`
-    );
-    // Parse the ack so it stays a live tripwire. A 2xx means the verify ran
-    // server-side regardless of ack shape; a mismatch is reported by
-    // gracefulParse but does not fail the action (we fall back to a generic
-    // success message and refresh the list).
-    const parsed = gracefulParse(
-      colonelDomainVerifyResponseSchema,
-      response.data,
-      'ColonelDomainVerifyResponse'
-    );
-    verifyResult.value = parsed.ok ? parsed.data : null;
+    // The store owns the request + ack parsing so the list, the drawer and the
+    // detail page all drive the same endpoint. A 2xx means the verify ran
+    // server-side regardless of ack shape; a mismatch resolves null and we fall
+    // back to the generic success message.
+    verifyResult.value = await store.verify(extid);
   });
 
   const dialogDescription = computed(() =>
@@ -162,7 +224,7 @@
 
   /** Map the honest post-verify state to its operator notification. */
   function notifyOutcome(): void {
-    const state = verifyResult.value?.details?.current_state ?? '';
+    const state = verifyResult.value?.current_state ?? '';
     const domainName = activeDomain.value?.display_domain ?? '';
     const messageKey = VERIFY_MESSAGE_KEYS[state] ?? 'web.admin.domains.verify.success.done';
 
@@ -184,17 +246,88 @@
 
     dialogOpen.value = false;
     notifyOutcome();
-    // Re-fetch the current page so every card's badge reflects real persisted
-    // state (the verify may have flipped verified/resolving).
+    // The drawer renders a row SNAPSHOT, so remember which one before the page
+    // is replaced and re-point it at the refreshed row afterwards.
+    const openExtid = selectedDomain.value?.extid ?? null;
+
+    // Re-fetch the current page so every badge reflects real persisted state
+    // (the verify may have flipped verified/resolving).
     await fetchPage(pagination.value?.page ?? 1);
     activeDomain.value = null;
     verifyResult.value = null;
+
+    if (openExtid) {
+      const refreshed = domains.value.find((row) => row.extid === openExtid) ?? null;
+      selectedDomain.value = refreshed;
+      if (!refreshed) drawerOpen.value = false;
+    }
   }
 
   function onCancel(): void {
     dialogOpen.value = false;
     activeDomain.value = null;
     resetVerify();
+  }
+
+  // ---- Detail drawer (read-only summary + escalation) -----------------------
+
+  const drawerOpen = ref(false);
+  const selectedDomain = ref<ColonelCustomDomain | null>(null);
+
+  /** Read-only summary rows for the drawer's field grid. */
+  const drawerFields = computed(() => {
+    const d = selectedDomain.value;
+    if (!d) return [];
+    return [
+      {
+        key: 'publicId',
+        label: t('web.admin.domains.fields.publicId'),
+        value: d.extid,
+        mono: true,
+      },
+      {
+        key: 'organization',
+        label: t('web.admin.domains.fields.organization'),
+        value: d.org_name || t('web.admin.domains.detail.none'),
+        mono: false,
+      },
+      {
+        key: 'baseDomain',
+        label: t('web.admin.domains.fields.baseDomain'),
+        value: d.base_domain || t('web.admin.domains.detail.none'),
+        mono: true,
+      },
+      {
+        key: 'subdomain',
+        label: t('web.admin.domains.fields.subdomain'),
+        value: d.subdomain || t('web.admin.domains.detail.none'),
+        mono: true,
+      },
+      {
+        key: 'created',
+        label: t('web.admin.domains.fields.created'),
+        value: formatDisplayDateTime(d.created),
+        mono: false,
+      },
+      {
+        key: 'updated',
+        label: t('web.admin.domains.fields.updated'),
+        value: d.updated
+          ? formatDisplayDateTime(d.updated)
+          : t('web.admin.domains.detail.never'),
+        mono: false,
+      },
+    ];
+  });
+
+  function openDetail(row: ColonelCustomDomain): void {
+    selectedDomain.value = row;
+    drawerOpen.value = true;
+  }
+
+  /** Yes/no label for the drawer's boolean stat tiles. */
+  function yesNo(value: boolean): string {
+    return value ? t('web.admin.domains.detail.yes') : t('web.admin.domains.detail.no');
   }
 
   // ---- Attach-domain-to-organization flow -----------------------------------
@@ -264,15 +397,10 @@
     domainDetail.value = null;
     domainCluster.value = null;
     try {
-      const res = await $api.get(`/api/colonel/domains/${encodeURIComponent(extid)}`);
-      const parsed = gracefulParse(
-        colonelDomainDetailResponseSchema,
-        res.data,
-        'ColonelDomainDetailResponse'
-      );
-      if (parsed.ok) {
-        domainDetail.value = parsed.data.record;
-        domainCluster.value = parsed.data.details?.cluster ?? null;
+      const detail = await store.fetchDetail(extid);
+      if (detail) {
+        domainDetail.value = detail.record;
+        domainCluster.value = detail.cluster;
       } else {
         detailError.value = true;
       }
@@ -344,15 +472,8 @@
   async function reverifyPanelDomain(domain: ColonelOrganizationDetailDomain): Promise<void> {
     panelVerifyingExtid.value = domain.extid;
     try {
-      const res = await $api.post(
-        `/api/colonel/domains/${encodeURIComponent(domain.extid)}/verify`
-      );
-      const parsed = gracefulParse(
-        colonelDomainVerifyResponseSchema,
-        res.data,
-        'ColonelDomainVerifyResponse'
-      );
-      const state = parsed.ok ? parsed.data.details?.current_state ?? '' : '';
+      const outcome = await store.verify(domain.extid);
+      const state = outcome?.current_state ?? '';
       const messageKey = VERIFY_MESSAGE_KEYS[state] ?? 'web.admin.domains.verify.success.done';
       notifications.show(
         t(messageKey, { domain: domain.display_domain }),
@@ -477,16 +598,22 @@
                   name="arrow-top-right-on-square"
                   size="4" />
               </a>
-              <span
-                :class="[
-                  'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                  stateBadgeClass(domain.verification_state),
-                ]"
-                :data-testid="`panel-domain-state-${domain.extid}`">
-                {{ stateLabel(domain.verification_state) }}
-              </span>
+              <DomainStateBadge
+                :state="domain.verification_state"
+                :testid="`panel-domain-state-${domain.extid}`"
+                class="shrink-0" />
             </div>
             <div class="flex shrink-0 items-center gap-2">
+              <router-link
+                :to="{ name: 'AdminDomainDetail', params: { id: domain.extid } }"
+                :data-testid="`panel-domain-detail-${domain.extid}`"
+                class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-right"
+                  size="4" />
+                {{ t('web.admin.domains.detail.openFullPage') }}
+              </router-link>
               <button
                 type="button"
                 :data-testid="`panel-domain-dns-${domain.extid}`"
@@ -565,185 +692,291 @@
       </button>
     </div>
 
-    <!-- Loading (first load) -->
-    <CardGridSkeleton
-      v-if="loading && domains.length === 0"
-      :count="4"
-      data-testid="domains-loading" />
-
-    <!-- Empty -->
-    <div
-      v-else-if="domains.length === 0"
-      class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-900"
-      data-testid="domains-empty">
-      <p class="text-gray-500 dark:text-gray-400">
-        {{ t('web.colonel.customDomains.empty') }}
-      </p>
+    <!-- Filters (server-side: `search` + `status`, applied before pagination). -->
+    <div class="mb-4">
+      <FilterBar
+        v-model:search="searchTerm"
+        :filters="filters"
+        :search-placeholder="t('web.admin.domains.list.searchPlaceholder')"
+        :has-active-filters="hasActiveFilters"
+        testid="domains-filterbar"
+        @filter-change="onFilterChange"
+        @clear="onClear" />
     </div>
 
-    <!-- Domain table — dense, column-aligned so all 50 rows on a page are
-         scannable at once (the card grid was too tall for a 1000-domain
-         install). Low-value fields (brand tagline/homepage, favicon, updated)
-         are dropped from the row; the state badge already conveys
-         verified/resolving so those redundant flags are gone. -->
-    <template v-else>
-      <div
-        data-testid="domains-grid"
-        class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-800/60">
-            <tr>
-              <th
-                scope="col"
-                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.colonel.customDomains.labels.domain') }}
-              </th>
-              <th
-                scope="col"
-                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.colonel.customDomains.labels.organization') }}
-              </th>
-              <th
-                scope="col"
-                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.colonel.customDomains.labels.status') }}
-              </th>
-              <th
-                scope="col"
-                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.colonel.customDomains.labels.created') }}
-              </th>
-              <th
-                scope="col"
-                class="px-4 py-2.5 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.colonel.customDomains.labels.actions') }}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr
-              v-for="domain in domains"
-              :key="domain.domain_id"
-              :data-testid="`domain-row-${domain.extid}`"
-              class="bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800/50">
-              <!-- Domain: logo + name + extid -->
-              <td class="px-4 py-2.5">
-                <div class="flex items-center gap-3">
-                  <div
-                    v-if="domain.has_logo"
-                    class="size-8 shrink-0 overflow-hidden rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-                    <img
-                      :src="domain.logo_url ?? undefined"
-                      :alt="`${domain.display_domain} logo`"
-                      class="size-full object-contain"
-                      loading="lazy" />
-                  </div>
-                  <div
-                    v-else
-                    class="flex size-8 shrink-0 items-center justify-center rounded border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700">
-                    <OIcon
-                      collection="heroicons"
-                      name="globe-alt"
-                      size="4"
-                      class="text-gray-400" />
-                  </div>
-                  <div class="min-w-0">
-                    <div class="truncate font-medium text-gray-900 dark:text-white">
-                      {{ domain.display_domain }}
-                    </div>
-                    <div class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
-                      {{ domain.extid }}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <!-- Organization -->
-              <td class="px-4 py-2.5 text-gray-700 dark:text-gray-300">
-                <span class="block max-w-[16rem] truncate">{{ domain.org_name }}</span>
-              </td>
-              <!-- Status: state badge + non-redundant capability flags -->
-              <td class="px-4 py-2.5">
-                <div class="flex items-center gap-1.5">
-                  <span
-                    :class="[
-                      'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                      stateBadgeClass(domain.verification_state),
-                    ]"
-                    :data-testid="`domain-state-${domain.extid}`">
-                    {{ stateLabel(domain.verification_state) }}
-                  </span>
-                  <OIcon
-                    v-if="domain.ready"
-                    collection="heroicons"
-                    name="check-badge"
-                    size="4"
-                    class="text-green-600 dark:text-green-400"
-                    :title="t('web.colonel.customDomains.status.ready')" />
-                  <OIcon
-                    v-if="domain.homepage_config?.enabled"
-                    collection="heroicons"
-                    name="home"
-                    size="4"
-                    class="text-purple-600 dark:text-purple-400"
-                    :title="t('web.colonel.customDomains.status.publicHomepage')" />
-                  <OIcon
-                    v-if="domain.api_config?.enabled"
-                    collection="heroicons"
-                    name="code-bracket"
-                    size="4"
-                    class="text-purple-600 dark:text-purple-400"
-                    :title="t('web.colonel.customDomains.status.publicApi')" />
-                </div>
-              </td>
-              <!-- Created -->
-              <td class="px-4 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400">
-                {{ formatDisplayDateTime(domain.created) }}
-              </td>
-              <!-- Actions: open external + verify -->
-              <td class="px-4 py-2.5">
-                <div class="flex items-center justify-end gap-1">
-                  <a
-                    :href="domainUrl(domain.display_domain)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    :data-testid="`domain-open-${domain.extid}`"
-                    :aria-label="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                    :title="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                    class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
-                    <OIcon
-                      collection="heroicons"
-                      name="arrow-top-right-on-square"
-                      size="4" />
-                  </a>
-                  <button
-                    type="button"
-                    :data-testid="`domain-verify-${domain.extid}`"
-                    :disabled="verifyingExtid === domain.extid"
-                    class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                    @click="requestVerify(domain)">
-                    <OIcon
-                      collection="heroicons"
-                      :name="verifyingExtid === domain.extid ? 'arrow-path' : 'shield-check'"
-                      size="4"
-                      :class="verifyingExtid === domain.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
-                    {{ t('web.admin.domains.verify.button') }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <KitPagination
-        v-if="pagination"
-        :pagination="pagination"
+    <!-- Table. `domains-grid` is the list container (kept stable for tooling);
+         the DataTable inside owns loading + empty rendering. -->
+    <div
+      data-testid="domains-grid"
+      class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <DataTable
+        :columns="columns"
+        :rows="domains"
+        row-key="domain_id"
         :loading="loading"
-        class="mt-6"
-        @update:page="onPageChange"
-        @update:per-page="onPerPageChange" />
-    </template>
+        clickable-rows
+        testid="domains-table"
+        @row-click="openDetail">
+        <template #empty>
+          <div
+            class="px-6 py-12 text-center"
+            data-testid="domains-empty">
+            <OIcon
+              collection="heroicons"
+              name="globe-alt"
+              size="8"
+              class="mx-auto text-gray-300 dark:text-gray-600" />
+            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+              {{
+                hasActiveFilters
+                  ? t('web.admin.domains.list.emptyFilter')
+                  : t('web.colonel.customDomains.empty')
+              }}
+            </p>
+          </div>
+        </template>
+
+        <!-- Identity: logo + name + extid. The testid is the row handle. -->
+        <template #cell-domain="{ row }">
+          <div
+            class="flex items-center gap-3"
+            :data-testid="`domain-row-${row.extid}`">
+            <div
+              v-if="row.has_logo"
+              class="size-8 shrink-0 overflow-hidden rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              <img
+                :src="row.logo_url ?? undefined"
+                :alt="`${row.display_domain} logo`"
+                class="size-full object-contain"
+                loading="lazy" />
+            </div>
+            <div
+              v-else
+              class="flex size-8 shrink-0 items-center justify-center rounded border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700">
+              <OIcon
+                collection="heroicons"
+                name="globe-alt"
+                size="4"
+                class="text-gray-400" />
+            </div>
+            <div class="min-w-0">
+              <div class="truncate font-medium text-gray-900 dark:text-white">
+                {{ row.display_domain }}
+              </div>
+              <div class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
+                {{ row.extid }}
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template #cell-organization="{ row }">
+          <span class="block max-w-[16rem] truncate">
+            {{ row.org_name || t('web.admin.domains.detail.none') }}
+          </span>
+        </template>
+
+        <!-- Verification state + the non-redundant capability flags. -->
+        <template #cell-state="{ row }">
+          <div class="flex items-center gap-1.5">
+            <DomainStateBadge
+              :state="row.verification_state"
+              :testid="`domain-state-${row.extid}`" />
+            <OIcon
+              v-if="row.homepage_config?.enabled"
+              collection="heroicons"
+              name="home"
+              size="4"
+              class="text-purple-600 dark:text-purple-400"
+              :title="t('web.colonel.customDomains.status.publicHomepage')" />
+            <OIcon
+              v-if="row.api_config?.enabled"
+              collection="heroicons"
+              name="code-bracket"
+              size="4"
+              class="text-purple-600 dark:text-purple-400"
+              :title="t('web.colonel.customDomains.status.publicApi')" />
+          </div>
+        </template>
+
+        <!-- Serving / TLS readiness. `ready` is the server's own answer to "is
+             this domain resolving AND certificate-ready"; we never re-derive it. -->
+        <template #cell-tls="{ row }">
+          <span
+            v-if="row.ready"
+            class="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400"
+            :data-testid="`domain-tls-${row.extid}`">
+            <OIcon
+              collection="heroicons"
+              name="check-badge"
+              size="4" />
+            {{ t('web.admin.domains.tls.serving') }}
+          </span>
+          <span
+            v-else-if="row.resolving"
+            class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400"
+            :data-testid="`domain-tls-${row.extid}`">
+            <OIcon
+              collection="heroicons"
+              name="clock"
+              size="4" />
+            {{ t('web.admin.domains.tls.resolving') }}
+          </span>
+          <span
+            v-else
+            class="text-xs text-gray-400 dark:text-gray-600"
+            :data-testid="`domain-tls-${row.extid}`">
+            {{ t('web.admin.domains.tls.none') }}
+          </span>
+        </template>
+
+        <template #cell-created="{ row }">
+          <span class="text-gray-500 tabular-nums dark:text-gray-400">
+            {{ formatDisplayDateTime(row.created) }}
+          </span>
+        </template>
+
+        <!-- Row actions. Every one stops propagation so it never also opens the
+             drawer behind the click. -->
+        <template #cell-actions="{ row }">
+          <div class="flex items-center justify-end gap-1">
+            <a
+              :href="domainUrl(row.display_domain)"
+              target="_blank"
+              rel="noopener noreferrer"
+              :data-testid="`domain-open-${row.extid}`"
+              :aria-label="t('web.admin.domains.attach.openExternal', { domain: row.display_domain })"
+              :title="t('web.admin.domains.attach.openExternal', { domain: row.display_domain })"
+              class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400"
+              @click.stop>
+              <OIcon
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                size="4" />
+            </a>
+            <button
+              type="button"
+              :data-testid="`domain-verify-${row.extid}`"
+              :disabled="verifyingExtid === row.extid"
+              class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              @click.stop="requestVerify(row)">
+              <OIcon
+                collection="heroicons"
+                :name="verifyingExtid === row.extid ? 'arrow-path' : 'shield-check'"
+                size="4"
+                :class="verifyingExtid === row.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+              {{ t('web.admin.domains.verify.button') }}
+            </button>
+            <router-link
+              :to="{ name: 'AdminDomainDetail', params: { id: row.extid } }"
+              :data-testid="`domain-detail-${row.extid}`"
+              :aria-label="t('web.admin.domains.detail.openFullPage')"
+              :title="t('web.admin.domains.detail.openFullPage')"
+              class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400"
+              @click.stop>
+              <OIcon
+                collection="heroicons"
+                name="arrow-right"
+                size="4" />
+            </router-link>
+          </div>
+        </template>
+      </DataTable>
+    </div>
+
+    <!-- Pagination -->
+    <KitPagination
+      v-if="pagination"
+      :pagination="pagination"
+      :loading="loading"
+      class="mt-4"
+      @update:page="onPageChange"
+      @update:per-page="onPerPageChange" />
+
+    <!-- Detail drawer: read-only summary + escalation to the full page. Mirrors
+         the customers / organizations drawers so every row click behaves alike. -->
+    <DetailDrawer
+      v-model:open="drawerOpen"
+      width-class="max-w-2xl"
+      :title="selectedDomain?.display_domain"
+      :subtitle="selectedDomain?.extid"
+      testid="domains-drawer">
+      <div
+        v-if="selectedDomain"
+        class="space-y-8">
+        <section>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatCard
+              :label="t('web.admin.domains.columns.state')"
+              :value="t(`web.colonel.customDomains.status.${selectedDomain.verification_state}`, selectedDomain.verification_state)"
+              icon="shield-check"
+              testid="domain-stat-state" />
+            <StatCard
+              :label="t('web.admin.domains.fields.verified')"
+              :value="yesNo(selectedDomain.verified)"
+              icon="check-circle"
+              testid="domain-stat-verified" />
+            <StatCard
+              :label="t('web.admin.domains.fields.resolving')"
+              :value="yesNo(selectedDomain.resolving)"
+              icon="signal"
+              testid="domain-stat-resolving" />
+            <StatCard
+              :label="t('web.admin.domains.fields.ready')"
+              :value="yesNo(selectedDomain.ready)"
+              icon="check-badge"
+              testid="domain-stat-ready" />
+          </div>
+
+          <dl class="mt-5 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+            <div
+              v-for="field in drawerFields"
+              :key="field.key"
+              :data-testid="`domain-field-${field.key}`">
+              <dt
+                class="font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400">
+                {{ field.label }}
+              </dt>
+              <dd
+                v-if="field.mono"
+                class="mt-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs break-all text-gray-700 tabular-nums dark:bg-gray-800 dark:text-gray-300">
+                {{ field.value }}
+              </dd>
+              <dd
+                v-else
+                class="mt-1 text-sm break-words text-gray-900 tabular-nums dark:text-gray-100">
+                {{ field.value }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <!-- Escalation: probe / repair / transfer / remove live on the full page. -->
+        <section class="flex flex-wrap gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
+          <router-link
+            :to="{ name: 'AdminDomainDetail', params: { id: selectedDomain.extid } }"
+            class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-600"
+            data-testid="domain-open-full-page">
+            {{ t('web.admin.domains.detail.openFullPage') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="4" />
+          </router-link>
+          <button
+            type="button"
+            data-testid="domain-drawer-verify"
+            class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click="selectedDomain && requestVerify(selectedDomain)">
+            <OIcon
+              collection="heroicons"
+              name="shield-check"
+              size="4" />
+            {{ t('web.admin.domains.verify.button') }}
+          </button>
+        </section>
+      </div>
+    </DetailDrawer>
 
     <!-- Shared guarded-action dialog (one-click confirm for the low-risk verb). -->
     <AdminConfirmDialog

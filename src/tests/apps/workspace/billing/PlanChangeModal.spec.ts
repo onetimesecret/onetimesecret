@@ -62,7 +62,9 @@ const mockCurrentPlan = {
   id: 'identity_plus_v1',
   stripe_price_id: 'price_current_123',
   name: 'Identity Plus',
-  tier: 'single_team',
+  // Backend reality: identity_plus_v1 is single_account (#3824). Inert here —
+  // PlanChangeModal derives upgrade/downgrade from amount/display_order.
+  tier: 'single_account',
   interval: 'month',
   amount: 2900,
   currency: 'cad',
@@ -77,7 +79,9 @@ const mockTargetPlan = {
   id: 'team_plus_v1',
   stripe_price_id: 'price_target_456',
   name: 'Team Plus',
-  tier: 'multi_team',
+  // Backend reality: team_plus_v1 is single_team (#3824). Inert here —
+  // PlanChangeModal derives upgrade/downgrade from amount/display_order.
+  tier: 'single_team',
   interval: 'month',
   amount: 9900,
   currency: 'cad',

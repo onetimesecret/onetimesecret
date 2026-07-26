@@ -34,12 +34,25 @@ module V2::Logic
         #
         # This is compatible with both v0.22 (mostly symbols) and v1.0
         # configuration (all strings).
+        maxlen_config            = password_config.fetch('maximum_length', nil)
         config_with_string_keys  = password_config.transform_keys(&:to_s)
         payload_with_string_keys = payload.transform_keys(&:to_s)
         merged_options           = config_with_string_keys.merge(payload_with_string_keys)
 
         # Extract parameters from merged options
         length = merged_options['length']&.to_i || merged_options['default_length'] || 12
+
+        # Reject oversized lengths BEFORE strand allocates. process_secret runs
+        # in the constructor (via process_params, BEFORE raise_concerns), so this
+        # is the last guard ahead of the allocation — capping in raise_concerns
+        # would be too late, the oversized string is already built. Read the
+        # ceiling from CONFIG (not merged_options) so a payload key like
+        # secret[maximum_length] cannot raise the guard. Mirrors the frontend Zod max.
+        max_length = (maxlen_config || 128).to_i
+        if length > max_length
+          emsg = "Generated password length must be no more than #{max_length} characters"
+          raise_form_error emsg, field: :length
+        end
 
         # Build character set options from merged configuration
         char_sets = merged_options['character_sets'] || {}

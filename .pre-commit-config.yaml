@@ -82,7 +82,7 @@ repos:
 
   # Commit message issue tracking integration
   - repo: https://github.com/delano/add-msg-issue-prefix-hook
-    rev: v0.0.14-fork
+    rev: v0.1.1-fork
     hooks:
       - id: add-msg-issue-prefix
         stages: [prepare-commit-msg]
@@ -90,7 +90,23 @@ repos:
         args:
           - '--default='
           - '--exclude-pattern=^(dependabot|renovate)/'
-          - '--pattern=(i18n(?=/)|([a-zA-Z0-9]{0,10}-?[0-9]{1,5}))'
+          # Extract the issue ID from the branch name, anchored at the start or a
+          # `/` boundary, so version/encoding tokens like v4, utf8, sha256 and
+          # 0.26.2 never match. Two shapes yield an ID: a bare number
+          # (feature/3840-x) or an explicit word prefix (claude/fix-3499-x,
+          # fix/issue-1234), where `(?P<id>...)` emits the bare number.
+          # `i18n(?=/)` emits the whole match as [#I18N].
+          #
+          # NOT JIRA-compatible: there is deliberately no generic `WORD-NNN` arm,
+          # so `feature/ENG-123` yields no prefix. GitHub issue numbers are the
+          # only ticket scheme here, and a generic arm matched dependency and
+          # date tokens instead (deps/postgres-17, security/audit-2026-07-06).
+          # Re-add that arm if this repo ever adopts JIRA-style keys. (#3891)
+          - '--pattern=(?:^|(?<=/))(?:i18n(?=/)|(?:issue|fix|bug|feat|feature)-(?P<id>[0-9]{1,5})|[0-9]{2,5})(?![0-9])'
+          # Separate pattern for has_tag(): detects an already-present [#TAG] in
+          # the subject on reword so the hook does not double-prefix. Matches the
+          # upcased emitted form, incl. [#I18N] which the branch pattern cannot.
+          - '--tag-pattern=[A-Za-z0-9][A-Za-z0-9._-]*'
           - '--template=[#{}]'
 
   # Ruby Linting: bundled RuboCop in server mode

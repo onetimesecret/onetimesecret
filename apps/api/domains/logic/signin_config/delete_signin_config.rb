@@ -15,8 +15,8 @@ module DomainsAPI
       #   Requires the requesting user to be an organization owner with
       #   custom_signin_config entitlement.
       #
-      # After deletion, sign-in on this domain falls back to the global
-      # authentication configuration in auth.defaults.yaml.
+      # After deletion, sign-in on this custom domain reverts to the
+      # default-OFF opt-in posture (open only when tenant SSO is available).
       #
       class DeleteSigninConfig < Base
         include AuditLogger
@@ -58,9 +58,10 @@ module DomainsAPI
           {
             success: true,
             message: "Signin configuration deleted for domain #{@custom_domain.display_domain}",
-            # Post-delete resolution truth: no record, so effective == global.
+            # Post-delete resolution truth: no record, so the custom domain
+            # reverts to default-OFF (unless tenant SSO keeps it open, #3814).
             # Serialized so the settings UI can re-render without a refetch (ADR-024).
-            details: signin_override_details(nil),
+            details: signin_override_details(nil, @custom_domain.identifier),
           }
         end
 

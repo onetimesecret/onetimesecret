@@ -67,12 +67,21 @@ site:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
-        # Deployment-wide default landing page when the homepage secret form
-        # is gated by auth (auth.required or mode=external). One of: closed
-        # (quiet two-tagline, no CTA), minimal, or v1. Per-domain config and
-        # the ?variant= URL override take precedence; blank uses the frontend
-        # default (closed).
+        # Deployment-wide default landing page for the CANONICAL site when the
+        # homepage secret form is gated by auth (auth.required or mode=external).
+        # One of: closed (quiet two-tagline, no CTA), minimal, or v1. Per-domain
+        # config and the ?variant= URL override take precedence; blank uses the
+        # frontend default (closed). Applies to the canonical site only —
+        # custom domains use custom_disabled_variant below.
         disabled_variant: <%= ENV['DEFAULT_DISABLED_HOMEPAGE_VARIANT'] || nil %>
+        # Deployment-wide default landing page for CUSTOM DOMAINS whose homepage
+        # is private (homepage disabled, or incoming mode degraded at runtime).
+        # Same values as disabled_variant (closed / minimal / v1). Kept separate
+        # so the canonical and custom-domain defaults stay decoupled: a custom
+        # domain does NOT inherit disabled_variant. Per-domain config
+        # (homepage_config.disabled_homepage_variant) and the ?variant= URL
+        # override take precedence; blank uses the frontend default (closed).
+        custom_disabled_variant: <%= ENV['DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT'] || nil %>
         # Links rendered when a public visitor lands on the homepage but
         # the secret form is gated by auth (e.g. mode=external). Recipients
         # arriving via a shared link use these to learn about the service.
@@ -238,6 +247,10 @@ site:
     password_generation:
       # Default length for generated passwords
       default_length: <%= ENV['PASSWORD_GEN_LENGTH'] || 12 %>
+      # Server-enforced ceiling on requested generated-password length.
+      # Rejects oversized `length` values before allocation (DoS guard);
+      # matches the frontend Zod max so the two limits stay in lockstep.
+      maximum_length: <%= ENV['PASSWORD_GEN_MAX_LENGTH'] || 128 %>
       # Character sets to include in generated passwords
       character_sets:
         # Include uppercase letters (A-Z)
@@ -303,7 +316,13 @@ site:
     # Cookie name
     key: 'onetime.session'
     # Require HTTPS for cookies (recommended: true in production)
-    secure: <%= ENV['SSL'] == 'true' || false %>
+    # OMIT the key entirely when SSL env is not 'true' so boot.rb's ssl_enabled?
+    # fallback can default this to true in production / when site.ssl is on.
+    # (Emitting `null` here fails schema validation — the contract is
+    # boolean-or-absent, not boolean-or-null; see site.ts `secure`.)
+    <% if ENV['SSL'] == 'true' %>
+    secure: true
+    <% end %>
     # SameSite cookie attribute (strict|lax|none)
     # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations
     same_site: lax
@@ -334,12 +353,12 @@ site:
     xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
     # Prevents your site from being embedded in frames (clickjacking protection)
     # Sets X-Frame-Options header to SAMEORIGIN or DENY
-    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: false)
-    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] == 'true' %>
+    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: true)
+    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] != 'false' %>
     # Blocks directory traversal attacks using "../" in paths
     # Critical for preventing unauthorized file access
-    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: false)
-    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] == 'true' %>
+    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: true)
+    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] != 'false' %>
     # Protects against cookie tossing attacks
     # Prevents session fixation via manipulated cookies
     # ENV: MIDDLEWARE_COOKIE_TOSSING (default: false)
@@ -350,8 +369,8 @@ site:
     ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>
     # Forces all connections to use HTTPS via HSTS headers
     # Disable only for development or when behind a secure proxy
-    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: false)
-    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] == 'true' %>
+    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: true)
+    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>
   # Security Configuration
   # Additional security settings beyond middleware
   security:
@@ -430,6 +449,22 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
+    # Assume HTTPS at the origin (opt-in, INDEPENDENT of trusted_proxy).
+    #
+    # Upgrade-only: when true, requests that do not already look like HTTPS
+    # are marked as HTTPS before any downstream consumer reads the scheme
+    # (Secure session cookie, HttpOrigin, CSRF, HSTS, scheme redirects).
+    #
+    # Only enable when a real TLS-terminating proxy fronts the origin AND it
+    # does NOT forward X-Forwarded-Proto: https (e.g. Cloudflare Tunnel).
+    # Standard nginx/Caddy/ALB setups forward the scheme and do NOT need
+    # this. Never enable on a directly-reachable origin: it would let a
+    # plain-HTTP client be treated as HTTPS. Also keep site.ssl at its https
+    # default when this is on: pairing assume_https with site.ssl:false makes
+    # config-driven share/email/redirect links emit http:// while clients use
+    # https (mixed-content downgrade of generated URLs).
+    assume_https: <%= ENV['ASSUME_HTTPS'] == 'true' %>
+
   # Admin (Colonel) Configuration
   # Network-level posture for the Colonel admin surfaces.
   admin:
@@ -497,6 +532,10 @@ brand:
   corner_style: <%= ENV['BRAND_CORNER_STYLE']&.to_json %>
   font_family: <%= ENV['BRAND_FONT_FAMILY']&.to_json %>
   button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT']&.to_json %>
+  # Masthead/email logo. An absolute http(s) URL works everywhere; a brand pack
+  # can instead carry its own brand-logo.svg / brand-logo.png and set this to the
+  # served path (e.g. "/brand-logo.svg", #3774). A root-relative value renders in
+  # the web UI but is omitted from emails (which need an absolute URL).
   logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>
   # Accessible name for the brand logo. Unset falls back to an i18n string
   # derived from the product name.
@@ -545,6 +584,21 @@ features:
     default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
     # Optional default passphrase for all incoming secrets (nil = no passphrase)
     default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
+    # Rate limiting for anonymous incoming-secret submissions (AZ9). Throttles
+    # per client IP and per client-supplied recipient hash BEFORE any secret is
+    # created or email is sent. Enabled by default (protective); set
+    # INCOMING_RATE_LIMIT_ENABLED=false to opt out. See
+    # lib/onetime/security/incoming_rate_limiter.rb.
+    rate_limit:
+      enabled: <%= ENV['INCOMING_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Submissions permitted per window from a single client IP.
+      max_per_ip: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      # Higher backstop cap per recipient hash (catches IP-rotating spam).
+      max_per_recipient: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_RECIPIENT'] || 30 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['INCOMING_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once a tier's cap is hit (1 hour).
+      lockout: <%= ENV['INCOMING_RATE_LIMIT_LOCKOUT'] || 3600 %>
     # Recipients who can receive incoming secrets
     # Each recipient needs an email and optional display name.
     # Email addresses are hashed at startup and never exposed in API responses.

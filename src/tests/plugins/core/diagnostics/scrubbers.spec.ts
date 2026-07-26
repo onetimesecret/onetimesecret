@@ -9,10 +9,37 @@ import { describe, it, expect } from 'vitest';
 import {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
+  scrubSensitiveQueryParams,
+  scrubQueryStringValues,
   EMAIL_PATTERN,
   SENSITIVE_PATH_PATTERN,
+  SENSITIVE_QUERY_PARAMS,
   VERIFIABLE_ID_PATTERN,
 } from '@/plugins/core/diagnostics/scrubbers';
+
+// ---------------------------------------------------------------------------
+// C1 shared identifier test-vector set.
+//
+// One canonical set of verifiable-identifier vectors, exercised by the pattern
+// and scrubber tests below. The frontend pattern is
+//   /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/gi   (case-INSENSITIVE, by design)
+// mirroring the backend IDENTIFIER_TEXT_PATTERN
+//   /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/     (case-SENSITIVE)
+// with the deliberate, documented case divergence. Anchoring is asymmetric on
+// BOTH frontend and backend: only the 31-char legacy branch is `\b`-anchored;
+// the 62-char branch is intentionally left UNANCHORED so IDs glued to adjacent
+// word chars (`<id>abc`) are still caught. The 31-char branch stays
+// `\b`-anchored so 32-char trace IDs / 40-char commit hashes survive.
+// ---------------------------------------------------------------------------
+const ID_VECTORS = {
+  id62: 'a'.repeat(62), // current (v0.24) — redacted
+  id31: 'b'.repeat(31), // legacy (v0.23) — redacted
+  id62mixed: 'A1b2C3'.padEnd(62, 'z'), // case-insensitive frontend — redacted
+  traceId32: 'c'.repeat(32), // ops-useful — survives
+  commitHash40: 'd'.repeat(40), // ops-useful — survives
+  short6: 'abc123', // too short — survives
+  idLocalPartEmail: `${'a'.repeat(62)}@example.com`, // ID-shaped local part — [EMAIL_REDACTED]
+} as const;
 
 describe('scrubbers', () => {
   describe('scrubSensitiveStrings', () => {
@@ -172,5 +199,233 @@ describe('scrubbers', () => {
       expect(result).not.toContain(' REDACTED]');
       expect(result).not.toContain('[REDACTED][');
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// A1 — sensitive query-parameter VALUE redaction by name
+// ---------------------------------------------------------------------------
+describe('scrubSensitiveQueryParams (A1)', () => {
+  it('exports the backend-mirrored param name list', () => {
+    expect([...SENSITIVE_QUERY_PARAMS]).toEqual(['key', 'secret', 'token', 'passphrase']);
+  });
+
+  it('redacts the value of each sensitive param, preserving the name', () => {
+    expect(scrubSensitiveQueryParams('key=abc123')).toBe('key=[REDACTED]');
+    expect(scrubSensitiveQueryParams('secret=abc123')).toBe('secret=[REDACTED]');
+    expect(scrubSensitiveQueryParams('token=abc123')).toBe('token=[REDACTED]');
+    expect(scrubSensitiveQueryParams('passphrase=abc123')).toBe('passphrase=[REDACTED]');
+  });
+
+  it('matches the param name case-insensitively', () => {
+    expect(scrubSensitiveQueryParams('Token=abc123')).toBe('Token=[REDACTED]');
+    expect(scrubSensitiveQueryParams('KEY=abc123')).toBe('KEY=[REDACTED]');
+  });
+
+  it('preserves benign params verbatim', () => {
+    expect(scrubSensitiveQueryParams('product=identity&interval=month')).toBe(
+      'product=identity&interval=month'
+    );
+  });
+
+  it('redacts only the sensitive param in a mixed query', () => {
+    expect(scrubSensitiveQueryParams('product=identity&token=abc123&interval=month')).toBe(
+      'product=identity&token=[REDACTED]&interval=month'
+    );
+  });
+
+  it('preserves empty trailing segments (round-trips a=1&)', () => {
+    expect(scrubSensitiveQueryParams('a=1&')).toBe('a=1&');
+  });
+
+  it('leaves valueless flags untouched', () => {
+    expect(scrubSensitiveQueryParams('token')).toBe('token');
+  });
+
+  it('handles null/undefined/empty gracefully', () => {
+    expect(scrubSensitiveQueryParams(null)).toBe(null);
+    expect(scrubSensitiveQueryParams(undefined)).toBe(undefined);
+    expect(scrubSensitiveQueryParams('')).toBe('');
+  });
+
+  // ---------------------------------------------------------------------------
+  // #3794 C1 — Sentry stores span http.query as parsedUrl.search, which
+  // INCLUDES the leading `?`. Without stripping it, the first param's name
+  // parses as `?token`, never matches the sensitive list, and the value leaks.
+  // ---------------------------------------------------------------------------
+  describe('leading `?` handling (#3794 C1)', () => {
+    it('redacts the first sensitive param despite a leading `?`', () => {
+      expect(scrubSensitiveQueryParams('?token=hunter2&x=1')).toBe('?token=[REDACTED]&x=1');
+    });
+
+    it('preserves the leading `?` on output (round-trips faithfully)', () => {
+      expect(scrubSensitiveQueryParams('?a=1&key=abc')).toBe('?a=1&key=[REDACTED]');
+      expect(scrubSensitiveQueryParams('?a=1')).toBe('?a=1');
+    });
+
+    it('does not add a `?` when the input has none', () => {
+      expect(scrubSensitiveQueryParams('token=hunter2&x=1')).toBe('token=[REDACTED]&x=1');
+    });
+  });
+});
+
+describe('scrubUrlWithPatterns query-param redaction (A1)', () => {
+  it('redacts a sensitive param value inside a full URL', () => {
+    expect(scrubUrlWithPatterns('https://example.com/reveal?token=abc123')).toBe(
+      'https://example.com/reveal?token=[REDACTED]'
+    );
+  });
+
+  it('redacts a sensitive param and preserves the fragment', () => {
+    expect(scrubUrlWithPatterns('/reveal?secret=abc123#section')).toBe(
+      '/reveal?secret=[REDACTED]#section'
+    );
+  });
+
+  it('leaves benign query params intact', () => {
+    expect(scrubUrlWithPatterns('/pricing?product=identity&interval=month')).toBe(
+      '/pricing?product=identity&interval=month'
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// A4 — span http.query (bare query string) scrubbing
+// ---------------------------------------------------------------------------
+describe('scrubQueryStringValues (A4)', () => {
+  it('redacts sensitive param values by name', () => {
+    expect(scrubQueryStringValues('token=abc123&foo=bar')).toBe('token=[REDACTED]&foo=bar');
+  });
+
+  it('applies the email net to non-sensitive params', () => {
+    expect(scrubQueryStringValues('email=user@example.com')).toBe('email=[EMAIL_REDACTED]');
+  });
+
+  it('applies the verifiable-id net to non-sensitive params', () => {
+    expect(scrubQueryStringValues(`ref=${ID_VECTORS.id62}`)).toBe('ref=[REDACTED]');
+  });
+
+  it('handles null/undefined/empty gracefully', () => {
+    expect(scrubQueryStringValues(null)).toBe(null);
+    expect(scrubQueryStringValues(undefined)).toBe(undefined);
+    expect(scrubQueryStringValues('')).toBe('');
+  });
+
+  // #3794 C1 — http.query arrives as parsedUrl.search WITH the leading `?`.
+  it('redacts the first sensitive param when http.query carries a leading `?`', () => {
+    expect(scrubQueryStringValues('?token=hunter2&x=1')).toBe('?token=[REDACTED]&x=1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// C1 — shared identifier test-vector set applied through the string scrubber
+// ---------------------------------------------------------------------------
+describe('C1 identifier vectors via scrubSensitiveStrings', () => {
+  it('redacts the 62-char (current) identifier', () => {
+    expect(scrubSensitiveStrings(`id ${ID_VECTORS.id62} end`)).toBe('id [REDACTED] end');
+  });
+
+  it('redacts the 31-char (legacy v0.23) identifier', () => {
+    expect(scrubSensitiveStrings(`id ${ID_VECTORS.id31} end`)).toBe('id [REDACTED] end');
+  });
+
+  it('redacts a mixed-case identifier (frontend case-insensitive)', () => {
+    expect(scrubSensitiveStrings(`id ${ID_VECTORS.id62mixed} end`)).toBe('id [REDACTED] end');
+  });
+
+  it('preserves a 32-char trace id (ops-useful)', () => {
+    expect(scrubSensitiveStrings(`trace ${ID_VECTORS.traceId32} end`)).toBe(
+      `trace ${ID_VECTORS.traceId32} end`
+    );
+  });
+
+  it('preserves a 40-char commit hash (ops-useful)', () => {
+    expect(scrubSensitiveStrings(`sha ${ID_VECTORS.commitHash40} end`)).toBe(
+      `sha ${ID_VECTORS.commitHash40} end`
+    );
+  });
+
+  it('preserves a short 6-char token', () => {
+    expect(scrubSensitiveStrings(`x ${ID_VECTORS.short6} y`)).toBe(`x ${ID_VECTORS.short6} y`);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #3794 C3 — 62-char IDs abutting word characters must still be redacted.
+// A `\b`-anchored 62 branch silently leaked `<id>abc`, `<id>x`, `<id>_meta`;
+// the 62 branch is now unanchored while the 31 branch stays `\b`-anchored so
+// 32-char trace IDs and 40-char commit hashes keep surviving.
+// ---------------------------------------------------------------------------
+describe('62-char IDs abutting word characters (#3794 C3)', () => {
+  const { id62, id31 } = ID_VECTORS;
+
+  it('pattern matches a 62-char ID glued to trailing letters (?ref=<id>abc)', () => {
+    expect(`?ref=${id62}abc`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe(
+      '?ref=[REDACTED]abc'
+    );
+  });
+
+  it('pattern matches a 62-char ID glued to a single trailing char (<id>x)', () => {
+    expect(`${id62}x`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe('[REDACTED]x');
+  });
+
+  it('pattern matches a 62-char ID glued to an underscore (load <id>_meta)', () => {
+    expect(`load ${id62}_meta`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe(
+      'load [REDACTED]_meta'
+    );
+  });
+
+  it('pattern still matches delimited placements (/<id>/ and spaces)', () => {
+    expect(`/${id62}/`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe('/[REDACTED]/');
+    expect(`a ${id62} b`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe('a [REDACTED] b');
+  });
+
+  it('pattern still matches the delimited 31-char legacy ID', () => {
+    expect(`id ${id31} end`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe('id [REDACTED] end');
+  });
+
+  it('31-char branch stays `\\b`-anchored: glued 34-char runs survive (by design)', () => {
+    // Unanchoring the 31 branch would match inside 32-char trace IDs and
+    // 40-char commit hashes; the glued-legacy-ID shape is the accepted cost.
+    expect(`${id31}abc`.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]')).toBe(`${id31}abc`);
+  });
+
+  it('scrubSensitiveStrings redacts a glued 62-char ID end-to-end', () => {
+    expect(scrubSensitiveStrings(`load ${id62}_meta`)).toBe('load [REDACTED]_meta');
+  });
+
+  it('scrubUrlWithPatterns redacts a glued 62-char ID in a query value', () => {
+    expect(scrubUrlWithPatterns(`/lookup?ref=${id62}abc`)).toBe('/lookup?ref=[REDACTED]abc');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #3794 — email pass must run BEFORE the identifier pass.
+// An email whose local part is a 62-char ID (<62id>@example.com) would
+// otherwise have the ID replaced first, leaving `[REDACTED]@example.com`
+// that EMAIL_PATTERN can no longer match — leaking the email domain.
+// ---------------------------------------------------------------------------
+describe('email-before-identifier ordering (#3794 P1)', () => {
+  const { idLocalPartEmail } = ID_VECTORS;
+
+  it('scrubUrlWithPatterns fully redacts an ID-local-part email in a query value', () => {
+    const result = scrubUrlWithPatterns(`https://example.com/?from=${idLocalPartEmail}`);
+    expect(result).toBe('https://example.com/?from=[EMAIL_REDACTED]');
+    expect(result).not.toContain('@example.com');
+    expect(result).not.toContain('[REDACTED]@');
+  });
+
+  it('scrubQueryStringValues fully redacts an ID-local-part email', () => {
+    const result = scrubQueryStringValues(`?from=${idLocalPartEmail}`);
+    expect(result).toBe('?from=[EMAIL_REDACTED]');
+    expect(result).not.toContain('@example.com');
+    expect(result).not.toContain('[REDACTED]@');
+  });
+
+  it('scrubSensitiveStrings fully redacts an ID-local-part email in free text', () => {
+    const result = scrubSensitiveStrings(`contact ${idLocalPartEmail}`);
+    expect(result).toBe('contact [EMAIL_REDACTED]');
+    expect(result).not.toContain('@example.com');
+    expect(result).not.toContain('[REDACTED]@');
   });
 });

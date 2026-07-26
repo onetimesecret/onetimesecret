@@ -467,6 +467,10 @@
     "text": "Έληξε",
     "source_hash": "424a2551"
   },
+  "web.organizations.invitations.status.revoked": {
+    "text": "Ανακλήθηκε",
+    "source_hash": "f6f738d0"
+  },
   "web.organizations.invitations.roles.member": {
     "text": "Μέλος ομάδας",
     "source_hash": "d4e55dfa"

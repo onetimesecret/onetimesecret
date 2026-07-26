@@ -18,6 +18,7 @@ import {
   colonelOrganizationsResponseSchema,
   investigateOrganizationResponseSchema,
   databaseMetricsResponseSchema,
+  brandDiagnosticsResponseSchema,
   redisMetricsResponseSchema,
   bannedIPsResponseSchema,
   usageExportResponseSchema,
@@ -52,6 +53,7 @@ import {
 import {
   colonelCustomerSessionsResponseSchema,
   colonelCustomerSessionRevokeResponseSchema,
+  colonelCustomerSessionRevokeAllResponseSchema,
 } from './colonel-customer-sessions';
 import {
   colonelBannerResponseSchema,
@@ -91,7 +93,10 @@ import {
   colonelEmailRecipientLookupResponseSchema,
   colonelEmailMessagesResponseSchema,
 } from './colonel-deliverability';
-import { colonelBillingCatalogResponseSchema } from './colonel-billing';
+import {
+  colonelBillingCatalogResponseSchema,
+  colonelStripeOrganizationsResponseSchema,
+} from './colonel-billing';
 
 // Colonel (admin) observability — audit trail reader + overview trends
 import { colonelAuditEventsResponseSchema } from './colonel-audit';
@@ -162,6 +167,7 @@ export const responseSchemas = {
   colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
+  brandDiagnostics: brandDiagnosticsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,
   bannedIPs: bannedIPsResponseSchema,
   colonelBanIp: colonelBanIpResponseSchema,
@@ -176,6 +182,7 @@ export const responseSchemas = {
   colonelSessionDelete: colonelSessionDeleteResponseSchema,
   colonelCustomerSessions: colonelCustomerSessionsResponseSchema,
   colonelCustomerSessionRevoke: colonelCustomerSessionRevokeResponseSchema,
+  colonelCustomerSessionRevokeAll: colonelCustomerSessionRevokeAllResponseSchema,
   colonelBanner: colonelBannerResponseSchema,
   colonelBannerSet: colonelBannerSetResponseSchema,
   colonelBannerClear: colonelBannerClearResponseSchema,
@@ -205,6 +212,7 @@ export const responseSchemas = {
   colonelEmailRecipientLookup: colonelEmailRecipientLookupResponseSchema,
   colonelEmailMessages: colonelEmailMessagesResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,
+  colonelStripeOrganizations: colonelStripeOrganizationsResponseSchema,
 
   // Colonel / admin — observability (audit reader + trends)
   colonelAuditEvents: colonelAuditEventsResponseSchema,

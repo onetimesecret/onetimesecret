@@ -1,8 +1,8 @@
 # Contributing to Onetime Secret
 
 Thanks for helping improve Onetime Secret. This guide gets you from a fresh
-clone to a running app and a green test suite with one command, and explains
-what we look for in a pull request.
+clone to a running app and a green test suite and explains what we look for
+in a pull request.
 
 ## The 5-minute path
 

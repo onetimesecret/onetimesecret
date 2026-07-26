@@ -94,6 +94,13 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     # Stub logging on the class so it works before subject is created
     allow_any_instance_of(described_class).to receive(:auth_logger).and_return(mock_logger)
+
+    # M-4: stub the login rate limiter so unit specs never touch Redis. Real
+    # throttling behavior is covered in the dedicated 'login rate limiting'
+    # describe below by overriding these per-example.
+    allow_any_instance_of(described_class).to receive(:check_login_rate_limit!)
+    allow_any_instance_of(described_class).to receive(:record_failed_login_attempt!)
+    allow_any_instance_of(described_class).to receive(:clear_login_rate_limit!)
   end
 
   describe '#process_params' do
@@ -113,9 +120,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       expect(logic.stay).to be true
     end
 
-    it 'sets session TTL to 30 days when stay is true' do
+    it 'reports the session TTL the middleware actually applies (configured expire_after)' do
       logic.process_params
-      expect(logic.session_ttl).to eq(30 * 24 * 60 * 60) # 30 days in seconds
+      # session_config falls back to SESSION_DEFAULTS (24h) when site.session
+      # is not configured — the same value write_session re-applies per commit.
+      expect(logic.session_ttl).to eq(86_400)
+      expect(logic.session_ttl).to eq(Onetime.session_config['expire_after'].to_i)
     end
 
     it 'sets objid when customer exists and passphrase matches' do
@@ -182,9 +192,26 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         cust
       end
 
-      it 'does not raise (error handling is in #process)' do
-        # raise_concerns doesn't handle password failures - that's done in process
-        expect { logic.raise_concerns }.not_to raise_error
+      # Production-accurate failure path: an anonymous login POST carries
+      # user=nil (PR #2733), so @cust starts nil (Logic::Base#initialize) and
+      # stays nil on a mismatch. That nil is what makes raise_concerns the
+      # single failure funnel; a non-nil .user would let it return early.
+      let(:strategy_result) do
+        result = double('StrategyResult')
+        allow(result).to receive_messages(
+          session: rack_session,
+          user: nil,
+          auth_method: :anonymous,
+          metadata: { ip: '127.0.0.1' },
+          authenticated?: false
+        )
+        result
+      end
+
+      it 'raises a non-enumerating form error for the unmatched credential' do
+        # @cust stays nil when the passphrase does not match, so raise_concerns
+        # is the single failure funnel that rejects the attempt.
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, 'Invalid email or password')
       end
     end
   end
@@ -371,6 +398,91 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     end
   end
 
+  describe 'login rate limiting (M-4) — pre-gated lockout' do
+    # #3516/#3807 moved check_login_rate_limit! ahead of the argon2 comparison,
+    # into process_params, which fires from Onetime::Logic::Base#initialize. A
+    # locked subject therefore raises at construction — before any credential is
+    # evaluated and before record_failed_login_attempt! (which lives only in
+    # raise_concerns) can run. Arm the raise via any_instance so the gate is
+    # active before .new, then assert against described_class.new to exercise
+    # the real gated path rather than a re-invocation on an already-built object.
+    before do
+      allow_any_instance_of(described_class).to receive(:check_login_rate_limit!).and_raise(
+        Onetime::LimitExceeded.new(
+          'Too many login attempts. Please try again later.',
+          retry_after: 1800,
+          max_attempts: 5,
+        ),
+      )
+    end
+
+    it 'raises LimitExceeded at construction, before evaluating credentials' do
+      expect_any_instance_of(described_class).not_to receive(:record_failed_login_attempt!)
+      expect { described_class.new(strategy_result, params, 'en') }.to raise_error(Onetime::LimitExceeded)
+    end
+  end
+
+  describe 'login rate limiting (M-4)' do
+    before do
+      logic.process_params
+    end
+
+    context 'on a failed credential attempt' do
+      let(:customer) do
+        cust = double('Customer')
+        allow(cust).to receive(:passphrase?).and_return(false)
+        allow(cust).to receive_messages(
+          objid: 'cust_test123',
+          email: test_email,
+          argon2_hash?: true,
+          passphrase: '$argon2id$...'
+        )
+        cust
+      end
+
+      # Production-accurate failure path: anonymous login POST has user=nil
+      # (PR #2733), so @cust starts nil and stays nil on a mismatch, making
+      # raise_concerns reach the record + raise funnel.
+      let(:strategy_result) do
+        result = double('StrategyResult')
+        allow(result).to receive_messages(
+          session: rack_session,
+          user: nil,
+          auth_method: :anonymous,
+          metadata: { ip: '127.0.0.1' },
+          authenticated?: false
+        )
+        result
+      end
+
+      it 'records a failed login attempt before raising the form error' do
+        # raise_form_error aborts raise_concerns, so a satisfied expectation
+        # here proves the record call precedes the raise.
+        expect(logic).to receive(:record_failed_login_attempt!)
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      end
+
+      it 'scopes the subject to the email + ip two-tier keys' do
+        # Two-tier limiter (RL-2/RL-3): email drives the global backstop, ip the
+        # tight per-origin tier, passed as separate args (not an "email|ip"
+        # composite) so a nil ip cleanly skips the tight tier.
+        expect(logic).to receive(:record_failed_login_attempt!).with(test_email, '127.0.0.1')
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      end
+    end
+
+    context 'on a successful login' do
+      before do
+        allow(customer).to receive(:pending?).and_return(false)
+      end
+
+      it 'clears the login rate limit for the subject' do
+        expect(logic).to receive(:clear_login_rate_limit!).with(test_email, '127.0.0.1')
+        logic.process
+      end
+    end
+  end
+
   describe 'security considerations' do
     it 'does not log the actual password' do
       expect(mock_logger).not_to receive(:info).with(a_string_matching(/password123/))
@@ -382,6 +494,42 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       logic.process_params
       expect(mock_logger).to receive(:info).with('Login successful', hash_including(email: 'te***@example.com'))
       logic.process
+    end
+  end
+
+  # Regression for #3812: the synchronous verification-email path bypasses the
+  # EmailWorker locale-normalization chokepoint. A blank @locale ("") is truthy,
+  # so it would slip past the delivery site's `||` into an invalid I18n lookup
+  # (:"") and raise I18n::InvalidLocale, silently failing the email.
+  describe '#send_verification_email locale normalization' do
+    subject(:blank_locale_logic) { described_class.new(strategy_result, params, '') }
+
+    let(:secret) do
+      double('Secret', identifier: 'sec_abc123').tap do |s|
+        allow(s).to receive(:verification=)
+        allow(s).to receive(:custid=)
+        allow(s).to receive(:save)
+      end
+    end
+
+    before do
+      allow(customer).to receive(:reset_secret=)
+      allow(Onetime::Receipt).to receive(:spawn_pair).and_return([double('Receipt'), secret])
+      allow(Onetime::Mail::Mailer).to receive(:deliver)
+    end
+
+    it 'reproduces the blank @locale from a blank locale param' do
+      expect(blank_locale_logic.locale).to eq('')
+    end
+
+    it 'delivers the welcome email with the default locale when @locale is blank' do
+      blank_locale_logic.send(:send_verification_email, nil, customer: customer)
+
+      expect(Onetime::Mail::Mailer).to have_received(:deliver).with(
+        :welcome,
+        hash_including(email_address: test_email),
+        locale: OT.default_locale,
+      )
     end
   end
 end

@@ -28,7 +28,10 @@ const $api = createApi();
  *
  * `record` is null when the domain is unconfigured — the API returns 200
  * with a null record and resolution `details` (ADR-024). A 404 fallback is
- * kept for older backends; in that case `details` is null too.
+ * kept for older backends; in that case `details` is null too, as it is
+ * when the payload fails schema validation (`details` is required by the
+ * response schema). Callers treat record+details both null as a failed
+ * load — never as a seedable state (PR #3817).
  */
 export interface SigninConfigResponse {
   record: CustomDomainSigninConfig | null;

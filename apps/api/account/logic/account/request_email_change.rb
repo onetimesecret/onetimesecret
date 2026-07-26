@@ -130,6 +130,11 @@ module AccountAPI::Logic
 
         OT.info "[request-email-change] Email change requested cid/#{cust.objid} new_email/#{OT::Utils.obscure_email(@new_email)}"
 
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = cust.locale if email_locale.to_s.strip.empty?
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
         # Send confirmation email to the NEW address
         begin
           Onetime::Jobs::Publisher.enqueue_email(
@@ -138,7 +143,7 @@ module AccountAPI::Logic
               new_email: @new_email,
               confirmation_token: secret.identifier,
               customer_objid: cust.objid,
-              locale: locale || cust.locale || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :sync,
           )
@@ -153,7 +158,7 @@ module AccountAPI::Logic
             {
               old_email: cust.email,
               new_email: @new_email,
-              locale: locale || cust.locale || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :async_thread,
           )

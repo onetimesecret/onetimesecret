@@ -51,5 +51,17 @@ declare module 'vue-router' {
      * qualifies. Unmet requirements redirect to /dashboard.
      */
     requiresOrgRole?: 'owner' | 'admin';
+
+    /**
+     * When true, this route requires the signed-in customer to have the
+     * `colonel` role. Set on every admin-console route (src/apps/admin).
+     *
+     * Enforced by handleColonelRequirement in guards.routes.ts as client-side
+     * defence-in-depth (the backend already gates /colonel on role=colonel and
+     * returns 403s for admin APIs). Non-colonels are hard-navigated out of the
+     * admin bundle to '/' — the admin router has no /dashboard or /signin route
+     * to SPA-redirect to.
+     */
+    requiresColonel?: boolean;
   }
 }

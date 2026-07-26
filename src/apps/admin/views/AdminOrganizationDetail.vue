@@ -4,6 +4,9 @@
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
+  import AddMemberModal from '@/apps/admin/components/organizations/AddMemberModal.vue';
+  import type { AddMembershipRequest } from '@/apps/admin/components/organizations/membershipSchemas';
+  import { colonelAddMembershipResponseSchema } from '@/apps/admin/components/organizations/membershipSchemas';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type { InvestigateOrganizationResult } from '@/schemas/api/internal/responses/colonel';
@@ -18,6 +21,7 @@
     colonelOrganizationDetailResponseSchema,
     colonelReconcileOrganizationResponseSchema,
   } from '@/schemas/api/internal/responses/colonel-organizations';
+  import { classifyError } from '@/schemas/errors';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
@@ -416,6 +420,119 @@
       },
     ];
   });
+
+  // ---- Add an EXISTING account to this org (MUTATING — audited server-side) --
+  //
+  // Scoped deliberately to the one verb support actually needs: a person signed
+  // up on their own, so they already have an account and the invite flow refuses
+  // them, but they belong in this org. Removing a member and changing an
+  // existing member's role are different endpoints and are NOT surfaced here.
+
+  const addMemberOpen = ref(false);
+  /** The account + role captured from the modal, held for the in-flight POST. */
+  const pendingMember = ref<AddMembershipRequest | null>(null);
+
+  /**
+   * Turn a failed add into an operator-actionable message.
+   *
+   * The HTTP status is read straight off `err.response`: wrapped/mocked axios
+   * errors are not reliably `instanceof AxiosError`, so the response envelope is
+   * the dependable probe. The backend's own `error` string wins when present —
+   * it is the only thing that separates "Organization not found" from "Customer
+   * not found" on a 404, and it carries the accepted role list on a bad role.
+   */
+  function addMemberFailureMessage(err: unknown): string {
+    const response = (err as { response?: { status?: number; data?: unknown } } | null)?.response;
+    const data = response?.data;
+    const serverMessage =
+      typeof data === 'object' &&
+      data !== null &&
+      typeof (data as { error?: unknown }).error === 'string'
+        ? (data as { error: string }).error
+        : null;
+
+    if (serverMessage) return serverMessage;
+    if (response?.status === 404) {
+      return t('web.admin.organizations.addMember.errors.notFound');
+    }
+    if (response?.status === 400 || response?.status === 422) {
+      return t('web.admin.organizations.addMember.errors.invalidRole');
+    }
+    return classifyError(err).message;
+  }
+
+  const {
+    loading: addMemberLoading,
+    error: addMemberError,
+    run: runAddMember,
+    reset: resetAddMember,
+  } = useAdminMutation(async () => {
+    const target = pendingMember.value;
+    if (!target) throw new Error(t('web.admin.organizations.addMember.errors.noSelection'));
+
+    let response;
+    try {
+      response = await $api.post(`${orgUrl()}/members`, {
+        // Always the EXTID, never an email address: the colonel adapter runs
+        // `customer` through an identifier sanitizer, and the account picker
+        // already resolved the address to a public id.
+        customer: target.customer,
+        role: target.role,
+      });
+    } catch (err) {
+      throw new Error(addMemberFailureMessage(err));
+    }
+
+    const parsed = gracefulParse(
+      colonelAddMembershipResponseSchema,
+      response.data,
+      'ColonelAddMembershipResponse'
+    );
+    // `no_change` is an idempotent 200: the account was ALREADY a member and the
+    // op deliberately left their role untouched (add is strictly additive).
+    // Surface it as an actionable failure instead of a false "added" toast. Ack
+    // drift stays non-fatal — an unparseable 2xx is still treated as a success.
+    if (parsed.ok && parsed.data.record.status === 'no_change') {
+      throw new Error(
+        t('web.admin.organizations.addMember.errors.alreadyMember', {
+          role: parsed.data.record.role || target.role,
+        })
+      );
+    }
+  });
+
+  function openAddMember(): void {
+    resetAddMember();
+    pendingMember.value = null;
+    addMemberOpen.value = true;
+  }
+
+  async function onAddMemberSubmit(payload: AddMembershipRequest): Promise<void> {
+    pendingMember.value = payload;
+    const ok = await runAddMember();
+    if (!ok) return; // Failure message stays in the modal for retry/cancel.
+
+    addMemberOpen.value = false;
+    notifications.show(
+      t('web.admin.organizations.addMember.success', {
+        account: payload.customer,
+        role: t(`web.admin.organizations.addMember.roles.${payload.role}`, payload.role),
+      }),
+      'success'
+    );
+    pendingMember.value = null;
+    // The roster is driven by a refreshed detail GET, never the ack — the new
+    // member appears without a page reload.
+    await refreshOrg().catch(() => {});
+  }
+
+  /** Dismissal (cancel / backdrop / Escape) — drop the captured target + error. */
+  function onAddMemberOpenChange(value: boolean): void {
+    addMemberOpen.value = value;
+    if (value) return;
+    pendingMember.value = null;
+    resetAddMember();
+  }
 
   // ---- Members + Domains tables ---------------------------------------------
 
@@ -858,13 +975,26 @@
       <!-- Members -->
       <section
         class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.organizations.detail.sections.members') }}
             <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
               >({{ details.members.length }})</span
             >
           </h3>
+          <!-- Add an EXISTING account (the invite flow cannot cover this case). -->
+          <button
+            type="button"
+            data-testid="org-add-member-button"
+            class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-600"
+            @click="openAddMember">
+            <OIcon
+              collection="heroicons"
+              name="user-plus"
+              size="4" />
+            {{ t('web.admin.organizations.addMember.button') }}
+          </button>
         </div>
         <DataTable
           :columns="memberColumns"
@@ -1175,6 +1305,20 @@
         </div>
       </section>
     </div>
+
+    <!--
+      Add an existing account to this org. Kept at the root (not inside the
+      loaded block) so opening/closing it never remounts the detail sections.
+    -->
+    <AddMemberModal
+      :open="addMemberOpen"
+      :org-extid="record?.extid ?? ''"
+      :org-name="heading"
+      :members="details?.members ?? []"
+      :loading="addMemberLoading"
+      :error="addMemberError"
+      @update:open="onAddMemberOpenChange"
+      @submit="onAddMemberSubmit" />
 
     <!-- Guarded entitlement mutation (typed-confirmation — retype the extid). -->
     <AdminConfirmDialog

@@ -232,6 +232,153 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   end
 
   # ---------------------------------------------------------------------------
+  # 2b. Activity read-out (GetUserDetails details.secrets / details.receipts)
+  #
+  # These sections used to walk the entire `secret:*:object` and
+  # `receipt:*:object` keyspaces, loading every object one at a time to filter
+  # by owner — the 10k guard counted MATCHES, so it never tripped for a normal
+  # user and the page timed out. They now read the per-owner indexes
+  # (customer:<objid>:secrets / :receipts). What is asserted here is the
+  # CONTRACT: the right items, count == items.size, an honest `truncated` flag,
+  # and independent degradation.
+  # ---------------------------------------------------------------------------
+  describe 'GetUserDetails activity read-out' do
+    # These examples persist REAL Secrets via spawn_pair: identifier
+    # generation needs VERIFIABLE_ID_HMAC_SECRET and ciphertext= needs the
+    # encryption keys, both provisioned by configure_familia during FULL
+    # boot. An earlier spec's partial or failed boot can leave the process
+    # without either (PR #3817 seed-60018 failure class), so guard-boot
+    # like the sibling integration specs, and seed the env var for the
+    # case where a partial boot already marked the state ready.
+    before(:all) do
+      ENV['VERIFIABLE_ID_HMAC_SECRET'] ||= SecureRandom.hex(32)
+      begin
+        OT.boot! :test unless OT.ready?
+      rescue Redis::CannotConnectError, Redis::ConnectionError => e
+        puts "SKIP: Requires Redis connection (#{e.class})"
+        exit 0
+      end
+    end
+
+    def user_details(target)
+      logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
+        strategy_result_for(colonel), { 'user_id' => target.extid },
+      )
+      logic.raise_concerns
+      logic.process
+    end
+
+    let(:owner) { create_customer(email: "activity-#{SecureRandom.hex(4)}@example.com") }
+
+    it 'lists only the owner\'s secrets, newest first, with count == items.size' do
+      other = create_customer(email: "other-#{SecureRandom.hex(4)}@example.com")
+      _r1, first  = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'mine one')
+      _r2, second = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'mine two')
+      Onetime::Receipt.spawn_pair(other.objid, 3600, 'not mine')
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([second.objid, first.objid])
+      expect(secrets[:count]).to eq(secrets[:items].size)
+      expect(secrets[:truncated]).to be(false)
+    end
+
+    it 'drops a destroyed secret from the list (index and counter move together)' do
+      _r1, keep    = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'keep')
+      _r2, destroy = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'destroy')
+      destroy.destroy!
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([keep.objid])
+      expect(secrets[:count]).to eq(1)
+    end
+
+    it 'reports an empty, non-truncated read-out for a customer with no activity' do
+      details = user_details(owner)[:details]
+
+      expect(details[:secrets]).to eq(count: 0, items: [], truncated: false)
+      expect(details[:receipts]).to eq(count: 0, items: [], truncated: false)
+    end
+
+    it 'lists receipts off the per-customer index' do
+      receipt, _secret = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'with receipt')
+      owner.add_receipt(receipt)
+
+      receipts = user_details(owner)[:details][:receipts]
+
+      expect(receipts[:items].map { |r| r[:receipt_id] }).to eq([receipt.objid])
+      expect(receipts[:count]).to eq(1)
+      expect(receipts[:truncated]).to be(false)
+    end
+
+    it 'flags truncation instead of implying the short list is complete' do
+      # Counter says there are more secrets than the index can show (the
+      # pre-index / straddling-rollout case).
+      Onetime::Receipt.spawn_pair(owner.objid, 3600, 'only indexed one')
+      owner.secrets_active.reset(5)
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      expect(secrets[:items].size).to eq(1)
+      expect(secrets[:count]).to eq(1)
+      expect(secrets[:truncated]).to be(true)
+    end
+
+    it 'scan fallback survives legacy String created values, newest first' do
+      # The bounded-scan fallback runs only when the per-owner index is empty
+      # while the secrets_active counter is positive (the pre-index account
+      # shape). Legacy pre-JSON hash fields hydrate as raw Strings — Familia's
+      # deserialize_value returns the value as-is when Oj's strict parse fails
+      # — and String#-@ is the frozen-string operator, so the old
+      # `-(row[:created] || 0)` sort raised ArgumentError on a mixed
+      # Float/String batch, which degrade_on_error swallowed into an empty
+      # secrets section.
+      _r1, legacy = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'legacy value')
+      _r2, modern = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'modern value')
+
+      # Simulate pre-JSON-serialization data: write the raw hash field
+      # directly. A Time#to_s-shaped value fails Oj strict parse and therefore
+      # hydrates as a String (a bare numeric string would parse to a number).
+      Onetime::Secret.dbclient.hset(legacy.dbkey, 'created', '2024-01-15 10:30:00 UTC')
+
+      # Empty the index while the counter stays positive: exactly the state
+      # that routes collect_secrets into scan_secrets_bounded.
+      owner.secrets.delete!
+      expect(owner.secrets.element_count).to eq(0)
+      expect(owner.secrets_active.to_i).to be_positive
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      # NOT the degraded `{items: [], truncated: true}` shape...
+      expect(secrets[:items]).not_to be_empty
+      expect(secrets[:truncated]).to be(false)
+      # ...and newest first: the unparseable legacy timestamp coerces to a
+      # tiny float, so it sorts as oldest.
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([modern.objid, legacy.objid])
+      expect(secrets[:count]).to eq(2)
+    end
+
+    it 'still renders identity, plan and billing when the secrets read blows up' do
+      logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
+        strategy_result_for(colonel), { 'user_id' => owner.extid },
+      )
+      logic.raise_concerns
+      allow(logic).to receive(:collect_secrets).and_raise(StandardError, 'datastore down')
+
+      data = logic.process
+
+      # The failing section degrades to empty-but-honest...
+      expect(data[:details][:secrets]).to eq(count: 0, items: [], truncated: true)
+      # ...and the rest of the record renders.
+      expect(data[:record][:extid]).to eq(owner.extid)
+      expect(data[:record][:email]).to eq(owner.email)
+      expect(data[:details][:receipts][:truncated]).to be(false)
+      expect(data[:details][:billing]).to include(:enabled, :plan_id)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # 3. Account suspend
   # ---------------------------------------------------------------------------
   describe 'SuspendUser / UnsuspendUser' do

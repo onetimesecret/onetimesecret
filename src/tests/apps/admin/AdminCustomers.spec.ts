@@ -255,12 +255,67 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     expect(pushMock).not.toHaveBeenCalled();
 
     // The deep, mutating actions stay one click away on the full page (by public id).
-    const fullPage = wrapper.findComponent(RouterLinkStub);
-    expect(fullPage.exists()).toBe(true);
-    expect(fullPage.props('to')).toEqual({
+    const fullPage = wrapper
+      .findAllComponents(RouterLinkStub)
+      .find((link) => link.attributes('data-testid') === 'customer-open-full-page');
+    expect(fullPage).toBeDefined();
+    expect(fullPage!.props('to')).toEqual({
       name: 'AdminCustomerDetail',
       params: { id: 'ur_alice' },
     });
+  });
+
+  // --- Row-scoped affordances inside a CLICKABLE row ------------------------
+  // The row's @click opens the drawer, so anything interactive rendered inside
+  // a cell must contain its own click. Both of these were operator-reported.
+
+  it('reveals an email without also opening the drawer', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    const row = wrapper.find('[data-testid="customers-table"] tbody tr');
+    // Obscured by default.
+    expect(row.find('[data-testid="reveal-email-value"]').text()).not.toBe('alice@example.com');
+
+    await row.find('[data-testid="reveal-email-toggle"]').trigger('click');
+    await flushPromises();
+
+    // Revealed...
+    expect(row.find('[data-testid="reveal-email-value"]').text()).toBe('alice@example.com');
+    // ...and the row handler never fired.
+    expect(wrapper.find('[data-testid="customers-drawer"]').exists()).toBe(false);
+
+    // The copy affordance that appears on reveal is contained too.
+    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+    await row.find('[data-testid="reveal-email-copy"]').trigger('click');
+    await flushPromises();
+    expect(wrapper.find('[data-testid="customers-drawer"]').exists()).toBe(false);
+  });
+
+  it('links each row straight to the full page without opening the drawer', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    const rowLink = wrapper
+      .findAllComponents(RouterLinkStub)
+      .find((link) => link.attributes('data-testid') === 'customer-detail-ur_alice');
+
+    // A REAL router-link — middle-click / open-in-new-tab must work, so this
+    // must never become a JS click handler.
+    expect(rowLink).toBeDefined();
+    expect(rowLink!.props('to')).toEqual({
+      name: 'AdminCustomerDetail',
+      params: { id: 'ur_alice' },
+    });
+    // Icon-only control, so it carries its own accessible name.
+    expect(rowLink!.attributes('aria-label')).toBeTruthy();
+
+    // Activating it must not also open the drawer behind it.
+    await rowLink!.trigger('click');
+    await flushPromises();
+    expect(wrapper.find('[data-testid="customers-drawer"]').exists()).toBe(false);
   });
 
   it('renders the pagination control when the server returns pagination', async () => {

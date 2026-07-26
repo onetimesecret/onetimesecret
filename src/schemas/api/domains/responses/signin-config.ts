@@ -46,21 +46,32 @@ export type SigninConfigDetails = z.infer<typeof signinConfigDetailsSchema>;
  * `record` is null when the domain has no signin config — unconfigured is a
  * first-class state (200, not 404) so `details` can carry the inherited
  * global state (ADR-024).
+ *
+ * `details` is REQUIRED (overriding the envelope's optional default): the
+ * settings UI seeds unconfigured domains from it and every save materializes
+ * that seed as an explicit override, so a details-less response must fail
+ * parse rather than let a guessed seed get persisted.
  */
 export const getSigninConfigResponseSchema = createApiResponseSchema(
   customDomainSigninConfigSchema.nullable(),
   signinConfigDetailsSchema
-);
+).extend({
+  details: signinConfigDetailsSchema,
+});
 
 export type GetSigninConfigResponse = z.infer<typeof getSigninConfigResponseSchema>;
 
 /**
  * Response schema for PUT /api/domains/:domain_extid/signin-config
+ *
+ * `details` is REQUIRED — same contract as the GET schema.
  */
 export const putSigninConfigResponseSchema = createApiResponseSchema(
   customDomainSigninConfigSchema,
   signinConfigDetailsSchema
-);
+).extend({
+  details: signinConfigDetailsSchema,
+});
 
 export type PutSigninConfigResponse = z.infer<typeof putSigninConfigResponseSchema>;
 

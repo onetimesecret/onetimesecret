@@ -30,7 +30,7 @@ directly personal and directly identifying.
 
 Two facts shape the decision:
 
-1. **Prior art.** The auth audit log (`apps/web/auth/config/hooks/audit_logging.rb`)
+1. **Prior art.** The auth audit log (`apps/web/auth/config/features/audit_logging.rb`)
    already records `ip` and `user_agent` for login/MFA events, and Otto ships
    the privacy primitives it relies on: `Otto::Privacy::IPPrivacy.mask_ip`
    (zero the last IPv4 octet / last 80 IPv6 bits), `IPPrivacy.hash_ip`

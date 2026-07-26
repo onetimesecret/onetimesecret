@@ -86,6 +86,16 @@ This ADR is accepted for implementation targeting release 0.23. As of 2025-10-10
 ### lib/ Dependency Rules
 Code organization follows a strict dependency hierarchy:
 - `lib/onetime/` contains project-specific code and may reference anything in `lib/`
-- `lib/` contains potentially extractable code (e.g., `lib/chimera.rb` for mustache compatibility) and must not reference `lib/onetime/`
+- `lib/` contains potentially extractable code (e.g., `lib/middleware/`) and must not reference `lib/onetime/`
 
 This ensures clean extraction paths if/when `lib/` code graduates to separate repositories.
+
+## Amendments
+
+- 2026-07-19 — Names evolved during implementation: the `apps/public`
+  (anonymous) surface shipped as `apps/internal`; authenticated and core
+  surfaces consolidated under `apps/web` (`core`, `auth`, `billing`);
+  `apps/api` (v1/v2) is intact. The separation decision stands — only the
+  directory vocabulary changed. The former `lib/chimera.rb` mustache-compat
+  example was removed along with the unused `mustache` gem; `lib/middleware/`
+  now illustrates the extractable-`lib/` rule.

@@ -123,12 +123,28 @@ module Onetime
             return nil if event.nil?
 
             # Scrub sensitive URL paths and query parameters from event data.
-            # This covers both event.request.url and custom context set via
-            # scope.set_context('request', ...) in error handling middleware.
+            # This covers event.request.url, event.transaction (set from raw
+            # PATH_INFO by Sentry::Rack::CaptureExceptions), and custom context
+            # set via scope.set_context('request', ...) in error middleware.
             Onetime::Initializers::SetupDiagnostics.scrub_event_urls(event)
+
+            # Scrub emails, identifiers, and sensitive paths interpolated into
+            # exception messages and capture_message strings. Mirrors the
+            # frontend's scrubEventMessages in enableDiagnostics.ts.
+            Onetime::Initializers::SetupDiagnostics.scrub_event_messages(event)
 
             # Return the event if it passes validation
             event
+          end
+
+          # before_send does NOT run for transaction (performance) events —
+          # with traces_sample_rate 0.1, sampled requests to /secret/:id would
+          # otherwise ship raw paths in the transaction name, request URL, and
+          # span data. Scrub them with the same rules as error events.
+          config.before_send_transaction = ->(event, _hint) do
+            return nil if event.nil?
+
+            Onetime::Initializers::SetupDiagnostics.scrub_transaction_event(event)
           end
         end
 
@@ -269,11 +285,21 @@ module Onetime
           # Legacy v0.23 identifiers are 31 chars; this allows both old and new.
           MIN_IDENTIFIER_LENGTH = 20
 
+          # Header names carrying full URLs that must be scrubbed like request.url.
+          # sentry-ruby formats Rack's HTTP_REFERER into the capitalized "Referer"
+          # (see Sentry::RequestInterface#filter_and_format_headers). We also match
+          # the lowercase 'referer' defensively in case a caller populates headers
+          # directly.
+          URL_BEARING_HEADERS = %w[Referer referer].freeze
+
           # Scrub sensitive data from URLs in Sentry events
           #
-          # Handles two URL locations:
+          # Handles four URL locations:
           # 1. event.request.url - Standard Sentry request data
           # 2. event.contexts['request']['url'] - Custom context set by error middleware
+          # 3. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
+          # 4. event.request.headers['Referer'] - Referer carries the previous URL,
+          #    which can embed a secret identifier (e.g. /secret/<id>)
           #
           # @param event [Sentry::Event] The event to scrub
           # @return [Sentry::Event] The scrubbed event
@@ -285,6 +311,19 @@ module Onetime
               if scrubbed_url != original_url
                 event.request.url = scrubbed_url
                 OT.ld '[sentry] Scrubbed request.url'
+              end
+            end
+
+            # Scrub transaction name. The Rack middleware names transactions
+            # from PATH_INFO (source :url), so an error on /secret/<key>
+            # carries the identifier here unless scrubbed. Mirrors the
+            # frontend, which scrubs event.transaction in beforeSend.
+            if event.respond_to?(:transaction) && event.transaction
+              original_txn = event.transaction
+              scrubbed_txn = scrub_url(original_txn)
+              if scrubbed_txn != original_txn
+                event.transaction = scrubbed_txn
+                OT.ld '[sentry] Scrubbed transaction'
               end
             end
 
@@ -300,18 +339,110 @@ module Onetime
               end
             end
 
+            # Scrub URL-bearing request headers (Referer). The Referer carries
+            # the previous page URL, which on OTS can embed a secret identifier
+            # (e.g. https://host/secret/<id>). Scrub it through the same path
+            # scrubber used for request.url.
+            scrub_url_bearing_headers(event.request&.headers)
+
             event
           rescue StandardError => ex
             # Fail-closed: redact URLs on error to prevent leaking sensitive data
             # Note: intentionally not logging ex.message as it may contain URL fragments
             OT.ld "[sentry] URL scrubbing failed: #{ex.class}"
             event.request.url = '[SCRUBBING_FAILED]' if event.request&.url
+            if event.respond_to?(:transaction) && event.transaction
+              event.transaction = '[SCRUBBING_FAILED]'
+            end
             if event.contexts.is_a?(Hash) &&
                event.contexts['request'].is_a?(Hash) &&
                event.contexts['request']['url']
               event.contexts['request']['url'] = '[SCRUBBING_FAILED]'
             end
+            redact_url_bearing_headers(event.request&.headers)
             event
+          end
+
+          # Scrub URL-bearing request headers (e.g. Referer) in place through
+          # the path scrubber. No-op unless headers is a Hash.
+          #
+          # @param headers [Hash, nil] event.request.headers
+          # @return [void]
+          def scrub_url_bearing_headers(headers)
+            return unless headers.is_a?(Hash)
+
+            URL_BEARING_HEADERS.each do |header_name|
+              next unless headers[header_name].is_a?(String)
+
+              original_hdr = headers[header_name]
+              scrubbed_hdr = scrub_url(original_hdr)
+              next if scrubbed_hdr == original_hdr
+
+              headers[header_name] = scrubbed_hdr
+              OT.ld "[sentry] Scrubbed request.headers['#{header_name}']"
+            end
+          end
+
+          # Fail-closed redaction for URL-bearing request headers. No-op unless
+          # headers is a Hash.
+          #
+          # @param headers [Hash, nil] event.request.headers
+          # @return [void]
+          def redact_url_bearing_headers(headers)
+            return unless headers.is_a?(Hash)
+
+            URL_BEARING_HEADERS.each do |header_name|
+              next unless headers[header_name].is_a?(String)
+
+              headers[header_name] = '[SCRUBBING_FAILED]'
+            end
+          end
+
+          # Scrub sensitive data from transaction (performance) events
+          #
+          # Runs from before_send_transaction, which sentry-ruby invokes
+          # instead of before_send for transaction events. Applies the same
+          # URL rules as error events, plus span-level scrubbing: spans on a
+          # TransactionEvent are already serialized to hashes, and http spans
+          # carry request URLs in :description and data.
+          #
+          # Fail-closed: returns nil (drops the event) if span scrubbing
+          # raises — losing one sampled transaction is cheaper than shipping
+          # an unscrubbed URL.
+          #
+          # @param event [Sentry::TransactionEvent] The transaction event
+          # @return [Sentry::TransactionEvent, nil] The scrubbed event, or nil
+          def scrub_transaction_event(event)
+            # Shared handling: request.url, transaction name, request context
+            scrub_event_urls(event)
+
+            # Span shape per sentry-ruby 6.5 Span#to_h: symbol keys, with
+            # data using string-keyed OpenTelemetry conventions — URL lives
+            # in data['url'], query string separately in data['http.query'].
+            spans = event.respond_to?(:spans) ? event.spans : nil
+            if spans.is_a?(Array)
+              spans.each do |span|
+                next unless span.is_a?(Hash)
+
+                # Descriptions are free text ("GET https://host/secret/<id>")
+                if span[:description].is_a?(String)
+                  span[:description] = scrub_text(span[:description])
+                end
+
+                data = span[:data]
+                next unless data.is_a?(Hash)
+
+                data['url'] = scrub_url(data['url']) if data['url'].is_a?(String)
+                if data['http.query'].is_a?(String)
+                  data['http.query'] = scrub_query_string(data['http.query'])
+                end
+              end
+            end
+
+            event
+          rescue StandardError => ex
+            OT.ld "[sentry] Transaction scrubbing failed: #{ex.class}"
+            nil
           end
 
           # Scrub sensitive path segments and query parameters from a URL
@@ -328,16 +459,112 @@ module Onetime
           # Admin paths:
           # - /colonel/* - admin paths need full debugging context; scrub multi-segment
           #
+          # Free-text nets (issue #3794 C2/C4): after the path and named-param
+          # passes, the email and verifiable-identifier nets sweep values that
+          # ride under non-sensitive positions — e.g. ?ref=<62-char-id> or
+          # ?email=user@example.com in a Referer or span URL. Named-param
+          # redaction runs first so '[REDACTED]' placeholders are never
+          # re-processed by the nets. This makes scrub_url the single
+          # "thorough" tier for every URL-shaped value (request.url, Referer,
+          # transaction name, span data['url'], span data['http.query']).
+          #
           # @param url [String, nil] The URL to scrub
           # @return [String, nil] The scrubbed URL or original if nil/malformed
           def scrub_url(url)
             return url if url.nil? || url.empty?
 
             scrubbed = scrub_sensitive_paths(url)
-            scrub_sensitive_query_params(scrubbed)
+            scrubbed = scrub_sensitive_query_params(scrubbed)
+            scrubbed = scrubbed.gsub(EMAIL_PATTERN, '[EMAIL_REDACTED]')
+            scrubbed.gsub(IDENTIFIER_TEXT_PATTERN, '[REDACTED]')
           rescue StandardError
             # Fail-closed: return redacted placeholder to prevent leaking sensitive data
             '[SCRUBBING_FAILED]'
+          end
+
+          # Scrub sensitive data from free text (exception messages,
+          # capture_message strings, span descriptions).
+          #
+          # Since scrub_url now carries the email and identifier nets itself
+          # (issue #3794), this is a semantic alias: both tiers apply the same
+          # passes (paths, named params, emails, exact-length identifiers),
+          # all gsub-based and safe on arbitrary text. Mirrors
+          # scrubSensitiveStrings in src/plugins/core/diagnostics/scrubbers.ts.
+          #
+          # @param text [String, nil] The text to scrub
+          # @return [String, nil] The scrubbed text
+          def scrub_text(text)
+            return text if text.nil? || text.empty?
+
+            scrub_url(text)
+          rescue StandardError
+            '[SCRUBBING_FAILED]'
+          end
+
+          # Scrub sensitive parameters from a bare query string, as found in
+          # span data['http.query']. Tolerates a leading '?' (issue #3794 —
+          # the frontend had the same bug as its C1): without stripping it,
+          # the first param would parse as key "?token" and dodge the
+          # named-param redaction. Any leading '?' is preserved in the output.
+          #
+          # @param query [String] e.g. "key=abc123&ttl=3600"
+          # @return [String] e.g. "key=[REDACTED]&ttl=3600"
+          def scrub_query_string(query)
+            return query if query.nil? || query.empty?
+
+            # Prepend a fresh '?' so scrub_url parses the input as a query
+            # string and applies its full pass stack (named params, emails,
+            # identifier net), then strip it back off; the caller's original
+            # prefix (if any) is restored below.
+            bare     = query.delete_prefix('?')
+            scrubbed = scrub_url("?#{bare}").delete_prefix('?')
+            query.start_with?('?') ? "?#{scrubbed}" : scrubbed
+          end
+
+          # Scrub emails, identifiers, and sensitive paths from exception
+          # messages and standalone messages.
+          #
+          # sentry-ruby 6.5: ErrorEvent#exception is an ExceptionInterface
+          # whose #values are SingleExceptionInterface instances with an
+          # attr_accessor :value holding the message string. Event#message
+          # holds capture_message strings.
+          #
+          # @param event [Sentry::Event] The event to scrub
+          # @return [Sentry::Event] The scrubbed event
+          def scrub_event_messages(event)
+            exception = event.respond_to?(:exception) ? event.exception : nil
+            if exception.respond_to?(:values)
+              Array(exception.values).each do |single|
+                next unless single.respond_to?(:value) && single.value.is_a?(String)
+
+                single.value = scrub_text(single.value)
+              end
+            end
+
+            if event.respond_to?(:message) && event.message.is_a?(String) && !event.message.empty?
+              event.message = scrub_text(event.message)
+            end
+
+            event
+          rescue StandardError => ex
+            # Fail-closed: redact the message and exception values rather than
+            # shipping potentially-sensitive content unscrubbed. Mirrors the
+            # fail-closed behavior of scrub_event_urls/scrub_text.
+            # NOTE: intentionally not logging ex.message as it may contain the
+            # very content we failed to scrub.
+            OT.ld "[sentry] Message scrubbing failed: #{ex.class}"
+            exception = event.respond_to?(:exception) ? event.exception : nil
+            if exception.respond_to?(:values)
+              Array(exception.values).each do |single|
+                next unless single.respond_to?(:value) && single.value.is_a?(String)
+
+                single.value = '[SCRUBBING_FAILED]'
+              end
+            end
+            if event.respond_to?(:message) && event.message.is_a?(String) && !event.message.empty?
+              event.message = '[SCRUBBING_FAILED]'
+            end
+            event
           end
 
           # Pattern for identifier paths - matches segments >= MIN_IDENTIFIER_LENGTH chars
@@ -360,6 +587,31 @@ module Onetime
 
           # Query parameter names that contain sensitive data
           SENSITIVE_QUERY_PARAMS = %w[key secret token passphrase].freeze
+
+          # Email addresses in free text (exception messages, breadcrumbs).
+          # Mirrors EMAIL_PATTERN in src/plugins/core/diagnostics/scrubbers.ts.
+          EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+
+          # Verifiable identifiers in free text. 62 = v0.24 identifiers,
+          # 31 = legacy v0.23.
+          #
+          # The 62-char branch is UNANCHORED so a secret glued to adjacent
+          # word characters (`?ref=<id>abc`, `<id>x`, `load <id>_meta`) is
+          # still caught. A \b-anchored 62 branch silently leaked all of
+          # those shapes. The over-redaction risk is minimal: no ops-useful
+          # token is >= 62 chars, and partially redacting a longer blob is
+          # fail-safe, not a bug. The 31-char branch stays \b-anchored and
+          # length-exact so ops-useful values of nearby lengths — trace IDs
+          # (32 hex), commit hashes (40 hex) — survive untouched.
+          #
+          # Mirrors VERIFIABLE_ID_PATTERN in
+          # src/plugins/core/diagnostics/scrubbers.ts, with ONE intentional
+          # divergence: the backend pattern is case-SENSITIVE ([0-9a-z]
+          # only), because the backend controls its own identifier
+          # generation (lowercase base-36). The frontend is
+          # case-insensitive. Do NOT "fix" this asymmetry by making the two
+          # patterns identical — the difference is by design.
+          IDENTIFIER_TEXT_PATTERN = /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/
 
           private
 

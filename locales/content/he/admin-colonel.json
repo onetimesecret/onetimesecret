@@ -563,10 +563,6 @@
     "text": "ניהול משתמשים",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "ניהול סודות",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "דומיינים מותאמים אישית",
     "source_hash": "6170ab94"

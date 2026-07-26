@@ -27,6 +27,34 @@ module Onetime
     class ServerCommand < DelayBootCommand
       CURRENT_ENVIRONMENT = ENV.fetch('RACK_ENV', 'development')
 
+      # Options that may not be combined with a config file, per the contract in
+      # the header comment. `--server` and `--environment` are deliberately not
+      # guarded: they are orthogonal to the binding/threading settings the config
+      # file owns, and `ots server -e production config/puma.rb` is a legitimate
+      # invocation that has always been accepted.
+      CONFIG_FILE_CONFLICTS = [:port, :threads, :workers, :bind].freeze
+
+      # A value equal to the declared default does not count as "supplying an
+      # option". True presence is not recoverable here: dry-cli merges the
+      # declared defaults into the parsed options before `call` runs
+      # (dry-cli-1.4.1/lib/dry/cli/parser.rb:32), so an omitted flag is
+      # indistinguishable from one explicitly given its default value.
+      #
+      # Comparison is on `to_s` because the operand types are not stable. This
+      # used to read `port != 7143 || threads != '2:4' || ...`, which only
+      # appeared to work for the two numeric options, and for the wrong reason:
+      # dry-cli handed them back as Strings that could never equal their Integer
+      # defaults, so ANY `--port`/`--workers` tripped the guard while the two
+      # String-typed options compared equal to their defaults and escaped it
+      # entirely (`ots server --threads 2:4 config/puma.rb` was accepted). Now
+      # that OptionTypes coerces the numeric options, that comparison would have
+      # silently started accepting `--port 7143 config/puma.rb`. Normalizing
+      # applies one rule to all four, and reads the defaults from the
+      # declarations so the literals are not repeated a third time.
+      def self.conflicting_with_config_file(supplied)
+        CONFIG_FILE_CONFLICTS.reject { |name| supplied[name].to_s == default_params[name].to_s }
+      end
+
       desc 'Start the web server (Puma or Thin)'
 
       argument :config_file, type: :string, required: false, desc: 'Path to server config file'
@@ -68,10 +96,13 @@ module Onetime
         # Lazy require - rackup is in development group, not available in production containers
         require 'rackup'
 
-        has_options = port != 7143 || threads != '2:4' || workers != 0 || bind != '127.0.0.1'
+        conflicts = self.class.conflicting_with_config_file(
+          port: port, threads: threads, workers: workers, bind: bind,
+        )
 
-        if config_file && has_options
-          Onetime.app_logger.error('Cannot specify both a config file and command-line options')
+        if config_file && conflicts.any?
+          flags = conflicts.map { |name| "--#{name}" }.join(', ')
+          Onetime.app_logger.error("Cannot specify both a config file and command-line options: #{flags}")
           exit 1
         end
 

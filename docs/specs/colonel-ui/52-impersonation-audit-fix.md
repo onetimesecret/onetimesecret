@@ -79,3 +79,136 @@ that writes an `AdminAuditEvent` on every invocation.
 - Do not assert the vulnerability as fact in commit messages, PRs, or public docs until the spike confirms it.
 - Depends on the audit log (21) landing first so the "explicit + logged" replacement has a sink to write to.
 - Prefer removal over replacement if the console has no genuine impersonation need — least capability wins.
+
+---
+
+## 2026-07-25 — re-raised as a CLI verb (#3731), re-affirmed no-ship
+
+Issue #3731 ("CLI support commands over the Operations layer") proposed
+`bin/ots customers impersonate` among its candidate verbs. **Outcome: not built,
+and not deferred — declined.** This section records the reasoning so the next
+person does not re-derive it.
+
+This is a design decision about product scope and system capability. It is not a
+report of a defect: the spike above already established that no
+authenticate-as-arbitrary-customer path exists, and nothing in #3731 changed
+that.
+
+### (a) The ratified outcome was removal, and #3731 supplied no reason to reverse it
+
+The spike above closed with "prefer removal over replacement — least capability
+wins," and the code was changed accordingly. A standing guard comment now lives
+at the call site — `apps/web/core/logic/authentication/authenticate_session.rb:214-225`,
+in `success?` — recording that no impersonation clause belongs there and what
+would be required if one ever did.
+
+Issue #3731 is a refactoring epic. Its stated premise is thin CLI adapters over
+Operations that already exist, with review gated on "does this change behaviour?
+it should not." Reversing a ratified product decision is exactly the kind of
+change that premise excludes. Nothing in #3731 introduced a product driver — no
+support workflow, no customer request, no console gap — that the earlier decision
+had not already weighed.
+
+### (b) A CLI adapter structurally cannot satisfy this spec's own audit requirement
+
+The acceptance criteria above require an `AdminAuditEvent` on every invocation
+naming "actor colonel, target customer, timestamp."
+
+Every CLI adapter in the tree passes a shared sentinel actor:
+`Customers::Shared::CLI_ACTOR = 'cli'` (`lib/onetime/cli/customers/shared.rb:18`),
+mirrored by `CLI_ACTOR = 'cli'` in `lib/onetime/cli/session_command.rb:317` and
+`lib/onetime/cli/domains/create_command.rb:33`. The shell has no authenticated
+operator identity to pass; `'cli'` is an honest statement that the actor is a
+shell session, and it names no human.
+
+For every other CLI verb this is acceptable, because the mutation is
+reconstructible from the resulting state — an operator can see *that* a plan was
+changed, a domain repaired, an org reconciled, and the resulting state is the
+record. Impersonation is different in kind: the operator's identity **is** the
+control being relied on. An audit row reading `actor=cli` against an
+impersonation verb would be the only record of who did it, and it identifies
+nobody.
+
+ADR-023 ("Audit Actor Attribution Accuracy — Never Fabricate an Actor") settles
+this directly: an audit event must never record a value that "asserts a fact we
+cannot support." A CLI impersonation adapter would either record `'cli'` — true
+but useless for the one control that matters — or accept an operator-supplied
+name, which is an unverified assertion. Neither satisfies the requirement above.
+
+A colonel-console adapter does not have this problem, because the console has an
+authenticated colonel. That is a different proposal from the one #3731 raised,
+and it is not being made here.
+
+### (c) Requirements any future impersonation adapter must first satisfy
+
+Three properties of the current session design would each have to be solved
+*before* an impersonation adapter could be considered. These are stated as
+requirements on a hypothetical future design, not as defects in the present one —
+none of them is a problem for ordinary sessions, which is why the design is the
+way it is.
+
+1. **Bounded lifetime.** An impersonation session would need a lifetime shorter
+   than an ordinary session, independent of the configured expiry. The session
+   store re-applies the configured `expire_after` on every commit
+   (`lib/onetime/session.rb:663-673`), which is correct for ordinary sessions —
+   activity should extend them. A shorter-lived session variant is a new concept
+   the store does not have today, and it would have to be built before, not
+   alongside, any impersonation feature.
+
+2. **A marker that cannot be absent.** An impersonation session would need to be
+   distinguishable from an ordinary one at every point that reads session state.
+   The session sidecar primitive is explicitly not the right home: its admission
+   rule (`lib/onetime/session/sidecar.rb:77-85`) is that a field may be
+   externalized "ONLY if its absence is the safe state," and lists fields whose
+   absence grants anything as permanently ineligible. An impersonation marker
+   fails that rule in the obvious direction — a session with the marker missing
+   is just an ordinary session. It would have to live somewhere absence is
+   impossible.
+
+3. **Revocation is not a sufficient control.** Some capabilities reachable with a
+   session identity are irreversible, and some produce externally-valid artifacts
+   that outlive the session that created them. Revoking an impersonation session
+   does not undo the first category or invalidate the second. Any design would
+   therefore need capability restriction at the point of use — a positive list of
+   what an impersonating session may do — rather than relying on being able to
+   end the session afterwards.
+
+Solving all three is a substantial piece of session-architecture work. It is not
+adapter work, and it is not something to attach to a refactoring epic.
+
+### The request-path guard was deliberately not built
+
+A guard that recognizes an impersonation marker and restricts behaviour on the
+request path was considered and rejected as speculative machinery.
+
+It would be a change to the hot path of every authenticated request, in more than
+one independent identity-resolution site
+(`lib/onetime/application/auth_strategies/base_session_auth_strategy.rb`,
+`lib/onetime/middleware/identity_resolution.rb`, and the session helper used by
+the web surfaces), for a feature that is not shipping. Unused security machinery
+tends to acquire users: the dead `@colonel&.passphrase?` clause this ticket
+removed was itself an unused branch that had to be argued about years after
+whoever wrote it moved on. Adding an inert impersonation guard would recreate
+exactly that hazard in the same code path.
+
+If an impersonation feature is ever genuinely needed, the guard is part of *that*
+project and should be built with a caller, not ahead of one.
+
+### What operators should use instead
+
+The console already covers the reproduction cases impersonation is usually
+reached for, without assuming another user's identity:
+
+- `GET /users/:user_id` — `ColonelAPI::Logic::Colonel::GetUserDetails`
+  (`apps/api/colonel/routes.txt:25`). Account state, verification, role, plan.
+- `GET /users/:user_id/sessions` — `ColonelAPI::Logic::Colonel::ListCustomerSessions`
+  (`apps/api/colonel/routes.txt:83`), with per-session and bulk revocation at
+  `:85-86`. Answers "what is this user's session state right now."
+- `POST /entitlement-preview` — `ColonelAPI::Logic::Colonel::SetEntitlementPreview`
+  (`apps/api/colonel/routes.txt:16`). For plan- and entitlement-shaped bug
+  reports, this reproduces what the customer's plan makes visible **in the
+  colonel's own session**, which keeps the audit trail accurate.
+
+Neither assumes another user's identity, and both leave an honest actor in the
+trail. That combination is what made the impersonation verb unnecessary in the
+first place — it remains the reason.

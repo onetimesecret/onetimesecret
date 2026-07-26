@@ -73,13 +73,18 @@ module AccountAPI::Logic
 
         OT.info "[resend-email-change] Resending confirmation cid/#{cust.objid} new_email/#{OT::Utils.obscure_email(new_email)} (count: #{resend_count})"
 
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = cust.locale if email_locale.to_s.strip.empty?
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
+
         # Re-send confirmation email to the NEW address
         Onetime::Jobs::Publisher.enqueue_email(
           :email_change_confirmation,
           {
             new_email: new_email,
             confirmation_token: @secret.identifier,
-            locale: locale || cust.locale || OT.default_locale,
+            locale: email_locale,
           },
           fallback: :sync,
         )

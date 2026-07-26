@@ -156,6 +156,68 @@ export const databaseMetricsDetailsSchema = z.object({
 });
 
 /**
+ * Brand-pack diagnostics response details (#3822).
+ *
+ * Read-only diagnostic for the running instance's brand-pack resolution, so ops
+ * can see why one region serves neutral branding (the v0.26.0 UK incident:
+ * identical files on disk, divergent render). The two boolean DANGER flags ARE
+ * the point of the tool and the reason it renders them first:
+ *   - `fell_back_to_default`  — resolution missed the pack and fell back to the
+ *                               neutral default (broken checkout / bad mount).
+ *   - `boot_vs_live_mismatch` — the boot-time snapshot disagrees with the live
+ *                               resolution (a mount race — the container booted
+ *                               before the brand volume was ready).
+ *
+ * Nullable fields track the failure shapes the tool exists to surface:
+ *   - `resolved_dir` / `manifest.path` are null on a broken checkout (nothing
+ *     resolved / no manifest on disk) — render "(none)", never a blank.
+ *   - the env/config brand strings are null when ENV isn't reaching the
+ *     container or the config never set them. The backend always emits these
+ *     keys (value may be null but the key is never absent), so they use
+ *     `.nullable()` — not `.nullish()`. Requiring the key present keeps the
+ *     drift tripwire intact: a missing key is a contract break, not "unset".
+ */
+export const brandDiagnosticsDetailsSchema = z.object({
+  home: z.string(),
+  // Raw ENV as the process sees it now — catches "env not reaching container".
+  env: z.object({
+    brand_pack: z.string().nullable(),
+    brand_assets_dir: z.string().nullable(),
+  }),
+  // Boot-time config snapshot — catches config divergence from ENV. The two
+  // key lists are PROVENANCE as boot recorded it (conf['brand_manifest']):
+  // brand_absorbed = keys filled FROM the pack manifest, brand_operator_keys =
+  // keys the operator set in brand: config. Env/legacy-filled keys appear in
+  // neither list.
+  config: z.object({
+    brand_pack: z.string().nullable(),
+    brand_assets_dir: z.string().nullable(),
+    brand_absorbed: z.array(z.string()),
+    brand_operator_keys: z.array(z.string()),
+  }),
+  // Search roots probed in order, each flagged for on-disk existence.
+  roots: z.array(
+    z.object({
+      path: z.string(),
+      exists: z.boolean(),
+    })
+  ),
+  // NULLABLE: null when nothing resolved (broken checkout).
+  resolved_dir: z.string().nullable(),
+  // DANGER flag: true = fell back to the neutral default pack.
+  fell_back_to_default: z.boolean(),
+  manifest: z.object({
+    // NULLABLE: null when no manifest is present on disk.
+    path: z.string().nullable(),
+    exists: z.boolean(),
+    keys_on_disk: z.array(z.string()),
+  }),
+  // DANGER flag: true = boot snapshot ≠ live resolution (mount race).
+  boot_vs_live_mismatch: z.boolean(),
+  overlay_assets: z.array(z.string()),
+});
+
+/**
  * Redis metrics response details (full Redis INFO)
  */
 export const redisMetricsDetailsSchema = z.object({
@@ -481,7 +543,11 @@ export type InvestigateOrganizationResult = z.infer<typeof investigateOrganizati
 
 /**
  * The core customer record on the detail page (GetUserDetails `record`).
- * `email` is the OBSCURED email (`obscure_email`); never the raw address.
+ * `email` is the FULL raw address (colonel-only, scope=internal); the UI
+ * obscures it client-side and reveals on interaction (RevealEmail.vue), and it
+ * doubles as the typed-confirmation token for the guarded purge. Only the
+ * mutation acks ({@link colonelUserMutationRecordSchema}) carry the obscured
+ * `obscure_email` form.
  * Timestamps arrive as Unix-epoch numbers (seconds, sometimes fractional) and
  * are transformed to Date, mirroring {@link colonelUserSchema}.
  */
@@ -595,17 +661,27 @@ export const colonelUserBillingSchema = z.object({
  * The `details` payload of GetUserDetails: everything a support agent needs to
  * read out a customer without SSH — secrets (count + items), receipts, orgs,
  * billing and lifetime stats. `count` is authoritative and equals
- * `items.length` (the endpoint sources it from the same bounded SCAN, not the
- * drifting counter). `billing` is optional so pre-billing payloads keep parsing.
+ * `items.length` (the endpoint sources it from the per-owner index page it just
+ * rendered, not from the drifting counter). `billing` is optional so
+ * pre-billing payloads keep parsing.
+ *
+ * `truncated` says the list is a PARTIAL view — more exist than are shown
+ * (another index page, pre-index historical data, a bounded fallback scan that
+ * hit its deadline, or a section that failed to load). The UI must surface it:
+ * a short list that reads as complete is worse than an honest partial one. It
+ * is optional + defaulted so payloads from a server predating the flag parse as
+ * "not truncated" rather than failing validation.
  */
 export const colonelUserDetailsSchema = z.object({
   secrets: z.object({
     count: z.number(),
     items: z.array(colonelUserDetailSecretSchema),
+    truncated: z.boolean().optional().default(false),
   }),
   receipts: z.object({
     count: z.number(),
     items: z.array(colonelUserDetailReceiptSchema),
+    truncated: z.boolean().optional().default(false),
   }),
   organizations: z.array(colonelUserDetailOrganizationSchema),
   billing: colonelUserBillingSchema.optional(),
@@ -621,6 +697,10 @@ export const colonelUserDetailsSchema = z.object({
  *   - verify/unverify → verified, email, updated
  *   - suspend/unsuspend → suspended, email, updated
  *   - purge     → deleted (email/updated omitted)
+ *
+ * `email`, when present, is the OBSCURED form (`obscure_email`) — unlike the
+ * detail record ({@link colonelUserDetailRecordSchema}), which carries the raw
+ * address for RevealEmail and the purge confirmation token.
  *
  * `user_id` here is the customer's OBJID (server-internal); the UI keys off
  * `extid` (the public id) and refreshes the resource rather than trusting the
@@ -726,6 +806,10 @@ export const databaseMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   databaseMetricsDetailsSchema
 );
+export const brandDiagnosticsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  brandDiagnosticsDetailsSchema
+);
 export const redisMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   redisMetricsDetailsSchema
@@ -766,6 +850,7 @@ export type CustomDomainsResponse = z.infer<typeof colonelCustomDomainsResponseS
 export type ColonelOrganizationsResponse = z.infer<typeof colonelOrganizationsResponseSchema>;
 export type InvestigateOrganizationResponse = z.infer<typeof investigateOrganizationResponseSchema>;
 export type DatabaseMetricsResponse = z.infer<typeof databaseMetricsResponseSchema>;
+export type BrandDiagnosticsResponse = z.infer<typeof brandDiagnosticsResponseSchema>;
 export type RedisMetricsResponse = z.infer<typeof redisMetricsResponseSchema>;
 export type BannedIPsResponse = z.infer<typeof bannedIPsResponseSchema>;
 export type UsageExportResponse = z.infer<typeof usageExportResponseSchema>;

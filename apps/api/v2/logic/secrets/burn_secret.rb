@@ -59,7 +59,7 @@ module V2::Logic
         # Burn is the same brute-force oracle as show/reveal: each wrong
         # guess confirms the passphrase is wrong, and a correct guess
         # destroys the secret.
-        check_passphrase_rate_limit!(potential_secret.identifier) if potential_secret.has_passphrase?
+        check_passphrase_rate_limit!(potential_secret.identifier, passphrase_client_ip) if potential_secret.has_passphrase?
 
         @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
         viewable            = potential_secret.viewable?
@@ -83,7 +83,7 @@ module V2::Logic
           @secret = potential_secret
 
           # Clear any rate limit state on successful passphrase entry
-          clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+          clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
 
           # Attribute the burn BEFORE burned! consumes the secret: owner?(cust)
           # reads the still-in-memory owner_id, so the 'burned' audit event
@@ -124,7 +124,7 @@ module V2::Logic
 
         elsif !correct_passphrase
           # Record failed attempt for rate limiting
-          attempt_count = record_failed_passphrase_attempt!(potential_secret.identifier)
+          attempt_count = record_failed_passphrase_attempt!(potential_secret.identifier, passphrase_client_ip)
 
           secret_logger.warn 'Burn failed - incorrect passphrase',
             {
@@ -195,6 +195,20 @@ module V2::Logic
             is_orphaned: false,
           },
         }
+      end
+
+      private
+
+      # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
+      # from strategy_result metadata (set for both anonymous and authenticated
+      # callers). nil when unavailable, in which case the limiter falls back to
+      # the global per-secret backstop rather than collapsing every caller into
+      # one shared IP bucket. Do NOT use session['ip_address'] here -- it is
+      # absent for the anonymous recipients who are the primary threat model.
+      def passphrase_client_ip
+        return unless respond_to?(:strategy_result)
+
+        strategy_result&.metadata&.[](:ip)
       end
     end
   end

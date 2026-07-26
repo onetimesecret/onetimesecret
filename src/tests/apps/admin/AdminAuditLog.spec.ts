@@ -116,17 +116,23 @@ describe('AdminAuditLog (flight-recorder playback — observability lane)', () =
     expect(wrapper.find('[data-testid="audit-table"]').text()).toContain('—');
   });
 
-  it('debounces the actor box into a single filtered fetch', async () => {
+  // The actor box is MANUAL search (the debounce was removed deliberately):
+  // typing issues nothing, submitting the form issues exactly one fetch.
+  // Full coverage lives in AdminAuditLogSearch.spec.ts.
+  it('searches the actor box on submit, not while typing', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
     wrapper = mountView(pinia);
     await flushPromises();
     const before = listGetCount();
 
-    await wrapper.find('[data-testid="audit-filterbar"] input').setValue('ur_colonel1');
-    // Debounced — no request yet.
+    await wrapper.find('[data-testid="audit-actor-input"]').setValue('ur_colonel1');
+    // Manual search — nothing fires on input, and no timer is pending either.
+    expect(listGetCount()).toBe(before);
+    vi.advanceTimersByTime(1000);
+    await flushPromises();
     expect(listGetCount()).toBe(before);
 
-    vi.advanceTimersByTime(300);
+    await wrapper.find('[data-testid="audit-actor-form"]').trigger('submit');
     await flushPromises();
 
     expect(listGetCount()).toBe(before + 1);

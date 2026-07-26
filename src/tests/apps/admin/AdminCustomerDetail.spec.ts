@@ -69,6 +69,8 @@ import { createTestI18n } from '@tests/setup';
 const i18n = createTestI18n();
 
 const PUBLIC_ID = 'ur_alice';
+/** Purge is gated on the account EMAIL (suspend still uses the public id). */
+const PURGE_TOKEN = 'alice@example.com';
 
 type BillingOverride = {
   enabled?: boolean;
@@ -203,6 +205,34 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(wrapper.find('[data-testid="organizations-list"]').text()).toContain('Acme');
     });
 
+    // The endpoint reads a bounded page off the per-owner index, so a short
+    // list is not proof of a short history. `truncated` is how the server says
+    // "this is partial" — the view must never render a partial list as if it
+    // were the whole record.
+    it('says nothing about truncation when the payload is complete', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="secrets-truncated"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="receipts-truncated"]').exists()).toBe(false);
+    });
+
+    it('flags a partial secrets/receipts list when the server truncated it', async () => {
+      const payload = detailPayload();
+      payload.details.secrets.truncated = true;
+      payload.details.receipts.truncated = true;
+      mockApi.get.mockResolvedValue({ data: payload });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="secrets-truncated"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="receipts-truncated"]').exists()).toBe(true);
+      // The rest of the record still renders — truncation is not an error state.
+      expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="secrets-table"]').text()).toContain('sh1');
+    });
+
     it('renders the not-found panel on a 404', async () => {
       mockApi.get.mockRejectedValue(Object.assign(new Error('nf'), { response: { status: 404 } }));
       wrapper = mountView();
@@ -238,7 +268,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await flushPromises();
     });
 
-    it('opens a danger dialog whose confirm stays disabled until the public id is retyped', async () => {
+    it('opens a danger dialog whose confirm stays disabled until the account email is retyped', async () => {
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
       await flushPromises();
 
@@ -250,8 +280,12 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await dialogInput(wrapper).setValue('not-the-id');
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
-      // …exact public id enables it.
+      // …the public id is NOT the purge token any more; only the email is.
       await dialogInput(wrapper).setValue(PUBLIC_ID);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+
+      // …exact account email enables it.
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
     });
 
@@ -259,7 +293,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       mockApi.delete.mockResolvedValue({ data: mutationAck() });
 
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
-      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
@@ -285,7 +319,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       );
 
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
-      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 

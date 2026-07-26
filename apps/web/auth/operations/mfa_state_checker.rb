@@ -15,7 +15,7 @@
 #
 # Example:
 #   checker = Auth::Operations::MfaStateChecker.new(DB)
-#   state = checker.check(account_id: 123)
+#   state = checker.check(123) # account_id is a positional argument
 #   if state.has_otp_secret
 #     # Account has OTP configured
 #   end

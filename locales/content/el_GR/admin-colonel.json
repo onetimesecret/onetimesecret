@@ -563,10 +563,6 @@
     "text": "Διαχείριση χρηστών",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Διαχείριση μυστικών",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Προσαρμοσμένοι τομείς",
     "source_hash": "6170ab94"

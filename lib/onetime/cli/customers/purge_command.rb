@@ -40,6 +40,11 @@
 # require it explicitly.
 require 'auth/operations/delete_customer'
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersPurgeCommand < Command # rubocop:disable Metrics/ClassLength

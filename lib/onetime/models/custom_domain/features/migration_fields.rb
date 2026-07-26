@@ -46,7 +46,7 @@ module Onetime::CustomDomain::Features
       def pending_org_migration
         instances.revrangeraw(0, -1).collect do |identifier|
           domain = load(identifier)
-          domain if domain&.v1_custid.to_s.present? && domain.org_id.to_s.empty?
+          domain if !domain&.v1_custid.to_s.empty? && domain.org_id.to_s.empty?
         end.compact
       end
 
@@ -72,7 +72,7 @@ module Onetime::CustomDomain::Features
       # @param email_to_org_mapping [Hash] email => org_objid mapping
       # @return [Boolean] Success status
       def migrate_to_org!(email_to_org_mapping)
-        return true if org_id.to_s.present? # Already migrated
+        return true unless org_id.to_s.empty? # Already migrated
 
         email = v1_custid
         return false if email.to_s.empty?
@@ -109,7 +109,7 @@ module Onetime::CustomDomain::Features
       #
       # @return [Boolean]
       def needs_org_migration?
-        v1_custid.to_s.present? && org_id.to_s.empty?
+        !v1_custid.to_s.empty? && org_id.to_s.empty?
       end
 
       # Get the owning organization (v2) or nil

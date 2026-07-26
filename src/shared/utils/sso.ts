@@ -30,6 +30,25 @@ export interface SubmitSsoLoginOptions {
    * When provided, the backend stores it and redirects there post-login.
    */
   redirect?: string;
+
+  /**
+   * Marks this as an authenticated account-linking initiation (Connected
+   * Identities connect flow) rather than a plain sign-in. When true, a hidden
+   * `connect=1` field is submitted; the backend `omniauth.rb` hook reads it to
+   * authorize binding the returned identity to the CURRENT session account.
+   * Omit (or false) for normal sign-in — an unmarked initiation must not bind.
+   */
+  connect?: boolean;
+}
+
+/** Append a hidden input to the form (skipped when the value is empty). */
+function appendHiddenField(form: HTMLFormElement, name: string, value: string): void {
+  if (!value) return;
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = name;
+  input.value = value;
+  form.appendChild(input);
 }
 
 /**
@@ -37,26 +56,21 @@ export interface SubmitSsoLoginOptions {
  * provider. Navigates the browser away to the IdP, so nothing runs after
  * `form.submit()` returns.
  */
-export function submitSsoLogin({ routeName, shrimp, redirect }: SubmitSsoLoginOptions): void {
+export function submitSsoLogin({
+  routeName,
+  shrimp,
+  redirect,
+  connect,
+}: SubmitSsoLoginOptions): void {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = `/auth/sso/${routeName}`;
 
-  if (shrimp) {
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'shrimp';
-    csrfInput.value = shrimp;
-    form.appendChild(csrfInput);
-  }
-
-  if (redirect) {
-    const redirectInput = document.createElement('input');
-    redirectInput.type = 'hidden';
-    redirectInput.name = 'redirect';
-    redirectInput.value = redirect;
-    form.appendChild(redirectInput);
-  }
+  appendHiddenField(form, 'shrimp', shrimp ?? '');
+  appendHiddenField(form, 'redirect', redirect ?? '');
+  // Connect-intent: only the authenticated account-linking flow marks the
+  // initiation. A plain sign-in leaves it unset so the backend never binds.
+  appendHiddenField(form, 'connect', connect ? '1' : '');
 
   document.body.appendChild(form);
   form.submit();

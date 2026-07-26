@@ -112,6 +112,23 @@ module AuthModeHelpers
     # DEPRECATED: Alias for sso_enabled? — retained for Rodauth integration
     alias omniauth_enabled? sso_enabled?
 
+    # #3836 Phase 1: opt-in, per-provider "trusted IdP email-linking" escape
+    # hatch. Mirrors Onetime::AuthConfig#trust_email_for_linking? /
+    # #trust_email_for_linking_enabled?. Default OFF in tests (matches the real
+    # default). The boot-time "Check Tenant Sso Trust" health check calls
+    # trust_email_for_linking_enabled?, and the account_from_omniauth hook calls
+    # trust_email_for_linking?(provider) — without these, every full-mode boot
+    # logs a NoMethodError and the trusted-link path cannot be exercised. Specs
+    # that need the flag ON stub it per-example (allow(Onetime.auth_config).to
+    # receive(:trust_email_for_linking?).with('oidc').and_return(true)).
+    def trust_email_for_linking?(_route_name)
+      false
+    end
+
+    def trust_email_for_linking_enabled?
+      false
+    end
+
     # Whether custom domains without their own CustomDomain::SsoConfig
     # can fall back to platform ENV-based SSO credentials.
     # Mirrors Onetime::AuthConfig#allow_platform_fallback_for_tenants?.
@@ -226,6 +243,18 @@ module AuthModeHelpers
 
     def reload!
       self
+    end
+
+    # Mirrors Onetime::AuthConfig#sso_form_action_origins. Tests don't set
+    # provider env vars, so this only reflects the SSO_FORM_ACTION_ORIGINS
+    # override — enough for router/CSP boot specs that just need the method
+    # to respond without raising. Applies the same .uniq the production method
+    # does so a duplicated override doesn't yield a duplicated CSP source list.
+    # (Token http(s)/injection validation is intentionally not replicated here:
+    # boot specs don't set malformed overrides, and duplicating that logic would
+    # drift from the single source of truth in AuthConfig#origin_from_url.)
+    def sso_form_action_origins
+      ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.uniq
     end
   end
 

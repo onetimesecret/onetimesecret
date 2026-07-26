@@ -349,6 +349,62 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       expect(OT).to receive(:info).with(/Created invitation/)
       logic.process
     end
+
+    # #3812 regression: blank ("") locales are truthy and would slip past the
+    # `locale || cust.locale || OT.default_locale` chain — a blank request
+    # locale must fall through to the inviter's stored locale, and a blank
+    # stored locale must fall through to the default.
+    describe 'locale normalization on the :organization_invitation email' do
+      def enqueued_invitation_locale
+        captured = []
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, payload, **_kwargs|
+          captured << payload[:locale] if template == :organization_invitation
+          nil
+        end
+
+        logic.process
+
+        expect(captured.size).to eq(1),
+          "Expected exactly one :organization_invitation email, got #{captured.size}"
+        captured.first
+      end
+
+      context 'when the request locale is blank and the inviter has a stored locale' do
+        let(:params) do
+          { 'extid' => 'ext-org-123', 'email' => 'invitee@example.com', 'role' => 'member', 'locale' => '' }
+        end
+
+        before { allow(customer).to receive(:locale).and_return('fr') }
+
+        it 'falls through to the inviter locale' do
+          expect(enqueued_invitation_locale).to eq('fr')
+        end
+      end
+
+      context 'when both the request locale and the inviter locale are blank' do
+        let(:params) do
+          { 'extid' => 'ext-org-123', 'email' => 'invitee@example.com', 'role' => 'member', 'locale' => '' }
+        end
+
+        before { allow(customer).to receive(:locale).and_return('') }
+
+        it 'falls back to the default locale' do
+          expect(enqueued_invitation_locale).to eq(OT.default_locale)
+        end
+      end
+
+      context 'when the request carries a locale' do
+        let(:params) do
+          { 'extid' => 'ext-org-123', 'email' => 'invitee@example.com', 'role' => 'member', 'locale' => 'de' }
+        end
+
+        before { allow(customer).to receive(:locale).and_return('fr') }
+
+        it 'wins over the inviter locale' do
+          expect(enqueued_invitation_locale).to eq('de')
+        end
+      end
+    end
   end
 
   describe '#form_fields' do

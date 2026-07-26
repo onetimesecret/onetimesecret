@@ -152,9 +152,10 @@ module Onetime
         # Whether the domain's SigninConfig permits SSO as an auth method.
         #
         # Shared permission predicate so the display gate (config serializer)
-        # and the runtime gate (omniauth_tenant hook) cannot diverge. Both
-        # call sites consult this so the SSO button is never shown when the
-        # auth route would reject, and never hidden when the route works.
+        # and the runtime gate (omniauth_tenant hook) cannot diverge — both
+        # reach it through SsoConfig.tenant_sso_available_for?, so the SSO
+        # button is never shown when the auth route would reject, and never
+        # hidden when the route works.
         #
         # Master switch off / no config => permitted (defer to SsoConfig
         # credentials). Master switch on => sso_enabled? is authoritative.
@@ -192,6 +193,60 @@ module Onetime
           global && config.signin_enabled?
         end
 
+        # Effective sign-in availability for a CUSTOM DOMAIN request.
+        #
+        # Custom domains default OFF: sign-in is available only when the domain
+        # owner has explicitly opted in via an *enabled* SigninConfig. Unlike
+        # resolve_signin_enabled — which lets an unconfigured CANONICAL request
+        # follow the global default (ADR-024 invariant #2) — here both "no
+        # config" and "config present but master switch off" mean "not
+        # explicitly allowed" and resolve to false. The global kill switch
+        # still gates the result: an enabled config can only narrow, never
+        # re-enable sign-in disabled globally.
+        #
+        # Single source of truth for the custom-domain default, shared by the
+        # runtime route gate (Core::Controllers::Base#signin_enabled?), the
+        # branded-masthead display gate
+        # (Core::Views::DomainSerializer#effective_signin_enabled?), and the
+        # settings API (DomainsAPI signin_config details, #3814), so the
+        # /signin POST handler, the masthead link, and the settings page
+        # cannot disagree.
+        #
+        # SSO carve-out (domain_id:): when the caller passes domain_id, the
+        # "not explicitly allowed" branch falls back to
+        # SsoConfig.tenant_sso_available_for? instead of false. An SSO-only
+        # tenant (enabled SsoConfig, no SigninConfig) has a working /signin
+        # page via the omniauth routes, so DISPLAY surfaces — the masthead
+        # link and the settings page — must report sign-in as available.
+        # Callers gating the password/email POST /signin handler omit
+        # domain_id and keep the strict false: SSO never flows through POST
+        # /signin, so that asymmetry is intentional (#3415, #3783). An
+        # *enabled* config always falls through to the shared resolver, which
+        # honors an explicit signin_enabled=false and hides SSO along with it.
+        #
+        # The carve-out ignores the password-signin `global` param — AUTH_SIGNIN
+        # does not govern SSO — but it is NOT exempt from the master switch:
+        # tenant_sso_available_for? consults global_auth_enabled (AUTH_ENABLED)
+        # itself, so a master kill still resolves false here. With the master
+        # switch off, sessionauth is never registered and an SSO sign-in could
+        # only mint a session the app ignores, so advertising the link would
+        # be a dead end (#3901 follow-up).
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signin)
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @param domain_id [String, nil] CustomDomain identifier (objid); when
+        #   present, enables the tenant-SSO carve-out for display surfaces
+        # @return [Boolean]
+        def resolve_signin_enabled_for_custom_domain(global, config, domain_id: nil)
+          unless config&.enabled?
+            return false if domain_id.nil?
+
+            return Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
+          end
+
+          resolve_signin_enabled(global, config)
+        end
+
         # Resolve effective email-auth (magic-link) availability, combining the
         # install-level capability with an optional per-domain override.
         #
@@ -224,6 +279,28 @@ module Onetime
         def global_signin_enabled(auth = nil)
           auth ||= OT.conf.dig('site', 'authentication') || {}
           (auth['enabled'] && auth['signin']) == true
+        end
+
+        # Install-level MASTER authentication switch (AUTH_ENABLED) on its
+        # own, without the sign-in flag. This is the gate for sign-in paths
+        # that are not password/email — tenant SSO — where AUTH_SIGNIN is
+        # deliberately not consulted. The two flags fail differently:
+        # AUTH_SIGNIN=false retires only the password/email path while
+        # sessions keep working, but AUTH_ENABLED=false means sessionauth is
+        # never registered (Application::AuthStrategies.account_creation_allowed?)
+        # and every session reads as unauthenticated
+        # (SessionHelpers#session_auth_enforced?) — ANY sign-in flow, SSO
+        # included, can only mint a session the app then ignores. Consulted
+        # by SsoConfig.tenant_sso_available_for? so all tenant-SSO surfaces
+        # (masthead link, /signin page, settings API, omniauth runtime hook)
+        # go dark together under a master kill. Strict-boolean like the
+        # other global readers.
+        #
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @return [Boolean]
+        def global_auth_enabled(auth = nil)
+          auth ||= OT.conf.dig('site', 'authentication') || {}
+          auth['enabled'] == true
         end
 
         # Check if a domain has signin config.

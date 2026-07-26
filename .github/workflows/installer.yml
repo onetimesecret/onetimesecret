@@ -5,8 +5,8 @@
 # SAME artifact a maintainer runs locally, so local and CI cannot diverge. Each
 # lane installs a documented path from zero inside a pinned base image:
 #
-#   baremetal  ruby:3.4.9-slim  — bin/setup --init succeeds + is idempotent
-#   posix      ruby:3.4.9-slim, empty locale — the fresh-server locale repro
+#   baremetal  ruby:3.4.10-slim — bin/setup --init succeeds + is idempotent
+#   posix      ruby:3.4.10-slim, empty locale — the fresh-server locale repro
 #   ruby-old   ruby:3.3-slim    — bin/setup --init MUST fail with the version gate
 #
 # Plus a cheap bash-3.2 syntax gate (macOS ships bash 3.2; bin/setup is the
@@ -76,7 +76,7 @@ jobs:
         run: brew install redis
 
       - name: Setup Ruby (.ruby-version)
-        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
           bundler-cache: false  # bin/setup runs `bundle install` itself
 

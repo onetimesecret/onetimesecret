@@ -30,6 +30,7 @@ module Onetime
           EmailTranslations.translate(
             'email.password_changed.subject',
             locale: locale,
+            display_domain: display_domain,
           )
         end
 
