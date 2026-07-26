@@ -326,8 +326,9 @@ module Auth
           return :email_taken if others.any? { |row| AccountStatuses::LIVE.include?(row[:status_id]) }
 
           # Only CLOSED holders remain: invisible to the unique index AND to
-          # Customer.email_exists?, so the write WOULD succeed and leave two rows
-          # sharing an address that `where(email:)` callers update in bulk.
+          # Customer.email_exists?, so the write WOULD succeed and leave two
+          # rows sharing an address — the contested state that made email-keyed
+          # verification writes unsafe (#3916).
           return :email_taken unless @allow_closed_account_reuse
 
           @warnings << :new_address_held_by_closed_account
@@ -591,12 +592,17 @@ module Auth
         def reset_verification
           return :skipped unless @require_verification
 
-          # The wrapper's SQL write keys on `where(email:)`
-          # (set_customer_verification.rb:102-106). When a sibling row may share
-          # this address that update moves THAT row too — including a CLOSED (3)
-          # account back to Unverified (1), which resurrects it. Both paths that
-          # knowingly proceed without a clean single-holder answer therefore use
-          # the row-scoped clear instead.
+          # Since #3916 the wrapper's SQL write keys on external_id and only
+          # updates live rows (set_customer_verification.rb,
+          # update_rodauth_account!), so it can no longer move a sibling row
+          # sharing this address — the old resurrection hazard is gone. The
+          # guard remains as a shortcut: one warning confirmed a closed holder,
+          # the other left the SQL state unverified, and either way the wrapper
+          # may raise (AccountNotFound, AccountClosed) where this reset must
+          # still succeed. The rescue below would force-clear after such a
+          # raise anyway; going straight to the row-scoped clear — conditional,
+          # only ever able to REMOVE access from this customer's own row —
+          # skips the failed attempt.
           return force_clear_verification! if sibling_row_possible?
 
           begin
@@ -628,8 +634,10 @@ module Auth
           force_clear_verification!
         end
 
-        # True when a second `accounts` row could share the new address — the only
-        # case where the wrapper's `where(email:)` update is unsafe.
+        # True when a second `accounts` row could share the new address. The
+        # wrapper's external_id-keyed write can no longer touch such a row
+        # (#3916); this predicate now routes those paths straight to the
+        # row-scoped clear — see reset_verification for the rationale.
         def sibling_row_possible?
           @warnings.include?(:new_address_held_by_closed_account) ||
             @warnings.include?(:sql_collision_probe_failed)
