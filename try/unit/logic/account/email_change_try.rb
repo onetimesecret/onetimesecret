@@ -422,10 +422,12 @@ obj.success_data
 # Onetime::Operations::Sessions::RevokeAllForCustomer — index-first and
 # cap-proof, where the deleted scan-first sweep could exhaust its cap before
 # reaching the target's blobs and still report success at ~200k accounts
-# (revoke_all_for_customer.rb:34-43). The ADAPTER still owns exactly one line,
-# `sess.clear if sess`, because the current request's in-memory Rack session is
-# written back by the session middleware after process returns and would
-# otherwise re-create the blob the op just revoked.
+# (revoke_all_for_customer.rb:34-43). The ADAPTER still owns dropping THIS
+# request's session (`clear_current_session`, nil-guarded), because the current
+# request's in-memory Rack session is written back by the session middleware
+# after process returns and would otherwise re-create the blob the op just
+# revoked. It runs on every status where the swap landed — including the
+# `:partial` that then raises, which also revokes.
 #
 # So these cases assert the same guarantees through the surviving public entry
 # point, ConfirmEmailChange#process, via build_confirm (see setup).

@@ -154,10 +154,17 @@ module ColonelAPI
           when :not_found
             raise_not_found('User has no usable email address')
           when :partial
+            # The warnings are load-bearing here, not decoration: a partial whose
+            # Customer hash already committed runs the full follow-up phase, so it
+            # can carry :verification_not_reset — same "do not retry, unverify now"
+            # obligation the dedicated status below spells out. Interpolating them
+            # (as that branch does) is the only way a colonel operator sees it; the
+            # CLI gets it for free through print_warnings.
             raise_form_error(
               'PARTIAL: the email change did not complete and the auth database ' \
               'and Redis may now disagree. Run `bin/ots customers doctor` ' \
-              '(check :auth_email_drift) before retrying.',
+              '(check :auth_email_drift) before retrying. ' \
+              "(#{result.warnings.join(', ')})",
               field: :new_email,
             )
           when :verification_not_reset
