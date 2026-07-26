@@ -7,6 +7,7 @@
 require 'onetime/models/admin_audit_event'
 require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
+require 'auth/account_statuses'
 require 'auth/operations/customers/set_verification'
 
 module Auth
@@ -56,9 +57,10 @@ module Auth
       # `where status_id in (1, 2)` (migrations/001_initial.rb:26,32). A CLOSED
       # account (status_id 3) therefore holds an address that is invisible to
       # BOTH the Redis index and the unique constraint. Reusing such an address
-      # is a real hazard, because `SetCustomerVerification#update_rodauth_account!`
-      # keys on `where(email:)` and would then update TWO rows. So a closed-account
-      # holder is treated as `:email_taken` unless the caller explicitly passes
+      # is still ambiguous for any email-keyed lookup (#3916 re-keyed
+      # `SetCustomerVerification#update_rodauth_account!` on external_id for
+      # exactly this reason), so a closed-account holder is treated as
+      # `:email_taken` unless the caller explicitly passes
       # `allow_closed_account_reuse: true`.
       #
       # ## Uniqueness under concurrency: guarded in full mode, one-sided in simple
@@ -132,13 +134,6 @@ module Auth
         include Onetime::LoggerMethods
 
         AUDIT_VERB = 'customer.change_email'
-
-        # Rodauth account statuses (migrations/001_initial.rb:15-19). Only 1 and 2
-        # are covered by the partial unique index on accounts.email.
-        STATUS_UNVERIFIED = 1
-        STATUS_VERIFIED   = 2
-        STATUS_CLOSED     = 3
-        INDEXED_STATUSES  = [STATUS_UNVERIFIED, STATUS_VERIFIED].freeze
 
         # @!attribute status [r]
         #   @return [Symbol] one of:
@@ -328,11 +323,12 @@ module Auth
 
           # A live holder is a hard collision (the partial unique index would
           # reject the UPDATE anyway).
-          return :email_taken if others.any? { |row| INDEXED_STATUSES.include?(row[:status_id]) }
+          return :email_taken if others.any? { |row| AccountStatuses::LIVE.include?(row[:status_id]) }
 
           # Only CLOSED holders remain: invisible to the unique index AND to
-          # Customer.email_exists?, so the write WOULD succeed and leave two rows
-          # sharing an address that `where(email:)` callers update in bulk.
+          # Customer.email_exists?, so the write WOULD succeed and leave two
+          # rows sharing an address — the contested state that made email-keyed
+          # verification writes unsafe (#3916).
           return :email_taken unless @allow_closed_account_reuse
 
           @warnings << :new_address_held_by_closed_account
@@ -596,12 +592,17 @@ module Auth
         def reset_verification
           return :skipped unless @require_verification
 
-          # The wrapper's SQL write keys on `where(email:)`
-          # (set_customer_verification.rb:102-106). When a sibling row may share
-          # this address that update moves THAT row too — including a CLOSED (3)
-          # account back to Unverified (1), which resurrects it. Both paths that
-          # knowingly proceed without a clean single-holder answer therefore use
-          # the row-scoped clear instead.
+          # Since #3916 the wrapper's SQL write keys on external_id and only
+          # updates live rows (set_customer_verification.rb,
+          # update_rodauth_account!), so it can no longer move a sibling row
+          # sharing this address — the old resurrection hazard is gone. The
+          # guard remains as a shortcut: one warning confirmed a closed holder,
+          # the other left the SQL state unverified, and either way the wrapper
+          # may raise (AccountNotFound, AccountClosed) where this reset must
+          # still succeed. The rescue below would force-clear after such a
+          # raise anyway; going straight to the row-scoped clear — conditional,
+          # only ever able to REMOVE access from this customer's own row —
+          # skips the failed attempt.
           return force_clear_verification! if sibling_row_possible?
 
           begin
@@ -633,8 +634,10 @@ module Auth
           force_clear_verification!
         end
 
-        # True when a second `accounts` row could share the new address — the only
-        # case where the wrapper's `where(email:)` update is unsafe.
+        # True when a second `accounts` row could share the new address. The
+        # wrapper's external_id-keyed write can no longer touch such a row
+        # (#3916); this predicate now routes those paths straight to the
+        # row-scoped clear — see reset_verification for the rationale.
         def sibling_row_possible?
           @warnings.include?(:new_address_held_by_closed_account) ||
             @warnings.include?(:sql_collision_probe_failed)
@@ -680,8 +683,8 @@ module Auth
 
           rows = db.transaction do
             db[:accounts]
-              .where(id: account_id, status_id: STATUS_VERIFIED)
-              .update(status_id: STATUS_UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .where(id: account_id, status_id: AccountStatuses::VERIFIED)
+              .update(status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
           end
           rows.to_i.positive? ? :cleared : :unchanged
         rescue StandardError => ex
@@ -739,7 +742,7 @@ module Auth
           return false unless account_id
 
           row = db[:accounts].where(id: account_id).select(:status_id).first
-          !row.nil? && row[:status_id] == STATUS_VERIFIED
+          !row.nil? && row[:status_id] == AccountStatuses::VERIFIED
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] verification status probe failed',
             extid: @customer.extid,
