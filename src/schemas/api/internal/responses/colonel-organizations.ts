@@ -66,8 +66,9 @@ export type ColonelEntitlementOverrideRecord = z.infer<
 /**
  * `POST /api/colonel/organizations/:org_id/entitlements/:action` and
  * `DELETE /api/colonel/organizations/:org_id/entitlements/overrides` →
- * `{ record }` ack. `ManageEntitlementOverride` returns only `record` (no
- * `details`), which `createApiResponseSchema` already makes optional.
+ * `{ record }` ack. `ManageEntitlementOverride` returns only `record`;
+ * `createApiResponseSchema` requires `record` and makes only `details`
+ * optional, so the absent `details` parses fine.
  */
 export const colonelEntitlementOverrideResponseSchema = createApiResponseSchema(
   colonelEntitlementOverrideRecordSchema

@@ -141,7 +141,9 @@ module Onetime
           @customer    = customer
           @action      = action.to_s.strip.downcase
           @actor       = actor
-          @entitlement = entitlement.to_s.strip
+          # `clear` ignores any supplied entitlement — store nil so the Result
+          # and audit trail never carry input the action doesn't read.
+          @entitlement = @action == 'clear' ? nil : entitlement.to_s.strip
           @dry_run     = dry_run
         end
 
@@ -252,7 +254,7 @@ module Onetime
             org_id: @org.extid,
             member_id: @customer.extid,
             action: @action,
-            entitlement: @action == 'clear' ? nil : @entitlement,
+            entitlement: @entitlement,
             effective: effective,
             grants: grants,
             revokes: revokes,
