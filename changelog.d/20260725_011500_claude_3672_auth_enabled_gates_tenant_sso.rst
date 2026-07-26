@@ -13,6 +13,15 @@ Changed
   ``AUTH_SIGNIN=false`` intentionally still leaves tenant SSO available: it
   retires only password/email sign-in. (#3672)
 
+- **Operators:** the auth log event ``omniauth_tenant_sso_not_enabled`` now
+  carries a ``reason`` field naming the gate that rejected the SSO request —
+  one of ``auth_disabled`` (``AUTH_ENABLED`` off), ``no_sso_config``,
+  ``sso_config_disabled``, or ``sso_not_permitted`` (the domain's sign-in
+  config withholds SSO). This replaces the ``sso_permitted`` field, which was
+  briefly renamed to ``sso_available`` during this work; both are gone.
+  Anything alerting or querying on ``sso_permitted`` / ``sso_available`` must
+  be updated to ``reason``. (#3672)
+
 Fixed
 -----
 

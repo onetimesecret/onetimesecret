@@ -119,35 +119,39 @@ module Auth::Config::Hooks
         end
 
         # Look up domain-specific SSO configuration (credentials store) and
-        # gate it on SsoConfig.tenant_sso_available_for? — the shared
+        # gate it on SsoConfig.tenant_sso_unavailable_reason — the shared
         # availability authority (enabled credentials + SigninConfig's
         # sso_permitted_for? activation gate + the AUTH_ENABLED master
-        # switch). This is the runtime half of the parity gate; the display
-        # halves (masthead link via DomainSerializer#effective_signin_enabled?,
-        # /signin page via config_serializer.rb#resolve_tenant_sso_config)
-        # consult the same predicate. All gates MUST produce the same
-        # active/inactive decision for any domain so the SSO button is never
-        # shown when this route would reject (and never hidden when it works).
-        # AUTH_ENABLED=false therefore lands in handle_missing_tenant_config
-        # like any unconfigured tenant — reject, or platform fallback per
-        # policy — matching the darkened display surfaces for that state.
-        # Load once and hand the record to the predicate: the availability
-        # check needs the same SsoConfig this hook already loaded for
-        # credential injection, so passing it avoids a second identical Redis
-        # read per request. A nil record is definitionally unavailable (the
-        # predicate's enabled? check fails on absence), so skip the call.
-        sso_config    = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
-        sso_available = !sso_config.nil? && Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
+        # switch), returning the failing rung instead of a bare boolean. This
+        # is the runtime half of the parity gate; the display halves (masthead
+        # link via DomainSerializer#effective_signin_enabled?, /signin page via
+        # config_serializer.rb#resolve_tenant_sso_config) consult the same
+        # ladder through its boolean face, tenant_sso_available_for?. All gates
+        # MUST produce the same active/inactive decision for any domain so the
+        # SSO button is never shown when this route would reject (and never
+        # hidden when it works). AUTH_ENABLED=false therefore lands in
+        # handle_missing_tenant_config like any unconfigured tenant — reject,
+        # or platform fallback per policy — matching the darkened display
+        # surfaces for that state.
+        # Load once and hand the record to the ladder: the availability check
+        # needs the same SsoConfig this hook already loaded for credential
+        # injection, so passing it avoids a second identical Redis read per
+        # request. Absence is NOT short-circuited here — the ladder reports it
+        # as :no_sso_config, which is what gets logged, so operators can tell
+        # "no credentials store" apart from "disabled", "SSO withheld by
+        # SigninConfig", and "master switch off".
+        sso_config         = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
+        unavailable_reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
           custom_domain.identifier, sso_config: sso_config
         )
 
-        unless sso_available
+        if unavailable_reason
           Auth::Logging.log_auth_event(
             :omniauth_tenant_sso_not_enabled,
             level: :info,
             host: host,
             domain_id: custom_domain.identifier,
-            sso_available: sso_available,
+            reason: unavailable_reason,
           )
 
           # Check if we should fall back to platform credentials

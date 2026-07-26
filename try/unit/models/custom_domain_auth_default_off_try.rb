@@ -27,6 +27,10 @@
 # consults SigninConfig.global_auth_enabled (AUTH_ENABLED) itself, so a
 # master kill darkens SSO-only display surfaces too (#3901 follow-up).
 #
+# The carve-out's ladder is also covered rung by rung via
+# SsoConfig.tenant_sso_unavailable_reason, which the boolean predicate
+# delegates to and whose symbol the omniauth runtime hook logs.
+#
 # See: #3672, ADR-024 (resolution invariants), ADR-030 (config layering).
 # Complements try/unit/models/custom_domain_auth_killswitch_try.rb, which
 # covers the shared canonical resolvers (resolve_signin_enabled /
@@ -65,6 +69,16 @@ Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_disabled_domain, enable
 Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_with_disabled_signin, enabled: true)
 @disabled_signin_cfg = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @sso_with_disabled_signin, enabled: false, signin_enabled: false
+)
+
+# Tenant with an enabled SsoConfig AND an ENABLED SigninConfig that withholds
+# SSO (sso_enabled: false): credentials exist and are switched on, but the
+# activation authority says no — the only fixture that reaches the last rung
+# of the availability ladder.
+@sso_not_permitted_domain = "dof_sso_not_perm_#{@ts}_#{@entropy}"
+Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_not_permitted_domain, enabled: true)
+Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @sso_not_permitted_domain, enabled: true, signin_enabled: true, sso_enabled: false
 )
 
 # In-memory builders (no persistence) mirroring the killswitch tryout — the
@@ -202,6 +216,51 @@ ensure
 end
 @masterkill_result
 #=> false
+
+# --- SsoConfig.tenant_sso_unavailable_reason (rejection cause) ---
+#
+# tenant_sso_available_for? is the boolean face of this ladder, so both share
+# one implementation of the decision. The omniauth runtime hook logs the reason
+# on :omniauth_tenant_sso_not_enabled — a bare boolean there was always false
+# and told operators nothing about WHICH gate rejected the SSO request.
+
+## rung 1: AUTH_ENABLED master switch off — resolves before any record read
+Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_only_domain, auth: { 'enabled' => false })
+#=> :auth_disabled
+
+## rung 2: no credentials store persisted for the domain
+Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason("dof_absent_#{@ts}_#{@entropy}", auth: { 'enabled' => true })
+#=> :no_sso_config
+
+## rung 3: SsoConfig present but its own enabled switch is off
+Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_disabled_domain, auth: { 'enabled' => true })
+#=> :sso_config_disabled
+
+## rung 4: enabled credentials, but an enabled SigninConfig withholds SSO
+Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_not_permitted_domain, auth: { 'enabled' => true })
+#=> :sso_not_permitted
+
+## available: the whole ladder passes => nil (no reason to report)
+Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_only_domain, auth: { 'enabled' => true })
+#=> nil
+
+## predicate parity: tenant_sso_available_for? is exactly reason.nil?, so the
+## display surfaces and the runtime hook cannot disagree
+[
+  Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_not_permitted_domain, auth: { 'enabled' => true }),
+  Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, auth: { 'enabled' => true }),
+]
+#=> [false, true]
+
+## preloaded-record pass-through applies to the reason ladder too: a foreign
+## record is ignored and the honest lookup runs (@sso_disabled_domain's own
+## record is disabled, so the enabled foreign record must not flip the rung)
+Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
+  @sso_disabled_domain,
+  sso_config: Onetime::CustomDomain::SsoConfig.find_by_domain_id(@sso_only_domain),
+  auth: { 'enabled' => true },
+)
+#=> :sso_config_disabled
 
 # --- SignupConfig.resolve_signup_enabled_for_custom_domain ---
 
