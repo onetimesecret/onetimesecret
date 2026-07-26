@@ -33,7 +33,7 @@ PutHomepageConfig = DomainsAPI::Logic::HomepageConfig::PutHomepageConfig
 
 @test_email = "put_hpauth_#{@ts}_#{@entropy}@test.com"
 @test_cust = Onetime::Customer.create!(email: @test_email)
-@test_org = Onetime::Organization.create!("Put HpAuth Test #{@ts}", @test_cust, "org_hpauth_#{@ts}@test.com")
+@test_org = Onetime::Organization.create!("Put HpAuth Test #{@ts}", @test_cust, "org_hpauth_#{@ts}_#{@entropy}@test.com")
 
 @test_domain_display = "put-hpauth-#{@ts}-#{@entropy}.example.com"
 @test_domain = Onetime::CustomDomain.create!(@test_domain_display, @test_org.objid)

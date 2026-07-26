@@ -398,7 +398,7 @@ module Onetime
         # app ignores — display surfaces must not advertise it and the
         # omniauth runtime hook must not inject tenant credentials for it.
         # AUTH_SIGNIN is deliberately NOT consulted: it retires only the
-        # password/email path (see SigninConfig.global_auth_enabled).
+        # password/email path (see SigninConfig.global_signin_enabled).
         #
         # Reasons (rung order matches the checks below):
         #   :auth_disabled       - AUTH_ENABLED master switch is off
