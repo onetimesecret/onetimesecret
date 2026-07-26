@@ -107,8 +107,9 @@ export type ColonelMembershipEntitlementOverrideRecord = z.infer<
 
 /**
  * Membership entitlement-override endpoints → `{ record }` ack.
- * `ManageMembershipEntitlementOverride` returns only `record` (no `details`),
- * which `createApiResponseSchema` already makes optional. Registered as
+ * `ManageMembershipEntitlementOverride` returns only `record`;
+ * `createApiResponseSchema` requires `record` and makes only `details`
+ * optional, so the absent `details` parses fine. Registered as
  * `colonelMembershipEntitlementOverride` in `registry.ts`.
  */
 export const colonelMembershipEntitlementOverrideResponseSchema = createApiResponseSchema(

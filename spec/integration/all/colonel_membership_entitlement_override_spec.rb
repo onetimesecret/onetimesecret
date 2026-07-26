@@ -136,10 +136,16 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
           'entitlement' => 'api_access', 'action' => 'revoke' },
       )
 
-      data = run_logic({ 'org_id' => org.extid, 'member_id' => owner.extid, 'action' => nil })
+      # A client-sent entitlement on the DELETE path is ignored by clear and
+      # must NOT be echoed back — the contract is `entitlement: null` on clear.
+      data = run_logic(
+        { 'org_id' => org.extid, 'member_id' => owner.extid, 'action' => nil,
+          'entitlement' => 'ignored_by_clear' },
+      )
 
       record = data[:record]
       expect(record[:action]).to eq('cleared')
+      expect(record[:entitlement]).to be_nil
       expect(record[:grants]).to eq([])
       expect(record[:revokes]).to eq([])
       expect(membership.entitlements_grants.size).to eq(0)

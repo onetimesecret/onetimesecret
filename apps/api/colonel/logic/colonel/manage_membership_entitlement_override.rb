@@ -58,6 +58,10 @@ module ColonelAPI
       class ManageMembershipEntitlementOverride < ColonelAPI::Logic::Base
         include MembershipResolvers
 
+        # Cross-referenced by OpenAPI generation (scripts/openapi) against the
+        # internal response registry key in registry.ts.
+        SCHEMAS = { response: 'colonelMembershipEntitlementOverride' }.freeze
+
         # Kept here (not read from the op) because it is part of THIS surface's
         # response contract — the admin bundle renders the past-tense string.
         ACTION_PAST_TENSE = Onetime::Operations::Memberships::EntitlementOverride::ACTION_PAST_TENSE
@@ -95,6 +99,11 @@ module ColonelAPI
           if @action != 'clear' && @entitlement.to_s.empty?
             raise_form_error('Entitlement is required for grant/revoke', field: :entitlement)
           end
+
+          # Clear ignores any client-sent entitlement; drop it here so the
+          # response contract holds (`entitlement` is null on clear) instead of
+          # echoing back an input the operation never read.
+          @entitlement = nil if @action == 'clear'
         end
 
         def raise_concerns
@@ -110,8 +119,12 @@ module ColonelAPI
           return if @action == 'clear'
           return if Onetime::Operations::Memberships::EntitlementOverride.known_entitlement?(@entitlement)
 
-          # Warn but don't block - allows granting future entitlements
-          OT.info "[colonel] Granting unknown entitlement '#{@entitlement}' to member #{@customer.extid} in org #{@org_id}"
+          # Warn but don't block - allows granting future entitlements. Only
+          # grant/revoke reach here (clear returned above), so the verb is a
+          # two-way pick; @org is resolved by now, so log its extid rather than
+          # the raw request param.
+          verb = @action == 'grant' ? 'Granting' : 'Revoking'
+          OT.info "[colonel] #{verb} unknown entitlement '#{@entitlement}' for member #{@customer.extid} in org #{@org.extid}"
         end
 
         def process
