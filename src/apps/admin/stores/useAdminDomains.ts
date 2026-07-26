@@ -53,8 +53,10 @@ export const colonelDomainRemoveRecordSchema = z.object({
 });
 
 /**
- * Remove outcome. `status` is the op's symbol as a string (planned / removed /
- * not_found); `dry_run` echoes whether this was a PREVIEW — the endpoint
+ * Remove outcome. `status` is the op's symbol as a string: Ops::Domains::Remove
+ * emits `planned` on every dry run and `removed` only on an apply, and a missing
+ * domain 404s before the op runs. `dry_run` echoes whether this was a PREVIEW —
+ * the endpoint
  * defaults it to TRUE, so a plain DELETE never destroys anything.
  * `reasserts_survivor` is true when tearing this record down hands the
  * display_domain index back to another CustomDomain row.
@@ -117,7 +119,10 @@ export interface DomainTransferOptions {
 // binds them to the injected Axios instance below. Every one THROWS on a
 // network/HTTP failure (so the caller's useAdminMutation can classify it into
 // the confirm dialog) and resolves `null` when a 2xx ack fails its Zod contract
-// — the mutation still happened server-side, acks are tripwires, not gates.
+// — for most verbs the mutation still happened server-side, so those acks are
+// tripwires, not gates. Exception: `remove`, where a 2xx can be a dry-run
+// preview (`details.dry_run: true`) that changed nothing — its caller must
+// gate on the ack before reporting a removal.
 // Audit is written SERVER-SIDE by each operation (CONTRACT 4).
 // ---------------------------------------------------------------------------
 

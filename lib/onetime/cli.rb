@@ -177,11 +177,15 @@ require_relative 'cli/diagnostics/sentry/check_dsn_command'
 # Load install CLI commands
 require_relative 'cli/install_command'
 
-# Billing read-only views shared with the colonel API. The `billing` and
-# `billing catalog` / `billing orgs` parents are registered by the billing app
-# (auto-discovered below); Dry::CLI's registry is a tree, so registration order
-# does not matter — but the parents MUST exist or `bin/ots billing --help`
-# walks a nil node.
+# Billing read-only views shared with the colonel API. The `billing`,
+# `billing catalog` and `billing orgs` parents are all registered by the
+# billing app (auto-discovered below). Dry::CLI's registry auto-creates
+# intermediate nodes on registration (CommandRegistry::Node#put is a `||=`),
+# so registration ORDER does not matter — these requires sit here purely for
+# readability. What DOES matter: every intermediate node needs a command
+# registered against it, because a parent's help enumerates its children via
+# `subcommand.command.description` and a node with no command raises
+# NoMethodError on nil. Verified against dry-cli 1.4.1.
 require_relative 'cli/billing/catalog_drift_command'
 require_relative 'cli/billing/orgs_stripe_command'
 

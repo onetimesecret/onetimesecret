@@ -308,6 +308,40 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       expect(secrets[:truncated]).to be(true)
     end
 
+    it 'scan fallback survives legacy String created values, newest first' do
+      # The bounded-scan fallback runs only when the per-owner index is empty
+      # while the secrets_active counter is positive (the pre-index account
+      # shape). Legacy pre-JSON hash fields hydrate as raw Strings — Familia's
+      # deserialize_value returns the value as-is when Oj's strict parse fails
+      # — and String#-@ is the frozen-string operator, so the old
+      # `-(row[:created] || 0)` sort raised ArgumentError on a mixed
+      # Float/String batch, which degrade_on_error swallowed into an empty
+      # secrets section.
+      _r1, legacy = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'legacy value')
+      _r2, modern = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'modern value')
+
+      # Simulate pre-JSON-serialization data: write the raw hash field
+      # directly. A Time#to_s-shaped value fails Oj strict parse and therefore
+      # hydrates as a String (a bare numeric string would parse to a number).
+      Onetime::Secret.dbclient.hset(legacy.dbkey, 'created', '2024-01-15 10:30:00 UTC')
+
+      # Empty the index while the counter stays positive: exactly the state
+      # that routes collect_secrets into scan_secrets_bounded.
+      owner.secrets.delete!
+      expect(owner.secrets.element_count).to eq(0)
+      expect(owner.secrets_active.to_i).to be_positive
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      # NOT the degraded `{items: [], truncated: true}` shape...
+      expect(secrets[:items]).not_to be_empty
+      expect(secrets[:truncated]).to be(false)
+      # ...and newest first: the unparseable legacy timestamp coerces to a
+      # tiny float, so it sorts as oldest.
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([modern.objid, legacy.objid])
+      expect(secrets[:count]).to eq(2)
+    end
+
     it 'still renders identity, plan and billing when the secrets read blows up' do
       logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
         strategy_result_for(colonel), { 'user_id' => owner.extid },

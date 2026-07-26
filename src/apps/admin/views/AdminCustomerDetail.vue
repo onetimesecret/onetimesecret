@@ -185,6 +185,9 @@
       case 'unsuspend':
         return callMutation('post', `${userUrl()}/unsuspend`);
       case 'purge':
+        // Last line of the fail-closed gate: no typed token, no DELETE — even
+        // if the dialog were somehow reached with a blank one.
+        if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
         return callMutation('delete', userUrl());
       default:
         throw new Error('No active action');
@@ -214,11 +217,28 @@
    * identifier the operator can check against the ticket they are working,
    * rather than an id they just copied off this page. Suspend is reversible and
    * keeps the public id.
+   *
+   * FAILS CLOSED: a record with a blank email yields undefined, and purge is
+   * then UNAVAILABLE (disabled button + a stated reason) rather than silently
+   * dropping AdminConfirmDialog into one-click simple-confirm mode — or asking
+   * for the email while accepting some substitute identifier.
    */
   function confirmTokenFor(action: ActionKey): string | undefined {
     if (!DANGER_ACTIONS.includes(action)) return undefined;
-    return action === 'purge' ? record.value?.email : publicId.value;
+    if (action !== 'purge') return publicId.value;
+    return record.value?.email?.trim() || undefined;
   }
+
+  /** True when purge must be unavailable: no email to type as confirmation. */
+  const purgeBlocked = computed(() => !confirmTokenFor('purge'));
+
+  /** Why purge is unavailable — rendered beside the disabled button. */
+  const purgeBlockedReason = computed(() =>
+    t(
+      'web.admin.customers.actions.purge.unavailable',
+      'Purge is unavailable: this account has no email address to retype as confirmation.'
+    )
+  );
 
   const dialogConfig = computed(() => {
     const action = activeAction.value;
@@ -271,6 +291,9 @@
   };
 
   function requestAction(key: ActionKey): void {
+    // Fail closed: never open a danger dialog whose typed token is blank —
+    // AdminConfirmDialog runs an empty token as a one-click simple confirm.
+    if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
@@ -834,12 +857,17 @@
               </button>
             </div>
 
-            <!-- Purge (destructive, typed-confirm) -->
+            <!-- Purge (destructive, typed-confirm). Disabled with a stated
+                 reason when there is no email to retype: a destructive gate
+                 must fail closed, and a dead button with no explanation reads
+                 as a bug. -->
             <div class="border-t border-gray-200 pt-4 dark:border-gray-800">
               <button
                 type="button"
                 data-testid="purge-button"
-                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+                :disabled="purgeBlocked"
+                :aria-describedby="purgeBlocked ? 'purge-blocked-reason' : undefined"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestAction('purge')">
                 <OIcon
                   collection="heroicons"
@@ -847,6 +875,13 @@
                   size="4" />
                 {{ t('web.admin.customers.actions.purge.button') }}
               </button>
+              <p
+                v-if="purgeBlocked"
+                id="purge-blocked-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="purge-blocked-reason">
+                {{ purgeBlockedReason }}
+              </p>
             </div>
           </div>
         </section>

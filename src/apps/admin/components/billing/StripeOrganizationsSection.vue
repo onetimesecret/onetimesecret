@@ -96,9 +96,14 @@
     fetchPage(1);
   }
 
-  /** Display label for a row: name, then billing/owner email, then the extid. */
+  /**
+   * Link label for a row: name, then the extid. The billing email is
+   * deliberately NOT a label fallback — a raw address in link text would break
+   * the console-wide obscure-by-default pattern; it renders through
+   * {@link RevealEmail} under the link instead (see the organization cell).
+   */
   function orgLabel(row: ColonelStripeOrganization): string {
-    return row.display_name || row.billing_email || row.extid;
+    return row.display_name || row.extid;
   }
 
   onMounted(() => fetchPage(1));
@@ -211,7 +216,21 @@
                 size="3"
                 class="shrink-0" />
             </router-link>
-            <div class="mt-0.5 font-mono text-xs text-gray-400 tabular-nums dark:text-gray-500">
+            <!-- Obscure-by-default (same as the Owner column): when the label
+                 degraded to the extid, surface the billing address through
+                 RevealEmail. It lives OUTSIDE the link — RevealEmail's toggle
+                 is interactive, and nesting it in an anchor would turn every
+                 reveal click into a navigation (and is invalid nesting). -->
+            <div
+              v-if="!row.display_name && row.billing_email"
+              class="mt-0.5"
+              :data-testid="`stripe-org-billing-email-${row.extid}`">
+              <RevealEmail :email="row.billing_email ?? null" />
+            </div>
+            <!-- The muted extid line only when it is not already the label. -->
+            <div
+              v-if="row.display_name"
+              class="mt-0.5 font-mono text-xs text-gray-400 tabular-nums dark:text-gray-500">
               {{ row.extid }}
             </div>
           </template>

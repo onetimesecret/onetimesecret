@@ -213,7 +213,13 @@ module ColonelAPI
             end
           end
 
-          rows.sort_by! { |row| -(row[:created] || 0) }
+          # to_f, not `-(created || 0)`: legacy pre-JSON values hydrate as raw
+          # Strings (Familia's deserialize_value returns the value as-is on
+          # parse failure), and String#-@ is the frozen-string operator — a
+          # mixed Float/String batch raised ArgumentError inside sort_by!,
+          # which degrade_on_error swallowed into an empty secrets section.
+          # nil.to_f == 0.0 covers the missing-value case.
+          rows.sort_by! { |row| -row[:created].to_f }
           { items: rows.first(INDEX_PAGE_SIZE), truncated: truncated || rows.size > INDEX_PAGE_SIZE }
         end
 
