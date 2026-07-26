@@ -171,6 +171,34 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
       expect { logic.process }.to raise_error(Onetime::FormError, /customers doctor/)
     end
 
+    # A landed partial: the Customer hash committed, the follow-up phase ran,
+    # and the verification reset failed. The swap already stuck, so the generic
+    # doctor-then-retry guidance is wrong here — the message must carry the
+    # unverify-now remediation instead.
+    it 'routes a landed :partial carrying :verification_not_reset to unverify, not retry' do
+      logic = logic_for({ 'dry_run' => 'false' }, status: :partial,
+        warnings: %i[secondary_writes_incomplete verification_not_reset])
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+        expect(err.message).to match(/customers unverify ur_target/)
+        expect(err.message).not_to match(/before retrying/)
+        expect(err.message).to include('verification_not_reset')
+      end
+    end
+
+    # The op's partial() has a sub-case that appends no warning, so the
+    # parenthetical must disappear rather than render as "()".
+    it 'omits the warnings parenthetical on a :partial with no warnings' do
+      logic = logic_for({ 'dry_run' => 'false' }, status: :partial, warnings: [])
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+        expect(err.message).to include('before retrying')
+        expect(err.message).not_to include('()')
+      end
+    end
+
     # The swap LANDED but the account is still flagged verified on an address
     # nobody has proven they own. Also must not read as a 200, and must not
     # tell the operator to retry the change.
