@@ -91,6 +91,20 @@ jobs:
       - name: Enable memory overcommit for Redis
         run: sudo sysctl -w vm.overcommit_memory=1
 
+      # spec/spec_helper.rb fails fast when generated/locales is empty
+      # (gitignored build output). Every workflow that runs RSpec must
+      # generate it first.
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
         if: inputs.debug_enabled == true
@@ -185,6 +199,18 @@ jobs:
 
       - name: Enable memory overcommit for Redis
         run: sudo sysctl -w vm.overcommit_memory=1
+
+      # See the SQLite job: spec_helper fails fast without generated/locales.
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3

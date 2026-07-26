@@ -283,7 +283,9 @@ module Onetime
       defn = provider_definition_for_route(route_name)
 
       # 1. Explicit per-provider override wins when the var is present.
-      if defn && ENV.key?(defn[:trust_var])
+      # trust_var is optional: providers outside the email-linking escape
+      # hatch (the local dev IdP) omit it, so guard before ENV.key?.
+      if defn && defn[:trust_var] && ENV.key?(defn[:trust_var])
         return ENV[defn[:trust_var]] == 'true'
       end
 
@@ -305,9 +307,15 @@ module Onetime
     # (*_TRUST_EMAIL_FOR_LINKING=false) returns false — no provider is actually
     # trusted, so the guard stays silent rather than warning on a dead flag.
     #
+    # Only definitions that declare a trust_var participate: the local dev IdP
+    # has no email-linking trust semantics, so it must not keep the guard alive
+    # (via the deprecated global fallback) after every real provider opts out.
+    #
     # @return [Boolean]
     def trust_email_for_linking_enabled?
       provider_definitions.any? do |defn|
+        next false unless defn[:trust_var]
+
         route_name = ENV.fetch(defn[:route_var], defn[:route_default])
         trust_email_for_linking?(route_name)
       end
