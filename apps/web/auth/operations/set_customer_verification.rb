@@ -133,12 +133,17 @@ module Auth
       # resurrect the Closed account (one-row case) or trip the partial index
       # mid-statement (two-row case). See #3916.
       #
-      # Rows predating the external_id backfill fall back to email, restricted
-      # to unlinked rows (external_id IS NULL) — a linked row holding this
-      # address belongs to a different customer. The fallback deliberately does
-      # NOT backfill external_id on the row it claims: linking rows to
-      # customers is reconciliation's job (`bin/ots customers
-      # sync-auth-accounts`), not a side effect of a verification toggle.
+      # Unlinked rows (external_id IS NULL) fall back to email. These are not
+      # a mode-migration relic — linking is best-effort: Rodauth commits the
+      # accounts row in its own transaction, then after_create_account links
+      # external_id via a separate UPDATE under safe_execute
+      # (hooks/account.rb), so a failure there leaves a live, unlinked row.
+      # SyncSession heals such rows on next login (link-on-login,
+      # sync_session.rb). The fallback is restricted to unlinked rows because
+      # a LINKED row holding this address belongs to a different customer, and
+      # it deliberately does NOT backfill external_id itself: link-on-login is
+      # the sanctioned healer, and claiming a row by email from a verification
+      # toggle is the same email-keyed guesswork #3916 removed.
       #
       # @return [Sequel::Dataset, nil] scope over the customer's row(s), or
       #   nil when no row exists at all

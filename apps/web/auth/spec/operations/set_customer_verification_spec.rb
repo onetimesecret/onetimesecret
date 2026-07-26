@@ -11,8 +11,8 @@
 # - SQL exceptions propagate with Redis untouched
 #
 # Everything that actually touches the accounts table — external_id keying,
-# the live-status constraint, AccountNotFound/AccountClosed, the legacy email
-# fallback, partial-index semantics (#3916) — is covered against a migrated
+# the live-status constraint, AccountNotFound/AccountClosed, the unlinked-row
+# email fallback, partial-index semantics (#3916) — is covered against a migrated
 # schema in set_customer_verification_sql_spec.rb. Deliberately NO
 # Sequel-shaped dataset doubles here: mocking the query chain only re-states
 # the implementation, so the db double below answers exactly one question —

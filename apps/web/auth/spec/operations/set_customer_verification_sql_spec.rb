@@ -4,7 +4,7 @@
 
 # Regression coverage for #3916 against a REAL schema, and the home of the
 # op's whole SQL contract: external_id keying, the live-status constraint,
-# the AccountNotFound/AccountClosed taxonomy and the legacy email fallback.
+# the AccountNotFound/AccountClosed taxonomy and the unlinked-row email fallback.
 # (The mock-based sibling spec covers only mode/flag control flow.) The
 # load-bearing piece mocks cannot express is the PARTIAL unique index on
 # accounts.email (`where status_id in (1, 2)`, migrations/001_initial.rb),
@@ -165,19 +165,19 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
     end
   end
 
-  describe 'legacy rows (NULL external_id)' do
+  describe 'unlinked rows (NULL external_id)' do
     it 'verifies via the email fallback' do
-      id       = insert_account(email: 'legacy@example.com', status_id: Auth::AccountStatuses::UNVERIFIED)
-      customer = build_customer(extid: 'ur_legacy', email: 'legacy@example.com')
+      id       = insert_account(email: 'unlinked@example.com', status_id: Auth::AccountStatuses::UNVERIFIED)
+      customer = build_customer(extid: 'ur_unlinked', email: 'unlinked@example.com')
 
       expect(verify!(customer)).to eq(:success)
       expect(db[:accounts].where(id: id).get(:status_id)).to eq(Auth::AccountStatuses::VERIFIED)
     end
 
     it 'updates only the live row, never a Closed sibling' do
-      closed_id = insert_account(email: 'legacy2@example.com', status_id: Auth::AccountStatuses::CLOSED)
-      live_id   = insert_account(email: 'legacy2@example.com', status_id: Auth::AccountStatuses::UNVERIFIED)
-      customer  = build_customer(extid: 'ur_legacy2', email: 'legacy2@example.com')
+      closed_id = insert_account(email: 'unlinked2@example.com', status_id: Auth::AccountStatuses::CLOSED)
+      live_id   = insert_account(email: 'unlinked2@example.com', status_id: Auth::AccountStatuses::UNVERIFIED)
+      customer  = build_customer(extid: 'ur_unlinked2', email: 'unlinked2@example.com')
 
       expect(verify!(customer)).to eq(:success)
       expect(db[:accounts].where(id: live_id).get(:status_id)).to eq(Auth::AccountStatuses::VERIFIED)
@@ -193,9 +193,9 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
       expect(customer).not_to have_received(:save)
     end
 
-    it 'raises AccountClosed when only a Closed legacy row holds the address' do
-      id       = insert_account(email: 'legacy3@example.com', status_id: Auth::AccountStatuses::CLOSED)
-      customer = build_customer(extid: 'ur_legacy3', email: 'legacy3@example.com')
+    it 'raises AccountClosed when only a Closed unlinked row holds the address' do
+      id       = insert_account(email: 'unlinked3@example.com', status_id: Auth::AccountStatuses::CLOSED)
+      customer = build_customer(extid: 'ur_unlinked3', email: 'unlinked3@example.com')
 
       expect { verify!(customer) }.to raise_error(described_class::AccountClosed)
       expect(db[:accounts].where(id: id).get(:status_id)).to eq(Auth::AccountStatuses::CLOSED)
