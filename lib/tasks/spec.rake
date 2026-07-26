@@ -148,7 +148,42 @@ namespace :spec do
         ]
 
         sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
+
+        # AUTH_MFA_ENABLED specs need a SEPARATE process: Auth::Config is
+        # one-shot (auth-config-one-shot.md), so the shared full-mode process
+        # above — booted with MFA off — can never load the OTP feature set.
+        Rake::Task['spec:integration:full:mfa'].invoke if mode == 'full'
       end
+    end
+
+    desc 'Run full-mode specs that require AUTH_MFA_ENABLED=true (own process)'
+    task 'full:mfa' do
+      # Own process because Auth::Config configures exactly once per process
+      # (auth-config-one-shot.md): the Rodauth OTP feature set can only exist
+      # in a boot where AUTH_MFA_ENABLED was set from the start. SQLite lane
+      # only, mirroring the default full-mode environment above.
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        'ORGS_SSO_ENABLED' => 'true',
+        'AUTH_MFA_ENABLED' => 'true',
+      }
+
+      patterns = Dir.glob('apps/*/*/spec/integration/full_mfa')
+      if patterns.empty?
+        warn '[spec:integration:full:mfa] no full_mfa spec directories found; nothing to run'
+        next
+      end
+
+      # Distinct results file so this lane never clobbers the main full-mode
+      # JSON output when CI sets RSPEC_OUTPUT_FILE for the parent task.
+      opts = ['--format progress']
+      if ENV['RSPEC_OUTPUT_FILE']
+        opts << "--format json --out #{ENV['RSPEC_OUTPUT_FILE'].delete_suffix('.json')}_mfa.json"
+      end
+
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{opts.join(' ')}"
     end
 
     desc 'Run full mode with PostgreSQL (PG-only specs)'

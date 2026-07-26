@@ -15,6 +15,9 @@ require_relative 'config'
 require_relative 'error_translator'
 require_relative 'routes/account'
 require_relative 'routes/active_sessions'
+require_relative 'routes/identities'
+require_relative 'routes/link_sso'
+require_relative 'routes/sso_link_confirm'
 require_relative 'routes/mfa'
 require_relative 'routes/admin'
 require_relative 'routes/health'
@@ -40,6 +43,9 @@ module Auth
     include Auth::Routes::Account
     include Auth::Routes::MFA
     include Auth::Routes::ActiveSessions
+    include Auth::Routes::Identities
+    include Auth::Routes::LinkSso
+    include Auth::Routes::SsoLinkConfirm
     include Auth::Routes::Admin
 
     plugin :json, parser: true  # Parse incoming JSON request bodies
@@ -149,6 +155,15 @@ module Auth
 
       # Active sessions routes
       handle_active_sessions_routes(r)
+
+      # Linked SSO identities management routes (#3840 Phase 2)
+      handle_identities_routes(r)
+
+      # SSO sign-in interstitial: password-challenge linking (#3840 Phase 3)
+      handle_link_sso_routes(r)
+
+      # SSO mailbox-proof linking for passwordless accounts (#3840 Phase 4)
+      handle_sso_link_confirm_routes(r)
 
       handle_admin_routes(r)
 

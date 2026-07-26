@@ -8,20 +8,21 @@
 -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
 import { getSettingsNavigationSections } from '@/apps/workspace/config/settings-navigation';
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { debugLog } from '@/utils/debug';
 import {
   hasPasswordOf,
   isFullAuthModeOf,
   isOwnerOrAdminOf,
+  isSsoEnabledOf,
   isSsoOnlyModeOf,
   isWebAuthnEnabledOf,
 } from '@/utils/features';
-import { debugLog } from '@/utils/debug';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -40,6 +41,7 @@ const tabItems = computed(() => {
     isSsoOnlyMode: isSsoOnlyModeOf(bootstrapStore),
     isOwnerOrAdmin: isOwnerOrAdminOf(bootstrapStore),
     isWebAuthnEnabled: isWebAuthnEnabledOf(bootstrapStore),
+    isSsoEnabled: isSsoEnabledOf(bootstrapStore),
   };
   const sections = getSettingsNavigationSections(t, features);
   const allItems = sections.flatMap((section) => section.items);
@@ -67,9 +69,12 @@ const isActiveRoute = (item: (typeof tabItems.value)[0]): boolean => {
 <template>
   <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back to Dashboard -->
+    <!-- prettier-ignore-attribute class -->
     <router-link
       to="/"
-      class="group mb-6 inline-flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+      class="
+        group mb-6 inline-flex items-center gap-2 text-sm text-gray-600 transition-colors
+        hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
       <OIcon
         collection="heroicons"
         name="arrow-left"
@@ -97,7 +102,7 @@ const isActiveRoute = (item: (typeof tabItems.value)[0]): boolean => {
         :key="item.id"
         :to="item.to"
         :class="[
-          'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors',
+          'flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors',
           isActiveRoute(item)
             ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
             : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
