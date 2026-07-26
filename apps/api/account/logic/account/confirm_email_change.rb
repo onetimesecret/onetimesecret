@@ -125,10 +125,15 @@ module AccountAPI::Logic
 
       # `:no_change` counts: the account already holds the address, the
       # redemption is idempotent, and this surface still sends the caller to
-      # /signin. `:partial` counts only in the sub-case where the Customer hash
-      # committed — the other sub-case rolled the accounts row back.
+      # /signin. `:verification_not_reset` counts: the op only computes it AFTER
+      # the swap landed and RevokeAllForCustomer ran — unreachable here today
+      # (this adapter passes `require_verification: false`), but if that
+      # parameter ever changes, skipping the clear would write this session back
+      # and resurrect the blob the op just deleted. `:partial` counts only in
+      # the sub-case where the Customer hash committed — the other sub-case
+      # rolled the accounts row back.
       def swap_landed?(result)
-        return true if [:success, :no_change].include?(result.status)
+        return true if [:success, :no_change, :verification_not_reset].include?(result.status)
 
         result.status == :partial && result.warnings.include?(:secondary_writes_incomplete)
       end
@@ -164,7 +169,8 @@ module AccountAPI::Logic
         # (D34 — the redeemed token is the proof of ownership). It falls into the
         # fail-closed `else` deliberately rather than being whitelisted above, so
         # if that parameter is ever changed the surface refuses instead of
-        # reporting a clean success.
+        # reporting a clean success — but it IS a swap-landed status, so
+        # `swap_landed?` counts it and the session clear has already fired.
         else
           auth_logger.error '[confirm-email-change] Email change did not fully land',
             extid: @owner.extid,

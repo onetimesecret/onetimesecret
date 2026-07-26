@@ -71,9 +71,9 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
       from: 'old@example.com',
       to: new_email,
       dry_run: false,
-      auth_row_updated: %i[success partial].include?(status),
+      auth_row_updated: %i[success partial verification_not_reset].include?(status),
       orgs_reindexed: 0,
-      sessions_revoked: status == :success,
+      sessions_revoked: %i[success verification_not_reset].include?(status),
       verification_reset: false,
       warnings: warnings,
     )
@@ -126,6 +126,23 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
     # happen BEFORE that raise or the middleware resurrects the revoked blob.
     it 'clears the session on the :partial that carries :secondary_writes_incomplete, even though process raises' do
       session, error = confirm(status: :partial, warnings: %i[secondary_writes_incomplete])
+
+      expect(error).to be_a(OT::FormError)
+      expect(error.message).to eq('Email change could not be completed')
+      expect(session).to be_empty
+    end
+
+    # Unreachable on this surface today — the adapter passes
+    # `require_verification: false`, so the op never produces this status here.
+    # But the op only computes it AFTER the swap landed and RevokeAllForCustomer
+    # ran, so if that parameter default ever changes, the clear must fire while
+    # the mapping still refuses via the fail-closed `else`. Clear-and-raise,
+    # same shape as the landed :partial. Both directions are load-bearing:
+    # dropping the status from `swap_landed?` resurrects the revoked blob, and
+    # whitelisting it in the status mapping reports a clean success for an
+    # account left verified on an unproven address.
+    it 'clears the session on :verification_not_reset, even though process raises' do
+      session, error = confirm(status: :verification_not_reset)
 
       expect(error).to be_a(OT::FormError)
       expect(error.message).to eq('Email change could not be completed')
