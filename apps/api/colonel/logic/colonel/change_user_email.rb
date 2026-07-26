@@ -91,9 +91,11 @@ module ColonelAPI
           ).call
 
           # Logged BEFORE the status mapping so the outcomes that raise —
-          # :partial above all — still leave a line behind.
+          # :partial above all — still leave a line behind. Fall back to the
+          # resolved target's extid so the subject stays in the log even if a
+          # failure result carries no extid.
           # Obscured on both sides: this reaches shipped logs.
-          OT.info "[ChangeUserEmail] #{result.extid} status=#{result.status} dry_run=#{dry_run} " \
+          OT.info "[ChangeUserEmail] #{result.extid || user.extid} status=#{result.status} dry_run=#{dry_run} " \
                   "#{OT::Utils.obscure_email(result.from.to_s)} -> " \
                   "#{OT::Utils.obscure_email(result.to.to_s)} warnings=#{result.warnings.inspect}"
 
