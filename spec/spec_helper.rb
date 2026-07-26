@@ -114,6 +114,17 @@ rescue LoadError => ex
   exit 1
 end
 
+# generated/locales is gitignored build output (locales/scripts/i18n content
+# compile --all writes it). bin/setup runs this, but a worktree that skips
+# bin/setup — because gems/node_modules already exist elsewhere in a forest of
+# worktrees — boots i18n empty and specs fail with confusing downstream errors
+# (missing translations, nil lookups) instead of a clear cause. Fail fast here.
+if Dir.glob(File.join(Onetime::HOME, 'generated', 'locales', '*.json')).empty?
+  warn 'generated/locales is empty or missing.'
+  warn '  Run: pnpm run locales:sync   (or: bin/setup)'
+  exit 1
+end
+
 # Switch SemanticLogger to synchronous mode for tests.
 # This eliminates race conditions where the async logging thread processes log
 # messages containing mock objects after RSpec has torn down the mock context.
