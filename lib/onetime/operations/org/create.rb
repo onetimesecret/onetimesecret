@@ -84,13 +84,11 @@ module Onetime
       class Create
         AUDIT_VERB = 'organization.create'
 
-        # Field limits. These are the SINGLE source of truth for the admin path.
-        # They mirror the incumbent customer-facing limits in
-        # OrganizationAPI::Logic::Organizations::CreateOrganization (display_name
-        # 100, description 500), which still carries its own inline literals —
-        # having that class reference these constants is a filed follow-up (D21),
-        # deliberately not done here because routing signup through this op would
-        # flood the capped admin audit set.
+        # Field limits. SINGLE source of truth for BOTH create surfaces: the
+        # customer-facing OrganizationAPI::Logic::Organizations::CreateOrganization
+        # aliases these constants (D21, #3907). Signup deliberately still does
+        # NOT route through this op — that would flood the capped admin audit
+        # set — it shares only the limits.
         MAX_DISPLAY_NAME = 100
         MAX_DESCRIPTION  = 500
 

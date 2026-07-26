@@ -61,22 +61,24 @@ module OrganizationAPI::Logic
         # Verify user has manage_org entitlement in this organization
         require_entitlement_in!(@organization, 'manage_org')
 
-        # Validate display_name if provided
-        if !display_name.empty? && (display_name.length > 100)
+        # Validate display_name if provided — update accepts exactly what
+        # create accepts, so the limits come from CreateOrganization's shared
+        # constants (#3907)
+        if !display_name.empty? && (display_name.length > CreateOrganization::MAX_DISPLAY_NAME)
           raise_form_error(
             error_key: 'api.organizations.errors.display_name_too_long',
-            args: { max: 100 },
+            args: { max: CreateOrganization::MAX_DISPLAY_NAME },
             field: :display_name,
             error_type: :invalid,
           )
         end
 
         # Validate description if provided
-        return unless description.to_s.length > 500
+        return unless description.to_s.length > CreateOrganization::MAX_DESCRIPTION
 
         raise_form_error(
           error_key: 'api.organizations.errors.description_too_long',
-          args: { max: 500 },
+          args: { max: CreateOrganization::MAX_DESCRIPTION },
           field: :description,
           error_type: :invalid,
         )
