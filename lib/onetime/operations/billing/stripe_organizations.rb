@@ -145,15 +145,8 @@ module Onetime
         # @return [Array(Array<Array(String, String)>, Boolean)] entries + capped
         def scan_entries(index)
           entries = []
+          seen    = {}
           capped  = false
-
-          index.each(matching: match_pattern, batch_size: SCAN_BATCH) do |stripe_id, objid|
-            entries << [stripe_id.to_s, objid.to_s]
-            if entries.size >= MAX_INDEX_ENTRIES
-              capped = true
-              break
-            end
-          end
 
           # HSCAN guarantees at-least-once, not exactly-once: under a concurrent
           # rehash the same field can be yielded twice, and a concurrent write
@@ -163,7 +156,22 @@ module Onetime
           # mid-scan reassignment survives as two rows for one customer id.
           # First occurrence wins; `call` derives total_count from this array,
           # so the count and the page rows both see each entry exactly once.
-          entries.uniq! { |stripe_id, _objid| stripe_id }
+          #
+          # Dedupe DURING the scan, not after it: MAX_INDEX_ENTRIES has to cap
+          # UNIQUE ids. A post-loop `uniq!` lets repeat yields spend the budget,
+          # so a rehash-heavy scan breaks early and drops ids that were still
+          # scan-reachable — the exact instability this guard exists to prevent.
+          index.each(matching: match_pattern, batch_size: SCAN_BATCH) do |stripe_id, objid|
+            field = stripe_id.to_s
+            next if seen.key?(field)
+
+            seen[field] = true
+            entries << [field, objid.to_s]
+            if entries.size >= MAX_INDEX_ENTRIES
+              capped = true
+              break
+            end
+          end
 
           [entries, capped]
         rescue StandardError => ex
