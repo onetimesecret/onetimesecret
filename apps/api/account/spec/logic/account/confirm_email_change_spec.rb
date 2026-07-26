@@ -64,19 +64,24 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
     { 'sid' => 'sid-under-test', 'authenticated' => true }
   end
 
+  # Field values mirror the op's reporting: only the swap-landed statuses carry
+  # `auth_row_updated` (the rolled-back :partial wrote the old address back) and
+  # `sessions_revoked` (the landed :partial runs the same follow-ups as
+  # :success). `verification_reset` stays false because this adapter passes
+  # `require_verification: false`.
   def build_result(status, warnings)
+    landed = %i[success verification_not_reset].include?(status) ||
+      (status == :partial && warnings.include?(:secondary_writes_incomplete))
+
     result_class.new(
       status: status,
       extid: 'ur_owner',
       from: 'old@example.com',
       to: new_email,
       dry_run: false,
-      auth_row_updated: %i[success partial verification_not_reset].include?(status),
+      auth_row_updated: landed,
       orgs_reindexed: 0,
-      # Mirrors the op: the landed :partial runs the same follow-ups as
-      # :success, so it reports the revocation too.
-      sessions_revoked: %i[success verification_not_reset].include?(status) ||
-        (status == :partial && warnings.include?(:secondary_writes_incomplete)),
+      sessions_revoked: landed,
       verification_reset: false,
       warnings: warnings,
     )

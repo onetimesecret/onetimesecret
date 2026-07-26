@@ -32,7 +32,18 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
       auth_method: 'sessionauth', metadata: {})
   end
 
+  # Defaults mirror the op's reporting under this adapter's flags
+  # (require_verification: true, revoke_sessions: true): the swap-landed
+  # statuses — :success, :verification_not_reset, and the :partial carrying
+  # :secondary_writes_incomplete — report the auth-row write and the follow-up
+  # revocation; everything else reports false. `verification_reset` is false
+  # exactly where the op says the reset did NOT land: the downgraded status and
+  # the warning of the same name.
   def build_result(status:, **overrides)
+    warnings = overrides.fetch(:warnings, [])
+    landed   = %i[success verification_not_reset].include?(status) ||
+      (status == :partial && warnings.include?(:secondary_writes_incomplete))
+
     result_class.new(
       **{
         status: status,
@@ -40,11 +51,12 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
         from: 'old@example.com',
         to: 'new@example.com',
         dry_run: status == :planned,
-        auth_row_updated: status == :success,
+        auth_row_updated: landed,
         orgs_reindexed: 0,
-        sessions_revoked: false,
-        verification_reset: status == :success,
-        warnings: [],
+        sessions_revoked: landed,
+        verification_reset: landed && status != :verification_not_reset &&
+          !warnings.include?(:verification_not_reset),
+        warnings: warnings,
       }.merge(overrides),
     )
   end
@@ -152,7 +164,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
     # this MUST NOT read as a 200.
     it 'raises a form error on :partial rather than returning success' do
       logic = logic_for({ 'dry_run' => 'false' }, status: :partial,
-        auth_row_updated: true, warnings: %i[secondary_writes_incomplete])
+        warnings: %i[secondary_writes_incomplete])
       logic.raise_concerns
 
       expect { logic.process }.to raise_error(Onetime::FormError, /PARTIAL/)
@@ -164,7 +176,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
     # tell the operator to retry the change.
     it 'raises a form error on :verification_not_reset with the remediation' do
       logic = logic_for({ 'dry_run' => 'false' }, status: :verification_not_reset,
-        auth_row_updated: true, warnings: %i[verification_still_set])
+        warnings: %i[verification_still_set])
       logic.raise_concerns
 
       expect { logic.process }.to raise_error(Onetime::FormError, /customers unverify ur_target/)
