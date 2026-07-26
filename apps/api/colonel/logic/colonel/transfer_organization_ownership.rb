@@ -21,10 +21,14 @@ module ColonelAPI
       # only HTTP concerns: params, authorization, org/customer resolution and
       # the response shape.
       #
-      # The OP records the single `organization.transfer_ownership`
-      # AdminAuditEvent (plus the two composed `membership.set_role` events —
-      # three per transfer, by design, D26). DO NOT audit here; a second event
-      # would double-record the trail.
+      # Audit (D26): the op records exactly ONE `organization.transfer_ownership`
+      # AdminAuditEvent per applied transfer — none on :no_change, a guardrail
+      # status, or a rolled-back failure. The composed SetRole calls each record
+      # their own `membership.set_role` event: nominally two (promote + demote),
+      # but 0..n in practice — promotion is skipped when the new owner already
+      # holds the owner role, stale owner memberships with no backing customer
+      # are skipped, and every extra owner membership (D29) demotes with its own
+      # event. DO NOT audit here; a second event would double-record the trail.
       #
       # The new owner MUST already be an active member (D28: one confirmation
       # must not both create a membership and hand it ownership) — :not_member
@@ -84,7 +88,9 @@ module ColonelAPI
 
         # PUBLIC extids only, matching the membership adapters (the op's Result
         # never carries an objid). Key names mirror the CLI's --json payload so
-        # the two adapters cannot drift.
+        # the two adapters cannot drift. `from_owner_id` is nil when
+        # `orphaned_owner` is true (org.owner_id was blank or pointed at a
+        # deleted customer) — the Zod schema marks it nullable to match.
         def success_data
           {
             record: {
@@ -102,8 +108,11 @@ module ColonelAPI
         private
 
         # Non-OK statuses mutate nothing and surface as 4xx form errors;
-        # :no_change is an idempotent 200 (already the sole owner). :planned
-        # cannot occur here — dry_run is pinned false above.
+        # :no_change is an idempotent 200 (already the sole owner). Anything
+        # else fails loudly: the op's status vocabulary is closed, and the Zod
+        # schema promises the FE only 'success' | 'no_change' ever ride a 200.
+        # :planned lands in the else on purpose — dry_run is pinned false
+        # above, so seeing it means the pin broke, not that a preview happened.
         def handle_result_status
           case result.status
           when :not_member
@@ -117,6 +126,10 @@ module ColonelAPI
               "#{Onetime::Operations::Org::TransferOwnership::DEMOTABLE_ROLES.join(', ')}",
               field: :demote_to,
             )
+          when :success, :no_change
+            # Fall through to success_data.
+          else
+            raise Onetime::Problem, "Unexpected transfer status: #{result.status}"
           end
         end
       end

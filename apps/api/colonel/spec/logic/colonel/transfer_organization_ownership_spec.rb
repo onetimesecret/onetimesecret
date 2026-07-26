@@ -168,6 +168,22 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
         )
       end
     end
+
+    it 'fails loudly on a status outside the adapter contract, never a 200' do
+      logic = logic_for(status: :landed_partial)
+      logic.raise_concerns
+
+      expect { logic.process }
+        .to raise_error(Onetime::Problem, /Unexpected transfer status: landed_partial/)
+    end
+
+    it 'treats a leaked :planned as a broken dry_run pin, not a preview 200' do
+      logic = logic_for(status: :planned, dry_run: true)
+      logic.raise_concerns
+
+      expect { logic.process }
+        .to raise_error(Onetime::Problem, /Unexpected transfer status: planned/)
+    end
   end
 
   describe 'resolution' do
