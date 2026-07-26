@@ -444,9 +444,15 @@ module Onetime
         contact_email = nil if contact_email.empty?
 
         # Create the org object first to get its identifier (lazy generated on access)
+        #
+        # owner_id holds the owner's OBJID — the space every consumer compares
+        # against (`bin/ots org doctor` loads it and matches it to the
+        # objid-keyed members set; Operations::Org::TransferOwnership writes the
+        # same space). Do NOT write custid here: the two only coincide because
+        # `Customer#init` defaults `custid ||= objid` (#3907).
         org = new(
           display_name: display_name,
-          owner_id: owner_customer.custid,
+          owner_id: owner_customer.objid,
           created_by: owner_customer.custid,
           contact_email: contact_email,
           **,

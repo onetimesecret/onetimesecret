@@ -297,6 +297,19 @@ RSpec.describe Onetime::Operations::Org::Create do
       expect(Onetime::Customer.load(org.owner_id)).not_to be_nil
     end
 
+    # #3907: create! itself writes the objid, so the signup path
+    # (CreateOrganization), which calls create! WITHOUT this op's D31
+    # normalization, also lands orgs that satisfy doctor checks 1, 2 and 4.
+    # Provable only by bypassing the op — through it, normalize_owner_id!
+    # would mask a create! regression.
+    it 'needs no D31 normalization: bare Organization.create! writes the objid' do
+      org = Onetime::Organization.create!("Bare #{suffix}", @owner)
+      @orgs << org
+
+      expect(org.owner_id).to eq(@owner.objid)
+      expect(org_doctor_issues(org)).to be_empty
+    end
+
     it 'lands exactly one active owner membership' do
       org        = Onetime::Organization.load(create_org.objid)
       membership = org_owner_membership(org, @owner)

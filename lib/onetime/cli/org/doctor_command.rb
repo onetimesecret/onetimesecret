@@ -320,8 +320,9 @@ module Onetime
           customer = Onetime::Customer.load(member_id)
           next unless customer # skip if this owner candidate is also deleted
 
-          # Update org.owner_id
-          org.owner_id = customer.custid
+          # Update org.owner_id — the OBJID, matching what Organization.create!
+          # writes and what check 4 compares against the members set (#3907)
+          org.owner_id = customer.objid
           unless org.save
             OT.le "[org doctor] Failed to save org #{org.extid} after owner promotion"
             next

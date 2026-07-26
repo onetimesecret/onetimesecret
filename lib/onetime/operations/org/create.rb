@@ -243,13 +243,11 @@ module Onetime
         # `bin/ots org doctor` compares against (`Customer.load(org.owner_id)`
         # and the members-set entries, which are objid-keyed).
         #
-        # `Organization.create!` writes `owner_customer.custid`. Today that is
-        # the same string only because `Customer#init` does `self.custid ||=
-        # objid`; the two fields are NOT the same concept. This normalizes to
-        # the objid explicitly so this op stays correct if that identity ever
-        # diverges. It is a no-op write-wise today (the guard below), and
-        # changing `create!` itself is a filed follow-up. Do not "simplify" it
-        # away.
+        # `Organization.create!` writes the objid itself as of #3907, so this
+        # is a no-op write-wise today (the guard below). It stays as a
+        # belt-and-braces assertion of the op's post-condition — the doctor
+        # invariants hold even if a future `create!` change regresses the
+        # owner_id space. Do not "simplify" it away.
         def normalize_owner_id!(org)
           desired = @owner.objid.to_s
           return if desired.empty?
