@@ -92,6 +92,11 @@ module Onetime
       end
 
       def resolve_full_identity(_request, env)
+          # Non-authoritative (#3810): no consumer gates on these env flags, and
+          # this resolution deliberately skips the credential watermark — the
+          # authoritative stale-session check lives in BaseSessionAuthStrategy /
+          # Helpers#load_user_from_session.
+          #
           # Get session from Valkey/Redis session middleware
           session = env['rack.session']
 
@@ -151,6 +156,11 @@ module Onetime
       end
 
       def resolve_simple_identity(request, env)
+        # Non-authoritative (#3810): no consumer gates on these env flags, and
+        # this resolution deliberately skips the credential watermark — the
+        # authoritative stale-session check lives in BaseSessionAuthStrategy /
+        # Helpers#load_user_from_session.
+        #
         # Use Rack::Session from middleware
         session = env['rack.session']
 

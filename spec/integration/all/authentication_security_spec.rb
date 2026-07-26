@@ -251,7 +251,10 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
       middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
 
       expect(middleware_config).not_to be_nil
-      expect(middleware_config[:klass]).to eq(Rack::Protection::AuthenticityToken)
+      # InstrumentedAuthenticityToken is our subclass of the standard middleware
+      # (it stamps a rejection marker on deny); it inherits the shrimp handling.
+      expect(middleware_config[:klass]).to eq(Onetime::Middleware::InstrumentedAuthenticityToken)
+      expect(middleware_config[:klass]).to be < Rack::Protection::AuthenticityToken
       expect(middleware_config[:options]).to include(authenticity_param: 'shrimp')
     end
 

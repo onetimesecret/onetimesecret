@@ -300,7 +300,7 @@ what's likely to surprise based on common assumptions:
 Given the table conventions above, our v1-scope migrations are two
 Sequel files:
 
-- `apps/web/auth/migrations/008_oauth_applications.rb`
+- `apps/web/auth/migrations/009_oauth_applications.rb`
   - Creates `oauth_applications` with: core columns (`account_id` FK,
     `name`, `description`, `homepage_url`, `redirect_uri`, `client_id`,
     `client_secret`, `scopes`, `created_at`), OIDC columns
@@ -313,7 +313,7 @@ Sequel files:
     `registration_access_token`).
   - Unique indexes on `client_id` and `client_secret`.
 
-- `apps/web/auth/migrations/009_oauth_grants.rb`
+- `apps/web/auth/migrations/010_oauth_grants.rb`
   - Creates `oauth_grants` with: `id`, `account_id` FK, `oauth_application_id` FK,
     `type`, `code`, `token`, `refresh_token`, `expires_in`,
     `redirect_uri`, `revoked_at`, `scopes`, `created_at`,

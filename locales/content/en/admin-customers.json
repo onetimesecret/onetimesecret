@@ -4,8 +4,8 @@
     "content_hash": "aabe76f1"
   },
   "web.admin.customers.description": {
-    "text": "Find a customer and resolve support issues without SSH.",
-    "content_hash": "c8487e68"
+    "text": "Find a customer and resolve support issues.",
+    "content_hash": "00961ea3"
   },
   "web.admin.customers.list.roleFilter": {
     "text": "Role",
@@ -47,6 +47,14 @@
     "text": "Suspended",
     "content_hash": "e392a389"
   },
+  "web.admin.customers.verification.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.customers.verification.unverified": {
+    "text": "Not verified",
+    "content_hash": "15133907"
+  },
   "web.admin.customers.columns.email": {
     "text": "Email",
     "content_hash": "969ccbd3"
@@ -74,6 +82,10 @@
   "web.admin.customers.columns.lastLogin": {
     "text": "Last login",
     "content_hash": "0d39602d"
+  },
+  "web.admin.customers.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
   },
   "web.admin.customers.detail.backToList": {
     "text": "Back to customers",
@@ -267,9 +279,17 @@
     "text": "No secrets",
     "content_hash": "c37ab3f7"
   },
+  "web.admin.customers.detail.secrets.partial": {
+    "text": "Partial list — showing the {count} most recent. This customer owns more secrets than are shown here.",
+    "content_hash": "a537c8f3"
+  },
   "web.admin.customers.detail.receipts.empty": {
     "text": "No receipts",
     "content_hash": "fb425a68"
+  },
+  "web.admin.customers.detail.receipts.partial": {
+    "text": "Partial list — showing the {count} most recent. This customer has more receipts than are shown here.",
+    "content_hash": "127fd4db"
   },
   "web.admin.customers.detail.organizations.empty": {
     "text": "No organizations",
@@ -411,6 +431,14 @@
     "text": "Customer purged.",
     "content_hash": "6145e5c8"
   },
+  "web.admin.customers.actions.purge.typePrompt": {
+    "text": "To confirm, type the account email address {token} below",
+    "content_hash": "8b2a1819"
+  },
+  "web.admin.customers.actions.purge.unavailable": {
+    "text": "Purge is unavailable: this account has no email address to retype as confirmation.",
+    "content_hash": "5f20f7e5"
+  },
   "web.admin.customers.detail.sessions.title": {
     "text": "Active Sessions",
     "content_hash": "b58fa4e0"
@@ -446,6 +474,14 @@
   "web.admin.customers.detail.sessions.columns.actions": {
     "text": "Actions",
     "content_hash": "ff8059dc"
+  },
+  "web.admin.customers.detail.sessions.current.badge": {
+    "text": "This session",
+    "content_hash": "6da6530a"
+  },
+  "web.admin.customers.detail.sessions.current.tooltip": {
+    "text": "Your current admin session. Revoking it here has no effect — it is re-created for the rest of this request.",
+    "content_hash": "ef097ab1"
   },
   "web.admin.customers.detail.sessions.revoke.button": {
     "text": "Revoke",

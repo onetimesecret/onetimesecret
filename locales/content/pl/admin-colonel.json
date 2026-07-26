@@ -563,10 +563,6 @@
     "text": "Zarządzanie użytkownikami",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Zarządzanie sekretami",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Domeny niestandardowe",
     "source_hash": "6170ab94"

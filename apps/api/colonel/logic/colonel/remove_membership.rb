@@ -30,7 +30,9 @@ module ColonelAPI
 
         def process_params
           @org_id    = sanitize_identifier(params['org_id'])
-          @member_id = sanitize_identifier(params['member_id'])
+          # Email-tolerant (see AccountIdentifier) — sanitize_identifier strips
+          # '@' and '.', which made the resolver's email arm unreachable.
+          @member_id = sanitize_account_identifier(params['member_id'])
         end
 
         def raise_concerns

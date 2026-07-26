@@ -49,7 +49,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
     strategy_result = double('StrategyResult',
       session: mock_session,
       user: customer,
-      metadata: { organization: org },
+      metadata: { organization: org, ip: '203.0.113.7' },
       auth_method: 'basicauth')
 
     # process derives cust from strategy_result.user and never calls org, so no

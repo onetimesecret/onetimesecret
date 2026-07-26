@@ -37,9 +37,9 @@ Onetime::Application::Registry.prepare_application_registry
 def @test.app
   Onetime::Application::Registry.generate_rack_url_map
 end
-def post(*args);   @test.post(*args);   end
+def post(*args);   @test.post(*with_csrf(args));   end
 def get(*args);    @test.get(*args);    end
-def delete(*args); @test.delete(*args); end
+def delete(*args); @test.delete(*with_csrf(args)); end
 def last_response; @test.last_response; end
 
 @ts = Familia.now.to_i
@@ -67,6 +67,38 @@ def last_response; @test.last_response; end
 @purge_target  = Onetime::Customer.create!(email: "purge_ext_#{@ts}@example.com")
 @purge_extid   = @purge_target.extid
 @purge_objid   = @purge_target.objid
+
+# Target for the purge-result-status cases below. It is never actually
+# destroyed (the operation is forced to report without deleting), so it must be
+# torn down explicitly.
+@status_target = Onetime::Customer.create!(email: "purge_status_ext_#{@ts}@example.com")
+@status_extid  = @status_target.extid
+@status_objid  = @status_target.objid
+
+# Purge::Result carries a CLOSED status contract (:success | :not_found), but
+# through the HTTP adapter the op is always handed a resolved, existing
+# customer, so DeleteCustomer never returns false and :not_found is
+# unreachable end-to-end. Force the status at that seam — the adapter's
+# contract boundary — so the cases below exercise PurgeUser#handle_result_status
+# rather than the earlier `raise_concerns` existence guard.
+#
+# Inert unless Thread.current[:tryouts_forced_purge_status] is set. The forced
+# arms return WITHOUT destroying anything, which is exactly the phantom-success
+# scenario: a `deleted: true` response while the record is still alive.
+require 'auth/operations/customers/purge'
+@purge_status_stub = Module.new do
+  def call
+    forced = Thread.current[:tryouts_forced_purge_status]
+    return super if forced.nil?
+
+    Auth::Operations::Customers::Purge::Result.new(
+      status: forced,
+      extid: @customer.extid,
+      custid: @customer.custid,
+    )
+  end
+end
+Auth::Operations::Customers::Purge.prepend(@purge_status_stub)
 
 @colonel_session = { 'authenticated' => true, 'external_id' => @colonel.extid, 'email' => @colonel.email }
 @colonel_headers = { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
@@ -123,6 +155,49 @@ delete "/api/colonel/users/#{@purge_extid}", {}, @colonel_get_headers
 [last_response.status, @purge_resp['record']['deleted'], Onetime::Customer.load(@purge_objid).nil?]
 #=> [200, true, true]
 
+# ---- Purge is not idempotently "successful" -----------------------------
+
+# The record is gone, so resolution fails in raise_concerns. Guards the plain
+# double-delete path that an admin UI retry produces.
+## Re-DELETEing the extid just purged is a 404 with no `deleted` claim
+delete "/api/colonel/users/#{@purge_extid}", {}, @colonel_get_headers
+[last_response.status, JSON.parse(last_response.body).dig('record', 'deleted')]
+#=> [404, nil]
+
+# ---- Purge result status is honoured, not discarded ---------------------
+
+# REGRESSION (purge_user.rb#handle_result_status). The adapter previously
+# discarded the Purge Result and answered 200 `deleted: true` for a record that
+# was never destroyed — a phantom success, and a phantom audit trail too, since
+# the op writes no AdminAuditEvent on :not_found. The third element asserts the
+# record SURVIVES, which is what made the old success response a lie.
+## DELETE surfaces the operation's :not_found status instead of a phantom success
+begin
+  Thread.current[:tryouts_forced_purge_status] = :not_found
+  delete "/api/colonel/users/#{@status_extid}", {}, @colonel_get_headers
+ensure
+  Thread.current[:tryouts_forced_purge_status] = nil
+end
+@notfound_resp = JSON.parse(last_response.body)
+[last_response.status, @notfound_resp.dig('record', 'deleted'), Onetime::Customer.load(@status_objid).nil?]
+#=> [404, nil, false]
+
+# A future addition to the op's closed status contract must not be swallowed
+# back into a success response by the adapter's else arm.
+## DELETE fails loudly (422) on an unrecognised purge status
+begin
+  Thread.current[:tryouts_forced_purge_status] = :quarantined
+  delete "/api/colonel/users/#{@status_extid}", {}, @colonel_get_headers
+ensure
+  Thread.current[:tryouts_forced_purge_status] = nil
+end
+[last_response.status, JSON.parse(last_response.body).dig('record', 'deleted'), Onetime::Customer.load(@status_objid).nil?]
+#=> [422, nil, false]
+
+## The stub is inert once the flag is cleared (later cases see the real op)
+Thread.current[:tryouts_forced_purge_status]
+#=> nil
+
 # ---- Self-purge guard ---------------------------------------------------
 
 ## DELETE of the acting colonel's own extid is refused (422), account survives
@@ -142,3 +217,4 @@ last_response.status
 @detail_target.destroy! rescue nil
 @role_target.destroy!   rescue nil
 @verify_target.destroy! rescue nil
+@status_target.destroy! rescue nil

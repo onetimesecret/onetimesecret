@@ -239,11 +239,10 @@ module V1
     end
 
     def secure?
-      # It's crucial to only accept header values set by known, trusted
-      # sources. See Caddy config docs re: trusted_proxies.
-      # X-Scheme is set by e.g. nginx, caddy etc
-      # X-FORWARDED-PROTO is set by load balancer e.g. ELB
-      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https')
+      # Uses Rack's unified scheme detection (Rack::Request#ssl?), so this
+      # honors HTTPS, X-Forwarded-Proto/X-Forwarded-Ssl, and the AssumeHttps
+      # middleware's upgrade behind a TLS-terminating proxy (#3837).
+      req.ssl?
     end
 
     def deny_agents! *_agents

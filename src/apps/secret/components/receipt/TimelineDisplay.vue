@@ -78,6 +78,46 @@ const { t } = useI18n();
         </div>
       </div>
 
+      <!-- Previewed (if applicable) -->
+      <div
+        v-if="record.is_previewed"
+        class="group flex gap-4">
+        <!-- prettier-ignore-attribute class -->
+        <div
+          class="
+          z-10 flex size-12 shrink-0
+          items-center justify-center
+          rounded-full border
+          border-blue-200 bg-blue-100
+          shadow-sm transition-all duration-300 group-hover:scale-110
+          group-hover:shadow-md dark:border-blue-800
+          dark:bg-blue-900">
+          <!-- prettier-ignore-attribute class -->
+          <OIcon
+            collection="material-symbols"
+            name="mark-email-unread-outline"
+            size="6"
+            class="text-blue-600 transition-transform duration-300
+              group-hover:rotate-12 dark:text-blue-400"
+            aria-hidden="true" />
+        </div>
+        <div class="transition-transform duration-200 group-hover:translate-x-1">
+          <p class="font-brand text-base text-gray-900 dark:text-gray-100">
+            {{ t('web.STATUS.previewed') }}
+          </p>
+          <time
+            :datetime="record.previewed?.toISOString()"
+            class="text-sm text-gray-700 dark:text-gray-300">
+            {{ record.previewed ? formatDisplayDateTime(record.previewed) : '' }}
+          </time>
+          <p
+            v-if="record.previewed"
+            class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+            {{ formatTimeAgo(record.previewed) }}
+          </p>
+        </div>
+      </div>
+
       <!-- Received (if applicable) -->
       <div
         v-if="record.is_revealed"

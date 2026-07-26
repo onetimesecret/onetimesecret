@@ -563,10 +563,6 @@
     "text": "Gestió d'usuaris",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Gestió de secrets",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Dominis personalitzats",
     "source_hash": "6170ab94"

@@ -126,6 +126,7 @@ function createMockRouter(): Router {
         meta: {},
       },
     },
+    afterEach: vi.fn(),
   } as unknown as Router;
 }
 

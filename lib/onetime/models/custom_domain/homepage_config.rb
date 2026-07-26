@@ -57,21 +57,25 @@ module Onetime
       # Whether homepage secrets is enabled for this domain
       field :enabled
 
-      # Per-domain UI toggles for the homepage auth nav. Both default to false
-      # (conservative, mirroring SigninConfig/SignupConfig): a freshly created
-      # domain hides the Create Account / Sign In links until an operator
-      # explicitly opts in via PUT /homepage-config. A missing field (legacy
-      # records that pre-date this feature) also reads as disabled. The
-      # system-level site.authentication.{signup,signin} flags remain the
-      # master switch — the frontend ANDs both layers, so toggling a system
-      # flag off hides the link regardless of this domain-level value.
+      # DEPRECATED, read-echo-only (#3672, ADR-030): these fields carry no
+      # display authority. Per-domain homepage auth links are governed by the
+      # SigninConfig/SignupConfig records — the bootstrap serializer computes
+      # the masthead values from those resolvers, never from these fields.
+      # The 2026-07-03 migration (disable_homepage_auth_links) flipped all
+      # stored values to false, and PUT /homepage-config ignores the params
+      # with a deprecation warning. Kept only because GET/PUT responses still
+      # echo the stored values (round-trip tolerance for read-modify-write
+      # clients) until the fields are removed in a later release.
       field :signup_enabled
       field :signin_enabled
 
       # Which disabled-homepage variant this domain renders when the homepage
       # secret form is gated by auth. nil (unset) = fall back to the
-      # deployment-wide default (site.interface.ui.homepage.disabled_variant)
-      # and ultimately the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant.
+      # deployment-wide custom-domain default
+      # (site.interface.ui.homepage.custom_disabled_variant) and ultimately the
+      # frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant. Custom domains do
+      # NOT inherit the canonical-site disabled_variant — the two tiers are
+      # kept decoupled.
       field :disabled_homepage_variant
 
       # Which interactive experience the homepage offers when enabled
@@ -310,8 +314,15 @@ module Onetime
         #   Required by every call site; passing nil coerces to the string
         #   "nil", which #enabled? reads as false — the safe default, but
         #   not a validated one, so don't rely on this to reject bad input.
-        # @param disabled_homepage_variant [String, nil] Merge semantics, matching
-        #   signup_enabled/signin_enabled: nil leaves the stored value unchanged;
+        # @param signup_enabled [Boolean, nil] DEPRECATED (#3672, ADR-030):
+        #   the field carries no display authority (see the field declaration).
+        #   The API no longer passes it; kept so the disable_homepage_auth_links
+        #   migration and its tryout can stage/clear stored state. Merge
+        #   semantics: nil leaves the stored value unchanged.
+        # @param signin_enabled [Boolean, nil] DEPRECATED — same as
+        #   signup_enabled above.
+        # @param disabled_homepage_variant [String, nil] Merge semantics:
+        #   nil leaves the stored value unchanged;
         #   "" (or any unrecognised value) clears the override back to the default;
         #   a recognised id ('v1' | 'minimal' | 'closed') sets it.
         # @param secrets_mode [String, nil] Merge semantics: nil leaves the stored

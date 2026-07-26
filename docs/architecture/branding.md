@@ -220,13 +220,20 @@ chokepoints, all routed through the shared `Onetime.brand_asset_path(name)` /
    a selected pack distinct from `default` mounts an extra `Rack::Static` layer
    ahead of it, listing only the overlay files that actually exist
    (`Rack::Static` matches by URL prefix, not file existence, so a partial pack
-   falls through to the default base). App/build assets (`/dist`, `/img`, `/v3`)
-   still serve from `public/web` and are never overlaid. The stack is built once
+   falls through to the default base). A pack may also carry an **optional
+   masthead logo** served at `/brand-logo.svg` or `/brand-logo.png`
+   (`BRAND_PACK_LOGO_URLS`, #3774); unlike the mandatory set these are
+   existence-filtered on _both_ layers, because the neutral default ships no
+   logo — an absent logo falls through rather than 404-shadowing the URL. To use
+   it, carry the file in the pack and point `brand.logo_url` at it (e.g.
+   `logo_url: "/brand-logo.svg"` in `brand.yaml`, or `BRAND_LOGO_URL`); the file
+   is inert until `logo_url` references it. Only `/dist` (Vite build output)
+   still serves from `public/web` and is never overlaid. The stack is built once
    at boot, so changing packs needs a restart.
 2. **`GetFavicon`** — `serve_default_favicon` resolves `favicon.ico`
-   overlay-first before the `public/web` fallback.
+   overlay-first onto the default pack (no `public/web` fallback, #3774).
 3. **`GetWebmanifest`** — `load_base_manifest` resolves `site.webmanifest`
-   overlay-first (then `public/web`, then the built-in `NEUTRAL_FALLBACK`).
+   overlay-first (then the default pack, then the built-in `NEUTRAL_FALLBACK`).
 
 SVG-favicon gate: browsers prefer an SVG `<link rel="icon">` over `.ico`, so the
 neutral `/favicon.svg` link is emitted **only** for default installs with no

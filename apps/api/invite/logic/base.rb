@@ -47,7 +47,9 @@ module InviteAPI
       end
 
       # Serialize invitation for public API response
-      # Does NOT include sensitive data like token or internal IDs
+      # Does NOT include sensitive data like token or internal IDs.
+      # The inviter's address is masked (AZ7): this payload is served to any
+      # invite-token holder pre-auth, so the raw inviter email must never leak.
       def serialize_invitation_public(invitation)
         organization = invitation.organization
         inviter      = Onetime::Customer.load(invitation.invited_by) if invitation.invited_by
@@ -57,10 +59,20 @@ module InviteAPI
           organization_id: organization&.extid,
           email: invitation.invited_email,
           role: invitation.role,
-          invited_by_email: inviter&.safe_dump&.dig(:email),
+          invited_by: masked_inviter_email(inviter),
           expires_at: invitation.invitation_expires_at,
           status: effective_invitation_status(invitation),
         }
+      end
+
+      # Non-identifying display value for the inviter on the public invite
+      # surface: "tom@example.com" -> "t***@e***.com". Returns nil when the
+      # inviter record or its email is unavailable.
+      def masked_inviter_email(inviter)
+        email = inviter&.safe_dump&.dig(:email).to_s
+        return nil if email.empty?
+
+        OT::Utils.obscure_email(email)
       end
 
       # Compute effective status accounting for expiration

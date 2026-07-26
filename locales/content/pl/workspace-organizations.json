@@ -467,6 +467,10 @@
     "text": "Wygasłe",
     "source_hash": "424a2551"
   },
+  "web.organizations.invitations.status.revoked": {
+    "text": "Cofnięte",
+    "source_hash": "f6f738d0"
+  },
   "web.organizations.invitations.roles.member": {
     "text": "Członek zespołu",
     "source_hash": "d4e55dfa"

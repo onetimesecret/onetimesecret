@@ -102,6 +102,14 @@ jobs:
           ref: ${{ inputs.source_branch || github.ref }}
           fetch-depth: 0
 
+      # Release gate: the compose ${OTS_IMAGE_TAG:-vX.Y.Z} defaults must match
+      # the README quick-start pin. Compares two in-repo values (never the build
+      # version), so it's invariant across tag/nightly/dispatch builds and only
+      # fails on genuine README<->compose drift — the class of bug that shipped
+      # v0.25.11 in the compose files after v0.26.x released (#3892).
+      - name: Assert compose image pins match README (drift gate)
+        run: bash scripts/check-version-pins.sh
+
       - name: Generate commit hash
         id: commit
         run: |

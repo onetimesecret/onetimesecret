@@ -103,6 +103,32 @@ RSpec.describe Onetime::Config do
       expect(conf['brand']).to eq('product_name' => 'Acme')
     end
 
+    describe 'brand_manifest provenance record (#3822)' do
+      it 'records only the keys it absorbed from the pack in absorbed_keys' do
+        write_manifest("primary_color: \"#0A0B0C\"\nproduct_name: FromPack\n")
+        # Operator set product_name, so only primary_color is absorbed from the pack;
+        # product_name is the operator's and is recorded in operator_keys instead.
+        conf = conf_with(brand: { 'product_name' => 'FromOperator' })
+        described_class.apply_brand_manifest(conf)
+        expect(conf['brand_manifest']['absorbed_keys']).to eq(['primary_color'])
+        expect(conf['brand_manifest']['operator_keys']).to include('product_name')
+        expect(conf['brand_manifest']['operator_keys']).not_to include('primary_color')
+      end
+
+      it 'records no absorbed_keys when the pack has no brand.yaml' do
+        conf = conf_with(brand: {})
+        described_class.apply_brand_manifest(conf)
+        expect(conf['brand_manifest']['absorbed_keys']).to eq([])
+      end
+
+      it 'records no absorbed_keys for blank/whitespace manifest values (they are skipped)' do
+        write_manifest("product_name: \"   \"\n")
+        conf = conf_with(brand: {})
+        described_class.apply_brand_manifest(conf)
+        expect(conf['brand_manifest']['absorbed_keys']).to eq([])
+      end
+    end
+
     context 'the tracked default pack' do
       it 'adds no brand values (its brand.yaml is value-free)' do
         default_pack = File.join(Onetime::HOME, 'public', 'branding', 'default')

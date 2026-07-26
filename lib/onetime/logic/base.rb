@@ -182,9 +182,14 @@ module Onetime
         # Normalize once so the comparison and the error message agree and a
         # Float from config never renders as "10000.0".
         max_length = (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
-        return if value.to_s.length <= max_length
+        # Measure in BYTES, not characters (C5): the ceiling bounds Redis storage,
+        # and a multibyte string can occupy up to 4x its character count. The
+        # client-facing hint (src/schemas/contracts/config/public.ts) is still
+        # character-denominated, so a caller may see a slightly lower effective
+        # limit for multibyte content — the server budget is bytes.
+        return if value.to_s.bytesize <= max_length
 
-        raise_form_error "Secret content must be no more than #{max_length} characters long",
+        raise_form_error "Secret content must be no more than #{max_length} bytes long",
           field: :secret
       end
 
@@ -399,6 +404,13 @@ module Onetime
         # immediately. e.g. customer:abcd1234:reset_secret
         customer.reset_secret = secret.identifier
 
+        # @locale can arrive blank ("") from params (see #initialize) — an empty
+        # string is truthy, so it slips past a bare `||` into an invalid I18n
+        # lookup (:"") that raises I18n::InvalidLocale, which the rescue below
+        # swallows as a silent delivery failure. This synchronous path bypasses
+        # the EmailWorker locale-normalization chokepoint, so normalize here. (#3812)
+        email_locale = locale.to_s.strip.empty? ? OT.default_locale : locale
+
         begin
           Onetime::Mail::Mailer.deliver(
             :welcome,
@@ -406,7 +418,7 @@ module Onetime
               email_address: customer.email,
               secret: secret,
             },
-            locale: locale || 'en',
+            locale: email_locale,
           )
           true
         rescue StandardError => ex

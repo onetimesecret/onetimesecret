@@ -33,11 +33,11 @@ def @test.app
 end
 
 # Delegate Rack::Test methods to @test
-def post(*args); @test.post(*args); end
+def post(*args); @test.post(*with_csrf(args)); end
 def get(*args); @test.get(*args); end
-def put(*args); @test.put(*args); end
-def patch(*args); @test.patch(*args); end
-def delete(*args); @test.delete(*args); end
+def put(*args); @test.put(*with_csrf(args)); end
+def patch(*args); @test.patch(*with_csrf(args)); end
+def delete(*args); @test.delete(*with_csrf(args)); end
 def last_response; @test.last_response; end
 
 # Setup test data

@@ -90,7 +90,7 @@ a decrypt-only chain of previous secrets (`SECRET_PREVIOUS`).
    secret TTL plus the receipt TTL, then drop it.
 
 Mechanics (for the curious): envelopes are tagged with a key version.
-Pre-rotation envelopes (`v1`/`v2`) map to the oldest previous secret; each
+Pre-rotation envelopes (`v2`) map to the oldest previous secret; each
 generation after that writes under a content-addressed tag
 (`r<8-hex>`, derived from that secret's verifier), so every entry in the
 chain decrypts exactly the envelopes it wrote. See

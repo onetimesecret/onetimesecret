@@ -453,11 +453,24 @@ export const useDomainsStore = defineStore('domains', () => {
       // homepage the next visitor wouldn't get. Older backends omit the
       // field — fall back to the stored flag (they also predate incoming
       // mode, so stored == effective there).
+      //
+      // The slot's signin_enabled / signup_enabled are LIVE resolver-computed
+      // values (SigninConfig/SignupConfig ANDed with the site flags — what
+      // BrandedMastHead reads), while the PUT response echoes the deprecated
+      // stored HomepageConfig fields, which carry no display authority
+      // (#3672, ADR-030). Copying the echoes would hide the masthead auth
+      // links for the admin's session until reload, so they are excluded
+      // here and the bootstrap values kept ($patch merges by key).
+      const {
+        signin_enabled: _storedSigninEcho,
+        signup_enabled: _storedSignupEcho,
+        ...bootstrapPatch
+      } = storedRecord;
       const { useBootstrapStore } = await import('./bootstrapStore');
       const bootstrapStore = useBootstrapStore();
       bootstrapStore.$patch({
         homepage_config: {
-          ...storedRecord,
+          ...bootstrapPatch,
           enabled: effective_enabled ?? storedRecord.enabled,
         },
       });

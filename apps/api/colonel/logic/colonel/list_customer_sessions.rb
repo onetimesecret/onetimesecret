@@ -54,8 +54,23 @@ module ColonelAPI
             details: {
               sessions: result.sessions,
               count: result.count,
+              current_session_id: current_session_id,
             },
           }
+        end
+
+        private
+
+        # The acting colonel's OWN request session id, as the plain sid string the
+        # sidecar rows are keyed by (safe_session_id yields a Rack SessionId object;
+        # #public_id is the cookie value == SessionMetadata#session_id). Returned so
+        # the UI can badge the colonel's own row and disable its (no-op) self-revoke.
+        # nil when the session can't be identified (e.g. Hash session in JSON auth).
+        def current_session_id
+          sid = safe_session_id
+          return nil if sid.nil?
+
+          sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
         end
       end
     end

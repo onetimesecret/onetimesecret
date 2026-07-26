@@ -16,7 +16,7 @@
 #
 # Issue: https://github.com/onetimesecret/onetimesecret/issues/3104
 #
-# Tables (created by migrations 008/009):
+# Tables (created by migrations 009/010):
 #   - oauth_applications  — registered clients
 #   - oauth_grants        — auth codes, access tokens, refresh tokens (single row)
 #
@@ -48,7 +48,7 @@ module Auth::Config::Features
 
       # ─── Tables ─────────────────────────────────────────────────────────
       # Explicit even though these match the gem defaults. Keeps the wiring
-      # to migrations 008/009 obvious to future readers.
+      # to migrations 009/010 obvious to future readers.
       auth.oauth_applications_table :oauth_applications
       auth.oauth_grants_table :oauth_grants
 

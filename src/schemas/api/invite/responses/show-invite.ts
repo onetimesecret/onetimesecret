@@ -68,19 +68,22 @@ export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
  * Invitation response schema with enriched fields for state machine
  *
  * Key fields:
- * - account_exists: Whether an account with the invited email already exists
+ * - invited_by: Masked inviter display value (e.g. "t***@e***.com"); never a raw email
  * - actionable: True only when invitation is pending AND not expired (can be accepted/declined)
  * - auth_methods: Available authentication methods for the invitee
+ *
+ * NOTE: There is deliberately no account_exists field — the show endpoint is
+ * noauth and must not act as an account-existence oracle (AZ7). The signup
+ * flow discovers an existing account only via the signup attempt itself.
  */
 export const showInviteResponseSchema = z.object({
   organization_name: z.string(),
   organization_id: z.string(),
   email: z.string().email(),
   role: z.string(),
-  invited_by_email: z.string().nullable(),
+  invited_by: z.string().nullable(),
   expires_at: z.number(),
   status: invitationStatusSchema,
-  account_exists: z.boolean(),
   actionable: z.boolean(),
   branding: inviteBrandingSchema.nullable().optional(),
   auth_methods: z.array(authMethodSchema).optional(),

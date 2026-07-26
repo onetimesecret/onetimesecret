@@ -39,8 +39,8 @@ gem 'rodauth-tools', '~> 0.4.0'
 # OmniAuth providers (SSO via OIDC)
 # NOTE: omniauth_openid_connect transitively pulls in activesupport (via
 # openid_connect → activemodel, rack-oauth2, json-jwt, swd, webfinger). No
-# ActiveSupport APIs are used by application code. email_validator and
-# validate_url are also passengers from this chain.
+# ActiveSupport APIs are used by application code. validate_url is also a
+# passenger from this chain.
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
 gem 'omniauth-google-oauth2', '~> 1.2'
@@ -53,7 +53,7 @@ gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-proxy', '~> 0.7'
 gem 'rack-session', '~> 2.1.2'
-gem 'rack-utf8_sanitizer'
+gem 'rack-utf8_sanitizer', '~> 1.11'
 
 # ====================================
 # Data Processing & Utilities
@@ -70,14 +70,13 @@ gem 'dry-cli', '~> 1.2'
 gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
-gem 'mustache'
-gem 'public_suffix'
-gem 'sanitize'
+gem 'public_suffix', '~> 7.0'
+gem 'sanitize', '~> 7.0'
 gem 'semantic_logger', '~> 4.17'
 gem 'tilt'
 
 # Email validation
-gem 'truemail'
+gem 'truemail', '~> 3.3'
 
 # ====================================
 # Database & DB Tools
@@ -152,7 +151,10 @@ gem 'lettermint', '~> 0.2.0', require: false
 gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stackprof', require: false
-gem 'stripe', require: false
+# Pin to 18.x: stripe 19 pins API version 2026-06-24.dahlia (sent on every
+# request), which moves Subscription#current_period_start/end onto items and
+# converts decimal_string fields to BigDecimal. Migrating is a separate effort.
+gem 'stripe', '~> 18.4', require: false
 
 # ====================================
 # Development & Testing Dependencies

@@ -6,6 +6,7 @@ require 'sequel'
 require 'fileutils'
 require 'timeout'
 require 'concurrent'
+require 'securerandom'
 
 # Shared helpers for migration integration tests
 #
@@ -103,6 +104,30 @@ module MigrationTestHelpers
   # @return [Boolean] True if table exists
   def verify_table_exists(db:, table_name:)
     db.table_exists?(table_name)
+  end
+
+  # Derive the issuer-scoped migration's numeric version from its filename, so a
+  # later renumber doesn't rot the regression specs that target migration 008
+  # (#3840 Phase 0 / #3838 item 5). Defaults to the host example's
+  # +migrations_dir+; pass +dir+ to override.
+  #
+  # @param dir [String] Migrations directory (defaults to the host's migrations_dir)
+  # @return [Integer] The issuer-scoped migration's version number
+  def issuer_migration_version(dir = migrations_dir)
+    file = Dir.glob(File.join(dir, '[0-9]*issuer_scoped*.rb')).first
+    raise 'issuer-scoped migration not found' unless file
+
+    File.basename(file)[/\A(\d+)/, 1].to_i
+  end
+
+  # Insert a minimal valid account row and return its primary key. Used by the
+  # issuer-scoped reversibility specs to populate account_identities.
+  #
+  # @param db [Sequel::Database] Database connection
+  # @param email [String] Account email
+  # @return [Integer] The new account's id
+  def insert_account(db, email)
+    db[:accounts].insert(email: email, status_id: 2, external_id: SecureRandom.uuid)
   end
 
   # Create a database with partial migration state (migrated to specific version)

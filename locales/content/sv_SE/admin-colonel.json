@@ -563,10 +563,6 @@
     "text": "Användarhantering",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Hemlighetshantering",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Anpassade domäner",
     "source_hash": "6170ab94"

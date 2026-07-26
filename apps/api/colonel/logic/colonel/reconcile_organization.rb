@@ -3,32 +3,34 @@
 # frozen_string_literal: true
 
 require_relative '../base'
-require_relative '../../../../../apps/web/billing/operations/apply_subscription_to_org'
+require 'onetime/operations/org/reconcile'
 
 module ColonelAPI
   module Logic
     module Colonel
-      # Reconcile Organization (Colonel)
+      # Reconcile Organization (Colonel) — THIN ADAPTER.
       #
       # The remediation counterpart to InvestigateOrganization. Investigate is
       # read-only — it surfaces a local↔Stripe mismatch but offers no fix. This
-      # writes the authoritative state back:
+      # writes the authoritative state back.
       #
-      # - With a Stripe subscription: re-pull the live subscription and apply it
-      #   (planid, subscription_status, period_end, Stripe ids, then
-      #   re-materialize entitlements + memberships) via the same
-      #   {Billing::Operations::ApplySubscriptionToOrg} path the webhook uses, so
-      #   an operator-triggered reconcile and a webhook converge on identical
-      #   state.
-      # - Without a Stripe subscription: re-materialize entitlements from the
-      #   org's current plan. This has no Stripe billing to sync, but it clears
-      #   entitlement drift (e.g. an orphaned entry left in `materialized`).
+      # All behaviour (mode selection, the Stripe re-pull, entitlement
+      # re-materialization, the before/after snapshot and the SINGLE admin audit
+      # event) lives in {Onetime::Operations::Org::Reconcile} — the one
+      # implementation shared with `bin/ots org reconcile`. This class owns only
+      # HTTP concerns: params, authorization, and the response shape.
       #
-      # MUTATING + guarded (typed confirmation client-side) + audited
-      # server-side, mirroring ManageEntitlementOverride.
+      # DO NOT re-add an audit event here. The op emits exactly one; a second
+      # would double-record the trail.
+      #
+      # MUTATING + guarded (typed confirmation client-side) + audited in the op,
+      # mirroring ManageEntitlementOverride.
+      #
+      # No `?dry_run=1` preview (decision D12): the op supports it, but the admin
+      # UI has no preview flow today, so this adapter pins `dry_run: false`.
       #
       class ReconcileOrganization < ColonelAPI::Logic::Base
-        attr_reader :org, :outcome, :before_state, :after_state
+        attr_reader :org, :result
 
         def process_params
           @org_id = sanitize_identifier(params['org_id'])
@@ -44,19 +46,24 @@ module ColonelAPI
         end
 
         def process
-          @before_state = snapshot_state
-          @outcome      = reconcile!
-          # Reload so the after-snapshot reflects the freshly-written fields.
-          @org          = load_organization
-          @after_state  = snapshot_state
+          @result = Onetime::Operations::Org::Reconcile.new(
+            org: @org,
+            actor: cust.extid,
+            dry_run: false,
+          ).call
 
-          record_audit_event
+          # Preserve the pre-extraction 4xx contract: a Stripe failure is a form
+          # error, not a 200 with an error status.
+          raise_form_error("Stripe error: #{@result.reason}") if @result.status == :stripe_error
 
           success_data
         end
 
         private
 
+        # extid-first with an objid fallback — the org resolution precedence
+        # shared with GetOrganizationDetail and mirrored by the CLI's
+        # Onetime::CLI::Org::Shared#resolve_org.
         def load_organization
           org = Onetime::Organization.find_by_extid(@org_id)
           return org if org
@@ -64,73 +71,27 @@ module ColonelAPI
           Onetime::Organization.load(@org_id)
         end
 
-        def reconcile!
-          subscription_id = org.stripe_subscription_id.to_s
-          return reconcile_entitlements_only if subscription_id.empty?
-
-          reconcile_from_stripe(subscription_id)
-        rescue Stripe::StripeError => ex
-          raise_form_error("Stripe error: #{ex.message}")
-        end
-
-        def reconcile_from_stripe(subscription_id)
-          subscription = Stripe::Subscription.retrieve(
-            id: subscription_id,
-            expand: ['items.data.price.product'],
-          )
-          Billing::Operations::ApplySubscriptionToOrg.call(org, subscription, owner: true)
-
-          { mode: 'stripe_sync', status: 'applied', reason: nil }
-        end
-
-        def reconcile_entitlements_only
-          result = Billing::Operations::ApplySubscriptionToOrg
-            .materialize_entitlements_for_org(org)
-
-          {
-            mode: 'entitlements_only',
-            status: result.status.to_s,
-            reason: result.reason,
-          }
-        end
-
-        def snapshot_state
-          {
-            planid: org.planid,
-            subscription_status: org.subscription_status,
-            subscription_period_end: org.subscription_period_end,
-            materialized_count: org.materialized_entitlements.size,
-          }
-        end
-
-        # One audit event per reconcile (CONTRACT 4 / epic D4). actor/target are
-        # PUBLIC ids; the before/after billing diff is captured in detail so the
-        # trail records what the reconcile actually changed.
-        def record_audit_event
-          Onetime::AdminAuditEvent.record(
-            actor: cust.extid,
-            verb: 'organization.reconcile',
-            target: org.extid,
-            result: :success,
-            detail: {
-              mode: outcome[:mode],
-              status: outcome[:status],
-              before: before_state,
-              after: after_state,
-            },
-          )
-        end
-
+        # WIRE CONTRACT — do not "tidy" these keys.
+        #
+        # `org_id` is the INTERNAL objid and stays that way: it is what
+        # src/schemas/api/internal/responses/colonel-organizations.ts
+        # (colonelReconcileOrganizationRecordSchema) and
+        # AdminOrganizationDetail.vue already consume. The op's own Result and
+        # audit detail are extid-only; this response keeps both ids.
+        #
+        # `status` is `result.status.to_s`, which is why the op's status
+        # vocabulary reuses the engine's strings ('applied', 'materialized',
+        # 'skipped_no_plan', …) verbatim.
         def success_data
           {
             record: {
               org_id: org.objid,
               extid: org.extid,
-              mode: outcome[:mode],
-              status: outcome[:status],
-              reason: outcome[:reason],
-              before: before_state,
-              after: after_state,
+              mode: result.mode,
+              status: result.status.to_s,
+              reason: result.reason,
+              before: result.before,
+              after: result.after,
             },
           }
         end

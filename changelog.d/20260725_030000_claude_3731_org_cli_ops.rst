@@ -1,0 +1,35 @@
+.. A new scriv changelog fragment.
+
+Added
+-----
+
+- ``bin/ots org reconcile ORG`` re-applies an organization's billing and
+  entitlement state from the CLI. The logic moved out of the colonel endpoint
+  into a shared ``Onetime::Operations::Org::Reconcile`` operation, so the
+  console and the shell now run the same code and emit the same single
+  ``organization.reconcile`` audit event.
+
+- ``bin/ots org create NAME --owner OWNER`` creates an organization owned by an
+  existing customer, backed by ``Onetime::Operations::Org::Create``.
+
+- ``bin/ots org transfer-ownership ORG NEW_OWNER`` hands an organization to
+  another existing member. The new owner must already be a member — the command
+  refuses rather than creating a membership and granting it ownership in one
+  confirmation. The previous owner is demoted to ``admin`` by default
+  (``--demote-to``); removing them would break customers whose default
+  organization pointed there. Ownership moves ``owner_id`` but never
+  ``created_by``, which stays immutable per ADR-012.
+
+- ``bin/ots org entitlement show|grant|revoke|clear ORG`` inspects and manages
+  operator entitlement overrides. ``show`` reports plan, overrides, materialized
+  entitlements and any drift between them.
+
+Changed
+-------
+
+- ``org reconcile`` now does something on billing-disabled (self-hosted)
+  installs. It previously reached the billing engine, found no plan, and
+  returned without acting. It now materializes the standalone entitlement set
+  and re-materializes every membership, returning a ``standalone`` status. This
+  is reached through the existing colonel endpoint as well as the new CLI verb,
+  and it cascades to every member of the organization.

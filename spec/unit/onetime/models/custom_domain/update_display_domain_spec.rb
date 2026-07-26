@@ -2,13 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Coverage gap: the instance method `update_display_domain` re-parses via
-# PublicSuffix.parse directly (line 196) and does NOT go through the
-# class-level methods that call `contains_control_chars?`.
-#
-# The control-character tests are expected to FAIL (red-phase) until a
-# guard is added to `update_display_domain`. The sanity / trailing-dot
-# tests are expected to PASS, proving the harness itself is sound.
+# `update_display_domain` normalizes through the class-level
+# display_domain method (which rejects control characters) and enforces
+# the canonical-domain overlap guard before touching any index (#3841).
 
 require 'spec_helper'
 
@@ -75,11 +71,41 @@ RSpec.describe Onetime::CustomDomain, '#update_display_domain' do
   end
 
   # ------------------------------------------------------------------ #
-  # Control characters — expected RED (the coverage gap)
-  #
-  # update_display_domain passes input directly to PublicSuffix.parse
-  # without calling contains_control_chars?. These tests document the
-  # gap: they should raise Onetime::Problem but currently do not.
+  # Canonical-domain overlap — a rename must not be able to move an
+  # existing record onto the canonical domain or a subdomain of it.
+  # ------------------------------------------------------------------ #
+
+  context 'when the new domain overlaps the canonical site domain' do
+    before do
+      allow(OT).to receive(:conf).and_return({
+        'site' => { 'host' => 'canonical-site.com' },
+      })
+    end
+
+    it 'rejects the canonical domain verbatim' do
+      expect {
+        domain.update_display_domain('canonical-site.com')
+      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+    end
+
+    it 'rejects a subdomain of the canonical domain' do
+      expect {
+        domain.update_display_domain('secrets.canonical-site.com')
+      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+    end
+
+    it 'does not touch the display_domain index before raising' do
+      expect {
+        domain.update_display_domain('canonical-site.com')
+      }.to raise_error(Onetime::Problem)
+      expect(described_class.display_domain_index).not_to have_received(:remove)
+      expect(described_class.display_domain_index).not_to have_received(:put)
+    end
+  end
+
+  # ------------------------------------------------------------------ #
+  # Control characters — rejected during normalization via the
+  # class-level display_domain guard (contains_control_chars?).
   # ------------------------------------------------------------------ #
 
   context 'with a null byte' do

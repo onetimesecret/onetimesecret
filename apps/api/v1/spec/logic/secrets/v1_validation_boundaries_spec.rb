@@ -414,6 +414,19 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
         subject.secret_value = nil
         expect { subject.send(:validate_secret_size) }.not_to raise_error
       end
+
+      it 'rejects multibyte content over the byte cap despite a lower char count (C5)' do
+        # 5,001 x 'é' = 5,001 chars but 10,002 UTF-8 bytes
+        subject.secret_value = 'é' * 5_001
+        expect { subject.send(:validate_secret_size) }.to raise_error(
+          OT::FormError, /exceeds the maximum size/
+        )
+      end
+
+      it 'accepts multibyte content at exactly the byte cap' do
+        subject.secret_value = 'é' * 5_000
+        expect { subject.send(:validate_secret_size) }.not_to raise_error
+      end
     end
   end
 

@@ -10,6 +10,10 @@
 import { createApi } from '@/api';
 import type { AxiosInstance } from 'axios';
 import type { PaymentMethod } from '@/types/billing';
+import {
+  checkoutSessionResponseSchema,
+  type CheckoutSessionResponse,
+} from '@/schemas/contracts/billing';
 import type {
   CurrencyConflictError,
   InvoiceStatus,
@@ -76,14 +80,6 @@ export interface BillingOverviewResponse {
   payment_method?: PaymentMethod;
   /** Federation notification for cross-region subscription sync */
   federation_notification?: FederationNotification;
-}
-
-/**
- * Checkout session response
- */
-export interface CheckoutSessionResponse {
-  checkout_url: string;
-  session_id: string;
 }
 
 /**
@@ -301,7 +297,9 @@ export const BillingService = {
       product: plan.id,
       interval: plan.interval,
     });
-    return response.data;
+    // Security (M-9): validate the wire shape and host-allowlist checkout_url at
+    // the service boundary before it can reach a window.location assignment.
+    return checkoutSessionResponseSchema.parse(response.data);
   },
 
   /**
@@ -424,6 +422,14 @@ export const BillingService = {
       `/billing/api/org/${orgExtId}/migrate-currency`,
       request
     );
+    // Security (M-9): the immediate-migration checkout_url is host-allowlisted at
+    // the assignment site (PlanSelector.handleImmediateRedirect via
+    // isAllowedCheckoutUrl), which is the load-bearing guard. Boundary parsing
+    // here via migrateCurrencyResponseSchema is intentionally NOT enabled yet:
+    // billing.service.currency-migration.spec.ts still asserts a stale immediate
+    // shape (checkout_session_url/prorated_credit_*) that diverges from the live
+    // backend (currency_migration_service.rb -> checkout_url/refund_*); enabling
+    // parse must land together with that fixture correction.
     return response.data;
   },
 };

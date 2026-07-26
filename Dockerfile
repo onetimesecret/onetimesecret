@@ -59,7 +59,7 @@
 ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:3f335cdd6daf8a5835071065bb27cc26f4293be25657818ea2e5943ae3255ae5
+ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:d8fd978ffc10f0eddee04aa03eb82e5d247079471392ae655de5ae04bdaad914
 
 ##
 # DEPENDENCIES: Install application dependencies
@@ -233,6 +233,12 @@ RUN set -eux && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 # Install S6 overlay
+# Supply-chain hardening (M-5): s6-overlay runs as PID 1, so a tampered or
+# corrupted tarball would compromise the whole container. skarnet publishes a
+# matching .sha256 for every release asset; download it alongside each tarball
+# and verify with `sha256sum -c` BEFORE extraction so the build fails loudly on
+# any mismatch. Tarballs are kept under their published names so the filename
+# recorded inside each .sha256 file matches the file being checked.
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
@@ -242,11 +248,16 @@ RUN set -eux && \
         *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
     esac && \
     cd /tmp && \
-    curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" -o s6-overlay-noarch.tar.xz && \
-    curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" -o s6-overlay-arch.tar.xz && \
+    S6_BASE_URL="https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}" && \
+    curl -fsSL "${S6_BASE_URL}/s6-overlay-noarch.tar.xz" -o s6-overlay-noarch.tar.xz && \
+    curl -fsSL "${S6_BASE_URL}/s6-overlay-noarch.tar.xz.sha256" -o s6-overlay-noarch.tar.xz.sha256 && \
+    curl -fsSL "${S6_BASE_URL}/s6-overlay-${S6_ARCH}.tar.xz" -o "s6-overlay-${S6_ARCH}.tar.xz" && \
+    curl -fsSL "${S6_BASE_URL}/s6-overlay-${S6_ARCH}.tar.xz.sha256" -o "s6-overlay-${S6_ARCH}.tar.xz.sha256" && \
+    sha256sum -c s6-overlay-noarch.tar.xz.sha256 && \
+    sha256sum -c "s6-overlay-${S6_ARCH}.tar.xz.sha256" && \
     tar -C / -Jxpf s6-overlay-noarch.tar.xz && \
-    tar -C / -Jxpf s6-overlay-arch.tar.xz && \
-    rm -f s6-overlay-*.tar.xz
+    tar -C / -Jxpf "s6-overlay-${S6_ARCH}.tar.xz" && \
+    rm -f s6-overlay-*.tar.xz s6-overlay-*.tar.xz.sha256
 
 WORKDIR ${APP_DIR}
 

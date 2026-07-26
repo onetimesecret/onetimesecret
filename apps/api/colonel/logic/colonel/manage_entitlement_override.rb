@@ -4,6 +4,11 @@
 
 require_relative '../base'
 
+# The Logic layer runs outside the lib/ autoloaders — require the shared op
+# explicitly. This class is now a THIN ADAPTER over it; the mutation, the
+# no-change semantics and the admin audit event all live in the op.
+require 'onetime/operations/org/entitlement_override'
+
 module ColonelAPI
   module Logic
     module Colonel
@@ -18,6 +23,15 @@ module ColonelAPI
       #
       # Overrides persist across plan changes and are applied during reconciliation:
       #   effective = plan_entitlements + grants - revokes
+      #
+      # ## Adapter, not implementation (#3731)
+      #
+      # The single implementation is
+      # {Onetime::Operations::Org::EntitlementOverride} — shared with
+      # `bin/ots org entitlement …`. This class owns only HTTP concerns:
+      # deriving the action from the URL path, colonel authorization, resolving
+      # the org, the catalog typo warning, and shaping the response. It MUST NOT
+      # record an audit event; the op does that exactly once.
       #
       # ## Endpoints
       #
@@ -41,13 +55,20 @@ module ColonelAPI
       # }
       #
       class ManageEntitlementOverride < ColonelAPI::Logic::Base
-        ACTION_PAST_TENSE = {
-          'grant' => 'granted',
-          'revoke' => 'revoked',
-          'clear' => 'cleared',
-        }.freeze
+        # Kept here (not read from the op) because it is part of THIS surface's
+        # response contract — src/apps/admin/views/AdminOrganizationDetail.vue
+        # renders the past-tense string.
+        ACTION_PAST_TENSE = Onetime::Operations::Org::EntitlementOverride::ACTION_PAST_TENSE
 
-        attr_reader :org, :entitlement, :action
+        # Derived from the op's ACTIONS so the operator-facing message cannot
+        # drift from what is actually accepted. 'clear' IS valid here: DELETE
+        # /entitlements/overrides carries no action param and maps to it, so a
+        # message naming only grant/revoke misleads on that surface.
+        VALID_ACTIONS_MESSAGE = "Action must be one of: #{
+          Onetime::Operations::Org::EntitlementOverride::ACTIONS.join(', ')
+        }".freeze
+
+        attr_reader :org, :entitlement, :action, :result
 
         def process_params
           @org_id      = sanitize_identifier(params['org_id'])
@@ -61,8 +82,8 @@ module ColonelAPI
 
           raise_form_error('Organization ID is required', field: :org_id) if @org_id.to_s.empty?
 
-          unless %w[grant revoke clear].include?(@action)
-            raise_form_error('Action must be grant or revoke', field: :action)
+          unless Onetime::Operations::Org::EntitlementOverride::ACTIONS.include?(@action)
+            raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           end
 
           if @action != 'clear' && @entitlement.to_s.empty?
@@ -78,25 +99,23 @@ module ColonelAPI
 
           # Validate entitlement name is known (optional, but helps catch typos)
           return if @action == 'clear'
-
-          known = Billing::Config.load_entitlements.keys
-          return if known.include?(@entitlement)
+          return if Onetime::Operations::Org::EntitlementOverride.known_entitlement?(@entitlement)
 
           # Warn but don't block - allows granting future entitlements
           OT.info "[colonel] Granting unknown entitlement '#{@entitlement}' to org #{@org_id}"
         end
 
         def process
-          case @action
-          when 'grant'
-            @org.grant_entitlement(@entitlement)
-          when 'revoke'
-            @org.revoke_entitlement(@entitlement)
-          when 'clear'
-            @org.clear_entitlement_overrides
-          end
+          @result = Onetime::Operations::Org::EntitlementOverride.new(
+            org: @org,
+            action: @action,
+            actor: cust.extid,
+            entitlement: @entitlement,
+            # The console has no preview flow (D12) — this surface always applies.
+            dry_run: false,
+          ).call
 
-          record_audit_event
+          handle_result_status(@result)
 
           success_data
         end
@@ -108,14 +127,29 @@ module ColonelAPI
               extid: @org.extid,
               entitlement: @entitlement,
               action: action_past_tense,
-              effective_entitlements: @org.materialized_entitlements.to_a,
-              grants: @org.entitlements_grants.to_a,
-              revokes: @org.entitlements_revokes.to_a,
+              effective_entitlements: @result.effective,
+              grants: @result.grants,
+              revokes: @result.revokes,
             },
           }
         end
 
         private
+
+        # Statuses the op returns for input it refused. process_params already
+        # rejects both ahead of the call, so these are a defensive backstop that
+        # keeps the 400 contract intact if the op's validation ever widens.
+        #
+        # :no_change is a successful, idempotent 200 — the entitlement is already
+        # in the requested state, so the response below describes reality.
+        def handle_result_status(result)
+          case result.status
+          when :invalid_action
+            raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
+          when :missing_entitlement
+            raise_form_error('Entitlement is required for grant/revoke', field: :entitlement)
+          end
+        end
 
         # Resolve the target org by PUBLIC id (extid) first — the admin
         # organizations screen routes exclusively by extid — then fall back to
@@ -126,23 +160,6 @@ module ColonelAPI
           return org if org
 
           Onetime::Organization.load(@org_id)
-        end
-
-        # One audit event per successful entitlement-override mutation
-        # (CONTRACT 4 / epic D4). Emitted from the logic layer: this
-        # billing-domain verb has no extracted Operation yet (a dedicated
-        # billing op is deferred to a follow-up per the epic's "improvements
-        # ship as separate PRs"), so the non-negotiable audit backstop lives
-        # here. actor/target are PUBLIC ids (never objids); AdminAuditEvent.record
-        # is best-effort and swallows its own failures, so it never breaks the op.
-        def record_audit_event
-          Onetime::AdminAuditEvent.record(
-            actor: cust.extid,
-            verb: "organization.entitlement.#{@action}",
-            target: @org.extid,
-            result: :success,
-            detail: @action == 'clear' ? {} : { entitlement: @entitlement },
-          )
         end
 
         def action_past_tense

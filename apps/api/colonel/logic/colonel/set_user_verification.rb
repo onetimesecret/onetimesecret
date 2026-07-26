@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'account_identifier'
 require 'auth/operations/customers/set_verification'
 
 module ColonelAPI
@@ -18,6 +19,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class SetUserVerificationBase < ColonelAPI::Logic::Base
+        include AccountIdentifier
+
         attr_reader :user_id, :user, :change_result
 
         # @return [Boolean] target verification state (subclass overrides)
@@ -31,7 +34,10 @@ module ColonelAPI
         end
 
         def process_params
-          @user_id = sanitize_identifier(params['user_id'])
+          # sanitize_account_identifier (NOT sanitize_identifier) — the latter
+          # strips '@' and '.', which silently destroyed the documented email
+          # arm below. See AccountIdentifier.
+          @user_id = sanitize_account_identifier(params['user_id'])
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 
@@ -42,8 +48,7 @@ module ColonelAPI
           # extid, so every admin surface routes by it — then email, then objid.
           # Mirrors Auth::Operations::Customers::Show#resolve (show.rb): a plain
           # Customer.load only resolves the internal objid, so an extid would 404.
-          @user = Onetime::Customer.load_by_extid_or_email(user_id) ||
-                  Onetime::Customer.load(user_id)
+          @user = resolve_account(user_id)
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?

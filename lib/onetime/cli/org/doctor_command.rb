@@ -18,17 +18,26 @@
 #   bin/ots org doctor on8q... --json                   # JSON output
 
 require 'json'
+# Org::Shared must exist before `include Org::Shared` below. Required here (not
+# only from the lib/onetime/cli.rb manifest) so this file cannot be loaded in a
+# broken order.
+require_relative 'shared'
 
 module Onetime
   module CLI
     # rubocop:disable Metrics/ClassLength
     class OrgDoctorCommand < Command
+      # Shared org resolution (extid first, objid fallback) + error_exit +
+      # org_label. Doctor used to carry a private load_org; the two org commands
+      # must not drift on how an ORG argument resolves.
+      include Org::Shared
+
       desc 'Check organization data integrity'
 
       argument :extid,
         type: :string,
         required: false,
-        desc: 'Organization extid (omit for --all scan)'
+        desc: 'Organization extid or objid (omit for --all scan)'
 
       option :all,
         type: :boolean,
@@ -56,7 +65,7 @@ module Onetime
           return
         end
 
-        orgs   = all ? scan_all_orgs : [load_org(extid)]
+        orgs   = all ? scan_all_orgs : [resolve_org(extid, json: json)]
         report = { checked: 0, healthy: 0, issues: [], repaired: [] }
 
         orgs.each do |org|
@@ -127,15 +136,6 @@ module Onetime
             4. Membership role:'owner' matches owner_id (WARNING)
             5. Organization has at least one member (WARNING)
         USAGE
-      end
-
-      def load_org(extid)
-        org = Onetime::Organization.find_by_extid(extid)
-        unless org
-          puts "Organization not found: #{extid}"
-          exit 1
-        end
-        org
       end
 
       def scan_all_orgs

@@ -563,10 +563,6 @@
     "text": "사용자 관리",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "비밀 메시지 관리",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "사용자 지정 도메인",
     "source_hash": "6170ab94"

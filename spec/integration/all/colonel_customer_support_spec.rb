@@ -228,6 +228,272 @@ RSpec.describe 'Colonel customer support features', type: :integration do
           'https://dashboard.stripe.com/test/customers/cus_test123',
         )
       end
+
+      context 'when the stored Stripe customer id is not cus_-shaped' do
+        let(:billing_org) do
+          double(
+            'Organization',
+            extid: 'og_billing',
+            display_name: 'Billing Org',
+            planid: 'identity_plus_v1',
+            subscription_status: 'active',
+            subscription_period_end: '1700003600',
+            # Starts with cus_ but carries URL/log metacharacters: the guard
+            # must be a full-shape match, not a bare prefix check.
+            stripe_customer_id: "cus_evil\n/../admin?x=1",
+            stripe_subscription_id: '',
+            is_default: true,
+          )
+        end
+
+        it 'omits the dashboard deep link while the rest of the card renders' do
+          stub_const('Stripe', Module.new)
+          stub_const('Stripe::Invoice', double('InvAPI', list: double(data: [])))
+
+          billing = details_with_org(target)[:details][:billing]
+
+          expect(billing[:stripe][:available]).to be(true)
+          expect(billing[:stripe][:customer_id]).to eq("cus_evil\n/../admin?x=1")
+          expect(billing[:stripe][:dashboard_url]).to be_nil
+        end
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # 2b. Activity read-out (GetUserDetails details.secrets / details.receipts)
+  #
+  # These sections used to walk the entire `secret:*:object` and
+  # `receipt:*:object` keyspaces, loading every object one at a time to filter
+  # by owner — the 10k guard counted MATCHES, so it never tripped for a normal
+  # user and the page timed out. They now read the per-owner indexes
+  # (customer:<objid>:secrets / :receipts). What is asserted here is the
+  # CONTRACT: the right items, count == items.size, an honest `truncated` flag,
+  # and independent degradation.
+  # ---------------------------------------------------------------------------
+  describe 'GetUserDetails activity read-out' do
+    # These examples persist REAL Secrets via spawn_pair: identifier
+    # generation needs VERIFIABLE_ID_HMAC_SECRET and ciphertext= needs the
+    # encryption keys, both provisioned by configure_familia during FULL
+    # boot. An earlier spec's partial or failed boot can leave the process
+    # without either (PR #3817 seed-60018 failure class), so guard-boot
+    # like the sibling integration specs, and seed the env var for the
+    # case where a partial boot already marked the state ready.
+    before(:all) do
+      ENV['VERIFIABLE_ID_HMAC_SECRET'] ||= SecureRandom.hex(32)
+      begin
+        OT.boot! :test unless OT.ready?
+      rescue Redis::CannotConnectError, Redis::ConnectionError => e
+        puts "SKIP: Requires Redis connection (#{e.class})"
+        exit 0
+      end
+    end
+
+    def user_details(target)
+      logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
+        strategy_result_for(colonel), { 'user_id' => target.extid },
+      )
+      logic.raise_concerns
+      logic.process
+    end
+
+    let(:owner) { create_customer(email: "activity-#{SecureRandom.hex(4)}@example.com") }
+
+    it 'lists only the owner\'s secrets, newest first, with count == items.size' do
+      other = create_customer(email: "other-#{SecureRandom.hex(4)}@example.com")
+      _r1, first  = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'mine one')
+      _r2, second = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'mine two')
+      Onetime::Receipt.spawn_pair(other.objid, 3600, 'not mine')
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([second.objid, first.objid])
+      expect(secrets[:count]).to eq(secrets[:items].size)
+      expect(secrets[:truncated]).to be(false)
+    end
+
+    it 'drops a destroyed secret from the list (index and counter move together)' do
+      _r1, keep    = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'keep')
+      _r2, destroy = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'destroy')
+      destroy.destroy!
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([keep.objid])
+      expect(secrets[:count]).to eq(1)
+    end
+
+    it 'reports an empty, non-truncated read-out for a customer with no activity' do
+      details = user_details(owner)[:details]
+
+      expect(details[:secrets]).to eq(count: 0, items: [], truncated: false)
+      expect(details[:receipts]).to eq(count: 0, items: [], truncated: false)
+    end
+
+    it 'lists receipts off the per-customer index' do
+      receipt, _secret = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'with receipt')
+      owner.add_receipt(receipt)
+
+      receipts = user_details(owner)[:details][:receipts]
+
+      expect(receipts[:items].map { |r| r[:receipt_id] }).to eq([receipt.objid])
+      expect(receipts[:count]).to eq(1)
+      expect(receipts[:truncated]).to be(false)
+    end
+
+    it 'merges scanned pre-index secrets into an indexed page (mixed account)' do
+      # PR #3914 P1 regression: an account straddling the index rollout has
+      # BOTH indexed and pre-index secrets. The old guard ran the bounded
+      # scan only when the index was completely empty, so pre-index secrets
+      # were permanently invisible for mixed accounts, regardless of paging.
+      _r1, pre_index = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'pre-index era')
+      _r2, indexed   = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'indexed era')
+
+      # Simulate the straddling shape: the older secret's object and the
+      # shared counter exist, but the per-owner index never saw it.
+      owner.secrets.remove_element(pre_index.objid)
+      expect(owner.secrets.element_count).to eq(1)
+      expect(owner.secrets_active.to_i).to eq(2)
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      # The pre-index secret is surfaced, the doubly-found indexed secret is
+      # deduped, and the union is newest first.
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([indexed.objid, pre_index.objid])
+      expect(secrets[:count]).to eq(2)
+      # The scan completed un-capped over the (small, test) keyspace, so the
+      # union is everything that exists: the flag honestly reports complete.
+      expect(secrets[:truncated]).to be(false)
+    end
+
+    it 'clears the incompleteness flag when a completed scan proves nothing live is missing' do
+      # Counter says there are more secrets than the index holds (the mixed /
+      # straddling-rollout shape), but the extra counted secrets no longer
+      # exist anywhere (expired). Pre-merge this rendered a permanent
+      # `truncated: true`; now the bounded scan goes and looks, and a scan
+      # that ran to completion proves the indexed secret is all there is. (A
+      # scan that hits its ROUNDS/DEADLINE caps still reports truncated.)
+      Onetime::Receipt.spawn_pair(owner.objid, 3600, 'only indexed one')
+      owner.secrets_active.reset(5)
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      expect(secrets[:items].size).to eq(1)
+      expect(secrets[:count]).to eq(1)
+      expect(secrets[:truncated]).to be(false)
+    end
+
+    it 'scan fallback survives legacy String created values, newest first' do
+      # The bounded-scan fallback runs only when the per-owner index is empty
+      # while the secrets_active counter is positive (the pre-index account
+      # shape). Legacy pre-JSON hash fields hydrate as raw Strings — Familia's
+      # deserialize_value returns the value as-is when Oj's strict parse fails
+      # — and String#-@ is the frozen-string operator, so the old
+      # `-(row[:created] || 0)` sort raised ArgumentError on a mixed
+      # Float/String batch, which degrade_on_error swallowed into an empty
+      # secrets section.
+      _r1, legacy = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'legacy value')
+      _r2, modern = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'modern value')
+
+      # Simulate pre-JSON-serialization data: write the raw hash field
+      # directly. A Time#to_s-shaped value fails Oj strict parse and therefore
+      # hydrates as a String (a bare numeric string would parse to a number).
+      Onetime::Secret.dbclient.hset(legacy.dbkey, 'created', '2024-01-15 10:30:00 UTC')
+
+      # Empty the index while the counter stays positive: exactly the state
+      # that routes collect_secrets into scan_secrets_bounded.
+      owner.secrets.delete!
+      expect(owner.secrets.element_count).to eq(0)
+      expect(owner.secrets_active.to_i).to be_positive
+
+      secrets = user_details(owner)[:details][:secrets]
+
+      # NOT the degraded `{items: [], truncated: true}` shape...
+      expect(secrets[:items]).not_to be_empty
+      expect(secrets[:truncated]).to be(false)
+      # ...and newest first: the unparseable legacy timestamp coerces to a
+      # tiny float, so it sorts as oldest.
+      expect(secrets[:items].map { |s| s[:secret_id] }).to eq([modern.objid, legacy.objid])
+      expect(secrets[:count]).to eq(2)
+    end
+
+    it 'still renders identity, plan and billing when the secrets read blows up' do
+      logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
+        strategy_result_for(colonel), { 'user_id' => owner.extid },
+      )
+      logic.raise_concerns
+      allow(logic).to receive(:collect_secrets).and_raise(StandardError, 'datastore down')
+
+      data = logic.process
+
+      # The failing section degrades to empty-but-honest...
+      expect(data[:details][:secrets]).to eq(count: 0, items: [], truncated: true)
+      # ...and the rest of the record renders.
+      expect(data[:record][:extid]).to eq(owner.extid)
+      expect(data[:record][:email]).to eq(owner.email)
+      expect(data[:details][:receipts][:truncated]).to be(false)
+      expect(data[:details][:billing]).to include(:enabled, :plan_id)
+    end
+  end
+
+  # Unit-level: merge_secret_sources is a pure function, so exercise the
+  # truncated-propagation branches with synthetic rows instead of building
+  # 100+ real secrets. The integration examples above cover the
+  # truncated: false cases; these pin every way the flag must stay true.
+  describe 'GetUserDetails#merge_secret_sources truncation contract' do
+    let(:logic_class) { ColonelAPI::Logic::Colonel::GetUserDetails }
+    let(:page_size)   { logic_class::INDEX_PAGE_SIZE }
+
+    def merge(indexed, scanned)
+      logic_class.allocate.send(:merge_secret_sources, indexed, scanned)
+    end
+
+    def rows(prefix, count, newest_first_from: count)
+      Array.new(count) do |i|
+        { secret_id: "#{prefix}#{i}", created: (newest_first_from - i).to_f }
+      end
+    end
+
+    it 'keeps truncated when the scan hit its caps, even if the union fits a page' do
+      result = merge(
+        { items: rows('idx', 2), truncated: false },
+        { items: rows('scan', 3), truncated: true },
+      )
+
+      expect(result[:truncated]).to be(true)
+      expect(result[:items].size).to eq(5)
+    end
+
+    it 'keeps truncated when a further indexed page exists' do
+      result = merge(
+        { items: rows('idx', 2), truncated: true },
+        { items: [], truncated: false },
+      )
+
+      expect(result[:truncated]).to be(true)
+    end
+
+    it 'sets truncated and slices newest-first when the deduped union overflows a page' do
+      indexed = { items: rows('idx', page_size, newest_first_from: 500), truncated: false }
+      scanned = { items: rows('scan', 10, newest_first_from: 1000), truncated: false }
+
+      result = merge(indexed, scanned)
+
+      expect(result[:truncated]).to be(true)
+      expect(result[:items].size).to eq(page_size)
+      # The 10 scanned rows are newest (created 1000..991), so they lead the page.
+      expect(result[:items].first(10).map { |r| r[:secret_id] }).to eq(scanned[:items].map { |r| r[:secret_id] })
+    end
+
+    it 'dedupes scan re-finds by secret_id without inflating the union size' do
+      shared = { secret_id: 'both', created: 5.0 }
+      result = merge(
+        { items: [shared], truncated: false },
+        { items: [shared.dup, { secret_id: 'scan-only', created: 4.0 }], truncated: false },
+      )
+
+      expect(result[:items].map { |r| r[:secret_id] }).to eq(%w[both scan-only])
+      expect(result[:truncated]).to be(false)
     end
   end
 

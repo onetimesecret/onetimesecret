@@ -6,6 +6,9 @@ happens, and the steps to resolve or verify.
 
 ## Contents
 
+- [brand-pack-region-divergence.md](./brand-pack-region-divergence.md) —
+  Diagnosing branding that renders wrong in one region but correct in others,
+  using `bin/ots config brand` / Colonel Brand Diagnostics.
 - [dns-validation-failures.md](./dns-validation-failures.md) — Diagnosing custom
   domain DNS validation failures.
 - [favicon-fetch-worker.md](./favicon-fetch-worker.md) — Manually triggering the

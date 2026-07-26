@@ -40,8 +40,9 @@ module Onetime
         puts '  bin/ots customers dates                    # Count by creation year'
         puts '  bin/ots customers dates --by-age           # Count by age bucket'
         puts '  bin/ots customers dates --refresh          # Force cache rebuild'
-        puts '  bin/ots customers purge --older-than 3y    # Dry-run purge preview'
-        puts '  bin/ots customers purge --older-than 3y --purge  # Execute purge'
+        puts '  bin/ots customers purge --older-than 3y    # Dry-run BULK purge preview'
+        puts '  bin/ots customers purge --older-than 3y --purge  # Execute bulk purge'
+        puts '  bin/ots customers purge-one ID             # Purge ONE account (audited)'
         puts '  bin/ots customers sync-auth-accounts       # Sync to auth DB'
         puts
         puts 'Remote source (pre-migration):'

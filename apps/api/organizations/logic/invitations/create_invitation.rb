@@ -95,7 +95,11 @@ module OrganizationAPI::Logic
         )
 
         # Queue invitation email via RabbitMQ
-        # Use inviter's locale since they initiated the action
+        # Use inviter's locale since they initiated the action.
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = cust.locale if email_locale.to_s.strip.empty?
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
         Onetime::Jobs::Publisher.enqueue_email(
           :organization_invitation,
           {
@@ -104,7 +108,7 @@ module OrganizationAPI::Logic
             inviter_email: cust.email,
             role: @role,
             invite_token: @membership.token,
-            locale: locale || cust.locale || OT.default_locale,
+            locale: email_locale,
           },
           fallback: :sync,
         )

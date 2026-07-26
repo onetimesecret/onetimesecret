@@ -9,6 +9,7 @@ require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
 require_relative '../session'
+require_relative '../middleware/assume_https'
 require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
@@ -266,7 +267,17 @@ module Onetime
               application: application_context&.[](:name),
             }
 
-          # IP Privacy FIRST - masks public IPs before logging/monitoring
+          # Assume-HTTPS FIRST - normalizes the request scheme before any
+          # downstream consumer reads it. Behind a TLS-terminating proxy that
+          # does not forward X-Forwarded-Proto (e.g. Cloudflare Tunnel), this
+          # marks the request as HTTPS so the Secure session cookie, the
+          # mounted auth app's HttpOrigin check, CSRF, HSTS, and scheme
+          # redirects all see a consistent scheme. Opt-in via
+          # site.network.assume_https; strict no-op (and upgrade-only) when
+          # off, so native Rack X-Forwarded-Proto handling is unaffected.
+          builder.use Onetime::Middleware::AssumeHttps
+
+          # IP Privacy - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
           # Uses Otto's privacy middleware as a standalone Rack component.
           #

@@ -95,7 +95,7 @@ module AccountAPI::Logic
           )
         end
 
-        unless verify_password(@password)
+        unless password_verified?
           raise_form_error 'Current password is incorrect', field: 'password', error_type: 'incorrect'
         end
 
@@ -107,15 +107,10 @@ module AccountAPI::Logic
       end
 
       def valid_update?
-        verify_password(@password) && valid_email?(@new_email) && @new_email != cust.email
+        password_verified? && valid_email?(@new_email) && @new_email != cust.email
       end
 
       def perform_update
-        # Increment the per-customer request counter before touching external APIs.
-        # Counter is checked in field_specific_concerns; incrementing here (inside
-        # the happy-path write path) means failed validations don't burn the quota.
-        increment_request_count
-
         # Create a verification secret with 24h TTL following ResetPasswordRequest pattern
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
@@ -124,11 +119,25 @@ module AccountAPI::Logic
         secret.ciphertext         = @new_email
         secret.save
 
+        # Count the request only once durable state (the pending-change secret)
+        # exists. Failed validations never reach this method, and a Redis write
+        # error during secret creation/save raises above — so flaky saves can't
+        # burn the MAX_REQUESTS quota with no pending change ever created
+        # (PR #3915 review). Increment BEFORE the email enqueues below: those
+        # are best-effort (each is rescued), and a failure after the secret is
+        # saved must not skip the count.
+        increment_request_count
+
         # Track the pending change on the customer (standalone dbkey, writes immediately)
         cust.pending_email_change          = secret.identifier
         cust.pending_email_delivery_status = 'queued'
 
         OT.info "[request-email-change] Email change requested cid/#{cust.objid} new_email/#{OT::Utils.obscure_email(@new_email)}"
+
+        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
+        email_locale = locale
+        email_locale = cust.locale if email_locale.to_s.strip.empty?
+        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
 
         # Send confirmation email to the NEW address
         begin
@@ -138,7 +147,7 @@ module AccountAPI::Logic
               new_email: @new_email,
               confirmation_token: secret.identifier,
               customer_objid: cust.objid,
-              locale: locale || cust.locale || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :sync,
           )
@@ -153,13 +162,27 @@ module AccountAPI::Logic
             {
               old_email: cust.email,
               new_email: @new_email,
-              locale: locale || cust.locale || OT.default_locale,
+              locale: email_locale,
             },
             fallback: :async_thread,
           )
         rescue StandardError => ex
           auth_logger.error '[request-email-change] Failed to send notification email', exception: ex
         end
+      end
+
+      # Memoized wrapper around verify_password so field_specific_concerns and
+      # valid_update? share a single verification per request. In full auth
+      # mode each verify_password call is a Rodauth internal_request round-trip
+      # to the auth database; both call sites need the answer (PR #3915
+      # review). Safe to memoize: logic objects are instantiated fresh per API
+      # request (see AccountAPI::Logic::Base#initialize) and @password is fixed
+      # at process_params time, so the cached result cannot go stale within the
+      # object's lifetime.
+      def password_verified?
+        return @password_verified unless @password_verified.nil?
+
+        @password_verified = verify_password(@password)
       end
 
       # Verify password using the appropriate mechanism based on auth mode.

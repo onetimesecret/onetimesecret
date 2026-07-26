@@ -563,10 +563,6 @@
     "text": "ユーザー管理",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "シークレット管理",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "カスタムドメイン",
     "source_hash": "6170ab94"

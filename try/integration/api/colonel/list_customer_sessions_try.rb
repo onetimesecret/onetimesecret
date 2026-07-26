@@ -120,6 +120,13 @@ get URL, {}, colonel_headers
 [last_response.status, @d['count'], @d['sessions'].map { |s| s['session_id'] }]
 #=> [200, 2, ["#{@sid_new}", "#{@sid_old}"]]
 
+## details carries current_session_id — the acting colonel's OWN request sid so
+## the UI can badge their own row. It's the colonel's session (not @target's), so
+## it won't match a listed row here; the contract just guarantees the key + a sid.
+@csid = @d['current_session_id']
+[@d.key?('current_session_id'), @csid.is_a?(String), @csid.match?(/\A[a-f0-9]{64,}\z/)]
+#=> [true, true, true]
+
 ## each row is the safe_dump allow-list shape: user_id == target extid
 @row = @d['sessions'].first
 [@row['user_id'], @row['ip_address'], @row['user_agent']]

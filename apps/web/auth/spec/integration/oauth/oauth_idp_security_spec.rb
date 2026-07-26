@@ -246,7 +246,7 @@ RSpec.describe 'OAuth/OIDC IdP security boundaries', type: :integration, sqlite_
 
       # Mark this grant as "already redeemed" by clearing the code and writing
       # a refresh_token into the row — matches the post-/token shape described
-      # in migrations/009_oauth_grants.rb (lines 10-13).
+      # in migrations/010_oauth_grants.rb (lines 10-13).
       refresh_token = "rt-#{SecureRandom.urlsafe_base64(32)}"
       auth_db[:oauth_grants].where(id: grant[:id]).update(
         code: nil,

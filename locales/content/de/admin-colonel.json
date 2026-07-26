@@ -563,10 +563,6 @@
     "text": "Benutzerverwaltung",
     "source_hash": "fe45f3a1"
   },
-  "web.colonel.titles.secrets": {
-    "text": "Nachrichtenverwaltung",
-    "source_hash": "af69773b"
-  },
   "web.colonel.titles.domains": {
     "text": "Benutzerdefinierte Domains",
     "source_hash": "6170ab94"

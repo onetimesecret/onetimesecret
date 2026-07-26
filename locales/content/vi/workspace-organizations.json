@@ -467,6 +467,10 @@
     "text": "Đã hết hạn",
     "source_hash": "424a2551"
   },
+  "web.organizations.invitations.status.revoked": {
+    "text": "Đã thu hồi",
+    "source_hash": "f6f738d0"
+  },
   "web.organizations.invitations.roles.member": {
     "text": "Thành viên nhóm",
     "source_hash": "d4e55dfa"

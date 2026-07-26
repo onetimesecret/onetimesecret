@@ -45,8 +45,12 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to have_key('domain.favicon.fetch')
     end
 
-    it 'has 10 queues total' do
-      expect(queues.size).to eq(10)
+    it 'defines session.revoke.sweep queue' do
+      expect(queues).to have_key('session.revoke.sweep')
+    end
+
+    it 'has 11 queues total' do
+      expect(queues.size).to eq(11)
     end
   end
 
@@ -142,6 +146,22 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     end
   end
 
+  describe 'session.revoke.sweep queue' do
+    subject(:queue) { described_class::QUEUES['session.revoke.sweep'] }
+
+    it 'is durable' do
+      expect(queue[:durable]).to be true
+    end
+
+    it 'does not auto_delete' do
+      expect(queue[:auto_delete]).to be false
+    end
+
+    it 'has dead letter exchange configured' do
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.session.revoke')
+    end
+  end
+
   describe 'system.transient queue' do
     subject(:queue) { described_class::QUEUES['system.transient'] }
 
@@ -177,8 +197,8 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(dead_letter_config).to be_frozen
     end
 
-    it 'has 7 entries' do
-      expect(dead_letter_config.size).to eq(7)
+    it 'has 8 entries' do
+      expect(dead_letter_config.size).to eq(8)
     end
 
     it "contains 'dlx.email.message' with queue 'dlq.email.message'" do
@@ -214,6 +234,11 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     it "contains 'dlx.migration.customer' with queue 'dlq.migration.customer'" do
       expect(dead_letter_config).to have_key('dlx.migration.customer')
       expect(dead_letter_config['dlx.migration.customer'][:queue]).to eq('dlq.migration.customer')
+    end
+
+    it "contains 'dlx.session.revoke' with queue 'dlq.session.revoke'" do
+      expect(dead_letter_config).to have_key('dlx.session.revoke')
+      expect(dead_letter_config['dlx.session.revoke'][:queue]).to eq('dlq.session.revoke')
     end
 
     it 'has empty arguments (TTL managed via DLQ_POLICIES)' do

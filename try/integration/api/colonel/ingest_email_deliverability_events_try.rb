@@ -39,7 +39,10 @@ def @test.app
   Onetime::Application::Registry.generate_rack_url_map
 end
 
-def post(*args);   @test.post(*args);   end
+# Session-authed non-GET calls must carry a CSRF token (AUDIT-2026 H-1):
+# with_csrf mints an X-CSRF-Token from the injected rack.session, and leaves
+# anonymous requests untouched so the 401 path still exercises the auth layer.
+def post(*args);   @test.post(*with_csrf(args));   end
 def last_response; @test.last_response; end
 
 @timestamp = Familia.now.to_i

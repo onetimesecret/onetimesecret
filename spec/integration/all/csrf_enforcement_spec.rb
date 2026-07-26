@@ -48,7 +48,8 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
 
         expect(middleware_config).not_to be_nil
-        expect(middleware_config[:klass]).to eq(Rack::Protection::AuthenticityToken)
+        expect(middleware_config[:klass]).to eq(Onetime::Middleware::InstrumentedAuthenticityToken)
+        expect(middleware_config[:klass]).to be < Rack::Protection::AuthenticityToken
         expect(middleware_config[:options][:authenticity_param]).to eq('shrimp')
       end
 
@@ -176,12 +177,12 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
 
     describe 'API routes without authentication' do
       it 'POST to /api/v1/generate without auth bypasses CSRF (anonymous allowed)' do
-        # API routes bypass CSRF entirely because:
-        # - API v1 only accepts Basic Auth or anonymous (no session auth)
-        # - Anonymous requests are stateless (no session = no CSRF attack vector)
+        # Anonymous API request with no session cookie has no CSRF vector:
+        # - API v1 has no session auth (Basic Auth or anonymous only)
+        # - Anonymous requests are stateless (no session = nothing to forge)
         response = @mock_request.post('/api/v1/generate')
 
-        # Should NOT be 403 (CSRF rejection) - API routes bypass CSRF
+        # Should NOT be 403 (CSRF rejection) - no session => bypass
         # Will be 400 (missing params) or similar API-level error
         expect(response.status).not_to eq(403)
       end
@@ -197,31 +198,29 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(response.status).not_to eq(403)
       end
 
-      it 'documents CSRF bypass for all API routes' do
-        # API routes bypass CSRF entirely - both authenticated and anonymous
-        # This is safe because:
-        # - API v1 removed session auth (Basic Auth or anonymous only)
-        # - Anonymous requests have no session to exploit
-        # - Authenticated API requests use API keys, not session cookies
-
+      it 'bypasses CSRF for an anonymous API request with no session cookie' do
+        # No ambient session cookie => nothing a forged cross-site request could
+        # ride => no CSRF vector => bypass. Covers v1 (no session auth),
+        # anonymous/programmatic clients, and the /api/incoming/* inbound surface.
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
         allow_if = middleware_config[:options][:allow_if]
 
-        # Simulate request without Basic Auth to /api/v1/test
+        # Simulate request without Basic Auth and without an authenticated session
         env_without_auth = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST'
         }
 
         result = allow_if.call(env_without_auth)
-        expect(result).to be true # All API routes bypass CSRF
+        expect(result).to be true # No session => no CSRF vector => bypass
       end
 
-      it 'documents CSRF bypass with Basic Auth on API' do
+      it 'bypasses CSRF for an API request authenticated via Basic Auth' do
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
         allow_if = middleware_config[:options][:allow_if]
 
-        # Simulate request WITH Basic Auth to /api/v1/test
+        # Simulate request WITH Basic Auth to /api/v1/test. Basic Auth is a
+        # stateless per-request credential (API key), not an ambient cookie.
         credentials = Base64.strict_encode64('user:pass')
         env_with_auth = {
           'PATH_INFO' => '/api/v1/test',
@@ -230,7 +229,53 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         }
 
         result = allow_if.call(env_with_auth)
-        expect(result).to be true # CSRF should be bypassed
+        expect(result).to be true # Basic Auth (no ambient cookie) => bypass
+      end
+    end
+
+    describe 'session-authenticated API routes require CSRF (H-1)' do
+      let(:allow_if) do
+        Onetime::Middleware::Security.middleware_components['AuthenticityToken'][:options][:allow_if]
+      end
+
+      it 'does NOT bypass a session-authenticated API POST with no token' do
+        # This is exactly the forged-cross-site scenario H-1 closed: an ambient
+        # authenticated session cookie is present and no explicit credential is
+        # supplied, so the request must fall through and require X-CSRF-Token.
+        env = {
+          'PATH_INFO' => '/api/v2/account',
+          'REQUEST_METHOD' => 'POST',
+          'rack.session' => { 'authenticated' => true }
+        }
+
+        expect(allow_if.call(env)).to be false
+      end
+
+      it 'still bypasses when Basic Auth is present even with a session cookie' do
+        # Basic Auth short-circuits before the session check: an explicit API-key
+        # credential is not a forgeable ambient credential.
+        credentials = Base64.strict_encode64('user:pass')
+        env = {
+          'PATH_INFO' => '/api/v2/account',
+          'REQUEST_METHOD' => 'POST',
+          'HTTP_AUTHORIZATION' => "Basic #{credentials}",
+          'rack.session' => { 'authenticated' => true }
+        }
+
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'bypasses an anonymous (unauthenticated) session API POST' do
+        # Anonymous SPA guest flows carry a session cookie but authenticated=false,
+        # so there is no sensitive ambient authority to abuse => bypass. (The SPA
+        # sends a valid token anyway; not broken either way.)
+        env = {
+          'PATH_INFO' => '/api/v2/secret/conceal',
+          'REQUEST_METHOD' => 'POST',
+          'rack.session' => { 'authenticated' => false }
+        }
+
+        expect(allow_if.call(env)).to be true
       end
     end
 
@@ -392,8 +437,9 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(result).to be true
       end
 
-      it 'bypasses API routes regardless of auth header type' do
-        # All API routes bypass CSRF (Bearer, Basic, or none)
+      it 'bypasses an API route with a Bearer header and no session cookie' do
+        # A Bearer header is not Basic Auth, but with no ambient session cookie
+        # there is still no CSRF vector, so the request bypasses.
         env = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST',
@@ -403,14 +449,17 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(result).to be true
       end
 
-      it 'bypasses API routes even with malformed auth header' do
+      it 'bypasses an API route with a malformed auth header and no session' do
+        # 'Basic' without a trailing space + credentials does NOT match the Basic
+        # short-circuit, but with no session cookie there is still nothing to
+        # forge, so it bypasses on the no-session rule.
         env = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST',
           'HTTP_AUTHORIZATION' => 'Basic' # Missing credentials
         }
         result = allow_if.call(env)
-        expect(result).to be true # API routes always bypass CSRF
+        expect(result).to be true # No session => no CSRF vector => bypass
       end
     end
 
@@ -425,9 +474,10 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         # The header name is hardcoded in the gem as X-CSRF-Token
         # This is used by Axios interceptor in the frontend
 
-        # We verify by checking the middleware is the standard one
+        # We verify by checking the middleware is our subclass of the standard
+        # one (InstrumentedAuthenticityToken inherits the header handling).
         config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
-        expect(config[:klass]).to eq(Rack::Protection::AuthenticityToken)
+        expect(config[:klass]).to be < Rack::Protection::AuthenticityToken
       end
     end
   end
@@ -481,6 +531,134 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       response = @mock_request.get('/signin')
       expect(response.status).to eq(200)
       expect(response.headers['X-CSRF-Token']).not_to be_nil
+    end
+  end
+
+  describe 'CsrfResponseHeader 403 discrimination (#3837, root cause of #3831)' do
+    # A CSRF 403 has two very different root causes that are indistinguishable
+    # AFTER @app.call (AuthenticityToken#accepts? sets session[:csrf] before it
+    # validates). CsrfResponseHeader captures presence BEFORE @app.call and logs
+    # a discriminated warning. We drive the middleware directly with a stub app
+    # so the branch is deterministic and does not depend on the full CSRF flow.
+    # Simulates InstrumentedAuthenticityToken rejecting the request: its #deny
+    # stamps the rejection marker BEFORE returning a 403. CsrfResponseHeader keys
+    # its diagnostic on that marker, so the stub sets the SAME key to exercise the
+    # real code path. (The live-stack tripwire below proves the real middleware
+    # actually sets it.)
+    let(:stub_403_app) do
+      ->(env) {
+        env[Onetime::Middleware::InstrumentedAuthenticityToken::REJECTION_ENV_KEY] = true
+        [403, {}, []]
+      }
+    end
+    let(:middleware) { Onetime::Middleware::CsrfResponseHeader.new(stub_403_app) }
+    # A realistic raw session token: the downstream X-CSRF-Token masking block
+    # base64-decodes session[:csrf], so it must be a valid urlsafe token (an
+    # arbitrary string can trip Base64.urlsafe_decode64 on length).
+    let(:valid_token) { Rack::Protection::AuthenticityToken.random_token }
+
+    def env_for(method:, path:, session: nil)
+      env = { 'REQUEST_METHOD' => method, 'PATH_INFO' => path }
+      env['rack.session'] = session unless session.nil?
+      env
+    end
+
+    it 'logs a session-continuity break when a POST 403s with NO token in session' do
+      # No csrf token present at request start => the session was lost or never
+      # persisted between issuing the token and this request. This is the #3837
+      # bug class, NOT forgery.
+      allow(OT).to receive(:lw).and_call_original
+      middleware.call(env_for(method: 'POST', path: '/account/update', session: {}))
+
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/session-continuity break/),
+        hash_including(method: 'POST', path: '/account/update')
+      )
+      # ...and it is NOT mis-classified as a genuine token-mismatch.
+      expect(OT).not_to have_received(:lw).with(a_string_matching(/token-mismatch/), anything)
+    end
+
+    it 'logs a token-mismatch when a POST 403s WITH a token already in session' do
+      # A raw token was present at request start but the submitted one did not
+      # match => a genuine forged/stale request. CSRF_SESSION_KEY is :csrf, read
+      # exactly as AuthenticityToken reads it.
+      allow(OT).to receive(:lw).and_call_original
+      middleware.call(env_for(method: 'POST', path: '/account/update', session: { csrf: valid_token }))
+
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/token-mismatch/),
+        hash_including(method: 'POST', path: '/account/update')
+      )
+      # ...and it is NOT mis-classified as a session-continuity break.
+      expect(OT).not_to have_received(:lw).with(a_string_matching(/session-continuity break/), anything)
+    end
+
+    it 'does NOT log for a SAFE method (GET) even when the response is 403' do
+      # Safe methods are never CSRF-checked, so they must not pay the session
+      # load cost nor emit a rejection log.
+      allow(OT).to receive(:lw).and_call_original
+      middleware.call(env_for(method: 'GET', path: '/account/update', session: {}))
+
+      expect(OT).not_to have_received(:lw)
+    end
+
+    it 'does NOT log when an unsafe POST is NOT rejected (status != 403)' do
+      ok_app = ->(_env) { [200, {}, []] }
+      ok_middleware = Onetime::Middleware::CsrfResponseHeader.new(ok_app)
+      allow(OT).to receive(:lw).and_call_original
+      ok_middleware.call(env_for(method: 'POST', path: '/account/update', session: {}))
+
+      expect(OT).not_to have_received(:lw)
+    end
+
+    it 'does NOT log when a non-CSRF 403 is returned (no attack marker)' do
+      # An app-level 403 (Onetime::Forbidden, EntitlementRequired,
+      # GuestRoutesDisabled) never sets the rejection marker. Before the marker
+      # gate these were mis-logged as CSRF failures; now they are correctly
+      # ignored so the CSRF diagnostic only fires on genuine CSRF rejections.
+      plain_403_app   = ->(_env) { [403, {}, []] }
+      plain_middleware = Onetime::Middleware::CsrfResponseHeader.new(plain_403_app)
+      allow(OT).to receive(:lw).and_call_original
+      plain_middleware.call(env_for(method: 'POST', path: '/account/update', session: {}))
+
+      expect(OT).not_to have_received(:lw)
+    end
+
+    it 'logs the full request path including the URLMap SCRIPT_NAME prefix' do
+      # CsrfResponseHeader runs above the URLMap mount, so a rejected POST to a
+      # mounted app must log SCRIPT_NAME + PATH_INFO, not the prefix-stripped
+      # PATH_INFO alone.
+      allow(OT).to receive(:lw).and_call_original
+      env = env_for(method: 'POST', path: '/v2/account/update', session: {})
+      env['SCRIPT_NAME'] = '/api'
+      middleware.call(env)
+
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/CSRF 403/),
+        hash_including(path: '/api/v2/account/update')
+      )
+    end
+
+    # TRIPWIRE: the tests above stub the marker. This one drives the FULL live
+    # stack (CsrfResponseHeader wrapping the real InstrumentedAuthenticityToken),
+    # so it fails loudly if the subclass's #deny stops setting the marker — e.g.
+    # if rack-protection changes its reaction dispatch and `default_reaction
+    # :deny` no longer rebinds, or if the subclass is dropped. Without this, a
+    # marker that silently stopped firing would leave every other test green.
+    it 'stamps the rejection marker through the REAL middleware stack on a genuine CSRF 403' do
+      allow(OT).to receive(:lw).and_call_original
+
+      # POST to a web route with no session and no shrimp -> the real
+      # AuthenticityToken denies with 403 via its (rebound) deny path.
+      response = @mock_request.post('/signin', {
+        params: { login: 'test@example.com', pass: 'password123' }
+      })
+
+      expect(response.status).to eq(403)
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/CSRF 403/),
+        hash_including(method: 'POST', path: '/signin')
+      )
     end
   end
 

@@ -96,6 +96,27 @@ module Onetime
     feature :customer_migration_fields
 
     sorted_set :receipts
+
+    # Per-customer LIVE-secret index. member = secret objid, score = created
+    # epoch. The read-side companion to the `secrets_active` counter: the
+    # counter answers "how many", this answers "which ones", so the colonel
+    # customer-detail view can list a customer's secrets without a
+    # full-keyspace `secret:*:object` SCAN (the O(all secrets) walk that made
+    # the page time out).
+    #
+    # Written at the SAME two chokepoints as the counter, so index and counter
+    # can only drift together — Customer.increment_secrets_active
+    # (Receipt.spawn_pair) adds, Customer.decrement_secrets_active
+    # (Secret#destroy!) removes. See customer/features/counter_fields.rb.
+    #
+    # Bounded by construction: the increment side trims to the newest
+    # SECRET_INDEX_LIMIT members, so a heavy owner's index can never grow
+    # without limit. TTL expiry still leaves dead members behind (no
+    # application code runs), exactly like the counter's up-drift; readers
+    # must treat a member as a candidate and drop the ones that no longer
+    # load.
+    sorted_set :secrets
+
     # Per-customer session index for the colonel's per-customer session view.
     # member = plain sid (== live blob key name `session:<sid>`), score =
     # last_activity epoch. Makes "this customer's sessions" O(sessions-for-user)

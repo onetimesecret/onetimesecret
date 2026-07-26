@@ -18,9 +18,10 @@ import {
 } from '@/tests/schemas/shapes/fixtures/organization.fixtures';
 
 /**
- * Plan tier type for billing fixtures
+ * Plan tier type for billing fixtures.
+ * Canonical order: free < single_account < single_team < multi_team.
  */
-export type PlanTier = 'free' | 'single_team' | 'multi_team';
+export type PlanTier = 'free' | 'single_account' | 'single_team' | 'multi_team';
 
 /**
  * Factory function to create mock billing plans
@@ -62,13 +63,13 @@ export const mockPlans: Record<string, Plan> = {
   /**
    * Legacy "identity" plan - grandfathered Early Supporter plan.
    * This plan is NOT available for new subscriptions but is honored for existing customers.
-   * Maps to single_team tier for feature parity with Identity Plus.
+   * Maps to single_account tier (same as identity_plus_v1 backend reality).
    */
   legacy_identity: createMockPlan({
     id: 'identity',
     stripe_price_id: null, // Legacy plans may not have Stripe price IDs
     name: 'Identity Plus (Early Supporter)',
-    tier: 'single_team', // Same tier as identity_plus for feature parity
+    tier: 'single_account', // Same tier as identity_plus_v1 (backend: single_account)
     interval: 'month', // Assumed monthly billing
     amount: 1900, // Original early supporter price
     display_order: -1, // Not shown in plan selector (legacy)
@@ -81,7 +82,9 @@ export const mockPlans: Record<string, Plan> = {
     id: 'identity_plus_v1',
     stripe_price_id: 'price_single_monthly',
     name: 'Identity Plus',
-    tier: 'single_team',
+    // Backend reality: identity_plus_v1 is single_account, not single_team (#3824).
+    // Object key kept as `single_team` to avoid breaking imports.
+    tier: 'single_account',
     interval: 'month',
     amount: 2900,
     display_order: 10,
@@ -95,7 +98,9 @@ export const mockPlans: Record<string, Plan> = {
     id: 'team_plus_v1',
     stripe_price_id: 'price_multi_monthly',
     name: 'Team Plus',
-    tier: 'multi_team',
+    // Backend reality: team_plus_v1 is single_team, not multi_team (#3824).
+    // Object key kept as `multi_team` to avoid breaking imports.
+    tier: 'single_team',
     interval: 'month',
     amount: 9900,
     display_order: 20,
@@ -278,7 +283,7 @@ export const mockOrganizations = {
   multiTeam: createWireMultiTeamOrganization(),
   /**
    * Legacy "identity" plan - grandfathered Early Supporter plan
-   * These customers have single_team tier features but their planid is just 'identity'
+   * These customers have single_account tier features but their planid is just 'identity'
    * (not 'identity_plus_v1'). Display should show "Identity Plus (Early Supporter)".
    */
   legacyIdentity: createWireLegacyIdentityOrganization(),
@@ -381,7 +386,8 @@ export function createMockOverviewResponse(
     plan: {
       id: 'identity_plus_v1',
       name: 'Identity Plus',
-      tier: 'single_team',
+      // Backend reality: identity_plus_v1 is single_account, not single_team (#3824).
+      tier: 'single_account',
       interval: 'month',
       amount: 2900,
       currency: 'cad',
@@ -420,7 +426,8 @@ export const mockOverviewResponses = {
     plan: {
       id: 'identity',
       name: 'Identity Plus (Early Supporter)',
-      tier: 'single_team',
+      // Legacy identity maps to single_account, same as identity_plus_v1 (#3824).
+      tier: 'single_account',
       interval: 'month',
       amount: 1900,
       currency: 'cad',

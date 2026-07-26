@@ -12,12 +12,15 @@ module ColonelAPI
       # of {RevokeCustomerSession} (spec docs/specs/colonel-ui/40-*).
       #
       # Thin adapter over {Onetime::Operations::Sessions::RevokeAllForCustomer}. The
-      # op guarantees a total lockout: a bounded SCAN deletes every live
-      # `session:<sid>` blob for the customer — including pre-sidecar sessions a
-      # tracked-only revoke would miss (adaptation: completeness > cost for this
-      # rare, deliberate action) — tidies the sidecar + per-customer index, clears
-      # the Rodauth active-session rows in full mode, and writes ONE
-      # AdminAuditEvent (verb `session.revoke_all`) with the kill counts.
+      # op is two-tier: (a) a GUARANTEED, uncapped purge of every tracked
+      # `session:<sid>` blob in Customer#active_sessions, plus (b) a BEST-EFFORT,
+      # capped SCAN that sweeps genuinely untracked (pre-sidecar) blobs a
+      # tracked-only revoke would miss. The tracked purge is the guarantee; the scan
+      # is bounded by {Store::MAX_SCAN}, so when it truncates the op surfaces
+      # `scan_capped` (Result + audit detail) rather than overstating totality. It
+      # then tidies the sidecar + per-customer index, clears the Rodauth
+      # active-session rows in full mode, and writes ONE AdminAuditEvent
+      # (verb `session.revoke_all`) with the kill counts.
       #
       # Bulk-destructive, so it is a POST+verb route (matching the local
       # `.../purge`, `.../replay` convention) and the UI gates it behind a danger

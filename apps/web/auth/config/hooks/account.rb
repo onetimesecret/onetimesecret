@@ -2,9 +2,25 @@
 #
 # frozen_string_literal: true
 
+# Redis-only, except-current session revoke used by the password hooks below to
+# enforce M-2 (sessions must not survive a password change/reset). Required
+# explicitly (mirroring the colonel logic classes) so the constant is loaded when
+# these hooks fire, rather than relying on ambient load order.
+require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+
 module Auth::Config::Hooks
   module Account
-    # rubocop:disable Metrics/PerceivedComplexity
+    # Resolve the Customer identifier for a Rodauth account row, fail SECURE:
+    # prefer external_id (== Customer.extid), fall back to email when it is blank
+    # so credential-change/reset revocation still runs rather than silently
+    # skipping. Called from the after_*_password hook blocks below, which execute
+    # in the Rodauth INSTANCE context — a bare private method would not be in
+    # scope there, so this is an explicit-receiver module method.
+    def self.resolve_custid(account)
+      account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
+    end
+
+    # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength
     def self.configure(auth)
       #
       # Hook: Before Account Creation
@@ -433,6 +449,176 @@ module Auth::Config::Hooks
           account_id: account_id,
           email: account[:email],
         )
+
+        # Credential watermark (#3810): stamp Customer#last_password_update, same
+        # as after_change_password below. Session validation (Helpers/
+        # BaseSessionAuthStrategy) rejects any session blob authenticated before
+        # this instant, so the watermark — not the blob deletion below, which is
+        # hygiene — is the authoritative revocation boundary. Reset previously
+        # skipped this stamp, so untracked pre-reset blobs stayed valid until
+        # their 24h TTL. The Redis stamp is not rollback-aware: a reset that
+        # rolls back after this point still forces re-login everywhere
+        # (fail-secure, accepted).
+        #
+        # NOT wrapped in ErrorHandler.safe_execute: that helper swallows a raise
+        # into routine :warn logging, and a silently-missing watermark means the
+        # async sweep below runs UNGUARDED (it may then kill legitimate
+        # post-reset sessions — fail-secure, but it must be attributable). The
+        # stamp failure never fails the reset itself.
+        begin
+          stamped = Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+          unless stamped
+            Auth::Logging.log_auth_event(
+              :credential_watermark_stamp_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_reset_password,
+              reason: 'customer not found',
+              security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+            )
+          end
+        rescue StandardError => ex
+          Auth::Logging.log_auth_event(
+            :credential_watermark_stamp_FAILED,
+            level: :error,
+            account_id: account_id,
+            hook: :after_reset_password,
+            error: ex.message,
+            security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+          )
+
+          if defined?(Sentry) && Sentry.initialized?
+            Sentry.capture_exception(ex) do |scope|
+              scope.set_level(:error)
+              scope.set_tags(component: 'auth.session_revocation', hook: 'after_reset_password', finding: 'M-2')
+              scope.set_context('session_revocation', { account_id: account_id })
+            end
+          end
+        end
+
+        # SECURITY (M-2): a password reset MUST invalidate every existing session
+        # for the account — the whole point of a reset is to lock out whoever
+        # currently holds a live session. The user is UNAUTHENTICATED here (they
+        # followed an email link), so there is no current session to preserve:
+        # revoke them ALL.
+        #
+        # Rodauth's own clear_tokens(:reset_password) already ran inside this
+        # transaction and cleared the SQL account_active_session_keys rows (full
+        # mode). But those rows only gate /auth/* routes; the app's real auth gate
+        # is the encrypted Redis session blob (BaseSessionAuthStrategy). Revoke
+        # those blobs here or a pre-reset attacker session survives the reset.
+        # Deliberately NOT wrapped in Onetime::ErrorHandler.safe_execute. That
+        # helper swallows a StandardError into a routine :warn-level "error-handler"
+        # log line and returns nil — so a Redis DELETE that raises here would leave
+        # the pre-reset session blobs ALIVE while the reset still reports success.
+        # That is fail-OPEN for the exact scenario a reset exists to defend against
+        # (a stolen session surviving the credential change). We handle the raise
+        # EXPLICITLY below: distinct error-level event + Sentry re-capture, so a
+        # non-revoking reset pages instead of blending into routine hook logging.
+        #
+        # RESIDUAL RISK, NOW BACKSTOPPED (#3810): revocation here is still
+        # best-effort, but the durable idempotent retry exists — the after_commit
+        # block below enqueues an async FULL sweep (the worker runs the untracked
+        # keyspace scan this in-transaction revoke deliberately skips). A
+        # Redis-raise here now degrades to "the sweep gets it", and the credential
+        # watermark stamped above is the authoritative boundary regardless. The
+        # raise is still handled LOUDLY below.
+        #
+        # Fail SECURE (M-2): revocation MUST still run when external_id is absent.
+        # A bare `next unless account[:external_id]` would silently skip the revoke
+        # and leave live session blobs alive across the reset. Fall back to the
+        # account email — RevokeAllForCustomerExceptCurrent resolves it the same way
+        # (Customer.load_by_extid_or_email). Only when neither identifier is usable
+        # do we skip, and then LOUDLY so a non-revoking reset is visible.
+        custid = Auth::Config::Hooks::Account.resolve_custid(account)
+        if custid.to_s.strip.empty?
+          Auth::Logging.log_auth_event(
+            :sessions_revoke_skipped_no_identity,
+            level: :warn,
+            account_id: account_id,
+          )
+        else
+          # Durable follow-up (#3810): enqueue the async FULL sweep — including
+          # the untracked keyspace scan the in-transaction revoke below skips —
+          # once the reset actually COMMITS. First use of Sequel's after_commit in
+          # this codebase: Rodauth 2.44 runs this hook INSIDE its reset
+          # transaction, and after_commit defers the block until commit (skipped
+          # entirely on rollback; yields immediately when no transaction is open).
+          # Registered BEFORE the inline revoke so the sweep is enqueued even when
+          # that revoke raises — it IS the durable retry the comment above
+          # promises. With jobs disabled the publisher falls back to running the
+          # sweep inline after commit; acceptable, since small keyspaces sweep
+          # fast and the watermark — not the sweep — is the security boundary.
+          db.after_commit do
+            # MANDATORY internal rescue: an exception escaping an after_commit
+            # block propagates out of the ALREADY-COMMITTED transaction and would
+            # 500 a successful password reset. Broker failure degrades to a loud
+            # log + Sentry capture instead.
+            Onetime::Jobs::Publisher.enqueue_session_revocation_sweep(custid)
+
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueued,
+              level: :info,
+              account_id: account_id,
+            )
+          rescue StandardError => ex
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueue_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_reset_password,
+              error: ex.message,
+              security_warning: 'async session sweep not enqueued; untracked pre-reset blobs rely on watermark validation + TTL',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_reset_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
+
+          begin
+            # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
+            # open reset transaction; the guaranteed tracked kill still revokes every
+            # post-sidecar session (see RevokeAllForCustomerExceptCurrent docs).
+            result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
+              custid: custid,
+              scan_untracked: false,
+            ).call
+
+            Auth::Logging.log_auth_event(
+              :sessions_revoked_on_reset,
+              level: :info,
+              account_id: account_id,
+              blobs_deleted: result.blobs_deleted,
+              scan_capped: result.scan_capped,
+            )
+          rescue StandardError => ex
+            # FAIL-OPEN, MADE LOUD: the reset already committed (Rodauth cleared the
+            # SQL reset tokens), but the encrypted Redis session blobs may STILL be
+            # live. Emit a distinct error-level event and re-capture to Sentry so
+            # this alerts rather than hiding in routine error-handler logging.
+            Auth::Logging.log_auth_event(
+              :sessions_revoke_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_reset_password,
+              error: ex.message,
+              security_warning: 'password reset succeeded but pre-reset session blobs may still be live',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_reset_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
+        end
       end
 
       #
@@ -449,22 +635,282 @@ module Auth::Config::Hooks
           email: account[:email],
         )
 
-        # Rodauth is the source of truth for password management. Here, we just
-        # sync metadata to the customer record.
-        Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
-          Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+        # Rodauth is the source of truth for password management. Here, we sync
+        # metadata to the customer record — including the credential watermark
+        # (Customer#last_password_update), the authoritative revocation boundary
+        # session validation and the async sweep below both key on.
+        #
+        # NOT wrapped in ErrorHandler.safe_execute (same reasoning as
+        # after_reset_password above): a silently-missing watermark means the
+        # async sweep runs UNGUARDED and may kill the just-rotated session —
+        # fail-secure, but it must be attributable, not swallowed into routine
+        # :warn logging. The stamp failure never fails the password change.
+        begin
+          stamped = Auth::Operations::UpdatePasswordMetadata.new(account: account).call
+          unless stamped
+            Auth::Logging.log_auth_event(
+              :credential_watermark_stamp_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_change_password,
+              reason: 'customer not found',
+              security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+            )
+          end
+        rescue StandardError => ex
+          Auth::Logging.log_auth_event(
+            :credential_watermark_stamp_FAILED,
+            level: :error,
+            account_id: account_id,
+            hook: :after_change_password,
+            error: ex.message,
+            security_warning: 'credential watermark not stamped; the watermark is the authoritative revocation boundary — the async sweep runs unguarded',
+          )
+
+          if defined?(Sentry) && Sentry.initialized?
+            Sentry.capture_exception(ex) do |scope|
+              scope.set_level(:error)
+              scope.set_tags(component: 'auth.session_revocation', hook: 'after_change_password', finding: 'M-2')
+              scope.set_context('session_revocation', { account_id: account_id })
+            end
+          end
+        end
+
+        # SECURITY (M-2): changing the password must sign out every OTHER session
+        # (the standard "someone may know my password" remediation) while KEEPING
+        # the session the user is changing it from. Unlike reset, change_password
+        # does NOT trigger Rodauth's clear_tokens, so BOTH session stores must be
+        # handled here.
+        #
+        # Resolve the current Rack session id (== the sid tracked in
+        # Customer#active_sessions). If it cannot be determined we fail SECURE:
+        # except_session_id stays nil, revoking ALL sessions incl. the current one,
+        # so the user is simply logged out rather than a stale session surviving.
+        current_sid = begin
+          session.id&.public_id
+        rescue StandardError => ex
+          # Item 6: surface the swallowed error so a failure to resolve the
+          # current sid is visible. We still fall through to nil (fail SECURE:
+          # except_session_id stays nil → the user is logged out of every
+          # session incl. the current one, rather than a stale one surviving).
+          Auth::Logging.log_auth_event(
+            :current_session_id_unresolved,
+            level: :warn,
+            account_id: account_id,
+            error: ex.message,
+          )
+          nil
+        end
+
+        # (1) Rodauth SQL account_active_session_keys (full mode only; the
+        # active_sessions feature is toggleable via AUTH_ACTIVE_SESSIONS_ENABLED and
+        # absent in simple mode, so guard on respond_to?). Keeps the current Rodauth
+        # session key. The user is logged in here, so the helper's except-current
+        # path applies.
+        if respond_to?(:remove_all_active_sessions_except_current)
+          Onetime::ErrorHandler.safe_execute('revoke_rodauth_sessions_on_change', account_id: account_id) do
+            remove_all_active_sessions_except_current
+          end
+        end
+
+        # (2) Encrypted Redis session blobs — the real app auth gate
+        # (BaseSessionAuthStrategy). Keep the current sid; revoke the rest.
+        #
+        # Deliberately NOT wrapped in Onetime::ErrorHandler.safe_execute (same
+        # reasoning as after_reset_password above): that helper would swallow a
+        # Redis-raise into routine :warn error-handler logging and return nil, so a
+        # failed DELETE leaves the OTHER session blobs ALIVE while the change still
+        # reports success — fail-OPEN for the "someone may know my password"
+        # remediation. We handle the raise EXPLICITLY: distinct error-level event +
+        # Sentry re-capture so a non-revoking change alerts.
+        #
+        # RESIDUAL RISK, NOW BACKSTOPPED (#3810): revocation here is still
+        # best-effort, but the durable idempotent retry exists — the after_commit
+        # block below enqueues an async FULL sweep (untracked keyspace scan
+        # included) after the change commits, and the credential watermark
+        # (UpdatePasswordMetadata above) is the authoritative revocation boundary
+        # regardless of what either deletion reaches.
+        #
+        # Fail SECURE (M-2): revocation MUST still run when external_id is absent.
+        # A bare `next unless account[:external_id]` would silently skip the revoke
+        # and leave OTHER live session blobs alive across the change. Fall back to
+        # the account email — RevokeAllForCustomerExceptCurrent resolves it the same
+        # way (Customer.load_by_extid_or_email). Only when neither identifier is
+        # usable do we skip, and then LOUDLY so a non-revoking change is visible.
+        custid = Auth::Config::Hooks::Account.resolve_custid(account)
+        if custid.to_s.strip.empty?
+          Auth::Logging.log_auth_event(
+            :sessions_revoke_skipped_no_identity,
+            level: :warn,
+            account_id: account_id,
+          )
+        else
+          # Durable follow-up (#3810): enqueue the async FULL sweep once the
+          # change actually COMMITS, mirroring after_reset_password above (see the
+          # after_commit rationale there — deferred to commit, skipped on
+          # rollback, registered BEFORE the inline revoke so it enqueues even when
+          # that revoke raises). except_session_id carries the PRE-rotation sid;
+          # the rotated current session is protected by the worker honoring the
+          # credential watermark, not by sid identity — protection that holds
+          # only when the watermark stamp above actually landed. When it did
+          # not, the sweep runs unguarded and may log the user out (fail-secure);
+          # the :credential_watermark_stamp_FAILED event makes that attributable.
+          db.after_commit do
+            # MANDATORY internal rescue: an exception escaping an after_commit
+            # block propagates out of the ALREADY-COMMITTED transaction and would
+            # 500 a successful password change. Broker failure degrades to a loud
+            # log + Sentry capture instead.
+            Onetime::Jobs::Publisher.enqueue_session_revocation_sweep(custid, except_session_id: current_sid)
+
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueued,
+              level: :info,
+              account_id: account_id,
+            )
+          rescue StandardError => ex
+            Auth::Logging.log_auth_event(
+              :sessions_sweep_enqueue_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_change_password,
+              error: ex.message,
+              security_warning: 'async session sweep not enqueued; untracked pre-change blobs rely on watermark validation + TTL',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_change_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
+
+          begin
+            # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
+            # open change transaction; the guaranteed tracked kill still revokes every
+            # OTHER post-sidecar session (see RevokeAllForCustomerExceptCurrent docs).
+            result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
+              custid: custid,
+              except_session_id: current_sid,
+              scan_untracked: false,
+            ).call
+
+            Auth::Logging.log_auth_event(
+              :sessions_revoked_on_change,
+              level: :info,
+              account_id: account_id,
+              blobs_deleted: result.blobs_deleted,
+              kept_current: !current_sid.to_s.empty?,
+              scan_capped: result.scan_capped,
+            )
+          rescue StandardError => ex
+            # FAIL-OPEN, MADE LOUD: the password change already committed, but the
+            # OTHER encrypted Redis session blobs may STILL be live. Emit a distinct
+            # error-level event and re-capture to Sentry so this alerts rather than
+            # hiding in routine error-handler logging.
+            Auth::Logging.log_auth_event(
+              :sessions_revoke_FAILED,
+              level: :error,
+              account_id: account_id,
+              hook: :after_change_password,
+              error: ex.message,
+              security_warning: 'password change succeeded but other session blobs may still be live',
+            )
+
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(ex) do |scope|
+                scope.set_level(:error)
+                scope.set_tags(component: 'auth.session_revocation', hook: 'after_change_password', finding: 'M-2')
+                scope.set_context('session_revocation', { account_id: account_id })
+              end
+            end
+          end
+        end
+
+        # Rotate the session id + re-stamp the kept session (#3810). The two are
+        # ordering-coupled, so both live inside the rotation block:
+        #
+        # ROTATION (session-fixation finding): a credential change is a privilege
+        # boundary, so the sid that existed before the change must not remain
+        # valid after it. Setting :renew makes Rack's commit path call
+        # Onetime::Session#delete_session (which DELETES the old sid's blob) and
+        # re-persist the session data under a fresh sid — the same lever the
+        # logout controller uses. write_session then re-creates the sidecar +
+        # index entry for the NEW sid via TrackMetadata, so only the old sid's
+        # metadata needs tidying here (the tidy_sidecars pattern from
+        # RevokeAllForCustomerExceptCurrent).
+        #
+        # RE-STAMP (watermark survival): the credential watermark stamped above
+        # (UpdatePasswordMetadata) rejects — via the auth-time `<=` check — any
+        # session whose authenticated_at is at or before it, so the kept session
+        # must be stamped to a value STRICTLY GREATER than the watermark or
+        # validation kills it on its very next request. The re-stamp runs ONLY
+        # after :renew has been requested, so a rotation that cannot happen fails
+        # SECURE: the un-rotated pre-change sid keeps its stale authenticated_at
+        # and the watermark (<=) retires it on its next request. Same string key
+        # + clock as SyncSession#populate_session stamps at login.
+        begin
+          if request.env['rack.session.options']
+            request.env['rack.session.options'][:renew] = true
+
+            # One Customer load drives both the watermark read and the stale-sid
+            # index cleanup below. A blank custid (or a miss) yields nil, and the
+            # `&.` chains degrade every use to a no-op — the same fail-secure
+            # outcome the separate `custid` blank-guard gave, without the reload.
+            rotation_customer = Onetime::Customer.load_by_extid_or_email(custid)
+
+            # Strictly postdate the watermark UpdatePasswordMetadata just wrote.
+            # [now, watermark + 1].max is > watermark under any clock relationship;
+            # if the watermark cannot be resolved (0) fall back to now + 1 so the
+            # "strictly greater than the real watermark" invariant still holds.
+            watermark                   = rotation_customer&.last_password_update.to_i
+            session['authenticated_at'] =
+              watermark.positive? ? [Familia.now.to_i, watermark + 1].max : Familia.now.to_i + 1
+
+            unless current_sid.to_s.empty?
+              Onetime::SessionMetadata.load(current_sid)&.destroy!
+              rotation_customer&.active_sessions&.remove(current_sid)
+            end
+          else
+            # rack.session.options absent → Rack's renew lever is unavailable, so
+            # the sid cannot be rotated. Do NOT re-stamp: leaving the pre-change
+            # sid's stale authenticated_at in place lets the watermark (<=) retire
+            # it on its next request (fail SECURE). Log loudly so it is attributable.
+            Auth::Logging.log_auth_event(
+              :session_rotation_FAILED,
+              level: :error,
+              account_id: account_id,
+              security_warning: 'rack.session.options missing; session id not rotated, watermark will retire old sid',
+            )
+          end
+        rescue StandardError => ex
+          # Rotation failure must never fail the password change, but must never
+          # be silent either: without rotation the pre-change sid stays live
+          # (session fixation) until watermark validation or TTL retires it.
+          Auth::Logging.log_auth_event(
+            :session_rotation_FAILED,
+            level: :error,
+            account_id: account_id,
+            error: ex.message,
+            security_warning: 'password change succeeded but the session id was not rotated',
+          )
         end
 
         # Best-effort security notification that the password changed. Never
         # let a delivery problem surface as a password-change failure.
         Onetime::ErrorHandler.safe_execute('password_changed_email', account_id: account_id) do
           recipient = Onetime::Customer.find_by_email(account[:email])
+          # Customers default locale to "" (matches Redis string load), which is
+          # truthy and would slip past a bare `||`. Treat blank as missing.
+          locale    = recipient&.locale
+          locale    = OT.default_locale if locale.to_s.strip.empty?
           Onetime::Jobs::Publisher.enqueue_email(
             :password_changed,
             {
               email_address: account[:email],
               changed_at: Time.now.utc.iso8601,
-              locale: recipient&.locale || OT.default_locale,
+              locale: locale,
             },
             fallback: :async_thread,
           )
@@ -491,6 +937,6 @@ module Auth::Config::Hooks
         end
       end
     end
-    # rubocop:enable Metrics/PerceivedComplexity
+    # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength
   end
 end

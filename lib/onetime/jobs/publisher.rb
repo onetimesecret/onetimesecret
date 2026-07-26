@@ -136,6 +136,22 @@ module Onetime
         def enqueue_favicon_fetch(domain_id, force: false)
           new.enqueue_favicon_fetch(domain_id, force: force)
         end
+
+        # Enqueue a full session-revocation sweep for async processing (#3810)
+        #
+        # Falls back to running the sweep synchronously if jobs are disabled,
+        # so the security sweep still happens without RabbitMQ for dev/testing.
+        #
+        # @param custid [String] Customer identifier (extid/email/objid)
+        # @param except_session_id [String, nil] Bare session id to preserve
+        #   (the caller's current session)
+        # @return [Boolean] true if published to queue or processed synchronously
+        # @raise [StandardError] Only from a LIVE pool failing mid-publish (e.g.
+        #   Bunny::ConnectionClosedError); a never-initialized pool degrades to
+        #   the inline fallback instead of raising
+        def enqueue_session_revocation_sweep(custid, except_session_id: nil)
+          new.enqueue_session_revocation_sweep(custid, except_session_id: except_session_id)
+        end
       end
 
       def initialize
@@ -386,6 +402,80 @@ module Onetime
           domain_id: domain_id,
           message_id: message_id,
           queue: 'domain.favicon.fetch'
+        true
+      end
+
+      # Enqueue a full session-revocation sweep for async processing (#3810)
+      #
+      # The password-change/reset hooks revoke tracked sessions in-transaction
+      # with scan_untracked: false; this sweep is the async follow-up that mops
+      # up untracked (pre-sidecar) blobs, honoring the credential watermark so
+      # sessions authenticated AFTER the change (the rotated current session, a
+      # fresh post-reset login) survive. Falls back to running the operation
+      # synchronously whenever the channel pool is unavailable — whether jobs
+      # are configured OFF or the pool never initialized (SetupRabbitMQ rescues
+      # boot-time broker failures and leaves the pool nil, so a configured-async
+      # deployment silently degrades to inline synchronous execution on the
+      # request thread; that case logs at WARN). Publish errors only propagate
+      # from a LIVE pool failing mid-publish. There is deliberately NO
+      # per-feature config flag — this is a security sweep; jobs.enabled only
+      # selects the transport.
+      #
+      # @param custid [String] Customer identifier (extid/email/objid)
+      # @param except_session_id [String, nil] Bare session id to preserve
+      #   (the caller's current session)
+      # @return [Boolean] true if published to queue or processed synchronously
+      # @raise [StandardError] Only from a LIVE pool failing mid-publish (e.g.
+      #   Bunny::ConnectionClosedError); a never-initialized pool degrades to
+      #   the inline fallback instead of raising
+      def enqueue_session_revocation_sweep(custid, except_session_id: nil)
+        unless jobs_enabled?
+          # jobs_enabled? only checks the runtime pool. Config-enabled with a
+          # nil pool means a boot-time broker outage degraded this deployment
+          # to inline request-thread sweeps — flag that at WARN so it is
+          # distinguishable from a deliberately jobs-off configuration.
+          if OT.conf.dig('jobs', 'enabled')
+            logger.warn 'Jobs configured but RabbitMQ pool unavailable; running session revocation sweep inline (degraded)',
+              custid: custid
+          else
+            logger.info 'Jobs disabled, running session revocation sweep synchronously',
+              custid: custid
+          end
+
+          require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+
+          result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
+            custid: custid,
+            except_session_id: except_session_id,
+            scan_untracked: true,
+            honor_credential_watermark: true,
+          ).call
+
+          # Mirror the worker's outcome logging: a capped scan may have MISSED
+          # an untracked pre-change blob — a session surviving a credential
+          # change must be visible, not silent (the watermark still bounds any
+          # survivor on its next request).
+          outcome = { custid: custid, blobs_deleted: result.blobs_deleted, untracked_deleted: result.untracked_deleted }
+          if result.scan_capped
+            logger.error 'Session revocation sweep hit scan cap; an untracked blob may remain', **outcome
+          else
+            logger.info 'Session revocation sweep complete', **outcome
+          end
+
+          return true
+        end
+
+        message = {
+          custid: custid,
+          except_session_id: except_session_id,
+          requested_at: Time.now.utc.iso8601,
+        }
+
+        message_id = publish('session.revoke.sweep', message)
+        logger.info 'Enqueued session revocation sweep',
+          custid: custid,
+          message_id: message_id,
+          queue: 'session.revoke.sweep'
         true
       end
 

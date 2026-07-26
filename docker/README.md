@@ -71,7 +71,7 @@ root README.
 | `SESSION_SECRET`, `IDENTIFIER_SECRET` | both       | no                                   | derived from `SECRET`      | Only set to override HKDF derivation.                                      |
 | `FEDERATION_SECRET`                 | both         | multi-region only                    | —                          | Must be identical across regions.                                          |
 | `DOMAIN`, `CERTIFICATE_EMAIL`       | full (proxy) | yes for real TLS                     | `localhost` / `admin@example.com` | Let's Encrypt issuance via Caddy.                                    |
-| `RABBITMQ_USER`, `RABBITMQ_PASS`    | full         | change for production                | `guest` / `guest`          | AMQP credentials; also embedded in `RABBITMQ_URL`.                          |
+| `RABBITMQ_USER`, `RABBITMQ_PASS`    | full         | yes (full stack)                     | — (no default)             | AMQP credentials; required — `docker compose up` fails fast if unset. Embedded in `RABBITMQ_URL`. |
 | `JOBS_ENABLED`                      | full         | no                                   | `false`                    | See [Background Jobs](#background-jobs-jobs_enabled).                       |
 | `OTS_IMAGE_TAG`                     | both         | no                                   | pinned release             | See [Image Version](#image-version-ots_image_tag).                          |
 | `RACK_ENV`                          | both         | no                                   | `production`               |                                                                             |
@@ -93,16 +93,19 @@ anything to do.
 ## Image Version (OTS_IMAGE_TAG)
 
 The compose files default `OTS_IMAGE_TAG` to a pinned release — the same
-version the root README's `docker run` quick start uses — rather than
-`latest`, so a fresh `docker compose up` is reproducible. Override it in
-`.env` or inline:
+version the root README's `docker run` quick start uses — so a fresh
+`docker compose up` is reproducible. Because releases before 1.0 can
+introduce breaking changes between minor versions, we recommend pinning a
+specific `vX.Y.Z` tag rather than a moving tag like `latest`. Override it
+in `.env` or inline to run a different release:
 
 ```bash
-OTS_IMAGE_TAG=latest docker compose up
+OTS_IMAGE_TAG=vX.Y.Z docker compose up
 ```
 
 At release time, bump the pinned tag in the root README and in the
-`docker/compose/*.yml` defaults together (grep for the old version).
+`docker/compose/*.yml` defaults together.
+`scripts/check-version-pins.sh` fails CI if they drift (see #3892).
 
 ## Data Persistence
 

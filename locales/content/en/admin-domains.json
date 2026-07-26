@@ -190,5 +190,349 @@
   "web.admin.domains.orgPicker.select": {
     "text": "Select",
     "content_hash": "2a78025d"
+  },
+  "web.admin.domains.list.searchPlaceholder": {
+    "text": "Search by domain name or ID",
+    "content_hash": "aecdd873"
+  },
+  "web.admin.domains.list.stateFilter": {
+    "text": "State",
+    "content_hash": "a3b50c47"
+  },
+  "web.admin.domains.list.emptyFilter": {
+    "text": "No domains match the current filters.",
+    "content_hash": "be4d64ec"
+  },
+  "web.admin.domains.columns.domain": {
+    "text": "Domain",
+    "content_hash": "79fa3361"
+  },
+  "web.admin.domains.columns.organization": {
+    "text": "Organization",
+    "content_hash": "d764d425"
+  },
+  "web.admin.domains.columns.state": {
+    "text": "Verification",
+    "content_hash": "7140f4f1"
+  },
+  "web.admin.domains.columns.tls": {
+    "text": "TLS",
+    "content_hash": "d1c18ec0"
+  },
+  "web.admin.domains.columns.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.domains.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.domains.tls.serving": {
+    "text": "Serving",
+    "content_hash": "f55e53f9"
+  },
+  "web.admin.domains.tls.resolving": {
+    "text": "Resolving",
+    "content_hash": "3287a034"
+  },
+  "web.admin.domains.tls.none": {
+    "text": "Not serving",
+    "content_hash": "da8a5ab9"
+  },
+  "web.admin.domains.fields.publicId": {
+    "text": "Public ID",
+    "content_hash": "3705b64f"
+  },
+  "web.admin.domains.fields.domainId": {
+    "text": "Internal ID",
+    "content_hash": "e468bb47"
+  },
+  "web.admin.domains.fields.organization": {
+    "text": "Organization",
+    "content_hash": "d764d425"
+  },
+  "web.admin.domains.fields.baseDomain": {
+    "text": "Base domain",
+    "content_hash": "33295d5b"
+  },
+  "web.admin.domains.fields.subdomain": {
+    "text": "Subdomain",
+    "content_hash": "ba4520ab"
+  },
+  "web.admin.domains.fields.apex": {
+    "text": "Apex domain",
+    "content_hash": "0a8a42fa"
+  },
+  "web.admin.domains.fields.status": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.admin.domains.fields.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.domains.fields.updated": {
+    "text": "Updated",
+    "content_hash": "3a5ecca1"
+  },
+  "web.admin.domains.fields.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.domains.fields.resolving": {
+    "text": "Resolving",
+    "content_hash": "3287a034"
+  },
+  "web.admin.domains.fields.ready": {
+    "text": "Ready",
+    "content_hash": "5fa7aac5"
+  },
+  "web.admin.domains.detail.openFullPage": {
+    "text": "Open full page",
+    "content_hash": "a467911c"
+  },
+  "web.admin.domains.detail.backToList": {
+    "text": "Back to domains",
+    "content_hash": "22fd50fe"
+  },
+  "web.admin.domains.detail.notFound": {
+    "text": "Domain not found",
+    "content_hash": "7b8fc0e6"
+  },
+  "web.admin.domains.detail.notFoundDescription": {
+    "text": "This domain does not exist, or it has already been removed.",
+    "content_hash": "e0f0b987"
+  },
+  "web.admin.domains.detail.loadError": {
+    "text": "Could not load this domain.",
+    "content_hash": "39e9c657"
+  },
+  "web.admin.domains.detail.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.domains.detail.never": {
+    "text": "Never",
+    "content_hash": "6300ef80"
+  },
+  "web.admin.domains.detail.none": {
+    "text": "None",
+    "content_hash": "dc937b59"
+  },
+  "web.admin.domains.detail.yes": {
+    "text": "Yes",
+    "content_hash": "85a39ab3"
+  },
+  "web.admin.domains.detail.no": {
+    "text": "No",
+    "content_hash": "1ea442a1"
+  },
+  "web.admin.domains.detail.sections.overview": {
+    "text": "Overview",
+    "content_hash": "d4b1ea57"
+  },
+  "web.admin.domains.detail.sections.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.domains.detail.sections.organization": {
+    "text": "Owning organization",
+    "content_hash": "39ad6d9c"
+  },
+  "web.admin.domains.detail.sections.dns": {
+    "text": "DNS",
+    "content_hash": "020965a2"
+  },
+  "web.admin.domains.detail.sections.diagnostics": {
+    "text": "Diagnostics",
+    "content_hash": "268f14bb"
+  },
+  "web.admin.domains.detail.sections.operations": {
+    "text": "Ownership operations",
+    "content_hash": "eb9a8cbc"
+  },
+  "web.admin.domains.detail.sections.operationsHint": {
+    "text": "Each operation previews first. Nothing is written until you confirm the apply step.",
+    "content_hash": "f09bf7bd"
+  },
+  "web.admin.domains.detail.organization.open": {
+    "text": "Open organization",
+    "content_hash": "54a43621"
+  },
+  "web.admin.domains.detail.organization.unknown": {
+    "text": "The owning organization is not included in this response. Open this domain from the domains list to see it.",
+    "content_hash": "bb5bdc9c"
+  },
+  "web.admin.domains.actions.preview": {
+    "text": "Preview",
+    "content_hash": "324b134f"
+  },
+  "web.admin.domains.actions.probe.button": {
+    "text": "Probe",
+    "content_hash": "3bd51ab9"
+  },
+  "web.admin.domains.probe.healthLabel": {
+    "text": "Health",
+    "content_hash": "55898449"
+  },
+  "web.admin.domains.probe.certInvalid": {
+    "text": "Certificate not usable",
+    "content_hash": "5535f4d4"
+  },
+  "web.admin.domains.probe.noCertificate": {
+    "text": "No certificate was returned — the connection failed before TLS.",
+    "content_hash": "8ffd63be"
+  },
+  "web.admin.domains.probe.fields.httpStatus": {
+    "text": "HTTP status",
+    "content_hash": "0f7cf91f"
+  },
+  "web.admin.domains.probe.fields.httpError": {
+    "text": "HTTP error",
+    "content_hash": "5c6896d4"
+  },
+  "web.admin.domains.probe.fields.sslError": {
+    "text": "TLS error",
+    "content_hash": "7b827515"
+  },
+  "web.admin.domains.probe.fields.issuer": {
+    "text": "Certificate issuer",
+    "content_hash": "2912559a"
+  },
+  "web.admin.domains.probe.fields.subject": {
+    "text": "Certificate subject",
+    "content_hash": "d7816b16"
+  },
+  "web.admin.domains.probe.fields.notAfter": {
+    "text": "Certificate expires",
+    "content_hash": "1e73119d"
+  },
+  "web.admin.domains.probe.fields.expiresIn": {
+    "text": "{date} ({days} days)",
+    "content_hash": "a71a6e81"
+  },
+  "web.admin.domains.actions.repair.title": {
+    "text": "Repair organization link",
+    "content_hash": "82b40352"
+  },
+  "web.admin.domains.actions.repair.description": {
+    "text": "Find and fix broken links between this domain and its organization. Preview first to see what would change.",
+    "content_hash": "531ed287"
+  },
+  "web.admin.domains.actions.repair.orgIdLabel": {
+    "text": "Organization ID (orphaned domains only)",
+    "content_hash": "0d3010eb"
+  },
+  "web.admin.domains.actions.repair.orgIdPlaceholder": {
+    "text": "Leave blank unless the domain has no owner",
+    "content_hash": "118b7132"
+  },
+  "web.admin.domains.actions.repair.statusLabel": {
+    "text": "Status:",
+    "content_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.repair.noIssues": {
+    "text": "No problems found — nothing to repair.",
+    "content_hash": "17735887"
+  },
+  "web.admin.domains.actions.repair.button": {
+    "text": "Apply repair",
+    "content_hash": "4d0ab2d4"
+  },
+  "web.admin.domains.actions.repair.confirmTitle": {
+    "text": "Apply repair?",
+    "content_hash": "ef0ffae5"
+  },
+  "web.admin.domains.actions.repair.confirmDescription": {
+    "text": "This rewrites the organization link for {domain}. Retype the domain's public ID to continue.",
+    "content_hash": "a9f2702f"
+  },
+  "web.admin.domains.actions.repair.success": {
+    "text": "Repair applied.",
+    "content_hash": "850bd784"
+  },
+  "web.admin.domains.actions.transfer.title": {
+    "text": "Transfer to another organization",
+    "content_hash": "1b0b0655"
+  },
+  "web.admin.domains.actions.transfer.description": {
+    "text": "Move this domain to a different organization. Preview first to confirm both sides of the move.",
+    "content_hash": "457e852d"
+  },
+  "web.admin.domains.actions.transfer.toOrgLabel": {
+    "text": "Destination organization ID",
+    "content_hash": "1a3f05c4"
+  },
+  "web.admin.domains.actions.transfer.fromOrgLabel": {
+    "text": "Expected current organization ID (optional)",
+    "content_hash": "f6e75729"
+  },
+  "web.admin.domains.actions.transfer.fromOrgPlaceholder": {
+    "text": "Assert the current owner before moving",
+    "content_hash": "1ac6c59b"
+  },
+  "web.admin.domains.actions.transfer.from": {
+    "text": "From",
+    "content_hash": "21819769"
+  },
+  "web.admin.domains.actions.transfer.to": {
+    "text": "To",
+    "content_hash": "f4b06ef6"
+  },
+  "web.admin.domains.actions.transfer.orphaned": {
+    "text": "No organization (orphaned)",
+    "content_hash": "6f4c745c"
+  },
+  "web.admin.domains.actions.transfer.button": {
+    "text": "Apply transfer",
+    "content_hash": "fb546c5c"
+  },
+  "web.admin.domains.actions.transfer.confirmTitle": {
+    "text": "Transfer domain?",
+    "content_hash": "801eb986"
+  },
+  "web.admin.domains.actions.transfer.confirmDescription": {
+    "text": "This moves {domain} to organization {org}. Retype the domain's public ID to continue.",
+    "content_hash": "52c8808d"
+  },
+  "web.admin.domains.actions.transfer.success": {
+    "text": "Domain transferred.",
+    "content_hash": "91e681ae"
+  },
+  "web.admin.domains.actions.remove.button": {
+    "text": "Remove domain",
+    "content_hash": "5ce43507"
+  },
+  "web.admin.domains.actions.remove.previewButton": {
+    "text": "Preview removal",
+    "content_hash": "6b81bd92"
+  },
+  "web.admin.domains.actions.remove.previewStatus": {
+    "text": "Status:",
+    "content_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.remove.previewOrg": {
+    "text": "Organization:",
+    "content_hash": "5300e286"
+  },
+  "web.admin.domains.actions.remove.reassertsSurvivor": {
+    "text": "Another record claims the same domain name and will take over the lookup index.",
+    "content_hash": "902838f4"
+  },
+  "web.admin.domains.actions.remove.confirmTitle": {
+    "text": "Remove domain?",
+    "content_hash": "716dfac9"
+  },
+  "web.admin.domains.actions.remove.confirmDescription": {
+    "text": "This permanently deletes {domain} and its branding, DNS and configuration records. It cannot be undone. Retype the domain's public ID to continue.",
+    "content_hash": "d0b67b47"
+  },
+  "web.admin.domains.actions.remove.success": {
+    "text": "Domain removed.",
+    "content_hash": "2ccaa6d3"
+  },
+  "web.admin.domains.actions.remove.notApplied": {
+    "text": "The server previewed the removal instead of applying it — the domain was NOT removed. Retry, and report this if it persists.",
+    "content_hash": "dc6d70ae"
   }
 }

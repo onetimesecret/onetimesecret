@@ -7,10 +7,10 @@
 # ConfigureFamilia.build_encryption_keys is the pure mapping behind Familia's
 # encryption_keys/current_key_version configuration:
 #
-#   - no SECRET_PREVIOUS: byte-identical to the pre-C10 config (v1 legacy
-#     SHA-256 + v2 HKDF from the current SECRET, writes tagged :v2).
-#   - SECRET_PREVIOUS set (oldest first): :v1/:v2 map to the OLDEST previous
-#     secret (every v1/v2 envelope predates the first rotation), every
+#   - no SECRET_PREVIOUS: v2 HKDF from the current SECRET, writes tagged :v2.
+#     (The legacy v1 unsalted-SHA-256 fallback was retired 2026-07-18.)
+#   - SECRET_PREVIOUS set (oldest first): :v2 maps to the OLDEST previous
+#     secret (every v2 envelope predates the first rotation), every
 #     previous secret registers decrypt-only under its content-addressed tag,
 #     and the current SECRET's content tag becomes the tag for new writes.
 #
@@ -29,12 +29,16 @@ CF = Onetime::Initializers::ConfigureFamilia
 @secret_mid = 'middle-generation-secret-from-the-first-rotation'
 @secret_new = 'current-root-secret-after-the-latest-rotation'
 
-## No SECRET_PREVIOUS: byte-identical legacy mapping, writes tagged :v2
+## No SECRET_PREVIOUS: v2-only mapping (v1 retired 2026-07-18), writes tagged :v2
 keys, current = CF.build_encryption_keys(@secret_new, nil)
-expected_v1   = Base64.strict_encode64(Digest::SHA256.digest(@secret_new))
 expected_v2   = Onetime::KeyDerivation.derive_base64(@secret_new, :familia_enc)
-[keys, current] == [{ v1: expected_v1, v2: expected_v2 }, :v2]
+[keys, current] == [{ v2: expected_v2 }, :v2]
 #=> true
+
+## v1 (legacy unsalted SHA-256) is no longer registered in any mapping
+[CF.build_encryption_keys(@secret_new, nil).first.key?(:v1),
+ CF.build_encryption_keys(@secret_new, @secret_old).first.key?(:v1)]
+#=> [false, false]
 
 ## Blank/whitespace SECRET_PREVIOUS is treated as unset (compose files inject
 ## empty strings for unset outer variables)
@@ -49,16 +53,15 @@ tags = [@secret_old, @secret_new].map { |s| CF.content_tag(s) }
  tags.all? { |t| t.to_s.match?(/\Ar[0-9a-f]{8}\z/) }]
 #=> [true, true, true]
 
-## Single rotation: v1/v2 map to the PREVIOUS secret's keys, current writes
+## Single rotation: v2 maps to the PREVIOUS secret's key, current writes
 ## move to the current secret's content tag
 keys, current = CF.build_encryption_keys(@secret_new, @secret_old)
-[keys[:v1] == Base64.strict_encode64(Digest::SHA256.digest(@secret_old)),
- keys[:v2] == Onetime::KeyDerivation.derive_base64(@secret_old, :familia_enc),
+[keys[:v2] == Onetime::KeyDerivation.derive_base64(@secret_old, :familia_enc),
  current == CF.content_tag(@secret_new),
  keys[current] == Onetime::KeyDerivation.derive_base64(@secret_new, :familia_enc)]
-#=> [true, true, true, true]
+#=> [true, true, true]
 
-## Multi-rotation chain (oldest first): v1/v2 stay with the OLDEST secret and
+## Multi-rotation chain (oldest first): v2 stays with the OLDEST secret and
 ## every generation is registered under its own content tag
 keys, current = CF.build_encryption_keys(@secret_new, "#{@secret_old}, #{@secret_mid}")
 [keys[:v2] == Onetime::KeyDerivation.derive_base64(@secret_old, :familia_enc),
@@ -66,7 +69,7 @@ keys, current = CF.build_encryption_keys(@secret_new, "#{@secret_old}, #{@secret
  keys.key?(CF.content_tag(@secret_mid)),
  current == CF.content_tag(@secret_new),
  keys.keys.size]
-#=> [true, true, true, true, 5]
+#=> [true, true, true, true, 4]
 
 ## CHECKPOINT (design §3.3): an envelope written under the pre-rotation
 ## config (:v2 from the live test SECRET) still decrypts after Familia is

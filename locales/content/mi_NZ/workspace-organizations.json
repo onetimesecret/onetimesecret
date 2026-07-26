@@ -467,6 +467,10 @@
     "text": "Kua Pau",
     "source_hash": "424a2551"
   },
+  "web.organizations.invitations.status.revoked": {
+    "text": "Kua Whakakorea",
+    "source_hash": "f6f738d0"
+  },
   "web.organizations.invitations.roles.member": {
     "text": "Mema Kapa",
     "source_hash": "d4e55dfa"
