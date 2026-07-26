@@ -344,6 +344,25 @@ RSpec.describe Core::Views::ConfigSerializer do
           })
         end
       end
+
+      context 'when platform SSO is enabled but AUTH_ENABLED is off' do
+        before do
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+          ])
+          # Master switch off: build_platform_sso_config returns the disabled
+          # shape before consulting env-var provider config.
+          allow(OT).to receive(:conf).and_return(
+            { 'site' => { 'authentication' => { 'enabled' => false } } }
+          )
+        end
+
+        it 'returns disabled SSO with empty providers' do
+          result = described_class.build_sso_config(base_view_vars)
+          expect(result).to eq({ 'enabled' => false, 'providers' => [] })
+        end
+      end
     end
 
     describe 'on custom domain with CustomDomain::SsoConfig' do
@@ -539,6 +558,25 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['providers']).to eq([])
           end
         end
+
+        context 'with platform fallback allowed but AUTH_ENABLED off' do
+          before do
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'google', 'display_name' => 'Google' },
+            ])
+            allow(OT).to receive(:conf).and_return(
+              { 'site' => { 'authentication' => { 'enabled' => false } } }
+            )
+          end
+
+          it 'returns disabled SSO instead of platform fallback' do
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result).to eq({ 'enabled' => false, 'providers' => [] })
+          end
+        end
       end
     end
 
@@ -602,6 +640,153 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(result['enabled']).to be true
           expect(result['providers'][0]['display_name']).to eq('Fallback SSO')
         end
+      end
+    end
+  end
+
+  describe '.sso_available?' do
+    let(:custom_domain_obj) do
+      instance_double(Onetime::CustomDomain, identifier: domain_id)
+    end
+
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with(custom_display_domain)
+        .and_return(custom_domain_obj)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_providers).and_return([
+        { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+      ])
+    end
+
+    context 'when AUTH_ENABLED is on' do
+      it 'returns true via platform fallback on a custom domain' do
+        expect(described_class.sso_available?(custom_domain_view_vars)).to be true
+      end
+    end
+
+    context 'when AUTH_ENABLED is off' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => false } } }
+        )
+      end
+
+      it 'returns false on a custom domain with fallback allowed' do
+        expect(described_class.sso_available?(custom_domain_view_vars)).to be false
+      end
+
+      it 'returns false on the canonical domain' do
+        expect(described_class.sso_available?(base_view_vars)).to be false
+      end
+    end
+  end
+
+  describe '.resolve_signin' do
+    let(:custom_domain_obj) do
+      instance_double(Onetime::CustomDomain, identifier: domain_id)
+    end
+
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with(custom_display_domain)
+        .and_return(custom_domain_obj)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_providers).and_return([
+        { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+      ])
+    end
+
+    context 'when AUTH_ENABLED is on' do
+      it 'keeps signin available via platform SSO fallback' do
+        expect(described_class.resolve_signin(custom_domain_view_vars)).to be true
+      end
+    end
+
+    context 'when AUTH_ENABLED is off' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => false } } }
+        )
+      end
+
+      it 'no longer reports signin available via SSO' do
+        expect(described_class.resolve_signin(custom_domain_view_vars)).to be false
+      end
+    end
+  end
+
+  describe '.resolve_restrict_to' do
+    let(:custom_domain_obj) do
+      instance_double(Onetime::CustomDomain, identifier: domain_id)
+    end
+
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with(custom_display_domain)
+        .and_return(custom_domain_obj)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_providers).and_return([
+        { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+      ])
+    end
+
+    context 'when AUTH_ENABLED is on' do
+      it "pins restrict_to to 'sso' on a custom domain with SSO available" do
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
+      end
+    end
+
+    context 'when AUTH_ENABLED is off' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => false } } }
+        )
+      end
+
+      it "does not pin restrict_to to 'sso'" do
+        result = described_class.resolve_restrict_to(custom_domain_view_vars)
+        expect(result).to be_nil
       end
     end
   end
