@@ -112,7 +112,10 @@ RSpec.describe 'Rodauth hook ownership (static guard)' do
     # the "Non-owners in this directory" section of config/hooks.rb.
     #   password.rb — intentionally empty tombstone (M-2 consolidation into account.rb)
     #   billing.rb  — auth_class_eval helper methods only, hooks live in account.rb
-    allowed_hookless_files = %w[password.rb billing.rb]
+    #   oauth.rb    — registers get_oidc_param, a keyed value method the scanner
+    #                 (correctly) doesn't count as a before/after hook; its
+    #                 only_json? exemption is owned by config/json_mode.rb (#3104)
+    allowed_hookless_files = %w[password.rb billing.rb oauth.rb]
 
     it 'permits only the documented non-owner files to define zero hooks' do
       hooks_files = Dir.glob(File.join(config_dir, 'hooks', '*.rb'))

@@ -245,7 +245,7 @@ RSpec.describe 'Auth module structure smoke tests' do
   describe 'Auth::Config::Overrides modules' do
     before(:all) do
       # Load overrides index (method overrides, distinct from hooks)
-      require_relative '../../config/overrides'
+      require_relative '../../../../config/overrides'
     end
 
     describe 'ErrorHandling overrides module' do

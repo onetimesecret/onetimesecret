@@ -44,6 +44,9 @@
 #   password.rb         intentionally EMPTY — password-lifecycle hooks live in
 #                       account.rb (M-2 consolidation; see its module comment)
 #   billing.rb          helper methods only (auth_class_eval), defines NO hooks
+#   oauth.rb            registers get_oidc_param (a keyed value method, not a
+#                       before/after hook); its only_json? exemption is owned
+#                       by config/json_mode.rb (#3104)
 #
 # Method overrides (a different mechanism — they replace Rodauth methods, not
 # register hooks) live in config/overrides/: error_handling.rb defines the
