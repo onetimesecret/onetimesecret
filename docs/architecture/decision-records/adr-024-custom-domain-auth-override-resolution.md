@@ -113,6 +113,17 @@ Behavior is defined once and implemented twice: shared frontend module `useAuthO
 - The GET contract change (404 → 200/`record: null`) is visible to any API consumer; the workspace UI is the only known consumer and handles both forms.
 - `enabled` in the PUT payload is now client-supplied constant `true`; the field stays in the wire format for auditability and for the (colonel/support) ability to unpin without deleting.
 
+### Custom-domain default-OFF is implemented twice — intentionally divergent (#3672)
+
+The custom-domain fail-closed posture (sign-in/sign-up unavailable on a custom domain unless an *enabled* per-domain config exists; the global flags remain a kill-switch ceiling only) has **two implementations** whose SSO carve-outs deliberately differ:
+
+1. **Model resolver** — `SigninConfig.resolve_signin_enabled_for_custom_domain` (and its signup twin, which has no carve-out: SSO signup flows through the signin path). Consumed by the branded-masthead link gate (`Core::Views::DomainSerializer#effective_signin_enabled?`), the runtime POST gates (`Core::Controllers::Base`), and the settings API `details`. Its SSO carve-out (via the `domain_id:` kwarg) is **tenant-only**: `SsoConfig.tenant_sso_available_for?`. A branded front door advertises only what the domain owner opted into; the operator's platform-SSO fallback is deliberately out of scope, so a platform-fallback-only domain gets no masthead Sign In link.
+2. **`ConfigSerializer#resolve_signin`** — the /signin **page** display gate (`apps/web/core/views/serializers/config_serializer.rb`). It implements the same default-OFF posture inline, but its carve-out uses `sso_available?`, which **includes platform-SSO fallback** via `build_sso_config`. The page must stay reachable and render platform provider buttons when the operator allows fallback for tenants — even though the masthead shows no link for that same domain.
+
+The divergence is confined to *which SSO sources the carve-out consults*; the fail-closed default and the kill-switch ceiling are identical in both. Maintenance rule: **change one, check the other** — any change to the default-OFF condition or a carve-out in either implementation must be verified against (and kept in lockstep with) the other, since only the model resolver is covered by invariant 4's "one resolver" discipline.
+
+**Master switch gates the tenant carve-out** (#3901 follow-up): `SsoConfig.tenant_sso_available_for?` consults `SigninConfig.global_auth_enabled` (`AUTH_ENABLED` alone, strict boolean) before the credential checks. With the master switch off, sessionauth is never registered and every session reads as unauthenticated, so an SSO sign-in could only mint a session the app ignores — the carve-out must not advertise it. Because the predicate is shared, all tenant-SSO gates go dark together: the masthead link (impl 1), the /signin page's tenant source (impl 2 via `resolve_tenant_sso_config`), the settings API `details`, and the omniauth runtime hook (`apps/web/auth/config/hooks/omniauth_tenant.rb`), which treats the state like an unconfigured tenant (reject, or platform fallback per policy). `AUTH_SIGNIN` remains deliberately unconsulted by the carve-out — it retires only the password/email path. The operator's **platform-SSO fallback is not gated** by the master switch here; the Rodauth `/auth` surface's own relationship to `AUTH_ENABLED` is a separate, pre-existing concern tracked in #3911.
+
 ## References — source of truth is this ADR; these implement it
 
 Backend:
@@ -130,5 +141,6 @@ Frontend:
 
 Tests:
 - `try/unit/models/custom_domain_auth_killswitch_try.rb` — resolver truth table (kill switch, narrowing, inherit)
+- `try/unit/models/custom_domain_auth_default_off_try.rb` — custom-domain default-OFF resolvers + tenant-SSO carve-out (#3672)
 - `apps/api/domains/spec/integration/simple/domain_signup_config_spec.rb` — settings API contract
 - `src/tests/composables/useSigninConfig.spec.ts`, `src/tests/apps/workspace/components/domains/DomainSigninConfigForm.spec.ts` — seeding + materialization

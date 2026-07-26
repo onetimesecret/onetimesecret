@@ -99,7 +99,7 @@ module Onetime
         raise ArgumentError, 'SESSION_SECRET is not set and no site secret available' unless site_secret.is_a?(String) && !site_secret.empty?
 
         options[:secret] = site_secret
-        OT.ld '[Session] SESSION_SECRET not set, using site secret for session signing'
+        logger.debug '[Session] SESSION_SECRET not set, using site secret for session signing'
 
       end
 
@@ -268,8 +268,8 @@ module Onetime
         Onetime::Session.secure_cookie_warned_at = now
       end
 
-      OT.lw '[Session] cookie NOT written: secure cookie over a request the app sees as non-SSL. Behind a TLS-terminating proxy, forward X-Forwarded-Proto: https or set ASSUME_HTTPS=true.',
-        **scheme_evidence(request)
+      logger.warn '[Session] cookie NOT written: secure cookie over a request the app sees as non-SSL. Behind a TLS-terminating proxy, forward X-Forwarded-Proto: https or set ASSUME_HTTPS=true.',
+        scheme_evidence(request)
     end
 
     # Snapshot of the scheme-detection signals Rack consults in Request#scheme.
@@ -518,8 +518,8 @@ module Onetime
         # The merged field list is stashed in the env so write_session can
         # translate an app-side `sess.delete(field)` into a sidecar DEL.
         begin
-          merged       = Onetime::SessionSidecar.merge(sid_string, session_data, dbclient: @dbclient, codec: @codec)
-          session_data = merged[:data]
+          merged                                        = Onetime::SessionSidecar.merge(sid_string, session_data, dbclient: @dbclient, codec: @codec)
+          session_data                                  = merged[:data]
           request.env['onetime.session.sidecar_merged'] = merged[:fields] if request.respond_to?(:env)
         rescue StandardError => ex
           session_logger.error 'Sidecar merge failed (skipped)',
@@ -619,8 +619,12 @@ module Onetime
         # ceiling as `authoritative:`). This also covers the FIRST commit, where
         # the blob key does not exist yet so no ceiling could be read off it.
         session_data  = Onetime::SessionSidecar.commit(
-          sid_string, session_data, merged: merged_fields, dbclient: @dbclient, codec: @codec,
-          ceiling: @expire_after
+          sid_string,
+          session_data,
+          merged: merged_fields,
+          dbclient: @dbclient,
+          codec: @codec,
+          ceiling: @expire_after,
         )
       rescue StandardError => ex
         session_logger.error 'Sidecar commit failed (fields stay in blob)',
