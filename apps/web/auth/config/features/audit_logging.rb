@@ -41,7 +41,12 @@ module Auth::Config::Features
       #
       # rubocop:disable Lint/NestedMethodDefinition
       auth.auth_class_eval do
-        alias_method :_original_add_audit_log, :add_audit_log
+        # Alias exactly once: on a second configure pass the alias would point
+        # at the override below, making it call itself — infinite recursion on
+        # the first logout.
+        unless method_defined?(:_original_add_audit_log) || private_method_defined?(:_original_add_audit_log)
+          alias_method :_original_add_audit_log, :add_audit_log
+        end
 
         def add_audit_log(account_id, action)
           if action == :logout && account_id && db[:accounts].where(id: account_id).empty?
