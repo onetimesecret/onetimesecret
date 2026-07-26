@@ -53,8 +53,10 @@ export const colonelDomainRemoveRecordSchema = z.object({
 });
 
 /**
- * Remove outcome. `status` is the op's symbol as a string (planned / removed /
- * not_found); `dry_run` echoes whether this was a PREVIEW — the endpoint
+ * Remove outcome. `status` is the op's symbol as a string: Ops::Domains::Remove
+ * emits `planned` on every dry run and `removed` only on an apply, and a missing
+ * domain 404s before the op runs. `dry_run` echoes whether this was a PREVIEW —
+ * the endpoint
  * defaults it to TRUE, so a plain DELETE never destroys anything.
  * `reasserts_survivor` is true when tearing this record down hands the
  * display_domain index back to another CustomDomain row.

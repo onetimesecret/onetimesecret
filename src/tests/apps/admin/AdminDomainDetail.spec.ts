@@ -349,9 +349,41 @@ describe('AdminDomainDetail', () => {
       expect(plan.text()).toContain('Acme');
     });
 
-    it('gates the apply on the retyped public id, then deletes and returns to the list', async () => {
-      mockApi.delete.mockResolvedValue({ data: removeAck(false) });
+    // The apply must not be reachable cold: the typed-confirm dialog would ask
+    // for the extid without ever naming the org that loses the domain.
+    it('offers no apply button until a preview says planned', async () => {
       wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="remove-button"]').exists()).toBe(false);
+      expect(mockApi.delete).not.toHaveBeenCalled();
+    });
+
+    // A dry run always answers `planned`; `removed` here means the ack drifted
+    // from the request, which is not a licence to offer the apply.
+    it('keeps the apply button hidden when the preview is not planned', async () => {
+      const drifted = removeAck(true);
+      drifted.details.status = 'removed';
+      mockApi.delete.mockResolvedValue({ data: drifted });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="remove-plan"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="remove-button"]').exists()).toBe(false);
+    });
+
+    it('gates the apply on the retyped public id, then deletes and returns to the list', async () => {
+      mockApi.delete.mockImplementation((url: string) =>
+        Promise.resolve({ data: removeAck(url.includes('dry_run=true')) })
+      );
+      wrapper = mountView();
+      await flushPromises();
+
+      // Preview first — the apply button only exists behind a `planned` plan.
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
       await flushPromises();
 
       await wrapper.find('[data-testid="remove-button"]').trigger('click');

@@ -262,6 +262,20 @@
     await runRemovePreview();
   }
 
+  /**
+   * The apply button exists ONLY behind a preview that says `planned`, matching
+   * repair and transfer. Without this gate the typed-confirm dialog opens cold:
+   * the operator retypes the extid having never been told which org loses the
+   * domain or whether a survivor row reasserts the display_domain index. The
+   * server guard (`dry_run !== false`) keeps the apply honest, but honesty
+   * about WHAT was destroyed is not the same as showing it first.
+   *
+   * Ops::Domains::Remove emits `planned` on every dry run and `removed` only on
+   * an apply, so a `removed` status here means the ack drifted from the request
+   * — not something to hand an apply button to.
+   */
+  const removeApplicable = computed(() => removePlan.value?.status === 'planned');
+
   // ---- The single guarded-action dialog --------------------------------------
 
   type ActionKey = 'verify' | 'repair' | 'transfer' | 'remove';
@@ -683,6 +697,7 @@
                 </p>
               </div>
               <button
+                v-if="removeApplicable"
                 type="button"
                 data-testid="remove-button"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
