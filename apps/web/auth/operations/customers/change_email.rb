@@ -7,6 +7,7 @@
 require 'onetime/models/admin_audit_event'
 require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
+require 'auth/account_statuses'
 require 'auth/operations/customers/set_verification'
 
 module Auth
@@ -133,13 +134,6 @@ module Auth
         include Onetime::LoggerMethods
 
         AUDIT_VERB = 'customer.change_email'
-
-        # Rodauth account statuses (migrations/001_initial.rb:15-19). Only 1 and 2
-        # are covered by the partial unique index on accounts.email.
-        STATUS_UNVERIFIED = 1
-        STATUS_VERIFIED   = 2
-        STATUS_CLOSED     = 3
-        INDEXED_STATUSES  = [STATUS_UNVERIFIED, STATUS_VERIFIED].freeze
 
         # @!attribute status [r]
         #   @return [Symbol] one of:
@@ -329,7 +323,7 @@ module Auth
 
           # A live holder is a hard collision (the partial unique index would
           # reject the UPDATE anyway).
-          return :email_taken if others.any? { |row| INDEXED_STATUSES.include?(row[:status_id]) }
+          return :email_taken if others.any? { |row| AccountStatuses::LIVE.include?(row[:status_id]) }
 
           # Only CLOSED holders remain: invisible to the unique index AND to
           # Customer.email_exists?, so the write WOULD succeed and leave two rows
@@ -681,8 +675,8 @@ module Auth
 
           rows = db.transaction do
             db[:accounts]
-              .where(id: account_id, status_id: STATUS_VERIFIED)
-              .update(status_id: STATUS_UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .where(id: account_id, status_id: AccountStatuses::VERIFIED)
+              .update(status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
           end
           rows.to_i.positive? ? :cleared : :unchanged
         rescue StandardError => ex
@@ -740,7 +734,7 @@ module Auth
           return false unless account_id
 
           row = db[:accounts].where(id: account_id).select(:status_id).first
-          !row.nil? && row[:status_id] == STATUS_VERIFIED
+          !row.nil? && row[:status_id] == AccountStatuses::VERIFIED
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] verification status probe failed',
             extid: @customer.extid,

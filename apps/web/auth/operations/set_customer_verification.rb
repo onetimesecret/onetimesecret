@@ -40,6 +40,8 @@
 #       Detectable and fixable via `bin/ots customers sync-auth-accounts`.
 #
 
+require 'auth/account_statuses'
+
 module Auth
   module Operations
     class SetCustomerVerification
@@ -48,12 +50,6 @@ module Auth
       class NoAuthDatabase < StandardError; end
       class AccountNotFound < StandardError; end
       class AccountClosed < StandardError; end
-
-      # Rodauth account statuses (mirrors change_email.rb and the
-      # account_statuses reference table in migrations/001_initial.rb).
-      STATUS_UNVERIFIED = 1
-      STATUS_VERIFIED   = 2
-      LIVE_STATUS_IDS   = [STATUS_UNVERIFIED, STATUS_VERIFIED].freeze
 
       # @param customer    [Onetime::Customer] target (caller ensures non-nil,
       #                    non-anonymous)
@@ -116,8 +112,8 @@ module Auth
           raise AccountNotFound, "No Rodauth account for customer #{@customer.extid}" unless scope
 
           scope
-            .where(status_id: LIVE_STATUS_IDS)
-            .update(status_id: @verified ? STATUS_VERIFIED : STATUS_UNVERIFIED,
+            .where(status_id: AccountStatuses::LIVE)
+            .update(status_id: @verified ? AccountStatuses::VERIFIED : AccountStatuses::UNVERIFIED,
               updated_at: Sequel::CURRENT_TIMESTAMP,
             )
         end
@@ -126,7 +122,8 @@ module Auth
         # A row exists but none of it is live: the account is Closed. Refuse —
         # verification only ever moves between Unverified and Verified;
         # resurrecting a Closed account is a different, deliberate operation.
-        raise AccountClosed, "Rodauth account for customer #{@customer.extid} is closed"
+        raise AccountClosed,
+          "Cannot change verification for customer #{@customer.extid}: Rodauth account is closed"
       end
 
       # Locate this customer's accounts row, keyed on external_id — never bare
@@ -138,7 +135,10 @@ module Auth
       #
       # Rows predating the external_id backfill fall back to email, restricted
       # to unlinked rows (external_id IS NULL) — a linked row holding this
-      # address belongs to a different customer.
+      # address belongs to a different customer. The fallback deliberately does
+      # NOT backfill external_id on the row it claims: linking rows to
+      # customers is reconciliation's job (`bin/ots customers
+      # sync-auth-accounts`), not a side effect of a verification toggle.
       #
       # @return [Sequel::Dataset, nil] scope over the customer's row(s), or
       #   nil when no row exists at all
