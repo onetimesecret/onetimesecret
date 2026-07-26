@@ -73,7 +73,10 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
       dry_run: false,
       auth_row_updated: %i[success partial verification_not_reset].include?(status),
       orgs_reindexed: 0,
-      sessions_revoked: %i[success verification_not_reset].include?(status),
+      # Mirrors the op: the landed :partial runs the same follow-ups as
+      # :success, so it reports the revocation too.
+      sessions_revoked: %i[success verification_not_reset].include?(status) ||
+        (status == :partial && warnings.include?(:secondary_writes_incomplete)),
       verification_reset: false,
       warnings: warnings,
     )
@@ -129,6 +132,7 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
 
       expect(error).to be_a(OT::FormError)
       expect(error.message).to eq('Email change could not be completed')
+      expect(error.error_type).to eq('system_error')
       expect(session).to be_empty
     end
 
@@ -146,6 +150,7 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
 
       expect(error).to be_a(OT::FormError)
       expect(error.message).to eq('Email change could not be completed')
+      expect(error.error_type).to eq('system_error')
       expect(session).to be_empty
     end
   end
