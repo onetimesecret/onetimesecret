@@ -140,6 +140,16 @@ RSpec.describe Onetime::Operations::Org::Create do
         expect(org).to have_received(:owner_id=).with('cust-obj-1')
         expect(org).to have_received(:save).once
       end
+
+      it 'applies both writes when a legacy owner_id AND a description need it' do
+        allow(org).to receive(:owner_id).and_return('legacy-custid')
+
+        build(description: 'Primary tenant').call
+
+        expect(org).to have_received(:owner_id=).with('cust-obj-1')
+        expect(org).to have_received(:description=).with('Primary tenant')
+        expect(org).to have_received(:save).twice
+      end
     end
 
     describe 'rejections' do

@@ -73,8 +73,9 @@ module OrganizationAPI::Logic
           )
         end
 
-        # Validate description if provided
-        return unless description.to_s.length > CreateOrganization::MAX_DESCRIPTION
+        # Validate description if provided (sanitize_plain_text guarantees a
+        # String, so no nil guard is needed)
+        return unless description.length > CreateOrganization::MAX_DESCRIPTION
 
         raise_form_error(
           error_key: 'api.organizations.errors.description_too_long',
