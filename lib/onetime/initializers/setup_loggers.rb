@@ -151,9 +151,23 @@ module Onetime
         # Async appender handles logging in background thread. The reopen hook in
         # reconnect method ensures fresh threads after fork, preventing zombie references.
         SemanticLogger.add_appender(
-          io: $stdout,
+          io: log_device,
           formatter: formatter,
         )
+      end
+
+      # Where console logs go.
+      #
+      # Server modes log to stdout, which is what container runtimes and log
+      # collectors read. A CLI cannot: stdout is its data channel — `--json`
+      # output, piped listings, anything a caller parses. Boot diagnostics
+      # sharing that stream corrupt it, and the caller has no way to tell a log
+      # line from a result. Diagnostics are not the command's output, so in CLI
+      # mode they go to stderr.
+      #
+      # @return [IO]
+      def log_device
+        OT.mode?(:cli) ? $stderr : $stdout
       end
 
       # Build formatter with environment-aware exception handling

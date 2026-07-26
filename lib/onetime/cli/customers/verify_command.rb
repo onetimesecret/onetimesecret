@@ -29,6 +29,11 @@
 require 'auth/database'
 require 'auth/operations/customers/set_verification'
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersVerifyCommand < Command

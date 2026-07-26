@@ -159,6 +159,52 @@ RSpec.describe 'Server Command', type: :cli do
         expect(error.status).to eq(1)
       end
     end
+
+    # Previously escaped the guard entirely. `--threads`/`--bind` are declared
+    # `type: :string`, so they came back equal to their declared defaults and
+    # `threads != '2:4'` was false; only the two numeric options tripped it, and
+    # only because dry-cli handed those back as Strings that could never equal
+    # their Integer defaults.
+    it 'rejects config file with a non-default --threads' do
+      expect {
+        run_cli_command('server', 'config/puma.rb', '--threads', '4:8')
+      }.to raise_error(SystemExit) do |error|
+        expect(error.status).to eq(1)
+      end
+    end
+
+    it 'rejects config file with a non-default --bind' do
+      expect {
+        run_cli_command('server', 'config/puma.rb', '--bind', '0.0.0.0')
+      }.to raise_error(SystemExit) do |error|
+        expect(error.status).to eq(1)
+      end
+    end
+
+    # The guard compares values, not presence: dry-cli merges declared defaults
+    # into the parsed options before `call` runs, so an omitted flag and one
+    # explicitly set to its default are indistinguishable. Passing the default
+    # is therefore not "supplying an option".
+    it 'accepts a config file alongside options explicitly set to their defaults' do
+      expect(puma_handler).to receive(:run).with(
+        rack_app,
+        hash_including(config_files: 'config/puma.rb')
+      )
+
+      run_cli_command_quietly('server', 'config/puma.rb', '--port', '7143', '--workers', '0')
+      expect(last_exit_code).to eq(0)
+    end
+
+    # --server and --environment are deliberately outside CONFIG_FILE_CONFLICTS.
+    it 'accepts a config file alongside --environment' do
+      expect(puma_handler).to receive(:run).with(
+        rack_app,
+        hash_including(config_files: 'config/puma.rb')
+      )
+
+      run_cli_command_quietly('server', 'config/puma.rb', '--environment', 'production')
+      expect(last_exit_code).to eq(0)
+    end
   end
 
   describe 'error handling' do
