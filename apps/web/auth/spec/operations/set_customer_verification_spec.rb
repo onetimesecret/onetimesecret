@@ -54,7 +54,10 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
   end
   let(:db) do
     db_dbl = double('db', :[] => accounts_dataset)
-    allow(db_dbl).to receive(:transaction).and_yield
+    # Explicit block implementation: yields AND returns the block's value,
+    # matching Sequel's transaction semantics (the op reads the returned
+    # rowcount) without leaning on and_yield's return-value behavior.
+    allow(db_dbl).to receive(:transaction) { |&blk| blk.call }
     db_dbl
   end
 

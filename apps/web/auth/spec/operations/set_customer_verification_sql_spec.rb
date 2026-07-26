@@ -17,6 +17,11 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/set_customer_verification_sql_spec.rb
 
 require 'spec_helper'
+
+require 'fileutils'
+require 'securerandom'
+require 'tmpdir'
+
 require 'auth/operations/set_customer_verification'
 
 RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated) schema' do
