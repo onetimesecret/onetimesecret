@@ -19,6 +19,11 @@ require 'json'
 # formatting). The CLI runs outside the auth autoloader, so require it explicitly.
 require 'auth/operations/customers/show'
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersShowCommand < Command

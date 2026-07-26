@@ -34,6 +34,11 @@
 require 'json'
 require 'auth/operations/customers/change_email'
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersChangeEmailCommand < Command

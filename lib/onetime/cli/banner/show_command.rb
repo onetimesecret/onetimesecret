@@ -18,6 +18,11 @@ require 'json'
 # text/JSON formatting. Required explicitly (CLI runs outside the autoloader).
 require 'onetime/operations/banner'
 
+# Banner::Shared must exist before `include Banner::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class BannerShowCommand < Command

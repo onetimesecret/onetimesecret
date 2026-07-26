@@ -17,6 +17,12 @@
 require 'json'
 require 'onetime/operations/memberships/remove'
 
+# Memberships::Shared / Customers::Shared must exist before the `include`s below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+require_relative '../customers/shared'
+
 module Onetime
   module CLI
     class MembershipsRemoveCommand < Command

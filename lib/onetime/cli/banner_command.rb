@@ -19,6 +19,11 @@
 
 require 'onetime/operations/banner'
 
+# Banner::Shared must exist before `include Banner::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'banner/shared'
+
 module Onetime
   module CLI
     class BannerCommand < Command

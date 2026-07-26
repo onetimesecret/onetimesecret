@@ -11,6 +11,11 @@
 #   bin/ots customers dates --by-age           # Count by age bucket
 #   bin/ots customers dates --refresh          # Force cache rebuild
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersDatesCommand < Command
