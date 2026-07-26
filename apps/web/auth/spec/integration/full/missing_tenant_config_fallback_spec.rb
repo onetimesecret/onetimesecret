@@ -8,10 +8,13 @@
 #
 # Issue: #2786 - Per-domain SSO configuration
 # Issue: #2918 - SSO platform fallback config moved to auth.defaults.yaml
+# Issue: #3911 - AUTH_ENABLED master switch gates platform fallback
 #
 # Tests the fallback policy when a custom domain has no CustomDomain::SsoConfig
 # (or has a disabled one). The behavior is controlled by:
 #   Onetime.auth_config.allow_platform_fallback_for_tenants?
+# gated by the AUTH_ENABLED master switch:
+#   Onetime::CustomDomain::SigninConfig.global_auth_enabled
 #
 # As of #2918, this setting lives in auth config (full.sso section) and
 # defaults to false (deny fallback). Previously it lived in site config
@@ -22,6 +25,7 @@
 #   - Custom domain, no CustomDomain::SsoConfig, fallback denied -> 403
 #   - Custom domain, disabled CustomDomain::SsoConfig, fallback allowed -> proceeds
 #   - Custom domain, disabled CustomDomain::SsoConfig, fallback denied -> 403
+#   - Custom domain, fallback allowed, AUTH_ENABLED=false -> redirect (#3911)
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -137,6 +141,27 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
         expect(result).to eq(:no_error),
           "Expected handle_missing_tenant_config to return normally when fallback is allowed"
         expect(mock_rodauth.error_thrown?).to be(false)
+      end
+    end
+
+    context 'when fallback is allowed but AUTH_ENABLED is off (master switch, #3911)' do
+      before do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(false)
+      end
+
+      it 'redirects to signin (fallback policy cannot override a global kill)' do
+        mock_rodauth = MockRodauth.new
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config(host, mock_rodauth)
+          :no_redirect
+        end
+
+        expect(result).not_to eq(:no_redirect),
+          "Master switch off should reject platform fallback even when the policy allows it"
+        expect(result).to eq('/signin?auth_error=sso_not_configured')
+        expect(mock_rodauth.redirect_path).to eq('/signin?auth_error=sso_not_configured')
       end
     end
 
