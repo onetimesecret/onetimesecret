@@ -94,7 +94,12 @@ end
 ## present, and not on a clean PUT — intercept OT.lw so the logged half of
 ## the contract can't regress silently
 captured = []
-original_lw = OT.method(:lw)
+# The stub shadows ClassMethods#lw on OT's singleton class; remove_method in
+# the ensure resurfaces the original. That restore is only valid while lw's
+# owner is the mixed-in module — fail loud if the definition ever moves.
+unless OT.method(:lw).owner == Onetime::ClassMethods
+  raise "OT.lw owner is #{OT.method(:lw).owner}; shadow/remove_method restore no longer valid"
+end
 OT.define_singleton_method(:lw) { |*msgs, **_payload| captured << msgs.join(' ') }
 begin
   run_put(@test_cust, @test_domain, {
@@ -107,7 +112,7 @@ begin
   run_put(@test_cust, @test_domain, { 'enabled' => true })
   @clean_put_warning_count = captured.grep(/deprecated params ignored/).length
 ensure
-  OT.define_singleton_method(:lw, original_lw)
+  OT.singleton_class.send(:remove_method, :lw)
 end
 [@deprecation_warning_count, @clean_put_warning_count]
 #=> [1, 0]

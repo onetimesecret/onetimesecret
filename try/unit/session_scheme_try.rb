@@ -72,11 +72,15 @@ end
 # teardown (tryouts wraps each test in a rescue and still runs the teardown
 # afterward). Installing here means the teardown below restores OT.lw on every
 # reachable path, so the capture cannot leak into later files in the shared
-# tryouts process. OT.lw is a class method; we append to closure-captured
-# constant arrays and keep ORIGINAL_OT_LW to restore the real method.
+# tryouts process. The stub shadows ClassMethods#lw on OT's singleton class;
+# teardown removes the shadow so the original resurfaces with its owner intact.
+# That restore is only valid while lw's owner is the mixed-in module — fail
+# loud (before installing anything) if the definition ever moves.
 CAPTURED_WARNINGS = []
 CAPTURED_PAYLOADS = []
-ORIGINAL_OT_LW = OT.method(:lw)
+unless OT.method(:lw).owner == Onetime::ClassMethods
+  raise "OT.lw owner is #{OT.method(:lw).owner}; shadow/remove_method restore no longer valid"
+end
 OT.define_singleton_method(:lw) do |*msgs, **payload|
   CAPTURED_WARNINGS << msgs.join(' ')
   CAPTURED_PAYLOADS << payload
@@ -191,4 +195,6 @@ CAPTURED_WARNINGS.length
 # and the override is installed as the last setup step so setup cannot fail with
 # it in place. at_exit would be the wrong tool here: it fires at process exit,
 # AFTER later files have already run, so it could not prevent a cross-file leak.
-OT.define_singleton_method(:lw, &ORIGINAL_OT_LW)
+# remove_method deletes only the singleton shadow: ClassMethods#lw resurfaces
+# with its owner intact, so owner-based leak detection still reads clean.
+OT.singleton_class.send(:remove_method, :lw)
