@@ -130,9 +130,11 @@ module Auth::Config::Hooks
         # MUST produce the same active/inactive decision for any domain so the
         # SSO button is never shown when this route would reject (and never
         # hidden when it works). AUTH_ENABLED=false therefore lands in
-        # handle_missing_tenant_config like any unconfigured tenant — reject,
-        # or platform fallback per policy — matching the darkened display
-        # surfaces for that state.
+        # handle_missing_tenant_config like any unconfigured tenant, where the
+        # same master switch withholds platform fallback — the request rejects
+        # regardless of fallback policy, matching the darkened display
+        # surfaces for that state. (Defense-in-depth: the Auth::Router guard
+        # already 404s the whole /auth surface before this hook can fire.)
         # Load once and hand the record to the ladder: the availability check
         # needs the same SsoConfig this hook already loaded for credential
         # injection, so passing it avoids a second identical Redis read per
@@ -305,13 +307,18 @@ module Auth::Config::Hooks
     # Handle requests where no tenant SSO config is available.
     # Either allows fallback to platform credentials or rejects.
     #
-    # Configured via auth_config.allow_platform_fallback_for_tenants?
+    # Configured via auth_config.allow_platform_fallback_for_tenants?, but
+    # fallback also requires the AUTH_ENABLED master switch: platform
+    # credentials must not process sign-ins the app would ignore anyway
+    # (SigninConfig.global_auth_enabled false → every session reads as
+    # unauthenticated), so a global kill always takes the reject path.
     #
     # @param host [String] Request hostname for logging
     # @param rodauth [Rodauth] Rodauth instance (for throw_error_status)
     # @raise [Rodauth::Error] if fallback not allowed
     def self.handle_missing_tenant_config(host, rodauth)
-      if Onetime.auth_config.allow_platform_fallback_for_tenants?
+      if Onetime.auth_config.allow_platform_fallback_for_tenants? &&
+         Onetime::CustomDomain::SigninConfig.global_auth_enabled
         Auth::Logging.log_auth_event(
           :omniauth_tenant_fallback_to_platform,
           level: :debug,
