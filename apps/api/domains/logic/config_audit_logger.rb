@@ -106,7 +106,8 @@ module DomainsAPI
       # @return [Object] Field value
       def extract_old_value(config, field, boolean_fields)
         if boolean_fields.include?(field)
-          config.public_send(:"#{field}?")
+          predicate = :"#{field}?"
+          config.public_send(predicate) if config.respond_to?(predicate)
         elsif config.respond_to?(field)
           config.send(field)
         end
