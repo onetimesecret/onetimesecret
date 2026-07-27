@@ -10,7 +10,7 @@
 # by the same organization can use different identity providers.
 #
 # Use Cases:
-#   - Regional compliance: secrets.acme.eu uses Google Workspace, secrets.acme.com uses Entra ID
+#   - Regional compliance: secrets.acme.eu uses a regional OIDC IdP, secrets.acme.com uses Entra ID
 #   - Gradual rollout: enable SSO on one domain before expanding to others
 #   - Subsidiary isolation: different business units use different IdPs
 #
@@ -27,8 +27,18 @@ module Onetime
 
       SCHEMA = 'models/domain-sso-config'
 
-      # Supported SSO provider types
-      PROVIDER_TYPES = %w[oidc entra_id google github].freeze
+      # Supported SSO provider types.
+      #
+      # Tenant SSO is OIDC/Entra-only by design (#3902). Identity partitioning
+      # is keyed (provider, issuer, uid), so a tenant provider must resolve a
+      # tenant-distinguishing issuer. GitHub (plain OAuth2, no issuer) and
+      # Google (single GLOBAL issuer accounts.google.com) both resolve to the
+      # shared '' sentinel, which cannot partition identities per tenant —
+      # their callbacks are refused on tenant surfaces (PR #3900,
+      # refuse_issuerless_on_tenant?), so they are not configurable here.
+      # PLATFORM/install-level SSO still supports them (separate surface,
+      # registered from ENV in apps/web/auth/config/features/omniauth.rb).
+      PROVIDER_TYPES = %w[oidc entra_id].freeze
 
       # Provider metadata for UI filtering logic
       #
@@ -51,16 +61,6 @@ module Onetime
           idp_controls_access: true,
           description: 'Microsoft Entra ID - access controlled via Azure app assignment',
         },
-        'google' => {
-          requires_domain_filter: true,
-          idp_controls_access: false,
-          description: 'Google Workspace - domain filtering recommended for enterprise',
-        },
-        'github' => {
-          requires_domain_filter: true,
-          idp_controls_access: false,
-          description: 'GitHub OAuth - domain filtering recommended',
-        },
       }.freeze
 
       # Map provider_type to platform route name ENV var and default.
@@ -70,8 +70,6 @@ module Onetime
       PROVIDER_ROUTE_MAP = {
         'oidc' => { env_var: 'OIDC_ROUTE_NAME', default: 'oidc' },
         'entra_id' => { env_var: 'ENTRA_ROUTE_NAME', default: 'entra' },
-        'google' => { env_var: 'GOOGLE_ROUTE_NAME', default: 'google' },
-        'github' => { env_var: 'GITHUB_ROUTE_NAME', default: 'github' },
       }.freeze
 
       prefix :custom_domain__sso_config
@@ -93,11 +91,15 @@ module Onetime
       # Required fields vary by provider_type:
       #   - entra_id: requires tenant_id
       #   - oidc:     requires issuer
-      #   - google:   neither (uses well-known Google endpoints)
-      #   - github:   neither (uses well-known GitHub endpoints)
+      #
+      # Both remaining providers carry a tenant-distinguishing issuer — the
+      # reason issuerless OAuth2 providers were removed from this surface
+      # (#3902, see PROVIDER_TYPES).
       #
       # Universal required fields (all providers):
-      #   - client_id, client_secret, display_name, provider_type
+      #   - client_id, provider_type
+      # client_secret is required for entra_id only — OIDC public clients
+      # (PKCE) may omit it. display_name is optional.
       #
       # See: validation_errors method for enforcement
       #
@@ -252,10 +254,6 @@ module Onetime
           build_oidc_options
         when 'entra_id'
           build_entra_id_options
-        when 'google'
-          build_google_options
-        when 'github'
-          build_github_options
         else
           raise Onetime::Problem, "Unsupported SSO provider type: #{provider_type}"
         end
@@ -311,12 +309,10 @@ module Onetime
         #   |---------------|-----------|--------|---------------|
         #   | entra_id      | required  | -      | required      |
         #   | oidc          | -         | required | optional    |
-        #   | google        | -         | -      | required      |
-        #   | github        | -         | -      | required      |
         #
         # OIDC supports public clients (PKCE flow) without a client secret.
-        # Google and GitHub use well-known OAuth endpoints, so neither
-        # tenant_id nor issuer is needed.
+        # Every tenant provider requires an issuer-bearing field (issuer or
+        # tenant_id) — issuerless providers are not configurable (#3902).
         #
         case provider_type
         when 'oidc'
@@ -401,10 +397,13 @@ module Onetime
         # password/email path (see SigninConfig.global_signin_enabled).
         #
         # Reasons (rung order matches the checks below):
-        #   :auth_disabled       - AUTH_ENABLED master switch is off
-        #   :no_sso_config       - no SsoConfig record for the domain
-        #   :sso_config_disabled - record present, its enabled switch is off
-        #   :sso_not_permitted   - SigninConfig withholds SSO for the domain
+        #   :auth_disabled             - AUTH_ENABLED master switch is off
+        #   :no_sso_config             - no SsoConfig record for the domain
+        #   :sso_config_disabled       - record present, its enabled switch is off
+        #   :unsupported_provider_type - record's provider_type is not in
+        #                                PROVIDER_TYPES (pre-#3902 legacy data;
+        #                                see BackfillTenantIssuer)
+        #   :sso_not_permitted         - SigninConfig withholds SSO for the domain
         #
         # @param domain_id [String] CustomDomain identifier (objid)
         # @param auth [Hash, nil] site.authentication settings (injectable for tests)
@@ -421,6 +420,13 @@ module Onetime
           config = sso_config&.domain_id == domain_id ? sso_config : find_by_domain_id(domain_id)
           return :no_sso_config if config.nil?
           return :sso_config_disabled unless config.enabled?
+          # Defense-in-depth against pre-#3902 stored records: google/github
+          # configs predate the OIDC/Entra-only surface and would otherwise
+          # reach to_omniauth_options, which raises Onetime::Problem — this
+          # rung fails the SAME record closed here instead, so the masthead
+          # link and /signin page (both reading this ladder) never advertise
+          # a route that would 500.
+          return :unsupported_provider_type unless PROVIDER_TYPES.include?(config.provider_type)
           return :sso_not_permitted unless Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
 
           nil
@@ -456,7 +462,7 @@ module Onetime
         # @param domain_id [String] CustomDomain identifier
         # @param attrs [Hash] Configuration attributes
         # @return [CustomDomain::SsoConfig] The created config
-        # @raise [Onetime::Problem] if config already exists
+        # @raise [Onetime::Problem] if config already exists or validation fails
         def create!(domain_id:, **attrs)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
           raise Onetime::Problem, 'SSO config already exists for this domain' if exists_for_domain?(domain_id)
@@ -483,6 +489,10 @@ module Onetime
           now            = Familia.now.to_i
           config.created = now
           config.updated = now
+
+          unless config.valid?
+            raise Onetime::Problem, config.validation_errors.join('; ')
+          end
 
           # Save using Horreum's built-in method
           config.save
@@ -558,27 +568,6 @@ module Onetime
           client_secret: client_secret&.reveal { it },
           tenant_id: tenant_id,
           scope: 'openid profile email',
-        }
-      end
-
-      def build_google_options
-        {
-          strategy: :google_oauth2,
-          name: strategy_name,
-          client_id: client_id&.reveal { it },
-          client_secret: client_secret&.reveal { it },
-          scope: 'openid,email,profile',
-          prompt: 'select_account',
-        }
-      end
-
-      def build_github_options
-        {
-          strategy: :github,
-          name: strategy_name,
-          client_id: client_id&.reveal { it },
-          client_secret: client_secret&.reveal { it },
-          scope: 'user:email',
         }
       end
     end

@@ -300,6 +300,27 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           # Old OIDC-specific fields should be cleared
           expect(record['issuer']).to be_empty.or be_nil
         end
+
+        it 'clears a stored client_secret when an OIDC PUT omits it' do
+          params = valid_oidc_params.dup
+          params.delete(:client_secret)
+
+          csrf_put api_path(test_custom_domain.extid), params
+
+          expect(last_response.status).to eq(200)
+
+          # PUT is full replacement: an omitted client_secret is CLEARED, not
+          # preserved — legal only for OIDC (public client/PKCE); entra_id gets
+          # 422 (see 'returns 422 for missing client_secret on PUT'). PATCH is
+          # the secret-preserving verb; the frontend routes secretless saves
+          # there (sso.service.ts#saveConfigForDomain).
+          record = json_body['record']
+          expect(record['client_secret_masked']).to be_nil
+
+          # Persisted state agrees with the response
+          json_get api_path(test_custom_domain.extid)
+          expect(json_body['record']['client_secret_masked']).to be_nil
+        end
       end
 
       context 'validation errors' do
@@ -648,6 +669,132 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         record = body['record']
         expect(record['allowed_domains']).to eq(['original.com'])
       end
+
+      it 'clears tenant_id when switching to oidc' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'oidc',
+          issuer: 'https://auth.example.com',
+        }
+
+        expect(last_response.status).to eq(200)
+        record = json_body['record']
+        expect(record['provider_type']).to eq('oidc')
+        expect(record['issuer']).to eq('https://auth.example.com')
+
+        # Provider switch clears the outgoing provider's field — an oidc
+        # record must not carry the entra fixture's stale tenant_id.
+        expect(record['tenant_id'].to_s).to eq('')
+      end
+    end
+
+    context 'switching provider from a secretless OIDC config' do
+      before do
+        # Replace the entra_id fixture with an OIDC public-client config
+        # (PKCE) that has no stored client_secret to fall back to.
+        Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'oidc',
+          client_id: 'pkce-client-id',
+          issuer: 'https://pkce-issuer.example.com',
+          enabled: false,
+        )
+        login_as(test_owner)
+      end
+
+      it 'returns 422 when switching to entra_id without a client_secret' do
+        # Neither the request nor the stored record has a secret — allowing
+        # this through would produce an entra_id config whose token exchange
+        # fails at the IdP.
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+        }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to include('Client secret')
+
+        # Stored config is untouched
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+        expect(config.provider_type).to eq('oidc')
+      end
+
+      it 'switches to entra_id when a client_secret is provided' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+          client_secret: 'switch-secret-value',
+        }
+
+        expect(last_response.status).to eq(200)
+        record = json_body['record']
+        expect(record['provider_type']).to eq('entra_id')
+        expect(record['client_secret_masked']).to eq('••••••••alue')
+
+        # Provider switch clears the outgoing provider's field — an entra_id
+        # record must not carry the oidc fixture's stale issuer.
+        expect(record['issuer'].to_s).to eq('')
+      end
+
+      it 'switches to entra_id without a request secret when one is stored' do
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+        config.client_secret = 'stored-oidc-secret'
+        config.commit_fields
+
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+        }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['provider_type']).to eq('entra_id')
+      end
+    end
+
+    context 'with a legacy stored provider type (pre-#3902)' do
+      before do
+        # Pre-#3902 records (google/github) predate model validation and
+        # cannot be created through any current API path — seed one by
+        # writing the field directly.
+        existing_config.provider_type = 'google'
+        existing_config.commit_fields
+        login_as(test_owner)
+      end
+
+      it 'returns 422 naming the stored legacy type, even for a bare disable' do
+        # The request never sent provider_type — the error must blame the
+        # stored record and point at the escape hatches, not claim the
+        # caller supplied an invalid field.
+        csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to include("'google'")
+        expect(json_body['error']).to include('no longer supported')
+
+        # Fail closed: the stored record is untouched
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+        expect(config.provider_type).to eq('google')
+      end
+
+      it 'can still be deleted (the escape hatch)' do
+        csrf_delete api_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200)
+        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+      end
+
+      it 'can be replaced with a full PUT' do
+        csrf_put api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          client_id: 'replacement-client-id',
+          client_secret: 'replacement-secret',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+          enabled: false,
+        }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['provider_type']).to eq('entra_id')
+      end
     end
 
     context 'when no existing config' do
@@ -788,47 +935,35 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       end
     end
 
-    context 'with valid Google config' do
+    # Tenant SSO is OIDC/Entra-only (#3902): issuerless providers (google,
+    # github) resolve to the shared '' issuer sentinel and cannot satisfy
+    # (provider, issuer, uid) identity partitioning, so they are rejected
+    # at the provider_type gate.
+    context 'with removed issuerless provider types (#3902)' do
       before { login_as(test_owner) }
 
-      let(:google_test_params) do
-        {
+      it 'rejects google as an invalid provider type' do
+        csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'google',
           client_id: 'test-client.apps.googleusercontent.com',
         }
-      end
 
-      it 'tests Google connection' do
-        stub_request(:get, "https://accounts.google.com/.well-known/openid-configuration").to_return(status: 200, body: %Q({"issuer":"https://accounts.google.com"}), headers: {"Content-Type" => "application/json"})
-
-        csrf_post test_connection_path(test_custom_domain.extid), google_test_params
-
-        expect(last_response.status).to eq(200)
-
+        expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['provider_type']).to eq('google')
+        expect(body['error']).to include('Invalid provider type')
+        expect(body['error']).to include('oidc, entra_id')
       end
-    end
 
-    context 'with valid GitHub config' do
-      before { login_as(test_owner) }
-
-      let(:github_test_params) do
-        {
+      it 'rejects github as an invalid provider type' do
+        csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'github',
           client_id: 'Iv1.1234567890abcdef',
         }
-      end
 
-      it 'validates GitHub config format (no network test)' do
-        csrf_post test_connection_path(test_custom_domain.extid), github_test_params
-
-        expect(last_response.status).to eq(200)
-
+        expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['provider_type']).to eq('github')
-        expect(body['success']).to be true
-        expect(body['message']).to include('format validated')
+        expect(body['error']).to include('Invalid provider type')
+        expect(body['error']).to include('oidc, entra_id')
       end
     end
 
@@ -890,27 +1025,6 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(body['error']).to include('Issuer URL')
       end
 
-      it 'returns 422 for invalid Google client_id format' do
-        csrf_post test_connection_path(test_custom_domain.extid), {
-          provider_type: 'google',
-          client_id: 'invalid-google-client',
-        }
-
-        expect(last_response.status).to eq(422)
-        body = json_body
-        expect(body['error']).to include('googleusercontent.com')
-      end
-
-      it 'returns 422 for invalid GitHub client_id format' do
-        csrf_post test_connection_path(test_custom_domain.extid), {
-          provider_type: 'github',
-          client_id: 'invalid-github-client',
-        }
-
-        expect(last_response.status).to eq(422)
-        body = json_body
-        expect(body['error']).to include('Iv1')
-      end
     end
 
     context 'authorization checks' do
@@ -1132,6 +1246,42 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       json_get api_path(test_custom_domain.extid)
 
       expect(last_response.content_type).to include('application/json')
+    end
+  end
+
+  # ==========================================================================
+  # Model-level Validation (SsoConfig.create!)
+  # ==========================================================================
+
+  describe 'SsoConfig.create! validation' do
+    it 'raises Onetime::Problem when required provider fields are missing' do
+      expect do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+        )
+      end.to raise_error(Onetime::Problem, /client_id is required.*issuer is required/)
+    end
+
+    it 'raises Onetime::Problem for entra_id without a client_secret' do
+      expect do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'entra_id',
+          client_id: 'entra-client-id',
+          tenant_id: 'entra-tenant-id',
+        )
+      end.to raise_error(Onetime::Problem, /client_secret is required/)
+    end
+
+    it 'allows OIDC public clients without a client_secret' do
+      config = Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        provider_type: 'oidc',
+        client_id: 'pkce-client-id',
+        issuer: 'https://pkce-issuer.example.com',
+      )
+      expect(config.valid?).to be true
     end
   end
 end

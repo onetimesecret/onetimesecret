@@ -79,7 +79,7 @@ export type PutSsoConfigRequest = z.infer<typeof putSsoConfigRequestSchema>;
  * - client_secret is optional (preserves existing if omitted)
  *
  * Fields:
- * - provider_type: optional enum ('oidc' | 'entra_id' | 'google' | 'github')
+ * - provider_type: optional enum ('oidc' | 'entra_id')
  * - client_id: optional string
  * - client_secret: optional string
  * - display_name: optional string

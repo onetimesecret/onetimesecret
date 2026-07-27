@@ -1204,7 +1204,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     it 'handles nil display_name gracefully' do
-      config = build_domain_sso_config(:github)
+      config = build_domain_sso_config(:oidc)
       allow(config).to receive(:display_name).and_return(nil)
 
       result = described_class.build_tenant_sso_response(config)

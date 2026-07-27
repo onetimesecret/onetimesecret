@@ -10,8 +10,7 @@
  *
  * Stores SSO/OIDC credentials for custom domains that manage their own
  * identity provider connections. This enables multi-tenant SSO where each
- * domain can configure their own Entra ID, Google Workspace, or
- * generic OIDC provider.
+ * domain can configure their own Entra ID or generic OIDC provider.
  *
  * Design Decisions:
  *
@@ -21,8 +20,12 @@
  * 2. Masked Credentials: client_secret is never exposed in API responses.
  *    Instead, client_secret_masked provides a hint (e.g., "••••1234").
  *
- * 3. Provider Types: Supports 'oidc' (generic), 'entra_id', 'google', and
- *    'github'. Each has slightly different options (e.g., Entra requires
+ * 3. Provider Types: Supports 'oidc' (generic) and 'entra_id' only.
+ *    Tenant SSO is OIDC/Entra-only by design: identity partitioning is
+ *    keyed (provider, issuer, uid), so issuerless providers (GitHub is
+ *    plain OAuth2; Google has one global issuer) cannot satisfy per-tenant
+ *    isolation and are refused at the callback (#3902, PR #3900).
+ *    Each provider has slightly different options (Entra requires
  *    tenant_id, OIDC requires issuer for discovery).
  *
  * 4. Domain Allowlist: The allowed_domains list restricts which email
@@ -46,12 +49,16 @@ import { z } from 'zod';
  * Maps to OmniAuth strategies:
  * - oidc: omniauth-openid-connect (generic OIDC with discovery)
  * - entra_id: omniauth-entra-id (Microsoft Entra ID / Azure AD)
- * - google: omniauth-google-oauth2 (Google Workspace)
- * - github: omniauth-github (GitHub OAuth)
+ *
+ * Tenant SSO is OIDC/Entra-only: per-tenant identity partitioning is keyed
+ * (provider, issuer, uid), and issuerless providers (google, github) resolve
+ * to a shared issuer sentinel, so their callbacks are refused on tenant
+ * surfaces (#3902, PR #3900). Platform/install-level SSO is a separate
+ * surface and still supports GitHub/Google.
  *
  * @category Contracts
  */
-export const ssoProviderTypeSchema = z.enum(['oidc', 'entra_id', 'google', 'github']);
+export const ssoProviderTypeSchema = z.enum(['oidc', 'entra_id']);
 
 export type SsoProviderType = z.infer<typeof ssoProviderTypeSchema>;
 
@@ -76,16 +83,6 @@ export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
     idpControlsAccess: true,
     description: 'Microsoft Entra ID — access controlled via Azure app assignment',
   },
-  google: {
-    requiresDomainFilter: true,
-    idpControlsAccess: false,
-    description: 'Google Workspace — domain filtering recommended for enterprise',
-  },
-  github: {
-    requiresDomainFilter: true,
-    idpControlsAccess: false,
-    description: 'GitHub OAuth — domain filtering recommended',
-  },
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -109,7 +106,7 @@ export const customDomainSsoConfigCanonical = z.object({
   /** Domain ID (references CustomDomain.identifier). */
   domain_id: z.string(),
 
-  /** SSO provider type (oidc, entra_id, google, github). */
+  /** SSO provider type (oidc, entra_id). */
   provider_type: ssoProviderTypeSchema,
 
   /** Whether SSO is enabled for this organization. */
@@ -136,12 +133,9 @@ export const customDomainSsoConfigCanonical = z.object({
    *   |---------------|-----------|----------|
    *   | entra_id      | required  | -        |
    *   | oidc          | -         | required |
-   *   | google        | -         | -        |
-   *   | github        | -         | -        |
    *
-   * Google and GitHub use well-known OAuth endpoints, so neither
-   * tenant_id nor issuer is needed. Universal fields (client_id,
-   * display_name) are always required regardless of provider.
+   * Universal fields (client_id, display_name) are always required
+   * regardless of provider.
    */
   tenant_id: z.string().nullable(),
 
@@ -162,7 +156,7 @@ export const customDomainSsoConfigCanonical = z.object({
 
   /**
    * Whether app-side domain filtering is recommended for this provider.
-   * True for providers without IdP-side user assignment (e.g., GitHub).
+   * True for providers without IdP-side user assignment (e.g., generic OIDC).
    * Read-only, computed from provider_type.
    */
   requires_domain_filter: z.boolean(),
@@ -216,7 +210,7 @@ export type CustomDomainSsoConfigCanonical = z.infer<typeof customDomainSsoConfi
  * @category Contracts
  */
 export const patchSsoConfigPayloadSchema = z.object({
-  /** SSO provider type (oidc, entra_id, google, github). */
+  /** SSO provider type (oidc, entra_id). */
   provider_type: ssoProviderTypeSchema.optional(),
 
   /** Human-readable name for UI display. */
@@ -271,7 +265,7 @@ export type PatchSsoConfigPayload = z.infer<typeof patchSsoConfigPayloadSchema>;
  * @category Contracts
  */
 export const putSsoConfigPayloadSchema = z.object({
-  /** SSO provider type (oidc, entra_id, google, github). */
+  /** SSO provider type (oidc, entra_id). */
   provider_type: ssoProviderTypeSchema,
 
   /** Human-readable name for UI display. */

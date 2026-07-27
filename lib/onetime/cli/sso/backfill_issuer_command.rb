@@ -248,8 +248,10 @@ module Onetime
             issuer onto legacy rows whose account belongs to the domain organization,
             so the exact tenant lookup matches again.
 
-            Only oidc and entra_id domains are eligible: google/github resolve to the
-            '' sentinel at callback time, so their legacy rows already match.
+            Only oidc and entra_id domains are eligible — the only configurable
+            tenant provider types since #3902. Pre-#3902 issuerless records
+            (google/github) resolved to the '' sentinel at callback time, so
+            their legacy rows already match and are refused.
 
             Scoping is per-row and fail-closed: a row is stamped ONLY when it passes
             BOTH gates —
