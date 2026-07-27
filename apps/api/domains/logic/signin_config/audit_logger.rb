@@ -2,12 +2,14 @@
 #
 # frozen_string_literal: true
 
+require_relative '../config_audit_logger'
+
 module DomainsAPI
   module Logic
     module SigninConfig
       # Audit logging for Domain Signin configuration changes.
       #
-      # Provides structured logging for sign-in policy changes.
+      # Shared machinery lives in DomainsAPI::Logic::ConfigAuditLogger.
       # SigninConfig has no sensitive fields, so all values are safe to log.
       #
       # Events:
@@ -18,6 +20,8 @@ module DomainsAPI
       #   - domain_signin_config_disabled: Signin config disabled for domain
       #
       module AuditLogger
+        include DomainsAPI::Logic::ConfigAuditLogger
+
         # Log a Domain Signin audit event with structured data.
         #
         # @param event [String, Symbol] Event type
@@ -27,33 +31,14 @@ module DomainsAPI
         # @param details [Hash, nil] Additional event-specific details
         # @return [void]
         def log_signin_audit_event(event:, domain:, org:, actor:, details: nil)
-          payload = {
-            event: event.to_s,
-            domain_id: domain.identifier,
-            domain_display: domain.display_domain,
-            org_id: org.objid,
-            org_extid: org.extid,
-            actor_id: actor.custid,
-            actor_email: actor.email,
-            timestamp: Time.now.to_i,
-            ip_address: extract_ip_address,
-          }
-
-          payload[:details] = details if details && !details.empty?
-
-          OT.info "[DOMAIN_SIGNIN_AUDIT] #{event}", payload.to_json
-        end
-
-        private
-
-        # Extract IP address from strategy_result metadata.
-        #
-        # @return [String, nil] Client IP address
-        def extract_ip_address
-          return nil unless respond_to?(:strategy_result)
-          return nil unless strategy_result.respond_to?(:metadata)
-
-          strategy_result.metadata[:ip]
+          log_config_audit_event(
+            tag: 'DOMAIN_SIGNIN_AUDIT',
+            event: event,
+            domain: domain,
+            org: org,
+            actor: actor,
+            details: details,
+          )
         end
       end
     end

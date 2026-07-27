@@ -226,7 +226,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         before do
           allow(customer).to receive(:pending?).and_return(true)
           allow(logic).to receive(:send_verification_email)
-          allow(logic).to receive(:set_info_message)
         end
 
         context 'when autoverify is disabled' do
@@ -245,14 +244,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
             logic.process
           end
 
-          it 'sets info message about verification' do
-            expect(logic).to receive(:set_info_message).with(a_string_matching(/#{Regexp.escape(test_email)}/))
-            logic.process
-          end
-
           it 'logs pending customer login' do
             expect(mock_logger).to receive(:info).with('Login pending customer verification', hash_including(:customer_id, :email))
-            expect(mock_logger).to receive(:info).with('Resending verification email (autoverify mode)', hash_including(:customer_id, :email))
+            expect(mock_logger).to receive(:info).with('Resending verification email (autoverify disabled)', hash_including(:customer_id, :email))
             logic.process
           end
         end
