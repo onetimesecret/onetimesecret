@@ -10,7 +10,7 @@ Three separate problems.
 
 Onetime::Operations::Sessions::List#call (lib/onetime/operations/sessions/list_sessions.rb:59) does the whole thing on the request path, per request:
 
-1. Store.scan_keys — SCAN MATCH _session_ TYPE string via scan_each with default COUNT (10). Matching is server-side, so with sessions a minority of the keyspace this is hundreds-to-thousands of round trips before it fills its window (store.rb:170).
+1. Store.scan*keys — SCAN MATCH \_session* TYPE string via scan_each with default COUNT (10). Matching is server-side, so with sessions a minority of the keyspace this is hundreds-to-thousands of round trips before it fills its window (store.rb:170).
 2. One sequential GET per key — collect loops Store.load_data (list_sessions.rb:100). Not pipelined. Up to 10,000 serial RTTs.
 3. AES-256-GCM decrypt + HMAC verify per value in Ruby (Store.load_data with codec).
 4. Partition, filter, sort, then paginate in memory (list_sessions.rb:70-78).
@@ -82,3 +82,21 @@ No per-session IP, user agent, or referer. That's a visitor log, on a privacy pr
 ### The point of all four
 
 Every one of these exists to answer one question: can we stop creating these? If (3) says the bulk are CSRF-only sessions minted on anonymous GETs of a stateless page, the fix isn't better counting — it's deferring the session commit until something durable actually needs storing. That deletes the mass rather than measuring it.
+
+---
+
+A re-analysis:
+
+The performance spec's load-bearing claim is wrong. It says "nothing maintains an index" and budgets for a ZADD per session write. That index exists: sorted_set :active_sessions (customer.rb:125), written on every authenticated write at track_metadata.rb:83, with ListForCustomer already demonstrating the exact no-scan/no-decrypt read pattern the spec proposes — including self-healing reconcile. The per-write cost is already paid. What's missing is only the global scope: one ZADD beside the existing one. The spec's own line 46 (split anonymous from identity at write time) is likewise half-built, since TrackMetadata gates on authenticated.
+
+The rest of its diagnosis holds — sequential un-pipelined GETs, per-value decrypt, the permanent 10,000 from scan_keys(...).size against MAX_SCAN, run twice.
+
+Three things break a naive copy of the per-customer pattern, all in the doc: email/role aren't in the sidecar by documented security decision but the UI renders both (AdminSessions.vue:67-68) — hydrate per displayed row, don't widen the allow-list; global email search can't come from the index at all — route it through customer resolution; and the index starts empty, so cutover needs dual-read or sessions appear to vanish.
+
+The expectations spec's stated precondition is already satisfied. Revocation is authoritative server-side — blob deletion is the kill, RevokeAllForCustomer also clears Rodauth account_active_session_keys, #3810 wires event-driven revoke on credential change with an async sweep, suspension revokes, the CLI path exists, and same_site/secure are configured. So that half is incremental work, not architectural.
+
+One real bug fell out. remember_me is enabled by default, and no session revoke operation references remember-me anywhere. Revoking sessions leaves the remember cookie live to mint a fresh one — precisely the "partial revocation" failure the expectations doc calls the most common real-world bug. I put it first in the sequence.
+
+The two specs contradict each other and I did not merge them. Expectations wants IP/geo/ASN filtering and impossible travel; performance's "what not to track" forbids it, and Otto already masks IP upstream. Impossible travel isn't buildable accurately on masked prefixes. I classified each item as adoptable / degraded / needs-an-explicit-posture-reversal, and recommended keeping the current posture — that's the operator's call, not an implementation detail.
+
+Two things I flagged rather than assumed: key_patterns includes a bare <sid> shape no pattern can match, so anonymous = total − identity needs a prod measurement first; and the anonymous-minting question (item 4) is an investigation, not a known win — the synchronizer pattern needs session-backed tokens, so the real question is whether anonymous GETs can mint lazily.
