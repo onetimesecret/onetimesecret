@@ -136,7 +136,7 @@ RSpec.describe Onetime::CLI::BillingSyncOrgCommand, type: :cli do
       expect { output = capture_output { cmd.call(all: true) } }.not_to raise_error
 
       expect(output[:stdout]).to include('Error on_org_ext_...: stripe_error (no such subscription)')
-      expect(output[:stdout]).to include('Summary: 0 synced, 0 skipped, 1 error')
+      expect(output[:stdout]).to include('Summary: 0 synced, 0 skipped, 1 errors')
     end
   end
 
@@ -171,7 +171,7 @@ RSpec.describe Onetime::CLI::BillingSyncOrgCommand, type: :cli do
         'Error on_org_aaa_...: Billing::CatalogMissError: Price ID not found in catalog: price_ghost'
       )
       expect(output[:stdout]).to include('Synced on_org_bbb_...: free_v1 -> identity_plus_v1')
-      expect(output[:stdout]).to include('Summary: 1 synced, 0 skipped, 1 error')
+      expect(output[:stdout]).to include('Summary: 1 synced, 0 skipped, 1 errors')
     end
 
     it 'contains a PlanCacheMissError per-org and still processes the next org' do
@@ -188,7 +188,33 @@ RSpec.describe Onetime::CLI::BillingSyncOrgCommand, type: :cli do
         'Error on_org_aaa_...: Billing::PlanCacheMissError: Plan not found in cache or config: ghost_plan_v1'
       )
       expect(output[:stdout]).to include('Synced on_org_bbb_...: free_v1 -> identity_plus_v1')
-      expect(output[:stdout]).to include('Summary: 1 synced, 0 skipped, 1 error')
+      expect(output[:stdout]).to include('Summary: 1 synced, 0 skipped, 1 errors')
+    end
+
+    # Containment scope decision (PR #3924 review): sweep robust, single-org
+    # loud. An unexpected exception must not abort a --all run mid-flight with
+    # no summary, but the same exception on `sync-org <extid>` must still
+    # raise so the operator gets the full backtrace.
+
+    it 'contains an unexpected StandardError per-org and still reaches the summary' do
+      allow(op_a).to receive(:call).and_raise(ArgumentError, 'bad org field')
+
+      output = nil
+      expect { output = capture_output { cmd.call(all: true) } }.not_to raise_error
+
+      expect(output[:stdout]).to include('Error on_org_aaa_...: ArgumentError: bad org field')
+      expect(output[:stdout]).to include('Synced on_org_bbb_...: free_v1 -> identity_plus_v1')
+      expect(output[:stdout]).to include('Summary: 1 synced, 0 skipped, 1 errors')
+    end
+
+    it 'stays fail-loud for a non-OpsProblem exception on the single-org path' do
+      allow(Onetime::Operations::Org::Reconcile).to receive(:new)
+        .with(hash_including(org: org)).and_return(op_a)
+      allow(op_a).to receive(:call).and_raise(ArgumentError, 'bad org field')
+
+      expect {
+        capture_output { cmd.call(extid: 'on_org_ext_12345') }
+      }.to raise_error(ArgumentError, 'bad org field')
     end
   end
 

@@ -88,12 +88,24 @@ module Onetime
             next
           end
 
-          result         = sync_organization(org, dry_run: dry_run)
-          stats[result] += 1
+          # Containment scope: the sweep is robust, the single-org path is
+          # loud. Any unexpected StandardError (Redis::BaseError, ArgumentError
+          # from a bad org field, ...) is contained per-org HERE so a --all run
+          # reaches its summary instead of aborting mid-flight; the same
+          # exception on `sync-org <extid>` still raises with a full backtrace.
+          # The Billing::OpsProblem rescue stays in sync_organization because
+          # it serves both paths (its message is the operator hint).
+          begin
+            result         = sync_organization(org, dry_run: dry_run)
+            stats[result] += 1
+          rescue StandardError => ex
+            puts "Error #{truncate_extid(org.extid)}: #{ex.class}: #{ex.message}"
+            stats[:errors] += 1
+          end
         end
 
         puts
-        puts "Summary: #{stats[:synced]} synced, #{stats[:skipped]} skipped, #{stats[:errors]} error"
+        puts "Summary: #{stats[:synced]} synced, #{stats[:skipped]} skipped, #{stats[:errors]} errors"
       end
 
       def sync_organization(org, dry_run:)

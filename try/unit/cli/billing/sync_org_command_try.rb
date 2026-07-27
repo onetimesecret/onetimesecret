@@ -180,6 +180,17 @@ Onetime::CLI::BillingSyncOrgCommand.instance_method(:sync_organization).source_l
 @command_source.include?('ex.class') && @command_source.include?('ex.message')
 #=> true
 
+## Unexpected StandardErrors are contained in the --all sweep loop
+# Containment scope decision (PR #3924 review): sweep robust, single-org
+# loud — the same exception on `sync-org <extid>` still raises with a
+# backtrace.
+@command_source.include?('rescue StandardError')
+#=> true
+
+## Sweep summary label is pluralized to match synced/skipped ("3 errors")
+@command_source.include?("\#{stats[:errors]} errors")
+#=> true
+
 # -------------------------------------------------------------------
 # call: validates arguments (extid or --all required)
 # -------------------------------------------------------------------
