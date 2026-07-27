@@ -78,11 +78,11 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
     end
 
     it 'sets customer as owner' do
-      expect(@created_org.owner_id).to eq(@customer.custid)
+      expect(@created_org.owner_id).to eq(@customer.objid)
     end
 
-    it 'sets created_by in lock-step with owner_id (ADR-012)' do
-      expect(@created_org.created_by).to eq(@customer.custid)
+    it 'sets created_by in lock-step with owner_id (ADR-012, objid space #3907)' do
+      expect(@created_org.created_by).to eq(@customer.objid)
       expect(@created_org.created_by).to eq(@created_org.owner_id)
     end
 
@@ -439,7 +439,7 @@ RSpec.describe 'OrganizationContext in Logic Classes', type: :integration, order
         org = instance.auth_org
 
         expect(org).to be_a(Onetime::Organization)
-        expect(org.owner_id).to eq(@lazy_customer.custid)
+        expect(org.owner_id).to eq(@lazy_customer.objid)
         expect(@lazy_customer.organization_instances.count).to eq(1)
       end
 

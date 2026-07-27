@@ -60,6 +60,7 @@ require_relative 'colonel/list_organizations'
 require_relative 'colonel/get_organization_detail'
 require_relative 'colonel/investigate_organization'
 require_relative 'colonel/reconcile_organization'
+require_relative 'colonel/transfer_organization_ownership'
 require_relative 'colonel/manage_entitlement_override'
 
 # Memberships (#3731: add/remove/set-role — op-backed;

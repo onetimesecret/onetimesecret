@@ -140,6 +140,16 @@ RSpec.describe Onetime::Operations::Org::Create do
         expect(org).to have_received(:owner_id=).with('cust-obj-1')
         expect(org).to have_received(:save).once
       end
+
+      it 'applies both writes when a legacy owner_id AND a description need it' do
+        allow(org).to receive(:owner_id).and_return('legacy-custid')
+
+        build(description: 'Primary tenant').call
+
+        expect(org).to have_received(:owner_id=).with('cust-obj-1')
+        expect(org).to have_received(:description=).with('Primary tenant')
+        expect(org).to have_received(:save).twice
+      end
     end
 
     describe 'rejections' do
@@ -295,6 +305,43 @@ RSpec.describe Onetime::Operations::Org::Create do
 
       expect(org.owner_id).to eq(@owner.objid)
       expect(Onetime::Customer.load(org.owner_id)).not_to be_nil
+    end
+
+    # #3907: create! itself writes the objid, so the signup path
+    # (CreateOrganization), which calls create! WITHOUT this op's D31
+    # normalization, also lands orgs that satisfy doctor checks 1, 2 and 4.
+    # Provable only by bypassing the op.
+    it 'needs no D31 normalization: bare Organization.create! writes the objid' do
+      org = Onetime::Organization.create!("Bare #{suffix}", @owner)
+      @orgs << org
+
+      expect(org.owner_id).to eq(@owner.objid)
+      expect(org_doctor_issues(org)).to be_empty
+    end
+
+    # A fresh customer has custid == objid (Customer#init custid ||= objid), so
+    # the example above passes whichever space create! writes. Only an owner
+    # whose custid DIVERGED — the legacy v1 email-custid shape — tells the two
+    # apart; this is the assertion that fails if create! reverts to custid.
+    it 'writes the objid even when the owner custid diverged (legacy v1 shape)' do
+      legacy = track_customer(Onetime::Customer.create!(email: "legacy_#{suffix}@onetimesecret.com"))
+      legacy.custid = legacy.email
+      legacy.save
+
+      org = Onetime::Organization.create!("Legacy #{suffix}", legacy)
+      @orgs << org
+
+      expect(org.owner_id).to eq(legacy.objid)
+      expect(org.owner_id).not_to eq(legacy.custid)
+
+      # created_by is born in lock-step with owner_id (chore Branch 1 steady
+      # state) — a custid write here would put the legacy email into an
+      # immutable, safe-dumped field and strand the org in Branch 3b.
+      expect(org.created_by).to eq(legacy.objid)
+      expect(org.created_by).to eq(org.owner_id)
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, legacy.objid)
+      membership.destroy! if membership.respond_to?(:exists?) && membership.exists?
     end
 
     it 'lands exactly one active owner membership' do

@@ -63,6 +63,8 @@ GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrgani
 GET    /organizations/:org_id             ColonelAPI::Logic::Colonel::GetOrganizationDetail response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/investigate ColonelAPI::Logic::Colonel::InvestigateOrganization response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/reconcile   ColonelAPI::Logic::Colonel::ReconcileOrganization response=json auth=sessionauth role=colonel scope=internal
+# Ownership transfer (#3907: op-backed, shared with `bin/ots org transfer-ownership`). Applies immediately — dry_run pinned false (D12: no preview flow in the console).
+POST   /organizations/:org_id/transfer-ownership ColonelAPI::Logic::Colonel::TransferOrganizationOwnership response=json auth=sessionauth role=colonel scope=internal
 
 # Entitlement Overrides (Phase 2: grant/revoke per-org entitlements)
 POST   /organizations/:org_id/entitlements/:action  ColonelAPI::Logic::Colonel::ManageEntitlementOverride response=json auth=sessionauth role=colonel scope=internal

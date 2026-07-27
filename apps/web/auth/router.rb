@@ -10,6 +10,7 @@ require 'json'
 
 require 'onetime/logger_methods'
 require 'onetime/application/error_correlation'
+require 'onetime/models/custom_domain/signin_config'
 
 require_relative 'config'
 require_relative 'error_translator'
@@ -133,6 +134,24 @@ module Auth
             request_uri: r.env['REQUEST_URI'],
             script_name: r.env['SCRIPT_NAME'],
           }
+      end
+
+      # Master kill-switch (#3911): when AUTH_ENABLED is false the whole
+      # /auth surface goes dark before r.rodauth can process credentials or
+      # mint a session. Only the health endpoint stays reachable — it is a
+      # monitored path (lib/onetime/middleware/health_access_control.rb).
+      # Every other /auth/* path 404s with the shared ADR-013 body.
+      unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
+        handle_health_routes(r)
+
+        Auth::Logging.log_auth_event(
+          :auth_surface_disabled,
+          level: :debug,
+          path: r.path_info,
+        )
+
+        response.status = 404
+        next Auth::ErrorTranslator::NOT_FOUND_BODY
       end
 
       # Root path - Auth app info
