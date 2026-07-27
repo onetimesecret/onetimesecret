@@ -534,5 +534,236 @@
   "web.admin.domains.actions.remove.notApplied": {
     "text": "The server previewed the removal instead of applying it — the domain was NOT removed. Retry, and report this if it persists.",
     "content_hash": "dc6d70ae"
+  },
+  "web.admin.domains.configs.title": {
+    "text": "Domain configuration"
+  },
+  "web.admin.domains.configs.description": {
+    "text": "Per-domain config records gating sign-in, sign-up, homepage secrets, API access, incoming secrets, tenant SSO and mail sending. A missing record fails closed for the first five."
+  },
+  "web.admin.domains.configs.loadError": {
+    "text": "Could not load the domain configuration records."
+  },
+  "web.admin.domains.configs.retry": {
+    "text": "Retry"
+  },
+  "web.admin.domains.configs.degraded": {
+    "text": "The configuration response did not match the expected contract. Refresh, and report this if it persists."
+  },
+  "web.admin.domains.configs.notFoundNote": {
+    "text": "This domain no longer exists, so its configuration records cannot be loaded."
+  },
+  "web.admin.domains.configs.detailsToggle": {
+    "text": "Details"
+  },
+  "web.admin.domains.configs.notEditable": {
+    "text": "Managed in workspace domain settings."
+  },
+  "web.admin.domains.configs.kinds.signin": {
+    "text": "Sign-in"
+  },
+  "web.admin.domains.configs.kinds.signup": {
+    "text": "Sign-up"
+  },
+  "web.admin.domains.configs.kinds.homepage": {
+    "text": "Homepage"
+  },
+  "web.admin.domains.configs.kinds.api": {
+    "text": "API"
+  },
+  "web.admin.domains.configs.kinds.incoming": {
+    "text": "Incoming"
+  },
+  "web.admin.domains.configs.kinds.sso": {
+    "text": "SSO"
+  },
+  "web.admin.domains.configs.kinds.mailer": {
+    "text": "Mailer"
+  },
+  "web.admin.domains.configs.status.missing": {
+    "text": "Missing"
+  },
+  "web.admin.domains.configs.status.disabled": {
+    "text": "Disabled"
+  },
+  "web.admin.domains.configs.status.enabled": {
+    "text": "Enabled"
+  },
+  "web.admin.domains.configs.status.enabledNotReady": {
+    "text": "Enabled, not ready"
+  },
+  "web.admin.domains.configs.missingNotes.signin": {
+    "text": "No record: sign-in is disabled on this domain unless tenant SSO is active."
+  },
+  "web.admin.domains.configs.missingNotes.signup": {
+    "text": "No record: sign-up is disabled on this domain."
+  },
+  "web.admin.domains.configs.missingNotes.homepage": {
+    "text": "No record: homepage secrets are disabled (fails closed and logs an error)."
+  },
+  "web.admin.domains.configs.missingNotes.api": {
+    "text": "No record: the public API is disabled (fails closed and logs an error)."
+  },
+  "web.admin.domains.configs.missingNotes.incoming": {
+    "text": "No record: incoming secrets are disabled."
+  },
+  "web.admin.domains.configs.missingNotes.sso": {
+    "text": "No record: tenant SSO is unavailable; the platform SSO fallback policy applies."
+  },
+  "web.admin.domains.configs.missingNotes.mailer": {
+    "text": "No record: the platform mailer is used."
+  },
+  "web.admin.domains.configs.edit.button": {
+    "text": "Edit"
+  },
+  "web.admin.domains.configs.edit.createButton": {
+    "text": "Create"
+  },
+  "web.admin.domains.configs.edit.title": {
+    "text": "Configure {kind}"
+  },
+  "web.admin.domains.configs.edit.submit": {
+    "text": "Save"
+  },
+  "web.admin.domains.configs.edit.success": {
+    "text": "Configuration saved."
+  },
+  "web.admin.domains.configs.edit.unsetOption": {
+    "text": "Not set"
+  },
+  "web.admin.domains.configs.edit.domainsHint": {
+    "text": "One domain per line."
+  },
+  "web.admin.domains.configs.delete.button": {
+    "text": "Delete"
+  },
+  "web.admin.domains.configs.delete.confirmTitle": {
+    "text": "Delete {kind} configuration?"
+  },
+  "web.admin.domains.configs.delete.confirmDescription": {
+    "text": "This permanently deletes the {kind} configuration record for {domain}. The domain falls back to the missing-record behavior. Retype the kind to continue."
+  },
+  "web.admin.domains.configs.delete.success": {
+    "text": "Configuration deleted."
+  },
+  "web.admin.domains.configs.ensure.button": {
+    "text": "Create missing configs"
+  },
+  "web.admin.domains.configs.ensure.confirmTitle": {
+    "text": "Create missing configuration records?"
+  },
+  "web.admin.domains.configs.ensure.confirmDescription": {
+    "text": "Creates disabled records on {domain} for: {kinds}. Everything starts disabled, so behavior does not change until a record is enabled."
+  },
+  "web.admin.domains.configs.ensure.applyButton": {
+    "text": "Create records"
+  },
+  "web.admin.domains.configs.ensure.success": {
+    "text": "Missing configuration records created."
+  },
+  "web.admin.domains.configs.ensure.nothingMissing": {
+    "text": "Nothing to create — every configuration record already exists. The list has been refreshed."
+  },
+  "web.admin.domains.configs.ensure.notApplied": {
+    "text": "The server previewed the change instead of applying it — no records were created. Retry, and report this if it persists."
+  },
+  "web.admin.domains.configs.fields.enabled": {
+    "text": "Enabled"
+  },
+  "web.admin.domains.configs.fields.signin_enabled": {
+    "text": "Sign-in enabled"
+  },
+  "web.admin.domains.configs.fields.email_auth_enabled": {
+    "text": "Email auth enabled"
+  },
+  "web.admin.domains.configs.fields.sso_enabled": {
+    "text": "SSO enabled"
+  },
+  "web.admin.domains.configs.fields.restrict_to": {
+    "text": "Restrict to"
+  },
+  "web.admin.domains.configs.fields.signup_enabled": {
+    "text": "Sign-up enabled"
+  },
+  "web.admin.domains.configs.fields.autoverify": {
+    "text": "Auto-verify"
+  },
+  "web.admin.domains.configs.fields.validation_strategy": {
+    "text": "Validation strategy"
+  },
+  "web.admin.domains.configs.fields.allowed_signup_domains": {
+    "text": "Allowed signup domains"
+  },
+  "web.admin.domains.configs.fields.secrets_mode": {
+    "text": "Secrets mode"
+  },
+  "web.admin.domains.configs.fields.disabled_homepage_variant": {
+    "text": "Disabled homepage variant"
+  },
+  "web.admin.domains.configs.fields.ready": {
+    "text": "Ready"
+  },
+  "web.admin.domains.configs.fields.recipients": {
+    "text": "Recipients"
+  },
+  "web.admin.domains.configs.fields.provider_type": {
+    "text": "Provider type"
+  },
+  "web.admin.domains.configs.fields.display_name": {
+    "text": "Display name"
+  },
+  "web.admin.domains.configs.fields.issuer": {
+    "text": "Issuer"
+  },
+  "web.admin.domains.configs.fields.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.admin.domains.configs.fields.has_client_id": {
+    "text": "Client ID set"
+  },
+  "web.admin.domains.configs.fields.has_client_secret": {
+    "text": "Client secret set"
+  },
+  "web.admin.domains.configs.fields.allowed_domains": {
+    "text": "Allowed domains"
+  },
+  "web.admin.domains.configs.fields.enforce_sso_only": {
+    "text": "Enforce SSO only"
+  },
+  "web.admin.domains.configs.fields.grant_org_scope": {
+    "text": "Grant org scope"
+  },
+  "web.admin.domains.configs.fields.provider": {
+    "text": "Provider"
+  },
+  "web.admin.domains.configs.fields.from_name": {
+    "text": "From name"
+  },
+  "web.admin.domains.configs.fields.from_address": {
+    "text": "From address"
+  },
+  "web.admin.domains.configs.fields.reply_to": {
+    "text": "Reply-to"
+  },
+  "web.admin.domains.configs.fields.sending_mode": {
+    "text": "Sending mode"
+  },
+  "web.admin.domains.configs.fields.verification_status": {
+    "text": "Verification status"
+  },
+  "web.admin.domains.configs.fields.dns_verified": {
+    "text": "DNS verified"
+  },
+  "web.admin.domains.configs.fields.provider_verified": {
+    "text": "Provider verified"
+  },
+  "web.admin.domains.configs.fields.has_api_key": {
+    "text": "API key set"
+  },
+  "web.admin.domains.configs.fields.created": {
+    "text": "Created"
+  },
+  "web.admin.domains.configs.fields.updated": {
+    "text": "Updated"
   }
 }
