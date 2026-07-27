@@ -22,7 +22,9 @@ module DomainsAPI
       # - provider_type: Required. One of: oidc, entra_id (tenant SSO is
       #   OIDC/Entra-only — issuerless providers were removed, #3902)
       # - client_id: Required. OAuth client ID
-      # - client_secret: Required. OAuth client secret
+      # - client_secret: Required, except for OIDC (public-client/PKCE flows
+      #   may omit it — see validate_client_credentials). A PUT that omits it
+      #   clears any previously stored secret, per full-replacement semantics.
       # - tenant_id: Required for entra_id provider, empty/null for others
       # - issuer: Required for oidc provider, empty/null for others
       # - display_name: Optional. Human-readable name (defaults to empty)
@@ -70,7 +72,8 @@ module DomainsAPI
           # Validate provider_type
           validate_provider_type
 
-          # Validate client credentials (always required for PUT)
+          # Validate client credentials (client_id always; client_secret
+          # except for OIDC — see header comment)
           validate_client_credentials
 
           # Validate provider-specific fields
@@ -206,7 +209,7 @@ module DomainsAPI
           @sso_config.provider_type    = @provider_type
           @sso_config.display_name     = @display_name    # Empty string clears the field
           @sso_config.client_id        = @client_id
-          @sso_config.client_secret    = @client_secret   # Always required for PUT
+          @sso_config.client_secret    = @client_secret   # Empty clears it (OIDC only; validate_client_credentials requires it non-empty otherwise)
           @sso_config.tenant_id        = @tenant_id       # Empty string clears the field
           @sso_config.issuer           = @issuer          # Empty string clears the field
           @sso_config.allowed_domains  = @allowed_domains # Empty array clears the field

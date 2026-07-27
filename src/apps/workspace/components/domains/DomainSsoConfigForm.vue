@@ -112,6 +112,13 @@ const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
 
 const requiresClientSecret = computed(() => props.formState.provider_type !== 'oidc');
 
+// Mirrors the defaults in CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP
+// (lib/onetime/models/custom_domain/sso_config.rb). That map lets an operator
+// override the registered route per provider via OIDC_ROUTE_NAME/
+// ENTRA_ROUTE_NAME; this static preview has no way to see that override, so
+// it drifts from the real callback path in a deployment that sets either.
+// Not plumbed through the API yet — tracked in #3932 (bootstrap-config
+// carrier, since the preview must work before any record exists).
 const PROVIDER_ROUTE_NAMES: Record<SsoProviderType, string> = {
   oidc: 'oidc',
   entra_id: 'entra',
