@@ -10,10 +10,15 @@
  * - Organization has multiple custom domains (e.g., corp.example.com, partner.example.com)
  * - User navigates to each domain's signin page and opens the SSO credentials modal
  * - Domain A uses Microsoft Entra ID
- * - Domain B uses Google Workspace
+ * - Domain B uses a Generic OIDC provider
  * - Both configurations coexist within the same organization
  *
  * This validates the architecture that SSO config is scoped to domain, not org.
+ *
+ * Tenant SSO is OIDC/Entra-only (#3902): issuerless providers (Google/GitHub)
+ * resolve to the shared '' issuer sentinel and cannot satisfy per-tenant
+ * identity partitioning keyed (provider, issuer, uid). They remain available
+ * only on the PLATFORM/install-level SSO surface, never per-domain.
  *
  * Prerequisites:
  * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
@@ -64,7 +69,8 @@ interface DomainInfo {
   providerType?: string;
 }
 
-type ProviderType = 'entra_id' | 'google' | 'github' | 'oidc';
+// Tenant surface supports OIDC-capable providers only (#3902).
+type ProviderType = 'entra_id' | 'oidc';
 
 interface SsoConfigData {
   providerType: ProviderType;
@@ -210,8 +216,6 @@ async function openDomainSsoModal(
 async function selectProvider(container: Locator, providerType: ProviderType): Promise<void> {
   const providerLabels: Record<ProviderType, string> = {
     entra_id: 'Microsoft Entra ID',
-    google: 'Google Workspace',
-    github: 'GitHub',
     oidc: 'Generic OIDC',
   };
 
@@ -315,6 +319,7 @@ async function setupDomainSsoMock(
             client_id: saveConfig?.clientId || 'saved-client-id',
             client_secret_masked: '****',
             tenant_id: saveConfig?.tenantId,
+            issuer: saveConfig?.issuer,
             enabled: true,
           },
         }),
@@ -334,7 +339,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-MPROV-001: configure Entra ID for first domain and Google for second domain', async ({
+  test('TC-MPROV-001: configure Entra ID for first domain and Generic OIDC for second domain', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -358,16 +363,17 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
       tenantId: 'tenant-id-domain-a',
     };
 
-    const googleConfig: SsoConfigData = {
-      providerType: 'google',
-      displayName: `${domainB.displayDomain} Google`,
-      clientId: 'google-client-id-domain-b',
-      clientSecret: 'google-secret-domain-b',
+    const oidcConfig: SsoConfigData = {
+      providerType: 'oidc',
+      displayName: `${domainB.displayDomain} OIDC`,
+      clientId: 'oidc-client-id-domain-b',
+      clientSecret: 'oidc-secret-domain-b',
+      issuer: 'https://idp.domain-b.example.com',
     };
 
     // Setup mocks for both domains
     await setupDomainSsoMock(page, domainA.extid, { onSave: entraConfig, existingConfig: null });
-    await setupDomainSsoMock(page, domainB.extid, { onSave: googleConfig, existingConfig: null });
+    await setupDomainSsoMock(page, domainB.extid, { onSave: oidcConfig, existingConfig: null });
 
     // Step 1: Open SSO modal for domain A and configure Entra ID
     const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
@@ -375,10 +381,10 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     await fillSsoConfigForm(page, modalA, entraConfig);
     await submitSsoForm(modalA);
 
-    // Step 2: Open SSO modal for domain B and configure Google
+    // Step 2: Open SSO modal for domain B and configure Generic OIDC
     const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
 
-    await fillSsoConfigForm(page, modalB, googleConfig);
+    await fillSsoConfigForm(page, modalB, oidcConfig);
     await submitSsoForm(modalB);
 
     // Step 3: Verify both domains appear in org SSO hub
@@ -461,9 +467,10 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 
     await setupDomainSsoMock(page, domainB.extid, {
       existingConfig: {
-        providerType: 'google',
-        displayName: 'Domain B Google',
+        providerType: 'oidc',
+        displayName: 'Domain B OIDC',
         clientId: 'client-b',
+        issuer: 'https://idp.domain-b.example.com',
       },
     });
 
@@ -478,22 +485,30 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
       (await entraRadio.isChecked().catch(() => false)) ||
       (await entraLabel.locator('input').isChecked().catch(() => false));
 
-    // Open SSO modal for domain B and verify Google is selected
+    // Open SSO modal for domain B and verify Generic OIDC is selected
     const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
 
-    const googleRadio = page.locator('input[type="radio"][value="google"]');
-    const googleLabel = modalB.locator('label').filter({ hasText: 'Google Workspace' });
+    const oidcRadio = page.locator('input[type="radio"][value="oidc"]');
+    const oidcLabel = modalB.locator('label').filter({ hasText: 'Generic OIDC' });
 
-    const isGoogleSelected =
-      (await googleRadio.isChecked().catch(() => false)) ||
-      (await googleLabel.locator('input').isChecked().catch(() => false));
+    const isOidcSelected =
+      (await oidcRadio.isChecked().catch(() => false)) ||
+      (await oidcLabel.locator('input').isChecked().catch(() => false));
+
+    // #3902: issuerless providers must not exist anywhere on the tenant
+    // surface — neither as a selectable radio nor as the locked provider
+    // display for an existing config.
+    await expect(modalB.locator('input[type="radio"][value="google"]')).toHaveCount(0);
+    await expect(modalB.locator('input[type="radio"][value="github"]')).toHaveCount(0);
+    await expect(modalB.getByText('Google Workspace')).toHaveCount(0);
+    await expect(modalB.getByText('GitHub', { exact: true })).toHaveCount(0);
 
     // At least one verification should pass (mocked data may not fully load)
     // In production with real data, both would be true
-    expect(isEntraSelected || isGoogleSelected || true).toBe(true);
+    expect(isEntraSelected || isOidcSelected || true).toBe(true);
   });
 
-  test('TC-MPROV-004: changing provider on one domain does not affect other domain', async ({
+  test('TC-MPROV-004: updating credentials on one domain does not affect other domain', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -536,9 +551,10 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
           body: JSON.stringify({
             record: {
               extid: 'sso-a',
-              provider_type: 'github',
-              display_name: 'Domain A GitHub',
+              provider_type: 'entra_id',
+              display_name: 'Domain A Entra Updated',
               client_id: 'new-client-a',
+              tenant_id: 'tenant-a',
               enabled: true,
             },
           }),
@@ -556,23 +572,23 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
         body: JSON.stringify({
           record: {
             extid: 'sso-b',
-            provider_type: 'google',
-            display_name: 'Domain B Google',
+            provider_type: 'oidc',
+            display_name: 'Domain B OIDC',
             client_id: 'client-b',
+            issuer: 'https://idp.domain-b.example.com',
             enabled: true,
           },
         }),
       });
     });
 
-    // Open SSO modal for domain A and change provider from Entra ID to GitHub
+    // Open SSO modal for domain A and update its credentials in place.
+    // (Provider type is locked while editing an existing config, and the
+    // issuerless providers that the old provider-swap flow relied on are
+    // gone from the tenant surface — #3902.)
     const modal = await openDomainSsoModal(page, org!.extid, domainA.extid);
 
-    // Change to GitHub provider
-    const githubOption = modal.locator('label').filter({ hasText: 'GitHub' });
-    await githubOption.click();
-
-    await page.locator('#domain-sso-display-name').fill('Domain A GitHub');
+    await page.locator('#domain-sso-display-name').fill('Domain A Entra Updated');
     await page.locator('#domain-sso-client-id').fill('new-client-a');
     await page.locator('#domain-sso-client-secret').fill('new-secret-a');
 
@@ -718,7 +734,7 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     await expect(issuerInput).not.toBeVisible();
   });
 
-  test('TC-MPROV-009: Google Workspace does not require tenant_id', async ({ page }) => {
+  test('TC-MPROV-009: switching provider swaps tenant_id for issuer field', async ({ page }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -731,16 +747,15 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
     const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
 
-    // Select Google Workspace
-    await selectProvider(modal, 'google');
+    // Start on Entra ID: tenant_id visible, issuer hidden
+    await selectProvider(modal, 'entra_id');
+    await expect(page.locator('#domain-sso-tenant-id')).toBeVisible();
+    await expect(page.locator('#domain-sso-issuer')).not.toBeVisible();
 
-    // Tenant ID field should NOT be visible for Google
-    const tenantIdInput = page.locator('#domain-sso-tenant-id');
-    await expect(tenantIdInput).not.toBeVisible();
-
-    // Issuer field should NOT be visible
-    const issuerInput = page.locator('#domain-sso-issuer');
-    await expect(issuerInput).not.toBeVisible();
+    // Switch to Generic OIDC: issuer visible, tenant_id hidden
+    await selectProvider(modal, 'oidc');
+    await expect(page.locator('#domain-sso-issuer')).toBeVisible();
+    await expect(page.locator('#domain-sso-tenant-id')).not.toBeVisible();
   });
 
   test('TC-MPROV-010: Generic OIDC requires issuer field', async ({ page }) => {
@@ -768,7 +783,9 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     await expect(tenantIdInput).not.toBeVisible();
   });
 
-  test('TC-MPROV-011: GitHub uses minimal configuration', async ({ page }) => {
+  test('TC-MPROV-011: provider picker offers exactly Entra ID and Generic OIDC', async ({
+    page,
+  }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -779,21 +796,23 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
+    // Force new-config mode so the selectable radio group renders (provider
+    // type is locked while editing an existing config).
+    await setupDomainSsoMock(page, domains[0].extid, { existingConfig: null });
+
     const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
 
-    // Select GitHub
-    await selectProvider(modal, 'github');
+    // #3902: tenant SSO is OIDC/Entra-only — exactly two provider radios.
+    const providerRadios = modal.locator('input[type="radio"][name="provider_type"]');
+    await expect(providerRadios).toHaveCount(2);
+    await expect(modal.locator('input[type="radio"][value="entra_id"]')).toHaveCount(1);
+    await expect(modal.locator('input[type="radio"][value="oidc"]')).toHaveCount(1);
 
-    // GitHub should only need client_id and client_secret (no tenant_id, no issuer)
-    const tenantIdInput = page.locator('#domain-sso-tenant-id');
-    const issuerInput = page.locator('#domain-sso-issuer');
-
-    await expect(tenantIdInput).not.toBeVisible();
-    await expect(issuerInput).not.toBeVisible();
-
-    // Client ID and secret should be visible
-    await expect(page.locator('#domain-sso-client-id')).toBeVisible();
-    await expect(page.locator('#domain-sso-client-secret')).toBeVisible();
+    // Issuerless providers must not be offered on the tenant surface.
+    await expect(modal.locator('input[type="radio"][value="google"]')).toHaveCount(0);
+    await expect(modal.locator('input[type="radio"][value="github"]')).toHaveCount(0);
+    await expect(modal.getByText('Google Workspace')).toHaveCount(0);
+    await expect(modal.getByText('GitHub', { exact: true })).toHaveCount(0);
   });
 });
 
@@ -833,9 +852,10 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     // Setup mock for domain B with different config
     await setupDomainSsoMock(page, domainB.extid, {
       existingConfig: {
-        providerType: 'google',
+        providerType: 'oidc',
         displayName: 'UNIQUE_DOMAIN_B_NAME_67890',
         clientId: 'unique-client-b-abc',
+        issuer: 'https://idp.unique-b.example.com',
       },
     });
 

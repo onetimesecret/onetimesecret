@@ -430,7 +430,9 @@ test.describe('Domain SSO Configuration - Form', () => {
     await expect(clientIdInput).toHaveValue('');
   });
 
-  test('TC-DSSO-009: provider type selector shows all 4 options', async ({ page }) => {
+  test('TC-DSSO-009: provider type selector shows only the two supported providers', async ({
+    page,
+  }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -441,13 +443,32 @@ test.describe('Domain SSO Configuration - Form', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
+    // Force new-config mode so the selectable radio group renders (provider
+    // type is locked while editing an existing config).
+    await page.route(`**/api/domains/${domains[0].extid}/sso`, async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ record: null }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
     const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
 
-    // Check for all 4 provider options inside the modal
+    // #3902: tenant SSO is OIDC/Entra-only. Issuerless providers
+    // (Google/GitHub) live on the platform surface only and must not be
+    // offered per-domain.
     await expect(modal.getByText('Microsoft Entra ID')).toBeVisible();
-    await expect(modal.getByText('Google Workspace')).toBeVisible();
-    await expect(modal.getByText('GitHub')).toBeVisible();
     await expect(modal.getByText('Generic OIDC')).toBeVisible();
+    await expect(
+      modal.locator('input[type="radio"][name="provider_type"]')
+    ).toHaveCount(2);
+    await expect(modal.getByText('Google Workspace')).toHaveCount(0);
+    await expect(modal.getByText('GitHub', { exact: true })).toHaveCount(0);
   });
 
   test('TC-DSSO-010: selecting Entra ID shows tenant_id field', async ({ page }) => {
@@ -880,9 +901,10 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
           body: JSON.stringify({
             record: {
               extid: 'sso-config-domain-b',
-              provider_type: 'google',
-              display_name: 'Domain B Google',
+              provider_type: 'oidc',
+              display_name: 'Domain B OIDC',
               client_id: 'client-b',
+              issuer: 'https://idp.domain-b.example.com',
               enabled: true,
             },
           }),
@@ -921,13 +943,15 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     // Step 4: Open SSO modal for domain B (navigates to domain B's signin page)
     const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
 
-    // Step 5: Configure Google for domain B
-    const googleOption = modalB.locator('label').filter({ hasText: 'Google Workspace' });
-    await googleOption.click();
+    // Step 5: Configure Generic OIDC for domain B (#3902: tenant SSO is
+    // OIDC/Entra-only, so the second provider is OIDC rather than Google)
+    const oidcOption = modalB.locator('label').filter({ hasText: 'Generic OIDC' });
+    await oidcOption.click();
 
-    await page.locator('#domain-sso-display-name').fill('Domain B Google');
+    await page.locator('#domain-sso-display-name').fill('Domain B OIDC');
     await page.locator('#domain-sso-client-id').fill('client-b');
     await page.locator('#domain-sso-client-secret').fill('secret-b');
+    await page.locator('#domain-sso-issuer').fill('https://idp.domain-b.example.com');
 
     // Step 6: Save domain B config (anchor on the mocked save round-trip)
     const saveButtonB = modalB.locator('button[type="submit"]');
@@ -1036,7 +1060,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
  * | TC-DSSO-006  | configure link is visible in SSO hub domain list                | Critical | Automated  |
  * | TC-DSSO-007  | empty domains state shows add domain prompt                     | Medium   | Automated  |
  * | TC-DSSO-008  | shows empty form for domain without SSO config                  | High     | Automated  |
- * | TC-DSSO-009  | provider type selector shows all 4 options                      | High     | Automated  |
+ * | TC-DSSO-009  | provider type selector shows only the two supported providers   | High     | Automated  |
  * | TC-DSSO-010  | selecting Entra ID shows tenant_id field                        | High     | Automated  |
  * | TC-DSSO-011  | selecting OIDC shows issuer field                               | High     | Automated  |
  * | TC-DSSO-012  | form validation prevents save without required fields           | Critical | Automated  |
