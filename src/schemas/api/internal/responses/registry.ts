@@ -35,6 +35,12 @@ import {
 } from './colonel-secrets';
 import { colonelDomainVerifyResponseSchema } from './colonel-domains';
 import {
+  colonelDomainConfigsResponseSchema,
+  colonelDomainConfigUpsertResponseSchema,
+  colonelDomainConfigDeleteResponseSchema,
+  colonelDomainConfigsEnsureResponseSchema,
+} from './colonel-domain-configs';
+import {
   colonelEntitlementOverrideResponseSchema,
   colonelMembershipEntitlementOverrideResponseSchema,
   colonelOrganizationDetailResponseSchema,
@@ -163,6 +169,10 @@ export const responseSchemas = {
   colonelSecretDelete: colonelSecretDeleteResponseSchema,
   customDomains: colonelCustomDomainsResponseSchema,
   colonelDomainVerify: colonelDomainVerifyResponseSchema,
+  colonelDomainConfigs: colonelDomainConfigsResponseSchema,
+  colonelDomainConfigUpsert: colonelDomainConfigUpsertResponseSchema,
+  colonelDomainConfigDelete: colonelDomainConfigDeleteResponseSchema,
+  colonelDomainConfigsEnsure: colonelDomainConfigsEnsureResponseSchema,
   colonelOrganizations: colonelOrganizationsResponseSchema,
   colonelOrganizationDetail: colonelOrganizationDetailResponseSchema,
   investigateOrganization: investigateOrganizationResponseSchema,
