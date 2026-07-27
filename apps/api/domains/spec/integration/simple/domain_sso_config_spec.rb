@@ -671,6 +671,66 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       end
     end
 
+    context 'switching provider from a secretless OIDC config' do
+      before do
+        # Replace the entra_id fixture with an OIDC public-client config
+        # (PKCE) that has no stored client_secret to fall back to.
+        Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'oidc',
+          client_id: 'pkce-client-id',
+          issuer: 'https://pkce-issuer.example.com',
+          enabled: false,
+        )
+        login_as(test_owner)
+      end
+
+      it 'returns 422 when switching to entra_id without a client_secret' do
+        # Neither the request nor the stored record has a secret — allowing
+        # this through would produce an entra_id config whose token exchange
+        # fails at the IdP.
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+        }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to include('Client secret')
+
+        # Stored config is untouched
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+        expect(config.provider_type).to eq('oidc')
+      end
+
+      it 'switches to entra_id when a client_secret is provided' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+          client_secret: 'switch-secret-value',
+        }
+
+        expect(last_response.status).to eq(200)
+        record = json_body['record']
+        expect(record['provider_type']).to eq('entra_id')
+        expect(record['client_secret_masked']).to eq('••••••••alue')
+      end
+
+      it 'switches to entra_id without a request secret when one is stored' do
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+        config.client_secret = 'stored-oidc-secret'
+        config.commit_fields
+
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+        }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['provider_type']).to eq('entra_id')
+      end
+    end
+
     context 'when no existing config' do
       before do
         # Remove the existing config
@@ -1120,6 +1180,42 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       json_get api_path(test_custom_domain.extid)
 
       expect(last_response.content_type).to include('application/json')
+    end
+  end
+
+  # ==========================================================================
+  # Model-level Validation (SsoConfig.create!)
+  # ==========================================================================
+
+  describe 'SsoConfig.create! validation' do
+    it 'raises Onetime::Problem when required provider fields are missing' do
+      expect do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+        )
+      end.to raise_error(Onetime::Problem, /client_id is required.*issuer is required/)
+    end
+
+    it 'raises Onetime::Problem for entra_id without a client_secret' do
+      expect do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'entra_id',
+          client_id: 'entra-client-id',
+          tenant_id: 'entra-tenant-id',
+        )
+      end.to raise_error(Onetime::Problem, /client_secret is required/)
+    end
+
+    it 'allows OIDC public clients without a client_secret' do
+      config = Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        provider_type: 'oidc',
+        client_id: 'pkce-client-id',
+        issuer: 'https://pkce-issuer.example.com',
+      )
+      expect(config.valid?).to be true
     end
   end
 end

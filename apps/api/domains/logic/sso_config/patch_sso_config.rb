@@ -21,7 +21,9 @@ module DomainsAPI
       # Request body:
       # - provider_type: Required for create, optional for update (uses existing if empty)
       # - client_id: Required for create, optional for update (uses existing if empty)
-      # - client_secret: Required for create, optional for update (preserves existing if empty)
+      # - client_secret: Required for create (except OIDC public clients),
+      #   optional for update (preserves existing if empty). Switching to a
+      #   non-OIDC provider requires a secret — from the request or already stored.
       # - tenant_id: Required for entra_id provider on create (preserves existing if empty)
       # - issuer: Required for oidc provider on create (preserves existing if empty)
       # - display_name: Optional. Human-readable name (preserves existing if empty)
@@ -187,11 +189,25 @@ module DomainsAPI
             end
           end
 
-          # client_secret is required for new non-OIDC configs, optional for updates (preserves existing).
-          # OIDC supports public clients (PKCE flow) without a client secret.
-          if @existing_config.nil? && @client_secret.to_s.empty? && @provider_type != 'oidc'
+          # client_secret is required for non-OIDC configs; OIDC supports
+          # public clients (PKCE flow) without one. An omitted secret on
+          # update falls back to the stored one — so a provider switch from
+          # a secretless OIDC config to entra_id has nothing to fall back to
+          # and must supply a secret, or token exchange fails at the IdP.
+          return if @provider_type == 'oidc' || !@client_secret.to_s.empty?
+
+          if @existing_config.nil? || !stored_client_secret?
             raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
           end
+        end
+
+        # Whether the stored record has a non-empty client_secret to preserve.
+        # An undecryptable secret counts as absent — fail closed.
+        def stored_client_secret?
+          secret = @existing_config.client_secret&.reveal { it }
+          !secret.to_s.empty?
+        rescue StandardError
+          false
         end
 
         def validate_provider_specific_fields
@@ -274,6 +290,12 @@ module DomainsAPI
 
           # Update timestamp for partial update
           @sso_config.updated = Familia.now.to_i
+
+          # Fail closed if the request validators above missed a field
+          # combination: the model owns the invariants (SsoConfig#validation_errors)
+          # and nothing invalid may be committed.
+          errors = @sso_config.validation_errors
+          raise_form_error(errors.join('; '), error_type: :invalid) if errors.any?
 
           # commit_fields runs its own transaction internally for atomicity
           @sso_config.commit_fields

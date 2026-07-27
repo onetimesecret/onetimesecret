@@ -220,6 +220,12 @@ module DomainsAPI
           # Update timestamp for replacement
           @sso_config.updated = Familia.now.to_i
 
+          # Fail closed if the request validators above missed a field
+          # combination: the model owns the invariants (SsoConfig#validation_errors)
+          # and nothing invalid may be committed.
+          errors = @sso_config.validation_errors
+          raise_form_error(errors.join('; '), error_type: :invalid) if errors.any?
+
           # commit_fields runs its own transaction internally for atomicity
           @sso_config.commit_fields
         end

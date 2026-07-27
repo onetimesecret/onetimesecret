@@ -462,7 +462,7 @@ module Onetime
         # @param domain_id [String] CustomDomain identifier
         # @param attrs [Hash] Configuration attributes
         # @return [CustomDomain::SsoConfig] The created config
-        # @raise [Onetime::Problem] if config already exists
+        # @raise [Onetime::Problem] if config already exists or validation fails
         def create!(domain_id:, **attrs)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
           raise Onetime::Problem, 'SSO config already exists for this domain' if exists_for_domain?(domain_id)
@@ -489,6 +489,10 @@ module Onetime
           now            = Familia.now.to_i
           config.created = now
           config.updated = now
+
+          unless config.valid?
+            raise Onetime::Problem, config.validation_errors.join('; ')
+          end
 
           # Save using Horreum's built-in method
           config.save
