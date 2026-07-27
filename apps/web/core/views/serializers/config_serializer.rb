@@ -300,6 +300,7 @@ module Core
         # platform SSO configuration (from env vars).
         #
         # Resolution priority:
+        #   0. AUTH_ENABLED master switch off => disabled, unconditionally
         #   1. CustomDomain::SsoConfig for tenant (if custom domain with domain SSO config)
         #   2. Platform SSO providers (from env vars, if fallback allowed)
         #   3. Disabled (empty providers)
@@ -307,6 +308,17 @@ module Core
         # @param view_vars [Hash] View variables containing domain context
         # @return [Boolean, Hash] false if disabled, otherwise config hash
         def build_sso_config(view_vars)
+          # AUTH_ENABLED master switch: with authentication off there is no
+          # SSO surface at all — tenant or platform — so return the disabled
+          # shape before resolving anything. The tenant ladder
+          # (SsoConfig.tenant_sso_unavailable_reason, rung :auth_disabled)
+          # and build_platform_sso_config each enforce this too, but the
+          # branches below must not depend on those internal checks: the
+          # master switch is this method's own contract, guarded here.
+          unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
+            return { 'enabled' => false, 'providers' => [] }
+          end
+
           # Try tenant-specific SSO config first
           tenant_config = resolve_tenant_sso_config(view_vars)
 
@@ -340,14 +352,26 @@ module Core
         # governs the TENANT's SSO only; build_sso_config's platform-fallback
         # policy is unchanged.
         #
+        # Single-read contract: the record is loaded exactly once and handed
+        # to the availability check via its sso_config: pass-through, so the
+        # verdict and the returned record are the same object. Checking first
+        # and re-loading after would leave a window where an operator
+        # disabling or deleting the SsoConfig between the two reads passes the
+        # check but returns nil — and build_sso_config would then silently
+        # fall through to platform fallback for a domain that had tenant SSO
+        # a moment earlier.
+        #
         # @param view_vars [Hash] View variables
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
           domain_id = resolve_domain_id(view_vars)
           return nil unless domain_id
-          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
 
-          Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+          config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+          return nil unless config
+          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
+
+          config
         end
 
         # Resolve domain identifier from view variables
@@ -436,10 +460,11 @@ module Core
         # This is the original behavior - reading SSO providers from
         # AuthConfig which derives them from environment variables.
         #
-        # Gated on the AUTH_ENABLED master switch (mirroring
-        # SsoConfig.tenant_sso_unavailable_reason) so platform SSO buttons
-        # go dark on the canonical host too, not just tenant fallback —
-        # hence the guard lives here rather than in allow_platform_fallback?.
+        # Also gated on the AUTH_ENABLED master switch as defense in depth:
+        # build_sso_config (the sole caller today) returns the disabled shape
+        # before reaching here, but this builder must never advertise platform
+        # providers on its own if it gains another caller — so it re-checks
+        # rather than relying on the caller's guard.
         #
         # @return [Boolean, Hash] false if disabled, otherwise config hash
         def build_platform_sso_config
