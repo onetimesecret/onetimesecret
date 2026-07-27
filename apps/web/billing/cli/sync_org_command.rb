@@ -10,10 +10,23 @@
 #   bin/ots billing sync-org --all --dry-run               # Preview changes
 
 require_relative 'helpers'
+# The mutation + the admin audit event are performed by the shared
+# Onetime::Operations::Org::Reconcile op — 'billing sync-org' is a
+# billing-namespace alias over the same op as 'org reconcile' (the CLI
+# OrgReconcileCommand and the colonel ReconcileOrganization Logic class are
+# the other adapters). The CLI runs outside the app autoloaders, so require
+# the op explicitly. Customers::Shared is referenced by constant only
+# (CLI_ACTOR), so it is required but NOT included — including it would drag
+# its resolver methods into a command that resolves orgs, not customers.
+require 'onetime/operations/org/reconcile'
+require 'onetime/cli/customers/shared'
 
 module Onetime
   module CLI
-    # Sync Organization subscription state from Stripe
+    # Sync Organization subscription state from Stripe.
+    #
+    # 'billing sync-org' is a billing-namespace alias over the same audited
+    # Onetime::Operations::Org::Reconcile op as 'org reconcile' (#3903).
     class BillingSyncOrgCommand < Command
       include BillingHelpers
 
@@ -84,26 +97,53 @@ module Onetime
       end
 
       def sync_organization(org, dry_run:)
-        sub_id       = org.stripe_subscription_id
-        subscription = with_stripe_retry { Stripe::Subscription.retrieve(sub_id) }
-        price_id     = subscription.items.data.first&.price&.id
-        new_planid   = Billing::PlanValidator.resolve_plan_id(price_id)
-        old_planid   = org.planid.to_s.empty? ? '(none)' : org.planid
+        result = Onetime::Operations::Org::Reconcile.new(
+          org: org,
+          # Never fabricate a Customer for the shell (ADR-023) — the audit
+          # trail records the shared CLI sentinel.
+          actor: Customers::Shared::CLI_ACTOR,
+          dry_run: dry_run,
+        ).call
 
-        if dry_run
-          puts "[DRY RUN] Would sync #{truncate_extid(org.extid)}: #{old_planid} -> #{new_planid}"
+        if Onetime::Operations::Org::Reconcile::OK_STATUSES.include?(result.status)
+          print_outcome(org, result)
+          :synced
         else
-          Billing::Operations::ApplySubscriptionToOrg.call(org, subscription, owner: true)
-          puts "Synced #{truncate_extid(org.extid)}: #{old_planid} -> #{new_planid}"
+          # Includes :stripe_error — the op converts ::Stripe::StripeError
+          # (e.g. InvalidRequestError) into that status instead of raising.
+          detail = result.reason ? " (#{result.reason})" : nil
+          puts "Error #{truncate_extid(org.extid)}: #{result.status}#{detail}"
+          :errors
         end
+      rescue Billing::OpsProblem => ex
+        # OpsProblem subclasses (CatalogMissError from the catalog lookup,
+        # PlanCacheMissError from entitlement materialization, ...) are NOT
+        # Stripe::StripeError, so they escape Reconcile#call. Contain the
+        # whole family per-org so a --all sweep keeps going. The class +
+        # message is the operator hint (CatalogMissError's default message
+        # already says to run `bin/ots billing catalog pull`).
+        puts "Error #{truncate_extid(org.extid)}: #{ex.class}: #{ex.message}"
+        :errors
+      end
 
-        :synced
-      rescue Stripe::InvalidRequestError => ex
-        puts "Error #{truncate_extid(org.extid)}: #{ex.message}"
-        :errors
-      rescue Billing::CatalogMissError => ex
-        puts "Error #{truncate_extid(org.extid)}: price not in catalog (#{ex.price_id})"
-        :errors
+      # `result.after` is nil exactly when nothing was written (dry run; the
+      # :stripe_error case never reaches here), so only print a planid diff
+      # when it is present. `result.reason` rides along whenever the op set
+      # one — for :standalone it is the ONLY carrier of the membership-cascade
+      # outcome (including 'membership cascade failed (see logs)', D14), and
+      # the planid diff alone reads like a no-op there.
+      def print_outcome(org, result)
+        label = truncate_extid(org.extid)
+        if result.after
+          detail = result.reason ? " (#{result.reason})" : nil
+          puts "Synced #{label}: #{render(result.before[:planid])} -> #{render(result.after[:planid])}#{detail}"
+        else
+          puts "[DRY RUN] #{label}: #{result.status} — #{result.reason}"
+        end
+      end
+
+      def render(value)
+        value.to_s.empty? ? '(none)' : value.to_s
       end
 
       def truncate_extid(extid)
