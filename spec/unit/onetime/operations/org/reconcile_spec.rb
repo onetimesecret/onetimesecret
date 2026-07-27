@@ -151,6 +151,25 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       end
     end
 
+    it 'passes :materialized through with reason still nil (no synthesis)' do
+      # Synthesis is keyed on status == :would_materialize, not on reason.nil?
+      # alone — :materialized is the engine's other nil-reason status and must
+      # come through untouched.
+      allow(Billing::Operations::ApplySubscriptionToOrg)
+        .to receive(:materialize_entitlements_for_org)
+        .and_return(
+          Billing::Operations::MaterializeResult.new(
+            status: :materialized, planid: 'identity_plus_v1',
+            entitlements_count: 7, source: :cache, reason: nil
+          )
+        )
+
+      result = described_class.new(org: org, actor: actor, dry_run: false).call
+
+      expect(result.status).to eq(:materialized)
+      expect(result.reason).to be_nil
+    end
+
     it 'previews with dry_run: true — no audit, no after snapshot' do
       allow(Billing::Operations::ApplySubscriptionToOrg)
         .to receive(:materialize_entitlements_for_org)
@@ -170,6 +189,26 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
         .to have_received(:materialize_entitlements_for_org).with(org, dry_run: true)
       expect(Onetime::AdminAuditEvent).not_to have_received(:record)
       expect(Onetime::Organization).not_to have_received(:load)
+    end
+
+    it 'synthesizes a human-readable reason for :would_materialize' do
+      # The engine hardcodes reason: nil on :would_materialize
+      # (apply_subscription_to_org.rb, would_materialize_result), so without
+      # synthesis a dry run has nothing for adapters to print. The op builds
+      # the reason from the MaterializeResult fields it otherwise discards —
+      # reason stays the human-readable carrier (D14), no structured fields.
+      allow(Billing::Operations::ApplySubscriptionToOrg)
+        .to receive(:materialize_entitlements_for_org)
+        .and_return(
+          Billing::Operations::MaterializeResult.new(
+            status: :would_materialize, planid: 'identity_plus_month',
+            entitlements_count: 12, source: :config, reason: nil
+          )
+        )
+
+      result = described_class.new(org: org, actor: actor).call
+
+      expect(result.reason).to eq('Would materialize 12 entitlements for plan identity_plus_month')
     end
 
     it 'defaults to dry_run: true' do

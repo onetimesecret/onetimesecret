@@ -11,7 +11,10 @@
 #
 # Tested here: command shape, option handling, truncate_extid helper,
 # single org sync logic, batch processing, error handling, and dry-run mode.
-# Live Stripe behavior is verified manually.
+# The mutation itself is delegated to the shared audited op
+# Onetime::Operations::Org::Reconcile (#3903) — adapter behavior is covered
+# by spec/cli/billing/sync_org_command_spec.rb and the op by
+# spec/unit/onetime/operations/org/reconcile_spec.rb.
 #
 # Run: bundle exec try try/unit/cli/billing/sync_org_command_try.rb
 
@@ -38,7 +41,7 @@ defined?(Onetime::CLI::BillingSyncOrgCommand)
 Onetime::CLI::BillingSyncOrgCommand.ancestors.include?(Onetime::CLI::Command)
 #=> true
 
-## Includes BillingHelpers (for with_stripe_retry, stripe_configured?)
+## Includes BillingHelpers (for stripe_configured?)
 Onetime::CLI::BillingSyncOrgCommand.ancestors.include?(Onetime::CLI::BillingHelpers)
 #=> true
 
@@ -134,41 +137,64 @@ $stdout = @orig
 #=> true
 
 # -------------------------------------------------------------------
-# Error handling: Stripe::InvalidRequestError
+# Delegation: the audited Reconcile op owns the mutation (#3903)
 # -------------------------------------------------------------------
 
-## Create mock subscription that triggers error
-# The sync_organization method catches Stripe::InvalidRequestError
-# and returns :errors symbol
-@mock_org = Struct.new(:extid, :stripe_subscription_id, :planid, keyword_init: true) do
-  def exists?
-    true
-  end
-end.new(
-  extid: "mock_org_#{@test_suffix}",
-  stripe_subscription_id: 'sub_invalid',
-  planid: 'free'
-)
+## The shared Reconcile op is loaded by the command file
+defined?(Onetime::Operations::Org::Reconcile)
+#=> 'constant'
 
-## Method returns :errors on Stripe::InvalidRequestError (verified structurally)
-# The sync_organization method rescues Stripe::InvalidRequestError and returns :errors
-# We verify the error handling path by checking the code structure
+## sync_organization is defined in this command file (not inherited)
 Onetime::CLI::BillingSyncOrgCommand.instance_method(:sync_organization).source_location.first.include?('sync_org_command.rb')
 #=> true
 
-# -------------------------------------------------------------------
-# Error handling: Billing::CatalogMissError
-# -------------------------------------------------------------------
-
-## CatalogMissError is rescued and reports price not in catalog
-# Verify the error handling exists in the method definition
-@method_source = File.read(Onetime::CLI::BillingSyncOrgCommand.instance_method(:sync_organization).source_location.first)
-@method_source.include?('Billing::CatalogMissError')
+## Command delegates the mutation to Onetime::Operations::Org::Reconcile
+@command_source = File.read(Onetime::CLI::BillingSyncOrgCommand.instance_method(:sync_organization).source_location.first)
+@command_source.include?('Onetime::Operations::Org::Reconcile')
 #=> true
 
-## CatalogMissError handler returns :errors
-@method_source.include?('price not in catalog')
+## Command no longer calls ApplySubscriptionToOrg directly (op owns it)
+@command_source.include?('ApplySubscriptionToOrg')
+#=> false
+
+## Audit actor is the shared CLI sentinel, never a fabricated Customer
+@command_source.include?('Customers::Shared::CLI_ACTOR')
 #=> true
+
+## Status mapping keys off the op's OK_STATUSES contract
+@command_source.include?('OK_STATUSES')
+#=> true
+
+# -------------------------------------------------------------------
+# Error handling: Billing::OpsProblem family
+# -------------------------------------------------------------------
+
+## OpsProblem family is rescued per-org so a --all sweep keeps going
+# CatalogMissError AND PlanCacheMissError are Billing::OpsProblem subclasses
+# (not Stripe::StripeError), so they escape Reconcile#call; the adapter
+# rescues the parent class, not a single subclass.
+@command_source.include?('rescue Billing::OpsProblem')
+#=> true
+
+## OpsProblem handler reports the exception class + message generically
+@command_source.include?('ex.class') && @command_source.include?('ex.message')
+#=> true
+
+## Unexpected StandardErrors are contained in the --all sweep loop
+# Containment scope decision (PR #3924 review): sweep robust, single-org
+# loud — the same exception on `sync-org <extid>` still raises with a
+# backtrace.
+@command_source.include?('rescue StandardError')
+#=> true
+
+## Sweep summary label is pluralized to match synced/skipped ("3 errors")
+@command_source.include?("\#{stats[:errors]} errors")
+#=> true
+
+## Dry-run outcome line has no hardcoded dangling reason separator
+# The "— reason" segment is conditional on result.reason being present.
+@command_source.include?('result.status} — ')
+#=> false
 
 # -------------------------------------------------------------------
 # call: validates arguments (extid or --all required)
