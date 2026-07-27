@@ -103,6 +103,13 @@ require_relative 'colonel/probe_domain'
 require_relative 'colonel/repair_domain'
 require_relative 'colonel/transfer_domain'
 
+# Per-domain config records (signin/signup/homepage/api/incoming/sso/mailer):
+# view/upsert/delete + ensure-missing (v0.26.2 outage class)
+require_relative 'colonel/get_domain_configs'
+require_relative 'colonel/upsert_domain_config'
+require_relative 'colonel/delete_domain_config'
+require_relative 'colonel/ensure_domain_configs'
+
 # Email + rate-limit tools (ticket #44)
 require_relative 'colonel/list_email_templates'
 require_relative 'colonel/preview_email_template'
