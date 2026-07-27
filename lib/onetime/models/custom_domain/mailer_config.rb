@@ -243,19 +243,6 @@ module Onetime
         save
       end
 
-      # Rotate the API key without affecting verification state.
-      #
-      # Credential rotation is independent of DNS verification -- the
-      # DKIM/SPF records don't change when the API key changes.
-      #
-      # @param new_api_key [String] The new provider API key
-      # @return [void]
-      def rotate_credentials(new_api_key)
-        self.api_key = new_api_key
-        self.updated = Familia.now.to_i
-        save
-      end
-
       # Load the associated CustomDomain record.
       #
       # @return [CustomDomain, nil] The domain or nil if not found
