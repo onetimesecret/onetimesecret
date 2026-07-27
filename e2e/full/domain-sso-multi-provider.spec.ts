@@ -474,38 +474,21 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
       },
     });
 
-    // Open SSO modal for domain A and verify Entra ID is selected
-    const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
-
-    // The Entra ID option should be selected (checked state)
-    const entraRadio = page.locator('input[type="radio"][value="entra_id"]');
-    const entraLabel = modalA.locator('label').filter({ hasText: 'Microsoft Entra ID' });
-
-    const isEntraSelected =
-      (await entraRadio.isChecked().catch(() => false)) ||
-      (await entraLabel.locator('input').isChecked().catch(() => false));
-
-    // Open SSO modal for domain B and verify Generic OIDC is selected
-    const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
-
-    const oidcRadio = page.locator('input[type="radio"][value="oidc"]');
-    const oidcLabel = modalB.locator('label').filter({ hasText: 'Generic OIDC' });
-
-    const isOidcSelected =
-      (await oidcRadio.isChecked().catch(() => false)) ||
-      (await oidcLabel.locator('input').isChecked().catch(() => false));
-
     // #3902: issuerless providers must not exist anywhere on the tenant
     // surface — neither as a selectable radio nor as the locked provider
-    // display for an existing config.
+    // display for an existing config. Assert on each domain's modal while
+    // it is the open one.
+    const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
+    await expect(modalA.locator('input[type="radio"][value="google"]')).toHaveCount(0);
+    await expect(modalA.locator('input[type="radio"][value="github"]')).toHaveCount(0);
+    await expect(modalA.getByText('Google Workspace')).toHaveCount(0);
+    await expect(modalA.getByText('GitHub', { exact: true })).toHaveCount(0);
+
+    const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
     await expect(modalB.locator('input[type="radio"][value="google"]')).toHaveCount(0);
     await expect(modalB.locator('input[type="radio"][value="github"]')).toHaveCount(0);
     await expect(modalB.getByText('Google Workspace')).toHaveCount(0);
     await expect(modalB.getByText('GitHub', { exact: true })).toHaveCount(0);
-
-    // At least one verification should pass (mocked data may not fully load)
-    // In production with real data, both would be true
-    expect(isEntraSelected || isOidcSelected || true).toBe(true);
   });
 
   test('TC-MPROV-004: updating credentials on one domain does not affect other domain', async ({
