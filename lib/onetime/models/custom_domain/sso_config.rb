@@ -10,7 +10,7 @@
 # by the same organization can use different identity providers.
 #
 # Use Cases:
-#   - Regional compliance: secrets.acme.eu uses Google Workspace, secrets.acme.com uses Entra ID
+#   - Regional compliance: secrets.acme.eu uses a regional OIDC IdP, secrets.acme.com uses Entra ID
 #   - Gradual rollout: enable SSO on one domain before expanding to others
 #   - Subsidiary isolation: different business units use different IdPs
 #
@@ -27,8 +27,18 @@ module Onetime
 
       SCHEMA = 'models/domain-sso-config'
 
-      # Supported SSO provider types
-      PROVIDER_TYPES = %w[oidc entra_id google github].freeze
+      # Supported SSO provider types.
+      #
+      # Tenant SSO is OIDC/Entra-only by design (#3902). Identity partitioning
+      # is keyed (provider, issuer, uid), so a tenant provider must resolve a
+      # tenant-distinguishing issuer. GitHub (plain OAuth2, no issuer) and
+      # Google (single GLOBAL issuer accounts.google.com) both resolve to the
+      # shared '' sentinel, which cannot partition identities per tenant —
+      # their callbacks are refused on tenant surfaces (PR #3900,
+      # refuse_issuerless_on_tenant?), so they are not configurable here.
+      # PLATFORM/install-level SSO still supports them (separate surface,
+      # registered from ENV in apps/web/auth/config/features/omniauth.rb).
+      PROVIDER_TYPES = %w[oidc entra_id].freeze
 
       # Provider metadata for UI filtering logic
       #
@@ -51,16 +61,6 @@ module Onetime
           idp_controls_access: true,
           description: 'Microsoft Entra ID - access controlled via Azure app assignment',
         },
-        'google' => {
-          requires_domain_filter: true,
-          idp_controls_access: false,
-          description: 'Google Workspace - domain filtering recommended for enterprise',
-        },
-        'github' => {
-          requires_domain_filter: true,
-          idp_controls_access: false,
-          description: 'GitHub OAuth - domain filtering recommended',
-        },
       }.freeze
 
       # Map provider_type to platform route name ENV var and default.
@@ -70,8 +70,6 @@ module Onetime
       PROVIDER_ROUTE_MAP = {
         'oidc' => { env_var: 'OIDC_ROUTE_NAME', default: 'oidc' },
         'entra_id' => { env_var: 'ENTRA_ROUTE_NAME', default: 'entra' },
-        'google' => { env_var: 'GOOGLE_ROUTE_NAME', default: 'google' },
-        'github' => { env_var: 'GITHUB_ROUTE_NAME', default: 'github' },
       }.freeze
 
       prefix :custom_domain__sso_config
@@ -93,8 +91,10 @@ module Onetime
       # Required fields vary by provider_type:
       #   - entra_id: requires tenant_id
       #   - oidc:     requires issuer
-      #   - google:   neither (uses well-known Google endpoints)
-      #   - github:   neither (uses well-known GitHub endpoints)
+      #
+      # Both remaining providers carry a tenant-distinguishing issuer — the
+      # reason issuerless OAuth2 providers were removed from this surface
+      # (#3902, see PROVIDER_TYPES).
       #
       # Universal required fields (all providers):
       #   - client_id, client_secret, display_name, provider_type
@@ -252,10 +252,6 @@ module Onetime
           build_oidc_options
         when 'entra_id'
           build_entra_id_options
-        when 'google'
-          build_google_options
-        when 'github'
-          build_github_options
         else
           raise Onetime::Problem, "Unsupported SSO provider type: #{provider_type}"
         end
@@ -311,12 +307,10 @@ module Onetime
         #   |---------------|-----------|--------|---------------|
         #   | entra_id      | required  | -      | required      |
         #   | oidc          | -         | required | optional    |
-        #   | google        | -         | -      | required      |
-        #   | github        | -         | -      | required      |
         #
         # OIDC supports public clients (PKCE flow) without a client secret.
-        # Google and GitHub use well-known OAuth endpoints, so neither
-        # tenant_id nor issuer is needed.
+        # Every tenant provider requires an issuer-bearing field (issuer or
+        # tenant_id) — issuerless providers are not configurable (#3902).
         #
         case provider_type
         when 'oidc'
@@ -558,27 +552,6 @@ module Onetime
           client_secret: client_secret&.reveal { it },
           tenant_id: tenant_id,
           scope: 'openid profile email',
-        }
-      end
-
-      def build_google_options
-        {
-          strategy: :google_oauth2,
-          name: strategy_name,
-          client_id: client_id&.reveal { it },
-          client_secret: client_secret&.reveal { it },
-          scope: 'openid,email,profile',
-          prompt: 'select_account',
-        }
-      end
-
-      def build_github_options
-        {
-          strategy: :github,
-          name: strategy_name,
-          client_id: client_id&.reveal { it },
-          client_secret: client_secret&.reveal { it },
-          scope: 'user:email',
         }
       end
     end
