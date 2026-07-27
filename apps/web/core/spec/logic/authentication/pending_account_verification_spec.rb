@@ -103,7 +103,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           hash_including(customer_id: 'cust_pending123', status: :pending),
         )
         expect(logger).to receive(:info).with(
-          'Resending verification email (autoverify mode)',
+          'Resending verification email (autoverify disabled)',
           hash_including(customer_id: 'cust_pending123'),
         )
 
@@ -174,7 +174,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         )
         # Should NOT log resending email
         expect(logger).not_to receive(:info).with(
-          'Resending verification email (autoverify mode)',
+          'Resending verification email (autoverify disabled)',
           anything,
         )
 

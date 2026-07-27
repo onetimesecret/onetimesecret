@@ -246,7 +246,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
           it 'logs pending customer login' do
             expect(mock_logger).to receive(:info).with('Login pending customer verification', hash_including(:customer_id, :email))
-            expect(mock_logger).to receive(:info).with('Resending verification email (autoverify mode)', hash_including(:customer_id, :email))
+            expect(mock_logger).to receive(:info).with('Resending verification email (autoverify disabled)', hash_including(:customer_id, :email))
             logic.process
           end
         end
