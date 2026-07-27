@@ -788,47 +788,35 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       end
     end
 
-    context 'with valid Google config' do
+    # Tenant SSO is OIDC/Entra-only (#3902): issuerless providers (google,
+    # github) resolve to the shared '' issuer sentinel and cannot satisfy
+    # (provider, issuer, uid) identity partitioning, so they are rejected
+    # at the provider_type gate.
+    context 'with removed issuerless provider types (#3902)' do
       before { login_as(test_owner) }
 
-      let(:google_test_params) do
-        {
+      it 'rejects google as an invalid provider type' do
+        csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'google',
           client_id: 'test-client.apps.googleusercontent.com',
         }
-      end
 
-      it 'tests Google connection' do
-        stub_request(:get, "https://accounts.google.com/.well-known/openid-configuration").to_return(status: 200, body: %Q({"issuer":"https://accounts.google.com"}), headers: {"Content-Type" => "application/json"})
-
-        csrf_post test_connection_path(test_custom_domain.extid), google_test_params
-
-        expect(last_response.status).to eq(200)
-
+        expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['provider_type']).to eq('google')
+        expect(body['error']).to include('Invalid provider type')
+        expect(body['error']).to include('oidc, entra_id')
       end
-    end
 
-    context 'with valid GitHub config' do
-      before { login_as(test_owner) }
-
-      let(:github_test_params) do
-        {
+      it 'rejects github as an invalid provider type' do
+        csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'github',
           client_id: 'Iv1.1234567890abcdef',
         }
-      end
 
-      it 'validates GitHub config format (no network test)' do
-        csrf_post test_connection_path(test_custom_domain.extid), github_test_params
-
-        expect(last_response.status).to eq(200)
-
+        expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['provider_type']).to eq('github')
-        expect(body['success']).to be true
-        expect(body['message']).to include('format validated')
+        expect(body['error']).to include('Invalid provider type')
+        expect(body['error']).to include('oidc, entra_id')
       end
     end
 
@@ -890,27 +878,6 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(body['error']).to include('Issuer URL')
       end
 
-      it 'returns 422 for invalid Google client_id format' do
-        csrf_post test_connection_path(test_custom_domain.extid), {
-          provider_type: 'google',
-          client_id: 'invalid-google-client',
-        }
-
-        expect(last_response.status).to eq(422)
-        body = json_body
-        expect(body['error']).to include('googleusercontent.com')
-      end
-
-      it 'returns 422 for invalid GitHub client_id format' do
-        csrf_post test_connection_path(test_custom_domain.extid), {
-          provider_type: 'github',
-          client_id: 'invalid-github-client',
-        }
-
-        expect(last_response.status).to eq(422)
-        body = json_body
-        expect(body['error']).to include('Iv1')
-      end
     end
 
     context 'authorization checks' do

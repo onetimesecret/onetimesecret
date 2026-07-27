@@ -245,19 +245,20 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       end
     end
 
-    describe 'for Google provider' do
-      let(:config) { build_domain_sso_config(:google) }
-
-      it 'specifies :google_oauth2 strategy' do
-        expect(config.to_omniauth_options[:strategy]).to eq(:google_oauth2)
+    # Tenant SSO is OIDC/Entra-only (#3902): issuerless providers resolve to
+    # the '' issuer sentinel and cannot satisfy (provider, issuer, uid)
+    # partitioning, so they are no longer dispatchable provider types.
+    describe 'for removed issuerless providers' do
+      it 'raises Onetime::Problem for google' do
+        config = build_minimal_domain_sso_config(domain_id: 'dom_removed', provider_type: 'google')
+        expect { config.to_omniauth_options }
+          .to raise_error(Onetime::Problem, /Unsupported SSO provider type: google/)
       end
-    end
 
-    describe 'for GitHub provider' do
-      let(:config) { build_domain_sso_config(:github) }
-
-      it 'specifies :github strategy' do
-        expect(config.to_omniauth_options[:strategy]).to eq(:github)
+      it 'raises Onetime::Problem for github' do
+        config = build_minimal_domain_sso_config(domain_id: 'dom_removed', provider_type: 'github')
+        expect { config.to_omniauth_options }
+          .to raise_error(Onetime::Problem, /Unsupported SSO provider type: github/)
       end
     end
   end
@@ -312,7 +313,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     end
 
     describe 'without domain restrictions' do
-      let(:config) { build_domain_sso_config(:github) }
+      let(:config) { build_domain_sso_config(:oidc, allowed_domains: []) }
 
       it 'allows any email domain' do
         expect(config.valid_email_domain?('user@anydomain.com')).to be true
@@ -377,7 +378,11 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   describe 'PROVIDER_METADATA constant' do
     it 'defines metadata for all provider types' do
       expect(described_class::PROVIDER_METADATA).to be_a(Hash)
-      expect(described_class::PROVIDER_METADATA.keys).to include('oidc', 'entra_id', 'google', 'github')
+      expect(described_class::PROVIDER_METADATA.keys).to include('oidc', 'entra_id')
+    end
+
+    it 'excludes removed issuerless providers (#3902)' do
+      expect(described_class::PROVIDER_METADATA.keys).not_to include('google', 'github')
     end
   end
 
@@ -425,8 +430,8 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   end
 
   describe '#requires_domain_filter?' do
-    it 'returns true for GitHub' do
-      config = build_domain_sso_config(:github)
+    it 'returns true for OIDC' do
+      config = build_domain_sso_config(:oidc)
       expect(config.requires_domain_filter?).to be true
     end
 
@@ -644,22 +649,6 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       end
     end
 
-    context 'with a fully valid Google config' do
-      let(:config) { build_domain_sso_config(:google) }
-
-      it 'returns an empty errors array' do
-        expect(config.validation_errors).to eq([])
-      end
-    end
-
-    context 'with a fully valid GitHub config' do
-      let(:config) { build_domain_sso_config(:github) }
-
-      it 'returns an empty errors array' do
-        expect(config.validation_errors).to eq([])
-      end
-    end
-
     context 'when provider_type is missing' do
       it 'returns an error about provider_type' do
         config = build_domain_sso_config(:oidc)
@@ -714,7 +703,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is missing' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:google)
+        config = build_domain_sso_config(:entra_id)
         config.client_secret = nil
 
         errors = config.validation_errors
@@ -724,7 +713,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is empty string' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:google)
+        config = build_domain_sso_config(:entra_id)
         config.client_secret = ''
 
         errors = config.validation_errors
@@ -780,26 +769,6 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
         errors = config.validation_errors
         expect(errors).to include('issuer is required for OIDC provider')
-      end
-    end
-
-    # Google and GitHub should NOT require tenant_id or issuer
-
-    context 'when Google config has no tenant_id or issuer' do
-      it 'does not return provider-specific field errors' do
-        config = build_domain_sso_config(:google)
-        errors = config.validation_errors
-        expect(errors).not_to include(a_string_matching(/tenant_id/))
-        expect(errors).not_to include(a_string_matching(/issuer/))
-      end
-    end
-
-    context 'when GitHub config has no tenant_id or issuer' do
-      it 'does not return provider-specific field errors' do
-        config = build_domain_sso_config(:github)
-        errors = config.validation_errors
-        expect(errors).not_to include(a_string_matching(/tenant_id/))
-        expect(errors).not_to include(a_string_matching(/issuer/))
       end
     end
 
