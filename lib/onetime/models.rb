@@ -31,6 +31,10 @@ require_relative 'models/custom_domain/signin_config'
 require_relative 'models/custom_domain/signup_config'
 require_relative 'models/custom_domain/sso_config'
 
+# Catalog of the seven per-domain config kinds (colonel config endpoints).
+# Requires the config models above, so it loads after them.
+require_relative 'models/custom_domain/config_registry'
+
 # Housekeeping chores - loaded after models so chore DSL is available.
 # Sort for deterministic load order across platforms.
 Dir.glob(File.join(__dir__, 'models', '*', 'chores', '*.rb')).sort.each do |chore_file|
