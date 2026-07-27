@@ -23,6 +23,7 @@
 
 require_relative '../spec_helper'
 require_relative '../support/domain_sso_test_fixtures'
+require_relative '../../operations/backfill_tenant_issuer'
 
 RSpec.describe Onetime::CustomDomain::SsoConfig do
   include DomainSsoTestFixtures
@@ -346,6 +347,44 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     end
   end
 
+  describe '.tenant_sso_unavailable_reason' do
+    let(:domain_id) { 'dom_ladder_test' }
+
+    before do
+      allow(Onetime::CustomDomain::SigninConfig).to receive_messages(
+        global_auth_enabled: true,
+        sso_permitted_for?: true,
+      )
+    end
+
+    it 'returns :unsupported_provider_type for a pre-#3902 legacy provider_type' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'google')
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
+        .to eq(:unsupported_provider_type)
+    end
+
+    it 'returns :sso_config_disabled before reaching the provider_type check' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'google')
+
+      config.enabled = 'false'
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
+        .to eq(:sso_config_disabled)
+    end
+
+    it 'returns :unsupported_provider_type before reaching the sso_permitted_for? check' do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?).and_return(false)
+
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'github')
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
+        .to eq(:unsupported_provider_type)
+    end
+
+    it 'returns nil for a supported, enabled provider_type' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'oidc')
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config)).to be_nil
+    end
+  end
+
   # ==========================================================================
   # Create and Delete Tests
   # ==========================================================================
@@ -426,6 +465,18 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     it 'test fixtures enumerate the same providers as the model' do
       expect(DomainSsoTestFixtures::PROVIDER_TYPES.map(&:to_s).sort)
         .to eq(described_class::PROVIDER_TYPES.sort)
+    end
+
+    # BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES is an intentionally
+    # decoupled local constant (it must keep refusing pre-#3902 stored
+    # google/github rows even if PROVIDER_TYPES changes later), so this only
+    # guards the direction that would silently break the backfill: a new
+    # provider added to PROVIDER_TYPES without a matching update there. It
+    # deliberately does NOT assert equality — ISSUER_BEARING_PROVIDER_TYPES
+    # retaining historical entries beyond PROVIDER_TYPES is expected.
+    it 'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES covers every current PROVIDER_TYPES value' do
+      expect(described_class::PROVIDER_TYPES - Auth::Operations::BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES)
+        .to eq([]), "PROVIDER_TYPES gained a value BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES doesn't know about"
     end
   end
 

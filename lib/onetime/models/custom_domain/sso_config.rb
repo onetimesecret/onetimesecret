@@ -97,7 +97,9 @@ module Onetime
       # (#3902, see PROVIDER_TYPES).
       #
       # Universal required fields (all providers):
-      #   - client_id, client_secret, display_name, provider_type
+      #   - client_id, provider_type
+      # client_secret is required for entra_id only — OIDC public clients
+      # (PKCE) may omit it. display_name is optional.
       #
       # See: validation_errors method for enforcement
       #
@@ -395,10 +397,13 @@ module Onetime
         # password/email path (see SigninConfig.global_signin_enabled).
         #
         # Reasons (rung order matches the checks below):
-        #   :auth_disabled       - AUTH_ENABLED master switch is off
-        #   :no_sso_config       - no SsoConfig record for the domain
-        #   :sso_config_disabled - record present, its enabled switch is off
-        #   :sso_not_permitted   - SigninConfig withholds SSO for the domain
+        #   :auth_disabled             - AUTH_ENABLED master switch is off
+        #   :no_sso_config             - no SsoConfig record for the domain
+        #   :sso_config_disabled       - record present, its enabled switch is off
+        #   :unsupported_provider_type - record's provider_type is not in
+        #                                PROVIDER_TYPES (pre-#3902 legacy data;
+        #                                see BackfillTenantIssuer)
+        #   :sso_not_permitted         - SigninConfig withholds SSO for the domain
         #
         # @param domain_id [String] CustomDomain identifier (objid)
         # @param auth [Hash, nil] site.authentication settings (injectable for tests)
@@ -415,6 +420,13 @@ module Onetime
           config = sso_config&.domain_id == domain_id ? sso_config : find_by_domain_id(domain_id)
           return :no_sso_config if config.nil?
           return :sso_config_disabled unless config.enabled?
+          # Defense-in-depth against pre-#3902 stored records: google/github
+          # configs predate the OIDC/Entra-only surface and would otherwise
+          # reach to_omniauth_options, which raises Onetime::Problem — this
+          # rung fails the SAME record closed here instead, so the masthead
+          # link and /signin page (both reading this ladder) never advertise
+          # a route that would 500.
+          return :unsupported_provider_type unless PROVIDER_TYPES.include?(config.provider_type)
           return :sso_not_permitted unless Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
 
           nil
