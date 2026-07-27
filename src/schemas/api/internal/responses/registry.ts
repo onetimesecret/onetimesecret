@@ -38,6 +38,7 @@ import {
   colonelEntitlementOverrideResponseSchema,
   colonelOrganizationDetailResponseSchema,
   colonelReconcileOrganizationResponseSchema,
+  colonelTransferOrganizationOwnershipResponseSchema,
 } from './colonel-organizations';
 import { colonelBanIpResponseSchema, colonelUnbanIpResponseSchema } from './colonel-bannedips';
 
@@ -165,6 +166,7 @@ export const responseSchemas = {
   colonelOrganizationDetail: colonelOrganizationDetailResponseSchema,
   investigateOrganization: investigateOrganizationResponseSchema,
   colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
+  colonelTransferOrganizationOwnership: colonelTransferOrganizationOwnershipResponseSchema,
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
   brandDiagnostics: brandDiagnosticsResponseSchema,

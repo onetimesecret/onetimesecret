@@ -235,3 +235,35 @@ export type ColonelReconcileOrganizationRecord = z.infer<
 export type ColonelReconcileOrganizationResponse = z.infer<
   typeof colonelReconcileOrganizationResponseSchema
 >;
+
+/**
+ * `POST /api/colonel/organizations/:org_id/transfer-ownership` → `{ record }`
+ * ack (#3907 — console peer of `bin/ots org transfer-ownership`). MUTATING:
+ * promotes the new owner, pivots the legacy `owner_id` mirror, and demotes
+ * every other owner membership. All ids are PUBLIC extids (mirroring
+ * `TransferOrganizationOwnership#success_data`, which mirrors the CLI's --json
+ * payload). `from_owner_id` is null when the previous `owner_id` pointed at no
+ * live customer (`orphaned_owner: true` — the transfer repairs it). `status`
+ * is the op's vocabulary verbatim (`success` | `no_change` — failure statuses
+ * surface as 4xx form errors, never as a 200).
+ */
+export const colonelTransferOrganizationOwnershipRecordSchema = z.object({
+  org_id: z.string(),
+  status: z.string(),
+  from_owner_id: z.string().nullable(),
+  to_owner_id: z.string(),
+  demoted: z.array(z.string()),
+  demoted_to: z.string(),
+  orphaned_owner: z.boolean(),
+});
+
+export const colonelTransferOrganizationOwnershipResponseSchema = createApiResponseSchema(
+  colonelTransferOrganizationOwnershipRecordSchema
+);
+
+export type ColonelTransferOrganizationOwnershipRecord = z.infer<
+  typeof colonelTransferOrganizationOwnershipRecordSchema
+>;
+export type ColonelTransferOrganizationOwnershipResponse = z.infer<
+  typeof colonelTransferOrganizationOwnershipResponseSchema
+>;
