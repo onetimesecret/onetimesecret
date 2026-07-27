@@ -191,6 +191,11 @@ Onetime::CLI::BillingSyncOrgCommand.instance_method(:sync_organization).source_l
 @command_source.include?("\#{stats[:errors]} errors")
 #=> true
 
+## Dry-run outcome line has no hardcoded dangling reason separator
+# The "— reason" segment is conditional on result.reason being present.
+@command_source.include?('result.status} — ')
+#=> false
+
 # -------------------------------------------------------------------
 # call: validates arguments (extid or --all required)
 # -------------------------------------------------------------------

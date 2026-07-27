@@ -103,6 +103,42 @@ RSpec.describe Onetime::CLI::BillingSyncOrgCommand, type: :cli do
       expect(output[:stdout]).to include('would apply identity_plus_v1')
     end
 
+    it 'prints the synthesized entitlements preview on a :would_materialize dry run' do
+      # The engine hardcodes reason: nil on :would_materialize; the op
+      # synthesizes this reason from the MaterializeResult's planid +
+      # entitlements_count (reconcile.rb entitlements_only_reason) so the
+      # operator sees WHAT would be materialized, not a bare status.
+      allow(operation).to receive(:call).and_return(
+        ok_result.with(
+          status: :would_materialize,
+          mode: 'entitlements_only',
+          after: nil,
+          reason: 'Would materialize 12 entitlements for plan identity_plus_month',
+          dry_run: true,
+        )
+      )
+
+      output = capture_output { cmd.call(extid: 'on_org_ext_12345', dry_run: true) }
+
+      expect(output[:stdout]).to include(
+        '[DRY RUN] on_org_ext_...: would_materialize — ' \
+        'Would materialize 12 entitlements for plan identity_plus_month'
+      )
+    end
+
+    it 'omits the reason separator entirely when a dry-run result has no reason' do
+      # Defense in depth: even if a future op path returns an OK dry-run
+      # status with reason: nil, the adapter must not print a dangling "— ".
+      allow(operation).to receive(:call).and_return(
+        ok_result.with(status: :would_materialize, after: nil, reason: nil, dry_run: true)
+      )
+
+      output = capture_output { cmd.call(extid: 'on_org_ext_12345', dry_run: true) }
+
+      expect(output[:stdout]).to include("[DRY RUN] on_org_ext_...: would_materialize\n")
+      expect(output[:stdout]).not_to include('—')
+    end
+
     it 'appends result.reason to the synced line when present' do
       # :standalone is the case that motivates this: before/after planid are
       # identical (billing disabled), so without the reason the line reads

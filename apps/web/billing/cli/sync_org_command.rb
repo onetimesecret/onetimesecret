@@ -150,7 +150,11 @@ module Onetime
           detail = result.reason ? " (#{result.reason})" : nil
           puts "Synced #{label}: #{render(result.before[:planid])} -> #{render(result.after[:planid])}#{detail}"
         else
-          puts "[DRY RUN] #{label}: #{result.status} — #{result.reason}"
+          # Defense in depth: the op synthesizes a reason for the one status
+          # the engine leaves reason-less (:would_materialize), but a nil
+          # reason must still not print a dangling "— " here.
+          detail = result.reason ? " — #{result.reason}" : nil
+          puts "[DRY RUN] #{label}: #{result.status}#{detail}"
         end
       end
 

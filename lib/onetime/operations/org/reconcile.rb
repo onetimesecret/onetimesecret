@@ -275,7 +275,22 @@ module Onetime
           result = ::Billing::Operations::ApplySubscriptionToOrg
             .materialize_entitlements_for_org(@org, dry_run: @dry_run)
 
-          { status: result.status, reason: result.reason }
+          { status: result.status, reason: entitlements_only_reason(result) }
+        end
+
+        # The engine hardcodes `reason: nil` on :would_materialize
+        # (apply_subscription_to_org.rb, would_materialize_result), which left
+        # a dry run with nothing human-readable to print — adapters showed a
+        # bare status. Synthesize a reason from the MaterializeResult's planid
+        # + entitlements_count, which the op otherwise discards. `reason` is
+        # this op's human-readable carrier (D14; the :standalone branch does
+        # the same) — do NOT add structured fields to {Result} for this.
+        # Every other status passes the engine reason through byte-identical.
+        def entitlements_only_reason(result)
+          return result.reason unless result.status == :would_materialize && result.reason.nil?
+
+          "Would materialize #{result.entitlements_count} entitlements " \
+            "for plan #{result.planid}"
         end
 
         # Billing-disabled (self-hosted) reconcile — D13.
