@@ -300,6 +300,27 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           # Old OIDC-specific fields should be cleared
           expect(record['issuer']).to be_empty.or be_nil
         end
+
+        it 'clears a stored client_secret when an OIDC PUT omits it' do
+          params = valid_oidc_params.dup
+          params.delete(:client_secret)
+
+          csrf_put api_path(test_custom_domain.extid), params
+
+          expect(last_response.status).to eq(200)
+
+          # PUT is full replacement: an omitted client_secret is CLEARED, not
+          # preserved — legal only for OIDC (public client/PKCE); entra_id gets
+          # 422 (see 'returns 422 for missing client_secret on PUT'). PATCH is
+          # the secret-preserving verb; the frontend routes secretless saves
+          # there (sso.service.ts#saveConfigForDomain).
+          record = json_body['record']
+          expect(record['client_secret_masked']).to be_nil
+
+          # Persisted state agrees with the response
+          json_get api_path(test_custom_domain.extid)
+          expect(json_body['record']['client_secret_masked']).to be_nil
+        end
       end
 
       context 'validation errors' do
