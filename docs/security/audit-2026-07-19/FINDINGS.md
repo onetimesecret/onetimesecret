@@ -1,8 +1,8 @@
 # Security Audit Report — OneTimeSecret
 
-**Date:** 2026-07-19  
-**Scope:** Full application stack (Ruby backend, Vue SPA frontend, Redis/Valkey data store, Familia ORM, authentication flows)  
-**Repositories audited:** onetimesecret/onetimesecret, onetimesecret/rhales, delano/familia, onetimesecret/rodauth, onetimesecret/rodauth-omniauth  
+**Date:** 2026-07-19\
+**Scope:** Full application stack (Ruby backend, Vue SPA frontend, Redis/Valkey data store, Familia ORM, authentication flows)\
+**Repositories audited:** onetimesecret/onetimesecret, onetimesecret/rhales, delano/familia, onetimesecret/rodauth, onetimesecret/rodauth-omniauth\
 **Environment:** Static analysis + architecture review (no production traffic)
 
 ---
@@ -27,7 +27,7 @@ However, 9 medium-severity issues and 11 low-severity findings warrant attention
 
 #### H-1: Master SECRET Compromise Decrypts All Data (Accepted Architecture Risk)
 
-**Location:** `lib/onetime/key_derivation.rb`, `lib/onetime/initializers/configure_familia.rb`  
+**Location:** `lib/onetime/key_derivation.rb`, `lib/onetime/initializers/configure_familia.rb`\
 **Category:** Cryptography / Key Management
 
 **Description:** A single root SECRET (env var) derives ALL security-critical keys: session encryption, HMAC signing, field-level encryption, and identifier verification. Compromise of this single value decrypts all stored secrets, forges any session, and creates valid identifiers.
@@ -47,7 +47,7 @@ However, 9 medium-severity issues and 11 low-severity findings warrant attention
 
 #### M-1: Account Creation TOCTOU Race Condition
 
-**Location:** `apps/api/account/logic/account/create_account.rb:74-94`, `familia/lib/familia/horreum/atomic_write.rb:42-44`  
+**Location:** `apps/api/account/logic/account/create_account.rb:74-94`, `familia/lib/familia/horreum/atomic_write.rb:42-44`\
 **Category:** Business Logic / Race Condition
 
 **Description:** Account creation performs a non-atomic check-then-create:
@@ -68,7 +68,7 @@ The Familia documentation explicitly states: "Unique index validation runs OUTSI
 
 #### M-2: V1 API Passphrase Rate Limiting Lacks Per-IP Tier (DoS Vector)
 
-**Location:** `apps/api/v1/logic/secrets/show_secret.rb:172-182`, `apps/api/v1/logic/secrets/burn_secret.rb:130-138`  
+**Location:** `apps/api/v1/logic/secrets/show_secret.rb:172-182`, `apps/api/v1/logic/secrets/burn_secret.rb:130-138`\
 **Category:** Rate Limiting / Denial of Service
 
 **Description:** In the V1 API, `passphrase_client_ip` always returns `nil` because V1 logic objects lack a `strategy_result`. The PassphraseRateLimiter then falls back to the global per-secret tier only (GLOBAL_MAX_ATTEMPTS=20).
@@ -90,7 +90,7 @@ done
 
 #### M-3: Rodauth Lockout Expiration Default 24h (DoS Amplification)
 
-**Location:** `apps/web/auth/config/features/lockout.rb:16`  
+**Location:** `apps/web/auth/config/features/lockout.rb:16`\
 **Category:** Authentication / Denial of Service
 
 **Description:** The lockout expiration is commented out (`# auth.lockout_expiration_default 3600`). Rodauth's default `account_lockouts_deadline_interval` is 86400 seconds (24 hours). With `max_invalid_logins` at only 5, an attacker can lock any account for a full day with 5 requests.
@@ -103,7 +103,7 @@ done
 
 #### M-4: No Per-IP Rate Limiting on Rodauth Authentication Endpoints
 
-**Location:** `apps/web/auth/config/hooks/login.rb`  
+**Location:** `apps/web/auth/config/hooks/login.rb`\
 **Category:** Authentication / Credential Stuffing
 
 **Description:** The Rodauth auth mode has no IP-based rate limiting on login, MFA verification, magic-link request, or password-reset flows. The only throttle is Rodauth's per-account lockout (5 attempts per account).
@@ -116,7 +116,7 @@ done
 
 #### M-5: SSO Login Bypasses Locally-Configured MFA
 
-**Location:** `apps/web/auth/operations/detect_mfa_requirement.rb:156`  
+**Location:** `apps/web/auth/operations/detect_mfa_requirement.rb:156`\
 **Category:** Authentication / MFA Bypass
 
 **Description:** `return false if @via_omniauth` — when a user with TOTP configured logs in via SSO, local MFA is fully bypassed. The system trusts the IdP to handle authentication factors.
@@ -129,7 +129,7 @@ done
 
 #### M-6: Remember-Me Cookie Missing Explicit Security Attributes
 
-**Location:** `apps/web/auth/config/features/remember_me.rb:15-18`  
+**Location:** `apps/web/auth/config/features/remember_me.rb:15-18`\
 **Category:** Session Management / Cookie Security
 
 **Description:** The remember-me cookie configuration relies on Rodauth's defaults without explicitly setting `secure: true`, `same_site: :lax`, or `httponly: true`. Rodauth does set httponly by default but does NOT set `secure` or `SameSite` unless explicitly configured. If served over HTTP (dev, misconfigured proxy), the remember cookie transmits in cleartext.
@@ -143,7 +143,7 @@ remember_cookie_options { { httponly: true, secure: true, same_site: :lax } }
 
 #### M-7: Recovery Codes Use 64-bit Entropy (Below 128-bit Standard)
 
-**Location:** `apps/web/auth/config/features/mfa.rb:74-76`  
+**Location:** `apps/web/auth/config/features/mfa.rb:74-76`\
 **Category:** Cryptography / MFA
 
 **Description:** Recovery codes are generated via `Familia.generate_trace_id` producing 64-bit random values. NIST SP 800-63B recommends at least 112-bit entropy for authentication secrets.
@@ -156,7 +156,7 @@ remember_cookie_options { { httponly: true, secure: true, same_site: :lax } }
 
 #### M-9: No Per-IP Rate Limiting on V3 Guest Secret Creation
 
-**Location:** `apps/api/v3/routes.txt:29-34`, V2 `ConcealSecret`/`GenerateSecret` logic  
+**Location:** `apps/api/v3/routes.txt:29-34`, V2 `ConcealSecret`/`GenerateSecret` logic\
 **Category:** Rate Limiting / Resource Exhaustion
 
 **Description:** The V3 guest endpoints (`POST /api/v3/guest/secret/conceal` and `POST /api/v3/guest/secret/generate`) have no per-IP rate limiting for secret creation. Unlike the V1 API (which has `check_rate_limit!` in controllers) or the incoming API (which has `IncomingRateLimiter`), the V3 guest creation path is unbounded.
@@ -179,7 +179,7 @@ done
 
 #### M-8: Redis Transport Unencrypted (Multi-Host Deployments)
 
-**Location:** `docker/compose/docker-compose.simple.yml` — `redis://:password@maindb:6379/0`  
+**Location:** `docker/compose/docker-compose.simple.yml` — `redis://:password@maindb:6379/0`\
 **Category:** Network Security / Data in Transit
 
 **Description:** App-to-Redis connections use plain TCP (`redis://`), not TLS (`rediss://`). The Redis password travels in cleartext on the internal network.
@@ -194,7 +194,7 @@ done
 
 #### L-1: Rate Limiting Fail-Open Design
 
-**Location:** `apps/api/v1/controllers/base.rb:186-190`  
+**Location:** `apps/api/v1/controllers/base.rb:186-190`\
 **Category:** Rate Limiting / Availability
 
 **Description:** If Redis is unavailable for rate limiting operations, requests pass through without throttling (fail-open). This is a deliberate design choice — since secrets also live in Redis, a Redis outage blocks business logic anyway.
@@ -207,7 +207,7 @@ done
 
 #### L-2: No Minimum Entropy Validation on Master SECRET
 
-**Location:** `lib/onetime/initializers/configure_familia.rb:81`  
+**Location:** `lib/onetime/initializers/configure_familia.rb:81`\
 **Category:** Cryptography / Configuration
 
 **Description:** The boot-time check raises on empty SECRET but does not validate minimum length or entropy. An operator could configure a weak secret (e.g., "password123") and the system would accept it.
@@ -220,7 +220,7 @@ done
 
 #### L-3: 64-bit HMAC Tag Truncation on Verifiable Identifiers
 
-**Location:** `familia/lib/familia/verifiable_identifier.rb:84,197`  
+**Location:** `familia/lib/familia/verifiable_identifier.rb:84,197`\
 **Category:** Cryptography / Identifier Forgery
 
 **Description:** Verifiable identifiers use a 64-bit (16 hex char) truncated HMAC-SHA256 tag. While the 256-bit random component makes brute-force discovery of valid identifiers infeasible, the truncated HMAC tag means a forgery requires ~2^63 offline operations (vs. 2^127 for full-length HMAC).
@@ -233,7 +233,7 @@ done
 
 #### L-4: Account Enumeration via Timing (Partially Mitigated)
 
-**Location:** `apps/web/auth/config/hooks/account.rb`, `apps/web/auth/config/rodauth_overrides.rb:29-53`  
+**Location:** `apps/web/auth/config/hooks/account.rb`, `apps/web/auth/config/rodauth_overrides.rb:29-53`\
 **Category:** Information Disclosure / User Enumeration
 
 **Description:** The codebase makes good effort to return generic error messages for login/signup. However, the `login_valid_email?` hook calls `Truemail.validate` which may introduce timing differences for valid vs. invalid email formats. Additionally, Rodauth's default login flow may have subtle timing differences between "account not found" and "wrong password" paths.
@@ -246,7 +246,7 @@ done
 
 #### L-5: Legacy `v1_custid` Field May Leak Creator Email
 
-**Location:** `apps/api/v1/controllers/class_methods.rb:208-231`  
+**Location:** `apps/api/v1/controllers/class_methods.rb:208-231`\
 **Category:** Information Disclosure
 
 **Description:** The `receipt_hsh` fallback chain reads stored `v1_custid` and `custid` fields from old receipts. Pre-migration receipts may have these populated with the creator's email address, which would be exposed to any anonymous user accessing the receipt.
@@ -259,7 +259,7 @@ done
 
 #### L-6: Argon2 t_cost=2 Slightly Below OWASP Recommendation
 
-**Location:** `lib/onetime/models/features/passphrase_hashing.rb:72`  
+**Location:** `lib/onetime/models/features/passphrase_hashing.rb:72`\
 **Category:** Cryptography / Password Hashing
 
 **Description:** Production Argon2id parameters are `{ t_cost: 2, m_cost: 16, p_cost: 1 }` (2 iterations, 64MB memory, 1 thread). OWASP 2024 recommends t=3 minimum for Argon2id.
@@ -272,7 +272,7 @@ done
 
 #### L-7: WebAuthn RP ID Dynamically Derived from Request Host
 
-**Location:** `apps/web/auth/config/features/webauthn.rb:14-16`  
+**Location:** `apps/web/auth/config/features/webauthn.rb:14-16`\
 **Category:** Authentication / WebAuthn
 
 **Description:** The Relying Party ID is set from `request.host` at runtime. While this enables multi-domain deployments, if the application migrates domains, all WebAuthn credentials become invalid. More concerning: if Host header manipulation is possible (HTTP request smuggling), credentials could be registered against a spoofed RP ID.
@@ -283,7 +283,7 @@ done
 
 #### L-8: OTP Failure Limit of 7 is Permissive
 
-**Location:** `apps/web/auth/config/features/mfa.rb:47`  
+**Location:** `apps/web/auth/config/features/mfa.rb:47`\
 **Category:** Authentication / MFA
 
 **Description:** The OTP auth failures limit is set to 7 (Rodauth default is 5). Combined with TOTP's 30-second window allowing ~3 valid codes simultaneously, this gives an attacker 7 chances at ~1/333,333 per attempt.
@@ -294,7 +294,7 @@ done
 
 #### L-9: No Rack-Level Request Body Size Limit
 
-**Location:** `lib/onetime/application/middleware_stack.rb`  
+**Location:** `lib/onetime/application/middleware_stack.rb`\
 **Category:** Availability / Resource Exhaustion
 
 **Description:** The middleware stack does not include a Rack-level body size enforcement middleware. While application-level `validate_secret_size` caps the secret value, the full POST body (including JSON overhead) is parsed into memory before validation occurs.
@@ -309,7 +309,7 @@ done
 
 #### L-10: OPTIONS Preflight Routes Exist but Return No CORS Headers
 
-**Location:** `apps/api/v2/routes.txt:37-38`, `apps/api/v3/routes.txt:25-26`  
+**Location:** `apps/api/v2/routes.txt:37-38`, `apps/api/v3/routes.txt:25-26`\
 **Category:** Configuration / CORS
 
 **Description:** V2 and V3 APIs define OPTIONS preflight routes for `/secret/generate` and `/secret/conceal`, but no code in those logic classes sets `Access-Control-Allow-Origin` or related headers. Cross-origin JavaScript clients would fail (browser blocks the response).
@@ -322,7 +322,7 @@ done
 
 #### L-11: CSP Disableable via Environment Variable
 
-**Location:** `etc/defaults/config.defaults.yaml:379`, `apps/web/core/middleware/request_setup.rb:102`  
+**Location:** `etc/defaults/config.defaults.yaml:379`, `apps/web/core/middleware/request_setup.rb:102`\
 **Category:** Configuration / Defense-in-Depth
 
 **Description:** Setting `CSP_ENABLED=false` disables Content Security Policy entirely. While this is an intentional escape hatch for development, it could be accidentally left in production.
