@@ -351,8 +351,9 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(mock_auth_config).to receive(:sso_providers).and_return([
             { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
           ])
-          # Master switch off: build_platform_sso_config returns the disabled
-          # shape before consulting env-var provider config.
+          # Master switch off: build_sso_config early-returns the disabled
+          # shape before consulting env-var provider config
+          # (build_platform_sso_config re-checks as defense in depth).
           allow(OT).to receive(:conf).and_return(
             { 'site' => { 'authentication' => { 'enabled' => false } } }
           )
@@ -381,6 +382,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Contoso Azure AD',
@@ -411,12 +413,28 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(mock_auth_config).not_to receive(:sso_providers)
           described_class.build_sso_config(custom_domain_view_vars)
         end
+
+        # Single-read contract: the availability check and the returned
+        # record must come from ONE find_by_domain_id call, so a concurrent
+        # disable/delete cannot pass the check on one read and hand back a
+        # stale (or nil) record on a second.
+        it 'loads the SsoConfig once and returns the record the availability check saw' do
+          expect(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .once
+            .and_return(domain_sso_config)
+
+          result = described_class.resolve_tenant_sso_config(custom_domain_view_vars)
+
+          expect(result).to be(domain_sso_config)
+        end
       end
 
       context 'when SigninConfig blocks SSO (sso_permitted_for? returns false)' do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: true,
             provider_type: 'oidc',
             display_name: 'Corp SSO',
@@ -473,6 +491,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: false,
             provider_type: 'entra_id',
             display_name: 'Contoso Azure AD'
@@ -596,6 +615,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Acme Corp Entra',
