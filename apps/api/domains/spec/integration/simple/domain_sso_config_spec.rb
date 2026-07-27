@@ -669,6 +669,22 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         record = body['record']
         expect(record['allowed_domains']).to eq(['original.com'])
       end
+
+      it 'clears tenant_id when switching to oidc' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'oidc',
+          issuer: 'https://auth.example.com',
+        }
+
+        expect(last_response.status).to eq(200)
+        record = json_body['record']
+        expect(record['provider_type']).to eq('oidc')
+        expect(record['issuer']).to eq('https://auth.example.com')
+
+        # Provider switch clears the outgoing provider's field — an oidc
+        # record must not carry the entra fixture's stale tenant_id.
+        expect(record['tenant_id'].to_s).to eq('')
+      end
     end
 
     context 'switching provider from a secretless OIDC config' do
@@ -714,6 +730,10 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         record = json_body['record']
         expect(record['provider_type']).to eq('entra_id')
         expect(record['client_secret_masked']).to eq('••••••••alue')
+
+        # Provider switch clears the outgoing provider's field — an entra_id
+        # record must not carry the oidc fixture's stale issuer.
+        expect(record['issuer'].to_s).to eq('')
       end
 
       it 'switches to entra_id without a request secret when one is stored' do
@@ -724,6 +744,52 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         csrf_patch api_path(test_custom_domain.extid), {
           provider_type: 'entra_id',
           tenant_id: '12345678-1234-1234-1234-123456789abc',
+        }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['provider_type']).to eq('entra_id')
+      end
+    end
+
+    context 'with a legacy stored provider type (pre-#3902)' do
+      before do
+        # Pre-#3902 records (google/github) predate model validation and
+        # cannot be created through any current API path — seed one by
+        # writing the field directly.
+        existing_config.provider_type = 'google'
+        existing_config.commit_fields
+        login_as(test_owner)
+      end
+
+      it 'returns 422 naming the stored legacy type, even for a bare disable' do
+        # The request never sent provider_type — the error must blame the
+        # stored record and point at the escape hatches, not claim the
+        # caller supplied an invalid field.
+        csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to include("'google'")
+        expect(json_body['error']).to include('no longer supported')
+
+        # Fail closed: the stored record is untouched
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+        expect(config.provider_type).to eq('google')
+      end
+
+      it 'can still be deleted (the escape hatch)' do
+        csrf_delete api_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200)
+        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+      end
+
+      it 'can be replaced with a full PUT' do
+        csrf_put api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          client_id: 'replacement-client-id',
+          client_secret: 'replacement-secret',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+          enabled: false,
         }
 
         expect(last_response.status).to eq(200)

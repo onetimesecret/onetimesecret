@@ -159,7 +159,9 @@ module DomainsAPI
         # For new configs: provider_type is required
         # For updates: falls back to existing config value when not provided
         def validate_provider_type
-          if @provider_type.to_s.empty?
+          from_request = !@provider_type.to_s.empty?
+
+          unless from_request
             if @existing_config
               @provider_type = @existing_config.provider_type
             else
@@ -169,8 +171,22 @@ module DomainsAPI
 
           return if VALID_PROVIDER_TYPES.include?(@provider_type)
 
+          if from_request
+            raise_form_error(
+              "Invalid provider type. Must be one of: #{VALID_PROVIDER_TYPES.join(', ')}",
+              field: :provider_type,
+              error_type: :invalid,
+            )
+          end
+
+          # The invalid type came from the stored record, not the request:
+          # pre-#3902 legacy data (google/github). Still fail closed — even a
+          # bare `{enabled: false}` PATCH cannot resurrect a record the model
+          # no longer accepts — but blame the record, not a field the caller
+          # never sent. DELETE and full PUT remain the escape hatches.
           raise_form_error(
-            "Invalid provider type. Must be one of: #{VALID_PROVIDER_TYPES.join(', ')}",
+            "This configuration uses provider type '#{@provider_type}', which is no longer supported. " \
+            "Delete it, or replace it with a full update (PUT) using one of: #{VALID_PROVIDER_TYPES.join(', ')}",
             field: :provider_type,
             error_type: :invalid,
           )
@@ -259,7 +275,9 @@ module DomainsAPI
         #
         # PATCH Semantics:
         # - Optional fields are preserved when omitted, allowing partial updates.
-        # - Provider-specific fields are preserved on provider switch.
+        # - A provider switch clears the outgoing provider's field (issuer for
+        #   oidc, tenant_id for entra_id) unless the request supplies it,
+        #   matching the end state a full PUT would produce.
         #
         # allowed_domains behavior:
         # - When omitted: preserves existing domains (true PATCH semantics)
@@ -270,7 +288,8 @@ module DomainsAPI
         # config could be deleted between existence check and update.
         #
         def update_existing_config
-          @sso_config = @existing_config
+          @sso_config       = @existing_config
+          provider_switched = @provider_type != @existing_config.provider_type
 
           # PATCH semantics: only update fields that are provided (non-empty)
           @sso_config.provider_type    = @provider_type
@@ -281,6 +300,15 @@ module DomainsAPI
           @sso_config.enabled          = @enabled.to_s if @enabled_provided
           @sso_config.enforce_sso_only = @enforce_sso_only.to_s if @enforce_sso_only_provided
           @sso_config.grant_org_scope  = @grant_org_scope.to_s if @grant_org_scope_provided
+
+          # A provider switch clears the outgoing provider's field so the
+          # record matches what a full PUT would produce — an entra_id record
+          # must not carry a stale oidc issuer, nor an oidc record a stale
+          # tenant_id. Request-supplied values are never discarded.
+          if provider_switched
+            @sso_config.issuer    = '' if @provider_type == 'entra_id' && @issuer.to_s.empty?
+            @sso_config.tenant_id = '' if @provider_type == 'oidc' && @tenant_id.to_s.empty?
+          end
 
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
