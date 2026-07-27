@@ -5,9 +5,15 @@ contains scripts to migrate data from the previous version.
 
 ## Available Upgrades
 
-| Directory  | From   | To     | Description                      |
-| ---------- | ------ | ------ | -------------------------------- |
-| `v0.24.5/` | 0.23.x | 0.24.5 | Familia v1 to v2 data transforms |
+None currently. Historical upgrade pipelines are preserved at their release
+tags rather than carried forward on main:
+
+| Pipeline   | From   | To     | Where to find it                            |
+| ---------- | ------ | ------ | ------------------------------------------- |
+| `v0.24.5/` | 0.23.x | 0.24.5 | `git checkout v0.24.5 -- scripts/upgrades/` |
+
+If you are upgrading from 0.23.x, run the pipeline from the v0.24.5 release
+checkout, then upgrade normally from there.
 
 ## Structure
 
@@ -17,16 +23,6 @@ Each upgrade directory contains:
 - `run_pipeline.sh` - Execute all transforms in dependency order
 - `README.md` - Version-specific documentation
 - Numbered subdirectories for each entity type
-
-## Usage
-
-```bash
-# Run all transforms for an upgrade
-./scripts/upgrades/v0.24.5/run_pipeline.sh
-
-# Run individual transforms
-ruby scripts/upgrades/v0.24.5/01-customer/transform.rb --help
-```
 
 ## Distinction from Migrations
 

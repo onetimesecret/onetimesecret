@@ -144,34 +144,24 @@ module Core::Logic
               status: :pending,
             }
 
-          # Do not send an email to a someone that's just logged-in with a basic
-          # authmode account where verified=false and autoverify is disabled. With
-          # autoverify disabled, the registration flow sets verified=true and
-          # skips the email verification process. However, if the site admin
-          # has manually set verified=false on the account (e.g. for moderation
-          # purposes), we don't want to spam them with verification emails
-          # every time they log in. This scenario could also happen if the
-          # site configuration changes after users have already signed up
-          # but not yet verified.
+          # Resend the verification email only when autoverify is disabled.
+          # With autoverify enabled, registration sets verified=true and skips
+          # email verification entirely (see CreateAccount), so a pending
+          # account under autoverify can only mean the site admin manually set
+          # verified=false (e.g. for moderation) or autoverify was enabled
+          # after this account signed up — in both cases resending a
+          # verification email on every login would be spam.
           autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
           unless autoverify.to_s == 'true'
-            # When autoverify is enabled, proactively help pending accounts
-            # get verified by resending the verification email (valid for 24h)
-            auth_logger.info 'Resending verification email (autoverify mode)',
+            # Help pending accounts finish the normal verification flow by
+            # resending the email (link valid for 24h).
+            auth_logger.info 'Resending verification email (autoverify disabled)',
               {
                 customer_id: cust.objid,
                 email: cust.obscure_email,
               }
 
             send_verification_email nil
-
-            verification_msg = I18n.t(
-              'web.COMMON.verification_sent_to',
-              locale: locale,
-              default: 'Verification sent to',
-            )
-            msg              = "#{verification_msg} #{cust.email}."
-            set_info_message(msg)
           end
 
           return success_data

@@ -66,7 +66,7 @@ module Onetime
         MAX_ERRORS = 10
 
         # Same minimal shape check the send-test logic uses for recipients.
-        EMAIL_PATTERN = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+        EMAIL_PATTERN = Onetime::Utils::EmailFormat::MINIMAL_FORMAT
 
         # @!attribute accepted [r] @return [Integer] records ingested
         # @!attribute rejected [r] @return [Integer] records refused
