@@ -61,21 +61,14 @@ const { t } = useI18n();
 // Provider options
 // ---------------------------------------------------------------------------
 
+// Tenant SSO is OIDC/Entra-only: issuerless providers (GitHub, Google) cannot
+// satisfy per-tenant identity partitioning keyed (provider, issuer, uid) and
+// are refused on tenant surfaces (#3902, PR #3900).
 const providerOptions: { value: SsoProviderType; label: string; description: string }[] = [
   {
     value: 'entra_id',
     label: 'Microsoft Entra ID',
     description: 'Azure Active Directory / Microsoft 365',
-  },
-  {
-    value: 'google',
-    label: 'Google Workspace',
-    description: 'Google OAuth for Workspace domains',
-  },
-  {
-    value: 'github',
-    label: 'GitHub',
-    description: 'GitHub OAuth for organizations',
   },
   {
     value: 'oidc',
@@ -122,8 +115,6 @@ const requiresClientSecret = computed(() => props.formState.provider_type !== 'o
 const PROVIDER_ROUTE_NAMES: Record<SsoProviderType, string> = {
   oidc: 'oidc',
   entra_id: 'entra',
-  google: 'google',
-  github: 'github',
 };
 
 const callbackUrl = computed(() => {
