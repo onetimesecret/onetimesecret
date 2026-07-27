@@ -63,10 +63,12 @@ require_relative 'colonel/reconcile_organization'
 require_relative 'colonel/transfer_organization_ownership'
 require_relative 'colonel/manage_entitlement_override'
 
-# Memberships (#3731: add/remove/set-role — op-backed)
+# Memberships (#3731: add/remove/set-role — op-backed;
+# #3907: per-membership entitlement overrides)
 require_relative 'colonel/add_membership'
 require_relative 'colonel/set_membership_role'
 require_relative 'colonel/remove_membership'
+require_relative 'colonel/manage_membership_entitlement_override'
 
 # Usage export
 require_relative 'colonel/export_usage'
