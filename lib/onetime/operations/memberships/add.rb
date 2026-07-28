@@ -5,6 +5,7 @@
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -38,8 +39,30 @@ module Onetime
       # silently demote the last owner. The Result carries the member's CURRENT
       # role so the adapter can point the operator at set-role. A real add records
       # EXACTLY ONE {Onetime::AdminAuditEvent}; a `:no_change` audits nothing.
+      #
+      # ## Refusals audit too
+      #
+      # `:invalid_role` records one `result: :failure` event, and so does any
+      # raise out of `ensure_membership` / `change_role!` (via
+      # {Onetime::AuditedFailure}) — the success-path record sits after both, so
+      # a failed add would otherwise leave no trace at all. `:no_change` is NOT a
+      # refusal: the customer is already a member, which is the requested end
+      # state.
       class Add
+        include Onetime::AuditedFailure
+
         AUDIT_VERB = 'membership.add'
+
+        # See {SetRole::REFUSAL_STATUSES}. `ensure_membership` failure is a raise
+        # (Onetime::Problem), not a status, so it is covered by the macro below.
+        REFUSAL_STATUSES = [:invalid_role].freeze
+
+        # ensure_membership / change_role! raise on datastore or materialization
+        # failure, BEFORE the success-path record. Records one `result: :failure`
+        # and re-raises.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @customer&.extid }
 
         # Sourced from the model constant (never a hardcoded fork).
         VALID_ROLES = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS.keys.freeze
@@ -99,13 +122,31 @@ module Onetime
 
         private
 
+        # Single exit point for every non-success status, so the refusal audit
+        # cannot be forgotten at an early return.
         def build(status, role)
+          record_refusal(status, role) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             org_id: @org.extid,
             customer_id: @customer.extid,
             role: role,
           )
+        end
+
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op.
+        def record_refusal(status, role)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :failure,
+            detail: { reason: status.to_s, role: role, org_id: @org.extid },
+          )
+        rescue StandardError => ex
+          OT.le "[Memberships::Add] refusal audit failed: #{ex.class}: #{ex.message}"
         end
       end
     end
