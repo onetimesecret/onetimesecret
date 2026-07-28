@@ -328,7 +328,8 @@
     "content_hash": "538995db"
   },
   "web.colonel.organizations.filters.searchPlaceholder": {
-    "text": "Search by ID, name or email"
+    "text": "Search by ID, name or email",
+    "content_hash": "6fe16473"
   },
   "web.colonel.organizations.filters.syncStatus": {
     "text": "Sync Status",

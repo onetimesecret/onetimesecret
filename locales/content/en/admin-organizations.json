@@ -404,7 +404,8 @@
     "content_hash": "4b1b8aa3"
   },
   "web.admin.organizations.detail.members.openCustomer": {
-    "text": "Open customer record"
+    "text": "Open customer record",
+    "content_hash": "c057ca13"
   },
   "web.admin.organizations.detail.members.empty": {
     "text": "No members.",
