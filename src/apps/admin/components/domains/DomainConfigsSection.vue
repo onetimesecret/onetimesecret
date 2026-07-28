@@ -1,8 +1,14 @@
 <!-- src/apps/admin/components/domains/DomainConfigsSection.vue -->
 
 <script setup lang="ts">
+  import DomainConfigActionDialog from '@/apps/admin/components/domains/DomainConfigActionDialog.vue';
   import DomainConfigEditModal from '@/apps/admin/components/domains/DomainConfigEditModal.vue';
-  import { AdminConfirmDialog } from '@/apps/admin/components/kit';
+  import DomainConfigRow from '@/apps/admin/components/domains/DomainConfigRow.vue';
+  import DomainConfigsHeader from '@/apps/admin/components/domains/DomainConfigsHeader.vue';
+  import type {
+    DomainConfigAction,
+    DomainConfigStatus,
+  } from '@/apps/admin/components/domains/domainConfigTypes';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
   import {
@@ -15,7 +21,6 @@
   } from '@/schemas/api/internal/responses/colonel-domain-configs';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
-  import { formatDisplayDateTime } from '@/utils/format';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
@@ -30,6 +35,12 @@
    * a missing record's button reads "Create") / Delete (typed-confirm, token =
    * the kind slug). Section-level "Create missing configs" previews with
    * `dry_run: true` and applies behind a plain confirm.
+   *
+   * This is the CONTAINER of the family: it owns the fetch state machine, the
+   * derived row states, and all three mutations. The extracted children —
+   * {@link DomainConfigsHeader}, {@link DomainConfigRow} (with its badge and
+   * field grid), {@link DomainConfigActionDialog} and
+   * {@link DomainConfigEditModal} — are presentational and emit intents back.
    *
    * Owns its own fetch (via the store's `fetchConfigs` verb, so every screen
    * drives the same endpoint + ack parsing). Mutations run through
@@ -95,132 +106,12 @@
 
   const EDITABLE = new Set<string>(EDITABLE_DOMAIN_CONFIG_KINDS);
 
-  type ConfigStatus = 'missing' | 'disabled' | 'enabled' | 'enabledNotReady';
-
-  const STATUS_BADGE_CLASSES: Record<ConfigStatus, string> = {
-    missing: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
-    disabled: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
-    enabled: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200',
-    enabledNotReady: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200',
-  };
-
-  /** Serialized field display order per kind (identity + secrets redacted). */
-  const DISPLAY_FIELDS: Record<DomainConfigKind, readonly string[]> = {
-    signin: [
-      'enabled',
-      'signin_enabled',
-      'email_auth_enabled',
-      'sso_enabled',
-      'restrict_to',
-      'created',
-      'updated',
-    ],
-    signup: [
-      'enabled',
-      'signup_enabled',
-      'autoverify',
-      'validation_strategy',
-      'allowed_signup_domains',
-      'created',
-      'updated',
-    ],
-    homepage: ['enabled', 'secrets_mode', 'disabled_homepage_variant', 'created', 'updated'],
-    api: ['enabled', 'created', 'updated'],
-    incoming: ['enabled', 'ready', 'recipients', 'created', 'updated'],
-    sso: [
-      'enabled',
-      'provider_type',
-      'display_name',
-      'issuer',
-      'tenant_id',
-      'has_client_id',
-      'has_client_secret',
-      'allowed_domains',
-      'enforce_sso_only',
-      'grant_org_scope',
-      'created',
-      'updated',
-    ],
-    mailer: [
-      'enabled',
-      'provider',
-      'from_name',
-      'from_address',
-      'reply_to',
-      'sending_mode',
-      'verification_status',
-      'dns_verified',
-      'provider_verified',
-      'has_api_key',
-      'created',
-      'updated',
-    ],
-  };
-
-  /** Key-material fields rendered monospace in the dt/dd grid. */
-  const MONO_FIELDS = new Set([
-    'restrict_to',
-    'validation_strategy',
-    'allowed_signup_domains',
-    'secrets_mode',
-    'disabled_homepage_variant',
-    'recipients',
-    'provider_type',
-    'issuer',
-    'tenant_id',
-    'allowed_domains',
-    'provider',
-    'from_address',
-    'reply_to',
-    'sending_mode',
-    'verification_status',
-  ]);
-
-  interface FieldRow {
-    key: string;
-    label: string;
-    value: string;
-    mono: boolean;
-  }
-
-  function formatFieldValue(name: string, value: unknown): string {
-    if (value === null || value === undefined || value === '') {
-      return t('web.admin.domains.detail.none');
-    }
-    if (typeof value === 'boolean') {
-      return value ? t('web.admin.domains.detail.yes') : t('web.admin.domains.detail.no');
-    }
-    if ((name === 'created' || name === 'updated') && typeof value === 'number') {
-      return formatDisplayDateTime(new Date(value * 1000));
-    }
-    if (Array.isArray(value)) {
-      if (value.length === 0) return t('web.admin.domains.detail.none');
-      const parts = value.map((item) =>
-        item && typeof item === 'object' && 'email' in (item as Record<string, unknown>)
-          ? String((item as { email: unknown }).email)
-          : String(item)
-      );
-      return parts.join(', ');
-    }
-    return String(value);
-  }
-
-  function fieldRows(kind: DomainConfigKind, config: Record<string, unknown>): FieldRow[] {
-    return DISPLAY_FIELDS[kind].map((name) => ({
-      key: name,
-      label: t(`web.admin.domains.configs.fields.${name}`),
-      value: formatFieldValue(name, config[name]),
-      mono: MONO_FIELDS.has(name),
-    }));
-  }
-
   interface ConfigRow {
     kind: DomainConfigKind;
-    label: string;
     exists: boolean;
-    status: ConfigStatus;
+    status: DomainConfigStatus;
     editable: boolean;
-    fields: FieldRow[];
+    config: Record<string, unknown> | null;
   }
 
   /**
@@ -240,7 +131,7 @@
       const entry = map[kind];
       const config = (entry.config ?? null) as Record<string, unknown> | null;
       const exists = recordPresent(entry);
-      let status: ConfigStatus = 'missing';
+      let status: DomainConfigStatus = 'missing';
       if (exists && config) {
         const enabled = config.enabled === true;
         if (!enabled) status = 'disabled';
@@ -249,11 +140,10 @@
       }
       return {
         kind,
-        label: t(`web.admin.domains.configs.kinds.${kind}`),
         exists,
         status,
         editable: EDITABLE.has(kind),
-        fields: exists && config ? fieldRows(kind, config) : [],
+        config: exists ? config : null,
       };
     });
   });
@@ -316,10 +206,8 @@
 
   // ---- The shared guarded-action dialog (ensure apply + delete) --------------
 
-  type ActionKey = 'ensure' | 'delete';
-
   const dialogOpen = ref(false);
-  const activeAction = ref<ActionKey | null>(null);
+  const activeAction = ref<DomainConfigAction | null>(null);
   const deleteKind = ref<DomainConfigKind | null>(null);
 
   const {
@@ -350,44 +238,7 @@
     }
   });
 
-  const dialogConfig = computed(() => {
-    if (activeAction.value === 'delete' && deleteKind.value) {
-      return {
-        title: t('web.admin.domains.configs.delete.confirmTitle', {
-          kind: t(`web.admin.domains.configs.kinds.${deleteKind.value}`),
-        }),
-        description: t('web.admin.domains.configs.delete.confirmDescription', {
-          kind: deleteKind.value,
-          domain: props.displayDomain,
-        }),
-        // Typed-confirmation gate: retype the kind slug (console convention).
-        confirmToken: deleteKind.value as string | undefined,
-        variant: 'danger' as const,
-        confirmText: t('web.admin.domains.configs.delete.button'),
-      };
-    }
-    if (activeAction.value === 'ensure') {
-      return {
-        title: t('web.admin.domains.configs.ensure.confirmTitle'),
-        description: t('web.admin.domains.configs.ensure.confirmDescription', {
-          kinds: (ensurePlan.value?.created ?? []).join(', '),
-          domain: props.displayDomain,
-        }),
-        confirmToken: undefined as string | undefined,
-        variant: 'default' as const,
-        confirmText: t('web.admin.domains.configs.ensure.applyButton'),
-      };
-    }
-    return {
-      title: '',
-      description: undefined as string | undefined,
-      confirmToken: undefined as string | undefined,
-      variant: 'default' as const,
-      confirmText: undefined as string | undefined,
-    };
-  });
-
-  function requestAction(key: ActionKey): void {
+  function requestAction(key: DomainConfigAction): void {
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
@@ -466,39 +317,11 @@
     class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
     data-testid="domain-configs-section">
     <!-- Header + ensure -->
-    <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-            {{ t('web.admin.domains.configs.title') }}
-          </h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.domains.configs.description') }}
-          </p>
-        </div>
-        <button
-          v-if="ensureVisible"
-          type="button"
-          data-testid="config-ensure"
-          :disabled="ensurePreviewLoading"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-          @click="onEnsure">
-          <OIcon
-            collection="heroicons"
-            :name="ensurePreviewLoading ? 'arrow-path' : 'plus-circle'"
-            size="4"
-            :class="ensurePreviewLoading ? 'animate-spin motion-reduce:animate-none' : ''" />
-          {{ t('web.admin.domains.configs.ensure.button') }}
-        </button>
-      </div>
-      <p
-        v-if="ensurePreviewError"
-        class="mt-2 text-sm text-red-700 dark:text-red-300"
-        role="alert"
-        data-testid="config-ensure-error">
-        {{ ensurePreviewError }}
-      </p>
-    </div>
+    <DomainConfigsHeader
+      :ensure-visible="ensureVisible"
+      :ensure-loading="ensurePreviewLoading"
+      :ensure-error="ensurePreviewError"
+      @ensure="onEnsure" />
 
     <!-- Loading -->
     <div
@@ -555,95 +378,18 @@
     <ul
       v-else-if="configs"
       class="divide-y divide-gray-200 dark:divide-gray-800">
-      <li
+      <DomainConfigRow
         v-for="row in rows"
         :key="row.kind"
-        class="px-6 py-4"
-        :data-testid="`config-row-${row.kind}`">
-        <div class="flex flex-wrap items-center gap-3">
-          <span class="min-w-[6rem] text-sm font-medium text-gray-900 dark:text-white">
-            {{ row.label }}
-          </span>
-          <span
-            class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium"
-            :class="STATUS_BADGE_CLASSES[row.status]"
-            :data-testid="`config-status-${row.kind}`">
-            {{ t(`web.admin.domains.configs.status.${row.status}`) }}
-          </span>
-          <span class="flex-1"></span>
-          <button
-            v-if="row.exists"
-            type="button"
-            :data-testid="`config-toggle-${row.kind}`"
-            :aria-expanded="expanded[row.kind] ? 'true' : 'false'"
-            class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200"
-            @click="toggleExpand(row.kind)">
-            <OIcon
-              collection="heroicons"
-              :name="expanded[row.kind] ? 'chevron-up' : 'chevron-down'"
-              size="3" />
-            {{ t('web.admin.domains.configs.detailsToggle') }}
-          </button>
-          <button
-            v-if="row.editable"
-            type="button"
-            :data-testid="`config-edit-${row.kind}`"
-            class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-            @click="openEdit(row.kind)">
-            {{
-              row.exists
-                ? t('web.admin.domains.configs.edit.button')
-                : t('web.admin.domains.configs.edit.createButton')
-            }}
-          </button>
-          <button
-            v-if="row.exists"
-            type="button"
-            :data-testid="`config-delete-${row.kind}`"
-            class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
-            @click="requestDelete(row.kind)">
-            {{ t('web.admin.domains.configs.delete.button') }}
-          </button>
-        </div>
-
-        <!-- Absent-record behavior (what fails closed / falls back) -->
-        <p
-          v-if="!row.exists"
-          class="mt-2 text-sm text-gray-500 dark:text-gray-400"
-          :data-testid="`config-missing-note-${row.kind}`">
-          {{ t(`web.admin.domains.configs.missingNotes.${row.kind}`) }}
-        </p>
-
-        <!-- sso/mailer: view/delete only -->
-        <p
-          v-if="!row.editable"
-          class="mt-2 text-xs text-gray-400 dark:text-gray-500"
-          :data-testid="`config-not-editable-${row.kind}`">
-          {{ t('web.admin.domains.configs.notEditable') }}
-        </p>
-
-        <!-- Expandable field grid -->
-        <dl
-          v-if="row.exists && expanded[row.kind]"
-          class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2"
-          :data-testid="`config-fields-${row.kind}`">
-          <div
-            v-for="field in row.fields"
-            :key="field.key"
-            :data-testid="`config-field-${row.kind}-${field.key}`">
-            <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-              {{ field.label }}
-            </dt>
-            <dd
-              :class="[
-                'mt-1 text-sm break-words text-gray-900 dark:text-gray-100',
-                field.mono ? 'font-mono tabular-nums' : '',
-              ]">
-              {{ field.value }}
-            </dd>
-          </div>
-        </dl>
-      </li>
+        :kind="row.kind"
+        :exists="row.exists"
+        :status="row.status"
+        :editable="row.editable"
+        :config="row.config"
+        :expanded="!!expanded[row.kind]"
+        @toggle="toggleExpand(row.kind)"
+        @edit="openEdit(row.kind)"
+        @delete="requestDelete(row.kind)" />
     </ul>
 
     <!-- Edit/create modal (dumb; this section owns the upsert mutation) -->
@@ -657,13 +403,12 @@
       @submit="onEditSubmit" />
 
     <!-- Shared guarded-action dialog (typed-confirm delete, plain-confirm ensure) -->
-    <AdminConfirmDialog
+    <DomainConfigActionDialog
       v-model:open="dialogOpen"
-      :title="dialogConfig.title"
-      :description="dialogConfig.description"
-      :confirm-token="dialogConfig.confirmToken"
-      :variant="dialogConfig.variant"
-      :confirm-text="dialogConfig.confirmText"
+      :action="activeAction"
+      :delete-kind="deleteKind"
+      :ensure-kinds="ensurePlan?.created ?? []"
+      :display-domain="displayDomain"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"
