@@ -115,6 +115,9 @@
     "text": "Retry",
     "content_hash": "942087cc"
   },
+  "web.admin.audit.list.contractError": {
+    "text": "The server responded, but the audit data did not match the expected format. No events can be shown — this is a reporting fault, not an empty log."
+  },
   "web.admin.audit.list.empty": {
     "text": "No audit events recorded yet",
     "content_hash": "8fe0cac3"
