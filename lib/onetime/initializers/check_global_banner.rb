@@ -38,6 +38,10 @@ module Onetime
           global_banner: banner_text,
           global_banner_scope: banner_scope,
         )
+
+        # Stamp the TTL re-read clock: this boot read IS a fresh read, so the
+        # first request should serve it instead of immediately re-hitting Redis.
+        Onetime::Operations::BannerState.prime_cache!
       end
     end
   end

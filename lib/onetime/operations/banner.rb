@@ -47,11 +47,101 @@ module Onetime
       # Database index the banner lives in (DB 0, matching the CLI + initializer).
       DB = 0
 
+      # Seconds a process serves its in-memory banner before re-reading Redis.
+      # Bounds cross-process propagation of SetBanner/ClearBanner: without this,
+      # a banner published by one Puma worker/container was invisible to every
+      # other process until restart (only the handling process refreshed its
+      # runtime state). Worst case ~2 Redis GETs/min/process.
+      # `unless defined?` keeps this idempotent across code reloads (same
+      # pattern as Session::SECURE_COOKIE_WARN_INTERVAL).
+      CACHE_TTL = 30 unless defined?(CACHE_TTL)
+
+      # Process-wide staleness clock for the TTL re-read. Holds the monotonic
+      # timestamp (Process::CLOCK_MONOTONIC) of the last refresh ATTEMPT; nil
+      # means "refresh on next read" (fresh boot before the initializer runs,
+      # or after {reset_cache!}). The Mutex guards only the timestamp claim —
+      # it is NEVER held across Redis I/O. `||=` keeps these idempotent across
+      # code reloads.
+      @cache_mutex  ||= Mutex.new
+      @refreshed_at ||= nil
+
+      class << self
+        # @return [Mutex] guard for the staleness clock (timestamp only, no I/O)
+        attr_reader :cache_mutex
+      end
+
       # Coerce a raw sidecar value to a valid scope, collapsing blank/unknown to
       # {DEFAULT_SCOPE}. Shared by GetBanner (read path) and the initializer.
       def self.normalize_scope(raw)
         value = raw.to_s.strip
         VALID_SCOPES.include?(value) ? value : DEFAULT_SCOPE
+      end
+
+      # Re-read {KEY} + {SCOPE_KEY} into Runtime.features when the process-local
+      # copy is older than {CACHE_TTL}. Called from the `OT.global_banner` /
+      # `OT.global_banner_scope` accessors (the page-render path), so it must
+      # never raise and must not hit Redis on every request.
+      #
+      # Exactly one thread claims the refresh at the TTL boundary (the claim
+      # stamps the clock BEFORE the Redis read, so concurrent threads — and a
+      # dead Redis — cannot stampede; losers serve the last-known value).
+      #
+      # Note nil is a VALID cached state: key-absent maps to a nil banner, so a
+      # ClearBanner from another process propagates within the same TTL.
+      #
+      # @return [void]
+      def self.refresh_if_stale!
+        now     = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        claimed = cache_mutex.synchronize do
+          last = @refreshed_at
+          if last.nil? || (now - last) >= CACHE_TTL
+            @refreshed_at = now
+            true
+          else
+            false
+          end
+        end
+        refresh! if claimed
+        nil
+      end
+
+      # Unconditionally re-read the banner pair from Redis into Runtime.features.
+      # ONE merged update: content + scope land in the same immutable Features
+      # snapshot, so a reader can never see a new banner beside a stale scope.
+      # Fail-soft: on any error we log and keep serving the last in-memory value
+      # (several unit specs run without OT.boot!, so a missing connection
+      # provider must not 500 a page render).
+      #
+      # @return [void]
+      def self.refresh!
+        db      = Familia.dbclient(DB)
+        content = db.get(KEY)
+        scope   = normalize_scope(db.get(SCOPE_KEY))
+        Onetime::Runtime.update_features(global_banner: content, global_banner_scope: scope)
+        nil
+      rescue StandardError => ex
+        OT.le "[BannerState] banner refresh failed (serving cached value): #{ex.class}: #{ex.message}"
+        nil
+      end
+
+      # Stamp the staleness clock "fresh now". Called by SetBanner/ClearBanner
+      # (whose eager Runtime.update_features already made THIS process correct)
+      # and by the boot initializer, so a just-primed process does not
+      # immediately re-read Redis.
+      #
+      # @return [void]
+      def self.prime_cache!
+        cache_mutex.synchronize { @refreshed_at = Process.clock_gettime(Process::CLOCK_MONOTONIC) }
+        nil
+      end
+
+      # Force the next accessor read to re-read Redis (test hook — lets tryouts
+      # cross the TTL boundary without sleeping).
+      #
+      # @return [void]
+      def self.reset_cache!
+        cache_mutex.synchronize { @refreshed_at = nil }
+        nil
       end
     end
 
@@ -147,10 +237,12 @@ module Onetime
           db.set(BannerState::SCOPE_KEY, scope)
         end
 
-        # Refresh THIS process's runtime state (parity with the CLI note that the
-        # refresh reaches only the current process; other processes re-read at
-        # boot). Kept identical to the extracted CLI behaviour.
+        # Refresh THIS process's runtime state immediately, and stamp the
+        # staleness clock so the publishing process serves the new value without
+        # a redundant re-read. Other processes pick the change up via
+        # {BannerState.refresh_if_stale!} within {BannerState::CACHE_TTL}s.
         Onetime::Runtime.update_features(global_banner: text, global_banner_scope: scope)
+        BannerState.prime_cache!
 
         # One audit event per successful publish. The banner content is
         # non-secret (it is shown to every visitor), so it is safe to record; the
@@ -202,7 +294,10 @@ module Onetime
 
         db.del(BannerState::KEY)
         db.del(BannerState::SCOPE_KEY)
+        # Immediate local refresh + clock stamp (mirrors SetBanner); other
+        # processes converge to nil via the TTL re-read.
         Onetime::Runtime.update_features(global_banner: nil, global_banner_scope: BannerState::DEFAULT_SCOPE)
+        BannerState.prime_cache!
 
         # One audit event per successful mutation. No detail: the fact of the clear
         # is the whole record (the cleared content is not re-logged here).
