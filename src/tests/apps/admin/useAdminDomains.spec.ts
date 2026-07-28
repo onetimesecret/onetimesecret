@@ -230,5 +230,56 @@ describe('useAdminDomains', () => {
 
       expect(details).toBeNull();
     });
+
+    // The kind fields are z.enum tripwires (not bare strings): a backend
+    // regression echoing an unexpected slug must fail gracefulParse, not flow
+    // into UI logic silently.
+
+    it('resolves null when an ensure ack carries an unknown kind slug', async () => {
+      mockApi.post.mockResolvedValue({
+        data: {
+          shrimp: '',
+          record: envelopeRecord(),
+          details: { dry_run: true, created: ['telemetry'], existing: [], skipped: [] },
+        },
+      });
+      const store = useAdminDomains();
+
+      const details = await store.ensureConfigs(EXTID, { dryRun: true });
+
+      expect(details).toBeNull();
+    });
+
+    it('resolves null when a delete ack carries an unknown kind slug', async () => {
+      mockApi.delete.mockResolvedValue({
+        data: {
+          shrimp: '',
+          record: envelopeRecord(),
+          details: { kind: 'telemetry', deleted: true },
+        },
+      });
+      const store = useAdminDomains();
+
+      const details = await store.deleteConfig(EXTID, 'mailer');
+
+      expect(details).toBeNull();
+    });
+
+    it('resolves null when an upsert ack echoes a non-editable kind', async () => {
+      // PUT is gated to the five editable kinds server-side (sso/mailer 422),
+      // so an sso echo can only be a backend regression.
+      mockApi.put.mockResolvedValue({
+        data: {
+          shrimp: '',
+          record: envelopeRecord(),
+          details: { kind: 'sso', outcome: 'updated', config: signinConfig() },
+        },
+      });
+      const store = useAdminDomains();
+
+      const details = await store.upsertConfig(EXTID, 'signin', { enabled: true });
+
+      expect(details).toBeNull();
+    });
   });
 });
