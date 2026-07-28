@@ -244,6 +244,14 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * @param data - Partial BootstrapPayload data to merge
      */
     update(data: Partial<BootstrapPayload>): void {
+      // has_password: null means the server couldn't determine it (transient
+      // auth-DB failure during serialization). Treat it like an absent field
+      // so a blipped refresh never clobbers a known-good true/false.
+      if (data.has_password === null) {
+        const { has_password: _unknown, ...known } = data;
+        data = known;
+      }
+
       // Use functional $patch to avoid _DeepPartial type issues with complex Stripe types
       // Filter out undefined values to match previous updateIfDefined behavior
       this.$patch((state) => {

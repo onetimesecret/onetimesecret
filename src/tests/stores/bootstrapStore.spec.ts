@@ -1255,6 +1255,19 @@ describe('bootstrapStore', () => {
       expect(store.has_password).toBe(true);
     });
 
+    it('retains known has_password when a refresh reports null (unknown)', () => {
+      store.update({ has_password: true });
+
+      // null = server couldn't determine it (transient auth-DB failure);
+      // it must not clobber the known-good value in store or snapshot.
+      store.update({ has_password: null, email: 'fresh@example.com' });
+
+      expect(store.has_password).toBe(true);
+      expect(store.email).toBe('fresh@example.com');
+      const lastSnapshotUpdate = vi.mocked(bootstrapService.updateBootstrapSnapshot).mock.lastCall?.[0];
+      expect(lastSnapshotUpdate).toEqual({ email: 'fresh@example.com' });
+    });
+
     it('updates support_host field', () => {
       store.update({ support_host: 'help.example.com' });
 
