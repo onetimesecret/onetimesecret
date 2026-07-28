@@ -4,8 +4,9 @@
 
 # Unit tests for Auth::Operations::Customers::SetPlan.
 #
-# Covers: successful change (+ exactly one audit event), and idempotent
-# no_change (no save, no audit). Catalog validation is the adapter's job, so
+# Covers: successful change (+ exactly one audit event), idempotent no_change
+# (no save, no audit), and a raising save (Onetime::AuditedFailure records
+# result: :failure and re-raises). Catalog validation is the adapter's job, so
 # this op accepts any planid — there is no invalid-plan rejection here.
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/set_plan_spec.rb
@@ -51,5 +52,29 @@ RSpec.describe Auth::Operations::Customers::SetPlan do
     expect(result.status).to eq(:no_change)
     expect(customer).not_to have_received(:save)
     expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+  end
+
+  # The Onetime::AuditedFailure mechanism. `save` runs BEFORE the success-path
+  # record call, so without the macro a plan change that blew up mid-write left
+  # the trail claiming nothing happened. Message expectation, not a store read:
+  # AdminAuditEvent.record swallows its own errors and returns nil.
+  it 'records ONE result: :failure event when save raises, and re-raises' do
+    allow(customer).to receive(:save).and_raise(Onetime::Problem, 'redis down')
+
+    expect do
+      described_class.new(customer: customer, planid: 'pro_v1', actor: 'ur_col').call
+    end.to raise_error(Onetime::Problem, /redis down/)
+
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        actor: 'ur_col',
+        verb: 'customer.set_plan',
+        target: 'ur_test', # literal: a broken target lambda silently lands as 'unknown'
+        result: :failure,
+        detail: hash_including(
+          error: 'Onetime::Problem', message: 'redis down', to: 'pro_v1',
+        ),
+      ),
+    )
   end
 end

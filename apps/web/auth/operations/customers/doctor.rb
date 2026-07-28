@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
+
 module Auth
   module Operations
     module Customers
@@ -38,6 +41,10 @@ module Auth
       # rubocop:disable Metrics/ClassLength
       class Doctor
         include Onetime::LoggerMethods
+
+        # Recorded on a REPAIR run only — never on a diagnostic pass. Shared by
+        # the success and failure events so both land under one filter.
+        AUDIT_VERB = 'customer.doctor_repair'
 
         SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, warning: 3, low: 4 }.freeze
 
@@ -84,6 +91,22 @@ module Auth
           audit_repair(repaired) if @repair && repaired.any?
 
           Report.new(issues: issues.sort_by { |i| SEVERITY_ORDER[i[:severity]] }, repaired: repaired)
+        rescue StandardError => ex
+          # DELIBERATELY NOT the `audit_failures` macro (see audited_failure.rb).
+          # The macro records unconditionally, and this op's DEFAULT mode is a
+          # pure diagnostic read: wrapping it would emit an audit event for a
+          # failed `bin/ots customers doctor` with no --repair, breaking
+          # CONTRACT 4 (viewing never writes). Worse, the doctor runs per
+          # customer on a `--all` sweep, so a systemic read failure would write
+          # one event per customer and evict the real destructive-action trail
+          # from the count-capped set.
+          #
+          # So the failure is recorded on exactly the same gate as the success
+          # event: a REPAIR run with a known actor. A repair that blew up
+          # partway is a mutation left in an unknown state, and that must be in
+          # the trail. The record helper is shared, only the gate is bespoke.
+          audit_repair_failure(ex) if @repair && !@actor.nil?
+          raise
         end
 
         # Index-level check: email_index entries point to live customers with the
@@ -667,10 +690,25 @@ module Auth
 
           Onetime::AdminAuditEvent.record(
             actor: @actor,
-            verb: 'customer.doctor_repair',
+            verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
             detail: { actions: repaired.map { |r| r[:action] }.compact },
+          )
+        end
+
+        # Same verb/target/actor as the success event, so the failed repair sits
+        # next to the completed ones under one filter. Routed through
+        # Onetime::AuditedFailure.record (not AdminAuditEvent.record directly) so
+        # it inherits the shared rules: authorization rejections are dropped, an
+        # exception already recorded by an inner audited op is not recorded
+        # twice, and the write is best-effort.
+        def audit_repair_failure(error)
+          Onetime::AuditedFailure.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer&.extid.to_s,
+            error: error,
           )
         end
       end

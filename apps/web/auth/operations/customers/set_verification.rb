@@ -4,6 +4,8 @@
 
 # Reuses (does not rewrite) the incumbent verification op. The CLI runs outside
 # the auth app's autoloader, so require the dependency explicitly.
+require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'auth/operations/set_customer_verification'
 
 module Auth
@@ -32,6 +34,21 @@ module Auth
       #   :success | :no_change  (symbols, same as the underlying op)
       #   raises SetCustomerVerification::{NoAuthDatabase, AccountNotFound, AccountClosed}
       class SetVerification
+        include Onetime::AuditedFailure
+
+        AUDIT_VERB = 'customer.set_verification'
+
+        # This wrapper's whole job is the audit event, and the three documented
+        # error classes below are ALL raised by the inner op BEFORE it — so an
+        # operator repeatedly trying to verify a closed or missing account left
+        # no trace at all, which is precisely the state the trail exists to show.
+        # NoAuthDatabase additionally means the cross-store write could not even
+        # be attempted. Records one `result: :failure` and re-raises.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @customer&.extid },
+          detail: -> { { verified: @verified } }
+
         # @param customer [Onetime::Customer] target (caller ensures non-nil,
         #   non-anonymous)
         # @param verified [Boolean] target state
@@ -63,7 +80,7 @@ module Auth
           if result == :success
             Onetime::AdminAuditEvent.record(
               actor: @actor,
-              verb: 'customer.set_verification',
+              verb: AUDIT_VERB,
               target: @customer.extid,
               result: :success,
               detail: { verified: @verified },
