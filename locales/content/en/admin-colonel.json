@@ -327,6 +327,9 @@
     "text": "No organizations found",
     "content_hash": "538995db"
   },
+  "web.colonel.organizations.filters.searchPlaceholder": {
+    "text": "Search by ID, name or email"
+  },
   "web.colonel.organizations.filters.syncStatus": {
     "text": "Sync Status",
     "content_hash": "b3998276"

@@ -9,7 +9,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { getPlanLabel } from '@/types/billing';
   import { formatDisplayDateTime, formatRelativeTime } from '@/utils/format';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
 
@@ -53,11 +53,20 @@
   const SYNC_STATUS_OPTIONS = ['potentially_stale', 'unknown', 'synced'] as const;
   const SUBSCRIPTION_OPTIONS = ['active', 'trialing', 'past_due', 'canceled'] as const;
 
+  // `search` is SERVER-SIDE and was implemented end-to-end all along — the
+  // endpoint's #matches_search? does an exact match on objid/extid plus a
+  // case-insensitive substring across the contact/owner/billing addresses — but
+  // the bar was mounted with `:show-search="false"`, so the only way to find one
+  // org was to page through the whole fleet. Same 300 ms debounce + no-op guard
+  // wiring as AdminDomains/AdminCustomers.
+  const searchTerm = ref('');
+  const activeSearch = ref('');
   const statusFilter = ref('');
   const syncStatusFilter = ref('');
 
   const hasActiveFilters = computed(
-    () => statusFilter.value !== '' || syncStatusFilter.value !== ''
+    () =>
+      searchTerm.value !== '' || statusFilter.value !== '' || syncStatusFilter.value !== ''
   );
 
   const SYNC_FILTER_LABELS: Record<string, string> = {
@@ -178,12 +187,29 @@
     return fetchPage(
       targetPage,
       {
+        search: activeSearch.value || undefined,
         status: statusFilter.value || undefined,
         sync_status: syncStatusFilter.value || undefined,
       },
       options
     );
   }
+
+  // Debounce search input so we issue one request per pause, not per keystroke.
+  let searchTimer: ReturnType<typeof setTimeout> | null = null;
+  watch(searchTerm, (value) => {
+    if (searchTimer) clearTimeout(searchTimer);
+    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
+    // already issues its own fetch) so clearing doesn't double-fetch.
+    if (value.trim() === activeSearch.value) return;
+    searchTimer = setTimeout(() => {
+      activeSearch.value = value.trim();
+      load(1);
+    }, 300);
+  });
+  onBeforeUnmount(() => {
+    if (searchTimer) clearTimeout(searchTimer);
+  });
 
   /** Header control: bypass the server's roster cache and rebuild it. */
   function onRefresh(): void {
@@ -196,6 +222,11 @@
     load(1);
   }
   function onClear(): void {
+    // Cancel any in-flight debounce so the reset below doesn't fire a second,
+    // late request on top of this one.
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTerm.value = '';
+    activeSearch.value = '';
     statusFilter.value = '';
     syncStatusFilter.value = '';
     load(1);
@@ -301,8 +332,9 @@
     <!-- Filters -->
     <div class="mb-4">
       <FilterBar
+        v-model:search="searchTerm"
         :filters="filters"
-        :show-search="false"
+        :search-placeholder="t('web.colonel.organizations.filters.searchPlaceholder')"
         :has-active-filters="hasActiveFilters"
         testid="organizations-filterbar"
         @filter-change="onFilterChange"

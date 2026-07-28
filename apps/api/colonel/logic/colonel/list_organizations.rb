@@ -293,15 +293,20 @@ module ColonelAPI
           result
         end
 
-        # objid/extid are exact-equality arms; the three emails are substring
-        # arms. All email fields are nil-safe (.to_s) — owner_email/billing_email
-        # can be nil.
+        # objid/extid are exact-equality arms; display_name and the three emails
+        # are substring arms. Every substring field is nil-safe (.to_s) —
+        # display_name/owner_email/billing_email can all be nil.
+        #
+        # display_name joined the substring arms when the name became the list's
+        # leading column: searching for the org you can see by the name you can
+        # see is the obvious expectation, and without it the box silently
+        # returned nothing for the most natural query an operator would type.
         def matches_search?(data)
           return true if data[:org_id].to_s == search_term
           return true if data[:extid].to_s == search_term
 
           needle = search_term.downcase
-          [:contact_email, :owner_email, :billing_email].any? do |key|
+          [:display_name, :contact_email, :owner_email, :billing_email].any? do |key|
             data[key].to_s.downcase.include?(needle)
           end
         end
