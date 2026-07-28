@@ -442,17 +442,39 @@ export const colonelOrganizationsFiltersSchema = z.object({
 });
 
 /**
+ * Roster-cache state for the organizations list.
+ *
+ * The endpoint caches the PRE-FILTER roster (every org, post-`build_org_data`,
+ * before filtering/sorting/paging) for a short TTL, so one entry serves every
+ * filter/page/search combination. This block reports whether THIS response was
+ * served from that entry and when the roster was built, which is what the view
+ * renders as "updated <n> ago" next to its refresh control.
+ *
+ * `generated_at` is a unix SECOND (integer) and tracks the build, not the
+ * serve, so it holds steady across cache hits. Optional because a payload
+ * predating this block (an in-flight deploy, a replayed fixture) must not fail
+ * validation and blank the whole table.
+ */
+export const colonelOrganizationsCacheSchema = z.object({
+  cached: z.boolean(),
+  generated_at: z.number(),
+  ttl: z.number(),
+});
+
+/**
  * Organizations list response details
  */
 export const colonelOrganizationsDetailsSchema = z.object({
   organizations: z.array(colonelOrganizationSchema),
   pagination: paginationSchema,
   filters: colonelOrganizationsFiltersSchema,
+  cache: colonelOrganizationsCacheSchema.optional(),
 });
 
 export type ColonelOrganization = z.infer<typeof colonelOrganizationSchema>;
 export type ColonelOrganizationsDetails = z.infer<typeof colonelOrganizationsDetailsSchema>;
 export type ColonelOrganizationsFilters = z.infer<typeof colonelOrganizationsFiltersSchema>;
+export type ColonelOrganizationsCache = z.infer<typeof colonelOrganizationsCacheSchema>;
 
 /**
  * Organization billing investigation - local state
