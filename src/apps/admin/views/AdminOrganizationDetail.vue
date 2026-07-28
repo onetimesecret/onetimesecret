@@ -935,6 +935,26 @@
                 {{ t('web.admin.organizations.detail.members.owner') }}
               </span>
             </span>
+            <!-- The customer's PUBLIC id, and the way through to their record.
+                 A real router-link, not a row-click handler, so middle-click and
+                 open-in-new-tab work — the operator comparing several members
+                 wants them side by side. GetUserDetails resolves by extid first
+                 (see its #process comment), so the extid IS the route param. -->
+            <router-link
+              :to="{ name: 'AdminCustomerDetail', params: { id: row.extid } }"
+              :data-testid="`member-detail-${row.extid}`"
+              :title="t('web.admin.organizations.detail.members.openCustomer')"
+              class="mt-0.5 inline-flex items-center gap-1 font-mono text-xs text-gray-500 hover:text-brand-600 hover:underline focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-brand-400">
+              {{ row.extid }}
+              <OIcon
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                size="3"
+                aria-hidden="true" />
+              <span class="sr-only">{{
+                t('web.admin.organizations.detail.members.openCustomer')
+              }}</span>
+            </router-link>
           </template>
           <template #cell-role="{ row }">
             {{ row.role || '—' }}

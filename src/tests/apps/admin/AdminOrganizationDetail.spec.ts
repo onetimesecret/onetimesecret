@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminOrganizationDetail.spec.ts
 
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockApi = {
@@ -244,7 +244,10 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
   const mountView = () =>
     mount(AdminOrganizationDetail, {
       props: { id: PUBLIC_ID },
-      global: { plugins: [pinia, i18n] },
+      // vue-router is mocked wholesale above, so RouterLink has no real
+      // implementation to resolve — stub it the way AdminCustomers.spec does so
+      // the member links still render and carry their `to` target.
+      global: { plugins: [pinia, i18n], stubs: { RouterLink: RouterLinkStub } },
     });
   const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
   const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
@@ -275,6 +278,19 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     // Members + domains tables render.
     expect(wrapper.find('[data-testid="members-table"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="domains-table"]').text()).toContain('secrets.acme.test');
+
+    // Each member shows their public id and links through to the customer
+    // record. A real router-link (middle-click / new-tab must work), and the
+    // extid IS the route param — GetUserDetails resolves by extid first.
+    const memberLink = wrapper
+      .findAllComponents(RouterLinkStub)
+      .find((link) => link.attributes('data-testid') === 'member-detail-mem_1');
+    expect(memberLink).toBeDefined();
+    expect(memberLink!.text()).toContain('mem_1');
+    expect(memberLink!.props('to')).toEqual({
+      name: 'AdminCustomerDetail',
+      params: { id: 'mem_1' },
+    });
   });
 
   it('surfaces the drift + stale warnings when the entitlements are out of sync', async () => {

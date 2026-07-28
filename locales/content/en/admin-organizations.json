@@ -403,6 +403,9 @@
     "text": "Owner",
     "content_hash": "4b1b8aa3"
   },
+  "web.admin.organizations.detail.members.openCustomer": {
+    "text": "Open customer record"
+  },
   "web.admin.organizations.detail.members.empty": {
     "text": "No members.",
     "content_hash": "b99c59dc"
