@@ -52,12 +52,30 @@ RSpec.describe Auth::Operations::Customers::SetRole do
     expect(Onetime::AdminAuditEvent).not_to have_received(:record)
   end
 
-  it 'raises InvalidRole (no save, no audit) for an unknown role' do
+  it 'raises InvalidRole (no save) for an unknown role' do
     expect do
       described_class.new(customer: customer, role: 'wizard', actor: 'x').call
     end.to raise_error(described_class::InvalidRole)
 
     expect(customer).not_to have_received(:save)
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+  end
+
+  # Onetime::AuditedFailure: the InvalidRole guard raises before the
+  # success-path record call, so a rejected role change would otherwise be
+  # invisible. A refused attempt to hand out a role is exactly what the trail
+  # is for.
+  it 'records one result: :failure event for a rejected role and re-raises' do
+    expect do
+      described_class.new(customer: customer, role: 'wizard', actor: 'x').call
+    end.to raise_error(described_class::InvalidRole)
+
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        actor: 'x',
+        verb: 'customer.set_role',
+        result: :failure,
+        detail: hash_including(error: 'Auth::Operations::Customers::SetRole::InvalidRole'),
+      ),
+    )
   end
 end

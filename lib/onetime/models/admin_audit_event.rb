@@ -72,6 +72,13 @@ module Onetime
     # deep-but-bounded operator trail; older history is expected to be shipped to an
     # external log sink if longer retention is required. Kept as a constant (not a
     # config key) so the audit path has no external configuration dependency.
+    #
+    # The cap is safe at this size ONLY because every write is authenticated
+    # colonel activity. Failure auditing ({Onetime::AuditedFailure}) deliberately
+    # excludes bare authorization/authentication rejections: on a count-capped set
+    # with no TTL, an event an unauthorized caller can trigger is a log-eviction
+    # primitive — 10k rejected requests would flush the real destructive-action
+    # trail. Keep that invariant and the cap needs no revisiting.
     MAX_EVENTS = 10_000
 
     # Placeholder written in place of any redacted value.
