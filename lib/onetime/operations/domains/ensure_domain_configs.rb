@@ -74,7 +74,15 @@ module Onetime
               next
             end
 
-            materialize(model, domain_id) == :created ? created << slug : existing << slug
+            case (outcome = materialize(model, domain_id))
+            when :created then created << slug
+            when :existed then existing << slug
+            else
+              # Contract drift in materialize / find_or_create_for_domain
+              # (e.g. a renamed outcome symbol) — fail loudly rather than
+              # silently miscounting the kind.
+              raise Onetime::Problem, "Unexpected materialize outcome #{outcome.inspect} for #{slug}"
+            end
           end
 
           if @dry_run
