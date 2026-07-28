@@ -175,6 +175,9 @@ function reconcileAck() {
         subscription_period_end: '2026-01-01',
         materialized_count: 2,
       },
+      // #3907 item 3: cascade counts ride on the record; null exercises the
+      // "did not cascade / cascade raised" shape the schema must accept.
+      memberships: null,
     },
   };
 }

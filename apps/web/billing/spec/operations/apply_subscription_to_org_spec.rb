@@ -323,6 +323,28 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         described_class.call(org, subscription, owner: true)
       end
     end
+
+    # #3907 item 3: Org::Reconcile's stripe_sync path instantiates the engine
+    # and reads the MaterializeResult (with the cascade counts) back off the
+    # instance, because .call keeps its Boolean (org.save) return contract.
+    context 'exposing the engine result on the instance' do
+      it 'makes the cascade counts readable via #materialize_result after #call' do
+        subscription = build_subscription
+        allow(org).to receive(:rematerialize_all_memberships!)
+          .and_return({ success: 2, failed: 0, total: 2, failed_ids: [] })
+
+        instance = described_class.new(org, subscription, owner: true)
+        instance.call
+
+        expect(instance.materialize_result.status).to eq(:materialized)
+        expect(instance.materialize_result.memberships)
+          .to eq(success: 2, failed: 0, total: 2, failed_ids: [])
+      end
+
+      it 'is nil before #call has run' do
+        expect(described_class.new(org, build_subscription, owner: true).materialize_result).to be_nil
+      end
+    end
   end
 
   describe 'planid_override' do
@@ -670,6 +692,9 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
     it { expect(skipped.success?).to be false }
     it { expect(skipped.skipped?).to be true }
     it { expect(result.skipped?).to be false }
+    # #3907 item 3: memberships is defaulted so the four cascade-free builders
+    # (and pre-existing constructors like these) need no churn.
+    it { expect(result.memberships).to be_nil }
     it { expect(described_class.new(status: :skipped_fresh, planid: 'p', entitlements_count: 3, source: :cache, reason: 'r').skipped?).to be true }
   end
 
@@ -995,6 +1020,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         expect(result.entitlements_count).to be_nil
         expect(result.source).to be_nil
         expect(result.reason).to eq('Organization has no planid')
+        expect(result.memberships).to be_nil
       end
 
       it 'does not call any materialize method' do
@@ -1184,6 +1210,30 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
           expect(result.entitlements_count).to eq(4)
           expect(result.reason).to be_nil
           expect(result.success?).to be true
+        end
+
+        # #3907 item 3: the cascade counts ride on the result so operator
+        # surfaces (org reconcile CLI + colonel endpoint) can show a partial
+        # cascade without log access.
+        it 'carries the membership-cascade counts on the result' do
+          allow(org).to receive(:materialize_entitlements_from_plan)
+          allow(org).to receive(:rematerialize_all_memberships!)
+            .and_return({ success: 3, failed: 1, total: 4, failed_ids: %w[mem_z] })
+
+          result = described_class.materialize_entitlements_for_org(org)
+
+          expect(result.memberships).to eq(success: 3, failed: 1, total: 4, failed_ids: %w[mem_z])
+        end
+
+        it 'reports nil memberships when the cascade raises (degradable, logs carry it)' do
+          allow(org).to receive(:materialize_entitlements_from_plan)
+          allow(org).to receive(:rematerialize_all_memberships!)
+            .and_raise(StandardError.new('boom'))
+
+          result = described_class.materialize_entitlements_for_org(org)
+
+          expect(result.status).to eq(:materialized)
+          expect(result.memberships).to be_nil
         end
 
         it 'calls materialize_entitlements_from_plan with the cached plan' do

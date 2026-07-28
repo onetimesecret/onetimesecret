@@ -82,6 +82,10 @@ module ColonelAPI
         # `status` is `result.status.to_s`, which is why the op's status
         # vocabulary reuses the engine's strings ('applied', 'materialized',
         # 'skipped_no_plan', …) verbatim.
+        # `memberships` is the cascade outcome (#3907 item 3) — counts from
+        # `rematerialize_all_memberships!`, or null when the run did not
+        # cascade (skips) or the cascade raised (logs carry that case).
+        # `failed_ids` are membership objids, consistent with `org_id` above.
         def success_data
           {
             record: {
@@ -92,6 +96,7 @@ module ColonelAPI
               reason: result.reason,
               before: result.before,
               after: result.after,
+              memberships: result.memberships,
             },
           }
         end

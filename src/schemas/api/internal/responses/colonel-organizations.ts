@@ -253,10 +253,26 @@ export const colonelReconcileSnapshotSchema = z.object({
 });
 
 /**
+ * Membership-cascade counts from an applied reconcile (#3907 item 3):
+ * `rematerialize_all_memberships!` totals, surfaced so a partial cascade is
+ * operator-visible without log access. `failed_ids` are membership OBJIDs
+ * (internal — the identifier `bin/ots memberships doctor` follow-up works in;
+ * same posture as the record's `org_id`).
+ */
+export const colonelReconcileMembershipCascadeSchema = z.object({
+  success: z.number(),
+  failed: z.number(),
+  total: z.number(),
+  failed_ids: z.array(z.string()),
+});
+
+/**
  * `POST /api/colonel/organizations/:org_id/reconcile` → `{ record }`. MUTATING:
  * re-pulls Stripe and rewrites billing + re-materializes (`stripe_sync`), or
  * re-materializes entitlements from the current plan when there is no
  * subscription (`entitlements_only`). `before`/`after` drive the success diff.
+ * `memberships` is null when the run did not cascade (skip statuses) or the
+ * cascade raised server-side (logs carry that case).
  */
 export const colonelReconcileOrganizationRecordSchema = z.object({
   org_id: z.string(),
@@ -266,6 +282,7 @@ export const colonelReconcileOrganizationRecordSchema = z.object({
   reason: z.string().nullable(),
   before: colonelReconcileSnapshotSchema,
   after: colonelReconcileSnapshotSchema,
+  memberships: colonelReconcileMembershipCascadeSchema.nullable(),
 });
 
 export const colonelReconcileOrganizationResponseSchema = createApiResponseSchema(
@@ -273,6 +290,9 @@ export const colonelReconcileOrganizationResponseSchema = createApiResponseSchem
 );
 
 export type ColonelReconcileSnapshot = z.infer<typeof colonelReconcileSnapshotSchema>;
+export type ColonelReconcileMembershipCascade = z.infer<
+  typeof colonelReconcileMembershipCascadeSchema
+>;
 export type ColonelReconcileOrganizationRecord = z.infer<
   typeof colonelReconcileOrganizationRecordSchema
 >;

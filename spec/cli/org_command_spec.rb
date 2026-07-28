@@ -47,6 +47,7 @@ RSpec.describe 'Org Command', type: :cli do
         subscription_period_end: nil, materialized_count: 7
       },
       reason: nil,
+      memberships: { success: 3, failed: 0, total: 3, failed_ids: [] },
       dry_run: false,
     )
   end
@@ -151,6 +152,30 @@ RSpec.describe 'Org Command', type: :cli do
       expect(output[:stdout]).to include('materialized_count')
     end
 
+    it 'prints the membership-cascade counts on the text path (#3907)' do
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+
+      expect(output[:stdout]).to include('Memberships:  3/3 re-materialized')
+    end
+
+    it 'flags a partial cascade with the failed membership ids (#3907)' do
+      allow(operation).to receive(:call).and_return(
+        result.with(memberships: { success: 1, failed: 2, total: 3, failed_ids: %w[mem_p mem_q] })
+      )
+
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+
+      expect(output[:stdout]).to include('1/3 re-materialized — 2 FAILED: mem_p, mem_q')
+    end
+
+    it 'prints no cascade line when the op reports none (dry run / skip / raised)' do
+      allow(operation).to receive(:call).and_return(result.with(memberships: nil))
+
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+
+      expect(output[:stdout]).not_to include('Memberships:')
+    end
+
     it 'emits the flat Result payload and exits 0 on --json --yes' do
       output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes', '--json')
 
@@ -160,6 +185,7 @@ RSpec.describe 'Org Command', type: :cli do
       expect(payload['org_id']).to eq('on_org_ext')
       expect(payload['mode']).to eq('entitlements_only')
       expect(payload['after']['materialized_count']).to eq(7)
+      expect(payload['memberships']).to eq('success' => 3, 'failed' => 0, 'total' => 3, 'failed_ids' => [])
     end
 
     it 'exits 1 when the org has no plan to reconcile against' do

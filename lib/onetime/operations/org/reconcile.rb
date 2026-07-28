@@ -121,15 +121,23 @@ module Onetime
       # {::Billing::Operations::MaterializeResult} status for entitlements_only),
       # so `result.status.to_s` keeps the HTTP payload byte-identical.
       #
-      # ## Not in scope here (see decisions D12/D14)
+      # ## Not in scope here (see decision D12)
       #
       # - No colonel dry-run preview (D12) — the op supports `dry_run`, the
-      #   colonel adapter pins it to false.
-      # - No membership-cascade counts on {Result} (D14) — `execute_materialize`
-      #   only LOGS them; surfacing them would mean re-running the cascade. The
-      #   standalone branch runs the cascade itself, so it reports the counts in
-      #   the human-readable `reason` rather than adding a structured field the
-      #   other three paths could not populate.
+      #   colonel adapter pins it to false. Deferred until the admin UI grows a
+      #   confirm-preview flow (#3907 item 4).
+      #
+      # ## Membership-cascade counts (D14, superseded by #3907 item 3)
+      #
+      # D14 originally left the cascade counts out of {Result} because
+      # `execute_materialize` only logged them. The engine's
+      # {::Billing::Operations::MaterializeResult} now carries them
+      # (`memberships`), so every APPLIED path populates {Result#memberships}
+      # without re-running the cascade: stripe_sync reads the engine instance's
+      # result, entitlements_only passes the engine field through, and the
+      # standalone branch reports its own cascade. nil marks the paths where
+      # the cascade genuinely did not run (dry runs, skips, errors) — and the
+      # applied paths where it RAISED, which the logs cover.
       class Reconcile
         # Audit verb recorded for every applied reconcile. BYTE-IDENTICAL to the
         # pre-extraction value — the existing trail and the colonel tryout gate
@@ -162,8 +170,24 @@ module Onetime
         #   "after" would be a re-derivation that can disagree with an apply —
         #   ApplySubscriptionToOrg has no dry-run mode).
         # @!attribute reason [r] String, nil — human-readable skip/error reason.
+        # @!attribute memberships [r] Hash, nil — membership-cascade counts
+        #   ({success:, failed:, total:, failed_ids:}) from
+        #   `rematerialize_all_memberships!`, present on the applied statuses
+        #   whose run cascaded (:applied, :materialized, :standalone); nil on
+        #   dry runs, skips and errors, and on an applied run whose cascade
+        #   raised (see logs). EXCEPTION to the extid-only rule: `failed_ids`
+        #   are membership OBJIDs, verbatim from the cascade — that is the
+        #   identifier operator follow-up (`bin/ots memberships doctor`) works
+        #   in, and there may be no live customer behind a failed membership to
+        #   resolve an extid from.
         # @!attribute dry_run [r] Boolean
-        Result = Data.define(:status, :org_id, :mode, :before, :after, :reason, :dry_run)
+        Result = Data.define(:status, :org_id, :mode, :before, :after, :reason, :memberships, :dry_run) do
+          # Defaulted so pre-#3907 keyword constructors (adapter specs) and the
+          # cascade-free build paths need no churn.
+          def initialize(status:, org_id:, mode:, before:, after:, reason:, dry_run:, memberships: nil)
+            super
+          end
+        end
 
         # @param org [Onetime::Organization] target org (caller resolves; required).
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
@@ -198,7 +222,15 @@ module Onetime
 
           record_audit_event(org_extid, mode, outcome[:status], before, after)
 
-          build(outcome[:status], org_extid, mode, before, after, outcome[:reason])
+          build(
+            outcome[:status],
+            org_extid,
+            mode,
+            before,
+            after,
+            outcome[:reason],
+            memberships: outcome[:memberships],
+          )
         end
 
         private
@@ -259,9 +291,19 @@ module Onetime
             id: subscription_id,
             expand: ['items.data.price.product'],
           )
-          ::Billing::Operations::ApplySubscriptionToOrg.call(@org, subscription, owner: true)
 
-          { status: :applied, reason: nil }
+          # Instance form (not .call) so the engine's MaterializeResult — and
+          # the membership-cascade counts riding on it (#3907 item 3) — can be
+          # read back without changing .call's Boolean return contract for the
+          # webhook callers.
+          engine = ::Billing::Operations::ApplySubscriptionToOrg.new(@org, subscription, owner: true)
+          engine.call
+
+          {
+            status: :applied,
+            reason: nil,
+            memberships: engine.materialize_result&.memberships,
+          }
         end
 
         def reconcile_entitlements_only
@@ -275,16 +317,23 @@ module Onetime
           result = ::Billing::Operations::ApplySubscriptionToOrg
             .materialize_entitlements_for_org(@org, dry_run: @dry_run)
 
-          { status: result.status, reason: entitlements_only_reason(result) }
+          {
+            status: result.status,
+            reason: entitlements_only_reason(result),
+            # nil on every status but :materialized (the engine populates it
+            # only where its cascade ran — #3907 item 3).
+            memberships: result.memberships,
+          }
         end
 
         # The engine hardcodes `reason: nil` on :would_materialize
         # (apply_subscription_to_org.rb, would_materialize_result), which left
         # a dry run with nothing human-readable to print — adapters showed a
         # bare status. Synthesize a reason from the MaterializeResult's planid
-        # + entitlements_count, which the op otherwise discards. `reason` is
-        # this op's human-readable carrier (D14; the :standalone branch does
-        # the same) — do NOT add structured fields to {Result} for this.
+        # + entitlements_count, which the op otherwise discards. `reason` stays
+        # the human-readable carrier for THIS (a dry-run preview has no
+        # structured shape worth a field); the cascade counts are the one thing
+        # that graduated to a structured field ({Result#memberships}, #3907).
         # Every other status passes the engine reason through byte-identical.
         def entitlements_only_reason(result)
           return result.reason unless result.status == :would_materialize && result.reason.nil?
@@ -327,7 +376,9 @@ module Onetime
               org_extid: @org.extid
           end
 
-          { status: :standalone, reason: standalone_reason(cascade_to_memberships) }
+          cascade = cascade_to_memberships
+
+          { status: :standalone, reason: standalone_reason(cascade), memberships: cascade }
         end
 
         # Membership re-materialization is DEGRADABLE: the org-level write has
@@ -355,9 +406,9 @@ module Onetime
           nil
         end
 
-        # Cascade counts ride in `reason` rather than on {Result} (D14): only
-        # this branch runs the cascade itself, so a structured field would be
-        # unpopulatable on the other three paths.
+        # The counts ALSO ride on {Result#memberships} since #3907 item 3; the
+        # sentence here stays because `reason` is what the CLI text path and
+        # the admin UI print without any extra rendering.
         def standalone_reason(cascade)
           base = 'Billing disabled: materialized STANDALONE_ENTITLEMENTS'
           return "#{base}; membership cascade failed (see logs)" if cascade.nil?
@@ -396,7 +447,7 @@ module Onetime
           )
         end
 
-        def build(status, org_extid, mode, before, after, reason)
+        def build(status, org_extid, mode, before, after, reason, memberships: nil)
           Result.new(
             status: status,
             org_id: org_extid,
@@ -404,6 +455,7 @@ module Onetime
             before: before,
             after: after,
             reason: reason,
+            memberships: memberships,
             dry_run: @dry_run,
           )
         end
