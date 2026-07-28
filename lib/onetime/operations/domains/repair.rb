@@ -63,6 +63,26 @@ module Onetime
         #
         # `dry_run` is in the detail because it defaults to TRUE and the success
         # event is applied-path-only.
+        #
+        # ## Why the UNCONDITIONAL macro is safe here, unlike Customers::Doctor
+        #
+        # This op has a FLEET-WIDE driver (`bin/ots domains doctor --all
+        # --repair` → doctor_command.rb#apply_membership_repair, once per
+        # affected domain), which is exactly the shape that made an
+        # unconditional wrapper wrong for {Auth::Operations::Customers::Doctor}:
+        # there, failure events would have been emitted per customer on a purely
+        # DIAGNOSTIC sweep, and the count-capped audit set has no TTL, so a
+        # systemic read failure would evict the real destructive-action trail.
+        #
+        # The difference is structural, not a judgement call. `Doctor#call` IS
+        # the diagnostic entry point — its checks run whether or not `repair` is
+        # set — whereas this op's `#call` is reached from the doctor only inside
+        # `return unless repair`, i.e. it never runs on a diagnostic pass. Its
+        # events are therefore already bounded by the number of domains an
+        # operator explicitly asked to MUTATE, which is the same bound the
+        # success event has always had on that path. (`domains bulk-repair`, the
+        # other historical fleet driver, is a deprecation shim that exits before
+        # loading anything.)
         audit_failures :call,
           verb: AUDIT_VERB,
           target: -> { @domain&.extid },

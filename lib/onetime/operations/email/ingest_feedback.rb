@@ -69,6 +69,16 @@ module Onetime
         # The target mirrors the success event's fixed 'email_suppression'
         # sentinel: the batch has no single public id, and the addresses are the
         # data, not the target.
+        #
+        # NON-OPERATOR DRIVER, checked: {SyncProviderFeedback} feeds this op
+        # in-process from `bin/ots email sync-feedback` on a cron. That does NOT
+        # make the failure event a mislabel of scheduled work as operator
+        # activity (the {Onetime::Operations::AdminVerifyDomain} concern),
+        # because the SUCCESS event already travels that same path under the
+        # same `SyncProviderFeedback::CLI_ACTOR` sentinel — the failure is
+        # symmetric with it. Volume is bounded the same way too: ONE event per
+        # run, not per record, since per-record failures are counted rather than
+        # raised.
         audit_failures :call,
           verb: AUDIT_VERB,
           target: 'email_suppression',
