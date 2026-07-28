@@ -27,11 +27,24 @@
  *                                    or { success, mfa_required, ... } (MFA account —
  *                                    same body POST /auth/login returns; hand off to
  *                                    the shared /mfa-verify challenge, do NOT complete)
- *                               401 invalid_password => wrong password (retryable)
- *                               401 link_expired     => token expired / consumed (dead-end)
- *   The failure branch is distinguished by HTTP status and, when present, an
- *   { error_code } field ('invalid_password' vs 'invalid_token'/'expired_token'/
- *   'link_expired'). Legacy 403/404/410 statuses are still classified defensively.
+ *                               401 invalid_password  => wrong password (retryable)
+ *                               401 link_expired      => token expired / consumed (dead-end)
+ *                               409 link_conflict     => the email re-resolved to a different
+ *                                                       account since mint, or the
+ *                                                       (provider,issuer,uid) is already bound
+ *                                                       elsewhere (dead-end — retry can never
+ *                                                       succeed)
+ *                               429 link_rate_limited => too many password attempts for this
+ *                                                       account/IP; refused BEFORE consuming
+ *                                                       the token, so waiting and retrying can
+ *                                                       succeed — but the view must NOT invite
+ *                                                       an immediate retry
+ *   The failure branch is distinguished by an { error_code } field
+ *   ('invalid_request' / 'link_expired' / 'invalid_password' / 'link_conflict' /
+ *   'link_rate_limited' — the exact set apps/web/auth/routes/link_sso.rb emits;
+ *   keep in lockstep with that route) and, defensively, the HTTP status family.
+ *   'invalid_token' / 'expired_token' are frontend-side legacy aliases (no Ruby
+ *   route emits them) kept in the resolver as defence.
  *
  * Mirrors useMfa / useConnectedIdentities: happy paths validate through a zod
  * schema; useAsyncHandler `wrap` manages the loading state and the unexpected
@@ -57,12 +70,27 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 /**
- * Distinguishes a retryable wrong-password failure from a dead-end token
- * failure (expired / spent / unknown challenge). The view keeps the user on the
- * password form for 'invalid_password' and points them at the settings flow for
- * 'invalid_token'.
+ * Typed failure the view branches on:
+ * - 'invalid_password'  — wrong password; the view keeps the user on the form
+ *                         for another try.
+ * - 'invalid_token'     — dead-end token failure (expired / spent / unknown
+ *                         challenge); the view points at the settings flow.
+ * - 'link_conflict'     — dead-end: the account moved or the identity is bound
+ *                         to a different account. Terminal — a retry against
+ *                         this challenge can never succeed, so the view must
+ *                         NOT re-offer the password form.
+ * - 'link_rate_limited' — too many attempts; the backend refused BEFORE
+ *                         consuming the token, so waiting and retrying can
+ *                         succeed. The copy says "wait" — the view must not
+ *                         clear/refocus the password field, which would invite
+ *                         an immediate retry that re-trips the throttle.
  */
-export type LinkSsoErrorCode = 'invalid_password' | 'invalid_token' | null;
+export type LinkSsoErrorCode =
+  | 'invalid_password'
+  | 'invalid_token'
+  | 'link_conflict'
+  | 'link_rate_limited'
+  | null;
 
 /** Minimal shape of the axios error's carried response (status + parsed body). */
 interface ErrorResponseLike {
@@ -70,32 +98,45 @@ interface ErrorResponseLike {
   data?: Record<string, unknown>;
 }
 
+const BACKEND_CODE_MAP: Record<string, NonNullable<LinkSsoErrorCode>> = {
+  invalid_password: 'invalid_password',
+  link_conflict: 'link_conflict',
+  link_rate_limited: 'link_rate_limited',
+  link_expired: 'invalid_token',
+  // Frontend-side legacy aliases — no backend route emits these; defence only.
+  invalid_token: 'invalid_token',
+  expired_token: 'invalid_token',
+};
+
+const STATUS_FAMILY_MAP: Record<number, NonNullable<LinkSsoErrorCode>> = {
+  404: 'invalid_token',
+  410: 'invalid_token',
+  409: 'link_conflict',
+  429: 'link_rate_limited',
+  401: 'invalid_password',
+  403: 'invalid_password',
+  422: 'invalid_password',
+};
+
 /**
  * Maps an HTTP status and an optional backend { error_code } to the UI's typed
- * failure. Prefers the explicit backend code; falls back to the status family
- * (404/410 => spent token, 401/403/422 => wrong password). Returns null when the
- * failure is neither (e.g. a 5xx) so the caller surfaces a generic message.
+ * failure. The explicit backend code is checked FIRST — before any status-family
+ * fallback — so a specific code arriving on a shared status can never be
+ * shadowed (mirrors useSsoLinkConfirm's resolver after #3882). The status
+ * families (404/410 => spent token, 409 => conflict, 429 => rate limited,
+ * 401/403/422 => wrong password) are defence for a code-less response. Returns
+ * null when the failure is neither (e.g. a 5xx) so the caller surfaces a
+ * generic message.
  */
 function resolveLinkErrorCode(
   status: number | undefined,
   backendCode: unknown
 ): LinkSsoErrorCode {
-  if (
-    backendCode === 'invalid_token' ||
-    backendCode === 'expired_token' ||
-    backendCode === 'link_expired' ||
-    status === 404 ||
-    status === 410
-  ) {
-    return 'invalid_token';
+  if (typeof backendCode === 'string' && backendCode in BACKEND_CODE_MAP) {
+    return BACKEND_CODE_MAP[backendCode];
   }
-  if (
-    backendCode === 'invalid_password' ||
-    status === 401 ||
-    status === 403 ||
-    status === 422
-  ) {
-    return 'invalid_password';
+  if (status !== undefined && status in STATUS_FAMILY_MAP) {
+    return STATUS_FAMILY_MAP[status];
   }
   return null;
 }
@@ -133,6 +174,8 @@ export function useLinkSso() {
   function messageForCode(code: LinkSsoErrorCode): string {
     if (code === 'invalid_token') return t('web.link_sso.errors.invalid_token');
     if (code === 'invalid_password') return t('web.link_sso.errors.invalid_password');
+    if (code === 'link_conflict') return t('web.link_sso.errors.link_conflict');
+    if (code === 'link_rate_limited') return t('web.link_sso.errors.link_rate_limited');
     return t('web.link_sso.errors.generic');
   }
 

@@ -20,8 +20,11 @@ vi.mock('@/shared/stores/csrfStore', () => ({
  *
  * Verifies the GET challenge-context fetch and POST password verify, plus the
  * typed error classification the view branches on:
- * - invalid_password (retryable) vs invalid_token (dead-end)
- * - distinguished by HTTP status AND an optional backend { error_code }
+ * - invalid_password (retryable) vs invalid_token / link_conflict (dead-end)
+ *   vs link_rate_limited (throttled; token still live — wait and retry)
+ * - distinguished by an explicit backend { error_code } first, then the HTTP
+ *   status family as defence (so a specific code on a shared status is never
+ *   shadowed)
  */
 describe('useLinkSso', () => {
   let axiosMock: AxiosMockAdapter;
@@ -213,6 +216,78 @@ describe('useLinkSso', () => {
       axiosMock
         .onPost('/auth/link-sso')
         .reply(200, { error: 'stale', error_code: 'invalid_token' });
+
+      const { verifyLink, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('invalid_token');
+    });
+
+    // Backend emits 409 link_conflict when the account was re-emailed between
+    // challenge mint and POST, or the (provider,issuer,uid) is already bound to
+    // a different account. Terminal — without the mapping it fell through to
+    // null and the view treated it as a retryable password error (#3889).
+    it('classifies a conflict (409 link_conflict) as link_conflict (dead-end)', async () => {
+      axiosMock
+        .onPost('/auth/link-sso')
+        .reply(409, { error: 'conflict', error_code: 'link_conflict' });
+
+      const { verifyLink, error, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('link_conflict');
+      expect(error.value).toBe('web.link_sso.errors.link_conflict');
+    });
+
+    it('falls back to link_conflict for a code-less 409', async () => {
+      axiosMock.onPost('/auth/link-sso').reply(409, { error: 'conflict' });
+
+      const { verifyLink, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('link_conflict');
+    });
+
+    // Backend emits 429 link_rate_limited when the per-account/IP throttle
+    // trips — BEFORE consuming the token, so the challenge is still live.
+    // Without the mapping it fell through to null (generic copy) and the view
+    // handed back a focused password field, immediately re-tripping the
+    // throttle (#3889).
+    it('classifies a throttle (429 link_rate_limited) as link_rate_limited', async () => {
+      axiosMock.onPost('/auth/link-sso').reply(429, {
+        error: 'Too many attempts. Please try again later.',
+        error_code: 'link_rate_limited',
+        retry_after: 60,
+      });
+
+      const { verifyLink, error, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('link_rate_limited');
+      expect(error.value).toBe('web.link_sso.errors.link_rate_limited');
+    });
+
+    it('falls back to link_rate_limited for a code-less 429', async () => {
+      axiosMock.onPost('/auth/link-sso').reply(429, { error: 'slow down' });
+
+      const { verifyLink, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('link_rate_limited');
+    });
+
+    // Ordering guard: the explicit code must be checked BEFORE the status-family
+    // fallback, so a specific code arriving on a shared status is never
+    // shadowed (mirrors the useSsoLinkConfirm resolver after #3882).
+    it('honors an explicit error_code (link_expired) over a 409 status', async () => {
+      axiosMock
+        .onPost('/auth/link-sso')
+        .reply(409, { error: 'expired', error_code: 'link_expired' });
 
       const { verifyLink, errorCode } = useLinkSso();
       const result = await verifyLink('tok123', 'pw');

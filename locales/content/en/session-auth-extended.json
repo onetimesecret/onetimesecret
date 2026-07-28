@@ -486,6 +486,16 @@
     "context": "Error on the #3840 Phase 3 sign-in interstitial when the single-use challenge token is expired, spent, or unknown (dead-end, not retryable).",
     "content_hash": "541f9127"
   },
+  "web.link_sso.errors.link_conflict": {
+    "text": "We couldn't link this sign-in method. Your account may have changed, or this provider is already linked to another account. Sign in with your existing password, then manage connections under Security settings → Connected identities.",
+    "context": "Terminal error on the #3840 Phase 3 sign-in interstitial when the account was re-emailed between challenge mint and submit, or the (provider, issuer, uid) identity is already bound to a different account (backend error_code link_conflict, HTTP 409). Dead-end — a retry against this challenge can never succeed; points the user at the Phase 2 Connected Identities flow.",
+    "content_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Too many password attempts. Please wait a few minutes, then try again.",
+    "context": "Inline error on the #3840 Phase 3 sign-in interstitial when the per-account/IP login throttle trips (backend error_code link_rate_limited, HTTP 429). The throttle fires BEFORE the single-use token is consumed, so waiting and retrying can succeed — the copy must say 'wait', never that the request is dead.",
+    "content_hash": "a95e78cd"
+  },
   "web.link_sso.errors.generic": {
     "text": "We couldn't link your account. Please try again.",
     "context": "Fallback error for #3840 Phase 3 sign-in interstitial challenge-context / verify failures that are neither a wrong password nor an expired token.",

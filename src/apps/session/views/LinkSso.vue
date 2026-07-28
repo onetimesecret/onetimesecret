@@ -33,8 +33,10 @@
 
   const password = ref('');
   const passwordInputRef = ref<HTMLInputElement | null>(null);
-  // Set when the challenge context cannot be loaded or the token is spent: there
-  // is nothing to prove against, so render the dead-end panel, not the form.
+  // Set when the challenge context cannot be loaded, the token is spent, or the
+  // verify failed terminally (link_conflict — the account moved or the identity
+  // is bound elsewhere): there is nothing left to prove against, so render the
+  // dead-end panel, not the form. The specific reason lives in `error`.
   const challengeUnavailable = ref(false);
 
   // Single-use challenge token from the interstitial URL (path param, scrubbed
@@ -57,6 +59,14 @@
   // backend defaults that to 'SSO'/'Microsoft', which would read wrong in the
   // prose below ("You signed in with SSO"). See utils/features.ts.
   const providerDisplayName = computed(() => providerLabel(challenge.value?.provider ?? ''));
+
+  // Dead-end-panel body: the specific classified reason when one was set
+  // (spent token / conflict), else the generic expired copy (e.g. the token was
+  // missing from the URL entirely, so no request ever ran). Mirrors
+  // SsoLinkConfirm.vue's unavailableMessage.
+  const unavailableMessage = computed(
+    () => error.value ?? t('web.link_sso.unavailable_message')
+  );
 
   // Single polite live region, rendered unconditionally. A live region has to be
   // in the DOM BEFORE its content changes for assistive tech to announce it, so
@@ -142,9 +152,20 @@
       return;
     }
 
-    if (errorCode.value === 'invalid_token') {
-      // Nothing left to prove against — fall through to the dead-end panel.
+    if (errorCode.value === 'invalid_token' || errorCode.value === 'link_conflict') {
+      // Terminal: nothing left to prove against (spent token), or the account
+      // moved / the identity is bound elsewhere (conflict). A retry against this
+      // challenge can never succeed — fall through to the dead-end panel, which
+      // carries the specific reason (see unavailableMessage).
       challengeUnavailable.value = true;
+      return;
+    }
+
+    if (errorCode.value === 'link_rate_limited') {
+      // Throttled BEFORE the token was consumed: the challenge is still live and
+      // a retry after the lockout can succeed. Leave the form as-is — clearing
+      // and refocusing the password would invite an immediate retype that
+      // re-trips the throttle. The inline error says "wait".
       return;
     }
 
@@ -187,9 +208,11 @@
       </div>
 
       <div class="space-y-6">
-        <!-- Dead-end: token missing / expired / spent. Keep the H-3 refusal and
-             point the user at the Phase 2 settings flow. Labelled + described so
-             focusing the heading announces the refusal. -->
+        <!-- Dead-end: token missing / expired / spent, or the verify hit a
+             terminal conflict (account moved / identity bound elsewhere). Keep
+             the H-3 refusal and point the user at the Phase 2 settings flow.
+             Labelled + described so focusing the heading announces the
+             refusal. -->
         <div
           v-if="challengeUnavailable"
           role="group"
@@ -212,7 +235,7 @@
           <p
             id="link-sso-unavailable-message"
             class="text-sm text-gray-600 dark:text-gray-400">
-            {{ t('web.link_sso.unavailable_message') }}
+            {{ unavailableMessage }}
           </p>
           <button
             @click="goToSignInFallback"
