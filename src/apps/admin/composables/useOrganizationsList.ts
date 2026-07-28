@@ -51,19 +51,19 @@ export interface UseOrganizationsList {
 /**
  * List-side data source for the colonel Organizations screen.
  *
- * Why this exists alongside the `useAdminOrganizations` pinia store: the store's
- * `select` narrows the response to `{ items, pagination }` and its `fetchPage`
- * forwards a fixed three-filter set, so neither the roster-cache block on
- * `details.cache` nor the `refresh` cache-bypass param can reach the view
- * through it. This composable talks to {@link usePaginatedFetch} directly and
- * keeps both. It is deliberately NOT a pinia store — the list has exactly one
- * consumer and no cross-view state to share.
+ * This replaced an `adminOrganizations` pinia store, whose `select` narrowed the
+ * response to `{ items, pagination }` and whose `fetchPage` forwarded a fixed
+ * three-filter set — so neither the roster-cache block on `details.cache` nor
+ * the `refresh` cache-bypass param could reach the view through it. This
+ * composable talks to {@link usePaginatedFetch} directly and keeps both. It is
+ * deliberately NOT a pinia store — the list has exactly one consumer and no
+ * cross-view state to share.
  *
  * The two failure modes stay split exactly as the shared composable defines
  * them: a Zod mismatch degrades to an empty table (`validationError`), a
- * network/HTTP failure surfaces the banner + retry (`error`). Unlike the store,
- * `fetchPage` here does NOT rethrow — the view's only response to a throw was to
- * swallow it, and `error` already drives the banner.
+ * network/HTTP failure surfaces the banner + retry (`error`). `fetchPage` here
+ * does NOT rethrow — the view's only response to a throw was to swallow it, and
+ * `error` already drives the banner.
  */
 export function useOrganizationsList(): UseOrganizationsList {
   const organizations = ref<ColonelOrganization[]>([]);
