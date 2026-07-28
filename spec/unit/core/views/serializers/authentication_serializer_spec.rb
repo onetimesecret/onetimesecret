@@ -22,8 +22,10 @@ RSpec.describe Core::Views::AuthenticationSerializer do
 
     before do
       stub_const('Auth::Database', class_double('Auth::Database', connection: db))
-      allow(db).to receive(:[]).with(:account_password_hashes).and_return(dataset)
-      allow(dataset).to receive(:where).with(id: 42).and_return(dataset)
+      if db
+        allow(db).to receive(:[]).with(:account_password_hashes).and_return(dataset)
+        allow(dataset).to receive(:where).with(id: 42).and_return(dataset)
+      end
     end
 
     context 'without a session account' do
