@@ -367,6 +367,18 @@
     "text": "Send Reset Link",
     "content_hash": "7d5f16d4"
   },
+  "web.auth.password_setup_request.title": {
+    "text": "Set a Password",
+    "context": "Settings page heading for a passwordless (SSO-provisioned) account adding a first password via an emailed link (#3886)"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Your account doesn't have a password yet. We'll email you a secure link to set one so you can also sign in directly.",
+    "context": "Explains the mailbox-proof set-password flow to a passwordless account; same flow as a password reset, different framing"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Send Setup Link",
+    "context": "Submit button that emails the set-password link to a passwordless account"
+  },
   "web.auth.password_reset.title": {
     "text": "Choose a New Password",
     "context": "Password reset request flow - user requests a reset link",

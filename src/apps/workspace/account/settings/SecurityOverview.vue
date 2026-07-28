@@ -6,7 +6,13 @@
   import { useAccount } from '@/shared/composables/useAccount';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { AccountInfo } from '@/types/auth';
-  import { hasPasswordOf, isMfaEnabledOf, isSsoEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
+  import {
+    hasPasswordOf,
+    isMfaEnabledOf,
+    isPasswordAuthPermittedOf,
+    isSsoEnabledOf,
+    isWebAuthnEnabledOf,
+  } from '@/utils/features';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
@@ -20,6 +26,7 @@
   const webAuthnEnabled = computed(() => isWebAuthnEnabledOf(bootstrapStore));
   const ssoEnabled = computed(() => isSsoEnabledOf(bootstrapStore));
   const hasPw = computed(() => hasPasswordOf(bootstrapStore));
+  const passwordAuthPermitted = computed(() => isPasswordAuthPermittedOf(bootstrapStore));
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   interface SecurityCard {
@@ -102,6 +109,25 @@
     };
   }
 
+  // Helper to build the Set-password card (#3886), shown to passwordless
+  // accounts when policy permits password auth. Routes to the in-app
+  // reset-password request page: setting a first password is the same
+  // mailbox-proof flow as a reset (emailed link, no current-password step).
+  function buildSetPasswordCard(): SecurityCard {
+    return {
+      id: 'password',
+      icon: { collection: 'heroicons', name: 'lock-closed-solid' },
+      title: t('web.settings.security.set_password_title'),
+      description: t('web.settings.security.set_password_description'),
+      status: 'inactive',
+      statusText: t('web.settings.security.not_set'),
+      action: {
+        label: t('web.settings.security.set'),
+        to: '/account/settings/security/reset-password',
+      },
+    };
+  }
+
   // Helper to build connected-identities card (SSO account-linking, #3840).
   // NOT password-dependent — SSO-only accounts are the primary audience.
   function buildConnectionsCard(): SecurityCard {
@@ -142,8 +168,16 @@
 
     let cards = buildCoreCards(accountInfo.value);
 
+    // Two independent axes (#3886): credential presence (hasPw) picks
+    // Change vs Set; policy (passwordAuthPermitted) decides whether a
+    // passwordless account gets the Set affordance at all. MFA and recovery
+    // codes stay password-dependent either way. Never gated on "is SSO" —
+    // hybrid accounts (password + SSO identities) see both surfaces.
     if (!hasPw.value) {
       cards = cards.filter((c) => !PASSWORD_DEPENDENT_CARDS.has(c.id));
+      if (passwordAuthPermitted.value) {
+        cards.unshift(buildSetPasswordCard());
+      }
     }
 
     // Hide MFA and recovery codes cards when MFA feature is disabled

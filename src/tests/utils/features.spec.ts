@@ -22,6 +22,8 @@ import {
   isOwnerOrAdmin,
   hasPasswordOf,
   hasPassword,
+  isPasswordAuthPermittedOf,
+  isPasswordAuthPermitted,
   isFullAuthModeOf,
   isFullAuthMode,
   isApproximatedDomainValidationOf,
@@ -1093,6 +1095,45 @@ describe('features utility', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
 
       expect(hasPassword()).toBe(false);
+    });
+  });
+
+  // ── isPasswordAuthPermittedOf (pure predicate, #3886) ────────────
+
+  describe('isPasswordAuthPermittedOf', () => {
+    it('returns true when password_auth_permitted is true', () => {
+      expect(isPasswordAuthPermittedOf({ password_auth_permitted: true })).toBe(true);
+    });
+
+    it('returns false when password_auth_permitted is false', () => {
+      expect(isPasswordAuthPermittedOf({ password_auth_permitted: false })).toBe(false);
+    });
+
+    it('defaults to true when password_auth_permitted is undefined (permissive)', () => {
+      expect(isPasswordAuthPermittedOf({})).toBe(true);
+    });
+  });
+
+  // ── isPasswordAuthPermitted (snapshot wrapper) ───────────────────
+
+  describe('isPasswordAuthPermitted', () => {
+    it('returns true when bootstrap password_auth_permitted is true', () => {
+      getBootstrapValueMock.mockReturnValue(true);
+
+      expect(isPasswordAuthPermitted()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('password_auth_permitted');
+    });
+
+    it('returns false when bootstrap password_auth_permitted is false', () => {
+      getBootstrapValueMock.mockReturnValue(false);
+
+      expect(isPasswordAuthPermitted()).toBe(false);
+    });
+
+    it('returns true when bootstrap password_auth_permitted is undefined (permissive default)', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isPasswordAuthPermitted()).toBe(true);
     });
   });
 

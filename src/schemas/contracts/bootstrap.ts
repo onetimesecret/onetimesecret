@@ -565,6 +565,11 @@ export const bootstrapSchema = z.object({
   awaiting_mfa: z.boolean().optional().default(false),
   had_valid_session: z.boolean().default(false),
   has_password: z.boolean().optional().default(false),
+  // Policy axis independent of has_password (#3886): whether this account is
+  // permitted to hold a local password. false only when SSO is enforced
+  // (app-level restrict_to='sso' or per-domain enforce_sso_only) or auth mode
+  // is not 'full'. Defaults true so consumer accounts keep the affordance.
+  password_auth_permitted: z.boolean().default(true),
   custid: z.string().default(''),
   cust: customerCanonical.nullable().default(null),
   email: z.string().default(''),

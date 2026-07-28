@@ -431,6 +431,22 @@
     "text": "Enable",
     "content_hash": "5342e09f"
   },
+  "web.settings.security.set": {
+    "text": "Set",
+    "context": "Action link on the Security Overview Set-password card for passwordless accounts (#3886)"
+  },
+  "web.settings.security.not_set": {
+    "text": "Not set",
+    "context": "Status badge on the Security Overview password card when the account has no password"
+  },
+  "web.settings.security.set_password_title": {
+    "text": "Set password",
+    "context": "Title of the Security Overview card offering a passwordless (SSO-provisioned) account a first password (#3886)"
+  },
+  "web.settings.security.set_password_description": {
+    "text": "Add a password to your account so you can also sign in without your identity provider",
+    "context": "Description on the Set-password card; the password is an additional recovery credential, SSO keeps working"
+  },
   "web.settings.security.codes_available": {
     "text": "{0} codes available",
     "content_hash": "76d6236d"

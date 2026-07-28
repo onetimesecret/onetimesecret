@@ -2,7 +2,7 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { SCOPE_PRESETS } from '@/types/router';
-import { hasPassword, isFullAuthMode, isOwnerOrAdmin } from '@/utils/features';
+import { hasPassword, isFullAuthMode, isOwnerOrAdmin, isPasswordAuthPermitted } from '@/utils/features';
 import type { RouteRecordRaw } from 'vue-router';
 
 /**
@@ -37,6 +37,20 @@ function checkOwnerWithPasswordAccess() {
  */
 function checkPasswordSecurityAccess() {
   if (!isFullAuthMode() || !hasPassword()) {
+    return { name: 'Account' };
+  }
+  return true;
+}
+
+/**
+ * Route guard for the reset/set-password request page. Reachable with a
+ * password (reset it) OR without one when policy permits password auth
+ * (#3886: passwordless accounts set a first password via the same
+ * mailbox-proof flow). Blocked only when SSO is enforced for a
+ * passwordless account.
+ */
+function checkSetPasswordAccess() {
+  if (!isFullAuthMode() || (!hasPassword() && !isPasswordAuthPermitted())) {
     return { name: 'Account' };
   }
   return true;
@@ -241,7 +255,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/reset-password',
     name: 'Reset Password',
-    beforeEnter: checkPasswordSecurityAccess,
+    beforeEnter: checkSetPasswordAccess,
     component: () => import('@/apps/workspace/account/ResetPassword.vue'),
     meta: {
       title: 'web.TITLES.reset_password',

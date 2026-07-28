@@ -377,6 +377,34 @@ export function hasPassword(): boolean {
 }
 
 /**
+ * Pure predicate: policy permits this account to hold a local password in the
+ * given state (#3886).
+ *
+ * Independent of credential presence (hasPasswordOf): `has_password` says what
+ * exists, this says what policy allows. The backend emits false only when SSO
+ * is enforced (app-level restrict_to='sso' or per-domain enforce_sso_only) or
+ * auth mode is not 'full'. Missing/undefined defaults to true (permissive) so
+ * consumer accounts keep the Set-password affordance.
+ */
+export function isPasswordAuthPermittedOf(state: { password_auth_permitted?: boolean }): boolean {
+  return state.password_auth_permitted !== false;
+}
+
+/**
+ * Checks if the current account is permitted to hold a local password.
+ * Combined with hasPassword() to pick a screen: password present => Change
+ * password; absent but permitted => Set password (mailbox-proof); absent and
+ * not permitted => password management hidden (SSO-managed).
+ */
+export function isPasswordAuthPermitted(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return isPasswordAuthPermittedOf({
+    password_auth_permitted: getBootstrapValue('password_auth_permitted'),
+  });
+}
+
+/**
  * Pure predicate: current user is owner in the given state.
  */
 export function isOwnerOf(state: {
