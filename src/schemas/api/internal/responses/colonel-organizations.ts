@@ -161,6 +161,25 @@ export const colonelOrganizationDetailEntitlementsSchema = z.object({
   }),
 });
 
+/**
+ * One entry of the literal entitlement catalog (billing.yaml), as emitted by
+ * `GetOrganizationDetail#build_available_entitlements`. This is the SAME set
+ * the server's validation predicate consults
+ * (`Onetime::Operations::Org::EntitlementOverride.known_entitlement?` →
+ * `::Billing::Config.load_entitlements.key?`), so the override picker's options
+ * cannot drift from what the endpoint accepts.
+ *
+ * `description` / `category` are nullable: billing.yaml carries both today, but
+ * an entry may omit either and the backend passes the absence through as null.
+ */
+export const colonelAvailableEntitlementSchema = z.object({
+  name: z.string(),
+  description: z.string().nullable(),
+  category: z.string().nullable(),
+});
+
+export type ColonelAvailableEntitlement = z.infer<typeof colonelAvailableEntitlementSchema>;
+
 /** One organization member row on the detail page. */
 export const colonelOrganizationDetailMemberSchema = z.object({
   extid: z.string(),
@@ -214,9 +233,17 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   sync_status_reason: z.string().nullable(),
 });
 
-/** The `details` envelope: entitlement breakdown + members + domains. */
+/** The `details` envelope: entitlement breakdown + catalog + members + domains. */
 export const colonelOrganizationDetailDetailsSchema = z.object({
   entitlements: colonelOrganizationDetailEntitlementsSchema,
+  /**
+   * The entitlement catalog the override picker offers. `.default([])` so a
+   * backend that predates the field (or a fixture that omits it) degrades to
+   * "catalog unavailable" instead of failing the whole detail parse and
+   * bricking the page — and an empty catalog already carries the right
+   * meaning: treat every typed name as known (fail open, like the server).
+   */
+  available_entitlements: z.array(colonelAvailableEntitlementSchema).default([]),
   members: z.array(colonelOrganizationDetailMemberSchema),
   domains: z.array(colonelOrganizationDetailDomainSchema),
 });
