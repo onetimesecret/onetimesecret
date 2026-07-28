@@ -49,7 +49,14 @@ module Onetime
         # an unknown state, so the attempt must be in the trail even though the
         # success-path record never runs. Records one `result: :failure` and
         # re-raises.
-        audit_failures :call, verb: AUDIT_VERB, target: -> { @domain&.extid }
+        #
+        # `dry_run` is in the detail because it defaults to TRUE here and the
+        # success event is applied-path-only — without it an operator could not
+        # tell a blown-up preview from a blown-up removal.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @domain&.extid },
+          detail: -> { { dry_run: @dry_run } }
 
         # @!attribute status [r] Symbol — :planned (dry-run) | :removed (applied)
         Result = Data.define(

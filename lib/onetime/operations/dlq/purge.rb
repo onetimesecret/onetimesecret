@@ -43,8 +43,14 @@ module Onetime
 
         # Irreversible verb over a broker connection, so a raise mid-purge (or a
         # broker error before it) is exactly what the trail must show. Records
-        # one `result: :failure` and re-raises.
-        audit_failures :call, verb: AUDIT_VERB, target: -> { @queue }
+        # one `result: :failure` and re-raises. `dry_run` is in the detail
+        # because the success event is applied-path-only (a dry-run or empty
+        # queue records nothing), so without it a failure has no readable
+        # counterpart.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @queue },
+          detail: -> { { dry_run: @dry_run } }
 
         # @!attribute status [r] Symbol :success / :empty / :dry_run
         # @!attribute count [r] Integer messages measured in the queue

@@ -113,8 +113,10 @@ module Onetime
       # Write exactly one `result: :failure` event for `error`, unless it is an
       # authorization rejection or already recorded by an inner audited frame.
       #
+      # @param extra [Hash, nil] op-supplied context merged into the detail (see
+      #   the `detail:` macro argument). `error`/`message` always win.
       # @return [Hash, nil] the stored event, or nil when skipped/failed.
-      def record(actor:, verb:, target:, error:)
+      def record(actor:, verb:, target:, error:, extra: nil)
         return nil if authorization_rejection?(error)
         return nil if error.instance_variable_defined?(RECORDED_FLAG)
 
@@ -125,7 +127,7 @@ module Onetime
           verb: verb,
           target: target,
           result: :failure,
-          detail: failure_detail(error),
+          detail: failure_detail(error, extra),
         )
       rescue StandardError => ex
         # Never let failure-auditing bookkeeping mask the original error.
@@ -133,11 +135,28 @@ module Onetime
         nil
       end
 
-      # Error class + message only. The message may embed operator-supplied
-      # text, so it still passes through AdminAuditEvent's redaction and length
-      # bounds on the way to storage.
-      def failure_detail(error)
-        { error: error.class.name, message: error.message.to_s }
+      # Error class + message, plus whatever context the op declared. The
+      # message may embed operator-supplied text, so it still passes through
+      # AdminAuditEvent's redaction and length bounds on the way to storage.
+      # Op-supplied keys are merged UNDER error/message so they can never
+      # displace the failure's own identity.
+      def failure_detail(error, extra = nil)
+        base = { error: error.class.name, message: error.message.to_s }
+        return base unless extra.is_a?(Hash) && !extra.empty?
+
+        extra.merge(base)
+      end
+
+      # Resolve the op-supplied `detail:` lambda. Anything that is not a Hash
+      # (or that raises) is dropped — extra context is never worth risking the
+      # event itself.
+      def resolve_detail(receiver, spec)
+        return nil if spec.nil?
+
+        value = spec.is_a?(Proc) ? receiver.instance_exec(&spec) : spec
+        value.is_a?(Hash) ? value : nil
+      rescue StandardError
+        nil
       end
 
       # Resolve a verb/target argument that is either a literal or a lambda
@@ -175,7 +194,13 @@ module Onetime
       #   (extid / shortid / queue name). Never an internal objid.
       # @param actor [String, Proc] acting colonel's PUBLIC identity. Defaults
       #   to the `@actor` convention every audited op already follows.
-      def audit_failures(method_name = :call, verb:, target:, actor: -> { @actor })
+      # @param detail [Hash, Proc, nil] optional extra context merged into the
+      #   failure detail. Needed where a failure is otherwise ambiguous — an op
+      #   with a dry-run mode records success only on the applied path, so
+      #   without `dry_run` in the detail an operator cannot tell a blown-up
+      #   preview from a blown-up mutation. Same rules as any audit detail:
+      #   PUBLIC ids only, never secret content.
+      def audit_failures(method_name = :call, verb:, target:, actor: -> { @actor }, detail: nil)
         wrapper = Module.new do
           define_method(method_name) do |*args, **kwargs, &block|
             super(*args, **kwargs, &block)
@@ -185,6 +210,7 @@ module Onetime
               verb: Onetime::AuditedFailure.resolve(self, verb),
               target: Onetime::AuditedFailure.resolve(self, target),
               error: ex,
+              extra: Onetime::AuditedFailure.resolve_detail(self, detail),
             )
             raise
           end
