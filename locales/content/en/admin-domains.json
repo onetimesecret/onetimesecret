@@ -536,234 +536,311 @@
     "content_hash": "dc6d70ae"
   },
   "web.admin.domains.configs.title": {
-    "text": "Domain configuration"
+    "text": "Domain configuration",
+    "content_hash": "d46aa480"
   },
   "web.admin.domains.configs.description": {
-    "text": "Per-domain config records gating sign-in, sign-up, homepage secrets, API access, incoming secrets, tenant SSO and mail sending. A missing record fails closed for the first five."
+    "text": "Per-domain config records gating sign-in, sign-up, homepage secrets, API access, incoming secrets, tenant SSO and mail sending. A missing record fails closed for the first five.",
+    "content_hash": "1df99789"
   },
   "web.admin.domains.configs.loadError": {
-    "text": "Could not load the domain configuration records."
+    "text": "Could not load the domain configuration records.",
+    "content_hash": "9417d718"
   },
   "web.admin.domains.configs.retry": {
-    "text": "Retry"
+    "text": "Retry",
+    "content_hash": "942087cc"
   },
   "web.admin.domains.configs.degraded": {
-    "text": "The configuration response did not match the expected contract. Refresh, and report this if it persists."
+    "text": "The configuration response did not match the expected contract. Refresh, and report this if it persists.",
+    "content_hash": "b5d890c0"
   },
   "web.admin.domains.configs.notFoundNote": {
-    "text": "This domain no longer exists, so its configuration records cannot be loaded."
+    "text": "This domain no longer exists, so its configuration records cannot be loaded.",
+    "content_hash": "2d88a392"
   },
   "web.admin.domains.configs.detailsToggle": {
-    "text": "Details"
+    "text": "Details",
+    "content_hash": "45989de4"
   },
   "web.admin.domains.configs.notEditable": {
-    "text": "Managed in workspace domain settings."
+    "text": "Managed in workspace domain settings.",
+    "content_hash": "54fe891f"
   },
   "web.admin.domains.configs.kinds.signin": {
-    "text": "Sign-in"
+    "text": "Sign-in",
+    "content_hash": "5bbbe531"
   },
   "web.admin.domains.configs.kinds.signup": {
-    "text": "Sign-up"
+    "text": "Sign-up",
+    "content_hash": "3cc08ebe"
   },
   "web.admin.domains.configs.kinds.homepage": {
-    "text": "Homepage"
+    "text": "Homepage",
+    "content_hash": "9e3391e9"
   },
   "web.admin.domains.configs.kinds.api": {
-    "text": "API"
+    "text": "API",
+    "content_hash": "c8e5998f"
   },
   "web.admin.domains.configs.kinds.incoming": {
-    "text": "Incoming"
+    "text": "Incoming",
+    "content_hash": "e301820a"
   },
   "web.admin.domains.configs.kinds.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "content_hash": "5ba3ac9f"
   },
   "web.admin.domains.configs.kinds.mailer": {
-    "text": "Mailer"
+    "text": "Mailer",
+    "content_hash": "6c07ba63"
   },
   "web.admin.domains.configs.status.missing": {
-    "text": "Missing"
+    "text": "Missing",
+    "content_hash": "6be36ca4"
   },
   "web.admin.domains.configs.status.disabled": {
-    "text": "Disabled"
+    "text": "Disabled",
+    "content_hash": "75081b59"
   },
   "web.admin.domains.configs.status.enabled": {
-    "text": "Enabled"
+    "text": "Enabled",
+    "content_hash": "92c1cdfd"
   },
   "web.admin.domains.configs.status.enabledNotReady": {
-    "text": "Enabled, not ready"
+    "text": "Enabled, not ready",
+    "content_hash": "cb806ba4"
   },
   "web.admin.domains.configs.missingNotes.signin": {
-    "text": "No record: sign-in is disabled on this domain unless tenant SSO is active."
+    "text": "No record: sign-in is disabled on this domain unless tenant SSO is active.",
+    "content_hash": "17dd6099"
   },
   "web.admin.domains.configs.missingNotes.signup": {
-    "text": "No record: sign-up is disabled on this domain."
+    "text": "No record: sign-up is disabled on this domain.",
+    "content_hash": "c3c98956"
   },
   "web.admin.domains.configs.missingNotes.homepage": {
-    "text": "No record: homepage secrets are disabled (fails closed and logs an error)."
+    "text": "No record: homepage secrets are disabled (fails closed and logs an error).",
+    "content_hash": "9a258a88"
   },
   "web.admin.domains.configs.missingNotes.api": {
-    "text": "No record: the public API is disabled (fails closed and logs an error)."
+    "text": "No record: the public API is disabled (fails closed and logs an error).",
+    "content_hash": "fed99f73"
   },
   "web.admin.domains.configs.missingNotes.incoming": {
-    "text": "No record: incoming secrets are disabled."
+    "text": "No record: incoming secrets are disabled.",
+    "content_hash": "b957fbe8"
   },
   "web.admin.domains.configs.missingNotes.sso": {
-    "text": "No record: tenant SSO is unavailable; the platform SSO fallback policy applies."
+    "text": "No record: tenant SSO is unavailable; the platform SSO fallback policy applies.",
+    "content_hash": "7b05ade8"
   },
   "web.admin.domains.configs.missingNotes.mailer": {
-    "text": "No record: the platform mailer is used."
+    "text": "No record: the platform mailer is used.",
+    "content_hash": "e027cc99"
   },
   "web.admin.domains.configs.edit.button": {
-    "text": "Edit"
+    "text": "Edit",
+    "content_hash": "464c4ffd"
   },
   "web.admin.domains.configs.edit.createButton": {
-    "text": "Create"
+    "text": "Create",
+    "content_hash": "4759498a"
   },
   "web.admin.domains.configs.edit.title": {
-    "text": "Configure {kind}"
+    "text": "Configure {kind}",
+    "content_hash": "8592148f"
   },
   "web.admin.domains.configs.edit.submit": {
-    "text": "Save"
+    "text": "Save",
+    "content_hash": "1509f561"
   },
   "web.admin.domains.configs.edit.success": {
-    "text": "Configuration saved."
+    "text": "Configuration saved.",
+    "content_hash": "6b5b3c69"
   },
   "web.admin.domains.configs.edit.unsetOption": {
-    "text": "Not set"
+    "text": "Not set",
+    "content_hash": "4895f731"
   },
   "web.admin.domains.configs.edit.domainsHint": {
-    "text": "One domain per line."
+    "text": "One domain per line.",
+    "content_hash": "6c03f4f7"
   },
   "web.admin.domains.configs.delete.button": {
-    "text": "Delete"
+    "text": "Delete",
+    "content_hash": "e2d0a549"
   },
   "web.admin.domains.configs.delete.confirmTitle": {
-    "text": "Delete {kind} configuration?"
+    "text": "Delete {kind} configuration?",
+    "content_hash": "98e672db"
   },
   "web.admin.domains.configs.delete.confirmDescription": {
-    "text": "This permanently deletes the {kind} configuration record for {domain}. The domain falls back to the missing-record behavior. Retype the kind to continue."
+    "text": "This permanently deletes the {kind} configuration record for {domain}. The domain falls back to the missing-record behavior. Retype the kind to continue.",
+    "content_hash": "8272c40c"
   },
   "web.admin.domains.configs.delete.success": {
-    "text": "Configuration deleted."
+    "text": "Configuration deleted.",
+    "content_hash": "a0184b66"
   },
   "web.admin.domains.configs.ensure.button": {
-    "text": "Create missing configs"
+    "text": "Create missing configs",
+    "content_hash": "77991b75"
   },
   "web.admin.domains.configs.ensure.confirmTitle": {
-    "text": "Create missing configuration records?"
+    "text": "Create missing configuration records?",
+    "content_hash": "3f41dec2"
   },
   "web.admin.domains.configs.ensure.confirmDescription": {
-    "text": "Creates disabled records on {domain} for: {kinds}. Everything starts disabled, so behavior does not change until a record is enabled."
+    "text": "Creates disabled records on {domain} for: {kinds}. Everything starts disabled, so behavior does not change until a record is enabled.",
+    "content_hash": "fed66221"
   },
   "web.admin.domains.configs.ensure.applyButton": {
-    "text": "Create records"
+    "text": "Create records",
+    "content_hash": "4bcbef42"
   },
   "web.admin.domains.configs.ensure.success": {
-    "text": "Missing configuration records created."
+    "text": "Missing configuration records created.",
+    "content_hash": "3b6ead80"
   },
   "web.admin.domains.configs.ensure.nothingMissing": {
-    "text": "Nothing to create — every configuration record already exists. The list has been refreshed."
+    "text": "Nothing to create — every configuration record already exists. The list has been refreshed.",
+    "content_hash": "ad0df0ae"
   },
   "web.admin.domains.configs.ensure.notApplied": {
-    "text": "The server previewed the change instead of applying it — no records were created. Retry, and report this if it persists."
+    "text": "The server previewed the change instead of applying it — no records were created. Retry, and report this if it persists.",
+    "content_hash": "09d26379"
   },
   "web.admin.domains.configs.fields.enabled": {
-    "text": "Enabled"
+    "text": "Enabled",
+    "content_hash": "92c1cdfd"
   },
   "web.admin.domains.configs.fields.signin_enabled": {
-    "text": "Sign-in enabled"
+    "text": "Sign-in enabled",
+    "content_hash": "cabe4898"
   },
   "web.admin.domains.configs.fields.email_auth_enabled": {
-    "text": "Email auth enabled"
+    "text": "Email auth enabled",
+    "content_hash": "4a762960"
   },
   "web.admin.domains.configs.fields.sso_enabled": {
-    "text": "SSO enabled"
+    "text": "SSO enabled",
+    "content_hash": "6e77e673"
   },
   "web.admin.domains.configs.fields.restrict_to": {
-    "text": "Restrict to"
+    "text": "Restrict to",
+    "content_hash": "a0bdf50a"
   },
   "web.admin.domains.configs.fields.signup_enabled": {
-    "text": "Sign-up enabled"
+    "text": "Sign-up enabled",
+    "content_hash": "2637d0b2"
   },
   "web.admin.domains.configs.fields.autoverify": {
-    "text": "Auto-verify"
+    "text": "Auto-verify",
+    "content_hash": "7e02211c"
   },
   "web.admin.domains.configs.fields.validation_strategy": {
-    "text": "Validation strategy"
+    "text": "Validation strategy",
+    "content_hash": "a2e95531"
   },
   "web.admin.domains.configs.fields.allowed_signup_domains": {
-    "text": "Allowed signup domains"
+    "text": "Allowed signup domains",
+    "content_hash": "9b5bb5b1"
   },
   "web.admin.domains.configs.fields.secrets_mode": {
-    "text": "Secrets mode"
+    "text": "Secrets mode",
+    "content_hash": "8d4349d6"
   },
   "web.admin.domains.configs.fields.disabled_homepage_variant": {
-    "text": "Disabled homepage variant"
+    "text": "Disabled homepage variant",
+    "content_hash": "4695633b"
   },
   "web.admin.domains.configs.fields.ready": {
-    "text": "Ready"
+    "text": "Ready",
+    "content_hash": "5fa7aac5"
   },
   "web.admin.domains.configs.fields.recipients": {
-    "text": "Recipients"
+    "text": "Recipients",
+    "content_hash": "1e8568a8"
   },
   "web.admin.domains.configs.fields.provider_type": {
-    "text": "Provider type"
+    "text": "Provider type",
+    "content_hash": "8c0f6d3e"
   },
   "web.admin.domains.configs.fields.display_name": {
-    "text": "Display name"
+    "text": "Display name",
+    "content_hash": "2b7f6a84"
   },
   "web.admin.domains.configs.fields.issuer": {
-    "text": "Issuer"
+    "text": "Issuer",
+    "content_hash": "39e02c46"
   },
   "web.admin.domains.configs.fields.tenant_id": {
-    "text": "Tenant ID"
+    "text": "Tenant ID",
+    "content_hash": "de1f5fff"
   },
   "web.admin.domains.configs.fields.has_client_id": {
-    "text": "Client ID set"
+    "text": "Client ID set",
+    "content_hash": "04a9fa3d"
   },
   "web.admin.domains.configs.fields.has_client_secret": {
-    "text": "Client secret set"
+    "text": "Client secret set",
+    "content_hash": "6ee1c9e6"
   },
   "web.admin.domains.configs.fields.allowed_domains": {
-    "text": "Allowed domains"
+    "text": "Allowed domains",
+    "content_hash": "bcd60db0"
   },
   "web.admin.domains.configs.fields.enforce_sso_only": {
-    "text": "Enforce SSO only"
+    "text": "Enforce SSO only",
+    "content_hash": "b3a3f694"
   },
   "web.admin.domains.configs.fields.grant_org_scope": {
-    "text": "Grant org scope"
+    "text": "Grant org scope",
+    "content_hash": "698ea5de"
   },
   "web.admin.domains.configs.fields.provider": {
-    "text": "Provider"
+    "text": "Provider",
+    "content_hash": "472590ae"
   },
   "web.admin.domains.configs.fields.from_name": {
-    "text": "From name"
+    "text": "From name",
+    "content_hash": "b28f93ea"
   },
   "web.admin.domains.configs.fields.from_address": {
-    "text": "From address"
+    "text": "From address",
+    "content_hash": "d465bcfa"
   },
   "web.admin.domains.configs.fields.reply_to": {
-    "text": "Reply-to"
+    "text": "Reply-to",
+    "content_hash": "6b9c49b7"
   },
   "web.admin.domains.configs.fields.sending_mode": {
-    "text": "Sending mode"
+    "text": "Sending mode",
+    "content_hash": "e2d6bcf7"
   },
   "web.admin.domains.configs.fields.verification_status": {
-    "text": "Verification status"
+    "text": "Verification status",
+    "content_hash": "aedfff7e"
   },
   "web.admin.domains.configs.fields.dns_verified": {
-    "text": "DNS verified"
+    "text": "DNS verified",
+    "content_hash": "8b2128c8"
   },
   "web.admin.domains.configs.fields.provider_verified": {
-    "text": "Provider verified"
+    "text": "Provider verified",
+    "content_hash": "6f4d9cc4"
   },
   "web.admin.domains.configs.fields.has_api_key": {
-    "text": "API key set"
+    "text": "API key set",
+    "content_hash": "d5115386"
   },
   "web.admin.domains.configs.fields.created": {
-    "text": "Created"
+    "text": "Created",
+    "content_hash": "d70b9e24"
   },
   "web.admin.domains.configs.fields.updated": {
-    "text": "Updated"
+    "text": "Updated",
+    "content_hash": "3a5ecca1"
   }
 }
