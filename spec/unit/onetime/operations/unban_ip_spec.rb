@@ -56,7 +56,7 @@ RSpec.describe Onetime::Operations::UnbanIP do
     end
   end
 
-  context 'when nothing was removed (unban! returns false, idempotent no-op)' do
+  context 'when nothing was removed (unban! returns false)' do
     before { allow(Onetime::BannedIP).to receive(:unban!).with(ip).and_return(false) }
 
     it 'returns status: :not_found with unbanned: false' do
@@ -67,10 +67,40 @@ RSpec.describe Onetime::Operations::UnbanIP do
       expect(result.unbanned).to be(false)
     end
 
-    it 'records NO audit event' do
+    # A refusal, not an idempotent no-op: the colonel adapter renders
+    # :not_found as a 404, so it is an operator-visible refusal of an attempted
+    # privileged mutation and belongs in the trail.
+    it 'records ONE result: :failure event with the unchanged verb' do
       described_class.new(ip_address: ip, actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'ip.unban',
+        target: ip,
+        result: :failure,
+        detail: { reason: 'not_found' },
+      )
     end
+  end
+
+  # The Onetime::AuditedFailure mechanism. unban! destroys the record and its
+  # index entry BEFORE the success-path record call. Message expectation, not a
+  # store read: AdminAuditEvent.record swallows its own errors.
+  it 'records ONE result: :failure event when unban! raises, and re-raises' do
+    allow(Onetime::BannedIP).to receive(:unban!).and_raise(Onetime::Problem, 'index delete failed')
+
+    expect do
+      described_class.new(ip_address: ip, actor: actor).call
+    end.to raise_error(Onetime::Problem, /index delete failed/)
+
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        actor: actor,
+        verb: 'ip.unban',
+        target: ip, # literal: a broken target lambda silently lands as 'unknown'
+        result: :failure,
+        detail: hash_including(error: 'Onetime::Problem', message: 'index delete failed'),
+      ),
+    )
   end
 end

@@ -10,6 +10,7 @@
 # than an app-scoped one. Loaded at the call site (colonel logic + the `bin/ots
 # banner` CLI), so require the audit dependency explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -196,7 +197,19 @@ module Onetime
     # Setting the banner ALWAYS mutates (it overwrites whatever was there), so it
     # always audits — there is no idempotent no-op branch to suppress.
     class SetBanner
+      include Onetime::AuditedFailure
+
       AUDIT_VERB = 'banner.set'
+
+      # This op has NO refusal STATUS — blank content and an invalid scope both
+      # RAISE (ArgumentError), and so does a Redis failure. The two writes are
+      # NOT atomic: a failure between them leaves the banner and its audience
+      # scope out of sync on a site-wide, every-visitor surface, and the success
+      # record sits after both. Records one `result: :failure` and re-raises.
+      audit_failures :call,
+        verb: AUDIT_VERB,
+        target: BannerState::KEY,
+        detail: -> { { ttl: @ttl, scope: @scope.to_s } }
 
       # @!attribute status [r]
       #   @return [Symbol] :success
@@ -269,10 +282,24 @@ module Onetime
     # one {Onetime::AdminAuditEvent} per successful clear.
     #
     # Stateless, single `#call`, returns an immutable {Result}. Clearing when no
-    # banner is set returns `status: :not_set` and records NO audit event (nothing
-    # mutated) — the "only audit an actual change" rule shared with UnbanIP.
+    # banner is set returns `status: :not_set` and records NO audit event —
+    # nothing mutated AND nothing was refused. The discriminator is the adapter:
+    # colonel `ClearBanner` deliberately returns 200 with `cleared: false` for
+    # this status ("not surfaced as an error", so a benign TTL race is not a
+    # failure), unlike colonel `UnbanIP`, whose `:not_found` is a 404 and IS
+    # therefore recorded as a refusal.
     class ClearBanner
+      include Onetime::AuditedFailure
+
       AUDIT_VERB = 'banner.clear'
+
+      # Two unconditional deletes plus a runtime refresh, with the success
+      # record after all of them: a failure partway can leave the banner key
+      # gone but its scope sidecar behind. Records one `result: :failure` and
+      # re-raises.
+      audit_failures :call,
+        verb: AUDIT_VERB,
+        target: BannerState::KEY
 
       # @!attribute status [r]
       #   @return [Symbol] :success (cleared) or :not_set (no-op)
