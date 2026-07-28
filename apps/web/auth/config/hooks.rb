@@ -34,6 +34,8 @@
 #                       before_recovery_auth, after_add_recovery_codes,
 #                       before_view_recovery_codes
 #   email_auth.rb       before_email_auth_route, after_email_auth_request
+#   reset_password_request.rb  before_reset_password_request_route (rate
+#                       limiting per client IP + per submitted login, #3872)
 #   webauthn.rb         after_webauthn_setup, before_webauthn_auth,
 #                       after_webauthn_auth_failure, before_webauthn_remove
 #   omniauth_tenant.rb  before_omniauth_callback_route (sole owner — logs
@@ -66,6 +68,7 @@ module Auth::Config::Hooks
   require_relative 'hooks/omniauth'
   require_relative 'hooks/omniauth_tenant'
   require_relative 'hooks/password'
+  require_relative 'hooks/reset_password_request'
   require_relative 'hooks/email_auth'
   require_relative 'hooks/webauthn'
 end

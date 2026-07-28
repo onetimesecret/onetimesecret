@@ -85,6 +85,11 @@ module Auth
       Hooks::Login.configure(self)
       Hooks::Logout.configure(self)
       Hooks::Password.configure(self)
+      # Rate limiting for POST /auth/reset-password-request (issue #3872):
+      # bounds the timing-residual sampling the enumeration override (#3857)
+      # accepts. Requires :reset_password (enabled by AccountManagement above)
+      # so the before_reset_password_request_route hook exists.
+      Hooks::ResetPasswordRequest.configure(self)
 
       # Method overrides (replace Rodauth methods, not before/after hooks)
       Overrides::PasswordMigration.configure(self)

@@ -27,6 +27,14 @@ module Auth::Config::Overrides
         end
         begin
           super(&blk)
+        rescue Onetime::LimitExceeded
+          # Expected control flow, not an unhandled exception: the
+          # reset-request rate limiter (hooks/reset_password_request.rb,
+          # #3872) raises this to reject a throttled request. Re-raise
+          # without the :unhandled_exception error log below — the router's
+          # error_handler translates it to the ADR-013 429 body and logs it
+          # at the ErrorTranslator's :warn level.
+          raise
         rescue Sequel::ForeignKeyConstraintViolation => ex
           # Handle FK violations that may indicate an orphaned session
           # (account deleted while session active). We detect this by checking

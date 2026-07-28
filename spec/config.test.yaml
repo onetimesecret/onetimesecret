@@ -76,6 +76,11 @@ site:
     required: false
     colonels:
       - 'CHANGEME@EXAMPLE.com'
+    # Disabled under test so full-mode reset-password specs are not throttled;
+    # the #3872 limiter tests enable it in-process. See
+    # reset_request_rate_limiter.rb.
+    reset_request_rate_limit:
+      enabled: false
 
 features:
   regions:
