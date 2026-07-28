@@ -4,6 +4,9 @@
 
 require_relative '../base'
 require_relative '../../../../../apps/web/billing/lib/billing_service'
+# Explicit, though billing_service pulls it in transitively via models/plan:
+# `available_entitlements` below is only as good as this constant being loaded.
+require_relative '../../../../../apps/web/billing/config'
 
 module ColonelAPI
   module Logic
@@ -102,6 +105,39 @@ module ColonelAPI
           }
         end
 
+        # The literal entitlement catalog from billing.yaml — the SAME source the
+        # server's own validation predicate consults
+        # (Onetime::Operations::Org::EntitlementOverride.known_entitlement? →
+        # ::Billing::Config.load_entitlements.key?). Emitted so the console's
+        # override picker offers exactly the set that predicate accepts; a
+        # hand-maintained UI list would drift from it silently.
+        #
+        # Deliberately NOT the union of the plans' entitlements: a plan can omit
+        # a catalog entry an operator legitimately grants as an override.
+        #
+        # An empty array means "catalog unavailable" (billing config missing or
+        # unreadable), which the client must read the way known_entitlement?
+        # does — fail OPEN, i.e. treat every name as known rather than flag a
+        # typo the server would accept anyway.
+        def build_available_entitlements
+          return [] unless defined?(::Billing::Config)
+
+          # String keys: this is a REST payload, and the entries pass through
+          # verbatim from YAML (which is string-keyed too).
+          entries = ::Billing::Config.load_entitlements.map do |name, definition|
+            definition = {} unless definition.is_a?(Hash)
+            {
+              'name' => name.to_s,
+              'description' => definition['description']&.to_s,
+              'category' => definition['category']&.to_s,
+            }
+          end
+
+          entries.sort_by { |entry| entry['name'] }
+        rescue StandardError
+          []
+        end
+
         # Plan-definition drift: has the plan's entitlement/limit content changed
         # since it was last materialized? Distinct from override drift above.
         # Returns nil when the plan can't be loaded (can't compare) rather than
@@ -188,6 +224,7 @@ module ColonelAPI
             },
             details: {
               entitlements: build_entitlements,
+              available_entitlements: build_available_entitlements,
               members: build_members,
               domains: build_domains,
             },
