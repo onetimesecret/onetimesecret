@@ -80,9 +80,14 @@ AE.events.clear
 @rb.status
 #=> :already_banned
 
-## a no-op ban records NO audit event (nothing mutated)
-AE.count
-#=> 0
+## the refused ban records ONE result: :failure event with the unchanged verb
+# Not an idempotent no-op: the colonel adapter renders :already_banned as a 422
+# form error, so it is an operator-visible REFUSAL of an attempted privileged
+# mutation. (Contrast ClearBanner / RateLimit::Reset :not_set, whose adapters
+# return 200 — those stay unaudited.)
+@rb_ev = AE.recent(1).first
+[AE.count, @rb_ev['verb'], @rb_ev['target'], @rb_ev['result'], @rb_ev['detail']['reason']]
+#=> [1, "ip.ban", @ip, "failure", 'already_banned']
 
 # ---- UnbanIP: success -------------------------------------------------
 
@@ -107,15 +112,17 @@ u = AE.recent(1).first
 
 # ---- UnbanIP: not-found no-op -----------------------------------------
 
-## unbanning a non-banned IP is a no-op (:not_found)
+## unbanning a non-banned IP is refused (:not_found)
 AE.events.clear
 @nf = Onetime::Operations::UnbanIP.new(ip_address: @ip, actor: @actor).call
 [@nf.status, @nf.unbanned]
 #=> [:not_found, false]
 
-## a no-op unban records NO audit event
-AE.count
-#=> 0
+## the refused unban records ONE result: :failure event with the unchanged verb
+# The colonel adapter renders :not_found as a 404 — an operator-visible refusal.
+@nf_ev = AE.recent(1).first
+[AE.count, @nf_ev['verb'], @nf_ev['target'], @nf_ev['result'], @nf_ev['detail']['reason']]
+#=> [1, "ip.unban", @ip, "failure", 'not_found']
 
 # ---- Behavioural parity: CIDR ban + banned_by default -----------------
 
