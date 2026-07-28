@@ -439,6 +439,11 @@ export const colonelOrganizationSchema = z.object({
 export const colonelOrganizationsFiltersSchema = z.object({
   status: z.string().nullable(),
   sync_status: z.string().nullable(),
+  // The server echoes the active search term back; it went undeclared while the
+  // search box was switched off, so non-strict Zod silently stripped it.
+  // Optional, not required: fixtures and any older payload omit the key, and a
+  // required field here would fail the parse for the whole list response.
+  search: z.string().nullable().optional(),
 });
 
 /**

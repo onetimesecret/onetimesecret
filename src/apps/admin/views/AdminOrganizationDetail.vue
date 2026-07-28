@@ -140,7 +140,9 @@
       {
         key: 'created',
         label: t('web.admin.organizations.fields.created'),
-        value: formatDisplayDateTime(r.created),
+        value: r.created
+          ? formatDisplayDateTime(r.created)
+          : t('web.admin.organizations.detail.none'),
       },
       {
         key: 'updated',

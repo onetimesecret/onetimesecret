@@ -216,12 +216,21 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   archived_at: transforms.fromNumber.toDateNullable,
   archived_comment: z.string().nullable(),
   contact_email: z.string().nullable(),
-  owner_id: z.string(),
+  // Nullable to agree with the LIST schema (colonel.ts), which declares the
+  // same field from the same Ruby expression as nullable. An org with no owner
+  // is an expected state — the line below reads `owner&.email` for exactly that
+  // reason — and a required string here would fail the parse for the WHOLE
+  // detail response, blanking the page rather than dropping one field.
+  owner_id: z.string().nullable(),
   owner_email: z.string().nullable(),
   billing_email: z.string().nullable(),
   member_count: z.number(),
   domain_count: z.number(),
-  created: transforms.fromNumber.toDate,
+  // Ruby emits `org.created&.to_i`, so nil IS reachable here — unlike the LIST
+  // side, which uses `org.created.to_i` with no safe navigation and is
+  // correctly non-nullable. Both sibling record schemas above (member, domain)
+  // already use toDateNullable.
+  created: transforms.fromNumber.toDateNullable,
   updated: transforms.fromNumber.toDateNullable,
   planid: z.string().nullable(),
   stripe_customer_id: z.string().nullable(),
