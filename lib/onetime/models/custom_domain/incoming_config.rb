@@ -59,6 +59,15 @@ module Onetime
       field :created
       field :updated
 
+      # Colonel-writable fields, aggregated into
+      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
+      # validates at load time that every key has a setter here). `enabled`
+      # stores a legacy 'true'/'false' STRING (#enabled? tolerates both
+      # encodings). Recipients stay workspace-managed in v1 — enabled only.
+      COLONEL_FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :string },
+      }.freeze
+
       def init
         self.enabled         ||= 'false'
         self.recipients_json ||= '[]'

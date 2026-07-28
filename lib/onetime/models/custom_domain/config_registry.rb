@@ -29,14 +29,18 @@ module Onetime
     #   - whether the kind is materializable by the ensure-missing action
     #     (absent and present-but-disabled are behavior-equivalent for the five
     #     resolver-gated kinds, so creating disabled records is behavior-neutral)
-    #   - the writable-field specs (+ coercions) for PUT upserts
+    #   - the writable-field COERCIONS for PUT upserts; the specs themselves
+    #     are COMPOSED from each model's COLONEL_FIELD_SPECS constant (see
+    #     FIELD_SPECS below) — the model file is the single source of truth
     #   - the redacting serializer used by ALL colonel responses
     #
     # Boolean encodings differ across the models: SigninConfig (and the
     # signup_enabled/autoverify fields on SignupConfig) store REAL booleans,
-    # while the other models store 'true'/'false' STRINGS. Serialization always
-    # goes through the model predicates so the frontend sees real JSON booleans;
-    # writes go through apply_field, which storage-encodes per the field spec.
+    # while the other models store 'true'/'false' STRINGS. Each model declares
+    # its own encoding (storage :native | :string) in its COLONEL_FIELD_SPECS,
+    # next to its field declarations. Serialization always goes through the
+    # model predicates so the frontend sees real JSON booleans; writes go
+    # through apply_field, which storage-encodes per the field spec.
     #
     # REDACTION INVARIANT: encrypted credentials (SsoConfig client_id /
     # client_secret, MailerConfig api_key) are NEVER serialized — presence
@@ -58,7 +62,13 @@ module Onetime
         'mailer' => { model: Onetime::CustomDomain::MailerConfig, editable: false, materializable: false },
       }.freeze
 
-      # Colonel-writable fields per editable kind.
+      # Colonel-writable field specs per editable kind, COMPOSED from each
+      # model's own COLONEL_FIELD_SPECS constant. The model file — next to its
+      # field declarations — is the ONLY place that names its writable fields
+      # and their storage encoding, so adding a colonel-writable field is a
+      # one-file change (edit the model's COLONEL_FIELD_SPECS).
+      #
+      # Spec semantics (interpreted by coerce_field! / apply_field below):
       #   type :boolean  — accepts JSON true/false plus 'true'/'false'/'1'/'0';
       #                    storage :native assigns the boolean as-is (SigninConfig,
       #                    SignupConfig's real-boolean fields), storage :string
@@ -68,38 +78,22 @@ module Onetime
       #   type :string_array — array of strings; validation happens in the model
       #                    setter (allowed_signup_domains= PublicSuffix-validates
       #                    and raises Onetime::Problem).
-      FIELD_SPECS = {
-        'signin' => {
-          'enabled' => { type: :boolean, storage: :native },
-          'signin_enabled' => { type: :boolean, storage: :native },
-          'email_auth_enabled' => { type: :boolean, storage: :native },
-          'sso_enabled' => { type: :boolean, storage: :native },
-          'restrict_to' => { type: :enum, values: Onetime::CustomDomain::SigninConfig::RESTRICT_TO_VALUES, nullable: true },
-        }.freeze,
-        'signup' => {
-          'enabled' => { type: :boolean, storage: :string },
-          'signup_enabled' => { type: :boolean, storage: :native },
-          'autoverify' => { type: :boolean, storage: :native },
-          'validation_strategy' => { type: :enum, values: Onetime::CustomDomain::SignupConfig::STRATEGY_TYPES, nullable: false },
-          'allowed_signup_domains' => { type: :string_array },
-        }.freeze,
-        'homepage' => {
-          'enabled' => { type: :boolean, storage: :string },
-          # Colonel PUT deliberately BYPASSES the workspace write gate on
-          # secrets_mode (incoming_secrets entitlement + a ready IncomingConfig)
-          # as admin-repair power; read paths still fail closed via
-          # HomepageConfig#effectively_enabled?.
-          'secrets_mode' => { type: :enum, values: Onetime::CustomDomain::HomepageConfig::VALID_SECRETS_MODES, nullable: false },
-          'disabled_homepage_variant' => { type: :enum, values: Onetime::CustomDomain::HomepageConfig::VALID_DISABLED_HOMEPAGE_VARIANTS, nullable: true },
-        }.freeze,
-        'api' => {
-          'enabled' => { type: :boolean, storage: :string },
-        }.freeze,
-        'incoming' => {
-          # recipients stay workspace-managed in v1 — enabled only.
-          'enabled' => { type: :boolean, storage: :string },
-        }.freeze,
-      }.freeze
+      #
+      # Load-time transcription check: every spec'd field must have a public
+      # setter on its model (apply_field writes via public_send), so a typo'd
+      # or renamed field fails at require time, not at PUT time.
+      FIELD_SPECS = KINDS.each_with_object({}) do |(slug, entry), acc|
+        next unless entry[:editable]
+
+        model = entry[:model]
+        model::COLONEL_FIELD_SPECS.each_key do |field|
+          next if model.method_defined?("#{field}=")
+
+          raise "ConfigRegistry: #{model}##{field}= missing for colonel-writable field '#{field}' (kind=#{slug})"
+        end
+
+        acc[slug] = model::COLONEL_FIELD_SPECS
+      end.freeze
 
       class << self
         # All seven kind slugs in canonical display order.

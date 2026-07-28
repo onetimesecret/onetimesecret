@@ -71,6 +71,22 @@ module Onetime
       field :created
       field :updated
 
+      # Colonel-writable fields, aggregated into
+      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS}. This constant is
+      # the ONLY place that names this model's colonel-writable fields AND
+      # their storage encoding — the registry validates at load time that
+      # every key has a setter here, so adding/renaming a field is a one-file
+      # change. All boolean fields on this model store REAL booleans
+      # (storage :native); the enum references the model constant so values
+      # cannot drift.
+      COLONEL_FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :native },
+        'signin_enabled' => { type: :boolean, storage: :native },
+        'email_auth_enabled' => { type: :boolean, storage: :native },
+        'sso_enabled' => { type: :boolean, storage: :native },
+        'restrict_to' => { type: :enum, values: RESTRICT_TO_VALUES, nullable: true },
+      }.freeze
+
       def init
         self.enabled            = false if enabled.nil?
         self.signin_enabled     = false if signin_enabled.nil?

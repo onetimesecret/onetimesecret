@@ -87,6 +87,23 @@ module Onetime
       field :created
       field :updated
 
+      # Colonel-writable fields, aggregated into
+      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
+      # validates at load time that every key has a setter here). `enabled`
+      # stores a legacy 'true'/'false' STRING (#enabled? tolerates both
+      # encodings). The deprecated signup_enabled/signin_enabled read-echo
+      # fields are deliberately NOT writable (ADR-030: no display authority).
+      #
+      # Colonel PUT deliberately BYPASSES the workspace write gate on
+      # secrets_mode (incoming_secrets entitlement + a ready IncomingConfig)
+      # as admin-repair power; read paths still fail closed via
+      # #effectively_enabled?.
+      COLONEL_FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :string },
+        'secrets_mode' => { type: :enum, values: VALID_SECRETS_MODES, nullable: false },
+        'disabled_homepage_variant' => { type: :enum, values: VALID_DISABLED_HOMEPAGE_VARIANTS, nullable: true },
+      }.freeze
+
       def init
         self.enabled      ||= 'false'
         self.signup_enabled = false if signup_enabled.nil?
