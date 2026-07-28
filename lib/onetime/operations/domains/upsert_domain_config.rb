@@ -7,6 +7,7 @@
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic), so require the audit model explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/models/custom_domain/config_registry'
 
 module Onetime
@@ -29,8 +30,23 @@ module Onetime
       # duplicate-create race falls back to the update path. Update path:
       # only the provided fields are applied; `updated` is bumped.
       class UpsertDomainConfig
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every applied upsert.
         AUDIT_VERB = 'domain.config_upsert'
+
+        # This op has NO refusal STATUS — every non-success outcome RAISES
+        # (model validation, a lost race whose record then vanished, a datastore
+        # failure), and every one of those raises happens after `apply_update`
+        # may already have written setters, so the success record never runs.
+        # Records one `result: :failure` and re-raises.
+        #
+        # Field NAMES only in the detail, never values — same rule as the
+        # success event (recipients / allowlists are semi-sensitive).
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @domain&.extid },
+          detail: -> { { config: @kind, changed: @attrs.keys } }
 
         # The config models' create! signals a lost duplicate-create race by
         # raising Onetime::Problem from its exists-guard — the FIRST check,

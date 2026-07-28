@@ -233,21 +233,35 @@ put "/api/colonel/domains/#{@extid2}/configs/signin", { 'enabled' => 'true' }, c
 #=> [200, 'created', true, 1]
 
 # ----------------------------------------------------------------
-# PUT — validation failures (4xx, never audited)
+# PUT — validation failures (4xx)
+#
+# The two rejections below fail at DIFFERENT layers, and the audit trail
+# reflects exactly that. The enum is rejected by the ADAPTER's coerce_field!
+# before the op is ever constructed, so nothing was attempted against the
+# domain and nothing is recorded. The allowlist is rejected by the MODEL
+# SETTER inside the op's apply_update, i.e. mid-mutation and after the write
+# path was entered — Onetime::AuditedFailure records one result: :failure
+# event and re-raises, and the 422 is unchanged.
 # ----------------------------------------------------------------
 
-## PUT signin with an invalid restrict_to enum -> 422 form error, no audit
+## PUT signin with an invalid restrict_to enum -> 422 at the adapter, no audit
 @before_audit = Onetime::AdminAuditEvent.count
 put "/api/colonel/domains/#{@extid}/configs/signin", { 'restrict_to' => 'bogus' }, colonel_headers
 [last_response.status, Onetime::AdminAuditEvent.count - @before_audit]
 #=> [422, 0]
 
-## PUT signup with an invalid allowed_signup_domains entry -> 4xx (model setter), no audit
+## PUT signup with an invalid allowed_signup_domains entry -> 422 from the model setter
 @before_audit = Onetime::AdminAuditEvent.count
 put "/api/colonel/domains/#{@extid}/configs/signup",
   { 'allowed_signup_domains' => ['not_a_domain'] }, colonel_headers
 [last_response.status, Onetime::AdminAuditEvent.count - @before_audit]
-#=> [422, 0]
+#=> [422, 1]
+
+## the in-op failure is recorded with the UNCHANGED upsert verb + domain target
+@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+[@latest['verb'], @latest['target'], @latest['result'],
+ @latest['detail']['config'], @latest['detail']['changed']]
+#=> ["domain.config_upsert", @extid, "failure", 'signup', ['allowed_signup_domains']]
 
 ## PUT signup with a VALID allowlist round-trips the array
 put "/api/colonel/domains/#{@extid}/configs/signup",
@@ -332,12 +346,18 @@ delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
  Onetime::AdminAuditEvent.count - @before_audit, @latest['verb'], @latest['actor']]
 #=> [200, 'signin', true, 1, "domain.config_delete", @colonel.extid]
 
-## DELETE signin again: the record is gone -> 404, no audit
+## DELETE signin again: the record is gone -> 404 and ONE result: :failure event
 @before_audit = Onetime::AdminAuditEvent.count
 delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
 [last_response.status, Onetime::AdminAuditEvent.count - @before_audit,
  Onetime::CustomDomain::SigninConfig.exists_for_domain?(@domain.identifier)]
-#=> [404, 0, false]
+#=> [404, 1, false]
+
+## the refused delete carries the UNCHANGED verb + domain target, result failure
+@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+[@latest['verb'], @latest['target'], @latest['result'],
+ @latest['detail']['reason'], @latest['detail']['config']]
+#=> ["domain.config_delete", @extid, "failure", 'not_found', 'signin']
 
 ## DELETE sso: the credential kinds are deletable (recovery posture)
 delete "/api/colonel/domains/#{@extid}/configs/sso", {}, colonel_headers

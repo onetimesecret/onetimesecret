@@ -116,12 +116,24 @@ ensure
 end
 #=> [true, 1]
 
-## The failed upsert persisted nothing and audited nothing
+## The failed upsert persisted nothing but recorded ONE result: :failure event
+#
+# Persisting nothing is the point of the race rescue; recording nothing was
+# NOT. The validation raise happens after the write path was entered and
+# before the success-path record call, so Onetime::AuditedFailure logs the
+# attempt with the unchanged verb and re-raises (see the assertion above,
+# which is still the original Onetime::Problem message).
 [
   @klass.exists_for_domain?(@domain_valid.identifier),
   Onetime::AdminAuditEvent.count - @before_audit,
 ]
-#=> [false, 0]
+#=> [false, 1]
+
+## the recorded event names the upsert verb, the domain, and result: failure
+@race_evt = Onetime::AdminAuditEvent.recent(1, 0).first
+[@race_evt['verb'], @race_evt['target'], @race_evt['result'],
+ @race_evt['detail']['config'], @race_evt['detail']['changed']]
+#=> ["domain.config_upsert", @domain_valid.extid, "failure", 'signup', ['allowed_signup_domains']]
 
 # ----------------------------------------------------------------
 # Teardown

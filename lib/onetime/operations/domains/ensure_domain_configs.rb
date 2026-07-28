@@ -6,6 +6,7 @@
 # lib/onetime/operations/README.md. Loaded at the call site (colonel logic),
 # so require the audit model explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/models/custom_domain/config_registry'
 
 module Onetime
@@ -33,8 +34,24 @@ module Onetime
       # exists-check + create! with a duplicate-race rescue) and records
       # EXACTLY ONE {Onetime::AdminAuditEvent} — none when nothing was created.
       class EnsureDomainConfigs
+        include Onetime::AuditedFailure
+
         # Audit verb recorded when an applied run created at least one record.
         AUDIT_VERB = 'domain.configs_ensure'
+
+        # This op has NO refusal STATUS — `:planned` and `:applied` are the only
+        # two, and every failure RAISES (contract drift in `materialize`, or a
+        # create! that failed for a reason other than the duplicate race). The
+        # loop creates records one kind at a time and the success record runs
+        # only at the end, so a raise on the fourth of six leaves three created
+        # records and no trail. Records one `result: :failure` and re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @domain&.extid },
+          detail: -> { { dry_run: @dry_run } }
 
         # @!attribute status [r] Symbol — :planned (dry-run), :applied
         # @!attribute created [r] Array<String> — kinds created (or planned, on dry-run)
