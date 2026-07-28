@@ -109,6 +109,17 @@ function detailPayload(overrides: Record<string, unknown> = {}) {
         plan_stale: false,
         drift: { extra: [], missing: [], in_sync: true },
       },
+      // The billing catalog the override picker offers (same source as the
+      // server's known_entitlement? predicate).
+      available_entitlements: [
+        { name: 'api_access', description: 'Can use REST API endpoints', category: 'infrastructure' },
+        { name: 'create_secrets', description: 'Can create basic secrets', category: 'core' },
+        {
+          name: 'custom_domains',
+          description: 'Can configure custom domains',
+          category: 'infrastructure',
+        },
+      ],
       members: [
         {
           extid: 'mem_1',
@@ -149,6 +160,21 @@ function grantAck() {
       action: 'granted',
       effective_entitlements: ['create_secrets', 'custom_domains', 'analytics'],
       grants: ['custom_domains', 'analytics'],
+      revokes: [],
+    },
+  };
+}
+
+function clearAck() {
+  return {
+    shrimp: '',
+    record: {
+      org_id: 'org1',
+      extid: PUBLIC_ID,
+      entitlement: null,
+      action: 'cleared',
+      effective_entitlements: ['create_secrets'],
+      grants: [],
       revokes: [],
     },
   };
@@ -236,11 +262,15 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     expect(billing.text()).not.toContain('owner@acme.test');
     expect(billing.text()).toContain('o•••@a•••.test');
 
-    // Entitlement breakdown is shown on load (plan / grants / materialized).
-    expect(wrapper.find('[data-testid="entitlements-plan"]').text()).toContain('create_secrets');
-    expect(wrapper.find('[data-testid="entitlements-grants"]').text()).toContain('custom_domains');
-    expect(wrapper.find('[data-testid="entitlements-materialized"]').text()).toContain('custom_domains');
+    // Entitlement resolution matrix is shown on load: one row per entitlement,
+    // each carrying WHY it resolves the way it does.
+    expect(wrapper.find('[data-testid="entitlements-matrix"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="entitlement-row-create_secrets"]').attributes('data-state')).toBe('plan');
+    expect(wrapper.find('[data-testid="entitlement-row-custom_domains"]').attributes('data-state')).toBe('granted');
     expect(wrapper.find('[data-testid="entitlements-insync"]').exists()).toBe(true);
+    // Summary signals stay visible above the matrix.
+    expect(wrapper.find('[data-testid="entitlements-summary-materialized"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="entitlements-summary-plan-stale"]').exists()).toBe(true);
 
     // Members + domains tables render.
     expect(wrapper.find('[data-testid="members-table"]').exists()).toBe(true);
@@ -254,6 +284,8 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
           ...detailPayload().details,
           entitlements: {
             ...detailPayload().details.entitlements,
+            // Realistic drift: extra ⊆ materialized, missing ⊆ expected.
+            materialized: ['create_secrets', 'legacy_flag'],
             plan_stale: true,
             drift: { extra: ['legacy_flag'], missing: ['custom_domains'], in_sync: false },
           },
@@ -268,15 +300,24 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     const drift = wrapper.find('[data-testid="entitlements-drift"]');
     expect(drift.text()).toContain('legacy_flag');
     expect(drift.text()).toContain('custom_domains');
+    // And the matrix names the two failure modes per row.
+    expect(wrapper.find('[data-testid="entitlement-row-legacy_flag"]').attributes('data-state')).toBe('orphaned');
+    expect(wrapper.find('[data-testid="entitlement-row-custom_domains"]').attributes('data-state')).toBe('missing');
   });
 
-  it('grants an entitlement through a typed-confirmation dialog and refreshes the detail', async () => {
+  it('grants an entitlement chosen from the catalog dropdown and refreshes the detail', async () => {
     mockApi.get.mockResolvedValue({ data: detailPayload() });
     mockApi.post.mockResolvedValue({ data: grantAck() });
     wrapper = mountView();
     await flushPromises();
 
-    await wrapper.find('[data-testid="org-entitlement-input"]').setValue('analytics');
+    // The dropdown is the primary affordance; free text is not shown yet.
+    expect(wrapper.find('[data-testid="org-entitlement-select"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="org-entitlement-input"]').exists()).toBe(false);
+
+    await wrapper.find('[data-testid="org-entitlement-select"]').setValue('api_access');
+    // A catalog pick is never flagged as a typo.
+    expect(wrapper.find('[data-testid="org-entitlement-catalog-warning"]').exists()).toBe(false);
     await wrapper.find('[data-testid="org-entitlement-grant"]').trigger('click');
     await flushPromises();
 
@@ -290,12 +331,83 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
 
     expect(mockApi.post).toHaveBeenCalledWith(
       `/api/colonel/organizations/${PUBLIC_ID}/entitlements/grant`,
-      { entitlement: 'analytics' }
+      { entitlement: 'api_access' }
     );
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(showMock.mock.calls[0][1]).toBe('success');
     // The panel is driven by a refreshed GET, not the ack: two GETs total.
     expect(mockApi.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the out-of-catalog path (CLI parity): warns, then still grants', async () => {
+    mockApi.get.mockResolvedValue({ data: detailPayload() });
+    mockApi.post.mockResolvedValue({ data: grantAck() });
+    wrapper = mountView();
+    await flushPromises();
+
+    // Opt into free text, then type a name the catalog does not carry.
+    await wrapper.find('[data-testid="org-entitlement-select"]').setValue('__other__');
+    await wrapper.find('[data-testid="org-entitlement-input"]').setValue('ships_next_release');
+    expect(wrapper.find('[data-testid="org-entitlement-catalog-warning"]').exists()).toBe(true);
+
+    // Warned, not blocked — the grant button stays live.
+    await wrapper.find('[data-testid="org-entitlement-grant"]').trigger('click');
+    await flushPromises();
+    // The confirm dialog repeats the warning before the write.
+    expect(wrapper.find('[data-testid="admin-confirm-dialog"]').text()).toContain(
+      'entitlements.catalogWarning'
+    );
+
+    await dialogInput(wrapper).setValue(PUBLIC_ID);
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      `/api/colonel/organizations/${PUBLIC_ID}/entitlements/grant`,
+      { entitlement: 'ships_next_release' }
+    );
+  });
+
+  it('keeps clear-all behind the typed-confirmation gate and returns the picker to the catalog', async () => {
+    mockApi.get.mockResolvedValue({ data: detailPayload() });
+    mockApi.delete.mockResolvedValue({ data: clearAck() });
+    wrapper = mountView();
+    await flushPromises();
+
+    // Land in free text first, so the reset is observable.
+    await wrapper.find('[data-testid="org-entitlement-select"]').setValue('__other__');
+    expect(wrapper.find('[data-testid="org-entitlement-input"]').exists()).toBe(true);
+
+    await wrapper.find('[data-testid="org-entitlement-clear"]').trigger('click');
+    await flushPromises();
+
+    // Wipes EVERY override — the extid gate is unchanged.
+    expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+    await dialogInput(wrapper).setValue(PUBLIC_ID);
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    expect(mockApi.delete).toHaveBeenCalledWith(
+      `/api/colonel/organizations/${PUBLIC_ID}/entitlements/overrides`
+    );
+    expect(wrapper.find('[data-testid="org-entitlement-select"]').exists()).toBe(true);
+  });
+
+  it('falls open to free text when the catalog is unavailable (no dropdown, no typo warning)', async () => {
+    mockApi.get.mockResolvedValue({
+      data: detailPayload({
+        details: { ...detailPayload().details, available_entitlements: [] },
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="org-entitlement-select"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="org-entitlement-catalog-unavailable"]').exists()).toBe(true);
+
+    await wrapper.find('[data-testid="org-entitlement-input"]').setValue('anything_at_all');
+    // Fail OPEN, exactly like the server's known_entitlement? predicate.
+    expect(wrapper.find('[data-testid="org-entitlement-catalog-warning"]').exists()).toBe(false);
   });
 
   it('reconciles through a typed-confirmation dialog and shows the before/after diff', async () => {
