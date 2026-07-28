@@ -56,21 +56,31 @@
   const searchPending = computed(() => actorTerm.value.trim() !== activeActor.value);
 
   /**
-   * Action categories = the dotted-verb prefixes the ops layer writes today
-   * (customer.set_role, session.delete, queue.dlq.replay, …). The server
-   * treats the value as a prefix, so an uncategorised future verb still shows
-   * under "All" — this list only feeds the convenience select.
+   * Action categories = the leading segment of the dotted verbs the ops layer
+   * writes (customer.set_role, session.delete, queue.dlq.replay, …).
+   *
+   * The server matches `verb` as an exact action OR a dotted prefix
+   * (list_audit_events.rb: `verb == filter || verb.start_with?("#{filter}.")`)
+   * and validates nothing against an allowlist, so ONE entry here reaches every
+   * verb beneath it — `membership` covers membership.add / .remove / .set_role
+   * AND the interpolated membership.entitlement.<action> family — and an
+   * uncategorised future verb still shows under "All". This list only feeds the
+   * convenience select; it is a superset-tolerant menu, not a contract.
    */
   const VERB_CATEGORIES = [
     'customer',
     'session',
+    'secret',
     'domain',
     'organization',
+    'membership',
+    'entitlement_preview',
     'banner',
     'queue',
     'email',
     'ratelimit',
     'ip',
+    'colonel',
   ] as const;
 
   const filters = computed<FilterConfig[]>(() => [

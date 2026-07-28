@@ -188,6 +188,57 @@ describe('AdminAuditLog (flight-recorder playback — observability lane)', () =
     expect(wrapper.find('[data-testid="audit-error"]').exists()).toBe(false);
   });
 
+  /**
+   * The category select is the ONLY discovery surface for a verb family: a
+   * prefix that is missing here is unreachable from the UI even though the
+   * server would happily filter on it. `membership` was absent while
+   * membership.add / .remove / .set_role / .entitlement.<action> were live.
+   */
+  it('offers every live verb prefix as an action category', async () => {
+    mockApi.get.mockResolvedValue({ data: auditPayload() });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    // The leading `value=""` option is FilterBar's "All actions"; drop it.
+    const values = wrapper
+      .find('#kit-filter-verb')
+      .findAll('option')
+      .map((o) => (o.element as HTMLOptionElement).value)
+      .filter((v) => v !== '');
+
+    expect(values).toEqual([
+      'customer',
+      'session',
+      'secret',
+      'domain',
+      'organization',
+      'membership',
+      'entitlement_preview',
+      'banner',
+      'queue',
+      'email',
+      'ratelimit',
+      'ip',
+      'colonel',
+    ]);
+    expect(values).toHaveLength(13);
+  });
+
+  it('sends a category prefix verbatim so it prefix-matches the whole family', async () => {
+    mockApi.get.mockResolvedValue({ data: auditPayload() });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    // `membership` must reach membership.entitlement.<action>, which is built
+    // by interpolation server-side and is therefore not a literal verb.
+    await wrapper.find('#kit-filter-verb').setValue('membership');
+    await flushPromises();
+
+    expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
+      params: { page: 1, per_page: 50, verb: 'membership' },
+    });
+  });
+
   it('is read-only: renders no mutation affordances (no POST/DELETE ever fired)', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
     wrapper = mountView(pinia);

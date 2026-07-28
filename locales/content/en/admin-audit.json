@@ -67,6 +67,9 @@
     "text": "Sessions",
     "content_hash": "6fa3cbf4"
   },
+  "web.admin.audit.categories.secret": {
+    "text": "Secrets"
+  },
   "web.admin.audit.categories.domain": {
     "text": "Domains",
     "content_hash": "ced67718"
@@ -74,6 +77,12 @@
   "web.admin.audit.categories.organization": {
     "text": "Organizations",
     "content_hash": "2730183d"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Memberships"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Entitlement previews"
   },
   "web.admin.audit.categories.banner": {
     "text": "Banner",
@@ -94,6 +103,9 @@
   "web.admin.audit.categories.ip": {
     "text": "IP bans",
     "content_hash": "48cdea49"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonel sign-ins"
   },
   "web.admin.audit.list.loadError": {
     "text": "Could not load the audit log.",
