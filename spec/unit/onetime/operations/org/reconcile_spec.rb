@@ -333,8 +333,10 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
     # membership; a raise partway leaves the org and its members in an unknown
     # entitlement state, and the success-path record sits after the dispatch.
     it 'records ONE failure event when the apply raises, and re-raises' do
-      allow(Billing::Operations::ApplySubscriptionToOrg)
-        .to receive(:call).and_raise(Onetime::Problem, 'cascade blew up')
+      # The raise comes from the engine INSTANCE: the op calls
+      # `ApplySubscriptionToOrg.new(...).call` (not the class-level .call) so
+      # it can read materialize_result back afterwards (#3907 item 3).
+      allow(engine).to receive(:call).and_raise(Onetime::Problem, 'cascade blew up')
 
       expect do
         described_class.new(org: org, actor: actor, dry_run: false).call
