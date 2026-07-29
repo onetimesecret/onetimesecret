@@ -178,6 +178,22 @@ end
 @raises.call(@ip_b, @email_b)
 #=> true
 
+## -- Config validation ----------------------------------------------------
+
+## Non-positive / garbage numeric settings fall back to the defaults instead
+## of inverting enforcement (a zero cap would otherwise lock on the very
+## first request, and a non-positive lockout would make the Lua SETEX fail)
+set_reset_request_rate_limit(
+  'enabled' => true, 'max_per_ip' => 0, 'max_per_email' => 'abc',
+  'window' => -5, 'lockout' => 0,
+)
+@cfg_ip    = '198.51.100.77'
+@cfg_email = "target_cfg_#{@tag}@example.com"
+cleanup(@redis, ip: @cfg_ip, email: @cfg_email)
+result = @raises.call(@cfg_ip, @cfg_email)
+[result, @redis.exists?("reset_request:locked:ip:#{@cfg_ip}")]
+#=> [false, false]
+
 ## -- Configured off -------------------------------------------------------
 
 ## With enabled:false the limiter is a total no-op even past the caps
@@ -198,5 +214,6 @@ cleanup(@redis, ip: @ip_a, email: @email_a)
 cleanup(@redis, ip: @ip_b, email: @email_b)
 cleanup(@redis, email: @email_c)
 cleanup(@redis, email: @email_fold)
+cleanup(@redis, ip: @cfg_ip, email: @cfg_email)
 cleanup(@redis, ip: @off_ip, email: @off_email)
 OT.send(:conf=, @saved_conf)

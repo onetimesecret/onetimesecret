@@ -28,9 +28,10 @@ module Auth::Config::Overrides
         begin
           super(&blk)
         rescue Onetime::LimitExceeded
-          # Expected control flow, not an unhandled exception: the
-          # reset-request rate limiter (hooks/reset_password_request.rb,
-          # #3872) raises this to reject a throttled request. Re-raise
+          # Expected control flow, not an unhandled exception: rate limiters
+          # on auth routes raise this to reject a throttled request (today
+          # the reset-request limiter — hooks/reset_password_request.rb,
+          # #3872 — and any future limiter wired the same way). Re-raise
           # without the :unhandled_exception error log below — the router's
           # error_handler translates it to the ADR-013 429 body and logs it
           # at the ErrorTranslator's :warn level.

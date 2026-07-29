@@ -30,6 +30,21 @@ module Onetime
     #      distributed attacker sampling one target, and also caps nil-IP
     #      callers, who all share this bucket by login.
     #
+    # IP GRANULARITY: the "client IP" is the value the universal
+    # IPPrivacyMiddleware mount resolves and privacy-masks BEFORE the app sees
+    # it — /24 for IPv4, /48 for IPv6 (Otto::Privacy::IPPrivacy,
+    # octet_precision 1). The per-IP bucket is therefore shared by that masked
+    # network neighborhood, exactly like every other IP-keyed limiter in this
+    # codebase (IncomingRateLimiter, the sso-link-confirm throttle, the
+    # LoginRateLimiter email+IP tier): the raw address never survives the
+    # privacy middleware, so no finer key exists downstream. A hostile
+    # neighbor in the same masked network can thus consume the shared budget
+    # and 429 the reset-request route for the neighborhood for one lockout
+    # window — bounded, repeatable-only-with-effort, and the accepted cost of
+    # IP privacy. Operators with dense NAT populations can raise
+    # RESET_REQUEST_RATE_LIMIT_MAX_PER_IP; the per-email backstop is
+    # unaffected by IP granularity.
+    #
     # The per-email cap is deliberately the LOOSER tier (mirroring
     # LoginRateLimiter's global backstop, RL-3): a TIGHT per-email lockout
     # would let an attacker deny a victim's reset flow from all IPs with a
@@ -256,19 +271,30 @@ module Onetime
       end
 
       def reset_request_max_per_ip
-        (reset_request_rate_limit_config['max_per_ip'] || DEFAULT_MAX_PER_IP).to_i
+        positive_reset_request_setting('max_per_ip', DEFAULT_MAX_PER_IP)
       end
 
       def reset_request_max_per_email
-        (reset_request_rate_limit_config['max_per_email'] || DEFAULT_MAX_PER_EMAIL).to_i
+        positive_reset_request_setting('max_per_email', DEFAULT_MAX_PER_EMAIL)
       end
 
       def reset_request_window
-        (reset_request_rate_limit_config['window'] || DEFAULT_WINDOW).to_i
+        positive_reset_request_setting('window', DEFAULT_WINDOW)
       end
 
       def reset_request_lockout
-        (reset_request_rate_limit_config['lockout'] || DEFAULT_LOCKOUT).to_i
+        positive_reset_request_setting('lockout', DEFAULT_LOCKOUT)
+      end
+
+      # Read a numeric setting, falling back to its default unless the
+      # configured value coerces to a POSITIVE integer. A zero/garbage value
+      # (e.g. a typo'd env var: `to_i` turns "abc" into 0) would otherwise
+      # invert enforcement — a zero cap locks on the first request and a
+      # non-positive lockout makes the Lua SETEX fail, turning every reset
+      # request into a 500 instead of a throttle.
+      def positive_reset_request_setting(key, default)
+        value = reset_request_rate_limit_config[key].to_i
+        value.positive? ? value : default
       end
 
       # Obscure the subject for logs. IPv4 keeps the /16; emails go through the
