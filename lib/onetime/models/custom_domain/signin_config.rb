@@ -65,7 +65,14 @@ module Onetime
       field :signin_enabled       # Override for AUTH_SIGNIN
       field :restrict_to          # Override for full.restrict_to (string or nil)
       field :email_auth_enabled   # Override for AUTH_EMAIL_AUTH_ENABLED
-      field :sso_enabled          # Override for AUTH_SSO_ENABLED
+      # TENANT-SSO activation gate — NOT an override for the platform
+      # AUTH_SSO_ENABLED, despite what this comment said until 2026-07.
+      # Authority for `sso_permitted_for?` below, which feeds
+      # SsoConfig.tenant_sso_available_for? and the omniauth_tenant hook, i.e.
+      # whether THIS domain's own SsoConfig credentials may be used to sign in.
+      # Reading it as the platform flag is what led the domain sign-in settings
+      # UI to gate on (and seed from) the wrong switch.
+      field :sso_enabled
 
       # Timestamps (Unix epoch integers)
       field :created
