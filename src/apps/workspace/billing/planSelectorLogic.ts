@@ -36,11 +36,22 @@ function currenciesConflict(
 /**
  * True when the plan's currency differs from the current subscription's
  * currency. New subscribers (no current currency) never mismatch.
+ *
+ * The free plan is EXEMPT. It has no price, so its `currency` is not a billable
+ * currency at all — the API stamps it with the deployment default
+ * (`OT.billing_config.currency`) purely to satisfy the record shape. Comparing
+ * that against a subscriber whose subscription currency differs (a real state:
+ * see the pending-currency-migration flow) would permanently disable the free
+ * card with a misleading "region mismatch" reason and make downgrade-to-free
+ * unreachable from the grid. Exempting here — the single shared predicate —
+ * means isPlanButtonDisabled, resolvePlanSelectAction and the component's
+ * disabledReason all inherit it.
  */
 export function isPlanCurrencyMismatch(
   currentCurrency: string | null | undefined,
   plan: BillingPlan
 ): boolean {
+  if (plan.tier === 'free') return false;
   return currenciesConflict(currentCurrency, plan.currency);
 }
 

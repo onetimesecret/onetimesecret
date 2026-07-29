@@ -31,17 +31,20 @@ Billing::Plan.instances.size
 #=> Integer
 
 ## Should load plans keyed by family ID (not suffixed)
+## Priced plans (identity_plus_v1) plus config-only plans shown on the plans
+## page (free_v1). The legacy `identity` plan is price-less AND
+## show_on_plans_page: false, so it stays out of the catalog.
 @count
-#=> 1
+#=> 2
 
 ## Verify plan was saved to Redis
 Billing::Plan.instances.size
-#=> 1
+#=> 2
 
 ## List all loaded plans
 @plans = Billing::Plan.list_plans
 @plans.size
-#=> 1
+#=> 2
 
 ## Verify plan exists by canonical family ID
 @plan = Billing::Plan.load('identity_plus_v1')
@@ -132,21 +135,34 @@ Billing::Plan.instances.size
 @plan_via_get.plan_id == @plan_via_yearly.plan_id
 #=> true
 
+## Config-only plan (free_v1) is persisted, with no prices
+@free = Billing::Plan.load('free_v1')
+[@free.nil?, @free&.prices_hash, @free&.show_on_plans_page.to_s]
+#=> [false, {}, 'true']
+
+## Config-only plan keeps its entitlements and limits
+[@free.entitlements.member?('create_secrets'), @free.limits_hash['organizations.max']]
+#=> [true, 5]
+
+## Price-less plan hidden from the plans page stays out of the catalog
+Billing::Plan.load('identity').nil?
+#=> true
+
 ## Test clearing and reloading (clear_first: false)
 @before_count = Billing::Plan.instances.size
 @reload_count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config(clear_first: false)
 @after_count  = Billing::Plan.instances.size
 [@before_count, @reload_count, @after_count]
-#=> [1, 1, 1]
+#=> [2, 2, 2]
 
 ## Test clearing and reloading (clear_first: true, default)
 @reload_count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 @reload_count
-#=> 1
+#=> 2
 
 ## Verify instances were updated after reload
 Billing::Plan.instances.size
-#=> 1
+#=> 2
 
 ## Cleanup
 Billing::Plan.clear_cache
