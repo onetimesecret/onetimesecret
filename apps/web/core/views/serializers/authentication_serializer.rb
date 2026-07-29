@@ -42,6 +42,14 @@ module Core
           output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
           output['has_password']   = account_has_password?(sess)
 
+          # Policy axis, independent of credential presence (#3886): whether
+          # this account is ALLOWED to hold a local password. Credential
+          # presence (has_password) says what exists; this says what policy
+          # permits. The frontend combines both: no password + permitted =>
+          # "Set password" affordance; no password + not permitted =>
+          # SSO-managed empty state.
+          output['password_auth_permitted'] = password_auth_permitted?(view_vars)
+
           # Add entitlement preview state for colonels. The planid comes from
           # the request-scoped context (ADR-020) — the same source the
           # entitlement chokepoints consult — so the banner cannot disagree
@@ -75,6 +83,7 @@ module Core
             'awaiting_mfa' => false,
             'had_valid_session' => false,
             'has_password' => false,
+            'password_auth_permitted' => true,
             'custid' => nil,
             'cust' => nil,
             'email' => nil,
@@ -110,6 +119,62 @@ module Core
         rescue Sequel::DatabaseError, Sequel::PoolTimeout => ex
           OT.le "[AuthenticationSerializer] account_has_password? query failed: #{ex.class} account_id=#{account_id}"
           nil
+        end
+
+        # Whether policy permits this account to hold a local password (#3886).
+        #
+        # Password auth is permitted when the install runs full auth mode
+        # (Rodauth; simple mode has no password management surface) AND
+        # nothing enforces SSO for this request context — neither the
+        # app-level restrict_to='sso' mode nor a per-domain enforce_sso_only
+        # flag. Consumer accounts on the canonical domain therefore default
+        # to true. A domain with SSO configured but NOT enforced also yields
+        # true: enforcement is the opt-in, per the issue's decision.
+        #
+        # Never keyed on "is SSO" — an account may hold a password AND SSO
+        # identities (hybrid), and the two axes stay independent.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Boolean] true if the account may set/keep a local password
+        def password_auth_permitted?(view_vars)
+          auth_config = Onetime.auth_config
+          return false unless auth_config&.full_enabled?
+          return false if auth_config.restrict_to == 'sso'
+
+          !tenant_sso_enforced?(view_vars)
+        end
+
+        # Per-domain SSO enforcement, mirroring the tenant resolution in
+        # ConfigSerializer#build_sso_config (which emits the same signal to
+        # the frontend as features.sso.enforce_sso_only). Enforcement only
+        # counts when the tenant SSO config is actually available — a
+        # disabled or unavailable config cannot lock accounts to an IdP.
+        #
+        # Fails CLOSED on resolution errors: a custom-domain request whose
+        # policy cannot be read reports "enforced", so the affordance is not
+        # advertised where it may be forbidden (Greptile review, PR #3938).
+        # Canonical-domain requests return before any fallible lookup, so
+        # consumer accounts are unaffected by a storage blip. Note this flag
+        # only gates UI affordances — actual sign-in enforcement lives in the
+        # signin routes (restrict_to resolution / Base#signin_enabled?).
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Boolean] true if this request's domain enforces SSO-only
+        def tenant_sso_enforced?(view_vars)
+          display_domain = view_vars['display_domain']
+          return false if display_domain.to_s.empty?
+
+          custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
+          domain_id     = custom_domain&.identifier
+          return false unless domain_id
+
+          config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+          return false unless config
+          return false unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
+
+          config.enforce_sso_only?
+        rescue StandardError
+          true
         end
 
         # Resolve test plan name from Billing::Plan cache or config

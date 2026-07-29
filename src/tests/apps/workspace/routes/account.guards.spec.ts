@@ -2,8 +2,8 @@
 //
 // Tests for the per-route beforeEnter guards defined in account.ts.
 // The guards (checkOwnerOrAdminAccess, checkPasswordSecurityAccess,
-// checkSecurityAccess) are not exported, so we test them indirectly by
-// invoking beforeEnter on the route records themselves.
+// checkSetPasswordAccess, checkSecurityAccess) are not exported, so we test
+// them indirectly by invoking beforeEnter on the route records themselves.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -12,15 +12,22 @@ vi.mock('@/utils/features', () => ({
   isFullAuthMode: vi.fn(() => false),
   hasPassword: vi.fn(() => false),
   isOwnerOrAdmin: vi.fn(() => false),
+  isPasswordAuthPermitted: vi.fn(() => false),
 }));
 
 import accountRoutes from '@/apps/workspace/routes/account';
-import { isFullAuthMode, hasPassword, isOwnerOrAdmin } from '@/utils/features';
+import {
+  isFullAuthMode,
+  hasPassword,
+  isOwnerOrAdmin,
+  isPasswordAuthPermitted,
+} from '@/utils/features';
 import type { RouteRecordRaw, NavigationGuardWithThis } from 'vue-router';
 
 const mockedIsFullAuthMode = vi.mocked(isFullAuthMode);
 const mockedHasPassword = vi.mocked(hasPassword);
 const mockedIsOwnerOrAdmin = vi.mocked(isOwnerOrAdmin);
+const mockedIsPasswordAuthPermitted = vi.mocked(isPasswordAuthPermitted);
 
 /**
  * Extract the beforeEnter guard from a route found by path.
@@ -56,6 +63,7 @@ describe('Account route guards', () => {
     mockedIsFullAuthMode.mockReturnValue(false);
     mockedHasPassword.mockReturnValue(false);
     mockedIsOwnerOrAdmin.mockReturnValue(false);
+    mockedIsPasswordAuthPermitted.mockReturnValue(false);
   });
 
   // ── Guard wiring verification ─────────────────────────────────────
@@ -183,7 +191,6 @@ describe('Account route guards', () => {
   describe('checkPasswordSecurityAccess (password-dependent routes)', () => {
     const guardedPaths = [
       '/account/settings/security/password',
-      '/account/settings/security/reset-password',
       '/account/settings/security/mfa',
       '/account/settings/security/recovery-codes',
     ];
@@ -219,6 +226,44 @@ describe('Account route guards', () => {
         });
       });
     }
+  });
+
+  // ── checkSetPasswordAccess ────────────────────────────────────────
+
+  describe('checkSetPasswordAccess (reset/set-password request page, #3886)', () => {
+    const path = '/account/settings/security/reset-password';
+
+    it('allows a user with a password (reset flow)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(true);
+      mockedIsPasswordAuthPermitted.mockReturnValue(false);
+
+      expect(invokeGuard(path)).toBe(true);
+    });
+
+    it('allows a passwordless user when password auth is permitted (set flow)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+      mockedIsPasswordAuthPermitted.mockReturnValue(true);
+
+      expect(invokeGuard(path)).toBe(true);
+    });
+
+    it('redirects a passwordless user when password auth is not permitted (SSO-enforced)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+      mockedIsPasswordAuthPermitted.mockReturnValue(false);
+
+      expect(invokeGuard(path)).toEqual({ name: 'Account' });
+    });
+
+    it('redirects when not full auth mode regardless of policy', () => {
+      mockedIsFullAuthMode.mockReturnValue(false);
+      mockedHasPassword.mockReturnValue(true);
+      mockedIsPasswordAuthPermitted.mockReturnValue(true);
+
+      expect(invokeGuard(path)).toEqual({ name: 'Account' });
+    });
   });
 
   // ── checkOwnerWithPasswordAccess ────────────────────────────────────
