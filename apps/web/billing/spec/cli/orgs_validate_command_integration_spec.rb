@@ -133,22 +133,26 @@ RSpec.describe 'Billing Orgs Validate CLI (integration)', :integration do
 
   describe 'cache miss with config fallback' do
     it 'counts an org whose planid only exists in billing.yaml as Valid (billing.yaml)' do
-      # free_v1 is in spec/billing.test.yaml but is skipped by
-      # ConfigLoader (no prices), so it is NOT persisted to Redis.
-      # load_with_fallback should therefore miss the cache and hit
+      # `identity` is in spec/billing.test.yaml with no prices AND
+      # show_on_plans_page: false, so ConfigLoader leaves it out of Redis
+      # entirely (price-less plans are only upserted when they're shown on the
+      # plans page). load_with_fallback should therefore miss the cache and hit
       # load_from_config, returning source: 'local_config'.
-      config_plan = Billing::Plan.load_from_config('free_v1')
+      #
+      # NOTE: free_v1 used to be the vehicle here, back when ConfigLoader
+      # dropped every price-less plan. It is now cached, so it no longer
+      # exercises the fallback.
+      config_plan = Billing::Plan.load_from_config('identity')
 
       if config_plan.nil?
-        skip 'free_v1 not available via Billing::Config.load_plans in this environment'
+        skip 'identity not available via Billing::Config.load_plans in this environment'
       end
 
-      # Sanity check: free_v1 must not be in the Redis cache for this
-      # test to mean anything. ConfigLoader skips priceless plans so
-      # this should hold, but guard against silent regressions.
-      expect(Billing::Plan.load('free_v1')).to be_nil
+      # Sanity check: the plan must not be in the Redis cache for this
+      # test to mean anything.
+      expect(Billing::Plan.load('identity')).to be_nil
 
-      create_org(planid: 'free_v1', display_name: 'Config Fallback Org')
+      create_org(planid: 'identity', display_name: 'Config Fallback Org')
 
       output, status = run_command
 
