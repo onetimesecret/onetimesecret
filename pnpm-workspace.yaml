@@ -4,11 +4,28 @@ allowBuilds:
   unrs-resolver: true
   vue-demi: false
 
+# The release-age quarantine guards against hijacked releases. Bypassed here
+# because the security fix takes priority: 1.1.17 is the only patched v1 line
+# for CVE-2026-14257, and minimatch@3 (pulled in by eslint 9 itself) cannot move
+# off ^1 — see the brace-expansion notes under `overrides` below.
+minimumReleaseAgeExclude:
+  - brace-expansion@1.1.17
+
 overrides:
   '@babel/core': '>=7.29.6 <8'
   '@types/estree': '1.0.9'
   esbuild: '>=0.28.1'
-  brace-expansion: '5.0.8'
+  # CVE-2026-14257 / GHSA-mh99-v99m-4gvg (brace-expansion OOM DoS) is fixed on
+  # every maintenance line, not just v5. A flat '5.0.8' pin is NOT possible: the
+  # tree needs three incompatible majors (minimatch@3->^1, @9->^2, @10->^5), and
+  # v5 is ESM-first — its CJS build exports {expand, ...} instead of the callable
+  # `module.exports = expand`, so forcing it onto minimatch@3/9 is a TypeError.
+  # Pin the patched floor per line instead. The advisory range is written '<=5.0.7',
+  # so `pnpm audit` still flags 1.1.17 and 2.1.3 as vulnerable — that is a false
+  # positive from the range syntax, not an unpatched dependency.
+  'brace-expansion@1': '^1.1.17'
+  'brace-expansion@2': '^2.1.3'
+  'brace-expansion@5': '^5.0.8'
   flatted: '^3.4.2'
   form-data: '>=4.0.6'
   js-yaml: '>=3.15.0'
