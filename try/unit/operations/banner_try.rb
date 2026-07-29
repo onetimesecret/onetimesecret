@@ -235,22 +235,22 @@ AE.count
 
 # ---- ClearBanner: a failed clear IS audited ---------------------------
 #
-# The Onetime::AuditedFailure mechanism. Two unconditional deletes plus a
-# runtime refresh, success record after all of them: a failure partway can
-# leave the banner key gone but its scope sidecar behind.
+# The Onetime::AuditedFailure mechanism. Both deletes ride one MULTI/EXEC
+# (a failed transaction removes neither key), but the runtime refresh and the
+# success record still sit after it — a failure there must audit and re-raise.
 
-## a clear whose delete blows up re-raises the original error
+## a clear whose delete transaction blows up re-raises the original error
 Onetime::Operations::SetBanner.new(content: 'to-be-cleared', actor: @actor).call
 AE.events.clear
 @clear_db = Familia.dbclient(Onetime::Operations::BannerState::DB)
-@clear_db.define_singleton_method(:del) { |*| raise(Onetime::Problem, 'redis gone') }
+@clear_db.define_singleton_method(:multi) { |*| raise(Onetime::Problem, 'redis gone') }
 begin
   Onetime::Operations::ClearBanner.new(actor: @actor).call
   :no_raise
 rescue Onetime::Problem
   :raised
 ensure
-  @clear_db.singleton_class.remove_method(:del)
+  @clear_db.singleton_class.remove_method(:multi)
 end
 #=> :raised
 

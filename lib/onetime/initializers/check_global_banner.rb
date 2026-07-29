@@ -21,23 +21,20 @@ module Onetime
       def execute(_context)
         require 'onetime/operations/banner'
 
-        db           = Familia.dbclient(Onetime::Operations::BannerState::DB)
-        banner_text  = db.get(Onetime::Operations::BannerState::KEY)
-        # Sidecar audience scope; blank/invalid collapses to the safe default so a
-        # legacy string-only banner stays off custom domains + recipient pages.
-        banner_scope = Onetime::Operations::BannerState.normalize_scope(
-          db.get(Onetime::Operations::BannerState::SCOPE_KEY),
-        )
+        # Read through the shared BannerState path: one MGET snapshot folded
+        # into a single Features update (the same code the TTL re-read uses),
+        # so even the boot read can never pair banner content with a scope
+        # from a different banner. Blank/invalid scope collapses to the safe
+        # default, keeping legacy string-only banners off custom domains +
+        # recipient pages. Fail-soft: a dead Redis logs and leaves the nil
+        # defaults in place (this initializer is @optional).
+        Onetime::Operations::BannerState.refresh!
 
+        banner_text  = Onetime::Runtime.features.global_banner
+        banner_scope = Onetime::Runtime.features.global_banner_scope
         if banner_text && !banner_text.empty?
           OT.li "[init] Global banner (#{banner_scope}): #{banner_text}"
         end
-
-        # Update features runtime state with banner + scope
-        Onetime::Runtime.update_features(
-          global_banner: banner_text,
-          global_banner_scope: banner_scope,
-        )
 
         # Stamp the TTL re-read clock: this boot read IS a fresh read, so the
         # first request should serve it instead of immediately re-hitting Redis.
