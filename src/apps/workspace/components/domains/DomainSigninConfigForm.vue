@@ -45,6 +45,7 @@
   import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { SigninConfigFormState } from '@/shared/composables/useSigninConfig';
+  import { isOrgsSsoEnabled } from '@/utils/features';
   import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
@@ -74,8 +75,13 @@
      * selectable, or restrict_to/availability would produce a blank login page.
      * Password and WebAuthn have no per-domain field; only the global flag gates
      * them. undefined upstream is treated as available (codebase convention).
+     *
+     * SSO is deliberately NOT a member: per-domain SSO is *tenant* SSO
+     * (CustomDomain::SsoConfig credentials), gated on ORGS_SSO_ENABLED +
+     * manage_sso — not on the platform AUTH_SSO_ENABLED that bootstrap
+     * `features.sso` carries. See `ssoAvailable` below.
      */
-    globalAvailability: { email_auth: boolean; webauthn: boolean; sso: boolean };
+    globalAvailability: { email_auth: boolean; webauthn: boolean };
     /** Field currently auto-saving, for per-toggle loading feedback. */
     savingField: keyof SigninConfigFormState | null;
   }>();
@@ -217,7 +223,24 @@
   const passwordAvailable = true; // always available
   const webauthnAvailable = computed(() => props.globalAvailability.webauthn);
   const emailAuthAvailable = computed(() => props.globalAvailability.email_auth);
-  const ssoAvailable = computed(() => props.globalAvailability.sso);
+  /**
+   * SSO here means TENANT SSO (the domain's own SsoConfig credentials), whose
+   * authorities are ORGS_SSO_ENABLED + manage_sso — the same pair DomainsTable
+   * and OrganizationSettings gate on. It is NOT bootstrap `features.sso`
+   * (platform AUTH_SSO_ENABLED, resolved against the *current request's*
+   * domain): on the workspace host that reads the canonical site's SSO config,
+   * which has no bearing on whether this domain may run tenant SSO.
+   */
+  const ssoAvailable = computed(() => isOrgsSsoEnabled());
+
+  /**
+   * Both gates the backend enforces on every tenant-SSO write
+   * (DomainsAPI::Logic::SsoConfig::Base — `manage_sso` entitlement AND the
+   * `features.organizations.sso_enabled` flag). Offering "Configure" without
+   * both would open a modal whose save is rejected. Mode B gets this for free
+   * (the SSO row is omitted when unavailable); Mode A's static row needs it.
+   */
+  const ssoConfigurable = computed(() => ssoAvailable.value && props.canManageSso);
 
   interface MethodRow {
     value: SigninRestrictTo;
@@ -574,7 +597,7 @@
           </div>
           <div class="flex items-center gap-3">
             <button
-              v-if="canManageSso"
+              v-if="ssoConfigurable"
               type="button"
               @click="emit('configure-sso')"
               class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
@@ -589,8 +612,13 @@
                   : t('web.domains.sso.configure_button')
               }}
             </button>
+            <!-- Upgrade lock is for the ENTITLEMENT only. When the blocker is
+                 the install flag instead, neither control renders here — the
+                 hint above already reads "Unavailable", and "Upgrade to
+                 configure" would name the wrong cause (no plan unlocks an
+                 operator's ORGS_SSO_ENABLED). -->
             <span
-              v-else
+              v-else-if="!canManageSso"
               class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
               <OIcon
                 collection="heroicons"
@@ -599,12 +627,17 @@
                 aria-hidden="true" />
               {{ t('web.domains.sso.upgrade_required') }}
             </span>
-            <!-- Locked without the manage-SSO entitlement: the org cannot
-                 configure SSO credentials, so the method can never activate —
-                 showing an operable "Enabled" next to the upgrade lock would
-                 contradict it. -->
+            <!-- Locked without the manage-SSO entitlement (or with tenant SSO
+                 off install-wide): the org cannot configure SSO credentials, so
+                 the method can never activate — showing an operable toggle next
+                 to the upgrade lock would contradict it. `:enabled` reports the
+                 STORED value alone: the runtime ladder
+                 (SsoConfig.tenant_sso_unavailable_reason) gates on the SsoConfig
+                 record and sso_permitted_for?, never on these two management
+                 gates, so ANDing them in here would render OFF for a domain
+                 whose tenant SSO is actually live. -->
             <ToggleWithIcon
-              :enabled="Boolean(formState.sso_enabled) && ssoAvailable && canManageSso"
+              :enabled="Boolean(formState.sso_enabled)"
               :disabled="isSaving || !ssoAvailable || !canManageSso"
               :loading="savingField === 'sso_enabled'"
               :on-label="t('web.COMMON.enabled')"

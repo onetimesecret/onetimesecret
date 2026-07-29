@@ -1108,7 +1108,7 @@ describe('useSigninConfig', () => {
       expect(composable.formState.value.restrict_to).toBe('sso');
     });
 
-    it('seeds method flags from global availability (AND semantics: a globally-off method seeds as off, not on)', async () => {
+    it('seeds email_auth from global availability (AND semantics: a globally-off method seeds as off, not on)', async () => {
       mockFeatures.value = { email_auth: false, webauthn: true, sso: { enabled: false } };
       // Unconfigured domain, SSO globally off → no carve-out: default-off
       // resolver output (#3814).
@@ -1121,7 +1121,49 @@ describe('useSigninConfig', () => {
       await composable.initialize();
 
       expect(composable.formState.value.email_auth_enabled).toBe(false);
-      expect(composable.formState.value.sso_enabled).toBe(false);
+    });
+
+    it('seeds sso_enabled true regardless of the PLATFORM sso feature flag', async () => {
+      // sso_enabled is the TENANT-SSO activation gate consumed by
+      // SigninConfig.sso_permitted_for?, which returns true unconditionally
+      // while no config is enabled — so `true` is the inherited state for
+      // every unconfigured domain. Bootstrap `features.sso` is the unrelated
+      // PLATFORM switch (AUTH_SSO_ENABLED, resolved against the workspace
+      // host); seeding from it is what let an autosave persist
+      // sso_enabled: false and take a domain's live tenant SSO down.
+      mockFeatures.value = { email_auth: true, webauthn: true, sso: { enabled: false } };
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.sso_enabled).toBe(true);
+    });
+
+    it('an unrelated autosave on an unconfigured domain never persists sso_enabled: false', async () => {
+      // The regression proof for the data bug. Platform SSO off, domain
+      // unconfigured; the user flips the email toggle — the first thing that
+      // materializes an explicit override. The PUT must not carry
+      // sso_enabled: false, which would flip sso_permitted_for? to false and
+      // dark the domain's tenant SSO buttons. Same failure class as the
+      // PR #3817 signin_enabled bug.
+      mockFeatures.value = { email_auth: true, webauthn: true, sso: { enabled: false } };
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.autoSaveField('email_auth_enabled', false);
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ enabled: true, sso_enabled: true, email_auth_enabled: false })
+      );
     });
 
     it('an explicit record wins over seeding (explicit: formState comes from the stored override, not the inherited state)', async () => {

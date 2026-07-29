@@ -27,12 +27,24 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
+import { ref } from 'vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
 import type { SigninConfigFormState } from '@/shared/composables/useSigninConfig';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+
+// Tenant-SSO availability is an install feature flag (ORGS_SSO_ENABLED), read
+// straight from the bootstrap — NOT a prop. It is deliberately not part of
+// globalAvailability: that triple carries PLATFORM auth methods, and gating
+// per-domain (tenant) SSO on the platform AUTH_SSO_ENABLED flag was the bug
+// this mock exists to pin. Same gate DomainsTable/OrganizationSettings use.
+const mockOrgsSsoEnabled = ref(true);
+vi.mock('@/utils/features', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/features')>()),
+  isOrgsSsoEnabled: () => mockOrgsSsoEnabled.value,
+}));
 
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   default: {
@@ -130,7 +142,7 @@ const defaultFormState: SigninConfigFormState = {
   sso_enabled: false,
 };
 
-const allAvailable = { email_auth: true, webauthn: true, sso: true };
+const allAvailable = { email_auth: true, webauthn: true };
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -145,11 +157,14 @@ interface MountOptions {
   workspaceDefault?: boolean;
   ssoConfigured?: boolean;
   canManageSso?: boolean;
-  globalAvailability?: { email_auth: boolean; webauthn: boolean; sso: boolean };
+  globalAvailability?: { email_auth: boolean; webauthn: boolean };
+  /** ORGS_SSO_ENABLED — tenant-SSO availability (bootstrap flag, not a prop). */
+  orgsSsoEnabled?: boolean;
   savingField?: keyof SigninConfigFormState | null;
 }
 
 function mountForm(opts: MountOptions = {}): VueWrapper {
+  mockOrgsSsoEnabled.value = opts.orgsSsoEnabled ?? true;
   return mount(DomainSigninConfigForm, {
     props: {
       domainExtId: 'dm-ext-test',
@@ -512,6 +527,23 @@ describe('DomainSigninConfigForm', () => {
       const configureBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.configure));
       expect(configureBtn).toBeUndefined();
     });
+
+    it('hides Configure when ORGS_SSO_ENABLED is off, even with the entitlement', () => {
+      // The tenant-SSO write endpoints enforce BOTH gates, so an entitled org
+      // on an install with tenant SSO off would open a modal whose save is
+      // rejected with "Organization SSO is not enabled on this instance".
+      wrapper = mountForm({ canManageSso: true, orgsSsoEnabled: false });
+      const configureBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.configure));
+      expect(configureBtn).toBeUndefined();
+    });
+
+    it('does not blame the plan when the blocker is the install flag', () => {
+      // "Upgrade to configure" would name the wrong cause — no plan unlocks an
+      // operator's ORGS_SSO_ENABLED. The row's hint carries the real reason.
+      wrapper = mountForm({ canManageSso: true, orgsSsoEnabled: false });
+      expect(wrapper.text()).not.toContain(COPY.upgradeRequired);
+      expect(wrapper.find('#signin-sso-hint').text()).toContain(COPY.availabilityUnavailable);
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -521,6 +553,11 @@ describe('DomainSigninConfigForm', () => {
   // credentials, so SSO can never activate on the domain. An operable
   // "Enabled" toggle next to the "Upgrade to configure" lock contradicted
   // that (and persisted a flag that could never take effect).
+  //
+  // The lock is expressed by :disabled ONLY. :enabled still reports the
+  // stored value — manage_sso governs who may configure tenant SSO, not
+  // whether it runs, so blanking the toggle would misreport a domain whose
+  // SSO is live.
   // -----------------------------------------------------------------------
 
   describe('entitlement gating: canManageSso=false locks SSO controls', () => {
@@ -529,12 +566,13 @@ describe('DomainSigninConfigForm', () => {
       expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
     });
 
-    it('forces the sso toggle visually off even if formState says enabled', () => {
+    it('still reports the stored sso value while locked (disabled, not blanked)', () => {
       wrapper = mountForm({
         canManageSso: false,
         formState: { ...defaultFormState, sso_enabled: true },
       });
-      expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('false');
+      expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('true');
+      expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
     });
 
     it('leaves the email toggle operable', () => {
@@ -703,7 +741,8 @@ describe('DomainSigninConfigForm', () => {
         // restrict_to value, which would render a blank login page.
         wrapper = mountForm({
           formState: { ...defaultFormState, restrict_to: 'password' },
-          globalAvailability: { email_auth: false, webauthn: false, sso: false },
+          globalAvailability: { email_auth: false, webauthn: false },
+          orgsSsoEnabled: false,
         });
         expect(wrapper.findAll('input[type="radio"][name="restrict_to"]')).toHaveLength(1);
       });
@@ -731,15 +770,24 @@ describe('DomainSigninConfigForm', () => {
         expect(wrapper.find('#signin-email-auth-hint').text()).toContain(COPY.allowOnDomain);
       });
 
-      it('disables the sso toggle and shows "Unavailable" reason when sso is off', () => {
-        wrapper = mountForm({ globalAvailability: { ...allAvailable, sso: false } });
+      it('disables the sso toggle and shows "Unavailable" reason when ORGS_SSO_ENABLED is off', () => {
+        wrapper = mountForm({ orgsSsoEnabled: false });
         expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
         expect(wrapper.find('#signin-sso-hint').text()).toContain(COPY.availabilityUnavailable);
       });
 
       it('shows "Allow on this domain" reason for sso when available', () => {
-        wrapper = mountForm({ globalAvailability: allAvailable });
+        wrapper = mountForm({ orgsSsoEnabled: true });
         expect(wrapper.find('#signin-sso-hint').text()).toContain(COPY.allowOnDomain);
+      });
+
+      it('keeps the sso toggle operable when platform SSO is off but ORGS_SSO_ENABLED is on', () => {
+        // The axis fix: bootstrap `features.sso` (platform AUTH_SSO_ENABLED,
+        // resolved against the workspace host) must have NO bearing on the
+        // tenant-SSO toggle. It is no longer a prop at all, so an install with
+        // platform SSO off leaves this toggle live.
+        wrapper = mountForm({ orgsSsoEnabled: true, canManageSso: true });
+        expect(toggles(wrapper)[1].attributes('disabled')).toBeUndefined();
       });
 
       it('forces the email toggle visually off when globally unavailable, even if formState says enabled', () => {
@@ -752,12 +800,23 @@ describe('DomainSigninConfigForm', () => {
         expect(toggles(wrapper)[0].attributes('aria-checked')).toBe('false');
       });
 
-      it('forces the sso toggle visually off when globally unavailable, even if formState says enabled', () => {
+      it('reports the STORED sso value even when the management gates are off', () => {
+        // NOT the email AND-semantics case. email_auth_enabled is ANDed with a
+        // real install kill switch, so `stored && global` IS its effective
+        // state. Tenant SSO is different: the runtime ladder
+        // (SsoConfig.tenant_sso_unavailable_reason) gates on the SsoConfig
+        // record and sso_permitted_for? — never on ORGS_SSO_ENABLED or
+        // manage_sso, which only govern who may CONFIGURE it. A domain whose
+        // stored sso_enabled is true is running tenant SSO right now, so the
+        // toggle must not render OFF and misreport persisted state. It stays
+        // disabled (see :disabled), just truthful.
         wrapper = mountForm({
           formState: { ...defaultFormState, sso_enabled: true },
-          globalAvailability: { ...allAvailable, sso: false },
+          orgsSsoEnabled: false,
+          canManageSso: false,
         });
-        expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('false');
+        expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('true');
+        expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
       });
     });
   });
@@ -958,10 +1017,10 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
 
   describe('global availability gating', () => {
-    it('omits the SSO radio in Mode B when SSO is globally off', () => {
+    it('omits the SSO radio in Mode B when ORGS_SSO_ENABLED is off', () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'password' },
-        globalAvailability: { ...allAvailable, sso: false },
+        orgsSsoEnabled: false,
       });
       expect(wrapper.find('#signin-restrict-sso').exists()).toBe(false);
     });
@@ -977,7 +1036,8 @@ describe('DomainSigninConfigForm', () => {
     it('always offers Password in Mode B even if everything else is off', () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'password' },
-        globalAvailability: { email_auth: false, webauthn: false, sso: false },
+        globalAvailability: { email_auth: false, webauthn: false },
+        orgsSsoEnabled: false,
       });
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
     });

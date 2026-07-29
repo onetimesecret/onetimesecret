@@ -54,8 +54,17 @@ export interface SigninConfigFormState {
  * Globally-available auth methods (install-level config), read from the
  * bootstrap. The workspace app runs on the dashboard domain, so bootstrap
  * features reflect the install/global auth config. undefined is treated as
- * available (codebase convention). SSO is a union (boolean | config object);
- * an object's `enabled` flag is authoritative.
+ * available (codebase convention).
+ *
+ * SSO is deliberately absent. Bootstrap `features.sso` is PLATFORM SSO
+ * (AUTH_SSO_ENABLED + platform provider env), resolved by ConfigSerializer
+ * against the *current request's* display_domain — on the workspace host that
+ * is the canonical site. Per-domain SSO is TENANT SSO (the domain's own
+ * SsoConfig credentials), whose authorities are ORGS_SSO_ENABLED + manage_sso.
+ * Reading the platform flag here made the domain sign-in page the sole surface
+ * gating tenant SSO on the wrong axis, and — worse — seeded `sso_enabled`
+ * from it, so the first autosave on an install with platform SSO off persisted
+ * `sso_enabled: false` and killed the domain's working tenant SSO.
  *
  * Single definition consumed by both the page (method gating) and this
  * composable (seeding unconfigured domains).
@@ -63,18 +72,13 @@ export interface SigninConfigFormState {
 export interface GlobalMethodAvailability {
   email_auth: boolean;
   webauthn: boolean;
-  sso: boolean;
 }
 
 export function resolveGlobalMethodAvailability(): GlobalMethodAvailability {
   const features = useBootstrapStore().features;
-  const sso = features?.sso;
-  const ssoAvailable =
-    typeof sso === 'object' && sso !== null ? sso.enabled : sso !== false;
   return {
     email_auth: features?.email_auth !== false,
     webauthn: features?.webauthn !== false,
-    sso: ssoAvailable,
   };
 }
 
@@ -99,7 +103,13 @@ function createSeededFormState(
     signin_enabled: details?.effective_enabled ?? false,
     restrict_to: details?.global_restrict_to ?? null,
     email_auth_enabled: methods.email_auth,
-    sso_enabled: methods.sso,
+    // Both seed call sites run with no record (initialize's null branch,
+    // deleteConfig after clearing it), and for an unconfigured domain the
+    // backend authority — SigninConfig.sso_permitted_for? — returns true
+    // unconditionally ("master switch off => defer to SsoConfig credentials").
+    // So the inherited state is literally true; materializing this seed leaves
+    // tenant SSO exactly as it was running.
+    sso_enabled: true,
   };
 }
 
