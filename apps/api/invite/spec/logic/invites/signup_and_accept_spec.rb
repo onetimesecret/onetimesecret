@@ -9,7 +9,9 @@
 # This endpoint handles organization invite signups. It:
 # - Validates invite token (must be pending, not expired)
 # - Derives email from token (email not user-provided)
-# - Checks if account already exists in authdb or Redis
+# - Validates the password BEFORE any account-existence check (#3856)
+# - Checks if account already exists in authdb or Redis -> generic
+#   signup_unavailable error that does not confirm account existence
 # - Creates account + customer + default workspace
 # - Accepts the invitation (adds user to organization)
 # - Auto-logins the user
@@ -253,6 +255,10 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       end
     end
 
+    # Anti-enumeration posture (#3856): when the invited email already has an
+    # account, the response must be generic — same message and error_type for
+    # both stores, no account_exists signal, no assertion that an account
+    # exists. See raise_signup_unavailable in the logic class.
     context 'when account already exists in authdb' do
       before do
         allow(Onetime::OrganizationMembership).to receive(:find_by_token)
@@ -268,8 +274,13 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
       subject(:logic) { described_class.new(strategy_result, valid_params) }
 
-      it 'raises form error indicating account exists' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /already exists/i)
+      it 'raises the generic signup_unavailable error without confirming account existence' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |err|
+          expect(err.message).to eq(described_class::SIGNUP_UNAVAILABLE_MESSAGE)
+          expect(err.error_type).to eq('signup_unavailable')
+          expect(err.field).to be_nil
+          expect(err.message).not_to match(/already exists/i)
+        end
       end
     end
 
@@ -285,8 +296,82 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
       subject(:logic) { described_class.new(strategy_result, valid_params) }
 
-      it 'raises form error indicating account exists' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /already exists/i)
+      it 'raises the generic signup_unavailable error without confirming account existence' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |err|
+          expect(err.message).to eq(described_class::SIGNUP_UNAVAILABLE_MESSAGE)
+          expect(err.error_type).to eq('signup_unavailable')
+          expect(err.field).to be_nil
+        end
+      end
+    end
+
+    # Regression for #3856: the two existence stores must be indistinguishable
+    # from each other, and an invalid-password probe must be indistinguishable
+    # across "account exists" and "no account".
+    context 'enumeration hardening (#3856)' do
+      subject(:logic) { described_class.new(strategy_result, valid_params) }
+
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_token)
+          .with(invite_token)
+          .and_return(invitation)
+      end
+
+      def capture_form_error(logic_instance)
+        logic_instance.raise_concerns
+        nil
+      rescue Onetime::FormError => ex
+        ex
+      end
+
+      def stub_authdb_exists(exists)
+        accounts_ds = double('accounts_dataset')
+        allow(accounts_ds).to receive(:where).and_return(accounts_ds)
+        allow(accounts_ds).to receive(:any?).and_return(exists)
+        allow(mock_auth_db).to receive(:[]).with(:accounts).and_return(accounts_ds)
+      end
+
+      it 'returns an identical error payload whether the account lives in authdb or Redis' do
+        stub_authdb_exists(true)
+        authdb_error = capture_form_error(described_class.new(strategy_result, valid_params))
+
+        stub_authdb_exists(false)
+        allow(Onetime::Customer).to receive(:email_exists?)
+          .with(normalized_email)
+          .and_return(true)
+        redis_error = capture_form_error(described_class.new(strategy_result, valid_params))
+
+        expect(authdb_error).not_to be_nil
+        expect(redis_error).not_to be_nil
+        expect(authdb_error.to_h).to eq(redis_error.to_h)
+      end
+
+      it 'never uses the account_exists error_type' do
+        stub_authdb_exists(true)
+        err = capture_form_error(described_class.new(strategy_result, valid_params))
+
+        expect(err.error_type).not_to eq('account_exists')
+      end
+
+      it 'returns the identical password error whether or not the account exists' do
+        weak_params = valid_params.merge('password' => weak_password)
+
+        # Account exists: the password check must fire first, so the probe
+        # learns nothing from the existence branch.
+        stub_authdb_exists(true)
+        exists_error = capture_form_error(described_class.new(strategy_result, weak_params))
+
+        # No account anywhere:
+        stub_authdb_exists(false)
+        allow(Onetime::Customer).to receive(:email_exists?)
+          .with(normalized_email)
+          .and_return(false)
+        fresh_error = capture_form_error(described_class.new(strategy_result, weak_params))
+
+        expect(exists_error).not_to be_nil
+        expect(fresh_error).not_to be_nil
+        expect(exists_error.error_type).to eq('password_too_short')
+        expect(exists_error.to_h).to eq(fresh_error.to_h)
       end
     end
 
@@ -497,6 +582,48 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       end
     end
 
+    context 'when Rodauth reports the login is already taken (create race, #3856)' do
+      # An account created between the raise_concerns pre-check and Rodauth's
+      # insert surfaces as an InternalRequestError with a "already an account
+      # with this login" field error. That path must return the same generic
+      # signup_unavailable error as the pre-check so the race window doesn't
+      # reopen the account-existence oracle.
+      before do
+        race_error              = Rodauth::InternalRequestError.new('There was an error creating your account')
+        race_error.field_errors = { 'login' => 'already an account with this login' }
+        allow(Auth::Config).to receive(:create_account).and_raise(race_error)
+        logic.raise_concerns
+      end
+
+      it 'raises the same generic signup_unavailable error as the pre-check' do
+        expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+          expect(err.message).to eq(described_class::SIGNUP_UNAVAILABLE_MESSAGE)
+          expect(err.error_type).to eq('signup_unavailable')
+        end
+      end
+    end
+
+    context 'when Rodauth rejects the signup for a non-race validation reason' do
+      # Any other Rodauth validation rule (a server-side password plugin, a
+      # login-format rejection) forwards the field error with the generic
+      # 'validation_error' sentinel, so clients keying on error_type never
+      # see it absent from this endpoint.
+      before do
+        validation_error              = Rodauth::InternalRequestError.new('There was an error creating your account')
+        validation_error.field_errors = { 'password' => 'invalid password, does not meet requirements' }
+        allow(Auth::Config).to receive(:create_account).and_raise(validation_error)
+        logic.raise_concerns
+      end
+
+      it 'forwards the field error with the validation_error sentinel' do
+        expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+          expect(err.message).to eq('invalid password, does not meet requirements')
+          expect(err.field).to eq(:password)
+          expect(err.error_type).to eq('validation_error')
+        end
+      end
+    end
+
     context 'when the account row is missing after create_account' do
       # Mirrors signup_and_accept.rb:228 — create_account succeeded with no
       # error, but the followup .where(email: ...).first lookup returns nil.
@@ -573,7 +700,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     it 'POST /api/invite/:token/signup returns 200 with organization details'
     it 'POST /api/invite/:token/signup returns 404 for non-existent token'
     it 'POST /api/invite/:token/signup returns 422 for expired invitation'
-    it 'POST /api/invite/:token/signup returns 422 when account already exists'
+    it 'POST /api/invite/:token/signup returns 422 with the generic signup_unavailable error when the email already has an account'
     it 'POST /api/invite/:token/signup returns 429 when rate limited'
   end
 end
