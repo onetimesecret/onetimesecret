@@ -70,6 +70,18 @@ export function useOrganizationsList(): UseOrganizationsList {
   const pagination = ref<PageMeta | null>(null);
   const cacheMeta = ref<ColonelOrganizationsCache | null>(null);
 
+  /**
+   * Monotonic id of the newest fetchPage call. Responses settle out of order
+   * when an operator changes search/filters/page while a request is in
+   * flight; only the request that still matches this counter may commit
+   * state, so a slower obsolete response can never replace the table with
+   * rows from a query the visible controls no longer describe.
+   */
+  let requestSeq = 0;
+  /** Cache block stashed by `select` (which runs for stale responses too);
+   *  committed to `cacheMeta` only by the still-newest request. */
+  let pendingCacheMeta: ColonelOrganizationsCache | null = null;
+
   const pager = usePaginatedFetch<ColonelOrganizationsResponse, ColonelOrganization>({
     url: '/api/colonel/organizations',
     schema: colonelOrganizationsResponseSchema,
@@ -78,8 +90,10 @@ export function useOrganizationsList(): UseOrganizationsList {
       // `select` is the only place the validated response is in scope, and the
       // shared PageResult contract carries just items + pagination. Capturing
       // the cache block here keeps that contract frozen (it is shared with every
-      // other admin list) instead of widening it for one screen.
-      cacheMeta.value = data.details?.cache ?? null;
+      // other admin list) instead of widening it for one screen. Stashed, not
+      // committed: `select` also runs for a response a newer request has
+      // already superseded.
+      pendingCacheMeta = data.details?.cache ?? null;
       return {
         items: data.details?.organizations ?? [],
         pagination: data.details?.pagination ?? null,
@@ -102,6 +116,7 @@ export function useOrganizationsList(): UseOrganizationsList {
     filters: OrganizationsListFilters = {},
     options: { refresh?: boolean } = {}
   ): Promise<void> {
+    const requestId = ++requestSeq;
     try {
       const result = await pager.fetchPage(targetPage, {
         status: filters.status,
@@ -110,12 +125,15 @@ export function useOrganizationsList(): UseOrganizationsList {
         // Omitted entirely unless bypassing — `buildParams` drops undefined.
         refresh: options.refresh ? '1' : undefined,
       });
+      // Stale response: a newer fetchPage owns the state now — discard.
+      if (requestId !== requestSeq) return;
       organizations.value = result?.items ?? [];
       pagination.value = result?.pagination ?? null;
-      if (!result) cacheMeta.value = null;
+      cacheMeta.value = result ? pendingCacheMeta : null;
     } catch {
       // Network/HTTP failure is captured in `error`; the view's banner + retry
       // handle it. Swallow so it doesn't become an unhandled rejection.
+      if (requestId !== requestSeq) return;
       organizations.value = [];
       pagination.value = null;
       cacheMeta.value = null;
