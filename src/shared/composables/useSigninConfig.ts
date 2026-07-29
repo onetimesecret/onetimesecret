@@ -59,12 +59,15 @@ export interface SigninConfigFormState {
  * SSO is deliberately absent. Bootstrap `features.sso` is PLATFORM SSO
  * (AUTH_SSO_ENABLED + platform provider env), resolved by ConfigSerializer
  * against the *current request's* display_domain — on the workspace host that
- * is the canonical site. Per-domain SSO is TENANT SSO (the domain's own
- * SsoConfig credentials), whose authorities are ORGS_SSO_ENABLED + manage_sso.
- * Reading the platform flag here made the domain sign-in page the sole surface
- * gating tenant SSO on the wrong axis, and — worse — seeded `sso_enabled`
- * from it, so the first autosave on an install with platform SSO off persisted
- * `sso_enabled: false` and killed the domain's working tenant SSO.
+ * is the canonical site. Per-domain SSO is TENANT SSO: whether it RUNS is
+ * decided by the domain's SsoConfig credentials + sso_permitted_for? (the
+ * stored sso_enabled) — the runtime ladder never consults ORGS_SSO_ENABLED or
+ * manage_sso, which only gate who may CONFIGURE it (write endpoints + UI).
+ * Never AND runtime state with those management gates. Reading the platform
+ * flag here made the domain sign-in page the sole surface gating tenant SSO
+ * on the wrong axis, and — worse — seeded `sso_enabled` from it, so the first
+ * autosave on an install with platform SSO off persisted `sso_enabled: false`
+ * and killed the domain's working tenant SSO.
  *
  * Single definition consumed by both the page (method gating) and this
  * composable (seeding unconfigured domains).

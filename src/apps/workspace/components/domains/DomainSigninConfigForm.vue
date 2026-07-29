@@ -224,12 +224,15 @@
   const webauthnAvailable = computed(() => props.globalAvailability.webauthn);
   const emailAuthAvailable = computed(() => props.globalAvailability.email_auth);
   /**
-   * SSO here means TENANT SSO (the domain's own SsoConfig credentials), whose
-   * authorities are ORGS_SSO_ENABLED + manage_sso — the same pair DomainsTable
-   * and OrganizationSettings gate on. It is NOT bootstrap `features.sso`
-   * (platform AUTH_SSO_ENABLED, resolved against the *current request's*
-   * domain): on the workspace host that reads the canonical site's SSO config,
-   * which has no bearing on whether this domain may run tenant SSO.
+   * SSO here means TENANT SSO (the domain's own SsoConfig credentials).
+   * ORGS_SSO_ENABLED — with manage_sso, the pair DomainsTable and
+   * OrganizationSettings gate on — governs who may CONFIGURE tenant SSO, not
+   * whether it runs: the runtime ladder (SsoConfig.tenant_sso_unavailable_reason)
+   * checks the SsoConfig record + sso_permitted_for?, never these management
+   * gates, so don't AND runtime state with them. It is also NOT bootstrap
+   * `features.sso` (platform AUTH_SSO_ENABLED, resolved against the *current
+   * request's* domain): on the workspace host that reads the canonical site's
+   * SSO config, which has no bearing on this domain's tenant SSO.
    */
   const ssoAvailable = computed(() => isOrgsSsoEnabled());
 
@@ -737,12 +740,16 @@
               </span>
             </span>
 
-            <!-- SSO Configure stays reachable in Mode B -->
+            <!-- SSO Configure stays reachable in Mode B — same gates as Mode A:
+                 the button needs BOTH write-endpoint gates (ssoConfigurable),
+                 and the upgrade lock names the ENTITLEMENT only. When the
+                 blocker is the install flag, neither renders — no plan unlocks
+                 an operator's ORGS_SSO_ENABLED. -->
             <span
               v-if="method.value === 'sso'"
               class="ml-3 flex-shrink-0">
               <button
-                v-if="canManageSso"
+                v-if="ssoConfigurable"
                 type="button"
                 @click.prevent="emit('configure-sso')"
                 class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
@@ -758,7 +765,7 @@
                 }}
               </button>
               <span
-                v-else
+                v-else-if="!canManageSso"
                 class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
                 <OIcon
                   collection="heroicons"

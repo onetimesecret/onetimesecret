@@ -1243,7 +1243,12 @@ describe('DomainSigninConfigForm', () => {
   //
   // Existing tests cover Mode A (button + emit, upgrade hint) and Mode B
   // (button reachable + emit). Gap: Mode B with canManageSso=false must show
-  // the upgrade hint and NO Configure button, same as Mode A.
+  // the upgrade hint and NO Configure button, same as Mode A. And like Mode A,
+  // Configure needs BOTH write-endpoint gates: restrict_to='sso' keeps the SSO
+  // row visible when ORGS_SSO_ENABLED is off (visible-but-locked invariant),
+  // so its Configure button must not survive on canManageSso alone — the modal
+  // save would be rejected ("Organization SSO is not enabled on this
+  // instance").
   // -----------------------------------------------------------------------
 
   describe('SSO configure across modes', () => {
@@ -1257,6 +1262,40 @@ describe('DomainSigninConfigForm', () => {
         .findAll('button')
         .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
       expect(configureBtn).toBeUndefined();
+    });
+
+    it('Mode B hides Configure when ORGS_SSO_ENABLED is off, even with the entitlement — and does not blame the plan', () => {
+      // Mirror of Mode A's wrong-blame guard: "Upgrade to configure" would
+      // name the wrong cause — no plan unlocks an operator's ORGS_SSO_ENABLED.
+      // With the entitlement present and only the install flag off, the locked
+      // SSO row renders neither the button nor the upgrade hint.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        canManageSso: true,
+        orgsSsoEnabled: false,
+      });
+      const configureBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
+      expect(configureBtn).toBeUndefined();
+      expect(wrapper.text()).not.toContain(COPY.upgradeRequired);
+    });
+
+    it('Mode B with both gates off hides Configure and keeps the upgrade hint', () => {
+      // Deliberate v-else-if="!canManageSso" semantics: the hint keys on the
+      // entitlement alone, so it still shows when the install flag is ALSO off
+      // — acceptable, because the entitlement is genuinely missing too and an
+      // upgrade is a real (if not sufficient) step toward configuring.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        canManageSso: false,
+        orgsSsoEnabled: false,
+      });
+      const configureBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
+      expect(configureBtn).toBeUndefined();
+      expect(wrapper.text()).toContain(COPY.upgradeRequired);
     });
 
     it('Configure label reflects ssoConfigured (Edit credentials when configured)', () => {
