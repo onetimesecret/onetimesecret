@@ -392,7 +392,10 @@
 
   const reconcileDiffRows = computed(() => {
     const r = reconcileResult.value;
-    if (!r) return [];
+    // `after` is null on dry runs / Stripe errors (schema-nullable since
+    // #3937); the adapter never sends those today, but the diff needs both
+    // snapshots either way.
+    if (!r || !r.after) return [];
     return [
       {
         key: 'planid',

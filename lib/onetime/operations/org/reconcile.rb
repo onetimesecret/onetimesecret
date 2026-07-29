@@ -272,6 +272,15 @@ module Onetime
           # A refusal returns a status; it does not raise out of the op. The
           # colonel adapter converts this back into its 4xx form error so the
           # HTTP contract is unchanged.
+          #
+          # KNOWN GAP, deliberate: only StripeError is contained. On the
+          # stripe_sync path the engine materializes with raise_on_miss: true,
+          # so a subscription whose resolved plan is missing from cache AND
+          # config raises ::Billing::PlanCacheMissError out of this op — after
+          # the billing fields were applied. That parity with the webhook path
+          # (which relies on the raise for retry/observability) predates this
+          # op; containing it here would need its own status + wire vocabulary.
+          # Revisit with the D12 preview work (#3907 item 4).
           { status: :stripe_error, reason: ex.message }
         end
 

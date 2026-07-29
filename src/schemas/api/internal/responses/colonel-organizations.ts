@@ -281,7 +281,12 @@ export const colonelReconcileOrganizationRecordSchema = z.object({
   status: z.string(),
   reason: z.string().nullable(),
   before: colonelReconcileSnapshotSchema,
-  after: colonelReconcileSnapshotSchema,
+  // Nullable to match the op's Result contract: `after` is nil on dry runs
+  // and Stripe errors. Today the colonel adapter pins dry_run:false and 4xxes
+  // Stripe errors before responding, so null never reaches the wire — but the
+  // D12 preview work (#3907 item 4) will change that, and a non-nullable
+  // schema here would reject those responses with no compile-time signal.
+  after: colonelReconcileSnapshotSchema.nullable(),
   memberships: colonelReconcileMembershipCascadeSchema.nullable(),
 });
 
