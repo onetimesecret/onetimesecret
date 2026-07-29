@@ -28,12 +28,13 @@ module Onetime
     class BillingOrgsStripeCommand < Command
       desc 'List organizations that have a Stripe customer id (index-backed)'
 
+      # No `type:` on the numeric options: dry-cli 1.4.1 special-cases only
+      # :boolean/:flag/:array, so `type: :integer` is a silent no-op that would
+      # falsely advertise coercion. The op re-coerces with #to_i.
       option :page,
-        type: :integer,
         default: 1,
         desc: 'Page number (1-based)'
       option :per_page,
-        type: :integer,
         default: 50,
         desc: 'Rows per page (max 100)'
       option :search,

@@ -71,9 +71,6 @@ module AccountAPI::Logic
         # Update the customer's passphrase
         @cust.update_passphrase @password
 
-        # Set a success message in the session
-        sess.set_success_message 'Password changed'
-
         # Destroy the secret on successful attempt only. Otherwise
         # the user will need to make a new request if the passwords
         # don't match.

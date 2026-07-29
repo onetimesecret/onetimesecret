@@ -315,8 +315,11 @@ module Onetime
         # funnels through spawn_pair, so counting here (rather than in each Logic
         # class) guarantees exactly one increment per created secret and no path
         # is missed. Anonymous/ownerless creates are skipped inside the helper.
-        # This counter drifts UP (no expire/reveal decrement) and is corrected by
-        # the nightly SecretCountReconcileJob — see counter_fields.rb.
+        # The mirror decrement fires at the single early-destruction chokepoint
+        # (Secret#destroy! — reveal, burn, and admin delete all funnel through
+        # it). The remaining drift source is TTL expiry, where Redis drops the
+        # key silently and no application code runs; that is corrected by the
+        # nightly SecretCountReconcileJob — see counter_fields.rb.
         #
         # The same call maintains the owner's per-secret index
         # (customer:<objid>:secrets, member = secret objid, score = created), so

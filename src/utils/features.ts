@@ -1,11 +1,11 @@
 // src/utils/features.ts
 
-import { getBootstrapValue } from '@/services/bootstrap.service';
 import {
   featuresSchema,
   type AuthenticationSettings,
   type Features,
 } from '@/schemas/contracts/bootstrap';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { debugLog } from '@/utils/debug';
 
 /**
@@ -134,16 +134,23 @@ export function isPasswordRequirementsEnabled(): boolean {
 }
 
 /**
+ * Pure predicate: SSO authentication enabled in the given state.
+ *
+ * `sso` can be a boolean (false) or an object with an `enabled` property.
+ */
+export function isSsoEnabledOf(state: { features?: Features }): boolean {
+  const sso = state.features?.sso;
+  if (typeof sso === 'boolean') return sso;
+  return sso?.enabled === true;
+}
+
+/**
  * Checks if SSO authentication is enabled
  */
 export function isSsoEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const features = getBootstrapValue('features');
-  // sso can be boolean (false) or object with enabled property
-  const sso = features?.sso;
-  if (typeof sso === 'boolean') return sso;
-  return sso?.enabled === true;
+  return isSsoEnabledOf({ features: getBootstrapValue('features') });
 }
 
 /**
@@ -178,6 +185,63 @@ export function getSsoProviders(): SsoProvider[] {
   }
 
   return [];
+}
+
+/**
+ * Built-in friendly labels for the omniauth strategies shipped with the app.
+ *
+ * Keyed on the omniauth ROUTE NAME ('entra'), NOT the domain-SSO strategy id
+ * ('entra_id') — that is a separate surface with its own label list (see
+ * DomainSsoConfigForm.vue).
+ */
+const PROVIDER_LABELS: Record<string, string> = {
+  oidc: 'OpenID Connect',
+  entra: 'Microsoft Entra',
+  github: 'GitHub',
+  google: 'Google',
+};
+
+/**
+ * Canonical display label for an omniauth route name ('entra' → 'Microsoft Entra').
+ *
+ * Resolution order:
+ * 1. The built-in label above.
+ * 2. The capitalized route name, so a backend that adds a strategy still renders
+ *    sensibly.
+ *
+ * DELIBERATELY does NOT consult the bootstrap `display_name`. The backend always
+ * populates that field with a generic default — lib/onetime/auth_config.rb
+ * resolves it to `sso_display_name || 'SSO'`, so a stock OIDC install (no
+ * OIDC_DISPLAY_NAME set) ships display_name: 'SSO' and entra ships 'Microsoft'.
+ * Preferring it here would make this map unreachable in production and silently
+ * downgrade prose like "You signed in with OpenID Connect" to "…with SSO".
+ *
+ * Use this wherever the provider is named in prose or in a linked-identity row:
+ * ConnectedIdentities linked rows, LinkSso, SsoLinkConfirm.
+ * Use configuredProviderLabel() — NOT this — for the Connect buttons, where the
+ * operator's chosen name is what should win. Do not collapse the two into one
+ * helper: the precedence difference is intentional and user-visible.
+ */
+export function providerLabel(routeName: string): string {
+  if (!routeName) return '';
+
+  return PROVIDER_LABELS[routeName] ?? routeName.charAt(0).toUpperCase() + routeName.slice(1);
+}
+
+/**
+ * Display label for a CONFIGURED provider, operator `display_name` first.
+ *
+ * The inverse precedence of providerLabel(): an operator who sets
+ * OIDC_DISPLAY_NAME='Acme SSO' expects the Connect button to read
+ * "Connect Acme SSO" with no frontend change. Falls back to providerLabel()
+ * (built-in map, then capitalized route name) when display_name is blank.
+ *
+ * Only the ConnectedIdentities connect buttons use this — see providerLabel()
+ * for why the other label sites must not.
+ */
+export function configuredProviderLabel(provider: SsoProvider): string {
+  const name = provider.display_name?.trim();
+  return name ? name : providerLabel(provider.route_name);
 }
 
 /**
@@ -294,10 +358,11 @@ export function isFullAuthMode(): boolean {
  * Pure predicate: user has a password set in the given state.
  *
  * Accepts an optional `has_password` so the snapshot wrapper can pass through
- * `getBootstrapValue('has_password')` (which is typed as `boolean | undefined`)
- * without a coercion at every call site.
+ * `getBootstrapValue('has_password')` (typed `boolean | null | undefined`;
+ * null is the server's "unknown" signal) without a coercion at every call
+ * site. Anything other than a definitive true stays conservative.
  */
-export function hasPasswordOf(state: { has_password?: boolean }): boolean {
+export function hasPasswordOf(state: { has_password?: boolean | null }): boolean {
   return state.has_password === true;
 }
 
@@ -310,6 +375,34 @@ export function hasPassword(): boolean {
   if (typeof window === 'undefined') return false;
 
   return hasPasswordOf({ has_password: getBootstrapValue('has_password') });
+}
+
+/**
+ * Pure predicate: policy permits this account to hold a local password in the
+ * given state (#3886).
+ *
+ * Independent of credential presence (hasPasswordOf): `has_password` says what
+ * exists, this says what policy allows. The backend emits false only when SSO
+ * is enforced (app-level restrict_to='sso' or per-domain enforce_sso_only) or
+ * auth mode is not 'full'. Missing/undefined defaults to true (permissive) so
+ * consumer accounts keep the Set-password affordance.
+ */
+export function isPasswordAuthPermittedOf(state: { password_auth_permitted?: boolean }): boolean {
+  return state.password_auth_permitted !== false;
+}
+
+/**
+ * Checks if the current account is permitted to hold a local password.
+ * Combined with hasPassword() to pick a screen: password present => Change
+ * password; absent but permitted => Set password (mailbox-proof); absent and
+ * not permitted => password management hidden (SSO-managed).
+ */
+export function isPasswordAuthPermitted(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return isPasswordAuthPermittedOf({
+    password_auth_permitted: getBootstrapValue('password_auth_permitted'),
+  });
 }
 
 /**

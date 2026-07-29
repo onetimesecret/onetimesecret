@@ -38,7 +38,7 @@ module Billing
         EXTID_PATTERN = /\A[a-z]{2}[a-z0-9]{25}\z/i
 
         # Basic email format (legacy custid format, pre-v0.22)
-        EMAIL_PATTERN = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+        EMAIL_PATTERN = Onetime::Utils::EmailFormat::MINIMAL_FORMAT
 
         private_constant :UUID_PATTERN, :EXTID_PATTERN, :EMAIL_PATTERN
 

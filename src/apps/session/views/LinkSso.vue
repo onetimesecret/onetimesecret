@@ -1,0 +1,343 @@
+<!-- src/apps/session/views/LinkSso.vue -->
+
+<script setup lang="ts">
+  import AuthView from '@/apps/session/components/AuthView.vue';
+  import {
+    linkSsoRequiresMfa,
+    type LinkSsoVerifySuccess,
+  } from '@/schemas/api/auth/responses/auth';
+  import { loggingService } from '@/services/logging.service';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useLinkSso } from '@/shared/composables/useLinkSso';
+  import { useAuthStore } from '@/shared/stores/authStore';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { providerLabel } from '@/utils/features';
+  import { isValidInternalPath } from '@/utils/redirect';
+  import { ref, onMounted, computed, nextTick, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+
+  const { t } = useI18n();
+  const route = useRoute();
+  const router = useRouter();
+  const authStore = useAuthStore();
+  const bootstrapStore = useBootstrapStore();
+
+  const { challenge, verifyLink, fetchChallenge, isLoading, error, errorCode, clearError } =
+    useLinkSso();
+
+  // Phase 2 Connected Identities panel — where the H-3 refusal points on
+  // cancel / dead-end. An UNAUTHENTICATED user cannot open it directly, so we
+  // route through /signin carrying this as the post-login destination.
+  const CONNECT_REDIRECT = '/account/settings/security/connections';
+
+  const password = ref('');
+  const passwordInputRef = ref<HTMLInputElement | null>(null);
+  // Set when the challenge context cannot be loaded, the token is spent, or the
+  // verify failed terminally (link_conflict — the account moved or the identity
+  // is bound elsewhere): there is nothing left to prove against, so render the
+  // dead-end panel, not the form. The specific reason lives in `error`.
+  const challengeUnavailable = ref(false);
+
+  // Single-use challenge token from the interstitial URL (path param, scrubbed
+  // from diagnostics via the route's sentryScrubParams).
+  const token = computed(() => {
+    const raw = route.params.token;
+    return typeof raw === 'string' ? raw : '';
+  });
+
+  // Post-link destination from the query, if a safe internal path. Only used as
+  // a fallback when the verify response does not carry its own redirect target.
+  const redirectPath = computed(() => {
+    const redirect = route.query.redirect;
+    if (typeof redirect !== 'string') return null;
+    return isValidInternalPath(redirect) ? redirect : null;
+  });
+
+  // Shared label resolution (features.providerLabel): the built-in canonical
+  // label, else a capitalized route name. NOT the bootstrap display_name — the
+  // backend defaults that to 'SSO'/'Microsoft', which would read wrong in the
+  // prose below ("You signed in with SSO"). See utils/features.ts.
+  const providerDisplayName = computed(() => providerLabel(challenge.value?.provider ?? ''));
+
+  // Dead-end-panel body: the specific classified reason when one was set
+  // (spent token / conflict), else the generic expired copy (e.g. the token was
+  // missing from the URL entirely, so no request ever ran). Mirrors
+  // SsoLinkConfirm.vue's unavailableMessage.
+  const unavailableMessage = computed(
+    () => error.value ?? t('web.link_sso.unavailable_message')
+  );
+
+  // Single polite live region, rendered unconditionally. A live region has to be
+  // in the DOM BEFORE its content changes for assistive tech to announce it, so
+  // inserting an already-populated region (v-if) is unreliable — only the text
+  // swaps here.
+  const statusMessage = computed(() => (isLoading.value ? t('web.COMMON.form_processing') : ''));
+
+  // Heading of the dead-end panel. The panel replaces the password form in place,
+  // so whatever had focus (the Submit button, or the password input) is unmounted
+  // and focus falls back to <body>: keyboard users lose their place and the
+  // refusal is never announced. Move focus to the heading instead
+  // (WCAG 2.4.3 / 3.2.2).
+  const unavailableHeadingRef = ref<HTMLElement | null>(null);
+
+  watch(challengeUnavailable, async (unavailable) => {
+    if (!unavailable) return;
+    await nextTick();
+    unavailableHeadingRef.value?.focus();
+  });
+
+  onMounted(async () => {
+    // Already fully signed in (e.g. a stale interstitial link opened after a
+    // separate login): nothing to link, go home.
+    if (authStore.isFullyAuthenticated) {
+      loggingService.debug('[LinkSso] Already authenticated, redirecting to /');
+      router.push('/');
+      return;
+    }
+
+    if (!token.value) {
+      loggingService.debug('[LinkSso] Missing challenge token — dead-end');
+      challengeUnavailable.value = true;
+      return;
+    }
+
+    const context = await fetchChallenge(token.value);
+    if (!context) {
+      // Token spent / expired / unknown — keep the H-3 refusal, point at settings.
+      challengeUnavailable.value = true;
+    }
+  });
+
+  // Handle a successful verify. The password proof succeeded server-side; for an
+  // MFA account only the FIRST factor is done. Mirror the normal Login flow
+  // (useAuth) EXACTLY: hand an MFA account off to the shared /mfa-verify challenge
+  // WITHOUT marking it fully authenticated; otherwise complete the sign-in and
+  // navigate to the safest available destination.
+  const handleVerifySuccess = async (result: LinkSsoVerifySuccess) => {
+    if (linkSsoRequiresMfa(result)) {
+      loggingService.debug('[LinkSso] MFA required, routing to /mfa-verify');
+      // Mark awaiting_mfa (NOT authenticated) so the MFA route guard permits
+      // /mfa-verify; preserve any ?redirect for the post-verify hop.
+      bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
+      router.push({
+        path: '/mfa-verify',
+        query: redirectPath.value ? { redirect: redirectPath.value } : undefined,
+      });
+      return;
+    }
+
+    loggingService.debug('[LinkSso] Link verified, completing sign-in');
+    await authStore.setAuthenticated(true);
+
+    // Prefer the backend's redirect target when it is a safe internal path;
+    // otherwise the ?redirect query param; otherwise the dashboard.
+    const fromResponse =
+      result.redirect && isValidInternalPath(result.redirect) ? result.redirect : null;
+    const destination = fromResponse ?? redirectPath.value ?? '/';
+    router.push(destination);
+  };
+
+  // Verify the account's EXISTING password. Success establishes the session
+  // server-side; sync client auth state and navigate. Wrong password → retry;
+  // spent/expired token → dead-end.
+  const handleVerify = async () => {
+    if (!password.value || isLoading.value) return;
+
+    clearError();
+    const result = await verifyLink(token.value, password.value);
+
+    if (result) {
+      await handleVerifySuccess(result);
+      return;
+    }
+
+    if (errorCode.value === 'invalid_token' || errorCode.value === 'link_conflict') {
+      // Terminal: nothing left to prove against (spent token), or the account
+      // moved / the identity is bound elsewhere (conflict). A retry against this
+      // challenge can never succeed — fall through to the dead-end panel, which
+      // carries the specific reason (see unavailableMessage).
+      challengeUnavailable.value = true;
+      return;
+    }
+
+    if (errorCode.value === 'link_rate_limited' || errorCode.value === 'invalid_request') {
+      // Not a password verdict — leave the form as-is; clearing and refocusing
+      // the field would misrepresent either failure as a wrong password.
+      // - link_rate_limited: throttled BEFORE the token was consumed, so the
+      //   challenge is still live and a retry after the lockout can succeed;
+      //   the inline error says "wait". An immediate retype would re-trip it.
+      // - invalid_request: malformed submit (missing token/password) that the
+      //   guards above should make impossible; surface its copy inline.
+      return;
+    }
+
+    // Wrong password: clear the field and let the user try again.
+    password.value = '';
+    passwordInputRef.value?.focus();
+  };
+
+  // Cancel / dead-end: an unauthenticated user is sent to sign in with their
+  // existing method, carrying the Connected Identities panel as the post-login
+  // destination plus an explanatory pointer (Login.vue renders link_sso_failed).
+  const goToSignInFallback = () => {
+    router.push({
+      path: '/signin',
+      query: { auth_error: 'link_sso_failed', redirect: CONNECT_REDIRECT },
+    });
+  };
+
+  const handleCancel = () => {
+    clearError();
+    goToSignInFallback();
+  };
+</script>
+
+<template>
+  <AuthView
+    :heading="t('web.link_sso.title')"
+    heading-id="link-sso-heading"
+    :with-subheading="false"
+    :show-return-home="false">
+    <template #form>
+      <!-- Always-present polite live region (see statusMessage). Kept OUTSIDE
+           the space-y-6 stack so it never participates in sibling spacing. -->
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        class="sr-only"
+        data-testid="link-sso-status">
+        {{ statusMessage }}
+      </div>
+
+      <div class="space-y-6">
+        <!-- Dead-end: token missing / expired / spent, or the verify hit a
+             terminal conflict (account moved / identity bound elsewhere). Keep
+             the H-3 refusal and point the user at the Phase 2 settings flow.
+             Labelled + described so focusing the heading announces the
+             refusal. -->
+        <div
+          v-if="challengeUnavailable"
+          role="group"
+          aria-labelledby="link-sso-unavailable-title"
+          data-testid="link-sso-unavailable"
+          class="space-y-4 text-center">
+          <OIcon
+            collection="heroicons"
+            name="lock-closed"
+            class="mx-auto size-10 text-gray-400 dark:text-gray-500"
+            aria-hidden="true" />
+          <h2
+            id="link-sso-unavailable-title"
+            ref="unavailableHeadingRef"
+            tabindex="-1"
+            aria-describedby="link-sso-unavailable-message"
+            class="text-lg font-medium text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-white">
+            {{ t('web.link_sso.unavailable_title') }}
+          </h2>
+          <p
+            id="link-sso-unavailable-message"
+            class="text-sm text-gray-600 dark:text-gray-400">
+            {{ unavailableMessage }}
+          </p>
+          <button
+            @click="goToSignInFallback"
+            type="button"
+            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            data-testid="link-sso-unavailable-action">
+            {{ t('web.link_sso.unavailable_action') }}
+          </button>
+        </div>
+
+        <!-- Loading the challenge context (visual only; announced by the region above) -->
+        <div
+          v-else-if="isLoading && !challenge"
+          class="py-4 text-center text-sm text-gray-600 dark:text-gray-400"
+          data-testid="link-sso-loading">
+          {{ t('web.COMMON.form_processing') }}
+        </div>
+
+        <!-- Password challenge -->
+        <template v-else-if="challenge">
+          <p
+            id="link-sso-instructions"
+            class="text-center text-gray-600 dark:text-gray-400"
+            data-testid="link-sso-prompt">
+            {{
+              t('web.link_sso.prompt', {
+                provider: providerDisplayName,
+                email: challenge.email,
+              })
+            }}
+          </p>
+
+          <form
+            @submit.prevent="handleVerify"
+            class="space-y-4">
+            <div>
+              <label
+                for="link-sso-password"
+                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ t('web.link_sso.password_label') }}
+              </label>
+              <input
+                id="link-sso-password"
+                ref="passwordInputRef"
+                v-model="password"
+                type="password"
+                autocomplete="current-password"
+                :disabled="isLoading"
+                :aria-invalid="error ? 'true' : undefined"
+                :aria-describedby="error ? 'link-sso-error' : 'link-sso-instructions'"
+                :placeholder="t('web.link_sso.password_placeholder')"
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                data-testid="link-sso-password-input" />
+            </div>
+
+            <!-- Error message (wrong password stays inline; token errors dead-end) -->
+            <div
+              v-if="error"
+              id="link-sso-error"
+              class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
+              role="alert"
+              aria-live="assertive"
+              aria-atomic="true"
+              data-testid="link-sso-error">
+              <p class="text-sm text-red-800 dark:text-red-200">
+                {{ error }}
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              :disabled="!password || isLoading"
+              :aria-busy="isLoading ? 'true' : undefined"
+              class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              data-testid="link-sso-submit">
+              <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
+              <span v-else>{{ t('web.link_sso.submit') }}</span>
+            </button>
+          </form>
+        </template>
+      </div>
+    </template>
+
+    <!-- Footer: cancel returns to the sign-in / settings flow -->
+    <template #footer>
+      <div
+        v-if="!challengeUnavailable"
+        class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <nav class="flex items-center justify-center gap-2 text-sm">
+          <button
+            @click="handleCancel"
+            type="button"
+            :disabled="isLoading"
+            class="cursor-pointer rounded-sm px-1 text-gray-500 underline-offset-2 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
+            data-testid="link-sso-cancel">
+            {{ t('web.link_sso.cancel') }}
+          </button>
+        </nav>
+      </div>
+    </template>
+  </AuthView>
+</template>

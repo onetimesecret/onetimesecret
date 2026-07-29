@@ -226,7 +226,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         before do
           allow(customer).to receive(:pending?).and_return(true)
           allow(logic).to receive(:send_verification_email)
-          allow(logic).to receive(:set_info_message)
         end
 
         context 'when autoverify is disabled' do
@@ -245,14 +244,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
             logic.process
           end
 
-          it 'sets info message about verification' do
-            expect(logic).to receive(:set_info_message).with(a_string_matching(/#{Regexp.escape(test_email)}/))
-            logic.process
-          end
-
           it 'logs pending customer login' do
             expect(mock_logger).to receive(:info).with('Login pending customer verification', hash_including(:customer_id, :email))
-            expect(mock_logger).to receive(:info).with('Resending verification email (autoverify mode)', hash_including(:customer_id, :email))
+            expect(mock_logger).to receive(:info).with('Resending verification email (autoverify disabled)', hash_including(:customer_id, :email))
             logic.process
           end
         end
@@ -330,6 +324,66 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         expect { logic.process }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to eq('Invalid email or password')
         end
+      end
+    end
+  end
+
+  # Simple auth mode's session-establishment site for the colonel.signin audit
+  # event (full mode's counterpart is Auth::Operations::SyncSession). Colonel
+  # activity is overwhelmingly reads, and reads never audit by design
+  # (CONTRACT 4), so session establishment is the one signal of operator
+  # presence the trail can carry.
+  describe 'colonel.signin audit event' do
+    before do
+      allow(Onetime::AdminAuditEvent).to receive(:record)
+      logic.process_params
+    end
+
+    it 'records nothing for a non-colonel login' do
+      logic.process
+
+      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    end
+
+    context 'when the customer is a colonel' do
+      before { allow(customer).to receive(:role).and_return('colonel') }
+
+      it 'records one colonel.signin event with public identities only' do
+        logic.process
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          actor: 'ur_test123',
+          verb: 'colonel.signin',
+          target: 'ur_test123',
+          result: :success,
+          detail: { auth_method: 'password', ip: '127.0.0.1' },
+        )
+      end
+
+      # The hard constraint: the audit set is capped by COUNT with no TTL, so an
+      # event a failed login can trigger is a log-eviction primitive.
+      it 'records NOTHING when the credentials are wrong' do
+        params['password'] = 'definitely-wrong'
+        logic.process_params
+
+        expect { logic.process }.to raise_error(Onetime::FormError)
+        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      end
+
+      it 'records NOTHING when the account is suspended' do
+        allow(customer).to receive(:suspended?).and_return(true)
+
+        expect { logic.process }.to raise_error(Onetime::FormError)
+        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      end
+
+      it 'records NOTHING for a pending (unverified) account' do
+        allow(customer).to receive(:pending?).and_return(true)
+        allow(logic).to receive(:send_verification_email)
+
+        logic.process
+
+        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
       end
     end
   end

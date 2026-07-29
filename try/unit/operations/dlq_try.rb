@@ -252,6 +252,49 @@ AE.events.clear
 [@dry.status, @dry.would_replay, @dry_q.message_count, AE.count]
 #=> [:dry_run, 4, 4, 0]
 
+# ---- Replay: a mid-loop broker failure is audited, then re-raised -----
+#
+# The Onetime::AuditedFailure mechanism, and the nastiest partial-failure shape
+# in the toolbox: the loop republishes and acks message by message — each
+# republish able to re-trigger emails and webhooks — and the success record runs
+# only at the end. A broker error halfway through therefore fired real side
+# effects and previously left NOTHING in the trail. dry_run is in the detail so
+# a blown-up preview (sent nothing) is distinguishable from a blown-up live
+# replay (may have sent plenty).
+
+## a broker drop mid-loop (pop raises after the first message already went out)
+## re-raises the original error
+#
+# A publish failure is caught PER MESSAGE and counted as `failed`; the uncaught
+# shape is the connection itself dying between messages, which is what this
+# simulates.
+AE.events.clear
+@boom_q = FakeQueue.new(sample_messages(3))
+boom_pops = [0] # closure counter — an ivar here would land on the FakeQueue
+@boom_q.define_singleton_method(:pop) do |**kwargs|
+  boom_pops[0] += 1
+  raise(Onetime::Problem, 'broker gone') if boom_pops[0] > 1
+
+  super(**kwargs)
+end
+@boom_conn = FakeConnection.new(@boom_q)
+begin
+  Onetime::Operations::Dlq::Replay.new(connection: @boom_conn, queue: @dlq, actor: @actor).call
+  :no_raise
+rescue Onetime::Problem
+  :raised
+end
+#=> :raised
+
+## the first message DID go out — the side effect happened, so the trail must show it
+@boom_conn.channels.first.exchange.published.size
+#=> 1
+
+## it recorded ONE result: :failure event with the unchanged verb + queue target
+@bev = AE.recent(1).first
+[AE.count, @bev['verb'], @bev['target'], @bev['result'], @bev['detail']['dry_run']]
+#=> [1, "queue.dlq.replay", "dlq.billing.event", "failure", false]
+
 # ---- Purge: success ---------------------------------------------------
 
 ## Purge empties the queue and reports the purged count

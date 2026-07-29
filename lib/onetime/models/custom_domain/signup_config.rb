@@ -82,6 +82,23 @@ module Onetime
       field :created
       field :updated
 
+      # Colonel-writable fields, aggregated into
+      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
+      # validates at load time that every key has a setter here). This model's
+      # MIXED boolean encoding is declared HERE so the registry carries no
+      # second copy: `enabled` stores a legacy 'true'/'false' STRING
+      # (workspace writers in apps/api/domains assign `.to_s`; #enabled?
+      # tolerates both encodings), while signup_enabled/autoverify store REAL
+      # booleans. allowed_signup_domains routes through the model setter
+      # (PublicSuffix validation, raises Onetime::Problem).
+      COLONEL_FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :string },
+        'signup_enabled' => { type: :boolean, storage: :native },
+        'autoverify' => { type: :boolean, storage: :native },
+        'validation_strategy' => { type: :enum, values: STRATEGY_TYPES, nullable: false },
+        'allowed_signup_domains' => { type: :string_array },
+      }.freeze
+
       def init
         self.enabled             ||= 'false'
         self.validation_strategy ||= 'passthrough'

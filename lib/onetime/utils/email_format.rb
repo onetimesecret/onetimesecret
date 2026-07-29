@@ -21,6 +21,18 @@ module Onetime
       # Rejects obvious malformations without DNS lookups.
       BASIC_FORMAT = /\A[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\z/
 
+      # Minimal 3-part shape check (local@domain.tld) with no charset
+      # restrictions, so internationalized addresses BASIC_FORMAT would
+      # reject still pass. Use where refusing a real-but-unusual address
+      # is worse than accepting a malformed one (e.g. suppression-list
+      # ingestion, legacy custid recognition).
+      MINIMAL_FORMAT = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+
+      # Loosest 2-part shape check (local@domain, no TLD required).
+      # For heuristics over legacy/unlinked datastore rows where stored
+      # addresses may lack a TLD entirely.
+      LOOSE_FORMAT = /\A[^@\s]+@[^@\s]+\z/
+
       class << self
         # Check basic email format (no DNS, no Truemail dependency)
         #

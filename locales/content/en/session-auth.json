@@ -128,6 +128,31 @@
     "context": "Shown on signin page when SSO signup is blocked by the email domain policy (per-domain SignupConfig or global allowed_signup_domains).",
     "content_hash": "87603782"
   },
+  "web.login.errors.account_exists_link_required": {
+    "text": "An account with this email address already exists but isn't linked to this sign-in method. Sign in with your existing method, then link this provider under Security settings → Connected identities.",
+    "context": "Shown on signin page when SSO refuses to auto-link: an account with the callback email exists but is not linked to this provider. Phase 2 (#3840) is live — the authenticated Connected Identities panel (/account/settings/security/connections) now lets a signed-in user link the provider, so the copy points there.",
+    "content_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "This identity couldn't be connected. The connection may have been started on the wrong domain, or your session expired. Please sign in again, then connect it from your account settings.",
+    "context": "Shown on /signin when an authenticated SSO connect is refused for surface isolation (tenant callback on a platform session) or an expired session (#3840 Phase 2)",
+    "content_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "We couldn't finish adding you to your organization. Please contact your administrator.",
+    "context": "Shown on signin page when tenant-domain SSO authenticated but the organization join produced no membership (orphaned account). Admins/ops must investigate; the user cannot self-resolve.",
+    "content_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "We couldn't link that sign-in method. Sign in with your existing password, then connect this provider under Security settings → Connected identities.",
+    "context": "Shown on /signin after the #3840 Phase 3 sign-in interstitial is cancelled, its challenge token expires/is spent, or password linking otherwise dead-ends. Points the user at the Phase 2 Connected Identities flow; the interstitial routes here with ?redirect=/account/settings/security/connections so the panel opens after they sign in.",
+    "content_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Check your inbox — we emailed you a link to confirm connecting your account. Open it to finish signing in.",
+    "context": "Informational (non-error) notice shown on /signin via ?auth_notice=link_verification_sent after a passwordless account's SSO sign-in triggers a mailbox-proof linking email (#3840 Phase 4). The emailed link opens the /sso-link-confirm/:token consent page.",
+    "content_hash": "b251c8f3"
+  },
   "web.login.signin_disabled_heading": {
     "text": "Sign-in is not available",
     "context": "Page heading on /signin when sign-in is disabled for the current domain (per-domain SigninConfig).",
@@ -341,6 +366,26 @@
   "web.auth.password_reset_request.button": {
     "text": "Send Reset Link",
     "content_hash": "7d5f16d4"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Set a Password",
+    "context": "Settings page heading for a passwordless (SSO-provisioned) account adding a first password via an emailed link (#3886)",
+    "content_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Your account doesn't have a password yet. We'll email you a secure link to set one so you can also sign in directly.",
+    "context": "Explains the mailbox-proof set-password flow to a passwordless account; same flow as a password reset, different framing",
+    "content_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Send Setup Link",
+    "context": "Submit button that emails the set-password link to a passwordless account",
+    "content_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "An email has been sent to you with a link to set a password for your account",
+    "context": "Success message after requesting the set-password link (passwordless account variant of web.auth.passwordReset.emailSent)",
+    "content_hash": "82b686c7"
   },
   "web.auth.password_reset.title": {
     "text": "Choose a New Password",

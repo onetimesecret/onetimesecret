@@ -3,20 +3,38 @@
 # frozen_string_literal: true
 
 require_relative '../base'
-require_relative '../../../../../lib/onetime/jobs/publisher'
 require 'onetime/logic/sso_only_gating'
-require 'onetime/operations/sessions/store'
-require 'onetime/session/sidecar'
+require 'auth/operations/customers/change_email'
 
 module AccountAPI::Logic
   module Account
     using Familia::Refinements::TimeLiterals
 
+    # POST /api/account/confirm-email-change (auth=noauth) — the redemption half
+    # of the self-service email change.
+    #
+    # THIN ADAPTER (#3731 PR-C2). This class owns ONLY what an adapter owns:
+    # token lookup, token validation, mapping the operation's status to the
+    # HTTP-facing form error, and the current request's Rack session. The
+    # cross-store mutation itself — Postgres `accounts.email`, the Familia
+    # Customer hash, the global and org-scoped email indexes, the default
+    # workspace's contact_email, the pending-change markers, session revocation
+    # and the notifications — belongs to
+    # {Auth::Operations::Customers::ChangeEmail}, which is also the ONLY thing
+    # that records the audit event. Do not re-implement any of it here; the
+    # colonel endpoint and `bin/ots customers change-email` call the same op and
+    # must not be able to drift from this path.
+    #
+    # `require_verification: false` is deliberate and is the one parameter this
+    # adapter differs from the operator adapters on (D34): the token the caller
+    # just redeemed IS proof of ownership of the new address, so the account
+    # keeps its verified status. An operator-initiated change has no such proof
+    # and resets verification.
     class ConfirmEmailChange < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::SsoOnlyGating
 
-      attr_reader :secret
+      attr_reader :secret, :change_result
 
       def process_params
         @token  = params['token'].to_s.strip
@@ -42,63 +60,49 @@ module AccountAPI::Logic
       end
 
       def process
-        old_email = @owner.email
+        # Read the ciphertext BEFORE delegating — the operation destroys the
+        # pending verification Secret as part of clearing the pending markers.
         new_email = sanitize_email(@secret.decrypted_secret_value)
 
         if new_email.empty?
           raise_form_error 'Unable to determine new email address', error_type: 'system_error'
         end
 
-        # Check the new email hasn't been taken since the request was made
-        if Onetime::Customer.email_exists?(new_email)
-          raise_form_error 'This email is no longer available', error_type: 'unavailable'
-        end
+        OT.info "[confirm-email-change] Confirming email change cid/#{@owner.objid} " \
+                "old/#{OT::Utils.obscure_email(@owner.email)} new/#{OT::Utils.obscure_email(new_email)}"
 
-        OT.info "[confirm-email-change] Confirming email change cid/#{@owner.objid} old/#{OT::Utils.obscure_email(old_email)} new/#{OT::Utils.obscure_email(new_email)}"
+        @change_result = Auth::Operations::Customers::ChangeEmail.new(
+          customer: @owner,
+          # The acting principal is the account holder themselves — a REAL,
+          # public identity (ADR-023), never a synthesized customer and never an
+          # internal objid. `cust` is nil here: this is a noauth route.
+          actor: @owner.extid,
+          new_email: new_email,
+          dry_run: false,
+          require_verification: false, # D34 — the token already proved ownership
+          revoke_sessions: true,
+          notify: true,
+        ).call
 
-        # Update Auth DB first (transactional) so failure doesn't leave Redis in
-        # an inconsistent state. If this raises, Redis is untouched.
-        update_auth_database(@owner, new_email) if Onetime.auth_config.full_enabled?
+        # ADAPTER-OWNED, by construction: the operation deletes every STORED
+        # session blob, but the current request's in-memory Rack session is
+        # written back by the session middleware after this call returns — which
+        # would re-create the blob that was just revoked. The op has no request
+        # context, so this cannot move into it.
+        #
+        # Runs BEFORE the status mapping: a `:partial` whose swap LANDED
+        # (`:secondary_writes_incomplete` — both authoritative stores hold the new
+        # address) revokes sessions too, and the mapping below raises on
+        # `:partial`. Clearing only on the paths that return would leave the one
+        # session blob the revocation exists to kill alive on exactly the messy
+        # path.
+        clear_current_session(@change_result)
 
-        # Update email field, then update the global index
-        # (update_in_class_email_index reads the current email field for the new value)
-        @owner.email = new_email
-        @owner.update_in_class_email_index(old_email)
-        @owner.save
+        handle_result_status(@change_result)
 
-        # Update org-scoped email index if org context exists
-        update_org_email_index(@owner, old_email)
-
-        # Clear the pending change marker
-        @owner.pending_email_change.delete!
-
-        # Destroy the verification secret
-        @secret.destroy!
-
-        # Invalidate all sessions for this customer
-        invalidate_sessions(@owner)
-
-        # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
-        email_locale = locale
-        email_locale = @owner.locale if email_locale.to_s.strip.empty?
-        email_locale = OT.default_locale if email_locale.to_s.strip.empty?
-
-        # Send confirmation notification to the OLD email (the email has now changed)
-        begin
-          Onetime::Jobs::Publisher.enqueue_email(
-            :email_changed,
-            {
-              old_email: old_email,
-              new_email: new_email,
-              locale: email_locale,
-            },
-            fallback: :async_thread,
-          )
-        rescue StandardError => ex
-          auth_logger.error '[confirm-email-change] Failed to send email-changed notification', exception: ex
-        end
-
-        OT.info "[confirm-email-change] Email change confirmed cid/#{@owner.objid} new/#{OT::Utils.obscure_email(new_email)}"
+        OT.info "[confirm-email-change] Email change confirmed cid/#{@owner.objid} " \
+                "status/#{@change_result.status} new/#{OT::Utils.obscure_email(new_email)} " \
+                "warnings/#{@change_result.warnings.inspect}"
 
         success_data
       end
@@ -109,142 +113,71 @@ module AccountAPI::Logic
 
       private
 
-      def update_org_email_index(customer, old_email)
-        orgs = customer.organization_instances.to_a
-        orgs.each do |org|
-          customer.update_in_organization_email_index(org, old_email)
-        end
-      rescue StandardError => ex
-        auth_logger.error '[confirm-email-change] Org index update failed', extid: customer.extid, exception: ex
+      # Drop the current request's session, but ONLY once the address has
+      # actually changed hands — on `:email_taken` and the system-error statuses
+      # nothing moved and signing the caller out would be gratuitous.
+      def clear_current_session(result)
+        return unless sess
+        return unless swap_landed?(result)
+
+        sess.clear
       end
 
-      def find_auth_account(customer)
-        db = Auth::Database.connection
-        return nil, nil unless db
+      # `:no_change` counts: the account already holds the address, the
+      # redemption is idempotent, and this surface still sends the caller to
+      # /signin. `:verification_not_reset` counts: the op only computes it AFTER
+      # the swap landed and RevokeAllForCustomer ran — unreachable here today
+      # (this adapter passes `require_verification: false`), but if that
+      # parameter ever changes, skipping the clear would write this session back
+      # and resurrect the blob the op just deleted. `:partial` counts only in
+      # the sub-case where the Customer hash committed — the other sub-case
+      # rolled the accounts row back.
+      def swap_landed?(result)
+        return true if [:success, :no_change, :verification_not_reset].include?(result.status)
 
-        account = db[:accounts].where(external_id: customer.extid).first
-        [db, account]
+        result.status == :partial && result.warnings.include?(:secondary_writes_incomplete)
       end
 
-      def update_auth_database(customer, new_email)
-        db, account = find_auth_account(customer)
-        return unless account
+      # Map the operation's status vocabulary onto this surface's form errors.
+      # Messages and error_types are preserved verbatim from the pre-extraction
+      # implementation so the frontend's error handling is unaffected.
+      def handle_result_status(result)
+        case result.status
+        # :no_change means the address already equals the current one — the
+        # redemption is idempotent rather than an error.
+        when :success, :no_change
+          nil
 
-        db[:accounts].where(id: account[:id]).update(email: new_email)
+        # Claimed by another account between the request and this redemption.
+        when :email_taken
+          raise_form_error 'This email is no longer available', error_type: 'unavailable'
 
-        OT.info "[confirm-email-change] Auth database updated cid/#{customer.objid}"
-      rescue StandardError => ex
-        auth_logger.error '[confirm-email-change] Auth database update failed', exception: ex
-        raise_form_error 'Email change could not be completed', error_type: 'system_error'
-      end
+        # RequestEmailChange validated the address before minting the token, so
+        # reaching either of these means the stored ciphertext is unusable.
+        when :invalid_email, :not_found
+          raise_form_error 'Unable to determine new email address', error_type: 'system_error'
 
-      def invalidate_sessions(customer)
-        # Delete all active session rows from the auth database.
-        # On next request, Rodauth's currently_active_session? finds no
-        # matching row and force-clears the stale Rack session.
-        if Onetime.auth_config.full_enabled?
-          db, account = find_auth_account(customer)
-          if account
-            count = db[:account_active_session_keys]
-              .where(account_id: account[:id])
-              .delete
-            OT.info "[confirm-email-change] Invalidated #{count} auth DB session(s) for cid/#{customer.objid}"
-          end
-        end
-
-        # Delete all Redis session keys belonging to this customer.
-        # Sessions are stored as session:<hex_id> with HMAC-signed JSON
-        # containing an external_id field that identifies the owner.
-        delete_redis_sessions(customer)
-
-        # Also clear the current request's session if present
-        sess.clear if sess
-      rescue StandardError => ex
-        auth_logger.error '[confirm-email-change] Session invalidation error', exception: ex
-      end
-
-      # Scan Redis for all session keys belonging to the given customer
-      # and delete them. Uses SCAN to avoid blocking Redis on large keyspaces.
-      #
-      # Session values are stored as "base64(encrypted)--hmac". We verify
-      # the HMAC, decrypt, and check whether external_id matches the
-      # customer's extid.
-      def delete_redis_sessions(customer)
-        extid = customer.extid
-        return if extid.nil? || extid.empty?
-
-        dbclient = Familia.dbclient
-        deleted  = 0
-
-        # Derive the same HMAC and encryption keys that Onetime::Session uses,
-        # so we can verify and decrypt session data before trusting it.
-        session_secret     = resolve_session_secret
-        hmac_key           = Onetime::KeyDerivation.derive_session_subkey(session_secret, 'hmac')
-        encryption_key_raw = [Onetime::KeyDerivation.derive_session_subkey(session_secret, 'encryption')].pack('H*')
-
-        # Per-value sidecar keys live under `sidecar:<sid>:<field>` — outside
-        # this match by construction — and are purged alongside their owning
-        # blob below.
+        # :partial — SQL committed, the Redis side did not complete. The op has
+        # already recorded the audit event and compensated where it safely
+        # could; `customers doctor --check auth_email_drift` is the remediation.
+        # Where the swap LANDED the op also revoked sessions and mailed both
+        # addresses, and `clear_current_session` has already dropped this one —
+        # so the caller is signed out even though this reports an error.
         #
-        # STRING-typed like Store.scan_keys: the loose match also catches
-        # non-string session:* keys (the entitlement-preview SETs), each of
-        # which would cost a GET round trip that dies as a silently-rescued
-        # WRONGTYPE inside extract_session_extid.
-        dbclient.scan_each(match: 'session:*', type: 'string') do |key|
-          session_extid = extract_session_extid(dbclient, key, hmac_key, encryption_key_raw)
-          next unless session_extid == extid
-
-          dbclient.del(key)
-          Onetime::SessionSidecar.purge(
-            Onetime::Operations::Sessions::Store.extract_id(key), dbclient: dbclient
-          )
-          deleted += 1
+        # `:verification_not_reset` cannot reach this branch: it is only produced
+        # when `require_verification: true`, and this adapter always passes false
+        # (D34 — the redeemed token is the proof of ownership). It falls into the
+        # fail-closed `else` deliberately rather than being whitelisted above, so
+        # if that parameter is ever changed the surface refuses instead of
+        # reporting a clean success — but it IS a swap-landed status, so
+        # `swap_landed?` counts it and the session clear has already fired.
+        else
+          auth_logger.error '[confirm-email-change] Email change did not fully land',
+            extid: @owner.extid,
+            status: result.status,
+            warnings: result.warnings
+          raise_form_error 'Email change could not be completed', error_type: 'system_error'
         end
-
-        OT.info "[confirm-email-change] Deleted #{deleted} Redis session(s) for cid/#{customer.objid}"
-      rescue StandardError => ex
-        auth_logger.error '[confirm-email-change] Redis session cleanup error', exception: ex
-      end
-
-      # Resolve the session secret with the SAME chain the middleware writer
-      # is mounted with: Onetime.session_config['secret'] — site.session.secret
-      # falling back to site.secret (middleware_stack.rb / boot.rb). The
-      # middleware never consults ENV['SESSION_SECRET'], so reading ENV here
-      # could derive keys from a different secret and silently match nothing.
-      def resolve_session_secret
-        Onetime.session_config['secret']
-      end
-
-      # Extract the external_id from a stored session value after verifying
-      # the HMAC signature and decrypting the payload. Returns nil if the
-      # value cannot be verified or decoded.
-      def extract_session_extid(dbclient, key, hmac_key, encryption_key_raw)
-        raw = dbclient.get(key)
-        return nil unless raw
-
-        data, hmac = raw.split('--', 2)
-        return nil unless data && hmac
-
-        # Verify HMAC to ensure the session data has not been tampered with
-        expected_hmac = OpenSSL::HMAC.hexdigest('SHA256', hmac_key, data)
-        return nil unless hmac.bytesize == expected_hmac.bytesize
-        return nil unless Rack::Utils.secure_compare(expected_hmac, hmac)
-
-        # Decode and decrypt the session payload
-        encrypted_data = Base64.strict_decode64(data)
-        return nil if encrypted_data.nil? || encrypted_data.bytesize < 28
-
-        cipher          = OpenSSL::Cipher.new('aes-256-gcm')
-        cipher.decrypt
-        cipher.key      = encryption_key_raw
-        cipher.iv       = encrypted_data[0, 12]
-        cipher.auth_tag = encrypted_data[12, 16]
-        decrypted       = cipher.update(encrypted_data[28..]) + cipher.final
-
-        parsed = Familia::JsonSerializer.parse(decrypted)
-        parsed['external_id']
-      rescue StandardError
-        nil
       end
     end
   end

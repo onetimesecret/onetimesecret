@@ -13,6 +13,8 @@
  * - token_expired -> web.login.errors.token_expired
  * - token_invalid -> web.login.errors.token_invalid
  * - invalid_email -> web.login.errors.invalid_email
+ * - account_exists_link_required -> web.login.errors.account_exists_link_required
+ * - org_join_failed -> web.login.errors.org_join_failed
  *
  * Unrecognized codes fall back to the generic sso_failed message so the page
  * never renders blank (issue #3478 — the "frozen loading screen").
@@ -122,8 +124,9 @@ describe('Login.vue auth_error handling', () => {
   afterEach(() => {
     wrapper?.unmount();
     // window.history is shared across tests in the jsdom environment; reset the
-    // handed-over verified flag so it never bleeds into the next case.
-    window.history.replaceState(null, '');
+    // handed-over verified flag AND the address bar (the query-param cleanup
+    // cases seed it) so neither bleeds into the next case.
+    window.history.replaceState(null, '', '/');
   });
 
   describe('error code handling', () => {
@@ -172,6 +175,33 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).toContain('web.login.errors.invalid_email');
     });
 
+    it('displays account_exists_link_required error from SSO (#3840)', async () => {
+      wrapper = await createWrapper({ auth_error: 'account_exists_link_required' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.account_exists_link_required');
+    });
+
+    it('displays identity_connect_conflict error from SSO connect (#3840)', async () => {
+      wrapper = await createWrapper({ auth_error: 'identity_connect_conflict' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.identity_connect_conflict');
+    });
+
+    it('displays org_join_failed error from tenant SSO', async () => {
+      wrapper = await createWrapper({ auth_error: 'org_join_failed' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.org_join_failed');
+    });
+
     it('shows a generic error for unknown codes (never a blank page)', async () => {
       // Regression guard for issue #3478: an auth_error code this bundle does
       // not recognize (e.g. from a backend newer than the deployed frontend)
@@ -193,19 +223,30 @@ describe('Login.vue auth_error handling', () => {
     });
   });
 
+  // Cleanup happens on the ADDRESS BAR only (window.history.replaceState), not
+  // through the router: App.vue keys <router-view> by $route.fullPath, so a
+  // router.replace() dropping the param would remount this view and discard the
+  // banner it just set. Assert both halves of that contract — the param is gone
+  // from window.location, its siblings survive, and the banner is still on
+  // screen. The specs use memory history, so seed the address bar explicitly.
   describe('query param cleanup', () => {
-    it('removes auth_error from URL after displaying', async () => {
+    const seedAddressBar = (search: string) =>
+      window.history.replaceState(window.history.state, '', `/signin${search}`);
+
+    it('removes auth_error from the address bar after displaying', async () => {
+      seedAddressBar('?auth_error=sso_failed');
       wrapper = await createWrapper({ auth_error: 'sso_failed' });
       await flushPromises();
       await nextTick();
 
-      // Give router time to update
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(router.currentRoute.value.query.auth_error).toBeUndefined();
+      expect(new URLSearchParams(window.location.search).has('auth_error')).toBe(false);
+      // The banner must survive the strip — this is the regression the
+      // replaceState switch fixes.
+      expect(wrapper.find('[role="alert"]').exists()).toBe(true);
     });
 
     it('preserves other query params when clearing auth_error', async () => {
+      seedAddressBar('?auth_error=sso_failed&redirect=%2Fdashboard');
       wrapper = await createWrapper({
         auth_error: 'sso_failed',
         redirect: '/dashboard',
@@ -213,14 +254,14 @@ describe('Login.vue auth_error handling', () => {
       await flushPromises();
       await nextTick();
 
-      // Give router time to update
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(router.currentRoute.value.query.auth_error).toBeUndefined();
-      expect(router.currentRoute.value.query.redirect).toBe('/dashboard');
+      const params = new URLSearchParams(window.location.search);
+      expect(params.has('auth_error')).toBe(false);
+      expect(params.get('redirect')).toBe('/dashboard');
+      expect(wrapper.find('[role="alert"]').exists()).toBe(true);
     });
 
     it('preserves email param when clearing auth_error', async () => {
+      seedAddressBar('?auth_error=token_expired&email=user%40example.com');
       wrapper = await createWrapper({
         auth_error: 'token_expired',
         email: 'user@example.com',
@@ -228,10 +269,21 @@ describe('Login.vue auth_error handling', () => {
       await flushPromises();
       await nextTick();
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      const params = new URLSearchParams(window.location.search);
+      expect(params.has('auth_error')).toBe(false);
+      expect(params.get('email')).toBe('user@example.com');
+      expect(wrapper.find('[role="alert"]').exists()).toBe(true);
+    });
 
-      expect(router.currentRoute.value.query.auth_error).toBeUndefined();
-      expect(router.currentRoute.value.query.email).toBe('user@example.com');
+    it('leaves the router route untouched so the view is not remounted', async () => {
+      seedAddressBar('?auth_error=sso_failed');
+      wrapper = await createWrapper({ auth_error: 'sso_failed' });
+      await flushPromises();
+      await nextTick();
+
+      // A router navigation here would change fullPath and, via App.vue's
+      // keyed <router-view>, throw away the instance holding the banner.
+      expect(router.currentRoute.value.query.auth_error).toBe('sso_failed');
     });
   });
 

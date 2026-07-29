@@ -6,6 +6,7 @@ require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -62,8 +63,16 @@ module Onetime
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class RevokeAllForCustomer
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every customer-scoped revoke-all.
         AUDIT_VERB = 'session.revoke_all'
+
+        # A partially-applied revoke-all is exactly the case an operator needs to
+        # see: some sessions killed, then a raise. Records one `result: :failure`
+        # and re-raises. Like {RevokeForCustomer} this op does not delegate to
+        # {Delete}, so there is no nested audited frame to dedupe against.
+        audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
 
         # Session-data identity fields matched against the target's extid.
         IDENTITY_FIELDS = %w[external_id account_external_id].freeze

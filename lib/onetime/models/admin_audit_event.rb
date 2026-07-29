@@ -72,10 +72,28 @@ module Onetime
     # deep-but-bounded operator trail; older history is expected to be shipped to an
     # external log sink if longer retention is required. Kept as a constant (not a
     # config key) so the audit path has no external configuration dependency.
+    #
+    # The cap is safe at this size ONLY because every write is authenticated
+    # colonel activity. Failure auditing ({Onetime::AuditedFailure}) deliberately
+    # excludes bare authorization/authentication rejections: on a count-capped set
+    # with no TTL, an event an unauthorized caller can trigger is a log-eviction
+    # primitive — 10k rejected requests would flush the real destructive-action
+    # trail. Keep that invariant and the cap needs no revisiting.
     MAX_EVENTS = 10_000
 
     # Placeholder written in place of any redacted value.
     REDACTED = '[REDACTED]'
+
+    # The one verb constant that lives on the model instead of on its emitter.
+    #
+    # Every other verb has exactly one emitter, which owns its own AUDIT_VERB.
+    # Colonel session establishment has TWO, one per auth mode — full mode syncs
+    # the session in Auth::Operations::SyncSession, simple mode never loads the
+    # auth app at all and establishes it in
+    # Core::Logic::Authentication::AuthenticateSession. Neither can reference the
+    # other's constant, and the string must be identical in both (the admin
+    # console filters on it), so it is single-sourced here.
+    VERB_COLONEL_SIGNIN = 'colonel.signin'
 
     # Keys whose values must never be persisted verbatim. Matched case-insensitively
     # against stringified detail keys at any nesting depth. Defense-in-depth only —

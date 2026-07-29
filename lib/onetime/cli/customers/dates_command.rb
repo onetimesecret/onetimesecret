@@ -11,6 +11,11 @@
 #   bin/ots customers dates --by-age           # Count by age bucket
 #   bin/ots customers dates --refresh          # Force cache rebuild
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersDatesCommand < Command
@@ -119,7 +124,7 @@ module Onetime
             next if role == 'anonymous'
 
             email = parse_json_field(email_raw)
-            next unless email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
+            next unless email.to_s.match?(Onetime::Utils::EmailFormat::LOOSE_FORMAT)
 
             objid          = key.split(':')[1]
             gaps['total'] += 1
@@ -170,7 +175,7 @@ module Onetime
           customers.each do |cust|
             next unless cust
             next if cust.anonymous?
-            next unless cust.email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
+            next unless cust.email.to_s.match?(Onetime::Utils::EmailFormat::LOOSE_FORMAT)
 
             gaps['total'] += 1
 

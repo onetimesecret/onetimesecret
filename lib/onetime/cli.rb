@@ -9,11 +9,20 @@ require 'onetime/migration'
 
 require 'v2/logic'
 
+require_relative 'cli/option_types'
+
 module Onetime
   module CLI
     extend Dry::CLI::Registry
 
     # Base command class that boots the application
+    #
+    # Dry::CLI 1.4.1 never coerces `type: :integer` / `type: :float`, so a
+    # supplied flag would reach `call` as a String while an omitted one keeps
+    # the declared numeric default. That is fixed one level up, in dispatch:
+    # require_relative 'cli/option_types' above prepends a hook to Dry::CLI
+    # itself, so it applies to every command regardless of base class and no
+    # command's ancestor chain is touched. See that file for the analysis.
     class Command < Dry::CLI::Command
       def boot_application!
         # Make sure all the models are loaded before calling boot
@@ -89,18 +98,38 @@ require_relative 'cli/customers/suspend_command'
 require_relative 'cli/customers/unsuspend_command'
 require_relative 'cli/customers/plan_set_command'
 require_relative 'cli/customers/doctor_command'
+require_relative 'cli/customers/change_email_command'
 require_relative 'cli/customers_command'
 require_relative 'cli/memberships/doctor_command'
 require_relative 'cli/memberships/shared'
 require_relative 'cli/memberships/set_role_command'
 require_relative 'cli/memberships/add_command'
 require_relative 'cli/memberships/remove_command'
+require_relative 'cli/memberships/entitlement_command'
+require_relative 'cli/memberships/entitlement_grant_command'
+require_relative 'cli/memberships/entitlement_revoke_command'
+require_relative 'cli/memberships/entitlement_clear_command'
+require_relative 'cli/memberships/entitlement_show_command'
 require_relative 'cli/memberships_command'
+require_relative 'cli/domains/shared'
 require_relative 'cli/domains/doctor_command'
 require_relative 'cli/domains/migrate_sso_command'
 require_relative 'cli/domains/create_command'
+require_relative 'cli/domains/probe_command'
+require_relative 'cli/domains/repair_command'
 require_relative 'cli/domains_command'
+require_relative 'cli/sso/backfill_issuer_command'
+require_relative 'cli/sso_command'
+require_relative 'cli/org/shared'
 require_relative 'cli/org/doctor_command'
+require_relative 'cli/org/reconcile_command'
+require_relative 'cli/org/create_command'
+require_relative 'cli/org/transfer_ownership_command'
+require_relative 'cli/org/entitlement_command'
+require_relative 'cli/org/entitlement_grant_command'
+require_relative 'cli/org/entitlement_revoke_command'
+require_relative 'cli/org/entitlement_clear_command'
+require_relative 'cli/org/entitlement_show_command'
 require_relative 'cli/org_command'
 require_relative 'cli/apitoken_command'
 require_relative 'cli/housekeeping_command'
@@ -153,11 +182,15 @@ require_relative 'cli/diagnostics/sentry/check_dsn_command'
 # Load install CLI commands
 require_relative 'cli/install_command'
 
-# Billing read-only views shared with the colonel API. The `billing` and
-# `billing catalog` / `billing orgs` parents are registered by the billing app
-# (auto-discovered below); Dry::CLI's registry is a tree, so registration order
-# does not matter — but the parents MUST exist or `bin/ots billing --help`
-# walks a nil node.
+# Billing read-only views shared with the colonel API. The `billing`,
+# `billing catalog` and `billing orgs` parents are all registered by the
+# billing app (auto-discovered below). Dry::CLI's registry auto-creates
+# intermediate nodes on registration (CommandRegistry::Node#put is a `||=`),
+# so registration ORDER does not matter — these requires sit here purely for
+# readability. What DOES matter: every intermediate node needs a command
+# registered against it, because a parent's help enumerates its children via
+# `subcommand.command.description` and a node with no command raises
+# NoMethodError on nil. Verified against dry-cli 1.4.1.
 require_relative 'cli/billing/catalog_drift_command'
 require_relative 'cli/billing/orgs_stripe_command'
 

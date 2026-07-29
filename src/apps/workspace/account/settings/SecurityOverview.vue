@@ -1,14 +1,20 @@
 <!-- src/apps/workspace/account/settings/SecurityOverview.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAccount } from '@/shared/composables/useAccount';
-  import { hasPasswordOf, isMfaEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { AccountInfo } from '@/types/auth';
+  import {
+    hasPasswordOf,
+    isMfaEnabledOf,
+    isPasswordAuthPermittedOf,
+    isSsoEnabledOf,
+    isWebAuthnEnabledOf,
+  } from '@/utils/features';
   import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
@@ -18,7 +24,9 @@
   const showSessionsCard = ref(false);
   const mfaFeatureEnabled = computed(() => isMfaEnabledOf(bootstrapStore));
   const webAuthnEnabled = computed(() => isWebAuthnEnabledOf(bootstrapStore));
+  const ssoEnabled = computed(() => isSsoEnabledOf(bootstrapStore));
   const hasPw = computed(() => hasPasswordOf(bootstrapStore));
+  const passwordAuthPermitted = computed(() => isPasswordAuthPermittedOf(bootstrapStore));
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   interface SecurityCard {
@@ -33,29 +41,6 @@
       to: string;
     };
   }
-
-  const securityScore = computed(() => {
-    if (!accountInfo.value) return 0;
-
-    if (mfaFeatureEnabled.value) {
-      let score = 0;
-      if (accountInfo.value.email_verified) score += 25;
-      if (accountInfo.value.mfa_enabled) score += 50;
-      if (accountInfo.value.recovery_codes_count > 0) score += 25;
-      return score;
-    }
-
-    // When MFA is disabled, score based on available factors only
-    return accountInfo.value.email_verified ? 100 : 0;
-  });
-
-  const securityLevel = computed(() => {
-    const score = securityScore.value;
-    if (score >= 90) return { label: t('web.settings.security.excellent'), color: 'green' };
-    if (score >= 70) return { label: t('web.settings.security.good'), color: 'blue' };
-    if (score >= 25) return { label: t('web.settings.security.fair'), color: 'yellow' };
-    return { label: t('web.settings.security.weak'), color: 'red' };
-  });
 
   // Helper to build core security cards
   function buildCoreCards(info: AccountInfo): SecurityCard[] {
@@ -124,6 +109,42 @@
     };
   }
 
+  // Helper to build the Set-password card (#3886), shown to passwordless
+  // accounts when policy permits password auth. Routes to the in-app
+  // reset-password request page: setting a first password is the same
+  // mailbox-proof flow as a reset (emailed link, no current-password step).
+  function buildSetPasswordCard(): SecurityCard {
+    return {
+      id: 'password',
+      icon: { collection: 'heroicons', name: 'lock-closed-solid' },
+      title: t('web.settings.security.set_password_title'),
+      description: t('web.settings.security.set_password_description'),
+      status: 'inactive',
+      statusText: t('web.settings.security.not_set'),
+      action: {
+        label: t('web.settings.security.set'),
+        to: '/account/settings/security/reset-password',
+      },
+    };
+  }
+
+  // Helper to build connected-identities card (SSO account-linking, #3840).
+  // NOT password-dependent — SSO-only accounts are the primary audience.
+  function buildConnectionsCard(): SecurityCard {
+    return {
+      id: 'connections',
+      icon: { collection: 'heroicons', name: 'globe-alt-solid' },
+      title: t('web.auth.connections.title'),
+      description: t('web.auth.connections.description'),
+      status: 'active',
+      statusText: t('web.auth.connections.overview_status'),
+      action: {
+        label: t('web.settings.security.manage'),
+        to: '/account/settings/security/connections',
+      },
+    };
+  }
+
   // Helper to build sessions card
   function buildSessionsCard(info: AccountInfo): SecurityCard {
     return {
@@ -147,8 +168,16 @@
 
     let cards = buildCoreCards(accountInfo.value);
 
+    // Two independent axes (#3886): credential presence (hasPw) picks
+    // Change vs Set; policy (passwordAuthPermitted) decides whether a
+    // passwordless account gets the Set affordance at all. MFA and recovery
+    // codes stay password-dependent either way. Never gated on "is SSO" —
+    // hybrid accounts (password + SSO identities) see both surfaces.
     if (!hasPw.value) {
       cards = cards.filter((c) => !PASSWORD_DEPENDENT_CARDS.has(c.id));
+      if (passwordAuthPermitted.value) {
+        cards.unshift(buildSetPasswordCard());
+      }
     }
 
     // Hide MFA and recovery codes cards when MFA feature is disabled
@@ -158,6 +187,12 @@
 
     if (webAuthnEnabled.value) {
       cards.push(buildPasskeyCard(accountInfo.value));
+    }
+
+    // Connected identities card — not password-dependent, so it is added after
+    // the SSO-only card filter above and shown whenever SSO is enabled.
+    if (ssoEnabled.value) {
+      cards.push(buildConnectionsCard());
     }
 
     if (showSessionsCard.value) {
@@ -174,20 +209,6 @@
       'bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-900/20 dark:text-yellow-400',
   };
 
-  const scoreColorClasses: Record<string, string> = {
-    green: 'text-green-600 dark:text-green-400',
-    blue: 'text-blue-600 dark:text-blue-400',
-    yellow: 'text-yellow-600 dark:text-yellow-400',
-    red: 'text-red-600 dark:text-red-400',
-  };
-
-  const progressBarColorClasses: Record<string, string> = {
-    green: 'bg-green-600',
-    blue: 'bg-blue-600',
-    yellow: 'bg-yellow-600',
-    red: 'bg-red-600',
-  };
-
   onMounted(async () => {
     await fetchAccountInfo();
   });
@@ -196,77 +217,23 @@
 <template>
   <SettingsLayout>
     <div class="space-y-8">
-      <!-- Security Score Card -->
+      <!-- SSO empty state — shown when all cards are filtered out. Gated on
+           the policy axis too (#3886): this copy means "SSO-enforced, managed
+           by your IdP", so it must never show for a passwordless-permitted
+           account whose cards are merely absent because the accountInfo
+           fetch is pending or failed (securityCards is [] until it loads). -->
+      <!-- prettier-ignore-attribute class -->
       <div
-        v-if="false"
-        class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
-        <div class="flex items-start justify-between">
-          <div>
-            <h2 class="text-lg font-medium text-gray-600 dark:text-gray-300">
-              {{ t('web.settings.security.security_score') }}
-            </h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.settings.security.score_description') }}
-            </p>
-          </div>
-          <div class="text-right">
-            <div :class="['text-4xl font-bold', scoreColorClasses[securityLevel.color]]">
-              {{ securityScore }}
-            </div>
-            <div
-              class="mt-1 text-sm font-medium"
-              :class="scoreColorClasses[securityLevel.color]">
-              {{ securityLevel.label }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="mt-4">
-          <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-            <div
-              :class="[
-                'h-full transition-all duration-500',
-                progressBarColorClasses[securityLevel.color],
-              ]"
-              :style="{ width: `${securityScore}%` }"></div>
-          </div>
-        </div>
-
-        <!-- Recommendations -->
-        <div
-          v-if="securityScore < 100"
-          class="mt-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-          <div class="flex gap-3">
-            <OIcon
-              collection="heroicons"
-              name="information-circle-solid"
-              class="size-5 shrink-0 text-blue-600 dark:text-blue-400"
-              aria-hidden="true" />
-            <div class="text-sm text-blue-700 dark:text-blue-300">
-              <p class="font-medium">
-                {{ t('web.settings.security.improve_security') }}
-              </p>
-              <ul class="mt-2 list-inside list-disc space-y-1">
-                <li v-if="!accountInfo?.mfa_enabled">
-                  {{ t('web.settings.security.enable_mfa_recommendation') }}
-                </li>
-                <li v-if="!accountInfo?.recovery_codes_count">
-                  {{ t('web.settings.security.generate_recovery_codes_recommendation') }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SSO empty state — shown when all cards are filtered out -->
-      <div
-        v-if="!hasPw && securityCards.length === 0"
-        class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+        v-if="!hasPw && !passwordAuthPermitted && securityCards.length === 0"
+        class="
+          rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm
+          dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="flex items-start gap-4">
+          <!-- prettier-ignore-attribute class -->
           <div
-            class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+            class="
+              flex size-12 shrink-0 items-center justify-center rounded-lg
+              bg-brand-50 dark:bg-brand-900/20">
             <OIcon
               collection="heroicons"
               name="shield-check-solid"
@@ -288,13 +255,19 @@
       <div
         v-if="securityCards.length > 0"
         class="grid gap-6 sm:grid-cols-2">
+        <!-- prettier-ignore-attribute class -->
         <div
           v-for="card in securityCards"
           :key="card.id"
-          class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          class="
+            rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm
+            dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="flex items-start gap-4">
+            <!-- prettier-ignore-attribute class -->
             <div
-              class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+              class="
+                flex size-12 shrink-0 items-center justify-center rounded-lg
+                bg-gray-100 dark:bg-gray-700">
               <OIcon
                 :collection="card.icon.collection"
                 :name="card.icon.name"
@@ -322,9 +295,12 @@
 
               <!-- Action Button -->
               <div class="mt-4">
+                <!-- prettier-ignore-attribute class -->
                 <router-link
                   :to="card.action.to"
-                  class="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                  class="
+                    inline-flex items-center gap-2 text-sm font-medium text-brand-600
+                    hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
                   {{ card.action.label }}
                   <OIcon
                     collection="heroicons"

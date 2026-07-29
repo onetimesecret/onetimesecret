@@ -92,6 +92,12 @@
 # regardless. Content-equalization above is the meaningful fix; the timing residual
 # is accepted and documented. (Reviewed: Greptile P1 + 2nd review bot, issue #3857.)
 #
+# The residual is additionally BOUNDED by rate limiting (#3872): exploiting it
+# statistically needs many samples per target, and config/hooks/
+# reset_password_request.rb throttles POST volume per client IP and per
+# submitted login (Onetime::Security::ResetRequestRateLimiter) before the
+# route — and therefore before account_from_login — runs.
+#
 # See also: config/rodauth_overrides.rb (verify_account error-flash overrides)
 # and config/overrides/password_migration.rb (the `super` override idiom).
 #

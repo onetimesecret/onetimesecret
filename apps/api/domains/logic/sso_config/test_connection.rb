@@ -32,7 +32,8 @@ module DomainsAPI
       #   See: ssrf_protection.rb for implementation details.
       #
       # Request body:
-      # - provider_type: Required. One of: oidc, entra_id, google, github
+      # - provider_type: Required. One of: oidc, entra_id (tenant SSO is
+      #   OIDC/Entra-only — issuerless providers were removed, #3902)
       # - client_id: Required. OAuth client ID
       # - tenant_id: Required for entra_id provider
       # - issuer: Required for oidc provider (HTTPS URL)
@@ -99,10 +100,6 @@ module DomainsAPI
                      test_oidc_connection
                    when 'entra_id'
                      test_entra_id_connection
-                   when 'google'
-                     test_google_connection
-                   when 'github'
-                     test_github_connection
                    else
                      { success: false, message: "Unsupported provider type: #{@provider_type}" }
                    end
@@ -160,10 +157,6 @@ module DomainsAPI
             validate_oidc_fields
           when 'entra_id'
             validate_entra_id_fields
-          when 'google'
-            validate_google_fields
-          when 'github'
-            validate_github_fields
           end
         end
 
@@ -189,29 +182,6 @@ module DomainsAPI
           raise_form_error(
             'Tenant ID must be a valid UUID',
             field: :tenant_id,
-            error_type: :invalid,
-          )
-        end
-
-        def validate_google_fields
-          # Google client_id format: ends with .apps.googleusercontent.com
-          return if @client_id.end_with?('.apps.googleusercontent.com')
-
-          raise_form_error(
-            'Google Client ID must end with .apps.googleusercontent.com',
-            field: :client_id,
-            error_type: :invalid,
-          )
-        end
-
-        def validate_github_fields
-          # GitHub client_id format: "Iv1." prefix followed by hex characters
-          # Example: Iv1.8a61f9b3a7aba766
-          return if @client_id.match?(/\AIv1\.[0-9a-f]{10,40}\z/i)
-
-          raise_form_error(
-            'GitHub Client ID must be in format Iv1.{hex} (e.g., Iv1.8a61f9b3a7aba766)',
-            field: :client_id,
             error_type: :invalid,
           )
         end
@@ -242,25 +212,6 @@ module DomainsAPI
         def test_entra_id_connection
           discovery_url = "https://login.microsoftonline.com/#{@tenant_id}/v2.0/.well-known/openid-configuration"
           fetch_and_validate_discovery(discovery_url, 'Entra ID')
-        end
-
-        def test_google_connection
-          discovery_url = 'https://accounts.google.com/.well-known/openid-configuration'
-          fetch_and_validate_discovery(discovery_url, 'Google')
-        end
-
-        def test_github_connection
-          # GitHub doesn't have OIDC discovery - just validate format
-          # The client_id format was already validated in validate_github_fields
-          {
-            success: true,
-            provider_type: @provider_type,
-            message: 'GitHub credentials format validated',
-            details: {
-              client_id_format: 'valid',
-              note: 'GitHub does not support OIDC discovery. Credentials will be validated during authentication.',
-            },
-          }
         end
 
         # ──────────────────────────────────────────────────────────────────────────

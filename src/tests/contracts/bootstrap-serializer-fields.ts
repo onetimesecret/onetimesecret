@@ -16,6 +16,7 @@ export const AUTHENTICATION_SERIALIZER_FIELDS = [
   'awaiting_mfa',
   'had_valid_session',
   'has_password',
+  'password_auth_permitted',
   'custid',
   'cust',
   'email',

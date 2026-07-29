@@ -10,6 +10,7 @@
 # than an app-scoped one. Loaded at the call site (colonel logic + the `bin/ots
 # banner` CLI), so require the audit dependency explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -28,8 +29,8 @@ module Onetime
       # Sidecar key holding the banner AUDIENCE scope. Stored separately (not folded
       # into the content value) so {KEY} stays a bit-for-bit plain HTML string — the
       # CLI, the boot initializer, and any external reader keep working unchanged.
-      # Written/expired in lockstep with {KEY} (same TTL) so scope never outlives
-      # the banner it describes.
+      # Written/expired in lockstep with {KEY} (same TTL, one MULTI/EXEC) so scope
+      # never outlives — or arrives apart from — the banner it describes.
       SCOPE_KEY = 'global_banner:scope'
 
       # Audience scopes the banner can target (surfaced to the frontend, which owns
@@ -47,11 +48,106 @@ module Onetime
       # Database index the banner lives in (DB 0, matching the CLI + initializer).
       DB = 0
 
+      # Seconds a process serves its in-memory banner before re-reading Redis.
+      # Bounds cross-process propagation of SetBanner/ClearBanner: without this,
+      # a banner published by one Puma worker/container was invisible to every
+      # other process until restart (only the handling process refreshed its
+      # runtime state). Worst case ~2 Redis GETs/min/process.
+      # `unless defined?` keeps this idempotent across code reloads (same
+      # pattern as Session::SECURE_COOKIE_WARN_INTERVAL).
+      CACHE_TTL = 30 unless defined?(CACHE_TTL)
+
+      # Process-wide staleness clock for the TTL re-read. Holds the monotonic
+      # timestamp (Process::CLOCK_MONOTONIC) of the last refresh ATTEMPT; nil
+      # means "refresh on next read" (fresh boot before the initializer runs,
+      # or after {reset_cache!}). The Mutex guards only the timestamp claim —
+      # it is NEVER held across Redis I/O. `||=` keeps these idempotent across
+      # code reloads.
+      @cache_mutex  ||= Mutex.new
+      @refreshed_at ||= nil
+
+      class << self
+        # @return [Mutex] guard for the staleness clock (timestamp only, no I/O)
+        attr_reader :cache_mutex
+      end
+
       # Coerce a raw sidecar value to a valid scope, collapsing blank/unknown to
       # {DEFAULT_SCOPE}. Shared by GetBanner (read path) and the initializer.
       def self.normalize_scope(raw)
         value = raw.to_s.strip
         VALID_SCOPES.include?(value) ? value : DEFAULT_SCOPE
+      end
+
+      # Re-read {KEY} + {SCOPE_KEY} into Runtime.features when the process-local
+      # copy is older than {CACHE_TTL}. Called from the `OT.global_banner` /
+      # `OT.global_banner_scope` accessors (the page-render path), so it must
+      # never raise and must not hit Redis on every request.
+      #
+      # Exactly one thread claims the refresh at the TTL boundary (the claim
+      # stamps the clock BEFORE the Redis read, so concurrent threads — and a
+      # dead Redis — cannot stampede; losers serve the last-known value).
+      #
+      # Note nil is a VALID cached state: key-absent maps to a nil banner, so a
+      # ClearBanner from another process propagates within the same TTL.
+      #
+      # @return [void]
+      def self.refresh_if_stale!
+        now     = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        claimed = cache_mutex.synchronize do
+          last = @refreshed_at
+          if last.nil? || (now - last) >= CACHE_TTL
+            @refreshed_at = now
+            true
+          else
+            false
+          end
+        end
+        refresh! if claimed
+        nil
+      end
+
+      # Unconditionally re-read the banner pair from Redis into Runtime.features.
+      # ONE merged update: content + scope land in the same immutable Features
+      # snapshot, so a reader can never see a new banner beside a stale scope.
+      # Fail-soft: on any error we log and keep serving the last in-memory value
+      # (several unit specs run without OT.boot!, so a missing connection
+      # provider must not 500 a page render).
+      #
+      # @return [void]
+      def self.refresh!
+        db                 = Familia.dbclient(DB)
+        # One MGET: the pair arrives as a single atomic snapshot, so this read
+        # can never combine one banner's content with another banner's scope
+        # while a concurrent SetBanner/ClearBanner (both MULTI) lands.
+        content, raw_scope = db.mget(KEY, SCOPE_KEY)
+        Onetime::Runtime.update_features(
+          global_banner: content,
+          global_banner_scope: normalize_scope(raw_scope),
+        )
+        nil
+      rescue StandardError => ex
+        OT.le "[BannerState] banner refresh failed (serving cached value): #{ex.class}: #{ex.message}"
+        nil
+      end
+
+      # Stamp the staleness clock "fresh now". Called by SetBanner/ClearBanner
+      # (whose eager Runtime.update_features already made THIS process correct)
+      # and by the boot initializer, so a just-primed process does not
+      # immediately re-read Redis.
+      #
+      # @return [void]
+      def self.prime_cache!
+        cache_mutex.synchronize { @refreshed_at = Process.clock_gettime(Process::CLOCK_MONOTONIC) }
+        nil
+      end
+
+      # Force the next accessor read to re-read Redis (test hook — lets tryouts
+      # cross the TTL boundary without sleeping).
+      #
+      # @return [void]
+      def self.reset_cache!
+        cache_mutex.synchronize { @refreshed_at = nil }
+        nil
       end
     end
 
@@ -71,10 +167,14 @@ module Onetime
 
       # @return [Result]
       def call
-        db      = Familia.dbclient(BannerState::DB)
-        content = db.get(BannerState::KEY)
-        ttl     = db.ttl(BannerState::KEY)
-        scope   = BannerState.normalize_scope(db.get(BannerState::SCOPE_KEY))
+        db                 = Familia.dbclient(BannerState::DB)
+        # MGET keeps content + scope one atomic snapshot (matching
+        # {BannerState.refresh!}). The TTL is a separate read: worst case it
+        # reflects a banner published a beat later, which only skews the
+        # advisory seconds-remaining display, never the content/scope pairing.
+        content, raw_scope = db.mget(BannerState::KEY, BannerState::SCOPE_KEY)
+        ttl                = db.ttl(BannerState::KEY)
+        scope              = BannerState.normalize_scope(raw_scope)
 
         Result.new(
           content: content,
@@ -106,7 +206,19 @@ module Onetime
     # Setting the banner ALWAYS mutates (it overwrites whatever was there), so it
     # always audits — there is no idempotent no-op branch to suppress.
     class SetBanner
+      include Onetime::AuditedFailure
+
       AUDIT_VERB = 'banner.set'
+
+      # This op has NO refusal STATUS — blank content and an invalid scope both
+      # RAISE (ArgumentError), and so does a Redis failure. Content + scope are
+      # written in ONE MULTI/EXEC, so a failure applies neither (no torn pair on
+      # a site-wide, every-visitor surface); the success record sits after the
+      # transaction. Records one `result: :failure` and re-raises.
+      audit_failures :call,
+        verb: AUDIT_VERB,
+        target: BannerState::KEY,
+        detail: -> { { ttl: @ttl, scope: @scope.to_s } }
 
       # @!attribute status [r]
       #   @return [Symbol] :success
@@ -138,19 +250,26 @@ module Onetime
 
         db = Familia.dbclient(BannerState::DB)
         # Write content + scope with IDENTICAL TTL semantics so the sidecar can
-        # never outlive (or persist past) the banner it describes.
-        if @ttl
-          db.setex(BannerState::KEY, @ttl, text)
-          db.setex(BannerState::SCOPE_KEY, @ttl, scope)
-        else
-          db.set(BannerState::KEY, text)
-          db.set(BannerState::SCOPE_KEY, scope)
+        # never outlive (or persist past) the banner it describes. One
+        # MULTI/EXEC so the pair applies atomically: a reader (MGET in
+        # BannerState.refresh!) can never observe new content beside the
+        # previous banner's scope, and a failure applies neither key.
+        db.multi do |tx|
+          if @ttl
+            tx.setex(BannerState::KEY, @ttl, text)
+            tx.setex(BannerState::SCOPE_KEY, @ttl, scope)
+          else
+            tx.set(BannerState::KEY, text)
+            tx.set(BannerState::SCOPE_KEY, scope)
+          end
         end
 
-        # Refresh THIS process's runtime state (parity with the CLI note that the
-        # refresh reaches only the current process; other processes re-read at
-        # boot). Kept identical to the extracted CLI behaviour.
+        # Refresh THIS process's runtime state immediately, and stamp the
+        # staleness clock so the publishing process serves the new value without
+        # a redundant re-read. Other processes pick the change up via
+        # {BannerState.refresh_if_stale!} within {BannerState::CACHE_TTL}s.
         Onetime::Runtime.update_features(global_banner: text, global_banner_scope: scope)
+        BannerState.prime_cache!
 
         # One audit event per successful publish. The banner content is
         # non-secret (it is shown to every visitor), so it is safe to record; the
@@ -177,10 +296,24 @@ module Onetime
     # one {Onetime::AdminAuditEvent} per successful clear.
     #
     # Stateless, single `#call`, returns an immutable {Result}. Clearing when no
-    # banner is set returns `status: :not_set` and records NO audit event (nothing
-    # mutated) — the "only audit an actual change" rule shared with UnbanIP.
+    # banner is set returns `status: :not_set` and records NO audit event —
+    # nothing mutated AND nothing was refused. The discriminator is the adapter:
+    # colonel `ClearBanner` deliberately returns 200 with `cleared: false` for
+    # this status ("not surfaced as an error", so a benign TTL race is not a
+    # failure), unlike colonel `UnbanIP`, whose `:not_found` is a 404 and IS
+    # therefore recorded as a refusal.
     class ClearBanner
+      include Onetime::AuditedFailure
+
       AUDIT_VERB = 'banner.clear'
+
+      # Both deletes ride one MULTI/EXEC (a failure removes neither key, so the
+      # scope sidecar can never linger behind a deleted banner), but the runtime
+      # refresh and the success record still sit after the transaction. Records
+      # one `result: :failure` and re-raises.
+      audit_failures :call,
+        verb: AUDIT_VERB,
+        target: BannerState::KEY
 
       # @!attribute status [r]
       #   @return [Symbol] :success (cleared) or :not_set (no-op)
@@ -200,9 +333,16 @@ module Onetime
           return Result.new(status: :not_set, cleared: false, content: nil)
         end
 
-        db.del(BannerState::KEY)
-        db.del(BannerState::SCOPE_KEY)
+        # One MULTI/EXEC: the pair disappears atomically, so a concurrent MGET
+        # reader can never see the scope sidecar outliving the banner.
+        db.multi do |tx|
+          tx.del(BannerState::KEY)
+          tx.del(BannerState::SCOPE_KEY)
+        end
+        # Immediate local refresh + clock stamp (mirrors SetBanner); other
+        # processes converge to nil via the TTL re-read.
         Onetime::Runtime.update_features(global_banner: nil, global_banner_scope: BannerState::DEFAULT_SCOPE)
+        BannerState.prime_cache!
 
         # One audit event per successful mutation. No detail: the fact of the clear
         # is the whole record (the cleared content is not re-logged here).
