@@ -67,6 +67,8 @@ module ColonelAPI
           raise_form_error("#{ex.message}. Check AUTH_DATABASE_URL.")
         rescue Auth::Operations::SetCustomerVerification::AccountNotFound => ex
           raise_not_found("#{ex.message}. Run auth-account reconciliation.")
+        rescue Auth::Operations::SetCustomerVerification::AccountClosed => ex
+          raise_form_error(ex.message)
         end
 
         def success_data

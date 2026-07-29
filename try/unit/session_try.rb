@@ -350,12 +350,14 @@ _sw_sid, @sw_data = call_private_method(@sidecar_session, :find_session, @sw_req
 #=> false
 
 ## [#3858] ...and the next write_session HEALS the stale sidecar from the blob
-## copy — the documented one-cycle degradation: the sidecar now stores false
-## and the blob is stripped of the field again
+## copy — the documented one-cycle degradation. awaiting_mfa is
+## absent_when_falsy, so the heal is a DEL, not a re-SET of the false: the
+## stale key is gone, the blob is stripped, and the field has converged to
+## absent everywhere (every reader treats absence as false)
 call_private_method(@sidecar_session, :write_session, @sw_req, @sw_sid, @sw_data, {})
-[Onetime::SessionSidecar.read(@sw_sid, 'awaiting_mfa', codec: @try_codec),
+[DB.exists("sidecar:#{@sw_sid}:awaiting_mfa"),
  @try_codec.decode(DB.get("session:#{@sw_sid}")).key?('awaiting_mfa')]
-#=> [false, false]
+#=> [0, false]
 
 ## [#3858] the blob-miss path does NOT merge: a revoked/expired session
 ## presents as {} even while sidecar keys still exist — they are inert until

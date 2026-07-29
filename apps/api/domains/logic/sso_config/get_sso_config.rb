@@ -16,7 +16,7 @@ module DomainsAPI
       #   Requires the requesting user to be an organization owner with manage_sso.
       #
       # Response includes:
-      # - provider_type: oidc, entra_id, google, github
+      # - provider_type: oidc or entra_id (tenant SSO is OIDC/Entra-only, #3902)
       # - client_id: Full client ID (not sensitive)
       # - client_secret_masked: Masked (e.g., "••••••••abcd")
       # - tenant_id: For Entra ID

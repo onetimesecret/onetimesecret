@@ -8,6 +8,7 @@
 # (colonel logic + CLI), so require the audit model explicitly, mirroring
 # AdminVerifyDomain / BanIP.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -43,16 +44,62 @@ module Onetime
       # (`org.add_domain(domain)`, `org.list_domains.map(&:domainid)`), which is the
       # intended, correct behaviour. See wiringInstructions / blockers.
       class Repair
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every applied repair.
         AUDIT_VERB = 'domain.repair'
+
+        # A repair was asked for and could NOT be done. `:no_issues` is not a
+        # refusal (the domain is already consistent — the repair succeeded by
+        # having nothing to do) and neither is `:planned` (a dry run attempts
+        # nothing).
+        REFUSAL_STATUSES = [:needs_org, :org_not_found].freeze
+
+        # Each repair lambda writes org_id + saves + mutates the org's domain
+        # collection, and `repairs.map(&:call)` runs them all BEFORE the success
+        # record — so a repair that blows up on the second of two leaves the
+        # domain half-repaired with no trace. Records one `result: :failure` and
+        # re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only.
+        #
+        # ## Why the UNCONDITIONAL macro is safe here, unlike Customers::Doctor
+        #
+        # This op has a FLEET-WIDE driver (`bin/ots domains doctor --all
+        # --repair` → doctor_command.rb#apply_membership_repair, once per
+        # affected domain), which is exactly the shape that made an
+        # unconditional wrapper wrong for {Auth::Operations::Customers::Doctor}:
+        # there, failure events would have been emitted per customer on a purely
+        # DIAGNOSTIC sweep, and the count-capped audit set has no TTL, so a
+        # systemic read failure would evict the real destructive-action trail.
+        #
+        # The difference is structural, not a judgement call. `Doctor#call` IS
+        # the diagnostic entry point — its checks run whether or not `repair` is
+        # set — whereas this op's `#call` is reached from the doctor only inside
+        # `return unless repair`, i.e. it never runs on a diagnostic pass. Its
+        # events are therefore already bounded by the number of domains an
+        # operator explicitly asked to MUTATE, which is the same bound the
+        # success event has always had on that path. (`domains bulk-repair`, the
+        # other historical fleet driver, is a deprecation shim that exits before
+        # loading anything.)
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @domain&.extid },
+          detail: -> { { dry_run: @dry_run } }
 
         # @!attribute status [r] Symbol —
         #   :no_issues (consistent), :needs_org (orphaned, no target given),
         #   :org_not_found (org_id set but org missing), :planned (dry-run, fixable
         #   issues found), :repaired (issues applied)
         Result = Data.define(
-          :status, :domain_id, :extid, :display_domain,
-          :issues, :repairs_applied, :dry_run
+          :status,
+          :domain_id,
+          :extid,
+          :display_domain,
+          :issues,
+          :repairs_applied,
+          :dry_run,
         )
 
         # @param domain [Onetime::CustomDomain] target domain (caller ensures non-nil).
@@ -110,7 +157,7 @@ module Onetime
 
             issues << 'Domain is orphaned (no org_id)'
             org = @org
-            repairs << lambda do
+            repairs << -> do
               @domain.org_id  = org.org_id
               @domain.updated = OT.now.to_i
               @domain.save
@@ -127,7 +174,7 @@ module Onetime
             in_collection = org.list_domains.map(&:domainid).include?(@domain.domainid)
             unless in_collection
               issues << "org_id is #{@domain.org_id} but not in organization's domains collection"
-              repairs << lambda do
+              repairs << -> do
                 org.add_domain(@domain)
                 "Added to organization #{@domain.org_id} collection"
               end
@@ -137,7 +184,29 @@ module Onetime
           [issues, repairs, nil]
         end
 
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op.
+        def record_refusal(status)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @domain.extid,
+            result: :failure,
+            detail: {
+              reason: status.to_s,
+              org_id: @domain.org_id.to_s,
+              dry_run: @dry_run,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[Domains::Repair] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # Single exit point for every status, so the refusal audit cannot be
+        # forgotten at either of the two blocked returns inside #analyze.
         def result_for(status, issues, repairs_applied)
+          record_refusal(status) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             domain_id: @domain.domainid,

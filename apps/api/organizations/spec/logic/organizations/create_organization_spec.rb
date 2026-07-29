@@ -106,7 +106,13 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
     end
 
     context 'when display_name is too long' do
-      let(:params) { { 'display_name' => 'x' * 101, 'description' => '', 'contact_email' => '' } }
+      let(:params) do
+        {
+          'display_name' => 'x' * (described_class::MAX_DISPLAY_NAME + 1),
+          'description' => '',
+          'contact_email' => '',
+        }
+      end
 
       it 'raises form error for name too long' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
@@ -117,13 +123,28 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
     context 'when description is too long' do
       let(:params) do
-        { 'display_name' => 'Valid Name', 'description' => 'x' * 501, 'contact_email' => '' }
+        {
+          'display_name' => 'Valid Name',
+          'description' => 'x' * (described_class::MAX_DESCRIPTION + 1),
+          'contact_email' => '',
+        }
       end
 
       it 'raises form error for description too long' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
           expect(error.error_key).to eq('api.organizations.errors.description_too_long')
         end
+      end
+    end
+
+    # Shared limits (#3907): the admin create operation is the single source of
+    # truth. If these fail, someone re-hardcoded a limit on one surface.
+    context 'field limits' do
+      it 'shares MAX_DISPLAY_NAME and MAX_DESCRIPTION with Operations::Org::Create' do
+        expect(described_class::MAX_DISPLAY_NAME)
+          .to eq(Onetime::Operations::Org::Create::MAX_DISPLAY_NAME)
+        expect(described_class::MAX_DESCRIPTION)
+          .to eq(Onetime::Operations::Org::Create::MAX_DESCRIPTION)
       end
     end
 

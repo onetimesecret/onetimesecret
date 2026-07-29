@@ -1,8 +1,8 @@
 // src/tests/apps/workspace/components/domains/DomainSsoConfigForm.spec.ts
 //
 // Tests for DomainSsoConfigForm.vue covering:
-// 1. Provider type selector rendering
-// 2. Provider-specific field visibility (Entra ID, OIDC, Google, GitHub)
+// 1. Provider type selector rendering (OIDC/Entra-only — #3902)
+// 2. Provider-specific field visibility (Entra ID, OIDC)
 // 3. Form validation for required fields
 // 4. Event emissions (save, delete, test, discard)
 // 5. Form state updates via v-model
@@ -59,15 +59,13 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 }));
 
 
-// Mock SSO provider metadata
+// Mock SSO provider metadata (OIDC/Entra-only — #3902)
 // Note: This mock matches the actual module path the component imports from.
 // If tests fail due to provider metadata behavior, verify the component import path.
 vi.mock('@/schemas/shapes/domains/sso-config', () => ({
   SSO_PROVIDER_METADATA: {
     entra_id: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Microsoft Entra ID' },
-    google: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Google Workspace' },
-    github: { requiresDomainFilter: true, idpControlsAccess: false, description: 'GitHub OAuth' },
-    oidc: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Generic OIDC' },
+    oidc: { requiresDomainFilter: true, idpControlsAccess: false, description: 'Generic OIDC' },
   },
 }));
 
@@ -206,18 +204,19 @@ describe('DomainSsoConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('Provider type selector', () => {
-    it('renders all provider options', async () => {
+    // Tenant SSO is OIDC/Entra-only: issuerless providers (Google, GitHub)
+    // cannot satisfy per-tenant identity partitioning and were removed from
+    // the tenant surface (#3902, PR #3900).
+    it('renders exactly the two supported provider options (entra_id, oidc)', async () => {
       wrapper = await mountComponent();
 
-      const entraRadio = wrapper.find('#domain-provider-entra_id');
-      const googleRadio = wrapper.find('#domain-provider-google');
-      const githubRadio = wrapper.find('#domain-provider-github');
-      const oidcRadio = wrapper.find('#domain-provider-oidc');
+      expect(wrapper.find('#domain-provider-entra_id').exists()).toBe(true);
+      expect(wrapper.find('#domain-provider-oidc').exists()).toBe(true);
+      expect(wrapper.find('#domain-provider-google').exists()).toBe(false);
+      expect(wrapper.find('#domain-provider-github').exists()).toBe(false);
 
-      expect(entraRadio.exists()).toBe(true);
-      expect(googleRadio.exists()).toBe(true);
-      expect(githubRadio.exists()).toBe(true);
-      expect(oidcRadio.exists()).toBe(true);
+      const providerRadios = wrapper.findAll('input[type="radio"][name="provider_type"]');
+      expect(providerRadios).toHaveLength(2);
     });
 
     it('selects Entra ID by default', async () => {
@@ -230,11 +229,11 @@ describe('DomainSsoConfigForm', () => {
     it('allows selecting different providers', async () => {
       wrapper = await mountComponent();
 
-      const googleRadio = wrapper.find('#domain-provider-google');
-      await googleRadio.setValue(true);
+      const oidcRadio = wrapper.find('#domain-provider-oidc');
+      await oidcRadio.setValue(true);
       await flushPromises();
 
-      expect((googleRadio.element as HTMLInputElement).checked).toBe(true);
+      expect((oidcRadio.element as HTMLInputElement).checked).toBe(true);
     });
   });
 
@@ -250,8 +249,8 @@ describe('DomainSsoConfigForm', () => {
       expect(tenantIdInput.exists()).toBe(true);
     });
 
-    it('hides tenant_id field when Google is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'google' } });
+    it('hides tenant_id field when OIDC is selected', async () => {
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       expect(tenantIdInput.exists()).toBe(false);
@@ -271,18 +270,8 @@ describe('DomainSsoConfigForm', () => {
       expect(issuerInput.exists()).toBe(false);
     });
 
-    it('hides both tenant_id and issuer for GitHub provider', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
-
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-      const issuerInput = wrapper.find('#domain-sso-issuer');
-
-      expect(tenantIdInput.exists()).toBe(false);
-      expect(issuerInput.exists()).toBe(false);
-    });
-
     it('does not show domain filter field (feature not yet enabled)', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
 
       const domainInput = wrapper.find('#domain-sso-domain-input');
       expect(domainInput.exists()).toBe(false);
@@ -338,14 +327,14 @@ describe('DomainSsoConfigForm', () => {
     it('emits update:formState when provider type changes', async () => {
       wrapper = await mountComponent();
 
-      const googleRadio = wrapper.find('#domain-provider-google');
-      await googleRadio.setValue(true);
+      const oidcRadio = wrapper.find('#domain-provider-oidc');
+      await oidcRadio.setValue(true);
       await flushPromises();
 
       const emitted = wrapper.emitted('update:formState');
       expect(emitted).toBeTruthy();
       expect(emitted![emitted!.length - 1][0]).toMatchObject({
-        provider_type: 'google',
+        provider_type: 'oidc',
       });
     });
 

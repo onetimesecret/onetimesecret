@@ -456,9 +456,9 @@ offenders = files.select { |path| File.read(path).include?('onetime-logo-v3-xl.s
 offenders.map { |p| File.basename(p) }.sort
 #=> []
 
-## All 22 shipped HTML templates are present (count baseline)
+## All 23 shipped HTML templates are present (count baseline)
 Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.html.erb')).size
-#=> 22
+#=> 23
 
 ## [regression guard] no shipped email template hardcodes the 'Delano' sign-off
 files = Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.erb'))

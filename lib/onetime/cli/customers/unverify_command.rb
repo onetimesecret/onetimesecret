@@ -25,6 +25,11 @@
 require 'auth/database'
 require 'auth/operations/customers/set_verification'
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersUnverifyCommand < Command
@@ -77,6 +82,9 @@ module Onetime
       rescue Auth::Operations::SetCustomerVerification::AccountNotFound => ex
         puts "Error: #{ex.message}. " \
              'Run `bin/ots customers sync-auth-accounts` to reconcile.'
+        exit 1
+      rescue Auth::Operations::SetCustomerVerification::AccountClosed => ex
+        puts "Error: #{ex.message}"
         exit 1
       end
     end

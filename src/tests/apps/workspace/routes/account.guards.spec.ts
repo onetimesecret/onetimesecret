@@ -2,8 +2,8 @@
 //
 // Tests for the per-route beforeEnter guards defined in account.ts.
 // The guards (checkOwnerOrAdminAccess, checkPasswordSecurityAccess,
-// checkSecurityAccess) are not exported, so we test them indirectly by
-// invoking beforeEnter on the route records themselves.
+// checkSetPasswordAccess, checkSecurityAccess) are not exported, so we test
+// them indirectly by invoking beforeEnter on the route records themselves.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -12,15 +12,22 @@ vi.mock('@/utils/features', () => ({
   isFullAuthMode: vi.fn(() => false),
   hasPassword: vi.fn(() => false),
   isOwnerOrAdmin: vi.fn(() => false),
+  isPasswordAuthPermitted: vi.fn(() => false),
 }));
 
 import accountRoutes from '@/apps/workspace/routes/account';
-import { isFullAuthMode, hasPassword, isOwnerOrAdmin } from '@/utils/features';
+import {
+  isFullAuthMode,
+  hasPassword,
+  isOwnerOrAdmin,
+  isPasswordAuthPermitted,
+} from '@/utils/features';
 import type { RouteRecordRaw, NavigationGuardWithThis } from 'vue-router';
 
 const mockedIsFullAuthMode = vi.mocked(isFullAuthMode);
 const mockedHasPassword = vi.mocked(hasPassword);
 const mockedIsOwnerOrAdmin = vi.mocked(isOwnerOrAdmin);
+const mockedIsPasswordAuthPermitted = vi.mocked(isPasswordAuthPermitted);
 
 /**
  * Extract the beforeEnter guard from a route found by path.
@@ -56,6 +63,7 @@ describe('Account route guards', () => {
     mockedIsFullAuthMode.mockReturnValue(false);
     mockedHasPassword.mockReturnValue(false);
     mockedIsOwnerOrAdmin.mockReturnValue(false);
+    mockedIsPasswordAuthPermitted.mockReturnValue(false);
   });
 
   // ── Guard wiring verification ─────────────────────────────────────
@@ -97,11 +105,12 @@ describe('Account route guards', () => {
       expect(route?.beforeEnter).toBeDefined();
     });
 
-    it('security overview, sessions, and passkeys routes have beforeEnter guards', () => {
+    it('security overview, sessions, passkeys, and connections routes have beforeEnter guards', () => {
       const securityPaths = [
         '/account/settings/security',
         '/account/settings/security/sessions',
         '/account/settings/security/passkeys',
+        '/account/settings/security/connections',
       ];
       for (const path of securityPaths) {
         const route = accountRoutes.find((r: RouteRecordRaw) => r.path === path);
@@ -182,7 +191,6 @@ describe('Account route guards', () => {
   describe('checkPasswordSecurityAccess (password-dependent routes)', () => {
     const guardedPaths = [
       '/account/settings/security/password',
-      '/account/settings/security/reset-password',
       '/account/settings/security/mfa',
       '/account/settings/security/recovery-codes',
     ];
@@ -218,6 +226,44 @@ describe('Account route guards', () => {
         });
       });
     }
+  });
+
+  // ── checkSetPasswordAccess ────────────────────────────────────────
+
+  describe('checkSetPasswordAccess (reset/set-password request page, #3886)', () => {
+    const path = '/account/settings/security/reset-password';
+
+    it('allows a user with a password (reset flow)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(true);
+      mockedIsPasswordAuthPermitted.mockReturnValue(false);
+
+      expect(invokeGuard(path)).toBe(true);
+    });
+
+    it('allows a passwordless user when password auth is permitted (set flow)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+      mockedIsPasswordAuthPermitted.mockReturnValue(true);
+
+      expect(invokeGuard(path)).toBe(true);
+    });
+
+    it('redirects a passwordless user when password auth is not permitted (SSO-enforced)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+      mockedIsPasswordAuthPermitted.mockReturnValue(false);
+
+      expect(invokeGuard(path)).toEqual({ name: 'Account' });
+    });
+
+    it('redirects when not full auth mode regardless of policy', () => {
+      mockedIsFullAuthMode.mockReturnValue(false);
+      mockedHasPassword.mockReturnValue(true);
+      mockedIsPasswordAuthPermitted.mockReturnValue(true);
+
+      expect(invokeGuard(path)).toEqual({ name: 'Account' });
+    });
   });
 
   // ── checkOwnerWithPasswordAccess ────────────────────────────────────
@@ -273,6 +319,9 @@ describe('Account route guards', () => {
       '/account/settings/security',
       '/account/settings/security/sessions',
       '/account/settings/security/passkeys',
+      // Connected identities is guarded like passkeys — full-auth mode only,
+      // NOT password-dependent (SSO-only accounts must be able to reach it).
+      '/account/settings/security/connections',
     ];
 
     for (const path of guardedPaths) {
@@ -327,6 +376,8 @@ describe('Account route guards', () => {
       expect(invokeGuard('/account/settings/caution')).toBe(true);
       expect(invokeGuard('/account/settings/security')).toBe(true);
       expect(invokeGuard('/account/settings/security/sessions')).toBe(true);
+      // Connected identities is not password-dependent — SSO-only owner reaches it.
+      expect(invokeGuard('/account/settings/security/connections')).toBe(true);
 
       // Should redirect
       expect(invokeGuard('/account/settings/security/password')).toEqual({ name: 'Account' });
@@ -350,7 +401,7 @@ describe('Account route guards', () => {
       expect(invokeGuard('/account/settings/caution')).toEqual({ name: 'Account' });
     });
 
-    it('member SSO (no password) can only access security overview and sessions', () => {
+    it('member SSO (no password) can access security overview, sessions, and connections', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(false);
       mockedIsOwnerOrAdmin.mockReturnValue(false);
@@ -358,6 +409,8 @@ describe('Account route guards', () => {
       // Should allow
       expect(invokeGuard('/account/settings/security')).toBe(true);
       expect(invokeGuard('/account/settings/security/sessions')).toBe(true);
+      // Connected identities is not password-dependent — SSO-only member reaches it.
+      expect(invokeGuard('/account/settings/security/connections')).toBe(true);
 
       // Should redirect
       expect(invokeGuard('/account/settings/security/password')).toEqual({ name: 'Account' });

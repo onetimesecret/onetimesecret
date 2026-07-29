@@ -11,6 +11,12 @@
 #   4. Membership role:'owner' records match org's owner_id
 #   5. Organization has at least one member
 #
+# --repair on check 1 promotes a member with role:'owner', writing owner_id as
+# the objid (#3907). When the stored created_by is that same person's legacy
+# custid/email, created_by is migrated to objid space alongside it; a
+# DIFFERENT person's created_by is never touched (transfer-style audit state,
+# D32).
+#
 # Usage:
 #   bin/ots org doctor on8q30gih2uxu2cw77jzh7caq07     # Check single org
 #   bin/ots org doctor --all                            # Scan all orgs
@@ -18,17 +24,26 @@
 #   bin/ots org doctor on8q... --json                   # JSON output
 
 require 'json'
+# Org::Shared must exist before `include Org::Shared` below. Required here (not
+# only from the lib/onetime/cli.rb manifest) so this file cannot be loaded in a
+# broken order.
+require_relative 'shared'
 
 module Onetime
   module CLI
     # rubocop:disable Metrics/ClassLength
     class OrgDoctorCommand < Command
+      # Shared org resolution (extid first, objid fallback) + error_exit +
+      # org_label. Doctor used to carry a private load_org; the two org commands
+      # must not drift on how an ORG argument resolves.
+      include Org::Shared
+
       desc 'Check organization data integrity'
 
       argument :extid,
         type: :string,
         required: false,
-        desc: 'Organization extid (omit for --all scan)'
+        desc: 'Organization extid or objid (omit for --all scan)'
 
       option :all,
         type: :boolean,
@@ -56,7 +71,7 @@ module Onetime
           return
         end
 
-        orgs   = all ? scan_all_orgs : [load_org(extid)]
+        orgs   = all ? scan_all_orgs : [resolve_org(extid, json: json)]
         report = { checked: 0, healthy: 0, issues: [], repaired: [] }
 
         orgs.each do |org|
@@ -127,15 +142,6 @@ module Onetime
             4. Membership role:'owner' matches owner_id (WARNING)
             5. Organization has at least one member (WARNING)
         USAGE
-      end
-
-      def load_org(extid)
-        org = Onetime::Organization.find_by_extid(extid)
-        unless org
-          puts "Organization not found: #{extid}"
-          exit 1
-        end
-        org
       end
 
       def scan_all_orgs
@@ -214,6 +220,11 @@ module Onetime
               action: :owner_promoted,
               new_owner_custid: promoted[:custid],
               new_owner_extid: promoted[:extid],
+              # true when created_by held the promoted owner's own legacy
+              # custid/email and was migrated to objid space alongside
+              # owner_id (same person, new encoding — see
+              # same_person_created_by?)
+              created_by_migrated: promoted[:created_by_migrated],
             }
           end
         else
@@ -320,16 +331,44 @@ module Onetime
           customer = Onetime::Customer.load(member_id)
           next unless customer # skip if this owner candidate is also deleted
 
-          # Update org.owner_id
-          org.owner_id = customer.custid
+          # Same-person space migration (#3907): when the stored created_by is
+          # this candidate's LEGACY identity (email-shaped custid or email),
+          # creator and promoted owner are the same person — carry created_by
+          # into the objid space alongside owner_id. Otherwise the repaired org
+          # lands in the standardize_owner_id chore's Branch 3b forever, with
+          # the legacy email left in a safe-dumped field. A DIFFERENT person's
+          # created_by is transfer-style audit state (D32): never touch it.
+          migrate_created_by = same_person_created_by?(org, customer)
+          org.created_by     = customer.objid if migrate_created_by
+
+          # Update org.owner_id — the OBJID, matching what Organization.create!
+          # writes and what check 4 compares against the members set (#3907)
+          org.owner_id = customer.objid
           unless org.save
             OT.le "[org doctor] Failed to save org #{org.extid} after owner promotion"
             next
           end
           OT.info "[org doctor] Promoted #{customer.extid} as owner of #{org.extid}"
-          return { custid: customer.custid, extid: customer.extid }
+          return {
+            custid: customer.custid,
+            extid: customer.extid,
+            created_by_migrated: migrate_created_by,
+          }
         end
         nil
+      end
+
+      # True when org.created_by stores this customer's own legacy identity
+      # (custid or email) rather than a different person's id or an objid
+      # already in the right space. Gates a SPACE migration only — ADR-012
+      # immutability is about WHO created the org, not which key encoding
+      # recorded them.
+      def same_person_created_by?(org, customer)
+        created_by = org.created_by.to_s
+        return false if created_by.empty?
+        return false if created_by == customer.objid.to_s # already objid space
+
+        [customer.custid.to_s, customer.email.to_s].include?(created_by)
       end
 
       def ensure_membership_record(org, customer, role:)

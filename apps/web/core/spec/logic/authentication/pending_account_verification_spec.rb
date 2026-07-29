@@ -63,9 +63,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         double('Logger', info: nil, warn: nil, error: nil, debug: nil)
       )
 
-      # Stub set_info_message (it's a no-op in base)
-      allow(logic).to receive(:set_info_message)
-
       # M-4: stub the login rate limiter so these unit specs never touch Redis.
       # raise_concerns calls check_login_rate_limit! and process (verified
       # credentials) calls clear_login_rate_limit!.
@@ -106,7 +103,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           hash_including(customer_id: 'cust_pending123', status: :pending),
         )
         expect(logger).to receive(:info).with(
-          'Resending verification email (autoverify mode)',
+          'Resending verification email (autoverify disabled)',
           hash_including(customer_id: 'cust_pending123'),
         )
 
@@ -177,7 +174,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         )
         # Should NOT log resending email
         expect(logger).not_to receive(:info).with(
-          'Resending verification email (autoverify mode)',
+          'Resending verification email (autoverify disabled)',
           anything,
         )
 

@@ -113,15 +113,17 @@ rescue ArgumentError
 end
 #=> :raised
 
-## an invalid-scope set recorded NO audit event
+## an invalid-scope set records ONE result: :failure event (Onetime::AuditedFailure)
 AE.events.clear
 begin
   Onetime::Operations::SetBanner.new(content: @msg, actor: @actor, scope: 'bogus').call
 rescue ArgumentError
   nil
 end
-AE.count
-#=> 0
+@scope_ev = AE.recent(1).first
+[AE.count, @scope_ev['verb'], @scope_ev['target'], @scope_ev['result'],
+ @scope_ev['detail']['error']]
+#=> [1, "banner.set", KEY, "failure", "ArgumentError"]
 
 ## GetBanner coerces an unknown sidecar value back to the default scope
 DB.set(SCOPE_KEY, 'garbage')
@@ -160,18 +162,24 @@ rescue ArgumentError
 end
 #=> :raised
 
-## the failed (empty) set recorded NO audit event
+## the failed (empty) set records ONE result: :failure event, verb unchanged
 # NOTE: only a truly empty string is rejected — whitespace-only content is stored
 # verbatim, matching the CLI's bare-argument path (no strip), which is bit-for-bit
 # preserved. HTTP-layer trimming/validation lives in the colonel SetBanner logic.
+#
+# The two Redis writes (content + scope sidecar) are NOT atomic, so a failure
+# partway leaves the banner and its audience scope out of sync on an
+# every-visitor surface. The success record sits after both, which is why the
+# macro is what puts a failed publish in the trail.
 AE.events.clear
 begin
   Onetime::Operations::SetBanner.new(content: '', actor: @actor).call
 rescue ArgumentError
   nil
 end
-AE.count
-#=> 0
+@empty_ev = AE.recent(1).first
+[AE.count, @empty_ev['verb'], @empty_ev['target'], @empty_ev['result']]
+#=> [1, "banner.set", KEY, "failure"]
 
 # ---- Behavioural parity: stored value byte-identical -------------------
 
@@ -218,9 +226,38 @@ AE.events.clear
 [@noop.status, @noop.cleared]
 #=> [:not_set, false]
 
-## a no-op clear records NO audit event (nothing mutated)
+## a no-op clear records NO audit event (nothing mutated, nothing REFUSED)
+# The colonel adapter deliberately returns 200 with cleared:false for :not_set
+# ("not surfaced as an error", so a benign TTL race is not a failure), which is
+# why this stays unaudited while UnbanIP's 404 :not_found does not.
 AE.count
 #=> 0
+
+# ---- ClearBanner: a failed clear IS audited ---------------------------
+#
+# The Onetime::AuditedFailure mechanism. Both deletes ride one MULTI/EXEC
+# (a failed transaction removes neither key), but the runtime refresh and the
+# success record still sit after it — a failure there must audit and re-raise.
+
+## a clear whose delete transaction blows up re-raises the original error
+Onetime::Operations::SetBanner.new(content: 'to-be-cleared', actor: @actor).call
+AE.events.clear
+@clear_db = Familia.dbclient(Onetime::Operations::BannerState::DB)
+@clear_db.define_singleton_method(:multi) { |*| raise(Onetime::Problem, 'redis gone') }
+begin
+  Onetime::Operations::ClearBanner.new(actor: @actor).call
+  :no_raise
+rescue Onetime::Problem
+  :raised
+ensure
+  @clear_db.singleton_class.remove_method(:multi)
+end
+#=> :raised
+
+## it recorded ONE result: :failure event with the unchanged verb + key target
+@cfev = AE.recent(1).first
+[AE.count, @cfev['verb'], @cfev['target'], @cfev['result'], @cfev['detail']['error']]
+#=> [1, "banner.clear", KEY, "failure", "Onetime::Problem"]
 
 # Cleanup
 DB.del(KEY)

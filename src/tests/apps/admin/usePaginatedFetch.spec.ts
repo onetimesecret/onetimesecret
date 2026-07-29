@@ -191,6 +191,84 @@ describe('usePaginatedFetch', () => {
     });
   });
 
+  describe('out-of-order responses', () => {
+    /** Manually-settled promise so a test controls response arrival order. */
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      let reject!: (reason?: unknown) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    it('a stale settle neither reconciles page/perPage nor releases loading', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const pager = makePager();
+
+      const first = pager.fetchPage(2);
+      const second = pager.fetchPage(3);
+
+      // The obsolete request settles FIRST, echoing pagination the newer
+      // request's controls must never display.
+      slow.resolve({ data: validPayload({ page: 2, per_page: 99 }) });
+      await first;
+      expect(pager.page.value).toBe(3);
+      expect(pager.perPage.value).toBe(DEFAULT_PER_PAGE);
+      expect(pager.loading.value).toBe(true);
+
+      fast.resolve({ data: validPayload({ page: 3, per_page: 10 }) });
+      await second;
+      expect(pager.page.value).toBe(3);
+      expect(pager.perPage.value).toBe(10);
+      expect(pager.loading.value).toBe(false);
+    });
+
+    it('a stale rejection does not plant its error over a newer success', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const pager = makePager();
+
+      const first = pager.fetchPage(1);
+      const second = pager.fetchPage(2);
+
+      fast.resolve({ data: validPayload({ page: 2 }) });
+      await second;
+
+      slow.reject(new Error('socket hang up'));
+      // The stale caller still receives its own rejection…
+      await expect(first).rejects.toThrow('socket hang up');
+      // …but the shared refs stay owned by the newer request.
+      expect(pager.error.value).toBeNull();
+      expect(pager.loading.value).toBe(false);
+      expect(pager.page.value).toBe(2);
+    });
+
+    it('reset() invalidates an in-flight request', async () => {
+      const slow = deferred<{ data: unknown }>();
+      mockApi.get.mockImplementationOnce(() => slow.promise);
+      const pager = makePager();
+
+      const inflight = pager.fetchPage(5);
+      pager.reset();
+
+      slow.resolve({ data: validPayload({ page: 5, per_page: 10 }) });
+      await inflight;
+
+      expect(pager.page.value).toBe(1);
+      expect(pager.perPage.value).toBe(DEFAULT_PER_PAGE);
+      expect(pager.loading.value).toBe(false);
+    });
+  });
+
   describe('reset', () => {
     it('restores loading/error/validationError/page/perPage to initial values', async () => {
       mockApi.get.mockResolvedValue({

@@ -4,6 +4,7 @@
 
 require 'onetime/operations/dlq/store'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -35,8 +36,21 @@ module Onetime
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class Purge
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every purge that removes ≥ 1 message.
         AUDIT_VERB = 'queue.dlq.purge'
+
+        # Irreversible verb over a broker connection, so a raise mid-purge (or a
+        # broker error before it) is exactly what the trail must show. Records
+        # one `result: :failure` and re-raises. `dry_run` is in the detail
+        # because the success event is applied-path-only (a dry-run or empty
+        # queue records nothing), so without it a failure has no readable
+        # counterpart.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @queue },
+          detail: -> { { dry_run: @dry_run } }
 
         # @!attribute status [r] Symbol :success / :empty / :dry_run
         # @!attribute count [r] Integer messages measured in the queue

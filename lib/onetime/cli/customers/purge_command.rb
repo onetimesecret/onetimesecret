@@ -40,6 +40,11 @@
 # require it explicitly.
 require 'auth/operations/delete_customer'
 
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
 module Onetime
   module CLI
     class CustomersPurgeCommand < Command # rubocop:disable Metrics/ClassLength
@@ -358,7 +363,7 @@ module Onetime
             next if role == 'anonymous'
 
             email = parse_json_field(email_raw)
-            next unless email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
+            next unless email.to_s.match?(Onetime::Utils::EmailFormat::LOOSE_FORMAT)
 
             objid = key.split(':')[1]
 
@@ -403,7 +408,7 @@ module Onetime
           customers.each do |cust|
             next unless cust
             next if cust.anonymous?
-            next unless cust.email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
+            next unless cust.email.to_s.match?(Onetime::Utils::EmailFormat::LOOSE_FORMAT)
 
             last_login = cust.last_login.to_f
             updated    = cust.updated.to_f

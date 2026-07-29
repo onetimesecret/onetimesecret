@@ -22,10 +22,15 @@ import {
   isOwnerOrAdmin,
   hasPasswordOf,
   hasPassword,
+  isPasswordAuthPermittedOf,
+  isPasswordAuthPermitted,
   isFullAuthModeOf,
   isFullAuthMode,
   isApproximatedDomainValidationOf,
   isApproximatedDomainValidation,
+  providerLabel,
+  configuredProviderLabel,
+  getSsoProviders,
 } from '@/utils/features';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
@@ -1068,6 +1073,10 @@ describe('features utility', () => {
     it('returns false when has_password is undefined', () => {
       expect(hasPasswordOf({})).toBe(false);
     });
+
+    it('returns false when has_password is null (server could not determine)', () => {
+      expect(hasPasswordOf({ has_password: null })).toBe(false);
+    });
   });
 
   // ── hasPassword (snapshot wrapper) ──────────────────────────────
@@ -1090,6 +1099,51 @@ describe('features utility', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
 
       expect(hasPassword()).toBe(false);
+    });
+
+    it('returns false when bootstrap has_password is null', () => {
+      getBootstrapValueMock.mockReturnValue(null);
+
+      expect(hasPassword()).toBe(false);
+    });
+  });
+
+  // ── isPasswordAuthPermittedOf (pure predicate, #3886) ────────────
+
+  describe('isPasswordAuthPermittedOf', () => {
+    it('returns true when password_auth_permitted is true', () => {
+      expect(isPasswordAuthPermittedOf({ password_auth_permitted: true })).toBe(true);
+    });
+
+    it('returns false when password_auth_permitted is false', () => {
+      expect(isPasswordAuthPermittedOf({ password_auth_permitted: false })).toBe(false);
+    });
+
+    it('defaults to true when password_auth_permitted is undefined (permissive)', () => {
+      expect(isPasswordAuthPermittedOf({})).toBe(true);
+    });
+  });
+
+  // ── isPasswordAuthPermitted (snapshot wrapper) ───────────────────
+
+  describe('isPasswordAuthPermitted', () => {
+    it('returns true when bootstrap password_auth_permitted is true', () => {
+      getBootstrapValueMock.mockReturnValue(true);
+
+      expect(isPasswordAuthPermitted()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('password_auth_permitted');
+    });
+
+    it('returns false when bootstrap password_auth_permitted is false', () => {
+      getBootstrapValueMock.mockReturnValue(false);
+
+      expect(isPasswordAuthPermitted()).toBe(false);
+    });
+
+    it('returns true when bootstrap password_auth_permitted is undefined (permissive default)', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isPasswordAuthPermitted()).toBe(true);
     });
   });
 
@@ -1178,6 +1232,92 @@ describe('features utility', () => {
   });
 
   // ── SSR safety (window undefined) ─────────────────────────────────
+
+  /**
+   * Provider label precedence.
+   *
+   * The backend ALWAYS populates features.sso.providers[].display_name — a stock
+   * install that sets only OIDC_ISSUER + OIDC_CLIENT_ID gets the generic default
+   * ('SSO' for oidc, 'Microsoft' for entra; see lib/onetime/auth_config.rb).
+   * These tests seed exactly that shape, because a bootstrap with no `features`
+   * key (the default under test) makes the precedence unobservable — which is how
+   * a display_name-first providerLabel once shipped unnoticed.
+   */
+  describe('provider labels (bootstrap populated with backend defaults)', () => {
+    const STOCK_SSO_FEATURES = {
+      sso: {
+        enabled: true,
+        providers: [
+          // Exactly what the backend ships with no *_DISPLAY_NAME env var set.
+          { route_name: 'oidc', display_name: 'SSO' },
+          { route_name: 'entra', display_name: 'Microsoft' },
+        ],
+      },
+    };
+
+    beforeEach(() => {
+      getBootstrapValueMock.mockImplementation((key: string) =>
+        key === 'features' ? STOCK_SSO_FEATURES : undefined
+      );
+    });
+
+    it('exposes the generic backend defaults (guards the fixture)', () => {
+      expect(getSsoProviders()).toEqual([
+        { route_name: 'oidc', display_name: 'SSO' },
+        { route_name: 'entra', display_name: 'Microsoft' },
+      ]);
+    });
+
+    describe('providerLabel — canonical, built-in map wins', () => {
+      // The regression: a display_name-first providerLabel returns 'SSO' here and
+      // renders "You signed in with SSO" on the linking pages.
+      it('returns the built-in label even though display_name is set', () => {
+        expect(providerLabel('oidc')).toBe('OpenID Connect');
+        expect(providerLabel('entra')).toBe('Microsoft Entra');
+      });
+
+      it('covers the remaining built-in strategies', () => {
+        expect(providerLabel('github')).toBe('GitHub');
+        expect(providerLabel('google')).toBe('Google');
+      });
+
+      it('capitalizes an unknown route name', () => {
+        expect(providerLabel('okta')).toBe('Okta');
+      });
+
+      it('returns an empty string for a missing route name', () => {
+        expect(providerLabel('')).toBe('');
+      });
+    });
+
+    describe('configuredProviderLabel — operator display_name wins', () => {
+      it('prefers the configured display_name (connect buttons)', () => {
+        expect(configuredProviderLabel({ route_name: 'oidc', display_name: 'SSO' })).toBe('SSO');
+        expect(configuredProviderLabel({ route_name: 'entra', display_name: 'Microsoft' })).toBe(
+          'Microsoft'
+        );
+      });
+
+      it('honours an operator-chosen name', () => {
+        expect(configuredProviderLabel({ route_name: 'oidc', display_name: 'Acme SSO' })).toBe(
+          'Acme SSO'
+        );
+      });
+
+      it('falls back to the built-in label when display_name is blank', () => {
+        expect(configuredProviderLabel({ route_name: 'oidc', display_name: '   ' })).toBe(
+          'OpenID Connect'
+        );
+        expect(
+          configuredProviderLabel({ route_name: 'entra' } as unknown as { route_name: string; display_name: string })
+        ).toBe('Microsoft Entra');
+      });
+
+      it('falls back to a capitalized route name for an unknown blank provider', () => {
+        expect(configuredProviderLabel({ route_name: 'okta', display_name: '' })).toBe('Okta');
+      });
+    });
+  });
 
   describe('SSR safety (window undefined)', () => {
     // Store original window reference

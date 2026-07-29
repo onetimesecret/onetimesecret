@@ -131,10 +131,11 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       mockPut.mockResolvedValueOnce(mockResponse);
 
       await SsoService.putConfig('org_test', {
-        provider_type: 'google' as const,
-        client_id: 'google-client',
-        client_secret: 'google-secret',
-        display_name: 'Google SSO',
+        provider_type: 'entra_id' as const,
+        client_id: 'entra-client',
+        client_secret: 'entra-secret',
+        display_name: 'Entra SSO',
+        tenant_id: 'tenant-123',
       });
 
       expect(mockPut).toHaveBeenCalledTimes(1);
@@ -258,10 +259,11 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       mockPatch.mockResolvedValueOnce(patchResponse);
 
       const putResult = await SsoService.saveConfig('org_1', {
-        provider_type: 'google' as const,
+        provider_type: 'entra_id' as const,
         client_id: 'id',
         client_secret: 'secret',
         display_name: 'Test',
+        tenant_id: 'tenant-123',
       });
 
       const patchResult = await SsoService.saveConfig('org_2', {
@@ -351,29 +353,33 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       expect(result.details.error_code).toBe('discovery_failed');
     });
 
-    it('handles GitHub provider validation', async () => {
+    // Converted from a GitHub case: issuerless providers were removed from
+    // the tenant SSO surface (#3902) — tenant SSO is OIDC/Entra-only.
+    it('handles generic OIDC provider validation', async () => {
       const mockResponse = {
         data: {
           user_id: 'user_123',
           success: true,
-          provider_type: 'github',
-          message: 'Client ID format is valid',
+          provider_type: 'oidc',
+          message: 'Discovery document fetched successfully',
           details: {
-            client_id_format: 'valid',
-            note: 'GitHub does not support OIDC discovery',
+            issuer: 'https://idp.example.com',
+            authorization_endpoint: 'https://idp.example.com/authorize',
+            token_endpoint: 'https://idp.example.com/token',
           },
         },
       };
       mockPost.mockResolvedValueOnce(mockResponse);
 
       const result = await SsoService.testConnection('org_abc', {
-        provider_type: 'github' as const,
-        client_id: 'Iv1.abc123def456',
+        provider_type: 'oidc' as const,
+        client_id: 'oidc-client-id',
+        issuer: 'https://idp.example.com',
       });
 
       expect(result.success).toBe(true);
-      expect(result.provider_type).toBe('github');
-      expect(result.details.client_id_format).toBe('valid');
+      expect(result.provider_type).toBe('oidc');
+      expect(result.details.issuer).toBe('https://idp.example.com');
     });
   });
 });

@@ -11,6 +11,7 @@
 require 'socket'
 require 'onetime/mail'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -33,14 +34,32 @@ module Onetime
       #
       # A real send that succeeds records EXACTLY ONE audit event (verb
       # `email.test_send`, actor = PUBLIC id, target = recipient). A dry-run sends
-      # nothing and records none. A send that RAISES (delivery failure) never
-      # reaches the audit call, so a failed send records none either — "only audit
-      # an actual, successful mutation". Delivery exceptions are NOT swallowed: they
-      # propagate to the caller so the CLI's existing rescue blocks (and the colonel
-      # logic's form-error handling) behave exactly as before.
+      # nothing and records none. A send that RAISES records one
+      # `result: :failure` event via {Onetime::AuditedFailure} — the raise happens
+      # after the provider has been handed the message, so a trail with no entry
+      # left "did the operator's test send go out?" unanswerable. Delivery
+      # exceptions are still NOT swallowed: they propagate to the caller so the
+      # CLI's existing rescue blocks (and the colonel logic's form-error handling)
+      # behave exactly as before.
       class SendTest
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every successful real send.
         AUDIT_VERB = 'email.test_send'
+
+        # This op has NO refusal STATUS — a delivery or enqueue failure RAISES
+        # (documented on #call), and it raises AFTER the provider has been
+        # handed the message, so "did the operator's test send actually go out?"
+        # was unanswerable from the trail. Records one `result: :failure` and
+        # re-raises, leaving the CLI/colonel rescue blocks untouched.
+        #
+        # `dry_run` is in the detail because the success event is
+        # applied-path-only. Never the message content — same rule as the
+        # success event.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @to },
+          detail: -> { { dry_run: @dry_run, enqueue: @enqueue } }
 
         # The fully-built diagnostic email plus the delivery context the CLI prints.
         Diagnostic = Data.define(:to, :from, :subject, :text_body, :provider, :host, :timestamp)
@@ -136,7 +155,7 @@ module Onetime
             subject: diagnostic.subject,
             body: diagnostic.text_body,
           }
-          queued = Onetime::Jobs::Publisher.enqueue_email_raw(raw_email, fallback: :raise)
+          queued    = Onetime::Jobs::Publisher.enqueue_email_raw(raw_email, fallback: :raise)
           queued ? :enqueued : :sent
         end
 

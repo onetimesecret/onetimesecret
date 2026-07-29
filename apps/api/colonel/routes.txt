@@ -24,6 +24,9 @@ DELETE /secrets/:secret_id                ColonelAPI::Logic::Colonel::DeleteSecr
 GET    /users                             ColonelAPI::Logic::Colonel::ListUsers response=json auth=sessionauth role=colonel scope=internal
 GET    /users/:user_id                    ColonelAPI::Logic::Colonel::GetUserDetails response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/plan               ColonelAPI::Logic::Colonel::UpdateUserPlan response=json auth=sessionauth role=colonel scope=internal
+# Change account email (#3731 PR-C3, D43). Destructive + cross-store: dry_run
+# defaults to TRUE, so the console previews then re-issues with dry_run=false.
+POST   /users/:user_id/email              ColonelAPI::Logic::Colonel::ChangeUserEmail response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/role               ColonelAPI::Logic::Colonel::SetUserRole response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/verify             ColonelAPI::Logic::Colonel::VerifyUser response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/unverify           ColonelAPI::Logic::Colonel::UnverifyUser response=json auth=sessionauth role=colonel scope=internal
@@ -51,6 +54,11 @@ POST   /domains/:extid/verify             ColonelAPI::Logic::Colonel::VerifyCust
 GET    /domains/:extid/probe             ColonelAPI::Logic::Colonel::ProbeDomain response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/repair            ColonelAPI::Logic::Colonel::RepairDomain response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/transfer          ColonelAPI::Logic::Colonel::TransferDomain response=json auth=sessionauth role=colonel scope=internal
+# Per-domain config records (signin/signup/homepage/api/incoming/sso/mailer): view/upsert/delete + ensure-missing (v0.26.2 outage class)
+GET    /domains/:extid/configs           ColonelAPI::Logic::Colonel::GetDomainConfigs response=json auth=sessionauth role=colonel scope=internal
+POST   /domains/:extid/configs/ensure    ColonelAPI::Logic::Colonel::EnsureDomainConfigs response=json auth=sessionauth role=colonel scope=internal
+PUT    /domains/:extid/configs/:kind     ColonelAPI::Logic::Colonel::UpsertDomainConfig response=json auth=sessionauth role=colonel scope=internal
+DELETE /domains/:extid/configs/:kind     ColonelAPI::Logic::Colonel::DeleteDomainConfig response=json auth=sessionauth role=colonel scope=internal
 # Per-domain detail (DNS panel + post-verify refresh). Literal /domains/orphaned above still wins.
 GET    /domains/:extid                   ColonelAPI::Logic::Colonel::GetCustomDomain response=json auth=sessionauth role=colonel scope=internal
 DELETE /domains/:extid                   ColonelAPI::Logic::Colonel::RemoveCustomDomain response=json auth=sessionauth role=colonel scope=internal
@@ -60,6 +68,8 @@ GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrgani
 GET    /organizations/:org_id             ColonelAPI::Logic::Colonel::GetOrganizationDetail response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/investigate ColonelAPI::Logic::Colonel::InvestigateOrganization response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/reconcile   ColonelAPI::Logic::Colonel::ReconcileOrganization response=json auth=sessionauth role=colonel scope=internal
+# Ownership transfer (#3907: op-backed, shared with `bin/ots org transfer-ownership`). Applies immediately — dry_run pinned false (D12: no preview flow in the console).
+POST   /organizations/:org_id/transfer-ownership ColonelAPI::Logic::Colonel::TransferOrganizationOwnership response=json auth=sessionauth role=colonel scope=internal
 
 # Entitlement Overrides (Phase 2: grant/revoke per-org entitlements)
 POST   /organizations/:org_id/entitlements/:action  ColonelAPI::Logic::Colonel::ManageEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
@@ -69,6 +79,10 @@ DELETE /organizations/:org_id/entitlements/overrides ColonelAPI::Logic::Colonel:
 POST   /organizations/:org_id/members                   ColonelAPI::Logic::Colonel::AddMembership response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/members/:member_id/role   ColonelAPI::Logic::Colonel::SetMembershipRole response=json auth=sessionauth role=colonel scope=internal
 DELETE /organizations/:org_id/members/:member_id         ColonelAPI::Logic::Colonel::RemoveMembership response=json auth=sessionauth role=colonel scope=internal
+
+# Membership Entitlement Overrides (#3907: per-membership grant/revoke, shared with `bin/ots memberships entitlement`)
+POST   /organizations/:org_id/members/:member_id/entitlements/:action   ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
+DELETE /organizations/:org_id/members/:member_id/entitlements/overrides ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
 
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth role=colonel scope=internal

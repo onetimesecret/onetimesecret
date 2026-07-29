@@ -4,6 +4,7 @@
 
 require 'onetime/operations/dlq/store'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -38,8 +39,27 @@ module Onetime
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class Replay
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every replay that processes ≥ 1 message.
         AUDIT_VERB = 'queue.dlq.replay'
+
+        # This op has NO refusal STATUS — `:empty`/`:noop`/`:dry_run` are all
+        # honest outcomes, not refusals. What it DOES have is the nastiest
+        # partial-failure shape in the toolbox: the replay loop republishes and
+        # acks message by message, each republish able to re-trigger emails and
+        # webhooks, and the success record runs only at the end. A broker error
+        # halfway through therefore fired real side effects and left NOTHING in
+        # the trail. Records one `result: :failure` and re-raises.
+        #
+        # `dry_run` is in the detail because the success event is
+        # applied-path-only: without it a blown-up preview (which sent nothing)
+        # is indistinguishable from a blown-up live replay (which may have sent
+        # a great deal).
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @queue },
+          detail: -> { { dry_run: @dry_run, count: @count } }
 
         # @!attribute status [r] Symbol :success (processed ≥ 1) / :empty (queue was
         #   empty) / :noop (queue non-empty but nothing processed) / :dry_run
@@ -74,12 +94,16 @@ module Onetime
 
           if @dry_run
             return Result.new(
-              status: :dry_run, queue: @queue,
-              replayed: 0, failed: 0, errors: [], would_replay: to_replay,
+              status: :dry_run,
+              queue: @queue,
+              replayed: 0,
+              failed: 0,
+              errors: [],
+              would_replay: to_replay,
             )
           end
 
-          results = replay_loop(channel, queue, to_replay)
+          results   = replay_loop(channel, queue, to_replay)
           processed = results[:replayed] + results[:failed]
 
           # Exactly one audit event per replay that actually processed a message.

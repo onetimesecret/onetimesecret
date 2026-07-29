@@ -3,6 +3,7 @@
 <script setup lang="ts">
 
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
+  import DomainConfigsSection from '@/apps/admin/components/domains/DomainConfigsSection.vue';
   import DomainProbeResult from '@/apps/admin/components/domains/DomainProbeResult.vue';
   import DomainStateBadge from '@/apps/admin/components/domains/DomainStateBadge.vue';
   import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
@@ -262,6 +263,20 @@
     await runRemovePreview();
   }
 
+  /**
+   * The apply button exists ONLY behind a preview that says `planned`, matching
+   * repair and transfer. Without this gate the typed-confirm dialog opens cold:
+   * the operator retypes the extid having never been told which org loses the
+   * domain or whether a survivor row reasserts the display_domain index. The
+   * server guard (`dry_run !== false`) keeps the apply honest, but honesty
+   * about WHAT was destroyed is not the same as showing it first.
+   *
+   * Ops::Domains::Remove emits `planned` on every dry run and `removed` only on
+   * an apply, so a `removed` status here means the ack drifted from the request
+   * — not something to hand an apply button to.
+   */
+  const removeApplicable = computed(() => removePlan.value?.status === 'planned');
+
   // ---- The single guarded-action dialog --------------------------------------
 
   type ActionKey = 'verify' | 'repair' | 'transfer' | 'remove';
@@ -294,9 +309,20 @@
           dryRun: false,
         });
         return;
-      case 'remove':
-        await store.remove(publicId.value, false);
+      case 'remove': {
+        // The endpoint DEFAULTS dry_run to true and the false flag rides the
+        // query string, so the ack must PROVE the apply happened: only
+        // `details.dry_run === false` is a real removal. A missing/malformed
+        // ack or a dry_run echo (query param lost to a proxy strip / backend
+        // drift) means the server only PREVIEWED — reporting success would
+        // toast "removed", drop the cached row and navigate away while the
+        // domain still exists.
+        const removeAck = await store.remove(publicId.value, false);
+        if (!removeAck || removeAck.dry_run !== false) {
+          throw new Error(t('web.admin.domains.actions.remove.notApplied'));
+        }
         return;
+      }
       default:
         throw new Error('No active action');
     }
@@ -672,6 +698,7 @@
                 </p>
               </div>
               <button
+                v-if="removeApplicable"
                 type="button"
                 data-testid="remove-button"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
@@ -727,6 +754,11 @@
           </p>
         </div>
       </section>
+
+      <!-- Per-domain config records (signin/signup/homepage/api/incoming/sso/mailer) -->
+      <DomainConfigsSection
+        :extid="publicId"
+        :display-domain="record.display_domain" />
 
       <!-- DNS records to publish (same component the attach panel uses) -->
       <section

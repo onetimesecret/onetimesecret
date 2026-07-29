@@ -105,6 +105,17 @@ export function usePaginatedFetch<TResponse, TItem>(
   const page = ref(1);
   const perPage = ref(defaultPerPage);
 
+  /**
+   * Monotonic id of the newest fetchPage call. Overlapping requests settle in
+   * arbitrary order; only the newest may touch the refs above, so a slower
+   * obsolete response can never reconcile `page`/`perPage` (or clear
+   * `loading`, or plant its error) out from under the request that replaced
+   * it. The RETURN VALUE is not gated — each caller still receives its own
+   * result and owns the same guard for any resource state it keeps (see
+   * useOrganizationsList).
+   */
+  let requestSeq = 0;
+
   type QueryParams = Record<string, string | number | boolean>;
 
   /** Assemble the query for one server page. Empty/nullish extras are dropped. */
@@ -127,6 +138,7 @@ export function usePaginatedFetch<TResponse, TItem>(
     targetPage: number = page.value,
     params?: FetchParams
   ): Promise<PageResult<TItem> | null> {
+    const requestId = ++requestSeq;
     loading.value = true;
     error.value = null;
     validationError.value = null;
@@ -137,26 +149,32 @@ export function usePaginatedFetch<TResponse, TItem>(
       const result = gracefulParse(config.schema, response.data, config.context);
       if (!result.ok) {
         // Contract mismatch: degrade quietly. gracefulParse already reported it.
-        validationError.value = config.context;
+        if (requestId === requestSeq) validationError.value = config.context;
         return null;
       }
 
       const selected = config.select(result.data);
-      if (selected.pagination) {
+      if (requestId === requestSeq && selected.pagination) {
         page.value = selected.pagination.page;
         perPage.value = selected.pagination.per_page;
       }
       return selected;
     } catch (err) {
-      error.value = err instanceof Error ? err : new Error(String(err));
-      throw error.value;
+      const wrapped = err instanceof Error ? err : new Error(String(err));
+      if (requestId === requestSeq) error.value = wrapped;
+      throw wrapped;
     } finally {
-      loading.value = false;
+      // A stale settle must not flip loading off while the newer request is
+      // still in flight — only the newest request releases the flag.
+      if (requestId === requestSeq) loading.value = false;
     }
   }
 
-  /** Restore initial fetch state. Resource state is the store's responsibility. */
+  /** Restore initial fetch state. Resource state is the store's responsibility.
+   *  Also invalidates any in-flight request so its late settle cannot
+   *  reconcile state over the freshly reset values. */
   function reset(): void {
+    requestSeq++;
     loading.value = false;
     error.value = null;
     validationError.value = null;

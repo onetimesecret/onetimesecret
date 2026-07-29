@@ -82,21 +82,58 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
       expect(Onetime::AdminAuditEvent).not_to have_received(:record)
     end
 
-    it 'returns :invalid_role (no lookup, no audit) for an unknown role' do
+    # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail
+    # with the same verb/target as a success — differing only in result:/detail.
+    it 'returns :invalid_role (no lookup) and records ONE result: :failure event' do
       result = described_class.new(org: org, customer: customer, new_role: 'wizard', actor: actor).call
 
       expect(result.status).to eq(:invalid_role)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.set_role',
+        target: 'ur_member',
+        result: :failure,
+        detail: { reason: 'invalid_role', from: nil, to: 'wizard', org_id: 'on_org_ext' },
+      )
     end
 
-    it 'returns :not_found (no audit) when no active membership exists' do
+    it 'returns :not_found and records ONE result: :failure event' do
       allow(Onetime::OrganizationMembership)
         .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(nil)
 
       result = described_class.new(org: org, customer: customer, new_role: 'admin', actor: actor).call
 
       expect(result.status).to eq(:not_found)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.set_role',
+        target: 'ur_member',
+        result: :failure,
+        detail: { reason: 'not_found', from: nil, to: 'admin', org_id: 'on_org_ext' },
+      )
+    end
+
+    # The Onetime::AuditedFailure mechanism. change_role! re-materializes
+    # entitlements and runs BEFORE the success-path record call, so a raise
+    # there leaves a half-changed membership with no trail unless the macro
+    # fires. Message expectation, not a store read: AdminAuditEvent.record
+    # swallows its own errors.
+    it 'records ONE result: :failure event when change_role! raises, and re-raises' do
+      allow(membership).to receive(:change_role!).and_raise(Onetime::Problem, 'materialize failed')
+
+      expect do
+        described_class.new(org: org, customer: customer, new_role: 'admin', actor: actor).call
+      end.to raise_error(Onetime::Problem, /materialize failed/)
+
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'membership.set_role',
+          target: 'ur_member', # literal: a broken target lambda silently lands as 'unknown'
+          result: :failure,
+          detail: hash_including(error: 'Onetime::Problem', message: 'materialize failed'),
+        ),
+      )
     end
   end
 
@@ -118,14 +155,20 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
       allow(owner_membership).to receive(:change_role!).and_return(true)
     end
 
-    it 'refuses to demote the last remaining owner (:last_owner, no change, no audit)' do
+    it 'refuses to demote the last remaining owner (:last_owner, no change, ONE failure audit)' do
       allow(Onetime::OrganizationMembership).to receive(:active_for_org).with(org).and_return([owner_membership])
 
       result = described_class.new(org: org, customer: customer, new_role: 'admin', actor: actor).call
 
       expect(result.status).to eq(:last_owner)
       expect(owner_membership).not_to have_received(:change_role!)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.set_role',
+        target: 'ur_member',
+        result: :failure,
+        detail: { reason: 'last_owner', from: 'owner', to: 'admin', org_id: 'on_org_ext' },
+      )
     end
 
     it 'allows demoting an owner when another owner remains' do

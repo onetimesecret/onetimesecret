@@ -54,6 +54,14 @@ Onetime::Organization.chore :standardize_owner_id do |org|
     next
   end
 
+  # EXPECTED CAUSES: (1) `bin/ots org transfer-ownership` moves owner_id but
+  # never created_by (immutable audit field, ADR-012), so every transferred org
+  # trips this branch forever. (2) `bin/ots org doctor --repair` promoted an
+  # owner who is NOT the creator. Both are by design, not corruption.
+  # Same-person doctor repairs do NOT land here: the repair migrates created_by
+  # into the objid space alongside owner_id when the stored created_by is the
+  # promoted owner's own legacy custid/email (#3907).
+  #
   # Branch 3b: both present but disagree → don't overwrite, warn.
   if !owner_id.empty? && !created_by.empty? && owner_id != created_by
     logger.warn 'Skipping inconsistent owner_id and created_by',

@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
+
 module Auth
   module Operations
     module Customers
@@ -20,6 +23,18 @@ module Auth
       # check is a backstop, not a catalog lookup this op can cheaply repeat).
       class SetPlan
         include Onetime::LoggerMethods
+        include Onetime::AuditedFailure
+
+        AUDIT_VERB = 'customer.set_plan'
+
+        # `@customer.save` runs BEFORE the success-path record, so a plan change
+        # that half-wrote (or blew up on a datastore error) would otherwise leave
+        # the trail claiming nothing happened. Records one `result: :failure` and
+        # re-raises. This op has no refusal STATUS — only :success/:no_change.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @customer&.extid },
+          detail: -> { { to: @planid } }
 
         # @!attribute status [r]
         #   @return [Symbol] :success (plan changed) or :no_change (already on plan)
@@ -48,7 +63,7 @@ module Auth
           # One audit event per successful mutation, emitted from the op layer.
           Onetime::AdminAuditEvent.record(
             actor: @actor,
-            verb: 'customer.set_plan',
+            verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
             detail: { from: from, to: @planid },

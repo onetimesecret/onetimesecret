@@ -10,8 +10,10 @@ module ColonelAPI
     module Colonel
       # List Users
       #
-      # @api Returns a paginated list of all users with obscured emails,
-      #   roles, verification status, plan IDs, and secret counts. Supports
+      # @api Returns a paginated list of all users with full email addresses
+      #   (colonel-only; the admin table obscures them client-side via
+      #   RevealEmail.vue), roles, verification status, plan IDs, and secret
+      #   counts. Supports
       #   optional role filtering, an optional email `search` term (bounded
       #   HSCAN over the email index — the same server-side search mechanism
       #   the sessions listing offers), and pagination via page/per_page

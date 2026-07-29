@@ -71,6 +71,22 @@ module Onetime
       field :created
       field :updated
 
+      # Colonel-writable fields, aggregated into
+      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS}. This constant is
+      # the ONLY place that names this model's colonel-writable fields AND
+      # their storage encoding — the registry validates at load time that
+      # every key has a setter here, so adding/renaming a field is a one-file
+      # change. All boolean fields on this model store REAL booleans
+      # (storage :native); the enum references the model constant so values
+      # cannot drift.
+      COLONEL_FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :native },
+        'signin_enabled' => { type: :boolean, storage: :native },
+        'email_auth_enabled' => { type: :boolean, storage: :native },
+        'sso_enabled' => { type: :boolean, storage: :native },
+        'restrict_to' => { type: :enum, values: RESTRICT_TO_VALUES, nullable: true },
+      }.freeze
+
       def init
         self.enabled            = false if enabled.nil?
         self.signin_enabled     = false if signin_enabled.nil?
@@ -152,9 +168,10 @@ module Onetime
         # Whether the domain's SigninConfig permits SSO as an auth method.
         #
         # Shared permission predicate so the display gate (config serializer)
-        # and the runtime gate (omniauth_tenant hook) cannot diverge. Both
-        # call sites consult this so the SSO button is never shown when the
-        # auth route would reject, and never hidden when the route works.
+        # and the runtime gate (omniauth_tenant hook) cannot diverge — both
+        # reach it through SsoConfig.tenant_sso_available_for?, so the SSO
+        # button is never shown when the auth route would reject, and never
+        # hidden when the route works.
         #
         # Master switch off / no config => permitted (defer to SsoConfig
         # credentials). Master switch on => sso_enabled? is authoritative.
@@ -223,6 +240,14 @@ module Onetime
         # *enabled* config always falls through to the shared resolver, which
         # honors an explicit signin_enabled=false and hides SSO along with it.
         #
+        # The carve-out ignores the password-signin `global` param — AUTH_SIGNIN
+        # does not govern SSO — but it is NOT exempt from the master switch:
+        # tenant_sso_available_for? consults global_auth_enabled (AUTH_ENABLED)
+        # itself, so a master kill still resolves false here. With the master
+        # switch off, sessionauth is never registered and an SSO sign-in could
+        # only mint a session the app ignores, so advertising the link would
+        # be a dead end (#3901 follow-up).
+        #
         # @param global [Boolean] install-level availability (auth.enabled && auth.signin)
         # @param config [SigninConfig, nil] the per-domain config, if any
         # @param domain_id [String, nil] CustomDomain identifier (objid); when
@@ -270,6 +295,28 @@ module Onetime
         def global_signin_enabled(auth = nil)
           auth ||= OT.conf.dig('site', 'authentication') || {}
           (auth['enabled'] && auth['signin']) == true
+        end
+
+        # Install-level MASTER authentication switch (AUTH_ENABLED) on its
+        # own, without the sign-in flag. This is the gate for sign-in paths
+        # that are not password/email — tenant SSO — where AUTH_SIGNIN is
+        # deliberately not consulted. The two flags fail differently:
+        # AUTH_SIGNIN=false retires only the password/email path while
+        # sessions keep working, but AUTH_ENABLED=false means sessionauth is
+        # never registered (Application::AuthStrategies.account_creation_allowed?)
+        # and every session reads as unauthenticated
+        # (SessionHelpers#session_auth_enforced?) — ANY sign-in flow, SSO
+        # included, can only mint a session the app then ignores. Consulted
+        # by SsoConfig.tenant_sso_available_for? so all tenant-SSO surfaces
+        # (masthead link, /signin page, settings API, omniauth runtime hook)
+        # go dark together under a master kill. Strict-boolean like the
+        # other global readers.
+        #
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @return [Boolean]
+        def global_auth_enabled(auth = nil)
+          auth ||= OT.conf.dig('site', 'authentication') || {}
+          auth['enabled'] == true
         end
 
         # Check if a domain has signin config.

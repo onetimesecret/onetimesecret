@@ -439,6 +439,31 @@ export const colonelOrganizationSchema = z.object({
 export const colonelOrganizationsFiltersSchema = z.object({
   status: z.string().nullable(),
   sync_status: z.string().nullable(),
+  // The server echoes the active search term back; it went undeclared while the
+  // search box was switched off, so non-strict Zod silently stripped it.
+  // Optional, not required: fixtures and any older payload omit the key, and a
+  // required field here would fail the parse for the whole list response.
+  search: z.string().nullable().optional(),
+});
+
+/**
+ * Roster-cache state for the organizations list.
+ *
+ * The endpoint caches the PRE-FILTER roster (every org, post-`build_org_data`,
+ * before filtering/sorting/paging) for a short TTL, so one entry serves every
+ * filter/page/search combination. This block reports whether THIS response was
+ * served from that entry and when the roster was built, which is what the view
+ * renders as "updated <n> ago" next to its refresh control.
+ *
+ * `generated_at` is a unix SECOND (integer) and tracks the build, not the
+ * serve, so it holds steady across cache hits. Optional because a payload
+ * predating this block (an in-flight deploy, a replayed fixture) must not fail
+ * validation and blank the whole table.
+ */
+export const colonelOrganizationsCacheSchema = z.object({
+  cached: z.boolean(),
+  generated_at: z.number(),
+  ttl: z.number(),
 });
 
 /**
@@ -448,11 +473,13 @@ export const colonelOrganizationsDetailsSchema = z.object({
   organizations: z.array(colonelOrganizationSchema),
   pagination: paginationSchema,
   filters: colonelOrganizationsFiltersSchema,
+  cache: colonelOrganizationsCacheSchema.optional(),
 });
 
 export type ColonelOrganization = z.infer<typeof colonelOrganizationSchema>;
 export type ColonelOrganizationsDetails = z.infer<typeof colonelOrganizationsDetailsSchema>;
 export type ColonelOrganizationsFilters = z.infer<typeof colonelOrganizationsFiltersSchema>;
+export type ColonelOrganizationsCache = z.infer<typeof colonelOrganizationsCacheSchema>;
 
 /**
  * Organization billing investigation - local state
@@ -543,7 +570,11 @@ export type InvestigateOrganizationResult = z.infer<typeof investigateOrganizati
 
 /**
  * The core customer record on the detail page (GetUserDetails `record`).
- * `email` is the OBSCURED email (`obscure_email`); never the raw address.
+ * `email` is the FULL raw address (colonel-only, scope=internal); the UI
+ * obscures it client-side and reveals on interaction (RevealEmail.vue), and it
+ * doubles as the typed-confirmation token for the guarded purge. Only the
+ * mutation acks ({@link colonelUserMutationRecordSchema}) carry the obscured
+ * `obscure_email` form.
  * Timestamps arrive as Unix-epoch numbers (seconds, sometimes fractional) and
  * are transformed to Date, mirroring {@link colonelUserSchema}.
  */
@@ -693,6 +724,10 @@ export const colonelUserDetailsSchema = z.object({
  *   - verify/unverify → verified, email, updated
  *   - suspend/unsuspend → suspended, email, updated
  *   - purge     → deleted (email/updated omitted)
+ *
+ * `email`, when present, is the OBSCURED form (`obscure_email`) — unlike the
+ * detail record ({@link colonelUserDetailRecordSchema}), which carries the raw
+ * address for RevealEmail and the purge confirmation token.
  *
  * `user_id` here is the customer's OBJID (server-internal); the UI keys off
  * `extid` (the public id) and refreshes the resource rather than trusting the

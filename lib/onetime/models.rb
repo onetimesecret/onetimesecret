@@ -16,6 +16,8 @@ require_relative 'models/admin_audit_event'
 require_relative 'models/daily_metric'
 require_relative 'models/email_suppression'
 require_relative 'models/session_metadata'
+require_relative 'models/sso_link_challenge'
+require_relative 'models/sso_link_verification'
 
 # CustomDomain sibling configs — loaded after CustomDomain so the
 # nested-class reopens (`class CustomDomain; class ApiConfig; ...`)
@@ -28,6 +30,10 @@ require_relative 'models/custom_domain/mailer_config'
 require_relative 'models/custom_domain/signin_config'
 require_relative 'models/custom_domain/signup_config'
 require_relative 'models/custom_domain/sso_config'
+
+# Catalog of the seven per-domain config kinds (colonel config endpoints).
+# Requires the config models above, so it loads after them.
+require_relative 'models/custom_domain/config_registry'
 
 # Housekeeping chores - loaded after models so chore DSL is available.
 # Sort for deterministic load order across platforms.

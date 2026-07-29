@@ -35,6 +35,7 @@ require_relative 'colonel/update_user_plan'
 require_relative 'colonel/set_user_role'
 require_relative 'colonel/set_user_verification'
 require_relative 'colonel/set_user_suspension'
+require_relative 'colonel/change_user_email'
 require_relative 'colonel/purge_user'
 
 # System monitoring
@@ -59,12 +60,15 @@ require_relative 'colonel/list_organizations'
 require_relative 'colonel/get_organization_detail'
 require_relative 'colonel/investigate_organization'
 require_relative 'colonel/reconcile_organization'
+require_relative 'colonel/transfer_organization_ownership'
 require_relative 'colonel/manage_entitlement_override'
 
-# Memberships (#3731: add/remove/set-role — op-backed)
+# Memberships (#3731: add/remove/set-role — op-backed;
+# #3907: per-membership entitlement overrides)
 require_relative 'colonel/add_membership'
 require_relative 'colonel/set_membership_role'
 require_relative 'colonel/remove_membership'
+require_relative 'colonel/manage_membership_entitlement_override'
 
 # Usage export
 require_relative 'colonel/export_usage'
@@ -98,6 +102,13 @@ require_relative 'colonel/list_orphaned_domains'
 require_relative 'colonel/probe_domain'
 require_relative 'colonel/repair_domain'
 require_relative 'colonel/transfer_domain'
+
+# Per-domain config records (signin/signup/homepage/api/incoming/sso/mailer):
+# view/upsert/delete + ensure-missing (v0.26.2 outage class)
+require_relative 'colonel/get_domain_configs'
+require_relative 'colonel/upsert_domain_config'
+require_relative 'colonel/delete_domain_config'
+require_relative 'colonel/ensure_domain_configs'
 
 # Email + rate-limit tools (ticket #44)
 require_relative 'colonel/list_email_templates'

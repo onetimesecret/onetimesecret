@@ -51,7 +51,12 @@ module Onetime
       #
       # READ-ONLY: emits NO AdminAuditEvent (CONTRACT 4).
       class StripeOrganizations
-        # Hard bound on how many index entries a single request will read.
+        # Bound on how many index entries a single request will COLLECT into
+        # memory (and therefore sort and paginate here). It is NOT a bound on
+        # how much of the index the server reads: with a narrow MATCH the HSCAN
+        # cursor still traverses the whole hash, matching few fields per batch,
+        # so a filtered request can cost a full pass without ever reaching this
+        # cap.
         MAX_INDEX_ENTRIES = 5_000
 
         # HSCAN batch size — round-trips vs. per-call blocking.
@@ -140,10 +145,28 @@ module Onetime
         # @return [Array(Array<Array(String, String)>, Boolean)] entries + capped
         def scan_entries(index)
           entries = []
+          seen    = {}
           capped  = false
 
+          # HSCAN guarantees at-least-once, not exactly-once: under a concurrent
+          # rehash the same field can be yielded twice, and a concurrent write
+          # can make the two yields carry DIFFERENT values. So dedupe on the
+          # index field (the stripe customer id, which is what `unique_index`
+          # makes unique) rather than on the [field, value] pair — otherwise a
+          # mid-scan reassignment survives as two rows for one customer id.
+          # First occurrence wins; `call` derives total_count from this array,
+          # so the count and the page rows both see each entry exactly once.
+          #
+          # Dedupe DURING the scan, not after it: MAX_INDEX_ENTRIES has to cap
+          # UNIQUE ids. A post-loop `uniq!` lets repeat yields spend the budget,
+          # so a rehash-heavy scan breaks early and drops ids that were still
+          # scan-reachable — the exact instability this guard exists to prevent.
           index.each(matching: match_pattern, batch_size: SCAN_BATCH) do |stripe_id, objid|
-            entries << [stripe_id.to_s, objid.to_s]
+            field = stripe_id.to_s
+            next if seen.key?(field)
+
+            seen[field] = true
+            entries << [field, objid.to_s]
             if entries.size >= MAX_INDEX_ENTRIES
               capped = true
               break

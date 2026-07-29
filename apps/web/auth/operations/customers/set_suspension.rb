@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/operations/sessions/store'
 
 module Auth
@@ -43,9 +44,18 @@ module Auth
       # Demote first (customers role), then suspend.
       class SetSuspension
         include Onetime::LoggerMethods
+        include Onetime::AuditedFailure
 
         AUDIT_VERB_SUSPEND   = 'customer.suspend'
         AUDIT_VERB_UNSUSPEND = 'customer.unsuspend'
+
+        # The PrivilegedAccount guard below raises BEFORE the success-path
+        # `record` call, so without this the refusal is invisible in the audit
+        # trail — a colonel repeatedly trying to suspend another colonel leaves
+        # no record. Records one `result: :failure` event and re-raises.
+        audit_failures :call,
+          verb: -> { @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND },
+          target: -> { @customer&.extid }
 
         # Raised when asked to suspend a colonel-role account. Adapters catch
         # this (colonel -> form error). It is also a backstop: adapters should
@@ -82,8 +92,12 @@ module Auth
           end
 
           if @customer.suspended? == @suspended
-            return Result.new(status: :no_change, customer: @customer,
-              suspended: @suspended, sessions_revoked: 0)
+            return Result.new(
+              status: :no_change,
+              customer: @customer,
+              suspended: @suspended,
+              sessions_revoked: 0,
+            )
           end
 
           if @suspended
@@ -119,8 +133,12 @@ module Auth
           auth_logger.debug "[#{@suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND}] " \
                             "#{@customer.extid} by #{actor_label}"
 
-          Result.new(status: :success, customer: @customer,
-            suspended: @suspended, sessions_revoked: sessions_revoked)
+          Result.new(
+            status: :success,
+            customer: @customer,
+            suspended: @suspended,
+            sessions_revoked: sessions_revoked,
+          )
         end
 
         private

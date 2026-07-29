@@ -25,7 +25,7 @@ import { computed, ref } from 'vue';
  * server-side (`organization:stripe_customer_id_index`) and therefore pages like
  * every other admin list.
  *
- * Sibling of {@link useAdminOrganizations} / {@link useAdminCustomers} — same
+ * Sibling of {@link useAdminCustomers} — same
  * `usePaginatedFetch` wiring, same two-failure-mode split (Zod mismatch degrades
  * to empty via `validationError`; network/HTTP sets `error` and throws).
  */
