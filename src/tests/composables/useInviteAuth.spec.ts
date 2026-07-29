@@ -200,9 +200,12 @@ describe('useInviteAuth', () => {
     });
 
     it('returns error when server responds with error field', async () => {
+      // FormError shape (flat `field` key) — the InviteAPI never emits the
+      // Rodauth 'field-error' tuple; that shape belongs to /auth/login.
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {
         error: 'Unable to create account',
-        'field-error': ['password', 'Password too weak'],
+        error_type: 'validation_error',
+        field: 'password',
       });
 
       const { signupForInvite, error, fieldErrors } = useInviteAuth();
@@ -211,7 +214,7 @@ describe('useInviteAuth', () => {
       // signinRequired is always returned (false unless error_type is signup_unavailable)
       expect(result).toEqual({ success: false, error: 'Unable to create account', signinRequired: false });
       expect(error.value).toBe('Unable to create account');
-      expect(fieldErrors.value).toEqual({ password: 'Password too weak' });
+      expect(fieldErrors.value).toEqual({ password: 'Unable to create account' });
     });
 
     it('populates fieldErrors from FormError-shaped responses (flat field key)', async () => {
@@ -522,17 +525,17 @@ describe('useInviteAuth', () => {
 
   describe('clearErrors', () => {
     it('clears error and fieldErrors state', async () => {
-      // Uses the new invite signup endpoint
+      // Uses the new invite signup endpoint (FormError shape: flat field key)
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {
         error: 'Some error',
-        'field-error': ['password', 'Bad password'],
+        field: 'password',
       });
 
       const { signupForInvite, clearErrors, error, fieldErrors } = useInviteAuth();
       await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
 
       expect(error.value).toBe('Some error');
-      expect(fieldErrors.value).toEqual({ password: 'Bad password' });
+      expect(fieldErrors.value).toEqual({ password: 'Some error' });
 
       clearErrors();
 

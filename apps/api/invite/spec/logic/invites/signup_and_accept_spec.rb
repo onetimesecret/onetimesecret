@@ -603,6 +603,27 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       end
     end
 
+    context 'when Rodauth rejects the signup for a non-race validation reason' do
+      # Any other Rodauth validation rule (a server-side password plugin, a
+      # login-format rejection) forwards the field error with the generic
+      # 'validation_error' sentinel, so clients keying on error_type never
+      # see it absent from this endpoint.
+      before do
+        validation_error              = Rodauth::InternalRequestError.new('There was an error creating your account')
+        validation_error.field_errors = { 'password' => 'invalid password, does not meet requirements' }
+        allow(Auth::Config).to receive(:create_account).and_raise(validation_error)
+        logic.raise_concerns
+      end
+
+      it 'forwards the field error with the validation_error sentinel' do
+        expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+          expect(err.message).to eq('invalid password, does not meet requirements')
+          expect(err.field).to eq(:password)
+          expect(err.error_type).to eq('validation_error')
+        end
+      end
+    end
+
     context 'when the account row is missing after create_account' do
       # Mirrors signup_and_accept.rb:228 — create_account succeeded with no
       # error, but the followup .where(email: ...).first lookup returns nil.

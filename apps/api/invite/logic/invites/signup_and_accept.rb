@@ -262,9 +262,14 @@ module InviteAPI::Logic
           # doesn't reopen the account-existence oracle (#3856).
           raise_signup_unavailable if message.to_s.match?(/already an account/i)
 
-          raise_form_error(message, field: field.to_sym)
+          # Sentinel error_type so clients keying on it never see it absent
+          # from this endpoint. Rodauth doesn't supply machine-readable codes
+          # for its validation rules, so a generic sentinel is the best we
+          # can forward without message-sniffing.
+          raise_form_error(message, field: field.to_sym, error_type: 'validation_error')
         else
-          raise_form_error(ex.flash || 'Failed to create account', field: :email)
+          raise_form_error(ex.flash || 'Failed to create account',
+            field: :email, error_type: 'validation_error')
         end
       end
 
