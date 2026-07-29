@@ -202,29 +202,37 @@ export const colonelDomainConfigSchema = z.union([
   colonelApiConfigSchema,
 ]);
 
-/** Upsert ack: create-if-missing else partial update, echoing the new state. */
+/**
+ * Upsert ack: create-if-missing else partial update, echoing the new state.
+ * `kind` is the EDITABLE enum — the server 422s a PUT on sso/mailer, so only
+ * the five editable slugs can be echoed; anything else is a backend
+ * regression the tripwire should catch.
+ */
 export const colonelDomainConfigUpsertDetailsSchema = z.object({
-  kind: z.string(),
+  kind: z.enum(EDITABLE_DOMAIN_CONFIG_KINDS),
   outcome: z.enum(['created', 'updated']),
   config: colonelDomainConfigSchema,
 });
 
 /** Delete ack. All seven kinds are deletable; a missing record 404s instead. */
 export const colonelDomainConfigDeleteDetailsSchema = z.object({
-  kind: z.string(),
+  kind: z.enum(DOMAIN_CONFIG_KINDS),
   deleted: z.boolean(),
 });
 
 /**
  * Ensure ack. On a dry run, `created` = the kinds that WOULD be created.
  * sso/mailer always land in `skipped` (credentials required — materializing
- * empty records would be wrong).
+ * empty records would be wrong). `created`/`existing` carry ONLY the
+ * materializable slugs (the ensure operation iterates exactly those five,
+ * which coincide with the editable kinds), so they use the EDITABLE enum as
+ * a tripwire; `skipped` uses the full kind enum.
  */
 export const colonelDomainConfigsEnsureDetailsSchema = z.object({
   dry_run: z.boolean(),
-  created: z.array(z.string()),
-  existing: z.array(z.string()),
-  skipped: z.array(z.object({ kind: z.string(), reason: z.string() })),
+  created: z.array(z.enum(EDITABLE_DOMAIN_CONFIG_KINDS)),
+  existing: z.array(z.enum(EDITABLE_DOMAIN_CONFIG_KINDS)),
+  skipped: z.array(z.object({ kind: z.enum(DOMAIN_CONFIG_KINDS), reason: z.string() })),
 });
 
 // Wrapped response schemas — registered in `registry.ts` under the exact keys

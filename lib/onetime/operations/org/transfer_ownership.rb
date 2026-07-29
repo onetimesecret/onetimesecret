@@ -6,6 +6,7 @@
 # outside the app autoloaders — require the audit model and the composed
 # membership op explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require_relative '../memberships/set_role'
 
 module Onetime
@@ -58,6 +59,13 @@ module Onetime
       # conditional-audit code path the house style has nowhere else. Adapters
       # MUST NOT audit.
       #
+      # A FAILED transfer is audited symmetrically, and for the same reason it
+      # emits multiple events: `:invalid_role`/`:not_member` each record one
+      # `result: :failure`, and a raise out of apply! records one via
+      # {Onetime::AuditedFailure}. `set_role!` raises a FRESH Onetime::Problem,
+      # so SetRole's own refusal event and this op's failure event both land —
+      # that is D26 applied to the failure path, not double-recording.
+      #
       # ## Deliberate omissions — read these before "fixing" them
       #
       # - The new owner is NOT auto-added when they are not a member (D28):
@@ -94,6 +102,8 @@ module Onetime
       # `Onetime::Operations::Memberships::SetRole` here (precedent:
       # memberships/set_role.rb:64).
       class TransferOwnership
+        include Onetime::AuditedFailure
+
         # Full-noun subject, matching the rest of the admin trail
         # (`organization.create`, `organization.reconcile`).
         AUDIT_VERB = 'organization.transfer_ownership'
@@ -108,6 +118,23 @@ module Onetime
 
         # Statuses the adapters treat as "not a failure".
         OK_STATUSES = [:planned, :success, :no_change].freeze
+
+        # The complement: a privileged mutation was asked for and REFUSED. Each
+        # records one `result: :failure` event.
+        REFUSAL_STATUSES = [:not_member, :invalid_role].freeze
+
+        # apply! mutates in three steps and rolls back BEFORE re-raising, so a
+        # blown-up transfer can leave the org with two owners (doctor check 4 is
+        # `repairable: false`). The success record sits after apply!, so without
+        # this the highest-blast-radius org verb fails silently. Records one
+        # `result: :failure` and re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @org&.extid },
+          detail: -> { { dry_run: @dry_run, to: @new_owner&.extid } }
 
         # @!attribute status [r] Symbol —
         #   :planned (dry run) | :success | :no_change | :not_member | :invalid_role
@@ -301,7 +328,32 @@ module Onetime
           OT.le "[Org::TransferOwnership] rollback failed for #{@org.extid}: #{ex.class}: #{ex.message}"
         end
 
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op. `dry_run` is carried so a refused preview is distinguishable
+        # from a refused apply.
+        def record_refusal(status)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @org.extid,
+            result: :failure,
+            detail: {
+              reason: status.to_s,
+              from: @from_owner_id,
+              to: @new_owner.extid,
+              demoted_to: @demote_to,
+              dry_run: @dry_run,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[Org::TransferOwnership] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # Single exit point for every non-applied status, so the refusal audit
+        # cannot be forgotten at an early return.
         def build(status, demoted: [])
+          record_refusal(status) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             org_id: @org.extid,

@@ -1073,6 +1073,10 @@ describe('features utility', () => {
     it('returns false when has_password is undefined', () => {
       expect(hasPasswordOf({})).toBe(false);
     });
+
+    it('returns false when has_password is null (server could not determine)', () => {
+      expect(hasPasswordOf({ has_password: null })).toBe(false);
+    });
   });
 
   // ── hasPassword (snapshot wrapper) ──────────────────────────────
@@ -1093,6 +1097,12 @@ describe('features utility', () => {
 
     it('returns false when bootstrap has_password is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(hasPassword()).toBe(false);
+    });
+
+    it('returns false when bootstrap has_password is null', () => {
+      getBootstrapValueMock.mockReturnValue(null);
 
       expect(hasPassword()).toBe(false);
     });

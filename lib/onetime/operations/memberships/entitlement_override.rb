@@ -7,6 +7,7 @@
 # authority on the entitlement catalog predicate; require it so
 # {.known_entitlement?} can delegate rather than fork.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/operations/org/entitlement_override'
 
 module Onetime
@@ -71,6 +72,8 @@ module Onetime
       # until cleared, matching org-level semantics exactly so the two surfaces
       # stay symmetric.
       class EntitlementOverride
+        include Onetime::AuditedFailure
+
         ACTIONS = Org::EntitlementOverride::ACTIONS
 
         # Operator-facing past tense — shared with the org op so the two HTTP
@@ -88,6 +91,25 @@ module Onetime
         # Everything else (`:invalid_action`, `:missing_entitlement`,
         # `:not_found`) is an operator-visible failure.
         OK_STATUSES = Org::EntitlementOverride::OK_STATUSES
+
+        # The complement of OK_STATUSES: each records one `result: :failure`
+        # event. Derived from the org op (never a hardcoded fork) plus the ONE
+        # status membership scope adds — the membership is resolved here, so it
+        # can be missing in a way the org op's caller-resolved org cannot.
+        REFUSAL_STATUSES = (Org::EntitlementOverride::REFUSAL_STATUSES + [:not_found]).freeze
+
+        # grant/revoke/clear write Familia sets and re-reconcile materialized
+        # entitlements; a raise mid-apply leaves the membership's effective
+        # permissions unknown, and the success record sits after apply!. Records
+        # one `result: :failure` and re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only — without it a blown-up preview is
+        # indistinguishable from a blown-up override.
+        audit_failures :call,
+          verb: -> { audit_verb },
+          target: -> { @customer&.extid },
+          detail: -> { { dry_run: @dry_run, org_id: @org&.extid, action: @action } }
 
         # @!attribute status [r] Symbol — :granted | :revoked | :cleared |
         #   :no_change | :planned | :invalid_action | :missing_entitlement |
@@ -190,7 +212,7 @@ module Onetime
           # set stays unrecorded — it is unbounded, matching the org op.
           Onetime::AdminAuditEvent.record(
             actor: @actor,
-            verb: "#{AUDIT_VERB_PREFIX}.#{@action}",
+            verb: audit_verb,
             target: @customer.extid,
             result: :success,
             detail: audit_detail,
@@ -205,6 +227,37 @@ module Onetime
         end
 
         private
+
+        # "membership.entitlement.<action>" — BYTE-IDENTICAL to what the success
+        # path has always emitted for a valid action (a frontend filter
+        # prefix-matches these). An INVALID action falls back to the bare prefix
+        # rather than interpolating operator-supplied text into the verb: the
+        # verb namespace is a closed set, and an :invalid_action refusal has no
+        # success-path verb to match.
+        def audit_verb
+          ACTIONS.include?(@action) ? "#{AUDIT_VERB_PREFIX}.#{@action}" : AUDIT_VERB_PREFIX
+        end
+
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op. `dry_run` is carried so a refused preview is distinguishable
+        # from a refused apply.
+        def record_refusal(status)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: audit_verb,
+            target: @customer.extid,
+            result: :failure,
+            detail: {
+              reason: status.to_s,
+              org_id: @org.extid,
+              action: @action,
+              entitlement: @entitlement,
+              dry_run: @dry_run,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[Memberships::EntitlementOverride] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
 
         def apply!(membership)
           case @action
@@ -248,7 +301,11 @@ module Onetime
           ((membership.entitlements_plan.to_a | grants) - revokes).sort
         end
 
+        # Single exit point for every non-applied status, so the refusal audit
+        # cannot be forgotten at one of the four early returns.
         def build(status, effective: nil, grants: nil, revokes: nil)
+          record_refusal(status) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             org_id: @org.extid,

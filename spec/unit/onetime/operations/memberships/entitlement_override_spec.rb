@@ -296,21 +296,68 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
     end
   end
 
+  # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail with
+  # the same verb/target as a success — differing only in result:/detail.
   describe 'input refusals (statuses, never raises)' do
-    it 'returns :invalid_action for an unknown verb' do
+    it 'returns :invalid_action and records ONE result: :failure event' do
       result = run('promote', entitlement: 'custom_branding')
 
       expect(result.status).to eq(:invalid_action)
       expect(membership).not_to have_received(:grant_entitlement)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      # An unknown action has NO success-path verb to match, so the event lands
+      # on the bare prefix rather than interpolating operator input into `verb`.
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.entitlement',
+        target: 'ur_member',
+        result: :failure,
+        detail: {
+          reason: 'invalid_action', org_id: 'on_org_ext', action: 'promote',
+          entitlement: 'custom_branding', dry_run: false
+        },
+      )
     end
 
-    it 'returns :missing_entitlement for a grant with a blank entitlement' do
+    it 'returns :missing_entitlement and records ONE result: :failure event' do
       result = run('grant', entitlement: '   ')
 
       expect(result.status).to eq(:missing_entitlement)
       expect(membership).not_to have_received(:grant_entitlement)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.entitlement.grant',
+        target: 'ur_member',
+        result: :failure,
+        detail: {
+          reason: 'missing_entitlement', org_id: 'on_org_ext', action: 'grant',
+          entitlement: '', dry_run: false
+        },
+      )
+    end
+
+    # The Onetime::AuditedFailure mechanism. apply! runs BEFORE the success-path
+    # record call, so a raise there leaves the member's effective permissions
+    # unknown with no trail unless the macro fires. Message expectation, not a
+    # store read: AdminAuditEvent.record swallows its own errors.
+    it 'records ONE result: :failure event when apply! raises, and re-raises' do
+      allow(membership).to receive(:grant_entitlement).and_raise(Onetime::Problem, 'redis down')
+
+      expect do
+        run('grant', entitlement: 'custom_branding')
+      end.to raise_error(Onetime::Problem, /redis down/)
+
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'membership.entitlement.grant',
+          target: 'ur_member', # literal: a broken target lambda silently lands as 'unknown'
+          result: :failure,
+          detail: hash_including(
+            error: 'Onetime::Problem', message: 'redis down',
+            dry_run: false, org_id: 'on_org_ext', action: 'grant',
+          ),
+        ),
+      )
     end
 
     it 'returns :missing_entitlement for a revoke with no entitlement at all' do
@@ -325,7 +372,7 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
   # Membership-specific: org + customer both resolve, but no active membership
   # joins them. Only the op can see this — both adapters map it to a failure.
   describe 'membership resolution (:not_found)' do
-    it 'returns :not_found (no mutation, no audit) when no membership exists' do
+    it 'returns :not_found (no mutation) and records ONE failure event when no membership exists' do
       allow(Onetime::OrganizationMembership)
         .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(nil)
 
@@ -334,7 +381,16 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
       expect(result.status).to eq(:not_found)
       expect(result.org_id).to eq('on_org_ext')
       expect(result.member_id).to eq('ur_member')
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.entitlement.grant',
+        target: 'ur_member',
+        result: :failure,
+        detail: {
+          reason: 'not_found', org_id: 'on_org_ext', action: 'grant',
+          entitlement: 'custom_branding', dry_run: false
+        },
+      )
     end
 
     it 'returns :not_found when the membership exists but is not active' do
@@ -344,7 +400,14 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
 
       expect(result.status).to eq(:not_found)
       expect(membership).not_to have_received(:clear_entitlement_overrides)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          verb: 'membership.entitlement.clear',
+          target: 'ur_member',
+          result: :failure,
+          detail: hash_including(reason: 'not_found'),
+        ),
+      )
     end
 
     it 'classifies :not_found as a failure, not an OK status' do

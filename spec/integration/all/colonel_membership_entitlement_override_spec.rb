@@ -201,8 +201,18 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
         )
       end.to raise_error(Onetime::RecordNotFound, /membership not found/i)
 
-      # The op refused before mutating — nothing audited.
-      expect(Onetime::AdminAuditEvent.count).to eq(before_count)
+      # The op refused before mutating — but a REFUSED privileged mutation is
+      # still an attempt, so it lands in the trail with the same verb/target as
+      # a success, differing only in result:/detail. (The `raise_concerns`
+      # rejections above never reach the op and so record nothing at all.)
+      expect(Onetime::AdminAuditEvent.count).to eq(before_count + 1)
+      event = Onetime::AdminAuditEvent.recent(1).first
+      expect(event['verb']).to eq('membership.entitlement.grant')
+      expect(event['target']).to eq(outsider.extid)
+      expect(event['result']).to eq('failure')
+      expect(event['detail']).to include(
+        'reason' => 'not_found', 'org_id' => org.extid, 'entitlement' => 'custom_branding',
+      )
     end
   end
 end

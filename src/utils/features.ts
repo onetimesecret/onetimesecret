@@ -358,10 +358,11 @@ export function isFullAuthMode(): boolean {
  * Pure predicate: user has a password set in the given state.
  *
  * Accepts an optional `has_password` so the snapshot wrapper can pass through
- * `getBootstrapValue('has_password')` (which is typed as `boolean | undefined`)
- * without a coercion at every call site.
+ * `getBootstrapValue('has_password')` (typed `boolean | null | undefined`;
+ * null is the server's "unknown" signal) without a coercion at every call
+ * site. Anything other than a definitive true stays conservative.
  */
-export function hasPasswordOf(state: { has_password?: boolean }): boolean {
+export function hasPasswordOf(state: { has_password?: boolean | null }): boolean {
   return state.has_password === true;
 }
 

@@ -61,6 +61,7 @@ vi.mock('@headlessui/vue', () => ({
 }));
 
 import DomainConfigsSection from '@/apps/admin/components/domains/DomainConfigsSection.vue';
+import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -382,6 +383,53 @@ describe('DomainConfigsSection', () => {
       expect(wrapper.find('[data-testid="config-ensure"]').exists()).toBe(true);
     });
 
+    it('counts a kind whose KEY is absent from a populated map as missing', async () => {
+      // The map schema requires all seven keys today, so this state can only
+      // arise from contract drift (e.g. the KINDS constant gains an entry
+      // before the server ships it). Bypass the HTTP layer and stub the store
+      // verb to hand the component a populated map with `signup` deleted
+      // outright — the row must read MISSING and the ensure entry point must
+      // stay reachable, not be silently skipped (or crash the section).
+      const store = useAdminDomains();
+      const payload = completePayload();
+      const configs = payload.details.configs as Record<string, unknown>;
+      delete configs.signup;
+      vi.spyOn(store, 'fetchConfigs').mockResolvedValue({ configs } as never);
+      wrapper = mountSection();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="config-status-signup"]').text()).toBe(
+        'web.admin.domains.configs.status.missing'
+      );
+      expect(wrapper.find('[data-testid="config-ensure"]').exists()).toBe(true);
+    });
+
+    it('fails the apply inside the dialog when the ack fails the contract', async () => {
+      // The apply ack is load-bearing: it is the only proof dry_run was
+      // actually applied. A null ack (2xx that failed Zod) must land as an
+      // error IN the dialog — never a success toast for an unverified run.
+      mockApi.post.mockImplementation((_url: string, body: { dry_run: boolean }) =>
+        body.dry_run
+          ? Promise.resolve({ data: ensureAck(true) })
+          : Promise.resolve({
+              data: { shrimp: '', record: envelopeRecord(), details: { bogus: true } },
+            })
+      );
+      wrapper = mountSection();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="config-ensure"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="admin-confirm-dialog"]').text()).toContain(
+        'web.admin.domains.configs.degraded'
+      );
+      expect(showMock).not.toHaveBeenCalled();
+      expect(mockApi.get).toHaveBeenCalledTimes(1);
+    });
+
     it('surfaces a degraded preview under the button instead of a dead dialog', async () => {
       // 2xx whose payload fails the Zod contract → the store resolves null;
       // the preview must throw into the button-level error, not silently no-op.
@@ -546,6 +594,31 @@ describe('DomainConfigsSection', () => {
       });
     });
 
+    it('still succeeds on an upsert ack that fails the contract, but warns', async () => {
+      // Same policy as delete: the PUT landed (a failure would reject), so
+      // the modal closes and toasts — with a devtools warning for the Zod
+      // regression on the echoed state.
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockApi.put.mockResolvedValue({
+        data: { shrimp: '', record: envelopeRecord(), details: { bogus: true } },
+      });
+      wrapper = mountSection();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="config-edit-signin"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="config-field-email_auth_enabled"]').setValue(true);
+      await wrapper.find('[data-testid="config-edit-submit"]').trigger('click');
+      await flushPromises();
+
+      expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.edit.success', 'success');
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('upsert ack failed schema validation')
+      );
+      expect(wrapper.find('[data-testid="config-edit-modal"]').exists()).toBe(false);
+      warnSpy.mockRestore();
+    });
+
     it('keeps a 4xx failure inside the modal and does not toast or refetch', async () => {
       mockApi.put.mockRejectedValue(
         axiosError(422, { error: 'not one of the allowed values' })
@@ -589,6 +662,34 @@ describe('DomainConfigsSection', () => {
         'success'
       );
       expect(mockApi.get).toHaveBeenCalledTimes(2);
+    });
+
+    it('still succeeds on a delete ack that fails the contract, but warns', async () => {
+      // Unlike ensure-apply, the DELETE outcome is not ambiguous on a null
+      // ack (a failed delete rejects), so the flow completes — but the Zod
+      // regression must surface in devtools instead of passing silently.
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockApi.delete.mockResolvedValue({
+        data: { shrimp: '', record: envelopeRecord(), details: { bogus: true } },
+      });
+      wrapper = mountSection();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="config-delete-sso"]').trigger('click');
+      await flushPromises();
+      await dialogInput(wrapper).setValue('sso');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.domains.configs.delete.success',
+        'success'
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('delete ack failed schema validation')
+      );
+      expect(mockApi.get).toHaveBeenCalledTimes(2);
+      warnSpy.mockRestore();
     });
 
     it('keeps a delete failure inside the dialog', async () => {

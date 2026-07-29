@@ -159,6 +159,30 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
       expect(Onetime::AdminAuditEvent.count).to eq(0)
     end
 
+    # The Onetime::AuditedFailure mechanism. Per-record failures are COUNTED,
+    # not raised — so a batch that accepts nothing is an honest outcome, not a
+    # refusal, and stays unaudited (above). What raises is the ingest machinery
+    # itself failing part-way through a loop that has ALREADY suppressed some
+    # addresses, with the batch's single success record still ahead of it.
+    it 'records ONE result: :failure event when the ingest raises, and re-raises' do
+      allow(Onetime::EmailSuppression).to receive(:suppress!).and_raise(Onetime::Problem, 'redis down')
+
+      expect do
+        ingest([{ 'email' => 'a@example.com', 'kind' => 'bounce' }], source: 'ses')
+      end.to raise_error(Onetime::Problem, /redis down/)
+
+      expect(Onetime::AdminAuditEvent.count).to eq(1)
+      event = Onetime::AdminAuditEvent.recent(1).first
+      expect(event['verb']).to eq('email.deliverability_ingest')
+      # The same fixed sentinel the success event uses — a batch has no single
+      # public id, and the addresses are the data, not the target.
+      expect(event['target']).to eq('email_suppression')
+      expect(event['result']).to eq('failure')
+      expect(event['detail']).to include(
+        'error' => 'Onetime::Problem', 'message' => 'redis down', 'source' => 'ses',
+      )
+    end
+
     it 'rejects a missing/empty events array as a form error' do
       logic = ColonelAPI::Logic::Colonel::IngestEmailDeliverabilityEvents.new(
         strategy_result_for(colonel), {},

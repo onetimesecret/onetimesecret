@@ -564,7 +564,10 @@ export const bootstrapSchema = z.object({
   authenticated: z.boolean().default(false),
   awaiting_mfa: z.boolean().optional().default(false),
   had_valid_session: z.boolean().default(false),
-  has_password: z.boolean().optional().default(false),
+  // Tri-state: true/false are definitive; null means the server could not
+  // determine it (transient auth-DB failure during serialization). The store
+  // treats null as "no information" and keeps the last known value.
+  has_password: z.boolean().nullable().optional().default(false),
   // Policy axis independent of has_password (#3886): whether this account is
   // permitted to hold a local password. false only when SSO is enforced
   // (app-level restrict_to='sso' or per-domain enforce_sso_only) or auth mode

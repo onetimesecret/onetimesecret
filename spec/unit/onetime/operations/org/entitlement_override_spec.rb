@@ -275,21 +275,43 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
     end
   end
 
+  # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail with
+  # the same verb/target as a success — differing only in result:/detail.
   describe 'input refusals (statuses, never raises)' do
-    it 'returns :invalid_action for an unknown verb' do
+    it 'returns :invalid_action and records ONE result: :failure event' do
       result = run('promote', entitlement: 'custom_branding')
 
       expect(result.status).to eq(:invalid_action)
       expect(org).not_to have_received(:grant_entitlement)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      # An unknown action has NO success-path verb to match, so the event lands
+      # on the bare prefix rather than interpolating operator input into `verb`.
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'organization.entitlement',
+        target: 'on_org_ext',
+        result: :failure,
+        detail: {
+          reason: 'invalid_action', action: 'promote',
+          entitlement: 'custom_branding', dry_run: false
+        },
+      )
     end
 
-    it 'returns :missing_entitlement for a grant with a blank entitlement' do
+    it 'returns :missing_entitlement and records ONE result: :failure event' do
       result = run('grant', entitlement: '   ')
 
       expect(result.status).to eq(:missing_entitlement)
       expect(org).not_to have_received(:grant_entitlement)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'organization.entitlement.grant',
+        target: 'on_org_ext',
+        result: :failure,
+        detail: {
+          reason: 'missing_entitlement', action: 'grant',
+          entitlement: '', dry_run: false
+        },
+      )
     end
 
     it 'returns :missing_entitlement for a revoke with no entitlement at all' do
@@ -298,6 +320,31 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
     it 'does NOT require an entitlement for clear' do
       expect(run('clear').status).to eq(:cleared)
+    end
+
+    # The Onetime::AuditedFailure mechanism. apply! runs BEFORE the success-path
+    # record call, so a raise there leaves the org's effective permissions
+    # unknown with no trail unless the macro fires. Message expectation, not a
+    # store read: AdminAuditEvent.record swallows its own errors.
+    it 'records ONE result: :failure event when apply! raises, and re-raises' do
+      allow(org).to receive(:grant_entitlement).and_raise(Onetime::Problem, 'redis down')
+
+      expect do
+        run('grant', entitlement: 'custom_branding')
+      end.to raise_error(Onetime::Problem, /redis down/)
+
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'organization.entitlement.grant',
+          target: 'on_org_ext', # literal: a broken target lambda silently lands as 'unknown'
+          result: :failure,
+          detail: hash_including(
+            error: 'Onetime::Problem', message: 'redis down',
+            dry_run: false, action: 'grant',
+          ),
+        ),
+      )
     end
   end
 

@@ -9,6 +9,7 @@
 # dependencies explicitly.
 require 'onetime/models/email_suppression'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -53,8 +54,35 @@ module Onetime
       # flood the audit trail with what is effectively one operator action. A
       # batch that accepts nothing mutates nothing and records no audit event.
       class IngestFeedback
+        include Onetime::AuditedFailure
+
         # Audit verb recorded once per accepting batch.
         AUDIT_VERB = 'email.deliverability_ingest'
+
+        # This op has NO refusal STATUS — per-record failures are COUNTED
+        # (`rejected` + `errors`), not raised, so a batch that accepts nothing
+        # is an honest outcome rather than a refusal. What raises is a failure
+        # of the ingest machinery itself, part-way through a loop that has
+        # already suppressed some addresses, with the batch's single success
+        # record still ahead of it. Records one `result: :failure` and re-raises.
+        #
+        # The target mirrors the success event's fixed 'email_suppression'
+        # sentinel: the batch has no single public id, and the addresses are the
+        # data, not the target.
+        #
+        # NON-OPERATOR DRIVER, checked: {SyncProviderFeedback} feeds this op
+        # in-process from `bin/ots email sync-feedback` on a cron. That does NOT
+        # make the failure event a mislabel of scheduled work as operator
+        # activity (the {Onetime::Operations::AdminVerifyDomain} concern),
+        # because the SUCCESS event already travels that same path under the
+        # same `SyncProviderFeedback::CLI_ACTOR` sentinel — the failure is
+        # symmetric with it. Volume is bounded the same way too: ONE event per
+        # run, not per record, since per-record failures are counted rather than
+        # raised.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: 'email_suppression',
+          detail: -> { { source: @default_source.to_s, batch_size: @records.size } }
 
         # Upper bound per call — a feedback pipe should chunk, not firehose.
         MAX_BATCH = 500
