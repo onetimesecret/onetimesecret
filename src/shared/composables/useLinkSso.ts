@@ -27,6 +27,12 @@
  *                                    or { success, mfa_required, ... } (MFA account —
  *                                    same body POST /auth/login returns; hand off to
  *                                    the shared /mfa-verify challenge, do NOT complete)
+ *                               400 invalid_request   => token or password missing from the
+ *                                                       body. The view's guards prevent this
+ *                                                       (empty token dead-ends on mount, empty
+ *                                                       password blocks submit); classified so
+ *                                                       a crafted or buggy submit never reads
+ *                                                       as a wrong password
  *                               401 invalid_password  => wrong password (retryable)
  *                               401 link_expired      => token expired / consumed (dead-end)
  *                               409 link_conflict     => the email re-resolved to a different
@@ -84,12 +90,17 @@ import { useI18n } from 'vue-i18n';
  *                         succeed. The copy says "wait" — the view must not
  *                         clear/refocus the password field, which would invite
  *                         an immediate retry that re-trips the throttle.
+ * - 'invalid_request'   — malformed submit (token or password missing from the
+ *                         body). Unreachable via the view's guards; classified
+ *                         so a crafted or buggy request is never presented as
+ *                         a wrong password (no field clear/refocus).
  */
 export type LinkSsoErrorCode =
   | 'invalid_password'
   | 'invalid_token'
   | 'link_conflict'
   | 'link_rate_limited'
+  | 'invalid_request'
   | null;
 
 /** Minimal shape of the axios error's carried response (status + parsed body). */
@@ -102,6 +113,7 @@ const BACKEND_CODE_MAP: Record<string, NonNullable<LinkSsoErrorCode>> = {
   invalid_password: 'invalid_password',
   link_conflict: 'link_conflict',
   link_rate_limited: 'link_rate_limited',
+  invalid_request: 'invalid_request',
   link_expired: 'invalid_token',
   // Frontend-side legacy aliases — no backend route emits these; defence only.
   invalid_token: 'invalid_token',
@@ -109,6 +121,7 @@ const BACKEND_CODE_MAP: Record<string, NonNullable<LinkSsoErrorCode>> = {
 };
 
 const STATUS_FAMILY_MAP: Record<number, NonNullable<LinkSsoErrorCode>> = {
+  400: 'invalid_request',
   404: 'invalid_token',
   410: 'invalid_token',
   409: 'link_conflict',
@@ -123,10 +136,10 @@ const STATUS_FAMILY_MAP: Record<number, NonNullable<LinkSsoErrorCode>> = {
  * failure. The explicit backend code is checked FIRST — before any status-family
  * fallback — so a specific code arriving on a shared status can never be
  * shadowed (mirrors useSsoLinkConfirm's resolver after #3882). The status
- * families (404/410 => spent token, 409 => conflict, 429 => rate limited,
- * 401/403/422 => wrong password) are defence for a code-less response. Returns
- * null when the failure is neither (e.g. a 5xx) so the caller surfaces a
- * generic message.
+ * families (400 => malformed request, 404/410 => spent token, 409 => conflict,
+ * 429 => rate limited, 401/403/422 => wrong password) are defence for a
+ * code-less response. Returns null when the failure is neither (e.g. a 5xx)
+ * so the caller surfaces a generic message.
  */
 function resolveLinkErrorCode(
   status: number | undefined,
@@ -176,6 +189,7 @@ export function useLinkSso() {
     if (code === 'invalid_password') return t('web.link_sso.errors.invalid_password');
     if (code === 'link_conflict') return t('web.link_sso.errors.link_conflict');
     if (code === 'link_rate_limited') return t('web.link_sso.errors.link_rate_limited');
+    if (code === 'invalid_request') return t('web.link_sso.errors.invalid_request');
     return t('web.link_sso.errors.generic');
   }
 

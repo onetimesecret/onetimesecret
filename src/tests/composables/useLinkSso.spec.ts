@@ -281,6 +281,33 @@ describe('useLinkSso', () => {
       expect(errorCode.value).toBe('link_rate_limited');
     });
 
+    // Backend emits 400 invalid_request when token/password are missing from
+    // the body. The view's guards make that unreachable, but a crafted or
+    // buggy submit must never be classified as a wrong password and invited
+    // to retry (PR #3936 review).
+    it('classifies a malformed submit (400 invalid_request) as invalid_request', async () => {
+      axiosMock
+        .onPost('/auth/link-sso')
+        .reply(400, { error: 'Token and password are required.', error_code: 'invalid_request' });
+
+      const { verifyLink, error, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('invalid_request');
+      expect(error.value).toBe('web.link_sso.errors.invalid_request');
+    });
+
+    it('falls back to invalid_request for a code-less 400', async () => {
+      axiosMock.onPost('/auth/link-sso').reply(400, { error: 'bad request' });
+
+      const { verifyLink, errorCode } = useLinkSso();
+      const result = await verifyLink('tok123', 'pw');
+
+      expect(result).toBeNull();
+      expect(errorCode.value).toBe('invalid_request');
+    });
+
     // Ordering guard: the explicit code must be checked BEFORE the status-family
     // fallback, so a specific code arriving on a shared status is never
     // shadowed (mirrors the useSsoLinkConfirm resolver after #3882).

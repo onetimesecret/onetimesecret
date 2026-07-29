@@ -423,6 +423,31 @@ describe('LinkSso', () => {
       );
       expect(input.element.value).toBe('correct horse');
     });
+
+    // invalid_request (400) means the submit was malformed — not a password
+    // verdict. The view's guards should make it unreachable, but if the backend
+    // disagrees the form must not clear/refocus as if the password were wrong.
+    it('keeps the form without clearing the password on invalid_request', async () => {
+      mockState.verifyLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'invalid_request';
+        mockState.error.value = 'web.link_sso.errors.invalid_request';
+        return null;
+      });
+      wrapper = mountComponent();
+      await flushPromises();
+
+      const input = wrapper.find<HTMLInputElement>('[data-testid="link-sso-password-input"]');
+      await input.setValue('typed pw');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockSetAuthenticated).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="link-sso-error"]').text()).toBe(
+        'web.link_sso.errors.invalid_request'
+      );
+      expect(input.element.value).toBe('typed pw');
+    });
   });
 
   describe('Cancel / dead-end navigation', () => {

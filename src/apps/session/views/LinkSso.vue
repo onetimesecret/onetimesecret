@@ -161,11 +161,14 @@
       return;
     }
 
-    if (errorCode.value === 'link_rate_limited') {
-      // Throttled BEFORE the token was consumed: the challenge is still live and
-      // a retry after the lockout can succeed. Leave the form as-is — clearing
-      // and refocusing the password would invite an immediate retype that
-      // re-trips the throttle. The inline error says "wait".
+    if (errorCode.value === 'link_rate_limited' || errorCode.value === 'invalid_request') {
+      // Not a password verdict — leave the form as-is; clearing and refocusing
+      // the field would misrepresent either failure as a wrong password.
+      // - link_rate_limited: throttled BEFORE the token was consumed, so the
+      //   challenge is still live and a retry after the lockout can succeed;
+      //   the inline error says "wait". An immediate retype would re-trip it.
+      // - invalid_request: malformed submit (missing token/password) that the
+      //   guards above should make impossible; surface its copy inline.
       return;
     }
 
