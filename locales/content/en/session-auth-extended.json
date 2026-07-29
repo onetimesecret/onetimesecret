@@ -413,7 +413,11 @@
   },
   "web.auth.connections.errors.last_credential": {
     "text": "This is your only way to sign in. Connect another provider first, or set a password from Settings → Security, so you don't get locked out.",
-    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential). Must only reference actions available to passwordless accounts: connecting a provider (same panel) or the in-app Set-password card on Settings → Security (#3886)."
+    "context": "Error shown when removing the final identity of an SSO-only account is refused (backend 409 error_code last_credential) AND password auth is permitted. Must only reference actions available to passwordless accounts: connecting a provider (same panel) or the in-app Set-password card on Settings → Security (#3886)."
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "This is your only way to sign in. Connect another provider first so you don't get locked out.",
+    "context": "Variant of the last_credential error for accounts where password auth is NOT permitted (SSO-enforced): the Set-password affordance is hidden there, so connecting another provider is the only actionable path (#3886)."
   },
   "web.auth.connections.errors.not_found": {
     "text": "That connected identity could not be found. It may have already been removed.",

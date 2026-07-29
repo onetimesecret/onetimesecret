@@ -379,6 +379,10 @@
     "text": "Send Setup Link",
     "context": "Submit button that emails the set-password link to a passwordless account"
   },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "An email has been sent to you with a link to set a password for your account",
+    "context": "Success message after requesting the set-password link (passwordless account variant of web.auth.passwordReset.emailSent)"
+  },
   "web.auth.password_reset.title": {
     "text": "Choose a New Password",
     "context": "Password reset request flow - user requests a reset link",

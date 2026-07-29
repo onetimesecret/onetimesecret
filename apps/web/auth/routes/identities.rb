@@ -123,14 +123,19 @@ module Auth
               # set-password link (SSO-created accounts are open per
               # rodauth-omniauth, and Rodauth's set_password inserts a hash
               # when none exists). The card is hidden when password auth is
-              # not permitted (SSO-enforced domains) — there, connecting
-              # another provider is the remaining path, which the wording
-              # leads with.
+              # not permitted (SSO-enforced domains), and this route does not
+              # resolve domain policy — so the API string hedges with "if
+              # available" while leading with the always-actionable path. The
+              # web UI ignores this string: useConnectedIdentities maps
+              # error_code to a policy-aware localized message via
+              # isPasswordAuthPermitted().
               response.status = 409
               next {
                 error: 'Cannot remove your only sign-in method. Connect ' \
                        'another provider first, or set a password from ' \
-                       'Settings → Security, then remove this identity.',
+                       'Settings → Security if password sign-in is ' \
+                       'available for your account, then remove this ' \
+                       'identity.',
                 error_code: 'last_credential',
               }
             end

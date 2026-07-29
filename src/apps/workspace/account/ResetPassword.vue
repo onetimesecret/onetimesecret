@@ -27,7 +27,9 @@ const handleSubmit = async () => {
 
   const success = await requestPasswordReset(email.value);
   if (success) {
-    successMessage.value = t('web.auth.passwordReset.emailSent');
+    successMessage.value = t(
+      hasPw.value ? 'web.auth.passwordReset.emailSent' : 'web.auth.password_setup_request.emailSent'
+    );
   }
 };
 </script>
