@@ -246,7 +246,10 @@ export const useBootstrapStore = defineStore('bootstrap', {
     update(data: Partial<BootstrapPayload>): void {
       // has_password: null means the server couldn't determine it (transient
       // auth-DB failure during serialization). Treat it like an absent field
-      // so a blipped refresh never clobbers a known-good true/false.
+      // so a blipped refresh never clobbers a known-good true/false. init()
+      // intentionally skips this drop: on first load there is no prior value
+      // to preserve, and consumers (hasPasswordOf) gate on === true, so a
+      // null in state already reads conservatively as "no password known".
       if (data.has_password === null) {
         const { has_password: _unknown, ...known } = data;
         data = known;
