@@ -129,8 +129,11 @@ module Onetime
       # Enforce the reset-request rate limit and record this request. Raises
       # LimitExceeded if either tier is locked; a locked tier is never
       # incremented (the Lua script denies before INCR). Tiers are evaluated
-      # IP-first, so a request denied by the per-email backstop still counts
-      # against its IP. No-op when the limiter is disabled by config.
+      # IP-first, which makes the counting asymmetric by design: a request
+      # denied by the IP tier never touches the email tier, while a request
+      # denied by the email backstop has already consumed one IP-tier slot —
+      # so every request an origin actually lands costs it IP budget. No-op
+      # when the limiter is disabled by config.
       #
       # @param client_ip [String, nil] The caller's edge-masked client IP.
       # @param login [String, nil] The submitted login (target email), taken
@@ -173,7 +176,9 @@ module Onetime
 
         count = detail.to_i
         if count >= max_attempts
-          OT.le "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} locked for #{reset_request_lockout}s after #{count} requests"
+          # This cap-reaching request was itself ALLOWED (the Lua script locks
+          # after incrementing); the lockout applies to subsequent requests.
+          OT.le "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} hit cap (#{count}/#{max_attempts}); locked for #{reset_request_lockout}s"
         elsif count >= max_attempts - 1
           OT.li "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} at #{count}/#{max_attempts} requests"
         end
