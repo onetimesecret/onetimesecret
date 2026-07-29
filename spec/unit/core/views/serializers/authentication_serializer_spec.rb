@@ -21,6 +21,9 @@ RSpec.describe Core::Views::AuthenticationSerializer do
     let(:db) { double('Sequel::Database') }
 
     before do
+      # Keep rescue-path examples from writing real log output; the explicit
+      # expect(OT).to receive(:le) in the logging example still verifies it.
+      allow(OT).to receive(:le)
       stub_const('Auth::Database', class_double('Auth::Database', connection: db))
       if db
         allow(db).to receive(:[]).with(:account_password_hashes).and_return(dataset)
