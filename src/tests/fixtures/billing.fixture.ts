@@ -48,14 +48,41 @@ export function createMockPlan(overrides: Partial<Plan> = {}): Plan {
  * Pre-configured mock plans for common test scenarios
  */
 export const mockPlans: Record<string, Plan> = {
+  /**
+   * API CONTRACT — pinned to `list_plans` in
+   * apps/web/billing/controllers/billing.rb.
+   *
+   * free_v1 is defined with `prices: []`, so the endpoint emits exactly ONE
+   * synthetic record for it: `interval: 'month'`, `amount: 0`,
+   * `stripe_price_id: null`, `display_order: 0`, `is_popular: false`, and a
+   * real `currency` (the deployment default, `OT.billing_config.currency`).
+   *
+   * Exactly one record, and `interval: 'month'` specifically: both PlanSelector
+   * and Pricing ignore `interval` for `tier === 'free'` in `filteredPlans`, so
+   * a second record would render a duplicate Free card.
+   *
+   * The wire also sends `plan_code`, `monthly_equivalent_amount`,
+   * `includes_plan` and `includes_plan_name` as null. They are OMITTED here
+   * rather than set to null because `Plan` types them as optional non-null and
+   * every consumer reads them via `??` or truthiness (PlanCard.vue:47,
+   * PlanChangeModal.vue:42-43, PlanCard.vue:168), so null and absent are
+   * indistinguishable in behavior. `plan_name_label` is the one exception —
+   * `Plan` already types it `string | null`, so the wire's null is spelled out.
+   *
+   * The endpoint used to DROP every price-less plan, so this fixture described
+   * a record the wire never sent and nothing compared the two. Keep them in
+   * lockstep.
+   */
   free: createMockPlan({
     id: 'free_v1',
     stripe_price_id: null, // Free plans have no Stripe price
     name: 'Free',
     tier: 'free',
-    interval: '', // Free plans have no interval
+    interval: 'month', // Synthetic record is stamped 'month' (never '' or 'year')
     amount: 0,
     display_order: 0,
+    is_popular: false,
+    plan_name_label: null, // Wire sends null; `Plan` already types this nullable
     features: ['Basic secret sharing'],
     limits: { teams: 0, total_members_per_org: 0 },
     entitlements: [],
