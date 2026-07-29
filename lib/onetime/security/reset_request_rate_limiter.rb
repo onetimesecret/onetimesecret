@@ -42,9 +42,13 @@ module Onetime
     # ENUMERATION SAFETY: both tiers key ONLY on request-observable inputs
     # (client IP, submitted login string) — never on whether the login maps to
     # an account — so a 429 discloses nothing about account existence. The
-    # login is normalized (strip/downcase) so case-variation cannot dodge the
-    # per-email bucket. The check runs BEFORE Rodauth touches the accounts
-    # table, so a throttled probe never reaches the timing-sensitive path.
+    # login is normalized with the SAME helper Rodauth's normalize_login uses
+    # (OT::Utils.normalize_email: strip + NFC + case-fold; see config/base.rb)
+    # so every variant Rodauth would resolve to one account lands in one
+    # per-target bucket — plain downcase would let Unicode case-fold/NFC
+    # variants dodge the backstop. The check runs BEFORE Rodauth touches the
+    # accounts table, so a throttled probe never reaches the timing-sensitive
+    # path.
     #
     # A missing client_ip skips the IP tier entirely (it never builds an "ip:"
     # key with a blank suffix); the per-email backstop still applies. A missing
@@ -94,6 +98,13 @@ module Onetime
       # bucket instead of minting unbounded-length Redis keys. 320 covers the
       # maximal legal email (64 local + '@' + 255 domain).
       MAX_EMAIL_KEY_LENGTH = 320
+
+      # ASCII control characters (C0 + DEL) removed from the normalized login
+      # before it is used as a Redis-key suffix or log subject. An email can
+      # never contain them, so distinct garbage strings merging into one
+      # bucket is harmless — while newlines/escapes in keys or log lines are
+      # not.
+      CONTROL_CHAR_PATTERN = /[\u0000-\u001F\u007F]/
 
       # Lua script that checks the lockout AND records the request in one
       # atomic round trip (same contract as IncomingRateLimiter): Redis
@@ -145,11 +156,16 @@ module Onetime
 
         # Per-IP first (the tighter gate): a locked IP is rejected before the
         # email tier is touched, so it never inflates the per-target count.
-        if (ip_keys    = reset_request_ip_keys(client_ip))
+        if (ip_keys = reset_request_ip_keys(client_ip))
           enforce_reset_request_tier!(ip_keys, reset_request_max_per_ip, 'ip', client_ip)
         end
-        if (email_keys = reset_request_email_keys(login))
-          enforce_reset_request_tier!(email_keys, reset_request_max_per_email, 'email', login)
+
+        # Normalize ONCE; the same value feeds the Redis key AND the
+        # (obscured) log subject, so a raw attacker-supplied string never
+        # reaches either.
+        normalized = normalize_reset_request_login(login)
+        if (email_keys = reset_request_email_keys(normalized))
+          enforce_reset_request_tier!(email_keys, reset_request_max_per_email, 'email', normalized)
         end
       end
 
@@ -196,24 +212,36 @@ module Onetime
         }
       end
 
-      # Composite per-login keys, or nil when no login was submitted. The
-      # login is normalized so trivial case/whitespace variation of one target
-      # cannot spread across buckets.
-      def reset_request_email_keys(login)
-        normalized = normalize_reset_request_login(login)
-        return nil if normalized.empty?
+      # Composite per-login keys from the ALREADY-NORMALIZED login, or nil
+      # when no login was submitted (skips the email tier rather than keying
+      # a blank suffix).
+      def reset_request_email_keys(normalized_login)
+        return nil if normalized_login.empty?
 
         {
-          attempts: "reset_request:attempts:email:#{normalized}",
-          lockout: "reset_request:locked:email:#{normalized}",
+          attempts: "reset_request:attempts:email:#{normalized_login}",
+          lockout: "reset_request:locked:email:#{normalized_login}",
         }
       end
 
-      # Strip + downcase + length-cap the submitted login for keying. Runs
-      # BEFORE Rodauth validates the param, so this must tolerate arbitrary
-      # strings.
+      # Normalize the submitted login for keying and logging. Runs BEFORE
+      # Rodauth validates the param, so this must tolerate arbitrary strings.
+      #
+      # Uses the SAME helper as Rodauth's normalize_login (config/base.rb →
+      # OT::Utils.normalize_email: strip + NFC + case-fold), so every variant
+      # Rodauth would resolve to one account shares one bucket, then removes
+      # control characters and length-caps. Invalid encodings (which
+      # normalize_email cannot process and which can never match an account —
+      # Rodauth's own normalize_login is the same helper and would fail
+      # identically later) are scrubbed rather than raised, so the probe still
+      # consumes limiter budget instead of erroring here.
       def normalize_reset_request_login(login)
-        login.to_s.strip.downcase[0, MAX_EMAIL_KEY_LENGTH].to_s
+        value = begin
+          OT::Utils.normalize_email(login)
+        rescue StandardError
+          login.to_s.scrub('').strip.downcase
+        end
+        value.gsub(CONTROL_CHAR_PATTERN, '')[0, MAX_EMAIL_KEY_LENGTH].to_s
       end
 
       def reset_request_rate_limit_config

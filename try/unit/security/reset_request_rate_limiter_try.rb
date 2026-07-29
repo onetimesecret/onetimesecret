@@ -13,7 +13,8 @@
 # 1. Under-limit requests are allowed
 # 2. Key shape and TTL of the per-IP attempts counter
 # 3. Over-limit raises LimitExceeded with the configured cap + lockout state
-# 4. Login normalization (case/whitespace variants share one bucket)
+# 4. Login normalization (Rodauth-parity: case/whitespace variants, Unicode
+#    case-folding, and control characters all land in one bucket)
 # 5. nil-IP falls back to the per-email tier only
 # 6. The per-email backstop caps IP-rotating callers
 # 7. Configured-off (enabled:false) is a total no-op
@@ -53,9 +54,13 @@ end
 
 @ip_a    = '203.0.113.10'
 @ip_b    = '198.51.100.20'
-@email_a = "target_a_#{Familia.now.to_i}_#{rand(10_000)}@example.com"
-@email_b = "target_b_#{Familia.now.to_i}_#{rand(10_000)}@example.com"
-@email_c = "target_c_#{Familia.now.to_i}_#{rand(10_000)}@example.com"
+@tag     = "#{Familia.now.to_i}_#{rand(10_000)}"
+@email_a = "target_a_#{@tag}@example.com"
+@email_b = "target_b_#{@tag}@example.com"
+@email_c = "target_c_#{@tag}@example.com"
+# The bucket an eszett-variant login must case-fold into (U+00DF folds to
+# "ss").
+@email_fold = "fold_ss_#{@tag}@example.com"
 
 # true if a single enforce call raises LimitExceeded, false otherwise.
 @raises = lambda do |ip, login = nil|
@@ -75,6 +80,7 @@ end
 cleanup(@redis, ip: @ip_a, email: @email_a)
 cleanup(@redis, ip: @ip_b, email: @email_b)
 cleanup(@redis, email: @email_c)
+cleanup(@redis, email: @email_fold)
 
 ## -- Under-limit ----------------------------------------------------------
 
@@ -101,6 +107,15 @@ ttl.positive? && ttl <= 900
 @tester.enforce_reset_request_rate_limit!(@ip_b, "  #{@email_a.upcase}  ")
 @redis.get("reset_request:attempts:email:#{@email_a}").to_i
 #=> 2
+
+## Unicode case-folding and control characters cannot dodge the bucket either:
+## normalization mirrors Rodauth's normalize_login (OT::Utils.normalize_email,
+## NFC + case-fold), so an eszett (U+00DF) variant with an embedded control
+## character folds into the plain-ss bucket Rodauth would resolve the account
+## from
+@tester.enforce_reset_request_rate_limit!(nil, "\u0000fold_\u00df_#{@tag}@EXAMPLE.com\r\n")
+@redis.get("reset_request:attempts:email:#{@email_fold}").to_i
+#=> 1
 
 ## -- Over-limit (per-IP tier trips first at max_per_ip=3) -----------------
 
@@ -182,5 +197,6 @@ results.none?
 cleanup(@redis, ip: @ip_a, email: @email_a)
 cleanup(@redis, ip: @ip_b, email: @email_b)
 cleanup(@redis, email: @email_c)
+cleanup(@redis, email: @email_fold)
 cleanup(@redis, ip: @off_ip, email: @off_email)
 OT.send(:conf=, @saved_conf)
