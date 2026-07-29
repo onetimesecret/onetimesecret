@@ -273,7 +273,11 @@
         available: true,
       });
     }
-    if (ssoAvailable.value) {
+    // Also listed — locked — when SSO is the CURRENT restriction. Omitting the
+    // selected method would render a radiogroup with nothing checked, hiding
+    // the domain's actual configuration; showing it locked reports the truth
+    // and still refuses re-selection.
+    if (ssoAvailable.value || props.formState.restrict_to === 'sso') {
       rows.push({
         value: 'sso',
         label: t('web.domains.signin.method_sso'),
@@ -281,7 +285,7 @@
         // Kept visible when unentitled (the lock badge is the upgrade prompt)
         // but not selectable: without the entitlement the org cannot configure
         // SSO credentials, so restrict_to=sso would dead-end the login page.
-        available: props.canManageSso,
+        available: ssoAvailable.value && props.canManageSso,
       });
     }
     // WebAuthn / Passkeys listed last.
@@ -377,8 +381,10 @@
    */
   const selectMethod = (value: SigninRestrictTo) => {
     // Disabled radios fire no events, but guard anyway: restricting to SSO
-    // without the manage-SSO entitlement must be unexpressible.
-    if (value === 'sso' && !props.canManageSso) return;
+    // without BOTH tenant-SSO gates must be unexpressible — the SSO row is now
+    // also rendered (locked) when it is the current restriction, so this is
+    // the backstop for that row.
+    if (value === 'sso' && !ssoConfigurable.value) return;
     const patch: Partial<SigninConfigFormState> = { restrict_to: value };
     if (value === 'email_auth') patch.email_auth_enabled = true;
     if (value === 'sso') patch.sso_enabled = true;

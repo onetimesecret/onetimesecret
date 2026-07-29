@@ -1025,6 +1025,28 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('#signin-restrict-sso').exists()).toBe(false);
     });
 
+    it('keeps the SSO radio visible-but-locked when it is the CURRENT restriction', () => {
+      // Omitting the selected method would render a radiogroup with nothing
+      // checked, hiding the fact that the domain is restricted to SSO.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        orgsSsoEnabled: false,
+      });
+      const radio = wrapper.find('#signin-restrict-sso');
+      expect(radio.exists()).toBe(true);
+      expect((radio.element as HTMLInputElement).checked).toBe(true);
+      expect(radio.attributes('disabled')).toBeDefined();
+    });
+
+    it('cannot re-select SSO from the locked row', async () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        orgsSsoEnabled: false,
+      });
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
     it('omits the WebAuthn radio in Mode B when WebAuthn is globally off', () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'password' },

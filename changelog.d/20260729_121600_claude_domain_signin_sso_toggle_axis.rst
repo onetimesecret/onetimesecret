@@ -26,8 +26,11 @@ Fixed
   the domain's SSO credentials), so materializing the seed leaves tenant SSO
   exactly as it was running. Structurally the same failure as the
   ``signin_enabled`` bug fixed in #3817. Domains already carrying a stored
-  ``sso_enabled: false`` from this bug are not rewritten; the toggle is now
-  operable, so they can be switched back on from the same page.
+  ``sso_enabled: false`` from this bug are **not** rewritten by this release.
+  Recovering one in-app requires ``ORGS_SSO_ENABLED=true`` *and* the
+  ``manage_sso`` entitlement — the conditions under which the toggle is
+  operable; with tenant SSO disabled install-wide there is no in-app path, and
+  the flag must be turned on first.
 
 - The SSO availability toggle reported OFF whenever the org lacked ``manage_sso``
   or tenant SSO was disabled install-wide, even when the stored value was true
@@ -35,3 +38,14 @@ Fixed
   ladder (``SsoConfig.tenant_sso_unavailable_reason``) never consults them — so
   the toggle now reports the stored value and expresses the lock through its
   disabled state alone.
+
+- In "One specific method" mode, a domain restricted to SSO rendered a method
+  list with nothing selected whenever the SSO row was filtered out, hiding the
+  domain's actual configuration. The SSO row now stays visible — locked, and
+  still not re-selectable — when it is the current restriction.
+
+.. note::
+
+   Tenant SSO is off by default (``ORGS_SSO_ENABLED``, absent ⇒ ``false``).
+   These controls are *correctly* locked on an install that has not set it;
+   turning them on is an operator action, not a plan upgrade.
