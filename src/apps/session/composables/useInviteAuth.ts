@@ -28,10 +28,17 @@ export interface InviteAuthResult {
   signinRequired?: boolean;
 }
 
-/** Shape of API error responses */
+/**
+ * Shape of API error responses. Two producers share this composable:
+ * Rodauth (/auth/login) sends a `'field-error': [field, message]` tuple,
+ * while the InviteAPI's Onetime::FormError serializes as
+ * `{ error, error_type, field }` — a flat `field` naming the offending
+ * input, with `error` as the message.
+ */
 interface ApiErrorResponse {
   error?: string;
   error_type?: string;
+  field?: string;
   'field-error'?: [string, string];
 }
 
@@ -50,9 +57,15 @@ function extractErrorInfo(
 ): { message: string | null; fieldError?: [string, string] } {
   const errorData = data ?? err?.response?.data;
   if (errorData?.error) {
+    // Prefer the Rodauth tuple; fall back to FormError's flat `field`,
+    // pairing it with the top-level message. Errors without either (e.g.
+    // signup_unavailable, token errors shown globally) yield no fieldError.
+    const fieldError =
+      errorData['field-error'] ??
+      (errorData.field ? ([errorData.field, errorData.error] as [string, string]) : undefined);
     return {
       message: errorData.error,
-      fieldError: errorData['field-error'],
+      fieldError,
     };
   }
   return { message: err?.message ?? 'An error occurred' };

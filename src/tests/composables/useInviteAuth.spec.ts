@@ -214,6 +214,39 @@ describe('useInviteAuth', () => {
       expect(fieldErrors.value).toEqual({ password: 'Password too weak' });
     });
 
+    it('populates fieldErrors from FormError-shaped responses (flat field key)', async () => {
+      // The InviteAPI serializes Onetime::FormError as { error, error_type,
+      // field } — no Rodauth 'field-error' tuple. The composable must map the
+      // flat field so InviteSignUpForm can mark the input invalid.
+      axiosMock.onPost('/api/invite/tok/signup').reply(422, {
+        error: 'Password must be at least 8 characters',
+        error_type: 'password_too_short',
+        field: 'password',
+      });
+
+      const { signupForInvite, error, fieldErrors } = useInviteAuth();
+      const result = await signupForInvite('u@e.com', 'short', true, 'tok');
+
+      expect(result.success).toBe(false);
+      expect(error.value).toBe('Password must be at least 8 characters');
+      expect(fieldErrors.value).toEqual({ password: 'Password must be at least 8 characters' });
+    });
+
+    it('leaves fieldErrors empty for FormError responses without a field (signup_unavailable)', async () => {
+      // signup_unavailable deliberately carries no field (#3856) — the error
+      // is global, not attached to an input.
+      axiosMock.onPost('/api/invite/tok/signup').reply(422, {
+        error: 'Unable to complete signup for this invitation. If you already have an account, sign in and then open your invitation link again.',
+        error_type: 'signup_unavailable',
+      });
+
+      const { signupForInvite, fieldErrors } = useInviteAuth();
+      const result = await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
+
+      expect(result.success).toBe(false);
+      expect(fieldErrors.value).toEqual({});
+    });
+
     it('returns signinRequired: true on the generic signup_unavailable error_type', async () => {
       // #3856: the backend responds with a generic error that does not confirm
       // account existence; the signin fallback keys off error_type alone.
