@@ -217,10 +217,14 @@
 <template>
   <SettingsLayout>
     <div class="space-y-8">
-      <!-- SSO empty state — shown when all cards are filtered out -->
+      <!-- SSO empty state — shown when all cards are filtered out. Gated on
+           the policy axis too (#3886): this copy means "SSO-enforced, managed
+           by your IdP", so it must never show for a passwordless-permitted
+           account whose cards are merely absent because the accountInfo
+           fetch is pending or failed (securityCards is [] until it loads). -->
       <!-- prettier-ignore-attribute class -->
       <div
-        v-if="!hasPw && securityCards.length === 0"
+        v-if="!hasPw && !passwordAuthPermitted && securityCards.length === 0"
         class="
           rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm
           dark:border-gray-700/60 dark:bg-gray-800/60">

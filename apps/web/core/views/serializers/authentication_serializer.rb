@@ -131,10 +131,6 @@ module Core
           return false if auth_config.restrict_to == 'sso'
 
           !tenant_sso_enforced?(view_vars)
-        rescue StandardError
-          # Fail permissive: this flag gates a low-risk affordance (an emailed
-          # set-password link); the mailbox-proof flow is its own authority.
-          true
         end
 
         # Per-domain SSO enforcement, mirroring the tenant resolution in
@@ -142,6 +138,14 @@ module Core
         # the frontend as features.sso.enforce_sso_only). Enforcement only
         # counts when the tenant SSO config is actually available — a
         # disabled or unavailable config cannot lock accounts to an IdP.
+        #
+        # Fails CLOSED on resolution errors: a custom-domain request whose
+        # policy cannot be read reports "enforced", so the affordance is not
+        # advertised where it may be forbidden (Greptile review, PR #3938).
+        # Canonical-domain requests return before any fallible lookup, so
+        # consumer accounts are unaffected by a storage blip. Note this flag
+        # only gates UI affordances — actual sign-in enforcement lives in the
+        # signin routes (restrict_to resolution / Base#signin_enabled?).
         #
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if this request's domain enforces SSO-only
@@ -158,6 +162,8 @@ module Core
           return false unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
 
           config.enforce_sso_only?
+        rescue StandardError
+          true
         end
 
         # Resolve test plan name from Billing::Plan cache or config

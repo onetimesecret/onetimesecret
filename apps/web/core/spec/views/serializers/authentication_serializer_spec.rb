@@ -144,7 +144,22 @@ RSpec.describe Core::Views::AuthenticationSerializer do
           .and_raise(StandardError, 'redis down')
       end
 
-      it 'fails permissive: the affordance only gates a mailbox-proof email link' do
+      it 'fails closed: an unresolvable domain policy does not advertise the affordance' do
+        expect(permitted).to be(false)
+      end
+    end
+
+    context 'canonical domain when storage is down' do
+      let(:view_vars) { {} }
+
+      before do
+        # Would raise if reached — the empty display_domain early return must
+        # keep canonical-domain requests off the fallible lookup path.
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          .and_raise(StandardError, 'redis down')
+      end
+
+      it 'stays permissive: no tenant policy to resolve, no lookup attempted' do
         expect(permitted).to be(true)
       end
     end

@@ -677,6 +677,14 @@ describe('SecurityOverview', () => {
       expect(wrapper.find('.grid').exists()).toBe(true);
     });
 
+    it('does not show the SSO-managed empty state while accountInfo is unavailable (pending or failed fetch)', () => {
+      mockAccountInfo.value = null;
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.settings.security.sso_managed_title');
+    });
+
     it('shows a Change-password card (not Set) for a hybrid account with a password, even ignoring policy', () => {
       mockHasPassword.value = true;
       mockPasswordAuthPermitted.value = false;
