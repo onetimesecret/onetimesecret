@@ -19,13 +19,19 @@ export interface InviteAuthResult {
   error?: string | null;
   requiresMfa?: boolean;
   redirect?: string;
-  /** Set when signup fails because account already exists; caller should switch to signin. */
-  accountExists?: boolean;
+  /**
+   * Set when the backend reports signup is unavailable for this invitation
+   * (error_type 'signup_unavailable'); caller should offer the signin flow.
+   * Deliberately NOT named accountExists: the server does not confirm account
+   * existence (#3856 anti-enumeration posture), signin is simply the fallback.
+   */
+  signinRequired?: boolean;
 }
 
 /** Shape of API error responses */
 interface ApiErrorResponse {
   error?: string;
+  error_type?: string;
   'field-error'?: [string, string];
 }
 
@@ -102,8 +108,8 @@ export function useInviteAuth() {
    * pending state. The parent view transitions to the explicit Decline/Accept
    * screen and the user issues the /accept call themselves.
    *
-   * @returns InviteAuthResult with accountExists: true if the backend indicates
-   *          the account already exists (caller should switch to signin flow).
+   * @returns InviteAuthResult with signinRequired: true if the backend reports
+   *          signup is unavailable (caller should switch to signin flow).
    */
   async function signupForInvite(
     _email: string, // Kept for API compatibility; backend derives email from token
@@ -111,7 +117,7 @@ export function useInviteAuth() {
     termsAgreed: boolean,
     inviteToken: string,
     _skill: string = '' // Honeypot no longer sent to new endpoint
-  ): Promise<InviteAuthResult & { accountExists?: boolean }> {
+  ): Promise<InviteAuthResult> {
     isLoading.value = true;
     error.value = null;
     fieldErrors.value = {};
@@ -130,9 +136,11 @@ export function useInviteAuth() {
         const info = extractErrorInfo(response.data);
         setError(info);
 
-        // Check for "account exists" error to trigger signin flow
-        const accountExists = response.data.error?.toLowerCase().includes('already exists');
-        return { success: false, error: info.message, accountExists };
+        // Generic signup-unavailable error -> offer the signin flow. Keyed on
+        // error_type, not message text: the server no longer says whether an
+        // account exists (#3856).
+        const signinRequired = response.data.error_type === 'signup_unavailable';
+        return { success: false, error: info.message, signinRequired };
       }
 
       // Server set session cookie via create_account_autologin — sync frontend state.
@@ -149,10 +157,10 @@ export function useInviteAuth() {
       const info = extractErrorInfo(undefined, e as AxiosLikeError);
       setError(info);
 
-      // Check for "account exists" in error response
+      // Non-2xx path (FormError renders as 422): same error_type check.
       const axiosErr = e as AxiosLikeError;
-      const accountExists = axiosErr.response?.data?.error?.toLowerCase().includes('already exists');
-      return { success: false, error: info.message, accountExists };
+      const signinRequired = axiosErr.response?.data?.error_type === 'signup_unavailable';
+      return { success: false, error: info.message, signinRequired };
     } finally {
       isLoading.value = false;
     }

@@ -226,7 +226,7 @@ describe('AcceptInvite', () => {
       expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
     });
 
-    it('switches to sign-in notice after signup reports an existing account', async () => {
+    it('switches to sign-in notice after signup reports signup unavailable', async () => {
       authStore.$patch({ cust: null });
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
@@ -236,9 +236,10 @@ describe('AcceptInvite', () => {
       const wrapper = await mountComponent();
       expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
 
-      // The signup form discovers the existing account via the signup attempt
-      // and emits account-exists; the state machine flips to signin_required.
-      wrapper.findComponent(InviteSignUpForm).vm.$emit('account-exists');
+      // The signup attempt comes back with the generic signup_unavailable
+      // error (#3856) and the form emits signin-required; the state machine
+      // flips to signin_required.
+      wrapper.findComponent(InviteSignUpForm).vm.$emit('signin-required');
       await flushPromises();
 
       expect(wrapper.text()).toContain('web.organizations.invitations.must_sign_in');

@@ -56,8 +56,9 @@
    * - loading: Initial fetch in progress
    * - signup_required: Unauthenticated default (the API deliberately does not
    *   reveal whether an account exists — see show-invite schema note)
-   * - signin_required: Unauthenticated, account known to exist (discovered via
-   *   a failed signup attempt with an account-exists error)
+   * - signin_required: Unauthenticated, signup reported unavailable for this
+   *   invitation (generic signup_unavailable error, #3856) — signin is the
+   *   fallback path
    * - direct_accept: Authenticated with correct email, can accept immediately
    * - wrong_email: Authenticated but with different email than invitation
    * - already_accepted: Invitation was already accepted (status: active)
@@ -81,10 +82,11 @@
   // the action row from re-rendering during the redirect delay window.
   const actionResult = ref<'accepted' | 'declined' | null>(null);
 
-  // Whether we've learned (via a failed signup attempt) that an account
-  // already exists for the invited email. The show endpoint intentionally
-  // carries no account_exists signal, so signup is the default entry path.
-  const knownAccountExists = ref(false);
+  // Whether a signup attempt came back signup_unavailable, meaning signin is
+  // the remaining path. Neither the show endpoint nor the signup endpoint
+  // confirms account existence (AZ7 / #3856), so signup is the default entry
+  // path and this flag only flips on that generic backend signal.
+  const signinFallback = ref(false);
 
   const inviteState = computed<InviteState>(() => {
     if (isLoading.value) return 'loading';
@@ -101,7 +103,7 @@
 
     // Invitation is actionable (pending, not expired)
     if (!authStore.isAuthenticated) {
-      return knownAccountExists.value ? 'signin_required' : 'signup_required';
+      return signinFallback.value ? 'signin_required' : 'signup_required';
     }
 
     // User is authenticated
@@ -255,11 +257,11 @@
   }
 
   /**
-   * Handler for when signup fails because account already exists.
-   * Updates invitation state to trigger signin flow instead.
+   * Handler for when the backend reports signup is unavailable for this
+   * invitation. Updates invitation state to offer the signin flow instead.
    */
-  function onAccountExists() {
-    knownAccountExists.value = true;
+  function onSigninRequired() {
+    signinFallback.value = true;
   }
 </script>
 
@@ -456,7 +458,7 @@
         @success="onAuthSuccess"
         @error="onFormError"
         @decline="handleDecline"
-        @account-exists="onAccountExists" />
+        @signin-required="onSigninRequired" />
 
       <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}

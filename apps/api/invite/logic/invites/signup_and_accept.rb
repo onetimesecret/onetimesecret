@@ -24,8 +24,9 @@ module InviteAPI::Logic
     # Flow:
     # 1. Validates the invite token (pending, not expired)
     # 2. Derives email from token (NOT user-provided - security)
-    # 3. Checks if email exists in EITHER database -> error with signin hint
-    # 4. Validates password meets requirements
+    # 3. Validates password meets requirements
+    # 4. Checks if email exists in EITHER database -> generic error that does
+    #    not confirm account existence (see SIGNUP_UNAVAILABLE_MESSAGE)
     # 5. Creates account in authdb via Rodauth internal_request
     #    (the after_create_account hook creates the Customer, auto-verifies
     #    the SQL account, and skips default-workspace creation)
@@ -39,6 +40,14 @@ module InviteAPI::Logic
     #
     class SignupAndAccept < InviteAPI::Logic::Base
       include Onetime::LoggerMethods
+
+      # Anti-enumeration (#3856): this message is returned whenever signup
+      # cannot proceed for an email that already has an account, but it is
+      # phrased conditionally and carries a generic error_type so the response
+      # never *asserts* account existence. See raise_signup_unavailable.
+      SIGNUP_UNAVAILABLE_MESSAGE = 'Unable to complete signup for this ' \
+        'invitation. If you already have an account, sign in and then open ' \
+        'your invitation link again.'
 
       attr_reader :invitation, :customer
 
@@ -77,26 +86,26 @@ module InviteAPI::Logic
           raise_form_error('Invitation has expired', field: :token)
         end
 
-        # Check if email already exists in authdb (SQLite/PostgreSQL)
-        if email_exists_in_authdb?(@email)
-          raise_form_error(
-            'An account with this email already exists. Please sign in instead.',
-            field: :email,
-            error_type: 'account_exists',
-          )
-        end
-
-        # Check if email already exists in Redis (Customer)
-        if Onetime::Customer.email_exists?(@email)
-          raise_form_error(
-            'An account with this email already exists. Please sign in instead.',
-            field: :email,
-            error_type: 'account_exists',
-          )
-        end
-
-        # Validate password meets requirements
+        # Validate password BEFORE the account-existence checks (#3856).
+        # With this ordering, a request with an invalid password gets the
+        # identical password_too_short error whether or not the invited email
+        # already has an account — closing the cheap, non-destructive
+        # enumeration probe (junk password in, read the error_type out).
         validate_password_requirements!(@password)
+
+        # Check if email already exists in EITHER database (authdb + Redis).
+        #
+        # Anti-enumeration posture (#3856, aligns with the AZ7 hardening on
+        # ShowInvite): the error below is generic — same message and
+        # error_type regardless of which store matched — and never carries an
+        # account_exists signal. Residual: with a valid password, "exists"
+        # (this error) is still distinguishable from "does not exist" (signup
+        # succeeds); that is inherent to any signup endpoint and probing it is
+        # destructive and noisy — it creates the account and emails the
+        # invitee. Compensating control: InviteTokenRateLimiter above.
+        if email_exists_in_authdb?(@email) || Onetime::Customer.email_exists?(@email)
+          raise_signup_unavailable
+        end
       end
 
       def process
@@ -169,6 +178,20 @@ module InviteAPI::Logic
         OT::Utils.normalize_email(email)
       end
 
+      # Single chokepoint for the "email already has an account" outcome so
+      # every path (authdb pre-check, Redis pre-check, Rodauth create race)
+      # returns a byte-identical response. Deliberately: no field (the email
+      # is token-derived, not a submitted field), a conditional message, and
+      # a generic error_type — the frontend keys its sign-in fallback off
+      # error_type 'signup_unavailable' without the server confirming that an
+      # account exists (#3856).
+      def raise_signup_unavailable
+        raise_form_error(
+          SIGNUP_UNAVAILABLE_MESSAGE,
+          error_type: 'signup_unavailable',
+        )
+      end
+
       # Check if email exists in authdb (SQLite/PostgreSQL)
       def email_exists_in_authdb?(email)
         normalized = normalize_email(email)
@@ -233,6 +256,12 @@ module InviteAPI::Logic
         # Parse field errors from Rodauth
         if ex.field_errors&.any?
           field, message = ex.field_errors.first
+          # An account created between our pre-check and Rodauth's insert
+          # surfaces here as "already an account with this login". Map it to
+          # the same generic response as the pre-check so the race window
+          # doesn't reopen the account-existence oracle (#3856).
+          raise_signup_unavailable if message.to_s.match?(/already an account/i)
+
           raise_form_error(message, field: field.to_sym)
         else
           raise_form_error(ex.flash || 'Failed to create account', field: :email)
