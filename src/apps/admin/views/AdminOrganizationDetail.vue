@@ -390,6 +390,12 @@
     resetReconcile();
   }
 
+  // Membership-cascade outcome (#3907 item 3). The applied paths return
+  // `reason: null`, so this is the ONLY console-visible signal that a
+  // reconcile left memberships with stale entitlements (`failed_ids` are the
+  // membership objids `bin/ots memberships doctor` follow-up works in).
+  const reconcileCascade = computed(() => reconcileResult.value?.memberships ?? null);
+
   const reconcileDiffRows = computed(() => {
     const r = reconcileResult.value;
     // `after` is null on dry runs / Stripe errors (schema-nullable since
@@ -1176,6 +1182,29 @@
                 </tr>
               </tbody>
             </table>
+            <!-- Membership cascade (#3907 item 3): a partial cascade must be
+                 operator-visible here — the applied statuses carry no reason
+                 string, and nothing else in the console shows it. Translated
+                 labels + raw values, same composition as the diff rows. -->
+            <p
+              v-if="reconcileCascade"
+              class="mt-2 text-xs"
+              :class="
+                reconcileCascade.failed > 0
+                  ? 'font-medium text-red-700 dark:text-red-300'
+                  : 'text-amber-700 dark:text-amber-300'
+              "
+              data-testid="reconcile-memberships">
+              {{ t('web.admin.organizations.detail.reconcile.memberships') }}
+              <span class="font-mono"
+                >{{ reconcileCascade.success }}/{{ reconcileCascade.total }}</span
+              >
+              <template v-if="reconcileCascade.failed > 0">
+                — {{ reconcileCascade.failed }}
+                {{ t('web.admin.organizations.detail.reconcile.membershipsFailed') }}
+                <span class="font-mono">{{ reconcileCascade.failed_ids.join(', ') }}</span>
+              </template>
+            </p>
           </div>
 
           <!-- Investigate error -->
