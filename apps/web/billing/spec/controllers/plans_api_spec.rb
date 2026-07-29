@@ -96,7 +96,9 @@ RSpec.describe 'Plans API Response', type: :integration do
       it 'includes stripe_price_id as top-level field' do
         skip 'No plans in cache' if response_plans.empty?
 
-        # Find a paid plan (free plans may not have stripe_price_id)
+        # Narrowed to paid plans on purpose: this asserts the Stripe price is
+        # carried through, and price-less plans have none. The free tier's own
+        # contract is covered in the 'price-less plans' context below.
         paid_plan = response_plans.find { |p| p['tier'] != 'free' }
         skip 'No paid plans in cache' if paid_plan.nil?
 
@@ -143,6 +145,57 @@ RSpec.describe 'Plans API Response', type: :integration do
 
         plan = response_plans.first
         expect(plan['limits']).to be_a(Hash)
+      end
+    end
+
+    # Regression coverage: the endpoint used to drop every plan with an empty
+    # prices hash, which silently removed the free tier from /pricing even
+    # though ConfigLoader puts it in the catalog for exactly this purpose.
+    context 'price-less plans (free tier)' do
+      let(:response_plans) do
+        get '/billing/api/plans'
+        JSON.parse(last_response.body)['plans']
+      end
+
+      let(:free_records) { response_plans.select { |p| p['id'] == 'free_v1' } }
+      let(:free_record) { free_records.first }
+
+      it 'includes the price-less free plan in the response' do
+        expect(free_record).not_to be_nil
+      end
+
+      it 'emits exactly one record for it (not one per interval)' do
+        expect(free_records.size).to eq(1)
+      end
+
+      it 'reports a zero amount and no Stripe price' do
+        expect(free_record['amount']).to eq(0)
+        expect(free_record['stripe_price_id']).to be_nil
+      end
+
+      it 'uses the month interval with no monthly equivalent' do
+        expect(free_record['interval']).to eq('month')
+        expect(free_record['monthly_equivalent_amount']).to be_nil
+      end
+
+      it 'carries the free tier and the plan currency' do
+        expect(free_record['tier']).to eq('free')
+        expect(free_record['currency']).to be_a(String)
+      end
+
+      it 'carries entitlements, limits and features' do
+        expect(free_record['entitlements']).to include('create_secrets')
+        expect(free_record['limits']).not_to be_empty
+        # features is a distinct collection from entitlements and the test
+        # catalog's free_v1 declares none, so only the shape is asserted.
+        expect(free_record['features']).to be_an(Array)
+      end
+
+      it 'sorts ahead of paid plans by display_order' do
+        paid = response_plans.find { |p| p['tier'] != 'free' }
+        skip 'No paid plans in cache' if paid.nil?
+
+        expect(response_plans.index(free_record)).to be < response_plans.index(paid)
       end
     end
 
@@ -356,7 +409,8 @@ RSpec.describe 'Plans API Response', type: :integration do
       skip 'No plans in cache' if response_plans.empty?
 
       response_plans.each do |plan|
-        # Skip free plans
+        # Free plans are legitimately zero — see the 'price-less plans'
+        # context for their assertions.
         next if plan['tier'] == 'free'
 
         amount = plan['amount'].to_i
