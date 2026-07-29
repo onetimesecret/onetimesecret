@@ -5,6 +5,7 @@
 # Loaded from the auth app AND from the CLI (which runs outside the auth app's
 # autoloader), so every dependency is required explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'auth/account_statuses'
@@ -143,8 +144,33 @@ module Auth
       # rubocop:disable Metrics/ClassLength
       class ChangeEmail
         include Onetime::LoggerMethods
+        include Onetime::AuditedFailure
 
         AUDIT_VERB = 'customer.change_email'
+
+        # A privileged mutation was asked for and REFUSED before anything moved.
+        # Each records one `result: :failure` event. `:no_change` and `:planned`
+        # are NOT refusals — nothing was attempted that could fail. `:partial`
+        # and `:verification_not_reset` are not here either: the swap LANDED and
+        # `record_audit` already writes them as their own result strings (D38).
+        REFUSAL_STATUSES = [:not_found, :invalid_email, :email_taken].freeze
+
+        # This is the highest-value account-takeover primitive an operator has.
+        # A non-unique-violation SQL failure re-raises from the middle of the
+        # swap (call:267), BEFORE record_audit, so an attempted takeover that
+        # blew up left NOTHING in the trail. Records one `result: :failure` and
+        # re-raises.
+        #
+        # The verb is deliberately AUDIT_VERB and never the side-effect verb this
+        # op also emits (`customer.set_verification`, from the composed
+        # SetVerification call) — the failure belongs to the change_email verb.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only. Addresses are OBSCURED, as in record_audit.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { failure_target },
+          detail: -> { { dry_run: @dry_run, to: OT::Utils.obscure_email(@new_email.to_s) } }
 
         # Compare-and-delete on the global email index: drop the field ONLY while
         # it still names us (`release_index_claim`). A read-then-HDEL is NOT good
@@ -865,7 +891,36 @@ module Auth
 
         # -------------------------------------------------------------- results
 
+        # The customer may be nil/anonymous on the :not_found path, so the target
+        # falls back to the shared UNKNOWN sentinel rather than an empty string.
+        def failure_target
+          extid = (@customer.respond_to?(:extid) ? @customer.extid : nil).to_s
+          extid.empty? ? Onetime::AuditedFailure::UNKNOWN : extid
+        end
+
+        # Same verb/target/actor as the success event; obscured addresses only,
+        # exactly like record_audit. Best-effort: never break the op.
+        def record_refusal(status, old_email)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: failure_target,
+            result: :failure,
+            detail: {
+              reason: status.to_s,
+              from: OT::Utils.obscure_email(old_email.to_s),
+              to: OT::Utils.obscure_email(@new_email.to_s),
+              dry_run: @dry_run,
+            },
+          )
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] refusal audit failed', exception: ex
+        end
+
         def failure(status)
+          record_refusal(status, @customer.respond_to?(:email) ? @customer.email : nil) if
+            REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             extid: @customer.respond_to?(:extid) ? @customer.extid : nil,
@@ -882,6 +937,8 @@ module Auth
 
         # `orgs:` on a :planned result is the WOULD-BE count, not work done.
         def terminal(status, old_email, orgs: 0)
+          record_refusal(status, old_email) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             extid: @customer.extid,

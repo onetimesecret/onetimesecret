@@ -87,18 +87,29 @@ module Core
         # Checks whether the authenticated account has a password hash set.
         # SSO-only accounts have no row in account_password_hashes.
         #
+        # Returns nil (unknown) when the lookup hits a transient database
+        # failure rather than a fabricated false — on the wire, false means
+        # "SSO-only account" and drives the frontend to hide password/MFA
+        # settings. The bootstrap store treats nil as "no information" so a
+        # blipped refresh never clobbers a known-good value. Only Sequel
+        # errors degrade; programming errors propagate.
+        #
         # @param sess [Hash, nil] Session hash containing account_id
-        # @return [Boolean] true if account has a password, false otherwise
+        # @return [Boolean, nil] true if account has a password, false if not
+        #   (or no session account / auth DB not in this mode), nil when the
+        #   lookup failed
         def account_has_password?(sess)
           account_id = sess&.[]('account_id')
           return false unless account_id
+          return false unless defined?(Auth::Database)
 
           db = Auth::Database.connection
           return false unless db
 
           db[:account_password_hashes].where(id: account_id).any?
-        rescue StandardError
-          false
+        rescue Sequel::DatabaseError, Sequel::PoolTimeout => ex
+          OT.le "[AuthenticationSerializer] account_has_password? query failed: #{ex.class} account_id=#{account_id}"
+          nil
         end
 
         # Resolve test plan name from Billing::Plan cache or config

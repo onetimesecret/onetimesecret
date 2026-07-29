@@ -71,11 +71,25 @@ module Onetime
   end
 
   # Features runtime state accessors
+  #
+  # Banner reads go through a TTL-bounded re-read (BannerState.refresh_if_stale!)
+  # so a banner published or cleared by ANOTHER process (Puma worker, container,
+  # CLI) becomes visible here within BannerState::CACHE_TTL seconds — the
+  # runtime state alone is only refreshed at boot and by the process that
+  # handled the write. All cache state lives in lib/onetime/operations/banner.rb;
+  # these stay one-line delegates.
+  #
+  # The `defined?` guard keeps the ops require lazy (the CheckGlobalBanner
+  # initializer loads it; a top-level require here would recreate the boot-time
+  # require cycle documented in runtime/features.rb) and keeps unbooted unit
+  # specs on the plain runtime default.
   def self.global_banner
+    Operations::BannerState.refresh_if_stale! if defined?(Onetime::Operations::BannerState)
     Runtime.features.global_banner
   end
 
   def self.global_banner_scope
+    Operations::BannerState.refresh_if_stale! if defined?(Onetime::Operations::BannerState)
     Runtime.features.global_banner_scope
   end
 end

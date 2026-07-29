@@ -7,6 +7,7 @@
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic), so require the audit model explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/models/custom_domain/config_registry'
 
 module Onetime
@@ -29,8 +30,33 @@ module Onetime
       # duplicate-create race falls back to the update path. Update path:
       # only the provided fields are applied; `updated` is bumped.
       class UpsertDomainConfig
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every applied upsert.
         AUDIT_VERB = 'domain.config_upsert'
+
+        # This op has NO refusal STATUS — every non-success outcome RAISES
+        # (model validation, a lost race whose record then vanished, a datastore
+        # failure), and every one of those raises happens after `apply_update`
+        # may already have written setters, so the success record never runs.
+        # Records one `result: :failure` and re-raises.
+        #
+        # Field NAMES only in the detail, never values — same rule as the
+        # success event (recipients / allowlists are semi-sensitive).
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @domain&.extid },
+          detail: -> { { config: @kind, changed: @attrs.keys } }
+
+        # The config models' create! signals a lost duplicate-create race by
+        # raising Onetime::Problem from its exists-guard — the FIRST check,
+        # before any attribute validation — with this message shape
+        # ('<Kind> config already exists for this domain'). No distinct error
+        # class exists, and model VALIDATION failures raise the same class
+        # (e.g. allowed_signup_domains PublicSuffix rejection), so the race
+        # rescue matches the guard message: a validation failure must never
+        # be re-applied to a raced record it did not come from.
+        ALREADY_EXISTS_MESSAGE = /already exists for this domain\z/
 
         # @!attribute status [r] Symbol — :created | :updated
         # @!attribute config [r] the persisted config record
@@ -64,10 +90,15 @@ module Onetime
             begin
               status = :created
               config = model.create!(domain_id: domain_id, **@attrs.transform_keys(&:to_sym))
-            rescue Onetime::Problem
-              # Duplicate-create race: a concurrent writer created the record
-              # between our read and create!. Re-read and apply as an update.
-              # A real validation failure leaves no record — re-raise.
+            rescue Onetime::Problem => ex
+              # Duplicate-create race ONLY: a concurrent writer created the
+              # record between our read and create!'s exists-guard. Any other
+              # Onetime::Problem is a real validation failure and propagates
+              # unchanged (422 form error at the logic layer) — taking the
+              # race path for it would re-apply invalid input to a concurrent
+              # writer's valid record.
+              raise unless ex.message.match?(ALREADY_EXISTS_MESSAGE)
+
               raced = model.find_by_domain_id(domain_id)
               raise unless raced
 

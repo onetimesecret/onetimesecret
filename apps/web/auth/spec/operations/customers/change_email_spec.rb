@@ -256,11 +256,23 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(customer).not_to have_received(:save)
     end
 
-    it 'returns :invalid_email for a malformed address' do
+    # A refusal is an ATTEMPTED privileged mutation — and this verb is the
+    # highest-value account-takeover primitive an operator has, so a refused
+    # attempt lands in the trail with the same verb/target as a success,
+    # differing only in result:/detail. Addresses stay obscured.
+    it 'returns :invalid_email and records ONE result: :failure event' do
       result = op(new_email: 'not-an-email').call
 
       expect(result.status).to eq(:invalid_email)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: 'cli',
+          verb: 'customer.change_email',
+          target: 'ur_c',
+          result: :failure,
+          detail: hash_including(reason: 'invalid_email', dry_run: false),
+        ),
+      )
     end
 
     it 'returns :no_change when the normalized address matches the current one' do
@@ -311,7 +323,14 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       expect(result.status).to eq(:email_taken)
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          verb: 'customer.change_email',
+          target: 'ur_c',
+          result: :failure,
+          detail: hash_including(reason: 'email_taken'),
+        ),
+      )
     end
 
     # A CLOSED account (status_id 3) sits outside the partial unique index AND
@@ -343,12 +362,28 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
   # =========================================================================
   describe 'SQL failure leaves Redis untouched' do
-    it 're-raises a non-uniqueness SQL error without touching the Customer' do
+    # The Onetime::AuditedFailure mechanism. This re-raise happens from the
+    # MIDDLE of the swap, before record_audit ever runs, so without the macro
+    # an attempted takeover that blew up left nothing at all in the trail.
+    # Message expectation, not a store read: AdminAuditEvent.record swallows
+    # its own errors.
+    it 're-raises a non-uniqueness SQL error, records ONE failure, no Customer write' do
       allow(by_id).to receive(:update).and_raise(StandardError, 'connection reset')
 
       expect { op.call }.to raise_error(StandardError, 'connection reset')
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: 'cli',
+          # AUDIT_VERB, never the side-effect verb this op also emits.
+          verb: 'customer.change_email',
+          target: 'ur_c', # literal: a broken target lambda lands as 'unknown'
+          result: :failure,
+          detail: hash_including(
+            error: 'StandardError', message: 'connection reset', dry_run: false,
+          ),
+        ),
+      )
     end
   end
 

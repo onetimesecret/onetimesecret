@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
+
 require_relative '../base'
 
 module ColonelAPI
@@ -51,7 +54,31 @@ module ColonelAPI
       # - Requires colonel role
       # - Session-scoped (cleared on logout)
       # - Does not modify actual subscription/billing
+      #
+      # ## Audited
+      #
+      # This mutates (redis del/sadd on session keys) and changes what the admin
+      # sees, so it is a mutating admin op and records one event per call
+      # (CONTRACT 4). The blast radius is the colonel's OWN session, so the
+      # target is the acting colonel and `detail` stays minimal: the plan being
+      # previewed, nothing else. No session key names, no entitlement lists.
       class SetEntitlementPreview < ColonelAPI::Logic::Base
+        include Onetime::AuditedFailure
+
+        AUDIT_VERB_SET   = 'entitlement_preview.set'
+        AUDIT_VERB_CLEAR = 'entitlement_preview.clear'
+
+        # Failure auditing (Onetime::AuditedFailure). Wraps #process, which Otto
+        # runs AFTER #raise_concerns — so the colonel-role check and the invalid
+        # -plan rejection that live there are structurally outside the audited
+        # region, and an authorization rejection can never write an event.
+        # `actor` is explicit: the ops' `@actor` default does not exist on a
+        # Logic class.
+        audit_failures :process,
+          verb: -> { clearing? ? AUDIT_VERB_CLEAR : AUDIT_VERB_SET },
+          target: -> { cust&.extid },
+          actor: -> { cust&.extid }
+
         # TTL for session test mode Redis keys (matches session TTL)
         SESSION_TEST_TTL = 24 * 60 * 60 # 24 hours
 
@@ -92,16 +119,44 @@ module ColonelAPI
 
         def process
           session_id = extract_session_id
-          return process_without_reconciler unless session_id
 
-          if @planid.nil? || @planid.empty?
-            clear_test_mode(session_id)
-          else
-            set_test_mode(session_id)
-          end
+          response = if session_id.nil?
+                       process_without_reconciler
+                     elsif clearing?
+                       clear_test_mode(session_id)
+                     else
+                       set_test_mode(session_id)
+                     end
+
+          # One event per call, emitted here rather than inside the three
+          # branches so the reconciler and the no-session fallback audit
+          # identically.
+          record_audit_event
+
+          response
         end
 
         private
+
+        # A blank/absent planid means "drop the preview" — the single source of
+        # truth for the set-vs-clear branch AND for which verb is recorded, so
+        # the two can't drift.
+        def clearing?
+          @planid.nil? || @planid.empty?
+        end
+
+        # Session-scoped, self-inflicted change: actor and target are both the
+        # acting colonel. Detail carries the previewed plan and nothing else —
+        # no session key names, no entitlement lists.
+        def record_audit_event
+          Onetime::AdminAuditEvent.record(
+            actor: cust&.extid,
+            verb: clearing? ? AUDIT_VERB_CLEAR : AUDIT_VERB_SET,
+            target: cust&.extid,
+            result: :success,
+            detail: clearing? ? nil : { planid: @planid },
+          )
+        end
 
         def extract_session_id
           return nil unless sess

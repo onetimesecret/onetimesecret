@@ -4,6 +4,7 @@
 
 require 'onetime/operations/ratelimit/registry'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -20,12 +21,28 @@ module Onetime
       # limiter modules' own `clear_*_rate_limit!`). The op adds one thing: exactly
       # one {Onetime::AdminAuditEvent} per reset that ACTUALLY removed a key. A
       # reset of an already-clear subject is an idempotent no-op — `status:
-      # :not_set`, NO audit event (the "only audit an actual change" rule shared
-      # with UnbanIP / ClearBanner). Bounded to the registry's fixed key set
-      # (CONTRACT 6).
+      # :not_set`, NO audit event. That is NOT a refusal: the colonel adapter
+      # returns 200 with `cleared: false` and "No active rate-limit state to
+      # reset", i.e. it is not an operator-visible failure (contrast
+      # {Onetime::Operations::UnbanIP}, whose `:not_found` IS a 404 and IS
+      # recorded). Bounded to the registry's fixed key set (CONTRACT 6).
       class Reset
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every reset that removed at least one key.
         AUDIT_VERB = 'ratelimit.reset'
+
+        # An unknown kind RAISES (ArgumentError) rather than returning a status,
+        # and the SCAN + DEL run before the success record — a partial delete
+        # across a two-tier limiter's variable-suffix keys leaves the subject in
+        # an unknown lock state. Records one `result: :failure` and re-raises.
+        #
+        # The target mirrors the success event's "#{kind}:#{subject}" shape so
+        # both land under the same filter. Never the counter VALUES.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { "#{@kind}:#{@subject}" },
+          detail: -> { { kind: @kind } }
 
         # @!attribute status [r] :success (something removed) or :not_set (no-op)
         Result = Data.define(:status, :kind, :subject, :keys, :deleted)

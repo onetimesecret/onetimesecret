@@ -34,7 +34,22 @@
   const { t } = useI18n();
 
   const store = useAdminAuditLog();
-  const { events, pagination, loading, error } = storeToRefs(store);
+  /**
+   * `error` and `validationError` are the two failure modes usePaginatedFetch
+   * deliberately keeps apart, and they must NOT collapse into one state here:
+   *
+   *   - error           the request threw (network/HTTP) → red banner + retry.
+   *   - validationError the response ARRIVED but failed Zod → the store degrades
+   *                     to `[]`, which would otherwise render as the ordinary
+   *                     "No audit events recorded yet" empty state. On an audit
+   *                     log that is the worst possible lie: a broken read
+   *                     contract reads as "nobody did anything". So the
+   *                     mismatch replaces the table outright (below) instead of
+   *                     letting the empty state speak for it.
+   *
+   * They are mutually exclusive by construction — fetchPage nulls both on entry.
+   */
+  const { events, pagination, loading, error, validationError } = storeToRefs(store);
 
   // ---- Filters ---------------------------------------------------------------
 
@@ -56,21 +71,31 @@
   const searchPending = computed(() => actorTerm.value.trim() !== activeActor.value);
 
   /**
-   * Action categories = the dotted-verb prefixes the ops layer writes today
-   * (customer.set_role, session.delete, queue.dlq.replay, …). The server
-   * treats the value as a prefix, so an uncategorised future verb still shows
-   * under "All" — this list only feeds the convenience select.
+   * Action categories = the leading segment of the dotted verbs the ops layer
+   * writes (customer.set_role, session.delete, queue.dlq.replay, …).
+   *
+   * The server matches `verb` as an exact action OR a dotted prefix
+   * (list_audit_events.rb: `verb == filter || verb.start_with?("#{filter}.")`)
+   * and validates nothing against an allowlist, so ONE entry here reaches every
+   * verb beneath it — `membership` covers membership.add / .remove / .set_role
+   * AND the interpolated membership.entitlement.<action> family — and an
+   * uncategorised future verb still shows under "All". This list only feeds the
+   * convenience select; it is a superset-tolerant menu, not a contract.
    */
   const VERB_CATEGORIES = [
     'customer',
     'session',
+    'secret',
     'domain',
     'organization',
+    'membership',
+    'entitlement_preview',
     'banner',
     'queue',
     'email',
     'ratelimit',
     'ip',
+    'colonel',
   ] as const;
 
   const filters = computed<FilterConfig[]>(() => [
@@ -186,7 +211,7 @@
       </p>
     </header>
 
-    <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
+    <!-- Network/HTTP error banner. Contract mismatches render below instead. -->
     <div
       v-if="error"
       class="mb-4 flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
@@ -272,8 +297,34 @@
       </p>
     </div>
 
+    <!--
+      Contract mismatch: the server answered but the payload failed Zod, so the
+      store holds `[]` for a reason that has nothing to do with activity. Shown
+      INSTEAD of the table so the empty state can never stand in for it.
+    -->
+    <div
+      v-if="validationError"
+      class="flex items-center justify-between gap-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/20"
+      role="alert"
+      data-testid="audit-contract-error">
+      <span class="text-sm text-amber-800 dark:text-amber-200">
+        {{ t('web.admin.audit.list.contractError') }}
+      </span>
+      <button
+        type="button"
+        class="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:border-amber-700 dark:text-amber-100 dark:hover:bg-amber-900/40"
+        @click="fetchPage(1)">
+        <OIcon
+          collection="heroicons"
+          name="arrow-path"
+          size="4" />
+        {{ t('web.admin.audit.list.retry') }}
+      </button>
+    </div>
+
     <!-- Table -->
     <div
+      v-else
       class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <DataTable
         :columns="columns"

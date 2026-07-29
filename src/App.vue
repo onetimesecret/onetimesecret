@@ -32,7 +32,7 @@
     displayVersion: true,
     displayPoweredBy: false, // used in only a few places
     displayToggles: true,
-    displayGlobalBroadcast: true, // will only display if one exists (need to restart backend when changes)
+    displayGlobalBroadcast: true, // will only display if one exists
   };
 
   // List of boolean keys every layout is expected to receive. Kept in

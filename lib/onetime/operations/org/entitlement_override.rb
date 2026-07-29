@@ -5,6 +5,7 @@
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -84,6 +85,8 @@ module Onetime
       #   `org entitlement …` deliberately so a future `memberships entitlement …`
       #   is shape-compatible.
       class EntitlementOverride
+        include Onetime::AuditedFailure
+
         ACTIONS = %w[grant revoke clear].freeze
 
         # Operator-facing past tense. Moved verbatim from the colonel logic,
@@ -116,6 +119,29 @@ module Onetime
           :no_change,
           :planned,
         ].freeze
+
+        # The complement of OK_STATUSES: a privileged mutation was asked for and
+        # REFUSED. Each records one `result: :failure` event, for the same reason
+        # the raising privilege guard in
+        # {Auth::Operations::Customers::SetSuspension} does — whether a refusal
+        # comes back as a Result or an exception must not decide whether it is
+        # traceable. `:no_change`/`:planned` are excluded: nothing was refused.
+        REFUSAL_STATUSES = [
+          :invalid_action,
+          :missing_entitlement,
+        ].freeze
+
+        # grant/revoke/clear write Familia sets and re-reconcile the org's
+        # materialized entitlements; a raise mid-apply leaves the org's effective
+        # permissions unknown, and the success record sits after apply!. Records
+        # one `result: :failure` and re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only.
+        audit_failures :call,
+          verb: -> { audit_verb },
+          target: -> { @org&.extid },
+          detail: -> { { dry_run: @dry_run, action: @action } }
 
         # @!attribute status [r] Symbol — :granted | :revoked | :cleared |
         #   :no_change | :planned | :invalid_action | :missing_entitlement
@@ -213,7 +239,7 @@ module Onetime
           # unbounded and the pre-extraction endpoint recorded {} too.
           Onetime::AdminAuditEvent.record(
             actor: @actor,
-            verb: "#{AUDIT_VERB_PREFIX}.#{@action}",
+            verb: audit_verb,
             target: @org.extid,
             result: :success,
             detail: @action == 'clear' ? {} : { entitlement: @entitlement },
@@ -228,6 +254,35 @@ module Onetime
         end
 
         private
+
+        # "organization.entitlement.<action>" — BYTE-IDENTICAL to the
+        # pre-extraction value for a valid action (the existing trail and the
+        # colonel tryout gate match those exact strings). An INVALID action falls
+        # back to the bare prefix rather than interpolating operator-supplied
+        # text into the verb: the verb namespace is a closed set, and an
+        # :invalid_action refusal has no success-path verb to match.
+        def audit_verb
+          ACTIONS.include?(@action) ? "#{AUDIT_VERB_PREFIX}.#{@action}" : AUDIT_VERB_PREFIX
+        end
+
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op.
+        def record_refusal(status)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: audit_verb,
+            target: @org.extid,
+            result: :failure,
+            detail: {
+              reason: status.to_s,
+              action: @action,
+              entitlement: @entitlement,
+              dry_run: @dry_run,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[Org::EntitlementOverride] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
 
         def apply!
           case @action
@@ -265,7 +320,11 @@ module Onetime
           ((@org.entitlements_plan.to_a | grants) - revokes).sort
         end
 
+        # Single exit point for every non-applied status, so the refusal audit
+        # cannot be forgotten at an early return.
         def build(status, effective: nil, grants: nil, revokes: nil)
+          record_refusal(status) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             org_id: @org.extid,

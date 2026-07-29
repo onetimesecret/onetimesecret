@@ -13,6 +13,7 @@
 # the app autoloaders — a spec that loads billing another way will NOT catch it.
 require 'stripe'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require_relative '../../../../apps/web/billing/operations/apply_subscription_to_org'
 
 module Onetime
@@ -112,7 +113,15 @@ module Onetime
       # pressing reconcile is itself the auditable act, and because that is the
       # pre-extraction behaviour the trail and
       # try/integration/api/colonel/get_organization_detail_try.rb depend on.
-      # A dry run and a Stripe failure record nothing.
+      # A dry run records nothing (nothing was attempted against the org).
+      #
+      # `result:` is DERIVED from {OK_STATUSES} rather than pinned to :success
+      # (the {Onetime::Operations::AdminVerifyDomain} pattern): a reconcile that
+      # could not find the org's plan is a failed reconcile, and labelling it
+      # :success made the trail disagree with the op's own status vocabulary. A
+      # `:stripe_error` — previously the one applied-path outcome that recorded
+      # NOTHING — now records `result: :failure` too; the operator attempted the
+      # mutation and Stripe refused it. The verb is unchanged on every path.
       #
       # ## Status vocabulary
       #
@@ -139,6 +148,8 @@ module Onetime
       # the cascade genuinely did not run (dry runs, skips, errors) — and the
       # applied paths where it RAISED, which the logs cover.
       class Reconcile
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every applied reconcile. BYTE-IDENTICAL to the
         # pre-extraction value — the existing trail and the colonel tryout gate
         # both match on this exact string.
@@ -158,6 +169,19 @@ module Onetime
           :planned,            # stripe_sync OR standalone dry run
           :would_materialize,  # entitlements_only dry run
         ].freeze
+
+        # A reconcile rewrites planid / subscription_status / materialized
+        # entitlements and CASCADES to every membership. A raise partway leaves
+        # the org and its members in an unknown entitlement state, and the
+        # success-path record sits after the whole dispatch. Records one
+        # `result: :failure` and re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @org&.extid },
+          detail: -> { { dry_run: @dry_run } }
 
         # @!attribute status [r] Symbol — :applied | :materialized |
         #   :standalone | :skipped_no_plan | :skipped_fresh | :plan_not_found |
@@ -210,9 +234,15 @@ module Onetime
 
           outcome = dispatch(mode)
 
-          # Dry runs and Stripe failures wrote nothing: no reload, no snapshot,
-          # no audit event.
-          if @dry_run || outcome[:status] == :stripe_error
+          # A dry run wrote nothing and attempted nothing: no reload, no
+          # snapshot, no audit event.
+          return build(outcome[:status], org_extid, mode, before, nil, outcome[:reason]) if @dry_run
+
+          # A Stripe failure also wrote nothing, so there is no after-snapshot —
+          # but the operator DID attempt the mutation and Stripe refused it, so
+          # the attempt is recorded (result: :failure, derived from OK_STATUSES).
+          if outcome[:status] == :stripe_error
+            record_audit_event(org_extid, mode, outcome[:status], before, nil, outcome[:reason])
             return build(outcome[:status], org_extid, mode, before, nil, outcome[:reason])
           end
 
@@ -220,7 +250,7 @@ module Onetime
           @org  = Onetime::Organization.load(@org.objid) || @org
           after = snapshot(@org)
 
-          record_audit_event(org_extid, mode, outcome[:status], before, after)
+          record_audit_event(org_extid, mode, outcome[:status], before, after, outcome[:reason])
 
           build(
             outcome[:status],
@@ -441,18 +471,20 @@ module Onetime
         # One audit event per applied reconcile (CONTRACT 4 / epic D4).
         # actor/target are PUBLIC ids; the before/after billing diff is captured
         # in detail so the trail records what the reconcile actually changed.
-        def record_audit_event(org_extid, mode, status, before, after)
+        #
+        # `result:` is derived from OK_STATUSES, never pinned — see the class
+        # docs. `reason` is only included when the engine supplied one, so the
+        # success-path detail shape is unchanged.
+        def record_audit_event(org_extid, mode, status, before, after, reason = nil)
+          detail          = { mode: mode, status: status.to_s, before: before, after: after }
+          detail[:reason] = reason.to_s unless reason.to_s.empty?
+
           Onetime::AdminAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: org_extid,
-            result: :success,
-            detail: {
-              mode: mode,
-              status: status.to_s,
-              before: before,
-              after: after,
-            },
+            result: OK_STATUSES.include?(status) ? :success : :failure,
+            detail: detail,
           )
         end
 

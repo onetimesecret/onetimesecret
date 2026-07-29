@@ -564,7 +564,10 @@ export const bootstrapSchema = z.object({
   authenticated: z.boolean().default(false),
   awaiting_mfa: z.boolean().optional().default(false),
   had_valid_session: z.boolean().default(false),
-  has_password: z.boolean().optional().default(false),
+  // Tri-state: true/false are definitive; null means the server could not
+  // determine it (transient auth-DB failure during serialization). The store
+  // treats null as "no information" and keeps the last known value.
+  has_password: z.boolean().nullable().optional().default(false),
   custid: z.string().default(''),
   cust: customerCanonical.nullable().default(null),
   email: z.string().default(''),

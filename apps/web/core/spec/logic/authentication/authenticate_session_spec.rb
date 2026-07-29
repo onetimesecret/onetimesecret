@@ -328,6 +328,66 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     end
   end
 
+  # Simple auth mode's session-establishment site for the colonel.signin audit
+  # event (full mode's counterpart is Auth::Operations::SyncSession). Colonel
+  # activity is overwhelmingly reads, and reads never audit by design
+  # (CONTRACT 4), so session establishment is the one signal of operator
+  # presence the trail can carry.
+  describe 'colonel.signin audit event' do
+    before do
+      allow(Onetime::AdminAuditEvent).to receive(:record)
+      logic.process_params
+    end
+
+    it 'records nothing for a non-colonel login' do
+      logic.process
+
+      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    end
+
+    context 'when the customer is a colonel' do
+      before { allow(customer).to receive(:role).and_return('colonel') }
+
+      it 'records one colonel.signin event with public identities only' do
+        logic.process
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          actor: 'ur_test123',
+          verb: 'colonel.signin',
+          target: 'ur_test123',
+          result: :success,
+          detail: { auth_method: 'password', ip: '127.0.0.1' },
+        )
+      end
+
+      # The hard constraint: the audit set is capped by COUNT with no TTL, so an
+      # event a failed login can trigger is a log-eviction primitive.
+      it 'records NOTHING when the credentials are wrong' do
+        params['password'] = 'definitely-wrong'
+        logic.process_params
+
+        expect { logic.process }.to raise_error(Onetime::FormError)
+        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      end
+
+      it 'records NOTHING when the account is suspended' do
+        allow(customer).to receive(:suspended?).and_return(true)
+
+        expect { logic.process }.to raise_error(Onetime::FormError)
+        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      end
+
+      it 'records NOTHING for a pending (unverified) account' do
+        allow(customer).to receive(:pending?).and_return(true)
+        allow(logic).to receive(:send_verification_email)
+
+        logic.process
+
+        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      end
+    end
+  end
+
   describe '#success?' do
     context 'when customer is not anonymous and passphrase matches' do
       before do

@@ -304,7 +304,9 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(Onetime::AdminAuditEvent).not_to have_received(:record)
     end
 
-    it 'returns :stripe_error instead of raising, and audits nothing' do
+    # Stripe refusing the reconcile writes NOTHING (hence after: nil), but the
+    # operator did attempt the mutation — it belongs in the trail as a failure.
+    it 'returns :stripe_error instead of raising, and records ONE failure event' do
       allow(Stripe::Subscription).to receive(:retrieve).and_raise(Stripe::StripeError.new('no such subscription'))
 
       result = nil
@@ -313,7 +315,42 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(result.status).to eq(:stripe_error)
       expect(result.reason).to eq('no such subscription')
       expect(result.after).to be_nil
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'organization.reconcile',
+          target: 'on_org_ext',
+          result: :failure,
+          detail: hash_including(
+            mode: 'stripe_sync', status: 'stripe_error',
+            reason: 'no such subscription',
+          ),
+        ),
+      )
+    end
+
+    # The Onetime::AuditedFailure mechanism. A reconcile cascades to every
+    # membership; a raise partway leaves the org and its members in an unknown
+    # entitlement state, and the success-path record sits after the dispatch.
+    it 'records ONE failure event when the apply raises, and re-raises' do
+      allow(Billing::Operations::ApplySubscriptionToOrg)
+        .to receive(:call).and_raise(Onetime::Problem, 'cascade blew up')
+
+      expect do
+        described_class.new(org: org, actor: actor, dry_run: false).call
+      end.to raise_error(Onetime::Problem, /cascade blew up/)
+
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'organization.reconcile',
+          target: 'on_org_ext', # literal: a broken target lambda lands as 'unknown'
+          result: :failure,
+          detail: hash_including(
+            error: 'Onetime::Problem', message: 'cascade blew up', dry_run: false,
+          ),
+        ),
+      )
     end
   end
 

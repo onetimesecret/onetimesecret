@@ -161,6 +161,24 @@ e = @resp['details']['entitlements']
 #=> [true, true]
 
 # ----------------------------------------------------------------
+# Available entitlements (the catalog the console's override picker offers)
+# ----------------------------------------------------------------
+
+## Available entitlements: EXACTLY the names known_entitlement? accepts, sorted.
+## This is the anti-drift invariant — if the picker's options and the server's
+## validation predicate disagree, an operator picks a name the endpoint rejects.
+@resp = JSON.parse(last_response.body)
+avail = @resp['details']['available_entitlements']
+avail.map { |entry| entry['name'] } == ::Billing::Config.load_entitlements.keys.sort
+#=> true
+
+## Available entitlements: each entry carries name + description (+ category)
+@resp = JSON.parse(last_response.body)
+entry = @resp['details']['available_entitlements'].first
+%w[name description category].all? { |k| entry.key?(k) }
+#=> true
+
+# ----------------------------------------------------------------
 # Members + domains rosters
 # ----------------------------------------------------------------
 

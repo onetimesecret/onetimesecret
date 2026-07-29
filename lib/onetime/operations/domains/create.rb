@@ -7,6 +7,7 @@
 # CLI), which run outside the app autoloaders, so require the audit model and
 # the validation strategy explicitly (mirrors Repair / Transfer / Remove).
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/domain_validation/strategy'
 
 module Onetime
@@ -37,8 +38,11 @@ module Onetime
       #
       # Exactly ONE {Onetime::AdminAuditEvent} per successful create, emitted
       # here. Adapters MUST NOT audit. A rejected create (invalid / duplicate)
-      # mutates nothing and audits nothing. Certificate provisioning failures are
-      # logged but do NOT roll back or suppress the audit event — the domain
+      # mutates nothing but records one `result: :failure` event — a refused
+      # attempt to attach a domain to an org is exactly what an operator
+      # reviewing the trail needs to see, and `duplicate_other_org` in
+      # particular is a takeover-shaped signal. Certificate provisioning failures
+      # are logged but do NOT roll back or suppress the audit event — the domain
       # record exists and cert issuance is retryable via
       # `POST /api/colonel/domains/:extid/verify`.
       #
@@ -49,7 +53,15 @@ module Onetime
       # role gate lives at the adapter (router `role=colonel` +
       # `verify_one_of_roles!`), and the CLI is already a root-shell surface.
       class Create
+        include Onetime::AuditedFailure
+
         AUDIT_VERB = 'domain.create'
+
+        # Bound on the failure target. `@domain_input` is raw operator text and
+        # `target` is NOT length-capped by AdminAuditEvent (only `detail` is), so
+        # an :invalid rejection could otherwise write an unbounded string. 253 is
+        # the max FQDN length — anything a valid domain could ever need.
+        MAX_TARGET_LENGTH = 253
 
         # Rejection reasons, mapped to the operator-facing message the incumbent
         # colonel endpoint has always returned. Adapters render these verbatim so
@@ -61,6 +73,27 @@ module Onetime
           duplicate_in_org: 'Domain already registered in this organization',
           duplicate_other_org: 'Domain is registered to another organization',
         }.freeze
+
+        # Every rejection is a REFUSED privileged create, so each records one
+        # `result: :failure` event. Derived from REJECTIONS so a new rejection
+        # reason cannot silently escape the trail.
+        REFUSAL_STATUSES = REJECTIONS.keys.freeze
+
+        # TARGET DEVIATION, READ THIS BEFORE CHANGING IT: the success event's
+        # target is `domain.extid`, but on the failure path the CustomDomain
+        # record does NOT EXIST — it was rejected, or `create!` blew up. There is
+        # no `@domain` ivar (only `@domain_input`, the raw string), and a lambda
+        # reading one would land silently as 'unknown'. So a failed create
+        # targets the FQDN: the normalised display_domain once validation has
+        # produced one, else the (length-bounded) raw input. An FQDN is a public
+        # identity — this is not a downgrade in identifiability, only in shape.
+        #
+        # create! atomically claims the display_domain index; anything other than
+        # the rejections above raises, and the success record sits after it.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { failure_target },
+          detail: -> { { org_id: @org&.extid, display_domain: failure_target } }
 
         # Outcome of {#validate}.
         #
@@ -125,7 +158,11 @@ module Onetime
 
         # @return [Result]
         def call
-          check = validate
+          check           = validate
+          # Memoised for the failure paths: once validation has normalised the
+          # FQDN it is a better audit target than the raw input, and by the time
+          # create! can raise it is always set.
+          @display_domain = check.display_domain
           return rejected_result(check) unless check.status == :ok
 
           domain = Onetime::CustomDomain.create!(check.display_domain, @org.objid)
@@ -158,6 +195,34 @@ module Onetime
         end
 
         private
+
+        # The FQDN this call was about, for the failure paths only. Prefers the
+        # normalised display_domain; falls back to the bounded raw input (a
+        # :blank/:invalid rejection has no normalised form).
+        def failure_target
+          value = @display_domain.to_s
+          value = @domain_input.to_s if value.empty?
+          value[0, MAX_TARGET_LENGTH]
+        end
+
+        # Same verb/actor as the success event; see the TARGET DEVIATION note on
+        # audit_failures for why the target is the FQDN rather than an extid.
+        # Best-effort: never break the op.
+        def record_refusal(check)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: failure_target,
+            result: :failure,
+            detail: {
+              reason: check.status.to_s,
+              org_id: @org&.extid,
+              display_domain: failure_target,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[Domains::Create] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
 
         # Certificate provisioning is best-effort: the domain record already
         # exists and issuance is retryable, so a failure is logged and reported
@@ -192,7 +257,11 @@ module Onetime
           )
         end
 
+        # Single exit point for every rejection, so the refusal audit cannot be
+        # forgotten at one of the five early returns in #validate.
         def rejected_result(check)
+          record_refusal(check) if REFUSAL_STATUSES.include?(check.status)
+
           Result.new(
             status: check.status,
             domain: nil,

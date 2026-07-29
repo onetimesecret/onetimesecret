@@ -157,6 +157,51 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         expect(Onetime::AdminAuditEvent).to have_received(:record).once
       end
     end
+
+    # 5. Onetime::AuditedFailure — a removal that raises past the swallowed
+    # vhost error records the ATTEMPT (the success record above is unreachable)
+    # and re-raises unchanged.
+    describe 'when the destroy itself raises' do
+      before { allow(domain).to receive(:destroy!).and_raise(Familia::Problem, 'datastore gone') }
+
+      it 'records one domain.remove failure at the extid, then re-raises' do
+        expect do
+          described_class.new(domain: domain, actor: actor, dry_run: false).call
+        end.to raise_error(Familia::Problem, 'datastore gone')
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            actor: actor,
+            verb: 'domain.remove',
+            target: 'cd_ext1',
+            result: :failure,
+            detail: hash_including(error: 'Familia::Problem', dry_run: false),
+          ),
+        )
+      end
+
+    end
+
+    # dry_run defaults to TRUE and the success event is applied-path-only (a
+    # preview mutates and audits nothing), so without this flag in the detail a
+    # blown-up PREVIEW would be indistinguishable from a blown-up removal.
+    describe 'when a dry-run preview raises' do
+      before { allow(index).to receive(:get).and_raise(Familia::Problem, 'index read failed') }
+
+      it 'marks the failure dry_run: true' do
+        expect do
+          described_class.new(domain: domain, actor: actor).call
+        end.to raise_error(Familia::Problem, 'index read failed')
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'domain.remove',
+            result: :failure,
+            detail: hash_including(dry_run: true),
+          ),
+        )
+      end
+    end
   end
 
   # ------------------------------------------------------------------ #
