@@ -467,6 +467,14 @@
     "text": "Entitlement count",
     "content_hash": "59cede5c"
   },
+  "web.admin.organizations.detail.reconcile.memberships": {
+    "text": "Memberships re-materialized:",
+    "content_hash": "fe7db10c"
+  },
+  "web.admin.organizations.detail.reconcile.membershipsFailed": {
+    "text": "failed, stale entitlements remain:",
+    "content_hash": "cc4dae37"
+  },
   "web.admin.organizations.detail.reconcile.mode.stripe_sync": {
     "text": "Stripe sync",
     "content_hash": "02f9546c"

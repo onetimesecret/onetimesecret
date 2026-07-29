@@ -17,7 +17,21 @@ module Billing
     # @!attribute entitlements_count [Integer, nil] Count of entitlements
     # @!attribute source [Symbol, nil] :cache or :config
     # @!attribute reason [String, nil] Human-readable skip/error reason
-    MaterializeResult = Data.define(:status, :planid, :entitlements_count, :source, :reason) do
+    # @!attribute memberships [Hash, nil] Membership-cascade counts from
+    #   Organization#rematerialize_all_memberships!
+    #   ({success:, failed:, total:, failed_ids:}) — #3907 item 3. Populated
+    #   ONLY on :materialized (the one status whose path runs the cascade).
+    #   nil everywhere else: on the four cascade-free statuses, and on
+    #   :materialized when the cascade RAISED (the degradable-failure branch —
+    #   logs carry the detail, so on :materialized a nil here IS the signal
+    #   that the cascade outcome is unobserved).
+    MaterializeResult = Data.define(:status, :planid, :entitlements_count, :source, :reason, :memberships) do
+      # memberships defaults to nil so the four cascade-free builders below
+      # and pre-#3907 constructors (specs, callers) stay valid unchanged.
+      def initialize(status:, planid:, entitlements_count:, source:, reason:, memberships: nil)
+        super
+      end
+
       def success? = status == :materialized
       def skipped? = [:skipped_no_plan, :skipped_fresh].include?(status)
     end
@@ -211,6 +225,12 @@ module Billing
         # ADR-012 Stage 3: Re-materialize all memberships after org plan change.
         # Each membership's effective entitlements are org.entitlements ∩ ROLE_ENTITLEMENTS[role].
         # This propagates the new plan's entitlements to all active members.
+        #
+        # The counts are kept (not just logged) and returned on the
+        # MaterializeResult so operator surfaces — `bin/ots org reconcile` and
+        # the colonel reconcile endpoint — can show a partial cascade without
+        # log access (#3907 item 3). Stays nil when the cascade raises.
+        membership_result = nil
         begin
           membership_result = org.rematerialize_all_memberships!
           Onetime.ents_logger.info 'Re-materialized membership entitlements',
@@ -247,6 +267,7 @@ module Billing
           entitlements_count: count,
           source: source,
           reason: nil,
+          memberships: membership_result,
         )
       end
       private_class_method :execute_materialize
@@ -320,6 +341,14 @@ module Billing
         source == :cache ? plan.entitlements.size : (plan[:entitlements] || []).size
       end
       private_class_method :entitlements_count_for
+
+      # The MaterializeResult produced by this instance's #call, exposed for
+      # callers that need the membership-cascade counts riding on it (#3907
+      # item 3 — Onetime::Operations::Org::Reconcile's stripe_sync path
+      # instantiates + calls, then reads this). An attr rather than a changed
+      # return value so #call keeps its documented Boolean/nil (org.save)
+      # contract for the webhook callers. nil until #call has run.
+      attr_reader :materialize_result
 
       def initialize(org, subscription, owner: true, planid_override: nil, save: true)
         @org              = org
@@ -438,7 +467,7 @@ module Billing
       # PlanCacheMissError raised here is correct behavior - webhook
       # handlers retry, and it's visible in observability.
       def materialize_entitlements
-        self.class.materialize_entitlements_for_org(@org, raise_on_miss: true)
+        @materialize_result = self.class.materialize_entitlements_for_org(@org, raise_on_miss: true)
       end
     end
   end

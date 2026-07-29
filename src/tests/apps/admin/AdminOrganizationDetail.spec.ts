@@ -180,7 +180,9 @@ function clearAck() {
   };
 }
 
-function reconcileAck() {
+function reconcileAck(
+  memberships: { success: number; failed: number; total: number; failed_ids: string[] } | null = null
+) {
   return {
     shrimp: '',
     record: {
@@ -201,6 +203,10 @@ function reconcileAck() {
         subscription_period_end: '2026-01-01',
         materialized_count: 2,
       },
+      // #3907 item 3: cascade counts ride on the record; the null default
+      // exercises the "did not cascade / cascade raised" shape the schema
+      // must accept.
+      memberships,
     },
   };
 }
@@ -447,9 +453,34 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     const planDiff = wrapper.find('[data-testid="reconcile-diff-planid"]');
     expect(planDiff.text()).toContain('free_v1');
     expect(planDiff.text()).toContain('identity_plus_v1');
+    // memberships: null (did not cascade) renders no cascade line.
+    expect(wrapper.find('[data-testid="reconcile-memberships"]').exists()).toBe(false);
     expect(showMock.mock.calls[0][1]).toBe('success');
     // Refreshed after the mutation.
     expect(mockApi.get).toHaveBeenCalledTimes(2);
+  });
+
+  // #3907 item 3: the applied statuses carry no reason string, so this line
+  // is the only console-visible signal that a reconcile left memberships
+  // with stale entitlements.
+  it('surfaces a partial membership cascade with the failed ids', async () => {
+    mockApi.get.mockResolvedValue({ data: detailPayload() });
+    mockApi.post.mockResolvedValue({
+      data: reconcileAck({ success: 1, failed: 2, total: 3, failed_ids: ['mem_p', 'mem_q'] }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="org-reconcile-button"]').trigger('click');
+    await flushPromises();
+    await dialogInput(wrapper).setValue(PUBLIC_ID);
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    const cascade = wrapper.find('[data-testid="reconcile-memberships"]');
+    expect(cascade.exists()).toBe(true);
+    expect(cascade.text()).toContain('1/3');
+    expect(cascade.text()).toContain('mem_p, mem_q');
   });
 
   it('investigates on demand and renders the verdict', async () => {

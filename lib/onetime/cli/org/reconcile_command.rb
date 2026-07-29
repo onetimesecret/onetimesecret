@@ -108,6 +108,7 @@ module Onetime
         puts "Reason:       #{result.reason}" if result.reason
         puts
         print_diff(result)
+        print_cascade(result)
 
         exit 1 unless ok?(result)
       end
@@ -124,6 +125,24 @@ module Onetime
         [:planid, :subscription_status, :subscription_period_end, :materialized_count]
       end
 
+      # Membership-cascade outcome (#3907 item 3): a partial cascade must be
+      # visible without log access. `memberships` is nil when the cascade did
+      # not run (dry run, skip, stripe_error) and on an applied run whose
+      # cascade raised — the op's logs carry that case, so print nothing rather
+      # than fabricate counts. failed_ids are membership OBJIDs, the identifier
+      # `bin/ots memberships doctor` follow-up works in.
+      def print_cascade(result)
+        cascade = result.memberships
+        return unless cascade
+
+        puts
+        line = "Memberships:  #{cascade[:success]}/#{cascade[:total]} re-materialized"
+        if cascade[:failed].to_i.positive?
+          line += " — #{cascade[:failed]} FAILED: #{cascade[:failed_ids].join(', ')}"
+        end
+        puts line
+      end
+
       def render(value)
         value.to_s.empty? ? '(none)' : value.to_s
       end
@@ -137,6 +156,7 @@ module Onetime
           dry_run: result.dry_run,
           before: result.before,
           after: result.after,
+          memberships: result.memberships,
         }
         puts JSON.pretty_generate(payload)
         exit 1 unless ok?(result)
