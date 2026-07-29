@@ -799,4 +799,74 @@ describe('Pricing.vue', () => {
       expect(bannerSection.exists()).toBe(false);
     });
   });
+
+  // ============================================================
+  // 9. Free record on the wire (previously dropped by the API)
+  // ============================================================
+  //
+  // GET /billing/api/plans used to drop every price-less plan, so free_v1
+  // (defined with `prices: []`) never reached the frontend. `freePlan` at
+  // Pricing.vue:100 was therefore always undefined and the standalone banner at
+  // :236 never rendered — a dead branch that these tests keep alive. The spec
+  // mocked a free plan the wire never sent, and nothing compared the two; that
+  // is the exact drift `mockPlans.free` is now pinned against.
+  describe('free record from the API (standalone banner)', () => {
+    it('renders the standalone banner when the API returns the free record', async () => {
+      // defaultPlans includes mockPlans.free — the synthetic wire record.
+      await mountComponent();
+
+      const banner = wrapper.find('.mb-10.rounded-lg');
+      expect(banner.exists()).toBe(true);
+      expect(banner.text()).toContain('Free');
+      expect(banner.text()).toContain('web.pricing.free_tier_description');
+      expect(banner.text()).toContain('web.pricing.get_started_free');
+    });
+
+    it('does not duplicate the free plan into the grid in banner mode', async () => {
+      await mountComponent();
+
+      // Banner mode (default): free is excluded from filteredPlans entirely.
+      expect(wrapper.findAll('[data-testid="plan-card-free_v1"]')).toHaveLength(0);
+      // Paid cards still render, so the absence above isn't an empty grid.
+      expect(
+        wrapper.find('[data-testid="plan-card-identity_plus_v1"]').exists()
+      ).toBe(true);
+    });
+
+    it('renders no banner when the API omits the free record', async () => {
+      // Pre-fix wire behavior: price-less plans dropped. Pins the banner to the
+      // presence of the record rather than to a hardcoded free tier.
+      mockListPlans.mockResolvedValueOnce({
+        plans: defaultPlans.filter((p) => p.tier !== 'free'),
+      });
+      await mountComponent();
+
+      expect(wrapper.find('.mb-10.rounded-lg').exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.pricing.free_tier_description');
+    });
+
+    it('renders exactly ONE free card in the grid when freePlanStandalone is false', async () => {
+      // The API emits a single free record (interval: 'month'). filteredPlans
+      // ignores interval for tier === 'free', so a second record would render a
+      // duplicate card — this pins the count, not just the presence.
+      await mountComponent({ freePlanStandalone: false });
+
+      expect(wrapper.findAll('[data-testid="plan-card-free_v1"]')).toHaveLength(1);
+      expect(wrapper.find('.mb-10.rounded-lg').exists()).toBe(false);
+    });
+
+    it('renders exactly ONE free card in the yearly view too', async () => {
+      // interval is ignored for free, so switching to yearly must not drop it
+      // (the record is stamped 'month') nor render it twice.
+      mockRouteParamsValue = { interval: 'yearly' };
+      await mountComponent({ freePlanStandalone: false });
+
+      expect(wrapper.findAll('[data-testid="plan-card-free_v1"]')).toHaveLength(1);
+      // Monthly paid cards are filtered out; yearly ones remain. Asserted via
+      // the yearly-only price ($24.17 from monthly_equivalent_amount: 2417) —
+      // both interval variants share id 'identity_plus_v1', so the card testid
+      // resolves in either view and cannot distinguish them.
+      expect(wrapper.text()).toContain('$24.17');
+    });
+  });
 });
