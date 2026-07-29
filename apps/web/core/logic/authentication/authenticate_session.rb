@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
+require 'onetime/models/admin_audit_event'
 require 'onetime/security/login_rate_limiter'
 
 module Core::Logic
@@ -194,6 +195,8 @@ module Core::Logic
             session_ttl: session_ttl,
           }
 
+        record_colonel_signin
+
         success_data
       end
 
@@ -215,6 +218,48 @@ module Core::Logic
       end
 
       private
+
+      # Record a colonel.signin event when the session just established belongs
+      # to a colonel. The SIMPLE-auth-mode counterpart to
+      # Auth::Operations::SyncSession#record_colonel_signin (full mode never
+      # reaches this class; simple mode never loads the auth app).
+      #
+      # ## Why this exists
+      #
+      # Nearly all colonel activity is reads, and reads never audit by design
+      # (CONTRACT 4), so the audit screen reads empty even while operators are
+      # in the console daily. Session establishment is the one honest signal of
+      # operator PRESENCE, as opposed to operator writes.
+      #
+      # ## Success only, exactly once
+      #
+      # This sits inside the greenlighted branch, past credential verification
+      # and the suspended/pending rejections, so only a completed login reaches
+      # it — once per login, not once per request (the session is authenticated
+      # from here on and never re-enters this class).
+      #
+      # Failed logins deliberately record NOTHING: the audit set is capped by
+      # COUNT with no TTL, so an event an unauthenticated caller can trigger is
+      # a log-eviction primitive — enough failed logins would flush the real
+      # destructive-action trail.
+      def record_colonel_signin
+        return unless cust && cust.role.to_s == 'colonel'
+
+        Onetime::AdminAuditEvent.record(
+          actor: cust.extid,
+          verb: Onetime::AdminAuditEvent::VERB_COLONEL_SIGNIN,
+          target: cust.extid,
+          result: :success,
+          detail: {
+            auth_method: 'password',
+            ip: @strategy_result&.metadata&.[](:ip),
+          },
+        )
+      rescue StandardError => ex
+        # Best-effort: a login must never fail because its audit event could not
+        # be assembled.
+        OT.le('[colonel.signin] audit record failed', exception: ex)
+      end
 
       # Rate-limit subject halves passed separately to the two-tier
       # LoginRateLimiter (email drives the global backstop; email+ip the tight

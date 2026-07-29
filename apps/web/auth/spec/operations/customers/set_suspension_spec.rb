@@ -112,7 +112,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       expect(Onetime::AdminAuditEvent).not_to have_received(:record)
     end
 
-    it 'refuses to suspend a colonel-role account (no save, no audit)' do
+    it 'refuses to suspend a colonel-role account (no save)' do
       allow(customer).to receive(:role).and_return('colonel')
 
       expect do
@@ -122,7 +122,33 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       end.to raise_error(described_class::PrivilegedAccount)
 
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    end
+
+    # The Onetime::AuditedFailure mechanism. The PrivilegedAccount guard raises
+    # BEFORE the success-path record call, so this is the only thing that proves
+    # a raising op still lands in the audit trail. Message expectation (not a
+    # store read): AdminAuditEvent.record swallows its own errors and returns
+    # nil, so a store read here could pass or fail for unrelated reasons.
+    it 'records exactly one result: :failure event on the privilege guard and re-raises' do
+      allow(customer).to receive(:role).and_return('colonel')
+
+      expect do
+        described_class.new(
+          customer: customer, suspended: true, actor: 'ur_col', dbclient: empty_db,
+        ).call
+      end.to raise_error(described_class::PrivilegedAccount, /Colonel accounts cannot be suspended/)
+
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: 'ur_col',
+          verb: 'customer.suspend',
+          target: customer.extid,
+          result: :failure,
+          detail: hash_including(
+            error: 'Auth::Operations::Customers::SetSuspension::PrivilegedAccount',
+          ),
+        ),
+      )
     end
 
     it 'treats a blank reason as nil in fields and audit detail' do

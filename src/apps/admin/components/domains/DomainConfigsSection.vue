@@ -128,8 +128,11 @@
     const map = configs.value;
     if (!map) return [];
     return DOMAIN_CONFIG_KINDS.map((kind) => {
-      const entry = map[kind];
-      const config = (entry.config ?? null) as Record<string, unknown> | null;
+      // The map TYPE carries every key, but a drifted server payload could
+      // omit one at runtime — an absent entry must render as MISSING, not
+      // throw and blank the whole section.
+      const entry: (typeof map)[typeof kind] | undefined = map[kind];
+      const config = (entry?.config ?? null) as Record<string, unknown> | null;
       const exists = recordPresent(entry);
       let status: DomainConfigStatus = 'missing';
       if (exists && config) {
@@ -155,12 +158,16 @@
 
   // ---- Ensure (dry-run preview → plain confirm apply) ------------------------
 
-  const missingMaterializable = computed(() =>
-    EDITABLE_DOMAIN_CONFIG_KINDS.filter((kind) => {
-      const entry = configs.value?.[kind];
-      return entry ? !recordPresent(entry) : false;
-    })
-  );
+  const missingMaterializable = computed(() => {
+    const map = configs.value;
+    // Not loaded (or load failed): nothing is "missing" yet — keep the ensure
+    // button hidden rather than flashing it for every kind during load.
+    if (!map) return [];
+    // Once the map is populated, a kind whose KEY is absent (server drift,
+    // schema change) must count as missing too — recordPresent handles the
+    // undefined entry. Filtering on `entry ? … : false` would silently skip it.
+    return EDITABLE_DOMAIN_CONFIG_KINDS.filter((kind) => !recordPresent(map[kind]));
+  });
 
   /** The section-level button only shows when a materializable kind is missing. */
   const ensureVisible = computed(() => missingMaterializable.value.length > 0);
@@ -218,19 +225,32 @@
   } = useAdminMutation(async () => {
     switch (activeAction.value) {
       case 'ensure': {
-        // The endpoint DEFAULTS dry_run to true; a dry_run echo on the ack
-        // means the server only PREVIEWED — reporting success would toast
-        // "created" while nothing was materialized. A null ack (Zod tripwire)
-        // still means the mutation happened, so it passes.
+        // The ack is LOAD-BEARING here: it is the only proof the run was
+        // APPLIED rather than previewed. A null ack (2xx that failed the Zod
+        // contract) hard-fails like the preview path — toasting success on it
+        // could report "created" when nothing was materialized. And since the
+        // endpoint DEFAULTS dry_run to true, a dry_run echo on a parsed ack
+        // means the server only PREVIEWED — also a failure.
         const ack = await store.ensureConfigs(props.extid, { dryRun: false });
-        if (ack && ack.dry_run !== false) {
+        if (!ack) {
+          throw new Error(t('web.admin.domains.configs.degraded'));
+        }
+        if (ack.dry_run !== false) {
           throw new Error(t('web.admin.domains.configs.ensure.notApplied'));
         }
         return;
       }
       case 'delete': {
         if (!deleteKind.value) throw new Error('No config kind selected');
-        await store.deleteConfig(props.extid, deleteKind.value);
+        const ack = await store.deleteConfig(props.extid, deleteKind.value);
+        if (!ack) {
+          // Null ack = 2xx whose payload failed the Zod contract. The DELETE
+          // itself succeeded (a failure would have rejected), so keep the
+          // success flow — but surface the contract regression in devtools.
+          console.warn(
+            '[DomainConfigsSection] delete ack failed schema validation — response not verified'
+          );
+        }
         return;
       }
       default:
@@ -293,7 +313,15 @@
     reset: resetUpsert,
   } = useAdminMutation(async (payload: Record<string, unknown>) => {
     if (!editKind.value) throw new Error('No config kind selected');
-    await store.upsertConfig(props.extid, editKind.value, payload);
+    const ack = await store.upsertConfig(props.extid, editKind.value, payload);
+    if (!ack) {
+      // Null ack = 2xx whose payload failed the Zod contract. The PUT itself
+      // succeeded (a failure would have rejected), so keep the success flow —
+      // but surface the contract regression in devtools.
+      console.warn(
+        '[DomainConfigsSection] upsert ack failed schema validation — response not verified'
+      );
+    }
   });
 
   function openEdit(kind: DomainConfigKind): void {

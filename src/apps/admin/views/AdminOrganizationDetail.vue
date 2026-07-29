@@ -5,6 +5,8 @@
   import { AdminConfirmDialog, DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import AddMemberModal from '@/apps/admin/components/organizations/AddMemberModal.vue';
+  import EntitlementMatrix from '@/apps/admin/components/organizations/EntitlementMatrix.vue';
+  import EntitlementPicker from '@/apps/admin/components/organizations/EntitlementPicker.vue';
   import type { AddMembershipRequest } from '@/apps/admin/components/organizations/membershipSchemas';
   import { colonelAddMembershipResponseSchema } from '@/apps/admin/components/organizations/membershipSchemas';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -138,7 +140,9 @@
       {
         key: 'created',
         label: t('web.admin.organizations.fields.created'),
-        value: formatDisplayDateTime(r.created),
+        value: r.created
+          ? formatDisplayDateTime(r.created)
+          : t('web.admin.organizations.detail.none'),
       },
       {
         key: 'updated',
@@ -150,7 +154,7 @@
     ];
   });
 
-  // ---- Entitlement chips (read-on-load breakdown) ---------------------------
+  // ---- Entitlement read-out (matrix lives in EntitlementMatrix.vue) ----------
 
   const drift = computed(() => entitlements.value?.drift ?? null);
   const inSync = computed(() => drift.value?.in_sync ?? true);
@@ -160,7 +164,34 @@
 
   type EntitlementAction = 'grant' | 'revoke' | 'clear';
 
+  /**
+   * The billing catalog, straight off the detail payload. Empty means the
+   * catalog could not be read — NOT that nothing is grantable — so every
+   * catalog-membership check below fails OPEN, matching the server predicate
+   * (`EntitlementOverride.known_entitlement?` returns true when the catalog is
+   * unavailable).
+   */
+  const availableEntitlements = computed(() => details.value?.available_entitlements ?? []);
+
   const entitlementInput = ref('');
+  /**
+   * Bumped after a clear-all so the picker remounts fresh. Without it an
+   * operator who used the out-of-catalog path stays stuck in free text after
+   * the overrides are wiped, with no obvious way back to the dropdown.
+   */
+  const entitlementPickerKey = ref(0);
+
+  /**
+   * Provably not in the catalog. The CLI warns and proceeds in exactly this
+   * case (`warn_unknown_entitlement`), so the console does too: warn inline,
+   * repeat it in the confirm dialog, block nothing.
+   */
+  const entitlementOutOfCatalog = computed(() => {
+    const name = entitlementInput.value.trim();
+    if (name.length === 0 || availableEntitlements.value.length === 0) return false;
+    return !availableEntitlements.value.some((option) => option.name === name);
+  });
+
   const entitlementDialogOpen = ref(false);
   const activeEntitlementAction = ref<EntitlementAction | null>(null);
   /** The entitlement name captured when the dialog was requested (grant/revoke). */
@@ -211,6 +242,17 @@
     entitlementDialogOpen.value = true;
   }
 
+  /**
+   * The CLI's out-of-catalog warning, appended to the confirm copy so the last
+   * screen before the write says the same thing the terminal would.
+   */
+  function withCatalogWarning(description: string): string {
+    if (!entitlementOutOfCatalog.value) return description;
+    return `${description} ${t('web.admin.organizations.entitlements.catalogWarning', {
+      entitlement: pendingEntitlement.value,
+    })}`;
+  }
+
   const entitlementDialogConfig = computed(() => {
     const name = heading.value;
     const token = record.value?.extid; // typed-confirmation: retype the public id.
@@ -218,10 +260,12 @@
       case 'grant':
         return {
           title: t('web.admin.organizations.entitlements.confirm.grantTitle'),
-          description: t('web.admin.organizations.entitlements.confirm.grantDescription', {
-            entitlement: pendingEntitlement.value,
-            org: name,
-          }),
+          description: withCatalogWarning(
+            t('web.admin.organizations.entitlements.confirm.grantDescription', {
+              entitlement: pendingEntitlement.value,
+              org: name,
+            })
+          ),
           confirmToken: token,
           variant: 'default' as const,
           confirmText: t('web.admin.organizations.entitlements.grant'),
@@ -229,10 +273,12 @@
       case 'revoke':
         return {
           title: t('web.admin.organizations.entitlements.confirm.revokeTitle'),
-          description: t('web.admin.organizations.entitlements.confirm.revokeDescription', {
-            entitlement: pendingEntitlement.value,
-            org: name,
-          }),
+          description: withCatalogWarning(
+            t('web.admin.organizations.entitlements.confirm.revokeDescription', {
+              entitlement: pendingEntitlement.value,
+              org: name,
+            })
+          ),
           confirmToken: token,
           variant: 'danger' as const,
           confirmText: t('web.admin.organizations.entitlements.revoke'),
@@ -276,7 +322,10 @@
       t(ENTITLEMENT_SUCCESS_KEYS[action], { entitlement: pendingEntitlement.value }),
       'success'
     );
-    if (action === 'clear') entitlementInput.value = '';
+    if (action === 'clear') {
+      entitlementInput.value = '';
+      entitlementPickerKey.value += 1;
+    }
     activeEntitlementAction.value = null;
     // Drive the panel from live state, never a partial ack.
     await refreshOrg().catch(() => {});
@@ -792,154 +841,30 @@
         </div>
 
         <div class="space-y-5 px-6 py-5">
-          <!-- Drift warning (extra / missing vs expected). -->
-          <div
-            v-if="!inSync && drift"
-            class="rounded-md border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900/50 dark:bg-red-900/20"
-            role="alert"
-            data-testid="entitlements-drift">
-            <p class="font-medium text-red-800 dark:text-red-200">
-              {{ t('web.admin.organizations.detail.entitlements.driftWarning') }}
-            </p>
-            <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <div>
-                <p
-                  class="text-xs font-medium tracking-wider text-red-700 uppercase dark:text-red-300">
-                  {{ t('web.admin.organizations.detail.entitlements.driftExtra') }}
-                </p>
-                <div class="mt-1 flex flex-wrap gap-1">
-                  <span
-                    v-for="ent in drift.extra"
-                    :key="`extra-${ent}`"
-                    class="inline-flex items-center rounded bg-red-100 px-2 py-0.5 font-mono text-xs text-red-800 dark:bg-red-900/40 dark:text-red-200">
-                    {{ ent }}
-                  </span>
-                  <span
-                    v-if="drift.extra.length === 0"
-                    class="text-xs text-red-500 dark:text-red-400"
-                    >—</span
-                  >
-                </div>
-              </div>
-              <div>
-                <p
-                  class="text-xs font-medium tracking-wider text-red-700 uppercase dark:text-red-300">
-                  {{ t('web.admin.organizations.detail.entitlements.driftMissing') }}
-                </p>
-                <div class="mt-1 flex flex-wrap gap-1">
-                  <span
-                    v-for="ent in drift.missing"
-                    :key="`missing-${ent}`"
-                    class="inline-flex items-center rounded bg-red-100 px-2 py-0.5 font-mono text-xs text-red-800 dark:bg-red-900/40 dark:text-red-200">
-                    {{ ent }}
-                  </span>
-                  <span
-                    v-if="drift.missing.length === 0"
-                    class="text-xs text-red-500 dark:text-red-400"
-                    >—</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- The distinct sources: plan / grants / revokes / materialized. -->
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div data-testid="entitlements-plan">
-              <p
-                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.admin.organizations.detail.entitlements.plan') }}
-              </p>
-              <div class="mt-1 flex flex-wrap gap-1">
-                <span
-                  v-for="ent in entitlements.plan"
-                  :key="`plan-${ent}`"
-                  class="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                  {{ ent }}
-                </span>
-                <span
-                  v-if="entitlements.plan.length === 0"
-                  class="text-xs text-gray-400 dark:text-gray-500"
-                  >—</span
-                >
-              </div>
-            </div>
-            <div data-testid="entitlements-materialized">
-              <p
-                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.admin.organizations.detail.entitlements.materialized') }}
-              </p>
-              <div class="mt-1 flex flex-wrap gap-1">
-                <span
-                  v-for="ent in entitlements.materialized"
-                  :key="`mat-${ent}`"
-                  class="inline-flex items-center rounded bg-green-50 px-2 py-0.5 font-mono text-xs text-green-700 dark:bg-green-900/40 dark:text-green-200">
-                  {{ ent }}
-                </span>
-                <span
-                  v-if="entitlements.materialized.length === 0"
-                  class="text-xs text-gray-400 dark:text-gray-500"
-                  >—</span
-                >
-              </div>
-            </div>
-            <div data-testid="entitlements-grants">
-              <p
-                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.admin.organizations.entitlements.grants') }}
-              </p>
-              <div class="mt-1 flex flex-wrap gap-1">
-                <span
-                  v-for="ent in entitlements.grants"
-                  :key="`grant-${ent}`"
-                  class="inline-flex items-center rounded bg-brand-50 px-2 py-0.5 font-mono text-xs text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                  {{ ent }}
-                </span>
-                <span
-                  v-if="entitlements.grants.length === 0"
-                  class="text-xs text-gray-400 dark:text-gray-500"
-                  >—</span
-                >
-              </div>
-            </div>
-            <div data-testid="entitlements-revokes">
-              <p
-                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.admin.organizations.entitlements.revokes') }}
-              </p>
-              <div class="mt-1 flex flex-wrap gap-1">
-                <span
-                  v-for="ent in entitlements.revokes"
-                  :key="`revoke-${ent}`"
-                  class="inline-flex items-center rounded bg-red-50 px-2 py-0.5 font-mono text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                  {{ ent }}
-                </span>
-                <span
-                  v-if="entitlements.revokes.length === 0"
-                  class="text-xs text-gray-400 dark:text-gray-500"
-                  >—</span
-                >
-              </div>
-            </div>
-          </div>
+          <!--
+            The resolution matrix: summary signals, per-entitlement rows
+            (plan / grant / revoke → expected → materialized) and the legend.
+          -->
+          <EntitlementMatrix :entitlements="entitlements" />
 
           <!-- Grant / revoke / clear controls. -->
           <div class="border-t border-gray-200 pt-5 dark:border-gray-800">
-            <label
-              for="org-entitlement-input"
-              class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-              {{ t('web.admin.organizations.entitlements.inputLabel') }}
-            </label>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <input
-                id="org-entitlement-input"
-                v-model="entitlementInput"
-                type="text"
-                autocomplete="off"
-                spellcheck="false"
-                data-testid="org-entitlement-input"
-                :placeholder="t('web.admin.organizations.entitlements.placeholder')"
-                class="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 font-mono text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+            <!--
+              Catalog dropdown first, free text as a deliberate escape hatch —
+              the CLI allows out-of-catalog names and the console must not be
+              less capable than it.
+            -->
+            <EntitlementPicker
+              :key="entitlementPickerKey"
+              v-model="entitlementInput"
+              :options="availableEntitlements"
+              :plan="entitlements.plan"
+              :grants="entitlements.grants"
+              :revokes="entitlements.revokes"
+              :out-of-catalog="entitlementOutOfCatalog"
+              :disabled="entitlementLoading" />
+
+            <div class="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 data-testid="org-entitlement-grant"
@@ -957,6 +882,7 @@
                 {{ t('web.admin.organizations.entitlements.revoke') }}
               </button>
             </div>
+            <!-- Wipes EVERY override on the org — kept visually separate. -->
             <button
               type="button"
               data-testid="org-entitlement-clear"
@@ -1011,6 +937,26 @@
                 {{ t('web.admin.organizations.detail.members.owner') }}
               </span>
             </span>
+            <!-- The customer's PUBLIC id, and the way through to their record.
+                 A real router-link, not a row-click handler, so middle-click and
+                 open-in-new-tab work — the operator comparing several members
+                 wants them side by side. GetUserDetails resolves by extid first
+                 (see its #process comment), so the extid IS the route param. -->
+            <router-link
+              :to="{ name: 'AdminCustomerDetail', params: { id: row.extid } }"
+              :data-testid="`member-detail-${row.extid}`"
+              :title="t('web.admin.organizations.detail.members.openCustomer')"
+              class="mt-0.5 inline-flex items-center gap-1 font-mono text-xs text-gray-500 hover:text-brand-600 hover:underline focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-brand-400">
+              {{ row.extid }}
+              <OIcon
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                size="3"
+                aria-hidden="true" />
+              <span class="sr-only">{{
+                t('web.admin.organizations.detail.members.openCustomer')
+              }}</span>
+            </router-link>
           </template>
           <template #cell-role="{ row }">
             {{ row.role || '—' }}

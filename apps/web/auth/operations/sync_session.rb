@@ -15,6 +15,11 @@
 # - 5-minute TTL allows re-sync after timeout
 # - Graceful degradation when Redis is unavailable
 #
+# Also the full-auth-mode site for the colonel.signin audit event — see
+# #record_colonel_signin.
+#
+
+require 'onetime/models/admin_audit_event'
 
 module Auth
   module Operations
@@ -115,10 +120,64 @@ module Auth
           correlation_id: @correlation_id,
         )
 
+        record_colonel_signin(customer)
+
         customer
       end
 
       private
+
+      # Record a colonel.signin event when the session just established belongs
+      # to a colonel.
+      #
+      # ## Why this exists
+      #
+      # Nearly all colonel activity is reads, and reads never audit by design
+      # (CONTRACT 4), so a quiet week leaves the audit screen looking empty even
+      # while operators are in the console daily. Session establishment is the
+      # one honest signal of operator PRESENCE, as opposed to operator writes.
+      #
+      # ## Success only
+      #
+      # A failed login never reaches this op. That is deliberate and must stay
+      # that way: the audit set is capped by COUNT with no TTL, so an event an
+      # unauthenticated caller can trigger is a log-eviction primitive — enough
+      # failed logins would flush the real destructive-action trail.
+      #
+      # ## Exactly once per login
+      #
+      # This is a per-SESSION site, not a per-request one. SyncSession is called
+      # from after_login (the no-MFA branch) or from
+      # after_two_factor_authentication — mutually exclusive, one per completed
+      # login. It also sits BELOW the already_processed? early return, so it
+      # inherits the idempotency guard: a re-entrant sync inside the 5-minute
+      # window returns early and never reaches here.
+      #
+      # Simple auth mode does not run Rodauth at all; its equivalent site is
+      # Core::Logic::Authentication::AuthenticateSession#process.
+      def record_colonel_signin(customer)
+        return unless customer.role.to_s == 'colonel'
+
+        Onetime::AdminAuditEvent.record(
+          actor: customer.extid,
+          verb: Onetime::AdminAuditEvent::VERB_COLONEL_SIGNIN,
+          target: customer.extid,
+          result: :success,
+          detail: {
+            auth_method: @session['auth_method'],
+            ip: (@request.ip if @request.respond_to?(:ip)),
+          },
+        )
+      rescue StandardError => ex
+        # Best-effort, like every other audit write: a login must never fail
+        # because its audit event could not be assembled.
+        Auth::Logging.log_error(
+          :colonel_signin_audit_failed,
+          exception: ex,
+          account_id: @account_id,
+          correlation_id: @correlation_id,
+        )
+      end
 
       # Clears rate limiting keys for this account
       def clear_rate_limiting

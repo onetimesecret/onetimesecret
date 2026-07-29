@@ -5,8 +5,8 @@
 # Unit tests for Onetime::Operations::Memberships::Remove (#3731).
 #
 # Covers: successful removal (destroy_with_index_cleanup! + exactly one audit),
-# not-found (no destroy, no audit), and the sole-owner guardrail (blocks the
-# destroy + audits nothing).
+# not-found and the sole-owner guardrail (no destroy, one result: :failure audit
+# event each), and a raising teardown (AuditedFailure records + re-raises).
 #
 # Run: pnpm run test:rspec spec/unit/onetime/operations/memberships/remove_spec.rb
 
@@ -58,14 +58,22 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
     end
   end
 
-  it 'returns :not_found (no audit) when the membership does not exist' do
+  # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail with
+  # the same verb/target as a success — differing only in result:/detail.
+  it 'returns :not_found and records ONE result: :failure event' do
     allow(Onetime::OrganizationMembership)
       .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(nil)
 
     result = described_class.new(org: org, customer: customer, actor: actor).call
 
     expect(result.status).to eq(:not_found)
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      actor: actor,
+      verb: 'membership.remove',
+      target: 'ur_member',
+      result: :failure,
+      detail: { reason: 'not_found', role: nil, org_id: 'on_org_ext' },
+    )
   end
 
   context 'sole-owner guardrail' do
@@ -78,14 +86,20 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
         .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(owner_membership)
     end
 
-    it 'refuses to remove the last remaining owner (:last_owner, no destroy, no audit)' do
+    it 'refuses to remove the last remaining owner (:last_owner, no destroy, ONE failure audit)' do
       allow(Onetime::OrganizationMembership).to receive(:active_for_org).with(org).and_return([owner_membership])
 
       result = described_class.new(org: org, customer: customer, actor: actor).call
 
       expect(result.status).to eq(:last_owner)
       expect(owner_membership).not_to have_received(:destroy_with_index_cleanup!)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.remove',
+        target: 'ur_member',
+        result: :failure,
+        detail: { reason: 'last_owner', role: 'owner', org_id: 'on_org_ext' },
+      )
     end
 
     it 'allows removing an owner when another owner remains' do
@@ -98,5 +112,31 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
       expect(result.status).to eq(:success)
       expect(owner_membership).to have_received(:destroy_with_index_cleanup!)
     end
+  end
+
+  # The Onetime::AuditedFailure mechanism. destroy_with_index_cleanup! runs
+  # BEFORE the success-path record call, so a teardown that blows up partway
+  # leaves the org in an unknown state with no trail unless the macro fires.
+  # Message expectation, not a store read: AdminAuditEvent.record swallows its
+  # own errors, so a store read could pass or fail for unrelated reasons.
+  it 'records ONE result: :failure event when the teardown raises, and re-raises' do
+    membership = double('OrganizationMembership', role: 'admin', owner?: false)
+    allow(membership).to receive(:destroy_with_index_cleanup!).and_raise(Onetime::Problem, 'redis down')
+    allow(Onetime::OrganizationMembership)
+      .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(membership)
+
+    expect do
+      described_class.new(org: org, customer: customer, actor: actor).call
+    end.to raise_error(Onetime::Problem, /redis down/)
+
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        actor: actor,
+        verb: 'membership.remove',
+        target: 'ur_member', # literal: a broken target lambda silently lands as 'unknown'
+        result: :failure,
+        detail: hash_including(error: 'Onetime::Problem', message: 'redis down'),
+      ),
+    )
   end
 end

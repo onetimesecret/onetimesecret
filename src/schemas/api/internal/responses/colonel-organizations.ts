@@ -161,6 +161,25 @@ export const colonelOrganizationDetailEntitlementsSchema = z.object({
   }),
 });
 
+/**
+ * One entry of the literal entitlement catalog (billing.yaml), as emitted by
+ * `GetOrganizationDetail#build_available_entitlements`. This is the SAME set
+ * the server's validation predicate consults
+ * (`Onetime::Operations::Org::EntitlementOverride.known_entitlement?` →
+ * `::Billing::Config.load_entitlements.key?`), so the override picker's options
+ * cannot drift from what the endpoint accepts.
+ *
+ * `description` / `category` are nullable: billing.yaml carries both today, but
+ * an entry may omit either and the backend passes the absence through as null.
+ */
+export const colonelAvailableEntitlementSchema = z.object({
+  name: z.string(),
+  description: z.string().nullable(),
+  category: z.string().nullable(),
+});
+
+export type ColonelAvailableEntitlement = z.infer<typeof colonelAvailableEntitlementSchema>;
+
 /** One organization member row on the detail page. */
 export const colonelOrganizationDetailMemberSchema = z.object({
   extid: z.string(),
@@ -197,12 +216,21 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   archived_at: transforms.fromNumber.toDateNullable,
   archived_comment: z.string().nullable(),
   contact_email: z.string().nullable(),
-  owner_id: z.string(),
+  // Nullable to agree with the LIST schema (colonel.ts), which declares the
+  // same field from the same Ruby expression as nullable. An org with no owner
+  // is an expected state — the line below reads `owner&.email` for exactly that
+  // reason — and a required string here would fail the parse for the WHOLE
+  // detail response, blanking the page rather than dropping one field.
+  owner_id: z.string().nullable(),
   owner_email: z.string().nullable(),
   billing_email: z.string().nullable(),
   member_count: z.number(),
   domain_count: z.number(),
-  created: transforms.fromNumber.toDate,
+  // Ruby emits `org.created&.to_i`, so nil IS reachable here — unlike the LIST
+  // side, which uses `org.created.to_i` with no safe navigation and is
+  // correctly non-nullable. Both sibling record schemas above (member, domain)
+  // already use toDateNullable.
+  created: transforms.fromNumber.toDateNullable,
   updated: transforms.fromNumber.toDateNullable,
   planid: z.string().nullable(),
   stripe_customer_id: z.string().nullable(),
@@ -214,9 +242,17 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   sync_status_reason: z.string().nullable(),
 });
 
-/** The `details` envelope: entitlement breakdown + members + domains. */
+/** The `details` envelope: entitlement breakdown + catalog + members + domains. */
 export const colonelOrganizationDetailDetailsSchema = z.object({
   entitlements: colonelOrganizationDetailEntitlementsSchema,
+  /**
+   * The entitlement catalog the override picker offers. `.default([])` so a
+   * backend that predates the field (or a fixture that omits it) degrades to
+   * "catalog unavailable" instead of failing the whole detail parse and
+   * bricking the page — and an empty catalog already carries the right
+   * meaning: treat every typed name as known (fail open, like the server).
+   */
+  available_entitlements: z.array(colonelAvailableEntitlementSchema).default([]),
   members: z.array(colonelOrganizationDetailMemberSchema),
   domains: z.array(colonelOrganizationDetailDomainSchema),
 });

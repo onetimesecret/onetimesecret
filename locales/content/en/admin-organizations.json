@@ -143,6 +143,166 @@
     "text": "All entitlement overrides cleared.",
     "content_hash": "a482743b"
   },
+  "web.admin.organizations.entitlements.matrix.caption": {
+    "text": "Entitlement resolution matrix: plan, override grants and revokes, the resolved set, and what is materialized.",
+    "content_hash": "9eac8999"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.entitlement": {
+    "text": "Entitlement",
+    "content_hash": "0d8f0b2d"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.inPlan": {
+    "text": "In plan",
+    "content_hash": "e2222361"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.granted": {
+    "text": "Granted",
+    "content_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.revoked": {
+    "text": "Revoked",
+    "content_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.expected": {
+    "text": "Expected",
+    "content_hash": "ca99b7f1"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.materialized": {
+    "text": "Materialized",
+    "content_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.state": {
+    "text": "State",
+    "content_hash": "a3b50c47"
+  },
+  "web.admin.organizations.entitlements.matrix.yes": {
+    "text": "Yes",
+    "content_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.matrix.no": {
+    "text": "No",
+    "content_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.matrix.empty": {
+    "text": "This organization has no entitlements from its plan and no overrides.",
+    "content_hash": "f6cf2169"
+  },
+  "web.admin.organizations.entitlements.matrix.state.plan": {
+    "text": "From plan",
+    "content_hash": "1d346b26"
+  },
+  "web.admin.organizations.entitlements.matrix.state.granted": {
+    "text": "Granted",
+    "content_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.state.revoked": {
+    "text": "Revoked",
+    "content_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.state.orphaned": {
+    "text": "Orphaned",
+    "content_hash": "8d827807"
+  },
+  "web.admin.organizations.entitlements.matrix.state.missing": {
+    "text": "Missing",
+    "content_hash": "6be36ca4"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.formula": {
+    "text": "Resolution: expected = (plan ∪ grants) − revokes. Materialized is what is actually stored on the organization.",
+    "content_hash": "bc4bff2d"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.orphaned": {
+    "text": "Orphaned — materialized but not expected, typically left behind by a revoke that was never re-materialized. Reconcile removes it.",
+    "content_hash": "3a27a9af"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.missing": {
+    "text": "Missing — expected but not materialized. This is the permission members are actually missing right now.",
+    "content_hash": "485e44ad"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.revoked": {
+    "text": "Struck-through rows are revoked by an admin override, which removes them from the expected set.",
+    "content_hash": "89a2e9b6"
+  },
+  "web.admin.organizations.entitlements.summary.sync": {
+    "text": "Sync",
+    "content_hash": "8d261a37"
+  },
+  "web.admin.organizations.entitlements.summary.materialized": {
+    "text": "Materialized",
+    "content_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.summary.materializedAt": {
+    "text": "Last materialized",
+    "content_hash": "9325dce9"
+  },
+  "web.admin.organizations.entitlements.summary.planDefinition": {
+    "text": "Plan definition",
+    "content_hash": "6b531454"
+  },
+  "web.admin.organizations.entitlements.summary.yes": {
+    "text": "Yes",
+    "content_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.summary.no": {
+    "text": "No",
+    "content_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.summary.never": {
+    "text": "Never",
+    "content_hash": "6300ef80"
+  },
+  "web.admin.organizations.entitlements.summary.planStale": {
+    "text": "Changed since materialization",
+    "content_hash": "e682d8a4"
+  },
+  "web.admin.organizations.entitlements.summary.planCurrent": {
+    "text": "Current",
+    "content_hash": "e0d1b682"
+  },
+  "web.admin.organizations.entitlements.summary.planUnknown": {
+    "text": "Unknown — could not compare",
+    "content_hash": "b607e540"
+  },
+  "web.admin.organizations.entitlements.picker.selectPlaceholder": {
+    "text": "Select an entitlement…",
+    "content_hash": "53af3be8"
+  },
+  "web.admin.organizations.entitlements.picker.other": {
+    "text": "Other — not in the catalog…",
+    "content_hash": "f08bc3a3"
+  },
+  "web.admin.organizations.entitlements.picker.customLabel": {
+    "text": "Entitlement name (not in the catalog)",
+    "content_hash": "52783229"
+  },
+  "web.admin.organizations.entitlements.picker.backToCatalog": {
+    "text": "Back to the catalog",
+    "content_hash": "9b727f40"
+  },
+  "web.admin.organizations.entitlements.picker.uncategorized": {
+    "text": "Uncategorized",
+    "content_hash": "8d40d123"
+  },
+  "web.admin.organizations.entitlements.picker.catalogUnavailable": {
+    "text": "The billing catalog could not be read, so entitlement names are not checked here.",
+    "content_hash": "724869ec"
+  },
+  "web.admin.organizations.entitlements.picker.tags.inPlan": {
+    "text": "in plan",
+    "content_hash": "5f2251bb"
+  },
+  "web.admin.organizations.entitlements.picker.tags.granted": {
+    "text": "granted",
+    "content_hash": "dd515d19"
+  },
+  "web.admin.organizations.entitlements.picker.tags.revoked": {
+    "text": "revoked",
+    "content_hash": "4bb47f18"
+  },
+  "web.admin.organizations.entitlements.catalogWarning": {
+    "text": "“{entitlement}” is not in the billing catalog — check for a typo. Proceeding anyway: granting an entitlement that ships in a later catalog is supported and deliberately not blocked.",
+    "content_hash": "cbde548a"
+  },
   "web.admin.organizations.detail.backToList": {
     "text": "Back to organizations",
     "content_hash": "2257dc4a"
@@ -242,6 +402,10 @@
   "web.admin.organizations.detail.members.owner": {
     "text": "Owner",
     "content_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.detail.members.openCustomer": {
+    "text": "Open customer record",
+    "content_hash": "c057ca13"
   },
   "web.admin.organizations.detail.members.empty": {
     "text": "No members.",

@@ -14,9 +14,9 @@
 # - every spec'd field must have a public reader AND setter on its model
 #   (apply_field writes via public_send; the colonel edit form reads back)
 # - every spec must be interpretable by coerce_field!/apply_field (type in
-#   boolean/enum/string_array, boolean storage native|string) —
-#   coerce_field!'s case has no else branch, so an unknown :type would
-#   coerce every value to nil SILENTLY
+#   boolean/enum/string_array, boolean storage native|string), and
+#   coerce_field! raises Onetime::Problem on an unknown :type instead of
+#   coercing to nil (which apply_field would then write over stored values)
 # - boolean specs round-trip: apply true/false -> model predicate
 #   true/false -> serializer emits REAL JSON booleans (never 'true'/'false'
 #   strings, regardless of the model's storage encoding)
@@ -93,7 +93,7 @@ missing
 #=> []
 
 ## Every spec is interpretable by coerce_field!/apply_field (an unknown
-## :type would coerce SILENTLY to nil — the case has no else branch)
+## :type raises at request time — the case below guards spec shape too)
 bad = []
 each_writable_spec do |slug, _model, field, spec|
   case spec[:type]
@@ -109,6 +109,33 @@ each_writable_spec do |slug, _model, field, spec|
 end
 bad
 #=> []
+
+## coerce_field! RAISES on a spec'd-but-unknown :type instead of silently
+## coercing to nil (a misspelled/new type like :integer would otherwise pass
+## the load-time setter check AND runtime coercion, then overwrite the
+## stored value with nil on every PUT that includes the field). Interpose a
+## bogus spec via field_specs — FIELD_SPECS itself is frozen model truth.
+@registry.singleton_class.alias_method(:__drift_real_field_specs, :field_specs)
+@registry.define_singleton_method(:field_specs) do |_kind|
+  { 'drift_field' => { type: :integer } }
+end
+begin
+  begin
+    @registry.coerce_field!('signin', 'drift_field', 42)
+    'no raise'
+  rescue Onetime::Problem => ex
+    ex.message
+  end
+ensure
+  @registry.singleton_class.remove_method(:field_specs)
+  @registry.singleton_class.alias_method(:field_specs, :__drift_real_field_specs)
+  @registry.singleton_class.remove_method(:__drift_real_field_specs)
+end
+#=> 'drift_field has unknown field spec type :integer (kind=signin)'
+
+## The interposition above was fully restored — the real specs are back
+@registry.field_specs('signin').key?('signin_enabled')
+#=> true
 
 # ----------------------------------------------------------------
 # Boolean specs — apply path and serializer emission

@@ -161,7 +161,10 @@ RSpec.describe Onetime::Operations::Org::Create do
         description_too_long: { description: 'd' * 501 },
         email_taken: { contact_email: 'taken@acme.test' },
       }.each do |status, overrides|
-        it "returns :#{status} and mutates + audits NOTHING" do
+        # A rejection MUTATES nothing, but it is still a refused privileged
+        # create, so it records exactly one result: :failure event. The target
+        # is the OWNER's extid, not an org extid — the org does not exist.
+        it "returns :#{status}, mutates NOTHING, and records ONE failure event" do
           allow(owner).to receive(:anonymous?).and_return(true) if status == :anonymous_owner
           allow(Onetime::Organization).to receive(:contact_email_exists?).and_return(true) if status == :email_taken
 
@@ -172,7 +175,17 @@ RSpec.describe Onetime::Operations::Org::Create do
           expect(result.org_id).to be_nil
           expect(result.objid).to be_nil
           expect(Onetime::Organization).not_to have_received(:create!)
-          expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+          expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+            hash_including(
+              actor: actor,
+              verb: 'organization.create',
+              # :missing_owner has no owner to name, so it falls back to the
+              # SAME sentinel the AuditedFailure resolver uses.
+              target: status == :missing_owner ? 'unknown' : 'ur_owner_ext',
+              result: :failure,
+              detail: hash_including(reason: status.to_s),
+            ),
+          )
         end
       end
 
@@ -201,15 +214,40 @@ RSpec.describe Onetime::Operations::Org::Create do
 
         expect(result.status).to eq(:email_taken)
         expect(result.message).to eq('Organization exists for that email address')
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'organization.create',
+            target: 'ur_owner_ext',
+            result: :failure,
+            detail: hash_including(reason: 'email_taken'),
+          ),
+        )
       end
 
-      it 're-raises any other Onetime::Problem instead of laundering it into a rejection' do
+      # The Onetime::AuditedFailure mechanism. create! runs BEFORE the
+      # success-path record call and reserves contact_email via HSETNX, so a
+      # non-race failure can leave a partial reservation with no trail unless
+      # the macro fires. Message expectation, not a store read:
+      # AdminAuditEvent.record swallows its own errors.
+      it 're-raises any other Onetime::Problem and records ONE failure event' do
         allow(Onetime::Organization).to receive(:create!)
           .and_raise(Onetime::Problem.new('Display name required'))
 
         expect { build.call }.to raise_error(Onetime::Problem, 'Display name required')
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            actor: actor,
+            verb: 'organization.create',
+            # The org does NOT exist on this path — the target is the owner.
+            target: 'ur_owner_ext',
+            result: :failure,
+            detail: hash_including(
+              error: 'Onetime::Problem', message: 'Display name required',
+              owner_id: 'ur_owner_ext',
+            ),
+          ),
+        )
       end
     end
 

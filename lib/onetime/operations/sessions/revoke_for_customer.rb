@@ -6,6 +6,7 @@ require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -38,8 +39,17 @@ module Onetime
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class RevokeForCustomer
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every customer-scoped session revoke.
         AUDIT_VERB = 'session.revoke'
+
+        # Takeover-mitigation verb: a revoke that raises leaves the operator
+        # unsure whether the session survived, so the attempt is recorded
+        # (`result: :failure`) and the error re-raised unchanged. Composition is
+        # not a concern here — this op deliberately does not delegate to
+        # {Delete} (see above), so only one audited frame can fire.
+        audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
 
         # @!attribute revoked [r] Boolean always true on a completed call (idempotent)
         # @!attribute blob_deleted [r] Boolean whether a live session blob existed + was deleted

@@ -151,13 +151,18 @@ module Onetime
         # @param field [String] writable field name (must be in field_specs)
         # @param value [Object] raw param value
         # @return [Object] the coerced value (boolean / enum string or nil / string array)
-        # @raise [Onetime::Problem] when the value is invalid for the field
+        # @raise [Onetime::Problem] when the value is invalid for the field,
+        #   or when the field spec declares an unknown :type (spec drift —
+        #   without the raise, an unrecognized type would coerce every value
+        #   to nil and apply_field would overwrite the stored value)
         def coerce_field!(kind, field, value)
           spec = field_specs(kind).fetch(field.to_s)
           case spec[:type]
           when :boolean      then coerce_boolean!(field, value)
           when :enum         then coerce_enum!(field, value, spec)
           when :string_array then coerce_string_array!(field, value)
+          else
+            raise Onetime::Problem, "#{field} has unknown field spec type #{spec[:type].inspect} (kind=#{kind})"
           end
         end
 

@@ -54,13 +54,17 @@
 # predates v0.26 by definition. Unlike HomepageConfig/ApiConfig, domain
 # creation does NOT bootstrap a SigninConfig record, so a LATE run would also
 # flip domains created after the upgrade that legitimately carry the new
-# fail-closed default. For late runs, bound the backfill explicitly:
+# fail-closed default. The backfill must therefore be bounded explicitly:
 #
 #   SIGNIN_BACKFILL_CREATED_BEFORE=<epoch seconds | Time.parse-able string>
 #
 # Domains whose `created` timestamp is at or after the cutoff are skipped
-# (counted as :skipped_created_after_cutoff). Unset (the default) means no
-# cutoff, matching the 20260417_01 run-once stance.
+# (counted as :skipped_created_after_cutoff). The cutoff is REQUIRED for an
+# actual run: --run with the variable unset is REFUSED outright, because an
+# unbounded apply would create an enabled SigninConfig for EVERY domain
+# lacking one — post-v0.26 domains included — exposing sign-in on domains
+# whose owners never opted in. Dry-run (the default) still proceeds without
+# a cutoff for scouting, with a prominent unbounded-preview warning.
 #
 # Usage (full-path form works regardless of which migrations/20* directory is
 # newest — the bare-ID form only finds migrations in the latest directory):
@@ -124,7 +128,14 @@ module Onetime
 
       def migrate
         run_mode_banner
-        info "Cutoff: created < #{Time.at(@cutoff_epoch).utc.iso8601} (SIGNIN_BACKFILL_CREATED_BEFORE)" if @cutoff_epoch
+
+        if @cutoff_epoch.nil?
+          return refuse_unbounded_apply! unless dry_run?
+
+          warn_unbounded_dry_run
+        else
+          info "Cutoff: created < #{Time.at(@cutoff_epoch).utc.iso8601} (SIGNIN_BACKFILL_CREATED_BEFORE)"
+        end
 
         # ZCARD on CustomDomain.instances — O(1), worth the one-time cost so
         # progress output can show current/total.
@@ -151,6 +162,42 @@ module Onetime
       end
 
       private
+
+      # Refuse an unbounded --run: without SIGNIN_BACKFILL_CREATED_BEFORE the
+      # backfill would create an ENABLED follow-global SigninConfig for EVERY
+      # domain lacking one — including post-v0.26 domains that legitimately
+      # carry the fail-closed default — exposing sign-in on domains whose
+      # owners never opted in.
+      #
+      # @return [false] maps to exit code 1 via cli_run
+      def refuse_unbounded_apply!
+        error separator
+        error 'REFUSING TO APPLY: SIGNIN_BACKFILL_CREATED_BEFORE is not set.'
+        error ''
+        error 'Without a cutoff this backfill would create an ENABLED (follow-global)'
+        error 'SigninConfig for EVERY domain lacking one, including domains created'
+        error 'after the v0.26 upgrade that legitimately carry the fail-closed'
+        error 'default — enabling sign-in on domains whose owners never opted in.'
+        error ''
+        error 'Set the upgrade timestamp (epoch seconds or a Time.parse-able'
+        error 'string; domains created at or after it are skipped) and re-run:'
+        error ''
+        error '  SIGNIN_BACKFILL_CREATED_BEFORE="2026-07-27T00:00:00Z" \\'
+        error '    bin/ots migrate migrations/2026-07-27/20260727_01_backfill_signin_config --run'
+        error separator
+        false
+      end
+
+      # Dry-run may preview without a cutoff, but say so LOUDLY: the same
+      # invocation with --run will be refused until a cutoff is provided.
+      def warn_unbounded_dry_run
+        warn separator
+        warn 'WARNING: SIGNIN_BACKFILL_CREATED_BEFORE is not set — this preview is'
+        warn 'UNBOUNDED: every domain lacking a SigninConfig is in scope, including'
+        warn 'domains created after the v0.26 upgrade. An actual run (--run)'
+        warn 'without the cutoff will be REFUSED.'
+        warn separator
+      end
 
       # Parse the optional late-run cutoff. Fail fast and loud on an
       # unparseable value rather than silently backfilling everything.
