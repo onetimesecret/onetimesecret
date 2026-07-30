@@ -1,9 +1,9 @@
 # Security & Code Audit — 2026-07-30
 
 - **Repo:** onetimesecret/onetimesecret
-- **Method:** Automated single-agent audit, delta-focused against the 2026-07-19 audit. Reviewed the ~570 commits landed since then (session rotation #3810, SSO mailbox-proof linking #3840, invite-signup enumeration fix #3856, reset-password rate limiting #3872, billing sync work) with focus on auth/session/SSO/MFA, billing/Stripe, PostgreSQL/SQLite/Redis/RabbitMQ interactions, hardcoded secrets, weak crypto, and unsafe deserialization. Every finding below was verified by reading current source, not inferred from commit messages.
+- **Method:** Automated single-agent audit, delta-focused against the 2026-07-19 audit. Reviewed the 433 commits landed since then (session rotation #3810, SSO mailbox-proof linking #3840, invite-signup enumeration fix #3856, reset-password rate limiting #3872, billing sync work) with focus on auth/session/SSO/MFA, billing/Stripe, PostgreSQL/SQLite/Redis/RabbitMQ interactions, hardcoded secrets, weak crypto, and unsafe deserialization. Every finding below was verified by reading current source, not inferred from commit messages.
 
-> **Historical reference.** This report reflects the codebase as of 2026-07-30. It covers one audit pass; it is not a comprehensive statement of the application's security posture.
+> **Historical reference.** This report reflects the codebase as of 2026-07-30 (audit start), when both findings below were open. **Update:** finding #1 was fixed same-day by PR #3949 (commit `2793e644`, "revoke sessions on password change/reset in simple mode"), merged before this report's own PR landed — see the note under finding #1. It covers one audit pass; it is not a comprehensive statement of the application's security posture.
 
 ---
 
@@ -15,17 +15,19 @@ The recent full-mode (Rodauth) auth hardening work is well-engineered and fail-s
 
 ## Findings
 
-### 1. HIGH — Password change/reset does not revoke other sessions in simple (default) mode
+### 1. HIGH — Password change/reset does not revoke other sessions in simple (default) mode — **FIXED same-day, see update**
 
-**Files:** `apps/api/account/logic/account/update_password.rb:50-52` (`perform_update`), `apps/api/account/logic/authentication/reset_password.rb:72` (`@cust.update_passphrase @password`)
+**Files (as of audit time, commit `e6a6e46d`):** `apps/api/account/logic/account/update_password.rb:50-52` (`perform_update`), `apps/api/account/logic/authentication/reset_password.rb:72` (`@cust.update_passphrase @password`)
 
 When `Onetime.auth_config.full_enabled?` is false (the default), `UpdatePassword#perform_update` calls `cust.update_passphrase!` directly (`lib/onetime/models/features/passphrase_hashing.rb:32`), and the self-service `ResetPassword` logic calls `@cust.update_passphrase`. Neither path calls a session-revocation operation, and neither writes `Customer#last_password_update` (`lib/onetime/models/customer.rb:170`) — that field is set *only* by `Auth::Operations::UpdatePasswordMetadata`, invoked solely from the Rodauth `after_change_password`/`after_reset_password` hooks (`apps/web/auth/config/hooks/account.rb`), i.e. full mode only.
 
 Because the field stays 0 for simple-mode customers, `session_predates_credential_change?` (`lib/onetime/application/auth_strategies/helpers.rb:71-72`) always short-circuits to `false`, so neither the immediate active-session kill nor the #3810 watermark-based defense-in-depth check ever fires for simple-mode accounts. A stolen/compromised session survives the victim's own password change or reset for the full session TTL (up to 24h).
 
-This is a direct regression of the already-"Fixed" M-2 finding from the 2026-07-06 audit, scoped specifically to the mode most deployments actually run.
+This was a direct regression of the already-"Fixed" M-2 finding from the 2026-07-06 audit, scoped specifically to the mode most deployments actually run.
 
-**Fix:** In simple mode, call the existing Redis-only `Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent` (no Rodauth/SQL dependency, already built and reusable) from `UpdatePassword#perform_update` and `ResetPassword#process`, and stamp `Customer#last_password_update` on both paths so the #3810 watermark check backstops it.
+**Original recommended fix:** In simple mode, call a session-revocation operation from `UpdatePassword#perform_update` and `ResetPassword#process`, and stamp a credential-change watermark on both paths.
+
+**Update — resolved:** PR #3949 (commit `2793e644`, "revoke sessions on password change/reset in simple mode") shipped the fix the same day this report was opened, landing on `main` before this report's own PR merged. It added `Onetime::Logic::CredentialChangeSessionRevocation` (`lib/onetime/logic/credential_change_session_revocation.rb`), included into both logic classes: `ResetPassword#process` now calls `revoke_sessions_for_credential_change(@cust)` at line 93 (all sessions revoked — the requester is unauthenticated), and `UpdatePassword#perform_update` calls `revoke_other_sessions_simple_mode` (line 55), which revokes every *other* session while rotating and re-stamping the caller's own session past the new watermark. Verified against current source; this finding is closed.
 
 ### 2. MEDIUM — No rate limiting on `/auth/reset-password-request` in simple (default) mode
 
