@@ -27,7 +27,11 @@ module AccountAPI::Logic
 
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
+        # Legacy v1 secrets carry custid; new-format secrets (owner_id keyword)
+        # leave it empty, so guard the owner_id form too — a secret owned by no
+        # account can never be a valid reset secret.
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
+        raise OT::MissingSecret if secret.anonymous?
 
         raise_form_error 'New passwords do not match', field: 'password-confirm', error_type: 'mismatch' unless is_confirmed
         raise_form_error 'New password is too short', field: 'password', error_type: 'too_short' unless @password.size >= 6
