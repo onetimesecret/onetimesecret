@@ -90,6 +90,10 @@ RSpec.describe 'customers diagnose', type: :cli do
   # field whose encoding is invalid. Obscuring walks every string leaf now, and
   # both String#gsub (all of OT::Utils.obscure_email) and JSON.generate raise on
   # one of those, so a single bad field would take the whole command down.
+  #
+  # The bad byte sits INSIDE the address in the finding message on purpose:
+  # scrubbing it to a U+FFFD marker would stop EMAIL_PATTERN matching and print
+  # the address in the clear, so the mask path has to drop it instead.
   def malformed_bytes_result
     Auth::Operations::Customers::Diagnose::Result.new(
       customer: nil,
@@ -104,7 +108,7 @@ RSpec.describe 'customers diagnose', type: :cli do
         },
       },
       findings: [
-        { severity: :warning, code: :email_drift, message: "note\xFF user@example.com" },
+        { severity: :warning, code: :email_drift, message: "note\xFF us\xFFer@example.com" },
       ],
     )
   end
@@ -272,16 +276,20 @@ RSpec.describe 'customers diagnose', type: :cli do
 
   # A field that is not valid UTF-8 used to reach String#gsub (obscuring every
   # string leaf) and JSON.generate untouched; both raise on it. The bytes are
-  # scrubbed to U+FFFD at the boundary, so the run completes, the corruption
-  # stays visible, and the addresses beside it are still masked.
+  # scrubbed at the boundary, so the run completes and the addresses beside
+  # them are still masked.
+  #
+  # The masked path DROPS the bad bytes rather than marking them: a U+FFFD
+  # landing inside an address defeats the mask. Only --full marks, because it
+  # prints values verbatim and nothing downstream pattern-matches them.
   describe 'malformed byte sequences' do
     before { allow(op).to receive(:call).and_return(malformed_bytes_result) }
 
     it 'renders text output without dropping the field or the mask' do
       result = run_cli_command_quietly('customers', 'diagnose', '42')
 
-      expect(result[:stdout]).to include("verified\u{FFFD}")
-      expect(result[:stdout]).to include("note\u{FFFD} us***@e***.com")
+      expect(result[:stdout]).to include('verified')
+      expect(result[:stdout]).to include('note us***@e***.com')
       expect(result[:stdout]).not_to include('user@example.com')
       expect(last_exit_code).to eq(0)
     end
@@ -289,17 +297,28 @@ RSpec.describe 'customers diagnose', type: :cli do
     it 'renders JSON output without --full' do
       payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json')[:stdout])
 
-      expect(payload.dig('sections', 'auth_account', 'status')).to eq("verified\u{FFFD}")
+      expect(payload.dig('sections', 'auth_account', 'status')).to eq('verified')
       expect(payload.dig('sections', 'auth_account', 'email')).to eq('us***@e***.com')
     end
 
+    # A bad byte inside the address must not survive as a marker on the masked
+    # path — that is what let the whole address through before.
+    it 'masks an address whose own bytes are invalid' do
+      payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json')[:stdout])
+
+      expect(payload['findings'].first['message']).to eq('note us***@e***.com')
+      expect(payload['findings'].first['message']).not_to include("\u{FFFD}")
+    end
+
     # --full skips the mask but not the scrub: JSON.generate raises on the raw
-    # bytes whether or not anything is being obscured.
+    # bytes whether or not anything is being obscured. Here the marker stays,
+    # so an operator reading raw values sees where the corruption is.
     it 'renders JSON output with --full' do
       payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json', '--full')[:stdout])
 
       expect(payload.dig('sections', 'auth_account', 'status')).to eq("verified\u{FFFD}")
       expect(payload.dig('sections', 'auth_account', 'email')).to eq('user@example.com')
+      expect(payload['findings'].first['message']).to eq("note\u{FFFD} us\u{FFFD}er@example.com")
     end
   end
 end

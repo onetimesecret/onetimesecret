@@ -186,14 +186,17 @@ module Onetime
       #
       # Values come off Valkey as bytes, so a customer field can hold a sequence
       # that is not valid UTF-8 (a truncated multibyte write is enough). gsub
-      # raises ArgumentError on one and JSON.generate raises too, so scrub at
-      # this boundary — ahead of the --full return, which skips the mask but
-      # still has to survive JSON.pretty_generate. Scrubbing rather than
-      # rescuing: a rescue returning the input unchanged would print the address
-      # in the clear, and the mask still runs over the scrubbed text.
+      # raises ArgumentError on one and JSON.generate raises too, so both paths
+      # scrub. Scrubbing rather than rescuing: a rescue returning the input
+      # unchanged would print the address in the clear.
+      #
+      # Only the --full path scrubs HERE, and it marks the bad bytes (U+FFFD)
+      # because it prints values verbatim and the corruption is worth seeing.
+      # The masked path must NOT pre-scrub: a marker landing inside an address
+      # stops it matching EMAIL_PATTERN, which would print the address in full.
+      # obscure_email does its own drop-mode scrub — see OT::Utils.utf8_safe.
       def obscure(text, full:)
-        text = OT::Utils.utf8_safe(text)
-        return text if full
+        return OT::Utils.utf8_safe(text, replacement: "\u{FFFD}") if full
 
         OT::Utils.obscure_email(text)
       end
