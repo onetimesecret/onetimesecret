@@ -400,6 +400,62 @@ describe('OrganizationSettings', () => {
   });
 
   /**
+   * Organization ID Display
+   *
+   * The Settings tab shows the organization extid (on… prefix) as a copyable
+   * read-only identifier for support/API-scoping reference. It is explicitly
+   * NOT the HTTP Basic auth username — that is the customer extid (ur…) or
+   * account email, surfaced on the account API settings page.
+   */
+  describe('Organization ID Display', () => {
+    const findExtidField = (w: VueWrapper) => w.find('[data-testid="org-extid-field"]');
+
+    it('shows the organization extid on the Settings tab', async () => {
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      const field = findExtidField(wrapper);
+      expect(field.exists()).toBe(true);
+      expect(field.text()).toContain('web.organizations.organization_id');
+      expect(field.find('[data-testid="org-extid-value"]').text()).toBe('on1abc123');
+    });
+
+    it('renders it read-only with a copy button carrying the extid', async () => {
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      const field = findExtidField(wrapper);
+      // No input — this is a reference identifier, not editable form data
+      expect(field.find('input').exists()).toBe(false);
+
+      const copyButton = field.find('button[data-testid="org-extid-copy"]');
+      expect(copyButton.exists()).toBe(true);
+
+      const copyComponent = wrapper.findComponent({ name: 'CopyButton' });
+      expect(copyComponent.exists()).toBe(true);
+      expect(copyComponent.props('text')).toBe('on1abc123');
+    });
+
+    it('shows the support/API-scoping hint', async () => {
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      const field = findExtidField(wrapper);
+      expect(field.text()).toContain('web.organizations.organization_id_hint');
+    });
+
+    it('omits the field when the organization has no extid', async () => {
+      const orgWithoutExtid = { ...mockOrganization, extid: undefined };
+      mockFetchOrganization.mockResolvedValue(orgWithoutExtid);
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      expect(findExtidField(wrapper).exists()).toBe(false);
+    });
+  });
+
+  /**
    * Domains tab — "Add Domain" CTA visibility (fix/sso-ui).
    *
    * The header CTA is gated on `canCreateDomain && domainCount > 0` so it does

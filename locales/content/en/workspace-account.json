@@ -559,6 +559,18 @@
     "text": "The API is disabled for this instance.",
     "content_hash": "66d12d6b"
   },
+  "web.settings.api.api_username": {
+    "text": "API Username",
+    "context": "Heading of the API-settings card showing the customer external ID used as the HTTP Basic auth username"
+  },
+  "web.settings.api.api_username_description": {
+    "text": "Your username for HTTP Basic authentication",
+    "context": "Subtitle under the API Username heading on the API settings page"
+  },
+  "web.settings.api.basic_auth_hint": {
+    "text": "For HTTP Basic auth, use your account email or this ID as the username and your API token as the password.",
+    "context": "Hint under the copyable customer ID on the API settings page explaining which credentials Basic auth accepts"
+  },
   "web.settings.privacy.title": {
     "text": "Privacy Settings",
     "content_hash": "eefad6ba"

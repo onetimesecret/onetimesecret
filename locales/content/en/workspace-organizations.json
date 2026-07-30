@@ -143,6 +143,14 @@
     "text": "General Settings",
     "content_hash": "de322f87"
   },
+  "web.organizations.organization_id": {
+    "text": "Organization ID",
+    "context": "Label for the read-only organization external ID shown on the organization Settings tab"
+  },
+  "web.organizations.organization_id_hint": {
+    "text": "Use this ID when contacting support or scoping API requests to this organization. It is not a sign-in credential.",
+    "context": "Hint under the copyable organization ID clarifying it is a reference identifier, not a Basic auth username"
+  },
   "web.organizations.entitlements_title": {
     "text": "Organization Entitlements",
     "content_hash": "36054d4f"
