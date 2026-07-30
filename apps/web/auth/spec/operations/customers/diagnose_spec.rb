@@ -204,20 +204,31 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
     end
 
     # Closed rows sit outside the partial unique index, so several can share
-    # one address and the fallback must pick deterministically. The older row
-    # is inserted FIRST on purpose: an unordered scan of a small table returns
-    # it first, so only the newest-first ORDER BY returns 41 — drop the order
-    # and this fails rather than passing by scan luck. Verified by mutation on
-    # PostgreSQL (this suite's backend): without the ORDER BY the op returns 40.
-    it 'picks the newest closed row when several share the address' do
-      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
-      insert_account(status_id: 3, id: 40, external_id: 'ur_closed_old')
-      insert_account(status_id: 3, id: 41, external_id: 'ur_closed')
+    # one address and the fallback must pick deterministically.
+    #
+    # These rows live in the in-memory SQLite fixture above, NOT in the suite's
+    # PostgreSQL database (that banner names the app's main database, which this
+    # example never touches), and there an unordered `first` returns the
+    # first-INSERTED row. One insert order would therefore pin the ORDER BY only
+    # by fixture luck: renumbering the inserts into ascending id order — exactly
+    # the tidy-up a maintainer makes — would leave the example green with the
+    # order reverted. BOTH orders run instead. Without the newest-first ORDER BY
+    # the arrangement that inserts 40 first returns 40, so the pair fails from
+    # one side or the other however the fixture is arranged.
+    closed_rows = [[40, 'ur_closed_old'], [41, 'ur_closed']]
+    {
+      'older row inserted first' => closed_rows,
+      'newer row inserted first' => closed_rows.reverse,
+    }.each do |order, rows|
+      it "picks the newest closed row when several share the address (#{order})" do
+        allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+        rows.each { |id, extid| insert_account(status_id: 3, id: id, external_id: extid) }
 
-      result = diagnose(identifier: email)
+        result = diagnose(identifier: email)
 
-      expect(result.sections[:auth_account][:account_id]).to eq(41)
-      expect(result.sections[:auth_account][:linked_extid]).to eq('ur_closed')
+        expect(result.sections[:auth_account][:account_id]).to eq(41)
+        expect(result.sections[:auth_account][:linked_extid]).to eq('ur_closed')
+      end
     end
 
     it 'flags a customer with no auth account row' do
