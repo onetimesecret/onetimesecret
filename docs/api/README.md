@@ -22,11 +22,52 @@ curl -u 'user@example.com:APITOKEN' https://us.onetimesecret.com/api/v2/receipt/
 
 ## Response Field Notes
 
-These conventions apply to secret/receipt responses in v2 and v3:
+These conventions apply to secret and receipt responses. Field value *types* differ by version (see [API Versions](#api-versions)); the field *meanings* below are the same across versions unless noted.
 
-* **`custid` is deprecated** — always null on post-migration records. Read `owner_id` instead. (v1 is the exception: it translates `custid` back to an email address; see `apps/api/v1/COMPAT.md`.)
-* **`metadata` and `receipt` are duplicates in v2** — v2 responses carry both objects under `record` with identical content as an intentional backward-compat alias (`metadata` is the legacy name for `receipt`). v3 removes the alias and returns only `receipt`.
-* **Recipient fields have three distinct meanings**: `recipients` on the receipt is a stored, obscured string (e.g. `to***@m***.com`); `details.recipient` is a request-echo array of what was submitted at creation; `recipient_name` is a display name used only for incoming secrets and is null for standard secrets.
+### `custid` is deprecated — read `owner_id`
+
+Secret creation writes `owner_id` only, so `custid` is null on every receipt created since the v0.24 identifier migration.
+
+* **v3 receipt records omit the field entirely.** `owner_id` is the only creator identifier.
+* **v2 still emits it** on the receipt record — null on post-migration records — for older clients.
+* **v1 is the exception**: it translates `custid` back to an email address (`"anon"` for anonymous secrets). See `apps/api/v1/COMPAT.md`.
+* `owner_id` is null on receipts with `source: "incoming"` (as is `custid` in v2). The creator identifier is withheld for guest-submitted provenance regardless of migration state.
+
+A `custid` key does still appear at the top level of receipt-list responses, alongside `records` rather than inside them. That is the identifier of the customer making the request, not of a receipt's creator — a different field that happens to share the name.
+
+### `metadata` is a v2 alias of `receipt`
+
+"Receipt" is the current name for the record the secret's creator keeps. Conceal and generate responses emit the same serialized receipt under both names in v2:
+
+| Version | Keys under `record`                                                     |
+| ------- | ----------------------------------------------------------------------- |
+| v1      | `metadata` only                                                         |
+| v2      | `receipt` and `metadata` — identical objects, not two views of a record |
+| v3      | `receipt` only                                                          |
+
+Write new integrations against `receipt`.
+
+The alias covers the record object only. Receipt responses (`GET /receipt/:key`) also return `metadata_path` and `metadata_url` as aliases of `receipt_path` and `receipt_url`; those aliases are still present in v3.
+
+### Three distinct recipient fields
+
+`recipients`, `recipient`, and `recipient_name` are separate fields with separate meanings — not spelling variants of one another.
+
+| Field            | Location                                   | Value                                                                                                                                                                                            |
+| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `recipients`     | receipt record                             | Who the secret link was emailed to, obscured at serialization (`al***@e***.com`). In v2, a single string — `, `-joined for multiple addresses, `""` when the secret was never emailed. In v3, an array of obscured addresses, or `null` when there are none — never `""`, never `[]`. |
+| `recipient`      | `details` of a conceal/generate response    | Echo of the sanitized `recipient` values submitted with the request. Always an array, `[]` when none was submitted, in every version. Not obscured — `details.recipient_safe` is the obscured form. |
+| `recipient_name` | receipt record                             | Display name of the configured Incoming recipient. Set only on `source: "incoming"` receipts; null for standard secrets.                                                                            |
+
+`show_recipients` is a convenience boolean on the receipt: true when `recipients` is non-empty.
+
+### A requested `ttl` is clamped, not rejected
+
+The `ttl` submitted when creating a secret is a request, not a guarantee. An out-of-range value is silently adjusted and the secret is created with the adjusted value, so clients should read the effective TTL back from the response (`secret_ttl` on the receipt) rather than assume the requested value was honored.
+
+* **Anonymous (unauthenticated) secrets are capped at 7 days.** This is a product rule that applies on every deployment, whether or not billing is enabled. A deployment's configured `ttl_options` maximum and the `PLAN_TTL_ANONYMOUS` setting can lower the anonymous cap but never raise it.
+* A value below the configured minimum is raised to that minimum.
+* Authenticated callers are governed separately. A free-tier request above 14 days is *rejected* with an entitlement error rather than clamped, so the caller gets an explicit upgrade path instead of a shortened secret.
 
 ## OpenAPI Definitions
 
