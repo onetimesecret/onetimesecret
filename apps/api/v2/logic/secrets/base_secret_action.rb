@@ -105,6 +105,8 @@ module V2::Logic
         max_ttl    = if auth_org && auth_org.respond_to?(:limit_for)
                     org_limit = auth_org.limit_for('secret_lifetime')
                     org_limit.positive? ? org_limit : config_max
+                  elsif anonymous_user?
+                    anonymous_max_ttl(config_max)
                   else
                     config_max
                   end
@@ -129,6 +131,37 @@ module V2::Logic
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
         @ttl = max_ttl if ttl > max_ttl
+      end
+
+      # Anonymous TTL ceiling (2026-07-29 API audit, item 4).
+      #
+      # Mirrors V1's resolve_ttl_limit anonymous branch: with billing enabled,
+      # anonymous callers are capped at the free-tier secret_lifetime limit
+      # (PLAN_TTL_ANONYMOUS, default DEFAULT_FREE_TTL = 14 days) rather than
+      # the config ttl_options max (30 days stock). Without this cap, an
+      # anonymous request could receive a LONGER TTL than an authenticated
+      # free-tier user, who is loudly 403'd above 14 days by the entitlement
+      # gate above — a policy inversion.
+      #
+      # This is a silent clamp, not a loud 403, because the anonymous web UI
+      # builds its duration dropdown from the unfiltered config ttl_options
+      # (src/shared/composables/usePrivacyOptions.ts) — on stock config it
+      # offers 30 days, so a hard error above the anonymous limit would break
+      # the anonymous web flow. Billing-disabled (self-hosted) deployments
+      # keep the fail-open config max, same as V1.
+      #
+      # @param config_max [Integer] ttl_options.max fallback from config
+      # @return [Integer] Maximum TTL in seconds for anonymous callers
+      def anonymous_max_ttl(config_max)
+        billing_enabled = begin
+          Onetime::BillingConfig.instance.enabled?
+        rescue StandardError
+          false
+        end
+        return config_max unless billing_enabled
+
+        free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+        free_max.positive? ? [free_max, config_max].min : config_max
       end
 
       def process_secret
@@ -210,9 +243,13 @@ module V2::Logic
         return if recipient.empty?
 
         if anonymous_user?
-          raise_form_error 'An account is required to send emails.',
-            field: 'recipient',
-            error_type: 'requires_account'
+          # Account-required is an authentication failure, not a field
+          # validation problem: Onetime::Unauthorized maps to 401 at the Otto
+          # edge (otto_hooks.rb), where FormError's blanket handler would
+          # return a misleading 422. (2026-07-29 API audit, item 2. V1 is
+          # intentionally unchanged: its legacy contract collapses both
+          # classes to 404, so no status bug exists there.)
+          raise Onetime::Unauthorized, 'An account is required to send emails.'
         end
 
         recipient.each do |email_address|
