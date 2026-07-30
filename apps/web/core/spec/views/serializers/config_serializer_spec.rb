@@ -149,6 +149,103 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(result['features']).to have_key('sso')
     end
 
+    # 2026-07-29 API audit, item 4. V2 silently clamps an anonymous secret's
+    # TTL; the web UI's duration dropdown (usePrivacyOptions.ts) filters
+    # against this published value so it stops offering durations the caller
+    # will never get. Must track WithEntitlements::ANONYMOUS_MAX_TTL — a hard
+    # 7-day product rule, not a free-tier derivation.
+    describe 'secret_options.ttl_max_anonymous' do
+      let(:hard_cap) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
+
+      let(:ttl_view_vars) do
+        base_view_vars.merge(
+          'site' => base_view_vars['site'].merge(
+            'secret_options' => { 'default_ttl' => 86_400, 'ttl_options' => [3600, 2_592_000] }
+          )
+        )
+      end
+
+      def secret_options
+        described_class.serialize(ttl_view_vars)['secret_options']
+      end
+
+      it 'is the hard anonymous cap, not the free-tier ceiling' do
+        expect(hard_cap).to be < Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+      end
+
+      context 'when billing is enabled' do
+        before do
+          allow(OT.billing_config).to receive(:enabled?).and_return(true)
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 1_209_600 })
+        end
+
+        it 'publishes the hard cap alongside the configured options' do
+          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+          expect(secret_options['ttl_options']).to eq([3600, 2_592_000])
+        end
+
+        it 'lets PLAN_TTL_ANONYMOUS lower the ceiling beneath the cap' do
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 86_400 })
+
+          expect(secret_options['ttl_max_anonymous']).to eq(86_400)
+        end
+
+        # Matches anonymous_max_ttl: PLAN_TTL_ANONYMOUS can only lower the
+        # anonymous grant, so a raised env var must not widen the dropdown.
+        it 'never publishes more than the hard cap, however high the override' do
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 2_592_000 })
+
+          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+        end
+
+        it 'reads a non-positive override as "unset" and keeps the cap' do
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 0 })
+
+          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+        end
+
+        it 'drops only the override, not the cap, when the limit lookup raises' do
+          allow(Onetime::Organization).to receive(:free_tier_limits).and_raise(
+            StandardError, 'billing config unreadable'
+          )
+          allow(OT).to receive(:le)
+
+          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+          expect(OT).to have_received(:le).with(
+            a_string_matching(/PLAN_TTL_ANONYMOUS override unavailable/)
+          )
+        end
+
+        it 'does not mutate the site config hash' do
+          site_options = ttl_view_vars['site']['secret_options']
+          secret_options
+
+          expect(site_options).not_to have_key('ttl_max_anonymous')
+        end
+      end
+
+      context 'when billing is disabled (self-hosted)' do
+        before { allow(OT.billing_config).to receive(:enabled?).and_return(false) }
+
+        # The cap is about anonymous callers, not about whether the deployment
+        # sells plans, so this is emitted rather than omitted.
+        it 'still publishes the hard cap' do
+          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+        end
+
+        it 'ignores PLAN_TTL_ANONYMOUS entirely' do
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 60 })
+
+          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+        end
+      end
+    end
+
     describe 'brand_* bootstrap exposure' do
       let(:brand_view_vars) do
         base_view_vars.merge(
