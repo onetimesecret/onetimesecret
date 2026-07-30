@@ -101,15 +101,15 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
     end
   end
 
-  def insert_account(status_id: 2, with_password: true)
+  def insert_account(status_id: 2, with_password: true, id: 42, external_id: 'ur_target')
     db[:accounts].insert(
-      id: 42,
+      id: id,
       status_id: status_id,
       email: email,
-      external_id: 'ur_target',
+      external_id: external_id,
       created_at: Time.now - 86_400,
     )
-    db[:account_password_hashes].insert(id: 42) if with_password
+    db[:account_password_hashes].insert(id: id) if with_password
   end
 
   def limiter_result(entries)
@@ -163,6 +163,37 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(result.found?).to be(true)
       expect(codes(result)).to include(:orphaned_auth_account)
+    end
+
+    # The unique index on accounts.email is PARTIAL (live statuses only), so a
+    # Closed row can legitimately share a live row's address — and closing an
+    # account deletes the Customer, so the closed row is an orphan by
+    # construction, exactly the population this email arm exists to surface.
+    # Binding to it would report the live user as CLOSED and key every sidecar
+    # section on the wrong account id.
+    it 'binds to the live row when a closed row shares the address' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account(status_id: 3, id: 41, external_id: 'ur_closed')
+      insert_account(status_id: 2, id: 42, external_id: 'ur_target')
+
+      result = diagnose(identifier: email)
+
+      expect(result.sections[:auth_account][:account_id]).to eq(42)
+      expect(result.sections[:auth_account][:status]).to eq('verified')
+      expect(codes(result)).not_to include(:account_closed)
+    end
+
+    # The live-first match must stay a preference, not a filter: a genuinely
+    # closed account is a real can't-login cause and has to remain diagnosable.
+    it 'falls back to a closed row when no live row shares the address' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account(status_id: 3, id: 41, external_id: 'ur_closed')
+
+      result = diagnose(identifier: email)
+
+      expect(result.sections[:auth_account][:account_id]).to eq(41)
+      expect(result.sections[:auth_account][:status]).to eq('closed')
+      expect(codes(result)).to include(:account_closed)
     end
 
     it 'flags a customer with no auth account row' do

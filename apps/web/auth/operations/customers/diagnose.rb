@@ -4,6 +4,7 @@
 
 require 'json'
 
+require 'auth/account_statuses'
 require 'onetime/operations/ratelimit/inspect'
 
 module Auth
@@ -244,7 +245,13 @@ module Auth
           end
 
           unless email.to_s.empty?
-            row = db[:accounts].where(email: email).first
+            # The unique index on accounts.email is PARTIAL (live statuses
+            # only), so a Closed row can share a live row's address — match
+            # live FIRST or the whole read-out binds to the dead row and every
+            # sidecar section is keyed on the wrong account id. The any-status
+            # fallback keeps a genuinely closed account diagnosable.
+            by_email = db[:accounts].where(email: email)
+            row      = by_email.where(status_id: AccountStatuses::LIVE).first || by_email.first
             return row if row
           end
 
