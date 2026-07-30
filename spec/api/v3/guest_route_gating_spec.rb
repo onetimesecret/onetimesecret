@@ -60,12 +60,19 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
     allow(strategy_result).to receive(:auth_method).and_return(auth_method)
     allow(strategy_result).to receive(:metadata).and_return({ organization: nil })
 
-    logic = logic_class.new(strategy_result, params)
+    # Base#initialize auto-runs process_params when params are present — before
+    # any stubs exist — so build with nil params and inject them after stubbing.
+    # Examples invoke logic.process_params explicitly.
+    logic = logic_class.new(strategy_result, nil, 'en')
 
-    # Mock accessors
-    allow(logic).to receive(:org).and_return(nil)
+    # Mock accessors. auth_org is stubbed to nil so authenticated cases don't
+    # lazy-create a default workspace through the Customer double; the
+    # resulting EntitlementRequired (context unavailable) is swallowed by
+    # raises_guest_routes_disabled? — these specs only assert the guest gate.
+    allow(logic).to receive(:auth_org).and_return(nil)
     allow(logic).to receive(:cust).and_return(customer)
     allow(logic).to receive(:sess).and_return(session)
+    logic.instance_variable_set(:@params, params)
 
     logic
   end

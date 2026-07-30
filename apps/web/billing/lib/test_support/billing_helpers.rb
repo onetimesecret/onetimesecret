@@ -96,6 +96,7 @@ module BillingTestHelpers
     # Clears entitlements/limits first to avoid polluting from prior test runs.
     def populate_test_plans(plans)
       ensure_familia_configured!
+      ensure_billing_loaded!
       plans.each do |plan_data|
         plan                                                    = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
         plan.entitlements.clear
