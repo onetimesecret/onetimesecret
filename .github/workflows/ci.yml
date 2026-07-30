@@ -592,12 +592,10 @@ jobs:
           results-file: 'rspec_simple_results.json'
 
       # API contract specs (spec/api/) — a different axis than auth mode.
-      # Non-blocking so the lane is RUN on every PR (preventing the silent
-      # re-orphaning these specs already suffered) while a subset is red
-      # against the membership-based entitlement contract (#3225 / ADR-012
-      # Stage 3). Remove continue-on-error once #3225 greens the lane.
-      - name: Run API contract specs (spec/api, non-blocking)
-        continue-on-error: true
+      # Blocking since the #3225 / ADR-012 Stage 3 membership-contract drift
+      # was repaired (mock helpers rewritten to the membership model); this
+      # step was continue-on-error while that subset was red.
+      - name: Run API contract specs (spec/api)
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
         run: bundle exec rake spec:api
