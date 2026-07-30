@@ -88,11 +88,25 @@ module Onetime
       # #obscure_email. The domain side is widened for the same reason (IDNs).
       # \b is encoding-aware in Onigmo, so it still anchors correctly around
       # non-ASCII letters.
+      #
+      # The domain uses \p{Pd} (all dash punctuation), not a bare ASCII `-`,
+      # and that is NOT cosmetic. Truemail's host class is
+      # `[\p{L}\p{N}\p{Pd}]`, so once an ASCII separator has appeared it
+      # accepts any unicode dash inside a label: `user@ex-\u{2010}ample.com`
+      # and the U+2013 variant both measure storable. With a bare `-` this
+      # pattern did not match them, and #obscure_email printed the WHOLE
+      # address — local part and domain — in the clear. Same class of defect
+      # as the josé@example.com leak, on the other side of the `@`.
+      # \p{Pd} subsumes ASCII `-`, so this is a strict widening.
+      #
+      # This class must stay a superset of Truemail's; the twin redactor in
+      # lib/onetime/initializers/setup_diagnostics.rb already uses \p{Pd},
+      # and tests/fixtures/email_redaction_corpus.json pins both.
       EMAIL_PATTERN = /
         \b
         (?>[\p{L}\p{N}._%+'-]+)  # local part: atomic group prevents backtracking
         @
-        [\p{L}\p{N}.-]+          # domain: alphanumeric, dots, hyphens
+        [\p{L}\p{N}.\p{Pd}]+     # domain: alphanumeric, dots, any unicode dash
         \.
         \p{L}{2,}                # TLD: at least 2 letters
         \b

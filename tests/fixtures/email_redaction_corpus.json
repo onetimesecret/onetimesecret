@@ -46,14 +46,15 @@
     },
     "version": 1
   },
-
   "entries": [
     {
       "id": "plain-ascii",
       "input": "user@example.com",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user@example.com"],
+      "contains": [
+        "user@example.com"
+      ],
       "probes": "baseline ASCII address; the shape every implementation already handles"
     },
     {
@@ -61,7 +62,9 @@
       "input": "first.last@example.com",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["first.last@example.com"],
+      "contains": [
+        "first.last@example.com"
+      ],
       "probes": "dot inside the local part must not terminate the match early"
     },
     {
@@ -69,7 +72,9 @@
       "input": "user+tag@example.com",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user+tag@example.com"],
+      "contains": [
+        "user+tag@example.com"
+      ],
       "probes": "sub-addressing; '+' must be inside the local-part class"
     },
     {
@@ -77,7 +82,9 @@
       "input": "user@mail.example.com",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user@mail.example.com"],
+      "contains": [
+        "user@mail.example.com"
+      ],
       "probes": "multi-label host; the whole host, not just the SLD, must be covered"
     },
     {
@@ -85,7 +92,9 @@
       "input": "user@example.co.uk",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user@example.co.uk"],
+      "contains": [
+        "user@example.co.uk"
+      ],
       "probes": "public-suffix TLD with two labels; a greedy TLD class must not stop at '.co'"
     },
     {
@@ -93,7 +102,9 @@
       "input": "user.name+tag@sub.example.co.uk",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user.name+tag@sub.example.co.uk"],
+      "contains": [
+        "user.name+tag@sub.example.co.uk"
+      ],
       "probes": "all the ASCII complications at once — dotted local, plus tag, subdomain, two-label TLD"
     },
     {
@@ -101,7 +112,9 @@
       "input": "josé@example.com",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["josé@example.com"],
+      "contains": [
+        "josé@example.com"
+      ],
       "probes": "THE LEAK. Latin-1 accented local part: storable, but matched by no ASCII-only redactor, so it printed in the clear."
     },
     {
@@ -109,7 +122,9 @@
       "input": "JOSÉ@EXAMPLE.COM",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["JOSÉ@EXAMPLE.COM"],
+      "contains": [
+        "JOSÉ@EXAMPLE.COM"
+      ],
       "probes": "uppercase non-ASCII letter; a case-insensitive flag alone does not widen an ASCII class"
     },
     {
@@ -117,16 +132,23 @@
       "input": "用户@example.com",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["用户@example.com"],
+      "contains": [
+        "用户@example.com"
+      ],
       "probes": "CJK local part — no case, no ASCII fallback",
-      "partial_mask_head_exempt": { "local": true, "host": false }
+      "partial_mask_head_exempt": {
+        "local": true,
+        "host": false
+      }
     },
     {
       "id": "unicode-local-cyrillic",
       "input": "пользователь@example.com",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["пользователь@example.com"],
+      "contains": [
+        "пользователь@example.com"
+      ],
       "probes": "Cyrillic local part on an ASCII domain"
     },
     {
@@ -134,7 +156,9 @@
       "input": "user@пример.рф",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user@пример.рф"],
+      "contains": [
+        "user@пример.рф"
+      ],
       "probes": "IDN in U-label form with a non-ASCII two-letter TLD; exercises the domain side and the TLD class together"
     },
     {
@@ -142,7 +166,9 @@
       "input": "user@example.онлайн",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user@example.онлайн"],
+      "contains": [
+        "user@example.онлайн"
+      ],
       "probes": "ASCII host with a non-ASCII TLD; isolates the TLD class from the host class"
     },
     {
@@ -150,7 +176,9 @@
       "input": "user@mail.пример.рф",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["user@mail.пример.рф"],
+      "contains": [
+        "user@mail.пример.рф"
+      ],
       "probes": "mixed ASCII/non-ASCII labels within one host"
     },
     {
@@ -158,7 +186,9 @@
       "input": "Mixed.Case@Example.COM",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["Mixed.Case@Example.COM"],
+      "contains": [
+        "Mixed.Case@Example.COM"
+      ],
       "probes": "case must not affect matching on either side of the '@'"
     },
     {
@@ -166,25 +196,66 @@
       "input": "a@b.co",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["a@b.co"],
+      "contains": [
+        "a@b.co"
+      ],
       "probes": "shortest storable address (Truemail enforces a 6-char minimum). obscure_email returns this UNCHANGED — both parts are head-exempt — so it is the entry that catches a test which conflates 'unmasked' with 'unmatched'.",
-      "partial_mask_head_exempt": { "local": true, "host": true }
+      "partial_mask_head_exempt": {
+        "local": true,
+        "host": true
+      }
     },
     {
       "id": "two-char-local-and-host",
       "input": "ab@cd.io",
       "kind": "accepted",
       "truemail_accepts": true,
-      "contains": ["ab@cd.io"],
+      "contains": [
+        "ab@cd.io"
+      ],
       "probes": "boundary of the head exemption: the 2-char local is exempt, the 2-char host is not",
-      "partial_mask_head_exempt": { "local": true, "host": false }
+      "partial_mask_head_exempt": {
+        "local": true,
+        "host": false
+      }
+    },
+    {
+      "id": "unicode-dash-in-host",
+      "input": "user@ex-‐ample.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": [
+        "user@ex-‐ample.com"
+      ],
+      "probes": "U+2010 HYPHEN inside a host label, after an ASCII separator. Truemail's host class is [\\p{L}\\p{N}\\p{Pd}], so this is storable — measured, not inferred. A redactor whose domain class uses a bare ASCII '-' does not match it and prints the WHOLE address in the clear. This is the josé leak's mirror image on the domain side."
+    },
+    {
+      "id": "en-dash-in-host",
+      "input": "user@ex-–ample.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": [
+        "user@ex-–ample.com"
+      ],
+      "probes": "U+2013 EN DASH variant of unicode-dash-in-host. Pins that the fix is the \\p{Pd} CLASS, not a one-off special case for U+2010."
+    },
+    {
+      "id": "bare-unicode-dash-host-no-ascii-separator",
+      "input": "user@a‐b.com",
+      "kind": "informational",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "U+2010 with NO preceding ASCII separator. Truemail REJECTS it (its host grammar requires a [-.] separator before the \\p{Pd} run), so it is not storable. Redaction behavior is deliberately UNASSERTED: the \\p{Pd} domain class both redactors use does match it, so it is over-redacted. That is the accepted cost of covering the storable dash shapes above, and it errs toward redaction rather than toward a leak. Recorded so the over-redaction is a known, measured trade rather than an untested gap."
     },
     {
       "id": "embedded-free-text",
       "input": "From: alice@example.com To: bob@example.org",
       "kind": "embedded",
       "truemail_accepts": false,
-      "contains": ["alice@example.com", "bob@example.org"],
+      "contains": [
+        "alice@example.com",
+        "bob@example.org"
+      ],
       "probes": "two addresses inside a log line; both must be redacted and the surrounding 'From:'/'To:' text must survive"
     },
     {
@@ -192,16 +263,25 @@
       "input": "From: a@b.com To: c@d.org",
       "kind": "embedded",
       "truemail_accepts": false,
-      "contains": ["a@b.com", "c@d.org"],
+      "contains": [
+        "a@b.com",
+        "c@d.org"
+      ],
       "probes": "the same free-text shape at minimum part lengths. obscure_email leaves this string BYTE-IDENTICAL because every part is head-exempt, so it must not be used to assert that matching occurred — the full-sentinel redactors must still replace both addresses.",
-      "partial_mask_head_exempt": { "local": true, "host": true }
+      "partial_mask_head_exempt": {
+        "local": true,
+        "host": true
+      }
     },
     {
       "id": "embedded-punctuation-and-brackets",
       "input": "Contact <admin@example.com>, or (support@example.org).",
       "kind": "embedded",
       "truemail_accepts": false,
-      "contains": ["admin@example.com", "support@example.org"],
+      "contains": [
+        "admin@example.com",
+        "support@example.org"
+      ],
       "probes": "angle brackets, parentheses, comma and a trailing period adjacent to the addresses; the trailing '.' must not be swallowed into the TLD"
     },
     {
@@ -209,10 +289,11 @@
       "input": "https://app.example.com/verify?email=user@example.com&token=abc",
       "kind": "embedded",
       "truemail_accepts": false,
-      "contains": ["user@example.com"],
+      "contains": [
+        "user@example.com"
+      ],
       "probes": "address as a URL query value. The bare host 'app.example.com' has no '@' before it and must survive untouched — this entry doubles as an over-redaction check on the domain side."
     },
-
     {
       "id": "no-tld-host",
       "input": "user@localhost",
@@ -277,10 +358,9 @@
       "contains": [],
       "probes": "unicode single-label host; the widened domain class must still require a TLD"
     },
-
     {
       "id": "nfd-decomposed-local",
-      "input": "jose\u0301@example.com",
+      "input": "josé@example.com",
       "kind": "informational",
       "truemail_accepts": false,
       "contains": [],

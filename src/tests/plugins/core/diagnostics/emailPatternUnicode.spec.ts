@@ -128,13 +128,13 @@ describe('EMAIL_PATTERN over-redaction guard — validator-rejected shapes survi
 
 describe('EMAIL_PATTERN over-redaction guard — ops-useful strings survive', () => {
   const OPS_STRINGS = [
-    'at Foo::Bar#baz (/app/lib/onetime/logic/base.rb:107:in `validate\')',
+    "at Foo::Bar#baz (/app/lib/onetime/logic/base.rb:107:in `validate')",
     '/Users/d/Projects/dev/onetimesecret/lib/onetime/utils/strings.rb',
     'Onetime::Utils::Strings::EMAIL_PATTERN',
     'commit 9ebdbd0374a1f2c3d4e5f60718293a4b5c6d7e8f',
     '2026-07-30T12:34:56.789Z',
     '2026-07-30 12:34:56 +0000',
-    'TypeError: Cannot read properties of undefined (reading \'email\')',
+    "TypeError: Cannot read properties of undefined (reading 'email')",
     '@media (prefers-color-scheme: dark)',
     'redis://127.0.0.1:6379/0',
     'v1.2.3-rc.4',
@@ -201,9 +201,7 @@ describe('backend mirror', () => {
       resolve(process.cwd(), 'lib/onetime/initializers/setup_diagnostics.rb'),
       'utf8'
     );
-    const rubyLine = rubySource
-      .split('\n')
-      .find((line) => /^\s*EMAIL_PATTERN\s*=\s*\//.test(line));
+    const rubyLine = rubySource.split('\n').find((line) => /^\s*EMAIL_PATTERN\s*=\s*\//.test(line));
     expect(rubyLine, 'EMAIL_PATTERN literal not found in setup_diagnostics.rb').toBeTruthy();
 
     const rubyLiteral = rubyLine!.match(/=\s*\/(.*)\/\s*$/);
