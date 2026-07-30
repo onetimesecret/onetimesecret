@@ -180,6 +180,23 @@ module EmailRedactionCorpus
            'and it is no longer in the corpus as kind=accepted. Restore it — deleting a shape ' \
            'from the corpus silences every assertion in both languages.'
     end
+    # kind=informational may only ever hold validator-REJECTED, contains-empty
+    # shapes. It exists to record don't-care over-redaction; a storable address
+    # downgraded to informational (with contains emptied) would be unasserted in
+    # BOTH languages — the one route by which this category could swallow a leak.
+    entries.select { |e| e['kind'] == 'informational' }.each do |e|
+      if e['truemail_accepts'] != false
+        v << "entry #{e['id'].inspect} is kind=informational but truemail_accepts=" \
+             "#{e['truemail_accepts'].inspect} — a storable address must be kind=accepted " \
+             'so its redaction is asserted; informational is only for validator-rejected shapes.'
+      end
+      unless e['contains'].nil? || e['contains'].empty?
+        v << "entry #{e['id'].inspect} is kind=informational but lists contains=" \
+             "#{e['contains'].inspect} — must_redact keys off contains, so this entry " \
+             'would be asserted by the leak suites while every kind-filtered suite skips ' \
+             'it. Make it accepted/embedded, or empty contains.'
+      end
+    end
     v
   end
 

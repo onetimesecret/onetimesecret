@@ -167,6 +167,28 @@ describe('corpus integrity', () => {
       expect(Array.isArray(entry.contains)).toBe(true);
     }
   );
+
+  /** kind=informational may only ever hold validator-REJECTED, contains-empty
+   *  shapes. It records don't-care over-redaction; a storable address
+   *  downgraded to informational (with contains emptied) would be unasserted
+   *  in BOTH languages — the one route by which this category could swallow a
+   *  leak. */
+  it.each(
+    corpus.entries.filter((e) => e.kind === 'informational').map((e) => [e.id, e] as const)
+  )('%s — informational entries stay validator-rejected and unasserted', (id, entry) => {
+    expect(
+      entry.truemail_accepts,
+      `entry=${id} is kind=informational but truemail_accepts=${entry.truemail_accepts} — a ` +
+        `storable address must be kind=accepted so its redaction is asserted; informational ` +
+        `is only for validator-rejected shapes.`
+    ).toBe(false);
+    expect(
+      entry.contains,
+      `entry=${id} is kind=informational but lists contains=${JSON.stringify(entry.contains)} — ` +
+        `MUST_REDACT keys off contains, so this entry would be asserted by the leak suites ` +
+        `while every kind-filtered suite skips it. Make it accepted/embedded, or empty contains.`
+    ).toEqual([]);
+  });
 });
 
 // ------------------------------------------------------ the invariant itself
