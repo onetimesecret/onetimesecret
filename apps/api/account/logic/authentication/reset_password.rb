@@ -2,12 +2,15 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/credential_change_session_revocation'
+
 module AccountAPI::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
     class ResetPassword < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::CredentialChangeSessionRevocation
 
       attr_reader :secret, :is_confirmed
 
@@ -70,6 +73,15 @@ module AccountAPI::Logic
 
         # Update the customer's passphrase
         @cust.update_passphrase @password
+
+        # SECURITY (M-2): a password reset MUST invalidate every existing
+        # session for the account — the whole point of a reset is to lock out
+        # whoever currently holds a live session. In full mode the Rodauth
+        # after_reset_password hook does this; that hook never fires for this
+        # simple-mode path, so enforce it here. The user is UNAUTHENTICATED
+        # (they followed an email link), so there is no current session to
+        # preserve: stamp the watermark and revoke them ALL.
+        revoke_sessions_for_credential_change(@cust)
 
         # Destroy the secret on successful attempt only. Otherwise
         # the user will need to make a new request if the passwords

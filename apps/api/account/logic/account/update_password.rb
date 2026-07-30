@@ -2,12 +2,14 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/credential_change_session_revocation'
 require 'onetime/logic/sso_only_gating'
 
 module AccountAPI::Logic
   module Account
     class UpdatePassword < UpdateAccountField
       include Onetime::LoggerMethods
+      include Onetime::Logic::CredentialChangeSessionRevocation
       include Onetime::Logic::SsoOnlyGating
 
       def raise_concerns
@@ -50,7 +52,43 @@ module AccountAPI::Logic
           perform_update_full_mode
         else
           cust.update_passphrase! @newpassword
+          revoke_other_sessions_simple_mode
         end
+      end
+
+      # SECURITY (M-2): changing the password must sign out every OTHER session
+      # (the standard "someone may know my password" remediation) while KEEPING
+      # the session the user is changing it from. In full mode the Rodauth
+      # after_change_password hook does this; that hook never fires in simple
+      # mode, so enforce it here via the same watermark + revoke sequence
+      # (CredentialChangeSessionRevocation).
+      def revoke_other_sessions_simple_mode
+        # Resolve the current sid (== the sid tracked in Customer#active_sessions).
+        # If it cannot be determined we fail SECURE: except_session_id stays nil,
+        # revoking ALL sessions incl. the current one, so the user is simply
+        # logged out rather than a stale session surviving.
+        current_sid = begin
+          sid = safe_session_id
+          sid.respond_to?(:public_id) ? sid.public_id : sid&.to_s
+        rescue StandardError => ex
+          auth_logger.warn '[update-password] current session id unresolved', error: ex.message
+          nil
+        end
+
+        watermark = revoke_sessions_for_credential_change(cust, except_session_id: current_sid)
+
+        # The watermark's `<=` auth-time check retires any session authenticated
+        # at-or-before it — including the one just preserved. Re-stamp the kept
+        # session STRICTLY past the watermark (same maneuver as the full-mode
+        # hook's post-rotation re-stamp) so both that check and the
+        # watermark-honoring async sweep spare it. When the stamp failed
+        # (watermark 0) fall back to now + 1 so the invariant still holds
+        # against a same-second stamp retry. A sess that cannot be written
+        # (nil / frozen) degrades to the fail-secure logout above.
+        return unless sess.respond_to?(:[]=)
+
+        sess['authenticated_at'] =
+          watermark.positive? ? [Familia.now.to_i, watermark + 1].max : Familia.now.to_i + 1
       end
 
       # Verify password using the appropriate mechanism based on auth mode.
