@@ -80,14 +80,19 @@ module Onetime::Customer::Features
         custid.to_s.eql?('GLOBAL')
       end
 
-      def reset_secret?(secret)
+      # NOT named reset_secret?: Familia's `string :reset_secret` field
+      # generates a zero-arity Customer#reset_secret? predicate directly on the
+      # class, which shadows any same-named module method here — a one-arg call
+      # then raises ArgumentError, which is exactly how the simple-mode reset
+      # flow was breaking (valid_reset_secret! 500'd on every attempt).
+      def matches_reset_secret?(secret)
         return false if secret.nil? || !secret.exists? || secret.identifier.to_s.empty?
 
         Rack::Utils.secure_compare(reset_secret.to_s, secret.identifier)
       end
 
       def valid_reset_secret!(secret)
-        if is_valid = reset_secret?(secret)
+        if is_valid = matches_reset_secret?(secret)
           OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortid}"
           secret.delete!
           reset_secret.delete!
