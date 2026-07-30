@@ -57,9 +57,9 @@ module Onetime
               30.days,        # 2592000
             ],
             # Ceiling for secrets created without an account. A default, not an
-            # invariant: operators may raise or lower it (env TTL_MAX_ANONYMOUS,
-            # or the deprecated PLAN_TTL_ANONYMOUS alias). Resolved and bounded
-            # by WithEntitlements.configured_anonymous_max_ttl.
+            # invariant: operators may raise or lower it (env TTL_MAX_ANONYMOUS).
+            # Resolved and bounded by
+            # WithEntitlements.configured_anonymous_max_ttl.
             'ttl_max_anonymous' => 7.days,
             'passphrase' => {
               'required' => false,
@@ -485,7 +485,8 @@ module Onetime
       end
 
       # Same treatment for the anonymous ceiling: ERB hands back a String
-      # whenever TTL_MAX_ANONYMOUS (or the PLAN_TTL_ANONYMOUS alias) is set.
+      # whenever TTL_MAX_ANONYMOUS (or the legacy PLAN_TTL_ANONYMOUS alias
+      # resolved in config.defaults.yaml) is set.
       #
       # Deliberately NOT coerce_ttl_seconds: its String branch is `to_i`, which
       # turns a typo into 0 and loses the fact that it was a typo. A malformed

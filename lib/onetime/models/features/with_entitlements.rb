@@ -60,8 +60,8 @@ module Onetime
         # unaccountable strangers parking data on someone else's infrastructure.
         # A self-hosted deployment on a private network does not inherit that
         # threat model, so operators set their own value via the config key
-        # site.secret_options.ttl_max_anonymous (env TTL_MAX_ANONYMOUS, or the
-        # deprecated PLAN_TTL_ANONYMOUS alias). Raising it is supported.
+        # site.secret_options.ttl_max_anonymous (env TTL_MAX_ANONYMOUS).
+        # Raising it is supported.
         #
         # The genuine software-safety bound is MAX_TTL (365 days); this constant
         # is product policy and lives at the operator's discretion. See the

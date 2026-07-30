@@ -181,11 +181,11 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     after do
-      ENV.delete('PLAN_TTL_ANONYMOUS')
+      ENV.delete('TTL_MAX_ANONYMOUS')
       test_class.reset_free_tier_limits!
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is not set' do
+    context 'when TTL_MAX_ANONYMOUS is not set' do
       it 'returns default secret_lifetime.max of 14 days (matches free_v1 plan)' do
         # See #3111: the constant must match `free_v1.limits.secret_lifetime`
         # in etc/billing.yaml (1_209_600) so that empty-planid orgs get the
@@ -210,8 +210,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is set to 30 days' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '2592000' }
+    context 'when TTL_MAX_ANONYMOUS is set to 30 days' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '2592000' }
 
       it 'returns overridden secret_lifetime.max' do
         limits = test_class.free_tier_limits
@@ -225,8 +225,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS exceeds MAX_TTL' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '999999999' }
+    context 'when TTL_MAX_ANONYMOUS exceeds MAX_TTL' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '999999999' }
 
       it 'caps secret_lifetime.max at MAX_TTL' do
         limits = test_class.free_tier_limits
@@ -234,8 +234,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is invalid' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = 'invalid' }
+    context 'when TTL_MAX_ANONYMOUS is invalid' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = 'invalid' }
 
       it 'falls back to DEFAULT_FREE_TTL (14 days)' do
         limits = test_class.free_tier_limits
@@ -253,11 +253,11 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
 
       it 'can be reset for testing' do
-        ENV['PLAN_TTL_ANONYMOUS'] = '1000'
+        ENV['TTL_MAX_ANONYMOUS'] = '1000'
         first_limits = test_class.free_tier_limits
         expect(first_limits['secret_lifetime.max']).to eq(1000)
 
-        ENV['PLAN_TTL_ANONYMOUS'] = '2000'
+        ENV['TTL_MAX_ANONYMOUS'] = '2000'
         # Without reset, should return memoized value
         expect(test_class.free_tier_limits['secret_lifetime.max']).to eq(1000)
 
@@ -324,11 +324,11 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     after do
-      ENV.delete('PLAN_TTL_ANONYMOUS')
+      ENV.delete('TTL_MAX_ANONYMOUS')
       test_class.reset_free_tier_limits!
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is not set' do
+    context 'when TTL_MAX_ANONYMOUS is not set' do
       it 'limit_for returns default 14 days for secret_lifetime (#3111)' do
         expect(org.limit_for('secret_lifetime')).to eq(1_209_600)
         expect(org.limit_for('secret_lifetime')).to eq(described_class::DEFAULT_FREE_TTL)
@@ -341,35 +341,35 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is set to 30 days' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '2592000' }
+    context 'when TTL_MAX_ANONYMOUS is set to 30 days' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '2592000' }
 
       it 'limit_for returns overridden value' do
         expect(org.limit_for('secret_lifetime')).to eq(2_592_000)
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is negative' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '-500' }
+    context 'when TTL_MAX_ANONYMOUS is negative' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '-500' }
 
       it 'limit_for clamps to zero' do
         expect(org.limit_for('secret_lifetime')).to eq(0)
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS explicitly downgrades to legacy 7 days' do
+    context 'when TTL_MAX_ANONYMOUS explicitly downgrades to legacy 7 days' do
       # Operators who want the old 7-day cap can still opt in via env var.
       # This protects deployments that intentionally relied on the legacy
       # constant value before #3111 was filed.
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '604800' }
+      before { ENV['TTL_MAX_ANONYMOUS'] = '604800' }
 
       it 'limit_for honors the operator override' do
         expect(org.limit_for('secret_lifetime')).to eq(604_800)
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS matches the new default exactly' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '1209600' }
+    context 'when TTL_MAX_ANONYMOUS matches the new default exactly' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '1209600' }
 
       it 'limit_for returns 14 days (idempotent override)' do
         expect(org.limit_for('secret_lifetime')).to eq(1_209_600)
@@ -406,7 +406,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     after do
-      ENV.delete('PLAN_TTL_ANONYMOUS')
+      ENV.delete('TTL_MAX_ANONYMOUS')
       test_class.reset_free_tier_limits!
     end
 

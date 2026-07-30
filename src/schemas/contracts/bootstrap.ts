@@ -356,7 +356,7 @@ export const secretOptionsSchema = z.object({
   /**
    * TTL ceiling the server silently applies to anonymous (guest) secrets, in
    * seconds. A hard product cap (7 days) that holds on every deployment,
-   * billing enabled or not; PLAN_TTL_ANONYMOUS can lower it further. Absent
+   * billing enabled or not; TTL_MAX_ANONYMOUS can raise or lower it. Absent
    * only on a payload predating this field — treat that as "no ceiling".
    *
    * @sync apps/web/core/views/serializers/config_serializer.rb — anonymous_ttl_ceiling

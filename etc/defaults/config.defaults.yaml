@@ -229,9 +229,12 @@ site:
     # is enabled the free-tier plan limit applies as well, so the anonymous
     # grant never exceeds what an authenticated free-tier user receives.
     #
-    # PLAN_TTL_ANONYMOUS is the deprecated alias, read only here. Ruby reads the
-    # resolved config key (site.secret_options.ttl_max_anonymous), never the env
-    # var, so this line is the single place the old name survives.
+    # PLAN_TTL_ANONYMOUS is the deprecated alias, read only here — this line is
+    # the single place the old name survives. The ceiling itself is read from
+    # the resolved config key (site.secret_options.ttl_max_anonymous) via
+    # WithEntitlements.configured_anonymous_max_ttl, never from the env var.
+    # Organization.free_tier_limits does read ENV['TTL_MAX_ANONYMOUS'] directly
+    # for its secret_lifetime fallback, and does not honour the alias.
     ttl_max_anonymous: <%= ENV['TTL_MAX_ANONYMOUS'] || ENV['PLAN_TTL_ANONYMOUS'] || nil %>
     # Settings for the passphrase field that protects access to secrets
     passphrase:

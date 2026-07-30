@@ -19,13 +19,20 @@ Security
 Changed
 -------
 
-- ``TTL_MAX_ANONYMOUS`` replaces ``PLAN_TTL_ANONYMOUS`` as the name for the
-  anonymous TTL ceiling. The old name still works — it is read as an alias when
-  the new one is unset — but it implied a coupling to plan and billing state
-  that no longer exists. Note that ``PLAN_TTL_ANONYMOUS`` retains its second,
-  older role of setting the free-tier ``secret_lifetime`` fallback; on a
-  billing-enabled deployment it therefore moves both values, while
-  ``TTL_MAX_ANONYMOUS`` moves only the anonymous ceiling.
+- ``TTL_MAX_ANONYMOUS`` replaces ``PLAN_TTL_ANONYMOUS`` throughout. The old name
+  implied a coupling to plan and billing state that no longer exists. It is
+  still read as an alias for the anonymous ceiling when the new name is unset,
+  but it is no longer read anywhere else — including its second, older job of
+  setting the free-tier ``secret_lifetime`` fallback used when plan state is
+  unavailable. That fallback now reads ``TTL_MAX_ANONYMOUS`` as well, so on a
+  billing-enabled deployment one variable moves both values.
+
+  **Operators on a billing-enabled deployment should rename the variable.** Left
+  as-is, ``PLAN_TTL_ANONYMOUS`` still sets the anonymous ceiling via the alias,
+  but the free-tier ``secret_lifetime`` fallback reverts to its 14-day default
+  (``free_v1`` in ``etc/billing.yaml``). That fallback only applies when plan
+  state is unavailable — an empty or uncached ``planid`` — and the anonymous
+  ceiling is unaffected either way.
 
 .. note::
 

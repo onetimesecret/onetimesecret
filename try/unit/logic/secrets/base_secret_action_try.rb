@@ -217,14 +217,14 @@ end
 #==> _ == Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
 
 ## V2: lowering the free-tier limit below the ceiling still applies
-# PLAN_TTL_ANONYMOUS retains its older role of moving free_tier_limits.
+# TTL_MAX_ANONYMOUS also moves free_tier_limits on billing-enabled deployments.
 billing = Onetime::BillingConfig.instance
 class << billing
   def enabled?
     true
   end
 end
-ENV['PLAN_TTL_ANONYMOUS'] = (3 * 86_400).to_s
+ENV['TTL_MAX_ANONYMOUS'] = (3 * 86_400).to_s
 Onetime::Organization.reset_free_tier_limits!
 begin
   logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
@@ -233,7 +233,7 @@ ensure
   class << billing
     remove_method :enabled?
   end
-  ENV.delete('PLAN_TTL_ANONYMOUS')
+  ENV.delete('TTL_MAX_ANONYMOUS')
   Onetime::Organization.reset_free_tier_limits!
 end
 #=> 259_200

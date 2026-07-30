@@ -86,7 +86,7 @@ module Onetime
           # @return [Integer] Validated TTL value in seconds (0 to MAX_TTL)
           #
           # @example
-          #   Organization.parse_ttl_env('PLAN_TTL_ANONYMOUS', 604_800)
+          #   Organization.parse_ttl_env('TTL_MAX_ANONYMOUS', 604_800)
           def parse_ttl_env(env_var, default)
             raw = ENV.fetch(env_var, nil)
             return default if raw.nil? || raw.strip.empty?
@@ -103,7 +103,7 @@ module Onetime
 
           # FREE tier default limits when cache is unavailable
           #
-          # The secret_lifetime.max value can be overridden via PLAN_TTL_ANONYMOUS
+          # The secret_lifetime.max value can be overridden via TTL_MAX_ANONYMOUS
           # environment variable for Docker/self-hosted deployments.
           #
           # This is the FREE-TIER limit, not the anonymous ceiling. The anonymous
@@ -129,7 +129,7 @@ module Onetime
               'role_owners_per_org.max' => 1,
               'role_admins_per_org.max' => 0,
               'role_members_per_org.max' => 0,
-              'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', WithEntitlements::DEFAULT_FREE_TTL),
+              'secret_lifetime.max' => parse_ttl_env('TTL_MAX_ANONYMOUS', WithEntitlements::DEFAULT_FREE_TTL),
             }.freeze
           end
 

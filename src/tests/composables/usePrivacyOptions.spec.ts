@@ -103,7 +103,7 @@ describe('usePrivacyOptions', () => {
       expect(values()).toEqual([MINUTE, HOUR, DAY]);
     });
 
-    it('honours a ceiling lowered below the cap by PLAN_TTL_ANONYMOUS', () => {
+    it('honours a ceiling lowered below the cap by TTL_MAX_ANONYMOUS', () => {
       setupStore({ ttl_max_anonymous: HOUR });
 
       expect(values()).toEqual([MINUTE, HOUR]);
