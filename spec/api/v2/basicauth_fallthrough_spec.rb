@@ -63,6 +63,13 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
     get path
   end
 
+  def json_post(path, body = {}, authorization: nil)
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    header 'Authorization', authorization
+    post path, JSON.generate(body)
+  end
+
   # An identifier that does not resolve to a stored secret. Anonymous callers
   # get 404 (MissingSecret) on it — which is exactly the point: reaching the
   # logic layer at all proves the request was allowed through as anonymous.
@@ -131,6 +138,100 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
     it 'is not rejected by the auth layer (no 401)' do
       json_get unknown_secret_path, authorization: basic_header(test_email, test_apikey)
       expect(last_response.status).not_to eq(401)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # 4. POST /secret/conceal — the route that motivated the fix. Before it,
+  #    invalid credentials fell through to anonymous and CREATED a secret whose
+  #    receipt was silently orphaned from the caller's account.
+  # ---------------------------------------------------------------------------
+  describe 'POST /api/v2/secret/conceal (auth=basicauth,noauth) with bad credentials' do
+    let(:conceal_body) { { secret: { secret: "fallthrough spec #{SecureRandom.hex(8)}", ttl: 3600 } } }
+
+    it 'returns 401 for an unknown username (no anonymous record creation)' do
+      json_post '/api/v2/secret/conceal', conceal_body,
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      expect(last_response.status).to eq(401)
+    end
+
+    it 'surfaces the credential failure in the JSON error body' do
+      json_post '/api/v2/secret/conceal', conceal_body,
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      body = JSON.parse(last_response.body)
+      expect(body['message']).to include('CREDENTIALS_INVALID')
+    end
+
+    context 'when the customer exists but the API token is wrong' do
+      let(:test_email) { "fallthrough_conceal_#{SecureRandom.uuid}@example.com" }
+
+      before do
+        @test_customer = Onetime::Customer.new(email: test_email)
+        @test_customer.save
+        @test_customer.apitoken = SecureRandom.hex(20)
+        @test_customer.save
+      end
+
+      after do
+        @test_customer&.delete!
+      end
+
+      it 'returns 401 (no anonymous fallthrough for a real account)' do
+        json_post '/api/v2/secret/conceal', conceal_body,
+          authorization: basic_header(test_email, 'definitely_the_wrong_token')
+        expect(last_response.status).to eq(401)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # 5. POST /secret/conceal without credentials -> anonymous path unchanged
+  # ---------------------------------------------------------------------------
+  describe 'POST /api/v2/secret/conceal without an Authorization header' do
+    let(:conceal_body) { { secret: { secret: "fallthrough spec #{SecureRandom.hex(8)}", ttl: 3600 } } }
+
+    it 'reaches the logic layer as anonymous and creates the secret (200, not 401)' do
+      json_post '/api/v2/secret/conceal', conceal_body
+      expect(last_response.status).to eq(200)
+      body = JSON.parse(last_response.body)
+      expect(body['record']).to be_a(Hash)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # 6. POST /secret/conceal with valid credentials -> authenticated, unchanged
+  # ---------------------------------------------------------------------------
+  describe 'POST /api/v2/secret/conceal with valid credentials' do
+    let(:conceal_body) { { secret: { secret: "fallthrough spec #{SecureRandom.hex(8)}", ttl: 3600 } } }
+    let(:test_email) { "fallthrough_conceal_ok_#{SecureRandom.uuid}@example.com" }
+    let(:test_apikey) { SecureRandom.hex(20) }
+
+    before do
+      @test_customer = Onetime::Customer.new(email: test_email)
+      @test_customer.save
+      @test_customer.apitoken = test_apikey
+      @test_customer.save
+    end
+
+    after do
+      @test_customer&.delete!
+    end
+
+    it 'is not rejected by the auth layer (no 401)' do
+      json_post '/api/v2/secret/conceal', conceal_body,
+        authorization: basic_header(test_email, test_apikey)
+      expect(last_response.status).not_to eq(401)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # 7. POST /secret/generate — same auth=basicauth,noauth chain as conceal
+  # ---------------------------------------------------------------------------
+  describe 'POST /api/v2/secret/generate (auth=basicauth,noauth) with bad credentials' do
+    it 'returns 401 for an unknown username (no anonymous fallthrough)' do
+      json_post '/api/v2/secret/generate', { secret: { ttl: 3600 } },
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      expect(last_response.status).to eq(401)
     end
   end
 
