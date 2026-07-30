@@ -200,21 +200,88 @@ describe('useInviteAuth', () => {
     });
 
     it('returns error when server responds with error field', async () => {
+      // FormError shape (flat `field` key) — the InviteAPI never emits the
+      // Rodauth 'field-error' tuple; that shape belongs to /auth/login.
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {
         error: 'Unable to create account',
-        'field-error': ['password', 'Password too weak'],
+        error_type: 'validation_error',
+        field: 'password',
       });
 
       const { signupForInvite, error, fieldErrors } = useInviteAuth();
       const result = await signupForInvite('dup@e.com', 'pw12345678', true, 'tok');
 
-      // accountExists is always returned (false unless error contains "already exists")
-      expect(result).toEqual({ success: false, error: 'Unable to create account', accountExists: false });
+      // signinRequired is always returned (false unless error_type is signup_unavailable)
+      expect(result).toEqual({ success: false, error: 'Unable to create account', signinRequired: false });
       expect(error.value).toBe('Unable to create account');
-      expect(fieldErrors.value).toEqual({ password: 'Password too weak' });
+      expect(fieldErrors.value).toEqual({ password: 'Unable to create account' });
     });
 
-    it('returns accountExists: true when server indicates account already exists', async () => {
+    it('populates fieldErrors from FormError-shaped responses (flat field key)', async () => {
+      // The InviteAPI serializes Onetime::FormError as { error, error_type,
+      // field } — no Rodauth 'field-error' tuple. The composable must map the
+      // flat field so InviteSignUpForm can mark the input invalid.
+      axiosMock.onPost('/api/invite/tok/signup').reply(422, {
+        error: 'Password must be at least 8 characters',
+        error_type: 'password_too_short',
+        field: 'password',
+      });
+
+      const { signupForInvite, error, fieldErrors } = useInviteAuth();
+      const result = await signupForInvite('u@e.com', 'short', true, 'tok');
+
+      expect(result.success).toBe(false);
+      expect(error.value).toBe('Password must be at least 8 characters');
+      expect(fieldErrors.value).toEqual({ password: 'Password must be at least 8 characters' });
+    });
+
+    it('leaves fieldErrors empty for FormError responses without a field (signup_unavailable)', async () => {
+      // signup_unavailable deliberately carries no field (#3856) — the error
+      // is global, not attached to an input.
+      axiosMock.onPost('/api/invite/tok/signup').reply(422, {
+        error: 'Unable to complete signup for this invitation. If you already have an account, sign in and then open your invitation link again.',
+        error_type: 'signup_unavailable',
+      });
+
+      const { signupForInvite, fieldErrors } = useInviteAuth();
+      const result = await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
+
+      expect(result.success).toBe(false);
+      expect(fieldErrors.value).toEqual({});
+    });
+
+    it('returns signinRequired: true on the generic signup_unavailable error_type', async () => {
+      // #3856: the backend responds with a generic error that does not confirm
+      // account existence; the signin fallback keys off error_type alone.
+      axiosMock.onPost('/api/invite/tok/signup').reply(200, {
+        error: 'Unable to complete signup for this invitation. If you already have an account, sign in and then open your invitation link again.',
+        error_type: 'signup_unavailable',
+      });
+
+      const { signupForInvite } = useInviteAuth();
+      const result = await signupForInvite('existing@e.com', 'pw12345678', true, 'tok');
+
+      expect(result.success).toBe(false);
+      expect(result.signinRequired).toBe(true);
+    });
+
+    it('returns signinRequired: true when signup_unavailable arrives as a 422', async () => {
+      // FormError renders as HTTP 422, so axios rejects and the catch path
+      // must apply the same error_type check.
+      axiosMock.onPost('/api/invite/tok/signup').reply(422, {
+        error: 'Unable to complete signup for this invitation. If you already have an account, sign in and then open your invitation link again.',
+        error_type: 'signup_unavailable',
+      });
+
+      const { signupForInvite } = useInviteAuth();
+      const result = await signupForInvite('existing@e.com', 'pw12345678', true, 'tok');
+
+      expect(result.success).toBe(false);
+      expect(result.signinRequired).toBe(true);
+    });
+
+    it('does not flip signinRequired on message text mentioning existing accounts', async () => {
+      // Regression (#3856): detection must not sniff the message string.
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {
         error: 'An account already exists with this email',
       });
@@ -223,7 +290,7 @@ describe('useInviteAuth', () => {
       const result = await signupForInvite('existing@e.com', 'pw12345678', true, 'tok');
 
       expect(result.success).toBe(false);
-      expect(result.accountExists).toBe(true);
+      expect(result.signinRequired).toBe(false);
     });
 
     it('does not call setAuthenticated on server error response', async () => {
@@ -458,17 +525,17 @@ describe('useInviteAuth', () => {
 
   describe('clearErrors', () => {
     it('clears error and fieldErrors state', async () => {
-      // Uses the new invite signup endpoint
+      // Uses the new invite signup endpoint (FormError shape: flat field key)
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {
         error: 'Some error',
-        'field-error': ['password', 'Bad password'],
+        field: 'password',
       });
 
       const { signupForInvite, clearErrors, error, fieldErrors } = useInviteAuth();
       await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
 
       expect(error.value).toBe('Some error');
-      expect(fieldErrors.value).toEqual({ password: 'Bad password' });
+      expect(fieldErrors.value).toEqual({ password: 'Some error' });
 
       clearErrors();
 
