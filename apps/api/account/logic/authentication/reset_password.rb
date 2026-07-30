@@ -88,6 +88,18 @@ module AccountAPI::Logic
         # preserve: stamp the watermark and revoke them ALL.
         revoke_sessions_for_credential_change(@cust)
 
+        # The browser performing the reset may itself hold an authenticated
+        # session cookie for this account (reset requested while signed in).
+        # The revoke above deleted its blob, but the in-memory Rack session
+        # can be written back at commit and resurrect it — and a resurrected
+        # blob only dies on its NEXT request via the watermark. Clear the
+        # in-memory session (rotating the sid when the lever exists, like the
+        # logout controller) so the resetting browser ends signed out now.
+        if sess.respond_to?(:clear)
+          sess.clear
+          sess.options[:renew] = true if sess.respond_to?(:options) && sess.options
+        end
+
         # Destroy the secret on successful attempt only. Otherwise
         # the user will need to make a new request if the passwords
         # don't match.

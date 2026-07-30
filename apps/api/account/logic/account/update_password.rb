@@ -103,6 +103,19 @@ module AccountAPI::Logic
       # fail SECURE (the user re-authenticates) rather than re-legitimizing a
       # possibly fixated sid.
       def rotate_and_restamp_kept_session(current_sid, watermark)
+        # Blank sid → the revoke above ran in ALL-sessions mode, and the
+        # "user is simply logged out" promise must survive session commit:
+        # left alone, the middleware can write the in-memory session back and
+        # resurrect the just-revoked blob — and a rotation/re-stamp here would
+        # re-legitimize it outright. Clear the session (rotating the sid when
+        # the lever exists, like the logout controller) and skip
+        # rotation/re-stamp entirely.
+        if current_sid.to_s.empty?
+          sess.clear if sess.respond_to?(:clear)
+          sess.options[:renew] = true if sess.respond_to?(:options) && sess.options
+          return
+        end
+
         options = sess.respond_to?(:options) ? sess.options : nil
         if options.nil?
           auth_logger.error '[update-password] session rotation unavailable',
@@ -119,8 +132,6 @@ module AccountAPI::Logic
         # against a same-second stamp retry.
         sess['authenticated_at'] =
           watermark.positive? ? [Familia.now.to_i, watermark + 1].max : Familia.now.to_i + 1
-
-        return if current_sid.to_s.empty?
 
         # Tidy the pre-rotation sid's metadata (the tidy_sidecars pattern);
         # the new sid is tracked at session commit.

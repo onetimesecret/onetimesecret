@@ -166,7 +166,9 @@ obj.process
 @m2_cust.active_sessions.revrange(0, -1)
 #=> []
 
-## M-2: with no resolvable current sid, ALL sessions are revoked (fail secure)
+## M-2: with no resolvable current sid, ALL sessions are revoked AND the
+## in-memory session is cleared (not re-stamped), so session commit cannot
+## write back a live authenticated blob (fail secure)
 @ns_cust = Onetime::Customer.create!(email: generate_random_email)
 @ns_cust.update_passphrase @current_password
 @ns_sid = SecureRandom.hex(32)
@@ -178,10 +180,11 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 @db.set("session:#{@ns_sid}", @codec.encode({ 'authenticated' => true,
                                               'external_id' => @ns_cust.extid,
                                               'email' => @ns_cust.email }))
-strategy_result = MockStrategyResult.new(session: {}, user: @ns_cust)
+@ns_sess = { 'authenticated' => true, 'external_id' => @ns_cust.extid }
+strategy_result = MockStrategyResult.new(session: @ns_sess, user: @ns_cust)
 params = { 'password' => @current_password, 'newpassword' => @new_password, 'password-confirm' => @new_password }
 obj = AccountAPI::Logic::Account::UpdatePassword.new strategy_result, params
 obj.raise_concerns
 obj.process
-@db.get("session:#{@ns_sid}").nil?
-#=> true
+[@db.get("session:#{@ns_sid}").nil?, @ns_sess.empty?]
+#=> [true, true]

@@ -56,7 +56,11 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 #=> false
 
 ## Reset with a valid token succeeds and changes the passphrase
-strategy_result = MockStrategyResult.anonymous
+# The resetting browser still holds authenticated session data (reset
+# requested while signed in) — the reset must clear it, or session commit
+# could write the just-revoked session straight back.
+@reset_sess = { 'authenticated' => true, 'external_id' => @cust.extid }
+strategy_result = MockStrategyResult.new(session: @reset_sess, user: nil)
 params = {
   'key' => @secret.identifier,
   'password' => @new_password,
@@ -66,6 +70,10 @@ logic = AccountAPI::Logic::Authentication::ResetPassword.new strategy_result, pa
 logic.raise_concerns
 logic.process
 Onetime::Customer.load(@cust.objid).passphrase?(@new_password)
+#=> true
+
+## M-2: the resetting browser's own in-memory session is cleared
+@reset_sess.empty?
 #=> true
 
 ## M-2: the pre-reset session blob is revoked by the reset
