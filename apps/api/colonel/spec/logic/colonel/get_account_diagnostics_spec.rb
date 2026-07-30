@@ -9,7 +9,7 @@ require 'auth/operations/customers/diagnose'
 # Adapter-layer coverage only. The diagnosis itself is covered by
 # apps/web/auth/spec/operations/customers/diagnose_spec.rb. These examples
 # assert what THIS adapter owns: identifier resolution (including the
-# email-only arm that must NOT 404), audit_limit parsing, and the
+# unresolvable identifiers that must NOT 404), audit_limit parsing, and the
 # record/details envelope.
 RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
   let(:op) { instance_double(Auth::Operations::Customers::Diagnose) }
@@ -50,10 +50,12 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
     [{ severity: :critical, code: :locked_out, message: 'Lockout active' }]
   end
 
-  def op_result(customer: target)
+  # `account_found` is separable from `customer` so the orphan shape — an
+  # accounts row with no customer record — is expressible.
+  def op_result(customer: target, account_found: !customer.nil?)
     Auth::Operations::Customers::Diagnose::Result.new(
       customer: customer,
-      sections: { auth_account: { available: true, found: !customer.nil? } },
+      sections: { auth_account: { available: true, found: account_found } },
       findings: findings,
     )
   end
@@ -86,12 +88,31 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
     expect(data[:details][:sections]).to have_key(:auth_account)
   end
 
-  it '404s for an unresolvable non-email identifier' do
+  # The case this endpoint exists to name: an accounts row with no customer
+  # record, addressed by its extid. Diagnose resolves it straight from the
+  # authdb; a 404 here would withhold the diagnosis and diverge from
+  # `bin/ots customers diagnose`, which prints it and exits 1.
+  it 'delegates an unresolvable extid so orphans are diagnosed, not 404d' do
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+    allow(op).to receive(:call).and_return(op_result(customer: nil, account_found: true))
 
-    logic = logic_for('user_id' => 'ur_ghost')
+    logic = logic_for('user_id' => 'ur_orphan')
+    logic.raise_concerns
+    data  = logic.process
 
-    expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+    expect(Auth::Operations::Customers::Diagnose).to have_received(:new)
+      .with(hash_including(identifier: 'ur_orphan', customer: nil))
+    expect(data[:record][:found]).to be(true)
+  end
+
+  it 'answers found:false — not 404 — when the identifier names nothing anywhere' do
+    allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+    allow(op).to receive(:call).and_return(op_result(customer: nil))
+
+    logic = logic_for('user_id' => '999999')
+    logic.raise_concerns
+
+    expect(logic.process[:record][:found]).to be(false)
   end
 
   it 'does NOT 404 for an unresolvable email — the diagnosis is the answer' do

@@ -19,7 +19,7 @@ Added
   (``GET /api/colonel/users/:user_id/diagnostics``). Every section degrades
   independently, so simple auth mode (no SQL authdb) still renders the
   Redis-side read-out. Identifiers can be an email, extid, or Rodauth
-  account id; an email that resolves to no customer is still diagnosed
+  account id; any of them resolving to no customer is still diagnosed
   against the auth database rather than 404ing, so orphaned accounts rows
   and "nothing exists here — check the other regions" both come back as
   findings instead of dead ends.

@@ -39,12 +39,15 @@ module ColonelAPI
           verify_one_of_roles!(colonel: true)
 
           # Resolve extid -> email -> objid like GetUserDetails, but a missing
-          # customer is NOT a 404 when the identifier is an email: an auth
-          # account without a customer record (or nothing at all — "check the
-          # other regions") is itself a diagnosis, and this endpoint's job is
-          # to say so.
+          # customer is never a 404 here. "No customer record" is itself a
+          # diagnosis: the identifier may still name an orphaned accounts row
+          # (Diagnose looks one up by email, extid AND numeric Rodauth id), and
+          # "nothing at all — check the other regions" is the answer support
+          # needs, not a status code that withholds it. Same posture as
+          # GetBrandDiagnostics, and the same answer `bin/ots customers
+          # diagnose` gives. A nil `user` passes through so Diagnose owns the
+          # orphan lookup.
           @user = resolve_account(user_id)
-          raise_not_found('User not found') unless user&.exists? || user_id.include?('@')
         end
 
         def process
