@@ -222,6 +222,17 @@
     return String(sessionsSection?.active_count ?? 0);
   });
 
+  /**
+   * Same guard as the cells beside it. A timestamp that arrived on an unvouched
+   * section is still a value we cannot attribute to a completed read, and a
+   * stale "last login" is read as fact — so it degrades with its siblings
+   * rather than standing alone as the one cell that prints unguarded.
+   */
+  const lastLoginLabel = computed<string>(() => {
+    if (!sectionOk(authAccount.value)) return unknownLabel();
+    return epochLabel(authAccount.value?.last_login_at);
+  });
+
   const auditEntries = computed(() => sections.value?.audit_log?.entries ?? []);
 
   /**
@@ -403,8 +414,10 @@
           <dt class="text-gray-500 dark:text-gray-400">
             {{ t('web.admin.customers.detail.diagnostics.facts.lastLogin') }}
           </dt>
-          <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">
-            {{ epochLabel(authAccount?.last_login_at) }}
+          <dd
+            class="mt-0.5 font-medium text-gray-900 dark:text-white"
+            data-testid="diagnostics-fact-last-login">
+            {{ lastLoginLabel }}
           </dd>
         </div>
       </dl>

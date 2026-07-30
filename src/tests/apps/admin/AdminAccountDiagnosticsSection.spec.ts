@@ -342,6 +342,7 @@ describe('AdminAccountDiagnosticsSection (partially degraded sections)', () => {
     expect(cell('verification')).toContain('Pending');
     expect(cell('sessions')).toBe('2');
     expect(cell('password')).toBe('Set');
+    expect(cell('last-login')).toContain('2025');
     expect(wrapper.find('[data-testid="diagnostics-audit-log"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="diagnostics-audit-log-unavailable"]').exists()).toBe(false);
   });
@@ -440,6 +441,22 @@ describe('AdminAccountDiagnosticsSection (section arrives without `available`)',
 
     expect(cell('password')).toBe('Unknown');
     expect(cell('auth-status')).toBe('Unknown');
+  });
+
+  // Last login is the one cell that echoes a value instead of deriving one, so
+  // an unguarded version prints a real timestamp beside two "Unknown" siblings
+  // — a date the section never vouched for, read as the fact it looks like.
+  it('withholds the last-login timestamp from an unvouched auth_account', async () => {
+    await mountWith(
+      partialPayload({
+        found: true,
+        status: 'Verified',
+        has_password: true,
+        last_login_at: 1_752_000_000,
+      })
+    );
+
+    expect(cell('last-login')).toBe('Unknown');
   });
 });
 
