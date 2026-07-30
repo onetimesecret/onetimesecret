@@ -147,10 +147,10 @@ RSpec.describe 'MFA completion clears awaiting_mfa (issue #3884)', type: :integr
 
     # Rodauth stamps last_use at enrollment and otp_update_last_use refuses a
     # second use inside the same 30s interval, so a code generated now would be
-    # rejected as a replay. Backdate the stamp instead of sleeping. Plain
-    # Time.now, not Time.now.utc: the comparison is against the database's
-    # CURRENT_TIMESTAMP as Sequel renders it (local by default), and a UTC
-    # wall-clock lands in the future on a machine behind UTC.
+    # rejected as a replay. Backdate the stamp instead of sleeping. The test DB
+    # pins timezone=:utc + current_timestamp_utc (see RodauthTestHelper), so
+    # Sequel converts this Time to UTC on write and the guard's comparison
+    # against CURRENT_TIMESTAMP stays in one zone.
     db[:account_otp_keys].where(id: account_id).update(last_use: Time.now - 300)
 
     post_json('/logout', {})
