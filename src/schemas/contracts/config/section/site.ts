@@ -131,6 +131,10 @@ const passwordGenerationSchema = z.object({
 const siteSecretOptionsSchema = z.object({
   default_ttl: z.number().nullable().optional(),
   ttl_options: z.string().nullable().optional(), // Raw string from env, parsed elsewhere
+  // Ceiling for secrets created without an account. Default 7 days; operators
+  // may raise or lower it (TTL_MAX_ANONYMOUS, or the deprecated
+  // PLAN_TTL_ANONYMOUS alias). Coerced to Integer seconds in after_load.
+  ttl_max_anonymous: z.number().nullable().optional(),
   generated_value_display_ttl: z.number().optional(),
   passphrase: passphraseSchema,
   password_generation: passwordGenerationSchema,
