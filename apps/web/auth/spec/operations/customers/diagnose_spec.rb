@@ -166,6 +166,103 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(codes(result)).to include(:missing_auth_account)
     end
+
+    # An orphaned account is only reachable by email if the operator HAS the
+    # email. Support is usually handed an extid or the numeric account id from
+    # a log line, and neither resolves to a Customer for an orphan.
+    it 'diagnoses an orphaned auth account reached by extid only' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account
+
+      result = diagnose(identifier: 'ur_target')
+
+      expect(result.found?).to be(true)
+      expect(codes(result)).to include(:orphaned_auth_account)
+      expect(result.sections[:auth_account][:account_id]).to eq(42)
+    end
+
+    it 'diagnoses an orphaned auth account reached by numeric account id' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account
+
+      result = diagnose(identifier: '42')
+
+      expect(result.found?).to be(true)
+      expect(codes(result)).to include(:orphaned_auth_account)
+      expect(result.sections[:auth_account][:account_id]).to eq(42)
+    end
+
+    # A numeric identifier must never bind a RESOLVED customer to an unrelated
+    # accounts row that merely happens to carry that id.
+    it 'does not attach an unrelated accounts row to a resolved customer' do
+      insert_account
+      # Neither existing arm can reach account 42 for this customer, so only the
+      # numeric arm could — and it must not fire once a customer has resolved.
+      allow(customer).to receive_messages(extid: 'ur_other', email: 'other@example.com')
+
+      result = diagnose(customer: customer, identifier: '42')
+
+      expect(codes(result)).to include(:missing_auth_account)
+      expect(result.sections[:auth_account][:found]).to be(false)
+    end
+  end
+
+  # =========================================================================
+  describe 'authdb unavailable' do
+    # The connection is LAZY, so an unreachable database surfaces as a raising
+    # query rather than a nil connection.
+    let(:failing_db) do
+      instance_double(Sequel::Database).tap do |double|
+        allow(double).to receive(:[])
+          .and_raise(Sequel::DatabaseConnectionError, 'could not connect to server')
+      end
+    end
+
+    it 'reports authdb_unavailable instead of not_found when the query fails' do
+      allow(Auth::Database).to receive(:connection).and_return(failing_db)
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+
+      result = diagnose(identifier: 'ghost@example.com')
+
+      expect(codes(result)).to include(:authdb_unavailable)
+      expect(codes(result)).not_to include(:not_found)
+      expect(result.sections[:auth_account][:reason_code]).to eq(:authdb_error)
+    end
+
+    it 'still reports authdb_unavailable when the customer does resolve' do
+      allow(Auth::Database).to receive(:connection).and_return(failing_db)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:authdb_unavailable)
+      expect(codes(result)).not_to include(:missing_auth_account)
+    end
+
+    # A sidecar query can fail AFTER the accounts row was read, degrading the
+    # auth_account section and taking `found: true` with it. Reporting
+    # "no such account" for a row just held is the same wrong instruction.
+    it 'does not report not_found when a sidecar query degrades the section' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account
+      db.drop_table(:account_identities)
+
+      result = diagnose(identifier: email)
+
+      expect(codes(result)).to include(:authdb_unavailable)
+      expect(codes(result)).not_to include(:not_found)
+    end
+
+    # An identifier wider than bigint cannot be a row id, and asking PG raises —
+    # which would surface a typo as a critical "the database is down".
+    it 'treats an out-of-range numeric identifier as simply not found' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account
+
+      result = diagnose(identifier: '9' * 25)
+
+      expect(codes(result)).to include(:not_found)
+      expect(codes(result)).not_to include(:authdb_unavailable)
+    end
   end
 
   # =========================================================================
@@ -179,6 +276,20 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       expect(result.sections[:auth_account][:available]).to be(false)
       expect(result.sections[:audit_log][:available]).to be(false)
       expect(result.sections[:customer][:found]).to be(true)
+      expect(result.sections[:auth_account][:reason_code]).to eq(:simple_mode)
+    end
+
+    # The mirror of the authdb_unavailable case: with no authdb BY DESIGN the
+    # Redis customer record is the whole truth, so :not_found is the correct
+    # verdict here and must not be swallowed by the unknowable-existence guard.
+    it 'still reports not_found for an identifier that resolves to nothing' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+
+      result = diagnose(identifier: 'ghost@example.com')
+
+      expect(codes(result)).to include(:not_found)
+      expect(codes(result)).not_to include(:authdb_unavailable)
     end
   end
 
@@ -332,6 +443,74 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       entries = result.sections[:audit_log][:entries]
       expect(entries.size).to eq(5)
       expect(entries.first[:message]).to eq('event_29')
+    end
+
+    it 'parses JSON metadata so the evidence is not one escaped blob' do
+      insert_account
+      db[:account_authentication_audit_logs].insert(
+        id: 1,
+        account_id: 42,
+        at: Time.now,
+        message: 'login_failure',
+        metadata: '{"email":"u***r@example.com","ip":"10.0.0.0"}',
+      )
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:audit_log][:entries].first[:metadata]).to eq(
+        { 'email' => 'u***r@example.com', 'ip' => '10.0.0.0' },
+      )
+    end
+
+    it 'keeps non-JSON metadata verbatim' do
+      insert_account
+      db[:account_authentication_audit_logs].insert(
+        id: 1, account_id: 42, at: Time.now, message: 'login', metadata: 'legacy plain text',
+      )
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:audit_log][:entries].first[:metadata]).to eq('legacy plain text')
+    end
+
+    # Sequel's pg_json JSONArray is NOT an Array (it delegates to one) yet
+    # answers to_h, on which it raises TypeError — which would degrade the whole
+    # audit_log section. Detection goes through the implicit-conversion
+    # protocols so both the wrapper and a bare Array survive.
+    describe 'json flattening' do
+      subject(:flatten) { described_class.new(identifier: email).method(:plain_json) }
+
+      let(:array_wrapper) do
+        Class.new do
+          def initialize(inner) = @inner = inner
+          def to_ary = @inner
+
+          # Raises TypeError for scalar elements — the trap being guarded.
+          def to_h = @inner.to_h
+        end
+      end
+
+      it 'flattens a bare JSON array without raising' do
+        expect(flatten.call([1, 2, 3])).to eq([1, 2, 3])
+      end
+
+      it 'flattens an array-like wrapper via to_ary rather than to_h' do
+        expect(flatten.call(array_wrapper.new([1, 2, 3]))).to eq([1, 2, 3])
+      end
+
+      it 'recurses into nested arrays inside a hash' do
+        expect(flatten.call({ 'scopes' => [1, 2] })).to eq({ 'scopes' => [1, 2] })
+      end
+
+      # Only the column value is an encoded document; a decoded field that
+      # merely looks like JSON is data and must keep its type.
+      it 'does not re-decode a nested string that parses as JSON' do
+        expect(flatten.call({ 'user_agent' => '42' })).to eq({ 'user_agent' => '42' })
+      end
+
+      it 'passes nil through' do
+        expect(flatten.call(nil)).to be_nil
+      end
     end
   end
 

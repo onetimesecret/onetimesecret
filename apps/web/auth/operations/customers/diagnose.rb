@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'json'
+
 require 'onetime/operations/ratelimit/inspect'
 
 module Auth
@@ -26,10 +28,11 @@ module Auth
       # one datastore being down is itself the cause.
       #
       # Resolution accepts the same identifiers as Show (extid, email, objid, or
-      # a pre-resolved Customer) PLUS an email-only fallback: when no Customer
-      # resolves but the identifier is an email, the authdb is still consulted
-      # directly so an orphaned accounts row (auth account without a customer
-      # record — a real can't-login cause) is diagnosed instead of 404ing.
+      # a pre-resolved Customer) PLUS an orphan fallback: when no Customer
+      # resolves, the authdb is still consulted directly by email, by extid, and
+      # by numeric Rodauth account id, so an orphaned accounts row (auth account
+      # without a customer record — a real can't-login cause) is diagnosed
+      # instead of reported as "no such account, check the other regions".
       #
       # One section-builder per Rodauth sidecar table; splitting them apart
       # would hide the read-out's shape.
@@ -45,6 +48,11 @@ module Auth
 
         DEFAULT_AUDIT_LOG_LIMIT = 20
         MAX_AUDIT_LOG_LIMIT     = 100
+
+        # accounts.id is a Bignum (migrations/001_initial.rb) — anything wider
+        # than a signed 64-bit integer cannot be a row id, and PG raises rather
+        # than returning empty if asked.
+        MAX_ACCOUNT_ID = (2**63) - 1
 
         # How long an unclicked verification email can sit before the account
         # is flagged as stuck (the user most likely never received it).
@@ -144,11 +152,16 @@ module Auth
         # cannot blank out the rest.
         def authdb_sections(customer, email)
           db = auth_database
-          return unavailable_authdb_sections('auth database unavailable (simple auth mode)') if db.nil?
+          if db.nil?
+            return unavailable_authdb_sections(
+              'auth database unavailable (simple auth mode)',
+              code: :simple_mode,
+            )
+          end
 
           account = find_account(db, customer, email)
           if account.nil?
-            return unavailable_authdb_sections('no auth account row').merge(
+            return unavailable_authdb_sections('no auth account row', code: :no_account).merge(
               auth_account: { available: true, found: false },
             )
           end
@@ -164,7 +177,10 @@ module Auth
             audit_log: section(:audit_log) { audit_log_section(db, account_id) },
           }
         rescue StandardError => ex
-          unavailable_authdb_sections("auth database error: #{ex.class}: #{ex.message}")
+          unavailable_authdb_sections(
+            "auth database error: #{ex.class}: #{ex.message}",
+            code: :authdb_error,
+          )
         end
 
         def auth_database
@@ -173,9 +189,15 @@ module Auth
           nil
         end
 
-        def unavailable_authdb_sections(reason)
+        # `code` is the machine-readable WHY, distinct from the human `reason`:
+        # findings derivation has to tell "there is no authdb by design"
+        # (simple mode — the Redis customer is then the whole truth) apart from
+        # "the authdb did not answer" (existence is unknowable). Note the
+        # connection is lazy, so an unreachable database surfaces here as
+        # :authdb_error from the first query, NOT as a nil connection.
+        def unavailable_authdb_sections(reason, code:)
           AUTHDB_SECTIONS.to_h do |name|
-            [name, { available: false, reason: reason }.compact]
+            [name, { available: false, reason: reason, reason_code: code }]
           end
         end
 
@@ -195,9 +217,38 @@ module Auth
             row = db[:accounts].where(external_id: customer.extid).first
             return row if row
           end
-          return nil if email.to_s.empty?
 
-          db[:accounts].where(email: email).first
+          unless email.to_s.empty?
+            row = db[:accounts].where(email: email).first
+            return row if row
+          end
+
+          # Only when NO customer resolved, so a resolved customer can never be
+          # bound to an unrelated accounts row by a coincidentally-numeric objid.
+          return nil unless customer.nil?
+
+          find_orphan_account_by_identifier(db)
+        end
+
+        # The email arm above only surfaces orphans for email identifiers. An
+        # orphaned account named by its extid or its numeric Rodauth id resolves
+        # to no Customer either, and neither of those is an email — without
+        # these arms the read-out says :not_found ("check the other regions")
+        # for exactly the condition this diagnosis exists to name.
+        def find_orphan_account_by_identifier(db)
+          return nil if @identifier.empty?
+
+          if @identifier.match?(/\A\d+\z/)
+            # accounts.id is a Bignum; PG refuses to literalize an integer wider
+            # than bigint and raises, which the caller's rescue would turn into
+            # a critical "the database is down" finding for what is only a typo.
+            id = @identifier.to_i
+            return nil if id > MAX_ACCOUNT_ID
+
+            return db[:accounts].where(id: id).first
+          end
+
+          db[:accounts].where(external_id: @identifier).first
         end
 
         def auth_account_section(db, account, customer)
@@ -281,7 +332,7 @@ module Auth
               {
                 at: epoch(row[:at]),
                 message: row[:message],
-                metadata: plain_json(row[:metadata]),
+                metadata: plain_json(row[:metadata], decode: true),
               }
             end
           { entries: entries }
@@ -329,6 +380,31 @@ module Auth
         def check_existence(sections, findings)
           customer_found = sections.dig(:customer, :found)
           account        = sections[:auth_account]
+
+          # An authdb read that FAILED makes auth-account existence UNKNOWABLE,
+          # so no existence verdict can be reached. Falling through would emit
+          # :not_found and send a support agent sweeping other regions when the
+          # real answer — and the most likely reason nobody can log in — is that
+          # the database is not answering.
+          #
+          # Keyed on the section's SHAPE rather than on :authdb_error alone, so
+          # every producer of an unavailable auth_account is covered: the
+          # connection arm, and also `section`'s rescue, which can degrade the
+          # section AFTER the accounts row was already read (a failing sidecar
+          # query) and would otherwise report "no such account" for a row we
+          # just held. Simple mode is the one by-design exception: there is no
+          # authdb, so the Redis-only verdicts below still hold.
+          if account[:available] == false && account[:reason_code] != :simple_mode
+            add(
+              findings,
+              :critical,
+              :authdb_unavailable,
+              'The auth database did not answer, so auth-account state could not be read ' \
+              "(#{account[:reason]}). Existence cannot be determined from here — triage the " \
+              'database first; while it is unreachable every password login fails.',
+            )
+            return
+          end
 
           if !customer_found && account[:found] != true
             add(
@@ -507,12 +583,43 @@ module Auth
           Time.at(value.to_f).utc.strftime('%Y-%m-%d %H:%M UTC')
         end
 
-        # PG json/jsonb columns hydrate as Sequel wrapper objects; flatten to
-        # plain Ruby so every adapter (JSON API, CLI) serializes identically.
-        def plain_json(value)
-          return value if value.nil? || value.is_a?(String)
+        # Flatten a json/jsonb column to plain Ruby so every adapter (JSON API,
+        # CLI) serializes it identically.
+        #
+        # Three shapes reach here. Without the pg_json extension loaded (the
+        # current configuration — see Auth::Database, which loads only
+        # date_arithmetic) both PG and SQLite hand back the raw JSON STRING that
+        # Rodauth wrote, so it is decoded here — otherwise the audit log's metadata,
+        # the most useful "what actually happened" evidence, prints as one
+        # escaped blob. With pg_json loaded the column hydrates as a Sequel
+        # wrapper, and `Sequel::Postgres::JSONArray` is NOT an Array (it
+        # delegates to one) while still answering `to_h` — on which it raises
+        # TypeError. An `is_a?(Array)` guard would therefore miss it and the
+        # raised error would degrade the whole audit_log section, so array-ness
+        # is detected via the implicit-conversion protocols instead.
+        # `decode` is true only for the column value itself: the encoded document
+        # is the outer string, so nested strings are the decoded payload's own
+        # data and re-parsing them would rewrite a user_agent that happens to
+        # look like JSON, or turn a "42" field into a number.
+        def plain_json(value, decode: false)
+          case value
+          when String then decode ? decode_json_string(value) : value
+          when Array then value.map { |element| plain_json(element) }
+          when Hash then value.to_h { |key, element| [key, plain_json(element)] }
+          else
+            return plain_json(value.to_ary) if value.respond_to?(:to_ary)
+            return plain_json(value.to_hash) if value.respond_to?(:to_hash)
 
-          value.respond_to?(:to_h) ? value.to_h : value
+            value
+          end
+        end
+
+        # A metadata column that is not valid JSON at all (hand-written or
+        # legacy plain text) stays verbatim rather than degrading the section.
+        def decode_json_string(value)
+          plain_json(JSON.parse(value))
+        rescue JSON::ParserError, TypeError
+          value
         end
       end
       # rubocop:enable Metrics/ClassLength
