@@ -17,7 +17,7 @@ The recent full-mode (Rodauth) auth hardening work is well-engineered and fail-s
 
 ### 1. HIGH — Password change/reset does not revoke other sessions in simple (default) mode
 
-**Files:** `apps/api/account/logic/account/update_password.rb:50-52` (`perform_update`), `apps/api/account/logic/authentication/reset_password.rb:63` (`@cust.update_passphrase @password`)
+**Files:** `apps/api/account/logic/account/update_password.rb:50-52` (`perform_update`), `apps/api/account/logic/authentication/reset_password.rb:72` (`@cust.update_passphrase @password`)
 
 When `Onetime.auth_config.full_enabled?` is false (the default), `UpdatePassword#perform_update` calls `cust.update_passphrase!` directly (`lib/onetime/models/features/passphrase_hashing.rb:32`), and the self-service `ResetPassword` logic calls `@cust.update_passphrase`. Neither path calls a session-revocation operation, and neither writes `Customer#last_password_update` (`lib/onetime/models/customer.rb:170`) — that field is set *only* by `Auth::Operations::UpdatePasswordMetadata`, invoked solely from the Rodauth `after_change_password`/`after_reset_password` hooks (`apps/web/auth/config/hooks/account.rb`), i.e. full mode only.
 
