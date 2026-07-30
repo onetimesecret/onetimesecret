@@ -622,5 +622,9 @@
   "web.admin.customers.detail.diagnostics.auditLog.empty": {
     "text": "No authentication events recorded.",
     "content_hash": "d2332558"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.unavailable": {
+    "text": "Authentication log could not be read: {reason}",
+    "content_hash": "ab18af57"
   }
 }

@@ -140,6 +140,10 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
     result.findings.map { |finding| finding[:code] }
   end
 
+  def finding(result, code)
+    result.findings.find { |entry| entry[:code] == code }
+  end
+
   # =========================================================================
   describe 'existence' do
     it 'reports not_found when nothing resolves anywhere' do
@@ -250,6 +254,21 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(codes(result)).to include(:authdb_unavailable)
       expect(codes(result)).not_to include(:not_found)
+      # :authdb_unavailable is the whole story here; naming the same failure
+      # again as missing evidence would just pad the summary.
+      expect(codes(result)).not_to include(:evidence_incomplete)
+    end
+
+    # A whole-authdb failure degrades every section at once. :authdb_unavailable
+    # already tells the operator the database did not answer, so the
+    # partial-evidence finding must not restate it section by section.
+    it 'does not add a second evidence finding when the whole authdb is down' do
+      allow(Auth::Database).to receive(:connection).and_return(failing_db)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result).count(:authdb_unavailable)).to eq(1)
+      expect(codes(result)).not_to include(:evidence_incomplete)
     end
 
     # An identifier wider than bigint cannot be a row id, and asking PG raises —
@@ -262,6 +281,109 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(codes(result)).to include(:not_found)
       expect(codes(result)).not_to include(:authdb_unavailable)
+    end
+  end
+
+  # =========================================================================
+  # Sections degrade INDEPENDENTLY of one another: `auth_account` is read first
+  # and can succeed while a later sidecar query fails (dropped or ungranted
+  # table, statement timeout, connection lost mid-read), and the limiter is a
+  # different datastore entirely. Every other check returns silently on an
+  # unavailable section, so a partial outage used to produce `findings == []` —
+  # a green "auth state looks healthy" over four failed reads.
+  describe 'partial evidence' do
+    # A narrow Valkey fault (WRONGTYPE, an unknown registry kind, an ACL
+    # restriction) — not a full outage, which would break customer resolution
+    # first and be reported by other means.
+    let(:failing_limiter) do
+      instance_double(Onetime::Operations::RateLimit::Inspect).tap do |double|
+        allow(double).to receive(:call).and_raise(StandardError, 'Valkey::CommandError: WRONGTYPE')
+      end
+    end
+
+    it 'names the sections that could not be read while the accounts row is fine' do
+      insert_account
+      db.drop_table(:account_lockouts)
+      db.drop_table(:account_active_session_keys)
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:auth_account][:available]).to be(true)
+      entry = finding(result, :evidence_incomplete)
+      expect(entry[:severity]).to eq(:warning)
+      expect(entry[:message]).to include('lockout', 'sessions')
+    end
+
+    # The limiter is Redis-backed, so it degrades without the authdb being
+    # involved at all — and an engaged limiter is itself a login blocker, which
+    # makes an unread limiter a real hole in the verdict.
+    it 'names the limiter when its inspection fails' do
+      insert_account
+      allow(Onetime::Operations::RateLimit::Inspect).to receive(:new).and_return(failing_limiter)
+
+      result = diagnose(customer: customer)
+
+      expect(finding(result, :evidence_incomplete)[:message]).to include('rate_limits')
+    end
+
+    # The limiter lives in a different datastore from the authdb, so authdb
+    # health cannot gate this check. In simple mode the limiter is one of only
+    # TWO login blockers that exist and nothing else fires to compensate, so a
+    # narrow Valkey fault here would otherwise read as a healthy account.
+    it 'reports an independently-failed limiter in simple auth mode' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(Onetime::Operations::RateLimit::Inspect).to receive(:new).and_return(failing_limiter)
+
+      result = diagnose(customer: customer)
+
+      expect(finding(result, :evidence_incomplete)[:message]).to include('rate_limits', 'WRONGTYPE')
+      expect(codes(result)).not_to include(:authdb_unavailable)
+    end
+
+    # The customer record is the one section present in EVERY auth mode, and
+    # suspension — which it alone carries — is a hard login blocker.
+    # check_customer_state reads a failed `suspended` as nil and returns
+    # silently, so "not suspended" and "we could not tell" look identical.
+    it 'names the customer section when its read fails' do
+      insert_account
+      allow(customer).to receive(:suspended?).and_raise(StandardError, 'Redis::TimeoutError')
+
+      result = diagnose(customer: customer)
+
+      expect(finding(result, :evidence_incomplete)[:message]).to include('customer', 'Redis::TimeoutError')
+      # `error` is the wire contract the colonel panel renders — normalizing the
+      # rescue onto available:/reason: must not drop it.
+      expect(result.sections[:customer][:error]).to include('Redis::TimeoutError')
+    end
+
+    # An orphan reached by extid resolves to no Customer, so the op never learns
+    # an address and there is no limiter key to look up. Nothing failed — firing
+    # here would put a warning on every orphan-by-extid/by-id lookup and point
+    # support at a healthy database.
+    it 'stays silent for an orphan with no address to rate-limit' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account
+
+      result = diagnose(identifier: 'ur_target')
+
+      expect(codes(result)).to include(:orphaned_auth_account)
+      expect(codes(result)).not_to include(:evidence_incomplete)
+      expect(result.sections[:rate_limits][:reason_code]).to eq(:no_email)
+    end
+
+    # With no accounts row the sidecars have nothing to query — a by-design
+    # degradation the existence findings already explain, not missing evidence.
+    it 'stays silent for the by-design no-account degradation' do
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:missing_auth_account)
+      expect(codes(result)).not_to include(:evidence_incomplete)
+    end
+
+    it 'stays silent when every section reads' do
+      insert_account
+
+      expect(codes(diagnose(customer: customer))).not_to include(:evidence_incomplete)
     end
   end
 
@@ -290,6 +412,16 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(codes(result)).to include(:not_found)
       expect(codes(result)).not_to include(:authdb_unavailable)
+    end
+
+    # Nothing failed: there is no authdb to read. Reporting missing evidence
+    # here would put a permanent warning on every simple-mode deployment.
+    it 'adds no evidence-incomplete finding for the absent authdb' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).not_to include(:evidence_incomplete)
     end
   end
 

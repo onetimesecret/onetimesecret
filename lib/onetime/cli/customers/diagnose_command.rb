@@ -73,8 +73,9 @@ module Onetime
         end
 
         # resolve_customer adds the CLI-specific numeric Rodauth-account-id
-        # lookup; the identifier is still passed through so the op's
-        # email-only authdb fallback works when no Customer resolves.
+        # lookup; the identifier is still passed through so the op's orphan
+        # authdb fallback — by email, extid, or numeric account id — works when
+        # no Customer resolves.
         result = Auth::Operations::Customers::Diagnose.new(
           identifier: identifier,
           customer: resolve_customer(identifier),
@@ -178,8 +179,10 @@ module Onetime
       # skips those, so a nested address printed unobscured — defence in depth
       # rather than a live leak, since the two metadata writers that record an
       # email already obscure it (see config/features/audit_logging.rb), but the
-      # next writer should not have to know that. Compare on a normalized key,
-      # exactly as deep_obscure_emails does.
+      # next writer should not have to know that. `to_s` first also keeps a
+      # non-String/Symbol key (an integer array index in some future payload)
+      # from raising NoMethodError. Every membership test — here and in
+      # deep_obscure_emails — goes through this one normalization.
       def key?(keys, key)
         keys.include?(key.to_s.to_sym)
       end
@@ -190,7 +193,7 @@ module Onetime
         case node
         when Hash
           node.to_h do |key, value|
-            if EMAIL_KEYS.include?(key.to_sym) && value.is_a?(String) && value.include?('@')
+            if key?(EMAIL_KEYS, key) && value.is_a?(String) && value.include?('@')
               [key, OT::Utils.obscure_email(value)]
             else
               [key, deep_obscure_emails(value)]

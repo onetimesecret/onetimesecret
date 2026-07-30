@@ -34,12 +34,18 @@ export const accountDiagnosisFindingSchema = z.object({
  * Fields shared by every degradable section. `reason_code` is the
  * machine-readable counterpart to the human `reason` — notably `authdb_error`
  * (the database did not answer, so account existence is UNKNOWABLE) versus
- * `simple_mode` (there is no SQL authdb by design).
+ * `simple_mode` (there is no SQL authdb by design). `no_email` marks the
+ * benign case where there was simply nothing to inspect (an orphan looked up
+ * by extid or account id carries no address to rate-limit), as opposed to a
+ * read that failed.
  */
 const sectionAvailability = {
   available: z.boolean().optional(),
   reason: z.string().nullable().optional(),
-  reason_code: z.enum(['simple_mode', 'no_account', 'authdb_error']).nullable().optional(),
+  reason_code: z
+    .enum(['simple_mode', 'no_account', 'authdb_error', 'no_email'])
+    .nullable()
+    .optional(),
 };
 
 /** Redis-side customer record state. */

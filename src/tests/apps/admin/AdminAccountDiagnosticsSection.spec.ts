@@ -18,8 +18,9 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
 
-// Real strings for the two messages under test (the shared test i18n is
-// pass-through, which would hide the {reason} interpolation).
+// Real strings for the messages under test (the shared test i18n is
+// pass-through, which would hide the {reason} interpolation and make every
+// degraded cell indistinguishable from every other).
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -38,6 +39,30 @@ const i18n = createI18n({
                 authFailed:
                   'Auth database did not answer, so SQL-side checks could not run: {reason}',
                 unknown: 'Unknown',
+                facts: {
+                  authStatus: 'Auth status',
+                  noAccount: 'No auth account',
+                  password: 'Password',
+                  passwordSet: 'Set',
+                  passwordNone: 'None',
+                  mfa: 'MFA',
+                  mfaNone: 'None',
+                  loginFailures: 'Failed attempts',
+                  lockedBadge: 'Locked out',
+                  rateLimiter: 'Rate limiter',
+                  rateLimiterEngaged: 'Engaged',
+                  rateLimiterClear: 'Clear',
+                  verification: 'Verification email',
+                  verificationPending: 'Pending — last sent {date}',
+                  verificationNone: 'None pending',
+                  sessions: 'Active sessions',
+                  lastLogin: 'Last login (auth)',
+                },
+                auditLog: {
+                  title: 'Authentication log',
+                  empty: 'No authentication events recorded.',
+                  unavailable: 'Authentication log could not be read: {reason}',
+                },
               },
             },
           },
@@ -72,6 +97,70 @@ function payload(unavailable: { reason: string; reason_code: string }, findings:
       },
     },
   };
+}
+
+const SIDECAR_FAILURE = {
+  available: false,
+  reason: 'Sequel::DatabaseDisconnectError: connection reset by peer',
+};
+
+const LIVE_AUTH_ACCOUNT = {
+  available: true,
+  found: true,
+  account_id: 42,
+  status: 'Verified',
+  email: 'user@example.com',
+  has_password: true,
+  last_login_at: 1_752_000_000,
+};
+
+/**
+ * The shape the server sends when `auth_account` answered but a later SQL read
+ * did not (connection drop, statement timeout, ungranted sidecar table — see
+ * Diagnose#section, which merges `available: true` per section) plus
+ * `rate_limits`, which degrades independently of the authdb whenever there is
+ * no email to key on. This is the payload the grid renders, so every cell must
+ * carry its own guard.
+ */
+function partialPayload(
+  authAccount: Record<string, unknown> = LIVE_AUTH_ACCOUNT,
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    shrimp: '',
+    record: { identifier: 'ur_target', found: true },
+    details: {
+      findings: [],
+      sections: {
+        customer: { found: true, email: 'user@example.com' },
+        auth_account: authAccount,
+        mfa: { ...SIDECAR_FAILURE },
+        verification: { ...SIDECAR_FAILURE },
+        password_reset: { ...SIDECAR_FAILURE },
+        lockout: { ...SIDECAR_FAILURE },
+        sessions: { ...SIDECAR_FAILURE },
+        audit_log: { ...SIDECAR_FAILURE },
+        rate_limits: { available: false, reason: 'no email to inspect' },
+        ...overrides,
+      },
+    },
+  };
+}
+
+/** Everything answered — the control that proves "Unknown" is conditional. */
+function healthyPayload() {
+  return partialPayload(LIVE_AUTH_ACCOUNT, {
+    mfa: { available: true, otp_enabled: true, webauthn_credentials: 0 },
+    verification: { available: true, pending: true, email_last_sent: 1_752_000_000 },
+    password_reset: { available: true, pending: false },
+    lockout: { available: true, login_failures: 3, locked: true },
+    sessions: { available: true, active_count: 2 },
+    audit_log: { available: true, entries: [{ at: 1_752_000_000, message: 'login' }] },
+    rate_limits: {
+      available: true,
+      entries: [{ key: 'login:locked:user@example.com', ttl: 900, value: '1', exists: true }],
+    },
+  });
 }
 
 const mountPanel = () =>
@@ -161,5 +250,148 @@ describe('AdminAccountDiagnosticsSection (unavailable authdb messaging)', () => 
     await flushPromises();
 
     expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users/ur_target/diagnostics', undefined);
+  });
+});
+
+/**
+ * The grid only hides when `auth_account` itself is unavailable, so these are
+ * the shapes where it renders values for reads that FAILED. A concrete "0" or
+ * "Clear" here is read as a negative assertion ("not locked out", "no limiter
+ * hit") and sends support looking somewhere else.
+ */
+describe('AdminAccountDiagnosticsSection (partially degraded sections)', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+  afterEach(() => wrapper?.unmount());
+
+  const cell = (name: string) => wrapper.find(`[data-testid="diagnostics-fact-${name}"]`).text();
+
+  const mountWith = async (data: unknown) => {
+    mockApi.get.mockResolvedValue({ data });
+    wrapper = mountPanel();
+    await flushPromises();
+  };
+
+  it('renders the fact grid when auth_account answered but sidecar reads failed', async () => {
+    await mountWith(partialPayload());
+
+    expect(wrapper.find('[data-testid="diagnostics-facts"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="diagnostics-auth-unavailable"]').exists()).toBe(false);
+  });
+
+  it('says Unknown, not "0", for failed attempts when the lockout read failed', async () => {
+    await mountWith(partialPayload());
+
+    expect(cell('login-failures')).toBe('Unknown');
+  });
+
+  it('withholds the "Locked out" badge when the lockout read failed', async () => {
+    await mountWith(partialPayload());
+
+    expect(cell('login-failures')).not.toContain('Locked out');
+  });
+
+  it('says Unknown, not "Clear", when the rate-limiter section is unavailable', async () => {
+    await mountWith(partialPayload());
+
+    expect(cell('rate-limiter')).toBe('Unknown');
+  });
+
+  it('says Unknown, not "None pending", when the verification read failed', async () => {
+    await mountWith(partialPayload());
+
+    expect(cell('verification')).toBe('Unknown');
+  });
+
+  it('says Unknown, not "0", for active sessions when the sessions read failed', async () => {
+    await mountWith(partialPayload());
+
+    expect(cell('sessions')).toBe('Unknown');
+  });
+
+  it('reports the audit-log failure and its reason instead of "no events recorded"', async () => {
+    await mountWith(partialPayload());
+
+    const message = wrapper.find('[data-testid="diagnostics-audit-log-unavailable"]');
+    expect(message.exists()).toBe(true);
+    expect(message.text()).toContain('could not be read');
+    expect(message.text()).toContain('Sequel::DatabaseDisconnectError');
+    expect(wrapper.find('[data-testid="diagnostics-audit-log-empty"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="diagnostics-audit-log"]').exists()).toBe(false);
+  });
+
+  it('falls back to Unknown in the audit-log message when no reason arrives', async () => {
+    await mountWith(partialPayload(LIVE_AUTH_ACCOUNT, { audit_log: { available: false } }));
+
+    expect(wrapper.find('[data-testid="diagnostics-audit-log-unavailable"]').text()).toContain(
+      'Unknown'
+    );
+  });
+
+  // Control: the guards must not turn every cell into "Unknown".
+  it('prints the concrete values when every section answered', async () => {
+    await mountWith(healthyPayload());
+
+    expect(cell('login-failures')).toContain('3');
+    expect(cell('login-failures')).toContain('Locked out');
+    expect(cell('rate-limiter')).toBe('Engaged');
+    expect(cell('verification')).toContain('Pending');
+    expect(cell('sessions')).toBe('2');
+    expect(cell('password')).toBe('Set');
+    expect(wrapper.find('[data-testid="diagnostics-audit-log"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="diagnostics-audit-log-unavailable"]').exists()).toBe(false);
+  });
+
+  it('shows the empty-log wording when the audit log answered with no entries', async () => {
+    await mountWith(
+      partialPayload(LIVE_AUTH_ACCOUNT, { audit_log: { available: true, entries: [] } })
+    );
+
+    expect(wrapper.find('[data-testid="diagnostics-audit-log-empty"]').text()).toContain(
+      'No authentication events recorded.'
+    );
+    expect(wrapper.find('[data-testid="diagnostics-audit-log-unavailable"]').exists()).toBe(false);
+  });
+});
+
+/**
+ * The `no_account` path (Diagnose#authdb_sections) degrades every SQL section
+ * but merges `auth_account: { available: true, found: false }` — available, so
+ * the grid renders against an account row that does not exist. "None" would
+ * claim we looked at a password field; there is no row to look at.
+ */
+describe('AdminAccountDiagnosticsSection (no auth account row)', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+  afterEach(() => wrapper?.unmount());
+
+  const mountOrphan = async () => {
+    mockApi.get.mockResolvedValue({
+      data: partialPayload({ available: true, found: false }),
+    });
+    wrapper = mountPanel();
+    await flushPromises();
+  };
+
+  it('says "No auth account" for the password cell, not "None"', async () => {
+    await mountOrphan();
+
+    const password = wrapper.find('[data-testid="diagnostics-fact-password"]').text();
+    expect(password).toBe('No auth account');
+    expect(password).not.toBe('None');
+  });
+
+  it('still reports the auth status as having no account', async () => {
+    await mountOrphan();
+
+    expect(wrapper.find('[data-testid="diagnostics-facts"]').text()).toContain('No auth account');
   });
 });

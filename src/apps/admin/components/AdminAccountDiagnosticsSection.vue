@@ -55,6 +55,22 @@
   const authUnavailable = computed(() => authAccount.value?.available === false);
 
   /**
+   * Sections degrade INDEPENDENTLY: `auth_account` can be available while a
+   * sidecar read (lockout/sessions/verification/audit_log) failed, and
+   * `rate_limits` is not authdb-backed at all (it degrades whenever there is no
+   * email to key on — every orphan-by-extid lookup). Every cell must therefore
+   * test its OWN section before printing a value, or a failed read renders as a
+   * reassuring negative assertion ("0 failures", "Clear", "None pending").
+   *
+   * The server always sets `available` explicitly, but the wire contract keeps
+   * it optional so a version-skewed payload still parses (a parse failure would
+   * blank the whole panel) — so only an explicit `false` means degraded.
+   */
+  function sectionOk(section?: { available?: boolean } | null): boolean {
+    return !!section && section.available !== false;
+  }
+
+  /**
    * Why the SQL sections are missing decides what to tell the operator, and the
    * two answers point opposite ways: `simple_mode` means there is no authdb by
    * design and nothing is wrong, while anything else means the read FAILED and
@@ -107,24 +123,88 @@
   /** MFA summary, e.g. "TOTP + 2 WebAuthn" — or the localized "none". */
   const mfaLabel = computed(() => {
     const mfa = sections.value?.mfa;
-    if (!mfa || mfa.available === false) return t('web.admin.customers.detail.diagnostics.unknown');
+    if (!sectionOk(mfa)) return t('web.admin.customers.detail.diagnostics.unknown');
     const parts: string[] = [];
-    if (mfa.otp_enabled) parts.push('TOTP');
-    if (mfa.webauthn_credentials) parts.push(`${mfa.webauthn_credentials} WebAuthn`);
+    if (mfa?.otp_enabled) parts.push('TOTP');
+    if (mfa?.webauthn_credentials) parts.push(`${mfa.webauthn_credentials} WebAuthn`);
     return parts.length
       ? parts.join(' + ')
       : t('web.admin.customers.detail.diagnostics.facts.mfaNone');
   });
 
+  /** The localized "Unknown" every degraded cell falls back to. */
+  const unknownLabel = (): string => t('web.admin.customers.detail.diagnostics.unknown');
+
+  /**
+   * "No auth account" and "password not set" are different answers, and the
+   * `no_account` path sends `auth_account: { available: true, found: false }` —
+   * available, so the grid renders, but there is no row to have a password.
+   */
+  const passwordLabel = computed<string>(() => {
+    if (!sectionOk(authAccount.value)) return unknownLabel();
+    if (!authAccount.value?.found) {
+      return t('web.admin.customers.detail.diagnostics.facts.noAccount');
+    }
+    return authAccount.value.has_password
+      ? t('web.admin.customers.detail.diagnostics.facts.passwordSet')
+      : t('web.admin.customers.detail.diagnostics.facts.passwordNone');
+  });
+
+  const loginFailuresLabel = computed<string>(() => {
+    const lockout = sections.value?.lockout;
+    if (!sectionOk(lockout)) return unknownLabel();
+    return String(lockout?.login_failures ?? 0);
+  });
+
+  /** Only assert "locked out" from a section that actually answered. */
+  const lockedOut = computed(
+    () => sectionOk(sections.value?.lockout) && sections.value?.lockout?.locked === true
+  );
+
+  /** Drives the red styling only — "unknown" is not an alarm. */
   const rateLimiterEngaged = computed(() => {
     const limits = sections.value?.rate_limits;
-    if (!limits || limits.available === false) return false;
-    return (limits.entries ?? []).some(
+    if (!sectionOk(limits)) return false;
+    return (limits?.entries ?? []).some(
       (entry) => entry.exists && entry.key.startsWith('login:locked:')
     );
   });
 
+  const rateLimiterLabel = computed<string>(() => {
+    if (!sectionOk(sections.value?.rate_limits)) return unknownLabel();
+    return rateLimiterEngaged.value
+      ? t('web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged')
+      : t('web.admin.customers.detail.diagnostics.facts.rateLimiterClear');
+  });
+
+  const verificationLabel = computed<string>(() => {
+    const verification = sections.value?.verification;
+    if (!sectionOk(verification)) return unknownLabel();
+    return verification?.pending
+      ? t('web.admin.customers.detail.diagnostics.facts.verificationPending', {
+          date: epochLabel(verification?.email_last_sent),
+        })
+      : t('web.admin.customers.detail.diagnostics.facts.verificationNone');
+  });
+
+  const sessionsLabel = computed<string>(() => {
+    const sessionsSection = sections.value?.sessions;
+    if (!sectionOk(sessionsSection)) return unknownLabel();
+    return String(sessionsSection?.active_count ?? 0);
+  });
+
   const auditEntries = computed(() => sections.value?.audit_log?.entries ?? []);
+
+  /**
+   * A failed audit-log read is not an empty audit log. Distinct from
+   * `authFailed`, whose copy asserts the whole authdb is down — here the rest
+   * of the grid is trustworthy and only this table is missing.
+   */
+  const auditLogUnavailableMessage = computed<string>(() =>
+    t('web.admin.customers.detail.diagnostics.auditLog.unavailable', {
+      reason: sections.value?.audit_log?.reason ?? unknownLabel(),
+    })
+  );
 </script>
 
 <template>
@@ -228,12 +308,10 @@
           <dt class="text-gray-500 dark:text-gray-400">
             {{ t('web.admin.customers.detail.diagnostics.facts.password') }}
           </dt>
-          <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">
-            {{
-              authAccount?.has_password
-                ? t('web.admin.customers.detail.diagnostics.facts.passwordSet')
-                : t('web.admin.customers.detail.diagnostics.facts.passwordNone')
-            }}
+          <dd
+            class="mt-0.5 font-medium text-gray-900 dark:text-white"
+            data-testid="diagnostics-fact-password">
+            {{ passwordLabel }}
           </dd>
         </div>
         <div>
@@ -248,10 +326,12 @@
           <dt class="text-gray-500 dark:text-gray-400">
             {{ t('web.admin.customers.detail.diagnostics.facts.loginFailures') }}
           </dt>
-          <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">
-            {{ sections.lockout?.login_failures ?? 0 }}
+          <dd
+            class="mt-0.5 font-medium text-gray-900 dark:text-white"
+            data-testid="diagnostics-fact-login-failures">
+            {{ loginFailuresLabel }}
             <span
-              v-if="sections.lockout?.locked"
+              v-if="lockedOut"
               class="ml-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/40 dark:text-red-300">
               {{ t('web.admin.customers.detail.diagnostics.facts.lockedBadge') }}
             </span>
@@ -267,34 +347,29 @@
               rateLimiterEngaged
                 ? 'text-red-700 dark:text-red-300'
                 : 'text-gray-900 dark:text-white'
-            ">
-            {{
-              rateLimiterEngaged
-                ? t('web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged')
-                : t('web.admin.customers.detail.diagnostics.facts.rateLimiterClear')
-            }}
+            "
+            data-testid="diagnostics-fact-rate-limiter">
+            {{ rateLimiterLabel }}
           </dd>
         </div>
         <div>
           <dt class="text-gray-500 dark:text-gray-400">
             {{ t('web.admin.customers.detail.diagnostics.facts.verification') }}
           </dt>
-          <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">
-            {{
-              sections.verification?.pending
-                ? t('web.admin.customers.detail.diagnostics.facts.verificationPending', {
-                    date: epochLabel(sections.verification?.email_last_sent),
-                  })
-                : t('web.admin.customers.detail.diagnostics.facts.verificationNone')
-            }}
+          <dd
+            class="mt-0.5 font-medium text-gray-900 dark:text-white"
+            data-testid="diagnostics-fact-verification">
+            {{ verificationLabel }}
           </dd>
         </div>
         <div>
           <dt class="text-gray-500 dark:text-gray-400">
             {{ t('web.admin.customers.detail.diagnostics.facts.sessions') }}
           </dt>
-          <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">
-            {{ sections.sessions?.active_count ?? 0 }}
+          <dd
+            class="mt-0.5 font-medium text-gray-900 dark:text-white"
+            data-testid="diagnostics-fact-sessions">
+            {{ sessionsLabel }}
           </dd>
         </div>
         <div>
@@ -312,9 +387,17 @@
         <h4 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.admin.customers.detail.diagnostics.auditLog.title') }}
         </h4>
+        <!-- "Could not read" and "nothing to read" are opposite conclusions. -->
         <p
-          v-if="auditEntries.length === 0"
-          class="text-sm text-gray-500 dark:text-gray-400">
+          v-if="!sectionOk(sections.audit_log)"
+          class="text-sm text-gray-500 dark:text-gray-400"
+          data-testid="diagnostics-audit-log-unavailable">
+          {{ auditLogUnavailableMessage }}
+        </p>
+        <p
+          v-else-if="auditEntries.length === 0"
+          class="text-sm text-gray-500 dark:text-gray-400"
+          data-testid="diagnostics-audit-log-empty">
           {{ t('web.admin.customers.detail.diagnostics.auditLog.empty') }}
         </p>
         <div

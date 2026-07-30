@@ -46,6 +46,24 @@ module Auth
         AUTHDB_SECTIONS = [:auth_account, :mfa, :verification, :password_reset,
                            :lockout, :sessions, :audit_log].freeze
 
+        # Sections whose failure is otherwise SILENT: the Redis customer record,
+        # every SQL sidecar (own query, own rescue) and the Redis-backed
+        # limiter. Each is evidence some finding depends on, so a gap here is
+        # what lets a partial outage read as "healthy" — see check_evidence.
+        #
+        # `auth_account` is deliberately excluded: check_existence already
+        # reports every unavailable auth_account as :authdb_unavailable (or, in
+        # simple mode, by design), so listing it here would only double-report.
+        EVIDENCE_SECTIONS = ([:customer, *AUTHDB_SECTIONS, :rate_limits] - [:auth_account]).freeze
+
+        # Reasons a section is unavailable that are NOT missing evidence, keyed
+        # on the section's OWN reason_code so a section that degraded for its own
+        # reason is still reported. In order: no authdb by design; the
+        # whole-authdb failure check_existence already reports; no accounts row
+        # for the sidecars to read; no address to rate-limit (an orphan looked up
+        # by extid or account id) — nothing failed in any of them.
+        EXPECTED_UNAVAILABLE_REASONS = [:simple_mode, :authdb_error, :no_account, :no_email].freeze
+
         DEFAULT_AUDIT_LOG_LIMIT = 20
         MAX_AUDIT_LOG_LIMIT     = 100
 
@@ -72,7 +90,8 @@ module Auth
         # @param identifier [String, nil] extid, email, or objid
         # @param customer [Onetime::Customer, nil] a pre-resolved customer
         #   (takes precedence over identifier for customer resolution; the
-        #   identifier is still used for the email-only authdb fallback)
+        #   identifier is still used for the orphan authdb fallback — by email,
+        #   extid, or numeric account id)
         # @param audit_log_limit [Integer] newest-first audit rows to include
         def initialize(identifier: nil, customer: nil, audit_log_limit: DEFAULT_AUDIT_LOG_LIMIT)
           @identifier      = identifier.to_s.strip
@@ -141,8 +160,14 @@ module Auth
             locale: customer.locale,
             planid: customer.planid,
           }
+        # `error` is the wire contract the colonel panel renders; `available` /
+        # `reason` are the same failure in the shape every other section uses, so
+        # check_evidence can see it without a special case. Suspension is a hard
+        # login blocker and check_customer_state reads a failed `suspended` as
+        # nil, so an invisible failure here reads as "not suspended".
         rescue StandardError => ex
-          { found: true, error: "#{ex.class}: #{ex.message}" }
+          reason = "#{ex.class}: #{ex.message}"
+          { found: true, error: reason, available: false, reason: reason }
         end
 
         # -- Authdb (Rodauth) sections --------------------------------------
@@ -344,7 +369,12 @@ module Auth
         # login_rate_limiter.rb / RateLimit::Registry). Reuses the Inspect op
         # so the key derivation lives in exactly one place.
         def rate_limits_section(email)
-          return { available: false, reason: 'no email to inspect' } if email.to_s.empty?
+          # Benign: an orphan reached by extid or account id carries no address,
+          # so there is no limiter key to look up. Coded so findings derivation
+          # can tell it from a read that FAILED (rescue below, no reason_code).
+          if email.to_s.empty?
+            return { available: false, reason: 'no email to inspect', reason_code: :no_email }
+          end
 
           result = Onetime::Operations::RateLimit::Inspect.new(kind: 'login', subject: email).call
           {
@@ -370,6 +400,7 @@ module Auth
           check_auth_account(sections, findings)
           check_lockout_and_limits(sections, findings)
           check_verification(sections, findings)
+          check_evidence(sections, findings)
           findings.sort_by { |finding| SEVERITY_ORDER.fetch(finding[:severity], 99) }
         end
 
@@ -566,6 +597,51 @@ module Auth
               'Re-issue verification or verify manually.',
             )
           end
+        end
+
+        # Findings are derived from evidence, so evidence that could not be READ
+        # is a finding in its own right. Sections degrade INDEPENDENTLY: a
+        # dropped or ungranted table, a statement timeout, a connection lost
+        # mid-read takes out one sidecar while the accounts row still reads
+        # clean, and every check above simply `return`s when its own section is
+        # unavailable. Without this, several failed reads produce `findings ==
+        # []`, which the colonel panel renders as a green "auth state looks
+        # healthy — suspect client-side issues" and the CLI as "no blocking
+        # condition found": support is sent to look at cookies during a live
+        # authdb incident.
+        #
+        # The skip is PER SECTION, on that section's own reason_code
+        # (EXPECTED_UNAVAILABLE_REASONS), never a whole-check early return: the
+        # limiter and the customer record live in a different datastore from the
+        # authdb, so gating on authdb health would re-hide exactly the
+        # independent degradations this exists to catch — in simple mode the
+        # limiter is one of only two login blockers that exist, and no :critical
+        # fires to compensate.
+        #
+        # :warning, not :critical — a failed read is not itself proof that
+        # anything is broken for the user, and severity ordering puts the actual
+        # blocker first when both are present. The load-bearing part is that
+        # `findings` is no longer empty, so the healthy banner is gone and the
+        # unread sources are named. No datastore is prescribed in the remedy:
+        # each entry carries its own reason, which is what says where to look.
+        def check_evidence(sections, findings)
+          unreadable = EVIDENCE_SECTIONS.filter_map do |name|
+            data = sections[name] || {}
+            next unless data[:available] == false
+            next if EXPECTED_UNAVAILABLE_REASONS.include?(data[:reason_code])
+
+            "#{name} (#{data[:reason] || 'unknown'})"
+          end
+          return if unreadable.empty?
+
+          add(
+            findings,
+            :warning,
+            :evidence_incomplete,
+            'Part of the evidence could not be read, so this verdict is incomplete — a clean ' \
+            "result does not rule out a server-side cause. Unreadable: #{unreadable.join('; ')}. " \
+            'Each entry names the source and the error it returned; clear those, then diagnose again.',
+          )
         end
 
         # -- Serialization helpers ---------------------------------------------
