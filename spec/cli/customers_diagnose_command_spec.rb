@@ -91,9 +91,16 @@ RSpec.describe 'customers diagnose', type: :cli do
   # both String#gsub (all of OT::Utils.obscure_email) and JSON.generate raise on
   # one of those, so a single bad field would take the whole command down.
   #
-  # The bad byte sits INSIDE the address in the finding message on purpose:
-  # scrubbing it to a U+FFFD marker would stop EMAIL_PATTERN matching and print
-  # the address in the clear, so the mask path has to drop it instead.
+  # The bad byte sits INSIDE the address in the finding message on purpose: a
+  # U+FFFD left there stops EMAIL_PATTERN matching and prints the address in the
+  # clear, so obscure_email has to collapse it away (it drops invalid bytes and
+  # deletes any marker already present).
+  #
+  # These are RAW bytes because the op is stubbed here. In production the op
+  # scrubs its Result first (Diagnose#utf8_safe_deep, marker mode), so this
+  # fixture exercises the adapter's own defense-in-depth scrub rather than the
+  # shape the adapter normally sees — see `marked_bytes_result` below for that
+  # one, and DiagnoseCommand#obscure for why the adapter keeps a scrub at all.
   def malformed_bytes_result
     Auth::Operations::Customers::Diagnose::Result.new(
       customer: nil,
@@ -109,6 +116,28 @@ RSpec.describe 'customers diagnose', type: :cli do
       },
       findings: [
         { severity: :warning, code: :email_drift, message: "note\xFF us\xFFer@example.com" },
+      ],
+    )
+  end
+
+  # What the op ACTUALLY hands this adapter now: already valid UTF-8, with the
+  # corrupt runs marked. The marker sits inside an address again, because that
+  # is the combination that printed an address in full two rounds ago.
+  def marked_bytes_result
+    Auth::Operations::Customers::Diagnose::Result.new(
+      customer: nil,
+      sections: {
+        customer: { found: false },
+        auth_account: {
+          available: true,
+          found: true,
+          account_id: 42,
+          status: "verified\u{FFFD}",
+          email: "us\u{FFFD}er@example.com",
+        },
+      },
+      findings: [
+        { severity: :warning, code: :email_drift, message: "note\u{FFFD} us\u{FFFD}er@example.com" },
       ],
     )
   end
@@ -279,9 +308,15 @@ RSpec.describe 'customers diagnose', type: :cli do
   # scrubbed at the boundary, so the run completes and the addresses beside
   # them are still masked.
   #
-  # The masked path DROPS the bad bytes rather than marking them: a U+FFFD
-  # landing inside an address defeats the mask. Only --full marks, because it
-  # prints values verbatim and nothing downstream pattern-matches them.
+  # The masked path COLLAPSES the bad bytes rather than leaving a marker: a
+  # U+FFFD landing inside an address defeats the mask. --full marks instead,
+  # because it prints values verbatim and nothing downstream pattern-matches it.
+  #
+  # The op is stubbed in this group, so it feeds the adapter raw bytes the op
+  # would have scrubbed in production. That is the point — it is the only way to
+  # exercise the adapter's own scrub — but it means green here says nothing
+  # about whether production still reaches that branch. See
+  # DiagnoseCommand#obscure.
   describe 'malformed byte sequences' do
     before { allow(op).to receive(:call).and_return(malformed_bytes_result) }
 
@@ -319,6 +354,37 @@ RSpec.describe 'customers diagnose', type: :cli do
       expect(payload.dig('sections', 'auth_account', 'status')).to eq("verified\u{FFFD}")
       expect(payload.dig('sections', 'auth_account', 'email')).to eq('user@example.com')
       expect(payload['findings'].first['message']).to eq("note\u{FFFD} us\u{FFFD}er@example.com")
+    end
+  end
+
+  # The production hand-off since the op's chokepoint flipped to marker mode:
+  # the Result is valid UTF-8 already and carries U+FFFD where the corruption
+  # was. The adapter's scrub finds nothing to do, so masking is the ONLY thing
+  # standing between a marked address and the terminal.
+  describe 'a Result that already carries U+FFFD markers' do
+    before { allow(op).to receive(:call).and_return(marked_bytes_result) }
+
+    it 'masks an address whose marker would otherwise defeat the pattern' do
+      payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json')[:stdout])
+
+      expect(payload.dig('sections', 'auth_account', 'email')).to eq('us***@e***.com')
+      expect(payload['findings'].first['message']).to eq('note us***@e***.com')
+      expect(payload.to_s).not_to include('user@example.com')
+    end
+
+    # The masked path pays for that immunity by losing the marker. That is the
+    # accepted trade: --full and the colonel panel keep it.
+    it 'drops the corruption marker from non-address text on the masked path' do
+      payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json')[:stdout])
+
+      expect(payload.dig('sections', 'auth_account', 'status')).to eq('verified')
+    end
+
+    it 'keeps the marker under --full' do
+      payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json', '--full')[:stdout])
+
+      expect(payload.dig('sections', 'auth_account', 'status')).to eq("verified\u{FFFD}")
+      expect(payload.dig('sections', 'auth_account', 'email')).to eq("us\u{FFFD}er@example.com")
     end
   end
 end

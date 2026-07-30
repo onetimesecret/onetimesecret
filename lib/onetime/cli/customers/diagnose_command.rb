@@ -192,11 +192,27 @@ module Onetime
       #
       # Only the --full path scrubs HERE, and it marks the bad bytes (U+FFFD)
       # because it prints values verbatim and the corruption is worth seeing.
-      # The masked path must NOT pre-scrub: a marker landing inside an address
-      # stops it matching EMAIL_PATTERN, which would print the address in full.
-      # obscure_email does its own drop-mode scrub — see OT::Utils.utf8_safe.
+      # The masked path does not pre-scrub because it does not need to:
+      # obscure_email scrubs its own input AND strips any U+FFFD already in it,
+      # so it masks correctly whatever arrives (see OT::Utils.obscure_email).
+      #
+      # REACHABILITY — read before deleting this branch. The op scrubs its whole
+      # Result at the chokepoint (Diagnose#utf8_safe_deep), in the same marker
+      # mode, so for text that came through `Diagnose#call` this scrub is a
+      # no-op: it can find nothing invalid left to mark. Under the op the branch
+      # is therefore unreachable-but-harmless today, and it is kept on purpose —
+      # an adapter that assumes its upstream scrubbed is one refactor away from
+      # printing raw bytes into a terminal and 500ing on JSON.generate, which is
+      # exactly how this command and the colonel endpoint drifted apart before.
+      #
+      # THE TRAP: the two specs that cover this branch stub the op
+      # (spec/cli/customers_diagnose_command_spec.rb, `malformed_bytes_result`
+      # hands `--full` raw \xFF bytes), so they are green because of the stub,
+      # not because production reaches the branch. Checking production behaviour
+      # alone makes the branch look dead. It is defense-in-depth; deleting it
+      # trades a no-op for a crash-on-regression.
       def obscure(text, full:)
-        return OT::Utils.utf8_safe(text, replacement: "\u{FFFD}") if full
+        return OT::Utils.utf8_safe(text, replacement: OT::Utils::Strings::UNICODE_REPLACEMENT_CHAR) if full
 
         OT::Utils.obscure_email(text)
       end
