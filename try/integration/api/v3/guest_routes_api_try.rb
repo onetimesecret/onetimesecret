@@ -100,6 +100,59 @@ post '/api/v3/guest/secret/conceal',
 @conceal_response.key?('details')
 #=> true
 
+## V3 receipt drops the deprecated custid field (2026-07-29 audit, item 5)
+# custid is in Receipt's :deprecated_fields group; new receipts only write
+# owner_id. V2 still emits it (frozen contract); V3 does not.
+@conceal_response.dig('record', 'receipt').key?('custid')
+#=> false
+
+## V3 receipt still carries owner_id, the canonical creator identifier
+@conceal_response.dig('record', 'receipt').key?('owner_id')
+#=> true
+
+## V3 receipt recipients is null, not the '' the shared safe_dump emits (item 7)
+@conceal_response.dig('record', 'receipt', 'recipients')
+#=> nil
+
+## The V2 shape is unchanged: same request, custid present and recipients a String
+clear_cookies
+post '/api/v2/secret/conceal',
+  { secret: { secret: 'v2 shape check', ttl: 3600 } }.to_json,
+  { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+@v2_conceal = JSON.parse(last_response.body)
+[
+  @v2_conceal.dig('record', 'receipt').key?('custid'),
+  @v2_conceal.dig('record', 'receipt', 'recipients'),
+]
+#=> [true, '']
+
+## V3 guest receipt GET applies the same normalization
+@receipt_id = @conceal_response.dig('record', 'receipt', 'identifier')
+clear_cookies
+get "/api/v3/guest/receipt/#{@receipt_id}",
+  {},
+  { 'HTTP_ACCEPT' => 'application/json' }
+@receipt_response = JSON.parse(last_response.body)
+[
+  last_response.status,
+  @receipt_response['record'].key?('custid'),
+  @receipt_response.dig('record', 'recipients'),
+]
+#=> [200, false, nil]
+
+## V3 guest batch receipts endpoint applies it to every record
+clear_cookies
+post '/api/v3/guest/receipts',
+  { identifiers: [@receipt_id] }.to_json,
+  { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+@batch_response = JSON.parse(last_response.body)
+[
+  last_response.status,
+  @batch_response['records'].map { |r| r.key?('custid') },
+  @batch_response['records'].map { |r| r['recipients'] },
+]
+#=> [200, [false], [nil]]
+
 ## Guest share/generate endpoint returns a response (not server error)
 clear_cookies
 post '/api/v3/guest/secret/generate',
