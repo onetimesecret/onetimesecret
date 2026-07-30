@@ -15,6 +15,15 @@ require 'auth/operations/customers/diagnose'
 RSpec.describe 'customers diagnose', type: :cli do
   let(:op) { instance_double(Auth::Operations::Customers::Diagnose) }
 
+  # The op interpolates the auth-side address straight into this message
+  # (diagnose.rb, :email_drift), so finding TEXT carries PII no field-name
+  # list can reach. Other messages carry one transitively (a PG error excerpt
+  # quotes the failing statement, which contains the email literal).
+  def drift_message
+    'Customer email and auth account email differ ' \
+      '(auth side: user@example.com) — reconcile before the user can sign in.'
+  end
+
   # An orphaned auth account: the accounts row exists, no Customer does.
   def orphan_result
     Auth::Operations::Customers::Diagnose::Result.new(
@@ -39,8 +48,22 @@ RSpec.describe 'customers diagnose', type: :cli do
             },
           ],
         },
+        # The limiter keys on the plain normalized email, so the address is
+        # embedded in a `key` field. RateLimit::Inspect returns an entry for
+        # every exact key whether or not it exists, so the locked-key row is
+        # printed on EVERY run — including a perfectly healthy account.
+        rate_limits: {
+          available: true,
+          entries: [
+            { key: 'login:locked:user@example.com', ttl: -2, value: nil, exists: false },
+            { key: 'login:attempts:user@example.com', ttl: 900, value: '3', exists: true },
+          ],
+        },
       },
-      findings: [{ severity: :critical, code: :orphaned_auth_account, message: 'Auth account exists' }],
+      findings: [
+        { severity: :critical, code: :orphaned_auth_account, message: 'Auth account exists' },
+        { severity: :warning, code: :email_drift, message: drift_message },
+      ],
     )
   end
 
@@ -95,8 +118,12 @@ RSpec.describe 'customers diagnose', type: :cli do
   end
 
   describe 'JSON output' do
+    def raw_output(*)
+      run_cli_command_quietly('customers', 'diagnose', *)[:stdout]
+    end
+
     def json_output(*)
-      JSON.parse(run_cli_command_quietly('customers', 'diagnose', *)[:stdout])
+      JSON.parse(raw_output(*))
     end
 
     # Obscure-by-default, at every depth — a support transcript or a piped
@@ -110,10 +137,37 @@ RSpec.describe 'customers diagnose', type: :cli do
         .to eq('us***@e***.com')
     end
 
+    # Obscuring keyed on `:email`-named fields misses the address the limiter
+    # embeds in its KEY. The `login:locked:` prefix has to survive — the key is
+    # what an operator pastes into redis-cli.
+    it 'obscures the address embedded in limiter keys without --full' do
+      raw     = raw_output('42', '--json')
+      payload = JSON.parse(raw)
+
+      expect(raw).not_to include('user@example.com')
+      expect(payload.dig('sections', 'rate_limits', 'entries', 0, 'key'))
+        .to eq('login:locked:us***@e***.com')
+      expect(payload.dig('sections', 'rate_limits', 'entries', 1, 'key'))
+        .to eq('login:attempts:us***@e***.com')
+    end
+
+    # findings never went through the obscuring pass at all.
+    it 'obscures the address embedded in finding messages without --full' do
+      payload = json_output('42', '--json')
+      drift   = payload['findings'].find { |finding| finding['code'] == 'email_drift' }
+
+      expect(drift['message']).to include('(auth side: us***@e***.com)')
+      expect(drift['message']).not_to include('user@example.com')
+    end
+
     it 'keeps addresses intact with --full' do
       payload = json_output('42', '--json', '--full')
+      drift   = payload['findings'].find { |finding| finding['code'] == 'email_drift' }
 
       expect(payload.dig('sections', 'auth_account', 'email')).to eq('user@example.com')
+      expect(payload.dig('sections', 'rate_limits', 'entries', 0, 'key'))
+        .to eq('login:locked:user@example.com')
+      expect(drift['message']).to include('(auth side: user@example.com)')
     end
 
     it 'reports found and the findings list' do
@@ -132,10 +186,21 @@ RSpec.describe 'customers diagnose', type: :cli do
       expect(output).not_to include('user@example.com')
     end
 
+    it 'obscures the address embedded in limiter keys and finding messages' do
+      output = run_cli_command_quietly('customers', 'diagnose', '42')[:stdout]
+
+      expect(output).not_to include('user@example.com')
+      expect(output).to include('login:locked:us***@e***.com')
+      expect(output).to include('login:attempts:us***@e***.com')
+      expect(output).to include('(auth side: us***@e***.com)')
+    end
+
     it 'prints full addresses with --full' do
       output = run_cli_command_quietly('customers', 'diagnose', '42', '--full')[:stdout]
 
       expect(output).to include('user@example.com')
+      expect(output).to include('login:locked:user@example.com')
+      expect(output).to include('(auth side: user@example.com)')
     end
   end
 end
