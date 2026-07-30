@@ -54,6 +54,23 @@
   const authAccount = computed(() => sections.value?.auth_account ?? null);
   const authUnavailable = computed(() => authAccount.value?.available === false);
 
+  /**
+   * Why the SQL sections are missing decides what to tell the operator, and the
+   * two answers point opposite ways: `simple_mode` means there is no authdb by
+   * design and nothing is wrong, while anything else means the read FAILED and
+   * the outage is itself the likely reason nobody can log in. Saying "simple
+   * auth mode" during an outage sends support looking in the wrong place.
+   */
+  const authUnavailableMessage = computed<string>(() => {
+    if (!authUnavailable.value) return '';
+    if (authAccount.value?.reason_code === 'simple_mode') {
+      return t('web.admin.customers.detail.diagnostics.authUnavailable');
+    }
+    return t('web.admin.customers.detail.diagnostics.authFailed', {
+      reason: authAccount.value?.reason ?? t('web.admin.customers.detail.diagnostics.unknown'),
+    });
+  });
+
   function load(): void {
     fetchDiagnostics().catch(() => {
       // Failure surfaces via error → the error state below. Swallow so it
@@ -181,12 +198,13 @@
         </li>
       </ul>
 
-      <!-- Simple mode: the SQL-side sections below are skipped, say so once. -->
+      <!-- The SQL-side sections below are skipped, say so once — and say WHICH
+           of the two reasons applies (see authUnavailableMessage). -->
       <p
         v-if="authUnavailable"
         class="text-sm text-gray-500 italic dark:text-gray-400"
         data-testid="diagnostics-auth-unavailable">
-        {{ t('web.admin.customers.detail.diagnostics.authUnavailable') }}
+        {{ authUnavailableMessage }}
       </p>
 
       <!-- Auth-state fact grid. -->

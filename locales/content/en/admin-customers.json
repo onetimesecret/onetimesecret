@@ -539,6 +539,10 @@
     "text": "Auth database not available (simple auth mode) — SQL-side checks were skipped.",
     "content_hash": "d668907c"
   },
+  "web.admin.customers.detail.diagnostics.authFailed": {
+    "text": "Auth database did not answer, so SQL-side checks could not run: {reason}",
+    "content_hash": "46d047c0"
+  },
   "web.admin.customers.detail.diagnostics.unknown": {
     "text": "Unknown",
     "content_hash": "b764cdc0"
