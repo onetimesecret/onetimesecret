@@ -65,7 +65,7 @@ The alias covers the record object only. Receipt responses (`GET /receipt/:key`)
 
 The `ttl` submitted when creating a secret is a request, not a guarantee. An out-of-range value is silently adjusted and the secret is created with the adjusted value, so clients should read the effective TTL back from the response (`secret_ttl` on the receipt) rather than assume the requested value was honored.
 
-* **Anonymous (unauthenticated) secrets are capped at 7 days.** This is a product rule that applies on every deployment, whether or not billing is enabled. A deployment's configured `ttl_options` maximum and the `PLAN_TTL_ANONYMOUS` setting can lower the anonymous cap but never raise it.
+* **Anonymous (unauthenticated) secrets are capped at 7 days by default.** The ceiling is read on every deployment, whether or not billing is enabled. Self-hosted operators can raise or lower it via `TTL_MAX_ANONYMOUS` (config key `site.secret_options.ttl_max_anonymous`), bounded by the configured `ttl_options` maximum and a 365-day hard limit. On deployments with billing enabled the free-tier `secret_lifetime` limit applies as an additional ceiling, so an anonymous caller never receives a longer TTL than an authenticated free-tier user. **onetimesecret.com enforces 7 days.**
 * A value below the configured minimum is raised to that minimum.
 * Authenticated callers are governed separately. A free-tier request above 14 days is *rejected* with an entitlement error rather than clamped, so the caller gets an explicit upgrade path instead of a shortened secret.
 

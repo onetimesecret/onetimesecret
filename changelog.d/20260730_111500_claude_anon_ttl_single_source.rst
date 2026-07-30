@@ -3,20 +3,36 @@
 Security
 --------
 
-- **Anonymous secrets now expire within 7 days, on every deployment.** The
-  ceiling for secrets created without an account is a fixed product limit
-  (``ANONYMOUS_MAX_TTL``) rather than a value derived from the free-tier plan
-  limit. ``PLAN_TTL_ANONYMOUS`` may only lower it — set to 10, 14 or 30 days it
-  now yields 7; set to 5 days it yields 5 — closing a path where configuration
-  could grant anonymous callers a longer TTL than an authenticated free-tier
-  user, who is refused above the free-tier threshold with an upgrade prompt. A
-  configured ``ttl_options`` maximum below 7 days still wins.
+- **The anonymous secret TTL ceiling is now read on every deployment.**
+  Previously it was derived from the free-tier plan limit, so it applied only
+  where billing was enabled — leaving deployments with billing off with no
+  anonymous ceiling at all, and an override (``PLAN_TTL_ANONYMOUS``) that was
+  silently ignored on exactly those installs. The ceiling is now its own
+  configuration value (``site.secret_options.ttl_max_anonymous``, env
+  ``TTL_MAX_ANONYMOUS``), defaulting to 7 days, resolved through a single reader
+  shared by TTL enforcement and the bootstrap payload that builds the duration
+  dropdown. A configured ``ttl_options`` maximum below the ceiling still wins.
+  With billing enabled, the free-tier ``secret_lifetime`` limit applies as an
+  additional ceiling, which is what preserves the invariant that an anonymous
+  caller never receives a longer TTL than an authenticated free-tier user.
+
+Changed
+-------
+
+- ``TTL_MAX_ANONYMOUS`` replaces ``PLAN_TTL_ANONYMOUS`` as the name for the
+  anonymous TTL ceiling. The old name still works — it is read as an alias when
+  the new one is unset — but it implied a coupling to plan and billing state
+  that no longer exists. Note that ``PLAN_TTL_ANONYMOUS`` retains its second,
+  older role of setting the free-tier ``secret_lifetime`` fallback; on a
+  billing-enabled deployment it therefore moves both values, while
+  ``TTL_MAX_ANONYMOUS`` moves only the anonymous ceiling.
 
 .. note::
 
-   **Self-hosted operators:** the 7-day anonymous cap applies whether or not
-   billing is enabled. Deployments with billing off previously allowed
+   **Self-hosted operators:** the anonymous ceiling defaults to 7 days whether
+   or not billing is enabled. Deployments with billing off previously allowed
    anonymous secrets up to the configured ``ttl_options`` maximum (30 days on
-   stock config); anonymous secrets created there now last at most 7 days.
-   Authenticated users are unaffected — their limits still come from their
-   plan, and the 14-day free-tier gate is unchanged.
+   stock config), so this is a behaviour change on upgrade. It is a default,
+   not a limit — set ``TTL_MAX_ANONYMOUS=2592000`` to restore 30 days, or any
+   value up to 365 days. Authenticated users are unaffected; their limits still
+   come from their plan, and the 14-day free-tier gate is unchanged.
