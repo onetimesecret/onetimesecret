@@ -13,10 +13,16 @@ One call covers account state, lockout/login failures, verification and reset
 keys, MFA, active sessions, the Rodauth auth audit log, and the login rate
 limiter. Findings name the blocking condition (`locked_out`, `rate_limited`,
 `unverified`, `verification_stale`, `email_drift`, `no_password`, `sso_only`,
-`orphaned_auth_account`, `suspended`, `not_found`). An email with no customer
-is still probed against the authdb — orphans and "not in this region" come
-back as findings, not 404s. Exit code 1 = nothing found; loop it across
-regions.
+`orphaned_auth_account`, `suspended`, `authdb_unavailable`, `not_found`). An
+identifier with no customer is still probed against the authdb — by email,
+extid, or numeric account id — so orphans and "not in this region" come back as
+findings, not 404s. Exit code 1 = nothing found; loop it across regions.
+
+`authdb_unavailable` outranks everything else: the auth database did not answer,
+so no account state could be read and existence is unknown. Stop triaging the
+account and go look at the database — while it is unreachable every password
+login fails. It is NOT the same as simple auth mode (no authdb by design), which
+reports no finding at all.
 
 ## Failure buckets
 
