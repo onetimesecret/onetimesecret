@@ -116,8 +116,13 @@ module Core
       end
 
       class << self
-        # Site secret_options plus the TTL ceiling the server enforces on
-        # anonymous callers.
+        # Site secret_options with the anonymous TTL ceiling replaced by the
+        # value the server actually enforces.
+        #
+        # secret_options already carries the raw ttl_max_anonymous config value;
+        # the merge overwrites it with the resolved ceiling, so the frontend
+        # never sees a configured number that the free-tier limit would have
+        # lowered underneath it.
         #
         # @param site [Hash] site config section
         # @return [Hash, nil] secret_options for the bootstrap payload
@@ -137,40 +142,39 @@ module Core
         # durations the server would quietly reduce, instead of offering a
         # duration the caller will never get.
         #
-        # Mirrors that method's ladder. ANONYMOUS_MAX_TTL is a hard product
-        # rule that applies on every deployment, billing enabled or not — it
-        # is NOT derived from the free tier and has no fail-open case, so this
-        # key is always emitted. PLAN_TTL_ANONYMOUS (via free_tier_limits) can
-        # only lower it further, and only when billing is enabled. The third
-        # term server-side is the config ttl_options max; here it is implicit,
-        # since the dropdown is built from ttl_options in the first place.
+        # Mirrors that method's ladder. The configured ceiling
+        # (site.secret_options.ttl_max_anonymous, default 7 days) is read on
+        # every deployment, billing enabled or not, and has no fail-open case,
+        # so this key is always emitted. The free-tier limit can only lower it
+        # further, and only when billing is enabled. The third term server-side
+        # is the config ttl_options max; here it is implicit, since the dropdown
+        # is built from ttl_options in the first place.
         #
         # @return [Integer] Ceiling in seconds
         def anonymous_ttl_ceiling
           [
-            Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL,
-            plan_ttl_anonymous_override,
+            Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
+            free_tier_ttl_override,
           ].compact.min
         end
 
-        # PLAN_TTL_ANONYMOUS override, when it applies.
+        # Free-tier secret_lifetime limit, when it applies.
         #
-        # Consulted only with billing enabled, and only when positive:
-        # parse_ttl_env coerces unset/blank/malformed to the default and clamps
-        # negatives to 0, which reads as "no override" here just as it does in
-        # anonymous_max_ttl. The rescue drops only the override — the hard cap
-        # still stands — because a bootstrap read must never take the page down
-        # over a billing-config fault.
+        # Consulted only with billing enabled, and only when positive — with
+        # billing off there is no free tier to bound the anonymous grant
+        # against. The rescue drops only this term; the configured ceiling still
+        # stands, because a bootstrap read must never take the page down over a
+        # billing-config fault.
         #
-        # @return [Integer, nil] Override in seconds, or nil when not applicable
-        def plan_ttl_anonymous_override
+        # @return [Integer, nil] Limit in seconds, or nil when not applicable
+        def free_tier_ttl_override
           return nil unless OT.billing_config.enabled?
 
-          anon_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
-          anon_max.positive? ? anon_max : nil
+          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          free_tier_max.positive? ? free_tier_max : nil
         rescue StandardError => ex
-          OT.le "[ConfigSerializer] PLAN_TTL_ANONYMOUS override unavailable (#{ex.class}: #{ex.message}); " \
-                'anonymous duration ceiling falls back to the hard cap'
+          OT.le "[ConfigSerializer] free-tier TTL limit unavailable (#{ex.class}: #{ex.message}); " \
+                'anonymous duration ceiling falls back to the configured value'
           nil
         end
 

@@ -152,10 +152,11 @@ RSpec.describe Core::Views::ConfigSerializer do
     # 2026-07-29 API audit, item 4. V2 silently clamps an anonymous secret's
     # TTL; the web UI's duration dropdown (usePrivacyOptions.ts) filters
     # against this published value so it stops offering durations the caller
-    # will never get. Must track WithEntitlements::ANONYMOUS_MAX_TTL — a hard
-    # 7-day product rule, not a free-tier derivation.
+    # will never get. Must track the same ladder anonymous_max_ttl walks:
+    # configured ceiling (default 7 days), then the free-tier limit when
+    # billing is enabled.
     describe 'secret_options.ttl_max_anonymous' do
-      let(:hard_cap) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
+      let(:default_ceiling) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
 
       let(:ttl_view_vars) do
         base_view_vars.merge(
@@ -169,8 +170,15 @@ RSpec.describe Core::Views::ConfigSerializer do
         described_class.serialize(ttl_view_vars)['secret_options']
       end
 
-      it 'is the hard anonymous cap, not the free-tier ceiling' do
-        expect(hard_cap).to be < Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+      # Stub the resolved config key rather than OT.conf, so these specs pin the
+      # serializer's ladder and not the config layer's ERB/alias plumbing.
+      def stub_configured_ceiling(seconds)
+        allow(Onetime::Models::Features::WithEntitlements)
+          .to receive(:configured_anonymous_max_ttl).and_return(seconds)
+      end
+
+      it 'defaults below the free-tier ceiling' do
+        expect(default_ceiling).to be < Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
       end
 
       context 'when billing is enabled' do
@@ -180,43 +188,43 @@ RSpec.describe Core::Views::ConfigSerializer do
             .and_return({ 'secret_lifetime.max' => 1_209_600 })
         end
 
-        it 'publishes the hard cap alongside the configured options' do
-          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+        it 'publishes the configured ceiling alongside the configured options' do
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
           expect(secret_options['ttl_options']).to eq([3600, 2_592_000])
         end
 
-        it 'lets PLAN_TTL_ANONYMOUS lower the ceiling beneath the cap' do
+        it 'lets the free-tier limit lower the ceiling' do
           allow(Onetime::Organization).to receive(:free_tier_limits)
             .and_return({ 'secret_lifetime.max' => 86_400 })
 
           expect(secret_options['ttl_max_anonymous']).to eq(86_400)
         end
 
-        # Matches anonymous_max_ttl: PLAN_TTL_ANONYMOUS can only lower the
-        # anonymous grant, so a raised env var must not widen the dropdown.
-        it 'never publishes more than the hard cap, however high the override' do
-          allow(Onetime::Organization).to receive(:free_tier_limits)
-            .and_return({ 'secret_lifetime.max' => 2_592_000 })
+        # The audit invariant, holding where tiers exist: an operator who raises
+        # the anonymous ceiling above the free-tier limit must not widen the
+        # dropdown past what a signed-in free-tier user can get.
+        it 'caps a raised ceiling at the free-tier limit' do
+          stub_configured_ceiling(2_592_000)
 
-          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+          expect(secret_options['ttl_max_anonymous']).to eq(1_209_600)
         end
 
-        it 'reads a non-positive override as "unset" and keeps the cap' do
+        it 'reads a non-positive free-tier limit as "unset" and keeps the ceiling' do
           allow(Onetime::Organization).to receive(:free_tier_limits)
             .and_return({ 'secret_lifetime.max' => 0 })
 
-          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
         end
 
-        it 'drops only the override, not the cap, when the limit lookup raises' do
+        it 'drops only the free-tier term, not the ceiling, when the lookup raises' do
           allow(Onetime::Organization).to receive(:free_tier_limits).and_raise(
             StandardError, 'billing config unreadable'
           )
           allow(OT).to receive(:le)
 
-          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
           expect(OT).to have_received(:le).with(
-            a_string_matching(/PLAN_TTL_ANONYMOUS override unavailable/)
+            a_string_matching(/free-tier TTL limit unavailable/)
           )
         end
 
@@ -231,17 +239,25 @@ RSpec.describe Core::Views::ConfigSerializer do
       context 'when billing is disabled (self-hosted)' do
         before { allow(OT.billing_config).to receive(:enabled?).and_return(false) }
 
-        # The cap is about anonymous callers, not about whether the deployment
-        # sells plans, so this is emitted rather than omitted.
-        it 'still publishes the hard cap' do
-          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+        # The ceiling is about anonymous callers, not about whether the
+        # deployment sells plans, so this is emitted rather than omitted.
+        it 'still publishes the configured ceiling' do
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
         end
 
-        it 'ignores PLAN_TTL_ANONYMOUS entirely' do
+        it 'ignores the free-tier limit entirely' do
           allow(Onetime::Organization).to receive(:free_tier_limits)
             .and_return({ 'secret_lifetime.max' => 60 })
 
-          expect(secret_options['ttl_max_anonymous']).to eq(hard_cap)
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
+        end
+
+        # Self-hosted sovereignty: with no free tier to invert against, the
+        # operator's raised ceiling reaches the dropdown unchanged.
+        it 'publishes a ceiling the operator raised above the default' do
+          stub_configured_ceiling(2_592_000)
+
+          expect(secret_options['ttl_max_anonymous']).to eq(2_592_000)
         end
       end
     end
