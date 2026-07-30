@@ -359,6 +359,91 @@ describe('AdminAccountDiagnosticsSection (partially degraded sections)', () => {
 });
 
 /**
+ * A section can also reach the panel with `available` ABSENT — not false,
+ * missing. The wire schema marks the flag optional on purpose (a required
+ * field would make a version-skewed payload fail validation, and
+ * useResourceFetch answers a parse failure by discarding the response, which
+ * blanks the whole break-glass panel during the incident it exists to triage).
+ * The cost of that choice is paid in the consumer: the guard is fail-closed,
+ * so a missing flag degrades one cell to "Unknown" instead of printing the
+ * same reassuring zero a successful read would.
+ */
+describe('AdminAccountDiagnosticsSection (section arrives without `available`)', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+  afterEach(() => wrapper?.unmount());
+
+  const cell = (name: string) => wrapper.find(`[data-testid="diagnostics-fact-${name}"]`).text();
+
+  const mountWith = async (data: unknown) => {
+    mockApi.get.mockResolvedValue({ data });
+    wrapper = mountPanel();
+    await flushPromises();
+  };
+
+  /**
+   * Every value here is the benign one ("0 failures", "no limiter key", "no
+   * pending verification"), which is exactly what makes the shape dangerous:
+   * nothing in it says the read succeeded.
+   */
+  const flaglessPayload = () =>
+    partialPayload(LIVE_AUTH_ACCOUNT, {
+      mfa: { otp_enabled: false, webauthn_credentials: 0 },
+      verification: { pending: false },
+      password_reset: { pending: false },
+      lockout: { login_failures: 0, locked: false },
+      sessions: { active_count: 0 },
+      audit_log: { entries: [] },
+      rate_limits: { entries: [] },
+    });
+
+  it('still renders the panel — a missing flag is not a contract failure', async () => {
+    await mountWith(flaglessPayload());
+
+    expect(wrapper.find('[data-testid="diagnostics-section-error"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="diagnostics-facts"]').exists()).toBe(true);
+  });
+
+  it('says Unknown for every cell whose section omitted the flag', async () => {
+    await mountWith(flaglessPayload());
+
+    expect(cell('login-failures')).toBe('Unknown');
+    expect(cell('sessions')).toBe('Unknown');
+    expect(cell('rate-limiter')).toBe('Unknown');
+    expect(cell('verification')).toBe('Unknown');
+  });
+
+  it('treats the audit log as unread, not as empty', async () => {
+    await mountWith(flaglessPayload());
+
+    expect(wrapper.find('[data-testid="diagnostics-audit-log-unavailable"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="diagnostics-audit-log-empty"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="diagnostics-audit-log"]').exists()).toBe(false);
+  });
+
+  // The grid gate stays "explicitly false" deliberately: fail-closing it would
+  // hide the fact grid and the log, and the accompanying copy asserts an authdb
+  // outage — a cause we have no evidence for when a field is merely absent.
+  it('keeps the grid visible when auth_account itself omits the flag', async () => {
+    await mountWith(partialPayload({ found: true, status: 'Verified', has_password: true }));
+
+    expect(wrapper.find('[data-testid="diagnostics-facts"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="diagnostics-auth-unavailable"]').exists()).toBe(false);
+  });
+
+  it('withholds auth_account values it cannot vouch for', async () => {
+    await mountWith(partialPayload({ found: true, status: 'Verified', has_password: true }));
+
+    expect(cell('password')).toBe('Unknown');
+    expect(cell('auth-status')).toBe('Unknown');
+  });
+});
+
+/**
  * The `no_account` path (Diagnose#authdb_sections) degrades every SQL section
  * but merges `auth_account: { available: true, found: false }` — available, so
  * the grid renders against an account row that does not exist. "None" would

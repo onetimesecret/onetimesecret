@@ -52,6 +52,17 @@
   const sections = computed(() => data.value?.details?.sections ?? null);
 
   const authAccount = computed(() => sections.value?.auth_account ?? null);
+
+  /**
+   * Deliberately `=== false`, NOT the fail-closed test `sectionOk` applies.
+   * This flag does not degrade a cell — it hides the entire panel body (fact
+   * grid and authentication log) and replaces it with copy that asserts a
+   * specific cause: either "simple auth mode" or "the auth database did not
+   * answer". Inferring either of those from a field that is merely *absent*
+   * would blank the break-glass view and name an outage on no evidence. So the
+   * body stays visible when the flag is missing, and the fail-closed guard
+   * below stops any individual cell from vouching for a value.
+   */
   const authUnavailable = computed(() => authAccount.value?.available === false);
 
   /**
@@ -62,12 +73,16 @@
    * test its OWN section before printing a value, or a failed read renders as a
    * reassuring negative assertion ("0 failures", "Clear", "None pending").
    *
-   * The server always sets `available` explicitly, but the wire contract keeps
-   * it optional so a version-skewed payload still parses (a parse failure would
-   * blank the whole panel) — so only an explicit `false` means degraded.
+   * Fail-closed: only an explicit `available === true` is usable. The wire
+   * schema keeps `available` optional on purpose — requiring it would make a
+   * version-skewed payload fail validation, and `useResourceFetch` answers a
+   * parse failure by discarding the response, blanking the whole panel during
+   * exactly the incident it exists to triage. That leniency is paid for here:
+   * a section whose flag never arrived is indistinguishable from one whose read
+   * failed, so it renders "Unknown" rather than its benign-looking zero.
    */
   function sectionOk(section?: { available?: boolean } | null): boolean {
-    return !!section && section.available !== false;
+    return section?.available === true;
   }
 
   /**
@@ -134,6 +149,20 @@
 
   /** The localized "Unknown" every degraded cell falls back to. */
   const unknownLabel = (): string => t('web.admin.customers.detail.diagnostics.unknown');
+
+  /**
+   * "No auth account" is the loudest negative assertion on the panel — it is
+   * the answer to "why can't they log in" — so it needs the same guard as the
+   * password cell beside it. Absent `found` on an unvouched section is not
+   * evidence of a missing row, only of a section that did not say.
+   */
+  const authStatusLabel = computed<string>(() => {
+    if (!sectionOk(authAccount.value)) return unknownLabel();
+    if (!authAccount.value?.found) {
+      return t('web.admin.customers.detail.diagnostics.facts.noAccount');
+    }
+    return authAccount.value.status ?? unknownLabel();
+  });
 
   /**
    * "No auth account" and "password not set" are different answers, and the
@@ -296,12 +325,10 @@
           <dt class="text-gray-500 dark:text-gray-400">
             {{ t('web.admin.customers.detail.diagnostics.facts.authStatus') }}
           </dt>
-          <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">
-            {{
-              authAccount?.found
-                ? authAccount.status
-                : t('web.admin.customers.detail.diagnostics.facts.noAccount')
-            }}
+          <dd
+            class="mt-0.5 font-medium text-gray-900 dark:text-white"
+            data-testid="diagnostics-fact-auth-status">
+            {{ authStatusLabel }}
           </dd>
         </div>
         <div>

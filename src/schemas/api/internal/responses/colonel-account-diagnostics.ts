@@ -10,8 +10,21 @@
 // `findings` triage list plus the raw evidence `sections`. Every section
 // degrades independently server-side (`available: false` + reason) — e.g.
 // simple auth mode has no SQL authdb — so each section schema admits the
-// unavailable variant: `available` is the discriminator and the data fields
-// are optional. Epoch fields are bare Unix-second numbers.
+// unavailable variant with every data field optional.
+//
+// `available` marks which variant arrived, but it is OPTIONAL here on purpose,
+// and that is one half of a deliberate pair. Requiring it would mean a server
+// that stops emitting it for one section fails the whole parse, and
+// useResourceFetch answers a parse failure by discarding the response and
+// setting `validationError` — blanking the entire break-glass panel during
+// exactly the incident it exists to triage. So version skew degrades a cell
+// instead of the panel, and the CONSUMER is fail-closed to pay for it:
+// AdminAccountDiagnosticsSection's `sectionOk()` treats a section as usable
+// only on an explicit `available === true`, so a missing flag renders
+// "Unknown" rather than a fabricated healthy value. Do not tighten this field
+// without moving the guard, or loosen that guard without tightening this.
+//
+// Epoch fields are bare Unix-second numbers.
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { z } from 'zod';
