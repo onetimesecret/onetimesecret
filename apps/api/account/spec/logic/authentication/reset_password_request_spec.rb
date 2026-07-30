@@ -43,7 +43,7 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
       locale: 'en')
   end
 
-  let(:secret) { double('Secret', identifier: 'secret-id-1') }
+  let(:secret) { double('Secret', identifier: 'secret-id-1', shortid: 'secret-i') }
 
   before do
     allow(OT).to receive(:info)

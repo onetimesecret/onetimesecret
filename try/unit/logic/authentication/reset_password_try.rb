@@ -11,7 +11,11 @@
 
 require_relative '../../../support/test_logic'
 
-OT.boot! :test, false
+# Full boot (connect_to_db) so configure_familia runs: creating Secrets mints
+# verifiable identifiers, which need VERIFIABLE_ID_HMAC_SECRET — derived from
+# IDENTIFIER_SECRET/config by that initializer, which `OT.boot! :test, false`
+# would skip (same reason the revoke-op tryout boots this way).
+OT.boot! :test
 
 require 'securerandom'
 require 'onetime/operations/sessions/track_metadata'

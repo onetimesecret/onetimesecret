@@ -95,15 +95,16 @@ obj = AccountAPI::Logic::Account::UpdatePassword.new strategy_result, params
 obj.raise_concerns
 #=> nil
 
-## Process changes the password successfully
-@change_cust = Onetime::Customer.new email: generate_random_email
+## Process changes the password successfully (asserted on a RELOADED customer,
+## so the check proves persistence rather than re-reading the mutated instance)
+@change_cust = Onetime::Customer.create!(email: generate_random_email)
 @change_cust.update_passphrase @current_password
 strategy_result = MockStrategyResult.new(session: @session, user: @change_cust)
 params = { 'password' => @current_password, 'newpassword' => @new_password, 'password-confirm' => @new_password }
 obj = AccountAPI::Logic::Account::UpdatePassword.new strategy_result, params
 obj.raise_concerns
 obj.process
-@change_cust.passphrase?(@new_password)
+Onetime::Customer.load(@change_cust.objid).passphrase?(@new_password)
 #=> true
 
 ## Old password no longer works after change
@@ -127,11 +128,15 @@ obj.process
                                             'external_id' => @m2_cust.extid,
                                             'email' => @m2_cust.email }))
 end
-# Rack-shaped session: responds to #id with an object exposing #public_id,
-# so the logic can resolve the sid to preserve.
+# Rack-shaped session: responds to #id with an object exposing #public_id
+# (so the logic can resolve the sid to preserve) and to #options (so the
+# rotation lever is available, like a live rack-session SessionHash).
 @m2_sess = {}
-m2_sid_obj = Struct.new(:public_id).new(@current_sid)
+m2_sid_obj  = Struct.new(:public_id).new(@current_sid)
+@m2_options = {}
 @m2_sess.define_singleton_method(:id) { m2_sid_obj }
+m2_options = @m2_options
+@m2_sess.define_singleton_method(:options) { m2_options }
 strategy_result = MockStrategyResult.new(session: @m2_sess, user: @m2_cust)
 params = { 'password' => @current_password, 'newpassword' => @new_password, 'password-confirm' => @new_password }
 obj = AccountAPI::Logic::Account::UpdatePassword.new strategy_result, params
@@ -150,9 +155,16 @@ obj.process
 @m2_sess['authenticated_at'].to_i > @m2_watermark
 #=> true
 
-## M-2: the revoked sid loses its index entry; the kept sid stays tracked
-@m2_cust.active_sessions.revrange(0, -1) == [@current_sid]
+## M-2: session-id rotation is requested (fixation defense) — Rack's commit
+## path will delete the pre-change sid's blob and re-persist under a fresh sid
+@m2_options[:renew]
 #=> true
+
+## M-2: both old sids are dropped from the index — the revoked one by the
+## revoke op, the pre-rotation current one by the rotation tidy (the NEW sid
+## is re-tracked at session commit, which a unit test doesn't perform)
+@m2_cust.active_sessions.revrange(0, -1)
+#=> []
 
 ## M-2: with no resolvable current sid, ALL sessions are revoked (fail secure)
 @ns_cust = Onetime::Customer.create!(email: generate_random_email)

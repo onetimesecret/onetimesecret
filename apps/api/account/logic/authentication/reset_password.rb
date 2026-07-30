@@ -50,7 +50,7 @@ module AccountAPI::Logic
             {
               customer_id: @cust.extid,
               email: @cust.obscure_email,
-              secret_identifier: secret.identifier,
+              secret_identifier: secret.shortid, # truncated: the full identifier is the live token
               ip: @strategy_result&.metadata&.dig(:ip),
             }
 

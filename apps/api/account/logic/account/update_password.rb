@@ -77,18 +77,84 @@ module AccountAPI::Logic
 
         watermark = revoke_sessions_for_credential_change(cust, except_session_id: current_sid)
 
-        # The watermark's `<=` auth-time check retires any session authenticated
-        # at-or-before it — including the one just preserved. Re-stamp the kept
-        # session STRICTLY past the watermark (same maneuver as the full-mode
-        # hook's post-rotation re-stamp) so both that check and the
-        # watermark-honoring async sweep spare it. When the stamp failed
-        # (watermark 0) fall back to now + 1 so the invariant still holds
-        # against a same-second stamp retry. A sess that cannot be written
-        # (nil / frozen) degrades to the fail-secure logout above.
-        return unless sess.respond_to?(:[]=)
+        rotate_and_restamp_kept_session(current_sid, watermark)
+        send_password_changed_notification
+      end
 
+      # Rotate the kept session's id + re-stamp it past the watermark — the
+      # same ordering-coupled pair as the full-mode hook (see the ROTATION /
+      # RE-STAMP rationale in apps/web/auth/config/hooks/account.rb):
+      #
+      # ROTATION (session fixation): a credential change is a privilege
+      # boundary, so the sid that existed before the change must not remain
+      # valid after it. Setting :renew makes Rack's commit path delete the old
+      # sid's blob and re-persist the session under a fresh sid (the logout
+      # controller uses the same lever); write_session then re-creates the
+      # sidecar + index entry for the NEW sid via TrackMetadata, so only the
+      # old sid's metadata needs tidying here.
+      #
+      # RE-STAMP (watermark survival): the auth-time `<=` check retires any
+      # session authenticated at-or-before the watermark — including the one
+      # just preserved — so the kept session must be stamped STRICTLY past it.
+      # The re-stamp runs ONLY after rotation has been requested: when the
+      # renew lever is unavailable (sess is not a live Rack session), we do
+      # NOT re-stamp, so the un-rotated pre-change sid keeps its stale
+      # authenticated_at and the watermark retires it on its next request —
+      # fail SECURE (the user re-authenticates) rather than re-legitimizing a
+      # possibly fixated sid.
+      def rotate_and_restamp_kept_session(current_sid, watermark)
+        options = sess.respond_to?(:options) ? sess.options : nil
+        if options.nil?
+          auth_logger.error '[update-password] session rotation unavailable',
+            customer_id: cust.extid,
+            security_warning: 'session id not rotated and not re-stamped; the watermark will retire the pre-change session on its next request'
+          return
+        end
+
+        options[:renew] = true
+
+        # Strictly postdate the watermark. [now, watermark + 1].max is
+        # > watermark under any clock relationship; with no usable watermark
+        # (stamp failed → 0) fall back to now + 1 so the invariant still holds
+        # against a same-second stamp retry.
         sess['authenticated_at'] =
           watermark.positive? ? [Familia.now.to_i, watermark + 1].max : Familia.now.to_i + 1
+
+        return if current_sid.to_s.empty?
+
+        # Tidy the pre-rotation sid's metadata (the tidy_sidecars pattern);
+        # the new sid is tracked at session commit.
+        Onetime::SessionMetadata.load(current_sid)&.destroy!
+        cust.active_sessions&.remove(current_sid)
+      rescue StandardError => ex
+        # Rotation failure must never fail the password change, but must never
+        # be silent either: without rotation the pre-change sid stays live
+        # until watermark validation or TTL retires it.
+        auth_logger.error '[update-password] session rotation failed',
+          customer_id: cust.extid,
+          error: ex.message,
+          security_warning: 'password change succeeded but the session id was not rotated'
+      end
+
+      # Best-effort security notification that the password changed (parity
+      # with the full-mode hook). Never let a delivery problem surface as a
+      # password-change failure.
+      def send_password_changed_notification
+        Onetime::ErrorHandler.safe_execute('password_changed_email', customer_id: cust.extid) do
+          # Customers default locale to "" (matches Redis string load), which
+          # is truthy and would slip past a bare `||`. Treat blank as missing.
+          locale = cust.locale
+          locale = OT.default_locale if locale.to_s.strip.empty?
+          Onetime::Jobs::Publisher.enqueue_email(
+            :password_changed,
+            {
+              email_address: cust.email,
+              changed_at: Time.now.utc.iso8601,
+              locale: locale,
+            },
+            fallback: :async_thread,
+          )
+        end
       end
 
       # Verify password using the appropriate mechanism based on auth mode.

@@ -87,11 +87,14 @@ module AccountAPI::Logic
 
         cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately
 
+        # Log only the truncated shortid: the full identifier IS the live reset
+        # token now that it is unguessable — logging it would let anyone with
+        # log access take over accounts mid-reset.
         auth_logger.debug 'Delivering password reset email',
           {
             customer_id: cust.extid,
             email: cust.obscure_email,
-            secret_identifier: secret.identifier,
+            secret_identifier: secret.shortid,
             token: token&.slice(0, 8), # Only log first 8 chars for debugging
           }
 
@@ -125,7 +128,7 @@ module AccountAPI::Logic
             customer_id: cust.extid,
             email: cust.obscure_email,
             session_id: safe_session_id,
-            secret_identifier: secret.identifier,
+            secret_identifier: secret.shortid, # truncated: the full identifier is the live token
             queued: queued,
           }
 
