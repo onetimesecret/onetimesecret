@@ -1,0 +1,298 @@
+{
+  "_readme": {
+    "purpose": "Shared, language-neutral specification of the email shapes that every redactor must handle. Read by both the Ruby suites (rspec/tryouts) and vitest.",
+    "invariant": "Every address the VALIDATOR accepts must be redacted by EVERY redactor. The validator defines what is storable; a redactor that is narrower than the validator prints stored data in the clear. This corpus is the one place that language is written down — add a shape here and both languages' tests pick it up automatically.",
+    "validator": {
+      "name": "Truemail::RegexConstant::REGEX_EMAIL_PATTERN",
+      "source": "truemail-3.3.1/lib/truemail/core.rb:24",
+      "pattern": "(?=\\A.{6,255}\\z)(\\A([\\p{L}0-9]+[\\w\\p{L}.+!~,'&%#*^`{}|\\-/?=$]*)@((?i-mx:[\\p{L}0-9]+([-.]{1}[\\p{L}\\p{N}\\p{Pd}]*[\\p{L}\\p{N}]+)*\\.\\p{L}{2,63}))\\z)",
+      "note": "The app never overrides Truemail's email_pattern — etc/defaults/config.defaults.yaml:850 sets only default_validation_type/verifier_email/allowed_domains_only, and ConfigureTruemail (lib/onetime/initializers/configure_truemail.rb) copies config keys verbatim, so the gem default is what runs. Every truemail_accepts value below was measured by running Truemail.validate(input, with: :regex), not derived by reading the regex."
+    },
+    "redactors": [
+      {
+        "id": "obscure_email",
+        "language": "ruby",
+        "source": "lib/onetime/utils/strings.rb",
+        "contract": "PARTIAL, shape-preserving mask for operator terminal output (user@example.com -> us***@e***.com). Must stay human-correlatable. Subject to the head-exemption documented per entry."
+      },
+      {
+        "id": "diagnostics_scrubber",
+        "language": "ruby",
+        "source": "lib/onetime/initializers/setup_diagnostics.rb (EMAIL_PATTERN)",
+        "contract": "FULL sentinel replacement for Sentry payloads. Must leak nothing — no head exemption applies."
+      },
+      {
+        "id": "diagnostics_scrubber_ts",
+        "language": "typescript",
+        "source": "src/plugins/core/diagnostics/scrubbers.ts (EMAIL_PATTERN)",
+        "contract": "Deliberate mirror of diagnostics_scrubber — same pattern, same sentinel. Must leak nothing."
+      }
+    ],
+    "no_expected_output_here": "This file is DATA ONLY. It carries no expected output strings, because the three redactors have deliberately different output contracts (partial mask vs full sentinel). Each language derives its expectations from `kind` and `contains`.",
+    "how_to_read_an_entry": {
+      "id": "stable slug; use it in test names so a failure names the shape",
+      "input": "the exact string fed to the redactor",
+      "kind": "accepted | embedded | rejected | informational — see kinds below",
+      "truemail_accepts": "measured result of Truemail.validate(input, with: :regex) on the WHOLE input string",
+      "contains": "addresses inside `input` that the validator accepts. For kind=accepted this is [input]. Every listed address must be redacted wherever it appears in `input`.",
+      "probes": "what shape this entry exists to exercise",
+      "partial_mask_head_exempt": "OPTIONAL, applies to the obscure_email redactor ONLY. mask_string_head() returns the string unchanged when its length <= keep_head (keep_head=2 for the local part, 1 for the domain host). Where this key is present the named part is DELIBERATELY left in the clear by obscure_email — a known contract, not a bug. Do not assert a mask on an exempt part; assert only that the non-exempt parts are masked. The exemption does NOT extend to the full-sentinel redactors, which must still redact these entries completely."
+    },
+    "kinds": {
+      "accepted": "Validator accepts the whole input. Every redactor must redact it.",
+      "embedded": "Free text; the whole string is not itself a valid address. Every address in `contains` must be redacted in place; the rest of the text must survive.",
+      "rejected": "Validator rejects it and it is not storable, so redacting it is over-redaction that costs operators real signal. No redactor may alter it.",
+      "informational": "Validator rejects it, but redaction behavior is deliberately unasserted — over-redaction here is harmless. Recorded so the shape is not mistaken for an untested gap."
+    },
+    "version": 1
+  },
+
+  "entries": [
+    {
+      "id": "plain-ascii",
+      "input": "user@example.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user@example.com"],
+      "probes": "baseline ASCII address; the shape every implementation already handles"
+    },
+    {
+      "id": "dotted-local",
+      "input": "first.last@example.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["first.last@example.com"],
+      "probes": "dot inside the local part must not terminate the match early"
+    },
+    {
+      "id": "plus-addressed-local",
+      "input": "user+tag@example.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user+tag@example.com"],
+      "probes": "sub-addressing; '+' must be inside the local-part class"
+    },
+    {
+      "id": "subdomain",
+      "input": "user@mail.example.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user@mail.example.com"],
+      "probes": "multi-label host; the whole host, not just the SLD, must be covered"
+    },
+    {
+      "id": "multi-label-tld",
+      "input": "user@example.co.uk",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user@example.co.uk"],
+      "probes": "public-suffix TLD with two labels; a greedy TLD class must not stop at '.co'"
+    },
+    {
+      "id": "combined-local-subdomain-multi-label-tld",
+      "input": "user.name+tag@sub.example.co.uk",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user.name+tag@sub.example.co.uk"],
+      "probes": "all the ASCII complications at once — dotted local, plus tag, subdomain, two-label TLD"
+    },
+    {
+      "id": "unicode-local-latin1",
+      "input": "josé@example.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["josé@example.com"],
+      "probes": "THE LEAK. Latin-1 accented local part: storable, but matched by no ASCII-only redactor, so it printed in the clear."
+    },
+    {
+      "id": "unicode-local-latin1-uppercase",
+      "input": "JOSÉ@EXAMPLE.COM",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["JOSÉ@EXAMPLE.COM"],
+      "probes": "uppercase non-ASCII letter; a case-insensitive flag alone does not widen an ASCII class"
+    },
+    {
+      "id": "unicode-local-cjk",
+      "input": "用户@example.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["用户@example.com"],
+      "probes": "CJK local part — no case, no ASCII fallback",
+      "partial_mask_head_exempt": { "local": true, "host": false }
+    },
+    {
+      "id": "unicode-local-cyrillic",
+      "input": "пользователь@example.com",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["пользователь@example.com"],
+      "probes": "Cyrillic local part on an ASCII domain"
+    },
+    {
+      "id": "idn-domain-unicode-tld",
+      "input": "user@пример.рф",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user@пример.рф"],
+      "probes": "IDN in U-label form with a non-ASCII two-letter TLD; exercises the domain side and the TLD class together"
+    },
+    {
+      "id": "unicode-tld-ascii-domain",
+      "input": "user@example.онлайн",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user@example.онлайн"],
+      "probes": "ASCII host with a non-ASCII TLD; isolates the TLD class from the host class"
+    },
+    {
+      "id": "idn-subdomain",
+      "input": "user@mail.пример.рф",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["user@mail.пример.рф"],
+      "probes": "mixed ASCII/non-ASCII labels within one host"
+    },
+    {
+      "id": "mixed-case",
+      "input": "Mixed.Case@Example.COM",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["Mixed.Case@Example.COM"],
+      "probes": "case must not affect matching on either side of the '@'"
+    },
+    {
+      "id": "one-char-local-and-host",
+      "input": "a@b.co",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["a@b.co"],
+      "probes": "shortest storable address (Truemail enforces a 6-char minimum). obscure_email returns this UNCHANGED — both parts are head-exempt — so it is the entry that catches a test which conflates 'unmasked' with 'unmatched'.",
+      "partial_mask_head_exempt": { "local": true, "host": true }
+    },
+    {
+      "id": "two-char-local-and-host",
+      "input": "ab@cd.io",
+      "kind": "accepted",
+      "truemail_accepts": true,
+      "contains": ["ab@cd.io"],
+      "probes": "boundary of the head exemption: the 2-char local is exempt, the 2-char host is not",
+      "partial_mask_head_exempt": { "local": true, "host": false }
+    },
+    {
+      "id": "embedded-free-text",
+      "input": "From: alice@example.com To: bob@example.org",
+      "kind": "embedded",
+      "truemail_accepts": false,
+      "contains": ["alice@example.com", "bob@example.org"],
+      "probes": "two addresses inside a log line; both must be redacted and the surrounding 'From:'/'To:' text must survive"
+    },
+    {
+      "id": "embedded-free-text-min-length",
+      "input": "From: a@b.com To: c@d.org",
+      "kind": "embedded",
+      "truemail_accepts": false,
+      "contains": ["a@b.com", "c@d.org"],
+      "probes": "the same free-text shape at minimum part lengths. obscure_email leaves this string BYTE-IDENTICAL because every part is head-exempt, so it must not be used to assert that matching occurred — the full-sentinel redactors must still replace both addresses.",
+      "partial_mask_head_exempt": { "local": true, "host": true }
+    },
+    {
+      "id": "embedded-punctuation-and-brackets",
+      "input": "Contact <admin@example.com>, or (support@example.org).",
+      "kind": "embedded",
+      "truemail_accepts": false,
+      "contains": ["admin@example.com", "support@example.org"],
+      "probes": "angle brackets, parentheses, comma and a trailing period adjacent to the addresses; the trailing '.' must not be swallowed into the TLD"
+    },
+    {
+      "id": "embedded-url-query-string",
+      "input": "https://app.example.com/verify?email=user@example.com&token=abc",
+      "kind": "embedded",
+      "truemail_accepts": false,
+      "contains": ["user@example.com"],
+      "probes": "address as a URL query value. The bare host 'app.example.com' has no '@' before it and must survive untouched — this entry doubles as an over-redaction check on the domain side."
+    },
+
+    {
+      "id": "no-tld-host",
+      "input": "user@localhost",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "single-label host; not storable, and common in SMTP/dev logs where redacting it costs operators real signal"
+    },
+    {
+      "id": "bare-handle",
+      "input": "@handle",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "social handle / decorator / CSS at-rule; no local part, must never be treated as an address"
+    },
+    {
+      "id": "no-tld-single-label",
+      "input": "a@b",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "'@' with no dotted domain at all"
+    },
+    {
+      "id": "version-string",
+      "input": "1.2@3.4",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "numeric TLD. Version/coordinate strings must survive — the TLD class must require letters, not word characters."
+    },
+    {
+      "id": "hostname-without-at",
+      "input": "no-at-sign.example.com",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "bare hostname; over-redacting hostnames blinds operators to which host an error came from"
+    },
+    {
+      "id": "single-char-tld",
+      "input": "foo@bar.c",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "one-letter TLD is below Truemail's {2,63} bound; keeps the redactors' TLD floor aligned with the validator's"
+    },
+    {
+      "id": "unicode-no-tld",
+      "input": "подписка@сайт",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "over-redaction check for the WIDENED unicode classes specifically: non-ASCII on both sides but no dotted TLD, so it is not storable and must not be redacted"
+    },
+    {
+      "id": "unicode-local-ascii-no-tld",
+      "input": "test@пример",
+      "kind": "rejected",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "unicode single-label host; the widened domain class must still require a TLD"
+    },
+
+    {
+      "id": "nfd-decomposed-local",
+      "input": "jose\u0301@example.com",
+      "kind": "informational",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "NFD form of josé — 'e' + U+0301 COMBINING ACUTE. The combining mark is \\p{M}, which is outside Truemail's local-part class, so this is REJECTED and not storable; it must be NFC-normalized before validation (see Strings.normalize_email). Renders identically to the accepted NFC entry, so it is recorded here to prevent the two from being confused. The combining mark is written as a \\u escape on purpose — a literal would be silently NFC-normalized by an editor or a git filter and this entry would quietly become a duplicate of unicode-local-latin1. Redaction behavior is unasserted."
+    },
+    {
+      "id": "double-at",
+      "input": "user@@example.com",
+      "kind": "informational",
+      "truemail_accepts": false,
+      "contains": [],
+      "probes": "malformed address; not storable, and over-redacting it is harmless, so neither implementation's behavior is pinned"
+    }
+  ]
+}
