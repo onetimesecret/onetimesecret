@@ -29,9 +29,9 @@ regions.
 
 ## When diagnose is clean
 
-| Question | Tool |
-| :--- | :--- |
-| Which surface/region? Custom domain? | Ask the user. Custom domain → check SigninConfig first |
-| Did the verification email go out? | Colonel email provider status/rates; `ots email test/validate`. No per-recipient send log |
-| Client-side failure? | Sentry, filtered to /auth routes by time (email is scrubbed) |
-| Index integrity? | `ots customers doctor <email>` |
+| Question                             | Tool                                                                                      |
+| :----------------------------------- | :---------------------------------------------------------------------------------------- |
+| Which surface/region? Custom domain? | Ask the user. Custom domain → check SigninConfig first                                    |
+| Did the verification email go out?   | Colonel email provider status/rates; `ots email test/validate`. No per-recipient send log |
+| Client-side failure?                 | Sentry, filtered to /auth routes by time (email is scrubbed)                              |
+| Index integrity?                     | `ots customers doctor <email>`                                                            |
