@@ -27,7 +27,7 @@ require 'onetime/operations/sessions/track_metadata'
 @cust.verified = 'true'
 @cust.save
 
-@secret                    = Onetime::Secret.create! @cust.email, [@cust.email]
+@secret                    = Onetime::Secret.create!(owner_id: @cust.objid)
 @secret.default_expiration = 86_400 # 24h, as ResetPasswordRequest sets it
 @secret.verification       = 'true'
 @secret.save

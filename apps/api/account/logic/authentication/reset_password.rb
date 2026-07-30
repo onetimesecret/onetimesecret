@@ -34,8 +34,11 @@ module AccountAPI::Logic
       end
 
       def process
-        # Load the customer information from the premade secret
+        # Load the customer information from the premade secret. An orphaned
+        # secret (no resolvable owner) cannot be a valid reset secret; treat it
+        # like a missing one rather than 500ing on nil below.
         @cust = secret.load_owner
+        raise OT::MissingSecret if @cust.nil?
 
         unless @cust.valid_reset_secret!(secret)
           # If the secret is a reset secret, we can proceed to change
@@ -71,8 +74,10 @@ module AccountAPI::Logic
           raise_form_error 'Account not verified'
         end
 
-        # Update the customer's passphrase
-        @cust.update_passphrase @password
+        # Update the customer's passphrase. The bang variant persists the new
+        # hash (save_fields); bare update_passphrase only mutates in memory and
+        # never wrote the new password to the database.
+        @cust.update_passphrase! @password
 
         # SECURITY (M-2): a password reset MUST invalidate every existing
         # session for the account — the whole point of a reset is to lock out

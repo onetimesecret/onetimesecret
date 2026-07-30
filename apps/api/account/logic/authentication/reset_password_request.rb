@@ -71,7 +71,16 @@ module AccountAPI::Logic
           return success_data
         end
 
-        secret                    = Onetime::Secret.create! @login_or_email, [@login_or_email]
+        # owner_id keyword, matching RequestEmailChange. The legacy positional
+        # call (`create! @login_or_email, [@login_or_email]`) mapped the EMAIL
+        # into the identifier and left owner_id nil, which (a) made the emailed
+        # reset token (/forgot/:identifier) the user's own email address —
+        # guessable by anyone — and (b) broke ResetPassword#process, whose
+        # `secret.load_owner` returned nil and 500'd every simple-mode reset
+        # before it could change the password. With owner_id set, the
+        # identifier is the auto-generated objid (an unguessable token) and
+        # load_owner resolves the customer.
+        secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
         secret.save
