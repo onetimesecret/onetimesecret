@@ -154,10 +154,10 @@ module Onetime
       def format_value(value, key:, full:)
         return '(none)' if value.nil?
 
-        if TIMESTAMP_KEYS.include?(key) && value.is_a?(Numeric)
+        if key?(TIMESTAMP_KEYS, key) && value.is_a?(Numeric)
           return format_timestamp(value)
         end
-        if EMAIL_KEYS.include?(key) && !full
+        if key?(EMAIL_KEYS, key) && !full
           return OT::Utils.obscure_email(value.to_s)
         end
         if value.is_a?(Hash)
@@ -171,6 +171,17 @@ module Onetime
         return '(unknown)' if ts.nil? || ts.to_f <= 0
 
         Time.at(ts.to_f).utc.strftime('%Y-%m-%d %H:%M:%S UTC')
+      end
+
+      # The op's own keys are symbols, but values decoded from a json column
+      # (audit-log metadata) carry STRING keys. A symbol-only `include?` silently
+      # skips those, so a nested address printed unobscured — defence in depth
+      # rather than a live leak, since the two metadata writers that record an
+      # email already obscure it (see config/features/audit_logging.rb), but the
+      # next writer should not have to know that. Compare on a normalized key,
+      # exactly as deep_obscure_emails does.
+      def key?(keys, key)
+        keys.include?(key.to_s.to_sym)
       end
 
       # Obscure every email-valued field in the nested section hash for JSON
