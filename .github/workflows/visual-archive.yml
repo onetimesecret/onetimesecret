@@ -44,7 +44,9 @@ concurrency:
 jobs:
   archive:
     name: Render matrix and push to ghcr.io
-    runs-on: ubuntu-24.04
+    # 26.04 for the same crun/podman reason as visual.yml — keep both lanes on
+    # the same image so archived sets stay comparable with compare-pass runs.
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
 
     services:
