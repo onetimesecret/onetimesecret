@@ -131,10 +131,24 @@ Onetime::Utils.obscure_email("note\xFF user@example.com")
 Onetime::Utils.obscure_email("user@example.com \xFF".dup.force_encoding(Encoding::ASCII_8BIT))
 #=> 'us***@e***.com '
 
-## Invalid byte INSIDE the local part still masks (a U+FFFD marker here would
-## break the pattern match and print the whole address in the clear)
+## Invalid byte INSIDE the local part still masks (an un-normalized U+FFFD here
+## would break the pattern match and print the whole address in the clear)
 Onetime::Utils.obscure_email("us\xFFer@example.com")
 #=> 'us***@e***.com'
+
+## A U+FFFD ALREADY in the local part still masks: the diagnose op scrubs its
+## Result in marker mode, so obscure_email's input arrives pre-marked
+Onetime::Utils.obscure_email("us\u{FFFD}er@example.com")
+#=> 'us***@e***.com'
+
+## A U+FFFD already in the domain still masks
+Onetime::Utils.obscure_email("user@exa\u{FFFD}mple.com")
+#=> 'us***@e***.com'
+
+## Marker-mode scrub output feeds back through the mask intact (the exact
+## op -> CLI adapter hand-off)
+Onetime::Utils.obscure_email(Onetime::Utils.utf8_safe("login:locked:us\xFFer@example.com", replacement: "\u{FFFD}"))
+#=> 'login:locked:us***@e***.com'
 
 ## Invalid byte INSIDE the domain still masks
 Onetime::Utils.obscure_email("user@exa\xFFmple.com")
@@ -160,12 +174,19 @@ Onetime::Utils.obscure_email('user@пример.рф')
 Onetime::Utils.utf8_safe('plain text')
 #=> 'plain text'
 
-## utf8_safe drops invalid bytes by default (fail-closed for the redaction path)
+## utf8_safe drops invalid bytes by default (presentation choice, not a safety
+## one — obscure_email normalizes markers itself, so redaction is safe either way)
 Onetime::Utils.utf8_safe("us\xFFer")
 #=> 'user'
 
-## utf8_safe marks invalid bytes when a caller explicitly asks for the marker
+## utf8_safe marks invalid bytes when a caller asks for the marker (what the
+## diagnose op does, so colonel keeps the corruption signal)
 Onetime::Utils.utf8_safe("us\xFFer", replacement: "\u{FFFD}")
+#=> "us\u{FFFD}er"
+
+## The marker constant is shared between the producers and obscure_email so they
+## cannot drift onto different markers
+Onetime::Utils.utf8_safe("us\xFFer", replacement: Onetime::Utils::Strings::UNICODE_REPLACEMENT_CHAR)
 #=> "us\u{FFFD}er"
 
 ## random_fortune returns a string

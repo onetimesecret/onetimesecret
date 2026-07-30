@@ -68,6 +68,14 @@ module Onetime
       EMAIL_MASK_CHAR      = '*'  # masking character
       EMAIL_MASK_LENGTH    = 3    # number of mask characters
 
+      # U+FFFD REPLACEMENT CHARACTER. Shared so the producers that mark invalid
+      # bytes with it (Diagnose#utf8_safe_deep, `customers diagnose --full`) and
+      # the consumer that has to strip it before matching (#obscure_email) can
+      # never drift onto different markers — a marker #obscure_email does not
+      # know about is a marker that defeats EMAIL_PATTERN, which prints the
+      # address in the clear.
+      UNICODE_REPLACEMENT_CHAR = "\u{FFFD}"
+
       # RFC 5321/5322-compliant email pattern for matching
       # Supports: local-part@domain where local-part allows dots, plus, etc.
       # This pattern is intentionally permissive to catch edge cases while
@@ -130,16 +138,22 @@ module Onetime
       # provenance — a datastore field, a request parameter — can be matched,
       # printed and JSON-encoded without raising.
       #
-      # The default DROPS the bad bytes instead of marking them, because the
-      # main consumer is #obscure_email and a marker is mask-defeating: U+FFFD
-      # is not in EMAIL_PATTERN's local-part class, so `us\xFFer@example.com`
-      # would stop matching and the whole address would print in the clear.
-      # Dropping leaves `user@example.com`, which still masks. Fail-closed is
-      # the default so a caller has to ask for the leaky behaviour by name.
+      # The replacement is a PRESENTATION choice, not a safety one — read that
+      # carefully, because it USED to be a safety one and the comments here said
+      # so. U+FFFD is not in EMAIL_PATTERN's character class, so a marker landing
+      # inside an address (`us\u{FFFD}er@example.com`) stopped the match and
+      # printed the address in full; dropping was the fail-closed default for
+      # that reason. #obscure_email now strips markers as part of its own
+      # normalization, so no caller's redaction depends on this default any
+      # more, and marking is safe to hand to a redactor.
       #
-      # Pass `replacement: "\u{FFFD}"` only where nothing downstream pattern-
-      # matches the result and keeping the corruption visible is the point
-      # (e.g. `customers diagnose --full`, which prints values verbatim).
+      # Choose by what the reader needs to see:
+      #   '' (default) — the text will be read as prose and the corruption is
+      #     noise.
+      #   UNICODE_REPLACEMENT_CHAR — the corruption IS the evidence. This is
+      #     what the diagnose op's Result uses: colonel renders those sections
+      #     verbatim, and a `locale: "en\xFF"` that reads back as a clean "en"
+      #     is a diagnostic tool lying about the state it exists to report.
       #
       # A binary-tagged string is `valid_encoding?` whatever bytes it holds, and
       # matching one against a UTF-8 pattern raises Encoding::CompatibilityError,
@@ -164,11 +178,27 @@ module Onetime
         # an outage (see LoginRateLimiter, which obscures a request-supplied
         # address). Scrub first, then mask what remains.
         #
-        # The scrub DROPS invalid bytes rather than marking them: a marker
-        # inside the address (`us\xFFer@example.com`) breaks the match and
-        # prints the address in full, so marking here fails open. See
-        # #utf8_safe.
-        utf8_safe(text).gsub(EMAIL_PATTERN) do |raw|
+        # Two separate ways a marker can defeat the mask, so both are handled
+        # here rather than assumed away upstream:
+        #
+        #   1. invalid bytes we scrub ourselves — dropped, not marked, so
+        #      `us\xFFer@example.com` collapses to `user@example.com` and still
+        #      matches EMAIL_PATTERN;
+        #   2. a U+FFFD the INPUT already carries — someone upstream scrubbed in
+        #      marker mode (Diagnose#utf8_safe_deep does exactly that, and its
+        #      Result is this method's input on the CLI path). Deleting it is
+        #      the same collapse, one layer later.
+        #
+        # Either way the character is not in EMAIL_PATTERN's class, and an
+        # unmatched address is an address printed in full. This normalization is
+        # the reason #utf8_safe's replacement is now a free choice for callers.
+        #
+        # The cost is deliberate: the masked path silently loses the corruption
+        # marker (`verified\u{FFFD}` prints as `verified`). Operators who need
+        # to see the corruption use `--full` or the colonel panel, both of which
+        # keep the marker and skip this method entirely. A redactor's job is to
+        # never leak; showing damage is someone else's.
+        utf8_safe(text).delete(UNICODE_REPLACEMENT_CHAR).gsub(EMAIL_PATTERN) do |raw|
           mask_email_address(raw)
         end
       end
