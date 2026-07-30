@@ -44,6 +44,16 @@ Otto's `RouteAuthWrapper`:
 - **Invalid** credentials must fail closed — a bad credential must not fall
   through to anonymous.
 
+The refusal is scoped to requests that would otherwise become *anonymous*.
+`NoAuthStrategy` reads the credentialed-failure marker only after the session
+resolves no identity, so a valid session cookie outranks a rejected
+`Authorization` header. Without that ordering, a logged-in browser that
+re-sends cached Basic credentials — or any deployment behind an htpasswd
+reverse proxy that forwards its own header — would 401 on every
+`basicauth,noauth` route, web-UI conceal included. Anonymous requests bearing
+a forwarded header still 401; that is the intended fail-closed edge, and
+operators must strip `Authorization` before proxying to the API.
+
 Because a strategy such as BasicAuth yields `session: {}`, any logic class that
 gates on `@sess['authenticated'] == true` will reject that request. Session-only
 actions are mounted accordingly: `POST /n` (`GenerateAPIToken`) is declared

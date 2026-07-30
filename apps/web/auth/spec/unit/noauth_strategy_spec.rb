@@ -269,6 +269,49 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
           expect(result.failure_reason).to eq('[CREDENTIALS_INVALID] Invalid credentials')
         end
       end
+
+      # The refusal is scoped to requests that would otherwise become
+      # ANONYMOUS. A session that resolves an identity outranks a rejected
+      # Authorization header, so the marker is read only after session
+      # resolution — otherwise a logged-in browser re-sending cached Basic
+      # credentials, or any deployment behind an htpasswd reverse proxy that
+      # forwards its own header, would 401 on every basicauth,noauth route.
+      context 'with an authenticated session AND a rejected Authorization header' do
+        let(:env_session_plus_bad_basic) do
+          encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
+          env_session_authenticated.merge(
+            'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+          )
+        end
+
+        it 'keeps the session identity instead of failing closed (chain simulation)' do
+          basic_result = basic_auth_strategy.authenticate(env_session_plus_bad_basic, nil)
+          expect(basic_result).to be_a(Otto::Security::Authentication::AuthFailure)
+          expect(env_session_plus_bad_basic).to have_key(marker_key)
+
+          noauth_result = no_auth_strategy.authenticate(env_session_plus_bad_basic, nil)
+          expect(noauth_result).to be_a(Otto::Security::Authentication::StrategyResult)
+          expect(noauth_result.authenticated?).to be true
+          expect(noauth_result.user.custid).to eq(test_customer.custid)
+        end
+
+        it 'still fails closed when the session resolves no identity' do
+          # Same marker, but the session cannot produce a customer — the
+          # fallthrough hole must stay shut.
+          env = {
+            'rack.session' => {
+              'authenticated' => true,
+              'external_id' => 'nonexistent@example.com',
+            },
+            'REMOTE_ADDR' => '127.0.0.1',
+            'HTTP_USER_AGENT' => 'Test/1.0',
+            marker_key => '[CREDENTIALS_INVALID] Invalid credentials',
+          }
+          result = no_auth_strategy.authenticate(env, nil)
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+          expect(result.failure_reason).to eq('[CREDENTIALS_INVALID] Invalid credentials')
+        end
+      end
     end
 
     # -----------------------------------------------------------------

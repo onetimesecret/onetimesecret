@@ -148,5 +148,47 @@ OT.boot! :test, false
 ]
 #=> ['Otto::Security::Authentication::StrategyResult', true]
 
+## A valid session outranks a rejected Authorization header: the refusal only
+## applies to requests that would otherwise become ANONYMOUS. A logged-in user
+## whose browser re-sends cached Basic credentials — or whose request passes
+## through an htpasswd reverse proxy that forwards its own header — must keep
+## their session identity instead of being 401'd mid-session.
+@env_session_and_marker = {
+  'rack.session' => {
+    'authenticated' => true,
+    'external_id' => @test_customer.extid,
+    'email' => @test_customer.email
+  },
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0',
+  'HTTP_AUTHORIZATION' => 'Basic eDp5',
+  @marker_key => '[CREDENTIALS_INVALID] Invalid credentials'
+}
+@result_session_and_marker = @strategy.authenticate(@env_session_and_marker, nil)
+[
+  @result_session_and_marker.class.name,
+  @result_session_and_marker.authenticated?,
+  @result_session_and_marker.user&.custid == @test_customer.custid
+]
+#=> ['Otto::Security::Authentication::StrategyResult', true, true]
+
+## Marker + a session that resolves NO identity (logged out, or stale/deleted
+## customer) still fails closed — the fallthrough hole stays shut.
+@env_stale_session_and_marker = {
+  'rack.session' => {
+    'authenticated' => true,
+    'external_id' => 'nonexistent@example.com'
+  },
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0',
+  @marker_key => '[CREDENTIALS_INVALID] Invalid credentials'
+}
+@result_stale = @strategy.authenticate(@env_stale_session_and_marker, nil)
+[
+  @result_stale.class.name,
+  @result_stale.failure_reason
+]
+#=> ['Otto::Security::Authentication::AuthFailure', '[CREDENTIALS_INVALID] Invalid credentials']
+
 # Cleanup
 @test_customer.delete!

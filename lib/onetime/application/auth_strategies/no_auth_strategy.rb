@@ -19,6 +19,13 @@
 # and this strategy refuses, making the whole chain fail closed.
 # See docs/security/audits/2026-07-29-api.md item 1.
 #
+# The refusal is scoped to requests that would otherwise become ANONYMOUS.
+# A session that resolves an identity wins over a rejected Authorization
+# header, so a logged-in browser is never 401'd by a stale cached Basic
+# credential or by a reverse proxy forwarding its own htpasswd header.
+# That narrowing costs nothing: the audit hole was invalid credentials
+# becoming anonymous, and a session-authenticated request is not anonymous.
+#
 # On noauth-ONLY routes no credentialed strategy runs, so an Authorization
 # header (any scheme) is ignored and the request stays anonymous — refusing
 # there would break deployments behind Basic-auth reverse proxies that
@@ -42,21 +49,32 @@ module Onetime
         end
 
         def authenticate(env, _requirement)
-          # Fail closed when this request presented credentials that a
-          # credentialed strategy earlier in the chain already rejected
-          # (auth=basicauth,noauth). Echo the original failure reason so the
-          # resulting 401 tells the caller their credentials were invalid
-          # rather than inventing a new error. Session-cookie failures never
-          # set this marker, so browser flows are unaffected.
-          refused_reason = credentialed_failure_reason(env)
-          return failure(refused_reason) if refused_reason
-
           session = env['rack.session']
 
           # Try session first, then fall back to anonymous. Basic auth is
           # handled by a separate strategy in the route chain (routes.txt),
           # not here - this strategy only checks session state.
           cust = load_user_from_session(session)
+
+          # Fail closed when this request presented credentials that a
+          # credentialed strategy earlier in the chain already rejected
+          # (auth=basicauth,noauth) AND the session resolved no identity of
+          # its own — i.e. the request would otherwise proceed anonymously.
+          # Echo the original failure reason so the resulting 401 tells the
+          # caller their credentials were invalid rather than inventing a new
+          # error.
+          #
+          # Checked AFTER load_user_from_session so a valid session cookie
+          # outranks a stray Authorization header (browser-cached Basic
+          # credentials, htpasswd-style reverse proxy forwarding its own
+          # header); otherwise a logged-in user would 401 mid-session on
+          # every basicauth,noauth route, including web-UI conceal.
+          # Session-cookie failures never set this marker, so a logged-out or
+          # stale session still degrades to anonymous rather than 401.
+          if cust.nil?
+            refused_reason = credentialed_failure_reason(env)
+            return failure(refused_reason) if refused_reason
+          end
 
           # Load organization context if user is authenticated
           org_context = if cust
