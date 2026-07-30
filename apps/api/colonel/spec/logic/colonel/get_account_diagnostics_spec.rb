@@ -153,7 +153,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
         suspended_at: 1_700_000_000.0,
         # Reaches `findings` too: the :suspended message interpolates it. The
         # bad byte sits MID-value on both fields so a scrub that truncated at
-        # the first one ('abu', 'e') is distinguishable from a clean drop.
+        # the first one ('abu', 'e') is distinguishable from one that keeps the
+        # surrounding text and marks the bad run.
         suspended_reason: "abu\xFFse",
         created: 1_600_000_000.0,
         last_login: nil,
@@ -197,12 +198,17 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
     # Scrubbed, not rescued-away and not blanked: everything around the bad
     # bytes survives, because in a diagnose read-out the mangled field may be
     # the answer. A rescue that dropped the field (or the whole section) would
-    # hide it. The bad run is DROPPED rather than marked with U+FFFD — the CLI
-    # adapter masks addresses in this same text and a marker inside one defeats
-    # the match (see OT::Utils.utf8_safe), so this asserts the exact result of
-    # the fail-closed mode, not merely "no longer raises".
-    it 'keeps the readable text around the dropped bytes' do
-      expect(sections[:customer][:locale]).to eq('en')
+    # hide it.
+    #
+    # The bad run is MARKED with U+FFFD, not dropped — asserted exactly, because
+    # "no longer raises" would pass either way and this is the whole point of
+    # the mode. Dropping used to be required to protect the CLI's mask (a marker
+    # inside an address defeats EMAIL_PATTERN); OT::Utils.obscure_email now
+    # strips markers itself, so this panel can keep the corruption signal. A
+    # corrupt locale that renders as a clean 'en' tells the operator the record
+    # is fine when it is not.
+    it 'keeps the corruption visible as a marker, with the readable text around it' do
+      expect(sections[:customer][:locale]).to eq("e\u{FFFD}n")
     end
 
     # Findings interpolate section values, so the encoder would raise on this
@@ -211,7 +217,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
       message = subject_data[:details][:findings]
         .find { |finding| finding[:code] == :suspended }[:message]
 
-      expect(message).to include('suspended (abuse)')
+      expect(message).to include("suspended (abu\u{FFFD}se)")
       expect(message.valid_encoding?).to be(true)
     end
 
