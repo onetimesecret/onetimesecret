@@ -123,17 +123,50 @@ Onetime::Utils.obscure_email('No email here')
 Onetime::Utils.obscure_email('user@domain.com.au')
 #=> 'us***@d***.com.au'
 
-## Handle invalid UTF-8 bytes (gsub would raise; scrub to U+FFFD and mask the rest)
+## Handle invalid UTF-8 bytes outside the address (gsub would raise; drop them, mask the rest)
 Onetime::Utils.obscure_email("note\xFF user@example.com")
-#=> "note\u{FFFD} us***@e***.com"
+#=> 'note us***@e***.com'
 
 ## Handle invalid UTF-8 bytes tagged as binary (gsub would raise Encoding::CompatibilityError)
 Onetime::Utils.obscure_email("user@example.com \xFF".dup.force_encoding(Encoding::ASCII_8BIT))
-#=> "us***@e***.com \u{FFFD}"
+#=> 'us***@e***.com '
+
+## Invalid byte INSIDE the local part still masks (a U+FFFD marker here would
+## break the pattern match and print the whole address in the clear)
+Onetime::Utils.obscure_email("us\xFFer@example.com")
+#=> 'us***@e***.com'
+
+## Invalid byte INSIDE the domain still masks
+Onetime::Utils.obscure_email("user@exa\xFFmple.com")
+#=> 'us***@e***.com'
+
+## Invalid byte inside an address embedded in a rate-limiter key still masks
+Onetime::Utils.obscure_email("login:locked:us\xFFer@example.com")
+#=> 'login:locked:us***@e***.com'
+
+## Invalid byte inside an address on a binary-tagged string still masks
+Onetime::Utils.obscure_email("login:locked:us\xFFer@example.com".dup.force_encoding(Encoding::ASCII_8BIT))
+#=> 'login:locked:us***@e***.com'
+
+## Unicode local part is masked (Truemail accepts these, so they are storable)
+Onetime::Utils.obscure_email('josé@example.com')
+#=> 'jo***@e***.com'
+
+## Unicode domain (IDN) is masked
+Onetime::Utils.obscure_email('user@пример.рф')
+#=> 'us***@п***.рф'
 
 ## utf8_safe leaves valid text alone
 Onetime::Utils.utf8_safe('plain text')
 #=> 'plain text'
+
+## utf8_safe drops invalid bytes by default (fail-closed for the redaction path)
+Onetime::Utils.utf8_safe("us\xFFer")
+#=> 'user'
+
+## utf8_safe marks invalid bytes when a caller explicitly asks for the marker
+Onetime::Utils.utf8_safe("us\xFFer", replacement: "\u{FFFD}")
+#=> "us\u{FFFD}er"
 
 ## random_fortune returns a string
 ## Create a mock fortunes collection
