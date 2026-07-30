@@ -2,12 +2,15 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/credential_change_session_revocation'
+
 module AccountAPI::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
     class ResetPassword < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::CredentialChangeSessionRevocation
 
       attr_reader :secret, :is_confirmed
 
@@ -24,15 +27,22 @@ module AccountAPI::Logic
 
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
+        # Legacy v1 secrets carry custid; new-format secrets (owner_id keyword)
+        # leave it empty, so guard the owner_id form too — a secret owned by no
+        # account can never be a valid reset secret.
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
+        raise OT::MissingSecret if secret.anonymous?
 
         raise_form_error 'New passwords do not match', field: 'password-confirm', error_type: 'mismatch' unless is_confirmed
         raise_form_error 'New password is too short', field: 'password', error_type: 'too_short' unless @password.size >= 6
       end
 
       def process
-        # Load the customer information from the premade secret
+        # Load the customer information from the premade secret. An orphaned
+        # secret (no resolvable owner) cannot be a valid reset secret; treat it
+        # like a missing one rather than 500ing on nil below.
         @cust = secret.load_owner
+        raise OT::MissingSecret if @cust.nil?
 
         unless @cust.valid_reset_secret!(secret)
           # If the secret is a reset secret, we can proceed to change
@@ -44,7 +54,7 @@ module AccountAPI::Logic
             {
               customer_id: @cust.extid,
               email: @cust.obscure_email,
-              secret_identifier: secret.identifier,
+              secret_identifier: secret.shortid, # truncated: the full identifier is the live token
               ip: @strategy_result&.metadata&.dig(:ip),
             }
 
@@ -68,8 +78,31 @@ module AccountAPI::Logic
           raise_form_error 'Account not verified'
         end
 
-        # Update the customer's passphrase
-        @cust.update_passphrase @password
+        # Update the customer's passphrase. The bang variant persists the new
+        # hash (save_fields); bare update_passphrase only mutates in memory and
+        # never wrote the new password to the database.
+        @cust.update_passphrase! @password
+
+        # SECURITY (M-2): a password reset MUST invalidate every existing
+        # session for the account — the whole point of a reset is to lock out
+        # whoever currently holds a live session. In full mode the Rodauth
+        # after_reset_password hook does this; that hook never fires for this
+        # simple-mode path, so enforce it here. The user is UNAUTHENTICATED
+        # (they followed an email link), so there is no current session to
+        # preserve: stamp the watermark and revoke them ALL.
+        revoke_sessions_for_credential_change(@cust)
+
+        # The browser performing the reset may itself hold an authenticated
+        # session cookie for this account (reset requested while signed in).
+        # The revoke above deleted its blob, but the in-memory Rack session
+        # can be written back at commit and resurrect it — and a resurrected
+        # blob only dies on its NEXT request via the watermark. Clear the
+        # in-memory session (rotating the sid when the lever exists, like the
+        # logout controller) so the resetting browser ends signed out now.
+        if sess.respond_to?(:clear)
+          sess.clear
+          sess.options[:renew] = true if sess.respond_to?(:options) && sess.options
+        end
 
         # Destroy the secret on successful attempt only. Otherwise
         # the user will need to make a new request if the passwords

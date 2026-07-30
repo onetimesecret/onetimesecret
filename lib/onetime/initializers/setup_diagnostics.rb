@@ -589,8 +589,36 @@ module Onetime
           SENSITIVE_QUERY_PARAMS = %w[key secret token passphrase].freeze
 
           # Email addresses in free text (exception messages, breadcrumbs).
-          # Mirrors EMAIL_PATTERN in src/plugins/core/diagnostics/scrubbers.ts.
-          EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+          #
+          # MIRROR — this pattern and its replacement sentinel are duplicated
+          # verbatim as EMAIL_PATTERN in
+          # src/plugins/core/diagnostics/scrubbers.ts. The two must change
+          # TOGETHER, in the same commit: a Sentry payload can be assembled by
+          # either half, so a widening applied to only one half still leaks.
+          # The TS twin carries the /gu flags (JS needs `u` for \p{...} and `g`
+          # for replace-all); Ruby needs neither. The pattern source between the
+          # delimiters is otherwise byte-identical, and
+          # tests/fixtures/email_redaction_corpus.json is run through both to
+          # prove it.
+          #
+          # SUPERSET-OF-THE-VALIDATOR INVARIANT: whatever Truemail accepts is
+          # storable, so every redactor must be at least as wide as Truemail's
+          # REGEX_EMAIL_PATTERN, which allows \p{L} on BOTH sides of the '@'
+          # and a \p{L}{2,63} TLD. The former ASCII-only class matched none of
+          # `josé@example.com`, `用户@example.com`, `user@пример.рф` — all
+          # storable — so they reached Sentry in the clear. Letter/number
+          # classes are therefore Unicode (\p{L}\p{N}); the domain uses \p{Pd}
+          # (which subsumes ASCII '-') because Truemail admits non-ASCII dashes
+          # in a host label; the TLD is \p{L}{2,} so an IDN TLD (.рф, .онлайн)
+          # matches. \p{N}-in-the-TLD is deliberately NOT allowed: `1.2@3.4`
+          # must survive so version/coordinate strings stay readable.
+          #
+          # No atomic group / possessive quantifier here, deliberately: ECMAScript
+          # cannot express one, and mirror-exactness beats a micro-optimisation.
+          # It is not needed — every quantifier is a single pass over a character
+          # class with a literal ('@', '.') separating it from the next, so the
+          # worst case is polynomial, not exponential.
+          EMAIL_PATTERN = /[\p{L}\p{N}._%+'-]+@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,}/
 
           # Verifiable identifiers in free text. 62 = v0.24 identifiers,
           # 31 = legacy v0.23.

@@ -132,7 +132,7 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
   end
 
   describe 'password reset security vulnerabilities' do
-    let(:secret) { double('Secret', custid: 'security@example.com', identifier: 'secret123', load_owner: customer, destroy!: nil, received!: nil) }
+    let(:secret) { double('Secret', custid: 'security@example.com', identifier: 'secret123', anonymous?: false, load_owner: customer, destroy!: nil, received!: nil) }
 
     before do
       allow(Onetime::Secret).to receive(:find_by_identifier).and_return(secret)

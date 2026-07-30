@@ -71,18 +71,30 @@ module AccountAPI::Logic
           return success_data
         end
 
-        secret                    = Onetime::Secret.create! @login_or_email, [@login_or_email]
+        # owner_id keyword, matching RequestEmailChange. The legacy positional
+        # call (`create! @login_or_email, [@login_or_email]`) mapped the EMAIL
+        # into the identifier and left owner_id nil, which (a) made the emailed
+        # reset token (/forgot/:identifier) the user's own email address —
+        # guessable by anyone — and (b) broke ResetPassword#process, whose
+        # `secret.load_owner` returned nil and 500'd every simple-mode reset
+        # before it could change the password. With owner_id set, the
+        # identifier is the auto-generated objid (an unguessable token) and
+        # load_owner resolves the customer.
+        secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
         secret.save
 
         cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately
 
+        # Log only the truncated shortid: the full identifier IS the live reset
+        # token now that it is unguessable — logging it would let anyone with
+        # log access take over accounts mid-reset.
         auth_logger.debug 'Delivering password reset email',
           {
             customer_id: cust.extid,
             email: cust.obscure_email,
-            secret_identifier: secret.identifier,
+            secret_identifier: secret.shortid,
             token: token&.slice(0, 8), # Only log first 8 chars for debugging
           }
 
@@ -116,7 +128,7 @@ module AccountAPI::Logic
             customer_id: cust.extid,
             email: cust.obscure_email,
             session_id: safe_session_id,
-            secret_identifier: secret.identifier,
+            secret_identifier: secret.shortid, # truncated: the full identifier is the live token
             queued: queued,
           }
 
