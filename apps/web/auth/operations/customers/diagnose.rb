@@ -116,6 +116,11 @@ module Auth
           sections.merge!(authdb_sections(customer, email))
           sections[:rate_limits] = rate_limits_section(email)
 
+          # Result contract: every string in `sections` — and therefore in the
+          # `findings` derived from them below — is valid UTF-8. See
+          # #utf8_safe_deep.
+          sections = utf8_safe_deep(sections)
+
           Result.new(
             customer: customer,
             sections: sections,
@@ -657,6 +662,47 @@ module Auth
         end
 
         # -- Serialization helpers ---------------------------------------------
+
+        # Valkey and the authdb hand back BYTES, not text: a truncated multibyte
+        # write, a legacy latin-1 row, or a driver error message quoting either
+        # leaves a field that is not valid UTF-8. `JSON.generate` raises
+        # JSON::GeneratorError on one and String#gsub raises ArgumentError, so a
+        # single corrupt field would take down BOTH break-glass readers — the
+        # colonel endpoint (`GET /api/colonel/users/:id/diagnostics`, which
+        # serializes these sections verbatim) and `bin/ots customers diagnose` —
+        # at exactly the moment something is already broken.
+        #
+        # Scrubbed HERE, behind the op, not in each adapter: `sections` and
+        # `findings` are this op's published Result, every adapter serializes
+        # them as-is, and a per-adapter guard is what let the two drift apart in
+        # the first place. Running BEFORE derive_findings also covers the
+        # messages that interpolate section values (suspended_reason, the
+        # auth-side email, a quoted PG error), so findings need no second pass.
+        #
+        # Scrub, don't rescue: a rescue that returned the field unchanged would
+        # only move the raise to the encoder. utf8_safe's DEFAULT drop mode is
+        # what this walk wants, not the U+FFFD marker: the CLI adapter
+        # pattern-matches this same text (deep_obscure_emails -> obscure_email),
+        # and a marker landing inside an address stops it matching EMAIL_PATTERN
+        # — the address would then print in the clear. Dropping leaves an
+        # address that still masks. Fail closed; see OT::Utils.utf8_safe.
+        #
+        # Encoding only: NO obscuring happens here. The colonel API is an
+        # authenticated admin surface that deliberately returns full addresses;
+        # masking is the CLI adapter's own concern.
+        #
+        # Hash KEYS are walked too — audit-log metadata is decoded JSON whose
+        # keys come from the column, and JSON.generate rejects an invalid key
+        # exactly as it rejects an invalid value. Non-strings pass through, so
+        # the symbol keys authored above are untouched.
+        def utf8_safe_deep(node)
+          case node
+          when String then OT::Utils.utf8_safe(node)
+          when Array then node.map { |item| utf8_safe_deep(item) }
+          when Hash then node.to_h { |key, value| [utf8_safe_deep(key), utf8_safe_deep(value)] }
+          else node
+          end
+        end
 
         # Sequel returns Time/DateTime; the wire shape is epoch seconds or nil.
         def epoch(value)
