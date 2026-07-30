@@ -152,10 +152,18 @@ module V2::Logic
       #
       # @param config_max [Integer] ttl_options.max fallback from config
       # @return [Integer] Maximum TTL in seconds for anonymous callers
+      # The rescue below fails OPEN (anonymous callers get the full config max)
+      # and BillingConfig.instance is a Singleton whose initialize parses
+      # billing.yaml — so the only way here is a config/boot fault, not a
+      # transient datastore blip. Log the exception class so an unreachable or
+      # malformed billing config is distinguishable from billing genuinely
+      # being disabled, which is otherwise the same silent code path.
       def anonymous_max_ttl(config_max)
         billing_enabled = begin
           Onetime::BillingConfig.instance.enabled?
-        rescue StandardError
+        rescue StandardError => ex
+          OT.le "[anonymous_max_ttl] BillingConfig unavailable (#{ex.class}: #{ex.message}); " \
+                "anonymous TTL cap falls back to config max #{config_max}"
           false
         end
         return config_max unless billing_enabled
