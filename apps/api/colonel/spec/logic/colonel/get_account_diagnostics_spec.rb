@@ -4,6 +4,7 @@
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'colonel/logic'
+require 'auth/database'
 require 'auth/operations/customers/diagnose'
 
 # Adapter-layer coverage only. The diagnosis itself is covered by
@@ -126,6 +127,101 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
     expect(data[:record][:found]).to be(false)
     expect(Auth::Operations::Customers::Diagnose).to have_received(:new)
       .with(hash_including(identifier: 'ghost@example.com'))
+  end
+
+  # This response is JSON-encoded by the API layer, and customer fields come off
+  # Valkey as BYTES: a truncated multibyte write leaves a field that is not
+  # valid UTF-8, on which JSON.generate raises JSON::GeneratorError. Without a
+  # guard, one corrupt field 500s the break-glass endpoint — the one support
+  # reaches for when things are already broken.
+  #
+  # The real op runs here (no double): the guard lives behind it
+  # (Diagnose#utf8_safe_deep) so this adapter and the CLI cannot drift, and a
+  # stubbed op would assert nothing about that.
+  describe 'a section value carrying an invalid byte sequence' do
+    let(:corrupt_customer) do
+      instance_double(
+        Onetime::Customer,
+        exists?: true,
+        anonymous?: false,
+        objid: 'cust_target',
+        extid: 'ur_target',
+        email: 'user@example.com',
+        role: 'customer',
+        verified?: true,
+        suspended?: true,
+        suspended_at: 1_700_000_000.0,
+        # Reaches `findings` too: the :suspended message interpolates it. The
+        # bad byte sits MID-value on both fields so a scrub that truncated at
+        # the first one ('abu', 'e') is distinguishable from a clean drop.
+        suspended_reason: "abu\xFFse",
+        created: 1_600_000_000.0,
+        last_login: nil,
+        # A leaf no finding reads, so `sections` is asserted on its own.
+        locale: "e\xFFn",
+        planid: 'free_v1',
+      )
+    end
+
+    let(:limiter) do
+      instance_double(Onetime::Operations::RateLimit::Inspect).tap do |double|
+        allow(double).to receive(:call).and_return(
+          Onetime::Operations::RateLimit::Inspect::Result.new(
+            kind: 'login', subject: 'user@example.com', entries: [],
+          ),
+        )
+      end
+    end
+
+    let(:sections) { subject_data[:details][:sections] }
+
+    let(:subject_data) do
+      logic = logic_for
+      logic.raise_concerns
+      logic.process
+    end
+
+    before do
+      allow(Auth::Operations::Customers::Diagnose).to receive(:new).and_call_original
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(corrupt_customer)
+      # Simple mode: the SQL sections degrade by design, leaving the Redis
+      # customer record — the source of the bad bytes — as the payload.
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(Onetime::Operations::RateLimit::Inspect).to receive(:new).and_return(limiter)
+    end
+
+    it 'serializes to JSON instead of raising' do
+      expect { JSON.generate(subject_data) }.not_to raise_error
+    end
+
+    # Scrubbed, not rescued-away and not blanked: everything around the bad
+    # bytes survives, because in a diagnose read-out the mangled field may be
+    # the answer. A rescue that dropped the field (or the whole section) would
+    # hide it. The bad run is DROPPED rather than marked with U+FFFD — the CLI
+    # adapter masks addresses in this same text and a marker inside one defeats
+    # the match (see OT::Utils.utf8_safe), so this asserts the exact result of
+    # the fail-closed mode, not merely "no longer raises".
+    it 'keeps the readable text around the dropped bytes' do
+      expect(sections[:customer][:locale]).to eq('en')
+    end
+
+    # Findings interpolate section values, so the encoder would raise on this
+    # message even with the sections themselves clean.
+    it 'scrubs findings derived from the corrupt section too' do
+      message = subject_data[:details][:findings]
+        .find { |finding| finding[:code] == :suspended }[:message]
+
+      expect(message).to include('suspended (abuse)')
+      expect(message.valid_encoding?).to be(true)
+    end
+
+    # The colonel API is authenticated and deliberately returns FULL addresses —
+    # the CLI's obscure-by-default mask belongs to the CLI alone. Guards against
+    # importing the whole of the CLI's deep_obscure_emails walk with the
+    # encoding fix ('user@example.com' would arrive as 'us***@e***.com').
+    it 'still returns the full address un-obscured' do
+      expect(sections[:customer][:email]).to eq('user@example.com')
+    end
   end
 
   describe 'audit_limit parsing' do

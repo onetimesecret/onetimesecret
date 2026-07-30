@@ -64,6 +64,15 @@ module ColonelAPI
         # the Base custid->user_id transform has nothing to rename here. The
         # `record` block mirrors the identity summary the detail page already
         # holds; the diagnosis itself lives under `details`.
+        #
+        # Sections and findings go out VERBATIM, addresses and all: this is an
+        # authenticated colonel surface and the full address is the answer
+        # support needs (the CLI masks on its own side; that masking must NOT be
+        # copied here). Verbatim is safe to JSON-encode because Diagnose scrubs
+        # invalid UTF-8 out of its Result before returning it — datastore fields
+        # are bytes, and JSON.generate raises on a bad one. That guard lives in
+        # the op precisely so this adapter and the CLI cannot drift; do not
+        # re-implement it here (see Diagnose#utf8_safe_deep).
         def success_data
           {
             record: {
