@@ -22,9 +22,20 @@ Onetime.started! unless Onetime.ready?
 mapped = Onetime::Application::Registry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
-# Basic Auth header for API POST requests (bypasses CSRF middleware)
-# Using anonymous credentials - custid:apikey format
-@api_auth = { 'HTTP_AUTHORIZATION' => "Basic #{Base64.strict_encode64('anon:')}" }
+# Anonymous API requests carry NO Authorization header.
+#
+# These POSTs used to send `Basic base64('anon:')` to bypass the CSRF
+# middleware. Two things retired that:
+#   1. Security middleware `allow_if` now bypasses CSRF for any /api/ request
+#      without an AUTHENTICATED session cookie (there is nothing to forge
+#      against), not merely for requests carrying a Basic header.
+#   2. `anon:` are *presented* credentials that resolve to no customer, so
+#      BasicAuthStrategy rejects them and NoAuthStrategy refuses anonymous
+#      fallthrough — a 401 on every basicauth,noauth route
+#      (docs/security/audits/2026-07-29-api.md item 1). Fail-closed coverage
+#      lives in spec/api/v2/basicauth_fallthrough_spec.rb; these smoketests
+#      exercise the anonymous path, so they must present nothing.
+@api_anon = {}
 
 # NOTE: Careful when flushing the Redis database, as it will remove
 # all data. Since we organize data types by database number, we can
@@ -94,24 +105,21 @@ content = Familia::JsonSerializer.parse(response.body)
 # Standardized error format: { error: <user-facing message>, error_type: <machine-readable> }
 # plus request_id (ADR-013 correlation field, echoed from x-request-id by OttoHooks)
 # NOTE: Accept header required for JSON error responses (Otto content negotiation)
-# NOTE: Basic Auth required to bypass CSRF middleware for POST requests
-response = @mock_request.post('/api/v2/secret/conceal', @api_auth.merge('HTTP_ACCEPT' => 'application/json'))
+response = @mock_request.post('/api/v2/secret/conceal', @api_anon.merge('HTTP_ACCEPT' => 'application/json'))
 content = Familia::JsonSerializer.parse(response.body)
 has_msg = content['error'] == 'You did not provide anything to share'
 [response.status, has_msg, content.keys.sort]
 #=> [422, true, ['error', 'error_type', 'field', 'request_id']]
 
 ## V2 API generate creates a secret and returns success with nested record data
-# NOTE: Basic Auth required to bypass CSRF middleware for POST requests
-response = @mock_request.post('/api/v2/secret/generate', @api_auth)
+response = @mock_request.post('/api/v2/secret/generate', @api_anon)
 content = Familia::JsonSerializer.parse(response.body)
 [response.status, content['success']]
 #=> [200, true]
 
 ## Behaviour when requesting a known non-existent endpoint
-# NOTE: Basic Auth required to bypass CSRF middleware for POST requests
 # ADR-013 router fallback shape: { error, error_type }
-response = @mock_request.post('/api/v2/humphrey/bogus', @api_auth)
+response = @mock_request.post('/api/v2/humphrey/bogus', @api_anon)
 content = Familia::JsonSerializer.parse(response.body)
 has_msg = content.slice('error').eql?({'error' => 'Not Found'})
 [response.status, has_msg, content.keys.sort]
