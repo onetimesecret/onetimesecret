@@ -518,5 +518,105 @@
   "web.admin.customers.detail.sessions.revokeAll.capped": {
     "text": "Killed {count} sessions, but the untracked-session sweep was truncated — an older session may remain. Re-run to be sure.",
     "content_hash": "e3d295a6"
+  },
+  "web.admin.customers.detail.diagnostics.title": {
+    "text": "Account Diagnostics",
+    "content_hash": "5574ece8"
+  },
+  "web.admin.customers.detail.diagnostics.loading": {
+    "text": "Running diagnosis…",
+    "content_hash": "062c83d5"
+  },
+  "web.admin.customers.detail.diagnostics.loadError": {
+    "text": "Unable to load diagnostics.",
+    "content_hash": "69e69f49"
+  },
+  "web.admin.customers.detail.diagnostics.healthy": {
+    "text": "No blocking condition found. Auth state looks healthy — suspect client-side issues (cookies, custom-domain signin config) or the wrong region.",
+    "content_hash": "f6d5f8d1"
+  },
+  "web.admin.customers.detail.diagnostics.authUnavailable": {
+    "text": "Auth database not available (simple auth mode) — SQL-side checks were skipped.",
+    "content_hash": "d668907c"
+  },
+  "web.admin.customers.detail.diagnostics.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
+  "web.admin.customers.detail.diagnostics.facts.authStatus": {
+    "text": "Auth status",
+    "content_hash": "34def169"
+  },
+  "web.admin.customers.detail.diagnostics.facts.noAccount": {
+    "text": "No auth account",
+    "content_hash": "a9968e9e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.password": {
+    "text": "Password",
+    "content_hash": "e7cf3ef4"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordSet": {
+    "text": "Set",
+    "content_hash": "b6f6f3ad"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordNone": {
+    "text": "None",
+    "content_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfa": {
+    "text": "MFA",
+    "content_hash": "d39ce053"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfaNone": {
+    "text": "None",
+    "content_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.loginFailures": {
+    "text": "Failed attempts",
+    "content_hash": "63e7f0a8"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lockedBadge": {
+    "text": "Locked out",
+    "content_hash": "ace29f74"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiter": {
+    "text": "Rate limiter",
+    "content_hash": "32892404"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged": {
+    "text": "Engaged",
+    "content_hash": "1b0d851e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterClear": {
+    "text": "Clear",
+    "content_hash": "83b12c22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verification": {
+    "text": "Verification email",
+    "content_hash": "23fac8fb"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationPending": {
+    "text": "Pending — last sent {date}",
+    "content_hash": "9ab8d1b6"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationNone": {
+    "text": "None pending",
+    "content_hash": "a4d4cc22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.sessions": {
+    "text": "Active sessions",
+    "content_hash": "61ad9909"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lastLogin": {
+    "text": "Last login (auth)",
+    "content_hash": "373e7fb1"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.title": {
+    "text": "Authentication log",
+    "content_hash": "48ad8ba8"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.empty": {
+    "text": "No authentication events recorded.",
+    "content_hash": "d2332558"
   }
 }
