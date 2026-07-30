@@ -94,16 +94,18 @@ module Onetime
       private
 
       def serializable(result, full:)
-        findings = result.findings
-        sections = result.sections
-        unless full
-          # findings too: several messages interpolate an address (:email_drift
-          # names the auth-side one outright; :authdb_unavailable can quote a
-          # PG error whose statement text contains the email literal).
-          findings = deep_obscure_emails(findings)
-          sections = deep_obscure_emails(sections)
-        end
-        { found: result.found?, findings: findings, sections: sections }
+        # findings too: several messages interpolate an address (:email_drift
+        # names the auth-side one outright; :authdb_unavailable can quote a
+        # PG error whose statement text contains the email literal).
+        #
+        # The walk runs with --full as well. Obscuring is skipped there, but the
+        # encoding guard is not: JSON.generate raises on invalid UTF-8 just like
+        # gsub does (see #obscure).
+        {
+          found: result.found?,
+          findings: deep_obscure_emails(result.findings, full: full),
+          sections: deep_obscure_emails(result.sections, full: full),
+        }
       end
 
       def output_text(result, full:)
@@ -181,7 +183,16 @@ module Onetime
       # only the matched address and leaves the surrounding text intact:
       # `login:locked:user@example.com` -> `login:locked:us***@e***.com`. That
       # keeps the key shape an operator needs while dropping the identity.
+      #
+      # Values come off Valkey as bytes, so a customer field can hold a sequence
+      # that is not valid UTF-8 (a truncated multibyte write is enough). gsub
+      # raises ArgumentError on one and JSON.generate raises too, so scrub at
+      # this boundary — ahead of the --full return, which skips the mask but
+      # still has to survive JSON.pretty_generate. Scrubbing rather than
+      # rescuing: a rescue returning the input unchanged would print the address
+      # in the clear, and the mask still runs over the scrubbed text.
       def obscure(text, full:)
+        text = OT::Utils.utf8_safe(text)
         return text if full
 
         OT::Utils.obscure_email(text)
@@ -205,17 +216,18 @@ module Onetime
 
       # Obscure every address in the nested payload for JSON output without
       # --full (mirrors show_command's obscure-by-default). Every string leaf
-      # is rewritten, whatever its field name — see #obscure for why a
-      # field-name list is not enough. Hash keys are field names authored in
-      # the op, never PII, so they pass through untouched.
-      def deep_obscure_emails(node)
+      # goes through #obscure, whatever its field name — see there for why a
+      # field-name list is not enough, and for the encoding guard that runs in
+      # both modes. Hash keys are field names authored in the op, never PII, so
+      # they pass through untouched.
+      def deep_obscure_emails(node, full:)
         case node
         when Hash
-          node.to_h { |key, value| [key, deep_obscure_emails(value)] }
+          node.to_h { |key, value| [key, deep_obscure_emails(value, full: full)] }
         when Array
-          node.map { |item| deep_obscure_emails(item) }
+          node.map { |item| deep_obscure_emails(item, full: full) }
         when String
-          OT::Utils.obscure_email(node)
+          obscure(node, full: full)
         else
           node
         end

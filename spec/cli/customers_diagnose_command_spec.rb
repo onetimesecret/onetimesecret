@@ -67,6 +67,48 @@ RSpec.describe 'customers diagnose', type: :cli do
     )
   end
 
+  # An authdb read that failed: the section renders as `(unavailable: <reason>)`
+  # and the reason is free text — a PG error quotes the failing statement, whose
+  # WHERE clause carries the email literal.
+  def unavailable_section_result
+    Auth::Operations::Customers::Diagnose::Result.new(
+      customer: nil,
+      sections: {
+        customer: { found: false },
+        auth_account: {
+          available: false,
+          reason: "PG::ConnectionBad on SELECT * FROM accounts WHERE email = 'dba@example.com'",
+        },
+      },
+      findings: [
+        { severity: :critical, code: :authdb_unavailable, message: 'Auth database unavailable' },
+      ],
+    )
+  end
+
+  # Valkey hands back bytes, not text: a truncated multibyte write leaves a
+  # field whose encoding is invalid. Obscuring walks every string leaf now, and
+  # both String#gsub (all of OT::Utils.obscure_email) and JSON.generate raise on
+  # one of those, so a single bad field would take the whole command down.
+  def malformed_bytes_result
+    Auth::Operations::Customers::Diagnose::Result.new(
+      customer: nil,
+      sections: {
+        customer: { found: false },
+        auth_account: {
+          available: true,
+          found: true,
+          account_id: 42,
+          status: "verified\xFF",
+          email: 'user@example.com',
+        },
+      },
+      findings: [
+        { severity: :warning, code: :email_drift, message: "note\xFF user@example.com" },
+      ],
+    )
+  end
+
   def nothing_found_result
     Auth::Operations::Customers::Diagnose::Result.new(
       customer: nil,
@@ -201,6 +243,63 @@ RSpec.describe 'customers diagnose', type: :cli do
       expect(output).to include('user@example.com')
       expect(output).to include('login:locked:user@example.com')
       expect(output).to include('(auth side: user@example.com)')
+    end
+
+    # The `(unavailable: <reason>)` branch is the only place section text is
+    # printed without walking the section's fields, and the reason is the one
+    # string in it that carries an address.
+    it 'obscures an address quoted in an unavailable section reason' do
+      allow(op).to receive(:call).and_return(unavailable_section_result)
+
+      output = run_cli_command_quietly('customers', 'diagnose', '42')[:stdout]
+
+      expect(output).to include(
+        "(unavailable: PG::ConnectionBad on SELECT * FROM accounts WHERE email = 'db***@e***.com')",
+      )
+      expect(output).not_to include('dba@example.com')
+    end
+
+    it 'prints the unavailable reason unmasked with --full' do
+      allow(op).to receive(:call).and_return(unavailable_section_result)
+
+      output = run_cli_command_quietly('customers', 'diagnose', '42', '--full')[:stdout]
+
+      expect(output).to include(
+        "(unavailable: PG::ConnectionBad on SELECT * FROM accounts WHERE email = 'dba@example.com')",
+      )
+    end
+  end
+
+  # A field that is not valid UTF-8 used to reach String#gsub (obscuring every
+  # string leaf) and JSON.generate untouched; both raise on it. The bytes are
+  # scrubbed to U+FFFD at the boundary, so the run completes, the corruption
+  # stays visible, and the addresses beside it are still masked.
+  describe 'malformed byte sequences' do
+    before { allow(op).to receive(:call).and_return(malformed_bytes_result) }
+
+    it 'renders text output without dropping the field or the mask' do
+      result = run_cli_command_quietly('customers', 'diagnose', '42')
+
+      expect(result[:stdout]).to include("verified\u{FFFD}")
+      expect(result[:stdout]).to include("note\u{FFFD} us***@e***.com")
+      expect(result[:stdout]).not_to include('user@example.com')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'renders JSON output without --full' do
+      payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json')[:stdout])
+
+      expect(payload.dig('sections', 'auth_account', 'status')).to eq("verified\u{FFFD}")
+      expect(payload.dig('sections', 'auth_account', 'email')).to eq('us***@e***.com')
+    end
+
+    # --full skips the mask but not the scrub: JSON.generate raises on the raw
+    # bytes whether or not anything is being obscured.
+    it 'renders JSON output with --full' do
+      payload = JSON.parse(run_cli_command_quietly('customers', 'diagnose', '42', '--json', '--full')[:stdout])
+
+      expect(payload.dig('sections', 'auth_account', 'status')).to eq("verified\u{FFFD}")
+      expect(payload.dig('sections', 'auth_account', 'email')).to eq('user@example.com')
     end
   end
 end
