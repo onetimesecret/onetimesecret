@@ -120,7 +120,7 @@ module V2::Logic
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # This runs before clamping so the user gets a clear error with upgrade path
         # instead of a silent clamp.
-        free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+        free_ttl = free_tier_ttl_ceiling
         if ttl > free_ttl && auth_org && !auth_org.can?('extended_default_expiration')
           require_entitlement!('extended_default_expiration')
         end
@@ -133,43 +133,76 @@ module V2::Logic
         @ttl = max_ttl if ttl > max_ttl
       end
 
-      # Anonymous TTL ceiling (2026-07-29 API audit, item 4).
+      # The authenticated free-tier TTL ceiling (14 days).
       #
-      # Mirrors V1's resolve_ttl_limit anonymous branch: with billing enabled,
-      # anonymous callers are capped at the free-tier secret_lifetime limit
-      # (PLAN_TTL_ANONYMOUS, default DEFAULT_FREE_TTL = 14 days) rather than
-      # the config ttl_options max (30 days stock). Without this cap, an
-      # anonymous request could receive a LONGER TTL than an authenticated
-      # free-tier user, who is loudly 403'd above 14 days by the entitlement
-      # gate above — a policy inversion.
+      # Sole consumer is the loud entitlement gate in process_ttl. The
+      # anonymous path does NOT derive from this any more — it has its own,
+      # lower product cap (see anonymous_max_ttl).
       #
-      # This is a silent clamp, not a loud 403, because the anonymous web UI
-      # builds its duration dropdown from the unfiltered config ttl_options
-      # (src/shared/composables/usePrivacyOptions.ts) — on stock config it
-      # offers 30 days, so a hard error above the anonymous limit would break
-      # the anonymous web flow. Billing-disabled (self-hosted) deployments
-      # keep the fail-open config max, same as V1.
+      # @return [Integer] Free-tier TTL ceiling in seconds
+      def free_tier_ttl_ceiling
+        Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+      end
+
+      # Anonymous TTL ceiling: a hard 7-day cap (2026-07-29 API audit, item 4).
+      #
+      # WithEntitlements::ANONYMOUS_MAX_TTL is the product rule — an anonymous
+      # secret never outlives 7 days, on any deployment. It is not derived from
+      # the free-tier ceiling: DEFAULT_FREE_TTL (14 days) governs authenticated
+      # free-tier users through the loud entitlement gate above, and the audit's
+      # invariant (anonymous grant <= authenticated free-tier grant) now holds by
+      # construction because 7 days < 14 days.
+      #
+      # The cap applies unconditionally, including when billing is disabled.
+      # That is deliberate: the rule is about anonymous callers, not about
+      # whether the deployment sells plans. It diverges from V1's
+      # resolve_ttl_limit, which fails open to the config max with billing off.
+      #
+      # Two ceilings can only lower the result further:
+      #   - config ttl_options.max, so an operator who caps durations below
+      #     7 days still wins;
+      #   - the free-tier secret_lifetime limit (PLAN_TTL_ANONYMOUS), consulted
+      #     only when billing is enabled, and only when positive. parse_ttl_env
+      #     coerces unset/blank/malformed values to the default and clamps
+      #     negatives to 0, which reads here as "no override".
+      # So PLAN_TTL_ANONYMOUS can lower the anonymous grant beneath 7 days
+      # (5d -> 5d) but never raise it (10d, 14d, 30d, 0, unset -> 7d).
+      #
+      # This is a silent clamp, not a loud 403/422. The anonymous web UI no
+      # longer needs that leniency — usePrivacyOptions.ts derives a ttlCeiling
+      # from the secret_options.ttl_max_anonymous bootstrap key and filters
+      # over-ceiling durations out of the dropdown, so the browser flow never
+      # asks for more than it can have. The clamp remains for non-browser API
+      # callers (curl, SDKs, integrations), which can still POST an
+      # over-ceiling ttl and today get a shortened secret rather than an
+      # error. Turning that into a loud rejection is a v3 contract decision;
+      # V2's clamp is deliberately unchanged.
       #
       # @param config_max [Integer] ttl_options.max fallback from config
       # @return [Integer] Maximum TTL in seconds for anonymous callers
-      # The rescue below fails OPEN (anonymous callers get the full config max)
-      # and BillingConfig.instance is a Singleton whose initialize parses
-      # billing.yaml — so the only way here is a config/boot fault, not a
-      # transient datastore blip. Log the exception class so an unreachable or
-      # malformed billing config is distinguishable from billing genuinely
-      # being disabled, which is otherwise the same silent code path.
+      # The rescue below only skips the PLAN_TTL_ANONYMOUS override (the 7-day
+      # cap still applies) and BillingConfig.instance is a Singleton whose
+      # initialize parses billing.yaml — so the only way here is a config/boot
+      # fault, not a transient datastore blip. Log the exception class so an
+      # unreachable or malformed billing config is distinguishable from billing
+      # genuinely being disabled, which is otherwise the same silent code path.
       def anonymous_max_ttl(config_max)
+        ceilings = [Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL, config_max]
+
         billing_enabled = begin
           Onetime::BillingConfig.instance.enabled?
         rescue StandardError => ex
           OT.le "[anonymous_max_ttl] BillingConfig unavailable (#{ex.class}: #{ex.message}); " \
-                "anonymous TTL cap falls back to config max #{config_max}"
+                "anonymous TTL cap falls back to #{ceilings.min}"
           false
         end
-        return config_max unless billing_enabled
 
-        free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
-        free_max.positive? ? [free_max, config_max].min : config_max
+        if billing_enabled
+          anon_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          ceilings << anon_max if anon_max.positive?
+        end
+
+        ceilings.min
       end
 
       def process_secret

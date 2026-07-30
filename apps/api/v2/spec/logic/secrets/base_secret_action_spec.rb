@@ -1218,13 +1218,16 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # process_ttl — anonymous TTL ceiling (audit 2026-07-29 #4)
   #
   # The free-tier entitlement gate is guarded by auth_org, so anonymous callers
-  # used to skip it entirely and clamp only at config ttl_options.max (30 days
-  # stock) — a policy inversion where anonymous got a LONGER TTL than an
-  # authenticated free-tier user. anonymous_max_ttl mirrors V1's
-  # resolve_ttl_limit anonymous branch: billing enabled → free-tier
-  # secret_lifetime limit (silent clamp); billing disabled → fail-open at the
-  # config max. Silent because the anonymous web UI dropdown is built from the
-  # unfiltered config ttl_options, so a loud 403 would break the guest flow.
+  # skip it entirely and clamp only at config ttl_options.max (30 days stock) —
+  # a policy inversion where anonymous got a LONGER TTL than an authenticated
+  # free-tier user. anonymous_max_ttl now enforces a hard product cap:
+  # WithEntitlements::ANONYMOUS_MAX_TTL (7 days), applied on every deployment
+  # including billing-disabled ones. config ttl_options.max and the free-tier
+  # secret_lifetime limit (PLAN_TTL_ANONYMOUS, billing-enabled only) can lower
+  # it further but never raise it. The clamp is silent for non-browser API
+  # callers: the web dropdown now filters over-ceiling durations itself
+  # (usePrivacyOptions.ts ttlCeiling), but curl/SDK callers can still POST an
+  # over-ceiling ttl, and rejecting those loudly is a v3 contract decision.
   # ============================================================================
   describe '#process_ttl anonymous TTL ceiling (audit 2026-07-29 item 4)' do
     let(:anon_session) do
@@ -1252,6 +1255,41 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     def stub_billing(enabled:)
       allow(Onetime::BillingConfig).to receive(:instance)
         .and_return(double('BillingConfig', enabled?: enabled))
+    end
+
+    # process_ttl reads its bounds from OT.conf.dig('site', 'secret_options').
+    # config.test.yaml maxes out at exactly 7 days, so the config clamp would
+    # mask a missing anonymous cap. Raise the config max (stock deployments
+    # ship 30 days) to test the cap in isolation.
+    def stub_config_ttl_max(max)
+      allow(OT).to receive(:conf).and_return(
+        'site' => {
+          'secret_options' => {
+            'default_ttl' => 43_200,
+            'ttl_options' => [1_800, 43_200, max],
+          },
+        },
+      )
+    end
+
+    # The hard product cap for anonymous secrets (7 days). Nothing an operator
+    # configures may raise an anonymous grant above it.
+    let(:anon_cap) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
+
+    # The authenticated free-tier ceiling (14 days): what the loud entitlement
+    # gate uses. Only referenced to prove anonymous stays at or below it.
+    let(:free_tier_ceiling) { Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL }
+
+    # Drive the real env var through parse_ttl_env instead of stubbing
+    # free_tier_limits, so the memoized class-level read is exercised too.
+    def with_plan_ttl_anonymous(value)
+      previous = ENV.fetch('PLAN_TTL_ANONYMOUS', nil)
+      ENV['PLAN_TTL_ANONYMOUS'] = value.to_s
+      Onetime::Organization.reset_free_tier_limits!
+      yield
+    ensure
+      previous.nil? ? ENV.delete('PLAN_TTL_ANONYMOUS') : ENV['PLAN_TTL_ANONYMOUS'] = previous
+      Onetime::Organization.reset_free_tier_limits!
     end
 
     context 'billing enabled (hosted)' do
@@ -1287,6 +1325,88 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect(subject.ttl).to eq(604_800)
       end
 
+      # Regression (audit residual, then the 7-day product rule): PLAN_TTL_ANONYMOUS
+      # moves free_tier_limits['secret_lifetime.max']. Without the min() against
+      # ANONYMOUS_MAX_TTL, an operator raising the env var hands anonymous callers
+      # the raised value — re-opening the inversion item 4 closed, and blowing past
+      # the 7-day cap.
+      it 'never exceeds ANONYMOUS_MAX_TTL when PLAN_TTL_ANONYMOUS is raised above it' do
+        raised = 24 * 86_400
+        stub_config_ttl_max(raised)
+        allow(Onetime::Organization).to receive(:free_tier_limits)
+          .and_return('secret_lifetime.max' => raised)
+
+        subject = build_anon_subject(ttl: raised.to_s)
+        subject.send(:process_ttl)
+
+        expect(subject.ttl).to eq(anon_cap)
+      end
+
+      # Same assertion driven through the actual env var + parse_ttl_env rather
+      # than a free_tier_limits stub: 30 days in, 7 days out.
+      it 'cannot be raised above ANONYMOUS_MAX_TTL by the PLAN_TTL_ANONYMOUS env var itself' do
+        stock_config_max = 30 * 86_400
+        stub_config_ttl_max(stock_config_max)
+
+        with_plan_ttl_anonymous(stock_config_max) do
+          expect(Onetime::Organization.free_tier_limits['secret_lifetime.max'])
+            .to eq(stock_config_max) # precondition: the env var really did move the limit
+
+          subject = build_anon_subject(ttl: stock_config_max.to_s)
+          subject.send(:process_ttl)
+
+          expect(subject.ttl).to eq(anon_cap)
+        end
+      end
+
+      it 'clamps to ANONYMOUS_MAX_TTL when PLAN_TTL_ANONYMOUS is 0 (no override)' do
+        stock_config_max = 30 * 86_400
+        stub_config_ttl_max(stock_config_max)
+        allow(Onetime::Organization).to receive(:free_tier_limits)
+          .and_return('secret_lifetime.max' => 0)
+
+        subject = build_anon_subject(ttl: stock_config_max.to_s)
+        subject.send(:process_ttl)
+
+        expect(subject.ttl).to eq(anon_cap)
+      end
+
+      it 'still honours a PLAN_TTL_ANONYMOUS set BELOW the cap (lowering keeps working)' do
+        lowered = 3 * 86_400
+        stub_config_ttl_max(30 * 86_400)
+        allow(Onetime::Organization).to receive(:free_tier_limits)
+          .and_return('secret_lifetime.max' => lowered)
+
+        subject = build_anon_subject(ttl: (30 * 86_400).to_s)
+        subject.send(:process_ttl)
+
+        expect(subject.ttl).to eq(lowered)
+      end
+
+      it 'grants an anonymous caller no more than an authenticated free-tier caller is allowed' do
+        raised = free_tier_ceiling * 2
+        stub_config_ttl_max(raised)
+        allow(Onetime::Organization).to receive(:free_tier_limits)
+          .and_return('secret_lifetime.max' => raised)
+
+        anon = build_anon_subject(ttl: raised.to_s)
+        anon.send(:process_ttl)
+
+        # The same request from an authenticated free-tier org is refused outright.
+        authed = V2ConfigTestAction.new(strategy_result, base_params)
+        org    = double('Organization')
+        allow(org).to receive(:limit_for).with('secret_lifetime').and_return(raised)
+        allow(org).to receive(:can?).with('extended_default_expiration').and_return(false)
+        allow(authed).to receive(:auth_org).and_return(org)
+        allow(authed).to receive(:require_entitlement!)
+        authed.instance_variable_set(:@payload, { 'ttl' => raised.to_s })
+        authed.send(:process_ttl)
+
+        expect(authed).to have_received(:require_entitlement!).with('extended_default_expiration')
+        expect(anon.ttl).to eq(anon_cap)
+        expect(anon.ttl).to be < free_tier_ceiling
+      end
+
       it 'leaves anonymous requests at or below the free limit untouched' do
         allow(Onetime::Organization).to receive(:free_tier_limits)
           .and_return('secret_lifetime.max' => 43_200)
@@ -1297,7 +1417,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect(subject.ttl).to eq(43_200)
       end
 
-      it 'clamps silently rather than raising the loud entitlement gate (guest web flow keeps working)' do
+      it 'clamps silently rather than raising the loud entitlement gate (non-browser API callers)' do
         allow(Onetime::Organization).to receive(:free_tier_limits)
           .and_return('secret_lifetime.max' => 43_200)
 
@@ -1310,10 +1430,14 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       end
     end
 
-    context 'billing disabled (self-hosted): fail-open at config max, same as V1' do
+    # The 7-day cap is a product rule about anonymous callers, not about whether
+    # the deployment sells plans, so it applies with billing off too. This is
+    # the one place V2 now diverges from V1's resolve_ttl_limit, which still
+    # fails open to the config max when billing is disabled.
+    context 'billing disabled (self-hosted)' do
       before { stub_billing(enabled: false) }
 
-      it 'does not consult free-tier limits and clamps only at the config max' do
+      it 'does not consult free-tier limits (PLAN_TTL_ANONYMOUS is billing-enabled only)' do
         allow(Onetime::Organization).to receive(:free_tier_limits)
 
         subject = build_anon_subject(ttl: '604800')
@@ -1321,6 +1445,26 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
         expect(subject.ttl).to eq(604_800)
         expect(Onetime::Organization).not_to have_received(:free_tier_limits)
+      end
+
+      it 'still enforces the 7-day anonymous cap against a higher config max' do
+        stub_config_ttl_max(30 * 86_400) # stock self-hosted ttl_options max
+        allow(Onetime::Organization).to receive(:free_tier_limits)
+
+        subject = build_anon_subject(ttl: (30 * 86_400).to_s)
+        subject.send(:process_ttl)
+
+        expect(subject.ttl).to eq(anon_cap)
+        expect(Onetime::Organization).not_to have_received(:free_tier_limits)
+      end
+
+      it 'lets a config max below the cap win' do
+        stub_config_ttl_max(2 * 86_400)
+
+        subject = build_anon_subject(ttl: (30 * 86_400).to_s)
+        subject.send(:process_ttl)
+
+        expect(subject.ttl).to eq(2 * 86_400)
       end
     end
 

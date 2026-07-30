@@ -60,7 +60,9 @@ rescue StandardError => ex
 end
 #=> 'Onetime::Unauthorized'
 
-## V2: anonymous_max_ttl fails open to the config max when billing is disabled
+## V2: anonymous_max_ttl enforces the 7-day cap even when billing is disabled
+# Diverges from V1's resolve_ttl_limit, which fails open to the config max:
+# the cap is a product rule about anonymous callers, not about billing.
 billing = Onetime::BillingConfig.instance
 class << billing
   def enabled?
@@ -75,9 +77,27 @@ ensure
     remove_method :enabled?
   end
 end
-#=> 2592000
+#=> 604_800
 
-## V2: anonymous_max_ttl caps at the free-tier secret_lifetime limit when billing is enabled
+## V2: a config ttl_options max below the cap still wins (billing disabled)
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    false
+  end
+end
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 172_800)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+end
+#=> 172_800
+
+## V2: anonymous_max_ttl caps at ANONYMOUS_MAX_TTL when billing is enabled
+# Stock PLAN_TTL_ANONYMOUS (unset -> DEFAULT_FREE_TTL, 14d) is above the 7d cap.
 billing = Onetime::BillingConfig.instance
 class << billing
   def enabled?
@@ -94,4 +114,49 @@ ensure
   end
   Onetime::Organization.reset_free_tier_limits!
 end
-#==> _ == [Onetime::Organization.free_tier_limits['secret_lifetime.max'], 2_592_000].min
+#==> _ == Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL
+
+## V2: raising PLAN_TTL_ANONYMOUS cannot lift the anonymous ceiling above 7 days
+# The env var moves free_tier_limits (asserted in the pair below), but the
+# anonymous clamp mins it against the ANONYMOUS_MAX_TTL product cap.
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    true
+  end
+end
+raised = 24 * 86_400
+ENV['PLAN_TTL_ANONYMOUS'] = raised.to_s
+Onetime::Organization.reset_free_tier_limits!
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  [Onetime::Organization.free_tier_limits['secret_lifetime.max'], logic.send(:anonymous_max_ttl, raised)]
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+  ENV.delete('PLAN_TTL_ANONYMOUS')
+  Onetime::Organization.reset_free_tier_limits!
+end
+#==> _ == [24 * 86_400, Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL]
+
+## V2: lowering PLAN_TTL_ANONYMOUS below the cap still applies
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    true
+  end
+end
+ENV['PLAN_TTL_ANONYMOUS'] = (3 * 86_400).to_s
+Onetime::Organization.reset_free_tier_limits!
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 2_592_000)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+  ENV.delete('PLAN_TTL_ANONYMOUS')
+  Onetime::Organization.reset_free_tier_limits!
+end
+#=> 259_200

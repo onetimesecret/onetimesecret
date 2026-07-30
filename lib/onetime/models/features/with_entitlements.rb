@@ -53,6 +53,21 @@ module Onetime
         # plan. See #3111 for the drift bug this constant previously caused.
         DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
+        # Hard ceiling for secrets created by anonymous (unauthenticated)
+        # callers. A product rule, not a derived value: an anonymous secret
+        # never outlives 7 days on any deployment, billing enabled or not.
+        #
+        # PLAN_TTL_ANONYMOUS can only LOWER the anonymous grant beneath this
+        # cap; it cannot raise it. Sits below DEFAULT_FREE_TTL so the audit
+        # invariant (anonymous grant <= authenticated free-tier grant) holds
+        # by construction. See the 2026-07-29 API audit, item 4.
+        #
+        # Consumers: V2::Logic::Secrets::BaseSecretAction#anonymous_max_ttl
+        # (enforcement) and the bootstrap serializer's
+        # secret_options.ttl_max_anonymous key (the UI's duration filter).
+        # Reference this constant rather than re-hardcoding 7 days.
+        ANONYMOUS_MAX_TTL = 604_800  # 7 days
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.include InstanceMethods

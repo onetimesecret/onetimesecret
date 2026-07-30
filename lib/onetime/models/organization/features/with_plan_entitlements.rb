@@ -106,6 +106,14 @@ module Onetime
           # The secret_lifetime.max value can be overridden via PLAN_TTL_ANONYMOUS
           # environment variable for Docker/self-hosted deployments.
           #
+          # PLAN_TTL_ANONYMOUS can only LOWER the anonymous secret TTL. The V2
+          # anonymous ceiling (V2::Logic::Secrets::BaseSecretAction#
+          # anonymous_max_ttl) takes the minimum of this value and the hard
+          # WithEntitlements::ANONYMOUS_MAX_TTL product cap (7 days), so
+          # raising the env var above 7 days is a no-op there. Authenticated
+          # limit lookups (free_tier_limit_for) still see the raw value.
+          # 2026-07-29 API audit, item 4.
+          #
           # Results are memoized at class level for consistent behavior.
           #
           # @see https://github.com/onetimesecret/onetimesecret/issues/2390

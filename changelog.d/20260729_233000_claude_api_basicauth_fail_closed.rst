@@ -15,11 +15,11 @@ Security
   original failure reason. Requests that present no ``Authorization`` header at
   all are unaffected and remain anonymous.
 
-- Anonymous secret TTLs are clamped to the free-tier ``secret_lifetime`` limit
-  on billing-enabled deployments, closing a policy inversion where an anonymous
-  request could outlive an authenticated free-tier one (which is denied above
-  the same threshold with an upgrade prompt). Self-hosted deployments with
-  billing disabled keep the configured ``ttl_options`` maximum.
+- Anonymous secret TTLs are capped at 7 days on every deployment, closing a
+  policy inversion where an anonymous request could outlive an authenticated
+  free-tier one (which is denied above 14 days with an upgrade prompt). A
+  configured ``ttl_options`` maximum below 7 days still wins, and
+  ``PLAN_TTL_ANONYMOUS`` can only lower the cap, never raise it.
 
 - A recipient email supplied without an account now raises 401 rather than a
   422 field-validation error, correctly signalling an authentication failure.
