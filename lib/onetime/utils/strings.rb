@@ -119,12 +119,33 @@ module Onetime
         email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
       end
 
+      # Replaces every byte run that is not valid UTF-8 with U+FFFD so text of
+      # unknown provenance — a datastore field, a request parameter — can be
+      # matched, printed and JSON-encoded without raising. Nothing is dropped:
+      # the marker keeps the corruption visible where the bytes were.
+      #
+      # A binary-tagged string is `valid_encoding?` whatever bytes it holds, and
+      # matching one against a UTF-8 pattern raises Encoding::CompatibilityError,
+      # so re-tag before consulting the flag.
+      #
+      # @param text [String] Text of unknown encoding
+      # @return [String] Valid UTF-8 text
+      def utf8_safe(text)
+        text = text.dup.force_encoding(Encoding::UTF_8) unless text.encoding == Encoding::UTF_8
+        text.valid_encoding? ? text : text.scrub
+      end
+
       # @note Uses Mail::Address for parsing, avoiding hand-rolled parsing
       #   edge cases while keeping the code short and auditable.
       def obscure_email(text)
         return text if text.nil? || text.empty?
 
-        text.gsub(EMAIL_PATTERN) do |raw|
+        # This is a redaction helper on logging and CLI-output paths, and its
+        # input is whatever the datastore or the request held — gsub raises
+        # ArgumentError on invalid UTF-8, which would turn unreadable data into
+        # an outage (see LoginRateLimiter, which obscures a request-supplied
+        # address). Scrub first, then mask what remains.
+        utf8_safe(text).gsub(EMAIL_PATTERN) do |raw|
           mask_email_address(raw)
         end
       end

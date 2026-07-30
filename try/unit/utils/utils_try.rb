@@ -123,6 +123,18 @@ Onetime::Utils.obscure_email('No email here')
 Onetime::Utils.obscure_email('user@domain.com.au')
 #=> 'us***@d***.com.au'
 
+## Handle invalid UTF-8 bytes (gsub would raise; scrub to U+FFFD and mask the rest)
+Onetime::Utils.obscure_email("note\xFF user@example.com")
+#=> "note\u{FFFD} us***@e***.com"
+
+## Handle invalid UTF-8 bytes tagged as binary (gsub would raise Encoding::CompatibilityError)
+Onetime::Utils.obscure_email("user@example.com \xFF".dup.force_encoding(Encoding::ASCII_8BIT))
+#=> "us***@e***.com \u{FFFD}"
+
+## utf8_safe leaves valid text alone
+Onetime::Utils.utf8_safe('plain text')
+#=> 'plain text'
+
 ## random_fortune returns a string
 ## Create a mock fortunes collection
 mock_fortunes = ["Fortune favors the bold.", "The early bird gets the worm."]
