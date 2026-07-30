@@ -680,12 +680,23 @@ module Auth
         # auth-side email, a quoted PG error), so findings need no second pass.
         #
         # Scrub, don't rescue: a rescue that returned the field unchanged would
-        # only move the raise to the encoder. utf8_safe's DEFAULT drop mode is
-        # what this walk wants, not the U+FFFD marker: the CLI adapter
-        # pattern-matches this same text (deep_obscure_emails -> obscure_email),
-        # and a marker landing inside an address stops it matching EMAIL_PATTERN
-        # — the address would then print in the clear. Dropping leaves an
-        # address that still masks. Fail closed; see OT::Utils.utf8_safe.
+        # only move the raise to the encoder.
+        #
+        # MARKER mode, not utf8_safe's default drop mode — and note this is the
+        # opposite of what this comment said before, so read the reason rather
+        # than "restoring" it. Dropping was chosen to protect the CLI adapter,
+        # which pattern-matches this same text (deep_obscure_emails ->
+        # obscure_email) and whose EMAIL_PATTERN a U+FFFD inside an address
+        # would defeat, printing the address in the clear. That protection now
+        # lives where it belongs: OT::Utils.obscure_email strips markers as part
+        # of its own normalization, so it masks correctly whatever arrives.
+        #
+        # With the redaction path immune, dropping only destroys evidence.
+        # Colonel renders these sections verbatim, and this op exists to explain
+        # broken state — a `locale: "en\xFF"` that reads back as a clean "en"
+        # tells the operator the record is fine when it is not. The marker keeps
+        # the corruption visible and still satisfies the Result's contract that
+        # every string is valid UTF-8.
         #
         # Encoding only: NO obscuring happens here. The colonel API is an
         # authenticated admin surface that deliberately returns full addresses;
@@ -697,7 +708,8 @@ module Auth
         # the symbol keys authored above are untouched.
         def utf8_safe_deep(node)
           case node
-          when String then OT::Utils.utf8_safe(node)
+          when String
+            OT::Utils.utf8_safe(node, replacement: OT::Utils::Strings::UNICODE_REPLACEMENT_CHAR)
           when Array then node.map { |item| utf8_safe_deep(item) }
           when Hash then node.to_h { |key, value| [utf8_safe_deep(key), utf8_safe_deep(value)] }
           else node
