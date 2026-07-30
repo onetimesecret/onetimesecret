@@ -53,20 +53,56 @@ module Onetime
         # plan. See #3111 for the drift bug this constant previously caused.
         DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
-        # Hard ceiling for secrets created by anonymous (unauthenticated)
-        # callers. A product rule, not a derived value: an anonymous secret
-        # never outlives 7 days on any deployment, billing enabled or not.
+        # Default ceiling for secrets created by anonymous (unauthenticated)
+        # callers: 7 days. This is the shipped default, NOT an invariant.
         #
-        # PLAN_TTL_ANONYMOUS can only LOWER the anonymous grant beneath this
-        # cap; it cannot raise it. Sits below DEFAULT_FREE_TTL so the audit
-        # invariant (anonymous grant <= authenticated free-tier grant) holds
-        # by construction. See the 2026-07-29 API audit, item 4.
+        # The 7-day rule exists because of the hosted service's threat model —
+        # unaccountable strangers parking data on someone else's infrastructure.
+        # A self-hosted deployment on a private network does not inherit that
+        # threat model, so operators set their own value via the config key
+        # site.secret_options.ttl_max_anonymous (env TTL_MAX_ANONYMOUS, or the
+        # deprecated PLAN_TTL_ANONYMOUS alias). Raising it is supported.
         #
-        # Consumers: V2::Logic::Secrets::BaseSecretAction#anonymous_max_ttl
-        # (enforcement) and the bootstrap serializer's
-        # secret_options.ttl_max_anonymous key (the UI's duration filter).
-        # Reference this constant rather than re-hardcoding 7 days.
+        # The genuine software-safety bound is MAX_TTL (365 days); this constant
+        # is product policy and lives at the operator's discretion. See the
+        # 2026-07-29 API audit, item 4.
+        #
+        # Consumers should call configured_anonymous_max_ttl rather than reading
+        # this constant, so an operator override is honoured.
         ANONYMOUS_MAX_TTL = 604_800  # 7 days
+
+        # Resolve the configured anonymous TTL ceiling.
+        #
+        # Single source for both enforcement (V2::Logic::Secrets::
+        # BaseSecretAction#anonymous_max_ttl) and the bootstrap serializer's
+        # secret_options.ttl_max_anonymous key, which drives the UI's duration
+        # filter. Keeping one reader is what stops the two from drifting and
+        # offering a duration the server would silently shorten.
+        #
+        # Bounded to [1, MAX_TTL]. A non-positive or malformed value falls back
+        # to the default rather than making anonymous secrets impossible —
+        # "0" almost certainly means "unset me", not "expire immediately".
+        #
+        # @return [Integer] Ceiling in seconds for anonymous callers
+        def self.configured_anonymous_max_ttl
+          raw = OT.conf.dig('site', 'secret_options', 'ttl_max_anonymous')
+          return ANONYMOUS_MAX_TTL if raw.nil?
+
+          value = Integer(raw)
+          return ANONYMOUS_MAX_TTL unless value.positive?
+
+          value.clamp(1, MAX_TTL)
+        rescue ArgumentError, TypeError
+          OT.lw '[WithEntitlements] Invalid site.secret_options.ttl_max_anonymous, using default',
+            { value: raw.inspect, default: ANONYMOUS_MAX_TTL }
+          ANONYMOUS_MAX_TTL
+        rescue StandardError => ex
+          # OT.conf unavailable (boot ordering, config fault). Fail to the
+          # product default rather than to the config ttl_options max.
+          OT.le "[WithEntitlements] ttl_max_anonymous unreadable (#{ex.class}: #{ex.message}); " \
+                "using default #{ANONYMOUS_MAX_TTL}"
+          ANONYMOUS_MAX_TTL
+        end
 
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"

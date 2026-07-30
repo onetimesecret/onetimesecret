@@ -457,4 +457,90 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
   end
+
+  # The anonymous ceiling is deliberately NOT a plan derivation. It reads
+  # site.secret_options.ttl_max_anonymous (env TTL_MAX_ANONYMOUS, or the
+  # deprecated PLAN_TTL_ANONYMOUS alias, resolved in config.defaults.yaml) so it
+  # applies on deployments with billing disabled, where plan state does not
+  # exist. 2026-07-29 API audit, item 4.
+  describe '.configured_anonymous_max_ttl' do
+    let(:described_module) { Onetime::Models::Features::WithEntitlements }
+
+    def stub_conf(value)
+      conf = { 'site' => { 'secret_options' => { 'ttl_max_anonymous' => value } } }
+      allow(OT).to receive(:conf).and_return(conf)
+    end
+
+    it 'defaults to 7 days when the key is unset' do
+      stub_conf(nil)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+    end
+
+    it 'honours an operator value below the default' do
+      stub_conf(86_400)
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(86_400)
+    end
+
+    # The self-hosted case this key exists for: raising is supported, because
+    # the 7-day rule is hosted-service policy rather than a safety invariant.
+    it 'honours an operator value above the default' do
+      stub_conf(2_592_000)
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(2_592_000)
+    end
+
+    it 'coerces a String, as ERB delivers when the env var is set' do
+      stub_conf('2592000')
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(2_592_000)
+    end
+
+    it 'bounds the value at MAX_TTL' do
+      stub_conf(999_999_999)
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(described_module::MAX_TTL)
+    end
+
+    # "0" reads as "unset me", not "anonymous secrets expire immediately".
+    it 'falls back to the default for a non-positive value' do
+      stub_conf(0)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+    end
+
+    it 'falls back to the default for a negative value' do
+      stub_conf(-500)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+    end
+
+    it 'falls back to the default and warns for a malformed value' do
+      stub_conf('not-a-number')
+      allow(OT).to receive(:lw)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/Invalid site\.secret_options\.ttl_max_anonymous/), hash_including(:default)
+      )
+    end
+
+    # Stub the dig, not OT.conf itself — spec_helper's teardown reads OT.conf
+    # and a raising stub would take the whole example group down with it.
+    it 'falls back to the default when the config read raises' do
+      faulty = instance_double(Hash)
+      allow(faulty).to receive(:dig).and_raise(StandardError, 'config unreadable')
+      allow(OT).to receive(:conf).and_return(faulty)
+      allow(OT).to receive(:le)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+      expect(OT).to have_received(:le).with(a_string_matching(/ttl_max_anonymous unreadable/))
+    end
+  end
 end
