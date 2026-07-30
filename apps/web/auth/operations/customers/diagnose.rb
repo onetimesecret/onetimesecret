@@ -249,9 +249,14 @@ module Auth
             # only), so a Closed row can share a live row's address — match
             # live FIRST or the whole read-out binds to the dead row and every
             # sidecar section is keyed on the wrong account id. The any-status
-            # fallback keeps a genuinely closed account diagnosable.
+            # fallback keeps a genuinely closed account diagnosable, and is
+            # ORDERED because closed rows sit outside that index: several can
+            # share the address, and an unordered `first` returns whichever row
+            # PG hands back. Newest wins — that is the row support was just
+            # asked about.
             by_email = db[:accounts].where(email: email)
-            row      = by_email.where(status_id: AccountStatuses::LIVE).first || by_email.first
+            row      = by_email.where(status_id: AccountStatuses::LIVE).first ||
+                       by_email.order(Sequel.desc(:id)).first
             return row if row
           end
 

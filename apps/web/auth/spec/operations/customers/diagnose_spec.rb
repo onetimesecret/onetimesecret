@@ -171,9 +171,16 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
     # construction, exactly the population this email arm exists to surface.
     # Binding to it would report the live user as CLOSED and key every sidecar
     # section on the wrong account id.
+    #
+    # The closed row deliberately carries the HIGHER id and is inserted FIRST,
+    # so neither of the two orders the op could plausibly scan in — insertion
+    # order, or the newest-first order the any-status fallback applies — lands
+    # on the live row by accident. Only the live-status filter produces 42, and
+    # the fixture order is therefore not load-bearing. Verified by mutation:
+    # dropping the live-status filter returns 43.
     it 'binds to the live row when a closed row shares the address' do
       allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
-      insert_account(status_id: 3, id: 41, external_id: 'ur_closed')
+      insert_account(status_id: 3, id: 43, external_id: 'ur_closed')
       insert_account(status_id: 2, id: 42, external_id: 'ur_target')
 
       result = diagnose(identifier: email)
@@ -194,6 +201,23 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       expect(result.sections[:auth_account][:account_id]).to eq(41)
       expect(result.sections[:auth_account][:status]).to eq('closed')
       expect(codes(result)).to include(:account_closed)
+    end
+
+    # Closed rows sit outside the partial unique index, so several can share
+    # one address and the fallback must pick deterministically. The older row
+    # is inserted FIRST on purpose: an unordered scan of a small table returns
+    # it first, so only the newest-first ORDER BY returns 41 — drop the order
+    # and this fails rather than passing by scan luck. Verified by mutation on
+    # PostgreSQL (this suite's backend): without the ORDER BY the op returns 40.
+    it 'picks the newest closed row when several share the address' do
+      allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
+      insert_account(status_id: 3, id: 40, external_id: 'ur_closed_old')
+      insert_account(status_id: 3, id: 41, external_id: 'ur_closed')
+
+      result = diagnose(identifier: email)
+
+      expect(result.sections[:auth_account][:account_id]).to eq(41)
+      expect(result.sections[:auth_account][:linked_extid]).to eq('ur_closed')
     end
 
     it 'flags a customer with no auth account row' do
