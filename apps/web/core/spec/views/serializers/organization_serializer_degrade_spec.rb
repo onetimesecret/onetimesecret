@@ -67,6 +67,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
       allow(org).to receive(:limit_for).with(:teams).and_return(3)
       allow(org).to receive(:limit_for).with(:total_members_per_org).and_return(Float::INFINITY)
       allow(org).to receive(:limit_for).with(:custom_domains).and_return(5)
+      allow(org).to receive(:limit_for).with(:secret_lifetime).and_return(2_592_000)
     end
 
     it 'serializes live entitlements and limits without degrading' do
@@ -77,6 +78,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
         'teams' => 3,
         'total_members_per_org' => -1, # Float::INFINITY normalizes to -1
         'custom_domains' => 5,
+        'secret_lifetime' => 2_592_000,
       )
       expect(payload['planid']).to eq('identity_plus_v1')
     end
@@ -131,13 +133,16 @@ RSpec.describe Core::Views::OrganizationSerializer do
           'teams' => 0, # absent from config -> FALLBACK_FREE_TIER_LIMITS
           'total_members_per_org' => 1, # '1' -> 1
           'custom_domains' => -1, # 'unlimited' -> -1
+          'secret_lifetime' => 1_209_600, # absent from config -> FALLBACK_FREE_TIER_LIMITS
         )
       end
 
-      it 'emits exactly the three limit keys, all Integers' do
+      it 'emits exactly the four limit keys, all Integers' do
         limits = serialized_org['limits']
 
-        expect(limits.keys).to contain_exactly('teams', 'total_members_per_org', 'custom_domains')
+        expect(limits.keys).to contain_exactly(
+          'teams', 'total_members_per_org', 'custom_domains', 'secret_lifetime'
+        )
         expect(limits.values).to all(be_a(Integer))
       end
 
@@ -162,6 +167,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
           'teams' => 0,
           'total_members_per_org' => 1,
           'custom_domains' => 1,
+          'secret_lifetime' => 1_209_600,
         )
       end
 
@@ -198,6 +204,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
         'teams' => 0,
         'total_members_per_org' => 1,
         'custom_domains' => 1,
+        'secret_lifetime' => 1_209_600,
       )
     end
 

@@ -56,6 +56,11 @@ module Onetime
               2.weeks,        # 1209600
               30.days,        # 2592000
             ],
+            # Ceiling for secrets created without an account. A default, not an
+            # invariant: operators may raise or lower it (env TTL_MAX_ANONYMOUS).
+            # Resolved and bounded by
+            # WithEntitlements.configured_anonymous_max_ttl.
+            'ttl_max_anonymous' => 7.days,
             'passphrase' => {
               'required' => false,
               'minimum_length' => 4,
@@ -477,6 +482,24 @@ module Onetime
       unless default_ttl.nil?
         conf['site']['secret_options']['default_ttl'] =
           coerce_ttl_seconds(default_ttl, 'site.secret_options.default_ttl')
+      end
+
+      # Same treatment for the anonymous ceiling: ERB hands back a String
+      # whenever TTL_MAX_ANONYMOUS (or the legacy PLAN_TTL_ANONYMOUS alias
+      # resolved in config.defaults.yaml) is set.
+      #
+      # Deliberately NOT coerce_ttl_seconds: its String branch is `to_i`, which
+      # turns a typo into 0 and loses the fact that it was a typo. A malformed
+      # value is left in place so WithEntitlements.configured_anonymous_max_ttl
+      # — the single reader, which also owns bounds — rejects it loudly and
+      # names it in the log. Nothing else reads this key raw; the bootstrap
+      # payload publishes the resolved ceiling, not this value.
+      ttl_max_anonymous = conf.dig('site', 'secret_options', 'ttl_max_anonymous')
+      unless ttl_max_anonymous.nil? || ttl_max_anonymous.is_a?(Integer)
+        parsed = Integer(ttl_max_anonymous.to_s.strip, exception: false)
+        unless parsed.nil?
+          conf['site']['secret_options']['ttl_max_anonymous'] = parsed
+        end
       end
 
       # Confirmed leak path (#3299): features.incoming.default_ttl is set from

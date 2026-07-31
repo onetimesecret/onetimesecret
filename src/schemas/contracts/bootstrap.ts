@@ -353,6 +353,17 @@ export const secretOptionsSchema = z.object({
   ttl_options: z
     .array(z.number().int().positive().min(60).max(2592000))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+  /**
+   * TTL ceiling the server silently applies to anonymous (guest) secrets, in
+   * seconds. A hard product cap (7 days) that holds on every deployment,
+   * billing enabled or not; TTL_MAX_ANONYMOUS can raise or lower it. Absent
+   * only on a payload predating this field — treat that as "no ceiling".
+   *
+   * @sync apps/web/core/views/serializers/config_serializer.rb — anonymous_ttl_ceiling
+   * @sync apps/api/v2/logic/secrets/base_secret_action.rb — anonymous_max_ttl
+   * @sync lib/onetime/models/features/with_entitlements.rb — ANONYMOUS_MAX_TTL
+   */
+  ttl_max_anonymous: z.number().int().positive().nullish(),
   passphrase: passphraseSchema.optional(),
   password_generation: passwordGenerationSchema.optional(),
 });
@@ -424,6 +435,13 @@ export const organizationSchema = z
         teams: z.number().optional(),
         total_members_per_org: z.number().optional(),
         custom_domains: z.number().optional(),
+        /**
+         * Max secret TTL in seconds for this org's plan; -1 = unlimited.
+         * Same limit V2 enforces at secret creation.
+         *
+         * @sync apps/api/v2/logic/secrets/base_secret_action.rb — process_ttl
+         */
+        secret_lifetime: z.number().optional(),
       })
       .nullish(),
   })

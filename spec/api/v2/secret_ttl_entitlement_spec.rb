@@ -26,7 +26,7 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
   FREE_TTL = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
 
   def mock_organization(planid:, entitlements:, secret_lifetime: FREE_TTL)
-    org = double('Organization', planid: planid, objid: "org_#{SecureRandom.hex(4)}")
+    org = double('Organization', planid: planid, objid: "org_#{SecureRandom.hex(4)}", extid: "org_ext_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?) do |entitlement|
       entitlements.include?(entitlement.to_s)
     end
@@ -34,6 +34,16 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
       resource.to_s == 'secret_lifetime' ? secret_lifetime : 0
     end
     org
+  end
+
+  # ADR-012 Stage 3: require_entitlement! authorizes via auth_membership.can?,
+  # not auth_org.can?. Mirror the org double's entitlement list so each
+  # spec's entitlements apply to both the org pre-check and the membership.
+  def mock_membership(org)
+    membership = double('OrganizationMembership', status: 'active')
+    allow(membership).to receive(:active?).and_return(true)
+    allow(membership).to receive(:can?) { |entitlement| org.can?(entitlement) }
+    membership
   end
 
   def mock_customer(custid: 'test@example.com', anonymous: false)
@@ -67,11 +77,15 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
     )
     allow(strategy_result).to receive(:auth_method).and_return(auth_method)
 
-    logic = logic_class.new(strategy_result, params)
-    allow(logic).to receive(:org).and_return(org)
+    # Base#initialize auto-runs process_params when params are present — before
+    # any stubs exist — so build with nil params and inject them after stubbing.
+    # Examples invoke logic.process_params explicitly.
+    logic = logic_class.new(strategy_result, nil, 'en')
     allow(logic).to receive(:cust).and_return(customer)
     allow(logic).to receive(:sess).and_return(session)
     allow(logic).to receive(:auth_org).and_return(org)
+    allow(logic).to receive(:auth_membership).and_return(org && mock_membership(org))
+    logic.instance_variable_set(:@params, params)
     logic
   end
 

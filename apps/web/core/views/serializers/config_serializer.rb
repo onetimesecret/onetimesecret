@@ -46,7 +46,7 @@ module Core
         }
         output['authentication'] = site.fetch('authentication', nil)
         output['homepage_mode']  = view_vars['homepage_mode']
-        output['secret_options'] = site['secret_options']
+        output['secret_options'] = build_secret_options(site)
         output['site_host']      = site['host']
         output['support_host']   = site.dig('support', 'host')
         regions                  = features.fetch('regions', {})
@@ -116,6 +116,68 @@ module Core
       end
 
       class << self
+        # Site secret_options with the anonymous TTL ceiling replaced by the
+        # value the server actually enforces.
+        #
+        # secret_options already carries the raw ttl_max_anonymous config value;
+        # the merge overwrites it with the resolved ceiling, so the frontend
+        # never sees a configured number that the free-tier limit would have
+        # lowered underneath it.
+        #
+        # @param site [Hash] site config section
+        # @return [Hash, nil] secret_options for the bootstrap payload
+        def build_secret_options(site)
+          secret_options = site['secret_options']
+          return secret_options unless secret_options.is_a?(Hash)
+
+          secret_options.merge('ttl_max_anonymous' => anonymous_ttl_ceiling)
+        end
+
+        # Anonymous TTL ceiling for the duration dropdown (2026-07-29 API
+        # audit, item 4).
+        #
+        # V2 silently clamps an anonymous secret's TTL (V2::Logic::Secrets::
+        # BaseSecretAction#anonymous_max_ttl). Publishing the same number lets
+        # the web UI (src/shared/composables/usePrivacyOptions.ts) drop
+        # durations the server would quietly reduce, instead of offering a
+        # duration the caller will never get.
+        #
+        # Mirrors that method's ladder. The configured ceiling
+        # (site.secret_options.ttl_max_anonymous, default 7 days) is read on
+        # every deployment, billing enabled or not, and has no fail-open case,
+        # so this key is always emitted. The free-tier limit can only lower it
+        # further, and only when billing is enabled. The third term server-side
+        # is the config ttl_options max; here it is implicit, since the dropdown
+        # is built from ttl_options in the first place.
+        #
+        # @return [Integer] Ceiling in seconds
+        def anonymous_ttl_ceiling
+          [
+            Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
+            free_tier_ttl_override,
+          ].compact.min
+        end
+
+        # Free-tier secret_lifetime limit, when it applies.
+        #
+        # Consulted only with billing enabled, and only when positive — with
+        # billing off there is no free tier to bound the anonymous grant
+        # against. The rescue drops only this term; the configured ceiling still
+        # stands, because a bootstrap read must never take the page down over a
+        # billing-config fault.
+        #
+        # @return [Integer, nil] Limit in seconds, or nil when not applicable
+        def free_tier_ttl_override
+          return nil unless OT.billing_config.enabled?
+
+          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          free_tier_max.positive? ? free_tier_max : nil
+        rescue StandardError => ex
+          OT.le "[ConfigSerializer] free-tier TTL limit unavailable (#{ex.class}: #{ex.message}); " \
+                'anonymous duration ceiling falls back to the configured value'
+          nil
+        end
+
         # Provides the base template for configuration serializer output
         #
         # @return [Hash] Template with all possible configuration output fields

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'v1/logic'
 
 # Integration tests for API V1 TTL Entitlement Gate (#3074)
 #
@@ -36,7 +37,6 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     allow(customer).to receive(:increment_field)
     allow(customer).to receive(:objid).and_return(anonymous ? nil : 'cust_abc123')
     allow(customer).to receive(:organization_instances).and_return([])
-    allow(customer).to receive(:is_a?).and_call_original
     customer
   end
 
@@ -67,7 +67,10 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     logic.instance_variable_set(:@params, params)
     logic.instance_variable_set(:@locale, nil)
     logic.instance_variable_set(:@processed_params, {})
-    allow(logic).to receive(:auth_org).and_return(org)
+    # V1::Logic::Base doesn't define auth_org, so verify_partial_doubles
+    # rejects an rspec stub. Define a real singleton method instead so the
+    # gate's respond_to?(:auth_org) branch is taken.
+    logic.define_singleton_method(:auth_org) { org }
     logic.send(:process_settings)
     logic
   end

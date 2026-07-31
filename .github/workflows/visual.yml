@@ -48,7 +48,12 @@ concurrency:
 jobs:
   visual:
     name: bin/visual (compare against committed linux baselines)
-    runs-on: ubuntu-24.04
+    # 26.04, not 24.04: noble pairs podman 5.x with crun 1.14.1, which rejects
+    # the OCI spec 1.2.1 that podman 5 writes ("crun: unknown version
+    # specified") and has no newer crun in apt. 26.04 ships podman 5.7 against
+    # a matching crun. Baselines are unaffected — rendering happens inside the
+    # pinned Playwright container, so the host OS contributes no pixels.
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
 
     services:
@@ -118,7 +123,7 @@ jobs:
 
       - name: Run visual regression suite
         id: visual
-        # CONTAINER_RUNTIME auto-detects docker; on linux bin/visual runs the
+        # CONTAINER_RUNTIME auto-detects podman; on linux bin/visual runs the
         # Playwright container with --network host and resolves the fixture
         # hosts (*.example.com/org) to 127.0.0.1.
         run: bin/visual

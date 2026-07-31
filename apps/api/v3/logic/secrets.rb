@@ -20,6 +20,7 @@
 
 require_relative '../../v2/logic/secrets'
 require_relative 'base'
+require_relative 'receipt_shape'
 
 module V3
   module Logic
@@ -48,6 +49,7 @@ module V3
       #   the creator. The secret can only be retrieved once before it is
       #   permanently destroyed.
       class ConcealSecret < V2::Logic::Secrets::ConcealSecret
+        prepend ::V3::Logic::ReceiptShape
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
@@ -65,6 +67,7 @@ module V3
       #   and length, then return share metadata including a secret link and
       #   a receipt link. The generated value can only be retrieved once.
       class GenerateSecret < V2::Logic::Secrets::GenerateSecret
+        prepend ::V3::Logic::ReceiptShape
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
@@ -172,6 +175,8 @@ module V3
       #   Returns receipts from the last 30 days, sorted by most recently
       #   updated. Supports scoping by organization or custom domain.
       class ListReceipts < V2::Logic::Secrets::ListReceipts
+        prepend ::V3::Logic::ReceiptShape
+
         SCHEMAS = { response: 'receiptList' }.freeze
 
         # include ::V3::Logic::Base
@@ -183,6 +188,7 @@ module V3
       #   Requires a passphrase if one was set during creation. Returns
       #   the updated receipt confirming the secret has been burned.
       class BurnSecret < V2::Logic::Secrets::BurnSecret
+        prepend ::V3::Logic::ReceiptShape
         include Onetime::Logic::GuestRouteGating
 
         SCHEMAS = { response: 'receipt' }.freeze
@@ -199,6 +205,7 @@ module V3
       #   including share and burn URLs, expiration, and current state. On
       #   first access, may include the generated secret value briefly.
       class ShowReceipt < V2::Logic::Secrets::ShowReceipt
+        prepend ::V3::Logic::ReceiptShape
         include Onetime::Logic::GuestRouteGating
 
         SCHEMAS = { response: 'receipt' }.freeze
@@ -215,6 +222,7 @@ module V3
       #   array of receipt identifiers. Returns up to 25 receipts per
       #   request. Useful for checking the status of several secrets at once.
       class ShowMultipleReceipts < V2::Logic::Base
+        prepend ::V3::Logic::ReceiptShape
         include Onetime::Logic::GuestRouteGating
 
         SCHEMAS = { response: 'receiptList' }.freeze
@@ -260,6 +268,8 @@ module V3
       # @api Update the memo field on a receipt owned by the authenticated
       #   user. Returns the updated receipt record.
       class UpdateReceipt < V2::Logic::Secrets::UpdateReceipt
+        prepend ::V3::Logic::ReceiptShape
+
         SCHEMAS = { response: 'receipt' }.freeze
 
         # include ::V3::Logic::Base

@@ -87,7 +87,9 @@ Available plan IDs are defined in `etc/billing.yaml` under the `plans:` key (e.g
 
 ## How Basic Auth Works
 
-The REST API accepts credentials via the standard `Authorization: Basic` header. The value is `base64(email:apitoken)`.
+The REST API accepts credentials via the standard `Authorization: Basic` header. The value is `base64(username:apitoken)`, where the **username is the account email or the customer external ID** (`ur…` prefix) — resolved via `Customer.load_by_extid_or_email` — and the **password is the API token**.
+
+The username is **not** the organization ID (`on…` prefix) and **not** the UUIDv7 `owner_id` that appears in API responses. Neither of those resolves to a customer, so requests sent with them carry invalid credentials.
 
 ```
 GET /api/account HTTP/1.1

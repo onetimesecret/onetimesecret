@@ -17,10 +17,15 @@ module Core
       # Free-tier limit literals used only when the free_v1 plan itself
       # cannot be resolved from billing config. Values mirror free_v1 in
       # billing.yaml (teams is absent there: free tier has none).
+      #
+      # secret_lifetime mirrors WithEntitlements::DEFAULT_FREE_TTL (14 days).
+      # Spelled as a literal like its neighbours rather than referenced, so
+      # this constant stays independent of model load order.
       FALLBACK_FREE_TIER_LIMITS = {
         'teams' => 0,
         'total_members_per_org' => 1,
         'custom_domains' => 1,
+        'secret_lifetime' => 1_209_600,
       }.freeze
 
       # Serializes organization data from view variables
@@ -141,6 +146,11 @@ module Core
         # (organization/features/safe_dump_fields.rb): Float::INFINITY
         # normalizes to -1 for JSON serialization (unlimited).
         #
+        # secret_lifetime is the same limit V2 enforces on secret creation
+        # (BaseSecretAction#process_ttl reads limit_for('secret_lifetime')),
+        # published so the duration dropdown can drop options the server
+        # would clamp — see usePrivacyOptions.ts. -1 means no ceiling.
+        #
         # @param org [Onetime::Organization] Organization
         # @return [Hash] Normalized limits
         def serialize_limits(org)
@@ -149,6 +159,7 @@ module Core
             'teams' => normalize.call(org.limit_for(:teams)),
             'total_members_per_org' => normalize.call(org.limit_for(:total_members_per_org)),
             'custom_domains' => normalize.call(org.limit_for(:custom_domains)),
+            'secret_lifetime' => normalize.call(org.limit_for(:secret_lifetime)),
           }
         end
 

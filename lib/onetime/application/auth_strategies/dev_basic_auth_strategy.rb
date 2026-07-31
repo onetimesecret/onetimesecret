@@ -78,9 +78,14 @@ module Onetime
         end
 
         def authenticate(env, _requirement)
-          # Runtime guard (belt + suspenders with registration guard)
+          # Runtime guard (belt + suspenders with registration guard).
+          # If credentials were presented, mark the env so noauth-capable
+          # chains fail closed (401) instead of degrading to anonymous.
           if OT.production?
-            return failure('[DEV_AUTH_BLOCKED] Development auth disabled in production')
+            reason = '[DEV_AUTH_BLOCKED] Development auth disabled in production'
+            return credentialed_failure(env, reason) if env['HTTP_AUTHORIZATION']
+
+            return failure(reason)
           end
 
           # Extract and parse Basic Auth credentials (inherited from BasicAuthStrategy)
@@ -89,9 +94,11 @@ module Onetime
 
           username, apikey = credentials
 
-          # Validate dev_ prefix on BOTH username and apikey
+          # Validate dev_ prefix on BOTH username and apikey.
+          # Credentialed failure: an Authorization header was presented and
+          # rejected, so anonymous fallthrough must be refused downstream.
           unless valid_dev_credentials?(username, apikey)
-            return failure('[DEV_PREFIX_REQUIRED] Development credentials must use dev_ prefix')
+            return credentialed_failure(env, '[DEV_PREFIX_REQUIRED] Development credentials must use dev_ prefix')
           end
 
           # Attempt to load or create the dev user
@@ -103,9 +110,11 @@ module Onetime
           target_cust       = cust || Onetime::Customer.dummy
           valid_credentials = target_cust.apitoken?(apikey)
 
-          # Only succeed if we have a real customer AND valid credentials
+          # Only succeed if we have a real customer AND valid credentials.
+          # Credentialed failure: see BasicAuthStrategy — presented-but-
+          # rejected credentials must fail closed, never proceed anonymous.
           unless cust && valid_credentials
-            return failure('[CREDENTIALS_INVALID] Invalid credentials')
+            return credentialed_failure(env, '[CREDENTIALS_INVALID] Invalid credentials')
           end
 
           OT.ld "[dev_basic_auth] Authenticated dev user '#{cust.custid}'"

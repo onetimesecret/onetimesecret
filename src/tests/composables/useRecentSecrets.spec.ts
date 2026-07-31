@@ -114,7 +114,6 @@ function createMockApiRecord(overrides: Partial<ReceiptList> = {}): ReceiptList 
     receipt_ttl: overrides.receipt_ttl ?? 0,
     lifespan: overrides.lifespan ?? 0,
     show_recipients: overrides.show_recipients ?? false,
-    custid: overrides.custid ?? 'test-customer',
     owner_id: overrides.owner_id ?? 'test-owner',
   } as ReceiptList;
 }

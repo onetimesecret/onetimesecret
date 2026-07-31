@@ -222,6 +222,20 @@ site:
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+    # Maximum TTL for secrets created without an account (anonymous callers).
+    # Default: 604800 (7 days) — a sane default, not a hard limit. Self-hosted
+    # deployments may raise or lower it; the effective ceiling is the lower of
+    # this value and the ttl_options maximum, bounded by 365 days. When billing
+    # is enabled the free-tier plan limit applies as well, so the anonymous
+    # grant never exceeds what an authenticated free-tier user receives.
+    #
+    # PLAN_TTL_ANONYMOUS is the deprecated alias, read only here — this line is
+    # the single place the old name survives. The ceiling itself is read from
+    # the resolved config key (site.secret_options.ttl_max_anonymous) via
+    # WithEntitlements.configured_anonymous_max_ttl, never from the env var.
+    # Organization.free_tier_limits does read ENV['TTL_MAX_ANONYMOUS'] directly
+    # for its secret_lifetime fallback, and does not honour the alias.
+    ttl_max_anonymous: <%= ENV['TTL_MAX_ANONYMOUS'] || ENV['PLAN_TTL_ANONYMOUS'] || nil %>
     # Settings for the passphrase field that protects access to secrets
     passphrase:
       # Require users to enter a passphrase when creating secrets
