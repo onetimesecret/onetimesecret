@@ -267,6 +267,37 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
     end
   end
 
+  describe 'malformed submissions still cost budget' do
+    it 'does not 500 on an invalid-UTF-8 login, and counts the probe' do
+      # Rack::Parser parses the urlencoded body eagerly and caches it, so the
+      # UTF8Sanitizer never touches these params: `login` arrives UTF-8-tagged
+      # with an invalid byte sequence. process_params runs in the logic
+      # constructor, which the controller builds OUTSIDE its error handling and
+      # therefore before the limiter — so a raise there would be an
+      # unauthenticated 500 that consumes no budget, i.e. an uncapped hole in
+      # the cap this file exists to verify.
+      enable_limiter(max_per_ip: 10, max_per_email: 10)
+
+      clear_cookies
+      header 'Content-Type', nil
+      header 'Content-Length', nil
+      header 'Accept', 'application/json'
+      get '/', {}, 'REMOTE_ADDR' => '203.0.113.30'
+      token = last_response.headers['X-CSRF-Token']
+
+      header 'Content-Type', 'application/x-www-form-urlencoded'
+      header 'Accept', 'application/json'
+      header 'X-CSRF-Token', token if token
+      post '/auth/reset-password-request',
+        "login=user%C3%28%40example.com&shrimp=#{token}",
+        'REMOTE_ADDR' => '203.0.113.30'
+
+      expect(last_response.status).not_to eq(500),
+        "malformed login must not 500: #{last_response.body}"
+      expect(rl_redis.get('reset_request:attempts:ip:203.0.113.0')).to eq('1')
+    end
+  end
+
   describe 'shipped default (no reset_request_rate_limit config at all)' do
     it 'is ON, at the module defaults, for an install that never configured it' do
       # The gap this change closes is specifically that the DEFAULT deployment

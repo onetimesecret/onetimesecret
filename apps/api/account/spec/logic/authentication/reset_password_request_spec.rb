@@ -202,6 +202,30 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
       end
     end
 
+    context 'when the submitted login is not valid UTF-8' do
+      # Form params reach here UTF-8-tagged but unvalidated, and Sanitize
+      # raises ArgumentError on invalid bytes. process_params runs in the
+      # constructor — before raise_concerns, so before the limiter — and the
+      # controller builds the logic object outside its error handling, so an
+      # unhandled raise would be a 500 that consumes no limiter budget.
+      let(:login_param) { +"user\xC3(@example.com".dup.force_encoding('UTF-8') }
+
+      it 'still constructs, and the probe costs limiter budget instead of 500ing' do
+        expect(login_param.valid_encoding?).to be false
+
+        logic = nil
+        expect { logic = described_class.new(strategy_result, params) }.not_to raise_error
+        expect(logic.login_or_email.valid_encoding?).to be true
+
+        expect(logic).to receive(:enforce_reset_request_rate_limit!)
+          .with(client_ip, logic.login_or_email)
+        allow(logic).to receive(:valid_email?).and_return(false)
+
+        # Past the limiter it is an ordinary rejected address, not a crash.
+        expect { logic.raise_concerns }.to raise_error(OT::FormError, /Invalid email address/)
+      end
+    end
+
     it 'lets an under-cap request through to the normal generic-success path' do
       allow(logic).to receive(:valid_email?).and_return(true)
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)

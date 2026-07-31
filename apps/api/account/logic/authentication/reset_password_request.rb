@@ -18,7 +18,24 @@ module AccountAPI::Logic
       attr_accessor :token
 
       def process_params
-        @login_or_email = sanitize_email(params['login'])
+        # Scrub invalid bytes BEFORE sanitizing. Form params arrive UTF-8-TAGGED
+        # but not UTF-8-VALIDATED: Rack::Parser parses the urlencoded body
+        # eagerly and caches it in rack.request.form_hash (middleware_stack.rb),
+        # so the UTF8Sanitizer's replacement rack.input never reaches these
+        # values — and sanitize_email -> Sanitize.fragment RAISES ArgumentError
+        # on an invalid byte sequence.
+        #
+        # This method runs in Onetime::Logic::Base's constructor, which the
+        # controller invokes OUTSIDE execute_with_error_handling and therefore
+        # BEFORE raise_concerns runs the rate limiter. An unhandled raise here
+        # would be an unauthenticated 500 that costs the caller no limiter
+        # budget — an uncapped hole in the cap this class exists to enforce (no
+        # enumeration oracle and no mail dispatch, since it dies before the
+        # lookup, but unbounded 500s and Sentry noise all the same).
+        #
+        # scrub('') is a no-op for valid input; a garbage login then flows
+        # through the limiter and fails the ordinary format check below.
+        @login_or_email = sanitize_email(params['login'].to_s.scrub(''))
       end
 
       def raise_concerns
