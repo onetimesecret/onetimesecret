@@ -315,11 +315,15 @@ site:
     # If empty or not set, signups are allowed from any domain (default).
     # Environment variable: ALLOWED_SIGNUP_DOMAIN (comma-separated list)
     allowed_signup_domains: <%= ENV['ALLOWED_SIGNUP_DOMAIN']&.split(',')&.map(&:strip) || [] %>
-    # Rate limiting for reset-password requests (#3872). In full auth mode
-    # POST /auth/reset-password-request is enumeration-safe (#3857) but keeps
+    # Rate limiting for reset-password requests (#3872). POST
+    # /auth/reset-password-request is enumeration-safe by response content
+    # (#3857 in full mode, CWE-204 handling in the simple-mode logic) but keeps
     # an accepted timing residual; exploiting it needs many samples, so this
     # throttles requests per client IP (tight tier) and per submitted login
     # (higher backstop for IP-rotating callers) BEFORE any account lookup.
+    # Applies in BOTH auth modes: full mode enforces it from the Rodauth
+    # before_reset_password_request_route hook, simple mode (the default) from
+    # ResetPasswordRequest#raise_concerns.
     # Enabled by default (protective); set RESET_REQUEST_RATE_LIMIT_ENABLED=false
     # to opt out. See lib/onetime/security/reset_request_rate_limiter.rb.
     reset_request_rate_limit:

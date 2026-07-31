@@ -6,6 +6,23 @@ module Onetime
   module Security
     # ResetRequestRateLimiter - Throttles reset-password-request submissions
     #
+    # Enforced on BOTH auth-mode paths to POST /auth/reset-password-request:
+    #
+    #   - full mode: the Rodauth before_reset_password_request_route hook
+    #     (apps/web/auth/config/hooks/reset_password_request.rb), ahead of the
+    #     route body;
+    #   - simple mode (the application default): the shared logic class,
+    #     AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns
+    #     (routed via apps/web/core/routes.txt →
+    #     Core::Controllers::Registration#request_reset_email), ahead of the
+    #     format check and the account lookup.
+    #
+    # Both call sites pass the same subjects — the trusted-proxy-resolved,
+    # privacy-masked client IP and the submitted login — so a caller buckets
+    # identically whichever mode is deployed. Only one of the two paths is
+    # reachable in a given deployment (the auth app owns /auth/* when mounted),
+    # so this is parity, not double counting.
+    #
     # The enumeration-safe reset-password-request route (#3857) returns an
     # identical response for every login, which closed the single-request
     # content oracle but left a statistical TIMING residual: a hit performs

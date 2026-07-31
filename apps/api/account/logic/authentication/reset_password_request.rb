@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/security/reset_request_rate_limiter'
 
 module AccountAPI::Logic
   module Authentication
@@ -11,6 +12,7 @@ module AccountAPI::Logic
 
     class ResetPasswordRequest < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Security::ResetRequestRateLimiter
 
       attr_reader :login_or_email
       attr_accessor :token
@@ -20,6 +22,30 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
+        # Throughput cap (#3872), FIRST — before the format check, before any
+        # account lookup. Simple mode (the application default) routes
+        # POST /auth/reset-password-request straight here via
+        # Core::Controllers::Registration#request_reset_email; the Rodauth
+        # before_reset_password_request_route hook that enforces the same
+        # limiter (apps/web/auth/config/hooks/reset_password_request.rb) only
+        # loads in full mode, so without this call the endpoint had no
+        # throughput cap at all in the default configuration. #process below is
+        # enumeration-safe by response CONTENT but keeps the statistical timing
+        # residual documented there — exploiting it needs many samples per
+        # target, and an uncapped endpoint also mail-bombs arbitrary addresses.
+        #
+        # Ordering mirrors the full-mode hook, which fires before Rodauth's own
+        # param validation: every submission costs limiter budget, and a
+        # throttled probe never reaches valid_email? (a Truemail call) or the
+        # timing-sensitive lookup in #process. Raises Onetime::LimitExceeded,
+        # which the Otto error handler renders as the ADR-013 429
+        # (lib/onetime/application/otto_hooks.rb).
+        #
+        # ENUMERATION SAFETY: both limiter tiers key only on request-observable
+        # inputs (client IP, submitted login), never on account existence, so
+        # the 429 introduces no new oracle.
+        enforce_reset_request_rate_limit!(reset_request_client_ip, @login_or_email)
+
         # Security (CWE-204): email enumeration prevention. Validate only the
         # email FORMAT here — do NOT check account existence in the validation
         # layer. Existence is handled in #process, which returns the same generic
@@ -137,6 +163,24 @@ module AccountAPI::Logic
 
       def success_data
         { objid: nil, sent: true }
+      end
+
+      private
+
+      # Client IP for the limiter's per-IP tier, read from the same strategy
+      # metadata the other logic-layer limiters use
+      # (AuthenticateSession#login_rate_limit_ip,
+      # CreateIncomingSecret#incoming_client_ip). That value comes from
+      # AuthStrategies::Helpers#client_ip, which prefers env['otto.client_ip'] —
+      # the trusted-proxy-resolved, privacy-masked address the full-mode hook
+      # reads — so neither mode's key is spoofable via forwarded headers from an
+      # untrusted hop, and both bucket a caller identically.
+      #
+      # A nil/blank IP (no strategy metadata, e.g. a bare unit invocation) skips
+      # the IP tier inside the limiter rather than pooling unknown callers into
+      # one shared bucket; the per-login backstop still applies.
+      def reset_request_client_ip
+        strategy_result&.metadata&.[](:ip)
       end
     end
   end
