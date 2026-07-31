@@ -44,6 +44,14 @@ module AccountAPI::Logic
         # ENUMERATION SAFETY: both limiter tiers key only on request-observable
         # inputs (client IP, submitted login), never on account existence, so
         # the 429 introduces no new oracle.
+        #
+        # The login subject is @login_or_email — the SANITIZED value #process
+        # feeds to Customer.find_by_email — not the raw param. Keying on the
+        # exact string this mode resolves accounts with is what keeps the
+        # backstop bucket 1:1 with the lookup: submissions that differ only in
+        # what sanitize_email strips collapse into one bucket instead of minting
+        # a fresh budget each. (The full-mode hook passes the raw param for the
+        # same reason: there Rodauth's normalize_login is the lookup key.)
         enforce_reset_request_rate_limit!(reset_request_client_ip, @login_or_email)
 
         # Security (CWE-204): email enumeration prevention. Validate only the

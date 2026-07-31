@@ -17,8 +17,12 @@ require 'onetime/security/reset_request_rate_limiter'
 # (apps/web/core/routes.txt → Core::Controllers::Registration#request_reset_email)
 # and the SAME limiter is enforced from
 # AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns, with
-# the same subjects and the same before-any-account-lookup ordering. Keep the
-# two call sites in lockstep: a change to what is passed here belongs there too.
+# the same client-IP subject and the same before-any-account-lookup ordering.
+# The login subject differs by construction — each mode passes the string IT
+# resolves accounts with (normalize_login here, sanitize_email there) — which is
+# what keeps each mode's buckets 1:1 with its own lookup; see the limiter header.
+# Keep the two call sites in lockstep on ORDERING and on which subjects are
+# passed: a change to that here belongs there too.
 #
 # The enumeration override (config/overrides/reset_password_enumeration.rb,
 # #3857) made every POST /auth/reset-password-request answer identically, which

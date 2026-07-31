@@ -17,11 +17,19 @@ module Onetime
     #     Core::Controllers::Registration#request_reset_email), ahead of the
     #     format check and the account lookup.
     #
-    # Both call sites pass the same subjects — the trusted-proxy-resolved,
-    # privacy-masked client IP and the submitted login — so a caller buckets
-    # identically whichever mode is deployed. Only one of the two paths is
-    # reachable in a given deployment (the auth app owns /auth/* when mounted),
-    # so this is parity, not double counting.
+    # Only one of the two paths is reachable in a given deployment (the auth app
+    # owns /auth/* when mounted), so this is parity of PROTECTION, not double
+    # counting. The IP subject is identical in both (env['otto.client_ip']). The
+    # login subject is NOT byte-identical across modes and does not need to be:
+    # each mode passes the exact string IT uses to look the account up — Rodauth's
+    # normalize_login in full mode, sanitize_email in simple mode — which is the
+    # property that matters. Because each mode feeds one function's output to both
+    # the limiter and its own lookup, one account can never occupy two buckets in
+    # the mode that is running; where the two modes' normalizations differ (e.g.
+    # simple mode's HTML sanitization turns `a&b@x` into `a&amp;b@x`) the effect is
+    # to MERGE distinct submissions into one bucket, never to split one target
+    # across several. Counters are therefore not interchangeable across a
+    # simple->full migration; nothing depends on them being so.
     #
     # The enumeration-safe reset-password-request route (#3857) returns an
     # identical response for every login, which closed the single-request

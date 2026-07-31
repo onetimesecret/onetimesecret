@@ -324,6 +324,12 @@ site:
     # Applies in BOTH auth modes: full mode enforces it from the Rodauth
     # before_reset_password_request_route hook, simple mode (the default) from
     # ResetPasswordRequest#raise_concerns.
+    # NOTE: the per-IP tier keys on the resolved, privacy-masked client IP. If
+    # you run behind a reverse proxy WITHOUT site.network.trusted_proxy enabled,
+    # that resolves to the proxy's own address for every request, collapsing the
+    # tier into a single deployment-wide bucket (max_per_ip requests/window for
+    # all users combined). Configure trusted_proxy, or raise max_per_ip and lean
+    # on the per-email backstop, which is unaffected.
     # Enabled by default (protective); set RESET_REQUEST_RATE_LIMIT_ENABLED=false
     # to opt out. See lib/onetime/security/reset_request_rate_limiter.rb.
     reset_request_rate_limit:

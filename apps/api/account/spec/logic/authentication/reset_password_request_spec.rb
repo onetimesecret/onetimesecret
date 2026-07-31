@@ -36,7 +36,12 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
       auth_method: :noauth,
       metadata: { ip: client_ip })
   end
-  let(:params) { { 'login' => email } }
+  # The submitted login is a `let` of its own so an example can vary it BEFORE
+  # the logic object exists: #process_params runs in Onetime::Logic::Base's
+  # constructor, so mutating `params` after `logic` has been built is a no-op
+  # and any assertion about the derived @login_or_email would pass vacuously.
+  let(:login_param) { email }
+  let(:params) { { 'login' => login_param } }
 
   subject(:logic) { described_class.new(strategy_result, params) }
 
@@ -73,8 +78,11 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
     allow(secret).to receive(:verification=)
     allow(secret).to receive(:save)
 
-    # Quiet the auth logger
-    allow(logic).to receive(:auth_logger).and_return(double('auth_logger').as_null_object)
+    # Quiet the auth logger. any_instance, NOT `allow(logic)`: touching `logic`
+    # here would force construction (and therefore process_params) in the hook,
+    # before an example has had a chance to override `login_param`.
+    allow_any_instance_of(described_class).to receive(:auth_logger)
+      .and_return(double('auth_logger').as_null_object)
 
     # #3872: stub the reset-request limiter so these unit examples never reach
     # Redis. The limiter defaults to ENABLED when config is absent (as it is in
@@ -133,13 +141,24 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
       logic.raise_concerns
     end
 
-    it 'passes the sanitized login, so case/whitespace variants share one backstop bucket' do
-      params['login'] = '  USER@Example.COM  '
-      allow(logic).to receive(:valid_email?).and_return(true)
+    context 'when the submitted login is a case/whitespace variant' do
+      let(:login_param) { '  USER@Example.COM  ' }
 
-      expect(logic).to receive(:enforce_reset_request_rate_limit!).with(client_ip, email)
+      it 'passes the sanitized login, so variants share one backstop bucket' do
+        # Pin the sanitization itself: without this the .with(...) expectation
+        # below would also be satisfied by a logic class that never sanitized,
+        # since the variant only differs from `email` by what sanitize_email
+        # strips.
+        expect(logic.login_or_email).to eq(email)
 
-      logic.raise_concerns
+        allow(logic).to receive(:valid_email?).and_return(true)
+
+        # The limiter must receive the SAME string #process feeds to
+        # Customer.find_by_email, so one target can never occupy two buckets.
+        expect(logic).to receive(:enforce_reset_request_rate_limit!).with(client_ip, email)
+
+        logic.raise_concerns
+      end
     end
 
     it 'still enforces the per-login backstop when no client IP is available' do

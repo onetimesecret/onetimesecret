@@ -111,21 +111,30 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
 
   # Fresh session + CSRF token per request, mirroring the full-mode helper: an
   # attacker is not obliged to reuse a session, so the limiter must bite
-  # regardless of session identity.
-  def request_password_reset(login)
+  # regardless of session identity. `from:` drives REMOTE_ADDR so examples can
+  # present distinct sources; IPPrivacyMiddleware resolves and masks it into
+  # env['otto.client_ip'], which is what the per-IP tier keys on.
+  def request_password_reset(login, from: nil)
     clear_cookies
+    rack_env = from ? { 'REMOTE_ADDR' => from } : {}
 
     header 'Content-Type', nil
     header 'Content-Length', nil
     header 'Accept', 'application/json'
-    get '/'
+    get '/', {}, rack_env
     token = last_response.headers['X-CSRF-Token']
 
     header 'Content-Type', 'application/json'
     header 'Accept', 'application/json'
     header 'X-CSRF-Token', token if token
-    post '/auth/reset-password-request', JSON.generate(login: login, shrimp: token)
+    post '/auth/reset-password-request', JSON.generate(login: login, shrimp: token), rack_env
     last_response
+  end
+
+  # The /24 (IPv4) mask IPPrivacyMiddleware applies before the app sees the
+  # address — the per-IP bucket is that masked network, never the raw source.
+  def masked(ip)
+    "#{ip.split('.').first(3).join('.')}.0"
   end
 
   it 'runs the simple-mode path (the Auth app is not mounted)' do
@@ -134,28 +143,56 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
   end
 
   describe 'per-IP tier' do
+    let(:source_a) { '203.0.113.10' }
+    let(:source_b) { '198.51.100.20' }
+
     it 'caps request volume from one source across DIFFERENT logins (the enumeration sampling pattern)' do
       enable_limiter(max_per_ip: 2, max_per_email: 100)
 
       2.times do |i|
-        response = request_password_reset(unique_login("sample-#{i}"))
+        response = request_password_reset(unique_login("sample-#{i}"), from: source_a)
         expect(response.status).to eq(200),
           "Under-cap request #{i + 1} should pass, got #{response.status}: #{response.body}"
         expect(JSON.parse(response.body)['success']).to match(/email has been sent/i)
       end
 
-      # The cap-hitting request locked the per-IP tier (attempts key cleared,
-      # lockout flag set) — proving the IP tier, not the per-login backstop, is
-      # what engaged: every probe used a distinct login.
-      expect(rl_redis.keys('reset_request:locked:ip:*').size).to eq(1)
+      # Assert the EXACT key, not just that some ip-tier key locked: a
+      # constant/global bucket (one caller 429s the whole deployment) or a
+      # raw-REMOTE_ADDR key would both satisfy a glob count. This pins the
+      # subject to the privacy-masked client IP the middleware resolved, and
+      # proves the IP tier — not the per-login backstop — is what engaged, since
+      # every probe used a distinct login.
+      expect(rl_redis.keys('reset_request:locked:ip:*'))
+        .to eq(["reset_request:locked:ip:#{masked(source_a)}"])
 
-      response = request_password_reset(unique_login('sample-2'))
+      response = request_password_reset(unique_login('sample-2'), from: source_a)
       expect(response.status).to eq(429),
         "Over-cap request must be throttled, got #{response.status}: #{response.body}"
       body     = JSON.parse(response.body)
       expect(body['error_type']).to eq('LimitExceeded')
       expect(body['retry_after']).to be_a(Integer)
       expect(body['max_attempts']).to eq(2)
+    end
+
+    it 'isolates sources: one locked-out network does not throttle another' do
+      enable_limiter(max_per_ip: 2, max_per_email: 100)
+
+      # Source A burns its budget. The cap-hitting request is itself allowed —
+      # the Lua script locks AFTER incrementing — so the third request is the
+      # first refusal.
+      2.times { |i| expect(request_password_reset(unique_login("a-#{i}"), from: source_a).status).to eq(200) }
+      expect(request_password_reset(unique_login('a-over'), from: source_a).status).to eq(429)
+
+      # Source B is untouched: a per-IP tier keyed on a constant, on a global
+      # counter, or on anything else shared would 429 here too, turning one
+      # caller's burst into a full-endpoint denial of service.
+      expect(request_password_reset(unique_login('b-first'), from: source_b).status).to eq(200)
+
+      # ...and B's budget is its own, tracked under B's masked network while
+      # only A is locked out.
+      expect(rl_redis.keys('reset_request:locked:ip:*'))
+        .to eq(["reset_request:locked:ip:#{masked(source_a)}"])
+      expect(rl_redis.get("reset_request:attempts:ip:#{masked(source_b)}")).to eq('1')
     end
   end
 
@@ -227,6 +264,29 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
       expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
 
       expect(request_password_reset(unique_login('second')).status).to eq(429)
+    end
+  end
+
+  describe 'shipped default (no reset_request_rate_limit config at all)' do
+    it 'is ON, at the module defaults, for an install that never configured it' do
+      # The gap this change closes is specifically that the DEFAULT deployment
+      # was unprotected, so it is not enough to show the limiter works when a
+      # spec turns it on with custom caps: an install whose config.yaml predates
+      # #3872 has no reset_request_rate_limit key at all, and must still be
+      # throttled. reset_request_rate_limit_enabled? treats absent config as
+      # enabled; this drives that path end to end at DEFAULT_MAX_PER_IP.
+      new_conf = YAML.load(YAML.dump(OT.conf))
+      new_conf['site']['authentication'].delete('reset_request_rate_limit')
+      OT.send(:conf=, new_conf)
+
+      cap = Onetime::Security::ResetRequestRateLimiter::DEFAULT_MAX_PER_IP
+
+      cap.times do |i|
+        expect(request_password_reset(unique_login("default-#{i}")).status).to eq(200),
+          "Request #{i + 1}/#{cap} should pass under the default cap"
+      end
+
+      expect(request_password_reset(unique_login('default-over')).status).to eq(429)
     end
   end
 
