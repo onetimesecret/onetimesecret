@@ -10,6 +10,7 @@ require 'stripe'
 require_relative 'base'
 require_relative '../lib/stripe_client'
 require_relative '../lib/currency_migration_service'
+require_relative '../operations/create_checkout_link'
 
 module Billing
   module Controllers
@@ -145,41 +146,23 @@ module Billing
 
         stripe_price_id = price_data['stripe_price_id']
 
-        # Build checkout session parameters
-        success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url  = "#{billing_base_url}/billing/#{org.extid}/plans"
-
-        session_params = {
-          mode: 'subscription',
-          line_items: [{
-            price: stripe_price_id,
-            quantity: 1,
-          }],
-          success_url: success_url,
-          cancel_url: cancel_url,
-          customer_email: org.billing_email || cust.email,
-          client_reference_id: org.objid,
-          locale: req.env['rack.locale']&.first || 'auto',
-          # Show the "Add promotion code" field on the Stripe-hosted checkout.
-          # Promotion codes must first be created in the Stripe Dashboard
-          # (Products → Coupons → Promotion codes).
+        # Build checkout session parameters via the shared builder (also used
+        # by the admin checkout-link op). Request-specific concerns stay here:
+        # cancel target is the org's plans page and the session locale comes
+        # from the request. Automatic tax is applied inside the builder when
+        # the deployment enables it (STRIPE_AUTOMATIC_TAX).
+        # allow_promotion_codes: show the "Add promotion code" field on the
+        # Stripe-hosted checkout (codes are created in the Stripe Dashboard).
+        session_params = ::Billing::Operations::CreateCheckoutLink.build_session_params(
+          customer: cust,
+          org: org,
+          plan_id: plan.plan_id,
+          tier: result.tier,
+          price_id: stripe_price_id,
+          cancel_url: "#{billing_base_url}/billing/#{org.extid}/plans",
           allow_promotion_codes: true,
-          subscription_data: {
-            metadata: {
-              orgid: org.objid,
-              plan_id: plan.plan_id,
-              tier: result.tier,
-              region: detect_region,
-              customer_extid: cust.extid,
-            },
-          },
-        }
-
-        # If organization already has a Stripe customer, use it
-        if org.stripe_customer_id
-          session_params[:customer] = org.stripe_customer_id
-          session_params.delete(:customer_email)
-        end
+          locale: req.env['rack.locale']&.first || 'auto',
+        )
 
         if stripe_api_key_missing?('create_checkout_session')
           return json_error('Billing service temporarily unavailable', status: 503)

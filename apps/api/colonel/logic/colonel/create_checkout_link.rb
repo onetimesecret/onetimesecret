@@ -25,7 +25,6 @@ module ColonelAPI
           :org,
           :plan,
           :billing_cycle,
-          :enable_tax,
           :allow_promotion_codes,
           :result
 
@@ -36,7 +35,6 @@ module ColonelAPI
           @plan          = sanitize_identifier(params['plan'])
           @billing_cycle = sanitize_identifier(params['billing_cycle'].to_s.empty? ? 'monthly' : params['billing_cycle'])
 
-          @enable_tax            = params['enable_tax'].to_s == 'true'
           @allow_promotion_codes = params['allow_promotion_codes'].to_s == 'true'
 
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
@@ -69,7 +67,6 @@ module ColonelAPI
             product: plan,
             interval: billing_cycle,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
-            enable_tax: enable_tax,
             allow_promotion_codes: allow_promotion_codes,
           )
 
@@ -90,7 +87,6 @@ module ColonelAPI
             },
             details: {
               region: Onetime.billing_config.region,
-              tax_enabled: enable_tax,
             },
           }
         end

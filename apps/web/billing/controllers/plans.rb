@@ -134,21 +134,6 @@ module Billing
           cancel_url: cancel_url,
           locale: req.env['rack.locale']&.first || 'auto',
 
-          # Stripe Tax: automatic tax calculation for all regions
-          #
-          # How tax works:
-          # - EU Customers: Can enter VAT number → reverse charge applied automatically
-          # - Canadian Customers: GST/HST calculated based on province
-          # - Other Regions: Stripe Tax calculates per Dashboard configuration
-          #
-          # Dashboard prerequisites (Settings → Tax):
-          # 1. Stripe Tax enabled
-          # 2. Tax registrations added for applicable jurisdictions
-          # 3. Products have appropriate tax codes (or default tax code set)
-          #
-          automatic_tax: { enabled: true },
-          tax_id_collection: { enabled: true },  # EU B2B VAT reverse charge
-
           # Show the "Add promotion code" field on the Stripe-hosted checkout.
           # Promotion codes must first be created in the Stripe Dashboard
           # (Products → Coupons → Promotion codes).
@@ -169,6 +154,15 @@ module Billing
             session_params[:customer_email] = cust.email
           end
         end
+
+        # Deployment tax policy (STRIPE_AUTOMATIC_TAX): shared with every
+        # other checkout path. Applied after customer handling because
+        # customer_update requires a bound :customer id.
+        #
+        # Dashboard prerequisites when enabled (Settings → Tax): Stripe Tax
+        # active, registrations for applicable jurisdictions, tax codes on
+        # products (or a default tax code).
+        Billing::Operations::CreateCheckoutLink.apply_tax_policy!(session_params)
 
         # Subscription metadata for webhook processing and debugging
         #

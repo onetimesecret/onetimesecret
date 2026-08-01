@@ -73,11 +73,11 @@ RSpec.describe ColonelAPI::Logic::Colonel::CreateCheckoutLink do
       default_org_for: org,
       call: op_result,
     )
-    allow(Onetime.billing_config).to receive(:region).and_return('EU')
+    allow(Onetime.billing_config).to receive_messages(region: 'EU', automatic_tax?: false)
   end
 
   it 'creates a link and emits the frozen record/details envelope' do
-    logic = logic_for('enable_tax' => 'true', 'allow_promotion_codes' => 'true')
+    logic = logic_for('allow_promotion_codes' => 'true')
     logic.raise_concerns
     data  = logic.process
 
@@ -87,7 +87,6 @@ RSpec.describe ColonelAPI::Logic::Colonel::CreateCheckoutLink do
       product: 'identity_plus_v1',
       interval: 'monthly',
       actor: 'ur_colonel',
-      enable_tax: true,
       allow_promotion_codes: true,
     )
     expect(data[:record]).to eq(
@@ -97,7 +96,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::CreateCheckoutLink do
       price_id: 'price_test_123',
       expires_at: 1_753_999_999,
     )
-    expect(data[:details]).to eq(region: 'EU', tax_enabled: true)
+    expect(data[:details]).to eq(region: 'EU')
   end
 
   it 'resolves an email identifier without mangling it (sanitize_account_identifier)' do
@@ -113,7 +112,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::CreateCheckoutLink do
     logic.process
 
     expect(Billing::Operations::CreateCheckoutLink).to have_received(:call).with(
-      hash_including(interval: 'monthly', enable_tax: false, allow_promotion_codes: false),
+      hash_including(interval: 'monthly', allow_promotion_codes: false),
     )
   end
 

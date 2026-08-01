@@ -13,7 +13,7 @@
 # Usage:
 #   bin/ots billing checkout-links create user@example.com --plan identity_plus_v1
 #   bin/ots billing checkout-links create ur1234567890 --plan identity_plus_v1 --cycle yearly
-#   bin/ots billing checkout-links create user@example.com --plan identity_plus_v1 --tax --dry-run
+#   bin/ots billing checkout-links create user@example.com --plan identity_plus_v1 --dry-run
 #   bin/ots billing checkout-links create user@example.com --plan identity_plus_v1 --json
 
 require 'json'
@@ -36,12 +36,11 @@ module Onetime
 
       option :plan, type: :string, required: true, desc: "Plan family ID (e.g. 'identity_plus_v1')"
       option :cycle, type: :string, default: 'monthly', desc: 'Billing cycle: monthly or yearly'
-      option :tax, type: :boolean, default: false, desc: 'Enable Stripe automatic tax'
       option :promo_codes, type: :boolean, default: false, desc: 'Allow promotion codes at checkout'
       option :dry_run, type: :boolean, default: false, desc: 'Resolve plan/price only; no Stripe call'
       option :json, type: :boolean, default: false, desc: 'Output as JSON'
 
-      def call(identifier:, plan:, cycle: 'monthly', tax: false, promo_codes: false,
+      def call(identifier:, plan:, cycle: 'monthly', promo_codes: false,
                dry_run: false, json: false, **)
         boot_application!
 
@@ -62,7 +61,6 @@ module Onetime
           product: plan,
           interval: cycle,
           actor: "cli:#{ENV['USER'] || 'unknown'}",
-          enable_tax: tax,
           allow_promotion_codes: promo_codes,
           dry_run: dry_run,
         )
