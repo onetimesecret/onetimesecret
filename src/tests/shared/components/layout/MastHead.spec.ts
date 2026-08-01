@@ -1098,6 +1098,30 @@ describe('MastHead', () => {
       expect(light.classes()).not.toContain('dark:hidden');
       expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
     });
+
+    it('falls back to the light logo in dark mode when the dark asset 404s', async () => {
+      // Operator sets both URLs but the dark one is a bad path. The masthead
+      // must keep showing the working light logo instead of going blank under
+      // the dark theme.
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+          brand_logo_dark_url: '/img/missing-dark.svg',
+        }
+      );
+
+      await nextTick();
+      await wrapper.find('[data-testid="logo-dark"]').trigger('error');
+      await nextTick();
+
+      expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+      const light = wrapper.find('img#logo');
+      expect(light.exists()).toBe(true);
+      expect(light.attributes('src')).toBe('/img/brand.svg');
+      expect(light.classes()).not.toContain('dark:hidden');
+    });
   });
 
   describe('Accessibility', () => {

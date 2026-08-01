@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import BrandMark from '@/shared/components/logos/BrandMark.vue';
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
@@ -268,25 +269,18 @@
             data-testid="header-logo-link"
             class="flex items-center gap-3"
             :aria-label="logoConfig.alt">
-            <img
+            <!-- Light/dark img pair + dark-mode swap live in BrandMark; the
+                 fallback slot stays empty because logoConfig.url is always a
+                 real asset URL here (the sentinel takes the component branch
+                 above). A 404'd logo simply renders nothing. -->
+            <BrandMark
               id="logo"
-              :src="logoConfig.url"
-              class="w-auto object-contain transition-transform"
-              :class="[imgHeightClass, logoConfig.darkUrl ? 'dark:hidden' : null]"
-              :style="imgInlineStyle"
-              :height="logoConfig.size"
-              :alt="logoConfig.alt" />
-            <!-- Dark-theme logo variant (brand.logo_dark_url): swapped by the
-                 app's class-based dark mode so it tracks the theme toggle. -->
-            <img
-              v-if="logoConfig.darkUrl"
-              data-testid="logo-dark"
-              :src="logoConfig.darkUrl"
-              class="hidden w-auto object-contain transition-transform dark:block"
-              :class="imgHeightClass"
-              :style="imgInlineStyle"
-              :height="logoConfig.size"
-              :alt="logoConfig.alt" />
+              :logo-uri="logoConfig.url"
+              :logo-dark-uri="logoConfig.darkUrl"
+              :alt="logoConfig.alt"
+              :img-class="['w-auto object-contain transition-transform', imgHeightClass]"
+              :img-style="imgInlineStyle"
+              :height="logoConfig.size" />
             <span
               v-if="logoConfig.showSiteName"
               class="font-brand text-lg font-bold leading-tight">
