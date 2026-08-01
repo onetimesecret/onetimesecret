@@ -6,6 +6,11 @@ require_relative 'base'
 require 'securerandom'
 require 'stripe'
 
+# apply_tax_policy! — required explicitly rather than relying on
+# controllers.rb happening to load controllers/billing.rb (which requires the
+# op) after this file.
+require_relative '../operations/create_checkout_link'
+
 module Billing
   module Controllers
     class Plans
@@ -158,6 +163,15 @@ module Billing
         # Deployment tax policy (STRIPE_AUTOMATIC_TAX): shared with every
         # other checkout path. Applied after customer handling because
         # customer_update requires a bound :customer id.
+        #
+        # Scope note: this path shares the TAX BLOCK only. Unlike
+        # BillingController#create_checkout_session it does not delegate to
+        # build_session_params, so its subscription metadata keeps this
+        # surface's historical shape (debug_info JSON + customer_extid, no
+        # orgid). Deliberate: changing it would change webhook-visible
+        # metadata. checkout_completed#find_target_organization falls back to
+        # stripe_customer_id and then the customer's default org when orgid is
+        # absent, so this shape resolves correctly today.
         #
         # Dashboard prerequisites when enabled (Settings → Tax): Stripe Tax
         # active, registrations for applicable jurisdictions, tax codes on
