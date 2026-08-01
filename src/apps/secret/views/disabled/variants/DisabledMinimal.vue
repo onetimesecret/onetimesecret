@@ -3,8 +3,9 @@
 <script setup lang="ts">
   import KeyholeIcon from '@/shared/components/icons/KeyholeIcon.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import BrandMark from '@/shared/components/logos/BrandMark.vue';
   import type { DisabledHomepageProps } from '../useDisabledConfig';
-  import { computed, ref, watch } from 'vue';
+  import { computed } from 'vue';
 
   /*
     Minimal — a quiet refresh of the closed two-tagline view.
@@ -18,18 +19,6 @@
 
   const props = defineProps<DisabledHomepageProps>();
 
-  const logoError = ref(false);
-  watch(
-    () => props.logoUri,
-    () => {
-      logoError.value = false;
-    }
-  );
-  const onLogoError = () => {
-    logoError.value = true;
-  };
-  const hasUsableLogo = computed(() => !!props.logoUri && !logoError.value);
-
   const monogramStyle = computed(() => ({ backgroundColor: props.primaryColor }));
 </script>
 
@@ -37,28 +26,30 @@
   <div class="mx-auto flex w-full max-w-xl flex-col items-center px-4 pb-12 pt-20 text-center sm:pt-28">
     <!-- Small mark — priority: configured custom-domain logo → branded monogram → neutral keyhole mark -->
     <div class="mb-6 flex items-center justify-center">
-      <img
-        v-if="hasUsableLogo"
-        :src="logoUri ?? ''"
-        :alt="$t('homepage_secrets.disabled.logo_alt', { name: workspaceName })"
-        class="h-12 w-auto max-w-[120px] object-contain"
-        @error="onLogoError" />
-      <div
-        v-else-if="isBranded"
-        :style="monogramStyle"
-        :class="[cornerClass ?? 'rounded-2xl', fontFamilyClass ?? 'font-brand']"
-        class="flex size-14 items-center justify-center text-2xl font-extrabold tracking-tight text-white"
-        aria-hidden="true">
-        {{ monogramInitial }}
-      </div>
-      <div
-        v-else
-        class="flex size-14 items-center justify-center rounded-2xl bg-brand-500 text-white dark:bg-brand-600"
-        aria-hidden="true">
-        <KeyholeIcon
-          :size="36"
-          class="text-white" />
-      </div>
+      <BrandMark
+        :logo-uri="logoUri"
+        :logo-dark-uri="logoDarkUri"
+        :alt="logoAlt ?? $t('homepage_secrets.disabled.logo_alt', { name: workspaceName })"
+        img-class="h-12 w-auto max-w-[120px] object-contain">
+        <template #fallback>
+          <div
+            v-if="isBranded"
+            :style="monogramStyle"
+            :class="[cornerClass ?? 'rounded-2xl', fontFamilyClass ?? 'font-brand']"
+            class="flex size-14 items-center justify-center text-2xl font-extrabold tracking-tight text-white"
+            aria-hidden="true">
+            {{ monogramInitial }}
+          </div>
+          <div
+            v-else
+            class="flex size-14 items-center justify-center rounded-2xl bg-brand-500 text-white dark:bg-brand-600"
+            aria-hidden="true">
+            <KeyholeIcon
+              :size="36"
+              class="text-white" />
+          </div>
+        </template>
+      </BrandMark>
     </div>
 
     <!-- Headline (smaller than V1, larger than closed) -->
