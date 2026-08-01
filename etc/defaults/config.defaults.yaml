@@ -317,7 +317,7 @@ site:
     allowed_signup_domains: <%= ENV['ALLOWED_SIGNUP_DOMAIN']&.split(',')&.map(&:strip) || [] %>
     # Rate limiting for reset-password requests (#3872, #3948). Applies in EVERY
     # auth mode — full mode enforces it in the Rodauth route hook, simple mode
-    # in AccountAPI::Logic::Authentication::ResetPasswordRequest#process_params.
+    # in AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns.
     # POST /auth/reset-password-request is enumeration-safe (#3857) but keeps
     # an accepted timing residual; exploiting it needs many samples, so this
     # throttles requests per client IP (tight tier) and per submitted login
