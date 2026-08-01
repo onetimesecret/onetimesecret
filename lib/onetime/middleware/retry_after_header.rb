@@ -9,7 +9,8 @@ module Onetime
     ##
     # RetryAfterHeader
     #
-    # Emits the `Retry-After` response header for throttled (429) responses.
+    # Emits the `Retry-After` response header for throttled (429) and
+    # temporarily-unavailable (503) responses.
     #
     # Every security limiter raises {Onetime::LimitExceeded} carrying
     # `retry_after` seconds, and both routing stacks already put that value in
@@ -43,12 +44,27 @@ module Onetime
     # EVERY limiter that raises LimitExceeded (Reset/Login/Incoming/
     # InviteToken/Passphrase/Feedback/Dns), not just the reset-request one.
     #
-    # ## Scope: 429 only
+    # ## Scope: 429 and 503
     #
-    # `Retry-After` is also legal on 503 and on 3xx, but the only producer of
-    # the env value is LimitExceeded (429). Gating on the status keeps a stale
-    # env value — e.g. if a future handler re-used the key — from attaching a
-    # back-off hint to an unrelated response.
+    # Two error families stash the value today, and `Retry-After` is legal on
+    # both statuses (RFC 9110 §10.2.3):
+    #
+    # - 429, from every limiter raising {Onetime::LimitExceeded}.
+    # - 503, from `Billing::CircuitOpenError` — whose Otto handler
+    #   (`OttoHooks`, `body[:retry_after] = error.retry_after`) says in its own
+    #   comment that it can only put the delay in the body because a handler
+    #   block cannot set a response header. That is precisely the gap this
+    #   middleware closes, so excluding 503 would decline the one case that
+    #   asked for it. Live impact is nil today (the breaker wraps only the
+    #   catalog Pull, off the synchronous HTTP edge), but a future endpoint
+    #   routed through the breaker gets the header for free.
+    #
+    # `Retry-After` is also legal on 3xx; nothing here produces one, and a
+    # redirect carrying a back-off hint would be surprising, so 3xx is excluded.
+    # Gating on the status at all keeps a stale env value — e.g. if a future
+    # handler re-used the key — from attaching a back-off hint to an unrelated
+    # response. `Onetime::SecretUndecryptable` is the other registered 503 and
+    # puts no `retry_after` in its body, so nothing is stashed for it.
     #
     # Never overwrites: a route that already set the header itself (see
     # apps/web/auth/routes/link_sso.rb and sso_link_confirm.rb, which rescue
@@ -62,8 +78,10 @@ module Onetime
       # Rack 3 requires lowercase response header names.
       HEADER = 'retry-after'
 
-      # Status this middleware annotates. See "Scope" above.
-      THROTTLED_STATUS = 429
+      # Statuses this middleware annotates. See "Scope" above.
+      THROTTLED_STATUS   = 429
+      UNAVAILABLE_STATUS = 503
+      ANNOTATED_STATUSES = [THROTTLED_STATUS, UNAVAILABLE_STATUS].freeze
 
       def initialize(app)
         @app = app
@@ -73,7 +91,7 @@ module Onetime
         status, headers, body = @app.call(env)
 
         seconds = env[ENV_RETRY_AFTER]
-        if status.to_i == THROTTLED_STATUS && seconds.is_a?(Integer) && !seconds.negative? &&
+        if ANNOTATED_STATUSES.include?(status.to_i) && seconds.is_a?(Integer) && !seconds.negative? &&
            headers && !header_present?(headers)
           headers[HEADER] = seconds.to_s
         end

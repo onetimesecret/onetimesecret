@@ -42,8 +42,24 @@ RSpec.describe Onetime::Middleware::RetryAfterHeader do
     expect(headers['retry-after']).to eq('0')
   end
 
-  it 'leaves non-429 responses untouched even when env carries a delay' do
+  # Billing::CircuitOpenError is registered at 503 and stashes retry_after the
+  # same way a 429 does (OttoHooks). Retry-After is legal on 503 per RFC 9110
+  # §10.2.3, and that handler's own comment names the missing header as the
+  # reason it can only put the delay in the body.
+  it 'sets Retry-After from the stashed value on a 503' do
+    _status, headers, = call(app_returning(503), { env_key => 30 })
+
+    expect(headers['retry-after']).to eq('30')
+  end
+
+  it 'leaves unannotated statuses untouched even when env carries a delay' do
     _status, headers, = call(app_returning(200), { env_key => 900 })
+
+    expect(headers).not_to have_key('retry-after')
+  end
+
+  it 'leaves a 3xx untouched even when env carries a delay' do
+    _status, headers, = call(app_returning(302), { env_key => 900 })
 
     expect(headers).not_to have_key('retry-after')
   end

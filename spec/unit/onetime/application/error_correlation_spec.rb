@@ -120,11 +120,28 @@ RSpec.describe Onetime::Application::ErrorCorrelation do
         expect(env).not_to have_key(described_class::ENV_RETRY_AFTER)
       end
 
-      it 'truncates a float delay to whole seconds (Retry-After is delay-seconds)' do
+      # Rounds UP, not toward zero: a truncated header would advertise a shorter
+      # back-off than the body, so a compliant client would retry before the
+      # lockout expired and be throttled again.
+      it 'rounds a float delay UP to whole seconds (Retry-After is delay-seconds)' do
         env = env_with_request_id
         described_class.apply({ error_type: 'LimitExceeded', retry_after: 12.7 }, env)
 
-        expect(env[described_class::ENV_RETRY_AFTER]).to eq(12)
+        expect(env[described_class::ENV_RETRY_AFTER]).to eq(13)
+      end
+
+      it 'never advertises less than the body states for a fractional delay' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: 30.5 }, env)
+
+        expect(env[described_class::ENV_RETRY_AFTER]).to eq(31)
+      end
+
+      it 'stashes nothing for a NaN retry_after' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: Float::NAN }, env)
+
+        expect(env).not_to have_key(described_class::ENV_RETRY_AFTER)
       end
     end
   end

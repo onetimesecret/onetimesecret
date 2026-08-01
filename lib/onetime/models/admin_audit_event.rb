@@ -73,12 +73,33 @@ module Onetime
     # external log sink if longer retention is required. Kept as a constant (not a
     # config key) so the audit path has no external configuration dependency.
     #
-    # The cap is safe at this size ONLY because every write is authenticated
-    # colonel activity. Failure auditing ({Onetime::AuditedFailure}) deliberately
-    # excludes bare authorization/authentication rejections: on a count-capped set
-    # with no TTL, an event an unauthorized caller can trigger is a log-eviction
-    # primitive — 10k rejected requests would flush the real destructive-action
-    # trail. Keep that invariant and the cap needs no revisiting.
+    # WRITE-FREQUENCY INVARIANT. On a count-capped set with no TTL, any event an
+    # attacker can mint on demand is a log-eviction primitive: 10k such writes
+    # flush the real destructive-action trail (purge, role change, suspension,
+    # impersonation). The cap is safe at this size only while every write is
+    # either authenticated colonel activity or rate-limited to a frequency an
+    # attacker cannot drive. Two consequences, and both must hold:
+    #
+    #   1. Failure auditing ({Onetime::AuditedFailure}) excludes bare
+    #      authorization/authentication rejections outright — see
+    #      AuditedFailure.authorization_rejection?, which also bars the
+    #      LimitExceeded family by inheritance (LimitExceeded < Forbidden).
+    #   2. A deliberate unauthenticated writer must bound its own write rate and
+    #      say so at its call site. Exactly ONE exists today:
+    #      {Onetime::Security::ResetRequestRateLimiter#record_reset_request_throttle_audit},
+    #      which records only on the cap-REACHING request and never on the deny
+    #      path — one event per bucket per lockout window (1h default), so
+    #      minting another costs a full cap's worth of requests against another
+    #      masked network or another target login. That is a bound, not an
+    #      elimination: a distributed attacker, or one forging the resolved
+    #      client IP behind an appending reverse proxy, can still mint buckets.
+    #      See the audit residuals in docs/security/security-audit-2026-07-30.md
+    #      (finding #2, residuals 1 and 3).
+    #
+    # So: do NOT add another unauthenticated-triggerable verb without a
+    # comparable per-window bound, and if the set of such verbs grows beyond
+    # this one, move them to their own capped/TTL'd collection rather than
+    # letting them share the operator trail's budget.
     MAX_EVENTS = 10_000
 
     # Placeholder written in place of any redacted value.

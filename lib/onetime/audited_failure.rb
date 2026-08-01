@@ -99,6 +99,16 @@ module Onetime
       # Resolved lazily by `defined?` so this file carries no load-order
       # dependency on the error classes or on Otto being loaded.
       #
+      # Onetime::Forbidden covers Onetime::LimitExceeded by inheritance, so no
+      # throttle rejection is auto-audited through this path either — which is
+      # the point: AdminAuditEvent is count-capped with no TTL, so anything an
+      # unauthorized caller can trigger per-request is a log-eviction primitive.
+      # This predicate is the automatic half of that invariant. A call site may
+      # still write an AdminAuditEvent DIRECTLY for an unauthenticated event if
+      # it bounds its own write rate per window — see the MAX_EVENTS rationale
+      # on {Onetime::AdminAuditEvent} for the one such writer and the bar it
+      # has to clear.
+      #
       # @param error [Exception]
       # @return [Boolean]
       def authorization_rejection?(error)

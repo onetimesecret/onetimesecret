@@ -99,12 +99,24 @@ module Onetime
       # 9110 §10.2.3, so a nil, negative, or non-numeric value must produce no
       # header rather than a malformed one.
       #
+      # Rounds UP (`ceil`), never toward zero. Every current LimitExceeded
+      # producer passes an Integer (a Redis TTL or a constant), so today header
+      # and body are identical — but the coercion accepts Floats by design, and
+      # truncating 30.5 to 30 would advertise a SHORTER back-off than the body
+      # states. A client that honours the header would then retry before the
+      # lockout key expires and be throttled again, i.e. the header would
+      # misdirect the very back-off it exists to communicate. Over-waiting by
+      # under a second is the harmless direction.
+      #
       # @param value [Object]
       # @return [Integer, nil]
       def retry_after_seconds(value)
         return nil unless value.is_a?(Numeric)
+        # NaN/Infinity would raise FloatDomainError from #ceil, and neither is a
+        # delay a header could express. Numeric#finite? covers every subclass.
+        return nil if value.respond_to?(:finite?) && !value.finite?
 
-        seconds = value.to_i
+        seconds = value.ceil
         seconds.negative? ? nil : seconds
       end
 
