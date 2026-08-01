@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::ApiConfig - Per-domain API access configuration
 #
@@ -41,21 +43,20 @@ module Onetime
       # Colonel-writable fields, aggregated into
       # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
       # validates at load time that every key has a setter here). `enabled`
-      # stores a legacy 'true'/'false' STRING (#enabled? tolerates both
-      # encodings).
-      COLONEL_FIELD_SPECS = {
+      # stores a legacy 'true'/'false' STRING; the boolean_encoding feature
+      # (below) normalizes writes to that encoding and keeps #enabled?
+      # tolerant of both (#3951).
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
       }.freeze
 
+      # Tolerant predicate + normalizing setter for `enabled` per the spec
+      # above (#3951). Must come after both the field declaration and the
+      # constant.
+      feature :boolean_encoding
+
       def init
         self.enabled ||= 'false'
-      end
-
-      # Check if public API access is enabled for this domain.
-      #
-      # @return [Boolean] true if public API access is active
-      def enabled?
-        enabled.to_s == 'true'
       end
 
       # Enable public API access for this domain.
@@ -151,7 +152,7 @@ module Onetime
 
           if config
             config.created ||= now  # repair missing created from legacy records
-            config.enabled   = enabled.to_s
+            config.enabled   = enabled
             config.updated   = now
           else
             config = new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now)
