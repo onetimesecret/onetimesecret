@@ -276,6 +276,11 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
 
         it 'resends the verification email' do
           allow(Onetime::Customer).to receive(:find_by_email).and_return(existing_customer)
+          # Stub the cooldown claim: the real implementation writes a 300s
+          # NX key to Redis keyed on the fixed objid above, which would make
+          # this example fail on any re-run inside the window. The cooldown
+          # itself is covered by the integration specs.
+          allow(logic).to receive(:claim_verification_resend_slot?).and_return(true)
 
           expect(logic).to receive(:send_verification_email)
 
