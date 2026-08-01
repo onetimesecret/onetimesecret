@@ -39,9 +39,9 @@
     displayName,
     showPlatformIdentity,
     installLogoUri,
-    installLogoDarkUri,
     installLogoAlt,
     logoSource,
+    logoDarkSource,
   } = storeToRefs(identityStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -77,15 +77,16 @@
   // holds an operator-logo rung of its own — config authority lives in the
   // brand: block and resolution in the identity resolver (#3612).
   const getLogoUrl = () => props.logo?.url || logoSource.value;
-  // Dark-theme variant (brand.logo_dark_url): only while the install logo is
-  // the asset actually being rendered. Tenant brands do declare a paired
-  // logo_dark_url (BrandSettings / brand-config schema) but it has no UI
-  // consumer yet, so this swap intentionally covers only the install logo
-  // for now; installLogoDarkUri already nulls itself when a tenant logo
-  // outranks the install logo. Swapped via the app's class-based `dark:`
-  // variants so it follows the site theme toggle, not the OS scheme.
+  // Dark-theme variant: the resolver's logoDarkSource pairs the dark asset
+  // with whichever logo logoSource resolved (tenant BrandSettings.logo_dark_url
+  // with the tenant's uploaded logo, install BRAND_LOGO_DARK_URL with the
+  // install logo — each rung nulls itself when the other layer's logo is
+  // showing). Nulled when a caller prop overrides the logo, since the dark
+  // asset describes the resolver's choice, not the caller's. Swapped via the
+  // app's class-based `dark:` variants so it follows the site theme toggle,
+  // not the OS scheme.
   const getLogoDarkUrl = () =>
-    props.logo?.url ? null : installLogoDarkUri.value;
+    props.logo?.url ? null : logoDarkSource.value;
   // Alt text: caller > operator BRAND_LOGO_ALT (only while the install logo
   // is the asset being shown) > i18n string derived from the product name.
   // When platform identity is suppressed (custom domain / tenant logo), the
