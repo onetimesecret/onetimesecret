@@ -952,8 +952,11 @@
             data-testid="billing-disabled">
             {{ t('web.admin.customers.detail.billing.notConfigured') }}
           </p>
-          <!-- Colonel-built Stripe Checkout session for this customer. -->
+          <!-- Colonel-built Stripe Checkout session for this customer.
+               Hidden when billing is disabled: the colonel endpoint's
+               configuration_guard fails every request in that state. -->
           <button
+            v-if="billing.enabled"
             type="button"
             data-testid="checkout-link-button"
             class="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
@@ -973,7 +976,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.secrets') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.secrets.count }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.secrets.count }})</span
+            >
           </h3>
           <!-- The server told us this list is PARTIAL. Say so plainly — the
                count beside the heading is what is on screen, not the total. -->
@@ -1016,7 +1021,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.receipts') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.receipts.count }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.receipts.count }})</span
+            >
           </h3>
           <p
             v-if="details.receipts.truncated"
@@ -1050,7 +1057,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.organizations.length }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.organizations.length }})</span
+            >
           </h3>
         </div>
         <ul
