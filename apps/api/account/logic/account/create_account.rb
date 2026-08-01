@@ -79,7 +79,7 @@ module AccountAPI::Logic
 
           # If the account is not verified, resend the verification email
           # If verified, we do nothing but still return success
-          if @cust.verified
+          if @cust.verified?
             OT.info "[account-exists-verified] Silent success for #{@cust.obscure_email}"
           else
             OT.info "[account-exists-unverified] Resending verification for #{@cust.obscure_email}"
