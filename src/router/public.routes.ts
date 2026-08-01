@@ -85,9 +85,10 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string): L
       // dispatcher in apps/secret/views/DisabledHomepage.vue). The
       // top-left masthead is suppressed for canonical and custom domain
       // alike, and we drop the entire header chrome (the padded band)
-      // so nothing else competes with the centred mark. The header slot
-      // is reserved for a future canonical brand logo configured at the
-      // deployment level.
+      // so nothing else competes with the centred mark. On the canonical
+      // site that centred mark now honours the deployment-level install
+      // logo (brand.logo_url) via useDisabledConfig, so no header slot is
+      // needed for it.
       layoutProps = {
         ...layoutProps,
         displayHeader: false,

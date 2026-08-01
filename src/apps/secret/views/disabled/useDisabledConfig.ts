@@ -82,8 +82,29 @@ export interface DisabledHomepageProps {
    * radii instead of identityStore's DEFAULT_CORNER_CLASS fallback.
    */
   cornerClass: string | null;
-  /** Tenant-uploaded logo URL; falls back to monogram when null. */
+  /**
+   * Logo URL: the tenant-uploaded logo, falling back to the operator's
+   * install-wide logo (brand.logo_url) on the canonical site. Deliberately
+   * NOT identityStore's logoSource — that ends in the DEFAULT_LOGO_COMPONENT
+   * sentinel, while variants want URL-or-null so their own monogram/keyhole
+   * fallbacks still apply. Null when neither is configured.
+   */
   logoUri: string | null;
+  /**
+   * Dark-theme variant of the install logo (brand.logo_dark_url). Non-null
+   * only while the install logo is the asset being rendered (the store nulls
+   * it when a tenant logo outranks it or no light install logo exists).
+   * Variants swap it in via class-based `dark:` utilities, mirroring
+   * MastHead.
+   */
+  logoDarkUri: string | null;
+  /**
+   * Operator alt text for the install logo (BRAND_LOGO_ALT). Non-null only
+   * while the install logo is the asset being rendered — labeling a tenant
+   * logo with the operator's alt text would leak the wrong accessible name.
+   * Variants fall back to their i18n workspace-derived alt when null.
+   */
+  logoAlt: string | null;
   /** Domain the visitor sees in the URL bar. */
   displayDomain: string;
   /** Whether to render the "Sign in" CTA (auth.signin must be enabled). */
@@ -208,8 +229,18 @@ function coerceDisabledVariant(candidate: unknown): DisabledHomepageVariant {
 // eslint-disable-next-line max-lines-per-function
 export function useDisabledConfig(): DisabledHomepageBindings {
   const identityStore = useProductIdentity();
-  const { isCustom, primaryColor, logoUri, displayName, displayDomain, brand, siteHost } =
-    storeToRefs(identityStore);
+  const {
+    isCustom,
+    primaryColor,
+    logoUri,
+    installLogoUri,
+    installLogoDarkUri,
+    installLogoAlt,
+    displayName,
+    displayDomain,
+    brand,
+    siteHost,
+  } = storeToRefs(identityStore);
 
   const bootstrapStore = useBootstrapStore();
   const {
@@ -229,9 +260,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   // branding is set (free tier with a custom domain).
   const isBranded = computed(() => isCustom.value && !!brand.value?.description);
 
-  const workspaceName = computed(
-    () => brand.value?.description?.trim() || displayName.value
-  );
+  const workspaceName = computed(() => brand.value?.description?.trim() || displayName.value);
 
   const monogramInitial = computed(() =>
     (workspaceName.value || displayDomain.value || 'A').trim().charAt(0).toUpperCase()
@@ -275,8 +304,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   );
   const showPromo = computed(
     () =>
-      hasSiteHost.value &&
-      applyOverride(disabled_homepage.value?.show_promo, showPromoAuto.value)
+      hasSiteHost.value && applyOverride(disabled_homepage.value?.show_promo, showPromoAuto.value)
   );
 
   const showSignin = computed(() => !!authentication.value?.signin);
@@ -328,22 +356,63 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   // so each getter re-reads its source computed and reactivity is preserved
   // through the spread. Plain destructuring would freeze values at call time.
   const props = {
-    get isBranded() { return isBranded.value; },
-    get workspaceName() { return workspaceName.value; },
-    get monogramInitial() { return monogramInitial.value; },
-    get primaryColor() { return primaryColor.value; },
-    get fontFamilyClass() { return fontFamilyClass.value; },
-    get headingFontClass() { return headingFontClass.value; },
-    get cornerClass() { return cornerClass.value; },
-    get logoUri() { return logoUri.value; },
-    get displayDomain() { return displayDomain.value; },
-    get showSignin() { return showSignin.value; },
-    get showWhatIsThis() { return showWhatIsThis.value; },
-    get whatIsThisHref() { return whatIsThisHref.value; },
-    get showPromo() { return showPromo.value; },
-    get promoHref() { return promoHref.value; },
-    get ssoOneClick() { return ssoOneClick.value; },
-    get ssoProviderName() { return ssoProvider.value?.display_name ?? null; },
+    get isBranded() {
+      return isBranded.value;
+    },
+    get workspaceName() {
+      return workspaceName.value;
+    },
+    get monogramInitial() {
+      return monogramInitial.value;
+    },
+    get primaryColor() {
+      return primaryColor.value;
+    },
+    get fontFamilyClass() {
+      return fontFamilyClass.value;
+    },
+    get headingFontClass() {
+      return headingFontClass.value;
+    },
+    get cornerClass() {
+      return cornerClass.value;
+    },
+    // Tenant logo first, install-wide logo second (installLogoUri is already
+    // null on custom domains, so no operator-identity leak). See the
+    // DisabledHomepageProps docs for why this isn't logoSource.
+    get logoUri() {
+      return logoUri.value || installLogoUri.value;
+    },
+    get logoDarkUri() {
+      return installLogoDarkUri.value;
+    },
+    get logoAlt() {
+      return installLogoAlt.value;
+    },
+    get displayDomain() {
+      return displayDomain.value;
+    },
+    get showSignin() {
+      return showSignin.value;
+    },
+    get showWhatIsThis() {
+      return showWhatIsThis.value;
+    },
+    get whatIsThisHref() {
+      return whatIsThisHref.value;
+    },
+    get showPromo() {
+      return showPromo.value;
+    },
+    get promoHref() {
+      return promoHref.value;
+    },
+    get ssoOneClick() {
+      return ssoOneClick.value;
+    },
+    get ssoProviderName() {
+      return ssoProvider.value?.display_name ?? null;
+    },
     onSsoLogin,
   } satisfies DisabledHomepageProps;
 
