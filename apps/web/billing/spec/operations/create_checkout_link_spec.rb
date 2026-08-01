@@ -33,12 +33,21 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
 
   let(:stripe_customer_id) { nil }
 
+  # Duplicate-subscription guard inputs (issue #2605). Default: no
+  # subscription, so the guard is a no-op for every other example.
+  let(:active_subscription)     { false }
+  let(:stripe_subscription_id)  { nil }
+  let(:pending_migration)       { false }
+
   let(:org) do
     double('Organization',
       objid: 'org_obj_1',
       extid: 'org_ext_1',
       billing_email: nil,
       stripe_customer_id: stripe_customer_id,
+      active_subscription?: active_subscription,
+      stripe_subscription_id: stripe_subscription_id,
+      pending_currency_migration?: pending_migration,
     )
   end
 
@@ -236,6 +245,81 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
           expect(params).not_to have_key(:customer_update)
         end
       end
+    end
+  end
+
+  # Issue #2605 / review finding: a support-issued link is NOT an exemption
+  # from the duplicate-subscription guard. Completing a second checkout
+  # creates a second live Stripe subscription and the webhook overwrites
+  # org.stripe_subscription_id — double charge + orphaned subscription.
+  describe 'duplicate-subscription guard' do
+    let(:active_subscription)    { true }
+    let(:stripe_subscription_id) { 'sub_active_guard' }
+
+    before { allow(Stripe).to receive(:api_key).and_return('sk_test_mock') }
+
+    def stub_subscription(cancel_at_period_end:, status: 'active')
+      allow(Stripe::Subscription).to receive(:retrieve).with('sub_active_guard').and_return(
+        Stripe::Subscription.construct_from(
+          'id' => 'sub_active_guard',
+          'object' => 'subscription',
+          'status' => status,
+          'cancel_at_period_end' => cancel_at_period_end,
+        ),
+      )
+    end
+
+    it 'refuses to create a session when the org already has an active subscription' do
+      stub_subscription(cancel_at_period_end: false)
+
+      result = call_op
+
+      expect(result.failed?).to be(true)
+      expect(result.reason).to eq('Organization already has an active subscription')
+      expect(Stripe::Checkout::Session).not_to have_received(:create)
+      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    end
+
+    it 'reports the block on a dry run instead of a link it would refuse' do
+      stub_subscription(cancel_at_period_end: false)
+
+      result = call_op(dry_run: true)
+
+      expect(result.failed?).to be(true)
+      expect(result.reason).to eq('Organization already has an active subscription')
+    end
+
+    it 'allows the link when the subscription is scheduled to cancel' do
+      stub_subscription(cancel_at_period_end: true)
+
+      expect(call_op.created?).to be(true)
+    end
+
+    context 'during a pending currency migration' do
+      let(:pending_migration) { true }
+
+      it 'allows the link (the old subscription is winding down)' do
+        expect(call_op.created?).to be(true)
+      end
+    end
+
+    context 'when the org owns no Stripe subscription (federated)' do
+      let(:stripe_subscription_id) { '' }
+
+      it 'allows the link' do
+        expect(call_op.created?).to be(true)
+      end
+    end
+
+    # Fail-safe: an unverifiable subscription state blocks rather than risking
+    # a duplicate charge.
+    it 'blocks when the subscription state cannot be verified' do
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .and_raise(Stripe::APIConnectionError.new('timeout'))
+
+      result = call_op
+      expect(result.failed?).to be(true)
+      expect(Stripe::Checkout::Session).not_to have_received(:create)
     end
   end
 

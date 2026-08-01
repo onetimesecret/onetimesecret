@@ -8,6 +8,7 @@ require 'onetime/models/admin_audit_event'
 
 require_relative '../lib/plan_resolver'
 require_relative '../lib/stripe_client'
+require_relative '../lib/subscription_guard'
 require_relative 'grant_probono_entitlements'
 
 module Billing
@@ -208,6 +209,9 @@ module Billing
         guard = configuration_guard
         return guard if guard
 
+        duplicate = duplicate_subscription_guard
+        return duplicate if duplicate
+
         resolution = ::Billing::PlanResolver.resolve(product: @product, interval: @interval)
         return failed(resolution.error) unless resolution.success?
 
@@ -236,6 +240,33 @@ module Billing
         return failed('Stripe is not configured') if Onetime.billing_config.stripe_key.to_s.strip.empty?
 
         nil
+      end
+
+      # Duplicate-subscription guard (issue #2605), the same predicate both
+      # self-serve checkout paths apply — see Billing::SubscriptionGuard.
+      #
+      # A support-issued link is NOT an exemption. Completing a second checkout
+      # creates a second live Stripe subscription and the
+      # checkout.session.completed webhook overwrites
+      # org.stripe_subscription_id: the customer is charged twice and the first
+      # subscription is orphaned (still billing, no longer referenced), which
+      # is exactly the state support would then have to unwind by hand.
+      #
+      # There is deliberately NO operator override. The cases where a second
+      # checkout is legitimate — a subscription already set to
+      # cancel_at_period_end, and a pending currency migration — are exempt
+      # inside the predicate itself, so an override could only ever produce the
+      # double-charge state. Plan changes on a live subscription belong in the
+      # plan-change flow / Stripe portal, which modifies the existing
+      # subscription instead of creating a second one.
+      #
+      # Runs before plan resolution and before the dry-run branch so
+      # `--dry-run` reports the block instead of a link it would refuse to
+      # create.
+      def duplicate_subscription_guard
+        return nil unless ::Billing::SubscriptionGuard.blocking_active_subscription?(@org)
+
+        failed('Organization already has an active subscription')
       end
 
       # When the deployment is region-scoped, refuse a plan from another
