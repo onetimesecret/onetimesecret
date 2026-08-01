@@ -97,6 +97,7 @@ describe('MastHead', () => {
       domain_strategy?: string;
       brand_product_name?: string | null;
       brand_logo_url?: string | null;
+      brand_logo_dark_url?: string | null;
       brand_logo_alt?: string | null;
       header_logo?: {
         href?: string | null;
@@ -118,6 +119,7 @@ describe('MastHead', () => {
           domain_strategy: storeState.domain_strategy ?? 'canonical',
           brand_product_name: storeState.brand_product_name ?? null,
           brand_logo_url: storeState.brand_logo_url ?? null,
+          brand_logo_dark_url: storeState.brand_logo_dark_url ?? null,
           brand_logo_alt: storeState.brand_logo_alt ?? null,
           ui: {
             header: {
@@ -989,6 +991,82 @@ describe('MastHead', () => {
 
       const siteName = wrapper.find('span.font-brand.text-lg');
       expect(siteName.exists()).toBe(false);
+    });
+  });
+
+  describe('Dark-theme logo variant (brand_logo_dark_url)', () => {
+    // Component-level rendering of the dark swap. Store gating
+    // (installLogoDarkUri nulling on custom domains / tenant logos / missing
+    // light logo) is covered in identityStore.spec.ts — not retested here.
+
+    it('renders both imgs with class-based dark swap when light+dark install logos are set', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+          brand_logo_dark_url: '/img/brand-dark.svg',
+        }
+      );
+
+      await nextTick();
+      const light = wrapper.find('img#logo');
+      expect(light.exists()).toBe(true);
+      expect(light.attributes('src')).toBe('/img/brand.svg');
+      // Light img hides under the app's class-based dark theme
+      expect(light.classes()).toContain('dark:hidden');
+
+      const dark = wrapper.find('[data-testid="logo-dark"]');
+      expect(dark.exists()).toBe(true);
+      expect(dark.attributes('src')).toBe('/img/brand-dark.svg');
+      // Dark img is hidden by default, shown only under dark theme
+      expect(dark.classes()).toContain('hidden');
+      expect(dark.classes()).toContain('dark:block');
+      // Both share the same sizing/alt so the swap is visually seamless
+      expect(dark.classes()).toContain('w-auto');
+      expect(dark.classes()).toContain('object-contain');
+      expect(dark.attributes('height')).toBe(light.attributes('height'));
+      expect(dark.attributes('alt')).toBe(light.attributes('alt'));
+    });
+
+    it('renders only the light img (no dark:hidden) when brand_logo_dark_url is null', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+          brand_logo_dark_url: null,
+        }
+      );
+
+      await nextTick();
+      const light = wrapper.find('img#logo');
+      expect(light.exists()).toBe(true);
+      // Without a dark variant the light logo must stay visible in dark theme
+      expect(light.classes()).not.toContain('dark:hidden');
+      expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+    });
+
+    it('suppresses the dark variant when a caller supplies props.logo.url', async () => {
+      // getLogoDarkUrl: a caller-supplied logo replaces the install logo, so
+      // the install-level dark variant must not render behind it.
+      wrapper = mountComponent(
+        {
+          logo: { url: '/static/caller-logo.png' },
+        },
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+          brand_logo_dark_url: '/img/brand-dark.svg',
+        }
+      );
+
+      await nextTick();
+      const light = wrapper.find('img#logo');
+      expect(light.exists()).toBe(true);
+      expect(light.attributes('src')).toBe('/static/caller-logo.png');
+      expect(light.classes()).not.toContain('dark:hidden');
+      expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
     });
   });
 
