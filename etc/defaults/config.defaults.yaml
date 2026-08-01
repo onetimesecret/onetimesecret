@@ -334,6 +334,28 @@ site:
       window: <%= ENV['RESET_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>
       # Lockout duration in seconds once a tier's cap is hit (1 hour).
       lockout: <%= ENV['RESET_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>
+    # Rate limiting for unauthenticated account creation (#3948, audit
+    # 2026-07-30 finding #4). POST /auth/create-account previously had no
+    # limiter, leaving unthrottled account creation: one Customer record (no
+    # TTL) plus one welcome email per distinct address, with subaddressing
+    # folding many addresses onto one mailbox. Throttles per client IP BEFORE
+    # any account lookup or write. Single tier by necessity, not choice — every
+    # request in the abuse pattern carries a fresh address, so a per-email tier
+    # would cap nothing. Enabled by default (protective); set
+    # CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false to opt out.
+    # See lib/onetime/security/create_account_rate_limiter.rb.
+    create_account_rate_limit:
+      enabled: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Signups permitted per window from a single masked client IP. The bucket
+      # is a whole /24 (office, campus NAT), and behind an unconfigured reverse
+      # proxy it is the entire deployment — so this is deliberately loose
+      # relative to the one signup a person needs. Raise it for dense-NAT
+      # populations; a too-tight value here is a signup-funnel outage.
+      max_per_ip: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_LOCKOUT'] || 3600 %>
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecret.com.
   support:
