@@ -220,6 +220,24 @@ result_cfg = @raises.call(@cfg_ip)
 [result_cfg, @redis.exists?("create_account:locked:ip:#{@cfg_ip}")]
 #=> [false, false]
 
+## A PARTIAL config block — present, but with every numeric key absent — falls
+## back to the defaults rather than raising. The read is
+## `create_account_rate_limit_config[key].to_i`, and NilClass#to_i is core Ruby
+## returning 0, so a missing key takes the same not-positive path as a garbage
+## one. Pinned because a misconfigured deploy hitting this would be a 500 on
+## every signup, which is strictly worse than the flood the limiter bounds.
+set_create_account_rate_limit('enabled' => true)
+[@tester.send(:create_account_max_per_ip),
+ @tester.send(:create_account_window),
+ @tester.send(:create_account_lockout)]
+#=> [Onetime::Security::CreateAccountRateLimiter::DEFAULT_MAX_PER_IP, Onetime::Security::CreateAccountRateLimiter::DEFAULT_WINDOW, Onetime::Security::CreateAccountRateLimiter::DEFAULT_LOCKOUT]
+
+## and it still enforces on those defaults rather than erroring
+@partial_ip = '203.0.113.99'
+cleanup(@redis, @partial_ip)
+@raises.call(@partial_ip)
+#=> false
+
 ## -- Configured off -------------------------------------------------------
 
 ## With enabled:false the limiter is a total no-op even past the caps
