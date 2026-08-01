@@ -137,7 +137,7 @@ AE.count
 
 ## the registry knows the canonical limiter kinds, in registry order
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "dns"]
+#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "dns"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')

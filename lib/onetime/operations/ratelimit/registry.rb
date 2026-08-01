@@ -76,6 +76,15 @@ module Onetime
             keys: ['reset_request:attempts:email:%s', 'reset_request:locked:email:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
+          # Single-tier IP limiter on unauthenticated account creation. SUBJECT
+          # IS THE STORED FORM: the privacy-masked IP (/24 IPv4, /48 IPv6), not
+          # the raw address and not the /16-obscured form the lockout log line
+          # prints. A raw address reads back `not_set`.
+          'create_account_ip' => {
+            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            keys: ['create_account:attempts:ip:%s', 'create_account:locked:ip:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
           'dns' => {
             subject: 'domain identifier (sanitized)',
             keys: ['dns:ratelimit:%s'],

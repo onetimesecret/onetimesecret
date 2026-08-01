@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/signup_config_resolution'
+require 'onetime/security/create_account_rate_limiter'
 require 'onetime/security/verification_resend_cooldown'
 
 module AccountAPI::Logic
@@ -15,6 +16,7 @@ module AccountAPI::Logic
     #   new and unverified accounts.
     class CreateAccount < AccountAPI::Logic::Base
       include Onetime::Logic::SignupConfigResolution
+      include Onetime::Security::CreateAccountRateLimiter
       include Onetime::Security::VerificationResendCooldown
 
       SCHEMAS = { response: 'createAccount' }.freeze
@@ -41,6 +43,22 @@ module AccountAPI::Logic
 
       def raise_concerns
         raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
+
+        # Throughput cap (audit 2026-07-30 finding #4). Placed AFTER the
+        # already-authenticated guard above — a signed-in caller here is a UI
+        # mistake, not the abuse this bounds, and charging them would let one
+        # user's stray posts drain a shared masked-IP bucket — but ahead of every
+        # check below, so a throttled caller reaches neither the format/domain
+        # validation nor the Customer.find_by_email lookup and Customer.create!
+        # in #process. Malformed and disallowed-domain submissions DO cost
+        # budget: they are free to generate and equally good for flooding.
+        #
+        # Single tier, keyed on the client IP alone — never on the submitted
+        # address. Every request in the abuse pattern carries a FRESH address, so
+        # a per-email tier would mint one bucket per request and cap nothing; and
+        # keying on anything account-derived would punch a hole through this
+        # class's byte-identical-response contract. See the module for both.
+        enforce_create_account_rate_limit!(create_account_client_ip)
 
         # Security: Email enumeration prevention - don't check if email_exists? in the
         # validation layer. Do it in the  process() method where we can handle both new
@@ -129,7 +147,7 @@ module AccountAPI::Logic
           cust.save
 
           session_id = @strategy_result.session['id']
-          ip_address = @strategy_result.metadata['ip']
+          ip_address = create_account_client_ip
           OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{session_id}"
 
           # Send verification email for new accounts (unless autoverify is enabled)
@@ -166,6 +184,21 @@ module AccountAPI::Logic
 
       def form_fields
         { email: email }
+      end
+
+      # The limiter subject, and the IP in the [new-customer] log line.
+      #
+      # SYMBOL key. build_metadata (auth_strategies/helpers.rb) builds this hash
+      # with symbol keys, and every other reader in the codebase uses :ip; this
+      # class was the sole site indexing it with the string 'ip', which returned
+      # nil, so [new-customer] had been logging a blank IP. Reading it once here
+      # keeps the limiter key and the log line on the same value.
+      #
+      # AuthStrategies::Helpers#client_ip sources it from env['otto.client_ip'],
+      # so it is trusted-proxy-resolved and privacy-masked, not header-spoofable
+      # — subject to the collapse condition documented on the limiter module.
+      def create_account_client_ip
+        @strategy_result&.metadata&.[](:ip)
       end
 
       # Validates if the email domain is allowed for account creation.
