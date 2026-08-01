@@ -81,6 +81,12 @@ site:
     # reset_request_rate_limiter.rb.
     reset_request_rate_limit:
       enabled: false
+    # Disabled under test so the many specs that sign accounts up are not
+    # throttled (the cap is per masked IP, and the whole suite shares one);
+    # the finding-#4 limiter tests enable it in-process. See
+    # create_account_rate_limiter.rb.
+    create_account_rate_limit:
+      enabled: false
 
 features:
   regions:

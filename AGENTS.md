@@ -20,7 +20,7 @@ When context gets large: write current state to tasks/mission.md. Include: what'
 
 ### Responses
 
-Use short responses.
+Use short responses. Write in plain language.
 
 ## Pull Request Reviews
 

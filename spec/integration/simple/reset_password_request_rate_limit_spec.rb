@@ -109,6 +109,23 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
     "#{prefix}-#{SecureRandom.hex(8)}@example.com"
   end
 
+  # Disable the limiter entirely (spec/config.test.yaml ships it disabled, but
+  # an earlier example in the same process may have enabled it).
+  def disable_limiter
+    new_conf = YAML.load(YAML.dump(OT.conf))
+    site     = (new_conf['site'] ||= {})
+    auth     = (site['authentication'] ||= {})
+    auth['reset_request_rate_limit'] = { 'enabled' => false }
+    OT.send(:conf=, new_conf)
+  end
+
+  def expect_generic_success(response, context)
+    expect(response.status).to eq(200),
+      "#{context} should pass, got #{response.status}: #{response.body}"
+    expect(JSON.parse(response.body)['success']).to match(/email has been sent/i),
+      "#{context} returned 200 but not the generic reset-request body: #{response.body}"
+  end
+
   # Fresh session + CSRF token per request, mirroring the full-mode helper: an
   # attacker is not obliged to reuse a session, so the limiter must bite
   # regardless of session identity. `from:` drives REMOTE_ADDR so examples can
@@ -193,6 +210,134 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
       expect(rl_redis.keys('reset_request:locked:ip:*'))
         .to eq(["reset_request:locked:ip:#{masked(source_a)}"])
       expect(rl_redis.get("reset_request:attempts:ip:#{masked(source_b)}")).to eq('1')
+    end
+  end
+
+  # A retry_after value only in the body is invisible to the clients and
+  # intermediaries that actually back off; they read the header (RFC 9110
+  # §10.2.3). Asserted through the real stack because the header is set by
+  # Onetime::Middleware::RetryAfterHeader — a frame ABOVE the Otto error
+  # handler, which can only return a body Hash.
+  describe 'Retry-After header' do
+    it 'emits Retry-After on the 429, matching the body field' do
+      enable_limiter(max_per_ip: 1, max_per_email: 100)
+
+      expect_generic_success(request_password_reset(unique_login('hdr')), 'Cap-hitting request')
+
+      throttled = request_password_reset(unique_login('hdr-2'))
+      expect(throttled.status).to eq(429)
+
+      header = throttled.headers['retry-after']
+      expect(header).not_to be_nil,
+        "429 must carry a Retry-After header; got headers: #{throttled.headers.keys.sort.join(', ')}"
+      expect(header).to match(/\A\d+\z/)
+      expect(header.to_i).to be_between(1, 900)
+      expect(header.to_i).to eq(JSON.parse(throttled.body)['retry_after'])
+    end
+
+    it 'does not emit Retry-After on an allowed request' do
+      enable_limiter(max_per_ip: 5, max_per_email: 100)
+
+      allowed = request_password_reset(unique_login('hdr-ok'))
+
+      expect(allowed.status).to eq(200)
+      expect(allowed.headers['retry-after']).to be_nil
+    end
+  end
+
+  # A throttle used to leave only an OT.le line, so an enumeration attempt
+  # against the reset flow produced no signal an operator could query. The
+  # cap-hit now writes one AdminAuditEvent — into the SEPARATE security trail,
+  # because the operator trail is count-capped with no TTL and evicts
+  # oldest-first, so any writer an unauthenticated caller can drive would be a
+  # way to flush the real destructive-action record.
+  describe 'audit trail' do
+    def throttle_audit_events
+      Onetime::AdminAuditEvent.recent_security(50).select do |event|
+        event['verb'] == Onetime::Security::ResetRequestRateLimiter::AUDIT_VERB
+      end
+    end
+
+    before do
+      # Isolate from any events other examples/suites left behind.
+      Onetime::AdminAuditEvent.events.clear
+      Onetime::AdminAuditEvent.security_events.clear
+    end
+
+    it 'records a queryable event when a tier hits its cap' do
+      enable_limiter(max_per_ip: 2, max_per_email: 100)
+
+      2.times { |i| expect_generic_success(request_password_reset(unique_login("audit-#{i}")), "Request #{i + 1}") }
+
+      events = throttle_audit_events
+      expect(events.size).to eq(1), "expected exactly one cap-hit event, got #{events.inspect}"
+
+      event = events.first
+      expect(event['actor']).to eq('anonymous')
+      expect(event['result']).to eq('failure')
+      expect(event['target']).to start_with('ip:')
+      expect(event['detail']['tier']).to eq('ip')
+      expect(event['detail']['count']).to eq(2)
+      expect(event['detail']['max_attempts']).to eq(2)
+      expect(event['detail']['lockout']).to eq(900)
+    end
+
+    it 'records the per-login tier with an OBSCURED target, never the raw login' do
+      enable_limiter(max_per_ip: 100, max_per_email: 1)
+      target = unique_login('audit-obscured')
+
+      expect_generic_success(request_password_reset(target), 'Cap-hitting request')
+
+      event = throttle_audit_events.first
+      expect(event).not_to be_nil
+      expect(event['target']).to start_with('email:')
+      expect(event['detail']['tier']).to eq('email')
+      # The audit trail must not become the enumeration oracle the limiter
+      # exists to bound: the local part is obscured before storage.
+      expect(event['target']).not_to include(target)
+      expect(event['target']).to include(OT::Utils.obscure_email(target))
+    end
+
+    it 'does NOT write an event per denied request (signal quality)' do
+      enable_limiter(max_per_ip: 1, max_per_email: 100)
+
+      expect_generic_success(request_password_reset(unique_login('audit-flood')), 'Cap-hitting request')
+      expect(throttle_audit_events.size).to eq(1)
+
+      10.times { |i| expect(request_password_reset(unique_login("audit-flood-#{i}")).status).to eq(429) }
+
+      expect(throttle_audit_events.size).to eq(1),
+        'denied requests must not each mint an audit event — one per bucket per lockout window'
+    end
+
+    # The eviction boundary. Bounding this writer's FREQUENCY is not enough on
+    # its own: at the default caps an attacker mints one event per ~7.5 requests
+    # once masked-IP buckets are cheap (distributed source, IPv6 prefix space, a
+    # forgeable client-IP header behind an appending proxy), which is ~75k
+    # requests to flush a 10k operator trail. Separate storage is what removes
+    # the primitive, so pin that no throttle traffic reaches `events` at all.
+    it 'never writes into the privileged operator trail' do
+      enable_limiter(max_per_ip: 1, max_per_email: 100)
+      Onetime::AdminAuditEvent.record(
+        actor: 'ur7xexamples', verb: 'customer.purge', target: 'ur9ytargets', result: :success,
+      )
+      before_admin = Onetime::AdminAuditEvent.count
+
+      expect_generic_success(request_password_reset(unique_login('audit-isolation')), 'Cap-hitting request')
+      10.times { |i| expect(request_password_reset(unique_login("audit-isolation-#{i}")).status).to eq(429) }
+
+      expect(throttle_audit_events.size).to eq(1)
+      expect(Onetime::AdminAuditEvent.count).to eq(before_admin),
+        'throttle events must not consume the operator trail budget'
+      expect(Onetime::AdminAuditEvent.recent(1).first['verb']).to eq('customer.purge')
+    end
+
+    it 'writes nothing when the limiter is disabled' do
+      disable_limiter
+
+      5.times { |i| expect_generic_success(request_password_reset(unique_login("audit-off-#{i}")), "Request #{i + 1}") }
+
+      expect(throttle_audit_events).to be_empty
     end
   end
 

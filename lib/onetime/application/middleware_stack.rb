@@ -15,6 +15,7 @@ require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
+require_relative '../middleware/retry_after_header'
 require_relative '../middleware/entitlement_preview_context'
 require 'otto'
 
@@ -397,6 +398,13 @@ module Onetime
             # Position Sentry middleware early to capture exceptions throughout the stack
             builder.use Sentry::Rack::CaptureExceptions
           end
+
+          # Retry-After header for throttled (429) responses. Both routing
+          # stacks stash the delay in env via ErrorCorrelation; neither can set
+          # a response header from where it builds the error body. Mounted here
+          # so Otto apps and the Roda /auth app get identical back-off headers.
+          logger.debug 'Setting up Retry-After header middleware'
+          builder.use Onetime::Middleware::RetryAfterHeader
 
           # CSRF Response Header - MUST be before Security middleware so that
           # 403 responses from AuthenticityToken also get a fresh masked token.

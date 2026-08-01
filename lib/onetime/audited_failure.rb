@@ -99,6 +99,22 @@ module Onetime
       # Resolved lazily by `defined?` so this file carries no load-order
       # dependency on the error classes or on Otto being loaded.
       #
+      # Onetime::Forbidden covers Onetime::LimitExceeded by inheritance, so no
+      # throttle rejection is auto-audited through this path either — which is
+      # the point: the OPERATOR trail (`events`) is count-capped with no TTL, so
+      # anything an unauthorized caller can trigger a write into it with is a
+      # log-eviction primitive. This predicate is the automatic half of that
+      # invariant.
+      #
+      # A call site that genuinely needs to record an event an UNAUTHENTICATED
+      # caller can cause must write it through
+      # {Onetime::AdminAuditEvent.record_security}, which lands in the separate
+      # `security_events` collection with its own count cap and age bound — NOT
+      # through `.record`. Bounding the write RATE is not an accepted substitute
+      # (see the WRITE-FREQUENCY INVARIANT on {Onetime::AdminAuditEvent}): the
+      # one such writer today, the reset-request throttle, still rate-limits
+      # itself, but for signal quality only.
+      #
       # @param error [Exception]
       # @return [Boolean]
       def authorization_rejection?(error)
