@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::SigninConfig - Per-domain sign-in method configuration
 #
@@ -86,7 +88,7 @@ module Onetime
       # change. All boolean fields on this model store REAL booleans
       # (storage :native); the enum references the model constant so values
       # cannot drift.
-      COLONEL_FIELD_SPECS = {
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :native },
         'signin_enabled' => { type: :boolean, storage: :native },
         'email_auth_enabled' => { type: :boolean, storage: :native },
@@ -94,27 +96,16 @@ module Onetime
         'restrict_to' => { type: :enum, values: RESTRICT_TO_VALUES, nullable: true },
       }.freeze
 
+      # Tolerant predicates + normalizing setters for the boolean fields in
+      # FIELD_SPECS above (#3951). Must come after both the field
+      # declarations and the constant.
+      feature :boolean_encoding
+
       def init
         self.enabled            = false if enabled.nil?
         self.signin_enabled     = false if signin_enabled.nil?
         self.email_auth_enabled = false if email_auth_enabled.nil?
         self.sso_enabled        = false if sso_enabled.nil?
-      end
-
-      def enabled?
-        enabled == true
-      end
-
-      def signin_enabled?
-        signin_enabled == true
-      end
-
-      def email_auth_enabled?
-        email_auth_enabled == true
-      end
-
-      def sso_enabled?
-        sso_enabled == true
       end
 
       # Validate that all required fields are present.

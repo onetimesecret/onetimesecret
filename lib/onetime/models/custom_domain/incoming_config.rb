@@ -4,6 +4,7 @@
 
 require 'digest/sha2'
 require_relative '../../security/input_sanitizers'
+require_relative '../features/boolean_encoding'
 
 #
 # CustomDomain::IncomingConfig - Per-domain incoming secrets recipient storage
@@ -62,22 +63,22 @@ module Onetime
       # Colonel-writable fields, aggregated into
       # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
       # validates at load time that every key has a setter here). `enabled`
-      # stores a legacy 'true'/'false' STRING (#enabled? tolerates both
-      # encodings). Recipients stay workspace-managed in v1 — enabled only.
-      COLONEL_FIELD_SPECS = {
+      # stores a legacy 'true'/'false' STRING; the boolean_encoding feature
+      # (below) normalizes writes to that encoding and keeps #enabled?
+      # tolerant of both (#3951). Recipients stay workspace-managed in v1 —
+      # enabled only.
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
       }.freeze
+
+      # Tolerant predicate + normalizing setter for `enabled` per the spec
+      # above (#3951). Must come after both the field declaration and the
+      # constant.
+      feature :boolean_encoding
 
       def init
         self.enabled         ||= 'false'
         self.recipients_json ||= '[]'
-      end
-
-      # Check if incoming secrets is enabled for this domain.
-      #
-      # @return [Boolean] true if incoming secrets is active
-      def enabled?
-        enabled.to_s == 'true'
       end
 
       # Whether this config can actually receive secrets: enabled AND at

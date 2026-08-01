@@ -6,6 +6,31 @@ module Onetime
   module Security
     # ResetRequestRateLimiter - Throttles reset-password-request submissions
     #
+    # Enforced on BOTH auth-mode paths to POST /auth/reset-password-request:
+    #
+    #   - full mode: the Rodauth before_reset_password_request_route hook
+    #     (apps/web/auth/config/hooks/reset_password_request.rb), ahead of the
+    #     route body;
+    #   - simple mode (the application default): the shared logic class,
+    #     AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns
+    #     (routed via apps/web/core/routes.txt →
+    #     Core::Controllers::Registration#request_reset_email), ahead of the
+    #     format check and the account lookup.
+    #
+    # Only one of the two paths is reachable in a given deployment (the auth app
+    # owns /auth/* when mounted), so this is parity of PROTECTION, not double
+    # counting. The IP subject is identical in both (env['otto.client_ip']). The
+    # login subject is NOT byte-identical across modes and does not need to be:
+    # each mode passes the exact string IT uses to look the account up — Rodauth's
+    # normalize_login in full mode, sanitize_email in simple mode — which is the
+    # property that matters. Because each mode feeds one function's output to both
+    # the limiter and its own lookup, one account can never occupy two buckets in
+    # the mode that is running; where the two modes' normalizations differ (e.g.
+    # simple mode's HTML sanitization turns `a&b@x` into `a&amp;b@x`) the effect is
+    # to MERGE distinct submissions into one bucket, never to split one target
+    # across several. Counters are therefore not interchangeable across a
+    # simple->full migration; nothing depends on them being so.
+    #
     # The enumeration-safe reset-password-request route (#3857) returns an
     # identical response for every login, which closed the single-request
     # content oracle but left a statistical TIMING residual: a hit performs
@@ -44,6 +69,61 @@ module Onetime
     # IP privacy. Operators with dense NAT populations can raise
     # RESET_REQUEST_RATE_LIMIT_MAX_PER_IP; the per-email backstop is
     # unaffected by IP granularity.
+    #
+    # WHY THE TIGHT TIER IS IP-ONLY (and must stay that way): the composite
+    # tight tiers elsewhere in lib/onetime/security/ — LoginRateLimiter's
+    # email+IP, PassphraseRateLimiter's secret+IP — gate a GUESS AGAINST A
+    # NAMED SUBJECT, where an email-only tight lockout would be a weapon
+    # (RL-3: one attacker locks a victim out from every IP with five
+    # requests). This limiter gates VOLUME FROM A SOURCE: both abuse shapes
+    # it exists to bound (timing samples across many targets, mail-bombing
+    # arbitrary addresses) iterate the LOGIN, so an ip+login tight key would
+    # grant max_per_ip requests per attacker-chosen login with no aggregate
+    # cap at all — exactly the uncapped state #3872/#3950 closed. The IP-only
+    # tier is the only thing capping total throughput per origin, and it is
+    # the same shape as the other anonymous-submission throttles
+    # (IncomingRateLimiter's ip: tier, FeedbackRateLimiter,
+    # InviteTokenRateLimiter), not an anomaly.
+    #
+    # COLLAPSE CONDITION (operators): the tier is only as granular as the
+    # resolved client IP. With site.network.trusted_proxy.enabled false (the
+    # default) Otto ignores X-Forwarded-For entirely and resolves REMOTE_ADDR
+    # (Otto::Utils.resolve_client_ip) — which, behind a reverse proxy, is the
+    # PROXY's address for every request. Masked, that is ONE bucket for the
+    # whole deployment: max_per_ip resets per window for all users combined,
+    # then a lockout-length outage of the reset flow. Correct for a
+    # direct-connect deployment, silently wrong behind an unconfigured proxy —
+    # so the remedy is configuration, not keying (no key scheme can separate
+    # many-users-one-address from one-attacker-many-logins; the two are
+    # identical in every dimension the limiter can observe). Set
+    # TRUSTED_PROXY_ENABLED=true, or raise
+    # RESET_REQUEST_RATE_LIMIT_MAX_PER_IP and lean on the per-email backstop,
+    # which is unaffected. While the config is in that state,
+    # enforce_reset_request_tier! appends collapsed_ip_tier_hint's
+    # SELF-CONTAINED one-line summary to the IP-tier lockout log: it restates
+    # the condition and names both remedy env vars inline, so the log line
+    # stands alone (it cites no file or section, deliberately — see that
+    # method).
+    #
+    # CLEARING A STUCK LOCKOUT. Two supported paths, both over the SAME keys:
+    #
+    #   1. `bin/ots ratelimit keys reset_request_ip <masked-ip>` — this PRINTS
+    #      `TTL`/`GET`/`DEL` command text and never touches the datastore
+    #      itself (see lib/onetime/cli/ratelimit_command.rb), so it only
+    #      recovers anything once piped:
+    #
+    #        bin/ots ratelimit keys reset_request_ip <masked-ip> \
+    #          | grep -v '^#' | valkey-cli
+    #
+    #      <masked-ip> is the STORED subject — the privacy-masked address
+    #      (/24 IPv4, /48 IPv6), NOT the raw address and NOT the /16-obscured
+    #      form obscured_reset_request_subject puts in the log line. Enumerate
+    #      the live ones with
+    #      `valkey-cli --scan --pattern 'reset_request:locked:ip:*'`.
+    #   2. `POST /api/colonel/ratelimit/reset` with `kind=reset_request_ip`
+    #      and `subject=<masked-ip>` (colonel role; ColonelAPI::Logic::Colonel::
+    #      ResetRateLimit -> Onetime::Operations::RateLimit::Reset). Unlike the
+    #      CLI this performs the delete AND records an AdminAuditEvent.
     #
     # The per-email cap is deliberately the LOOSER tier (mirroring
     # LoginRateLimiter's global backstop, RL-3): a TIGHT per-email lockout
@@ -209,7 +289,9 @@ module Onetime
         if count >= max_attempts
           # This cap-reaching request was itself ALLOWED (the Lua script locks
           # after incrementing); the lockout applies to subsequent requests.
-          OT.le "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} hit cap (#{count}/#{max_attempts}); locked for #{reset_request_lockout}s"
+          OT.le "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} " \
+                "hit cap (#{count}/#{max_attempts}); locked for #{reset_request_lockout}s" \
+                "#{collapsed_ip_tier_hint(tier_label)}"
         elsif count >= max_attempts - 1
           OT.li "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} at #{count}/#{max_attempts} requests"
         end
@@ -309,6 +391,35 @@ module Onetime
           return value[0..8]
         end
         OT::Utils.obscure_email(value)
+      end
+
+      # Operator diagnostic appended to the IP-TIER lockout LOG LINE (server
+      # side only — it never reaches a response body) when the deployment has
+      # not declared a trusted reverse proxy. In that config the resolved
+      # client IP is REMOTE_ADDR, which is the proxy's own address when one is
+      # in front, so every visitor shares one masked bucket and this lockout is
+      # deployment-wide rather than per-origin (see COLLAPSE CONDITION above).
+      #
+      # The string is SELF-CONTAINED on purpose: it restates the condition and
+      # names both remedy env vars inline rather than referring the reader to a
+      # file or section, so an operator reading only the log line has the whole
+      # diagnosis. Keep it that way — do not swap it for a doc pointer, and do
+      # not grow it into a paragraph.
+      #
+      # Deliberately NOT a boot-time check: the same config is correct for a
+      # direct-connect deployment and boot has no evidence a proxy exists, so a
+      # boot warning would fire on every default install. An IP-tier lockout is
+      # the first moment the condition is actually demonstrated. Returns '' in
+      # every other case, so a correctly configured deployment's log line is
+      # byte-identical to before. Nothing here varies on account existence.
+      def collapsed_ip_tier_hint(tier_label)
+        return '' unless tier_label == 'ip'
+        return '' if OT.conf.dig('site', 'network', 'trusted_proxy', 'enabled') == true
+
+        '. NOTE: site.network.trusted_proxy is not enabled, so the client IP is ' \
+          'REMOTE_ADDR; if this deployment is behind a reverse proxy every visitor ' \
+          'shares this bucket and the lockout is deployment-wide. Set ' \
+          'TRUSTED_PROXY_ENABLED=true, or raise RESET_REQUEST_RATE_LIMIT_MAX_PER_IP'
       end
 
       # Redis connection via the Customer model's dbclient — the subject is an

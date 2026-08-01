@@ -30,17 +30,22 @@ module Onetime
     #     (absent and present-but-disabled are behavior-equivalent for the five
     #     resolver-gated kinds, so creating disabled records is behavior-neutral)
     #   - the writable-field COERCIONS for PUT upserts; the specs themselves
-    #     are COMPOSED from each model's COLONEL_FIELD_SPECS constant (see
+    #     are COMPOSED from each model's FIELD_SPECS constant (see
     #     FIELD_SPECS below) — the model file is the single source of truth
     #   - the redacting serializer used by ALL colonel responses
     #
     # Boolean encodings differ across the models: SigninConfig (and the
     # signup_enabled/autoverify fields on SignupConfig) store REAL booleans,
     # while the other models store 'true'/'false' STRINGS. Each model declares
-    # its own encoding (storage :native | :string) in its COLONEL_FIELD_SPECS,
-    # next to its field declarations. Serialization always goes through the
-    # model predicates so the frontend sees real JSON booleans; writes go
-    # through apply_field, which storage-encodes per the field spec.
+    # its own encoding (storage :native | :string) in its FIELD_SPECS,
+    # next to its field declarations, and enables the boolean_encoding
+    # feature, which builds tolerant predicates and normalizing setters from
+    # those specs (#3951) — so writers that bypass apply_field (console,
+    # create!/upsert) can no longer persist a mixed encoding that silently
+    # reads as disabled. Serialization always goes through the model
+    # predicates so the frontend sees real JSON booleans; writes go through
+    # apply_field, which storage-encodes per the field spec (a no-op under
+    # the normalizing setters, kept as the explicit encoding boundary).
     #
     # REDACTION INVARIANT: encrypted credentials (SsoConfig client_id /
     # client_secret, MailerConfig api_key) are NEVER serialized — presence
@@ -63,10 +68,10 @@ module Onetime
       }.freeze
 
       # Colonel-writable field specs per editable kind, COMPOSED from each
-      # model's own COLONEL_FIELD_SPECS constant. The model file — next to its
+      # model's own FIELD_SPECS constant. The model file — next to its
       # field declarations — is the ONLY place that names its writable fields
       # and their storage encoding, so adding a colonel-writable field is a
-      # one-file change (edit the model's COLONEL_FIELD_SPECS).
+      # one-file change (edit the model's FIELD_SPECS).
       #
       # Spec semantics (interpreted by coerce_field! / apply_field below):
       #   type :boolean  — accepts JSON true/false plus 'true'/'false'/'1'/'0';
@@ -80,19 +85,30 @@ module Onetime
       #                    and raises Onetime::Problem).
       #
       # Load-time transcription check: every spec'd field must have a public
-      # setter on its model (apply_field writes via public_send), so a typo'd
-      # or renamed field fails at require time, not at PUT time.
+      # setter on its model (apply_field writes via public_send, and the
+      # boolean_encoding feature builds its accessors from the same specs),
+      # so a typo'd or renamed field fails at require time, not at PUT time.
+      # Runs for EVERY kind that declares FIELD_SPECS — including the
+      # non-editable sso/mailer, whose specs exist for the boolean_encoding
+      # feature rather than for colonel PUTs.
+      KINDS.each do |slug, entry|
+        model = entry[:model]
+        next unless model.const_defined?(:FIELD_SPECS)
+
+        model::FIELD_SPECS.each_key do |field|
+          next if model.public_method_defined?("#{field}=")
+
+          raise "ConfigRegistry: #{model}##{field}= missing for spec'd field '#{field}' (kind=#{slug})"
+        end
+      end
+
+      # Colonel-WRITABLE specs only: composition stays editable-kind-only, so
+      # sso/mailer declaring FIELD_SPECS does not make them PUTable
+      # (field_specs returns {} for them and the routes reject via editable?).
       FIELD_SPECS = KINDS.each_with_object({}) do |(slug, entry), acc|
         next unless entry[:editable]
 
-        model = entry[:model]
-        model::COLONEL_FIELD_SPECS.each_key do |field|
-          next if model.method_defined?("#{field}=")
-
-          raise "ConfigRegistry: #{model}##{field}= missing for colonel-writable field '#{field}' (kind=#{slug})"
-        end
-
-        acc[slug] = model::COLONEL_FIELD_SPECS
+        acc[slug] = entry[:model]::FIELD_SPECS
       end.freeze
 
       class << self

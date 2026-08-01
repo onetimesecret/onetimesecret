@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Drift guard for Onetime::CustomDomain::ConfigRegistry and the per-model
-# COLONEL_FIELD_SPECS constants it composes (signin/signup/homepage/api/
+# FIELD_SPECS constants it composes (signin/signup/homepage/api/
 # incoming own their writable-field specs; sso/mailer contribute none).
 #
 # Every case WALKS the registry programmatically — no hand-copied field
