@@ -43,6 +43,9 @@ SAFE_BOOT
 WORKER_TRACE_PAYLOAD
 
 # Script-/CLI-internal (arguments in env form, not configuration)
+# USER is the ambient OS login name, read only for CLI actor attribution
+# in audit metadata (checkout_links_create_command.rb) — not configuration.
+USER
 CONFIRM
 DERIVE
 DRY_RUN

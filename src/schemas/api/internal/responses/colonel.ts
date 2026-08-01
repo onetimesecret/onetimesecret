@@ -7,16 +7,16 @@
  * Config-related schemas are imported from @/schemas/contracts/config/config.ts
  */
 
-import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
-import { transforms } from '@/schemas/transforms';
 import { createApiResponseSchema } from '@/schemas/api/base';
-import { z } from 'zod';
-
-// Import system settings schemas from config
 import {
   systemSettingsDetailsSchema,
   systemSettingsSchema,
 } from '@/schemas/contracts/config/config';
+import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
+import { transforms } from '@/schemas/transforms';
+import { z } from 'zod';
+
+// Import system settings schemas from config
 
 // Re-export for backward compatibility
 export { systemSettingsDetailsSchema, systemSettingsSchema };
@@ -755,6 +755,39 @@ export const colonelUserMutationDetailsSchema = z.object({
   message: z.string(),
 });
 
+/**
+ * Checkout-link ack record (POST /api/colonel/users/:user_id/checkout-link).
+ *
+ * A colonel-created Stripe Checkout session for the customer: the record IS
+ * the product (the URL the operator hands to the customer), so unlike the
+ * shared mutation ack every field here is required — a 2xx without a
+ * `checkout_url` is a contract break, not a tolerable drift. `expires_at` is a
+ * bare Unix-epoch number (seconds), left untransformed so the UI can compute
+ * "expires in ~Nh" against `Date.now()` without double-converting.
+ */
+export const colonelCheckoutLinkRecordSchema = z.object({
+  checkout_url: z.string(),
+  session_id: z.string(),
+  plan_id: z.string(),
+  price_id: z.string(),
+  expires_at: z.number(),
+});
+
+/**
+ * Checkout-link ack details: which region config produced the session.
+ *
+ * `region` is always a displayable, non-null string. A deployment that is not
+ * region-scoped has no billing region at the config layer (nil), and the
+ * backend maps that to `'global'` at the API boundary
+ * (ColonelAPI::Logic::Colonel::CreateCheckoutLink::UNSCOPED_REGION) — a null
+ * here would fail this strict parse and hide the checkout URL of a session
+ * that is already live and chargeable. Keep this non-nullable so that
+ * contract break stays loud.
+ */
+export const colonelCheckoutLinkDetailsSchema = z.object({
+  region: z.string(),
+});
+
 export type ColonelUserDetailRecord = z.infer<typeof colonelUserDetailRecordSchema>;
 export type ColonelUserDetailSecret = z.infer<typeof colonelUserDetailSecretSchema>;
 export type ColonelUserDetailReceipt = z.infer<typeof colonelUserDetailReceiptSchema>;
@@ -868,6 +901,10 @@ export const colonelUserMutationResponseSchema = createApiResponseSchema(
   colonelUserMutationRecordSchema,
   colonelUserMutationDetailsSchema
 );
+export const colonelCheckoutLinkResponseSchema = createApiResponseSchema(
+  colonelCheckoutLinkRecordSchema,
+  colonelCheckoutLinkDetailsSchema
+);
 
 export type ColonelInfoResponse = z.infer<typeof colonelInfoResponseSchema>;
 export type ColonelStatsResponse = z.infer<typeof colonelStatsResponseSchema>;
@@ -885,3 +922,6 @@ export type QueueMetricsResponse = z.infer<typeof queueMetricsResponseSchema>;
 export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema>;
 export type ColonelUserDetailResponse = z.infer<typeof colonelUserDetailResponseSchema>;
 export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResponseSchema>;
+export type ColonelCheckoutLinkRecord = z.infer<typeof colonelCheckoutLinkRecordSchema>;
+export type ColonelCheckoutLinkDetails = z.infer<typeof colonelCheckoutLinkDetailsSchema>;
+export type ColonelCheckoutLinkResponse = z.infer<typeof colonelCheckoutLinkResponseSchema>;
