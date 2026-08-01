@@ -50,20 +50,40 @@ RSpec.describe 'boolean_field raw-read guard' do
     fields
   end
 
+  # A read is "bare" when the field name is used as a truthiness test without
+  # the predicate `?`. Two alternates cover the forms seen in review:
+  #
+  #   1. `.field` preceded on the same line by a conditional keyword
+  #      (if/elsif/unless/until/while — leading OR trailing statement-modifier) or a
+  #      boolean operator (&&, ||, !), with optional opening paren(s) between
+  #      them: `if cust.verified`, `return if cust.verified`,
+  #      `if (cust.verified)`, `x && cust.verified`, `!cust.verified`.
+  #   2. Ternary: `.field` followed by whitespace then `?` —
+  #      `cust.verified ? a : b`. The space is what separates the ternary
+  #      operator from the predicate: `verified?` has no space before `?` and
+  #      stays excluded.
+  #
+  # Still excluded: predicate reads (`verified?`), chained calls
+  # (`.verified.to_s`), explicit `==`/`!=` comparisons, assignments
+  # (`.verified = true` — no conditional context and no ternary `?`), and
+  # symbol/string literals (no receiver dot).
+  def bare_read_pattern(fields)
+    names = fields.join('|')
+    /
+      (?:
+        (?: \b(?:if|elsif|unless|until|while)\s+ | && \s* | \|\| \s* | ! ) [(\s]*
+        [\w@.\[\]']* \. (?:#{names})
+        (?! [?\w.] | \s*[=!]= )
+      |
+        [\w@.\[\]']* \. (?:#{names})
+        [ \t]+ \? (?![?\w])
+      )
+    /x
+  end
+
   it 'has no bare conditional reads of declared boolean_field attributes' do
     fields  = declared_boolean_fields
-    # A read is "bare" when the field name follows a receiver inside a
-    # conditional context (if/unless/leading or trailing, &&, ||, !) without
-    # the predicate `?`. `= `-writes, `.to_s` comparisons, and symbol/string
-    # literals do not match because the pattern requires `.field` preceded by
-    # a conditional keyword or boolean operator on the same line. Chained
-    # calls (`.verified.to_s`) and explicit `==`/`!=` comparisons are
-    # excluded — those handle the string form deliberately.
-    pattern = /
-      (?: \b(?:if|unless|until|while)\s+ | && \s* | \|\| \s* | ! )
-      [\w@.\[\]']* \. (?:#{fields.join('|')})
-      (?! [?\w.] | \s*[=!]= )
-    /x
+    pattern = bare_read_pattern(fields)
 
     offenses = source_files.flat_map do |path|
       File.read(path).each_line.with_index(1).filter_map do |line, lineno|
@@ -83,5 +103,39 @@ RSpec.describe 'boolean_field raw-read guard' do
 
       #{offenses.join("\n")}
     MSG
+  end
+
+  it 'matches the known bare-read forms and excludes safe reads (pattern self-test)' do
+    pattern = bare_read_pattern(%w[verified suspended])
+
+    flagged = [
+      'if cust.verified',                 # leading keyword
+      'elsif cust.verified',              # elsif branch
+      'return if cust.verified',          # trailing statement-modifier
+      'if (cust.verified)',               # parenthesized receiver
+      'unless (@cust.verified)',          # ivar + paren
+      'do_thing unless cust.verified',    # trailing unless
+      'cust.verified ? a : b',            # ternary, no keyword at all
+      'x = @cust.verified ? "y" : "n"',   # ternary in assignment RHS
+      'ok && cust.verified',              # boolean operator
+      '!cust.suspended',                  # negation
+      '!(cust.suspended)',                # negated paren
+    ]
+    not_flagged = [
+      'if cust.verified?',                # predicate
+      'return if cust.verified?',         # trailing predicate
+      "cust.verified.to_s == 'true'",     # chained call
+      "if cust.verified == 'true'",       # explicit comparison
+      "raise if cust.verified != 'true'", # explicit negated comparison
+      'cust.verified = true',             # assignment
+      'cust.verified? ? a : b',           # predicate + ternary
+      'field == :verified',               # symbol literal
+    ]
+
+    misses = flagged.reject { |line| line.match?(pattern) }
+    expect(misses).to be_empty, "pattern failed to flag: #{misses.inspect}"
+
+    false_positives = not_flagged.select { |line| line.match?(pattern) }
+    expect(false_positives).to be_empty, "pattern wrongly flagged: #{false_positives.inspect}"
   end
 end
