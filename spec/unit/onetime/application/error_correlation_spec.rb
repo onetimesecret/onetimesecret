@@ -80,7 +80,7 @@ RSpec.describe Onetime::Application::ErrorCorrelation do
       expect(out[:request_id]).to eq(request_id) # request_id is still echoed
     end
 
-    # Security audit 2026-07-30, finding #2, residual 2: the throttle delay has
+    # The throttle delay has
     # to reach Onetime::Middleware::RetryAfterHeader, which is the only frame
     # that can set a response header on the Otto error path.
     describe 'retry_after stashing' do

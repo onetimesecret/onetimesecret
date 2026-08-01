@@ -196,7 +196,7 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
     end
   end
 
-  # Audit finding #2, residual 2. The body field is invisible to the clients and
+  # A retry_after value only in the body is invisible to the clients and
   # intermediaries that actually back off; they read the header (RFC 9110
   # §10.2.3). Asserted through the real stack because the header is set by
   # Onetime::Middleware::RetryAfterHeader — a frame ABOVE the Otto error
@@ -228,7 +228,7 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
     end
   end
 
-  # Audit finding #2, residual 3. A throttle used to leave only an OT.le line,
+  # A throttle used to leave only an OT.le line,
   # so an enumeration attempt against the reset flow produced no signal an
   # operator could query. The cap-hit now writes one AdminAuditEvent — and ONLY
   # on the cap-hit, because that store is count-capped with no TTL and an event

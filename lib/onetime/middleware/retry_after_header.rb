@@ -19,7 +19,7 @@ module Onetime
     # `fetch` wrappers, and monitoring all read the HTTP header (RFC 9110
     # §10.2.3). Without it a throttled caller has no machine-readable cue and
     # typically retries immediately, which is the opposite of what a rate limit
-    # is for. (Security audit 2026-07-30, finding #2, residual 2.)
+    # is for.
     #
     # ## Why a middleware rather than the error handlers
     #

@@ -92,9 +92,9 @@ module Onetime
     #      minting another costs a full cap's worth of requests against another
     #      masked network or another target login. That is a bound, not an
     #      elimination: a distributed attacker, or one forging the resolved
-    #      client IP behind an appending reverse proxy, can still mint buckets.
-    #      See the audit residuals in docs/security/security-audit-2026-07-30.md
-    #      (finding #2, residuals 1 and 3).
+    #      client IP behind an appending reverse proxy, can still mint buckets,
+    #      so deployments must ensure the proxy layer strips or overwrites
+    #      client-supplied forwarding headers rather than appending to them.
     #
     # So: do NOT add another unauthenticated-triggerable verb without a
     # comparable per-window bound, and if the set of such verbs grows beyond

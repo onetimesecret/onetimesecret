@@ -312,8 +312,7 @@ module Onetime
       # {Onetime::AdminAuditEvent} per cap-hit, readable through the admin audit
       # view (GET /api/colonel/audit) and the CLI. A log line alone is not a
       # signal an operator can query — an enumeration attempt against the reset
-      # flow otherwise leaves nothing to search for. (Security audit
-      # 2026-07-30, finding #2, residual 3.)
+      # flow otherwise leaves nothing to search for.
       #
       # WRITE FREQUENCY IS THE CONTROL. AdminAuditEvent is capped by COUNT with
       # no TTL, so an event an unauthenticated caller can trigger at will is a
@@ -325,9 +324,9 @@ module Onetime
       # network or another distinct target login, each costing a full cap's
       # worth of requests. It is not free of the primitive — a distributed
       # attacker, or any attacker able to forge the resolved client IP behind an
-      # appending reverse proxy (residual 1), can still mint buckets — so an
-      # operator relying on the admin trail must pair this with residual 1's
-      # deployment-side mitigation.
+      # appending reverse proxy, can still mint buckets — so an operator
+      # relying on the admin trail must also ensure the proxy layer strips or
+      # overwrites client-supplied forwarding headers rather than appending.
       #
       # The subject is the OBSCURED value (masked /16 for IPv4, obscured email),
       # never the raw login: the audit trail must not become the account

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Security audit 2026-07-30, finding #2, residual 2: a 429 carried retry_after
+# Before this middleware existed, a 429 carried retry_after
 # in the JSON body only, so proxies and well-behaved clients — which read the
 # HTTP header — had no back-off cue. The value is stashed in env by
 # ErrorCorrelation (both routing stacks call it) and turned into a header here.
