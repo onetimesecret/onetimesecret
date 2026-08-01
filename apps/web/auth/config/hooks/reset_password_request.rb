@@ -10,6 +10,20 @@ require 'onetime/security/reset_request_rate_limiter'
 # SOLE OWNER of the before_reset_password_request_route hook (hooks do not
 # chain — see config/hooks.rb).
 #
+# FULL MODE ONLY: this file lives under apps/web/auth/, which the registry
+# skips entirely unless auth_config.full_enabled? (lib/onetime/application/
+# registry.rb#find_application_files). In simple mode — the application
+# default — POST /auth/reset-password-request is served by the Core app
+# (apps/web/core/routes.txt → Core::Controllers::Registration#request_reset_email)
+# and the SAME limiter is enforced from
+# AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns, with
+# the same client-IP subject and the same before-any-account-lookup ordering.
+# The login subject differs by construction — each mode passes the string IT
+# resolves accounts with (normalize_login here, sanitize_email there) — which is
+# what keeps each mode's buckets 1:1 with its own lookup; see the limiter header.
+# Keep the two call sites in lockstep on ORDERING and on which subjects are
+# passed: a change to that here belongs there too.
+#
 # The enumeration override (config/overrides/reset_password_enumeration.rb,
 # #3857) made every POST /auth/reset-password-request answer identically, which
 # closed the single-request content oracle but accepted a statistical TIMING
