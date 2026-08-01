@@ -38,9 +38,14 @@ module Onetime
     # signup_enabled/autoverify fields on SignupConfig) store REAL booleans,
     # while the other models store 'true'/'false' STRINGS. Each model declares
     # its own encoding (storage :native | :string) in its COLONEL_FIELD_SPECS,
-    # next to its field declarations. Serialization always goes through the
-    # model predicates so the frontend sees real JSON booleans; writes go
-    # through apply_field, which storage-encodes per the field spec.
+    # next to its field declarations, and enables the boolean_encoding
+    # feature, which builds tolerant predicates and normalizing setters from
+    # those specs (#3951) — so writers that bypass apply_field (console,
+    # create!/upsert) can no longer persist a mixed encoding that silently
+    # reads as disabled. Serialization always goes through the model
+    # predicates so the frontend sees real JSON booleans; writes go through
+    # apply_field, which storage-encodes per the field spec (a no-op under
+    # the normalizing setters, kept as the explicit encoding boundary).
     #
     # REDACTION INVARIANT: encrypted credentials (SsoConfig client_id /
     # client_secret, MailerConfig api_key) are NEVER serialized — presence
@@ -80,19 +85,30 @@ module Onetime
       #                    and raises Onetime::Problem).
       #
       # Load-time transcription check: every spec'd field must have a public
-      # setter on its model (apply_field writes via public_send), so a typo'd
-      # or renamed field fails at require time, not at PUT time.
-      FIELD_SPECS = KINDS.each_with_object({}) do |(slug, entry), acc|
-        next unless entry[:editable]
-
+      # setter on its model (apply_field writes via public_send, and the
+      # boolean_encoding feature builds its accessors from the same specs),
+      # so a typo'd or renamed field fails at require time, not at PUT time.
+      # Runs for EVERY kind that declares COLONEL_FIELD_SPECS — including the
+      # non-editable sso/mailer, whose specs exist for the boolean_encoding
+      # feature rather than for colonel PUTs.
+      KINDS.each do |slug, entry|
         model = entry[:model]
+        next unless model.const_defined?(:COLONEL_FIELD_SPECS)
+
         model::COLONEL_FIELD_SPECS.each_key do |field|
           next if model.method_defined?("#{field}=")
 
-          raise "ConfigRegistry: #{model}##{field}= missing for colonel-writable field '#{field}' (kind=#{slug})"
+          raise "ConfigRegistry: #{model}##{field}= missing for spec'd field '#{field}' (kind=#{slug})"
         end
+      end
 
-        acc[slug] = model::COLONEL_FIELD_SPECS
+      # Colonel-WRITABLE specs only: composition stays editable-kind-only, so
+      # sso/mailer declaring COLONEL_FIELD_SPECS does not make them PUTable
+      # (field_specs returns {} for them and the routes reject via editable?).
+      FIELD_SPECS = KINDS.each_with_object({}) do |(slug, entry), acc|
+        next unless entry[:editable]
+
+        acc[slug] = entry[:model]::COLONEL_FIELD_SPECS
       end.freeze
 
       class << self
