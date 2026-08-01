@@ -7,7 +7,9 @@
 //     `hidden dark:block`), with the light img gaining `dark:hidden`
 //   - the fallback slot renders when logoUri is null/empty AND after @error,
 //     and NEVER co-renders with a logo
-//   - the internal error flag resets when logoUri changes
+//   - the internal error flags reset when logoUri / logoDarkUri change
+//   - a broken dark logo degrades to the light logo (drops `dark:hidden`)
+//     instead of blanking the mark in dark mode
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect } from 'vitest';
@@ -86,6 +88,85 @@ describe('BrandMark', () => {
         expect(img.classes()).toContain('h-12');
         expect(img.classes()).toContain('w-auto');
       }
+    });
+  });
+
+  // Operator sets BRAND_LOGO_URL + BRAND_LOGO_DARK_URL and the dark asset 404s
+  // (wrong path, CDN misconfiguration). The mark must not go blank in dark
+  // mode: drop the dark img and un-hide the working light one.
+  describe('broken dark img', () => {
+    const darkPair = { logoDarkUri: '/imagine/cd123/logo-dark.png' };
+
+    it('removes the dark img after it fires @error', async () => {
+      const wrapper = mountMark(darkPair, fallbackSlot);
+
+      await wrapper.find('[data-testid="logo-dark"]').trigger('error');
+
+      expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+    });
+
+    it('drops dark:hidden from the light img so it shows in dark mode', async () => {
+      const wrapper = mountMark(darkPair, fallbackSlot);
+      expect(wrapper.findAll('img')[0].classes()).toContain('dark:hidden');
+
+      await wrapper.find('[data-testid="logo-dark"]').trigger('error');
+
+      const imgs = wrapper.findAll('img');
+      expect(imgs).toHaveLength(1);
+      expect(imgs[0].attributes('src')).toBe('/imagine/cd123/logo.png');
+      expect(imgs[0].classes()).not.toContain('dark:hidden');
+    });
+
+    it('does not render the fallback slot while the light img still works', async () => {
+      const wrapper = mountMark(darkPair, fallbackSlot);
+
+      await wrapper.find('[data-testid="logo-dark"]').trigger('error');
+
+      expect(wrapper.find('[data-testid="fallback-mark"]').exists()).toBe(false);
+    });
+
+    it('renders the fallback slot only when BOTH imgs error', async () => {
+      const wrapper = mountMark(darkPair, fallbackSlot);
+
+      await wrapper.find('[data-testid="logo-dark"]').trigger('error');
+      await wrapper.find('img').trigger('error');
+
+      expect(wrapper.find('img').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="fallback-mark"]').exists()).toBe(true);
+    });
+
+    it('resets the dark error state when logoDarkUri changes', async () => {
+      const wrapper = mountMark(darkPair, fallbackSlot);
+
+      await wrapper.find('[data-testid="logo-dark"]').trigger('error');
+      expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+
+      await wrapper.setProps({ logoDarkUri: '/imagine/cd123/logo-dark-v2.png' });
+
+      const dark = wrapper.find('[data-testid="logo-dark"]');
+      expect(dark.exists()).toBe(true);
+      expect(dark.attributes('src')).toBe('/imagine/cd123/logo-dark-v2.png');
+      expect(wrapper.findAll('img')[0].classes()).toContain('dark:hidden');
+    });
+
+    it('keeps the dark swap intact when neither img errors', () => {
+      const wrapper = mountMark(darkPair, fallbackSlot);
+
+      const imgs = wrapper.findAll('img');
+      expect(imgs).toHaveLength(2);
+      expect(imgs[0].classes()).toContain('dark:hidden');
+      expect(imgs[1].classes()).toContain('hidden');
+      expect(imgs[1].classes()).toContain('dark:block');
+      expect(wrapper.find('[data-testid="fallback-mark"]').exists()).toBe(false);
+    });
+
+    it('a light-img error still falls through to the fallback when the dark img is fine', async () => {
+      const wrapper = mountMark(darkPair, fallbackSlot);
+
+      await wrapper.find('img').trigger('error');
+
+      expect(wrapper.find('img').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="fallback-mark"]').exists()).toBe(true);
     });
   });
 

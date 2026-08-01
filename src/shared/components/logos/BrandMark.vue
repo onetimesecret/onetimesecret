@@ -16,6 +16,12 @@
     monogram/keyhole/placeholder markup there — the slot boundary guarantees
     the fallback only appears when no usable logo exists.
 
+    Light and dark each get their own error flag. A broken dark variant must
+    not blank the header in dark mode: when the dark asset errors we drop the
+    dark img AND drop `dark:hidden` from the light img, so the working light
+    logo degrades gracefully into dark mode. Only when the light asset is
+    also unusable do we fall through to the `fallback` slot.
+
     Sizing/styling is the consumer's job via `imgClass` (applied to both
     imgs so the light/dark pair always match) and optional `imgStyle` /
     `height` for pixel-accurate callers (MastHead). Extra attrs (e.g. `id`)
@@ -60,6 +66,20 @@
     logoError.value = true;
   };
   const hasUsableLogo = computed(() => !!props.logoUri && !logoError.value);
+
+  // Same treatment for the dark variant, tracked separately: a dark asset that
+  // 404s must not take the (working) light asset down with it.
+  const logoDarkError = ref(false);
+  watch(
+    () => props.logoDarkUri,
+    () => {
+      logoDarkError.value = false;
+    }
+  );
+  const onLogoDarkError = () => {
+    logoDarkError.value = true;
+  };
+  const hasUsableDarkLogo = computed(() => !!props.logoDarkUri && !logoDarkError.value);
 </script>
 
 <template>
@@ -68,20 +88,22 @@
       v-bind="$attrs"
       :src="logoUri ?? ''"
       :alt="alt"
-      :class="[imgClass, logoDarkUri ? 'dark:hidden' : null]"
+      :class="[imgClass, hasUsableDarkLogo ? 'dark:hidden' : null]"
       :style="imgStyle"
       :height="height"
       @error="onLogoError" />
     <!-- Dark-theme logo variant (brand.logo_dark_url): swapped by the
-         app's class-based dark mode so it tracks the theme toggle. -->
+         app's class-based dark mode so it tracks the theme toggle. Dropped
+         entirely if it errors, which also un-hides the light img above. -->
     <img
-      v-if="logoDarkUri"
+      v-if="hasUsableDarkLogo"
       data-testid="logo-dark"
-      :src="logoDarkUri"
+      :src="logoDarkUri ?? ''"
       :alt="alt"
       :class="['hidden dark:block', imgClass]"
       :style="imgStyle"
-      :height="height" />
+      :height="height"
+      @error="onLogoDarkError" />
   </template>
   <slot
     v-else
