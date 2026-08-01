@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Matrix tests for the boolean_encoding feature (#3951) across ALL SEVEN
-# CustomDomain config models and every COLONEL_FIELD_SPECS boolean field.
+# CustomDomain config models and every FIELD_SPECS boolean field.
 #
 # Background: the seven config models historically disagreed on boolean
 # persistence — some fields store REAL booleans (storage :native), others
@@ -25,12 +25,12 @@
 #   - LEGACY/opposite-encoding persisted records (raw hset of 'true' and
 #     '"true"') read as enabled after reload, on one :native model
 #     (SigninConfig) and one :string model (SsoConfig)
-#   - A typo'd/renamed boolean field in COLONEL_FIELD_SPECS raises at
+#   - A typo'd/renamed boolean field in FIELD_SPECS raises at
 #     feature-enable (load) time, since the generated accessors would
 #     otherwise satisfy ConfigRegistry's method_defined? transcription check
 #
 # Field/storage map under test (single source of truth is each model's
-# COLONEL_FIELD_SPECS):
+# FIELD_SPECS):
 #   SigninConfig   enabled, signin_enabled, email_auth_enabled, sso_enabled  :native
 #   SignupConfig   enabled :string; signup_enabled, autoverify :native (MIXED)
 #   HomepageConfig enabled :string
@@ -48,7 +48,7 @@ require_relative '../../support/test_models'
 OT.boot! :test
 
 Familia.dbclient.flushdb
-OT.info "Cleaned Redis for config boolean encoding matrix test run"
+OT.info 'Cleaned Redis for config boolean encoding matrix test run'
 
 TRUTHY_INPUTS = [true, 'true', 1, '1'].freeze
 FALSY_INPUTS  = [false, 'false', 0, '0'].freeze
@@ -78,15 +78,15 @@ def nil_passthrough(obj, fields)
   end.uniq
 end
 
-@ts = Familia.now.to_i
+@ts      = Familia.now.to_i
 @entropy = SecureRandom.hex(4)
-@owner = Onetime::Customer.create!(email: "be_owner_#{@ts}_#{@entropy}@test.com")
-@org = Onetime::Organization.create!("BE Test Org #{@ts}", @owner, "be_#{@ts}@test.com")
+@owner   = Onetime::Customer.create!(email: "be_owner_#{@ts}_#{@entropy}@test.com")
+@org     = Onetime::Organization.create!("BE Test Org #{@ts}", @owner, "be_#{@ts}@test.com")
 
 # CustomDomain.create! bootstraps HomepageConfig + ApiConfig (disabled); the
 # other five kinds are created explicitly against the same domain.
 @domain = Onetime::CustomDomain.create!("be-matrix-#{@ts}-#{@entropy}.example.com", @org.objid)
-@did = @domain.identifier
+@did    = @domain.identifier
 
 @signin   = Onetime::CustomDomain::SigninConfig.create!(domain_id: @did)
 @signup   = Onetime::CustomDomain::SignupConfig.create!(domain_id: @did, validation_strategy: 'passthrough')
@@ -100,7 +100,7 @@ end
 )
 # SsoConfig.create! validates credentials (encrypted fields); the boolean
 # machinery needs neither, so build via new + save.
-@sso = Onetime::CustomDomain::SsoConfig.new(domain_id: @did)
+@sso      = Onetime::CustomDomain::SsoConfig.new(domain_id: @did)
 @sso.save
 
 # --- SigninConfig: four :native boolean fields ---
@@ -223,7 +223,7 @@ nil_passthrough(@mailer, %w[enabled])
 ## Legacy on :native model (SigninConfig): raw unquoted 'true' loads as a
 ## boolean and reads enabled
 @legacy_dom_n = Onetime::CustomDomain.create!("be-legacy-n-#{@ts}-#{@entropy}.example.com", @org.objid)
-@legacy_si = Onetime::CustomDomain::SigninConfig.create!(domain_id: @legacy_dom_n.identifier)
+@legacy_si    = Onetime::CustomDomain::SigninConfig.create!(domain_id: @legacy_dom_n.identifier)
 Familia.dbclient.hset(@legacy_si.dbkey, 'enabled', 'true')
 Onetime::CustomDomain::SigninConfig.find_by_domain_id(@legacy_dom_n.identifier).enabled?
 #=> true
@@ -245,7 +245,7 @@ Familia.dbclient.hset(@legacy_si.dbkey, 'signin_enabled', '"true"')
 ## Legacy on :string model (SsoConfig): raw unquoted 'true' — the OPPOSITE
 ## (boolean) encoding for a string field — loads as a boolean and reads enabled
 @legacy_dom_s = Onetime::CustomDomain.create!("be-legacy-s-#{@ts}-#{@entropy}.example.com", @org.objid)
-@legacy_sso = Onetime::CustomDomain::SsoConfig.new(domain_id: @legacy_dom_s.identifier)
+@legacy_sso   = Onetime::CustomDomain::SsoConfig.new(domain_id: @legacy_dom_s.identifier)
 @legacy_sso.save
 Familia.dbclient.hset(@legacy_sso.dbkey, 'enabled', 'true')
 Onetime::CustomDomain::SsoConfig.find_by_domain_id(@legacy_dom_s.identifier).enabled?
@@ -259,7 +259,7 @@ Onetime::CustomDomain::SsoConfig.find_by_domain_id(@legacy_dom_s.identifier).enf
 
 # --- Load-time guard: typo'd spec field fails fast (#3951 AC6) ---
 
-## A typo'd/renamed boolean field in COLONEL_FIELD_SPECS raises
+## A typo'd/renamed boolean field in FIELD_SPECS raises
 ## Familia::Problem at feature-enable time. Without this guard the feature
 ## would define accessors for the bogus name (satisfying ConfigRegistry's
 ## method_defined? check) and the failure would surface only as a runtime
@@ -270,19 +270,22 @@ begin
     identifier_field :domain_id
     field :domain_id
     field :enabled
-    const_set(:COLONEL_FIELD_SPECS, {
-      'enabled' => { type: :boolean, storage: :string },
-      'tpyoed_field' => { type: :boolean, storage: :string },
-    }.freeze)
+    const_set(
+      :FIELD_SPECS,
+      {
+        'enabled' => { type: :boolean, storage: :string },
+        'tpyoed_field' => { type: :boolean, storage: :string },
+      }.freeze,
+    )
     feature :boolean_encoding
   end
   :no_raise
-rescue Familia::Problem => e
-  e.message.include?("declares boolean field 'tpyoed_field'")
+rescue Familia::Problem => ex
+  ex.message.include?("declares boolean field 'tpyoed_field'")
 end
 #=> true
 
 # --- Cleanup ---
 
 Familia.dbclient.flushdb
-OT.info "Cleaned Redis after config boolean encoding matrix test run"
+OT.info 'Cleaned Redis after config boolean encoding matrix test run'

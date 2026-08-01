@@ -88,7 +88,7 @@ module Onetime
       # change. All boolean fields on this model store REAL booleans
       # (storage :native); the enum references the model constant so values
       # cannot drift.
-      COLONEL_FIELD_SPECS = {
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :native },
         'signin_enabled' => { type: :boolean, storage: :native },
         'email_auth_enabled' => { type: :boolean, storage: :native },
@@ -97,7 +97,7 @@ module Onetime
       }.freeze
 
       # Tolerant predicates + normalizing setters for the boolean fields in
-      # COLONEL_FIELD_SPECS above (#3951). Must come after both the field
+      # FIELD_SPECS above (#3951). Must come after both the field
       # declarations and the constant.
       feature :boolean_encoding
 

@@ -103,14 +103,14 @@ module Onetime
       # secrets_mode (incoming_secrets entitlement + a ready IncomingConfig)
       # as admin-repair power; read paths still fail closed via
       # #effectively_enabled?.
-      COLONEL_FIELD_SPECS = {
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
         'secrets_mode' => { type: :enum, values: VALID_SECRETS_MODES, nullable: false },
         'disabled_homepage_variant' => { type: :enum, values: VALID_DISABLED_HOMEPAGE_VARIANTS, nullable: true },
       }.freeze
 
       # Tolerant predicates + normalizing setters for the boolean fields in
-      # COLONEL_FIELD_SPECS above (#3951). Must come after both the field
+      # FIELD_SPECS above (#3951). Must come after both the field
       # declarations and the constant. Provides #enabled? / #enabled=;
       # deliberately does NOT cover the deprecated signup_enabled /
       # signin_enabled read-echo fields (not in the specs).

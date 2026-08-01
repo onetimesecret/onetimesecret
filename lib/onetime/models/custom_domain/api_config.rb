@@ -46,7 +46,7 @@ module Onetime
       # stores a legacy 'true'/'false' STRING; the boolean_encoding feature
       # (below) normalizes writes to that encoding and keeps #enabled?
       # tolerant of both (#3951).
-      COLONEL_FIELD_SPECS = {
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
       }.freeze
 

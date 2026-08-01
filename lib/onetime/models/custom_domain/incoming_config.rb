@@ -67,7 +67,7 @@ module Onetime
       # (below) normalizes writes to that encoding and keeps #enabled?
       # tolerant of both (#3951). Recipients stay workspace-managed in v1 —
       # enabled only.
-      COLONEL_FIELD_SPECS = {
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
       }.freeze
 

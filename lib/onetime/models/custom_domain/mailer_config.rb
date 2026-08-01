@@ -120,16 +120,14 @@ module Onetime
       field :created
       field :updated
 
-      # Boolean field encoding spec consumed by the boolean_encoding feature
-      # (below) and the registry's load-time setter check. Mailer is NOT
-      # colonel-editable (ConfigRegistry KINDS `editable: false` — create
-      # paths enforce credential/from_address validation), so this does NOT
-      # enter the registry's FIELD_SPECS composition; it exists so `enabled`
-      # shares the one normalizing writer/predicate idiom (#3951). The
+      # Field encoding spec consumed by the boolean_encoding feature (below)
+      # and the registry's load-time setter check. Mailer is not
+      # colonel-editable (ConfigRegistry KINDS `editable: false`), so this
+      # does not enter the registry's composed FIELD_SPECS (#3951). The
       # TRI-STATE worker-written outcome fields (dns_verified /
       # provider_verified: nil = unknown) are deliberately excluded — they
       # keep parse_boolean_field's nil-preserving semantics.
-      COLONEL_FIELD_SPECS = {
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
       }.freeze
 

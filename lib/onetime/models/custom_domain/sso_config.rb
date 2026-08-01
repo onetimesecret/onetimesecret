@@ -123,20 +123,18 @@ module Onetime
       field :enforce_sso_only  # Boolean string ('true'/'false')
       field :grant_org_scope   # Boolean string ('true'/'false')
 
-      # Boolean field encoding specs consumed by the boolean_encoding feature
-      # (below) and the registry's load-time setter check. SSO is NOT
-      # colonel-editable (ConfigRegistry KINDS `editable: false` — create
-      # paths enforce credential validation), so these do NOT enter the
-      # registry's FIELD_SPECS composition; they exist so this model's
-      # boolean writers/predicates share the one normalizing idiom (#3951).
-      COLONEL_FIELD_SPECS = {
+      # Field encoding specs consumed by the boolean_encoding feature (below)
+      # and the registry's load-time setter check. SSO is not colonel-editable
+      # (ConfigRegistry KINDS `editable: false`), so these do not enter the
+      # registry's composed FIELD_SPECS (#3951).
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
         'enforce_sso_only' => { type: :boolean, storage: :string },
         'grant_org_scope' => { type: :boolean, storage: :string },
       }.freeze
 
       # Tolerant predicates + normalizing setters for the boolean fields in
-      # COLONEL_FIELD_SPECS above (#3951). Must come after both the field
+      # FIELD_SPECS above (#3951). Must come after both the field
       # declarations and the constant.
       feature :boolean_encoding
 

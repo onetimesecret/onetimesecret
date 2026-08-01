@@ -22,7 +22,7 @@ module Onetime
       # rewrite of existing rows.
       #
       # Enable with +feature :boolean_encoding+ AFTER both the field
-      # declarations and the COLONEL_FIELD_SPECS constant. For each spec entry
+      # declarations and the FIELD_SPECS constant. For each spec entry
       # with +type: :boolean+ the feature prepends, per field:
       #
       #   - +#{field}?+  — true iff the stored value is one of
@@ -43,7 +43,7 @@ module Onetime
       # bytes written via e.g. +enabled!(true)+ may be un-normalized. Read
       # tolerance covers such records; prefer +enabled=+ then +save+.
       #
-      # The model's COLONEL_FIELD_SPECS constant is the single source of truth
+      # The model's FIELD_SPECS constant is the single source of truth
       # for which fields are boolean and how each is stored; the registry's
       # load-time transcription check validates every spec'd field has a
       # setter (see ConfigRegistry).
@@ -58,12 +58,12 @@ module Onetime
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
 
-          unless base.const_defined?(:COLONEL_FIELD_SPECS)
+          unless base.const_defined?(:FIELD_SPECS)
             raise Familia::Problem,
-              "#{base}: COLONEL_FIELD_SPECS must be defined before `feature :boolean_encoding`"
+              "#{base}: FIELD_SPECS must be defined before `feature :boolean_encoding`"
           end
 
-          boolean_specs = base.const_get(:COLONEL_FIELD_SPECS).select do |_field, spec|
+          boolean_specs = base.const_get(:FIELD_SPECS).select do |_field, spec|
             spec[:type] == :boolean
           end
 
@@ -75,7 +75,7 @@ module Onetime
             next if base.fields.include?(field.to_sym)
 
             raise Familia::Problem,
-              "#{base}: COLONEL_FIELD_SPECS declares boolean field '#{field}' " \
+              "#{base}: FIELD_SPECS declares boolean field '#{field}' " \
               'but no matching Familia field is declared'
           end
 

@@ -96,7 +96,7 @@ module Onetime
       # are normalized to the declared storage on assignment (#3951).
       # allowed_signup_domains routes through the model setter
       # (PublicSuffix validation, raises Onetime::Problem).
-      COLONEL_FIELD_SPECS = {
+      FIELD_SPECS = {
         'enabled' => { type: :boolean, storage: :string },
         'signup_enabled' => { type: :boolean, storage: :native },
         'autoverify' => { type: :boolean, storage: :native },
@@ -105,7 +105,7 @@ module Onetime
       }.freeze
 
       # Tolerant predicates + normalizing setters for the boolean fields in
-      # COLONEL_FIELD_SPECS above (#3951). Must come after both the field
+      # FIELD_SPECS above (#3951). Must come after both the field
       # declarations and the constant.
       feature :boolean_encoding
 
