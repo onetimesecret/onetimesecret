@@ -188,6 +188,56 @@ end
 @raises.call(@ip_b, @email_b)
 #=> true
 
+## -- Audit trail --------------------------------------------------------
+
+## A cap-hit writes ONE queryable AdminAuditEvent, so an enumeration attempt
+## leaves more than a log line. Counted as a delta rather than by clearing the
+## shared store, which other tryout files also write to.
+set_reset_request_rate_limit(
+  'enabled' => true, 'max_per_ip' => 2, 'max_per_email' => 50,
+  'window' => 900, 'lockout' => 900,
+)
+@audit_verb  = Onetime::Security::ResetRequestRateLimiter::AUDIT_VERB
+@audit_count = -> { Onetime::AdminAuditEvent.recent_security(500).count { |e| e['verb'] == @audit_verb } }
+@admin_count = -> { Onetime::AdminAuditEvent.count }
+@audit_ip    = '203.0.113.99'
+@audit_email = "target_audit_#{@tag}@example.com"
+cleanup(@redis, ip: @audit_ip, email: @audit_email)
+@audit_before = @audit_count.call
+@admin_before = @admin_count.call
+2.times { @raises.call(@audit_ip, @audit_email) }
+@audit_count.call - @audit_before
+#=> 1
+
+## The event lands in the SECURITY trail, never the operator trail. That trail
+## is count-capped with no TTL and evicts oldest-first, so an unauthenticated
+## writer sharing it could flush purge/role-change/suspension records.
+@admin_count.call - @admin_before
+#=> 0
+
+## The event names the tier, the caps, and an unauthenticated actor
+@audit_event = Onetime::AdminAuditEvent.recent_security(500).find { |e| e['verb'] == @audit_verb }
+[@audit_event['actor'], @audit_event['result'], @audit_event['detail']['tier'],
+ @audit_event['detail']['count'], @audit_event['detail']['max_attempts']]
+#=> ['anonymous', 'failure', 'ip', 2, 2]
+
+## The target is the OBSCURED subject — the audit trail must not become the
+## enumeration oracle the limiter exists to bound
+@audit_event['target']
+#=> 'ip:203.0.x.x'
+
+## Denied requests write NO further events: only the cap-reaching request
+## records, so writes are bounded to one per bucket per lockout window. This is
+## a SIGNAL-quality bound (a per-request event is noise); the integrity of the
+## operator trail rests on the separate collection, not on this frequency.
+3.times { @raises.call(@audit_ip, @audit_email) }
+@audit_count.call - @audit_before
+#=> 1
+
+## ...and the flood still leaves the operator trail untouched
+@admin_count.call - @admin_before
+#=> 0
+
 ## -- Config validation ----------------------------------------------------
 
 ## Non-positive / garbage numeric settings fall back to the defaults instead
@@ -314,4 +364,5 @@ cleanup(@redis, ip: @cfg_ip, email: @cfg_email)
 cleanup(@redis, ip: @off_ip, email: @off_email)
 cleanup(@redis, ip: @hint_ip, email: @hint_email)
 cleanup(@redis, ip: @hint_ip_ok, email: @hint_email_ok)
+cleanup(@redis, ip: @audit_ip, email: @audit_email)
 OT.send(:conf=, @saved_conf)

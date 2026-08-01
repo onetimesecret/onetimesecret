@@ -47,9 +47,25 @@ module Onetime
       # (MiddlewareStack) and mirrored in the x-request-id response header.
       ENV_REQUEST_ID = 'HTTP_X_REQUEST_ID'
 
+      # Rack env key under which a throttle's retry-after delay (seconds) is
+      # stashed for {Onetime::Middleware::RetryAfterHeader} to turn into the
+      # `Retry-After` response header. Same cross-frame pattern as
+      # ENV_ERROR_TYPE: neither routing stack can set a response header from
+      # where it builds the error body (Otto's registered error handlers return
+      # a body Hash and nothing else — Otto::Core::ErrorHandler owns the header
+      # hash), so the value is handed to the middleware frame above instead.
+      #
+      # Read from the body rather than from the exception so ONE assignment
+      # covers every limiter: `Onetime::LimitExceeded#to_h` already carries
+      # `retry_after`, and every security limiter
+      # (Reset/Login/Incoming/InviteToken/Passphrase/Feedback/Dns) raises that
+      # one class. Bodies without the key stash nothing.
+      ENV_RETRY_AFTER = 'otto.retry_after'
+
       module_function
 
-      # Echo the request_id into the error body and stash the error_type into env.
+      # Echo the request_id into the error body and stash the error_type (and,
+      # for throttles, the retry-after delay) into env.
       #
       # Nil-safe on env: the Otto error-handler unit specs invoke the handler
       # blocks with no request, and any pre-middleware caller has no env — with
@@ -71,8 +87,37 @@ module Onetime
         error_type        ||= short_class_name(exception) if exception
         env[ENV_ERROR_TYPE] = error_type if error_type
 
+        retry_after           = retry_after_seconds(body[:retry_after])
+        env[ENV_RETRY_AFTER]  = retry_after if retry_after
+
         request_id = env[ENV_REQUEST_ID]
         request_id ? body.merge(request_id: request_id) : body
+      end
+
+      # Coerce a body's retry_after into a non-negative Integer of seconds, or
+      # nil when it is absent/unusable. `Retry-After` is delay-seconds per RFC
+      # 9110 §10.2.3, so a nil, negative, or non-numeric value must produce no
+      # header rather than a malformed one.
+      #
+      # Rounds UP (`ceil`), never toward zero. Every current LimitExceeded
+      # producer passes an Integer (a Redis TTL or a constant), so today header
+      # and body are identical — but the coercion accepts Floats by design, and
+      # truncating 30.5 to 30 would advertise a SHORTER back-off than the body
+      # states. A client that honours the header would then retry before the
+      # lockout key expires and be throttled again, i.e. the header would
+      # misdirect the very back-off it exists to communicate. Over-waiting by
+      # under a second is the harmless direction.
+      #
+      # @param value [Object]
+      # @return [Integer, nil]
+      def retry_after_seconds(value)
+        return nil unless value.is_a?(Numeric)
+        # NaN/Infinity would raise FloatDomainError from #ceil, and neither is a
+        # delay a header could express. Numeric#finite? covers every subclass.
+        return nil if value.respond_to?(:finite?) && !value.finite?
+
+        seconds = value.ceil
+        seconds.negative? ? nil : seconds
       end
 
       # @param exception [Exception]

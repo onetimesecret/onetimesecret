@@ -67,19 +67,67 @@ module Onetime
     # per-customer collection.
     class_sorted_set :events
 
-    # Hard retention cap (by count). The primary memory bound: at most MAX_EVENTS
-    # events are retained; on each write the oldest overflow is trimmed. Sized for a
-    # deep-but-bounded operator trail; older history is expected to be shipped to an
-    # external log sink if longer retention is required. Kept as a constant (not a
-    # config key) so the audit path has no external configuration dependency.
+    # SECOND, SEPARATE RETENTION DOMAIN for security telemetry that an
+    # UNAUTHENTICATED caller can trigger (see {.record_security}). Same member
+    # shape and same score, different Redis key, different budget.
     #
-    # The cap is safe at this size ONLY because every write is authenticated
-    # colonel activity. Failure auditing ({Onetime::AuditedFailure}) deliberately
-    # excludes bare authorization/authentication rejections: on a count-capped set
-    # with no TTL, an event an unauthorized caller can trigger is a log-eviction
-    # primitive — 10k rejected requests would flush the real destructive-action
-    # trail. Keep that invariant and the cap needs no revisiting.
+    # Why a second collection rather than a bigger cap: the operator trail is
+    # capped by COUNT and evicts oldest-first, so any writer an attacker can
+    # drive competes with purge/role-change/suspension/impersonation records for
+    # the same budget. Raising MAX_EVENTS moves the threshold without removing
+    # the primitive. Splitting the budget removes it — no volume of anonymous
+    # telemetry can evict a single privileged record, because the two sets are
+    # trimmed independently.
+    class_sorted_set :security_events
+
+    # Hard retention cap (by count) for the OPERATOR trail. The primary memory
+    # bound: at most MAX_EVENTS events are retained; on each write the oldest
+    # overflow is trimmed. Sized for a deep-but-bounded operator trail; older
+    # history is expected to be shipped to an external log sink if longer
+    # retention is required. Kept as a constant (not a config key) so the audit
+    # path has no external configuration dependency.
+    #
+    # WRITE-FREQUENCY INVARIANT, now STRUCTURAL rather than advisory. On a
+    # count-capped set with no TTL, any event an attacker can mint on demand is a
+    # log-eviction primitive: 10k such writes flush the real destructive-action
+    # trail (purge, role change, suspension, impersonation). Per-writer rate
+    # limiting is not a sufficient answer — the reset-request throttle bounds
+    # itself to one event per bucket per lockout window, which still costs an
+    # attacker only ~7.5 requests per evicted record once bucket minting is
+    # cheap (distributed source, IPv6 prefix space, or a forgeable
+    # client-IP header behind an appending proxy). So the boundary is enforced by
+    # storage, not by frequency:
+    #
+    #   1. `events` (this cap) accepts AUTHENTICATED operator activity only, via
+    #      {.record}. Every caller is an admin Operation.
+    #   2. Anything an unauthenticated caller can trigger goes to
+    #      `security_events` via {.record_security}, under MAX_SECURITY_EVENTS +
+    #      SECURITY_EVENT_RETENTION. Flooding it evicts only other anonymous
+    #      telemetry.
+    #   3. Failure auditing ({Onetime::AuditedFailure}) still excludes bare
+    #      authorization/authentication rejections outright — see
+    #      AuditedFailure.authorization_rejection?, which also bars the
+    #      LimitExceeded family by inheritance (LimitExceeded < Forbidden).
+    #
+    # So: a new verb reachable without authentication MUST use {.record_security}.
+    # Both trails are merged newest-first for reading by
+    # ColonelAPI::Logic::Colonel::ListAuditEvents, so the split costs no
+    # queryability.
     MAX_EVENTS = 10_000
+
+    # Retention cap (by count) for the anonymous security-telemetry trail. Small
+    # on purpose: it holds detection signal, not a forensic record, and a
+    # flooding attacker only ever evicts their own earlier events. An operator
+    # who needs the full history ships these to an external sink (they are also
+    # emitted as OT.le log lines at their call sites).
+    MAX_SECURITY_EVENTS = 1_000
+
+    # Age bound (seconds) for the security trail, trimmed by score on every
+    # security write. `events` has no TTL because operator history is worth
+    # keeping until the count cap forces eviction; anonymous telemetry goes stale,
+    # so it gets both bounds. Sorted-set members cannot carry a per-member TTL, so
+    # this is a ZREMRANGEBYSCORE over the creation score.
+    SECURITY_EVENT_RETENTION = 7 * 24 * 60 * 60 # 7 days
 
     # Placeholder written in place of any redacted value.
     REDACTED = '[REDACTED]'
@@ -131,17 +179,7 @@ module Onetime
       #   storage; never include secret content, tokens, or passphrases.
       # @return [Hash, nil] the stored event (string keys), or nil if the write failed.
       def record(actor:, verb:, target:, result:, detail: nil)
-        event = {
-          'actor' => normalize_actor(actor),
-          'verb' => verb.to_s,
-          'target' => target.to_s,
-          'result' => result.to_s,
-          'detail' => redact(detail),
-          'created' => Familia.now,
-          # Nonce: keeps otherwise-identical events distinct members in the sorted
-          # set (a duplicate member would collide and silently drop one event).
-          'id' => Familia.generate_id,
-        }
+        event = build_event(actor: actor, verb: verb, target: target, result: result, detail: detail)
 
         events.add(event, event['created'])
         trim!
@@ -153,13 +191,33 @@ module Onetime
         # choose fail-closed here — re-raise / abort the op when its audit event
         # cannot be written, so a destructive action is never taken silently. Today
         # every verb is fail-open.
-        OT.le(
-          '[AdminAuditEvent] record failed',
-          exception: ex,
-          verb: verb.to_s,
-          target: target.to_s,
-          result: result.to_s,
-        )
+        log_record_failure(ex, verb, target, result)
+        nil
+      end
+
+      # Record one SECURITY-TELEMETRY event: same shape as {.record}, stored in
+      # the separate `security_events` collection with its own count cap and age
+      # bound.
+      #
+      # Use this — never {.record} — for any event an UNAUTHENTICATED caller can
+      # cause. The separation is the control described in the WRITE-FREQUENCY
+      # INVARIANT above: writes here can never evict an operator record, so a
+      # caller does not have to argue that its own rate limiting is tight enough
+      # to protect the operator trail. Callers should still bound their write
+      # rate for signal quality (a per-request event is noise), but that is no
+      # longer load-bearing for the integrity of `events`.
+      #
+      # Same best-effort contract as {.record}: errors are logged and swallowed.
+      #
+      # @return [Hash, nil] the stored event (string keys), or nil if it failed.
+      def record_security(actor:, verb:, target:, result:, detail: nil)
+        event = build_event(actor: actor, verb: verb, target: target, result: result, detail: detail)
+
+        security_events.add(event, event['created'])
+        trim_security!
+        event
+      rescue StandardError => ex
+        log_record_failure(ex, verb, target, result)
         nil
       end
 
@@ -179,9 +237,29 @@ module Onetime
         events.revrange(offset, offset + limit - 1)
       end
 
+      # Newest-first slice of the SECURITY-TELEMETRY trail. Same contract as
+      # {.recent}, over the separate collection.
+      #
+      # @param limit [Integer] max events to return (most recent first).
+      # @param offset [Integer] rank offset into the newest-first ordering.
+      # @return [Array<Hash>] events with string keys, newest first.
+      def recent_security(limit = 100, offset = 0)
+        limit  = limit.to_i
+        offset = offset.to_i
+        return [] if limit <= 0
+
+        offset = 0 if offset.negative?
+        security_events.revrange(offset, offset + limit - 1)
+      end
+
       # @return [Integer] number of retained events.
       def count
         events.element_count
+      end
+
+      # @return [Integer] number of retained security-telemetry events.
+      def security_count
+        security_events.element_count
       end
 
       # Enforce the count cap: keep only the newest `cap` events, dropping the
@@ -200,7 +278,56 @@ module Onetime
         events.remrangebyrank(0, -(cap + 1))
       end
 
+      # Enforce BOTH bounds on the security-telemetry trail: the count cap (as
+      # {.trim!}) and the age bound, which is applied by score because sorted-set
+      # members cannot carry an individual TTL. Runs on every security write.
+      #
+      # @param cap [Integer] number of newest security events to retain.
+      # @param max_age [Integer] seconds; events older than this are dropped.
+      #   Non-positive disables the age bound (the count cap still applies).
+      # @return [Integer] number of events removed by both passes.
+      def trim_security!(cap = MAX_SECURITY_EVENTS, max_age = SECURITY_EVENT_RETENTION)
+        cap = cap.to_i
+        return 0 if cap.negative?
+
+        removed = security_events.remrangebyrank(0, -(cap + 1)).to_i
+
+        max_age = max_age.to_i
+        return removed unless max_age.positive?
+
+        # Scores are creation times, so everything scored at or below the cutoff
+        # is older than the retention window. Starting at 0 rather than '-inf' is
+        # safe: every score this model writes is an epoch time.
+        removed + security_events.remrangebyscore(0, Familia.now - max_age).to_i
+      end
+
       private
+
+      # Build the stored member. Shared by {.record} and {.record_security} so the
+      # two trails can never drift in shape (the read path merges them).
+      def build_event(actor:, verb:, target:, result:, detail:)
+        {
+          'actor' => normalize_actor(actor),
+          'verb' => verb.to_s,
+          'target' => target.to_s,
+          'result' => result.to_s,
+          'detail' => redact(detail),
+          'created' => Familia.now,
+          # Nonce: keeps otherwise-identical events distinct members in the sorted
+          # set (a duplicate member would collide and silently drop one event).
+          'id' => Familia.generate_id,
+        }
+      end
+
+      def log_record_failure(ex, verb, target, result)
+        OT.le(
+          '[AdminAuditEvent] record failed',
+          exception: ex,
+          verb: verb.to_s,
+          target: target.to_s,
+          result: result.to_s,
+        )
+      end
 
       # Coerce actor to a public identity string, preferring extid then email, and
       # never an internal objid. Accepts a bare String (the common case) or a

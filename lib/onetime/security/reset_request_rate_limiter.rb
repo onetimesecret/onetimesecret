@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/admin_audit_event'
+
 module Onetime
   module Security
     # ResetRequestRateLimiter - Throttles reset-password-request submissions
@@ -194,6 +196,11 @@ module Onetime
       # maximal legal email (64 local + '@' + 255 domain).
       MAX_EMAIL_KEY_LENGTH = 320
 
+      # Audit verb recorded when a tier reaches its cap. Namespaced like every
+      # other verb in the trail (`<resource>.<action>`); the admin console
+      # filters on the exact string, so it is a constant rather than a literal.
+      AUDIT_VERB = 'auth.reset_request_throttled'
+
       # ASCII control characters (C0 + DEL) removed from the normalized login
       # before it is used as a Redis-key suffix or log subject. An email can
       # never contain them, so distinct garbage strings merging into one
@@ -258,7 +265,7 @@ module Onetime
         # Normalize ONCE; the same value feeds the Redis key AND the
         # (obscured) log subject, so a raw attacker-supplied string never
         # reaches either.
-        normalized = normalize_reset_request_login(login)
+        normalized     = normalize_reset_request_login(login)
         if (email_keys = reset_request_email_keys(normalized))
           enforce_reset_request_tier!(email_keys, reset_request_max_per_email, 'email', normalized)
         end
@@ -270,6 +277,8 @@ module Onetime
       # Raises LimitExceeded when the tier is locked; otherwise logs as the
       # count approaches/reaches the cap (the detection tie-in for #3872 —
       # alert on these alongside the reset_password_request_no_account events).
+      # The cap-hit also writes one AdminAuditEvent, so the signal is queryable
+      # and not only greppable — see record_reset_request_throttle_audit.
       def enforce_reset_request_tier!(keys, max_attempts, tier_label, subject)
         allowed, detail = reset_request_redis.eval(
           CHECK_AND_RECORD_SCRIPT,
@@ -289,12 +298,71 @@ module Onetime
         if count >= max_attempts
           # This cap-reaching request was itself ALLOWED (the Lua script locks
           # after incrementing); the lockout applies to subsequent requests.
-          OT.le "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} " \
+          obscured = obscured_reset_request_subject(tier_label, subject)
+          OT.le "[ResetRequestRateLimiter] #{tier_label} #{obscured} " \
                 "hit cap (#{count}/#{max_attempts}); locked for #{reset_request_lockout}s" \
                 "#{collapsed_ip_tier_hint(tier_label)}"
+          record_reset_request_throttle_audit(tier_label, obscured, count, max_attempts)
         elsif count >= max_attempts - 1
           OT.li "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} at #{count}/#{max_attempts} requests"
         end
+      end
+
+      # Write the queryable counterpart of the OT.le line above: one
+      # {Onetime::AdminAuditEvent} per cap-hit, readable through the admin audit
+      # view (GET /api/colonel/audit) and the CLI. A log line alone is not a
+      # signal an operator can query — an enumeration attempt against the reset
+      # flow otherwise leaves nothing to search for.
+      #
+      # SEPARATE RETENTION DOMAIN — this is the control. The write goes to
+      # {Onetime::AdminAuditEvent.record_security}, whose `security_events`
+      # collection has its own count cap and age bound, NOT to `.record`, which
+      # holds the operator trail (purge, role change, suspension,
+      # impersonation). That trail is capped by count with no TTL and evicts
+      # oldest-first, so an unauthenticated writer sharing it would be a
+      # log-eviction primitive no matter how well it rate-limits itself: at
+      # max_per_ip=10 / max_per_email=30 a caller mints one event per ~7.5
+      # requests (10 requests fill one masked-IP bucket and 3 such buckets also
+      # fill one per-login bucket), which is ~75k requests to flush a 10k trail —
+      # cheap for a distributed source, for IPv6 prefix space, or for anyone able
+      # to forge the resolved client IP behind an appending reverse proxy.
+      # Writing to the separate trail means a flood evicts only other anonymous
+      # telemetry.
+      #
+      # Write frequency is still bounded for SIGNAL quality (a per-request event
+      # is noise, not detection): this records ONLY on the cap-reaching request,
+      # never on the deny path, which an attacker can drive as fast as it can
+      # send — one event per bucket per LOCKOUT window (default 1h). Both
+      # properties are pinned by tests; keep them.
+      #
+      # The subject is the OBSCURED value (masked /16 for IPv4, obscured email),
+      # never the raw login: the audit trail must not become the account
+      # enumeration oracle the limiter exists to bound.
+      #
+      # Actor is 'anonymous' — the caller is unauthenticated by construction on
+      # this route, and normalize_actor would otherwise stamp 'unknown', which
+      # reads as "we failed to resolve it" rather than "there is none".
+      #
+      # Best-effort, matching every other audit call site: AdminAuditEvent.record
+      # already swallows its own errors, and this rescue covers assembly.
+      def record_reset_request_throttle_audit(tier_label, obscured_subject, count, max_attempts)
+        Onetime::AdminAuditEvent.record_security(
+          actor: 'anonymous',
+          verb: AUDIT_VERB,
+          target: "#{tier_label}:#{obscured_subject}",
+          result: :failure,
+          detail: {
+            tier: tier_label,
+            count: count,
+            max_attempts: max_attempts,
+            window: reset_request_window,
+            lockout: reset_request_lockout,
+          },
+        )
+      rescue StandardError => ex
+        # A reset request must never fail because its audit event could not be
+        # assembled.
+        OT.le('[ResetRequestRateLimiter] audit record failed', exception: ex, tier: tier_label.to_s)
       end
 
       # Composite per-IP keys, or nil when no IP is available (skips the IP

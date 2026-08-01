@@ -157,6 +157,14 @@ RSpec.describe 'Reset-password-request rate limiting (issue #3872)', type: :inte
       expect(body['error_type']).to eq('LimitExceeded')
       expect(body['retry_after']).to be_a(Integer)
       expect(body['max_attempts']).to eq(2)
+
+      # The delay must also
+      # reach the HTTP header proxies and clients actually read (RFC 9110
+      # §10.2.3). Set by Onetime::Middleware::RetryAfterHeader from the value
+      # the Roda error handler stashes via ErrorCorrelation — the same
+      # mechanism the simple-mode Otto stack uses, so the two modes cannot
+      # drift (spec/integration/simple/reset_password_request_rate_limit_spec.rb).
+      expect(response.headers['retry-after']).to eq(body['retry_after'].to_s)
     end
   end
 
