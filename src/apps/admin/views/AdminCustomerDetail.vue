@@ -4,9 +4,9 @@
   import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
   import AdminCheckoutLinkModal from '@/apps/admin/components/AdminCheckoutLinkModal.vue';
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
-  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
+  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
@@ -701,7 +701,9 @@
                 <RevealEmail
                   v-if="field.key === 'email'"
                   :email="record.email" />
-                <template v-else>{{ field.value }}</template>
+                <template v-else>
+                  {{ field.value }}
+                </template>
               </dd>
             </div>
           </dl>
@@ -971,9 +973,7 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.secrets') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.secrets.count }})</span
-            >
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.secrets.count }})</span>
           </h3>
           <!-- The server told us this list is PARTIAL. Say so plainly — the
                count beside the heading is what is on screen, not the total. -->
@@ -1016,9 +1016,7 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.receipts') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.receipts.count }})</span
-            >
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.receipts.count }})</span>
           </h3>
           <p
             v-if="details.receipts.truncated"
@@ -1052,9 +1050,7 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.organizations.length }})</span
-            >
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.organizations.length }})</span>
           </h3>
         </div>
         <ul

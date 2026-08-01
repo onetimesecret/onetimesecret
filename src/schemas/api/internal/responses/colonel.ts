@@ -7,16 +7,16 @@
  * Config-related schemas are imported from @/schemas/contracts/config/config.ts
  */
 
-import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
-import { transforms } from '@/schemas/transforms';
 import { createApiResponseSchema } from '@/schemas/api/base';
-import { z } from 'zod';
-
-// Import system settings schemas from config
 import {
   systemSettingsDetailsSchema,
   systemSettingsSchema,
 } from '@/schemas/contracts/config/config';
+import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
+import { transforms } from '@/schemas/transforms';
+import { z } from 'zod';
+
+// Import system settings schemas from config
 
 // Re-export for backward compatibility
 export { systemSettingsDetailsSchema, systemSettingsSchema };

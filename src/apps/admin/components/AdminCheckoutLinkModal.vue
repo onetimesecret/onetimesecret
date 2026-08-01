@@ -161,9 +161,7 @@
         class="flex items-start gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-700 dark:bg-gray-800">
         <code
           class="min-w-0 flex-1 font-mono text-xs break-all text-gray-900 dark:text-gray-100"
-          data-testid="checkout-link-url"
-          >{{ result.record.checkout_url }}</code
-        >
+          data-testid="checkout-link-url">{{ result.record.checkout_url }}</code>
         <CopyButton
           :text="result.record.checkout_url"
           :tooltip="t('web.admin.customers.actions.checkoutLink.copy')"
