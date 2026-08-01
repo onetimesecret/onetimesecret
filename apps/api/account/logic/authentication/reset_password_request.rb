@@ -18,57 +18,29 @@ module AccountAPI::Logic
       attr_accessor :token
 
       def process_params
-        # Scrub invalid bytes BEFORE sanitizing. Form params arrive UTF-8-TAGGED
-        # but not UTF-8-VALIDATED: Rack::Parser parses the urlencoded body
-        # eagerly and caches it in rack.request.form_hash (middleware_stack.rb),
-        # so the UTF8Sanitizer's replacement rack.input never reaches these
-        # values — and sanitize_email -> Sanitize.fragment RAISES ArgumentError
-        # on an invalid byte sequence.
-        #
-        # This method runs in Onetime::Logic::Base's constructor, which the
-        # controller invokes OUTSIDE execute_with_error_handling and therefore
-        # BEFORE raise_concerns runs the rate limiter. An unhandled raise here
-        # would be an unauthenticated 500 that costs the caller no limiter
-        # budget — an uncapped hole in the cap this class exists to enforce (no
-        # enumeration oracle and no mail dispatch, since it dies before the
-        # lookup, but unbounded 500s and Sentry noise all the same).
-        #
-        # scrub('') is a no-op for valid input; a garbage login then flows
-        # through the limiter and fails the ordinary format check below.
+        # Scrub BEFORE sanitizing: Rack::Parser caches the parsed form in
+        # rack.request.form_hash ahead of the UTF8Sanitizer (middleware_stack.rb),
+        # so params arrive UTF-8-TAGGED but not UTF-8-VALIDATED, and
+        # sanitize_email -> Sanitize.fragment raises ArgumentError on an invalid
+        # byte sequence. This method runs in Onetime::Logic::Base's constructor,
+        # BEFORE #raise_concerns runs the limiter, so a raise here is a 500 that
+        # costs the caller no limiter budget — an uncapped hole in the cap.
         @login_or_email = sanitize_email(params['login'].to_s.scrub(''))
       end
 
       def raise_concerns
-        # Throughput cap (#3872), FIRST — before the format check, before any
-        # account lookup. Simple mode (the application default) routes
-        # POST /auth/reset-password-request straight here via
-        # Core::Controllers::Registration#request_reset_email; the Rodauth
-        # before_reset_password_request_route hook that enforces the same
-        # limiter (apps/web/auth/config/hooks/reset_password_request.rb) only
-        # loads in full mode, so without this call the endpoint had no
-        # throughput cap at all in the default configuration. #process below is
-        # enumeration-safe by response CONTENT but keeps the statistical timing
-        # residual documented there — exploiting it needs many samples per
-        # target, and an uncapped endpoint also mail-bombs arbitrary addresses.
+        # Throughput cap (#3872). First by design: every submission costs
+        # budget, and a throttled probe reaches neither the format check below
+        # nor the timing-sensitive lookup in #process — the residual channel
+        # this bounds. Raises Onetime::LimitExceeded, rendered as the ADR-013
+        # 429 (lib/onetime/application/otto_hooks.rb); both tiers key only on
+        # request-observable inputs, so the 429 adds no enumeration oracle.
         #
-        # Ordering mirrors the full-mode hook, which fires before Rodauth's own
-        # param validation: every submission costs limiter budget, and a
-        # throttled probe never reaches valid_email? (a Truemail call) or the
-        # timing-sensitive lookup in #process. Raises Onetime::LimitExceeded,
-        # which the Otto error handler renders as the ADR-013 429
-        # (lib/onetime/application/otto_hooks.rb).
-        #
-        # ENUMERATION SAFETY: both limiter tiers key only on request-observable
-        # inputs (client IP, submitted login), never on account existence, so
-        # the 429 introduces no new oracle.
-        #
-        # The login subject is @login_or_email — the SANITIZED value #process
-        # feeds to Customer.find_by_email — not the raw param. Keying on the
-        # exact string this mode resolves accounts with is what keeps the
-        # backstop bucket 1:1 with the lookup: submissions that differ only in
-        # what sanitize_email strips collapse into one bucket instead of minting
-        # a fresh budget each. (The full-mode hook passes the raw param for the
-        # same reason: there Rodauth's normalize_login is the lookup key.)
+        # Sole limiter call site when the Auth app is not mounted; the other is
+        # the Rodauth before_reset_password_request_route hook in
+        # apps/web/auth/config/hooks/reset_password_request.rb. Keep them in
+        # lockstep on ordering and on subjects — each passes the string ITS path
+        # resolves accounts with, keeping a bucket 1:1 with the lookup.
         enforce_reset_request_rate_limit!(reset_request_client_ip, @login_or_email)
 
         # Security (CWE-204): email enumeration prevention. Validate only the
@@ -122,15 +94,10 @@ module AccountAPI::Logic
           return success_data
         end
 
-        # owner_id keyword, matching RequestEmailChange. The legacy positional
-        # call (`create! @login_or_email, [@login_or_email]`) mapped the EMAIL
-        # into the identifier and left owner_id nil, which (a) made the emailed
-        # reset token (/forgot/:identifier) the user's own email address —
-        # guessable by anyone — and (b) broke ResetPassword#process, whose
-        # `secret.load_owner` returned nil and 500'd every simple-mode reset
-        # before it could change the password. With owner_id set, the
-        # identifier is the auto-generated objid (an unguessable token) and
-        # load_owner resolves the customer.
+        # owner_id, never a positional custid: the auto-generated identifier is
+        # emailed as the reset token (it fills the :key slot of /forgot/:key),
+        # so it must stay unguessable, and ResetPassword#process resolves the
+        # account from it via secret.load_owner.
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
@@ -138,9 +105,8 @@ module AccountAPI::Logic
 
         cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately
 
-        # Log only the truncated shortid: the full identifier IS the live reset
-        # token now that it is unguessable — logging it would let anyone with
-        # log access take over accounts mid-reset.
+        # shortid only: the full identifier is the live reset token, so logging
+        # it would hand accounts to anyone with log access mid-reset.
         auth_logger.debug 'Delivering password reset email',
           {
             customer_id: cust.extid,
@@ -192,18 +158,11 @@ module AccountAPI::Logic
 
       private
 
-      # Client IP for the limiter's per-IP tier, read from the same strategy
-      # metadata the other logic-layer limiters use
-      # (AuthenticateSession#login_rate_limit_ip,
-      # CreateIncomingSecret#incoming_client_ip). That value comes from
-      # AuthStrategies::Helpers#client_ip, which prefers env['otto.client_ip'] —
-      # the trusted-proxy-resolved, privacy-masked address the full-mode hook
-      # reads — so neither mode's key is spoofable via forwarded headers from an
-      # untrusted hop, and both bucket a caller identically.
-      #
-      # A nil/blank IP (no strategy metadata, e.g. a bare unit invocation) skips
-      # the IP tier inside the limiter rather than pooling unknown callers into
-      # one shared bucket; the per-login backstop still applies.
+      # Edge-masked client IP from the same StrategyResult metadata the other
+      # logic-layer limiters read (CreateIncomingSecret#incoming_client_ip).
+      # AuthStrategies::Helpers#client_ip sources it from env['otto.client_ip'],
+      # so the key is trusted-proxy-resolved and not header-spoofable. nil skips
+      # the IP tier; the per-login backstop still applies.
       def reset_request_client_ip
         strategy_result&.metadata&.[](:ip)
       end
