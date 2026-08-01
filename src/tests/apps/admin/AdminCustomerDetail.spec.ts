@@ -432,6 +432,30 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(link.attributes('href')).toBe('https://dashboard.stripe.com/customers/cus_123');
       expect(link.attributes('target')).toBe('_blank');
     });
+
+    it('hides the checkout-link button when billing is disabled (endpoint guard rejects it anyway)', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload({ billing: { enabled: false } }) });
+      wrapper = mountView();
+      await flushPromises();
+
+      const section = wrapper.find('[data-testid="billing-section"]');
+      expect(section.exists()).toBe(true);
+      expect(section.find('[data-testid="checkout-link-button"]').exists()).toBe(false);
+    });
+
+    it('shows the checkout-link button when billing is enabled', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({ billing: { enabled: true, stripeAvailable: true } }),
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(
+        wrapper
+          .find('[data-testid="billing-section"] [data-testid="checkout-link-button"]')
+          .exists()
+      ).toBe(true);
+    });
   });
 
   // ---- Suspend / unsuspend ----------------------------------------------------
