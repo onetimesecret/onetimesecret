@@ -158,7 +158,7 @@ RSpec.describe 'Reset-password-request rate limiting (issue #3872)', type: :inte
       expect(body['retry_after']).to be_a(Integer)
       expect(body['max_attempts']).to eq(2)
 
-      # Security audit 2026-07-30, finding #2, residual 2: the delay must also
+      # The delay must also
       # reach the HTTP header proxies and clients actually read (RFC 9110
       # §10.2.3). Set by Onetime::Middleware::RetryAfterHeader from the value
       # the Roda error handler stashes via ErrorCorrelation — the same

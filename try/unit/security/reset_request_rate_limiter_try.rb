@@ -188,7 +188,7 @@ end
 @raises.call(@ip_b, @email_b)
 #=> true
 
-## -- Audit trail (security audit 2026-07-30, finding #2, residual 3) ------
+## -- Audit trail --------------------------------------------------------
 
 ## A cap-hit writes ONE queryable AdminAuditEvent, so an enumeration attempt
 ## leaves more than a log line. Counted as a delta rather than by clearing the
