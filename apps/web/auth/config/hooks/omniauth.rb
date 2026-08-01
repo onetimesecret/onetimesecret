@@ -23,6 +23,57 @@ module Auth::Config::Hooks
     # callback flow across methods and obscure the account_from_omniauth branch
     # order the security model depends on.
     def self.configure(auth)
+      # ========================================================================
+      # Resolve the SSO email (#3499 / #3478) — one override, every consumer.
+      # ========================================================================
+      #
+      # Some IdPs (notably Microsoft EntraID) omit the standard `email` claim
+      # for users without an Exchange mailbox, or when the app registration
+      # lacks the email optional claim (#3478). Fall back to the verified
+      # mailbox attribute `mail` (extra.raw_info["mail"]) when `info.email` is
+      # absent.
+      #
+      # TRUST TIERS (see #3499): only TIER-1, IdP-verified mailbox claims are
+      # consulted:
+      #   - info.email             (standard OIDC, verified by the IdP)
+      #   - extra.raw_info["mail"] (Exchange mailbox attribute)
+      # Mutable TIER-2 identifiers (upn, preferred_username) are intentionally
+      # NOT used — Microsoft documents them as mutable and unsafe for identity
+      # or authorization, so linking on them is an account-takeover vector. The
+      # tripwire specs in spec/integration/full/omniauth_missing_email_spec.rb
+      # pin that refusal; they must keep passing.
+      #
+      # WHY OVERRIDE `omniauth_email` RATHER THAN THE INDIVIDUAL HOOKS:
+      # rodauth-omniauth registers :omniauth_new_account through
+      # auth_private_methods, which GENERATES a zero-arity
+      # `_omniauth_new_account` dispatcher that shadows the gem's own
+      # `_omniauth_new_account(login)` helper (features/omniauth.rb:173). So
+      # configuring `omniauth_new_account` and calling
+      # `_omniauth_new_account(resolved)` inside it raises ArgumentError
+      # (given 1, expected 0) on every SSO account creation. Overriding the
+      # single accessor instead feeds the resolved value to every consumer —
+      # account lookup, account creation, and `omniauth_verify_account?`
+      # (features/omniauth.rb:152), which the per-hook approach missed.
+      #
+      # Returns the resolved claim verbatim, or nil when the IdP supplied no
+      # tier-1 mailbox. Normalization and structural validation stay exactly
+      # where they already are (account_from_omniauth below normalizes;
+      # before_omniauth_create_account validates and emits invalid_email), so
+      # the nil path keeps the existing #3478 error behaviour unchanged.
+      # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
+      auth.auth_class_eval do
+        def omniauth_email
+          info  = omniauth_info || {}
+          email = info['email']
+          if email.to_s.strip.empty?
+            raw   = (omniauth_extra && omniauth_extra['raw_info']) || {}
+            email = raw['mail']
+          end
+          email.to_s.strip.empty? ? nil : email
+        end
+      end
+      # rubocop:enable Lint/NestedMethodDefinition
+
       # Normalize email for case-insensitive account lookup.
       # Required because:
       # - SQLite (dev/test) uses case-sensitive string comparison

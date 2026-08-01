@@ -95,10 +95,12 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
 
   # Builds an OmniAuth mock shaped like a Microsoft Entra ID v2.0 id_token.
   #
-  # `email:` is what the IdP surfaced as info.email (the only thing the hook
-  # reads). Pass nil/''/whitespace to reproduce #3478. `raw_info:` lets a test
-  # add claims that ARE present on a v2.0 token (preferred_username, oid, upn)
-  # to prove they are not currently used as an email fallback.
+  # `email:` is what the IdP surfaced as info.email. Pass nil/''/whitespace to
+  # reproduce #3478. `raw_info:` lets a test add claims that ARE present on a
+  # v2.0 token. Two distinct roles there since the #3499 fix:
+  #   - `mail:` is a TIER-1 verified mailbox claim and IS used as a fallback.
+  #   - preferred_username / upn / oid are TIER-2 (mutable) and are NOT — the
+  #     tripwires below prove the hook still refuses them.
   def setup_entra_mock_auth(email:, provider: :oidc, uid: nil, raw_info: {})
     OmniAuth.config.test_mode = true
     OmniAuth.config.allowed_request_methods = %i[get post]
@@ -253,15 +255,70 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   end
 
   # ==========================================================================
-  # Behavioral tripwires: pins CURRENT behavior so the #3478 fix is deliberate
+  # Tier-1 fallback: extra.raw_info["mail"]  (#3499 Phase 1)
   # ==========================================================================
   #
-  # OTS does not (yet) fall back to preferred_username / upn / oid when the
-  # email claim is missing. These tests document that. When the fallback fix
-  # for #3478 lands, FLIP these expectations (the login should then proceed
-  # instead of redirecting to invalid_email).
+  # The #3478 fix. An Entra user with no Exchange mailbox — or an app
+  # registration missing the email optional claim — arrives with info.email
+  # absent but the verified mailbox attribute `mail` present. That user must
+  # now sign in instead of hitting invalid_email.
 
-  describe 'no email fallback today (update when #3478 fix lands)' do
+  describe 'verified-mailbox fallback' do
+    it 'falls back to extra.raw_info["mail"] when info.email is absent' do
+      setup_entra_mock_auth(email: nil, raw_info: { mail: 'has.mailbox@fabrikam.onmicrosoft.com' })
+
+      begin
+        post_sso_callback(:oidc)
+        expect(last_response.status).to eq(302),
+          "Expected a post-login redirect, got #{last_response.status}: #{last_response.body}"
+        expect(last_response.location.to_s).not_to include('auth_error='),
+          "Expected sign-in to proceed, got: #{last_response.location.inspect}"
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    it 'prefers info.email over raw_info["mail"] when both are present' do
+      setup_entra_mock_auth(
+        email: 'primary@fabrikam.onmicrosoft.com',
+        raw_info: { mail: 'secondary@fabrikam.onmicrosoft.com' },
+      )
+
+      begin
+        post_sso_callback(:oidc)
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).not_to include('auth_error=')
+        # info.email is the account that must exist; the mailbox attribute
+        # must not have shadowed it.
+        expect(Onetime::Customer.email_exists?('primary@fabrikam.onmicrosoft.com')).to be(true)
+        expect(Onetime::Customer.email_exists?('secondary@fabrikam.onmicrosoft.com')).to be(false)
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    it 'still redirects to invalid_email when mail is blank too' do
+      setup_entra_mock_auth(email: nil, raw_info: { mail: '   ' })
+
+      begin
+        post_sso_callback(:oidc)
+        expect_auth_error_redirect('invalid_email')
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Behavioral tripwires: TIER-2 claims are still refused
+  # ==========================================================================
+  #
+  # The #3499 fallback is deliberately scoped to tier-1 verified mailbox
+  # claims. preferred_username / upn / oid are mutable per Microsoft's own
+  # guidance, so linking on them is an account-takeover vector. These pin the
+  # refusal — they must NOT be flipped alongside the `mail` fallback above.
+
+  describe 'no fallback to mutable tier-2 identifiers' do
     it 'does NOT fall back to preferred_username' do
       setup_entra_mock_auth(
         email: nil,
