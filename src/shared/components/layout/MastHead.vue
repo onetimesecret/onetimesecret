@@ -39,6 +39,7 @@
     displayName,
     showPlatformIdentity,
     installLogoUri,
+    installLogoDarkUri,
     installLogoAlt,
     logoSource,
   } = storeToRefs(identityStore);
@@ -76,6 +77,15 @@
   // holds an operator-logo rung of its own — config authority lives in the
   // brand: block and resolution in the identity resolver (#3612).
   const getLogoUrl = () => props.logo?.url || logoSource.value;
+  // Dark-theme variant (brand.logo_dark_url): only while the install logo is
+  // the asset actually being rendered. Tenant brands do declare a paired
+  // logo_dark_url (BrandSettings / brand-config schema) but it has no UI
+  // consumer yet, so this swap intentionally covers only the install logo
+  // for now; installLogoDarkUri already nulls itself when a tenant logo
+  // outranks the install logo. Swapped via the app's class-based `dark:`
+  // variants so it follows the site theme toggle, not the OS scheme.
+  const getLogoDarkUrl = () =>
+    props.logo?.url ? null : installLogoDarkUri.value;
   // Alt text: caller > operator BRAND_LOGO_ALT (only while the install logo
   // is the asset being shown) > i18n string derived from the product name.
   // When platform identity is suppressed (custom domain / tenant logo), the
@@ -141,6 +151,7 @@
   // Helper function to get logo configuration
   const getLogoConfig = () => ({
     url: getLogoUrl(),
+    darkUrl: getLogoDarkUrl(),
     alt: getLogoAlt(),
     href: getLogoHref(),
     size: getLogoSize(),
@@ -260,6 +271,17 @@
               id="logo"
               :src="logoConfig.url"
               class="w-auto object-contain transition-transform"
+              :class="[imgHeightClass, logoConfig.darkUrl ? 'dark:hidden' : null]"
+              :style="imgInlineStyle"
+              :height="logoConfig.size"
+              :alt="logoConfig.alt" />
+            <!-- Dark-theme logo variant (brand.logo_dark_url): swapped by the
+                 app's class-based dark mode so it tracks the theme toggle. -->
+            <img
+              v-if="logoConfig.darkUrl"
+              data-testid="logo-dark"
+              :src="logoConfig.darkUrl"
+              class="hidden w-auto object-contain transition-transform dark:block"
               :class="imgHeightClass"
               :style="imgInlineStyle"
               :height="logoConfig.size"

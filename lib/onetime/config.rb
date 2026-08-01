@@ -625,6 +625,7 @@ module Onetime
       'corner_style' => 'BRAND_CORNER_STYLE',
       'font_family' => 'BRAND_FONT_FAMILY',
       'logo_url' => 'BRAND_LOGO_URL',
+      'logo_dark_url' => 'BRAND_LOGO_DARK_URL',
       'logo_alt' => 'BRAND_LOGO_ALT',
       'favicon_url' => 'BRAND_FAVICON_URL',
       'apple_touch_icon_url' => 'BRAND_APPLE_TOUCH_ICON_URL',
@@ -794,7 +795,9 @@ module Onetime
       # favicon handling, and per-domain defaults, so it never enters the
       # brand block — from any source, including an operator-set
       # BRAND_LOGO_URL (hazard 1 of #3612).
-      brand['logo_url'] = nil if brand['logo_url'].is_a?(String) && brand['logo_url'].end_with?('.vue')
+      %w[logo_url logo_dark_url].each do |logo_key|
+        brand[logo_key] = nil if brand[logo_key].is_a?(String) && brand[logo_key].end_with?('.vue')
+      end
 
       LEGACY_BRAND_FALLBACKS.each do |key, legacy|
         next unless brand[key].nil?
@@ -810,11 +813,13 @@ module Onetime
       # instead). Root-relativize it here so the one install logo resolves
       # identically on every surface. Absolute URLs (scheme: or protocol-
       # relative //) and already-root-relative paths pass through untouched.
-      logo_path = brand['logo_url']
-      if logo_path.is_a?(String) && !logo_path.empty? &&
-         !logo_path.start_with?('/') &&
-         !logo_path.match?(/\A[a-z][a-z0-9+.-]*:/i)
-        brand['logo_url'] = "/#{logo_path}"
+      %w[logo_url logo_dark_url].each do |logo_key|
+        logo_path = brand[logo_key]
+        next unless logo_path.is_a?(String) && !logo_path.empty? &&
+                    !logo_path.start_with?('/') &&
+                    !logo_path.match?(/\A[a-z][a-z0-9+.-]*:/i)
+
+        brand[logo_key] = "/#{logo_path}"
       end
 
       # brand.logo_url is now the one install logo for every surface, but the
@@ -824,9 +829,11 @@ module Onetime
       # letting them discover it in a delivered email. Deliberately always
       # logged: this is an operational notice about mail rendering, not a
       # deprecation, so compatibility.deprecated_config_mode does not apply.
-      logo_url = brand['logo_url']
-      if logo_url && !logo_url.match?(%r{\Ahttps?://}i)
-        OT.le "CONFIG NOTICE: brand.logo_url '#{logo_url}' is not an absolute http(s) URL; " \
+      %w[logo_url logo_dark_url].each do |logo_key|
+        logo_url = brand[logo_key]
+        next unless logo_url && !logo_url.match?(%r{\Ahttps?://}i)
+
+        OT.le "CONFIG NOTICE: brand.#{logo_key} '#{logo_url}' is not an absolute http(s) URL; " \
               'it will render in the web UI but is omitted from outbound emails.'
       end
 

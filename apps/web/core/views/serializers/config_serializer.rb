@@ -78,6 +78,7 @@ module Core
         output['brand_font_family']           = view_vars['brand_font_family']
         output['brand_button_text_light']     = view_vars['brand_button_text_light']
         output['brand_logo_url']              = view_vars['brand_logo_url']
+        output['brand_logo_dark_url']         = view_vars['brand_logo_dark_url']
         output['brand_logo_alt']              = view_vars['brand_logo_alt']
         output['brand_favicon_url']           = view_vars['brand_favicon_url']
         output['support_email']               = view_vars['support_email']
@@ -193,6 +194,7 @@ module Core
             'brand_font_family' => nil,
             'brand_button_text_light' => nil,
             'brand_logo_url' => nil,
+            'brand_logo_dark_url' => nil,
             'brand_logo_alt' => nil,
             'brand_favicon_url' => nil,
             'd9s_enabled' => nil,

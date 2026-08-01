@@ -78,6 +78,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     domain_logo,
     brand_product_name,
     brand_logo_url,
+    brand_logo_dark_url,
     brand_logo_alt,
     homepage_config,
   } = storeToRefs(bootstrapStore);
@@ -252,6 +253,22 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   );
 
   /**
+   * Dark-theme variant of the install logo (BRAND_LOGO_DARK_URL /
+   * brand.logo_dark_url). Only meaningful while installLogoUri is the asset
+   * being rendered — it is the same identity in a dark-legible treatment, so
+   * it inherits the same custom-domain suppression, and is additionally null
+   * when no light install logo is configured (a dark-only logo has no base
+   * asset to pair with) and when a tenant logo outranks the install logo in
+   * logoSource (same structural guard as installLogoAlt). Consumers swap it
+   * in via the app's class-based dark
+   * mode (`dark:` variants), NOT prefers-color-scheme, so it tracks the
+   * site's theme toggle. Web UI only; emails always use logo_url.
+   */
+  const installLogoDarkUri = computed(() =>
+    installLogoUri.value && !logoUri.value ? brand_logo_dark_url?.value || null : null
+  );
+
+  /**
    * Operator-supplied alt text for the install logo (BRAND_LOGO_ALT /
    * brand.logo_alt). Only meaningful while the install logo is the asset
    * actually being rendered — it describes that image — so it is null when
@@ -338,6 +355,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     productName,
     showPlatformIdentity,
     installLogoUri,
+    installLogoDarkUri,
     installLogoAlt,
     logoSource,
     homepageSecretsMode,
