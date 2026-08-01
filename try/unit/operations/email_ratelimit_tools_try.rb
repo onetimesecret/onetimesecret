@@ -135,13 +135,22 @@ AE.count
 
 # ---- RateLimit::Registry (CLI golden-master key derivation) -----------
 
-## the registry knows the five canonical limiter kinds
+## the registry knows the canonical limiter kinds, in registry order
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "dns"]
+#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "dns"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')
 #=> ["feedback:submissions:1.2.3.4", "feedback:locked:1.2.3.4"]
+
+## the reset-request IP tier derives the keys ResetRequestRateLimiter writes,
+## so a deployment-wide IP lockout is clearable by the operator tooling
+Onetime::Operations::RateLimit::Registry.keys_for('reset_request_ip', '203.0.113.0')
+#=> ["reset_request:attempts:ip:203.0.113.0", "reset_request:locked:ip:203.0.113.0"]
+
+## the reset-request email backstop derives its own pair from the same subject
+Onetime::Operations::RateLimit::Registry.keys_for('reset_request_email', 'user@example.com')
+#=> ["reset_request:attempts:email:user@example.com", "reset_request:locked:email:user@example.com"]
 
 ## an unknown kind yields nil (the CLI prints its "Unknown" branch)
 Onetime::Operations::RateLimit::Registry.keys_for('nope', 'x')

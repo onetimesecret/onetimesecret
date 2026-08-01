@@ -37,6 +37,16 @@ def set_reset_request_rate_limit(cfg)
   OT.send(:conf=, new_conf)
 end
 
+# Toggle site.network.trusted_proxy.enabled for the collapsed-IP-tier hint
+# cases; the teardown restores @saved_conf wholesale.
+def set_trusted_proxy_enabled(value)
+  new_conf = YAML.load(YAML.dump(OT.conf))
+  new_conf['site'] ||= {}
+  new_conf['site']['network'] ||= {}
+  new_conf['site']['network']['trusted_proxy'] = value.nil? ? {} : { 'enabled' => value }
+  OT.send(:conf=, new_conf)
+end
+
 set_reset_request_rate_limit(
   'enabled' => true,
   'max_per_ip' => 3,
@@ -209,6 +219,92 @@ results.none?
 [@redis.exists?("reset_request:attempts:ip:#{@off_ip}"), @redis.exists?("reset_request:attempts:email:#{@off_email}")]
 #=> [false, false]
 
+## -- Collapsed IP-tier operator hint (log line only) ----------------------
+
+## Without a declared trusted proxy the resolved client IP is REMOTE_ADDR, so
+## an IP-tier lockout may be deployment-wide; the hint says so and names the
+## remedy. It is appended to a server LOG line, never to a response.
+set_trusted_proxy_enabled(false)
+hint = @tester.send(:collapsed_ip_tier_hint, 'ip')
+[hint.empty?, hint.include?('trusted_proxy'), hint.include?('TRUSTED_PROXY_ENABLED=true')]
+#=> [false, true, true]
+
+## An absent trusted_proxy config reads the same as disabled
+set_trusted_proxy_enabled(nil)
+@tester.send(:collapsed_ip_tier_hint, 'ip').match?(/trusted_proxy/)
+#=> true
+
+## With the trusted proxy declared the hint is empty: the IP tier is granular,
+## so the lockout log line stays byte-identical to before
+set_trusted_proxy_enabled(true)
+@tester.send(:collapsed_ip_tier_hint, 'ip')
+#=> ""
+
+## The email backstop never carries the hint - it does not key on IP, in either
+## trusted-proxy state
+[false, true].map do |enabled|
+  set_trusted_proxy_enabled(enabled)
+  @tester.send(:collapsed_ip_tier_hint, 'email')
+end
+#=> ["", ""]
+
+## The hint is WIRED IN: a REAL IP-tier cap hit (trusted proxy not declared)
+## emits exactly one OT.le line, and that line carries both the cap text and
+## the hint. The four cases above call the private helper directly, so they
+## stay green even if the interpolation is dropped from
+## enforce_reset_request_tier!; this case is the one that fails. OT.le is
+## swapped on the singleton class and restored in an ensure (the stub/restore
+## shape used by try/integration/api/colonel/upsert_domain_config_race_try.rb).
+set_trusted_proxy_enabled(false)
+set_reset_request_rate_limit(
+  'enabled' => true, 'max_per_ip' => 2, 'max_per_email' => 50,
+  'window' => 900, 'lockout' => 900,
+)
+@hint_ip    = '192.0.2.99'
+@hint_email = "target_hint_#{@tag}@example.com"
+cleanup(@redis, ip: @hint_ip, email: @hint_email)
+captured = []
+OT.singleton_class.alias_method(:__hint_real_le, :le)
+OT.define_singleton_method(:le) { |*msgs, **_payload| captured << msgs.join(' ') }
+begin
+  # Second request reaches max_per_ip=2 and locks the IP tier; the email tier
+  # (cap 50) stays far from its own threshold, so nothing else logs.
+  2.times { @tester.enforce_reset_request_rate_limit!(@hint_ip, @hint_email) }
+ensure
+  OT.singleton_class.remove_method(:le)
+  OT.singleton_class.alias_method(:le, :__hint_real_le)
+  OT.singleton_class.remove_method(:__hint_real_le)
+end
+line = captured.find { |msg| msg.include?('hit cap') }.to_s
+[
+  captured.length,
+  line.include?('[ResetRequestRateLimiter] ip'),
+  line.include?('hit cap (2/2)'),
+  line.include?('site.network.trusted_proxy is not enabled'),
+  line.include?('TRUSTED_PROXY_ENABLED=true'),
+]
+#=> [1, true, true, true, true]
+
+## The same real cap hit WITH a declared trusted proxy logs the bare cap line:
+## the hint is absent, so a correctly configured deployment is unchanged
+set_trusted_proxy_enabled(true)
+@hint_ip_ok    = '192.0.2.100'
+@hint_email_ok = "target_hint_ok_#{@tag}@example.com"
+cleanup(@redis, ip: @hint_ip_ok, email: @hint_email_ok)
+captured_ok = []
+OT.singleton_class.alias_method(:__hint_real_le, :le)
+OT.define_singleton_method(:le) { |*msgs, **_payload| captured_ok << msgs.join(' ') }
+begin
+  2.times { @tester.enforce_reset_request_rate_limit!(@hint_ip_ok, @hint_email_ok) }
+ensure
+  OT.singleton_class.remove_method(:le)
+  OT.singleton_class.alias_method(:le, :__hint_real_le)
+  OT.singleton_class.remove_method(:__hint_real_le)
+end
+line_ok = captured_ok.find { |msg| msg.include?('hit cap') }.to_s
+[line_ok.end_with?('locked for 900s'), line_ok.include?('TRUSTED_PROXY_ENABLED')]
+#=> [true, false]
+
 # Clean up test keys and restore the shared config for later tryout files.
 cleanup(@redis, ip: @ip_a, email: @email_a)
 cleanup(@redis, ip: @ip_b, email: @email_b)
@@ -216,4 +312,6 @@ cleanup(@redis, email: @email_c)
 cleanup(@redis, email: @email_fold)
 cleanup(@redis, ip: @cfg_ip, email: @cfg_email)
 cleanup(@redis, ip: @off_ip, email: @off_email)
+cleanup(@redis, ip: @hint_ip, email: @hint_email)
+cleanup(@redis, ip: @hint_ip_ok, email: @hint_email_ok)
 OT.send(:conf=, @saved_conf)
