@@ -648,6 +648,61 @@ describe('identityStore installLogoAlt', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// installLogoDarkUri — dark-theme variant of the install logo
+// (BRAND_LOGO_DARK_URL). Same contract as installLogoAlt: only meaningful
+// while the install logo is the asset actually being rendered.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore installLogoDarkUri', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('returns brand_logo_dark_url when the install logo is present', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_dark_url: '/img/install-brand-dark.svg',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoDarkUri).toBe('/img/install-brand-dark.svg');
+  });
+
+  it('is null when set without a light install logo to pair with', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: null,
+      brand_logo_dark_url: '/img/install-brand-dark.svg',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoDarkUri).toBeNull();
+  });
+
+  it('is null when a tenant logo outranks the install logo in logoSource', () => {
+    // Same guard as installLogoAlt: the dark variant is the operator's
+    // identity, so it must not swap in over a tenant's image.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_dark_url: '/img/install-brand-dark.svg',
+      domain_logo: '/imagine/ext123/logo.png',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('/imagine/ext123/logo.png');
+    expect(identity.installLogoDarkUri).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // logoSource — resolved logo image on the identity axis (#3612)
 //
 // Tenant's uploaded logo > operator's install-wide brand_logo_url (custom

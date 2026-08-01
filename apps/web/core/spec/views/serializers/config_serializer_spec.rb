@@ -351,6 +351,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           brand_font_family
           brand_button_text_light
           brand_logo_url
+          brand_logo_dark_url
           brand_logo_alt
           brand_favicon_url
         ].each do |key|
@@ -369,6 +370,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           brand_font_family
           brand_button_text_light
           brand_logo_url
+          brand_logo_dark_url
           brand_logo_alt
           brand_favicon_url
         ].each do |key|

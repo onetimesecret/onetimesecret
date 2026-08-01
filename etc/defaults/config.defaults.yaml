@@ -578,6 +578,10 @@ brand:
   # served path (e.g. "/brand-logo.svg", #3774). A root-relative value renders in
   # the web UI but is omitted from emails (which need an absolute URL).
   logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>
+  # Dark-theme variant of the masthead logo, shown when the app's dark mode is
+  # active. Web UI only (emails always use logo_url). A pack can carry it as
+  # brand-logo-dark.svg / brand-logo-dark.png and set this to the served path.
+  logo_dark_url: <%= ENV['BRAND_LOGO_DARK_URL']&.to_json %>
   # Accessible name for the brand logo. Unset falls back to an i18n string
   # derived from the product name.
   logo_alt: <%= ENV['BRAND_LOGO_ALT']&.to_json %>
