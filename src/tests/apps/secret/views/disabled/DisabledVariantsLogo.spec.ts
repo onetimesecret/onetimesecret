@@ -26,6 +26,8 @@ const baseProps = {
   monogramInitial: 'A',
   primaryColor: '#3B82F6',
   logoUri: null as string | null,
+  logoDarkUri: null as string | null,
+  logoAlt: null as string | null,
   displayDomain: 'acme.example',
   showSignin: true,
   showWhatIsThis: false,
@@ -80,6 +82,83 @@ describe.each([
 
     expect(wrapper.text()).toContain('A');
     expect(wrapper.find('[data-testid="keyhole-mark"]').exists()).toBe(false);
+  });
+});
+
+describe.each([
+  ['DisabledMinimal', DisabledMinimal],
+  ['DisabledV1', DisabledV1],
+])('%s dark-logo variant + alt text (BrandMark)', (_name, Component) => {
+  it('renders the dark img (hidden dark:block) when logoDarkUri is set', () => {
+    const wrapper = mountVariant(Component, {
+      logoUri: '/imagine/cd123/logo.png',
+      logoDarkUri: '/imagine/cd123/logo-dark.png',
+    });
+
+    const dark = wrapper.find('[data-testid="logo-dark"]');
+    expect(dark.exists()).toBe(true);
+    expect(dark.attributes('src')).toBe('/imagine/cd123/logo-dark.png');
+    expect(dark.classes()).toContain('hidden');
+    expect(dark.classes()).toContain('dark:block');
+    // Light img is swapped out in dark mode.
+    expect(wrapper.findAll('img')[0].classes()).toContain('dark:hidden');
+  });
+
+  it('renders no dark img when logoDarkUri is null', () => {
+    const wrapper = mountVariant(Component, {
+      logoUri: '/imagine/cd123/logo.png',
+      logoDarkUri: null,
+    });
+
+    expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+    expect(wrapper.findAll('img')).toHaveLength(1);
+  });
+
+  // Regression guard: an earlier v-if chain let the monogram/keyhole
+  // co-render with a configured logo. The BrandMark fallback-slot boundary
+  // must make that impossible.
+  it('never co-renders the keyhole with a logo', () => {
+    const wrapper = mountVariant(Component, {
+      isBranded: false,
+      logoUri: '/imagine/cd123/logo.png',
+      logoDarkUri: '/imagine/cd123/logo-dark.png',
+    });
+
+    expect(wrapper.find('img').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="keyhole-mark"]').exists()).toBe(false);
+  });
+
+  it('never co-renders the monogram with a logo', () => {
+    const wrapper = mountVariant(Component, {
+      isBranded: true,
+      monogramInitial: 'Z',
+      logoUri: '/imagine/cd123/logo.png',
+    });
+
+    expect(wrapper.find('img').exists()).toBe(true);
+    expect(wrapper.text()).not.toContain('Z');
+  });
+
+  it('uses logoAlt for both imgs when provided', () => {
+    const wrapper = mountVariant(Component, {
+      logoUri: '/imagine/cd123/logo.png',
+      logoDarkUri: '/imagine/cd123/logo-dark.png',
+      logoAlt: 'Acme Corp wordmark',
+    });
+
+    for (const img of wrapper.findAll('img')) {
+      expect(img.attributes('alt')).toBe('Acme Corp wordmark');
+    }
+  });
+
+  it('falls back to the i18n logo_alt key when logoAlt is null', () => {
+    const wrapper = mountVariant(Component, {
+      logoUri: '/imagine/cd123/logo.png',
+      logoAlt: null,
+    });
+
+    // Pass-through test i18n renders the key itself (ADR-014).
+    expect(wrapper.find('img').attributes('alt')).toBe('homepage_secrets.disabled.logo_alt');
   });
 });
 
