@@ -344,49 +344,64 @@
     "content_hash": "df83e326"
   },
   "web.admin.customers.actions.checkoutLink.button": {
-    "text": "Create checkout link"
+    "text": "Create checkout link",
+    "content_hash": "9c5082cb"
   },
   "web.admin.customers.actions.checkoutLink.modalTitle": {
-    "text": "Create checkout link"
+    "text": "Create checkout link",
+    "content_hash": "9c5082cb"
   },
   "web.admin.customers.actions.checkoutLink.planLabel": {
-    "text": "Plan"
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
   },
   "web.admin.customers.actions.checkoutLink.planPlaceholder": {
-    "text": "Plan family id (e.g. identity_plus_v1)"
+    "text": "Plan family id (e.g. identity_plus_v1)",
+    "content_hash": "12eba027"
   },
   "web.admin.customers.actions.checkoutLink.cycleLabel": {
-    "text": "Billing cycle"
+    "text": "Billing cycle",
+    "content_hash": "d69f731e"
   },
   "web.admin.customers.actions.checkoutLink.cycleMonthly": {
-    "text": "Monthly"
+    "text": "Monthly",
+    "content_hash": "9b11f6b7"
   },
   "web.admin.customers.actions.checkoutLink.cycleYearly": {
-    "text": "Yearly"
+    "text": "Yearly",
+    "content_hash": "6e69b59e"
   },
   "web.admin.customers.actions.checkoutLink.allowPromo": {
-    "text": "Allow promotion codes"
+    "text": "Allow promotion codes",
+    "content_hash": "ebe7bc8b"
   },
   "web.admin.customers.actions.checkoutLink.submit": {
-    "text": "Create link"
+    "text": "Create link",
+    "content_hash": "e6b850cf"
   },
   "web.admin.customers.actions.checkoutLink.resultLead": {
-    "text": "Checkout link created. Share it with the customer — it can be used once and expires."
+    "text": "Checkout link created. Share it with the customer — it can be used once and expires.",
+    "content_hash": "6ff1fb0e"
   },
   "web.admin.customers.actions.checkoutLink.copy": {
-    "text": "Copy checkout link"
+    "text": "Copy checkout link",
+    "content_hash": "f1e51ca7"
   },
   "web.admin.customers.actions.checkoutLink.expiry": {
-    "text": "Expires in ~{hours}h ({date})."
+    "text": "Expires in ~{hours}h ({date}).",
+    "content_hash": "4c878a15"
   },
   "web.admin.customers.actions.checkoutLink.regionLabel": {
-    "text": "Region"
+    "text": "Region",
+    "content_hash": "d3a008ef"
   },
   "web.admin.customers.actions.checkoutLink.parseError": {
-    "text": "The server accepted the request but returned an unreadable response, so no link can be shown. Check Stripe before retrying."
+    "text": "The server accepted the request but returned an unreadable response, so no link can be shown. Check Stripe before retrying.",
+    "content_hash": "e7e08290"
   },
   "web.admin.customers.actions.checkoutLink.done": {
-    "text": "Done"
+    "text": "Done",
+    "content_hash": "11a6767d"
   },
   "web.admin.customers.actions.verify.button": {
     "text": "Verify",
