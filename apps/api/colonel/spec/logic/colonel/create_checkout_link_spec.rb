@@ -99,6 +99,21 @@ RSpec.describe ColonelAPI::Logic::Colonel::CreateCheckoutLink do
     expect(data[:details]).to eq(region: 'EU')
   end
 
+  # Review finding: BillingConfig#region is nil on deployments that are not
+  # region-scoped. The frontend schema declares `region: z.string()` and the
+  # modal parses STRICTLY, so a null here would show the operator a parse
+  # error instead of the URL of a session that is already live and chargeable.
+  it 'emits a displayable region string when the deployment is not region-scoped' do
+    allow(Onetime.billing_config).to receive(:region).and_return(nil)
+
+    logic = logic_for
+    logic.raise_concerns
+
+    expect(logic.process[:details]).to eq(region: described_class::UNSCOPED_REGION)
+    expect(described_class::UNSCOPED_REGION).to be_a(String)
+    expect(described_class::UNSCOPED_REGION).not_to be_empty
+  end
+
   it 'resolves an email identifier without mangling it (sanitize_account_identifier)' do
     logic = logic_for
     logic.raise_concerns

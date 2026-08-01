@@ -20,6 +20,18 @@ module ColonelAPI
       class CreateCheckoutLink < ColonelAPI::Logic::Base
         include AccountIdentifier
 
+        # Wire value for `details.region` when the deployment is NOT
+        # region-scoped. BillingConfig#region returns nil there (deliberately —
+        # there is no "global" default at the config layer), but this envelope
+        # is frozen as a plain string on the frontend
+        # (colonelCheckoutLinkDetailsSchema: `region: z.string()`), and the
+        # modal parses STRICTLY. A null would fail safeParse and show the
+        # operator a parse error INSTEAD of the checkout URL — for a Stripe
+        # session that already exists, is chargeable, and has already been
+        # audited. The nil-vs-'global' distinction is a config concern; the
+        # API boundary always emits a displayable string.
+        UNSCOPED_REGION = 'global'
+
         attr_reader :user_id,
           :user,
           :org,
@@ -86,7 +98,8 @@ module ColonelAPI
               expires_at: result.expires_at.to_i,
             },
             details: {
-              region: Onetime.billing_config.region,
+              # Never nil — see UNSCOPED_REGION.
+              region: Onetime.billing_config.region || UNSCOPED_REGION,
             },
           }
         end

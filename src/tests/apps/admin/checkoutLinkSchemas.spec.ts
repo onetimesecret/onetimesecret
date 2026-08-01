@@ -58,6 +58,25 @@ describe('colonelCheckoutLinkResponseSchema (CreateCheckoutLink)', () => {
     expect(colonelCheckoutLinkResponseSchema.safeParse(payload).success).toBe(false);
   });
 
+  it("accepts the 'global' region a non-region-scoped deployment emits", () => {
+    const payload = checkoutPayload();
+    payload.details.region = 'global';
+    const result = colonelCheckoutLinkResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.details.region).toBe('global');
+  });
+
+  // The backend must never send null here (BillingConfig#region is nil when
+  // the deployment is not region-scoped; the logic layer maps it to 'global').
+  // If that mapping is ever dropped, this strict parse fails and the operator
+  // sees a parse error instead of a live, chargeable checkout URL.
+  it('rejects a null region (the nil-region regression)', () => {
+    const payload = checkoutPayload();
+    (payload.details as Record<string, unknown>).region = null;
+    expect(colonelCheckoutLinkResponseSchema.safeParse(payload).success).toBe(false);
+  });
+
   it('rejects details missing region', () => {
     const payload = checkoutPayload();
     // @ts-expect-error deliberate contract break

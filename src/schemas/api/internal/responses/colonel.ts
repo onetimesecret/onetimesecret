@@ -773,7 +773,17 @@ export const colonelCheckoutLinkRecordSchema = z.object({
   expires_at: z.number(),
 });
 
-/** Checkout-link ack details: which region config produced the session. */
+/**
+ * Checkout-link ack details: which region config produced the session.
+ *
+ * `region` is always a displayable, non-null string. A deployment that is not
+ * region-scoped has no billing region at the config layer (nil), and the
+ * backend maps that to `'global'` at the API boundary
+ * (ColonelAPI::Logic::Colonel::CreateCheckoutLink::UNSCOPED_REGION) — a null
+ * here would fail this strict parse and hide the checkout URL of a session
+ * that is already live and chargeable. Keep this non-nullable so that
+ * contract break stays loud.
+ */
 export const colonelCheckoutLinkDetailsSchema = z.object({
   region: z.string(),
 });
