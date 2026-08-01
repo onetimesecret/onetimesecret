@@ -8,13 +8,44 @@ module Onetime
   module Security
     # CreateAccountRateLimiter - Throttles unauthenticated account creation
     #
-    # Closes finding #4 of the 2026-07-30 audit: POST /auth/create-account
-    # (routes.txt, auth=noauth) reached AccountAPI::Logic::Account::CreateAccount
-    # with no limiter of any kind. The reachable primitive is unauthenticated,
-    # unthrottled account creation — one Customer record plus one welcome email
-    # per DISTINCT address, with subaddressing (victim+1@, victim+2@, ...)
-    # collapsing arbitrarily many addresses onto one mailbox. Impact is datastore
-    # growth (the Customer hash carries no TTL) and unsolicited mail.
+    # Closes finding #4 of the 2026-07-30 audit: POST /auth/create-account had
+    # no limiter of any kind in EITHER auth mode. The reachable primitive is
+    # unauthenticated, unthrottled account creation — one Customer record plus
+    # one welcome email per DISTINCT address, with subaddressing (victim+1@,
+    # victim+2@, ...) collapsing arbitrarily many addresses onto one mailbox.
+    # Impact is datastore growth (the Customer hash carries no TTL) and
+    # unsolicited mail.
+    #
+    # Enforced on BOTH auth-mode paths to POST /auth/create-account:
+    #
+    #   - full mode (what production runs): the Rodauth
+    #     before_create_account_route hook (apps/web/auth/config/hooks/
+    #     create_account.rb), at the top of the route and therefore ahead of the
+    #     route body and of every before_create_account check;
+    #   - simple mode (the application default for self-hosted installs): the
+    #     shared logic class,
+    #     AccountAPI::Logic::Account::CreateAccount#raise_concerns (routed via
+    #     apps/web/core/routes.txt →
+    #     Core::Controllers::Registration#create_account), ahead of the format
+    #     and signup-domain checks and the Customer lookup.
+    #
+    # Only one of the two is reachable in a given deployment — the Auth app owns
+    # /auth/* whenever it is mounted, and Rack::URLMap dispatches
+    # longest-prefix-first (lib/onetime/application/registry.rb) — so this is
+    # parity of PROTECTION, not double counting. Both take their subject from
+    # env['otto.client_ip'], so in the mounted stack — where IPPrivacyMiddleware
+    # always sets it — the keyspace and any operator remediation are identical
+    # in either mode. The FALLBACKS differ and are unreachable there: full mode
+    # falls back to Rack::Request#ip, simple mode to AuthStrategies::Helpers
+    # #client_ip (Otto::Utils.resolve_client_ip, then Rack::Request#ip). Keep
+    # the two call sites in lockstep on ORDERING and on the subject passed: a
+    # change to one belongs in the other.
+    #
+    # Internal requests are excluded in full mode — the invite-signup path calls
+    # Auth::Config.create_account via :internal_request, which runs the same
+    # route block with a synthesized POST env, and it is already throttled by
+    # {InviteTokenRateLimiter}. See the hook file for why that exclusion is
+    # explicit rather than incidental.
     #
     # SINGLE TIER, IP ONLY — and unlike {ResetRequestRateLimiter} that is not a
     # tradeoff, it is the only tier that can work here. That limiter's per-email
@@ -41,10 +72,20 @@ module Onetime
     # are byte-identical (see #process), and a limiter keyed on anything
     # account-derived would have punched a hole straight through it.
     #
-    # ORDERING: enforced from #raise_concerns, ahead of the format and
-    # signup-domain checks and therefore ahead of the Customer.find_by_email
-    # lookup and Customer.create! in #process. Deliberately AFTER the
-    # already-authenticated guard on the first line of that method: a signed-in
+    # ORDERING — the same shape in both modes, before any account lookup or
+    # write and after the already-authenticated guard:
+    #
+    #   - simple mode: enforced from #raise_concerns, ahead of the format and
+    #     signup-domain checks and therefore ahead of the Customer.find_by_email
+    #     lookup and Customer.create! in #process, but AFTER the
+    #     already-authenticated guard on the first line of that method;
+    #   - full mode: enforced from before_create_account_route, which Rodauth
+    #     runs at the top of the route — ahead of the POST body, of the
+    #     db[:accounts] lookup and Onetime::Customer.email_exists? check in the
+    #     before_create_account hook, and of the account INSERT — but AFTER
+    #     Rodauth's own check_already_logged_in on the line above it.
+    #
+    # The already-authenticated exclusion is deliberate in both: a signed-in
     # caller hitting this route is a UI mistake, not the abuse this bounds, and
     # charging them budget would let one authenticated user's stray form posts
     # consume a shared masked-IP bucket. Malformed and disallowed-domain
@@ -88,7 +129,9 @@ module Onetime
     # set enabled:false to disable (the test config does, so suite signups are not
     # throttled).
     #
-    # Usage:
+    # Usage (both call sites above do exactly this — the simple-mode logic class
+    # includes the module directly, the full-mode hook includes it into the
+    # Rodauth class via auth_class_eval):
     #   include Onetime::Security::CreateAccountRateLimiter
     #   enforce_create_account_rate_limit!(client_ip) # before any account write
     module CreateAccountRateLimiter

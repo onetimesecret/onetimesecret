@@ -6,14 +6,22 @@
 # TEST TYPE: Integration — account-creation rate limiting in SIMPLE mode
 # =============================================================================
 #
-# Closes finding #4 of the 2026-07-30 audit. POST /auth/create-account
-# (apps/web/core/routes.txt:32, auth=noauth) reached
-# AccountAPI::Logic::Account::CreateAccount with NO limiter of any kind — a
-# grep for rate_limit/enforce_ across that logic class and
+# Covers the SIMPLE-mode half of finding #4 of the 2026-07-30 audit. In simple
+# mode POST /auth/create-account (apps/web/core/routes.txt:32, auth=noauth)
+# reaches AccountAPI::Logic::Account::CreateAccount, which had NO limiter of
+# any kind — a grep for rate_limit/enforce_ across that logic class and
 # Core::Controllers::Registration returned nothing. The reachable primitive was
 # unauthenticated, unthrottled account creation: one Customer record (the hash
 # carries no TTL) plus one welcome email per DISTINCT address, with
 # subaddressing folding arbitrarily many addresses onto one mailbox.
+#
+# The FULL-mode half of the same finding is covered by
+# apps/web/auth/spec/integration/full/create_account_rate_limit_spec.rb: there
+# the Auth app owns /auth/* and Rodauth serves this route, so the identical
+# limiter is enforced from the before_create_account_route hook instead
+# (apps/web/auth/config/hooks/create_account.rb). Neither spec's assertions
+# transfer to the other mode — hence the skip guard below — but the two together
+# are what close the finding for every deployment shape.
 #
 # The limiter is single-tier and keyed on the client IP alone. That is a
 # necessity, not a preference: every request in the abuse pattern carries a

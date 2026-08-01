@@ -336,12 +336,16 @@ site:
       lockout: <%= ENV['RESET_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>
     # Rate limiting for unauthenticated account creation (#3948, audit
     # 2026-07-30 finding #4). POST /auth/create-account previously had no
-    # limiter, leaving unthrottled account creation: one Customer record (no
-    # TTL) plus one welcome email per distinct address, with subaddressing
-    # folding many addresses onto one mailbox. Throttles per client IP BEFORE
-    # any account lookup or write. Single tier by necessity, not choice — every
-    # request in the abuse pattern carries a fresh address, so a per-email tier
-    # would cap nothing. Enabled by default (protective); set
+    # limiter in EITHER auth mode, leaving unthrottled account creation: one
+    # Customer record (no TTL) plus one welcome email per distinct address,
+    # with subaddressing folding many addresses onto one mailbox. Throttles per
+    # client IP BEFORE any account lookup or write, in both modes: full mode
+    # via the Rodauth before_create_account_route hook (apps/web/auth/config/
+    # hooks/create_account.rb), simple mode via
+    # AccountAPI::Logic::Account::CreateAccount#raise_concerns. Single tier by
+    # necessity, not choice — every request in the abuse pattern carries a
+    # fresh address, so a per-email tier would cap nothing.
+    # Enabled by default (protective); set
     # CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false to opt out.
     # See lib/onetime/security/create_account_rate_limiter.rb.
     create_account_rate_limit:

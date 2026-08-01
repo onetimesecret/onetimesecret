@@ -90,6 +90,15 @@ module Auth
       # accepts. Requires :reset_password (enabled by AccountManagement above)
       # so the before_reset_password_request_route hook exists.
       Hooks::ResetPasswordRequest.configure(self)
+      # Rate limiting for POST /auth/create-account (issue #3948, audit
+      # 2026-07-30 finding #4): bounds unauthenticated, unthrottled account
+      # creation — one Customer record (no TTL) plus one welcome email per
+      # distinct address. Simple mode enforces the SAME limiter from
+      # AccountAPI::Logic::Account::CreateAccount#raise_concerns; this is the
+      # full-mode half, and full mode is what production runs. Requires
+      # :create_account (enabled by AccountManagement above) so the
+      # before_create_account_route hook exists.
+      Hooks::CreateAccount.configure(self)
 
       # Method overrides (replace Rodauth methods, not before/after hooks)
       Overrides::PasswordMigration.configure(self)
