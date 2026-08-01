@@ -19,14 +19,14 @@
    * "Create checkout link" form modal for the colonel customer detail page.
    *
    * A support colonel builds a Stripe Checkout session on the customer's
-   * behalf (plan + billing cycle + tax/promo toggles), then hands the
+   * behalf (plan + billing cycle + promo toggle), then hands the
    * resulting URL to the customer. The plain AdminConfirmDialog can't carry
    * form inputs, so this uses {@link AdminModal} with its own submit action.
    *
    * Two phases inside one modal:
    *  1. FORM — plan select (catalog from /api/colonel/available-plans, passed
-   *     in by the parent), monthly/yearly radio, tax + promotion-code
-   *     checkboxes, submit.
+   *     in by the parent), monthly/yearly radio, promotion-code
+   *     checkbox, submit.
    *  2. RESULT — the checkout URL with copy-to-clipboard and its expiry
    *     ("expires in ~24h", computed from the ack's `expires_at`).
    *
@@ -65,7 +65,6 @@
 
   const plan = ref('');
   const billingCycle = ref<BillingCycle>('monthly');
-  const enableTax = ref(false);
   const allowPromotionCodes = ref(false);
 
   /** Catalog empty → degrade to a free-text plan-family-id input. */
@@ -90,7 +89,6 @@
     const response = await $api.post(props.endpoint, {
       plan: plan.value.trim(),
       billing_cycle: billingCycle.value,
-      enable_tax: enableTax.value,
       allow_promotion_codes: allowPromotionCodes.value,
     });
     const parsed = colonelCheckoutLinkResponseSchema.safeParse(response.data);
@@ -111,7 +109,6 @@
       if (!open) return;
       plan.value = initialPlan();
       billingCycle.value = 'monthly';
-      enableTax.value = false;
       allowPromotionCodes.value = false;
       result.value = null;
       reset();
@@ -268,14 +265,6 @@
 
       <!-- Toggles -->
       <div class="space-y-2">
-        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-          <input
-            v-model="enableTax"
-            type="checkbox"
-            data-testid="checkout-link-tax"
-            class="rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600" />
-          {{ t('web.admin.customers.actions.checkoutLink.enableTax') }}
-        </label>
         <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
           <input
             v-model="allowPromotionCodes"

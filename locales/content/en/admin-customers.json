@@ -364,9 +364,6 @@
   "web.admin.customers.actions.checkoutLink.cycleYearly": {
     "text": "Yearly"
   },
-  "web.admin.customers.actions.checkoutLink.enableTax": {
-    "text": "Enable Stripe Tax"
-  },
   "web.admin.customers.actions.checkoutLink.allowPromo": {
     "text": "Allow promotion codes"
   },

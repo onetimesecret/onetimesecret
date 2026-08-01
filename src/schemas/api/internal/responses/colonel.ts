@@ -773,10 +773,9 @@ export const colonelCheckoutLinkRecordSchema = z.object({
   expires_at: z.number(),
 });
 
-/** Checkout-link ack details: which region/tax config produced the session. */
+/** Checkout-link ack details: which region config produced the session. */
 export const colonelCheckoutLinkDetailsSchema = z.object({
   region: z.string(),
-  tax_enabled: z.boolean(),
 });
 
 export type ColonelUserDetailRecord = z.infer<typeof colonelUserDetailRecordSchema>;

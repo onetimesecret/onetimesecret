@@ -14,7 +14,7 @@ import { responseSchemas } from '@/schemas/api/internal/responses/registry';
  * Payload shape is the frozen frontend/backend contract for the colonel
  * "create checkout link" action: a mutation-ack envelope whose `record`
  * carries the Stripe Checkout session (URL is the deliverable) and whose
- * `details` reports the region/tax configuration that produced it.
+ * `details` reports the region configuration that produced it.
  */
 function checkoutPayload() {
   return {
@@ -28,7 +28,6 @@ function checkoutPayload() {
     },
     details: {
       region: 'eu',
-      tax_enabled: true,
     },
   };
 }
@@ -44,7 +43,6 @@ describe('colonelCheckoutLinkResponseSchema (CreateCheckoutLink)', () => {
     );
     expect(result.data.record.expires_at).toBe(1783464864);
     expect(result.data.details.region).toBe('eu');
-    expect(result.data.details.tax_enabled).toBe(true);
   });
 
   it('rejects a 2xx ack missing the checkout_url (the deliverable)', () => {
@@ -60,10 +58,10 @@ describe('colonelCheckoutLinkResponseSchema (CreateCheckoutLink)', () => {
     expect(colonelCheckoutLinkResponseSchema.safeParse(payload).success).toBe(false);
   });
 
-  it('rejects details missing tax_enabled', () => {
+  it('rejects details missing region', () => {
     const payload = checkoutPayload();
     // @ts-expect-error deliberate contract break
-    delete payload.details.tax_enabled;
+    delete payload.details.region;
     expect(colonelCheckoutLinkResponseSchema.safeParse(payload).success).toBe(false);
   });
 

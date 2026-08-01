@@ -82,7 +82,7 @@ function ackPayload() {
       price_id: 'price_123',
       expires_at: Math.floor(Date.now() / 1000) + 24 * 3600,
     },
-    details: { region: 'eu', tax_enabled: true },
+    details: { region: 'eu' },
   };
 }
 
@@ -133,14 +133,12 @@ describe('AdminCheckoutLinkModal', () => {
     wrapper = mountModal();
 
     await wrapper.find('[data-testid="checkout-link-cycle-yearly"]').setValue();
-    await wrapper.find('[data-testid="checkout-link-tax"]').setValue(true);
     await wrapper.find('[data-testid="checkout-link-submit"]').trigger('click');
     await flushPromises();
 
     expect(mockApi.post).toHaveBeenCalledWith(ENDPOINT, {
       plan: 'identity_plus_v1',
       billing_cycle: 'yearly',
-      enable_tax: true,
       allow_promotion_codes: false,
     });
 
