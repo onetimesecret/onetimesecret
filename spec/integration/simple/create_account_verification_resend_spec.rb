@@ -72,7 +72,9 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
 
     # These examples depend on the first signup persisting verified='false'.
     autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
-    raise "Test precondition broken: autoverify must be false in spec/config.test.yaml, got #{autoverify.inspect}" if autoverify
+    # Match production semantics (resolve_autoverify): only the string/boolean
+    # 'true' counts as on — a YAML string "false" must not abort the suite.
+    raise "Test precondition broken: autoverify must be false in spec/config.test.yaml, got #{autoverify.inspect}" if autoverify.to_s == 'true'
 
     # Intercept delivery at the Mailer seam: send_verification_email delivers
     # SYNCHRONOUSLY via Onetime::Mail::Mailer.deliver (lib/onetime/logic/
@@ -91,7 +93,10 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
   after do
     Array(@created_emails).each do |email|
       cust = Onetime::Customer.find_by_email(email)
-      cust&.destroy!
+      next unless cust
+
+      Onetime::Customer.dbclient.del("verification_resend:cooldown:#{cust.objid}")
+      cust.destroy!
     rescue StandardError => e
       warn "[create-account resend spec] customer cleanup failed: #{e.message}"
     end
@@ -190,5 +195,59 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
       "verified account must NOT receive email on duplicate signup, deliveries: #{@deliveries.inspect}"
     cust.refresh!
     expect(cust.reset_secret.value).to eq(secret_before)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Resend cooldown (PR #3955 review, Greptile P1): the resend branch is
+  # unauthenticated, so without a throttle repeated duplicate signups spam the
+  # mailbox AND rotate reset_secret on every request, invalidating the link the
+  # victim was just sent. Onetime::Security::VerificationResendCooldown gates
+  # the branch with SET NX EX on verification_resend:cooldown:{objid}. The
+  # skip must be SILENT — response identical to the resend case — because any
+  # observable difference is an account-existence oracle.
+  # ---------------------------------------------------------------------------
+  it 'silently skips the resend inside the cooldown window, with an identical response, and resends after expiry' do
+    email = unique_email('cooldown')
+    @created_emails << email
+
+    expect_signup_success(post_signup(email), 'Initial signup')
+    cust = Onetime::Customer.find_by_email(email)
+    expect(cust).not_to be_nil
+    cooldown_key = "verification_resend:cooldown:#{cust.objid}"
+
+    # First duplicate: claims the cooldown slot and resends.
+    first_dup = post_signup(email)
+    expect_signup_success(first_dup, 'First duplicate signup')
+    expect(@deliveries.size).to eq(2),
+      "first duplicate must resend, deliveries: #{@deliveries.inspect}"
+    expect(Onetime::Customer.dbclient.exists(cooldown_key)).to eq(1),
+      'first resend must set the cooldown key'
+    ttl = Onetime::Customer.dbclient.ttl(cooldown_key)
+    expect(ttl).to be_between(1, Onetime::Security::VerificationResendCooldown::VERIFICATION_RESEND_COOLDOWN)
+    cust.refresh!
+    secret_after_first_dup = cust.reset_secret.value
+
+    # Second duplicate inside the window: NO delivery, NO secret rotation —
+    # and a response byte-identical to the resend case (enumeration safety).
+    second_dup = post_signup(email)
+    expect_signup_success(second_dup, 'Second duplicate signup (throttled)')
+    expect(second_dup.status).to eq(first_dup.status)
+    expect(second_dup.body).to eq(first_dup.body),
+      'throttled and unthrottled duplicate signups must return identical bodies'
+    expect(@deliveries.size).to eq(2),
+      "duplicate signup inside the cooldown must NOT deliver again, deliveries: #{@deliveries.inspect}"
+    cust.refresh!
+    expect(cust.reset_secret.value).to eq(secret_after_first_dup),
+      'throttled duplicate must not rotate the verification secret'
+
+    # Simulate cooldown expiry by deleting the key: the next duplicate
+    # resends again.
+    Onetime::Customer.dbclient.del(cooldown_key)
+    expect_signup_success(post_signup(email), 'Duplicate signup after cooldown expiry')
+    expect(@deliveries.size).to eq(3),
+      "post-expiry duplicate must resend, deliveries: #{@deliveries.inspect}"
+    cust.refresh!
+    expect(cust.reset_secret.value).not_to eq(secret_after_first_dup),
+      'post-expiry resend must bind a fresh verification secret'
   end
 end
