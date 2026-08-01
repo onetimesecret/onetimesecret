@@ -360,7 +360,7 @@ module Onetime
 
           if config
             config.created                 ||= now  # repair missing created from legacy records
-            config.enabled                   = enabled.to_s
+            config.enabled                   = enabled
             config.signup_enabled            = signup_enabled unless signup_enabled.nil?
             config.signin_enabled            = signin_enabled unless signin_enabled.nil?
             config.disabled_homepage_variant = coerce_disabled_homepage_variant(disabled_homepage_variant) unless disabled_homepage_variant.nil?

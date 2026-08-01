@@ -152,7 +152,7 @@ module Onetime
 
           if config
             config.created ||= now  # repair missing created from legacy records
-            config.enabled   = enabled.to_s
+            config.enabled   = enabled
             config.updated   = now
           else
             config = new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now)

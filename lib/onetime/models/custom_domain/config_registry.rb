@@ -96,7 +96,7 @@ module Onetime
         next unless model.const_defined?(:FIELD_SPECS)
 
         model::FIELD_SPECS.each_key do |field|
-          next if model.method_defined?("#{field}=")
+          next if model.public_method_defined?("#{field}=")
 
           raise "ConfigRegistry: #{model}##{field}= missing for spec'd field '#{field}' (kind=#{slug})"
         end
