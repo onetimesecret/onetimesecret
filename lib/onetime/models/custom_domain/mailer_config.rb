@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::MailerConfig - Per-domain mail sender configuration
 #
@@ -118,19 +120,30 @@ module Onetime
       field :created
       field :updated
 
+      # Boolean field encoding spec consumed by the boolean_encoding feature
+      # (below) and the registry's load-time setter check. Mailer is NOT
+      # colonel-editable (ConfigRegistry KINDS `editable: false` — create
+      # paths enforce credential/from_address validation), so this does NOT
+      # enter the registry's FIELD_SPECS composition; it exists so `enabled`
+      # shares the one normalizing writer/predicate idiom (#3951). The
+      # TRI-STATE worker-written outcome fields (dns_verified /
+      # provider_verified: nil = unknown) are deliberately excluded — they
+      # keep parse_boolean_field's nil-preserving semantics.
+      COLONEL_FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :string },
+      }.freeze
+
+      # Tolerant predicate + normalizing setter for `enabled` per the spec
+      # above (#3951). Must come after both the field declaration and the
+      # constant.
+      feature :boolean_encoding
+
       def init
         self.enabled             ||= 'false'
         self.verification_status ||= 'pending'
         self.sending_mode        ||= 'platform'
         # Job lifecycle fields default to nil (no job enqueued yet)
         # Outcome fields default to nil (unknown/pending)
-      end
-
-      # Check if this mailer config is enabled.
-      #
-      # @return [Boolean] true if mailer config is active
-      def enabled?
-        enabled.to_s == 'true'
       end
 
       # Check if the sender address has been verified via DNS.

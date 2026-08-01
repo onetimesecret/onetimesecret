@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::SsoConfig - Per-domain SSO credential storage
 #
@@ -121,29 +123,28 @@ module Onetime
       field :enforce_sso_only  # Boolean string ('true'/'false')
       field :grant_org_scope   # Boolean string ('true'/'false')
 
+      # Boolean field encoding specs consumed by the boolean_encoding feature
+      # (below) and the registry's load-time setter check. SSO is NOT
+      # colonel-editable (ConfigRegistry KINDS `editable: false` — create
+      # paths enforce credential validation), so these do NOT enter the
+      # registry's FIELD_SPECS composition; they exist so this model's
+      # boolean writers/predicates share the one normalizing idiom (#3951).
+      COLONEL_FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :string },
+        'enforce_sso_only' => { type: :boolean, storage: :string },
+        'grant_org_scope' => { type: :boolean, storage: :string },
+      }.freeze
+
+      # Tolerant predicates + normalizing setters for the boolean fields in
+      # COLONEL_FIELD_SPECS above (#3951). Must come after both the field
+      # declarations and the constant.
+      feature :boolean_encoding
+
       def init
         self.enabled          ||= 'false'
         self.provider_type    ||= 'oidc'
         self.enforce_sso_only ||= 'false'
         self.grant_org_scope  ||= 'false'
-      end
-
-      # Check if SSO is enabled for this domain.
-      #
-      # @return [Boolean] true if SSO is active
-      def enabled?
-        enabled.to_s == 'true'
-      end
-
-      # Check if SSO-only login is enforced (blocking password/other auth).
-      #
-      # @return [Boolean] true if SSO is the only allowed auth method
-      def enforce_sso_only?
-        enforce_sso_only.to_s == 'true'
-      end
-
-      def grant_org_scope?
-        grant_org_scope.to_s == 'true'
       end
 
       # Returns metadata for the current provider type.

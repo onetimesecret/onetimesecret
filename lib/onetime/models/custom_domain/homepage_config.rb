@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::HomepageConfig - Per-domain homepage secrets configuration
 #
@@ -90,9 +92,12 @@ module Onetime
       # Colonel-writable fields, aggregated into
       # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
       # validates at load time that every key has a setter here). `enabled`
-      # stores a legacy 'true'/'false' STRING (#enabled? tolerates both
-      # encodings). The deprecated signup_enabled/signin_enabled read-echo
-      # fields are deliberately NOT writable (ADR-030: no display authority).
+      # stores a legacy 'true'/'false' STRING; the boolean_encoding feature
+      # (below) normalizes writes to that encoding and keeps #enabled?
+      # tolerant of both (#3951). The deprecated signup_enabled/signin_enabled
+      # read-echo fields are deliberately NOT writable (ADR-030: no display
+      # authority) and NOT covered by the feature — they keep their strict
+      # `== true` predicates.
       #
       # Colonel PUT deliberately BYPASSES the workspace write gate on
       # secrets_mode (incoming_secrets entitlement + a ready IncomingConfig)
@@ -104,6 +109,13 @@ module Onetime
         'disabled_homepage_variant' => { type: :enum, values: VALID_DISABLED_HOMEPAGE_VARIANTS, nullable: true },
       }.freeze
 
+      # Tolerant predicates + normalizing setters for the boolean fields in
+      # COLONEL_FIELD_SPECS above (#3951). Must come after both the field
+      # declarations and the constant. Provides #enabled? / #enabled=;
+      # deliberately does NOT cover the deprecated signup_enabled /
+      # signin_enabled read-echo fields (not in the specs).
+      feature :boolean_encoding
+
       def init
         self.enabled      ||= 'false'
         self.signup_enabled = false if signup_enabled.nil?
@@ -112,13 +124,6 @@ module Onetime
         # makes freshly created records self-describing without masking legacy
         # records' nil field — those still read as 'create' via secrets_mode_value.
         self.secrets_mode ||= DEFAULT_SECRETS_MODE
-      end
-
-      # Check if homepage secrets is enabled for this domain.
-      #
-      # @return [Boolean] true if homepage secrets is active
-      def enabled?
-        enabled.to_s == 'true'
       end
 
       # Whether the Sign Up link should render on this domain's homepage.
@@ -328,9 +333,10 @@ module Onetime
         #
         # @param domain_id [String] CustomDomain identifier
         # @param enabled [Boolean, String] Whether to enable homepage secrets.
-        #   Required by every call site; passing nil coerces to the string
-        #   "nil", which #enabled? reads as false — the safe default, but
-        #   not a validated one, so don't rely on this to reject bad input.
+        #   Required by every call site; any non-truthy value (including nil)
+        #   is normalized to the stored 'false' by the boolean_encoding
+        #   setter — the safe default, but not a validated one, so don't rely
+        #   on this to reject bad input.
         # @param signup_enabled [Boolean, nil] DEPRECATED (#3672, ADR-030):
         #   the field carries no display authority (see the field declaration).
         #   The API no longer passes it; kept so the disable_homepage_auth_links
