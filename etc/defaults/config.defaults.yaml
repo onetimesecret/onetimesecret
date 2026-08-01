@@ -447,9 +447,13 @@ site:
       #
       # 'filter' (default): CIDR-walk. Otto::Utils.resolve_client_ip walks the
       #   forwarded chain LEFT-TO-RIGHT and returns the first entry that is not
-      #   in the trusted-proxy set below (`cidrs`, plus the private ranges when
-      #   trust_private_networks is on). Works for most k8s/cloud deployments
-      #   where the proxy tier has enumerable internal addresses.
+      #   in the trusted-proxy set — i.e. the LEFTMOST non-proxy entry becomes
+      #   the client IP. The trusted set is the RFC1918/loopback/link-local
+      #   private ranges (always trusted in this mode) plus every range in
+      #   `cidrs` below. Works for most k8s/cloud deployments where the proxy
+      #   tier has enumerable internal addresses. Note: filter mode ignores
+      #   `header` below and reads the X-Forwarded-For family (X-Forwarded-For,
+      #   X-Real-IP, X-Client-IP).
       #
       #   SECURITY — read before enabling: the edge proxy MUST OVERWRITE
       #   X-Forwarded-For with the real peer address so the resolved client IP
