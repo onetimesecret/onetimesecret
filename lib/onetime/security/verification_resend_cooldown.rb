@@ -41,6 +41,15 @@ module Onetime
     # skipped — the surrounding request may 500, but a datastore outage
     # never turns into an unthrottled send path.
     #
+    # Accepted residual: the cooldown carries no IP dimension, so an
+    # attacker who knows an unverified account exists can keep the denial
+    # primitive alive at a slower rate — one resend every cooldown window
+    # keeps rotating reset_secret, so the victim's most recent link is
+    # still the only valid one and older ones stay dead. The cooldown
+    # bounds spam volume and guarantees each link a minimum lifetime; it
+    # does not eliminate slow-drip denial. Adding an IP tier is a product
+    # decision deferred until it proves necessary.
+    #
     # Redis key (string keys at the Redis boundary):
     #   - verification_resend:cooldown:{objid}  - cooldown flag, EX-expired
     #
