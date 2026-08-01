@@ -24,6 +24,7 @@ import {
   usageExportResponseSchema,
   queueMetricsResponseSchema,
   systemSettingsResponseSchema,
+  colonelCheckoutLinkResponseSchema,
   colonelUserDetailResponseSchema,
   colonelUserMutationResponseSchema,
 } from './colonel';
@@ -165,6 +166,7 @@ export const responseSchemas = {
   colonelUsers: colonelUsersResponseSchema,
   colonelUserDetail: colonelUserDetailResponseSchema,
   colonelUserMutation: colonelUserMutationResponseSchema,
+  colonelCheckoutLink: colonelCheckoutLinkResponseSchema,
   colonelSecrets: colonelSecretsResponseSchema,
   colonelSecretReceipt: colonelSecretReceiptResponseSchema,
   colonelSecretDelete: colonelSecretDeleteResponseSchema,

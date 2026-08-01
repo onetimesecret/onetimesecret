@@ -343,6 +343,54 @@
     "text": "Plans loaded from local config — Stripe is not configured or unreachable.",
     "content_hash": "df83e326"
   },
+  "web.admin.customers.actions.checkoutLink.button": {
+    "text": "Create checkout link"
+  },
+  "web.admin.customers.actions.checkoutLink.modalTitle": {
+    "text": "Create checkout link"
+  },
+  "web.admin.customers.actions.checkoutLink.planLabel": {
+    "text": "Plan"
+  },
+  "web.admin.customers.actions.checkoutLink.planPlaceholder": {
+    "text": "Plan family id (e.g. identity_plus_v1)"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleLabel": {
+    "text": "Billing cycle"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleMonthly": {
+    "text": "Monthly"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleYearly": {
+    "text": "Yearly"
+  },
+  "web.admin.customers.actions.checkoutLink.enableTax": {
+    "text": "Enable Stripe Tax"
+  },
+  "web.admin.customers.actions.checkoutLink.allowPromo": {
+    "text": "Allow promotion codes"
+  },
+  "web.admin.customers.actions.checkoutLink.submit": {
+    "text": "Create link"
+  },
+  "web.admin.customers.actions.checkoutLink.resultLead": {
+    "text": "Checkout link created. Share it with the customer — it can be used once and expires."
+  },
+  "web.admin.customers.actions.checkoutLink.copy": {
+    "text": "Copy checkout link"
+  },
+  "web.admin.customers.actions.checkoutLink.expiry": {
+    "text": "Expires in ~{hours}h ({date})."
+  },
+  "web.admin.customers.actions.checkoutLink.regionLabel": {
+    "text": "Region"
+  },
+  "web.admin.customers.actions.checkoutLink.parseError": {
+    "text": "The server accepted the request but returned an unreadable response, so no link can be shown. Check Stripe before retrying."
+  },
+  "web.admin.customers.actions.checkoutLink.done": {
+    "text": "Done"
+  },
   "web.admin.customers.actions.verify.button": {
     "text": "Verify",
     "content_hash": "eea2745e"

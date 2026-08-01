@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
+  import AdminCheckoutLinkModal from '@/apps/admin/components/AdminCheckoutLinkModal.vue';
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
@@ -502,6 +503,12 @@
     ];
   });
 
+  // ---- Create checkout link (form modal, not the confirm-dialog flow) -------
+  // Needs INPUTS (plan family + cycle + toggles), so it lives in its own
+  // AdminModal instead of the ActionKey/AdminConfirmDialog switch; the modal
+  // owns its POST + result presentation (URL + copy + expiry).
+  const checkoutLinkOpen = ref(false);
+
   function goBack(): void {
     router.push({ name: 'AdminCustomers' });
   }
@@ -910,7 +917,8 @@
             </dd>
           </div>
         </dl>
-        <div class="border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
           <!-- Deep link into the Stripe dashboard when the live read worked. -->
           <a
             v-if="billing.stripe.available && billing.stripe.dashboard_url"
@@ -942,6 +950,18 @@
             data-testid="billing-disabled">
             {{ t('web.admin.customers.detail.billing.notConfigured') }}
           </p>
+          <!-- Colonel-built Stripe Checkout session for this customer. -->
+          <button
+            type="button"
+            data-testid="checkout-link-button"
+            class="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click="checkoutLinkOpen = true">
+            <OIcon
+              collection="heroicons"
+              name="link"
+              size="4" />
+            {{ t('web.admin.customers.actions.checkoutLink.button') }}
+          </button>
         </div>
       </section>
 
@@ -1075,6 +1095,15 @@
            sign up. Same read-out as `bin/ots customers diagnose`. -->
       <AdminAccountDiagnosticsSection :user-id="publicId" />
     </div>
+
+    <!-- Create-checkout-link form modal (plan/cycle/toggles → URL + copy). -->
+    <AdminCheckoutLinkModal
+      v-if="record"
+      v-model:open="checkoutLinkOpen"
+      :endpoint="`${userUrl()}/checkout-link`"
+      :subject="publicId"
+      :plans="planOptions"
+      :default-plan="record.planid" />
 
     <!-- Shared guarded-action dialog (typed-confirm for purge + suspend). -->
     <AdminConfirmDialog

@@ -755,6 +755,30 @@ export const colonelUserMutationDetailsSchema = z.object({
   message: z.string(),
 });
 
+/**
+ * Checkout-link ack record (POST /api/colonel/users/:user_id/checkout-link).
+ *
+ * A colonel-created Stripe Checkout session for the customer: the record IS
+ * the product (the URL the operator hands to the customer), so unlike the
+ * shared mutation ack every field here is required — a 2xx without a
+ * `checkout_url` is a contract break, not a tolerable drift. `expires_at` is a
+ * bare Unix-epoch number (seconds), left untransformed so the UI can compute
+ * "expires in ~Nh" against `Date.now()` without double-converting.
+ */
+export const colonelCheckoutLinkRecordSchema = z.object({
+  checkout_url: z.string(),
+  session_id: z.string(),
+  plan_id: z.string(),
+  price_id: z.string(),
+  expires_at: z.number(),
+});
+
+/** Checkout-link ack details: which region/tax config produced the session. */
+export const colonelCheckoutLinkDetailsSchema = z.object({
+  region: z.string(),
+  tax_enabled: z.boolean(),
+});
+
 export type ColonelUserDetailRecord = z.infer<typeof colonelUserDetailRecordSchema>;
 export type ColonelUserDetailSecret = z.infer<typeof colonelUserDetailSecretSchema>;
 export type ColonelUserDetailReceipt = z.infer<typeof colonelUserDetailReceiptSchema>;
@@ -868,6 +892,10 @@ export const colonelUserMutationResponseSchema = createApiResponseSchema(
   colonelUserMutationRecordSchema,
   colonelUserMutationDetailsSchema
 );
+export const colonelCheckoutLinkResponseSchema = createApiResponseSchema(
+  colonelCheckoutLinkRecordSchema,
+  colonelCheckoutLinkDetailsSchema
+);
 
 export type ColonelInfoResponse = z.infer<typeof colonelInfoResponseSchema>;
 export type ColonelStatsResponse = z.infer<typeof colonelStatsResponseSchema>;
@@ -885,3 +913,6 @@ export type QueueMetricsResponse = z.infer<typeof queueMetricsResponseSchema>;
 export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema>;
 export type ColonelUserDetailResponse = z.infer<typeof colonelUserDetailResponseSchema>;
 export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResponseSchema>;
+export type ColonelCheckoutLinkRecord = z.infer<typeof colonelCheckoutLinkRecordSchema>;
+export type ColonelCheckoutLinkDetails = z.infer<typeof colonelCheckoutLinkDetailsSchema>;
+export type ColonelCheckoutLinkResponse = z.infer<typeof colonelCheckoutLinkResponseSchema>;
