@@ -314,19 +314,26 @@ module Onetime
       # signal an operator can query — an enumeration attempt against the reset
       # flow otherwise leaves nothing to search for.
       #
-      # WRITE FREQUENCY IS THE CONTROL. AdminAuditEvent is capped by COUNT with
-      # no TTL, so an event an unauthenticated caller can trigger at will is a
-      # log-eviction primitive (see the cap rationale on AdminAuditEvent and
-      # {Onetime::AuditedFailure}). This records ONLY on the cap-reaching
-      # request — never on the deny path, which an attacker can drive as fast as
-      # it can send. That bounds writes to one per bucket per LOCKOUT window
-      # (default 1h): minting another event requires another distinct masked
-      # network or another distinct target login, each costing a full cap's
-      # worth of requests. It is not free of the primitive — a distributed
-      # attacker, or any attacker able to forge the resolved client IP behind an
-      # appending reverse proxy, can still mint buckets — so an operator
-      # relying on the admin trail must also ensure the proxy layer strips or
-      # overwrites client-supplied forwarding headers rather than appending.
+      # SEPARATE RETENTION DOMAIN — this is the control. The write goes to
+      # {Onetime::AdminAuditEvent.record_security}, whose `security_events`
+      # collection has its own count cap and age bound, NOT to `.record`, which
+      # holds the operator trail (purge, role change, suspension,
+      # impersonation). That trail is capped by count with no TTL and evicts
+      # oldest-first, so an unauthenticated writer sharing it would be a
+      # log-eviction primitive no matter how well it rate-limits itself: at
+      # max_per_ip=10 / max_per_email=30 a caller mints one event per ~7.5
+      # requests (10 requests fill one masked-IP bucket and 3 such buckets also
+      # fill one per-login bucket), which is ~75k requests to flush a 10k trail —
+      # cheap for a distributed source, for IPv6 prefix space, or for anyone able
+      # to forge the resolved client IP behind an appending reverse proxy.
+      # Writing to the separate trail means a flood evicts only other anonymous
+      # telemetry.
+      #
+      # Write frequency is still bounded for SIGNAL quality (a per-request event
+      # is noise, not detection): this records ONLY on the cap-reaching request,
+      # never on the deny path, which an attacker can drive as fast as it can
+      # send — one event per bucket per LOCKOUT window (default 1h). Both
+      # properties are pinned by tests; keep them.
       #
       # The subject is the OBSCURED value (masked /16 for IPv4, obscured email),
       # never the raw login: the audit trail must not become the account
@@ -339,7 +346,7 @@ module Onetime
       # Best-effort, matching every other audit call site: AdminAuditEvent.record
       # already swallows its own errors, and this rescue covers assembly.
       def record_reset_request_throttle_audit(tier_label, obscured_subject, count, max_attempts)
-        Onetime::AdminAuditEvent.record(
+        Onetime::AdminAuditEvent.record_security(
           actor: 'anonymous',
           verb: AUDIT_VERB,
           target: "#{tier_label}:#{obscured_subject}",
