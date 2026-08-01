@@ -74,23 +74,112 @@ module Billing
       # @param product [String] canonical family plan id (e.g. 'identity_plus_v1')
       # @param interval [String] 'monthly' | 'yearly' (PlanResolver normalizes)
       # @param actor [String] acting admin's PUBLIC identity (extid/email)
-      # @param enable_tax [Boolean] add automatic_tax (and customer_update
-      #   address source when reusing an existing Stripe customer)
       # @param allow_promotion_codes [Boolean] show the promo-code field
       # @param dry_run [Boolean] resolve only; no Stripe call, no audit event
       # @return [CheckoutLinkResult]
       def self.call(customer:, org:, product:, interval:, actor:,
-                    enable_tax: false, allow_promotion_codes: false, dry_run: false)
+                    allow_promotion_codes: false, dry_run: false)
         new(
           customer: customer,
           org: org,
           product: product,
           interval: interval,
           actor: actor,
-          enable_tax: enable_tax,
           allow_promotion_codes: allow_promotion_codes,
           dry_run: dry_run,
         ).call
+      end
+
+      # Shared Checkout::Session param assembly — the single builder for both
+      # checkout-creation paths: the self-serve controller
+      # (BillingController#create_checkout_session) and this admin op.
+      # Request-specific concerns stay with the caller: the controller passes
+      # its own cancel_url and the session locale; this op passes the public
+      # pricing page and no locale (colonel/CLI adapters have no request).
+      #
+      # Automatic tax is deployment policy (STRIPE_AUTOMATIC_TAX /
+      # billing.yaml 'automatic_tax'), never a per-call choice. When enabled,
+      # params gain automatic_tax, tax_id_collection, and
+      # billing_address_collection 'required',
+      # and — when an existing Stripe customer is bound — customer_update
+      # address 'auto', which Stripe requires so subscription renewals can
+      # compute tax from the saved address.
+      #
+      # @param customer [Onetime::Customer] target customer
+      # @param org [Onetime::Organization] org the subscription attaches to
+      # @param plan_id [String] canonical family plan id
+      # @param tier [String] resolved tier (webhook metadata)
+      # @param price_id [String] Stripe price id
+      # @param cancel_url [String] absolute URL for checkout cancellation
+      # @param allow_promotion_codes [Boolean] show the promo-code field
+      # @param locale [String, nil] Stripe Checkout locale (request paths only)
+      # @return [Hash] Stripe::Checkout::Session create params
+      def self.build_session_params(customer:, org:, plan_id:, tier:, price_id:,
+                                    cancel_url:, allow_promotion_codes:, locale: nil)
+        params          = {
+          mode: 'subscription',
+          line_items: [{ price: price_id, quantity: 1 }],
+          success_url: "#{base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}",
+          cancel_url: cancel_url,
+          customer_email: org.billing_email || customer.email,
+          client_reference_id: org.objid,
+          allow_promotion_codes: allow_promotion_codes,
+          subscription_data: {
+            # Load-bearing: checkout_completed reads customer_extid + orgid
+            # from subscription.metadata and SKIPS the event without them.
+            metadata: {
+              orgid: org.objid,
+              plan_id: plan_id,
+              tier: tier,
+              region: detect_region,
+              customer_extid: customer.extid,
+            },
+          },
+        }
+        params[:locale] = locale if locale
+
+        # Binding the session to the existing Stripe customer (or the email)
+        # makes the email read-only in Checkout.
+        if org.stripe_customer_id
+          params[:customer] = org.stripe_customer_id
+          params.delete(:customer_email)
+        end
+
+        apply_tax_policy!(params)
+      end
+
+      # Applies the deployment tax policy to already-built session params.
+      # Shared by every checkout-creation path (this op and
+      # Plans#checkout_redirect) so tax treatment cannot diverge by surface.
+      # Call after customer handling — customer_update is only valid when a
+      # :customer id is bound.
+      #
+      # @param params [Hash] Stripe::Checkout::Session create params
+      # @return [Hash] the same params, mutated
+      def self.apply_tax_policy!(params)
+        return params unless Onetime.billing_config.automatic_tax?
+
+        params[:automatic_tax]              = { enabled: true }
+        params[:billing_address_collection] = 'required'
+        # EU B2B: lets businesses enter a VAT number for reverse charge.
+        params[:tax_id_collection]          = { enabled: true }
+        # Stripe requires an address source for automatic tax on an
+        # existing customer object (renewals compute tax from it).
+        params[:customer_update]            = { address: 'auto' } if params[:customer]
+        params
+      end
+
+      # Base URL (protocol + host) from site configuration. Derived from
+      # config rather than the request because the CLI and colonel adapters
+      # have no request to derive it from.
+      def self.base_url
+        site_host = Onetime.conf['site']['host']
+        is_secure = Onetime.conf.dig('site', 'ssl') != false
+        "#{is_secure ? 'https' : 'http'}://#{site_host}"
+      end
+
+      def self.detect_region
+        OT.conf&.dig('features', 'regions', 'current_jurisdiction') || 'LL'
       end
 
       # Resolve the customer's default org with the same priority the
@@ -105,13 +194,12 @@ module Billing
       end
 
       def initialize(customer:, org:, product:, interval:, actor:,
-                     enable_tax:, allow_promotion_codes:, dry_run:)
+                     allow_promotion_codes:, dry_run:)
         @customer              = customer
         @org                   = org
         @product               = product
         @interval              = interval
         @actor                 = actor
-        @enable_tax            = enable_tax
         @allow_promotion_codes = allow_promotion_codes
         @dry_run               = dry_run
       end
@@ -207,57 +295,17 @@ module Billing
       end
 
       def build_session_params(plan, resolution, price_id)
-        params = {
-          mode: 'subscription',
-          line_items: [{ price: price_id, quantity: 1 }],
-          success_url: "#{base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}",
+        self.class.build_session_params(
+          customer: @customer,
+          org: @org,
+          plan_id: plan.plan_id,
+          tier: resolution.tier,
+          price_id: price_id,
           # Support-initiated link: there may be no org page context, so the
           # cancel target is the public pricing page.
-          cancel_url: "#{base_url}/pricing",
-          customer_email: @org.billing_email || @customer.email,
-          client_reference_id: @org.objid,
+          cancel_url: "#{self.class.base_url}/pricing",
           allow_promotion_codes: @allow_promotion_codes,
-          subscription_data: {
-            # Load-bearing: checkout_completed reads customer_extid + orgid
-            # from subscription.metadata and SKIPS the event without them.
-            metadata: {
-              orgid: @org.objid,
-              plan_id: plan.plan_id,
-              tier: resolution.tier,
-              region: detect_region,
-              customer_extid: @customer.extid,
-            },
-          },
-        }
-
-        # Binding the session to the existing Stripe customer (or the email)
-        # makes the email read-only in Checkout — the point of this feature.
-        if @org.stripe_customer_id
-          params[:customer] = @org.stripe_customer_id
-          params.delete(:customer_email)
-        end
-
-        if @enable_tax
-          params[:automatic_tax]   = { enabled: true }
-          # Stripe requires an address source for automatic tax on an
-          # existing customer object.
-          params[:customer_update] = { address: 'auto' } if params[:customer]
-        end
-
-        params
-      end
-
-      # Base URL (protocol + host) from site configuration; this op also
-      # serves the CLI, which has no request to derive it from. Mirrors
-      # BillingControllers::Base#billing_base_url.
-      def base_url
-        site_host = Onetime.conf['site']['host']
-        is_secure = Onetime.conf.dig('site', 'ssl') != false
-        "#{is_secure ? 'https' : 'http'}://#{site_host}"
-      end
-
-      def detect_region
-        OT.conf&.dig('features', 'regions', 'current_jurisdiction') || 'LL'
+        )
       end
 
       def would_create(price_id, plan)

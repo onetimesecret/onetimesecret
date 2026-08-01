@@ -11,7 +11,9 @@
 #   those and skips the event without them)
 # - customer vs customer_email branch (existing Stripe customer wins and the
 #   email param is removed, making the email read-only in Checkout)
-# - enable_tax: automatic_tax always, customer_update only with :customer
+# - automatic tax (config-driven via billing_config.automatic_tax?):
+#   automatic_tax + billing_address_collection always, customer_update only
+#   with :customer; omitted entirely when the config is off
 # - dry_run: :would_create with the resolved price id, no Stripe call
 # - failures: billing disabled, Stripe unconfigured, plan resolution failure,
 #   missing price for interval, region mismatch
@@ -63,6 +65,7 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
   end
 
   let(:deployment_region) { nil }
+  let(:automatic_tax)     { false }
 
   def call_op(**overrides)
     described_class.call(
@@ -81,6 +84,7 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       enabled?: true,
       stripe_key: 'sk_test_mock',
       region: deployment_region,
+      automatic_tax?: automatic_tax,
     )
     allow(Onetime).to receive(:conf).and_return(
       'site' => { 'host' => 'test.example.com', 'ssl' => true },
@@ -176,29 +180,61 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       end
     end
 
-    it 'adds automatic_tax AND customer_update when enable_tax is set' do
-      call_op(enable_tax: true)
-
-      expect(Stripe::Checkout::Session).to have_received(:create).with(
-        hash_including(
-          automatic_tax: { enabled: true },
-          customer_update: { address: 'auto' },
-        ),
-        anything,
-      )
-    end
   end
 
-  describe 'enable_tax without an existing Stripe customer' do
-    it 'adds automatic_tax but NOT customer_update' do
-      call_op(enable_tax: true)
+  # Automatic tax is deployment policy (STRIPE_AUTOMATIC_TAX / billing.yaml
+  # 'automatic_tax'), never a per-call choice — there is no parameter for it.
+  describe 'automatic tax (config-driven)' do
+    context 'when billing_config.automatic_tax? is enabled' do
+      let(:automatic_tax) { true }
 
-      expect(Stripe::Checkout::Session).to have_received(:create).with(
-        hash_including(automatic_tax: { enabled: true }),
-        anything,
-      )
-      expect(Stripe::Checkout::Session).to have_received(:create) do |params, _opts|
-        expect(params).not_to have_key(:customer_update)
+      context 'with an existing Stripe customer' do
+        let(:stripe_customer_id) { 'cus_existing_123' }
+
+        it 'adds automatic_tax, billing_address_collection AND customer_update' do
+          call_op
+
+          expect(Stripe::Checkout::Session).to have_received(:create).with(
+            hash_including(
+              automatic_tax: { enabled: true },
+              billing_address_collection: 'required',
+              tax_id_collection: { enabled: true },
+              customer_update: { address: 'auto' },
+            ),
+            anything,
+          )
+        end
+      end
+
+      context 'without an existing Stripe customer' do
+        it 'adds automatic_tax and billing_address_collection but NOT customer_update' do
+          call_op
+
+          expect(Stripe::Checkout::Session).to have_received(:create).with(
+            hash_including(
+              automatic_tax: { enabled: true },
+              billing_address_collection: 'required',
+              tax_id_collection: { enabled: true },
+            ),
+            anything,
+          )
+          expect(Stripe::Checkout::Session).to have_received(:create) do |params, _opts|
+            expect(params).not_to have_key(:customer_update)
+          end
+        end
+      end
+    end
+
+    context 'when billing_config.automatic_tax? is disabled' do
+      it 'omits the automatic_tax params entirely' do
+        call_op
+
+        expect(Stripe::Checkout::Session).to have_received(:create) do |params, _opts|
+          expect(params).not_to have_key(:automatic_tax)
+          expect(params).not_to have_key(:billing_address_collection)
+          expect(params).not_to have_key(:tax_id_collection)
+          expect(params).not_to have_key(:customer_update)
+        end
       end
     end
   end
