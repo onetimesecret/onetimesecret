@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/signup_config_resolution'
+require 'onetime/security/verification_resend_cooldown'
 
 module AccountAPI::Logic
   module Account
@@ -14,6 +15,7 @@ module AccountAPI::Logic
     #   new and unverified accounts.
     class CreateAccount < AccountAPI::Logic::Base
       include Onetime::Logic::SignupConfigResolution
+      include Onetime::Security::VerificationResendCooldown
 
       SCHEMAS = { response: 'createAccount' }.freeze
 
@@ -81,7 +83,14 @@ module AccountAPI::Logic
           # If verified, we do nothing but still return success
           if @cust.verified?
             OT.info "[account-exists-verified] Silent success for #{@cust.obscure_email}"
-          else
+          elsif claim_verification_resend_slot?(@cust)
+            # Cooldown claimed: this is the first duplicate signup in the
+            # window, so the resend proceeds. The cooldown bounds mailbox
+            # spam AND reset_secret rotation from unauthenticated repeat
+            # signups (each resend invalidates the previous verification
+            # link). When the claim fails the resend is skipped SILENTLY —
+            # the response below stays byte-identical either way, because
+            # any observable difference would be an enumeration oracle.
             OT.info "[account-exists-unverified] Resending verification for #{@cust.obscure_email}"
             send_verification_email
           end
