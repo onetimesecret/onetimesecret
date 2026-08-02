@@ -124,6 +124,24 @@ describe('PlanSelector currency mismatch logic', () => {
       const plan = createMockPlan({ currency: 'USD' });
       expect(isPlanCurrencyMismatch('cad', plan)).toBe(true);
     });
+
+    it('exempts the free tier — a price-less plan has no billable currency', () => {
+      // The API stamps the synthetic free record with the deployment default
+      // currency (OT.billing_config.currency) to satisfy the record shape. It is
+      // NOT a billable currency, so it must never conflict with a subscription
+      // whose currency differs.
+      const freePlan = createMockPlan({ id: 'free_v1', tier: 'free', currency: 'cad', amount: 0 });
+      expect(isPlanCurrencyMismatch('eur', freePlan)).toBe(false);
+      expect(isPlanCurrencyMismatch('usd', freePlan)).toBe(false);
+      // Same currency is trivially not a mismatch either.
+      expect(isPlanCurrencyMismatch('cad', freePlan)).toBe(false);
+    });
+
+    it('still flags a paid plan with the same currency pairing (exemption is tier-scoped)', () => {
+      // Control for the test above: identical currencies, only tier differs.
+      const paidPlan = createMockPlan({ tier: 'single_team', currency: 'cad' });
+      expect(isPlanCurrencyMismatch('eur', paidPlan)).toBe(true);
+    });
   });
 
   describe('resolvePlanSelectAction (handlePlanSelect decision)', () => {
@@ -322,6 +340,50 @@ describe('PlanSelector currency mismatch logic', () => {
         hasActiveSubscription: true,
       });
       expect(isPlanButtonDisabled(freePlan, state)).toBe(false);
+    });
+
+    it('enables the free tier button for an active subscriber on a DIFFERENT currency', () => {
+      // Regression: isPlanButtonDisabled ORs the currency predicate in at :83
+      // with no free-tier ordering protection (unlike resolvePlanSelectAction,
+      // where the free branch at :189 precedes the currency check at :193). A
+      // subscriber whose currency differs from the deployment default would see
+      // the free card permanently disabled with a "region mismatch" reason, and
+      // the downgrade-to-free path would be unreachable from the grid.
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1', amount: 0 });
+      const state = createButtonState({
+        orgPlanId: 'identity_plus_v1',
+        currentCurrency: 'eur',
+        hasActiveSubscription: true,
+      });
+      expect(isPlanButtonDisabled(freePlan, state)).toBe(false);
+    });
+
+    it('still disables the free tier button for a non-subscriber on a different currency', () => {
+      // The currency exemption must not leak into the "nothing to cancel to"
+      // guard — that disable reason is independent and still applies.
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1', amount: 0 });
+      const state = createButtonState({
+        orgPlanId: 'free_v1',
+        currentCurrency: 'eur',
+        hasActiveSubscription: false,
+      });
+      expect(isPlanButtonDisabled(freePlan, state)).toBe(true);
+    });
+
+    it('opens the cancel modal for a free card even when the subscription currency differs', () => {
+      // resolvePlanSelectAction's free branch (:189) already precedes the
+      // currency check (:193), so this passed before the exemption too. Pinned
+      // so the guard order can't be reshuffled without a failure.
+      const freePlan = createMockPlan({ currency: 'cad', tier: 'free', id: 'free_v1', amount: 0 });
+      const action = resolvePlanSelectAction(
+        freePlan,
+        createSelectContext({
+          orgPlanId: 'identity_plus_v1',
+          currentCurrency: 'eur',
+          hasActiveSubscription: true,
+        })
+      );
+      expect(action).toBe('open-cancel-modal');
     });
   });
 

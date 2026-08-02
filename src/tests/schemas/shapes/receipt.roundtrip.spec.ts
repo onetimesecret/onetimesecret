@@ -692,15 +692,19 @@ describe('Edge Cases', () => {
     });
   });
 
+  // V3 narrows recipients to null-or-array (2026-07-29 API audit, item 7): the
+  // V2 comma-joined string and the empty array both collapse to null so a
+  // consumer branches on one thing. See src/schemas/shapes/v3/receipt.ts and
+  // apps/api/v3/logic/receipt_shape.rb. V2 keeps the string|array union.
   describe('recipients union type handling', () => {
-    it('preserves empty recipients array', () => {
+    it('collapses an empty recipients array to null', () => {
       const canonical = createCanonicalReceiptBase({
         recipients: [],
       });
       const wire = createV3WireReceiptBase(canonical);
       const parsed = v3ReceiptBaseSchema.parse(wire);
 
-      expect(parsed.recipients).toEqual([]);
+      expect(parsed.recipients).toBeNull();
     });
 
     it('preserves multiple recipients (array form)', () => {
@@ -723,15 +727,16 @@ describe('Edge Cases', () => {
       expect(parsed.recipients).toBeNull();
     });
 
-    it('accepts recipients as string (union type: string OR array)', () => {
-      // The schema defines: recipients: z.array(z.string()).or(z.string()).nullable().optional()
-      // This tests the string branch of the union
+    it('coerces a legacy recipients string into an array', () => {
+      // Read tolerance for the V2 wire form. The V3 backend normalizes this
+      // server-side, but recipients is display-only — rejecting a stray string
+      // would null the entire receipt (#3424).
       const wire = createV3WireReceiptBase(createCanonicalReceiptBase());
       (wire as Record<string, unknown>).recipients = 'single@example.com';
 
       const parsed = v3ReceiptBaseSchema.parse(wire);
 
-      expect(parsed.recipients).toBe('single@example.com');
+      expect(parsed.recipients).toEqual(['single@example.com']);
     });
 
     it('accepts single recipient in array form', () => {

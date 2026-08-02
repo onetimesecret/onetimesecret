@@ -353,6 +353,17 @@ export const secretOptionsSchema = z.object({
   ttl_options: z
     .array(z.number().int().positive().min(60).max(2592000))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+  /**
+   * TTL ceiling the server silently applies to anonymous (guest) secrets, in
+   * seconds. A hard product cap (7 days) that holds on every deployment,
+   * billing enabled or not; TTL_MAX_ANONYMOUS can raise or lower it. Absent
+   * only on a payload predating this field — treat that as "no ceiling".
+   *
+   * @sync apps/web/core/views/serializers/config_serializer.rb — anonymous_ttl_ceiling
+   * @sync apps/api/v2/logic/secrets/base_secret_action.rb — anonymous_max_ttl
+   * @sync lib/onetime/models/features/with_entitlements.rb — ANONYMOUS_MAX_TTL
+   */
+  ttl_max_anonymous: z.number().int().positive().nullish(),
   passphrase: passphraseSchema.optional(),
   password_generation: passwordGenerationSchema.optional(),
 });
@@ -424,6 +435,13 @@ export const organizationSchema = z
         teams: z.number().optional(),
         total_members_per_org: z.number().optional(),
         custom_domains: z.number().optional(),
+        /**
+         * Max secret TTL in seconds for this org's plan; -1 = unlimited.
+         * Same limit V2 enforces at secret creation.
+         *
+         * @sync apps/api/v2/logic/secrets/base_secret_action.rb — process_ttl
+         */
+        secret_lifetime: z.number().optional(),
       })
       .nullish(),
   })
@@ -554,6 +572,7 @@ export const bootstrapSchema = z.object({
   brand_font_family: z.enum(fontFamilyValues).nullish(),
   brand_button_text_light: z.boolean().nullish(),
   brand_logo_url: z.string().nullish(),
+  brand_logo_dark_url: z.string().nullish(),
   brand_logo_alt: z.string().nullish(),
   brand_favicon_url: z.string().nullish(),
 
@@ -564,7 +583,15 @@ export const bootstrapSchema = z.object({
   authenticated: z.boolean().default(false),
   awaiting_mfa: z.boolean().optional().default(false),
   had_valid_session: z.boolean().default(false),
-  has_password: z.boolean().optional().default(false),
+  // Tri-state: true/false are definitive; null means the server could not
+  // determine it (transient auth-DB failure during serialization). The store
+  // treats null as "no information" and keeps the last known value.
+  has_password: z.boolean().nullable().optional().default(false),
+  // Policy axis independent of has_password (#3886): whether this account is
+  // permitted to hold a local password. false only when SSO is enforced
+  // (app-level restrict_to='sso' or per-domain enforce_sso_only) or auth mode
+  // is not 'full'. Defaults true so consumer accounts keep the affordance.
+  password_auth_permitted: z.boolean().default(true),
   custid: z.string().default(''),
   cust: customerCanonical.nullable().default(null),
   email: z.string().default(''),

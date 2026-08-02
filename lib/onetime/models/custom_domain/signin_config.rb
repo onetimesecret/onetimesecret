@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::SigninConfig - Per-domain sign-in method configuration
 #
@@ -65,33 +67,45 @@ module Onetime
       field :signin_enabled       # Override for AUTH_SIGNIN
       field :restrict_to          # Override for full.restrict_to (string or nil)
       field :email_auth_enabled   # Override for AUTH_EMAIL_AUTH_ENABLED
-      field :sso_enabled          # Override for AUTH_SSO_ENABLED
+      # TENANT-SSO activation gate — NOT an override for the platform
+      # AUTH_SSO_ENABLED, despite what this comment said until 2026-07.
+      # Authority for `sso_permitted_for?` below, which feeds
+      # SsoConfig.tenant_sso_available_for? and the omniauth_tenant hook, i.e.
+      # whether THIS domain's own SsoConfig credentials may be used to sign in.
+      # Reading it as the platform flag is what led the domain sign-in settings
+      # UI to gate on (and seed from) the wrong switch.
+      field :sso_enabled
 
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
+
+      # Colonel-writable fields, aggregated into
+      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS}. This constant is
+      # the ONLY place that names this model's colonel-writable fields AND
+      # their storage encoding — the registry validates at load time that
+      # every key has a setter here, so adding/renaming a field is a one-file
+      # change. All boolean fields on this model store REAL booleans
+      # (storage :native); the enum references the model constant so values
+      # cannot drift.
+      FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :native },
+        'signin_enabled' => { type: :boolean, storage: :native },
+        'email_auth_enabled' => { type: :boolean, storage: :native },
+        'sso_enabled' => { type: :boolean, storage: :native },
+        'restrict_to' => { type: :enum, values: RESTRICT_TO_VALUES, nullable: true },
+      }.freeze
+
+      # Tolerant predicates + normalizing setters for the boolean fields in
+      # FIELD_SPECS above (#3951). Must come after both the field
+      # declarations and the constant.
+      feature :boolean_encoding
 
       def init
         self.enabled            = false if enabled.nil?
         self.signin_enabled     = false if signin_enabled.nil?
         self.email_auth_enabled = false if email_auth_enabled.nil?
         self.sso_enabled        = false if sso_enabled.nil?
-      end
-
-      def enabled?
-        enabled == true
-      end
-
-      def signin_enabled?
-        signin_enabled == true
-      end
-
-      def email_auth_enabled?
-        email_auth_enabled == true
-      end
-
-      def sso_enabled?
-        sso_enabled == true
       end
 
       # Validate that all required fields are present.

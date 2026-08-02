@@ -8,6 +8,9 @@
 #   - init defaults: both fields default to false (not nil)
 #   - Predicate methods: signup_enabled? and autoverify? return correct booleans
 #   - Legacy nil coercion: predicates treat nil as false (conservative)
+#   - Encoding tolerance (#3951): predicates accept legacy string 'true' as
+#     enabled — the pre-#3951 strict `== true` reads silently disabled records
+#     whose fields held the string encoding
 #   - create! defaults: omitted fields default to false
 #   - create! with explicit true values
 #   - Round-trip through save/load
@@ -89,17 +92,20 @@ OT.info "Cleaned Redis for SignupConfig non-nullable boolean test run"
 @legacy2.autoverify?
 #=> false
 
-## signup_enabled? returns false for string 'false' (not == true)
+## signup_enabled? returns false for string 'false' (tolerant predicate, #3951)
 @legacy3 = Onetime::CustomDomain::SignupConfig.new(domain_id: 'legacy_test_3')
 @legacy3.instance_variable_set(:@signup_enabled, 'false')
 @legacy3.signup_enabled?
 #=> false
 
-## autoverify? returns false for string 'true' (not == true)
+## autoverify? returns TRUE for string 'true' (#3951 encoding tolerance)
+## Pre-#3951 the strict `== true` predicate silently read a persisted string
+## 'true' as disabled. The boolean_encoding feature accepts both encodings
+## (true/'true'/1/'1'), so a legacy string-encoded record keeps its intent.
 @legacy4 = Onetime::CustomDomain::SignupConfig.new(domain_id: 'legacy_test_4')
 @legacy4.instance_variable_set(:@autoverify, 'true')
 @legacy4.autoverify?
-#=> false
+#=> true
 
 # --- create! defaults ---
 

@@ -41,6 +41,7 @@ import { useApi } from '@/shared/composables/useApi';
 import { useAsyncHandler, createError } from '@/shared/composables/useAsyncHandler';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+import { isPasswordAuthPermitted } from '@/utils/features';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -75,7 +76,15 @@ export function useConnectedIdentities() {
 
       if (status === 409 && backendCode === 'last_credential') {
         errorCode.value = 'last_credential';
-        error.value = t('web.auth.connections.errors.last_credential');
+        // Guidance variant keyed on the #3886 policy axis: the Set-password
+        // card only exists when password auth is permitted, so the message
+        // must not point SSO-enforced accounts at a hidden affordance —
+        // there, connecting another provider is the only path.
+        error.value = t(
+          isPasswordAuthPermitted()
+            ? 'web.auth.connections.errors.last_credential'
+            : 'web.auth.connections.errors.last_credential_sso_enforced'
+        );
         return;
       }
       if (status === 404) {

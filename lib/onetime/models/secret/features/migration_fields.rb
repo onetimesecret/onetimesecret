@@ -18,9 +18,9 @@
 # removed from the live model (see features/deprecated_fields.rb): Secret
 # Content has a hard TTL cap, so no data written under that scheme has
 # existed in Redis for a long time. The historical migration script and its
-# completeness tests (scripts/upgrades/v0.24.5/, try/migrations/) still
-# reference those field names -- that's intentional; they're an immutable
-# record of the v1 -> v2 transform and must not be edited to match.
+# completeness tests lived in scripts/upgrades/v0.24.5/ and try/migrations/;
+# they were removed once the upgrade window closed and remain available at
+# the v0.24.5 git tag as the immutable record of the v1 -> v2 transform.
 #
 # REMOVAL: See lib/onetime/models/features/with_migration_fields.rb
 #

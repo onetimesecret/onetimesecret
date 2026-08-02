@@ -170,6 +170,20 @@ module RodauthTestHelper
     db = Sequel.sqlite # In-memory SQLite
     db.extension :date_arithmetic
 
+    # SQLite stores DateTime values as bare strings with no zone marker.
+    # Without an explicit database timezone, Sequel writes a Time's own wall
+    # clock and re-parses it as LOCAL time on read, silently shifting every
+    # stored timestamp by the machine's UTC offset (e.g. +8h on PST hosts,
+    # identity on UTC CI). Pin the database timezone to UTC so timestamp
+    # round-trips are deterministic regardless of the host timezone. The two
+    # settings must move together: with timezone=:utc Sequel converts written
+    # Times to UTC, so Sequel::CURRENT_TIMESTAMP must stay raw (UTC in SQLite)
+    # rather than the adapter's default datetime(CURRENT_TIMESTAMP,'localtime')
+    # rewrite — otherwise DB-side comparisons (e.g. Rodauth's OTP replay guard
+    # in otp_update_last_use) mix UTC-stored values with local wall clocks.
+    db.timezone = :utc
+    db.current_timestamp_utc = true
+
     create_core_tables(db)
     create_security_tables(db)
     create_mfa_tables(db)

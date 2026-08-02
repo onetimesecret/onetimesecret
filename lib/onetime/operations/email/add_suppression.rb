@@ -8,6 +8,7 @@
 # require the dependencies explicitly.
 require 'onetime/models/email_suppression'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -25,11 +26,24 @@ module Onetime
       #
       # {EmailSuppression.suppress!} returns :created | :updated | nil. This op
       # records EXACTLY ONE {Onetime::AdminAuditEvent} (verb `email.suppress`)
-      # ONLY on a real state change (status non-nil). A blank address returns nil
-      # (no mutation) and records NO audit event — "only audit an actual change".
+      # ONLY on a real state change (status non-nil). A blank address mutates
+      # nothing and records one `result: :failure` instead: it is a REFUSED
+      # attempt (the colonel adapter renders it as a form error, "Address is
+      # required"), not an idempotent no-op.
       class AddSuppression
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every actual suppression add/refresh.
         AUDIT_VERB = 'email.suppress'
+
+        # `suppress!` writes the record and its index before the success record
+        # runs. Records one `result: :failure` and re-raises. The target is the
+        # raw input here — `normalize` is a local on the success path and cannot
+        # be assumed to have run.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @address },
+          detail: -> { { reason: @reason, source: @source } }
 
         # @!attribute status [r]
         #   @return [Symbol, nil] :created, :updated, or nil (blank address)
@@ -57,8 +71,6 @@ module Onetime
           )
           normalized = Onetime::EmailSuppression.normalize(@address)
 
-          # Only audit an actual state change. A blank address → suppress! nil →
-          # no mutation → no audit event.
           if status
             Onetime::AdminAuditEvent.record(
               actor: @actor,
@@ -67,9 +79,28 @@ module Onetime
               result: :success,
               detail: { reason: @reason, source: @source, change: status.to_s },
             )
+          else
+            # suppress! returns nil ONLY for a blank address: nothing was
+            # written, and the operator's request was refused.
+            record_refusal(:blank_address)
           end
 
           Result.new(status: status, address: normalized)
+        end
+
+        private
+
+        # Same verb/actor as the success event. Best-effort: never break the op.
+        def record_refusal(reason)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @address.to_s,
+            result: :failure,
+            detail: { reason: reason.to_s, source: @source },
+          )
+        rescue StandardError => ex
+          OT.le "[Email::AddSuppression] refusal audit failed: #{ex.class}: #{ex.message}"
         end
       end
     end

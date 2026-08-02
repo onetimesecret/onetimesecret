@@ -24,6 +24,7 @@ import {
   usageExportResponseSchema,
   queueMetricsResponseSchema,
   systemSettingsResponseSchema,
+  colonelCheckoutLinkResponseSchema,
   colonelUserDetailResponseSchema,
   colonelUserMutationResponseSchema,
 } from './colonel';
@@ -35,9 +36,17 @@ import {
 } from './colonel-secrets';
 import { colonelDomainVerifyResponseSchema } from './colonel-domains';
 import {
+  colonelDomainConfigsResponseSchema,
+  colonelDomainConfigUpsertResponseSchema,
+  colonelDomainConfigDeleteResponseSchema,
+  colonelDomainConfigsEnsureResponseSchema,
+} from './colonel-domain-configs';
+import {
   colonelEntitlementOverrideResponseSchema,
+  colonelMembershipEntitlementOverrideResponseSchema,
   colonelOrganizationDetailResponseSchema,
   colonelReconcileOrganizationResponseSchema,
+  colonelTransferOrganizationOwnershipResponseSchema,
 } from './colonel-organizations';
 import { colonelBanIpResponseSchema, colonelUnbanIpResponseSchema } from './colonel-bannedips';
 
@@ -55,6 +64,7 @@ import {
   colonelCustomerSessionRevokeResponseSchema,
   colonelCustomerSessionRevokeAllResponseSchema,
 } from './colonel-customer-sessions';
+import { colonelAccountDiagnosticsResponseSchema } from './colonel-account-diagnostics';
 import {
   colonelBannerResponseSchema,
   colonelBannerSetResponseSchema,
@@ -156,16 +166,23 @@ export const responseSchemas = {
   colonelUsers: colonelUsersResponseSchema,
   colonelUserDetail: colonelUserDetailResponseSchema,
   colonelUserMutation: colonelUserMutationResponseSchema,
+  colonelCheckoutLink: colonelCheckoutLinkResponseSchema,
   colonelSecrets: colonelSecretsResponseSchema,
   colonelSecretReceipt: colonelSecretReceiptResponseSchema,
   colonelSecretDelete: colonelSecretDeleteResponseSchema,
   customDomains: colonelCustomDomainsResponseSchema,
   colonelDomainVerify: colonelDomainVerifyResponseSchema,
+  colonelDomainConfigs: colonelDomainConfigsResponseSchema,
+  colonelDomainConfigUpsert: colonelDomainConfigUpsertResponseSchema,
+  colonelDomainConfigDelete: colonelDomainConfigDeleteResponseSchema,
+  colonelDomainConfigsEnsure: colonelDomainConfigsEnsureResponseSchema,
   colonelOrganizations: colonelOrganizationsResponseSchema,
   colonelOrganizationDetail: colonelOrganizationDetailResponseSchema,
   investigateOrganization: investigateOrganizationResponseSchema,
   colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
+  colonelTransferOrganizationOwnership: colonelTransferOrganizationOwnershipResponseSchema,
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
+  colonelMembershipEntitlementOverride: colonelMembershipEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
   brandDiagnostics: brandDiagnosticsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,
@@ -183,6 +200,7 @@ export const responseSchemas = {
   colonelCustomerSessions: colonelCustomerSessionsResponseSchema,
   colonelCustomerSessionRevoke: colonelCustomerSessionRevokeResponseSchema,
   colonelCustomerSessionRevokeAll: colonelCustomerSessionRevokeAllResponseSchema,
+  colonelAccountDiagnostics: colonelAccountDiagnosticsResponseSchema,
   colonelBanner: colonelBannerResponseSchema,
   colonelBannerSet: colonelBannerSetResponseSchema,
   colonelBannerClear: colonelBannerClearResponseSchema,

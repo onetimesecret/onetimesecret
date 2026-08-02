@@ -131,8 +131,11 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        monthly_plans = data['plans'].select { |p| p['interval'] == 'month' }
-        skip 'No monthly plans' if monthly_plans.empty?
+        # Only records backed by a Stripe price: price-less plans (the free
+        # tier) are served with amount 0 by design, so a zero there is not the
+        # blocker this asserts against.
+        monthly_plans = data['plans'].select { |p| p['interval'] == 'month' && p['stripe_price_id'] }
+        skip 'No priced monthly plans' if monthly_plans.empty?
 
         monthly_plans.each do |plan|
           expect(plan['amount'].to_i).to be > 0,

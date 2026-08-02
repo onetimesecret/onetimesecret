@@ -72,12 +72,44 @@ export const VERIFIABLE_ID_PATTERN = /(?:[0-9a-z]{62}|\b[0-9a-z]{31}\b)/gi;
 export const SENSITIVE_QUERY_PARAMS = ['key', 'secret', 'token', 'passphrase'] as const;
 
 /**
- * Pattern for email addresses.
- * Matches standard email formats like user@example.com.
+ * Pattern for email addresses in free text, query values and URLs.
+ *
+ * MIRROR — this pattern and its `[EMAIL_REDACTED]` sentinel are duplicated
+ * verbatim as EMAIL_PATTERN in
+ * lib/onetime/initializers/setup_diagnostics.rb. The two must change
+ * TOGETHER, in the same commit: a Sentry payload can be assembled by either
+ * half, so a widening applied to only one half still leaks. The only
+ * permitted difference is the flags — JS needs `u` to enable `\p{...}` and
+ * `g` for replace-all; Ruby needs neither. The source between the delimiters
+ * is byte-identical, and tests/fixtures/email_redaction_corpus.json is run
+ * through both to prove it.
+ *
+ * SUPERSET-OF-THE-VALIDATOR INVARIANT: whatever the validator accepts is
+ * storable, so every redactor must be at least as wide as the validator
+ * (Truemail's REGEX_EMAIL_PATTERN), which allows `\p{L}` on BOTH sides of the
+ * `@` and a `\p{L}{2,63}` TLD. The former ASCII-only class matched none of
+ * `josé@example.com`, `用户@example.com`, `user@пример.рф` — all storable —
+ * so they reached Sentry in the clear. Hence:
+ *   - local part: `[\p{L}\p{N}._%+'-]`
+ *   - host:       `[\p{L}\p{N}.\p{Pd}]`  (\p{Pd} subsumes ASCII '-'; Truemail
+ *                                        admits non-ASCII dashes in a label)
+ *   - TLD:        `\p{L}{2,}`            (IDN TLDs: .рф, .онлайн)
+ * `\p{N}` is deliberately NOT allowed in the TLD so `1.2@3.4` survives and
+ * version/coordinate strings stay readable for operators.
+ *
+ * `u` is required for `\p{...}`; it also makes the pattern reject the
+ * malformed escapes ECMAScript would otherwise tolerate. `g` is load-bearing
+ * for `String#replace` (replace-all) — `lastIndex` is reset by `replace`, but
+ * any direct `.test()`/`.exec()` in a test must reset it explicitly.
+ *
+ * No atomic group here (ECMAScript cannot express one), matching the backend:
+ * every quantifier is a single pass over a character class with a literal
+ * (`@`, `.`) separating it from the next, so the worst case is polynomial,
+ * not exponential.
  *
  * @internal Exported for testing
  */
-export const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+export const EMAIL_PATTERN = /[\p{L}\p{N}._%+'-]+@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,}/gu;
 
 /**
  * Scrubs sensitive data from arbitrary strings using regex patterns.
@@ -164,9 +196,22 @@ function extractAndScrubPath(input: string): string {
     const hadHost = isProtocolRelative || isFullURL;
     const parsed = new URL(input, 'http://_');
     const scrubbedPath = scrubSensitivePath(parsed.pathname);
-    if (!hadHost) return scrubbedPath + parsed.search + parsed.hash;
+
+    // Reassemble the query/fragment from the RAW input, not from
+    // `parsed.search`/`parsed.hash`. The URL serializer percent-encodes every
+    // non-ASCII byte it round-trips, so `?email=user@пример.рф` comes back as
+    // `?email=user@mail.%D0%BF...` — and the later EMAIL_PATTERN pass cannot
+    // match a percent-encoded host, so an IDN address rode out to Sentry in
+    // the clear. The backend twin (`scrub_url` in setup_diagnostics.rb) gsubs
+    // the raw string and has never had this blind spot; slicing the raw suffix
+    // is what keeps the two halves agreeing, and it is what this function's
+    // contract already claimed ("preserved verbatim").
+    const suffixIndex = input.search(/[?#]/);
+    const rawSuffix = suffixIndex === -1 ? '' : input.slice(suffixIndex);
+
+    if (!hadHost) return scrubbedPath + rawSuffix;
     const prefix = isProtocolRelative ? '//' : parsed.protocol + '//';
-    return prefix + parsed.host + scrubbedPath + parsed.search + parsed.hash;
+    return prefix + parsed.host + scrubbedPath + rawSuffix;
   } catch {
     // Fallback for genuinely malformed inputs (e.g. control chars that the
     // URL parser rejects even with a base).

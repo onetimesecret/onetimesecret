@@ -180,9 +180,22 @@ module V1::Logic
 
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # Checked after clamping so the effective (clamped) value is evaluated.
+        # V1::Logic::Base has no require_entitlement! (no strategy_result, so no
+        # membership context for the ADR-012 membership check), so raise directly
+        # with the same upgrade-path shape the shared helper produces.
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
         if ttl > free_ttl && respond_to?(:auth_org) && auth_org && !auth_org.can?('extended_default_expiration')
-          require_entitlement!('extended_default_expiration')
+          current_plan = auth_org.planid
+          upgrade_to   = if defined?(Billing::PlanHelpers)
+                           Billing::PlanHelpers.upgrade_path_for('extended_default_expiration', current_plan)
+                         end
+          raise Onetime::EntitlementRequired.new(
+            'extended_default_expiration',
+            current_plan: current_plan,
+            upgrade_to: upgrade_to,
+            error_key: 'api.entitlements.errors.extended_default_expiration_required',
+            args: { entitlement: 'extended_default_expiration' },
+          )
         end
 
         # Set default_expiration for compatibility with tests

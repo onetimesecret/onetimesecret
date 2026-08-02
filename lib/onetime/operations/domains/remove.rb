@@ -5,6 +5,7 @@
 # Domain-owned (app-scoped) operation — mirrors Operations::Domains::Transfer.
 # Loaded at the call site (colonel logic + CLI), so require deps explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require 'onetime/domain_validation/strategy'
 require 'onetime/operations/delete_sender_domain'
 
@@ -40,7 +41,22 @@ module Onetime
       # ONLY when index_owner_id is present AND != victim_objid (reload the
       # survivor + confirm its display_domain still == fqdn before re-pointing).
       class Remove
+        include Onetime::AuditedFailure
+
         AUDIT_VERB = 'domain.remove'
+
+        # A destructive verb: a removal that blows up partway leaves the fleet in
+        # an unknown state, so the attempt must be in the trail even though the
+        # success-path record never runs. Records one `result: :failure` and
+        # re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE here and the
+        # success event is applied-path-only — without it an operator could not
+        # tell a blown-up preview from a blown-up removal.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @domain&.extid },
+          detail: -> { { dry_run: @dry_run } }
 
         # @!attribute status [r] Symbol — :planned (dry-run) | :removed (applied)
         Result = Data.define(

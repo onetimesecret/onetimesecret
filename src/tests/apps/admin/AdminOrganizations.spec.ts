@@ -23,6 +23,9 @@ vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }));
 
 vi.mock('@/utils/format', () => ({
   formatDisplayDateTime: (d: Date) => `DT:${d.toISOString()}`,
+  // The header's "updated <n> ago" read-out. Stubbed deterministically — the
+  // real helper is clock-relative.
+  formatRelativeTime: (d: Date | undefined) => (d ? `REL:${d.toISOString()}` : ''),
 }));
 
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -91,7 +94,7 @@ function orgRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function orgsPayload(rows = [orgRow()]) {
+function orgsPayload(rows = [orgRow()], cache: Record<string, unknown> | null = null) {
   return {
     shrimp: '',
     record: {},
@@ -99,6 +102,8 @@ function orgsPayload(rows = [orgRow()]) {
       organizations: rows,
       pagination: { page: 1, per_page: 50, total_count: rows.length, total_pages: 1 },
       filters: { status: null, sync_status: null },
+      // Roster-cache state (Goal 1). `generated_at` is a unix SECOND.
+      cache: cache ?? { cached: true, generated_at: 1700000000, ttl: 90 },
     },
   };
 }
@@ -126,9 +131,110 @@ describe('AdminOrganizations (list + row navigation — ticket #32)', () => {
     });
     const table = wrapper.find('[data-testid="organizations-table"]');
     expect(table.exists()).toBe(true);
-    // The account email is obscured by default (RevealEmail).
+    // The contact email is obscured by default (RevealEmail).
     expect(table.text()).not.toContain('owner@acme.test');
     expect(table.text()).toContain('o•••@a•••.test');
+  });
+
+  it('leads with the org name and keeps the extid as a subtitle', async () => {
+    mockApi.get.mockResolvedValue({ data: orgsPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    const table = wrapper.find('[data-testid="organizations-table"]');
+    expect(table.text()).toContain('Acme');
+    expect(table.text()).toContain('on_abc123');
+  });
+
+  it('renders the Default Workspace name instead of suppressing it', async () => {
+    // Previously suppressed, which left the name blank for every default org.
+    mockApi.get.mockResolvedValue({
+      data: orgsPayload([orgRow({ display_name: 'Default Workspace' })]),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="organizations-table"]').text()).toContain(
+      'Default Workspace'
+    );
+  });
+
+  it('falls back to the extid when the org has no display name', async () => {
+    mockApi.get.mockResolvedValue({ data: orgsPayload([orgRow({ display_name: null })]) });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="organizations-table"]').text()).toContain('on_abc123');
+  });
+
+  it('keeps the owner email off the list (it belongs to the detail page)', async () => {
+    mockApi.get.mockResolvedValue({ data: orgsPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    // owner_email still travels on the wire (the server search matches on it)
+    // but is not rendered as a column.
+    expect(wrapper.find('[data-testid="organizations-table"]').text()).not.toContain('ow***');
+  });
+
+  it('obscures the billing email, and says "same as contact" when they match', async () => {
+    mockApi.get.mockResolvedValue({
+      data: orgsPayload([
+        orgRow(),
+        orgRow({ extid: 'on_same', billing_email: 'owner@acme.test' }),
+        orgRow({ extid: 'on_none', billing_email: null }),
+      ]),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    const table = wrapper.find('[data-testid="organizations-table"]');
+    // Distinct billing address: obscured, never raw.
+    expect(table.text()).not.toContain('billing@acme.test');
+    expect(table.text()).toContain('b•••@a•••.test');
+    // Equal to the contact address: a translated marker, not a duplicate.
+    expect(wrapper.find('[data-testid="billing-email-same-as-contact"]').exists()).toBe(true);
+  });
+
+  it('surfaces the roster-cache age and bypasses the cache on refresh', async () => {
+    mockApi.get.mockResolvedValue({ data: orgsPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    // The read-out only renders once `details.cache.generated_at` arrives (the
+    // test i18n echoes keys, so the interpolated value itself isn't observable
+    // — the absence case is covered by the "no cache block" test below).
+    expect(wrapper.find('[data-testid="organizations-updated-ago"]').exists()).toBe(true);
+
+    await wrapper.find('[data-testid="organizations-refresh"]').trigger('click');
+    await flushPromises();
+
+    expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/organizations', {
+      params: { page: 1, per_page: 50, refresh: '1' },
+    });
+  });
+
+  it('omits the refresh param on a normal fetch', async () => {
+    mockApi.get.mockResolvedValue({ data: orgsPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/organizations', {
+      params: { page: 1, per_page: 50 },
+    });
+  });
+
+  it('still renders rows when the server sends no cache block', async () => {
+    // The cache block is optional in the Zod contract: an in-flight deploy must
+    // not blank the whole table.
+    const payload = orgsPayload();
+    delete (payload.details as Record<string, unknown>).cache;
+    mockApi.get.mockResolvedValue({ data: payload });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.findAll('[data-testid="organizations-table"] tbody tr').length).toBe(1);
+    expect(wrapper.find('[data-testid="organizations-updated-ago"]').exists()).toBe(false);
   });
 
   it('renders the empty state when there are no organizations', async () => {

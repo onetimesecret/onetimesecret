@@ -5,12 +5,19 @@
 # Tests for V1 BaseSecretAction#validate_domain_permissions.
 # Validates that non-owners are rejected with FormError when attempting
 # to create a secret on a domain they don't own (canonical domain path).
+#
+# Also covers two V2 BaseSecretAction fixes from the 2026-07-29 API audit:
+# - item 2: anonymous recipient raises Onetime::Unauthorized (401), not
+#   FormError (422)
+# - item 4: anonymous_max_ttl caps anonymous TTLs at the free-tier limit
+#   when billing is enabled (fail-open at config max when disabled)
 
 require_relative '../../../support/test_helpers'
 
 OT.boot! :test, false
 
 require 'v1/logic'
+require 'v2/logic'
 require 'api/domains/logic/base'
 require 'api/domains/logic/domains/add_domain'
 
@@ -39,3 +46,194 @@ params = { 'secret' => 'owner secret', 'share_domain' => @test_domain }
 logic = V1::Logic::Secrets::ConcealSecret.new(@sess, @owner, params, 'en')
 begin; logic.raise_concerns; "no_error"; rescue Onetime::FormError => e; "unexpected_error: #{e.message}"; end
 #=> 'no_error'
+
+## V2: anonymous caller naming a recipient raises Unauthorized (401), not FormError (422)
+# Account-required is an authentication failure; otto_hooks maps
+# Onetime::Unauthorized to 401 where FormError would produce a 422.
+params = { 'secret' => { 'secret' => 'v2 recipient test', 'recipient' => 'friend@example.com' } }
+logic  = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, params, 'en')
+begin
+  logic.send(:validate_recipient)
+  'unexpected_success'
+rescue StandardError => ex
+  ex.class.name
+end
+#=> 'Onetime::Unauthorized'
+
+## V2: anonymous_max_ttl applies the configured ceiling when billing is disabled
+# Diverges from V1's resolve_ttl_limit, which fails open to the config max: the
+# ceiling is about anonymous callers, not about whether the deployment sells
+# plans. Stock config leaves ttl_max_anonymous unset -> 7-day default.
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    false
+  end
+end
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 2_592_000)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+end
+#=> 604_800
+
+## V2: a config ttl_options max below the ceiling still wins (billing disabled)
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    false
+  end
+end
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 172_800)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+end
+#=> 172_800
+
+## V2: a self-hosted operator can RAISE the anonymous ceiling above 7 days
+# The whole point of the config key: with billing disabled there is no free tier
+# to invert against, so the operator's value stands.
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    false
+  end
+end
+prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
+OT.conf['site']['secret_options']['ttl_max_anonymous'] = 30 * 86_400
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 2_592_000)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+end
+#=> 2_592_000
+
+## V2: a raised ceiling is still bounded by the config ttl_options max
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    false
+  end
+end
+prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
+OT.conf['site']['secret_options']['ttl_max_anonymous'] = 30 * 86_400
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 172_800)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+end
+#=> 172_800
+
+## V2: a non-positive ttl_max_anonymous falls back to the default, not to 0
+# "0" reads as "unset me", not "anonymous secrets expire immediately".
+prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
+OT.conf['site']['secret_options']['ttl_max_anonymous'] = 0
+begin
+  Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl
+ensure
+  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+end
+#==> _ == Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL
+
+## V2: a malformed ttl_max_anonymous falls back to the default
+prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
+OT.conf['site']['secret_options']['ttl_max_anonymous'] = 'not-a-number'
+begin
+  Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl
+ensure
+  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+end
+#==> _ == Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL
+
+## V2: ttl_max_anonymous is bounded by MAX_TTL (365 days)
+prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
+OT.conf['site']['secret_options']['ttl_max_anonymous'] = 999_999_999
+begin
+  Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl
+ensure
+  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+end
+#==> _ == Onetime::Models::Features::WithEntitlements::MAX_TTL
+
+## V2: anonymous_max_ttl uses the configured ceiling when billing is enabled
+# Stock: ceiling 7d, free-tier limit unset -> DEFAULT_FREE_TTL (14d). The lower
+# of the two wins.
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    true
+  end
+end
+Onetime::Organization.reset_free_tier_limits!
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 2_592_000)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+  Onetime::Organization.reset_free_tier_limits!
+end
+#==> _ == Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL
+
+## V2: with billing enabled, the free-tier limit caps a raised ceiling
+# This is the audit invariant (anonymous grant <= authenticated free-tier grant)
+# holding where tiers actually exist: the operator raised the anonymous ceiling
+# to 30 days, but the free-tier limit is 14 days, so 14 wins.
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    true
+  end
+end
+prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
+OT.conf['site']['secret_options']['ttl_max_anonymous'] = 30 * 86_400
+Onetime::Organization.reset_free_tier_limits!
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 2_592_000)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+  Onetime::Organization.reset_free_tier_limits!
+end
+#==> _ == Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+
+## V2: lowering the free-tier limit below the ceiling still applies
+# TTL_MAX_ANONYMOUS also moves free_tier_limits on billing-enabled deployments.
+billing = Onetime::BillingConfig.instance
+class << billing
+  def enabled?
+    true
+  end
+end
+ENV['TTL_MAX_ANONYMOUS'] = (3 * 86_400).to_s
+Onetime::Organization.reset_free_tier_limits!
+begin
+  logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
+  logic.send(:anonymous_max_ttl, 2_592_000)
+ensure
+  class << billing
+    remove_method :enabled?
+  end
+  ENV.delete('TTL_MAX_ANONYMOUS')
+  Onetime::Organization.reset_free_tier_limits!
+end
+#=> 259_200

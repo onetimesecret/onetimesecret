@@ -25,10 +25,11 @@ module Billing
 
         # Upsert config-only plans (free tier, etc.) that have no Stripe prices
         #
-        # Called AFTER Stripe sync to add plans with `prices: []` in billing.yaml.
-        # These plans are not synced from Stripe since they have no prices, but should
-        # still appear in the plan catalog for entitlement materialization and display
-        # on pricing pages.
+        # Called AFTER Stripe sync to add plans with `prices: []` in billing.yaml,
+        # and from #load_all_from_config so the Stripe-less fallback path builds
+        # the same catalog. These plans are not synced from Stripe since they have
+        # no prices, but should still appear in the plan catalog for entitlement
+        # materialization and display on pricing pages.
         #
         # Since this runs after prune_stale_plans, config-only plans are upserted fresh
         # each sync cycle with active=true, ensuring they persist in the catalog.
@@ -81,10 +82,16 @@ module Billing
         # Creates one Plan instance per family (e.g., "identity_plus_v1") with
         # interval variants stored in the nested `prices` hashkey.
         #
+        # Price-less plans (free tier) are delegated to #upsert_config_only_plans
+        # so both the Stripe-sync path (Pull) and this fallback path produce the
+        # same catalog. See that method for the show_on_plans_page gate and the
+        # region-inheritance rule that priced plans don't get.
+        #
         # Uses ConfigResolver to load from spec/billing.test.yaml in test environment.
         #
         # @param clear_first [Boolean] Whether to clear existing cache before loading (default: true)
-        # @return [Integer] Number of plans loaded into Redis
+        # @return [Integer] Number of plans loaded into Redis, priced plans plus
+        #   config-only plans
         def load_all_from_config(clear_first: true)
           plans_hash = OT.billing_config.plans
           return 0 if plans_hash.empty?
@@ -95,19 +102,18 @@ module Billing
           plans_count = 0
 
           plans_hash.each do |plan_key, plan_def|
+            prices_list = plan_def['prices'] || []
+
+            # Price-less plans are handled by upsert_config_only_plans below.
+            # Checked before the region filter so a config-only plan that omits
+            # `region` isn't logged as a region skip here and then loaded there.
+            next if prices_list.empty?
+
             # Skip plans not matching the configured region
             configured_region = OT.billing_config.region
             plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
             unless Billing::RegionNormalizer.match?(plan_region, configured_region)
               OT.ld "[ConfigLoader] Skipping plan for region #{plan_region}: #{plan_key}"
-              next
-            end
-
-            prices_list = plan_def['prices'] || []
-
-            # Skip plans without prices (e.g., free tier - handled by upsert_config_only_plans)
-            if prices_list.empty?
-              OT.ld "[ConfigLoader] Skipping plan without prices: #{plan_key}"
               next
             end
 
@@ -123,6 +129,13 @@ module Billing
 
             plans_count += 1
           end
+
+          # Config-only plans belong in the catalog too: entitlement
+          # materialization and the plans page both read from it. Without this
+          # the free tier would exist after a Stripe sync (Pull calls
+          # upsert_config_only_plans) but vanish whenever Stripe is unreachable
+          # and boot falls back to this method.
+          plans_count += upsert_config_only_plans
 
           # Rebuild price ID cache after loading
           PlanPersister.rebuild_stripe_price_id_cache
@@ -216,7 +229,18 @@ module Billing
           plan.limits.clear
           limits_hash.each { |key, val| plan.limits[key] = val }
 
-          # Populate prices hashkey with JSON per interval
+          # Populate prices hashkey with JSON per interval.
+          #
+          # The guard is deliberate: Pull calls upsert_config_only_plans AFTER
+          # sync_from_stripe, so a config-only upsert must not touch prices that
+          # Stripe just wrote for the same plan_id. Clearing unconditionally
+          # would wipe live price data on every catalog pull whenever a Stripe
+          # product's plan_id metadata matches a plan declared `prices: []`.
+          #
+          # Trade-off: a plan that keeps an orphaned prices hash (e.g. its Stripe
+          # product was pruned) is then served as a priced plan by the plans
+          # page. That's cosmetic and recoverable with
+          # `bin/ots billing catalog sync --clear`; a wiped price is not.
           if prices_data.any?
             plan.prices.clear
             prices_data.each do |interval, price_data|

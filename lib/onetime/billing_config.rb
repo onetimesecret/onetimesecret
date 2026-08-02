@@ -138,6 +138,22 @@ module Onetime
       MSG
     end
 
+    # Whether Stripe automatic tax is enabled for checkout sessions.
+    #
+    # Deployment-level policy, not a per-checkout choice. Checks
+    # ENV['STRIPE_AUTOMATIC_TAX'] first, then the config file key
+    # 'automatic_tax', mirroring checkout_host. 'true' and '1' enable it;
+    # any other value (or unset) is false.
+    #
+    # Requires Stripe Tax to be configured in the Dashboard (Settings → Tax:
+    # tax registrations + product tax codes) before enabling.
+    def automatic_tax?
+      raw = ENV.fetch('STRIPE_AUTOMATIC_TAX', nil)
+      raw = config['automatic_tax'] if raw.nil?
+
+      %w[true 1].include?(raw.to_s.strip.downcase)
+    end
+
     # Schema version
     def schema_version
       config['schema_version']

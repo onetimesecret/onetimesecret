@@ -149,7 +149,10 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
         email: email,
         obscure_email: 'n***r@example.com',
         role: 'customer',
-        verified: false,
+        # BooleanFieldType canonicalizes to the STRING 'false', never a
+        # real Ruby boolean — mirror the real model contract here.
+        verified: 'false',
+        verified?: false,
         'verified=': nil,
         'verified_by=': nil,
         'role=': nil,
@@ -226,7 +229,10 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
           extid: 'existing-cust-123',
           obscure_email: 'e***g@example.com',
           role: 'customer',
-          verified: true
+          # Stored form is the canonical STRING 'true' (BooleanFieldType);
+          # the predicate verified? is the correct read.
+          verified: 'true',
+          verified?: true
         )
       end
 
@@ -240,6 +246,47 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
 
         logic.raise_concerns
         logic.process
+      end
+
+      it 'takes the silent-success branch with no email for a verified account' do
+        allow(Onetime::Customer).to receive(:find_by_email).and_return(existing_customer)
+
+        expect(logic).not_to receive(:send_verification_email)
+
+        logic.raise_concerns
+        logic.process
+      end
+
+      context 'when the existing account is unverified' do
+        # Regression: verified is stored as the STRING 'false', which is
+        # truthy in Ruby. `if @cust.verified` silently skipped the resend
+        # branch; `verified?` must be used. See registration.rb behavior
+        # table: "No-autoverify + existing unverified → Yes (resent)".
+        let(:existing_customer) do
+          instance_double(
+            Onetime::Customer,
+            objid: 'existing-cust-123',
+            extid: 'existing-cust-123',
+            obscure_email: 'e***g@example.com',
+            role: 'customer',
+            verified: 'false',
+            verified?: false
+          )
+        end
+
+        it 'resends the verification email' do
+          allow(Onetime::Customer).to receive(:find_by_email).and_return(existing_customer)
+          # Stub the cooldown claim: the real implementation writes a 300s
+          # NX key to Redis keyed on the fixed objid above, which would make
+          # this example fail on any re-run inside the window. The cooldown
+          # itself is covered by the integration specs.
+          allow(logic).to receive(:claim_verification_resend_slot?).and_return(true)
+
+          expect(logic).to receive(:send_verification_email)
+
+          logic.raise_concerns
+          logic.process
+        end
       end
     end
   end

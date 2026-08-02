@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
+require 'onetime/models/admin_audit_event'
 require 'onetime/security/login_rate_limiter'
 
 module Core::Logic
@@ -144,34 +145,24 @@ module Core::Logic
               status: :pending,
             }
 
-          # Do not send an email to a someone that's just logged-in with a basic
-          # authmode account where verified=false and autoverify is disabled. With
-          # autoverify disabled, the registration flow sets verified=true and
-          # skips the email verification process. However, if the site admin
-          # has manually set verified=false on the account (e.g. for moderation
-          # purposes), we don't want to spam them with verification emails
-          # every time they log in. This scenario could also happen if the
-          # site configuration changes after users have already signed up
-          # but not yet verified.
+          # Resend the verification email only when autoverify is disabled.
+          # With autoverify enabled, registration sets verified=true and skips
+          # email verification entirely (see CreateAccount), so a pending
+          # account under autoverify can only mean the site admin manually set
+          # verified=false (e.g. for moderation) or autoverify was enabled
+          # after this account signed up — in both cases resending a
+          # verification email on every login would be spam.
           autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
           unless autoverify.to_s == 'true'
-            # When autoverify is enabled, proactively help pending accounts
-            # get verified by resending the verification email (valid for 24h)
-            auth_logger.info 'Resending verification email (autoverify mode)',
+            # Help pending accounts finish the normal verification flow by
+            # resending the email (link valid for 24h).
+            auth_logger.info 'Resending verification email (autoverify disabled)',
               {
                 customer_id: cust.objid,
                 email: cust.obscure_email,
               }
 
             send_verification_email nil
-
-            verification_msg = I18n.t(
-              'web.COMMON.verification_sent_to',
-              locale: locale,
-              default: 'Verification sent to',
-            )
-            msg              = "#{verification_msg} #{cust.email}."
-            set_info_message(msg)
           end
 
           return success_data
@@ -204,6 +195,8 @@ module Core::Logic
             session_ttl: session_ttl,
           }
 
+        record_colonel_signin
+
         success_data
       end
 
@@ -225,6 +218,48 @@ module Core::Logic
       end
 
       private
+
+      # Record a colonel.signin event when the session just established belongs
+      # to a colonel. The SIMPLE-auth-mode counterpart to
+      # Auth::Operations::SyncSession#record_colonel_signin (full mode never
+      # reaches this class; simple mode never loads the auth app).
+      #
+      # ## Why this exists
+      #
+      # Nearly all colonel activity is reads, and reads never audit by design
+      # (CONTRACT 4), so the audit screen reads empty even while operators are
+      # in the console daily. Session establishment is the one honest signal of
+      # operator PRESENCE, as opposed to operator writes.
+      #
+      # ## Success only, exactly once
+      #
+      # This sits inside the greenlighted branch, past credential verification
+      # and the suspended/pending rejections, so only a completed login reaches
+      # it — once per login, not once per request (the session is authenticated
+      # from here on and never re-enters this class).
+      #
+      # Failed logins deliberately record NOTHING: the audit set is capped by
+      # COUNT with no TTL, so an event an unauthenticated caller can trigger is
+      # a log-eviction primitive — enough failed logins would flush the real
+      # destructive-action trail.
+      def record_colonel_signin
+        return unless cust && cust.role.to_s == 'colonel'
+
+        Onetime::AdminAuditEvent.record(
+          actor: cust.extid,
+          verb: Onetime::AdminAuditEvent::VERB_COLONEL_SIGNIN,
+          target: cust.extid,
+          result: :success,
+          detail: {
+            auth_method: 'password',
+            ip: @strategy_result&.metadata&.[](:ip),
+          },
+        )
+      rescue StandardError => ex
+        # Best-effort: a login must never fail because its audit event could not
+        # be assembled.
+        OT.le('[colonel.signin] audit record failed', exception: ex)
+      end
 
       # Rate-limit subject halves passed separately to the two-tier
       # LoginRateLimiter (email drives the global backstop; email+ip the tight

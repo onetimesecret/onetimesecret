@@ -112,13 +112,21 @@ RSpec.describe Onetime::Operations::Memberships::Add do
     end
   end
 
-  it 'returns :invalid_role (no mutation, no audit) for an unknown role' do
+  # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail with
+  # the same verb/target as a success — differing only in result:/detail.
+  it 'returns :invalid_role (no mutation) and records ONE result: :failure event' do
     allow(org).to receive(:member?).and_return(false)
 
     result = described_class.new(org: org, customer: customer, role: 'wizard', actor: actor).call
 
     expect(result.status).to eq(:invalid_role)
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      actor: actor,
+      verb: 'membership.add',
+      target: 'ur_member',
+      result: :failure,
+      detail: { reason: 'invalid_role', role: 'wizard', org_id: 'on_org_ext' },
+    )
   end
 
   context 'when ensure_membership returns nil (data-integrity failure)' do
@@ -128,12 +136,27 @@ RSpec.describe Onetime::Operations::Memberships::Add do
         .to receive(:ensure_membership).with(org, customer, role: 'member').and_return(nil)
     end
 
-    it 'raises Onetime::Problem and records no audit event' do
+    # The Onetime::AuditedFailure mechanism. This raise happens BEFORE the
+    # success-path record call, so it is the only thing that puts a failed add
+    # in the trail. Message expectation, not a store read: AdminAuditEvent.record
+    # swallows its own errors.
+    it 'raises Onetime::Problem and records ONE result: :failure event' do
       expect do
         described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
       end.to raise_error(Onetime::Problem, /Failed to create membership record/)
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'membership.add',
+          target: 'ur_member', # literal: a broken target lambda silently lands as 'unknown'
+          result: :failure,
+          detail: hash_including(
+            error: 'Onetime::Problem',
+            message: 'Failed to create membership record',
+          ),
+        ),
+      )
     end
   end
 

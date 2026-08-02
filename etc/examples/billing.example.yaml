@@ -189,12 +189,14 @@ plans:
     description: "Default tier for all users without subscription"
 
     entitlements:
+      - api_access
       - create_secrets
       - custom_domains
-      - view_receipt
-      - api_access
-      - incoming_secrets
       - homepage_secrets
+      - incoming_secrets
+      - manage_orgs
+      - manage_org
+      - view_receipt
 
     # Features for UI display (i18n locale keys)
     features:

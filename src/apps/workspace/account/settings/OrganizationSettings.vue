@@ -1,39 +1,40 @@
 <!-- src/apps/workspace/account/settings/OrganizationSettings.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { useConfirmDialog, useNow } from '@vueuse/core';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
-import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
-import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
-import EmptyState from '@/shared/components/ui/EmptyState.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
-import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-import { useEntitlementError } from '@/shared/composables/useEntitlementError';
-import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
-import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
+import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
+import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
+import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
+import CopyButton from '@/shared/components/ui/CopyButton.vue';
+import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
+import EmptyState from '@/shared/components/ui/EmptyState.vue';
+import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
+import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+import { useEntitlementError } from '@/shared/composables/useEntitlementError';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
+import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation, OrganizationRole } from '@/types/organization';
 import { INVITATION_STATUSES, effectiveInvitationStatus, invitationStatusLabelKey } from '@/types/organization';
-import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
+import { formatDisplayDate } from '@/utils/format';
+import { useConfirmDialog, useNow } from '@vueuse/core';
+import { storeToRefs } from 'pinia';
 import { SsoService } from '@/services/sso.service';
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { z } from 'zod';
 
@@ -166,7 +167,6 @@ const orgNotFound = ref(false);
 // Plan data from billing overview
 const planName = ref<string>('');
 const planFeatures = ref<string[]>([]);
-
 
 const showInviteForm = ref(false);
 const inviteFormData = ref<CreateInvitationPayload>({
@@ -821,7 +821,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             data-testid="org-tab-domains"
             @click="setActiveTab('domains')"
             :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
               activeTab === 'domains'
                 ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
@@ -839,7 +839,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             data-testid="org-tab-members"
             @click="canManageMembers && setActiveTab('members')"
             :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
               !canManageMembers
                 ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
                 : activeTab === 'members'
@@ -860,7 +860,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             data-testid="org-tab-sso"
             @click="canManageSso && setActiveTab('sso')"
             :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
               !canManageSso
                 ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
                 : activeTab === 'sso'
@@ -879,12 +879,12 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             data-testid="org-tab-settings"
             @click="setActiveTab('general')"
             :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
               activeTab === 'general'
                 ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
-            {{ t('web.organizations.tabs.general')  }}
+            {{ t('web.organizations.tabs.general') }}
           </button>
         </nav>
       </div>
@@ -959,7 +959,29 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   type="text"
                   required
                   maxlength="100"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
+              </div>
+
+              <!-- Organization ID (read-only reference identifier, NOT a sign-in credential) -->
+              <div
+                v-if="organization?.extid"
+                data-testid="org-extid-field">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {{ t('web.organizations.organization_id') }}
+                </label>
+                <div class="mt-1 flex items-center gap-2">
+                  <span
+                    data-testid="org-extid-value"
+                    class="rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 font-mono text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-900/50 dark:text-gray-200">
+                    {{ organization.extid }}
+                  </span>
+                  <CopyButton
+                    :text="organization.extid"
+                    testid="org-extid-copy" />
+                </div>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.organization_id_hint') }}
+                </p>
               </div>
 
               <!-- Description (hidden for now) -->
@@ -974,7 +996,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   v-model="formData.description"
                   rows="3"
                   maxlength="500"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"></textarea>
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"></textarea>
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {{ formData.description.length }}/500
                 </p>
@@ -1008,7 +1030,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   type="button"
                   @click="handleCancel"
                   :disabled="isSaving"
-                  class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+                  class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                   {{ t('web.COMMON.word_cancel') }}
                 </button>
                 <button
@@ -1082,7 +1104,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 {{ t('web.organizations.default_org_delete_notice_before') }}
                 <router-link
                   to="/feedback"
-                  class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">{{ t('web.organizations.default_org_delete_notice_link') }}</router-link>{{ t('web.organizations.default_org_delete_notice_after') }}
+                  class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+                  {{ t('web.organizations.default_org_delete_notice_link') }}
+                </router-link>{{ t('web.organizations.default_org_delete_notice_after') }}
               </p>
             </div>
           </div>
@@ -1120,7 +1144,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 <button
                   type="button"
                   :disabled="hasDomains"
-                  class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white hover:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white dark:hover:border-red-600 dark:focus:ring-offset-gray-900"
+                  class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:border-red-600 dark:hover:bg-red-600 dark:hover:text-white dark:focus:ring-offset-gray-900"
                   @click="handleDeleteOrganization">
                   {{ t('web.COMMON.remove') }}
                 </button>
@@ -1155,7 +1179,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 <button
                   type="button"
                   data-testid="org-leave-button"
-                  class="shrink-0 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+                  class="shrink-0 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
                   @click="handleLeaveOrganization">
                   {{ t('web.organizations.leave_organization_confirm_title') }}
                 </button>
@@ -1180,8 +1204,12 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   {{ t('web.organizations.tabs.members') }}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  <template v-if="memberQuotaLimit !== null">{{ t('web.organizations.members.member_quota', { used: memberQuotaUsed, limit: memberQuotaLimit }) }}</template>
-                  <template v-else>{{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}</template>
+                  <template v-if="memberQuotaLimit !== null">
+                    {{ t('web.organizations.members.member_quota', { used: memberQuotaUsed, limit: memberQuotaLimit }) }}
+                  </template>
+                  <template v-else>
+                    {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
+                  </template>
                   <span v-if="pendingInvitationCount > 0">&nbsp;{{ t('web.organizations.members.pending_suffix', { count: pendingInvitationCount }) }}</span>
                 </p>
               </div>
@@ -1200,7 +1228,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   <OIcon
                     collection="heroicons"
                     name="arrow-up-circle"
-                    class="-ml-0.5 mr-1.5 size-5"
+                    class="mr-1.5 -ml-0.5 size-5"
                     aria-hidden="true" />
                   {{ t('web.billing.overview.upgrade_plan') }}
                 </router-link>
@@ -1219,7 +1247,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   <OIcon
                     collection="heroicons"
                     name="user-plus"
-                    class="-ml-0.5 mr-1.5 size-5"
+                    class="mr-1.5 -ml-0.5 size-5"
                     aria-hidden="true" />
                   {{ t('web.organizations.invitations.invite_member') }}
                 </button>
@@ -1310,10 +1338,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     <select
                       id="invite-role"
                       v-model="inviteFormData.role"
-                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-                      <option v-for="role in assignableRoles"
-:key="role"
-:value="role">
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                      <option
+                        v-for="role in assignableRoles"
+                        :key="role"
+                        :value="role">
                         {{ t(`web.organizations.invitations.roles.${role}`) }}
                       </option>
                     </select>
@@ -1323,7 +1352,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       type="button"
                       @click="showInviteForm = false"
                       :disabled="isInviting"
-                      class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                      class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
                       {{ t('web.COMMON.word_cancel') }}
                     </button>
                     <button
@@ -1392,13 +1421,13 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     <button
                       type="button"
                       @click="handleResendInvitation(invitation.token!)"
-                      class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800">
+                      class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800">
                       {{ t('web.organizations.invitations.resend') }}
                     </button>
                     <button
                       type="button"
                       @click="handleRevokeInvitation(invitation.token!)"
-                      class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300 dark:focus:ring-offset-gray-800">
+                      class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 focus:outline-none dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300 dark:focus:ring-offset-gray-800">
                       {{ t('web.organizations.invitations.revoke') }}
                     </button>
                   </div>
@@ -1462,7 +1491,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             <!-- Empty State — only owners/admins see the add action -->
             <EmptyState
               v-else
-              :showAction="canCreateDomain"
+              :show-action="canCreateDomain"
               :action-route="`/org/${orgId}/domains/add`"
               :action-text="t('web.domains.add_domain')">
               <template #title>
@@ -1601,7 +1630,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       <div
                         v-for="i in 4"
                         :key="i"
-                        class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
+                        class="flex animate-pulse items-center gap-2 motion-reduce:animate-none">
                         <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
                         <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
                       </div>
@@ -1629,7 +1658,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </router-link>
                     <router-link
                       :to="`/billing/${orgId}/overview`"
-                      class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+                      class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                       <OIcon
                         collection="heroicons"
                         name="cog-6-tooth-solid"
@@ -1639,7 +1668,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </router-link>
                     <router-link
                       :to="`/billing/${orgId}/invoices`"
-                      class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+                      class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                       <OIcon
                         collection="heroicons"
                         name="document-text"
@@ -1681,7 +1710,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </router-link>
                     <router-link
                       :to="`/billing/${orgId}/invoices`"
-                      class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+                      class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                       <OIcon
                         collection="heroicons"
                         name="document-text"
@@ -1762,7 +1791,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               <!-- Empty state -->
               <EmptyState
                 v-else-if="domainCount === 0"
-                :showAction="canCreateDomain"
+                :show-action="canCreateDomain"
                 :action-route="`/org/${orgId}/domains/add`"
                 :action-text="t('web.domains.add_domain')">
                 <template #title>
@@ -1820,7 +1849,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     <!-- Configure SSO link -->
                     <router-link
                       :to="`/org/${orgId}/domains/${domain.extid}/signin?modal=sso`"
-                      class="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:ring-gray-500 dark:hover:bg-gray-500">
+                      class="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:ring-gray-500 dark:hover:bg-gray-500">
                       <OIcon
                         collection="heroicons"
                         name="cog-6-tooth"
@@ -1833,7 +1862,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </div>
             </div>
           </div>
-
         </section>
       </div>
     </div>

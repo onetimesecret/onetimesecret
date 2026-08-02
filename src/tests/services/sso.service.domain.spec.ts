@@ -301,11 +301,11 @@ describe('SsoService domain methods', () => {
         data: {
           record: {
             domain_id: 'dm_put',
-            provider_type: 'google',
+            provider_type: 'entra_id',
             display_name: 'PUT Config',
             client_id: 'put-client-id',
             client_secret_masked: '********',
-            tenant_id: null,
+            tenant_id: 'tenant-put',
             issuer: null,
             enabled: true,
             allowed_domains: [],
@@ -320,11 +320,11 @@ describe('SsoService domain methods', () => {
         data: {
           record: {
             domain_id: 'dm_patch',
-            provider_type: 'google',
+            provider_type: 'entra_id',
             display_name: 'PATCH Config',
             client_id: 'patch-client-id',
             client_secret_masked: '********',
-            tenant_id: null,
+            tenant_id: 'tenant-patch',
             issuer: null,
             enabled: false,
             allowed_domains: [],
@@ -339,10 +339,11 @@ describe('SsoService domain methods', () => {
       mockPatch.mockResolvedValueOnce(patchResponse);
 
       const putResult = await SsoService.saveConfigForDomain('dm_1', {
-        provider_type: 'google' as const,
+        provider_type: 'entra_id' as const,
         client_id: 'id',
         client_secret: 'secret',
         display_name: 'Test',
+        tenant_id: 'tenant-put',
       });
 
       const patchResult = await SsoService.saveConfigForDomain('dm_2', {
@@ -436,28 +437,11 @@ describe('SsoService domain methods', () => {
       expect(result.details.error_code).toBe('discovery_failed');
     });
 
-    it('handles GitHub provider validation', async () => {
-      const githubResponse = {
-        user_id: 'user_123',
-        success: true,
-        provider_type: 'github',
-        message: 'Client ID format is valid',
-        details: {
-          client_id_format: 'valid',
-          note: 'GitHub does not support OIDC discovery',
-        },
-      };
-      mockPost.mockResolvedValueOnce({ data: githubResponse });
-
-      const result = await SsoService.testConnectionForDomain(domainExtId, {
-        provider_type: 'github' as const,
-        client_id: 'Iv1.abc123def456',
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.provider_type).toBe('github');
-      expect(result.details.client_id_format).toBe('valid');
-    });
+    // NOTE: GitHub/Google are no longer tenant SSO providers (#3902).
+    // Issuerless providers cannot satisfy per-tenant identity partitioning
+    // keyed (provider, issuer, uid); tenant SSO is OIDC/Entra-only.
+    // Schema rejection of the removed values is asserted in the
+    // putConfigForDomain strict-mode tests below.
   });
 
   // ==========================================================================
@@ -627,11 +611,13 @@ describe('SsoService domain methods', () => {
       });
 
       it('throws ZodError on schema validation failure (strict mode)', async () => {
-        // Malformed response missing required fields
+        // Malformed response missing required fields. 'google' is itself an
+        // invalid enum value now: issuerless providers were removed from the
+        // tenant SSO surface (#3902) — tenant SSO is OIDC/Entra-only.
         const malformedResponse = {
           record: {
             domain_id: domainExtId,
-            provider_type: 'invalid_provider', // Invalid enum value
+            provider_type: 'google', // Removed enum value (#3902)
           },
         };
         mockPut.mockResolvedValueOnce({ data: malformedResponse });

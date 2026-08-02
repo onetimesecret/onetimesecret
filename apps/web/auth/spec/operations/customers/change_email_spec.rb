@@ -66,8 +66,17 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   end
 
   # --- Redis index doubles -------------------------------------------------
-  # hsetnx: 1 == "the claim was ours" (simple mode only; full mode never calls it)
-  let(:email_index)         { double('Customer.email_index', get: nil, hsetnx: 1) }
+  # hsetnx: 1 == "the claim was ours" (only claimed when no accounts row carries
+  # the claim for us; with a row present the op never calls it).
+  #
+  # The claim RELEASE is a Lua compare-and-delete rather than a method on the
+  # index, so it goes through the raw client — hence dbclient/dbkey. `eval: 1`
+  # is the default "the field was still ours and is now gone" answer.
+  let(:index_dbclient)      { double('index dbclient', eval: 1) }
+  let(:index_dbkey)         { 'customer:email_index' }
+  let(:email_index) do
+    double('Customer.email_index', get: nil, hsetnx: 1, dbclient: index_dbclient, dbkey: index_dbkey)
+  end
   let(:contact_email_index) { double('Organization.contact_email_index', get: nil) }
 
   # --- SQL doubles ---------------------------------------------------------
@@ -247,11 +256,23 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(customer).not_to have_received(:save)
     end
 
-    it 'returns :invalid_email for a malformed address' do
+    # A refusal is an ATTEMPTED privileged mutation — and this verb is the
+    # highest-value account-takeover primitive an operator has, so a refused
+    # attempt lands in the trail with the same verb/target as a success,
+    # differing only in result:/detail. Addresses stay obscured.
+    it 'returns :invalid_email and records ONE result: :failure event' do
       result = op(new_email: 'not-an-email').call
 
       expect(result.status).to eq(:invalid_email)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: 'cli',
+          verb: 'customer.change_email',
+          target: 'ur_c',
+          result: :failure,
+          detail: hash_including(reason: 'invalid_email', dry_run: false),
+        ),
+      )
     end
 
     it 'returns :no_change when the normalized address matches the current one' do
@@ -302,7 +323,14 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       expect(result.status).to eq(:email_taken)
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          verb: 'customer.change_email',
+          target: 'ur_c',
+          result: :failure,
+          detail: hash_including(reason: 'email_taken'),
+        ),
+      )
     end
 
     # A CLOSED account (status_id 3) sits outside the partial unique index AND
@@ -334,12 +362,28 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
   # =========================================================================
   describe 'SQL failure leaves Redis untouched' do
-    it 're-raises a non-uniqueness SQL error without touching the Customer' do
+    # The Onetime::AuditedFailure mechanism. This re-raise happens from the
+    # MIDDLE of the swap, before record_audit ever runs, so without the macro
+    # an attempted takeover that blew up left nothing at all in the trail.
+    # Message expectation, not a store read: AdminAuditEvent.record swallows
+    # its own errors.
+    it 're-raises a non-uniqueness SQL error, records ONE failure, no Customer write' do
       allow(by_id).to receive(:update).and_raise(StandardError, 'connection reset')
 
       expect { op.call }.to raise_error(StandardError, 'connection reset')
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: 'cli',
+          # AUDIT_VERB, never the side-effect verb this op also emits.
+          verb: 'customer.change_email',
+          target: 'ur_c', # literal: a broken target lambda lands as 'unknown'
+          result: :failure,
+          detail: hash_including(
+            error: 'StandardError', message: 'connection reset', dry_run: false,
+          ),
+        ),
+      )
     end
   end
 
@@ -391,6 +435,141 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(result.warnings).to include(:secondary_writes_incomplete)
       expect(result.auth_row_updated).to be true
       expect(trace.count { |entry| entry.first == :sql_update }).to eq(1)
+    end
+
+    # In this sub-case the swap LANDED: both authoritative stores hold the new
+    # address and only secondary indexes are behind. So the FULL follow-up phase
+    # is owed exactly as it is on :success. Returning without it would drop the
+    # "an email change revokes every session" property on precisely the messy
+    # path — every session, including the current one, would survive a change
+    # the user is told failed — and would leave the account flagged verified on
+    # an address nobody has proven ownership of.
+    context 'when the Customer hash already committed (the swap landed)' do
+      before { allow(customer).to receive(:pending_email_change).and_raise(StandardError, 'redis blip') }
+
+      it 'still revokes sessions, through the same op :success uses' do
+        result = op.call
+
+        expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
+          custid: 'ur_c', actor: 'cli'
+        )
+        expect(revoker).to have_received(:call)
+        expect(result.sessions_revoked).to be true
+      end
+
+      it 'still mails BOTH addresses (D36)' do
+        op.call
+
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).twice
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).with(
+          :email_changed, hash_including(recipient: old_email), hash_including(fallback: :async_thread)
+        )
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).with(
+          :email_changed, hash_including(recipient: new_email), hash_including(fallback: :async_thread)
+        )
+      end
+
+      it 'still honours revoke_sessions: false and notify: false' do
+        result = op(revoke_sessions: false, notify: false).call
+
+        expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+        expect(result.sessions_revoked).to be false
+      end
+
+      # The follow-up is NOT best-effort cover for every partial: it is owed only
+      # where the swap landed. It must not degrade into a warning either.
+      it 'reports a revocation that failed rather than claiming one' do
+        allow(revoker).to receive(:call).and_raise(StandardError, 'redis gone')
+
+        result = op.call
+
+        expect(result.sessions_revoked).to be false
+        expect(result.warnings).to include(:sessions_revoke_failed)
+      end
+
+      # The one that actually bites: an operator-initiated change that half-lands
+      # must not leave the account flagged Verified on an address nobody proved.
+      # Same delegate, same require_verification gate :success uses.
+      it 'still resets verification, through the same wrapper :success uses' do
+        result = op.call
+
+        expect(Auth::Operations::Customers::SetVerification).to have_received(:new).with(
+          customer: customer, verified: false, actor: 'cli', verified_by: nil, db: db
+        )
+        expect(verifier).to have_received(:call)
+        expect(result.verification_reset).to be true
+      end
+
+      it 'honours require_verification: false exactly as :success does' do
+        result = op(require_verification: false).call
+
+        expect(Auth::Operations::Customers::SetVerification).not_to have_received(:new)
+        expect(result.verification_reset).to be false
+      end
+
+      # The status is already :partial and there is nothing below it, so the
+      # signal the :success path carries as a STATUS is carried here as the
+      # identically named warning — the operator owes the same
+      # `bin/ots customers unverify` remediation either way.
+      context 'when the reset cannot be confirmed' do
+        before do
+          allow(verifier).to receive(:call).and_raise(StandardError, 'no auth db')
+          allow(by_id_verified).to receive(:update).and_raise(StandardError, 'db gone')
+        end
+
+        it 'warns :verification_not_reset without moving the status off :partial' do
+          result = op.call
+
+          expect(result.status).to eq(:partial)
+          expect(result.verification_reset).to be false
+          expect(result.warnings).to include(
+            :secondary_writes_incomplete, :verification_reset_failed,
+            :verification_still_set, :verification_not_reset
+          )
+        end
+
+        it 'carries those warnings into the single :partial audit event' do
+          op.call
+
+          expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+            hash_including(
+              verb: 'customer.change_email',
+              result: :partial,
+              detail: hash_including(warnings: include(:verification_not_reset, :verification_still_set)),
+            )
+          )
+        end
+      end
+
+      # The fail-closed fallback is owed here too: the wrapper failing must not
+      # mean the flag simply stays up.
+      it 'force-clears row-scoped when the wrapper fails, and reports the clear' do
+        allow(verifier).to receive(:call).and_raise(StandardError, 'no auth db')
+
+        result = op.call
+
+        expect(result.status).to eq(:partial)
+        expect(result.verification_reset).to be true
+        expect(result.warnings).to include(:verification_reset_failed, :verification_force_cleared)
+        expect(result.warnings).not_to include(:verification_not_reset)
+        expect(trace).to include([:sql_status_update, 1], [:customer_verified_assigned, false])
+      end
+    end
+
+    # The mirror image: the swap did NOT land (the accounts row was rolled back
+    # to the old address), so revoking sessions, unverifying and mailing a change
+    # notice would all be reacting to something that never happened.
+    it 'runs NO follow-up when the Customer never committed' do
+      allow(customer).to receive(:save).and_raise(StandardError, 'redis down')
+
+      result = op.call
+
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
+      expect(Auth::Operations::Customers::SetVerification).not_to have_received(:new)
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+      expect(result.sessions_revoked).to be false
+      expect(result.verification_reset).to be false
     end
   end
 
@@ -819,15 +998,56 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
     # Winning the HSETNX claim is a MUTATION (the old pre-write check was a pure
     # read). If the Redis phase then fails, the index entry points at a customer
-    # that never took the address and nothing rolls it back.
-    it 'flags the orphaned index claim when the Redis phase fails after claiming' do
-      allow(email_index).to receive(:hsetnx).and_return(true)
-      allow(customer).to receive(:update_in_class_email_index).and_raise(StandardError, 'redis gone')
+    # that never took the address — so it is released rather than handed to the
+    # operator as a doctor round-trip.
+    context 'when the Redis phase fails after the claim was won' do
+      before do
+        allow(email_index).to receive(:hsetnx).and_return(true)
+        allow(customer).to receive(:update_in_class_email_index).and_raise(StandardError, 'redis gone')
+        # Allowed purely so the negative assertions below are well-formed — the
+        # release must never route through the non-atomic HDEL wrapper.
+        allow(email_index).to receive(:remove_field)
+      end
 
-      result = op(db: nil).call
+      # The release MUST be compare-and-delete, not read-then-HDEL: winning the
+      # HSETNX proves we took the field, not that we still hold it, and Familia's
+      # auto-index on save is a blind HSET. A bare HDEL would therefore be able to
+      # unindex a DIFFERENT, live account that claimed the address in between.
+      it 'releases the claim by compare-and-delete on our own objid' do
+        result = op(db: nil).call
 
-      expect(result.status).to eq(:partial)
-      expect(result.warnings).to include(:email_index_claim_orphaned)
+        expect(index_dbclient).to have_received(:eval).with(
+          described_class::RELEASE_INDEX_CLAIM_SCRIPT,
+          keys: [index_dbkey],
+          argv: [new_email, 'obj_c'],
+        )
+        expect(email_index).not_to have_received(:remove_field)
+        expect(result.status).to eq(:partial)
+        expect(result.warnings).not_to include(:email_index_claim_orphaned)
+      end
+
+      it 'falls back to :email_index_claim_orphaned when the release itself fails' do
+        allow(index_dbclient).to receive(:eval).and_raise(StandardError, 'redis gone')
+
+        result = op(db: nil).call
+
+        expect(result.status).to eq(:partial)
+        expect(result.warnings).to include(:email_index_claim_orphaned)
+      end
+
+      # 0 == the field no longer names us: someone else's blind HSET landed on
+      # top of our claim, so the CAS correctly declines to delete THEIR live
+      # entry. That is exactly the mismatch `customers doctor` reconciles, so it
+      # must still warn — staying silent leaves that account unindexed with
+      # nobody told to run it.
+      it 'warns rather than deleting an entry that no longer names us' do
+        allow(index_dbclient).to receive(:eval).and_return(0)
+
+        result = op(db: nil).call
+
+        expect(result.status).to eq(:partial)
+        expect(result.warnings).to include(:email_index_claim_orphaned)
+      end
     end
 
     it 'degrades to Redis-only and reports auth_row_updated: false, never a phantom success' do
@@ -890,11 +1110,37 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   # Full mode is serialized by the unique index on accounts.email, which every
   # writer passes through BEFORE its Redis write — no Redis-level claim needed,
   # and a lost race surfaces as the UniqueConstraintViolation covered above.
-  describe 'full mode does not need the Redis claim' do
-    it 'never touches the index claim when an auth database is present' do
+  # That guard is the ROW, though, not the connection.
+  describe 'full mode: the claim follows the accounts row, not the connection' do
+    it 'never touches the index claim when the customer has an accounts row' do
       op.call
 
       expect(email_index).not_to have_received(:hsetnx)
+    end
+
+    # A customer with no accounts row (a provisioning gap sync-auth-accounts
+    # owns) updates nothing in step 1, so the unique constraint never fires.
+    # Skipping the claim because a connection exists would leave that write with
+    # no guard at all.
+    it 'still claims the index entry when the accounts row is missing' do
+      allow(by_external_id).to receive(:first).and_return(nil)
+      expect(email_index).to receive(:hsetnx).with(new_email, 'obj_c').and_return(1)
+
+      result = op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.auth_row_updated).to be false
+    end
+
+    it 'aborts with :email_taken when that claim is lost' do
+      allow(by_external_id).to receive(:first).and_return(nil)
+      allow(email_index).to receive(:hsetnx).and_return(0)
+      allow(email_index).to receive(:get).with(new_email).and_return(nil, 'obj_other')
+
+      result = op.call
+
+      expect(result.status).to eq(:email_taken)
+      expect(customer).not_to have_received(:save)
     end
   end
 end

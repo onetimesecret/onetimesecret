@@ -7,6 +7,7 @@
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic + CLI), so require the audit model explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -34,7 +35,10 @@ module Onetime
       # names + ids) and mutates/audits NOTHING. `dry_run: false` performs the
       # transfer (remove from old collection → update org_id → add to new
       # collection, rolling back org_id if the add fails) and records EXACTLY ONE
-      # {Onetime::AdminAuditEvent}. A blocked run (`:mismatch`) records no event.
+      # {Onetime::AdminAuditEvent}. A blocked run (`:mismatch`) and a transfer
+      # that blows up mid-apply each record one `result: :failure` event: this is
+      # the highest-blast-radius domain verb, and a half-applied transfer that
+      # left no trace was the exact gap {Onetime::AuditedFailure} exists to close.
       #
       # ## Behavioural parity note
       #
@@ -44,15 +48,40 @@ module Onetime
       # the single shared impl for BOTH the CLI and the colonel endpoint, so both
       # adapters pass the identical string argument.
       class Transfer
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every applied transfer.
         AUDIT_VERB = 'domain.transfer'
+
+        # A privileged mutation was asked for and REFUSED. `:planned` is not a
+        # refusal — a dry run attempts nothing.
+        REFUSAL_STATUSES = [:mismatch].freeze
+
+        # The apply path rolls back org_id and re-raises when the destination
+        # collection add fails, and the success record sits after it. Records one
+        # `result: :failure` and re-raises.
+        #
+        # `dry_run` is in the detail because it defaults to TRUE and the success
+        # event is applied-path-only — without it a blown-up preview is
+        # indistinguishable from a blown-up transfer.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @domain&.extid },
+          detail: -> { { dry_run: @dry_run, to_org_id: @to_org&.org_id.to_s } }
 
         # @!attribute status [r] Symbol —
         #   :planned (dry-run), :transferred (applied),
         #   :mismatch (explicit from_org != current owner — blocked)
         Result = Data.define(
-          :status, :domain_id, :extid, :display_domain,
-          :from_org_id, :from_org_name, :to_org_id, :to_org_name, :dry_run
+          :status,
+          :domain_id,
+          :extid,
+          :display_domain,
+          :from_org_id,
+          :from_org_name,
+          :to_org_id,
+          :to_org_name,
+          :dry_run,
         )
 
         # @param domain [Onetime::CustomDomain] target domain (caller ensures non-nil).
@@ -117,7 +146,30 @@ module Onetime
 
         private
 
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op.
+        def record_refusal(status, from_id)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @domain.extid,
+            result: :failure,
+            detail: {
+              reason: status.to_s,
+              from_org_id: from_id.to_s,
+              to_org_id: @to_org.org_id.to_s,
+              dry_run: @dry_run,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[Domains::Transfer] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # Single exit point for every non-applied status, so the refusal audit
+        # cannot be forgotten at an early return.
         def build(status, from_id, from_name)
+          record_refusal(status, from_id) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             domain_id: @domain.domainid,

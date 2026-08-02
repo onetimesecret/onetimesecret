@@ -68,18 +68,47 @@ module Onetime
       EMAIL_MASK_CHAR      = '*'  # masking character
       EMAIL_MASK_LENGTH    = 3    # number of mask characters
 
+      # U+FFFD REPLACEMENT CHARACTER. Shared so the producers that mark invalid
+      # bytes with it (Diagnose#utf8_safe_deep, `customers diagnose --full`) and
+      # the consumer that has to strip it before matching (#obscure_email) can
+      # never drift onto different markers — a marker #obscure_email does not
+      # know about is a marker that defeats EMAIL_PATTERN, which prints the
+      # address in the clear.
+      UNICODE_REPLACEMENT_CHAR = "\u{FFFD}"
+
       # RFC 5321/5322-compliant email pattern for matching
       # Supports: local-part@domain where local-part allows dots, plus, etc.
       # This pattern is intentionally permissive to catch edge cases while
       # Mail::Address handles validation during parsing.
       # Uses atomic group (?>) on local part to prevent ReDoS attacks.
+      #
+      # Letter/number classes are Unicode (\p{L}\p{N}), not [A-Z0-9]: Truemail
+      # accepts a unicode local part, so `josé@example.com` is storable, and an
+      # ASCII-only class would leave it printed in the clear by every caller of
+      # #obscure_email. The domain side is widened for the same reason (IDNs).
+      # \b is encoding-aware in Onigmo, so it still anchors correctly around
+      # non-ASCII letters.
+      #
+      # The domain uses \p{Pd} (all dash punctuation), not a bare ASCII `-`,
+      # and that is NOT cosmetic. Truemail's host class is
+      # `[\p{L}\p{N}\p{Pd}]`, so once an ASCII separator has appeared it
+      # accepts any unicode dash inside a label: `user@ex-\u{2010}ample.com`
+      # and the U+2013 variant both measure storable. With a bare `-` this
+      # pattern did not match them, and #obscure_email printed the WHOLE
+      # address — local part and domain — in the clear. Same class of defect
+      # as the josé@example.com leak, on the other side of the `@`.
+      # \p{Pd} subsumes ASCII `-`, so this is a strict widening.
+      #
+      # This class must stay a superset of Truemail's; the twin redactor in
+      # lib/onetime/initializers/setup_diagnostics.rb already uses \p{Pd},
+      # and tests/fixtures/email_redaction_corpus.json pins both.
       EMAIL_PATTERN = /
         \b
-        (?>[A-Z0-9._%+'-]+)  # local part: atomic group prevents backtracking
+        (?>[\p{L}\p{N}._%+'-]+)  # local part: atomic group prevents backtracking
         @
-        [A-Z0-9.-]+          # domain: alphanumeric, dots, hyphens
+        [\p{L}\p{N}.\p{Pd}]+     # domain: alphanumeric, dots, any unicode dash
         \.
-        [A-Z]{2,}            # TLD: at least 2 letters
+        \p{L}{2,}                # TLD: at least 2 letters
         \b
       /ix
 
@@ -119,12 +148,71 @@ module Onetime
         email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
       end
 
+      # Removes every byte run that is not valid UTF-8 so text of unknown
+      # provenance — a datastore field, a request parameter — can be matched,
+      # printed and JSON-encoded without raising.
+      #
+      # The replacement is a PRESENTATION choice, not a safety one — read that
+      # carefully, because it USED to be a safety one and the comments here said
+      # so. U+FFFD is not in EMAIL_PATTERN's character class, so a marker landing
+      # inside an address (`us\u{FFFD}er@example.com`) stopped the match and
+      # printed the address in full; dropping was the fail-closed default for
+      # that reason. #obscure_email now strips markers as part of its own
+      # normalization, so no caller's redaction depends on this default any
+      # more, and marking is safe to hand to a redactor.
+      #
+      # Choose by what the reader needs to see:
+      #   '' (default) — the text will be read as prose and the corruption is
+      #     noise.
+      #   UNICODE_REPLACEMENT_CHAR — the corruption IS the evidence. This is
+      #     what the diagnose op's Result uses: colonel renders those sections
+      #     verbatim, and a `locale: "en\xFF"` that reads back as a clean "en"
+      #     is a diagnostic tool lying about the state it exists to report.
+      #
+      # A binary-tagged string is `valid_encoding?` whatever bytes it holds, and
+      # matching one against a UTF-8 pattern raises Encoding::CompatibilityError,
+      # so re-tag before consulting the flag.
+      #
+      # @param text [String] Text of unknown encoding
+      # @param replacement [String] Stand-in for each invalid byte run
+      # @return [String] Valid UTF-8 text
+      def utf8_safe(text, replacement: '')
+        text = text.dup.force_encoding(Encoding::UTF_8) unless text.encoding == Encoding::UTF_8
+        text.valid_encoding? ? text : text.scrub(replacement)
+      end
+
       # @note Uses Mail::Address for parsing, avoiding hand-rolled parsing
       #   edge cases while keeping the code short and auditable.
       def obscure_email(text)
         return text if text.nil? || text.empty?
 
-        text.gsub(EMAIL_PATTERN) do |raw|
+        # This is a redaction helper on logging and CLI-output paths, and its
+        # input is whatever the datastore or the request held — gsub raises
+        # ArgumentError on invalid UTF-8, which would turn unreadable data into
+        # an outage (see LoginRateLimiter, which obscures a request-supplied
+        # address). Scrub first, then mask what remains.
+        #
+        # Two separate ways a marker can defeat the mask, so both are handled
+        # here rather than assumed away upstream:
+        #
+        #   1. invalid bytes we scrub ourselves — dropped, not marked, so
+        #      `us\xFFer@example.com` collapses to `user@example.com` and still
+        #      matches EMAIL_PATTERN;
+        #   2. a U+FFFD the INPUT already carries — someone upstream scrubbed in
+        #      marker mode (Diagnose#utf8_safe_deep does exactly that, and its
+        #      Result is this method's input on the CLI path). Deleting it is
+        #      the same collapse, one layer later.
+        #
+        # Either way the character is not in EMAIL_PATTERN's class, and an
+        # unmatched address is an address printed in full. This normalization is
+        # the reason #utf8_safe's replacement is now a free choice for callers.
+        #
+        # The cost is deliberate: the masked path silently loses the corruption
+        # marker (`verified\u{FFFD}` prints as `verified`). Operators who need
+        # to see the corruption use `--full` or the colonel panel, both of which
+        # keep the marker and skip this method entirely. A redactor's job is to
+        # never leak; showing damage is someone else's.
+        utf8_safe(text).delete(UNICODE_REPLACEMENT_CHAR).gsub(EMAIL_PATTERN) do |raw|
           mask_email_address(raw)
         end
       end
@@ -140,18 +228,32 @@ module Onetime
 
       # Masks a single email address string
       # @param raw [String] Raw email address to mask
-      # @return [String] Masked email address, or original if parsing fails
+      # @return [String] Masked email address
       def mask_email_address(raw)
         addr = ::Mail::Address.new(raw)
-        return raw unless addr.local && addr.domain
+        return mask_unparsed_address(raw) unless addr.local && addr.domain
 
         local  = mask_string_head(addr.local, EMAIL_MASK_MIN_LOCAL)
         domain = mask_domain(addr.domain)
         "#{local}@#{domain}"
       rescue StandardError
         # Mail gem can raise various exceptions (ParseError, ArgumentError,
-        # Encoding::CompatibilityError). Return raw input for robustness.
-        raw
+        # Encoding::CompatibilityError).
+        mask_unparsed_address(raw)
+      end
+
+      # Last-resort mask for an address the mail gem could not parse. Returning
+      # `raw` here would print in the clear the very address EMAIL_PATTERN just
+      # identified, so mask without parsing: keep the local-part head and the
+      # final label, which is all an operator needs to tell two addresses apart.
+      # @param raw [String] Address that failed to parse
+      # @return [String] Masked address
+      def mask_unparsed_address(raw)
+        local, _, domain = raw.include?('@') ? raw.rpartition('@') : [raw, '', '']
+        mask             = EMAIL_MASK_CHAR * EMAIL_MASK_LENGTH
+        tld              = domain.split('.').last
+        masked_domain    = tld.to_s.empty? ? mask : "#{mask}.#{tld}"
+        "#{mask_string_head(local, EMAIL_MASK_MIN_LOCAL)}@#{masked_domain}"
       end
 
       # Splits domain and masks the host portion, preserving TLD

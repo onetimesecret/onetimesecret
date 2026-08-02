@@ -64,18 +64,18 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
 
   it 'Organization was created with correct owner' do
     expect(@org.class).to eq(Onetime::Organization)
-    expect(@org.owner_id).to eq(@customer.custid)
+    expect(@org.owner_id).to eq(@customer.objid)
   end
 
-  it 'Organization.created_by is set in lock-step with owner_id (ADR-012)' do
-    expect(@org.created_by).to eq(@customer.custid)
+  it 'Organization.created_by is set in lock-step with owner_id (ADR-012, objid space #3907)' do
+    expect(@org.created_by).to eq(@customer.objid)
     expect(@org.created_by).to eq(@org.owner_id)
   end
 
   it 'safe_dump exposes both owner_id and created_by keys' do
     dump = @org.safe_dump
-    expect(dump[:owner_id]).to eq(@customer.custid)
-    expect(dump[:created_by]).to eq(@customer.custid)
+    expect(dump[:owner_id]).to eq(@customer.objid)
+    expect(dump[:created_by]).to eq(@customer.objid)
     expect(dump[:created_by]).to eq(dump[:owner_id])
   end
 

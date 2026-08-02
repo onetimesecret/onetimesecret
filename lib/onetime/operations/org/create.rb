@@ -5,6 +5,7 @@
 # Loaded at the call site (CLI today, a colonel endpoint later), which run
 # outside the app autoloaders — require the audit model explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -82,15 +83,15 @@ module Onetime
       # `Onetime::OrganizationMembership` here (precedent:
       # memberships/set_role.rb:64).
       class Create
+        include Onetime::AuditedFailure
+
         AUDIT_VERB = 'organization.create'
 
-        # Field limits. These are the SINGLE source of truth for the admin path.
-        # They mirror the incumbent customer-facing limits in
-        # OrganizationAPI::Logic::Organizations::CreateOrganization (display_name
-        # 100, description 500), which still carries its own inline literals —
-        # having that class reference these constants is a filed follow-up (D21),
-        # deliberately not done here because routing signup through this op would
-        # flood the capped admin audit set.
+        # Field limits. SINGLE source of truth for BOTH create surfaces: the
+        # customer-facing OrganizationAPI::Logic::Organizations::CreateOrganization
+        # aliases these constants (D21, #3907). Signup deliberately still does
+        # NOT route through this op — that would flood the capped admin audit
+        # set — it shares only the limits.
         MAX_DISPLAY_NAME = 100
         MAX_DESCRIPTION  = 500
 
@@ -107,6 +108,28 @@ module Onetime
           # report the same thing.
           email_taken: 'Organization exists for that email address',
         }.freeze
+
+        # Every rejection is a REFUSED privileged create, so each records one
+        # `result: :failure` event. Derived from REJECTIONS so a new rejection
+        # reason cannot silently escape the trail.
+        REFUSAL_STATUSES = REJECTIONS.keys.freeze
+
+        # TARGET DEVIATION, READ THIS BEFORE CHANGING IT: the success event's
+        # target is `org.extid` (an `on_*` id), but on the failure path the org
+        # does NOT EXIST — it was never created, or `create!` blew up. There is
+        # no `@org` ivar to read, and a lambda reading one would land silently as
+        # 'unknown' (AuditedFailure.resolve rescues). So a failed create targets
+        # the OWNER's extid (`ur_*`), the only stable PUBLIC id in play, and the
+        # detail carries the requested display_name. Filtering by verb finds
+        # these; filtering by an org id cannot, because there is no org id.
+        #
+        # create! reserves contact_email via HSETNX and writes several fields;
+        # anything other than the uniqueness race re-raises (see #create_org),
+        # and the success record sits after all of it.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @owner&.extid },
+          detail: -> { { owner_id: @owner&.extid, display_name: @display_name_input.to_s.strip } }
 
         # Outcome of {#validate}.
         #
@@ -243,13 +266,11 @@ module Onetime
         # `bin/ots org doctor` compares against (`Customer.load(org.owner_id)`
         # and the members-set entries, which are objid-keyed).
         #
-        # `Organization.create!` writes `owner_customer.custid`. Today that is
-        # the same string only because `Customer#init` does `self.custid ||=
-        # objid`; the two fields are NOT the same concept. This normalizes to
-        # the objid explicitly so this op stays correct if that identity ever
-        # diverges. It is a no-op write-wise today (the guard below), and
-        # changing `create!` itself is a filed follow-up. Do not "simplify" it
-        # away.
+        # `Organization.create!` writes the objid itself as of #3907, so this
+        # is a no-op write-wise today (the guard below). It stays as a
+        # belt-and-braces assertion of the op's post-condition — the doctor
+        # invariants hold even if a future `create!` change regresses the
+        # owner_id space. Do not "simplify" it away.
         def normalize_owner_id!(org)
           desired = @owner.objid.to_s
           return if desired.empty?
@@ -276,7 +297,33 @@ module Onetime
           )
         end
 
+        # Same verb/actor as the success event; see the TARGET DEVIATION note on
+        # audit_failures for why the target is the owner rather than the org.
+        # Best-effort: never break the op.
+        def record_refusal(check)
+          owner_extid = @owner&.extid.to_s
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            # :missing_owner has no owner to name. Use the SAME sentinel the
+            # macro's resolver falls back to, so the two failure paths agree.
+            target: owner_extid.empty? ? Onetime::AuditedFailure::UNKNOWN : owner_extid,
+            result: :failure,
+            detail: {
+              reason: check.status.to_s,
+              owner_id: @owner&.extid,
+              display_name: @display_name_input.to_s.strip,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[Org::Create] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # Single exit point for every rejection (#validate's and the create!
+        # race's), so the refusal audit cannot be forgotten at either.
         def rejected_result(check)
+          record_refusal(check) if REFUSAL_STATUSES.include?(check.status)
+
           Result.new(
             status: check.status,
             org_id: nil,

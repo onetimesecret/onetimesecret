@@ -46,7 +46,7 @@ module Onetime
       # identically on every route. Note: a root-relative logo renders in the
       # web UI but is omitted from emails (which need an absolute URL) — the
       # same pre-existing caveat normalize_brand already warns about at boot.
-      BRAND_PACK_LOGO_URLS = %w[/brand-logo.svg /brand-logo.png].freeze
+      BRAND_PACK_LOGO_URLS = %w[/brand-logo.svg /brand-logo.png /brand-logo-dark.svg /brand-logo-dark.png].freeze
 
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware

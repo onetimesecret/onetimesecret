@@ -123,10 +123,45 @@ RSpec.describe Onetime::Operations::BanIP do
       expect(Onetime::BannedIP).not_to have_received(:ban!)
     end
 
-    it 'records NO audit event' do
+    # A refusal, not an idempotent no-op: the colonel adapter renders
+    # :already_banned as a 422 form error, so it is an operator-visible refusal
+    # of an attempted privileged mutation and belongs in the trail.
+    it 'records ONE result: :failure event with the unchanged verb' do
       described_class.new(ip_address: ip, actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'ip.ban',
+        target: ip,
+        result: :failure,
+        detail: { reason: 'already_banned', expiration: nil },
+      )
     end
+  end
+
+  # The Onetime::AuditedFailure mechanism. BannedIP.ban! writes the record and
+  # its index BEFORE the success-path record call. Message expectation, not a
+  # store read: AdminAuditEvent.record swallows its own errors.
+  it 'records ONE result: :failure event when ban! raises, and re-raises' do
+    allow(Onetime::BannedIP).to receive(:banned?).with(ip).and_return(false)
+    allow(Onetime::BannedIP).to receive(:ban!).and_raise(Onetime::Problem, 'index write failed')
+
+    expect do
+      described_class.new(ip_address: ip, actor: actor, reason: 'abuse').call
+    end.to raise_error(Onetime::Problem, /index write failed/)
+
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        actor: actor,
+        verb: 'ip.ban',
+        # The raw input, NOT the model-normalised banned.ip_address the success
+        # path uses — that object does not exist here.
+        target: ip,
+        result: :failure,
+        detail: hash_including(
+          error: 'Onetime::Problem', message: 'index write failed', reason: 'abuse',
+        ),
+      ),
+    )
   end
 end

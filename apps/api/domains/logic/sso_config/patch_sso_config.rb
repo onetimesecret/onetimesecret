@@ -21,7 +21,9 @@ module DomainsAPI
       # Request body:
       # - provider_type: Required for create, optional for update (uses existing if empty)
       # - client_id: Required for create, optional for update (uses existing if empty)
-      # - client_secret: Required for create, optional for update (preserves existing if empty)
+      # - client_secret: Required for create (except OIDC public clients),
+      #   optional for update (preserves existing if empty). Switching to a
+      #   non-OIDC provider requires a secret — from the request or already stored.
       # - tenant_id: Required for entra_id provider on create (preserves existing if empty)
       # - issuer: Required for oidc provider on create (preserves existing if empty)
       # - display_name: Optional. Human-readable name (preserves existing if empty)
@@ -157,7 +159,9 @@ module DomainsAPI
         # For new configs: provider_type is required
         # For updates: falls back to existing config value when not provided
         def validate_provider_type
-          if @provider_type.to_s.empty?
+          from_request = !@provider_type.to_s.empty?
+
+          unless from_request
             if @existing_config
               @provider_type = @existing_config.provider_type
             else
@@ -167,8 +171,22 @@ module DomainsAPI
 
           return if VALID_PROVIDER_TYPES.include?(@provider_type)
 
+          if from_request
+            raise_form_error(
+              "Invalid provider type. Must be one of: #{VALID_PROVIDER_TYPES.join(', ')}",
+              field: :provider_type,
+              error_type: :invalid,
+            )
+          end
+
+          # The invalid type came from the stored record, not the request:
+          # pre-#3902 legacy data (google/github). Still fail closed — even a
+          # bare `{enabled: false}` PATCH cannot resurrect a record the model
+          # no longer accepts — but blame the record, not a field the caller
+          # never sent. DELETE and full PUT remain the escape hatches.
           raise_form_error(
-            "Invalid provider type. Must be one of: #{VALID_PROVIDER_TYPES.join(', ')}",
+            "This configuration uses provider type '#{@provider_type}', which is no longer supported. " \
+            "Delete it, or replace it with a full update (PUT) using one of: #{VALID_PROVIDER_TYPES.join(', ')}",
             field: :provider_type,
             error_type: :invalid,
           )
@@ -187,11 +205,25 @@ module DomainsAPI
             end
           end
 
-          # client_secret is required for new non-OIDC configs, optional for updates (preserves existing).
-          # OIDC supports public clients (PKCE flow) without a client secret.
-          if @existing_config.nil? && @client_secret.to_s.empty? && @provider_type != 'oidc'
+          # client_secret is required for non-OIDC configs; OIDC supports
+          # public clients (PKCE flow) without one. An omitted secret on
+          # update falls back to the stored one — so a provider switch from
+          # a secretless OIDC config to entra_id has nothing to fall back to
+          # and must supply a secret, or token exchange fails at the IdP.
+          return if @provider_type == 'oidc' || !@client_secret.to_s.empty?
+
+          if @existing_config.nil? || !stored_client_secret?
             raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
           end
+        end
+
+        # Whether the stored record has a non-empty client_secret to preserve.
+        # An undecryptable secret counts as absent — fail closed.
+        def stored_client_secret?
+          secret = @existing_config.client_secret&.reveal { it }
+          !secret.to_s.empty?
+        rescue StandardError
+          false
         end
 
         def validate_provider_specific_fields
@@ -243,7 +275,9 @@ module DomainsAPI
         #
         # PATCH Semantics:
         # - Optional fields are preserved when omitted, allowing partial updates.
-        # - Provider-specific fields are preserved on provider switch.
+        # - A provider switch clears the outgoing provider's field (issuer for
+        #   oidc, tenant_id for entra_id) unless the request supplies it,
+        #   matching the end state a full PUT would produce.
         #
         # allowed_domains behavior:
         # - When omitted: preserves existing domains (true PATCH semantics)
@@ -254,7 +288,8 @@ module DomainsAPI
         # config could be deleted between existence check and update.
         #
         def update_existing_config
-          @sso_config = @existing_config
+          @sso_config       = @existing_config
+          provider_switched = @provider_type != @existing_config.provider_type
 
           # PATCH semantics: only update fields that are provided (non-empty)
           @sso_config.provider_type    = @provider_type
@@ -266,6 +301,15 @@ module DomainsAPI
           @sso_config.enforce_sso_only = @enforce_sso_only.to_s if @enforce_sso_only_provided
           @sso_config.grant_org_scope  = @grant_org_scope.to_s if @grant_org_scope_provided
 
+          # A provider switch clears the outgoing provider's field so the
+          # record matches what a full PUT would produce — an entra_id record
+          # must not carry a stale oidc issuer, nor an oidc record a stale
+          # tenant_id. Request-supplied values are never discarded.
+          if provider_switched
+            @sso_config.issuer    = '' if @provider_type == 'entra_id' && @issuer.to_s.empty?
+            @sso_config.tenant_id = '' if @provider_type == 'oidc' && @tenant_id.to_s.empty?
+          end
+
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
@@ -274,6 +318,12 @@ module DomainsAPI
 
           # Update timestamp for partial update
           @sso_config.updated = Familia.now.to_i
+
+          # Fail closed if the request validators above missed a field
+          # combination: the model owns the invariants (SsoConfig#validation_errors)
+          # and nothing invalid may be committed.
+          errors = @sso_config.validation_errors
+          raise_form_error(errors.join('; '), error_type: :invalid) if errors.any?
 
           # commit_fields runs its own transaction internally for atomicity
           @sso_config.commit_fields

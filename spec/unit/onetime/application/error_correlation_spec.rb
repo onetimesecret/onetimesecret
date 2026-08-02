@@ -79,6 +79,71 @@ RSpec.describe Onetime::Application::ErrorCorrelation do
       expect(env).not_to have_key(described_class::ENV_ERROR_TYPE)
       expect(out[:request_id]).to eq(request_id) # request_id is still echoed
     end
+
+    # The throttle delay has
+    # to reach Onetime::Middleware::RetryAfterHeader, which is the only frame
+    # that can set a response header on the Otto error path.
+    describe 'retry_after stashing' do
+      it "stashes a LimitExceeded body's retry_after into env" do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: 900 }, env)
+
+        expect(env[described_class::ENV_RETRY_AFTER]).to eq(900)
+      end
+
+      it 'leaves the body itself untouched' do
+        body = { error_type: 'LimitExceeded', retry_after: 900 }
+        out  = described_class.apply(body, env_with_request_id)
+
+        expect(out[:retry_after]).to eq(900)
+        expect(body.keys).to contain_exactly(:error_type, :retry_after)
+      end
+
+      it 'stashes nothing for bodies without a retry_after (every non-throttle error)' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'RecordNotFound' }, env)
+
+        expect(env).not_to have_key(described_class::ENV_RETRY_AFTER)
+      end
+
+      it 'stashes nothing for a non-numeric retry_after' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: '900' }, env)
+
+        expect(env).not_to have_key(described_class::ENV_RETRY_AFTER)
+      end
+
+      it 'stashes nothing for a negative retry_after' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: -1 }, env)
+
+        expect(env).not_to have_key(described_class::ENV_RETRY_AFTER)
+      end
+
+      # Rounds UP, not toward zero: a truncated header would advertise a shorter
+      # back-off than the body, so a compliant client would retry before the
+      # lockout expired and be throttled again.
+      it 'rounds a float delay UP to whole seconds (Retry-After is delay-seconds)' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: 12.7 }, env)
+
+        expect(env[described_class::ENV_RETRY_AFTER]).to eq(13)
+      end
+
+      it 'never advertises less than the body states for a fractional delay' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: 30.5 }, env)
+
+        expect(env[described_class::ENV_RETRY_AFTER]).to eq(31)
+      end
+
+      it 'stashes nothing for a NaN retry_after' do
+        env = env_with_request_id
+        described_class.apply({ error_type: 'LimitExceeded', retry_after: Float::NAN }, env)
+
+        expect(env).not_to have_key(described_class::ENV_RETRY_AFTER)
+      end
+    end
   end
 
   describe '.short_class_name' do
@@ -97,6 +162,10 @@ RSpec.describe Onetime::Application::ErrorCorrelation do
 
     it 'pins ENV_REQUEST_ID to the Rack::RequestId env key' do
       expect(described_class::ENV_REQUEST_ID).to eq('HTTP_X_REQUEST_ID')
+    end
+
+    it 'pins ENV_RETRY_AFTER to the key RetryAfterHeader reads' do
+      expect(described_class::ENV_RETRY_AFTER).to eq('otto.retry_after')
     end
   end
 end

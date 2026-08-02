@@ -241,15 +241,21 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
 
   # ─── SP wiring (no HTTP) ───────────────────────────────────────────────────
   describe 'SP-side wiring (configure_local_idp_provider)' do
+    # rodauth-omniauth stores registrations in @omniauth_providers on the
+    # *Rodauth auth class* (omniauth_base.rb:27-28), not on Auth::Config — so
+    # there is nothing to introspect here after boot. Drive the registration
+    # method directly and capture the call, the same pattern used by
+    # apps/web/auth/spec/config/features/omniauth_providers_spec.rb.
     it 'registers the :local provider with the expected options' do
-      providers = Auth::Config.instance_variable_get(:@omniauth_providers) || []
-      local_entry = providers.find do |entry|
-        opts = entry.last
-        opts.is_a?(Hash) && opts[:name] == :local
-      end
+      registered = []
+      auth = double('auth')
+      allow(auth).to receive(:omniauth_provider) { |strategy, opts| registered << [strategy, opts] }
 
+      Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
+
+      local_entry = registered.find { |(_, opts)| opts[:name] == :local }
       expect(local_entry).not_to be_nil,
-        "Expected :local provider registered. Got providers: #{providers.inspect}"
+        "Expected :local provider registered. Got providers: #{registered.inspect}"
 
       strategy_name, opts = local_entry
       expect(strategy_name).to eq(:openid_connect)

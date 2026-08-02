@@ -213,6 +213,7 @@ module Core
         brand_product_domain        = brand_config['product_domain']
         brand_support_email         = brand_config['support_email'] || brand_global_defaults[:support_email]
         brand_logo_url              = brand_config['logo_url'] || brand_global_defaults[:logo_url]
+        brand_logo_dark_url         = brand_config['logo_dark_url']
         brand_logo_alt              = brand_config['logo_alt'] || brand_global_defaults[:logo_alt]
         brand_favicon_url           = brand_config['favicon_url'] || brand_global_defaults[:favicon_url]
         # Mobile/social variety-pack URLs used by the HTML head. Unlike the
@@ -276,6 +277,7 @@ module Core
           'brand_product_domain' => brand_product_domain,
           'brand_support_email' => brand_support_email,
           'brand_logo_url' => brand_logo_url,
+          'brand_logo_dark_url' => brand_logo_dark_url,
           'brand_logo_alt' => brand_logo_alt,
           'brand_favicon_url' => brand_favicon_url,
           'brand_apple_touch_icon_url' => brand_apple_touch_icon_url,

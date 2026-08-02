@@ -77,6 +77,7 @@ field. No defaults shipped.
 | `BRAND_FONT_FAMILY`          | `sans` \| `serif` \| `mono`                        |
 | `BRAND_BUTTON_TEXT_LIGHT`    |                                                    |
 | `BRAND_LOGO_URL`             | masthead + email logo, per-domain default          |
+| `BRAND_LOGO_DARK_URL`        | dark-theme masthead logo (web UI only)             |
 | `BRAND_LOGO_ALT`             | logo alt text (falls back to product-name i18n)    |
 | `BRAND_FAVICON_URL`          | `/favicon.ico` 302 redirect                        |
 | `BRAND_APPLE_TOUCH_ICON_URL` | head `apple-touch-icon`                            |
@@ -97,6 +98,15 @@ never rendered *as the operator's* on tenant custom domains (they get their own
 upload or the neutral mark, same guard as the wordmark). Emails only emit
 absolute `http(s)` URLs; a masthead-oriented relative path degrades emails to a
 text-only header.
+
+`BRAND_LOGO_DARK_URL` is an optional dark-theme variant of the masthead logo,
+swapped in by the app's class-based dark mode (`dark:` variants), so it follows
+the site theme toggle rather than the OS scheme. It only applies while the
+install logo is the asset being rendered (same custom-domain suppression, and
+inert without a configured `logo_url`), and never reaches emails. A pack can
+carry it as `brand-logo-dark.svg` / `brand-logo-dark.png` (both served
+existence-filtered like the light logo) and reference it via `logo_dark_url`
+in `brand.yaml`.
 
 `brand.allow_public_homepage` / `brand.allow_public_api` are YAML-only keys
 (read by `initialize_view_vars.rb`, default `false`) — they have **no** env var

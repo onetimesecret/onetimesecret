@@ -70,8 +70,8 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       expect(data['entitlements']).to have_key('infrastructure')
 
       # Verify plans summary structure
-      # Note: free_v1 has no prices so it's skipped by load_all_from_config
-      # identity_plus_v1 is now family-keyed (no interval suffix)
+      # Note: free_v1 has no prices but is still loaded by load_all_from_config
+      # (config-only plan); identity_plus_v1 is family-keyed (no interval suffix)
       expect(data['plans']).to be_a(Hash)
       expect(data['plans']).not_to be_empty
       first_plan = data['plans'].values.first

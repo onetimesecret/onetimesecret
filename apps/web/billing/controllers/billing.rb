@@ -10,6 +10,7 @@ require 'stripe'
 require_relative 'base'
 require_relative '../lib/stripe_client'
 require_relative '../lib/currency_migration_service'
+require_relative '../operations/create_checkout_link'
 
 module Billing
   module Controllers
@@ -145,41 +146,23 @@ module Billing
 
         stripe_price_id = price_data['stripe_price_id']
 
-        # Build checkout session parameters
-        success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url  = "#{billing_base_url}/billing/#{org.extid}/plans"
-
-        session_params = {
-          mode: 'subscription',
-          line_items: [{
-            price: stripe_price_id,
-            quantity: 1,
-          }],
-          success_url: success_url,
-          cancel_url: cancel_url,
-          customer_email: org.billing_email || cust.email,
-          client_reference_id: org.objid,
-          locale: req.env['rack.locale']&.first || 'auto',
-          # Show the "Add promotion code" field on the Stripe-hosted checkout.
-          # Promotion codes must first be created in the Stripe Dashboard
-          # (Products → Coupons → Promotion codes).
+        # Build checkout session parameters via the shared builder (also used
+        # by the admin checkout-link op). Request-specific concerns stay here:
+        # cancel target is the org's plans page and the session locale comes
+        # from the request. Automatic tax is applied inside the builder when
+        # the deployment enables it (STRIPE_AUTOMATIC_TAX).
+        # allow_promotion_codes: show the "Add promotion code" field on the
+        # Stripe-hosted checkout (codes are created in the Stripe Dashboard).
+        session_params = ::Billing::Operations::CreateCheckoutLink.build_session_params(
+          customer: cust,
+          org: org,
+          plan_id: plan.plan_id,
+          tier: result.tier,
+          price_id: stripe_price_id,
+          cancel_url: "#{billing_base_url}/billing/#{org.extid}/plans",
           allow_promotion_codes: true,
-          subscription_data: {
-            metadata: {
-              orgid: org.objid,
-              plan_id: plan.plan_id,
-              tier: result.tier,
-              region: detect_region,
-              customer_extid: cust.extid,
-            },
-          },
-        }
-
-        # If organization already has a Stripe customer, use it
-        if org.stripe_customer_id
-          session_params[:customer] = org.stripe_customer_id
-          session_params.delete(:customer_email)
-        end
+          locale: req.env['rack.locale']&.first || 'auto',
+        )
 
         if stripe_api_key_missing?('create_checkout_session')
           return json_error('Billing service temporarily unavailable', status: 503)
@@ -372,34 +355,7 @@ module Billing
         # Frontend expects flat records with top-level interval, amount, stripe_price_id
         plan_data = plans
           .select { |plan| plan.show_on_plans_page.to_s == 'true' }
-          .flat_map do |plan|
-            # Skip plans with no prices (free plans filtered by show_on_plans_page anyway)
-            next [] if plan.prices_hash.empty?
-
-            # prices_hash uses STRING keys from JSON parse
-            plan.prices_hash.map do |interval, price_data|
-              {
-                id: plan.plan_id,
-                name: plan.name,
-                tier: plan.tier,
-                interval: interval,
-                stripe_price_id: price_data['stripe_price_id'],
-                amount: price_data['amount'].to_i,
-                currency: price_data['currency'] || plan.currency,
-                region: plan.region,
-                features: plan.features.to_a,
-                limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
-                entitlements: plan.entitlements.to_a,
-                display_order: plan.display_order.to_i,
-                plan_code: plan.plan_code,
-                is_popular: plan.popular?,
-                plan_name_label: plan.plan_name_label,
-                includes_plan: plan.includes_plan,
-                includes_plan_name: plan_names_by_id[plan.includes_plan],
-                monthly_equivalent_amount: (interval == 'year' ? (price_data['amount'].to_i / 12.0).round : nil),
-              }
-            end
-          end
+          .flat_map { |plan| plan_page_records(plan, plan_names_by_id) }
           .sort_by { |p| [p[:display_order], p[:interval] == 'month' ? 0 : 1] }
 
         json_response({ plans: plan_data })
@@ -1068,6 +1024,62 @@ module Billing
 
       module PrivateMethods
         private
+
+        # Build the plans-page wire records for one plan
+        #
+        # Priced plans emit one record per interval. A price-less plan that is
+        # still marked show_on_plans_page (the free tier, which ConfigLoader
+        # upserts into the catalog with `prices: []`) emits exactly ONE record:
+        # the frontend ignores `interval` for free plans, so a second record
+        # would render a duplicate card.
+        #
+        # @param plan [Billing::Plan] Plan to serialize
+        # @param plan_names_by_id [Hash] plan_id => name, for includes_plan_name
+        # @return [Array<Hash>] One or more flat plan records
+        def plan_page_records(plan, plan_names_by_id)
+          # prices_hash uses STRING keys from JSON parse
+          prices = plan.prices_hash
+
+          return [plan_page_record(plan, plan_names_by_id, 'month', nil)] if prices.empty?
+
+          prices.map do |interval, price_data|
+            plan_page_record(plan, plan_names_by_id, interval, price_data)
+          end
+        end
+
+        # Build a single flat plan record for the plans page
+        #
+        # @param plan [Billing::Plan] Plan to serialize
+        # @param plan_names_by_id [Hash] plan_id => name, for includes_plan_name
+        # @param interval [String] 'month' or 'year'
+        # @param price_data [Hash, nil] Parsed price row, or nil for a price-less plan
+        # @return [Hash] Flat plan record
+        def plan_page_record(plan, plan_names_by_id, interval, price_data)
+          amount          = price_data ? price_data['amount'].to_i : 0
+          stripe_price_id = price_data ? price_data['stripe_price_id'] : nil
+          currency        = (price_data ? price_data['currency'] : nil) || plan.currency
+
+          {
+            id: plan.plan_id,
+            name: plan.name,
+            tier: plan.tier,
+            interval: interval,
+            stripe_price_id: stripe_price_id,
+            amount: amount,
+            currency: currency,
+            region: plan.region,
+            features: plan.features.to_a,
+            limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
+            entitlements: plan.entitlements.to_a,
+            display_order: plan.display_order.to_i,
+            plan_code: plan.plan_code,
+            is_popular: plan.popular?,
+            plan_name_label: plan.plan_name_label,
+            includes_plan: plan.includes_plan,
+            includes_plan_name: plan_names_by_id[plan.includes_plan],
+            monthly_equivalent_amount: (interval == 'year' ? (amount / 12.0).round : nil),
+          }
+        end
 
         # Validate org has an active Stripe subscription and API key is present.
         # Returns [org, nil] on success or [nil, error_response] on failure.

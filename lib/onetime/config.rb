@@ -56,6 +56,11 @@ module Onetime
               2.weeks,        # 1209600
               30.days,        # 2592000
             ],
+            # Ceiling for secrets created without an account. A default, not an
+            # invariant: operators may raise or lower it (env TTL_MAX_ANONYMOUS).
+            # Resolved and bounded by
+            # WithEntitlements.configured_anonymous_max_ttl.
+            'ttl_max_anonymous' => 7.days,
             'passphrase' => {
               'required' => false,
               'minimum_length' => 4,
@@ -479,6 +484,24 @@ module Onetime
           coerce_ttl_seconds(default_ttl, 'site.secret_options.default_ttl')
       end
 
+      # Same treatment for the anonymous ceiling: ERB hands back a String
+      # whenever TTL_MAX_ANONYMOUS (or the legacy PLAN_TTL_ANONYMOUS alias
+      # resolved in config.defaults.yaml) is set.
+      #
+      # Deliberately NOT coerce_ttl_seconds: its String branch is `to_i`, which
+      # turns a typo into 0 and loses the fact that it was a typo. A malformed
+      # value is left in place so WithEntitlements.configured_anonymous_max_ttl
+      # — the single reader, which also owns bounds — rejects it loudly and
+      # names it in the log. Nothing else reads this key raw; the bootstrap
+      # payload publishes the resolved ceiling, not this value.
+      ttl_max_anonymous = conf.dig('site', 'secret_options', 'ttl_max_anonymous')
+      unless ttl_max_anonymous.nil? || ttl_max_anonymous.is_a?(Integer)
+        parsed = Integer(ttl_max_anonymous.to_s.strip, exception: false)
+        unless parsed.nil?
+          conf['site']['secret_options']['ttl_max_anonymous'] = parsed
+        end
+      end
+
       # Confirmed leak path (#3299): features.incoming.default_ttl is set from
       # `ENV['INCOMING_DEFAULT_TTL'] || 604800`, so a set env var yields a String
       # that flows uncoerced through recipient_resolver -> create_incoming_secret
@@ -602,6 +625,7 @@ module Onetime
       'corner_style' => 'BRAND_CORNER_STYLE',
       'font_family' => 'BRAND_FONT_FAMILY',
       'logo_url' => 'BRAND_LOGO_URL',
+      'logo_dark_url' => 'BRAND_LOGO_DARK_URL',
       'logo_alt' => 'BRAND_LOGO_ALT',
       'favicon_url' => 'BRAND_FAVICON_URL',
       'apple_touch_icon_url' => 'BRAND_APPLE_TOUCH_ICON_URL',
@@ -771,7 +795,9 @@ module Onetime
       # favicon handling, and per-domain defaults, so it never enters the
       # brand block — from any source, including an operator-set
       # BRAND_LOGO_URL (hazard 1 of #3612).
-      brand['logo_url'] = nil if brand['logo_url'].is_a?(String) && brand['logo_url'].end_with?('.vue')
+      %w[logo_url logo_dark_url].each do |logo_key|
+        brand[logo_key] = nil if brand[logo_key].is_a?(String) && brand[logo_key].end_with?('.vue')
+      end
 
       LEGACY_BRAND_FALLBACKS.each do |key, legacy|
         next unless brand[key].nil?
@@ -787,11 +813,13 @@ module Onetime
       # instead). Root-relativize it here so the one install logo resolves
       # identically on every surface. Absolute URLs (scheme: or protocol-
       # relative //) and already-root-relative paths pass through untouched.
-      logo_path = brand['logo_url']
-      if logo_path.is_a?(String) && !logo_path.empty? &&
-         !logo_path.start_with?('/') &&
-         !logo_path.match?(/\A[a-z][a-z0-9+.-]*:/i)
-        brand['logo_url'] = "/#{logo_path}"
+      %w[logo_url logo_dark_url].each do |logo_key|
+        logo_path = brand[logo_key]
+        next unless logo_path.is_a?(String) && !logo_path.empty? &&
+                    !logo_path.start_with?('/') &&
+                    !logo_path.match?(/\A[a-z][a-z0-9+.-]*:/i)
+
+        brand[logo_key] = "/#{logo_path}"
       end
 
       # brand.logo_url is now the one install logo for every surface, but the
@@ -801,9 +829,11 @@ module Onetime
       # letting them discover it in a delivered email. Deliberately always
       # logged: this is an operational notice about mail rendering, not a
       # deprecation, so compatibility.deprecated_config_mode does not apply.
-      logo_url = brand['logo_url']
-      if logo_url && !logo_url.match?(%r{\Ahttps?://}i)
-        OT.le "CONFIG NOTICE: brand.logo_url '#{logo_url}' is not an absolute http(s) URL; " \
+      %w[logo_url logo_dark_url].each do |logo_key|
+        logo_url = brand[logo_key]
+        next unless logo_url && !logo_url.match?(%r{\Ahttps?://}i)
+
+        OT.le "CONFIG NOTICE: brand.#{logo_key} '#{logo_url}' is not an absolute http(s) URL; " \
               'it will render in the web UI but is omitted from outbound emails.'
       end
 

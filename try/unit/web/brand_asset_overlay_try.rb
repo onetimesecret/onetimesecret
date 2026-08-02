@@ -347,9 +347,9 @@ BRAND_PACK_URLS.all? { |u| File.exist?(File.join(DEFAULT_PACK, u)) }
 #    existence-filtered on BOTH layers so an absent logo falls through.
 # ============================================================================
 
-## the optional logo URL set is exactly brand-logo.svg + brand-logo.png
+## the optional logo URL set is the light + dark brand-logo svg/png variants
 BRAND_PACK_LOGO_URLS.sort
-#=> ['/brand-logo.png', '/brand-logo.svg']
+#=> ['/brand-logo-dark.png', '/brand-logo-dark.svg', '/brand-logo.png', '/brand-logo.svg']
 
 ## an overlay carrying brand-logo.svg lists it (and only it) among the logo URLs
 set_overlay(assets_dir: @overlay_logo, pack: nil)

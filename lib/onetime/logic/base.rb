@@ -368,17 +368,6 @@ module Onetime
         @display_domain  = strategy_result.metadata[:display_domain]
       end
 
-      # Session message helpers for user feedback
-      def set_info_message(message)
-        warn "[set_info_message] REMOVED #{message} via:"
-        warn "[set_info_message] #{caller(1..3)}"
-      end
-
-      def set_error_message(message)
-        warn "[set_error_message] REMOVED #{message} via:"
-        warn "[set_error_message] #{caller(1..3)}"
-      end
-
       # Send (or resend) a verification email.
       #
       # @param customer [Onetime::Customer] the recipient. Defaults to the
@@ -422,9 +411,7 @@ module Onetime
           )
           true
         rescue StandardError => ex
-          errmsg = "Couldn't send the verification email. Let us know below."
           OT.le "Error sending verification email: #{ex.message}", ex.backtrace
-          set_info_message(errmsg)
           false
         end
       end

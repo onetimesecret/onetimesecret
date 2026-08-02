@@ -9,6 +9,9 @@
 #   - init defaults: all boolean fields default to false (conservative)
 #   - Predicate methods: signin_enabled?, email_auth_enabled?, sso_enabled? return correct booleans
 #   - Legacy nil coercion: predicates treat nil as false (conservative)
+#   - Encoding tolerance (#3951): predicates accept legacy string 'true' as
+#     enabled — the pre-#3951 strict `== true` reads silently disabled records
+#     whose fields held the string encoding
 #   - create! defaults: all omitted boolean fields default to false
 #   - create! with explicit true values
 #   - restrict_to remains nullable (string, not boolean)
@@ -118,23 +121,28 @@ OT.info "Cleaned Redis for SigninConfig non-nullable boolean test run"
 @legacy3.sso_enabled?
 #=> false
 
-## signin_enabled? returns false for string 'false' (not == true)
+## signin_enabled? returns false for string 'false' (tolerant predicate, #3951)
 @legacy4 = Onetime::CustomDomain::SigninConfig.new(domain_id: 'legacy_test_4')
 @legacy4.instance_variable_set(:@signin_enabled, 'false')
 @legacy4.signin_enabled?
 #=> false
 
-## email_auth_enabled? returns false for string 'true' (not == true)
+## email_auth_enabled? returns TRUE for string 'true' (#3951 encoding tolerance)
+## Pre-#3951 the strict `== true` predicate silently read a persisted string
+## 'true' as disabled. The boolean_encoding feature accepts both encodings
+## (true/'true'/1/'1') so a legacy string-encoded record cannot flip a
+## domain's auth surface off.
 @legacy5 = Onetime::CustomDomain::SigninConfig.new(domain_id: 'legacy_test_5')
 @legacy5.instance_variable_set(:@email_auth_enabled, 'true')
 @legacy5.email_auth_enabled?
-#=> false
+#=> true
 
-## sso_enabled? returns false for string 'true' (not == true)
+## sso_enabled? returns TRUE for string 'true' (#3951 encoding tolerance)
+## Same rationale as email_auth_enabled? above: string 'true' means enabled.
 @legacy6 = Onetime::CustomDomain::SigninConfig.new(domain_id: 'legacy_test_6')
 @legacy6.instance_variable_set(:@sso_enabled, 'true')
 @legacy6.sso_enabled?
-#=> false
+#=> true
 
 # --- create! defaults ---
 

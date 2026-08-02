@@ -14,7 +14,9 @@ module ColonelAPI
       #   substring over the acting colonel's extid/email — the sessions-search
       #   idiom) and `verb` (an exact action like `customer.set_role`, or a
       #   category prefix like `customer` that matches `customer.*`). Requires
-      #   colonel role.
+      #   colonel role. Covers BOTH of the model's trails — operator activity
+      #   and unauthenticated security telemetry — merged chronologically; they
+      #   are stored apart only so the latter cannot evict the former.
       #
       # This is the read side of the flight recorder: every mutating admin op
       # writes an AdminAuditEvent; this endpoint plays it back. READ-ONLY —
@@ -23,8 +25,19 @@ module ColonelAPI
       class ListAuditEvents < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelAuditEvents' }.freeze
 
-        attr_reader :events, :total_count, :page, :per_page, :total_pages,
-          :actor_filter, :verb_filter
+        # Ceiling on how many events a single read may load into Ruby: the two
+        # trails' caps summed, i.e. the entire store. Both are trimmed on every
+        # write, so this is a fixed bound, not a function of traffic.
+        MAX_COMBINED = Onetime::AdminAuditEvent::MAX_EVENTS +
+                       Onetime::AdminAuditEvent::MAX_SECURITY_EVENTS
+
+        attr_reader :events,
+          :total_count,
+          :page,
+          :per_page,
+          :total_pages,
+          :actor_filter,
+          :verb_filter
 
         def process_params
           @page         = (params['page'] || 1).to_i
@@ -44,19 +57,16 @@ module ColonelAPI
           offset = (page - 1) * per_page
 
           if filters_active?
-            # Filtered read: the events are opaque JSON members of one sorted
-            # set, so filtering means loading and matching in Ruby. Bounded by
-            # design — the set is hard-capped at MAX_EVENTS (10k) on every
-            # write, so this can never become an unbounded enumeration.
-            matching     = Onetime::AdminAuditEvent
-              .recent(Onetime::AdminAuditEvent::MAX_EVENTS)
-              .select { |event| matches_filters?(event) }
+            # Filtered read: the events are opaque JSON members of the backing
+            # sorted sets, so filtering means loading and matching in Ruby.
+            # Bounded by design — both sets are hard-capped on every write, so
+            # this can never become an unbounded enumeration.
+            matching     = merged_events(MAX_COMBINED).select { |event| matches_filters?(event) }
             @total_count = matching.size
             @events      = matching.slice(offset, per_page) || []
           else
-            # Unfiltered read: a single ZREVRANGE slice of the requested page.
-            @total_count = Onetime::AdminAuditEvent.count
-            @events      = Onetime::AdminAuditEvent.recent(per_page, offset)
+            @total_count = Onetime::AdminAuditEvent.count + Onetime::AdminAuditEvent.security_count
+            @events      = merged_events(offset + per_page).slice(offset, per_page) || []
           end
 
           @total_pages = (total_count.to_f / per_page).ceil
@@ -67,13 +77,35 @@ module ColonelAPI
 
         private
 
+        # Newest-first view over BOTH audit trails.
+        #
+        # AdminAuditEvent stores operator activity and unauthenticated security
+        # telemetry in two separately-capped sorted sets, so that a flood of
+        # anonymous events (e.g. reset-request throttle cap-hits) cannot evict
+        # privileged records — see the WRITE-FREQUENCY INVARIANT on the model.
+        # That split is a storage concern; the operator wants one chronological
+        # feed, so the merge happens here on read.
+        #
+        # Both trails are already newest-first, so this is a merge by `created`
+        # (descending) truncated to `limit`. Bounded by MAX_COMBINED: an
+        # arbitrarily deep page can never read more than the whole store, which
+        # is the same ceiling the filtered path has always had.
+        def merged_events(limit)
+          limit = [limit.to_i, MAX_COMBINED].min
+          return [] if limit <= 0
+
+          (Onetime::AdminAuditEvent.recent(limit) + Onetime::AdminAuditEvent.recent_security(limit))
+            .sort_by { |event| -event['created'].to_f }
+            .first(limit)
+        end
+
         def filters_active?
           !actor_filter.to_s.empty? || !verb_filter.to_s.empty?
         end
 
         def matches_filters?(event)
-          unless actor_filter.to_s.empty?
-            return false unless event['actor'].to_s.downcase.include?(actor_filter.downcase)
+          if !actor_filter.to_s.empty? && !event['actor'].to_s.downcase.include?(actor_filter.downcase)
+            return false
           end
 
           unless verb_filter.to_s.empty?

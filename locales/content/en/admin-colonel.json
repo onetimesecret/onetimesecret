@@ -327,6 +327,10 @@
     "text": "No organizations found",
     "content_hash": "538995db"
   },
+  "web.colonel.organizations.filters.searchPlaceholder": {
+    "text": "Search by ID, name or email",
+    "content_hash": "6fe16473"
+  },
   "web.colonel.organizations.filters.syncStatus": {
     "text": "Sync Status",
     "content_hash": "b3998276"
@@ -370,6 +374,34 @@
   "web.colonel.organizations.columns.account": {
     "text": "Account",
     "content_hash": "7e1b0d56"
+  },
+  "web.colonel.organizations.columns.name": {
+    "text": "Name",
+    "content_hash": "dcd1d522"
+  },
+  "web.colonel.organizations.columns.contactEmail": {
+    "text": "Contact email",
+    "content_hash": "6d7fce11"
+  },
+  "web.colonel.organizations.columns.billingEmail": {
+    "text": "Billing email",
+    "content_hash": "8805b928"
+  },
+  "web.colonel.organizations.columns.planSubscription": {
+    "text": "Plan & subscription",
+    "content_hash": "b396caac"
+  },
+  "web.colonel.organizations.sameAsContact": {
+    "text": "Same as contact",
+    "content_hash": "ed18ff43"
+  },
+  "web.colonel.organizations.refresh": {
+    "text": "Refresh",
+    "content_hash": "0e916101"
+  },
+  "web.colonel.organizations.updatedAgo": {
+    "text": "Updated {ago}",
+    "content_hash": "cda30b9c"
   },
   "web.colonel.organizations.columns.billing": {
     "text": "Billing",
