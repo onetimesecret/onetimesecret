@@ -7,7 +7,7 @@ require 'spec_helper'
 # Unit tests for Onetime::SsoLinkVerification — the single-use, mailbox-proof token
 # behind the #3840 Phase 4 passwordless SSO linking flow.
 #
-# These exercise the real Familia-backed record on the test database (port 2121):
+# These exercise the real Familia-backed record on the test database (port 2163):
 # persistence, the 15-minute TTL (criterion 3), string round-tripping of the
 # snapshot fields, the display projection, and single-use consume semantics.
 RSpec.describe Onetime::SsoLinkVerification do

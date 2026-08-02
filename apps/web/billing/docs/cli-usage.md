@@ -14,7 +14,7 @@ The `bin/ots billing` command suite provides tools for managing Stripe products,
 
 3. **Redis Running**
    - Required for plan cache operations
-   - Default: `valkey://127.0.0.1:2121/0`
+   - Default: `valkey://127.0.0.1:2163/0`
 
 ## Commands Overview
 
@@ -36,9 +36,11 @@ bin/ots billing validate        # Validate product metadata
 List plans cached in Redis from previous Stripe sync.
 
 **Options:**
+
 - `--refresh` - Refresh cache from Stripe before listing
 
 **Examples:**
+
 ```bash
 # List cached plans
 bin/ots billing plans
@@ -48,6 +50,7 @@ bin/ots billing plans --refresh
 ```
 
 **Output:**
+
 ```
 PLAN ID              TIER               INTERVAL   AMOUNT     REGION       CAPS
 ------------------------------------------------------------------------------
@@ -64,10 +67,12 @@ Total: 2 plan(s)
 List all products from Stripe API.
 
 **Options:**
+
 - `--active-only` - Show only active products (default: true)
 - `--no-active-only` - Show all products including archived
 
 **Examples:**
+
 ```bash
 # List active products
 bin/ots billing products
@@ -77,6 +82,7 @@ bin/ots billing products --no-active-only
 ```
 
 **Output:**
+
 ```
 ID                     NAME                                     PLAN_ID            TIER         REGION   ACTIVE
 --------------------------------------------------------------------------------------------------------------
@@ -93,9 +99,11 @@ Total: 2 product(s)
 Create a new Stripe product with required metadata.
 
 **Arguments:**
+
 - `name` - Product name (optional, will prompt if not provided)
 
 **Options:**
+
 - `--interactive` - Interactive mode with prompts for all fields
 - `--plan-id STRING` - Plan identifier (e.g., identity_plus_v1)
 - `--tier STRING` - Tier name (e.g., single_team, multi_team)
@@ -103,6 +111,7 @@ Create a new Stripe product with required metadata.
 - `--capabilities STRING` - Comma-separated capabilities
 
 **Required Metadata Fields:**
+
 - `app` - Always set to "onetimesecret"
 - `plan_id` - Unique plan identifier
 - `tier` - Tier classification
@@ -110,12 +119,14 @@ Create a new Stripe product with required metadata.
 - `capabilities` - Feature list (comma-separated)
 
 **Optional Metadata Fields:**
+
 - `limit_teams` - Maximum teams (-1 for unlimited)
 - `limit_total_members_per_org` - Maximum members per org (-1 for unlimited)
 
 **Examples:**
 
 **Interactive Mode:**
+
 ```bash
 bin/ots billing products create --interactive
 Product name: Identity Plus
@@ -146,6 +157,7 @@ Next steps:
 ```
 
 **Command-Line Mode:**
+
 ```bash
 bin/ots billing products create \
   "Team Plus" \
@@ -162,9 +174,11 @@ bin/ots billing products create \
 Show detailed information about a specific product including metadata and associated prices.
 
 **Arguments:**
+
 - `product_id` - Product ID (required, e.g., prod_ABC123xyz)
 
 **Examples:**
+
 ```bash
 bin/ots billing products show prod_ABC123xyz
 
@@ -189,6 +203,7 @@ Prices:
 ```
 
 **Displayed Information:**
+
 - Product ID, name, and active status
 - Product description (if set)
 - All metadata fields (app, plan_id, tier, capabilities, limits)
@@ -201,9 +216,11 @@ Prices:
 Update metadata for an existing Stripe product.
 
 **Arguments:**
+
 - `product_id` - Product ID (required, e.g., prod_ABC123xyz)
 
 **Options:**
+
 - `--interactive` - Interactive mode
 - `--plan-id STRING` - Update plan ID
 - `--tier STRING` - Update tier
@@ -211,6 +228,7 @@ Update metadata for an existing Stripe product.
 - `--capabilities STRING` - Update capabilities
 
 **Examples:**
+
 ```bash
 # Update single field
 bin/ots billing products update prod_ABC123xyz --tier multi_team
@@ -231,11 +249,13 @@ bin/ots billing products update prod_ABC123xyz \
 List all prices from Stripe API.
 
 **Options:**
+
 - `--product STRING` - Filter by product ID
 - `--active-only` - Show only active prices (default: true)
 - `--no-active-only` - Show all prices
 
 **Examples:**
+
 ```bash
 # List all prices
 bin/ots billing prices
@@ -248,6 +268,7 @@ bin/ots billing prices --no-active-only
 ```
 
 **Output:**
+
 ```
 ID                     PRODUCT                AMOUNT       INTERVAL   ACTIVE
 ------------------------------------------------------------------------------
@@ -265,9 +286,11 @@ Total: 3 price(s)
 Create a new recurring price for a product.
 
 **Arguments:**
+
 - `product_id` - Product ID (optional, will prompt if not provided)
 
 **Options:**
+
 - `--amount INTEGER` - Amount in cents (e.g., 900 for $9.00)
 - `--currency STRING` - Currency code (default: cad)
 - `--interval STRING` - Billing interval: month, year, week, day (default: month)
@@ -276,6 +299,7 @@ Create a new recurring price for a product.
 **Examples:**
 
 **Interactive Mode:**
+
 ```bash
 bin/ots billing prices create
 Product ID: prod_ABC123xyz
@@ -295,6 +319,7 @@ Price created successfully:
 ```
 
 **Command-Line Mode:**
+
 ```bash
 # Monthly price
 bin/ots billing prices create prod_ABC123xyz --amount 900 --interval month
@@ -313,11 +338,13 @@ bin/ots billing prices create prod_ABC123xyz --amount 2700 --interval month --in
 Synchronize products and prices from Stripe to Redis cache.
 
 **Examples:**
+
 ```bash
 bin/ots billing sync
 ```
 
 **Output:**
+
 ```
 Syncing from Stripe to Redis cache...
 
@@ -328,6 +355,7 @@ To view cached plans:
 ```
 
 **What it does:**
+
 1. Fetches all active products from Stripe
 2. For each product, fetches associated prices
 3. Combines product metadata + price data
@@ -340,6 +368,7 @@ To view cached plans:
 Suite of validation commands for Stripe configuration. Each command validates a different aspect and provides structured error messages with resolution steps.
 
 **Commands:**
+
 ```bash
 bin/ots billing prices validate     # Validate price configuration
 bin/ots billing plans validate      # Validate plan production readiness
@@ -347,6 +376,7 @@ bin/ots billing products validate   # Validate product metadata
 ```
 
 **Options (all commands):**
+
 - `--strict` - Treat warnings as errors (prices and plans only)
 - `--product ID` - Filter by product ID (prices only)
 
@@ -357,6 +387,7 @@ bin/ots billing products validate   # Validate product metadata
 Validates Stripe prices for consistency and proper configuration.
 
 **What it checks:**
+
 - Price IDs correlate with product IDs
 - Products exist and are not archived
 - Price types are appropriate (recurring for subscriptions)
@@ -365,6 +396,7 @@ Validates Stripe prices for consistency and proper configuration.
 - Pricing consistency (yearly ~10-12x monthly)
 
 **Example output (with issues):**
+
 ```bash
 Validating Stripe prices...
 
@@ -410,6 +442,7 @@ ERRORS (2)
 Validates plan production readiness by checking product-price relationships.
 
 **What it checks:**
+
 - Each product has recurring prices
 - Both monthly and yearly prices exist (recommended)
 - No duplicate prices for same interval/currency
@@ -417,6 +450,7 @@ Validates plan production readiness by checking product-price relationships.
 - Unique plan_ids across products
 
 **Example output:**
+
 ```bash
 Validating plan production readiness...
 
@@ -444,11 +478,13 @@ prod_MNO901234567890   legacy_pro_v1_us     US      0                ✗ Not Rea
 Validates product metadata completeness.
 
 **What it checks:**
+
 - Required metadata fields (app, plan_id, tier, region)
 - Unique plan_ids
 - Price counts per product
 
 **Example output:**
+
 ```bash
 Fetching products from Stripe API... found 8 product(s)
 
@@ -533,15 +569,16 @@ bin/ots billing sync
 
 All products **must** include these metadata fields:
 
-| Field | Description | Example Values |
-|-------|-------------|----------------|
-| `app` | Application identifier | `onetimesecret` |
-| `plan_id` | Unique plan identifier | `identity_plus_v1`, `team_plus_v1` |
-| `tier` | Plan tier classification | `single_team`, `multi_team`, `enterprise` |
-| `region` | Geographic region | `us-east`, `eu-west`, `global` |
+| Field          | Description              | Example Values                              |
+| -------------- | ------------------------ | ------------------------------------------- |
+| `app`          | Application identifier   | `onetimesecret`                             |
+| `plan_id`      | Unique plan identifier   | `identity_plus_v1`, `team_plus_v1`          |
+| `tier`         | Plan tier classification | `single_team`, `multi_team`, `enterprise`   |
+| `region`       | Geographic region        | `us-east`, `eu-west`, `global`              |
 | `capabilities` | Comma-separated features | `create_secrets,create_team,custom_domains` |
 
 **Optional metadata** (canonical list lives in `Billing::Metadata::LIMIT_FIELDS`):
+
 - `limit_teams` - Maximum number of teams (-1 = unlimited)
 - `limit_total_members_per_org` - Maximum members per org (-1 = unlimited)
 - `limit_custom_domains` - Maximum custom domains (-1 = unlimited)
@@ -549,6 +586,7 @@ All products **must** include these metadata fields:
 - `limit_secrets_per_day` - Daily secret creation limit (-1 = unlimited)
 
 **Common capabilities:**
+
 - `create_secrets` - Create secrets
 - `create_team` - Create teams
 - `custom_domains` - Use custom domains
@@ -562,18 +600,22 @@ All products **must** include these metadata fields:
 ## Troubleshooting
 
 ### "Error: Billing not enabled"
+
 - Ensure `etc/billing.yaml` exists
 - Check that `billing.enabled: true`
 
 ### "Error: STRIPE_API_KEY not set"
+
 - Set environment variable: `export STRIPE_API_KEY=sk_test_...`
 - Or configure in `etc/billing.yaml`
 
 ### "Error: Product not found"
+
 - Verify product ID is correct
 - Check you're using the right Stripe account (test vs live keys)
 
 ### Metadata validation failures
+
 - Run `bin/ots billing validate` to see which fields are missing
 - Update product: `bin/ots billing products update <id> --<field> <value>`
 - Re-sync: `bin/ots billing sync`
@@ -583,12 +625,14 @@ All products **must** include these metadata fields:
 ## Development vs Production
 
 **Test Mode (recommended for development):**
+
 ```bash
 export STRIPE_API_KEY=sk_test_...
 bin/ots billing products
 ```
 
 **Live Mode (production only):**
+
 ```bash
 export STRIPE_API_KEY=sk_live_...
 bin/ots billing products
@@ -607,6 +651,7 @@ The billing CLI manages Stripe data that the application consumes:
 3. **Plan Cache** → Application reads from this for fast access
 
 **Sync workflow:**
+
 ```
 Stripe (products + prices)
   → bin/ots billing sync
@@ -615,6 +660,7 @@ Stripe (products + prices)
 ```
 
 **When to sync:**
+
 - After creating/updating products in Stripe Dashboard
 - After using CLI to create/update products
 - On deployment to refresh cache
@@ -638,10 +684,12 @@ Stripe (products + prices)
 List all Stripe customers with optional filtering.
 
 **Options:**
+
 - `--email STRING` - Filter by exact email address
 - `--limit INTEGER` - Maximum results to return (default: 100)
 
 **Examples:**
+
 ```bash
 # List all customers
 bin/ots billing customers
@@ -654,6 +702,7 @@ bin/ots billing customers --limit 10
 ```
 
 **Output:**
+
 ```
 ID                     EMAIL                          NAME                      CREATED
 ------------------------------------------------------------------------------------------
@@ -670,11 +719,13 @@ Total: 2 customer(s)
 List Stripe subscriptions with comprehensive filtering.
 
 **Options:**
+
 - `--status STRING` - Filter by status (active, past_due, canceled, incomplete, trialing, unpaid)
 - `--customer STRING` - Filter by customer ID
 - `--limit INTEGER` - Maximum results to return (default: 100)
 
 **Examples:**
+
 ```bash
 # List all subscriptions
 bin/ots billing subscriptions
@@ -690,6 +741,7 @@ bin/ots billing subscriptions --status past_due
 ```
 
 **Output:**
+
 ```
 ID                     CUSTOMER               STATUS       PERIOD END
 ----------------------------------------------------------------------
@@ -702,6 +754,7 @@ Statuses: active, past_due, canceled, incomplete, trialing, unpaid
 ```
 
 **Status Meanings:**
+
 - `active` - Subscription is current and active
 - `past_due` - Payment failed, awaiting retry
 - `canceled` - Subscription has been canceled
@@ -716,12 +769,14 @@ Statuses: active, past_due, canceled, incomplete, trialing, unpaid
 List Stripe invoices with multiple filter options.
 
 **Options:**
+
 - `--status STRING` - Filter by status (draft, open, paid, uncollectible, void)
 - `--customer STRING` - Filter by customer ID
 - `--subscription STRING` - Filter by subscription ID
 - `--limit INTEGER` - Maximum results to return (default: 100)
 
 **Examples:**
+
 ```bash
 # List all invoices
 bin/ots billing invoices
@@ -740,6 +795,7 @@ bin/ots billing invoices --status paid
 ```
 
 **Output:**
+
 ```
 ID                     CUSTOMER               AMOUNT       STATUS     CREATED
 --------------------------------------------------------------------------------
@@ -752,6 +808,7 @@ Statuses: draft, open, paid, uncollectible, void
 ```
 
 **Status Meanings:**
+
 - `draft` - Invoice created but not finalized
 - `open` - Invoice sent to customer, awaiting payment
 - `paid` - Invoice has been paid
@@ -765,10 +822,12 @@ Statuses: draft, open, paid, uncollectible, void
 View recent Stripe events for debugging and monitoring.
 
 **Options:**
+
 - `--type STRING` - Filter by event type (e.g., customer.created, invoice.paid)
 - `--limit INTEGER` - Maximum results to return (default: 20)
 
 **Examples:**
+
 ```bash
 # List recent events
 bin/ots billing events
@@ -787,6 +846,7 @@ bin/ots billing events --type subscription.updated
 ```
 
 **Output:**
+
 ```
 ID                     TYPE                                CREATED
 ----------------------------------------------------------------------
@@ -801,6 +861,7 @@ Common types: customer.created, customer.updated, invoice.paid,
 ```
 
 **Common Event Types:**
+
 - `customer.created` - New customer created
 - `customer.updated` - Customer details changed
 - `customer.deleted` - Customer deleted
@@ -820,11 +881,13 @@ Common types: customer.created, customer.updated, invoice.paid,
 Create a new Stripe customer.
 
 **Options:**
+
 - `--email STRING` - Customer email (required)
 - `--name STRING` - Customer name (optional)
 - `--interactive` - Interactive mode with prompts
 
 **Examples:**
+
 ```bash
 # Command-line mode
 bin/ots billing customers create --email user@example.com --name "John Doe"
@@ -853,13 +916,16 @@ Customer created successfully:
 Cancel a subscription either at period end or immediately.
 
 **Arguments:**
+
 - `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
+
 - `--immediately` - Cancel immediately instead of at period end (default: false)
 - `--yes` - Skip confirmation prompt (default: false)
 
 **Examples:**
+
 ```bash
 # Cancel at period end (default - allows customer to use service until paid period ends)
 bin/ots billing subscriptions cancel sub_ABC123xyz
@@ -893,6 +959,7 @@ bin/ots billing subscriptions cancel sub_ABC123xyz --immediately --yes
 ```
 
 **Behavior:**
+
 - **Default**: Subscription continues until end of current billing period, then cancels
 - **--immediately**: Subscription terminates immediately, access revoked
 - Both methods are non-destructive - subscription data remains in Stripe
@@ -904,9 +971,11 @@ bin/ots billing subscriptions cancel sub_ABC123xyz --immediately --yes
 Create a test customer with attached payment method for development/testing. **Test mode only.**
 
 **Options:**
+
 - `--with-card` - Attach test card (default: true)
 
 **Examples:**
+
 ```bash
 # Create test customer with card
 bin/ots billing test create-customer
@@ -933,13 +1002,15 @@ bin/ots billing test create-customer --no-with-card
 ```
 
 **Test Card Details:**
+
 - Card number: 4242 4242 4242 4242
 - Brand: Visa
 - Always succeeds for test charges
 - See [Stripe test cards](https://stripe.com/docs/testing) for other scenarios
 
 **Notes:**
-- Only works with test API keys (sk_test_*)
+
+- Only works with test API keys (sk*test*\*)
 - Generates random email address to avoid conflicts
 - Customer includes description with creation timestamp
 - Useful for testing subscription flows, payments, webhooks
@@ -951,12 +1022,15 @@ bin/ots billing test create-customer --no-with-card
 Pause a subscription to stop billing while maintaining customer access.
 
 **Arguments:**
+
 - `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
+
 - `--yes` - Skip confirmation prompt (default: false)
 
 **Examples:**
+
 ```bash
 # Pause subscription with confirmation
 bin/ots billing subscriptions pause sub_ABC123xyz
@@ -976,6 +1050,7 @@ bin/ots billing subscriptions pause sub_ABC123xyz --yes
 ```
 
 **Behavior:**
+
 - Customer retains access to service
 - Billing is paused - no invoices generated
 - Subscription remains in "active" status
@@ -989,12 +1064,15 @@ bin/ots billing subscriptions pause sub_ABC123xyz --yes
 Resume a paused subscription to restart billing.
 
 **Arguments:**
+
 - `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
+
 - `--yes` - Skip confirmation prompt (default: false)
 
 **Examples:**
+
 ```bash
 # Resume subscription with confirmation
 bin/ots billing subscriptions resume sub_ABC123xyz
@@ -1015,6 +1093,7 @@ bin/ots billing subscriptions resume sub_ABC123xyz --yes
 ```
 
 **Behavior:**
+
 - Clears pause status from subscription
 - Billing resumes at next billing cycle
 - No prorated charges for paused period
@@ -1027,9 +1106,11 @@ bin/ots billing subscriptions resume sub_ABC123xyz --yes
 Show comprehensive customer details including payment methods and subscriptions.
 
 **Arguments:**
+
 - `customer_id` - Customer ID (cus_xxx)
 
 **Examples:**
+
 ```bash
 bin/ots billing customers show cus_ABC123xyz
 
@@ -1055,6 +1136,7 @@ Subscriptions:
 ```
 
 **Information Displayed:**
+
 - Customer metadata (ID, email, name, creation date)
 - Account balance and currency
 - All payment methods with default indicator
@@ -1063,6 +1145,7 @@ Subscriptions:
 - Subscription billing periods
 
 **Use Cases:**
+
 - Customer support inquiries
 - Verify payment method before subscription changes
 - Troubleshoot billing issues
@@ -1075,12 +1158,15 @@ Subscriptions:
 Delete a Stripe customer with safety checks to prevent accidental data loss.
 
 **Arguments:**
+
 - `customer_id` - Customer ID (cus_xxx)
 
 **Options:**
+
 - `--yes` - Skip confirmation and override active subscription check (default: false)
 
 **Examples:**
+
 ```bash
 # Safe delete (blocks if active subscriptions exist)
 bin/ots billing customers delete cus_ABC123xyz
@@ -1102,12 +1188,14 @@ Customer deleted successfully
 ```
 
 **Safety Features:**
+
 - Checks for active subscriptions before deletion
 - Requires explicit confirmation unless --yes flag used
 - Cannot be undone - customer data permanently removed
 - Blocks deletion if active subscriptions found (unless --yes)
 
 **Important Notes:**
+
 - Deletion is permanent and cannot be reversed
 - Customer data is removed from Stripe
 - Subscription history is lost
@@ -1115,6 +1203,7 @@ Customer deleted successfully
 - Consider canceling subscriptions first instead of forcing deletion
 
 **Use Cases:**
+
 - Remove test customers after development
 - Clean up duplicate customer records
 - Handle GDPR deletion requests
@@ -1127,14 +1216,17 @@ Customer deleted successfully
 Update an existing subscription's price or quantity with optional proration.
 
 **Arguments:**
+
 - `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
+
 - `--price STRING` - New price ID to switch to (price_xxx)
 - `--quantity INTEGER` - New quantity for subscription items
 - `--prorate` / `--no-prorate` - Enable/disable prorated charges (default: enabled)
 
 **Examples:**
+
 ```bash
 # Update quantity with proration
 bin/ots billing subscriptions update sub_ABC123xyz --quantity 3
@@ -1188,6 +1280,7 @@ Subscription updated successfully
 ```
 
 **Behavior:**
+
 - **Proration (default)**: Customer charged/credited proportionally for usage changes
 - **No proration**: Changes take effect at next billing cycle without adjustments
 - Must specify either `--price` or `--quantity` (or both)
@@ -1195,12 +1288,14 @@ Subscription updated successfully
 - Requires confirmation before making changes
 
 **Common Use Cases:**
+
 - Upgrade/downgrade customer to different plan tier
 - Adjust quantity for seat-based pricing
 - Add/remove licenses mid-billing cycle
 - Change billing interval (via price change)
 
 **Proration Explained:**
+
 - Enabled: Customer billed immediately for upgrade, credited for downgrade
 - Disabled: Changes apply at next renewal without immediate charges
 - Use proration for immediate plan changes
@@ -1213,12 +1308,15 @@ Subscription updated successfully
 Set the default payment method for a customer's recurring invoices.
 
 **Arguments:**
+
 - `payment_method_id` - Payment method ID (pm_xxx)
 
 **Options:**
+
 - `--customer STRING` - Customer ID (cus_xxx) - **required**
 
 **Examples:**
+
 ```bash
 # Set default payment method
 bin/ots billing payment-methods set-default pm_ABC123xyz --customer cus_DEF456
@@ -1233,23 +1331,27 @@ Default: pm_ABC123xyz
 ```
 
 **Behavior:**
+
 - Validates that payment method belongs to customer
 - Updates customer's invoice settings with new default
 - All future invoices will use this payment method
 - Requires confirmation before making changes
 
 **Validation:**
+
 - Ensures payment method is attached to customer
 - Returns error if payment method belongs to different customer
 - Payment method must be active and valid
 
 **Use Cases:**
+
 - Customer adds new card and wants to use it by default
 - Switch between multiple saved payment methods
 - Update default after card expiration
 - Customer support: change payment method for failed payments
 
 **Important Notes:**
+
 - Only affects future invoices, not past charges
 - Previous payment methods remain attached to customer
 - Customer can still have multiple payment methods on file
@@ -1262,10 +1364,12 @@ Default: pm_ABC123xyz
 List all refunds with optional filtering by charge.
 
 **Options:**
+
 - `--charge STRING` - Filter by charge ID (ch_xxx)
 - `--limit INTEGER` - Maximum results to return (default: 100)
 
 **Examples:**
+
 ```bash
 # List all refunds
 bin/ots billing refunds
@@ -1286,6 +1390,7 @@ bin/ots billing refunds --limit 10
 ```
 
 **Displayed Information:**
+
 - Refund ID
 - Charge ID (original payment)
 - Refund amount and currency
@@ -1299,12 +1404,14 @@ bin/ots billing refunds --limit 10
 Create a refund for a charge (full or partial).
 
 **Options:**
+
 - `--charge STRING` - Charge ID (ch_xxx) **required**
 - `--amount INTEGER` - Amount in cents (leave empty for full refund)
 - `--reason STRING` - Refund reason: duplicate, fraudulent, requested_by_customer
 - `--yes` - Skip confirmation prompt
 
 **Examples:**
+
 ```bash
 # Full refund with confirmation
 bin/ots billing refunds create --charge ch_ABC123xyz --reason requested_by_customer
@@ -1331,11 +1438,13 @@ bin/ots billing refunds create --charge ch_ABC123xyz --reason fraudulent --yes
 ```
 
 **Refund Reasons:**
+
 - `duplicate` - Duplicate charge
 - `fraudulent` - Fraudulent transaction
 - `requested_by_customer` - Customer requested refund
 
 **Behavior:**
+
 - Default: Full refund of charge amount
 - Partial: Specify --amount in cents
 - Customer receives refund to original payment method
@@ -1351,11 +1460,13 @@ to each. Useful for auditing what discount codes exist and whether they
 are currently redeemable.
 
 **Options:**
+
 - `--limit INTEGER` - Maximum coupons to return (default: 100)
 - `--valid-only` - Show only coupons where `valid=true` (not expired,
   redemption cap not reached)
 
 **Examples:**
+
 ```bash
 # List every coupon, plus active promo codes attached
 bin/ots billing coupons
@@ -1368,6 +1479,7 @@ bin/ots billing coupons --limit 250
 ```
 
 **Output:**
+
 ```
 COUPON ID              NAME                 DISCOUNT     DURATION     REDEEMED     VALID   PROMO CODES
 --------------------------------------------------------------------------------------------------------------
@@ -1379,6 +1491,7 @@ Total: 3 coupon(s)
 ```
 
 **Column meanings:**
+
 - `DISCOUNT` — percent off (any currency) or amount off (single-currency)
 - `DURATION` — `once`, `forever`, or `NNmo` for repeating coupons
 - `REDEEMED` — `times_redeemed` or `times_redeemed/max_redemptions`
@@ -1396,9 +1509,11 @@ details. The argument can be either the customer-facing promotion code
 string (e.g. `WELCOME20`) or a Stripe coupon ID.
 
 **Arguments:**
+
 - `code` - The promotion code string or coupon ID to validate
 
 **Examples:**
+
 ```bash
 # Validate a customer-facing promotion code
 bin/ots billing coupon validate WELCOME20
@@ -1408,6 +1523,7 @@ bin/ots billing coupon validate cou_abc123
 ```
 
 **Output (valid):**
+
 ```
 Coupon details:
   Coupon ID:    WELCOME20
@@ -1426,6 +1542,7 @@ Promotion code:
 ```
 
 **Output (invalid):**
+
 ```
 Coupon details:
   Coupon ID:    EXPIRED_OFFER
@@ -1436,16 +1553,19 @@ Coupon details:
 ```
 
 **What it checks:**
+
 - Coupon's own `valid` flag (covers `redeem_by` and `max_redemptions`)
 - Promotion code's `active` flag and `expires_at`
 - Promotion-code-specific `max_redemptions`
 - Promotion-code restrictions (first-time customer, minimum order amount)
 
 **Exit code:**
+
 - `0` if the code is currently valid
 - `1` if the code is invalid, expired, or not found — useful for scripting
 
 **Notes:**
+
 - Promotion code lookup uses Stripe's API which is case-sensitive. At
   the customer-facing checkout Stripe matches case-insensitively, but
   the API lookup here must use the exact stored casing.
@@ -1459,13 +1579,16 @@ Coupon details:
 Trigger test webhook events for development/testing. **Requires Stripe CLI.**
 
 **Arguments:**
+
 - `event_type` - Stripe event type (e.g., customer.subscription.updated)
 
 **Options:**
+
 - `--subscription STRING` - Subscription ID for subscription events
 - `--customer STRING` - Customer ID for customer events
 
 **Examples:**
+
 ```bash
 # Trigger customer creation event
 bin/ots billing test trigger-webhook customer.created
@@ -1483,6 +1606,7 @@ bin/ots billing test trigger-webhook invoice.payment_succeeded --customer cus_DE
 ```
 
 **Common Event Types:**
+
 - `customer.created` - New customer
 - `customer.subscription.created` - New subscription
 - `customer.subscription.updated` - Subscription changed
@@ -1493,11 +1617,13 @@ bin/ots billing test trigger-webhook invoice.payment_succeeded --customer cus_DE
 - `charge.refunded` - Charge refunded
 
 **Prerequisites:**
+
 - Stripe CLI installed: https://stripe.com/docs/stripe-cli
-- Test API key (sk_test_*)
+- Test API key (sk*test*\*)
 - Webhook endpoint configured locally or with `stripe listen --forward-to`
 
 **Use Cases:**
+
 - Test webhook handlers during development
 - Verify subscription lifecycle events
 - Debug payment flow edge cases
@@ -1510,9 +1636,11 @@ bin/ots billing test trigger-webhook invoice.payment_succeeded --customer cus_DE
 List available Stripe Sigma queries for data analysis and reporting.
 
 **Options:**
+
 - `--limit INTEGER` - Maximum results to return (default: 100)
 
 **Examples:**
+
 ```bash
 # List all saved queries
 bin/ots billing sigma queries
@@ -1536,13 +1664,16 @@ Total: 3 query/queries
 Execute a Sigma query and display results.
 
 **Arguments:**
+
 - `query_id` - Sigma query ID (sqa_xxx)
 
 **Options:**
+
 - `--format STRING` - Output format: table, csv, json (default: table)
 - `--output FILE` - Save results to file instead of stdout
 
 **Examples:**
+
 ```bash
 # Run query and display as table
 bin/ots billing sigma run sqa_ABC123xyz
@@ -1569,11 +1700,13 @@ bin/ots billing sigma run sqa_ABC123xyz --format json
 ```
 
 **Output Formats:**
+
 - `table` - Human-readable ASCII table (default)
 - `csv` - Comma-separated values for spreadsheets
 - `json` - JSON array for programmatic processing
 
 **Common Queries to Create in Stripe Dashboard:**
+
 - Monthly Recurring Revenue (MRR) by plan
 - Subscription churn rate
 - Customer lifetime value (LTV)
@@ -1587,11 +1720,13 @@ bin/ots billing sigma run sqa_ABC123xyz --format json
 List all Stripe payment links.
 
 **Options:**
+
 - `--active-only` - Show only active links (default: true)
 - `--no-active-only` - Show all links including archived
 - `--limit INTEGER` - Maximum results to return (default: 100)
 
 **Examples:**
+
 ```bash
 # List active payment links
 bin/ots billing payment-links
@@ -1609,6 +1744,7 @@ bin/ots billing payment-links --no-active-only
 ```
 
 **Output Information:**
+
 - Payment link ID (full)
 - Product name
 - Price amount and currency
@@ -1622,12 +1758,14 @@ bin/ots billing payment-links --no-active-only
 Create a new payment link for a product price.
 
 **Options:**
+
 - `--price STRING` - Price ID (price_xxx) **required**
 - `--quantity INTEGER` - Fixed quantity (default: 1)
 - `--allow-quantity` - Allow customer to adjust quantity (default: false)
 - `--after-completion STRING` - Redirect URL after successful payment
 
 **Examples:**
+
 ```bash
 # Create basic payment link
 bin/ots billing payment-links create --price price_ABC123xyz
@@ -1660,6 +1798,7 @@ bin/ots billing payment-links create \
 ```
 
 **Behavior:**
+
 - Creates shareable URL for direct checkout
 - No login required for customers
 - Automatically creates customer in Stripe
@@ -1667,6 +1806,7 @@ bin/ots billing payment-links create \
 - Link remains active until archived
 
 **Use Cases:**
+
 - Email campaigns with direct upgrade links
 - Marketing pages with "Buy Now" buttons
 - Sales team sharing with prospects
@@ -1680,14 +1820,17 @@ bin/ots billing payment-links create \
 Update an existing payment link's configuration.
 
 **Arguments:**
+
 - `link_id` - Payment link ID (plink_xxx)
 
 **Options:**
+
 - `--active BOOLEAN` - Activate or deactivate link
 - `--allow-quantity BOOLEAN` - Enable/disable quantity adjustment
 - `--after-completion STRING` - Update redirect URL
 
 **Examples:**
+
 ```bash
 # Deactivate a payment link
 bin/ots billing payment-links update plink_ABC123xyz --active false
@@ -1717,9 +1860,11 @@ bin/ots billing payment-links update plink_ABC123xyz --allow-quantity true
 Display detailed information about a payment link.
 
 **Arguments:**
+
 - `link_id` - Payment link ID (plink_xxx)
 
 **Examples:**
+
 ```bash
 bin/ots billing payment-links show plink_ABC123xyz
 
@@ -1743,6 +1888,7 @@ Configuration:
 ```
 
 **Displayed Information:**
+
 - Link ID and shareable URL
 - Active status
 - Associated product and price details
@@ -1756,12 +1902,15 @@ Configuration:
 Archive a payment link (prevents future use while preserving data).
 
 **Arguments:**
+
 - `link_id` - Payment link ID (plink_xxx)
 
 **Options:**
+
 - `--yes` - Skip confirmation prompt
 
 **Examples:**
+
 ```bash
 # Archive with confirmation
 bin/ots billing payment-links archive plink_ABC123xyz
@@ -1781,6 +1930,7 @@ bin/ots billing payment-links archive plink_ABC123xyz --yes
 ```
 
 **Behavior:**
+
 - Link becomes inactive immediately
 - URL no longer accepts new payments
 - Existing subscriptions from link remain active
@@ -1788,6 +1938,7 @@ bin/ots billing payment-links archive plink_ABC123xyz --yes
 - Can be reactivated if needed
 
 **Use Cases:**
+
 - End of promotional campaign
 - Deprecate old pricing
 - Replace with updated link
@@ -1895,49 +2046,50 @@ bin/ots billing payment-links create \
 
 ## Quick Reference
 
-| Command | Description | Key Options |
-|---------|-------------|-------------|
-| `billing plans` | List cached plans | `--refresh` |
-| `billing products` | List Stripe products | `--active-only` |
-| `billing products create` | Create product | `--interactive`, `--plan-id`, `--tier` |
-| `billing products show` | Show product details | - |
-| `billing products events` | Show product-related events | `--limit`, `--type` |
-| `billing products update` | Update product metadata | `--interactive`, metadata fields |
-| `billing prices` | List Stripe prices | `--product`, `--active-only` |
-| `billing prices create` | Create price | `--amount`, `--interval`, `--currency` |
-| `billing customers` | List customers | `--email`, `--limit` |
-| `billing customers create` | Create new customer | `--email`, `--name`, `--interactive` |
-| `billing customers show` | Show customer details | - |
-| `billing customers delete` | Delete customer | `--yes` |
-| `billing subscriptions` | List subscriptions | `--status`, `--customer`, `--limit` |
-| `billing subscriptions cancel` | Cancel subscription | `--immediately`, `--yes` |
-| `billing subscriptions pause` | Pause subscription billing | `--yes` |
-| `billing subscriptions resume` | Resume paused subscription | `--yes` |
-| `billing subscriptions update` | Update subscription price/quantity | `--price`, `--quantity`, `--prorate` |
-| `billing invoices` | List invoices | `--status`, `--customer`, `--subscription` |
-| `billing refunds` | List refunds | `--charge`, `--limit` |
-| `billing refunds create` | Create refund | `--charge`, `--amount`, `--reason`, `--yes` |
-| `billing payment-methods set-default` | Set default payment method | `--customer` |
-| `billing coupons` | List Stripe coupons with promo codes | `--valid-only`, `--limit` |
-| `billing coupon validate` | Check if a coupon/promo code is currently valid | - |
-| `billing events` | View recent events | `--type`, `--limit` |
-| `billing test create-customer` | Create test customer with card | `--with-card` |
-| `billing test trigger-webhook` | Trigger test webhook event | `--subscription`, `--customer` |
-| `billing sigma queries` | List Sigma queries | `--limit` |
-| `billing sigma run` | Execute Sigma query | `--format`, `--output` |
-| `billing payment-links` | List payment links | `--active-only`, `--limit` |
-| `billing payment-links create` | Create payment link | `--price`, `--quantity`, `--allow-quantity`, `--after-completion` |
-| `billing payment-links update` | Update payment link | `--active`, `--allow-quantity`, `--after-completion` |
-| `billing payment-links show` | Show payment link details | - |
-| `billing payment-links archive` | Archive payment link | `--yes` |
-| `billing sync` | Sync Stripe to cache | - |
-| `billing validate` | Validate metadata | - |
+| Command                               | Description                                     | Key Options                                                       |
+| ------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| `billing plans`                       | List cached plans                               | `--refresh`                                                       |
+| `billing products`                    | List Stripe products                            | `--active-only`                                                   |
+| `billing products create`             | Create product                                  | `--interactive`, `--plan-id`, `--tier`                            |
+| `billing products show`               | Show product details                            | -                                                                 |
+| `billing products events`             | Show product-related events                     | `--limit`, `--type`                                               |
+| `billing products update`             | Update product metadata                         | `--interactive`, metadata fields                                  |
+| `billing prices`                      | List Stripe prices                              | `--product`, `--active-only`                                      |
+| `billing prices create`               | Create price                                    | `--amount`, `--interval`, `--currency`                            |
+| `billing customers`                   | List customers                                  | `--email`, `--limit`                                              |
+| `billing customers create`            | Create new customer                             | `--email`, `--name`, `--interactive`                              |
+| `billing customers show`              | Show customer details                           | -                                                                 |
+| `billing customers delete`            | Delete customer                                 | `--yes`                                                           |
+| `billing subscriptions`               | List subscriptions                              | `--status`, `--customer`, `--limit`                               |
+| `billing subscriptions cancel`        | Cancel subscription                             | `--immediately`, `--yes`                                          |
+| `billing subscriptions pause`         | Pause subscription billing                      | `--yes`                                                           |
+| `billing subscriptions resume`        | Resume paused subscription                      | `--yes`                                                           |
+| `billing subscriptions update`        | Update subscription price/quantity              | `--price`, `--quantity`, `--prorate`                              |
+| `billing invoices`                    | List invoices                                   | `--status`, `--customer`, `--subscription`                        |
+| `billing refunds`                     | List refunds                                    | `--charge`, `--limit`                                             |
+| `billing refunds create`              | Create refund                                   | `--charge`, `--amount`, `--reason`, `--yes`                       |
+| `billing payment-methods set-default` | Set default payment method                      | `--customer`                                                      |
+| `billing coupons`                     | List Stripe coupons with promo codes            | `--valid-only`, `--limit`                                         |
+| `billing coupon validate`             | Check if a coupon/promo code is currently valid | -                                                                 |
+| `billing events`                      | View recent events                              | `--type`, `--limit`                                               |
+| `billing test create-customer`        | Create test customer with card                  | `--with-card`                                                     |
+| `billing test trigger-webhook`        | Trigger test webhook event                      | `--subscription`, `--customer`                                    |
+| `billing sigma queries`               | List Sigma queries                              | `--limit`                                                         |
+| `billing sigma run`                   | Execute Sigma query                             | `--format`, `--output`                                            |
+| `billing payment-links`               | List payment links                              | `--active-only`, `--limit`                                        |
+| `billing payment-links create`        | Create payment link                             | `--price`, `--quantity`, `--allow-quantity`, `--after-completion` |
+| `billing payment-links update`        | Update payment link                             | `--active`, `--allow-quantity`, `--after-completion`              |
+| `billing payment-links show`          | Show payment link details                       | -                                                                 |
+| `billing payment-links archive`       | Archive payment link                            | `--yes`                                                           |
+| `billing sync`                        | Sync Stripe to cache                            | -                                                                 |
+| `billing validate`                    | Validate metadata                               | -                                                                 |
 
 ---
 
 ## API Rate Limits
 
 Stripe has API rate limits. The CLI uses reasonable defaults:
+
 - Most list commands: 100 results (can adjust with `--limit`)
 - Events: 20 results by default (less noisy)
 - All commands paginate properly

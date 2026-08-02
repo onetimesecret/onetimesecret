@@ -13,7 +13,7 @@
 # contract is consistent with session-only auth (BasicAuth produces an
 # empty session hash that would make these operations unsafe).
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/session_only_restricted_routes_spec.rb

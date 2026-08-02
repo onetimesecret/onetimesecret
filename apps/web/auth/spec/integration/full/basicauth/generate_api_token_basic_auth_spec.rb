@@ -9,7 +9,7 @@
 # provides. This spec confirms that contract and verifies the route
 # restriction is consistent with the logic.
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/generate_api_token_basic_auth_spec.rb

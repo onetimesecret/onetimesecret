@@ -44,7 +44,7 @@ permissions:
 
 jobs:
   clean-room:
-    name: "bin/setup --init from zero (${{ matrix.lane }})"
+    name: 'bin/setup --init from zero (${{ matrix.lane }})'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
@@ -63,14 +63,14 @@ jobs:
         run: ./scripts/test-install/run.sh --lane "$LANE"
 
   macos:
-    name: "bin/setup on macOS (bash 3.2 + BSD userland)"
+    name: 'bin/setup on macOS (bash 3.2 + BSD userland)'
     runs-on: macos-15
     timeout-minutes: 45
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      # bin/setup --test starts its own throwaway datastore on :2121 and
+      # bin/setup --test starts its own throwaway datastore on :2163 and
       # discovers the binary via `command -v redis-server`.
       - name: Install datastore (redis, Valkey-compatible)
         run: brew install redis
@@ -78,7 +78,7 @@ jobs:
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          bundler-cache: false  # bin/setup runs `bundle install` itself
+          bundler-cache: false # bin/setup runs `bundle install` itself
 
       - name: Setup Node (.node-version)
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0

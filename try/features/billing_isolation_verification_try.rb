@@ -106,8 +106,8 @@ Billing::Plan.all.empty?
 #=> true
 
 ## Familia is configured with test Redis URI
-# Must use port 2121 for tests to avoid conflicts
-Familia.uri.to_s.include?('2121')
+# Must use port 2163 for tests to avoid conflicts
+Familia.uri.to_s.include?('2163')
 #=> true
 
 ## clear_plan_cache! safely handles empty cache

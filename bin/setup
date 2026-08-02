@@ -4,7 +4,7 @@
 #
 #   bin/setup             Dev environment (contributor default): deps, config,
 #                         secrets, generated artifacts, git hooks, next steps.
-#   bin/setup --test      Test lane: throwaway datastore on :2121, .test-mode
+#   bin/setup --test      Test lane: throwaway datastore on :2163, .test-mode
 #                         marker, config smoke test. RSpec/Vitest just work.
 #   bin/setup --init      Self-hosting init: secrets, env, install mark.
 #                         Auto-detects an existing environment and reconciles
@@ -356,7 +356,7 @@ cmd_dev() {
 #
 # Switches this checkout to test mode and makes the RSpec suite runnable on
 # a fresh clone, with no maintainer-private files required: throwaway
-# datastore on :2121 (no persistence), config smoke test, optional direnv
+# datastore on :2163 (no persistence), config smoke test, optional direnv
 # lane switching and PostgreSQL provisioning for the integration suite.
 
 cmd_test() {
@@ -400,19 +400,19 @@ cmd_test() {
   echo "---"
   generate_artifacts
 
-  # --- Test datastore on port 2121 -------------------------------------
+  # --- Test datastore on port 2163 -------------------------------------
 
   echo "---"
-  echo "Starting test datastore on port 2121..."
+  echo "Starting test datastore on port 2163..."
 
-  if "$VALKEY_CLI" -p 2121 ping &>/dev/null; then
-    echo "OK:   Test datastore already running on port 2121"
+  if "$VALKEY_CLI" -p 2163 ping &>/dev/null; then
+    echo "OK:   Test datastore already running on port 2163"
   else
     pnpm run test:database:start
 
     local started=false _i
     for _i in 1 2 3 4 5 6 7 8 9 10; do
-      if "$VALKEY_CLI" -p 2121 ping &>/dev/null; then
+      if "$VALKEY_CLI" -p 2163 ping &>/dev/null; then
         started=true
         break
       fi
@@ -420,9 +420,9 @@ cmd_test() {
     done
 
     if $started; then
-      echo "OK:   Test datastore started on port 2121"
+      echo "OK:   Test datastore started on port 2163"
     else
-      echo "Error: Test datastore did not start on port 2121"
+      echo "Error: Test datastore did not start on port 2163"
       echo "  Try manually: pnpm run test:database:start:fg"
       exit 1
     fi
@@ -546,11 +546,11 @@ cmd_test() {
     test_uri=$(env RACK_ENV=test ruby -e "$smoke_ruby" || true)
   fi
 
-  if [[ "$test_uri" == *":2121"* ]]; then
+  if [[ "$test_uri" == *":2163"* ]]; then
     echo "OK:   Config resolves to test database ($test_uri)"
   else
-    echo "Warning: Config did not resolve to port 2121 (got: ${test_uri:-<empty>})"
-    echo "  spec/config.test.yaml should hardcode redis://127.0.0.1:2121/0"
+    echo "Warning: Config did not resolve to port 2163 (got: ${test_uri:-<empty>})"
+    echo "  spec/config.test.yaml should hardcode redis://127.0.0.1:2163/0"
     echo "  Verify RACK_ENV=test is set and ConfigResolver finds the test config"
   fi
 
@@ -880,10 +880,10 @@ doctor_services() {
   fi
 
   if [[ "$DOCTOR_CONTEXT" == "dev" && -f .test-mode ]]; then
-    if tcp_probe 127.0.0.1 2121; then
-      doc_ok "Test datastore answering on 127.0.0.1:2121"
+    if tcp_probe 127.0.0.1 2163; then
+      doc_ok "Test datastore answering on 127.0.0.1:2163"
     else
-      doc_warn "Test datastore not running on 127.0.0.1:2121 (test mode is active)" \
+      doc_warn "Test datastore not running on 127.0.0.1:2163 (test mode is active)" \
         "bin/setup --test (starts it)"
     fi
   fi
@@ -1315,7 +1315,7 @@ Every lane is idempotent — safe to re-run at any time.
 Lanes:
   --dev        Dev environment: deps, config, secrets, generated artifacts,
                git hooks. Removes .test-mode (returns to dev mode). [default]
-  --test       Test lane: throwaway datastore on :2121, .test-mode marker,
+  --test       Test lane: throwaway datastore on :2163, .test-mode marker,
                config smoke test. Then: pnpm run test:rspec:fast / pnpm test
   --init       Self-hosting init: env file, secrets, install mark.
                Auto-reconciles when an environment already exists.

@@ -45,7 +45,7 @@ RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ## Testing
 
 ```bash
-bin/setup --test               # throwaway datastore on :2121, .test-mode marker
+bin/setup --test               # throwaway datastore on :2163, .test-mode marker
 pnpm run test:rspec:fast       # RSpec fast suite
 pnpm test                      # Vitest (frontend)
 bundle exec try                # Tryouts (Ruby behavior tests)
@@ -137,7 +137,7 @@ pnpm run database:stop      # Stop server
 pnpm run database:status    # Check if server is running
 ```
 
-Test datastore helpers (port 2121, no persistence — started by
+Test datastore helpers (port 2163, no persistence — started by
 `bin/setup --test`):
 
 ```bash

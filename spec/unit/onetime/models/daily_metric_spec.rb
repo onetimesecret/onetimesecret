@@ -7,7 +7,7 @@ require 'spec_helper'
 # Unit tests for Onetime::DailyMetric — the per-day trend counters behind
 # GET /api/colonel/trends (observability lane).
 #
-# These exercise the real Redis-backed keys on the test database (port 2121),
+# These exercise the real Redis-backed keys on the test database (port 2163),
 # so each example clears the daily_metric key space to stay isolated.
 RSpec.describe Onetime::DailyMetric do
   def clear_keys

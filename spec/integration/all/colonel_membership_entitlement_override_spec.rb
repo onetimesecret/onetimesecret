@@ -10,7 +10,7 @@ require 'securerandom'
 require 'colonel/application'
 
 # Integration tests for ManageMembershipEntitlementOverride (#3907) against
-# real Redis (port 2121; type: :integration flushes after each example) — the
+# real Redis (port 2163; type: :integration flushes after each example) — the
 # membership-scoped sibling of the org-level adapter covered by
 # try/integration/api/colonel/manage_entitlement_override_try.rb:
 #

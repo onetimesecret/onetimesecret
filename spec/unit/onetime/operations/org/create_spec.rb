@@ -12,7 +12,7 @@
 #      reservation. Organization.create! is stubbed at the class boundary; it
 #      has its own coverage.
 #
-#   2. Real datastore (Valkey on 2121, see spec/config.test.yaml) — the
+#   2. Real datastore (Valkey on 2163, see spec/config.test.yaml) — the
 #      post-condition that actually matters: an org this op created passes ALL
 #      FIVE `bin/ots org doctor` invariants. That is unprovable with mocks
 #      because the owner membership is a Familia through-model created during

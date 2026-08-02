@@ -68,7 +68,7 @@ inputs:
   redis-url:
     description: 'Redis connection URL'
     required: false
-    default: 'redis://127.0.0.1:2121/0'
+    default: 'redis://127.0.0.1:2163/0'
   rabbitmq-url:
     description: 'RabbitMQ connection URL (empty string skips job queue health checks)'
     required: false

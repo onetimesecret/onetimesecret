@@ -1,5 +1,7 @@
 # apps/web/billing/docs/BILLING-ENTITLEMENT-TEST-PATTERNS.md
+
 ---
+
 # Billing and Entitlement Test Patterns
 
 This guide documents best practices for writing tests that involve billing and entitlements, ensuring proper test isolation per Issue #2228.
@@ -28,12 +30,14 @@ Billing is now **disabled by default** in all tests (Tryouts and RSpec), with op
 ### Key Mechanisms
 
 **Default State:**
+
 - Billing config path: `/nonexistent/billing_disabled_for_tests.yaml` (non-existent file)
 - Plan cache: Empty
 - Entitlements: Standalone mode (full entitlements without restrictions)
 
 **Test Redis:**
-- Port: `2121` (not `6379`) to avoid conflicts with development
+
+- Port: `2163` (not `6379`) to avoid conflicts with development
 - URI: Set via `ENV['VALKEY_URL']` or `ENV['REDIS_URL']` in test_helpers.rb
 
 ## Writing Tests
@@ -46,11 +50,11 @@ Most tests should work with billing disabled (default):
 
 ```ruby
 #!/usr/bin/env ruby
-require_relative '../support/test_helpers'
+require_relative "../support/test_helpers"
 
 ## Customer gets standalone entitlements by default
 # Billing is disabled, so full entitlements are available
-customer = Onetime::Customer.create(email: 'test@example.com')
+customer = Onetime::Customer.create(email: "test@example.com")
 customer.can?(:create_secrets)
 #=> true
 ```
@@ -61,24 +65,29 @@ Use `BillingTestHelpers.with_billing_enabled` for tests that need billing:
 
 ```ruby
 #!/usr/bin/env ruby
-require_relative '../support/test_helpers'
+require_relative "../support/test_helpers"
 
 ## Test organization entitlements with specific plan
-plans_data = [{
-  plan_id: 'identity_plus_v1',
-  name: 'Identity Plus',
-  tier: 2,
-  interval: 'month',
-  region: 'us',
-  entitlements: ['create_secrets', 'custom_domains'],
-  limits: { 'teams.max' => '1' }
-}]
+plans_data = [
+  {
+    plan_id: "identity_plus_v1",
+    name: "Identity Plus",
+    tier: 2,
+    interval: "month",
+    region: "us",
+    entitlements: %w[create_secrets custom_domains],
+    limits: {
+      "teams.max" => "1",
+    },
+  },
+]
 
-result = BillingTestHelpers.with_billing_enabled(plans: plans_data) do
-  # Create organization and check entitlements
-  org = Onetime::Organization.new(planid: 'identity_plus_v1')
-  org.can?('custom_domains')
-end
+result =
+  BillingTestHelpers.with_billing_enabled(plans: plans_data) do
+    # Create organization and check entitlements
+    org = Onetime::Organization.new(planid: "identity_plus_v1")
+    org.can?("custom_domains")
+  end
 
 result
 #=> true
@@ -95,11 +104,11 @@ Billing::Plan.all.empty?
 Default behavior - no special setup needed:
 
 ```ruby
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe 'Feature requiring entitlement check' do
-  it 'uses standalone entitlements when billing disabled' do
-    customer = Onetime::Customer.create(email: 'test@example.com')
+RSpec.describe "Feature requiring entitlement check" do
+  it "uses standalone entitlements when billing disabled" do
+    customer = Onetime::Customer.create(email: "test@example.com")
 
     expect(customer.can?(:create_secrets)).to be true
   end
@@ -111,52 +120,61 @@ end
 Use `billing: true` tag or `with_billing_enabled` helper:
 
 ```ruby
-require 'spec_helper'
+require "spec_helper"
 
 # Option 1: Tag the entire describe block
-RSpec.describe 'Billing feature', billing: true do
+RSpec.describe "Billing feature", billing: true do
   before do
     # Setup test plans
-    setup_test_plan({
-      plan_id: 'free',
-      name: 'Free',
-      tier: 1,
-      interval: 'month',
-      region: 'us',
-      entitlements: ['create_secrets'],
-      limits: { 'teams.max' => '0' }
-    })
+    setup_test_plan(
+      {
+        plan_id: "free",
+        name: "Free",
+        tier: 1,
+        interval: "month",
+        region: "us",
+        entitlements: ["create_secrets"],
+        limits: {
+          "teams.max" => "0",
+        },
+      },
+    )
   end
 
-  it 'checks entitlements against plan' do
-    org = Onetime::Organization.new(planid: 'free')
+  it "checks entitlements against plan" do
+    org = Onetime::Organization.new(planid: "free")
 
-    expect(org.can?('create_secrets')).to be true
-    expect(org.can?('custom_domains')).to be false
+    expect(org.can?("create_secrets")).to be true
+    expect(org.can?("custom_domains")).to be false
   end
 end
 
 # Option 2: Use helper for specific tests
-RSpec.describe 'Mixed billing tests' do
-  it 'uses standalone mode by default' do
-    org = Onetime::Organization.new(planid: 'free')
+RSpec.describe "Mixed billing tests" do
+  it "uses standalone mode by default" do
+    org = Onetime::Organization.new(planid: "free")
     # Billing disabled, so gets standalone entitlements
-    expect(org.can?('create_secrets')).to be true
+    expect(org.can?("create_secrets")).to be true
   end
 
-  it 'can enable billing for specific test' do
-    with_billing_enabled(plans: [{
-      plan_id: 'free',
-      name: 'Free',
-      tier: 1,
-      interval: 'month',
-      region: 'us',
-      entitlements: ['create_secrets'],
-      limits: {}
-    }]) do
-      org = Onetime::Organization.new(planid: 'free')
+  it "can enable billing for specific test" do
+    with_billing_enabled(
+      plans: [
+        {
+          plan_id: "free",
+          name: "Free",
+          tier: 1,
+          interval: "month",
+          region: "us",
+          entitlements: ["create_secrets"],
+          limits: {
+          },
+        },
+      ],
+    ) do
+      org = Onetime::Organization.new(planid: "free")
       # Now using actual plan entitlements
-      expect(org.can?('create_secrets')).to be true
+      expect(org.can?("create_secrets")).to be true
     end
   end
 end
@@ -197,32 +215,38 @@ Onetime::BillingConfig.instance.enabled?
 ### Methods
 
 **`disable_billing!`**
+
 - Sets billing config path to non-existent file
 - Resets billing singleton
 - Called automatically at test suite startup
 
 **`restore_billing!`**
+
 - Restores original billing config path
 - Use for tests that need real billing config
 - Automatically restored by `with_billing_enabled`
 
 **`clear_plan_cache!`**
+
 - Clears all plans from Redis cache
 - Safe to call even with empty cache
 - Called automatically by `cleanup_billing_state!`
 
 **`cleanup_billing_state!`**
+
 - Clears plan cache + disables billing
 - Full state reset
 - Called automatically after `with_billing_enabled`
 
 **`with_billing_enabled(plans: [])`**
+
 - Enables billing for block duration
 - Optionally populates test plans
 - Guarantees cleanup on success or exception
 - Returns block result
 
 **`populate_test_plans(plans)`**
+
 - Populates Redis plan cache with test data
 - Requires array of plan hashes with:
   - `plan_id`, `name`, `tier`, `interval`, `region`
@@ -230,7 +254,8 @@ Onetime::BillingConfig.instance.enabled?
   - `limits` (hash)
 
 **`ensure_familia_configured!`**
-- Ensures Familia uses test Redis (port 2121)
+
+- Ensures Familia uses test Redis (port 2163)
 - Idempotent - safe to call multiple times
 - Called automatically by other helpers
 
@@ -240,13 +265,10 @@ Onetime::BillingConfig.instance.enabled?
 
 ```ruby
 ## Test that feature requires specific entitlement
-with_billing_enabled(plans: [{
-  plan_id: 'free',
-  entitlements: ['basic_feature']
-}]) do
-  org = Onetime::Organization.new(planid: 'free')
-  org.can?('basic_feature')  #=> true
-  org.can?('premium_feature')  #=> false
+with_billing_enabled(plans: [{ plan_id: "free", entitlements: ["basic_feature"] }]) do
+  org = Onetime::Organization.new(planid: "free")
+  org.can?("basic_feature") #=> true
+  org.can?("premium_feature") #=> false
 end
 ```
 
@@ -255,16 +277,16 @@ end
 ```ruby
 ## Test upgrade path for features
 plans = [
-  { plan_id: 'free_v1', tier: 1, entitlements: ['basic'] },
-  { plan_id: 'identity_plus_v1', tier: 2, entitlements: ['basic', 'advanced'] }
+  { plan_id: "free_v1", tier: 1, entitlements: ["basic"] },
+  { plan_id: "identity_plus_v1", tier: 2, entitlements: %w[basic advanced] },
 ]
 
 with_billing_enabled(plans: plans) do
-  free_org = Onetime::Organization.new(planid: 'free_v1')
-  paid_org = Onetime::Organization.new(planid: 'identity_plus_v1')
+  free_org = Onetime::Organization.new(planid: "free_v1")
+  paid_org = Onetime::Organization.new(planid: "identity_plus_v1")
 
-  free_org.can?('advanced')  #=> false
-  paid_org.can?('advanced')  #=> true
+  free_org.can?("advanced") #=> false
+  paid_org.can?("advanced") #=> true
 end
 ```
 
@@ -272,14 +294,11 @@ end
 
 ```ruby
 ## Test that limits are enforced
-with_billing_enabled(plans: [{
-  plan_id: 'free',
-  limits: { 'teams.max' => '1' }
-}]) do
-  org = Onetime::Organization.new(planid: 'free')
-  org.at_limit?('teams', 0)  #=> false (0 < 1)
-  org.at_limit?('teams', 1)  #=> true (1 = 1)
-  org.at_limit?('teams', 2)  #=> true (2 > 1)
+with_billing_enabled(plans: [{ plan_id: "free", limits: { "teams.max" => "1" } }]) do
+  org = Onetime::Organization.new(planid: "free")
+  org.at_limit?("teams", 0) #=> false (0 < 1)
+  org.at_limit?("teams", 1) #=> true (1 = 1)
+  org.at_limit?("teams", 2) #=> true (2 > 1)
 end
 ```
 
@@ -298,7 +317,7 @@ Onetime::BillingConfig.path
 Billing::Plan.all
 
 # Is Familia using test Redis?
-Familia.uri.to_s.include?('2121')
+Familia.uri.to_s.include?("2163")
 ```
 
 ### Common Issues
@@ -337,22 +356,21 @@ pnpm run test:tryouts:agent -- try/features/billing_isolation_verification_try.r
 ### Updating Existing Tests
 
 **Before (tests might fail in suite):**
+
 ```ruby
 ## Test organization features
-org = create_organization_with_plan('premium')
-org.can?('advanced_feature')
+org = create_organization_with_plan("premium")
+org.can?("advanced_feature")
 #=> true
 ```
 
 **After (isolated):**
+
 ```ruby
 ## Test organization features
-with_billing_enabled(plans: [{
-  plan_id: 'premium',
-  entitlements: ['advanced_feature']
-}]) do
-  org = create_organization_with_plan('premium')
-  org.can?('advanced_feature')
+with_billing_enabled(plans: [{ plan_id: "premium", entitlements: ["advanced_feature"] }]) do
+  org = create_organization_with_plan("premium")
+  org.can?("advanced_feature")
 end
 #=> true
 ```

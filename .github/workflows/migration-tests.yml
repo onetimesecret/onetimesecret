@@ -77,7 +77,7 @@ jobs:
           --health-retries 5
           --memory=2g
         ports:
-          - 2121:6379
+          - 2163:6379
 
     steps:
       - name: Checkout code
@@ -102,7 +102,7 @@ jobs:
           RACK_ENV: test
           AUTHENTICATION_MODE: full
           AUTH_DATABASE_URL: 'sqlite::memory:'
-          REDIS_URL: redis://127.0.0.1:2121/0
+          REDIS_URL: redis://127.0.0.1:2163/0
           RSPEC_OUTPUT_FILE: tmp/sqlite_migration_results.json
         run: |
           set -e
@@ -158,7 +158,7 @@ jobs:
           --health-retries 5
           --memory=2g
         ports:
-          - 2121:6379
+          - 2163:6379
 
       postgres:
         image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
@@ -203,7 +203,7 @@ jobs:
           AUTHENTICATION_MODE: full
           AUTH_DATABASE_URL: postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test
           AUTH_DATABASE_URL_MIGRATIONS: postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test
-          REDIS_URL: redis://127.0.0.1:2121/0
+          REDIS_URL: redis://127.0.0.1:2163/0
           RSPEC_OUTPUT_FILE: tmp/postgres_migration_results.json
         run: |
           set -e
@@ -225,7 +225,7 @@ jobs:
           AUTHENTICATION_MODE: full
           AUTH_DATABASE_URL: postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test
           AUTH_DATABASE_URL_MIGRATIONS: postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test
-          REDIS_URL: redis://127.0.0.1:2121/0
+          REDIS_URL: redis://127.0.0.1:2163/0
         run: |
           echo "### Dual URL Configuration Test" >> $GITHUB_STEP_SUMMARY
 
@@ -284,7 +284,7 @@ jobs:
           --health-retries 5
           --memory=2g
         ports:
-          - 2121:6379
+          - 2163:6379
 
       postgres:
         image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
@@ -324,7 +324,7 @@ jobs:
           RACK_ENV: test
           AUTHENTICATION_MODE: full
           AUTH_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/onetime_auth_test_concurrent
-          REDIS_URL: redis://127.0.0.1:2121/0
+          REDIS_URL: redis://127.0.0.1:2163/0
         run: |
           set -e
           echo "## Concurrent Boot Simulation" >> $GITHUB_STEP_SUMMARY
@@ -371,7 +371,7 @@ jobs:
           RACK_ENV: test
           AUTHENTICATION_MODE: full
           AUTH_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/onetime_auth_test_concurrent
-          REDIS_URL: redis://127.0.0.1:2121/0
+          REDIS_URL: redis://127.0.0.1:2163/0
         run: |
           echo "### Migration Idempotency Test" >> $GITHUB_STEP_SUMMARY
 

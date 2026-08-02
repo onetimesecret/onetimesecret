@@ -8,7 +8,7 @@
 # The session blob is one encrypted value with one TTL; this primitive stores a
 # REGISTERED subset of session fields as independent STRING keys
 # `sidecar:<sid>:<field>` with their own clamped TTLs. Run against real Valkey
-# (port 2121 via test_helpers) so SET+EX atomicity, TTL clamping, and GETDEL
+# (port 2163 via test_helpers) so SET+EX atomicity, TTL clamping, and GETDEL
 # semantics are genuine, not mocked. Covers:
 # - key derivation + the closed-registry gate (unregistered -> ArgumentError)
 # - the sid format guard (malformed sid -> nil/no-op, no key ever created)

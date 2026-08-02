@@ -237,7 +237,7 @@ namespace :spec do
   # NOT folded into spec:integration:<mode> on purpose: doing so would re-mix
   # the API-contract and auth-mode taxonomies. Most specs are mode-agnostic
   # entitlement/wire-format checks; the few that need a specific mode set it
-  # themselves. Real Valkey on port 2121 is required (type: :integration).
+  # themselves. Real Valkey on port 2163 is required (type: :integration).
   #
   # NOTE: a subset currently fails against the membership-based entitlement
   # contract (#3225 / ADR-012 Stage 3): they stub the removed `logic.org` and
@@ -250,7 +250,7 @@ namespace :spec do
   # the known #3225 drift. CI runs this lane via a dedicated non-blocking step
   # (continue-on-error) — see .github/workflows/ci.yml — so visibility is kept
   # without blocking. Add it back to spec:all once #3225 greens the lane.
-  desc 'Run API contract specs (spec/api/, mode-agnostic; needs Valkey on 2121)'
+  desc 'Run API contract specs (spec/api/, mode-agnostic; needs Valkey on 2163)'
   task :api do
     env = { 'RACK_ENV' => 'test', 'AUTHENTICATION_MODE' => 'simple' }
     sh env, "bundle exec rspec spec/api #{rspec_format_options}"

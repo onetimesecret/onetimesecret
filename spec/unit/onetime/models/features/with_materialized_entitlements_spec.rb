@@ -11,7 +11,7 @@
 #  4. Operator overrides (grant_entitlement / revoke_entitlement)
 #  5. Content hash determinism
 #
-# Tests in categories 1–4 that operate on Familia sets require Redis (port 2121).
+# Tests in categories 1–4 that operate on Familia sets require Redis (port 2163).
 # Category 5 (entitlements_content_hash) and staleness parsing are pure-Ruby and
 # run without Redis.
 #

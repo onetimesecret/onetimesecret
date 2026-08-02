@@ -13,7 +13,7 @@
 # (see lib/onetime/middleware/security.rb).
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
 # - AUTHENTICATION_MODE=full
 # - ORGS_SSO_ENABLED=true (for redirect/state tests; CSRF bypass tests run regardless)

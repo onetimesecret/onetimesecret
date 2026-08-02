@@ -191,7 +191,7 @@ jobs:
       - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
           ruby-version-file: '.ruby-version'
-          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+          bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
         run: bundle install --jobs 4 --retry 3
@@ -383,7 +383,7 @@ jobs:
           --health-retries 5
           --memory=4g
         ports:
-          - 2121:6379
+          - 2163:6379
       rabbitmq: &rabbitmq-service
         image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
         options: >-
@@ -539,7 +539,7 @@ jobs:
       - name: Run smoke test
         shell: bash
         env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          REDIS_URL: 'redis://127.0.0.1:2163/0'
           RACK_ENV: 'test'
         run: pnpm test:smoke
 
@@ -597,7 +597,7 @@ jobs:
       # step was continue-on-error while that subset was red.
       - name: Run API contract specs (spec/api)
         env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          REDIS_URL: 'redis://127.0.0.1:2163/0'
         run: bundle exec rake spec:api
 
   ruby-integration-full:
@@ -823,7 +823,7 @@ jobs:
           image-name: 'onetime-test'
           container-name: 'onetime-test-container'
           port: '3000'
-          redis-url: 'redis://host.docker.internal:2121/0'
+          redis-url: 'redis://host.docker.internal:2163/0'
           environment-vars: |
             SESSION_SECRET=${{ env.SESSION_SECRET }}
             AUTH_SECRET=${{ env.AUTH_SECRET }}

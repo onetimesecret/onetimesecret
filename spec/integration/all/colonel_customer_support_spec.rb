@@ -11,7 +11,7 @@ require 'json'
 require 'colonel/application'
 
 # Integration tests for the customer-support colonel features against real
-# Redis (port 2121; type: :integration flushes after each example):
+# Redis (port 2163; type: :integration flushes after each example):
 #
 #   1. Customer search — ListUsers `search` param (bounded email-index HSCAN).
 #   2. Billing read-out — GetUserDetails `details.billing` graceful degradation

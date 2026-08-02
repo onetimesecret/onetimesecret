@@ -78,7 +78,7 @@ jobs:
         continue-on-error: true
         with:
           ruby-version: '4.0.2'
-          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+          bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
         continue-on-error: true
@@ -119,7 +119,7 @@ jobs:
           --health-retries 5
           --memory=4g
         ports:
-          - 2121:6379
+          - 2163:6379
       rabbitmq: &rabbitmq-service
         image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
         options: >-

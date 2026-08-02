@@ -23,7 +23,7 @@
   },
 
   // redis-server: `bin/setup --test` starts its own throwaway datastore on
-  // :2121 inside this container, same as on bare metal (the valkey sidecar
+  // :2163 inside this container, same as on bare metal (the valkey sidecar
   // on :6379 is the persistent DEV datastore). python3: locales:sync.
   // libsodium23: rbnacl's FFI binding needs it at runtime for Familia's
   // encrypted fields (RbNaCl::Hash.blake2b) — the app image installs the

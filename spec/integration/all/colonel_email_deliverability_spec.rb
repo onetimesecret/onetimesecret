@@ -10,7 +10,7 @@ require 'securerandom'
 require 'colonel/application'
 
 # Integration tests for the email deliverability colonel endpoints against real
-# Redis (port 2121; type: :integration flushes after each example):
+# Redis (port 2163; type: :integration flushes after each example):
 #
 #   1. Ingest — IngestEmailDeliverabilityEvents (POST /api/colonel/email/
 #      deliverability/events): batch feedback ingestion, suppression writes,

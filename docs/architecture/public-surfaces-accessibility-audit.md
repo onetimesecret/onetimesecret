@@ -1,8 +1,8 @@
 # Public Surfaces: Accessibility Audit
 
-*Audit date: 2026-07-04. Scope: the six public (unauthenticated) web surfaces
+_Audit date: 2026-07-04. Scope: the six public (unauthenticated) web surfaces
 of the app, scanned with axe-core 4.12 against WCAG 2.0/2.1 Level A + AA plus
-axe best-practice rules, on a local production build.*
+axe best-practice rules, on a local production build._
 
 Companion to the accessibility
 [`OVERVIEW.md`](../development/accessibility/OVERVIEW.md), which describes the
@@ -18,14 +18,14 @@ actually found so gaps can be tracked and fixed.
 
 ## Method
 
-| | |
-|---|---|
-| **Engine** | [axe-core](https://github.com/dequelabs/axe-core) 4.12.1 (Deque) — the same engine Lighthouse uses for its accessibility category, run directly for full violation detail |
-| **Driver** | Playwright, headless Chromium |
-| **Ruleset** | WCAG 2.0 / 2.1 **Level A + AA** (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`) plus axe **best-practice** |
-| **Target** | Local production build (`RACK_ENV=production bin/ots server`) on `http://127.0.0.1:7143` |
-| **Theme** | Light mode |
-| **Procedure** | Each page loaded, allowed to fully mount (`html[data-app-ready="true"]`), then scanned against `document` |
+|               |                                                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Engine**    | [axe-core](https://github.com/dequelabs/axe-core) 4.12.1 (Deque) — the same engine Lighthouse uses for its accessibility category, run directly for full violation detail |
+| **Driver**    | Playwright, headless Chromium                                                                                                                                             |
+| **Ruleset**   | WCAG 2.0 / 2.1 **Level A + AA** (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`) plus axe **best-practice**                                                                   |
+| **Target**    | Local production build (`RACK_ENV=production bin/ots server`) on `http://127.0.0.1:7143`                                                                                  |
+| **Theme**     | Light mode                                                                                                                                                                |
+| **Procedure** | Each page loaded, allowed to fully mount (`html[data-app-ready="true"]`), then scanned against `document`                                                                 |
 
 Each surface returned HTTP 200 and mounted successfully before scanning.
 
@@ -48,14 +48,14 @@ but nothing rose to blocker severity. The two **serious** issues are WCAG AA and
 are mostly _global_ (shared header/footer), so a small number of fixes clear
 them across every page.
 
-| Surface | Violations (nodes) | Needs review | axe passes |
-|---|---|---|---|
-| Home | 2 (2) | 3 | 42 |
-| Sign In | 3 (3) | 1 | 39 |
-| Create Account | 3 (3) | 0 | 41 |
-| Forgot Password | 2 (3) | 1 | 38 |
-| Pricing | 2 (2) | 0 | 38 |
-| Feedback | 2 (2) | 1 | 42 |
+| Surface         | Violations (nodes) | Needs review | axe passes |
+| --------------- | ------------------ | ------------ | ---------- |
+| Home            | 2 (2)              | 3            | 42         |
+| Sign In         | 3 (3)              | 1            | 39         |
+| Create Account  | 3 (3)              | 0            | 41         |
+| Forgot Password | 2 (3)              | 1            | 38         |
+| Pricing         | 2 (2)              | 0            | 38         |
+| Feedback        | 2 (2)              | 1            | 42         |
 
 ## 3. Findings
 
@@ -70,7 +70,11 @@ Text does not meet the 4.5:1 minimum contrast ratio for normal text.
   Global — one change clears 6 nodes. Darken one step (e.g. `text-gray-600`
   → `text-gray-700`).
   ```html
-  <a href="…/releases/tag/v0.0.0-rc0" aria-label="Release Notes"> v0.0.0-rc0 (…)</a>
+  <a
+    href="…/releases/tag/v0.0.0-rc0"
+    aria-label="Release Notes">
+    v0.0.0-rc0 (…)</a
+  >
   ```
 - **"Send Reset Link" primary button** (`/forgot`): white `#ffffff` on
   `#3b82f6` (`bg-brand-500`) = **3.67:1** (needs 4.5:1), 16px bold. The primary
@@ -84,7 +88,11 @@ The logo/home link is in the tab order but exposes **no accessible name** to
 assistive technology:
 
 ```html
-<a href="/" class="group"> … </a>
+<a
+  href="/"
+  class="group">
+  …
+</a>
 ```
 
 Add an accessible name — e.g. `aria-label="Onetime Secret — home"` — or ensure
@@ -144,7 +152,7 @@ and a test datastore running:
 
 ```bash
 # 1. serve a production build (built assets in public/web/dist)
-RACK_ENV=production REDIS_URL=redis://127.0.0.1:2121/0 SECRET=$(openssl rand -hex 32) \
+RACK_ENV=production REDIS_URL=redis://127.0.0.1:2163/0 SECRET=$(openssl rand -hex 32) \
   HOST=localhost:7143 SSL=false AUTH_AUTOVERIFY=true EMAILER_MODE=logger \
   bundle exec bin/ots server --port 7143
 

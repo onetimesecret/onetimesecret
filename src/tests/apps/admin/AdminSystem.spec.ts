@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminSystem.spec.ts
 
-import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockApi = {
@@ -71,7 +71,7 @@ function queuePayload() {
     shrimp: '',
     record: {},
     details: {
-      connection: { connected: true, host: 'localhost:2121' },
+      connection: { connected: true, host: 'localhost:2163' },
       worker_health: { status: 'healthy', active_workers: 2 },
       queues: [{ name: 'mailer', pending_messages: 3, consumers: 1 }],
     },
@@ -188,7 +188,7 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
 
     // Queue: connection host + per-queue row render.
     const queue = wrapper.find('[data-testid="system-queue"]');
-    expect(queue.text()).toContain('localhost:2121');
+    expect(queue.text()).toContain('localhost:2163');
     expect(wrapper.find('[data-testid="queue-table"]').text()).toContain('mailer');
 
     // Redis: the JsonViewer read-out mounts (loaded branch, not loading/error).

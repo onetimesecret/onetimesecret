@@ -9,7 +9,7 @@
 #
 # Creates:
 #   compose.test.yml            Test services on 127.0.0.1 ports starting
-#                               with 21 (valkey 2121, postgres 2132,
+#                               with 21 (valkey 2163, postgres 2132,
 #                               rabbitmq 2172), digest-pinned to match CI.
 #   tests/lanes/base.env        Lane-invariant env: endpoints, dummy secrets.
 #   tests/lanes/run             Hermetic lane runner (CI + local entrypoint).
@@ -75,9 +75,9 @@ write_file compose.test.yml <<'EOF'
 #
 # PORT SCHEME: every test service publishes on 127.0.0.1 with a port that
 # starts with 21. New services take "21 + last two digits of the canonical
-# port"; valkey predates the scheme and keeps its established 2121:
+# port"; valkey predates the scheme and keeps its established 2163:
 #
-#   valkey     2121   (canonical 6379; grandfathered, not 2179)
+#   valkey     2163   (canonical 6379; grandfathered, not 2179)
 #   postgres   2132   (canonical 5432)
 #   rabbitmq   2172   (canonical 5672)
 #
@@ -96,7 +96,7 @@ services:
     # No persistence: test data is disposable by design.
     command: ['valkey-server', '--save', '', '--appendonly', 'no']
     ports:
-      - '127.0.0.1:2121:6379'
+      - '127.0.0.1:2163:6379'
     healthcheck:
       test: ['CMD', 'valkey-cli', 'ping']
       interval: 10s
@@ -155,8 +155,8 @@ write_file tests/lanes/base.env <<'EOF'
 RACK_ENV=test
 
 # ── Service endpoints (provided by compose.test.yml) ────────────────────
-REDIS_URL='redis://127.0.0.1:2121/0'
-VALKEY_URL='valkey://127.0.0.1:2121/0'
+REDIS_URL='redis://127.0.0.1:2163/0'
+VALKEY_URL='valkey://127.0.0.1:2163/0'
 RABBITMQ_URL='amqp://guest:guest@127.0.0.1:2172'
 
 # Billing is off unless a lane runs with `--overlay billing`.
@@ -485,7 +485,7 @@ EOF
 
 write_file tests/lanes/smoke/env <<'EOF'
 # Lane: smoke — representative cross-stack check (target: under 2 min).
-# Cleans the TEST valkey (2121), runs smoke:ruby, then vitest.
+# Cleans the TEST valkey (2163), runs smoke:ruby, then vitest.
 # CI job: smoke-test (T3)
 AUTHENTICATION_MODE=simple
 EOF
@@ -595,14 +595,14 @@ have no lanes — run them via pnpm directly.
 
 Every test service publishes on `127.0.0.1` with a port starting with
 21. New services take "21 + last two digits of the canonical port";
-valkey predates the scheme and keeps its established 2121. Dev services
+valkey predates the scheme and keeps its established 2163. Dev services
 keep canonical ports. A leaked dev config therefore cannot reach a test
 service, and a test run cannot reach dev data. This plus the hermetic
 runner is the answer to "tests wiped my dev database".
 
 | Service  | Test port | Canonical                |
 | -------- | --------- | ------------------------ |
-| valkey   | 2121      | 6379 (port grandfathered)|
+| valkey   | 2163      | 6379 (port grandfathered)|
 | postgres | 2132      | 5432                     |
 | rabbitmq | 2172      | 5672                     |
 

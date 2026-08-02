@@ -63,7 +63,7 @@ CI's fresh-clone job runs `bin/setup` and these same commands from zero on a
 clean runner — if they work there, they work here:
 
 ```bash
-bin/setup --test           # test lane: throwaway datastore on :2121
+bin/setup --test           # test lane: throwaway datastore on :2163
 pnpm run test:rspec:fast   # RSpec fast suite
 pnpm test                  # Vitest (frontend)
 bundle exec try            # Tryouts (Ruby behavior tests)

@@ -23,7 +23,7 @@
 # Note: Channel-specific delivery logic is tested in dispatch_notification_spec.rb
 #
 # Setup Requirements:
-#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2121/0'
+#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2163/0'
 #   - Mocked DispatchNotification operation
 #
 # Run with: pnpm run test:rspec spec/onetime/jobs/workers/notification_worker_spec.rb
