@@ -362,6 +362,56 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
         "Over-cap request must be throttled, got #{response.status}: #{response.body}"
       expect(JSON.parse(response.body)['error_type']).to eq('LimitExceeded')
     end
+
+    # The backstop is only a per-TARGET cap if its bucket key is derived exactly
+    # like the value that resolves the account. This logic class resolves
+    # accounts with sanitize_email — Sanitize.fragment strips HTML tags and
+    # decodes entities — while the limiter normalizes with
+    # OT::Utils.normalize_email, which does neither. Hand the limiter anything
+    # other than the sanitized login and every string below resolves to ONE
+    # customer but mints a DISTINCT bucket: unlimited probes of a known address
+    # (and unbounded attacker-controlled Redis keys). The case/whitespace
+    # example above would pass straight over that gap, because normalize_email
+    # happens to fold those.
+    it 'does not let HTML-tag / entity variants of one target mint separate buckets' do
+      enable_limiter(max_per_ip: 500, max_per_email: 1)
+
+      # 'v...' local part so the &#118; entity variant decodes back to it.
+      target        = unique_login('victim')
+      local, domain = target.split('@')
+
+      variants = [
+        "<b0></b0>#{target}",                                   # tag prefix
+        "&#118;#{local[1..]}@#{domain}",                        # HTML entity for 'v'
+        "#{local[0]}<i>#{local[1]}</i>#{local[2..]}@#{domain}", # tags mid-string
+        "#{target}<!--n-->",                                    # trailing comment
+        "  #{target.upcase}  ",                                 # case/whitespace (already covered above)
+      ]
+
+      # Sanity: every variant really is the same account to this logic class.
+      sanitizer = Object.new.extend(Onetime::Security::InputSanitizers)
+      variants.each do |variant|
+        expect(sanitizer.sanitize_email(variant)).to eq(target),
+          "Test fixture is wrong: #{variant.inspect} does not sanitize to #{target}"
+      end
+
+      expect_generic_success(request_password_reset(target), 'First probe of the target')
+      expect(rl_redis.keys('reset_request:locked:email:*').size).to eq(1)
+
+      variants.each do |variant|
+        response = request_password_reset(variant)
+        expect(response.status).to eq(429),
+          "Variant #{variant.inspect} resolves to #{target} but was NOT throttled " \
+          "(#{response.status}): #{response.body}"
+      end
+
+      # Still exactly one bucket for this target — no variant minted its own,
+      # and no stray per-email counters were created alongside it (the Lua
+      # script DELs the attempts counter when it locks, and a locked tier is
+      # never incremented).
+      expect(rl_redis.keys('reset_request:locked:email:*').size).to eq(1)
+      expect(rl_redis.keys('reset_request:attempts:email:*')).to be_empty
+    end
   end
 
   describe 'enumeration safety of the 429' do
@@ -440,6 +490,29 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
       expect(last_response.status).not_to eq(500),
         "malformed login must not 500: #{last_response.body}"
       expect(rl_redis.get('reset_request:attempts:ip:203.0.113.0')).to eq('1')
+    end
+  end
+
+  describe 'lockout TTL' do
+    it 'bounds the lockout to the configured duration rather than leaving it permanent' do
+      enable_limiter(max_per_ip: 1, max_per_email: 100)
+
+      expect_generic_success(request_password_reset(unique_login('ttl')), 'Cap-hitting request')
+
+      lock_key = rl_redis.keys('reset_request:locked:ip:*').first
+      expect(lock_key).not_to be_nil
+      # window/lockout are 900 in enable_limiter; allow for clock granularity.
+      expect(rl_redis.ttl(lock_key)).to be_between(1, 900)
+
+      throttled = request_password_reset(unique_login('ttl-2'))
+      expect(throttled.status).to eq(429)
+      expect(JSON.parse(throttled.body)['retry_after']).to be_between(1, 900)
+
+      # Clearing the lockout (what TTL expiry does) restores service — the
+      # limiter holds no other durable state that would keep the caller locked,
+      # since the attempts counter is DELed at the moment the lock is taken.
+      rl_redis.del(lock_key)
+      expect_generic_success(request_password_reset(unique_login('ttl-3')), 'Post-lockout request')
     end
   end
 
