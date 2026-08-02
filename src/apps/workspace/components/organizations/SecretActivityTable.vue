@@ -74,8 +74,13 @@ const KIND_ICONS: Record<AuditEventKind, string> = {
   reveal_failed_undecryptable: 'exclamation-triangle',
 };
 
-/** Actor values events carry (audit_trail.rb); 'system' = expired/orphaned. */
-const KNOWN_ACTORS = new Set(['creator', 'authenticated_other', 'anonymous', 'system']);
+/**
+ * Actor values events carry (RECOGNIZED_ACTORS, access_timeline.rb);
+ * 'system' = expired/orphaned, 'unknown' = the ADR-023 sentinel for an actor
+ * whose relationship to the secret could not be established (rendered as an
+ * explicit "Unknown", never a blank or a misleading label).
+ */
+const KNOWN_ACTORS = new Set(['creator', 'authenticated_other', 'anonymous', 'system', 'unknown']);
 
 const kindLabel = (kind: string): string =>
   KNOWN_KINDS.has(kind) ? t(`web.organizations.audit.kinds.${kind}`) : kind;

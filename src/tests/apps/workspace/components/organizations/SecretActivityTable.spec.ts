@@ -413,6 +413,27 @@ describe('SecretActivityTable', () => {
       expect(row.find('td:nth-child(3) .font-mono').exists()).toBe(false);
     });
 
+    it("renders the explicit Unknown label with the id chip for actor 'unknown' (ADR-023)", async () => {
+      // The ADR-023 sentinel: an authenticated principal acted but their
+      // relationship to the secret could not be established. It is
+      // id-carrying, so the identity chip renders like any authenticated
+      // actor — never a blank or a misleading label.
+      respondWith(
+        buildResponse({
+          records: [buildEvent({ actor: 'unknown', actor_id: FULL_ACTOR_OBJID })],
+          actors: {
+            [FULL_ACTOR_OBJID]: { email: 'alice@example.com', extid: 'cx1abc123' },
+          },
+        })
+      );
+
+      wrapper = await mountComponent();
+
+      const row = wrapper.find('[data-testid="org-audit-row"]');
+      expect(row.text()).toContain('web.organizations.audit.actors.unknown');
+      expect(row.text()).toContain('alice@example.com');
+    });
+
     it('shows a placeholder dash when the event has no actor', async () => {
       respondWith(
         buildResponse({

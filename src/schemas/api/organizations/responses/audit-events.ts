@@ -40,7 +40,7 @@ export type AuditEventKind = (typeof AUDIT_EVENT_KINDS)[number];
  * shortids (never full identifiers — those are capability tokens). Extra
  * fields vary by kind: fetch events may carry net_ip_partial / net_ip_hash /
  * net_ua_partial; every kind carries actor (creator | authenticated_other |
- * anonymous | system) and, for authenticated actors, actor_id — the FULL
+ * anonymous | system | unknown) and, for authenticated actors, actor_id — the FULL
  * customer objid (a customer objid grants no access, so the shortid
  * capability-token rationale does not apply; NIST AU-3(f)/PCI 10.2.2 require
  * a uniquely resolvable identity). Historical events may still hold legacy
