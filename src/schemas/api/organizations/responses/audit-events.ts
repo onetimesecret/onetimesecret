@@ -39,10 +39,15 @@ export type AuditEventKind = (typeof AUDIT_EVENT_KINDS)[number];
  * One org audit event. Base fields are kind/at/nonce plus receipt/secret
  * shortids (never full identifiers — those are capability tokens). Extra
  * fields vary by kind: fetch events may carry net_ip_partial / net_ip_hash /
- * net_ua_partial; revealed/burned carry actor (creator | authenticated_other
- * | anonymous) and an optional 8-char actor_id shortid. `looseObject` keeps
- * the schema tolerant of further per-kind fields the backend adds later.
- * `at` arrives as a Unix-second float and is transformed to Date.
+ * net_ua_partial; every kind carries actor (creator | authenticated_other |
+ * anonymous | system) and, for authenticated actors, actor_id — the FULL
+ * customer objid (a customer objid grants no access, so the shortid
+ * capability-token rationale does not apply; NIST AU-3(f)/PCI 10.2.2 require
+ * a uniquely resolvable identity). Historical events may still hold legacy
+ * 8-char values — render whatever arrives. 'system' and 'anonymous' never
+ * carry actor_id. `looseObject` keeps the schema tolerant of further
+ * per-kind fields the backend adds later. `at` arrives as a Unix-second
+ * float and is transformed to Date.
  */
 export const auditEventSchema = z.looseObject({
   kind: z.string(),
@@ -75,7 +80,19 @@ export const auditEventsResponseSchema = z.object({
   details: z.object({
     offset: z.number().int().min(0),
     limit: z.number().int().min(1),
+    // Read-time identity resolution, keyed by full actor objid. Only current
+    // active org members appear (resolved via an org-membership join at read
+    // time — email never enters the append-only trail). An absent key means
+    // unresolved (removed member / out-of-org actor) and the UI renders the
+    // bare objid: unique-but-unresolved, CloudTrail deleted-principal
+    // semantics. Optional so older backend responses still parse.
+    actors: z
+      .record(z.string(), z.object({ email: z.string(), extid: z.string() }))
+      .optional(),
   }),
 });
 
 export type AuditEventsResponse = z.infer<typeof auditEventsResponseSchema>;
+
+/** Read-time actor resolution map (details.actors), normalized to non-optional. */
+export type AuditActorsMap = NonNullable<AuditEventsResponse['details']['actors']>;

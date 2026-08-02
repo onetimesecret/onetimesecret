@@ -744,6 +744,10 @@
     "text": "Anonymous",
     "content_hash": "e7a8aa2d"
   },
+  "web.organizations.audit.actors.system": {
+    "text": "System",
+    "content_hash": "6725e7bb"
+  },
   "web.organizations.audit.empty_title": {
     "text": "No activity yet",
     "content_hash": "0a12b92c"

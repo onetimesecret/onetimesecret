@@ -22,7 +22,11 @@
  * being unmounted the instant it is clicked (#3637 a11y review).
  */
 
-import { auditEventsResponseSchema, type OrgAuditEvent } from '@/schemas/api/organizations';
+import {
+  auditEventsResponseSchema,
+  type AuditActorsMap,
+  type OrgAuditEvent,
+} from '@/schemas/api/organizations';
 import { classifyError } from '@/schemas/errors';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
@@ -43,6 +47,13 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
   const $api = useApi();
 
   const records = ref<OrgAuditEvent[]>([]);
+  /**
+   * Read-time identity resolution for the current page (details.actors),
+   * keyed by full actor objid. Missing key = unresolved actor (removed
+   * member / out-of-org) — callers render the bare objid. Defaults to {}
+   * so older backend responses without the map still work.
+   */
+  const actors = ref<AuditActorsMap>({});
   const isLoading = ref(false);
   /** Network/HTTP failure message; null when the last fetch succeeded. */
   const error = ref<string | null>(null);
@@ -87,12 +98,14 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
       if (!result.ok) {
         // Contract mismatch: do NOT degrade to an empty list (see header note).
         records.value = [];
+        actors.value = {};
         validationError.value = true;
         error.value = null;
         return;
       }
 
       records.value = result.data.records;
+      actors.value = result.data.details.actors ?? {};
       total.value = result.data.total;
       // Echo the server's clamped paging values so the range display and
       // next/prev math always agree with what was actually returned.
@@ -121,6 +134,7 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
   return {
     // State
     records,
+    actors,
     isLoading,
     error,
     validationError,
