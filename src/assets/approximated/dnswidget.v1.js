@@ -56,7 +56,7 @@ window.apxDns = {
                 <div class="apxdns-domain-container">
                     <div class="apxdns-domain-input-label">Enter a domain or subdomain</div>
                     <div class="apxdns-domain-tld-container">
-                        <input type="text" name="apxdns-domain-input" required="true" placeholder="yourdomain.com" value="${apxDns.config.prefillDomain || ''}" class="apxdns-domain-input">
+                        <input type="text" name="apxdns-domain-input" required="true" placeholder="yourdomain.com" class="apxdns-domain-input">
                     </div>
                     <div class="apxdns-domain-explainer">For example: mydomain.com or app.mydomain.com</div>
                 </div>
@@ -69,12 +69,18 @@ window.apxDns = {
             </form>
         </div>
         `
+        // [M-4] Assign the prefill value via the DOM property instead of
+        // template interpolation so it can never break out of the attribute.
+        var domain_input_el = widget.querySelector('.apxdns-domain-input');
+        if(domain_input_el){
+            domain_input_el.value = window.apxDns.config.prefillDomain || '';
+        }
     },
     "submitDomain": function(form){;
         let data = new FormData(form);
-        let domain_submit_btn_el = document.querySelector("#"+window.apxDns.config.widget_id+" .apxdns-domain-submit")
+        let domain_submit_btn_el = document.querySelector("#"+window.apxDns._cssEscape(window.apxDns.config.widget_id)+" .apxdns-domain-submit")
 
-        let loader_el = document.querySelector("#"+window.apxDns.config.widget_id+" .apxdns-domain-loader")
+        let loader_el = document.querySelector("#"+window.apxDns._cssEscape(window.apxDns.config.widget_id)+" .apxdns-domain-loader")
         loader_el.classList.remove("apxdns-hide");
         domain_submit_btn_el.classList.add("apxdns-disable-btn");
         try {
@@ -145,21 +151,28 @@ window.apxDns = {
 
         for(const key in data.domain_results){
             data.domain_results[key].steps.forEach(function(inst, index){
-                widget.insertAdjacentHTML('beforeend', inst.html);
+                // [M-4] API-supplied HTML is sanitized before DOM insertion.
+                window.apxDns.insertSanitizedHtml(widget, inst.html);
             })
         }
 
-        widget.insertAdjacentHTML('beforeend', data.verify_section.html);
+        // [M-4] API-supplied HTML is sanitized before DOM insertion.
+        window.apxDns.insertSanitizedHtml(widget, data.verify_section.html);
     },
     "showManualInstructions": function(dataApxId){
-        document.querySelector("[data-apxid='"+dataApxId+"']").classList.toggle('apxdns-hide');
+        // [M-4] Escape the id before interpolating it into the attribute
+        // selector so a hostile value cannot break out of the selector.
+        var manual_el = document.querySelector("[data-apxid='"+window.apxDns._cssEscape(dataApxId)+"']");
+        if(manual_el){
+            manual_el.classList.toggle('apxdns-hide');
+        }
     },
     "verifyRecords": function(){
-        let verify_btn_el = document.querySelector("#"+window.apxDns.config.widget_id+" .apxdns-verify-btn")
+        let verify_btn_el = document.querySelector("#"+window.apxDns._cssEscape(window.apxDns.config.widget_id)+" .apxdns-verify-btn")
         if(verify_btn_el.classList.contains("apxdns-disable-btn")){
             return;
         }
-        let loader_el = document.querySelector("#"+window.apxDns.config.widget_id+" .apxdns-verify-loader")
+        let loader_el = document.querySelector("#"+window.apxDns._cssEscape(window.apxDns.config.widget_id)+" .apxdns-verify-loader")
         loader_el.classList.remove("apxdns-hide");
         verify_btn_el.classList.add("apxdns-disable-btn");
 
@@ -214,7 +227,7 @@ window.apxDns = {
 
                 Object.keys(domain_records).forEach(function(apex_domain){
                     verify_section.insertAdjacentHTML('beforeend', `
-                    <div class="apxdns-verify-domain">Verify records for ${apex_domain}</div>
+                    <div class="apxdns-verify-domain">Verify records for ${window.apxDns.escapeHtml(apex_domain)}</div>
                     `);
 
 
@@ -224,7 +237,7 @@ window.apxDns = {
                             actual_values_html = `
                             <div class="apxdns-verify-record-actual-values">
                                 <div class="apxdns-record-actual-values-label">Actual value found:</div>
-                                <textarea rows="1" class="apxdns-verify-record-actual-values-textarea">${record.actual_values || "No value set"}</textarea>
+                                <textarea rows="1" class="apxdns-verify-record-actual-values-textarea">${window.apxDns.escapeHtml(record.actual_values || "No value set")}</textarea>
                             </div>
                             `
                         }
@@ -243,11 +256,11 @@ window.apxDns = {
                         }
 
                         verify_section.insertAdjacentHTML('beforeend', `
-                        <div class="apxdns-verify-record apxdns-verify-record-is-${record.match}">
+                        <div class="apxdns-verify-record apxdns-verify-record-is-${window.apxDns.escapeHtml(record.match)}">
                             <div class="apxdns-verify-record-slot">
-                                <div class="apxdns-verify-record-type"><span class="apxdns-verify-record-label-span">Type:</span> ${record.type.toUpperCase()} record</div>
-                                <div class="apxdns-verify-record-address"><span class="apxdns-verify-record-label-span">Host:</span> ${record.combined_host}</div>
-                                <div class="apxdns-verify-record-address"><span class="apxdns-verify-record-label-span">Value:</span> ${record.value}</div>
+                                <div class="apxdns-verify-record-type"><span class="apxdns-verify-record-label-span">Type:</span> ${window.apxDns.escapeHtml(record.type.toUpperCase())} record</div>
+                                <div class="apxdns-verify-record-address"><span class="apxdns-verify-record-label-span">Host:</span> ${window.apxDns.escapeHtml(record.combined_host)}</div>
+                                <div class="apxdns-verify-record-address"><span class="apxdns-verify-record-label-span">Value:</span> ${window.apxDns.escapeHtml(record.value)}</div>
                                 <div class="apxdns-verify-record-match"><span class="apxdns-verify-record-label-span">Verified:</span> ${verified}</div>
                                 ${actual_values_html}
                             </div>
@@ -268,6 +281,171 @@ window.apxDns = {
         input_el.select();
         input_el.setSelectionRange(0, 99999); // For mobile devices
         navigator.clipboard.writeText(input_el.value);
+    },
+    // ------------------------------------------------------------------
+    // [M-4] Sanitization helpers. The Approximated API returns pre-built
+    // HTML (per-provider instruction steps and the verify section). This
+    // file is served as a classic script (loaded via <script src> from a
+    // Vite `?url` asset import in useDnsWidget.ts), so it cannot use ES
+    // imports (e.g. DOMPurify). The helpers below implement a strict,
+    // self-contained allowlist sanitizer instead: allowlisted tags only,
+    // no event-handler attributes (known-trusted onclick patterns are
+    // converted to real listeners), and URL attributes restricted to the
+    // same scheme allowlist used for DOMPurify in GlobalBroadcast.vue.
+    // ------------------------------------------------------------------
+    "_APX_ALLOWED_TAGS": {
+        A:1, ARTICLE:1, B:1, BLOCKQUOTE:1, BR:1, BUTTON:1, CAPTION:1,
+        CIRCLE:1, CODE:1, DD:1, DIV:1, DL:1, DT:1, ELLIPSE:1, EM:1,
+        FIELDSET:1, FOOTER:1, FORM:1, G:1, H1:1, H2:1, H3:1, H4:1, H5:1,
+        H6:1, HEADER:1, HR:1, I:1, IMG:1, INPUT:1, LABEL:1, LEGEND:1,
+        LI:1, LINE:1, OL:1, OPTION:1, P:1, PATH:1, POLYGON:1, POLYLINE:1,
+        PRE:1, RECT:1, S:1, SECTION:1, SELECT:1, SMALL:1, SPAN:1,
+        STRONG:1, SUB:1, SUP:1, SVG:1, TABLE:1, TBODY:1, TD:1, TEXTAREA:1,
+        TFOOT:1, TH:1, THEAD:1, TR:1, U:1, UL:1
+    },
+    // Non-URL, non-event attributes that survive sanitization.
+    "_APX_ALLOWED_ATTR": /^(?:class|id|type|value|placeholder|readonly|disabled|checked|selected|multiple|rows|cols|size|maxlength|minlength|required|name|alt|title|target|rel|for|style|tabindex|autocomplete|spellcheck|role|lang|dir|d|viewbox|preserveaspectratio|fill|fill-rule|clip-rule|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-dasharray|cx|cy|r|rx|ry|x|y|x1|x2|y1|y2|points|transform|xmlns(?::[a-z]+)?|aria-[a-z-]+|data-[\w.:-]+)$/,
+    // Mirrors the restrictive ALLOWED_URI_REGEXP used with DOMPurify in
+    // GlobalBroadcast.vue: https?/mailto, relative paths and fragments.
+    // Blocks javascript:, data:, vbscript:, etc.
+    "_APX_ALLOWED_URI": /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i,
+    // Control/whitespace characters stripped before URI validation so
+    // "java\nscript:" style smuggling cannot bypass the scheme check.
+    "_APX_ATTR_WHITESPACE": /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g,
+    "escapeHtml": function(value){
+        return String(value === null || value === undefined ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
+    "_cssEscape": function(value){
+        var str = String(value === null || value === undefined ? '' : value);
+        if(window.CSS && typeof window.CSS.escape === 'function'){
+            return window.CSS.escape(str);
+        }
+        // Fallback: hex-escape everything outside the identifier-safe set.
+        return str.replace(/[^a-zA-Z0-9_-]/g, function(ch){
+            return '\\' + ch.charCodeAt(0).toString(16) + ' ';
+        });
+    },
+    // Compile a known-trusted inline onclick value into a real listener.
+    // Only exact calls into the widget's own public API compile; anything
+    // else returns null and the attribute is simply dropped.
+    "_compileTrustedHandler": function(value){
+        if(typeof value !== 'string'){
+            return null;
+        }
+        var v = value.trim().replace(/;\s*$/, '').trim();
+        var m = v.match(/^(?:return\s+)?window\.apxDns\.(verifyRecords|restart)\(\s*\)$/);
+        if(m){
+            var method = m[1];
+            return function(){ window.apxDns[method](); };
+        }
+        m = v.match(/^(?:return\s+)?window\.apxDns\.showManualInstructions\(\s*(['"])([A-Za-z0-9_.:-]{0,128})\1\s*\)$/);
+        if(m){
+            var apxid = m[2];
+            return function(){ window.apxDns.showManualInstructions(apxid); };
+        }
+        m = v.match(/^(?:return\s+)?window\.apxDns\.copyInputText\(\s*(this(?:\.(?:parentElement|parentNode|previousElementSibling|nextElementSibling|firstElementChild|lastElementChild)|\.querySelector\(\s*(['"])[A-Za-z0-9_ .#>:()-]{0,128}\2\s*\))*)\s*\)$/);
+        if(m){
+            var chain = m[1];
+            return function(){
+                var target = window.apxDns._resolveElementChain(this, chain);
+                if(target){
+                    window.apxDns.copyInputText(target);
+                }
+            };
+        }
+        return null;
+    },
+    // Interpret a validated `this.<prop>...` chain without eval, so the
+    // compiled copy-button handlers work under a nonce-only CSP.
+    "_resolveElementChain": function(start, expr){
+        var rest = expr.slice(4); // drop leading "this"
+        var node = start;
+        var m;
+        while(rest.length > 0 && node){
+            m = rest.match(/^\.(parentElement|parentNode|previousElementSibling|nextElementSibling|firstElementChild|lastElementChild)/);
+            if(m){
+                node = node[m[1]];
+                rest = rest.slice(m[0].length);
+                continue;
+            }
+            m = rest.match(/^\.querySelector\(\s*(['"])([^'"]*)\1\s*\)/);
+            if(m){
+                node = node.querySelector(m[2]);
+                rest = rest.slice(m[0].length);
+                continue;
+            }
+            return null;
+        }
+        return (node && node.nodeType === 1) ? node : null;
+    },
+    "_sanitizeAttributes": function(el){
+        var attrs = Array.prototype.slice.call(el.attributes);
+        for(var i = 0; i < attrs.length; i++){
+            var name = attrs[i].name.toLowerCase();
+            var rawValue = attrs[i].value;
+            if(name === 'onclick'){
+                var handler = window.apxDns._compileTrustedHandler(rawValue);
+                if(handler){
+                    el.addEventListener('click', handler);
+                }
+                el.removeAttribute(attrs[i].name);
+                continue;
+            }
+            if(name.indexOf('on') === 0){
+                el.removeAttribute(attrs[i].name);
+                continue;
+            }
+            if(name === 'srcdoc' || name === 'formaction' || name === 'ping' || name === 'background'){
+                el.removeAttribute(attrs[i].name);
+                continue;
+            }
+            if(name === 'href' || name === 'src' || name === 'action' || name === 'xlink:href'){
+                var normalized = rawValue.replace(window.apxDns._APX_ATTR_WHITESPACE, '');
+                if(!window.apxDns._APX_ALLOWED_URI.test(normalized)){
+                    el.removeAttribute(attrs[i].name);
+                }
+                continue;
+            }
+            if(!window.apxDns._APX_ALLOWED_ATTR.test(name)){
+                el.removeAttribute(attrs[i].name);
+            }
+        }
+        // Harden anchors the same way GlobalBroadcast.vue does: only
+        // target="_blank" survives, and it always carries noopener.
+        if(el.tagName === 'A'){
+            var target = el.getAttribute('target');
+            if(target !== null && target !== '_blank'){
+                el.removeAttribute('target');
+            }
+            if(el.getAttribute('target') === '_blank'){
+                el.setAttribute('rel', 'noopener noreferrer');
+            }
+        }
+    },
+    "sanitizeHtmlToFragment": function(html){
+        var template = document.createElement('template');
+        template.innerHTML = (html === null || html === undefined) ? '' : String(html);
+        var elements = template.content.querySelectorAll('*');
+        for(var i = 0; i < elements.length; i++){
+            var el = elements[i];
+            if(!template.content.contains(el)){
+                continue; // already removed with a disallowed ancestor
+            }
+            if(!window.apxDns._APX_ALLOWED_TAGS[el.tagName.toUpperCase()]){
+                el.parentNode.removeChild(el);
+                continue;
+            }
+            window.apxDns._sanitizeAttributes(el);
+        }
+        return template.content;
+    },
+    "insertSanitizedHtml": function(parent, html){
+        parent.appendChild(window.apxDns.sanitizeHtmlToFragment(html));
     },
     "deepClone": function(obj, hash = new WeakMap()) {
         // Handle primitives and functions
