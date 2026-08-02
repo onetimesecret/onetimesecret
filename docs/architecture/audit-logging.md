@@ -69,6 +69,8 @@ Key files:
   each transition records exactly once — ADR-019)
 - `apps/api/v2/logic/secrets/actor_attribution.rb`,
   `access_telemetry.rb`, `base_secret_action.rb` — request-layer capture
+- `apps/api/v1/logic/secrets/actor_attribution.rb` — the v1 sibling (reveal /
+  burn thread the same actor context)
 - `lib/onetime/security/request_context.rb` — network-context reduction
   (ADR-022)
 
@@ -85,6 +87,12 @@ Key files:
 | `expired` / `orphaned` | system-detected transition, no acting individual | `system` |
 | `reveal_failed_undecryptable` | reveal rolled back on undecryptable ciphertext | tri-state (threaded from the reveal) |
 
+"Tri-state" is the computed discriminator (`creator` / `authenticated_other` /
+`anonymous`). A fifth value, `unknown`, is the ADR-023 sentinel for an actor —
+or an actor-subject relationship — that cannot be established (defensive
+branches and the central validator's fail-safe); it never arises on a healthy
+path and is id-carrying when an authenticated principal is known.
+
 ### Event record
 
 Members of the org sorted set are plain string-keyed hashes:
@@ -92,7 +100,7 @@ Members of the org sorted set are plain string-keyed hashes:
 ```
 kind, at (epoch float), nonce            — identity of the event
 receipt, secret                          — SHORTIDS (see identifier policy below)
-actor                                    — creator | authenticated_other | anonymous | system
+actor                                    — creator | authenticated_other | anonymous | system | unknown
 actor_id                                 — FULL customer objid (authenticated actors only)
 net_ip_partial, net_ua_partial,          — privacy-reduced network context (ADR-022;
 net_ip_hash                                fetch events only)
@@ -121,8 +129,11 @@ The two identifier conventions therefore coexist in one record: `receipt` /
 `Receipt#record_org_audit_event` enforces the actor half centrally for every
 event:
 
-- unrecognized/missing actor fails safe to `anonymous` (never misattribute —
-  the standing anonymous-guest `nil == nil` owner-check precedent);
+- unrecognized/missing actor fails safe to `unknown` with an error log
+  (ADR-023: `anonymous` would assert "unauthenticated", a fact an actorless
+  event cannot support; `unknown` never misattributes — the standing
+  anonymous-guest `nil == nil` owner-check precedent). A valid `actor_id`
+  riding along is kept: record what is known, mark the rest unknown;
 - `anonymous` and `system` events never carry an `actor_id`;
 - blank ids are dropped; ids containing `@` are dropped with an error log that
   never prints the value (an email must never enter the trail);
@@ -244,17 +255,17 @@ Mentioned here only to prevent the name collision.
 
 ## Known divergences and open items
 
-- **ADR-023's `unknown` actor is not yet in the recognized enum.** The
-  implementation's `RECOGNIZED_ACTORS` is
-  `creator | authenticated_other | anonymous | system`; the defensive
-  nil-secret branch in `lifecycle_actor_context` still records
-  `authenticated_other` (with an error log) rather than ADR-023's prescribed
-  `unknown`. ADR-023 is Proposed; adopting it means adding `unknown` to the
-  enum (id-carrying), the frontend `KNOWN_ACTORS`, and an i18n label.
-- ADR-021's context table predates #3639/#3637 and lists Secret Activity as
-  having no actor attribution; this document reflects the shipped state
-  (recorded, full-objid, resolved at read time). ADR-021's *terminology and
-  scoping* decisions are unaffected.
+- ~~ADR-023's `unknown` actor is not yet in the recognized enum.~~ Resolved
+  2026-08-02: ADR-023 ratified (Accepted). `unknown` is in
+  `RECOGNIZED_ACTORS` (id-carrying), the nil-secret branch and the central
+  validator's fail-safe both record it, and the frontend `KNOWN_ACTORS` +
+  i18n label render it. Ratification also surfaced and fixed the v1
+  reveal/burn paths, which threaded no actor context and recorded
+  authenticated consumers as `anonymous` — see ADR-023's ratification note.
+- ~~ADR-021's context table predates #3639/#3637.~~ Resolved 2026-08-02: a
+  status note in ADR-021 marks the table's "Actor attribution: No" row as
+  describing the pre-#3639 state; its terminology and scoping decisions
+  stand.
 - Security Events retention target and org-tier IP/geo granularity await
   counsel review (ADR-021 open questions 1–2).
 
