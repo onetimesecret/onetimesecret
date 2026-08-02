@@ -21,13 +21,18 @@ module OrganizationAPI::Logic
     #   receipt/metadata page was loaded — distinct from opening the secret
     #   link itself), 'revealed', 'burned', 'expired', 'orphaned'. Events
     #   carry receipt/secret shortids only — never full identifiers, which
-    #   are capability tokens. Actor identity is different: events carry the
-    #   FULL customer objid (an objid grants no access, and NIST AU-3 /
-    #   PCI DSS 10.2.2 require unique traceability to an individual). The
-    #   objid is resolved to email/extid at read time via the org-membership
-    #   join (`details.actors`); actors that no longer resolve — removed
-    #   members, out-of-org actors, legacy truncated ids — are absent from
-    #   the map and render as the bare objid.
+    #   are capability tokens. Custom-domain shares additionally carry
+    #   domain context: 'domain_id' (8-char shortid) and 'domain' (the
+    #   public FQDN, e.g. secrets.acme.com); both are absent for
+    #   default-domain shares.
+    #
+    #   Actor identity is different: events carry the FULL customer objid
+    #   (an objid grants no access, and NIST AU-3 / PCI DSS 10.2.2 require
+    #   unique traceability to an individual). The objid is resolved to
+    #   email/extid at read time via the org-membership join
+    #   (`details.actors`); actors that no longer resolve — removed members,
+    #   out-of-org actors, legacy truncated ids — are absent from the map and
+    #   render as the bare objid.
     class ListAuditEvents < OrganizationAPI::Logic::Base
       DEFAULT_LIMIT = 50
 
