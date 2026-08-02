@@ -511,7 +511,7 @@ module ProductionConfigHelper
       # Fail closed: refuse to TRUNCATE unless the target is a test database.
       # The dbname is the only thing separating the test PG (onetime_auth_test)
       # from a leaked dev value (onetime_authdb); AUTH_DATABASE_URL is read from
-      # ENV, so a run outside the sanctioned :2132 PG lane must not wipe dev.
+      # ENV, so a run outside the sanctioned :2154 PG lane must not wipe dev.
       dbname = db.opts[:database].to_s
       unless dbname =~ /test/i
         raise "[auth spec_helper] Refusing to TRUNCATE non-test database: " \

@@ -9,7 +9,7 @@
 #
 # Creates:
 #   compose.test.yml            Test services on 127.0.0.1 ports starting
-#                               with 21 (valkey 2163, postgres 2132,
+#                               with 21 (valkey 2163, postgres 2154,
 #                               rabbitmq 2172), digest-pinned to match CI.
 #   tests/lanes/base.env        Lane-invariant env: endpoints, dummy secrets.
 #   tests/lanes/run             Hermetic lane runner (CI + local entrypoint).
@@ -78,7 +78,7 @@ write_file compose.test.yml <<'EOF'
 # port"; valkey predates the scheme and keeps its established 2163:
 #
 #   valkey     2163   (canonical 6379; grandfathered, not 2179)
-#   postgres   2132   (canonical 5432)
+#   postgres   2154   (canonical 5432)
 #   rabbitmq   2172   (canonical 5672)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
@@ -117,7 +117,7 @@ services:
     tmpfs:
       - /var/lib/postgresql/data
     ports:
-      - '127.0.0.1:2132:5432'
+      - '127.0.0.1:2154:5432'
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'postgres']
       interval: 10s
@@ -400,12 +400,12 @@ write_file tests/lanes/full-pg/env <<'EOF'
 # initialize_test_db.sql, which compose.test.yml mounts into
 # /docker-entrypoint-initdb.d/ (runs on first boot).
 AUTHENTICATION_MODE=full
-AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 # The *_PG variants are what lib/tasks/spec.rake reads for its postgres
 # tasks (it then sets the plain variables itself, to the same values).
-AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 EOF
 
 write_file tests/lanes/full-pg/tasks <<'EOF'
@@ -428,10 +428,10 @@ write_file tests/lanes/full-pg-agnostic/env <<'EOF'
 # Same database env as full-pg; see that lane for where roles come from.
 AUTHENTICATION_MODE=full
 ORGS_SSO_ENABLED=true
-AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 EOF
 
 write_file tests/lanes/full-pg-agnostic/tasks <<'EOF'
@@ -603,7 +603,7 @@ runner is the answer to "tests wiped my dev database".
 | Service  | Test port | Canonical                |
 | -------- | --------- | ------------------------ |
 | valkey   | 2163      | 6379 (port grandfathered)|
-| postgres | 2132      | 5432                     |
+| postgres | 2154      | 5432                     |
 | rabbitmq | 2172      | 5672                     |
 
 Port mappings are defined **only** in `compose.test.yml`. The env files
