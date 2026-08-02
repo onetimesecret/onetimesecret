@@ -31,6 +31,7 @@ const orgExtid = toRef(props, 'orgExtid');
 
 const {
   records,
+  actors,
   isLoading,
   error,
   validationError,
@@ -73,8 +74,8 @@ const KIND_ICONS: Record<AuditEventKind, string> = {
   reveal_failed_undecryptable: 'exclamation-triangle',
 };
 
-/** Actor values revealed/burned events carry (audit_trail.rb). */
-const KNOWN_ACTORS = new Set(['creator', 'authenticated_other', 'anonymous']);
+/** Actor values events carry (audit_trail.rb); 'system' = expired/orphaned. */
+const KNOWN_ACTORS = new Set(['creator', 'authenticated_other', 'anonymous', 'system']);
 
 const kindLabel = (kind: string): string =>
   KNOWN_KINDS.has(kind) ? t(`web.organizations.audit.kinds.${kind}`) : kind;
@@ -100,6 +101,13 @@ const decoratedEvents = computed(() =>
     absolute: formatDisplayDateTime(event.at),
     relative: formatDistance(event.at, now.value, { addSuffix: true }),
     actorLabel: event.actor ? actorLabel(event.actor) : null,
+    // Read-time identity resolution: email when the full actor objid resolves
+    // to a current active member, else the bare objid — unique-but-unresolved
+    // (removed member / out-of-org actor), CloudTrail deleted-principal
+    // semantics. Email never lives in the trail itself (GDPR minimization).
+    actorIdentity: event.actor_id
+      ? (actors.value[event.actor_id]?.email ?? event.actor_id)
+      : null,
   }))
 );
 
@@ -255,7 +263,7 @@ watch(orgExtid, () => {
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800/50">
             <tr
-              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor } in decoratedEvents"
+              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity } in decoratedEvents"
               :key="key"
               data-testid="org-audit-row">
               <td class="px-6 py-4 whitespace-nowrap">
@@ -283,10 +291,13 @@ watch(orgExtid, () => {
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                 <template v-if="rowActor">
                   {{ rowActor }}
+                  <!-- title carries the full value: full objids overflow the
+                       truncated chip, and a resolved email hides the objid -->
                   <span
-                    v-if="event.actor_id"
-                    class="ml-1 font-mono text-xs text-gray-500 dark:text-gray-400">
-                    {{ event.actor_id }}
+                    v-if="actorIdentity"
+                    :title="actorIdentity"
+                    class="ml-1 inline-block max-w-48 truncate align-bottom font-mono text-xs text-gray-500 dark:text-gray-400">
+                    {{ actorIdentity }}
                   </span>
                 </template>
                 <span v-else class="text-gray-400 dark:text-gray-500">—</span>

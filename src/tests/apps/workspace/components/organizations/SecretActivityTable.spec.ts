@@ -74,6 +74,10 @@ vi.mock('@/shared/components/ui/EmptyState.vue', () => ({
 const AT_UNIX_SECONDS = 1754049600; // 2025-08-01T12:00:00.000Z
 const AT_ISO = new Date(AT_UNIX_SECONDS * 1000).toISOString();
 
+// Full customer objid (the wire format for actor_id since #3637 — NIST
+// AU-3(f) unique identity). Legacy events may still carry 8-char values.
+const FULL_ACTOR_OBJID = '0198c0ffee15deadbeef4b1dfacade42';
+
 interface EventOverrides {
   [key: string]: unknown;
 }
@@ -94,6 +98,8 @@ interface ResponseOverrides {
   total?: number;
   offset?: number;
   limit?: number;
+  /** Read-time resolution map (details.actors); omitted = older backend. */
+  actors?: Record<string, { email: string; extid: string }>;
 }
 
 const buildResponse = ({
@@ -101,13 +107,14 @@ const buildResponse = ({
   total = records.length,
   offset = 0,
   limit = 50,
+  actors,
 }: ResponseOverrides = {}) => ({
   user_id: 'usr_123',
   organization_id: 'org_123',
   records,
   count: records.length,
   total,
-  details: { offset, limit },
+  details: { offset, limit, ...(actors ? { actors } : {}) },
 });
 
 const respondWith = (response: object) => {
@@ -338,7 +345,47 @@ describe('SecretActivityTable', () => {
   });
 
   describe('actor column', () => {
-    it('shows the actor label key and shortid for known actors', async () => {
+    it('renders the resolved email when details.actors resolves the full objid', async () => {
+      respondWith(
+        buildResponse({
+          records: [buildEvent({ actor: 'creator', actor_id: FULL_ACTOR_OBJID })],
+          actors: {
+            [FULL_ACTOR_OBJID]: { email: 'alice@example.com', extid: 'cx1abc123' },
+          },
+        })
+      );
+
+      wrapper = await mountComponent();
+
+      const row = wrapper.find('[data-testid="org-audit-row"]');
+      expect(row.text()).toContain('web.organizations.audit.actors.creator');
+      expect(row.text()).toContain('alice@example.com');
+      // The raw objid never renders when resolved — email is the identity.
+      expect(row.text()).not.toContain(FULL_ACTOR_OBJID);
+      // title carries the full value in case the chip truncates visually.
+      const chip = row.find('[title="alice@example.com"]');
+      expect(chip.exists()).toBe(true);
+    });
+
+    it('renders the bare objid when the actor is unresolved (removed member)', async () => {
+      // CloudTrail deleted-principal semantics: absent map key = unresolved
+      // but still unique — the full objid IS the identity on record.
+      respondWith(
+        buildResponse({
+          records: [buildEvent({ actor: 'authenticated_other', actor_id: FULL_ACTOR_OBJID })],
+          actors: {},
+        })
+      );
+
+      wrapper = await mountComponent();
+
+      const row = wrapper.find('[data-testid="org-audit-row"]');
+      expect(row.text()).toContain(FULL_ACTOR_OBJID);
+      expect(row.find(`[title="${FULL_ACTOR_OBJID}"]`).exists()).toBe(true);
+    });
+
+    it('renders a legacy 8-char actor_id as-is when no actors map is present', async () => {
+      // Older backend response: no details.actors at all, historical shortid.
       respondWith(
         buildResponse({
           records: [buildEvent({ actor: 'creator', actor_id: 'ac12cd34' })],
@@ -350,6 +397,20 @@ describe('SecretActivityTable', () => {
       const row = wrapper.find('[data-testid="org-audit-row"]');
       expect(row.text()).toContain('web.organizations.audit.actors.creator');
       expect(row.text()).toContain('ac12cd34');
+    });
+
+    it("renders the system label without an id chip for actor 'system'", async () => {
+      respondWith(
+        buildResponse({
+          records: [buildEvent({ kind: 'expired', actor: 'system', actor_id: undefined })],
+        })
+      );
+
+      wrapper = await mountComponent();
+
+      const row = wrapper.find('[data-testid="org-audit-row"]');
+      expect(row.text()).toContain('web.organizations.audit.actors.system');
+      expect(row.find('td:nth-child(3) .font-mono').exists()).toBe(false);
     });
 
     it('shows a placeholder dash when the event has no actor', async () => {
