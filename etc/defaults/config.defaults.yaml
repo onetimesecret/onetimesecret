@@ -301,6 +301,31 @@ site:
     # If empty or not set, signups are allowed from any domain (default).
     # Environment variable: ALLOWED_SIGNUP_DOMAIN (comma-separated list)
     allowed_signup_domains: <%= ENV['ALLOWED_SIGNUP_DOMAIN']&.split(',')&.map(&:strip) || [] %>
+    # Rate limiting for magic-link (email auth) requests (audit 2026-08-02
+    # L-5). POST /auth/email-login-request previously relied solely on
+    # Rodauth's built-in email_auth_skip_resend_email_within throttle, which
+    # is PER ACCOUNT — it bounds resends for one mailbox but caps nothing
+    # across addresses, leaving unauthenticated mail dispatch unbounded per
+    # origin. Throttles per client IP BEFORE any account lookup, via the
+    # Rodauth before_email_auth_request_route hook (apps/web/auth/config/
+    # hooks/email_auth_request.rb). Full mode only by construction: the
+    # email_auth feature (and its request route) exists only there. ADDITIVE:
+    # the per-account resend throttle stays.
+    # Enabled by default (protective); set EMAIL_AUTH_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/email_auth_rate_limiter.rb.
+    email_auth_rate_limit:
+      enabled: <%= ENV['EMAIL_AUTH_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Magic-link requests permitted per window from a single masked client
+      # IP. The bucket is a whole /24 (office, campus NAT), and behind an
+      # unconfigured reverse proxy it is the entire deployment — so this is
+      # deliberately loose relative to the one link a person needs. Raise it
+      # for dense-NAT populations; a too-tight value here is a
+      # passwordless-login outage.
+      max_per_ip: <%= ENV['EMAIL_AUTH_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['EMAIL_AUTH_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['EMAIL_AUTH_RATE_LIMIT_LOCKOUT'] || 3600 %>
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecret.com.
   support:

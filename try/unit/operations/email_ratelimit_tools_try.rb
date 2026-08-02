@@ -133,9 +133,9 @@ AE.count
 
 # ---- RateLimit::Registry (CLI golden-master key derivation) -----------
 
-## the registry knows the five canonical limiter kinds
+## the registry knows the six canonical limiter kinds
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "dns"]
+#=> ["feedback", "passphrase", "invite", "login", "email_auth_ip", "dns"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')
