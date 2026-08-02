@@ -22,9 +22,11 @@
     "ghcr.io/devcontainers-extra/features/pnpm:2": {},
   },
 
-  // redis-server: `bin/setup --test` starts its own throwaway datastore on
-  // :2163 inside this container, same as on bare metal (the valkey sidecar
-  // on :6379 is the persistent DEV datastore). python3: locales:sync.
+  // redis-server: container-free stand-in for compose.test.yml's valkey —
+  // start a throwaway test datastore before running test lanes:
+  //   redis-server --port 2163 --daemonize yes --save '' --appendonly no
+  // (the valkey sidecar on :6379 is the persistent DEV datastore; nested
+  // containers aren't available here). python3: locales:sync.
   // libsodium23: rbnacl's FFI binding needs it at runtime for Familia's
   // encrypted fields (RbNaCl::Hash.blake2b) — the app image installs the
   // same package (Dockerfile), but this devcontainer's upstream Rails base

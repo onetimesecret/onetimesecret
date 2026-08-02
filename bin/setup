@@ -361,6 +361,10 @@ cmd_dev() {
 # no persistence, postgres self-provisions via initdb), config smoke test,
 # optional direnv lane switching.
 
+# True when something accepts TCP connections on 127.0.0.1:$1.
+# Same construct tests/lanes/run uses; bash 3.2 compatible.
+port_serving() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
 cmd_test() {
   info "Setting up test environment..."
 
@@ -371,12 +375,26 @@ cmd_test() {
     compose_cmd="podman compose"
   fi
 
+  # Test services may be provided by the environment instead of compose —
+  # CI jobs start them as workflow services (macOS runners have no container
+  # runtime; the devcontainer can't nest containers). Probe the ports
+  # compose.test.yml publishes (the single source of truth): when everything
+  # already answers, no runtime is needed. LANES_NO_AUTOSTART=1 — the same
+  # knob tests/lanes/run honors — means the caller owns service lifecycle:
+  # never start containers, report unreachable ports instead of failing.
+  local test_ports unreachable_ports=""
+  test_ports=$(grep -oE '127\.0\.0\.1:[0-9]+:' compose.test.yml | cut -d: -f2 | tr '\n' ' ' || true)
+  local p
+  for p in $test_ports; do
+    port_serving "$p" || unreachable_ports="$unreachable_ports $p"
+  done
+
   local missing_required=()
   command -v ruby   &>/dev/null || missing_required+=("ruby    (see .ruby-version):  https://www.ruby-lang.org/")
   has bundle || missing_required+=("bundler (gem install bundler)")
   has pnpm   || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
-  if [[ -z "$compose_cmd" ]]; then
-    missing_required+=("docker or podman (test services run from compose.test.yml)")
+  if [[ -z "$compose_cmd" && -n "$unreachable_ports" && -z "${LANES_NO_AUTOSTART:-}" ]]; then
+    missing_required+=("docker or podman (test services run from compose.test.yml; not needed when services already answer on 127.0.0.1 ports ${test_ports}or the caller owns service lifecycle: LANES_NO_AUTOSTART=1)")
   fi
   if (( ${#missing_required[@]} > 0 )); then
     echo "Error: Required tools missing:"
@@ -407,19 +425,30 @@ cmd_test() {
 
   # --- Test services (compose.test.yml) --------------------------------
   #
-  # All test backing services run in containers on 127.0.0.1 21xx ports;
-  # dev services keep canonical ports. compose.test.yml is the single
-  # source of truth for images and ports. Idempotent: healthy services
-  # are left as-is. tests/lanes/run performs the same start on demand.
+  # Test backing services answer on 127.0.0.1 21xx ports; dev services
+  # keep canonical ports. compose.test.yml is the single source of truth
+  # for images and ports, and is how services start unless the environment
+  # already serves those ports (or claims lifecycle via LANES_NO_AUTOSTART).
+  # Idempotent: healthy services are left as-is. tests/lanes/run performs
+  # the same start on demand.
 
   echo "---"
-  echo "Starting test services (compose.test.yml: valkey, postgres, rabbitmq)..."
-  if $compose_cmd -f compose.test.yml up --wait -d; then
-    echo "OK:   Test services healthy"
+  if [[ -n "$test_ports" && -z "$unreachable_ports" ]]; then
+    echo "OK:   Test services already serving on 127.0.0.1 ports ${test_ports}(externally managed; compose.test.yml not needed)"
+  elif [[ -n "${LANES_NO_AUTOSTART:-}" ]]; then
+    echo "Skip: LANES_NO_AUTOSTART=1 — the caller owns test-service lifecycle."
+    if [[ -n "$unreachable_ports" ]]; then
+      echo "      Not serving yet:${unreachable_ports} (lanes that need them will fail)"
+    fi
   else
-    echo "Error: Test services did not become healthy"
-    echo "  Inspect: $compose_cmd -f compose.test.yml ps; $compose_cmd -f compose.test.yml logs"
-    exit 1
+    echo "Starting test services (compose.test.yml: valkey, postgres, rabbitmq)..."
+    if $compose_cmd -f compose.test.yml up --wait -d; then
+      echo "OK:   Test services healthy"
+    else
+      echo "Error: Test services did not become healthy"
+      echo "  Inspect: $compose_cmd -f compose.test.yml ps; $compose_cmd -f compose.test.yml logs"
+      exit 1
+    fi
   fi
 
   # --- Optional: direnv lane switching ---------------------------------

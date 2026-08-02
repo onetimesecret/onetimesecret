@@ -70,10 +70,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      # bin/setup --test starts its own throwaway datastore on :2163 and
-      # discovers the binary via `command -v redis-server`.
+      # macOS runners have no container runtime, so the workflow provisions
+      # the test datastore itself (the same way other workflows use service
+      # containers): a throwaway valkey-compatible redis on :2163, the port
+      # compose.test.yml publishes. LANES_NO_AUTOSTART=1 on the test-lane
+      # steps tells bin/setup --test the job owns service lifecycle.
       - name: Install datastore (redis, Valkey-compatible)
         run: brew install redis
+
+      - name: Start test datastore on :2163
+        run: redis-server --port 2163 --bind 127.0.0.1 --daemonize yes --save '' --appendonly no
 
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
@@ -105,6 +111,8 @@ jobs:
 
       - name: Run bin/setup --test under /bin/bash (test lane)
         run: /bin/bash bin/setup --test
+        env:
+          LANES_NO_AUTOSTART: '1'
 
       # One real operation on the result (the Homebrew-installer pattern:
       # assert a real outcome, not output text) — the fast suite on the
@@ -114,6 +122,8 @@ jobs:
 
       - name: Run bin/setup --test again (idempotency contract)
         run: /bin/bash bin/setup --test
+        env:
+          LANES_NO_AUTOSTART: '1'
 
   bash-32-gate:
     name: bash 3.2 syntax gate (macOS parity)

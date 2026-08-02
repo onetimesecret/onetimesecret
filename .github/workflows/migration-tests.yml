@@ -97,6 +97,17 @@ jobs:
         with:
           detached: true
 
+      - name: Setup Python (locale compilation)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      # spec_helper refuses to run without generated/locales (same prereq
+      # the lanes own via their tasks files; this job doesn't go through
+      # tests/lanes yet). The i18n script is stdlib-only python.
+      - name: Generate locale files
+        run: python3 locales/scripts/i18n content compile --all
+
       - name: Run SQLite migration tests
         env:
           RACK_ENV: test
@@ -191,6 +202,14 @@ jobs:
         if: inputs.debug_enabled == true
         with:
           detached: true
+
+      - name: Setup Python (locale compilation)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Generate locale files
+        run: python3 locales/scripts/i18n content compile --all
 
       - name: Create PostgreSQL test users
         env:
