@@ -99,6 +99,40 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
 fi
 set +a
 
+# ── Service preflight ────────────────────────────────────────────────────
+# Test services live in containers on 127.0.0.1 21xx ports (compose.test.yml
+# is the single source of truth). If they aren't up, start them — the
+# sanctioned path must also be the zero-setup path. Opt out (e.g. CI, where
+# the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
+port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
+REQUIRED_PORTS=(2163 2156)
+[[ "${AUTH_DATABASE_URL:-}" == *:2154/* ]] && REQUIRED_PORTS+=(2154)
+
+missing=0
+for p in "${REQUIRED_PORTS[@]}"; do port_open "$p" || missing=1; done
+
+if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
+  echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
+  if command -v docker >/dev/null 2>&1; then
+    docker compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+  elif command -v podman >/dev/null 2>&1; then
+    podman compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+  else
+    echo "error: docker/podman not found; start test services manually:" >&2
+    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    exit 69
+  fi
+fi
+
+for p in "${REQUIRED_PORTS[@]}"; do
+  if ! port_open "$p"; then
+    echo "error: test service on 127.0.0.1:${p} unreachable. Start with:" >&2
+    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    exit 69
+  fi
+done
+
 echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "billing=${BILLING_ENABLED:-false}" \
      "redis=${REDIS_URL:-?}" \
