@@ -620,11 +620,11 @@ describe('UserMenu', () => {
         };
       });
 
-      it('should see dashboard, recent, account, help, and logout', async () => {
+      it('should see dashboard, domains, account, help, and logout', async () => {
         wrapper = mountComponent();
         const menuTexts = await getVisibleMenuItemTexts();
 
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'help', 'logout']);
+        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'help', 'logout']);
       });
 
       it('should NOT see billing, colonel, or feedback', async () => {
@@ -648,7 +648,7 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Admin sees the full menu, but billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'colonel', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'colonel', 'help', 'feedback', 'logout']);
         expectMenuNotContains(menuTexts, ['billing']);
       });
 
@@ -673,7 +673,7 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Owner sees all items
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, ['dashboard', 'domains', 'billing', 'account', 'colonel', 'help', 'feedback', 'logout']);
       });
 
       it('should see test plan mode when colonel', async () => {
@@ -697,7 +697,7 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Non-colonel members on canonical site see standard menu, but billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'help', 'feedback', 'logout']);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -713,7 +713,7 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Users without organization on canonical see standard menu; billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'help', 'feedback', 'logout']);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -730,7 +730,7 @@ describe('UserMenu', () => {
         wrapper = mountComponent({ colonel: false }, { billing_enabled: true });
         const menuTexts = await getVisibleMenuItemTexts();
 
-        expectMenuContains(menuTexts, ['dashboard', 'recent', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'help', 'feedback', 'logout']);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -747,7 +747,7 @@ describe('UserMenu', () => {
 
         // MFA takes precedence - only MFA verification and logout should be visible
         expectMenuContains(menuTexts, ['mfa', 'logout']);
-        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'help', 'feedback']);
+        expectMenuNotContains(menuTexts, ['dashboard', 'domains', 'billing', 'account', 'help', 'feedback']);
       });
 
       it('should restrict menu when awaitingMfa=true even for custom domain owner', async () => {
@@ -761,7 +761,7 @@ describe('UserMenu', () => {
 
         // MFA takes precedence over owner permissions
         expectMenuContains(menuTexts, ['mfa', 'logout']);
-        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel']);
+        expectMenuNotContains(menuTexts, ['dashboard', 'domains', 'billing', 'account', 'colonel']);
       });
 
       it('should restrict menu when awaitingMfa=true on canonical site', async () => {
@@ -775,7 +775,7 @@ describe('UserMenu', () => {
 
         // MFA takes precedence regardless of domain type
         expectMenuContains(menuTexts, ['mfa', 'logout']);
-        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel']);
+        expectMenuNotContains(menuTexts, ['dashboard', 'domains', 'billing', 'account', 'colonel']);
       });
     });
 

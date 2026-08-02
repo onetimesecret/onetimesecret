@@ -172,8 +172,9 @@ const menuItems = computed<MenuItem[]>(() => [
   { id: 'dashboard', to: '/dashboard', label: t('web.TITLES.dashboard'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
     condition: () => !props.awaitingMfa },
-  { id: 'recent', to: '/recent', label: t('web.TITLES.recent'),
-    icon: { collection: 'heroicons', name: 'clock' },
+  // '/domains' redirects to the active org's domain list (/org/:extid/domains)
+  { id: 'domains', to: '/domains', label: t('web.organizations.tabs.domains'),
+    icon: { collection: 'heroicons', name: 'globe-alt' },
     condition: () => !props.awaitingMfa },
   { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
