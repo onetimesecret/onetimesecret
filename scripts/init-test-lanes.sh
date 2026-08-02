@@ -10,7 +10,7 @@
 # Creates:
 #   compose.test.yml            Test services on 127.0.0.1 ports starting
 #                               with 21 (valkey 2163, postgres 2154,
-#                               rabbitmq 2172), digest-pinned to match CI.
+#                               rabbitmq 2156), digest-pinned to match CI.
 #   tests/lanes/base.env        Lane-invariant env: endpoints, dummy secrets.
 #   tests/lanes/run             Hermetic lane runner (CI + local entrypoint).
 #   tests/lanes/<lane>/         env + tasks + .envrc per lane:
@@ -79,7 +79,7 @@ write_file compose.test.yml <<'EOF'
 #
 #   valkey     2163   (canonical 6379; grandfathered, not 2179)
 #   postgres   2154   (canonical 5432)
-#   rabbitmq   2172   (canonical 5672)
+#   rabbitmq   2156   (canonical 5672)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
 # a test service and a test run can never reach dev data. If a URL in the
@@ -127,7 +127,7 @@ services:
   rabbitmq:
     image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
     ports:
-      - '127.0.0.1:2172:5672'
+      - '127.0.0.1:2156:5672'
     healthcheck:
       test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
       interval: 10s
@@ -157,7 +157,7 @@ RACK_ENV=test
 # ── Service endpoints (provided by compose.test.yml) ────────────────────
 REDIS_URL='redis://127.0.0.1:2163/0'
 VALKEY_URL='valkey://127.0.0.1:2163/0'
-RABBITMQ_URL='amqp://guest:guest@127.0.0.1:2172'
+RABBITMQ_URL='amqp://guest:guest@127.0.0.1:2156'
 
 # Billing is off unless a lane runs with `--overlay billing`.
 BILLING_ENABLED=false
@@ -604,7 +604,7 @@ runner is the answer to "tests wiped my dev database".
 | -------- | --------- | ------------------------ |
 | valkey   | 2163      | 6379 (port grandfathered)|
 | postgres | 2154      | 5432                     |
-| rabbitmq | 2172      | 5672                     |
+| rabbitmq | 2156      | 5672                     |
 
 Port mappings are defined **only** in `compose.test.yml`. The env files
 here carry matching URLs; if a URL in this tree doesn't point at a 21xx
