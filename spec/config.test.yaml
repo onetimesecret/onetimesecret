@@ -76,6 +76,12 @@ site:
     required: false
     colonels:
       - 'CHANGEME@EXAMPLE.com'
+    # Disabled under test so full-mode specs that request magic links are not
+    # throttled (the cap is per masked IP, and the whole suite shares one);
+    # the L-5 limiter tests enable it in-process. See
+    # email_auth_rate_limiter.rb.
+    email_auth_rate_limit:
+      enabled: false
 
 features:
   regions:
