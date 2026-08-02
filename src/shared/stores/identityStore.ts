@@ -269,6 +269,30 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   );
 
   /**
+   * Dark-theme variant of the tenant logo (BrandSettings.logo_dark_url, set
+   * via the domain brand API). Pairs with the tenant's rendered logo — the
+   * uploaded asset served as `domain_logo` — so it is null unless that logo
+   * is present; a dark URL with no light tenant logo has nothing to swap
+   * against, and must never pair with the operator's install logo (the
+   * inverse of installLogoDarkUri's guard).
+   */
+  const tenantLogoDarkUri = computed(() =>
+    logoUri.value ? state.brand?.logo_dark_url || null : null
+  );
+
+  /**
+   * Resolved dark-logo source on the same identity axis as logoSource: the
+   * tenant's dark variant when the tenant logo is showing, else the
+   * operator's install dark variant. The two rungs' own guards make them
+   * mutually exclusive, so this never pairs a dark asset with the other
+   * layer's light logo. Null (unlike logoSource) — most installs have no
+   * dark variant and consumers simply skip the swap.
+   */
+  const logoDarkSource = computed(
+    () => tenantLogoDarkUri.value || installLogoDarkUri.value || null
+  );
+
+  /**
    * Operator-supplied alt text for the install logo (BRAND_LOGO_ALT /
    * brand.logo_alt). Only meaningful while the install logo is the asset
    * actually being rendered — it describes that image — so it is null when
@@ -357,6 +381,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     installLogoUri,
     installLogoDarkUri,
     installLogoAlt,
+    tenantLogoDarkUri,
+    logoDarkSource,
     logoSource,
     homepageSecretsMode,
     $reset,

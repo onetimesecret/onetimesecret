@@ -51,3 +51,52 @@ describe('V3 brandSettingsSchema border_radius read-tolerance', () => {
     expect(brandSettingsSchema.parse({}).border_radius).toBeUndefined();
   });
 });
+
+// Read-tolerance for stored asset URLs. The Ruby write validator
+// (BrandSettings.validate_url_fields!) accepts "https:// URL or relative path
+// starting with /", so app-relative values are legitimately stored — but the
+// canonical contract's z.string().url() rejects them on READ, which would
+// null the whole brand and drop ALL of the domain's branding over one
+// cosmetic field. The V3 read shape accepts absolute and app-relative URLs
+// and coerces anything else to undefined.
+describe('V3 brandSettingsSchema asset URL read-tolerance', () => {
+  const fields = ['logo_url', 'logo_dark_url', 'favicon_url'] as const;
+
+  it('passes absolute URLs through untouched', () => {
+    for (const field of fields) {
+      const parsed = brandSettingsSchema.parse({ [field]: 'https://cdn.acme.test/a.svg' });
+      expect(parsed[field]).toBe('https://cdn.acme.test/a.svg');
+    }
+  });
+
+  it('passes app-relative paths through (Ruby write validator accepts them)', () => {
+    for (const field of fields) {
+      const parsed = brandSettingsSchema.parse({ [field]: '/img/brand/a.svg' });
+      expect(parsed[field]).toBe('/img/brand/a.svg');
+    }
+  });
+
+  it('coerces unrenderable values to undefined instead of failing the parse', () => {
+    for (const field of fields) {
+      for (const junk of ['not a url', 'img/relative-no-slash.png', '']) {
+        const parsed = brandSettingsSchema.safeParse({ [field]: junk });
+        expect(parsed.success).toBe(true);
+        expect(parsed.success && parsed.data[field]).toBeUndefined();
+      }
+    }
+  });
+
+  it('preserves null and undefined', () => {
+    expect(brandSettingsSchema.parse({ logo_dark_url: null }).logo_dark_url).toBeNull();
+    expect(brandSettingsSchema.parse({}).logo_dark_url).toBeUndefined();
+  });
+
+  it('a bad favicon_url no longer drops the rest of the brand', () => {
+    const parsed = brandSettingsSchema.safeParse({
+      primary_color: '#3B82F6',
+      favicon_url: 'not a url',
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.primary_color).toBe('#3B82F6');
+  });
+});

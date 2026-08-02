@@ -94,6 +94,7 @@ describe('MastHead', () => {
       email?: string | null;
       cust?: typeof mockCustomer | null;
       domain_logo?: string | null;
+      domain_branding?: Record<string, unknown> | null;
       domain_strategy?: string;
       brand_product_name?: string | null;
       brand_logo_url?: string | null;
@@ -116,6 +117,7 @@ describe('MastHead', () => {
           email: storeState.email ?? null,
           cust: storeState.cust ?? null,
           domain_logo: storeState.domain_logo ?? null,
+          domain_branding: storeState.domain_branding ?? null,
           domain_strategy: storeState.domain_strategy ?? 'canonical',
           brand_product_name: storeState.brand_product_name ?? null,
           brand_logo_url: storeState.brand_logo_url ?? null,
@@ -1045,6 +1047,34 @@ describe('MastHead', () => {
       // Without a dark variant the light logo must stay visible in dark theme
       expect(light.classes()).not.toContain('dark:hidden');
       expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+    });
+
+    it('renders the tenant dark variant with the tenant uploaded logo on a custom domain', async () => {
+      // Tenant rung of logoDarkSource: BrandSettings.logo_dark_url (set via
+      // the domain brand API) pairs with the uploaded domain_logo. The
+      // install dark variant must not leak in even when configured.
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: '/imagine/ext123/logo.png',
+          domain_branding: { logo_dark_url: 'https://cdn.acme.test/logo-dark.svg' },
+          brand_logo_url: '/img/brand.svg',
+          brand_logo_dark_url: '/img/brand-dark.svg',
+        }
+      );
+
+      await nextTick();
+      const light = wrapper.find('img#logo');
+      expect(light.exists()).toBe(true);
+      expect(light.attributes('src')).toBe('/imagine/ext123/logo.png');
+      expect(light.classes()).toContain('dark:hidden');
+
+      const dark = wrapper.find('[data-testid="logo-dark"]');
+      expect(dark.exists()).toBe(true);
+      expect(dark.attributes('src')).toBe('https://cdn.acme.test/logo-dark.svg');
+      expect(dark.attributes('alt')).toBe(light.attributes('alt'));
     });
 
     it('suppresses the dark variant when a caller supplies props.logo.url', async () => {

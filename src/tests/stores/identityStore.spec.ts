@@ -703,6 +703,99 @@ describe('identityStore installLogoDarkUri', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// tenantLogoDarkUri / logoDarkSource — dark variant on the identity axis.
+// The tenant's BrandSettings.logo_dark_url pairs with the tenant's uploaded
+// logo (domain_logo); the install BRAND_LOGO_DARK_URL pairs with the install
+// logo. logoDarkSource resolves whichever matches the logo logoSource picked.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore tenantLogoDarkUri / logoDarkSource', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('returns the tenant dark URL when the tenant logo is showing', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'custom',
+      domain_logo: '/imagine/ext123/logo.png',
+      domain_branding: { logo_dark_url: 'https://cdn.acme.test/logo-dark.svg' },
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.tenantLogoDarkUri).toBe('https://cdn.acme.test/logo-dark.svg');
+    expect(identity.logoDarkSource).toBe('https://cdn.acme.test/logo-dark.svg');
+  });
+
+  it('is null when the tenant set a dark URL but has no uploaded logo to pair with', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'custom',
+      domain_logo: '',
+      domain_branding: { logo_dark_url: 'https://cdn.acme.test/logo-dark.svg' },
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.tenantLogoDarkUri).toBeNull();
+    expect(identity.logoDarkSource).toBeNull();
+  });
+
+  it('never pairs the install dark logo with a tenant light logo (and vice versa)', () => {
+    // Tenant logo wins logoSource; the install dark variant must not swap in
+    // over it, and with no tenant dark URL the resolved dark source is null.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'canonical',
+      domain_logo: '/imagine/ext123/logo.png',
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_dark_url: '/img/install-brand-dark.svg',
+      domain_branding: {},
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('/imagine/ext123/logo.png');
+    expect(identity.tenantLogoDarkUri).toBeNull();
+    expect(identity.logoDarkSource).toBeNull();
+  });
+
+  it('falls back to the install dark variant when no tenant logo is present', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'canonical',
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_dark_url: '/img/install-brand-dark.svg',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.tenantLogoDarkUri).toBeNull();
+    expect(identity.logoDarkSource).toBe('/img/install-brand-dark.svg');
+  });
+
+  it('tracks the domain_branding watcher when the dark URL arrives after init', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'custom',
+      domain_logo: '/imagine/ext123/logo.png',
+      domain_branding: null,
+    });
+
+    const identity = useProductIdentity();
+    expect(identity.logoDarkSource).toBeNull();
+
+    bootstrap.$patch({
+      domain_branding: { logo_dark_url: 'https://cdn.acme.test/logo-dark.svg' },
+    });
+    await nextTick();
+
+    expect(identity.logoDarkSource).toBe('https://cdn.acme.test/logo-dark.svg');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // logoSource — resolved logo image on the identity axis (#3612)
 //
 // Tenant's uploaded logo > operator's install-wide brand_logo_url (custom
