@@ -2,6 +2,7 @@
 
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import type { FormSubmissionOptions } from '@/types/ui';
+import { isValidInternalPath } from '@/utils/redirect';
 import { ref } from 'vue';
 import { z } from 'zod';
 
@@ -122,9 +123,19 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
       }
 
       if (options.redirectUrl) {
-        setTimeout(() => {
-          window.location.href = options.redirectUrl!;
-        }, options.redirectDelay || 3000);
+        // [L-7] Only navigate to validated internal paths to prevent open
+        // redirects if a future caller passes user-influenced input.
+        if (isValidInternalPath(options.redirectUrl)) {
+          const redirectUrl = options.redirectUrl;
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, options.redirectDelay || 3000);
+        } else {
+          console.warn(
+            '[useFormSubmission] Ignoring non-internal redirect URL:',
+            options.redirectUrl
+          );
+        }
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
