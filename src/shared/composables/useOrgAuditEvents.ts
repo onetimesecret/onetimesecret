@@ -75,6 +75,9 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
     if (abortController) {
       abortController.abort();
       abortController = null;
+      // The aborted fetch's finally can no longer match its controller, so
+      // clear the flag here — otherwise abort-on-unmount leaves it stuck true.
+      isLoading.value = false;
     }
   }
 
@@ -93,6 +96,11 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
         params: { offset: Math.max(0, targetOffset), limit: limit.value },
         signal: controller.signal,
       });
+
+      // A newer fetchPage (or abort()) may have superseded this request after
+      // its response already arrived — axios only rejects when the abort lands
+      // mid-flight. Never apply a superseded response over the current state.
+      if (controller.signal.aborted) return;
 
       const result = gracefulParse(auditEventsResponseSchema, response.data, 'AuditEventsResponse');
       if (!result.ok) {

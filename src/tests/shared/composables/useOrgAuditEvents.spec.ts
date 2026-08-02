@@ -140,3 +140,55 @@ describe('useOrgAuditEvents — actors resolution map', () => {
     expect(actors.value).toEqual({});
   });
 });
+
+describe('useOrgAuditEvents — abort and superseded-request handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('abort() clears isLoading when no new fetch follows (unmount path)', async () => {
+    // A request that never settles — abort() is the only way out.
+    mockApi.get.mockImplementation(() => new Promise(() => {}));
+
+    const { isLoading, fetchPage, abort } = useOrgAuditEvents(ref('on1abc123'));
+    void fetchPage(0);
+    expect(isLoading.value).toBe(true);
+
+    abort();
+    await flushPromises();
+    expect(isLoading.value).toBe(false);
+  });
+
+  it('does not apply a response whose request was superseded after completion', async () => {
+    const staleActors = {
+      [FULL_ACTOR_OBJID]: { email: 'stale@example.com', extid: 'cx1stale' },
+    };
+    // First request resolves successfully, but only AFTER a second fetch has
+    // superseded it (axios resolves rather than rejects when the abort lands
+    // after the response) — its data must never overwrite current state.
+    let resolveFirst!: (value: unknown) => void;
+    mockApi.get
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
+      .mockResolvedValueOnce({
+        data: buildResponse({ offset: 0, limit: 50, actors: {} }, [
+          buildEvent({ nonce: 'fresh-1' }),
+        ]),
+      });
+
+    const { records, actors, fetchPage } = useOrgAuditEvents(ref('on1abc123'));
+    const first = fetchPage(0);
+    const second = fetchPage(0); // supersedes (and aborts) the first
+
+    // First request's response arrives late, after being superseded.
+    resolveFirst({
+      data: buildResponse({ offset: 0, limit: 50, actors: staleActors }, [
+        buildEvent({ nonce: 'stale-1' }),
+      ]),
+    });
+    await Promise.all([first, second]);
+    await flushPromises();
+
+    expect(records.value.map((r) => r.nonce)).toEqual(['fresh-1']);
+    expect(actors.value).toEqual({});
+  });
+});
