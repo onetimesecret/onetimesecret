@@ -339,7 +339,11 @@ module Onetime
       # Fallback to site.secret if session secret is not set
       result['secret'] ||= conf&.dig('site', 'secret')
 
-      # Apply SSL fallback if secure not explicitly set
+      # Apply SSL fallback if secure not explicitly set: true when site.ssl is
+      # configured OR the app runs in production (see ssl_enabled?), so the
+      # Secure cookie flag fails safe in production even when the SSL env var
+      # is unset (2026-08-02 audit, L-1). Onetime::Session#set_cookie adds a
+      # per-request upgrade for TLS-terminating proxies on top of this.
       result['secure'] = ssl_enabled? if result['secure'].nil?
 
       result
@@ -376,6 +380,10 @@ module Onetime
       true
     end
 
+    # Whether generated cookies/links should assume HTTPS. True when site.ssl
+    # (SSL env var) is set, and ALSO whenever RACK_ENV resolves to production —
+    # production must fail safe to Secure cookies even if the operator forgot
+    # the SSL flag (2026-08-02 audit, L-1).
     def ssl_enabled?
       conf&.dig('site', 'ssl') || env == 'production'
     end

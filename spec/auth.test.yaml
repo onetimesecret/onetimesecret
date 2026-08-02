@@ -41,7 +41,13 @@ full:
     # false here permanently strips the Rodauth OTP feature set from that
     # process. All other lanes leave the var unset and still get false.
     mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
-    email_auth: false
+    # Env-aware for the same reason as mfa above: the L-5 magic-link
+    # rate-limit lane (apps/web/auth/spec/integration/full/
+    # email_auth_rate_limit_spec.rb) exports AUTH_EMAIL_AUTH_ENABLED=true and
+    # needs the REAL AuthConfig to report email_auth enabled so the
+    # email-login-request route exists. All other lanes leave the var unset
+    # and still get false.
+    email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
     webauthn: false
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
     oauth: <%= ENV['AUTH_OAUTH_ENABLED'] == 'true' %>
