@@ -8,7 +8,7 @@ require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.
 
 RSpec.describe V1::Logic::Secrets::BurnSecret do
   let(:session) { double('Session') }
-  let(:customer) { double('Onetime::Customer', anonymous?: false, custid: 'cust123', increment_field: nil) }
+  let(:customer) { double('Onetime::Customer', anonymous?: false, custid: 'cust123', objid: 'cust_obj123', increment_field: nil) }
   let(:owner) { double('Owner', custid: 'owner123', verified?: false, anonymous?: false, increment_field: nil) }
 
   let(:secret) do
@@ -76,6 +76,27 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
         subject.process
 
         expect(secret).to have_received(:burned!)
+      end
+
+      # v1 burns thread actor attribution into the lifecycle event the same
+      # way v2 does (#3639); without it every v1 burn fell to the trail's
+      # fail-safe actor even when the caller was authenticated (ADR-023).
+      it 'threads actor attribution into burned! (authenticated non-owner)' do
+        subject.process
+
+        expect(secret).to have_received(:burned!).with(
+          actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'cust_obj123' },
+        )
+      end
+
+      it 'threads actor=anonymous for an anonymous caller (never creator)' do
+        allow(customer).to receive(:anonymous?).and_return(true)
+
+        subject.process
+
+        expect(secret).to have_received(:burned!).with(
+          actor_context: { 'actor' => 'anonymous' },
+        )
       end
     end
 
