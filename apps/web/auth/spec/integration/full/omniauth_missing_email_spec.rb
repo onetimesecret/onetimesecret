@@ -236,13 +236,14 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   end
 
   # ==========================================================================
-  # Contract: only info.email is consulted (not raw_info claims)
+  # Contract: only info.email and raw_info["mail"] are consulted
   # ==========================================================================
 
   describe 'email source contract' do
-    it 'uses OmniAuth info.email and ignores a raw_info email claim' do
-      # info.email is blank but extra.raw_info carries an email. The hook reads
-      # omniauth_email (== info.email), so this must STILL be invalid_email.
+    it 'ignores a raw_info email claim (only the "mail" key is a fallback)' do
+      # info.email is blank and extra.raw_info carries an "email" key — which is
+      # NOT the "mail" mailbox attribute omniauth_email falls back to. No other
+      # raw_info claim may be consulted, so this must STILL be invalid_email.
       setup_entra_mock_auth(email: nil, raw_info: { email: 'shadow@fabrikam.onmicrosoft.com' })
 
       begin
