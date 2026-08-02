@@ -146,6 +146,9 @@ const mockOrganization = {
   entitlements: ['manage_members'],
   limits: { teams: 1 },
   planid: 'plan_starter', // Required for billing email field to be visible
+  // Audit-trail role gate (#3637): admin/owner required. 'admin' keeps
+  // isOwner false so owner-only sections stay unaffected.
+  current_user_role: 'admin',
 };
 
 const mockFetchOrganization = vi.fn();
@@ -660,6 +663,31 @@ describe('OrganizationSettings', () => {
         wrapper = await mountComponent();
         await switchToActivityTab(wrapper);
 
+        expect(findActivityTable(wrapper).exists()).toBe(false);
+      });
+    });
+
+    describe('member role (entitled plan)', () => {
+      // Backend materializes membership entitlements as plan ∩ role and
+      // audit_logs is admin-tier, so a plain member is 403'd server-side even
+      // on an entitled plan. The UI must show the role notice — not the
+      // upgrade prompt, and never mount the table (whose fetch would 403).
+      beforeEach(() => {
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+        mockFetchOrganization.mockResolvedValue({
+          ...mockOrganization,
+          current_user_role: 'member',
+        });
+      });
+
+      it('shows the role notice instead of the table or upgrade prompt', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        const panel = findPanel(wrapper);
+        expect(panel.find('[data-testid="org-audit-role-notice"]').exists()).toBe(true);
+        expect(panel.text()).toContain('web.organizations.audit.role_required');
+        expect(panel.text()).not.toContain('web.organizations.audit.upgrade_prompt');
         expect(findActivityTable(wrapper).exists()).toBe(false);
       });
     });

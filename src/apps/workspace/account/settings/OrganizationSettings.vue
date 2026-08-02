@@ -209,11 +209,19 @@ const sortedEntitlements = computed(() =>
 // SSO visibility: feature flag AND entitlement must both pass (dual-control)
 const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
-// Secret Activity (audit trail) — entitlement gates the panel CONTENT only,
-// never the tab: unentitled users see an inline upgrade notice instead.
+// Secret Activity (audit trail) — gates the panel CONTENT only, never the
+// tab. Mirrors the backend contract (list_audit_events.rb): the materialized
+// membership entitlements are plan ∩ role, and audit_logs sits in the
+// admin tier — so a plain member is 403'd server-side even on an entitled
+// plan. org.entitlements in the API payload is the PLAN-level set, so the
+// role must be checked separately here or members mount the table and land
+// in a generic error state.
+const isAuditRoleAllowed = computed(() =>
+  ['owner', 'admin'].includes(organization.value?.current_user_role ?? '')
+);
 const canViewAuditLogs = computed(() => {
   if (!organization.value) return false;
-  return can(ENTITLEMENTS.AUDIT_LOGS);
+  return isAuditRoleAllowed.value && can(ENTITLEMENTS.AUDIT_LOGS);
 });
 
 // Role-based gate: only owners and admins can add new domains (mirrors
@@ -1922,8 +1930,23 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {{ t('web.organizations.audit.description') }}
             </p>
+            <!-- Access notice for non-admin members: their role is the blocker
+                 (backend 403s regardless of plan), so no upgrade upsell -->
             <div
-              v-if="!canViewAuditLogs"
+              v-if="!isAuditRoleAllowed"
+              data-testid="org-audit-role-notice"
+              class="mt-4 flex items-center gap-3 rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/40">
+              <OIcon
+                collection="heroicons"
+                name="lock-closed"
+                class="size-5 flex-shrink-0 text-gray-400 dark:text-gray-500"
+                aria-hidden="true" />
+              <p class="flex-1 text-sm text-gray-600 dark:text-gray-300">
+                {{ t('web.organizations.audit.role_required') }}
+              </p>
+            </div>
+            <div
+              v-else-if="!canViewAuditLogs"
               class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
               <OIcon
                 collection="heroicons"

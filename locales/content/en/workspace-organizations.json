@@ -784,6 +784,10 @@
     "text": "Secret activity requires a plan with audit logs. Upgrade to see who created, viewed, and revealed secrets in this organization.",
     "content_hash": "453649ce"
   },
+  "web.organizations.audit.role_required": {
+    "text": "Secret activity is available to organization owners and admins.",
+    "content_hash": "e066ec63"
+  },
   "web.organizations.sso.title": {
     "text": "Single Sign-On (SSO)",
     "content_hash": "5db5c812"
