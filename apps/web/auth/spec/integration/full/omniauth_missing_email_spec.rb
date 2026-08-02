@@ -136,6 +136,19 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   # stays local: the shared setup_mock_auth omits an absent email claim, while
   # #3478 needs info.email PRESENT and nil/blank.
 
+  # Every accounts.email actually STORED for this example's address.
+  #
+  # Reads the row, not Onetime::Customer.email_exists?: the Customer index is
+  # written by CreateCustomer, which normalizes the address first, so that index
+  # holds the clean form whether or not the account row does — it cannot see a
+  # padded or malformed row at all. Matching on the (random) local part rather
+  # than the full address is what makes the assertion discriminating: a padded
+  # row still contains it, so `contain_exactly(trimmed)` fails on one.
+  def account_emails_matching(email)
+    local = email.split('@').first
+    auth_db[:accounts].where(Sequel.like(:email, "%#{local}%")).select_map(:email)
+  end
+
   # Posts the SSO callback, self-skipping if the route isn't registered in this
   # boot (e.g. the :entra route when Entra credentials/orgs_sso aren't present).
   def post_sso_callback(provider = :oidc)
@@ -298,26 +311,6 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
       end
     end
 
-    it 'finds the mail claim whether the strategy keyed raw_info with symbols or strings' do
-      # omniauth_email reads raw_info['mail'] with a STRING key. That is safe for
-      # symbol-keyed strategies because omniauth_auth is an OmniAuth::AuthHash
-      # (Hashie::Mash), which converts nested hashes on assignment and reads
-      # indifferently. The sibling examples above cover the symbol-keyed shape
-      # (setup_entra_mock_auth builds raw_info with symbol keys); this one pins
-      # the string-keyed shape so neither access path can regress unnoticed.
-      local = "string.keyed.#{SecureRandom.hex(4)}"
-      setup_entra_mock_auth(email: nil, raw_info: { 'mail' => "#{local}@fabrikam.onmicrosoft.com" })
-
-      begin
-        post_sso_callback(:oidc)
-        expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).not_to include('auth_error='),
-          "String-keyed mail claim was not resolved: #{last_response.location.inspect}"
-      ensure
-        teardown_mock_auth
-      end
-    end
-
     it 'still redirects to invalid_email when mail is blank too' do
       setup_entra_mock_auth(email: nil, raw_info: { mail: '   ' })
 
@@ -414,7 +407,15 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
       # before_omniauth_create_account guard (which strips its own copy) and
       # then violated the accounts.valid_email CHECK — spaces are excluded from
       # both the local part and the domain — producing a 500 on the callback
-      # instead of a sign-in. Pin the trimmed value landing in the account row.
+      # instead of a sign-in.
+      #
+      # ASSERT ON accounts.email DIRECTLY, not via Customer.email_exists?: the
+      # Customer index is written by CreateCustomer, which normalizes the address
+      # first, so the index key is the trimmed form whether or not the ROW is
+      # padded — that assertion cannot see this defect. And the CHECK that turns
+      # a padded row into a visible 500 exists only on PostgreSQL, while this
+      # file's primary CI leg runs on SQLite (lib/tasks/spec.rake), so without
+      # the row assertion the whole example passes on SQLite with the bug present.
       padded  = "  trimmed.#{SecureRandom.hex(4)}@contoso.com  "
       trimmed = padded.strip
       setup_entra_mock_auth(email: padded)
@@ -424,8 +425,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
         expect(last_response.status).to eq(302),
           "Padded email 500'd instead of signing in: #{last_response.body}"
         expect(last_response.location.to_s).not_to include('auth_error=')
-        expect(Onetime::Customer.email_exists?(trimmed)).to be(true),
-          "Expected the account to be created under #{trimmed.inspect}"
+        expect(account_emails_matching(trimmed)).to contain_exactly(trimmed)
       ensure
         teardown_mock_auth
       end
@@ -434,15 +434,57 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     it 'trims whitespace on the raw_info["mail"] fallback too' do
       # Same insert path, reached via the #3499 tier-1 fallback rather than
       # info.email — the trim must apply to both claim sources.
-      local = "padded.mail.#{SecureRandom.hex(4)}"
-      setup_entra_mock_auth(email: nil, raw_info: { mail: "  #{local}@contoso.com\n" })
+      local   = "padded.mail.#{SecureRandom.hex(4)}"
+      trimmed = "#{local}@contoso.com"
+      setup_entra_mock_auth(email: nil, raw_info: { mail: "  #{trimmed}\n" })
 
       begin
         post_sso_callback(:oidc)
         expect(last_response.status).to eq(302),
           "Padded mail fallback 500'd instead of signing in: #{last_response.body}"
         expect(last_response.location.to_s).not_to include('auth_error=')
-        expect(Onetime::Customer.email_exists?("#{local}@contoso.com")).to be(true)
+        expect(account_emails_matching(trimmed)).to contain_exactly(trimmed)
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    it 'trims non-ASCII surrounding whitespace (NBSP) too' do
+      # String#strip is ASCII-only, and NBSP is NOT in the CHECK's excluded set,
+      # so an NBSP-padded claim passes every guard and would be stored verbatim
+      # as an undeliverable address whose Customer is keyed on the normalized
+      # form. The trim is [[:space:]]-based precisely to catch this.
+      trimmed = "nbsp.#{SecureRandom.hex(4)}@contoso.com"
+      setup_entra_mock_auth(email: " #{trimmed} ")
+
+      begin
+        post_sso_callback(:oidc)
+        expect(last_response.status).to eq(302)
+        expect(account_emails_matching(trimmed)).to contain_exactly(trimmed)
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Fail-closed: non-String claims
+  # ==========================================================================
+
+  describe 'non-String claims' do
+    it 'redirects to invalid_email for a non-String (multi-valued) claim' do
+      # A multi-valued IdP attribute arrives as a Hashie::Array. Coercing it with
+      # to_s yields the inspect form '["user@contoso.com"]', which satisfies both
+      # the structural guard and the CHECK — so it would be INSERTED as a junk,
+      # unreachable account on a 302. omniauth_email accepts only Strings.
+      local = "arr.#{SecureRandom.hex(4)}"
+      setup_entra_mock_auth(email: ["#{local}@contoso.com"])
+
+      begin
+        post_sso_callback(:oidc)
+        expect_auth_error_redirect('invalid_email')
+        # Catches the inspect-form row too — it contains the local part.
+        expect(account_emails_matching("#{local}@contoso.com")).to be_empty
       ensure
         teardown_mock_auth
       end

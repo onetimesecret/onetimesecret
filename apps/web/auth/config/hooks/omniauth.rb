@@ -17,6 +17,23 @@
 
 module Auth::Config::Hooks
   module OmniAuth
+    # Leading/trailing Unicode whitespace, for trimming IdP claims.
+    # String#strip is ASCII-only; [[:space:]] covers NBSP and friends.
+    SURROUNDING_SPACE = /\A[[:space:]]+|[[:space:]]+\z/
+
+    # Normalize one raw IdP claim into a trimmed String.
+    #
+    # Non-String input yields '' (fail closed) — see the omniauth_email doc for
+    # why a Hashie::Array claim must not be coerced with to_s.
+    #
+    # @param value [Object] the raw claim as the IdP supplied it
+    # @return [String] trimmed claim, or '' when unusable
+    def self.trimmed_claim(value)
+      return '' unless value.is_a?(String)
+
+      value.gsub(SURROUNDING_SPACE, '')
+    end
+
     # rubocop:disable Metrics/PerceivedComplexity
     # A long, linear chain of Rodauth hook registrations (mirrors the same
     # inline disable on Hooks::Account.configure). Splitting it would scatter the
@@ -81,20 +98,39 @@ module Auth::Config::Hooks
       # stays in before_omniauth_create_account, so the nil path keeps the
       # existing #3478 error behaviour unchanged.
       #
+      # NON-STRING CLAIMS FAIL CLOSED (no to_s). A multi-valued IdP attribute
+      # arrives as a Hashie::Array, and `.to_s` on it yields the *inspect* form
+      # '["user@contoso.com"]' — which satisfies both the structural guard below
+      # AND the valid_email CHECK, so it would be INSERTED as the account's
+      # login: a junk, unreachable account created silently on a 302. Only a
+      # String is a mailbox claim; anything else resolves to nil and takes the
+      # same invalid_email redirect as an absent claim.
+      #
+      # TRIM IS UNICODE-AWARE, deliberately not String#strip: strip removes only
+      # ASCII whitespace and NUL, so an NBSP-padded claim (" a@b.com") is
+      # NOT stripped, and NBSP is absent from the CHECK's excluded set — it would
+      # pass every guard and be stored verbatim as an undeliverable address whose
+      # Customer is keyed on the normalized form. [[:space:]] covers the Unicode
+      # class, so the trim matches what the comment claims.
+      #
       # String keys are correct for both reads: omniauth_auth is an
       # OmniAuth::AuthHash (a Hashie::Mash), which converts nested hashes on
       # assignment and reads indifferently — a strategy that builds raw_info
-      # with symbol keys is still found by raw['mail']. The verified-mailbox
-      # fallback specs pin that (they mock raw_info with symbol keys), and this
-      # matches the gem's own omniauth_info[info_key] access.
+      # with symbol keys is still found by raw['mail']. Every writer of
+      # env['omniauth.auth'] goes through AuthHash (omniauth strategy.rb
+      # auth_hash/callback_phase, and the mock path), and rodauth-omniauth only
+      # ever reads it, so a plain symbol-keyed Hash cannot reach here. The
+      # invariant is pinned directly in the spec rather than through a callback
+      # example — AuthHash normalizes keys before this method ever sees them, so
+      # no request-level test can distinguish the two access styles.
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         def omniauth_email
           info  = omniauth_info || {}
-          email = info['email'].to_s.strip
+          email = Auth::Config::Hooks::OmniAuth.trimmed_claim(info['email'])
           if email.empty?
             raw   = (omniauth_extra && omniauth_extra['raw_info']) || {}
-            email = raw['mail'].to_s.strip
+            email = Auth::Config::Hooks::OmniAuth.trimmed_claim(raw['mail'])
           end
           email.empty? ? nil : email
         end
@@ -706,6 +742,14 @@ module Auth::Config::Hooks
         # (rather than letting a blank local part like "@example.com" fall
         # through to account creation, which 500s on the PG valid_email CHECK)
         # keeps the user on a localized error instead of a frozen screen (#3478).
+        #
+        # KNOWN GAP (pre-existing, tracked separately): this guard is structural
+        # only, while the accounts.valid_email CHECK
+        # (migrations/001_initial.rb:27) is stricter. Shapes the CHECK rejects
+        # but split('@') accepts — an internal space, a comma or semicolon, a
+        # dotless domain — still reach the INSERT and 500. Same failure class as
+        # the padded-whitespace case the omniauth_email trim closes; tightening
+        # this guard changes signup validation semantics, so it is its own change.
         if email_parts.length != 2 || email_parts.first.to_s.empty? || email_parts.last.to_s.empty?
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
