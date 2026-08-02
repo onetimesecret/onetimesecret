@@ -55,21 +55,48 @@ module Auth::Config::Hooks
       # account lookup, account creation, and `omniauth_verify_account?`
       # (features/omniauth.rb:152), which the per-hook approach missed.
       #
-      # Returns the resolved claim verbatim, or nil when the IdP supplied no
-      # tier-1 mailbox. Normalization and structural validation stay exactly
-      # where they already are (account_from_omniauth below normalizes;
-      # before_omniauth_create_account validates and emits invalid_email), so
-      # the nil path keeps the existing #3478 error behaviour unchanged.
+      # Returns the resolved claim with SURROUNDING WHITESPACE TRIMMED, or nil
+      # when the IdP supplied no tier-1 mailbox.
+      #
+      # WHY TRIM HERE AND NOT DOWNSTREAM: this accessor is the value Rodauth
+      # INSERTS. omniauth_create_account -> omniauth_new_account ->
+      # _omniauth_new_account(omniauth_email) builds {login_column =>
+      # omniauth_email} and omniauth_save_account inserts it verbatim
+      # (rodauth-omniauth 0.6.2 features/omniauth.rb:117-124, 173-174). Our
+      # before_omniauth_create_account guard below validates its OWN stripped
+      # copy and never writes back, so a padded claim ("  alice@contoso.com  ")
+      # sailed past the guard and then violated the accounts.valid_email CHECK
+      # (migrations/001_initial.rb:27 — the pattern excludes spaces from BOTH
+      # the local part and the domain) => Sequel::CheckConstraintViolation => a
+      # 500 on the callback, exactly the frozen-screen failure #3478 exists to
+      # prevent. Padded-but-valid addresses do occur from OIDC IdPs, so trimming
+      # at the single accessor fixes every consumer at once — including
+      # omniauth_verify_account? (features/omniauth.rb:152), which compares the
+      # stored account[login_column] against this value and would otherwise
+      # never match for a padded claim.
+      #
+      # ONLY whitespace is removed. Case folding and NFC normalization stay
+      # downstream in account_from_omniauth (accounts.email is citext, so the
+      # row deliberately preserves the IdP's casing), and structural validation
+      # stays in before_omniauth_create_account, so the nil path keeps the
+      # existing #3478 error behaviour unchanged.
+      #
+      # String keys are correct for both reads: omniauth_auth is an
+      # OmniAuth::AuthHash (a Hashie::Mash), which converts nested hashes on
+      # assignment and reads indifferently — a strategy that builds raw_info
+      # with symbol keys is still found by raw['mail']. The verified-mailbox
+      # fallback specs pin that (they mock raw_info with symbol keys), and this
+      # matches the gem's own omniauth_info[info_key] access.
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         def omniauth_email
           info  = omniauth_info || {}
-          email = info['email']
-          if email.to_s.strip.empty?
+          email = info['email'].to_s.strip
+          if email.empty?
             raw   = (omniauth_extra && omniauth_extra['raw_info']) || {}
-            email = raw['mail']
+            email = raw['mail'].to_s.strip
           end
-          email.to_s.strip.empty? ? nil : email
+          email.empty? ? nil : email
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition

@@ -298,6 +298,26 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
       end
     end
 
+    it 'finds the mail claim whether the strategy keyed raw_info with symbols or strings' do
+      # omniauth_email reads raw_info['mail'] with a STRING key. That is safe for
+      # symbol-keyed strategies because omniauth_auth is an OmniAuth::AuthHash
+      # (Hashie::Mash), which converts nested hashes on assignment and reads
+      # indifferently. The sibling examples above cover the symbol-keyed shape
+      # (setup_entra_mock_auth builds raw_info with symbol keys); this one pins
+      # the string-keyed shape so neither access path can regress unnoticed.
+      local = "string.keyed.#{SecureRandom.hex(4)}"
+      setup_entra_mock_auth(email: nil, raw_info: { 'mail' => "#{local}@fabrikam.onmicrosoft.com" })
+
+      begin
+        post_sso_callback(:oidc)
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).not_to include('auth_error='),
+          "String-keyed mail claim was not resolved: #{last_response.location.inspect}"
+      ensure
+        teardown_mock_auth
+      end
+    end
+
     it 'still redirects to invalid_email when mail is blank too' do
       setup_entra_mock_auth(email: nil, raw_info: { mail: '   ' })
 
@@ -375,8 +395,54 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
 
       begin
         post_sso_callback(:oidc)
+        # Asserting the STATUS, not just the location string, is load-bearing:
+        # a 500 has no Location header, so a location-only assertion passes on
+        # the very failure this example exists to catch (it did — see below).
+        expect(last_response.status).to eq(302),
+          "Whitespace-padded email did not complete the callback (#{last_response.status})"
         expect(last_response.location.to_s).not_to include('auth_error=invalid_email'),
           "Whitespace-padded valid email was wrongly rejected: #{last_response.location.inspect}"
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    it 'creates the account with the whitespace trimmed off' do
+      # REGRESSION: omniauth_email is the value Rodauth INSERTS
+      # (_omniauth_new_account(omniauth_email) -> omniauth_save_account). It
+      # used to return the claim verbatim, so a padded address passed the
+      # before_omniauth_create_account guard (which strips its own copy) and
+      # then violated the accounts.valid_email CHECK — spaces are excluded from
+      # both the local part and the domain — producing a 500 on the callback
+      # instead of a sign-in. Pin the trimmed value landing in the account row.
+      padded  = "  trimmed.#{SecureRandom.hex(4)}@contoso.com  "
+      trimmed = padded.strip
+      setup_entra_mock_auth(email: padded)
+
+      begin
+        post_sso_callback(:oidc)
+        expect(last_response.status).to eq(302),
+          "Padded email 500'd instead of signing in: #{last_response.body}"
+        expect(last_response.location.to_s).not_to include('auth_error=')
+        expect(Onetime::Customer.email_exists?(trimmed)).to be(true),
+          "Expected the account to be created under #{trimmed.inspect}"
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    it 'trims whitespace on the raw_info["mail"] fallback too' do
+      # Same insert path, reached via the #3499 tier-1 fallback rather than
+      # info.email — the trim must apply to both claim sources.
+      local = "padded.mail.#{SecureRandom.hex(4)}"
+      setup_entra_mock_auth(email: nil, raw_info: { mail: "  #{local}@contoso.com\n" })
+
+      begin
+        post_sso_callback(:oidc)
+        expect(last_response.status).to eq(302),
+          "Padded mail fallback 500'd instead of signing in: #{last_response.body}"
+        expect(last_response.location.to_s).not_to include('auth_error=')
+        expect(Onetime::Customer.email_exists?("#{local}@contoso.com")).to be(true)
       ensure
         teardown_mock_auth
       end
