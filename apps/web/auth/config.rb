@@ -94,6 +94,13 @@ module Auth
       # Runs after AccountManagement enables :reset_password above, so the
       # overridden methods exist.
       Overrides::ResetPasswordEnumeration.configure(self)
+      # Enumeration safety for login / create-account / unlock-account-request
+      # (audit 2026-08-02 M-1, M-2, L-6). Uses a PREPENDED module so it
+      # composes with ResetPasswordEnumeration's class-level
+      # account_from_login rather than clobbering it; all overrides are
+      # route-scoped no-ops elsewhere, so ordering relative to the
+      # conditionally-enabled features below (lockout) is immaterial.
+      Overrides::AccountEnumeration.configure(self)
       RodauthOverrides.configure(self)
 
       # Lockout: brute force protection
@@ -126,6 +133,13 @@ module Auth
       if Onetime.auth_config.email_auth_enabled?
         Features::EmailAuth.configure(self)
         Hooks::EmailAuth.configure(self)
+        # Rate limiting for POST /auth/email-login-request (audit 2026-08-02
+        # L-5): bounds unauthenticated magic-link mail dispatch per client IP.
+        # Additive to Rodauth's per-account email_auth_skip_resend_email_within
+        # throttle. Runs inside this branch so the
+        # before_email_auth_request_route hook exists (requires :email_auth,
+        # enabled by Features::EmailAuth above).
+        Hooks::EmailAuthRequest.configure(self)
       end
 
       # WebAuthn: biometrics, security keys (Face ID, Touch ID, YubiKey)

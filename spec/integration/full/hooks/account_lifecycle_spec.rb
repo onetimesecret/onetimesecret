@@ -112,16 +112,22 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
         expect(customer_exists?('not-an-email')).to be(false)
       end
 
-      it 'does not create a Customer record for duplicate email' do
+      it 'does not create a second Customer/account for duplicate email' do
         # Create first account
         create_account(email: test_email, password: valid_password)
         expect(last_response.status).to be_between(200, 299)
 
-        # Attempt to create duplicate - Rodauth returns 400 for validation errors
+        # M-2 enumeration fix (audit 2026-08-02, config/overrides/
+        # account_enumeration.rb): a duplicate signup now returns the SAME
+        # 200 success as a fresh signup so the response no longer discloses
+        # registration state. Response-shape parity is pinned in
+        # apps/web/auth/spec/integration/full/create_account_enumeration_spec.rb;
+        # the contract HERE is the side effect — no second row is created.
         create_account(email: test_email, password: valid_password)
-        expect([400, 422]).to include(last_response.status)
+        expect(last_response.status).to eq(200)
 
-        # Should still only have one Customer
+        # Still exactly one auth account and one Customer for the email
+        expect(test_db[:accounts].where(email: test_email).count).to eq(1)
         customer = find_customer_by_email(test_email)
         expect(customer).not_to be_nil
       end

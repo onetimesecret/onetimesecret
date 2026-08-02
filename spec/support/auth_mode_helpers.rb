@@ -31,7 +31,11 @@ module AuthModeHelpers
       @remember_me_enabled = options.fetch(:remember_me_enabled, true)
       @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
       @mfa_enabled = options.fetch(:mfa_enabled, true)
-      @email_auth_enabled = options.fetch(:email_auth_enabled, false)
+      # Env-aware like the SSO flags below: the L-5 magic-link rate-limit lane
+      # (apps/web/auth/spec/integration/full/email_auth_rate_limit_spec.rb)
+      # exports AUTH_EMAIL_AUTH_ENABLED=true and needs the email-login-request
+      # route to exist. Unset env preserves the old false.
+      @email_auth_enabled = options.fetch(:email_auth_enabled) { ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' }
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
       # SSO flags default OFF in tests, but honor env so the per-mode rake
       # batches (which run integration/full/ with provider env set) can exercise
