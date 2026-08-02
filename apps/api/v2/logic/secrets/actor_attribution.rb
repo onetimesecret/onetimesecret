@@ -32,7 +32,9 @@ module V2::Logic
       #
       #   creator             — authenticated caller who owns the secret
       #   authenticated_other — authenticated caller who does NOT own it
-      #   anonymous           — unauthenticated caller (or unknown)
+      #   anonymous           — unauthenticated caller
+      #   unknown             — authenticated caller whose relationship to the
+      #                         subject cannot be established (ADR-023)
       #
       # The optional 'actor_id' is the FULL objid of the acting customer (never
       # the email or custid). Unique traceability (NIST AU-3, PCI DSS 10.2.2)
@@ -51,17 +53,22 @@ module V2::Logic
 
         # target_secret is the secret being consumed and is always in hand at
         # the reveal/burn call sites. Guard nil explicitly: without a secret we
-        # cannot establish ownership, and letting it fall through owner? would
-        # silently bucket the caller as `authenticated_other` -- a misleading
-        # actor that also hides the programmer error. Surface it, but never
+        # cannot establish ownership, and `authenticated_other` would assert
+        # "not the owner" -- a fact we cannot support. Record the explicit
+        # `unknown` sentinel instead (ADR-023: never fabricate an actor),
+        # keeping the authenticated principal's id. Surface it, but never
         # raise: attribution is best-effort observability and must not break
         # the consume path.
-        if target_secret.nil?
-          OT.le '[actor-attribution] nil target_secret for an authenticated ' \
-                'caller; ownership indeterminate, recording actor=authenticated_other'
-        end
-
-        actor               = target_secret&.owner?(cust) ? 'creator' : 'authenticated_other'
+        actor               =
+          if target_secret.nil?
+            OT.le '[actor-attribution] nil target_secret for an authenticated ' \
+                  'caller; ownership indeterminate, recording actor=unknown (ADR-023)'
+            'unknown'
+          elsif target_secret.owner?(cust)
+            'creator'
+          else
+            'authenticated_other'
+          end
         context             = { 'actor' => actor }
         # Only attach an id when we actually resolved one; never store a nil.
         objid               = actor_objid

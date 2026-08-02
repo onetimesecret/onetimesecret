@@ -65,8 +65,8 @@ module Onetime::Secret::Features
       # @param actor_context [Hash, nil] request-scoped audit context (the actor
       #   discriminator) forwarded to the receipt cascade and, from there, the
       #   org audit trail (#3639). Defaults to nil so callers without request
-      #   context (v1, account verification) keep working; a nil actor is
-      #   recorded as anonymous/unknown, never misattributed to the creator.
+      #   context keep working; a nil actor fails safe to 'unknown' (ADR-023),
+      #   never misattributed to the creator.
       # @return [Boolean] true if THIS caller performed the reveal, false if a
       #   concurrent caller won the race or the secret was already terminal.
       def revealed!(actor_context: nil)

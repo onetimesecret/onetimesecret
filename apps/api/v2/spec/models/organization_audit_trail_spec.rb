@@ -119,8 +119,9 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(events.first['receipt']).to eq(receipt.shortid)
       expect(events.first['secret']).to eq(receipt.secret_shortid)
       # A fetch recorded without actor context falls to the fail-safe actor:
-      # every event in the trail carries a recognized 'actor' (#3637).
-      expect(events.first['actor']).to eq('anonymous')
+      # every event in the trail carries a recognized 'actor' (#3637), and the
+      # fail-safe is the explicit 'unknown' sentinel (ADR-023).
+      expect(events.first['actor']).to eq('unknown')
       expect(events.first).not_to have_key('actor_id')
     end
 
@@ -267,7 +268,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       event = org.audit_events_page.first
       expect(event['kind']).to eq('receipt_viewed')
-      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).to eq('unknown')
       expect(event).not_to have_key('actor_id')
     end
 
@@ -335,7 +336,9 @@ RSpec.describe Onetime::Organization, type: :integration do
   # specs pin the trail-facing half of that contract:
   #   * record_org_audit_event forwards arbitrary string-keyed event_attrs;
   #   * revealed!/burned! record the threaded actor exactly once (CAS-gated);
-  #   * a missing actor context fails safe to 'anonymous' (never 'creator');
+  #   * a missing actor context fails safe to 'unknown' (ADR-023: never
+  #     'creator', and never 'anonymous' — that would assert "unauthenticated",
+  #     a fact an actorless event cannot support);
   #   * the full Secret -> Receipt -> Org cascade carries the actor down.
   describe 'actor attribution on lifecycle events (#3639)' do
     before { link_to_org!(receipt, org) }
@@ -369,19 +372,19 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(event['actor_id']).to eq(full_objid)
     end
 
-    it 'defaults a missing actor context to anonymous on revealed! (never misattributed)' do
-      receipt.revealed! # v1 / account-verification path: no request context
+    it 'defaults a missing actor context to unknown on revealed! (ADR-023, never misattributed)' do
+      receipt.revealed! # defensive path: no request context threaded
 
       event = org.audit_events_page.first
-      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).to eq('unknown')
       expect(event).not_to have_key('actor_id')
     end
 
-    it 'defaults a blank actor to anonymous on burned! (never misattributed)' do
+    it 'defaults a blank actor to unknown on burned! (ADR-023, never misattributed)' do
       receipt.burned!(actor_context: { 'actor' => '' })
 
       event = org.audit_events_page.first
-      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).to eq('unknown')
     end
 
     # Privacy no-regression guards for the centralized actor validation in
@@ -398,15 +401,27 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(event).not_to have_key('actor_id')
     end
 
-    it 'fails an unrecognized actor safe to anonymous and drops its id' do
+    it 'fails an unrecognized actor safe to unknown and keeps its id (ADR-023)' do
       # An actor label outside the known set is never recorded verbatim: it
-      # fails safe to anonymous (never misattributed to the creator) and any
-      # id it carried is dropped with it.
-      receipt.revealed!(actor_context: { 'actor' => 'root', 'actor_id' => 'abcd1234' })
+      # fails safe to the explicit 'unknown' sentinel (never misattributed to
+      # the creator, never asserted 'anonymous'). A valid id riding along is
+      # KEPT — record what is known, mark the rest unknown.
+      receipt.revealed!(actor_context: { 'actor' => 'root', 'actor_id' => full_objid })
 
       event = org.audit_events_page.first
-      expect(event['actor']).to eq('anonymous')
-      expect(event).not_to have_key('actor_id')
+      expect(event['actor']).to eq('unknown')
+      expect(event['actor_id']).to eq(full_objid)
+    end
+
+    it 'records an explicit unknown actor with its id (indeterminate ownership, ADR-023)' do
+      # The nil-target_secret branch in lifecycle_actor_context records
+      # 'unknown' + the authenticated principal's objid; the validator must
+      # pass both through unchanged (unknown is id-carrying).
+      receipt.burned!(actor_context: { 'actor' => 'unknown', 'actor_id' => full_objid })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('unknown')
+      expect(event['actor_id']).to eq(full_objid)
     end
 
     it 'stores the full actor objid untruncated (unique traceability, AU-3 / PCI 10.2.2)' do

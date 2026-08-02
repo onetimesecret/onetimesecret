@@ -31,11 +31,13 @@ module Onetime::Receipt::Features
 
     # Recognized actor discriminators for org audit events (#3637/#3639).
     # 'system' marks transitions the application detected itself (expired,
-    # orphaned) with no acting individual. A missing or unexpected value fails
-    # safe to 'anonymous': the trail must never carry an actor label the rest
-    # of the system doesn't understand, and an unknown actor must never be
-    # misattributed to the creator.
-    RECOGNIZED_ACTORS = %w[creator authenticated_other anonymous system].freeze
+    # orphaned) with no acting individual. 'unknown' is the ADR-023 sentinel
+    # for an actor -- or an actor-subject relationship -- that cannot be
+    # established; it is also the fail-safe for a missing or unexpected value:
+    # the trail must never carry an actor label the rest of the system doesn't
+    # understand, never misattribute to the creator, and never assert
+    # 'anonymous' for an event that may have had an authenticated caller.
+    RECOGNIZED_ACTORS = %w[creator authenticated_other anonymous system unknown].freeze
 
     def self.included(base)
       OT.ld "[features] #{base}: #{name}"
@@ -158,8 +160,12 @@ module Onetime::Receipt::Features
       # read/export time via an org-membership join and never enters the
       # append-only trail.
       #
-      #   * a missing or unrecognized actor fails safe to 'anonymous' (never
-      #     misattribute an unknown actor to the creator);
+      #   * a missing or unrecognized actor fails safe to 'unknown' with an
+      #     error log (ADR-023: 'anonymous' would assert "unauthenticated", a
+      #     fact an actorless event cannot support; 'unknown' is the accurate
+      #     sentinel and never misattributes to the creator). Any valid
+      #     actor_id riding along is KEPT -- record what is known, mark the
+      #     rest unknown;
       #   * 'anonymous' and 'system' events have no acting individual and
       #     never carry an actor_id, even if a caller supplied one;
       #   * a blank actor_id is dropped (never store an empty token);
@@ -175,7 +181,12 @@ module Onetime::Receipt::Features
         attrs = event_attrs.transform_keys(&:to_s)
 
         actor          = attrs['actor'].to_s
-        actor          = 'anonymous' unless RECOGNIZED_ACTORS.include?(actor)
+        unless RECOGNIZED_ACTORS.include?(actor)
+          # Never log the rejected value: a bad caller could pass anything.
+          OT.le "[audit-trail] missing/unrecognized actor; recording 'unknown' " \
+                "(kind=#{kind}, receipt=#{shortid})"
+          actor = 'unknown'
+        end
         attrs['actor'] = actor
 
         if %w[anonymous system].include?(actor)
@@ -252,7 +263,7 @@ module Onetime::Receipt::Features
       # @param actor_context [Hash, nil] request-scoped actor attrs computed
       #   by the receipt page's logic layer (#3637), forwarded through the
       #   centralized actor validation in record_org_audit_event. nil records
-      #   the event under the fail-safe 'anonymous' actor.
+      #   the event under the fail-safe 'unknown' actor (ADR-023).
       # @return [Hash, nil] the recorded audit event, or nil when already
       #   recorded or when there is no org context.
       def record_receipt_view!(actor_context: nil)

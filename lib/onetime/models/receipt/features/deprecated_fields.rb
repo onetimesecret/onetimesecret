@@ -145,8 +145,9 @@ module Onetime::Receipt::Features
       #
       # @param actor_context [Hash, nil] request-scoped audit context (e.g. the
       #   actor discriminator) threaded down from the reveal cascade (#3639).
-      #   Forwarded to the org audit trail; nil is treated as an unknown/anonymous
-      #   actor (never misattributed to the creator). See #lifecycle_audit_attrs.
+      #   Forwarded to the org audit trail; nil fails safe to the 'unknown'
+      #   actor (ADR-023; never misattributed to the creator). See
+      #   #lifecycle_audit_attrs.
       # @return [Boolean, nil] true if THIS caller performed the transition;
       #   a falsy value if the in-memory guard or the atomic claim lost.
       def revealed!(actor_context: nil)
@@ -213,7 +214,8 @@ module Onetime::Receipt::Features
 
       # @param actor_context [Hash, nil] request-scoped audit context threaded
       #   down from the burn cascade (#3639); see #revealed! and
-      #   #lifecycle_audit_attrs. nil is treated as an unknown/anonymous actor.
+      #   #lifecycle_audit_attrs. nil fails safe to the 'unknown' actor
+      #   (ADR-023).
       def burned!(actor_context: nil)
         # See guard comment on `revealed!` (was `received!`)
         return unless state?(:new) || state?(:previewed)
