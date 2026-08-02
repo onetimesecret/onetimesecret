@@ -106,11 +106,15 @@ set +a
 # the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
-REQUIRED_PORTS=(2163 2156)
-[[ "${AUTH_DATABASE_URL:-}" == *:2154/* ]] && REQUIRED_PORTS+=(2154)
+# Ports come from the lane's own env, so this can't drift from
+# compose.test.yml (whose URLs the lane files mirror).
+REQUIRED_PORTS=()
+for _url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
+  [[ "$_url" =~ 127\.0\.0\.1:([0-9]+) ]] && REQUIRED_PORTS+=("${BASH_REMATCH[1]}")
+done
 
 missing=0
-for p in "${REQUIRED_PORTS[@]}"; do port_open "$p" || missing=1; done
+for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missing=1; done
 
 if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
@@ -125,7 +129,7 @@ if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   fi
 fi
 
-for p in "${REQUIRED_PORTS[@]}"; do
+for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
   if ! port_open "$p"; then
     echo "error: test service on 127.0.0.1:${p} unreachable. Start with:" >&2
     echo "  docker compose -f compose.test.yml up --wait -d" >&2

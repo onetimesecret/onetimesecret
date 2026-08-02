@@ -4,8 +4,9 @@
 #
 #   bin/setup             Dev environment (contributor default): deps, config,
 #                         secrets, generated artifacts, git hooks, next steps.
-#   bin/setup --test      Test lane: throwaway datastore on :2163, .test-mode
-#                         marker, config smoke test. RSpec/Vitest just work.
+#   bin/setup --test      Test lane: containerized test services via
+#                         compose.test.yml, .test-mode marker, config smoke
+#                         test. tests/lanes/run just works.
 #   bin/setup --init      Self-hosting init: secrets, env, install mark.
 #                         Auto-detects an existing environment and reconciles
 #                         instead (never regenerates a live SECRET).
@@ -346,7 +347,7 @@ cmd_dev() {
   echo "  bundle exec rake dev:seed  # dev account + sample secrets, prints credentials"
   echo ""
   echo "To run the test suites: bin/setup --test, then:"
-  echo "  pnpm run test:rspec:fast   # RSpec"
+  echo "  tests/lanes/run unit       # Ruby (see: tests/lanes/run --list)"
   echo "  pnpm test                  # Vitest"
 }
 
@@ -355,21 +356,27 @@ cmd_dev() {
 # =======================================================================
 #
 # Switches this checkout to test mode and makes the RSpec suite runnable on
-# a fresh clone, with no maintainer-private files required: throwaway
-# datastore on :2163 (no persistence), config smoke test, optional direnv
-# lane switching and PostgreSQL provisioning for the integration suite.
+# a fresh clone, with no maintainer-private files required: containerized
+# test services (compose.test.yml: valkey/postgres/rabbitmq on 21xx ports,
+# no persistence, postgres self-provisions via initdb), config smoke test,
+# optional direnv lane switching.
 
 cmd_test() {
   info "Setting up test environment..."
 
-  datastore_discover
+  local compose_cmd=""
+  if command -v docker &>/dev/null; then
+    compose_cmd="docker compose"
+  elif command -v podman &>/dev/null; then
+    compose_cmd="podman compose"
+  fi
 
   local missing_required=()
   command -v ruby   &>/dev/null || missing_required+=("ruby    (see .ruby-version):  https://www.ruby-lang.org/")
   has bundle || missing_required+=("bundler (gem install bundler)")
   has pnpm   || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
-  if [[ -z "$VALKEY_CLI" || -z "$VALKEY_SERVER" ]]; then
-    missing_required+=("valkey-server/valkey-cli (or redis-server/redis-cli):  https://valkey.io/download/")
+  if [[ -z "$compose_cmd" ]]; then
+    missing_required+=("docker or podman (test services run from compose.test.yml)")
   fi
   if (( ${#missing_required[@]} > 0 )); then
     echo "Error: Required tools missing:"
@@ -379,8 +386,6 @@ cmd_test() {
     done
     exit 1
   fi
-
-  echo "OK:   datastore -> server '$VALKEY_SERVER', cli '$VALKEY_CLI'"
 
   check_version_exact "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
 
@@ -400,32 +405,21 @@ cmd_test() {
   echo "---"
   generate_artifacts
 
-  # --- Test datastore on port 2163 -------------------------------------
+  # --- Test services (compose.test.yml) --------------------------------
+  #
+  # All test backing services run in containers on 127.0.0.1 21xx ports;
+  # dev services keep canonical ports. compose.test.yml is the single
+  # source of truth for images and ports. Idempotent: healthy services
+  # are left as-is. tests/lanes/run performs the same start on demand.
 
   echo "---"
-  echo "Starting test datastore on port 2163..."
-
-  if "$VALKEY_CLI" -p 2163 ping &>/dev/null; then
-    echo "OK:   Test datastore already running on port 2163"
+  echo "Starting test services (compose.test.yml: valkey, postgres, rabbitmq)..."
+  if $compose_cmd -f compose.test.yml up --wait -d; then
+    echo "OK:   Test services healthy"
   else
-    pnpm run test:database:start
-
-    local started=false _i
-    for _i in 1 2 3 4 5 6 7 8 9 10; do
-      if "$VALKEY_CLI" -p 2163 ping &>/dev/null; then
-        started=true
-        break
-      fi
-      sleep 0.5
-    done
-
-    if $started; then
-      echo "OK:   Test datastore started on port 2163"
-    else
-      echo "Error: Test datastore did not start on port 2163"
-      echo "  Try manually: pnpm run test:database:start:fg"
-      exit 1
-    fi
+    echo "Error: Test services did not become healthy"
+    echo "  Inspect: $compose_cmd -f compose.test.yml ps; $compose_cmd -f compose.test.yml logs"
+    exit 1
   fi
 
   # --- Optional: direnv lane switching ---------------------------------
@@ -480,50 +474,15 @@ cmd_test() {
     echo "Copy: .env.test (from .env.test.example — fill in for integration tests)"
   fi
 
-  # --- Optional: PostgreSQL integration database -----------------------
-
-  local pg_superuser_url="${AUTH_DATABASE_URL_TEST_SUPERUSER:-}"
-  if [[ -z "$pg_superuser_url" && -f ".env.test" ]]; then
-    # Fall back to .env.test if direnv hasn't loaded yet
-    pg_superuser_url=$(grep '^AUTH_DATABASE_URL_TEST_SUPERUSER=' .env.test 2>/dev/null | cut -d= -f2- || true)
-  fi
+  # --- PostgreSQL integration database ---------------------------------
+  #
+  # Nothing to do: the postgres container self-provisions on first boot.
+  # compose.test.yml mounts initialize_test_db.sql as an initdb entrypoint,
+  # which creates the test database and least-privilege roles. Data lives
+  # on tmpfs, so a fresh `up` after `down` re-provisions from scratch.
 
   echo "---"
-  if [[ -n "$pg_superuser_url" ]] && has psql; then
-    echo "Provisioning PostgreSQL test database (integration tests)..."
-
-    # Extract the database name from the superuser URL.
-    # Parse: postgresql://user[:pass]@host[:port]/dbname[?query]
-    # (URI parsing so query params like ?sslmode=require don't leak into the name)
-    local pg_db
-    pg_db=$(ruby -ruri -e 'puts URI(ARGV.fetch(0)).path.sub(%r{\A/}, "")' "$pg_superuser_url")
-
-    # Create the database if it doesn't exist (createdb is idempotent-ish)
-    if psql "$pg_superuser_url" -c "SELECT 1" &>/dev/null; then
-      echo "OK:   Database '$pg_db' exists"
-    else
-      # Connect to 'postgres' maintenance DB to create the test DB
-      # (URI parsing so query params like ?sslmode=require are preserved)
-      local pg_maintenance_url createdb_output
-      pg_maintenance_url=$(ruby -ruri -e 'uri = URI(ARGV.fetch(0)); uri.path = "/postgres"; puts uri.to_s' "$pg_superuser_url")
-      createdb_output=$(psql "$pg_maintenance_url" -c "CREATE DATABASE \"$pg_db\"" 2>&1) || {
-        if echo "$createdb_output" | grep -q "already exists"; then
-          echo "OK:   Database '$pg_db' already exists"
-        else
-          echo "Error: Failed to create database '$pg_db': $createdb_output"
-          exit 1
-        fi
-      }
-      echo "OK:   Created database '$pg_db'"
-    fi
-
-    # Run the shared provisioning script (roles, grants, schema reset)
-    psql "$pg_superuser_url" -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
-    echo "OK:   PostgreSQL roles and grants provisioned"
-  else
-    echo "Skip: PostgreSQL setup (only needed for integration tests)."
-    echo "  Set AUTH_DATABASE_URL_TEST_SUPERUSER (or add it to .env.test) and install psql to enable."
-  fi
+  echo "OK:   PostgreSQL test database provisions itself in-container (initdb)."
 
   # --- Smoke test ------------------------------------------------------
 
@@ -556,8 +515,9 @@ cmd_test() {
 
   echo "---"
   echo "Test environment ready."
-  echo "  RSpec:  pnpm run test:rspec:fast"
+  echo "  Ruby:   tests/lanes/run unit   (all lanes: tests/lanes/run --list)"
   echo "  Vitest: pnpm test"
+  echo "  Stop services:           docker compose -f compose.test.yml down"
   echo "  Switch back to dev mode: bin/setup"
 }
 
@@ -1315,8 +1275,8 @@ Every lane is idempotent — safe to re-run at any time.
 Lanes:
   --dev        Dev environment: deps, config, secrets, generated artifacts,
                git hooks. Removes .test-mode (returns to dev mode). [default]
-  --test       Test lane: throwaway datastore on :2163, .test-mode marker,
-               config smoke test. Then: pnpm run test:rspec:fast / pnpm test
+  --test       Test lane: containerized test services, .test-mode marker,
+               config smoke test. Then: tests/lanes/run unit / pnpm test
   --init       Self-hosting init: env file, secrets, install mark.
                Auto-reconciles when an environment already exists.
   --reconcile  Re-derive child keys and re-apply RabbitMQ policies.
