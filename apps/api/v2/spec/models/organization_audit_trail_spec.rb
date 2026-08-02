@@ -450,6 +450,20 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(event.keys).not_to include('domain_id', 'domain')
     end
 
+    it 'omits the domain key when domain_id is set without a share_domain' do
+      # A writer outside spawn_pair (migration, admin tool) can stamp
+      # domain_id alone; the absent-not-null contract applies per key, so
+      # the event must not carry 'domain' => nil.
+      receipt.domain_id = domain_id
+      receipt.save_fields(:domain_id)
+
+      receipt.record_org_audit_event('created')
+
+      event = org.audit_events_page.first
+      expect(event['domain_id']).to eq(domain_id[0, 8])
+      expect(event.keys).not_to include('domain')
+    end
+
     it 'omits both keys when share_domain is set without a registered domain' do
       # index_receipt_to_domain can stamp share_domain with no CustomDomain
       # resolved; the trail must not fabricate a domain_id-less "custom

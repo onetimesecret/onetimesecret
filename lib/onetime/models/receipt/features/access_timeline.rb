@@ -130,7 +130,12 @@ module Onetime::Receipt::Features
         domain_attrs = if domain_id.to_s.empty?
                          {}
                        else
-                         { 'domain_id' => domain_id.to_s.slice(0, 8), 'domain' => share_domain }
+                         # share_domain can be unset even when domain_id is
+                         # stamped (writers outside spawn_pair); the
+                         # absent-not-null contract applies per key.
+                         attrs           = { 'domain_id' => domain_id.to_s.slice(0, 8) }
+                         attrs['domain'] = share_domain unless share_domain.to_s.empty?
+                         attrs
                        end
 
         organization.record_audit_event(
