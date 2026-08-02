@@ -14,11 +14,11 @@
 #
 # PORT SCHEME: every test service publishes on 127.0.0.1 with a port that
 # starts with 21. New services take "21 + last two digits of the canonical
-# port"; valkey predates the scheme and keeps its established 2121:
+# port"; valkey predates the scheme and keeps its established 2163:
 #
-#   valkey     2121   (canonical 6379; grandfathered, not 2179)
-#   postgres   2132   (canonical 5432)
-#   rabbitmq   2172   (canonical 5672)
+#   valkey     2163   (canonical 6379; grandfathered, not 2179)
+#   postgres   2154   (canonical 5432)
+#   rabbitmq   2156   (canonical 5672)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
 # a test service and a test run can never reach dev data. If a URL in the
@@ -35,7 +35,7 @@ services:
     # No persistence: test data is disposable by design.
     command: ['valkey-server', '--save', '', '--appendonly', 'no']
     ports:
-      - '127.0.0.1:2121:6379'
+      - '127.0.0.1:2163:6379'
     healthcheck:
       test: ['CMD', 'valkey-cli', 'ping']
       interval: 10s
@@ -56,7 +56,7 @@ services:
     tmpfs:
       - /var/lib/postgresql/data
     ports:
-      - '127.0.0.1:2132:5432'
+      - '127.0.0.1:2154:5432'
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'postgres']
       interval: 10s
@@ -66,7 +66,7 @@ services:
   rabbitmq:
     image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
     ports:
-      - '127.0.0.1:2172:5672'
+      - '127.0.0.1:2156:5672'
     healthcheck:
       test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
       interval: 10s

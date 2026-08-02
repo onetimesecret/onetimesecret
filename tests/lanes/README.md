@@ -27,16 +27,16 @@ CI provides it as a build artifact.
 
 ## Lanes
 
-| Lane              | Services                   | Runs                                                  | CI job                                  |
-| ----------------- | -------------------------- | ----------------------------------------------------- | --------------------------------------- |
-| `unit`            | valkey, rabbitmq           | `try:unit`, `spec:fast`                               | ruby-unit (T2)                          |
-| `simple`          | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`   | ruby-integration-simple (T3)            |
-| `full-sqlite`     | valkey, rabbitmq           | `spec:integration:full`                               | ruby-integration-full — SQLite rows     |
-| `full-pg`         | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                      | ruby-integration-full — PG rows         |
-| `full-pg-agnostic`| valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                | ruby-integration-full — PG agnostic rows|
-| `disabled`        | valkey, rabbitmq           | `spec:integration:disabled`                           | ruby-integration-disabled (T3)          |
-| `api`             | valkey                     | `spec:api`                                            | non-blocking step, T3 simple job        |
-| `smoke`           | valkey                     | `pnpm test:smoke`                                     | smoke-test (T3)                         |
+| Lane               | Services                   | Runs                                                | CI job                                   |
+| ------------------ | -------------------------- | --------------------------------------------------- | ---------------------------------------- |
+| `unit`             | valkey, rabbitmq           | `try:unit`, `spec:fast`                             | ruby-unit (T2)                           |
+| `simple`           | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3)             |
+| `full-sqlite`      | valkey, rabbitmq           | `spec:integration:full`                             | ruby-integration-full — SQLite rows      |
+| `full-pg`          | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                    | ruby-integration-full — PG rows          |
+| `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`              | ruby-integration-full — PG agnostic rows |
+| `disabled`         | valkey, rabbitmq           | `spec:integration:disabled`                         | ruby-integration-disabled (T3)           |
+| `api`              | valkey                     | `spec:api`                                          | non-blocking step, T3 simple job         |
+| `smoke`            | valkey                     | `pnpm test:smoke`                                   | smoke-test (T3)                          |
 
 The billing matrix rows are the same lanes with `--overlay billing`.
 
@@ -51,18 +51,17 @@ have no lanes — run them via pnpm directly.
 
 ## Ports: the 21 rule
 
-Every test service publishes on `127.0.0.1` with a port starting with
-21. New services take "21 + last two digits of the canonical port";
-valkey predates the scheme and keeps its established 2121. Dev services
+Every test service publishes on `127.0.0.1` with a port starting with 21. New services take "21 + last two digits of the canonical port";
+valkey predates the scheme and keeps its established 2163. Dev services
 keep canonical ports. A leaked dev config therefore cannot reach a test
 service, and a test run cannot reach dev data. This plus the hermetic
 runner is the answer to "tests wiped my dev database".
 
-| Service  | Test port | Canonical                |
-| -------- | --------- | ------------------------ |
-| valkey   | 2121      | 6379 (port grandfathered)|
-| postgres | 2132      | 5432                     |
-| rabbitmq | 2172      | 5672                     |
+| Service  | Test port | Canonical                 |
+| -------- | --------- | ------------------------- |
+| valkey   | 2163      | 6379 (port grandfathered) |
+| postgres | 2154      | 5432                      |
+| rabbitmq | 2156      | 5672                      |
 
 Port mappings are defined **only** in `compose.test.yml`. The env files
 here carry matching URLs; if a URL in this tree doesn't point at a 21xx
@@ -91,8 +90,8 @@ overlays for a shell session: `echo billing > .overlays` (gitignored).
    JSON schemas) so "works in CI, fails locally" can't come from a
    missing pre-step.
 4. Gating policy (blocking vs. advisory, parallelism, artifacts,
-   reporting) belongs to CI. Lanes define *what runs in which
-   environment*; the workflow decides what it means when a lane fails.
+   reporting) belongs to CI. Lanes define _what runs in which
+   environment_; the workflow decides what it means when a lane fails.
 
 ## CI adoption status
 
