@@ -44,9 +44,9 @@ require 'securerandom'
 
 # Pre-boot env: same shape as protocol_spec so the two can run in the same
 # rspec invocation (boot is memoized; first writer wins on AUTH_OAUTH_ENABLED).
-ENV['AUTH_OAUTH_ENABLED']        = 'true'
-ENV['OAUTH_ISSUER']              ||= 'http://localhost:3000/auth'
-ENV['OAUTH_JWT_RSA_PRIVATE_KEY'] ||= OpenSSL::PKey::RSA.new(2048).to_pem
+ENV['AUTH_OAUTH_ENABLED']           = 'true'
+ENV['OAUTH_ISSUER']               ||= 'http://localhost:3000/auth'
+ENV['OAUTH_JWT_RSA_PRIVATE_KEY']  ||= OpenSSL::PKey::RSA.new(2048).to_pem
 ENV['OAUTH_SP_DEV_CLIENT_SECRET'] ||= "spec-sp-secret-#{SecureRandom.hex(12)}"
 
 ENV['AUTHENTICATION_MODE'] ||= 'full'
@@ -60,7 +60,7 @@ require 'digest'
 require 'json'
 require 'jwt'
 
-RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: true do
+RSpec.describe 'OAuth/OIDC IdP endpoints', :sqlite_database, type: :integration do
   let(:client_id)     { 'onetimesecret-sp-dev' }
   let(:client_secret) { ENV.fetch('OAUTH_SP_DEV_CLIENT_SECRET') }
   let(:redirect_uri)  { 'http://localhost:3000/auth/sso/local/callback' }
@@ -70,6 +70,8 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
   let(:code_challenge) do
     Base64.urlsafe_encode64(Digest::SHA256.digest(code_verifier), padding: false)
   end
+  let(:created_account_ids) { [] }
+  let(:created_grant_ids)   { [] }
 
   before(:all) do
     boot_onetime_app
@@ -81,20 +83,15 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
         without AUTH_OAUTH_ENABLED.
       MSG
     end
-
-    # Re-seed the dev SP client if a prior test truncated it.
-    unless auth_db[:oauth_applications].where(client_id: 'onetimesecret-sp-dev').any?
-      require 'auth/initializers/seed_dev_oauth_client'
-      Auth::Initializers::SeedDevOAuthClient.new.execute(nil)
-    end
   end
 
-  let(:created_account_ids) { [] }
-  let(:created_grant_ids)   { [] }
+  # Per-example, not before(:all): on PostgreSQL clear_auth_database's
+  # TRUNCATE ... CASCADE takes oauth_applications with it (FK to accounts).
+  before { ensure_dev_oauth_client! }
 
   after do
-    auth_db[:oauth_grants].where(id: created_grant_ids).delete    unless created_grant_ids.empty?
-    auth_db[:accounts].where(id: created_account_ids).delete     unless created_account_ids.empty?
+    auth_db[:oauth_grants].where(id: created_grant_ids).delete unless created_grant_ids.empty?
+    auth_db[:accounts].where(id: created_account_ids).delete unless created_account_ids.empty?
   end
 
   # ─── Helpers (kept small; mostly duplicated from protocol_spec to keep the
@@ -102,7 +99,7 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
 
   def create_verified_account
     email = "oauth-ep-#{SecureRandom.hex(6)}@example.com"
-    id = auth_db[:accounts].insert(
+    id    = auth_db[:accounts].insert(
       email: email,
       status_id: 2,
       created_at: Time.now,
@@ -116,7 +113,7 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
                               challenge: code_challenge, method: 'S256',
                               expires_at: Time.now + 300)
     app_id = auth_db[:oauth_applications].where(client_id: client_id).get(:id)
-    code = SecureRandom.urlsafe_base64(32)
+    code   = SecureRandom.urlsafe_base64(32)
 
     grant_id = auth_db[:oauth_grants].insert(
       account_id: account_id,
@@ -230,8 +227,12 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
     it 'returns 401 invalid_client when client_id is unknown' do
       grant = seed_authorization_code(account_id: account[:id])
       post_token(
-        { grant_type: 'authorization_code', code: grant[:code],
-          redirect_uri: redirect_uri, code_verifier: code_verifier },
+        {
+          grant_type: 'authorization_code',
+          code: grant[:code],
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
         authorization: basic_auth_header(id: 'no-such-client'),
       )
 
@@ -242,8 +243,12 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
     it 'returns 401 invalid_client when client_secret is wrong' do
       grant = seed_authorization_code(account_id: account[:id])
       post_token(
-        { grant_type: 'authorization_code', code: grant[:code],
-          redirect_uri: redirect_uri, code_verifier: code_verifier },
+        {
+          grant_type: 'authorization_code',
+          code: grant[:code],
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
         authorization: basic_auth_header(secret: 'wrong-secret'),
       )
 
@@ -254,8 +259,12 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
     it 'returns 401 invalid_client when no Authorization header is provided' do
       grant = seed_authorization_code(account_id: account[:id])
       post_token(
-        { grant_type: 'authorization_code', code: grant[:code],
-          redirect_uri: redirect_uri, code_verifier: code_verifier },
+        {
+          grant_type: 'authorization_code',
+          code: grant[:code],
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
         authorization: nil,
       )
 
@@ -265,8 +274,12 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
 
     it 'sets WWW-Authenticate on the 401 response' do
       post_token(
-        { grant_type: 'authorization_code', code: 'irrelevant',
-          redirect_uri: redirect_uri, code_verifier: code_verifier },
+        {
+          grant_type: 'authorization_code',
+          code: 'irrelevant',
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
         authorization: nil,
       )
 
@@ -281,10 +294,14 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
 
     it 'rejects an unknown grant_type' do
       grant = seed_authorization_code(account_id: account[:id])
-      post_token({ grant_type: 'password',
-                   code: grant[:code],
-                   redirect_uri: redirect_uri,
-                   code_verifier: code_verifier })
+      post_token(
+        {
+          grant_type: 'password',
+          code: grant[:code],
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
+      )
 
       expect(last_response.status).to be_between(400, 499),
         "Body: #{last_response.body}"
@@ -295,19 +312,27 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
 
     it 'rejects a missing grant_type' do
       grant = seed_authorization_code(account_id: account[:id])
-      post_token({ code: grant[:code],
-                   redirect_uri: redirect_uri,
-                   code_verifier: code_verifier })
+      post_token(
+        {
+          code: grant[:code],
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
+      )
 
       expect(last_response.status).to be_between(400, 499),
         "Body: #{last_response.body}"
-      expect(parse_error(last_response)['error']).to match(/invalid_request/)
+      expect(parse_error(last_response)['error']).to include('invalid_request')
     end
 
     it 'rejects an authorization_code grant with no code' do
-      post_token({ grant_type: 'authorization_code',
-                   redirect_uri: redirect_uri,
-                   code_verifier: code_verifier })
+      post_token(
+        {
+          grant_type: 'authorization_code',
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
+      )
 
       expect(last_response.status).to be_between(400, 499),
         "Body: #{last_response.body}"
@@ -316,10 +341,14 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
 
     it 'rejects a mismatched redirect_uri at /token' do
       grant = seed_authorization_code(account_id: account[:id])
-      post_token({ grant_type: 'authorization_code',
-                   code: grant[:code],
-                   redirect_uri: 'http://attacker.example.com/callback',
-                   code_verifier: code_verifier })
+      post_token(
+        {
+          grant_type: 'authorization_code',
+          code: grant[:code],
+          redirect_uri: 'http://attacker.example.com/callback',
+          code_verifier: code_verifier,
+        },
+      )
 
       expect(last_response.status).to be_between(400, 499),
         "Body: #{last_response.body}"
@@ -327,10 +356,14 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
     end
 
     it 'rejects an unknown authorization code' do
-      post_token({ grant_type: 'authorization_code',
-                   code: "no-such-code-#{SecureRandom.hex(8)}",
-                   redirect_uri: redirect_uri,
-                   code_verifier: code_verifier })
+      post_token(
+        {
+          grant_type: 'authorization_code',
+          code: "no-such-code-#{SecureRandom.hex(8)}",
+          redirect_uri: redirect_uri,
+          code_verifier: code_verifier,
+        },
+      )
 
       expect(last_response.status).to be_between(400, 499),
         "Body: #{last_response.body}"
@@ -342,7 +375,7 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
 
       expect(last_response.status).to be_between(400, 499),
         "Body: #{last_response.body}"
-      expect(parse_error(last_response)['error']).to match(/invalid_request/)
+      expect(parse_error(last_response)['error']).to include('invalid_request')
     end
   end
 

@@ -61,9 +61,9 @@
 require 'openssl'
 require 'securerandom'
 
-ENV['AUTH_OAUTH_ENABLED']        = 'true'
-ENV['OAUTH_ISSUER']              ||= 'http://localhost:3000/auth'
-ENV['OAUTH_JWT_RSA_PRIVATE_KEY'] ||= OpenSSL::PKey::RSA.new(2048).to_pem
+ENV['AUTH_OAUTH_ENABLED']           = 'true'
+ENV['OAUTH_ISSUER']               ||= 'http://localhost:3000/auth'
+ENV['OAUTH_JWT_RSA_PRIVATE_KEY']  ||= OpenSSL::PKey::RSA.new(2048).to_pem
 ENV['OAUTH_SP_DEV_CLIENT_SECRET'] ||= "spec-sp-secret-#{SecureRandom.hex(12)}"
 
 ENV['AUTHENTICATION_MODE'] ||= 'full'
@@ -77,7 +77,7 @@ require 'digest'
 require 'json'
 require 'jwt'
 
-RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: true do
+RSpec.describe 'OAuth/OIDC IdP protocol', :sqlite_database, type: :integration do
   # Seeded dev SP credentials (see apps/web/auth/initializers/seed_dev_oauth_client.rb).
   # We pin client_id / redirect_uri to the values the seed inserts so the IdP's
   # exact-match validation on /token redirect_uri succeeds.
@@ -91,6 +91,10 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
   let(:code_challenge) do
     Base64.urlsafe_encode64(Digest::SHA256.digest(code_verifier), padding: false)
   end
+  # Tracks rows we insert so we can clean up after each test without taking
+  # out unrelated fixtures.
+  let(:created_account_ids) { [] }
+  let(:created_grant_ids)   { [] }
 
   before(:all) do
     boot_onetime_app
@@ -108,23 +112,17 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
         AUTH_OAUTH_ENABLED=true before the first boot.
       MSG
     end
-
-    # The dev SP client is seeded by the boot initializer chain. If it's
-    # missing (e.g. a prior test truncated oauth_applications), re-seed.
-    unless auth_db[:oauth_applications].where(client_id: 'onetimesecret-sp-dev').any?
-      require 'auth/initializers/seed_dev_oauth_client'
-      Auth::Initializers::SeedDevOAuthClient.new.execute(nil)
-    end
   end
 
-  # Tracks rows we insert so we can clean up after each test without taking
-  # out unrelated fixtures.
-  let(:created_account_ids) { [] }
-  let(:created_grant_ids)   { [] }
+  # The dev SP client is seeded by the boot initializer chain; re-seed when a
+  # cleanup took it out. Per-example, not before(:all): on PostgreSQL
+  # clear_auth_database's TRUNCATE ... CASCADE takes oauth_applications with it
+  # (FK to accounts), so a once-per-file seed survives only the first example.
+  before { ensure_dev_oauth_client! }
 
   after do
-    auth_db[:oauth_grants].where(id: created_grant_ids).delete    unless created_grant_ids.empty?
-    auth_db[:accounts].where(id: created_account_ids).delete     unless created_account_ids.empty?
+    auth_db[:oauth_grants].where(id: created_grant_ids).delete unless created_grant_ids.empty?
+    auth_db[:accounts].where(id: created_account_ids).delete unless created_account_ids.empty?
   end
 
   # Inserts a verified account directly. Skipping the rodauth login flow is
@@ -132,7 +130,7 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
   # the oauth_grants row's account_id column.
   def create_verified_account
     email = "oauth-test-#{SecureRandom.hex(6)}@example.com"
-    id = auth_db[:accounts].insert(
+    id    = auth_db[:accounts].insert(
       email: email,
       status_id: 2, # Verified — see migrations/001_initial.rb account_statuses seed
       created_at: Time.now,
@@ -149,9 +147,9 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
                               challenge: code_challenge, method: 'S256',
                               expires_at: Time.now + 300)
     app_id = auth_db[:oauth_applications]
-             .where(client_id: client_id)
-             .get(:id)
-    code = SecureRandom.urlsafe_base64(32)
+      .where(client_id: client_id)
+      .get(:id)
+    code   = SecureRandom.urlsafe_base64(32)
 
     grant_id = auth_db[:oauth_grants].insert(
       account_id: account_id,
@@ -182,12 +180,13 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
     header 'Host', 'localhost:3000'
     header 'Authorization', basic_auth_header
     header 'Accept', 'application/json'
-    post '/auth/token', {
-      grant_type:    'authorization_code',
-      code:          code,
-      redirect_uri:  redirect,
-      code_verifier: verifier,
-    }
+    post '/auth/token',
+      {
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: redirect,
+        code_verifier: verifier,
+      }
   end
 
   # ─── Discovery & JWKS ──────────────────────────────────────────────────────
@@ -230,7 +229,7 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
       keys = JSON.parse(last_response.body)['keys']
       expect(keys).to be_an(Array)
       expect(keys.size).to be >= 1
-      key = keys.first
+      key  = keys.first
       expect(key['kty']).to eq('RSA')
       expect(key['alg']).to eq('RS256')
       expect(key['kid']).not_to be_empty
@@ -248,7 +247,7 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
     # apps/web/auth/spec/config/features/omniauth_providers_spec.rb.
     it 'registers the :local provider with the expected options' do
       registered = []
-      auth = double('auth')
+      auth       = double('auth')
       allow(auth).to receive(:omniauth_provider) { |strategy, opts| registered << [strategy, opts] }
 
       Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
@@ -316,7 +315,7 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
       post_token(code: grant[:code])
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
 
-      id_token = JSON.parse(last_response.body).fetch('id_token')
+      id_token   = JSON.parse(last_response.body).fetch('id_token')
       public_key = OpenSSL::PKey::RSA.new(ENV.fetch('OAUTH_JWT_RSA_PRIVATE_KEY')).public_key
 
       payload, jwt_header = JWT.decode(id_token, public_key, true, algorithm: 'RS256')
@@ -331,12 +330,12 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
       grant = seed_authorization_code(account_id: account[:id])
       post_token(code: grant[:code])
 
-      id_token = JSON.parse(last_response.body).fetch('id_token')
+      id_token    = JSON.parse(last_response.body).fetch('id_token')
       payload, _h = JWT.decode(id_token, nil, false)
 
       # `email_verified` and `email` come from get_oidc_param in hooks/oauth.rb.
       expect(payload['email']).to eq(account[:email])
-      expect(payload['email_verified']).to eq(true)
+      expect(payload['email_verified']).to be(true)
     end
   end
 
@@ -390,7 +389,11 @@ RSpec.describe 'OAuth/OIDC IdP protocol', type: :integration, sqlite_database: t
   # The gem can either render a JSON error or redirect with ?error=... in
   # the Location header; this helper normalizes both shapes for assertions.
   def parse_body_or_location(response)
-    return JSON.parse(response.body) if response.body.start_with?('{') rescue nil
+    begin
+      return JSON.parse(response.body) if response.body.start_with?('{')
+    rescue StandardError
+      nil
+    end
 
     if response.headers['Location']
       query = URI.parse(response.headers['Location']).query.to_s
