@@ -119,7 +119,7 @@ module Onetime::Secret::Features
           # memory state, so @state must be restored explicitly.
           compare_and_set_state!(prior_state, [:revealed])
           @state = prior_state
-          record_reveal_failed_undecryptable
+          record_reveal_failed_undecryptable(actor_context)
           raise Onetime::SecretUndecryptable
         end
 
@@ -192,8 +192,12 @@ module Onetime::Secret::Features
       # event out to the org audit trail through the receipt, same
       # rescue-and-log posture as the rest of AccessTimeline — a failure here
       # must never mask the SecretUndecryptable the caller is about to see.
-      def record_reveal_failed_undecryptable
-        load_receipt&.record_org_audit_event('reveal_failed_undecryptable')
+      # The actor context reveal! already threads rides along so even a
+      # failed attempt is attributed (#3637); validation is centralized in
+      # AccessTimeline#record_org_audit_event.
+      def record_reveal_failed_undecryptable(actor_context = nil)
+        attrs = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
+        load_receipt&.record_org_audit_event('reveal_failed_undecryptable', **attrs)
       rescue StandardError => ex
         OT.le "[reveal-rollback] #{ex.class}: #{ex.message} (secret=#{shortid})"
         nil
