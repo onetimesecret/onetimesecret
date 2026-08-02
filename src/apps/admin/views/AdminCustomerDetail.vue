@@ -1,11 +1,12 @@
 <!-- src/apps/admin/views/AdminCustomerDetail.vue -->
 
 <script setup lang="ts">
-
+  import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
+  import AdminCheckoutLinkModal from '@/apps/admin/components/AdminCheckoutLinkModal.vue';
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
-  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
+  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
@@ -100,7 +101,9 @@
    */
   const planOptions = computed(() => {
     const options = [...availablePlans.value]
-      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0) || a.name.localeCompare(b.name))
+      .sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0) || a.name.localeCompare(b.name)
+      )
       .map((p) => ({ planid: p.planid, label: `${p.name} (${p.planid})` }));
     const current = record.value?.planid;
     if (current && !options.some((o) => o.planid === current)) {
@@ -154,11 +157,7 @@
   ): Promise<void> {
     const response =
       method === 'delete' ? await $api.delete(path) : await $api.post(path, body ?? {});
-    gracefulParse(
-      colonelUserMutationResponseSchema,
-      response.data,
-      'ColonelUserMutationResponse'
-    );
+    gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
   }
 
   const {
@@ -388,9 +387,7 @@
       {
         key: 'updated',
         label: t('web.admin.customers.detail.fields.updated'),
-        value: r.updated
-          ? formatDisplayDateTime(r.updated)
-          : t('web.admin.customers.detail.never'),
+        value: r.updated ? formatDisplayDateTime(r.updated) : t('web.admin.customers.detail.never'),
       },
       {
         key: 'lastLogin',
@@ -506,6 +503,12 @@
     ];
   });
 
+  // ---- Create checkout link (form modal, not the confirm-dialog flow) -------
+  // Needs INPUTS (plan family + cycle + toggles), so it lives in its own
+  // AdminModal instead of the ActionKey/AdminConfirmDialog switch; the modal
+  // owns its POST + result presentation (URL + copy + expiry).
+  const checkoutLinkOpen = ref(false);
+
   function goBack(): void {
     router.push({ name: 'AdminCustomers' });
   }
@@ -602,7 +605,8 @@
       class="space-y-6"
       data-testid="detail-content">
       <!-- Header -->
-      <div class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <div
+        class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           <RevealEmail :email="record.email" />
         </h2>
@@ -689,14 +693,17 @@
               v-for="field in profileFields"
               :key="field.key"
               :data-testid="`profile-${field.key}`">
-              <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              <dt
+                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ field.label }}
               </dt>
               <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
                 <RevealEmail
                   v-if="field.key === 'email'"
                   :email="record.email" />
-                <template v-else>{{ field.value }}</template>
+                <template v-else>
+                  {{ field.value }}
+                </template>
               </dd>
             </div>
           </dl>
@@ -903,7 +910,8 @@
             v-for="field in billingFields"
             :key="field.key"
             :data-testid="`billing-${field.key}`">
-            <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            <dt
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ field.label }}
             </dt>
             <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
@@ -911,7 +919,8 @@
             </dd>
           </div>
         </dl>
-        <div class="border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
           <!-- Deep link into the Stripe dashboard when the live read worked. -->
           <a
             v-if="billing.stripe.available && billing.stripe.dashboard_url"
@@ -943,6 +952,21 @@
             data-testid="billing-disabled">
             {{ t('web.admin.customers.detail.billing.notConfigured') }}
           </p>
+          <!-- Colonel-built Stripe Checkout session for this customer.
+               Hidden when billing is disabled: the colonel endpoint's
+               configuration_guard fails every request in that state. -->
+          <button
+            v-if="billing.enabled"
+            type="button"
+            data-testid="checkout-link-button"
+            class="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click="checkoutLinkOpen = true">
+            <OIcon
+              collection="heroicons"
+              name="link"
+              size="4" />
+            {{ t('web.admin.customers.actions.checkoutLink.button') }}
+          </button>
         </div>
       </section>
 
@@ -952,7 +976,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.secrets') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.secrets.count }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.secrets.count }})</span
+            >
           </h3>
           <!-- The server told us this list is PARTIAL. Say so plainly — the
                count beside the heading is what is on screen, not the total. -->
@@ -980,7 +1006,11 @@
             {{ formatDisplayDateTime(row.created) }}
           </template>
           <template #cell-expiration="{ row }">
-            {{ row.expiration ? formatDisplayDateTime(row.expiration) : t('web.admin.customers.detail.never') }}
+            {{
+              row.expiration
+                ? formatDisplayDateTime(row.expiration)
+                : t('web.admin.customers.detail.never')
+            }}
           </template>
         </DataTable>
       </section>
@@ -991,7 +1021,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.receipts') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.receipts.count }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.receipts.count }})</span
+            >
           </h3>
           <p
             v-if="details.receipts.truncated"
@@ -1025,7 +1057,9 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.organizations.length }})</span>
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.organizations.length }})</span
+            >
           </h3>
         </div>
         <ul
@@ -1061,7 +1095,20 @@
       <!-- Active sessions (SIDECAR view — SessionMetadata safe_dump, no token/
            payload can appear). Guarded per-row revoke logs the user out. -->
       <AdminCustomerSessionsSection :user-id="publicId" />
+
+      <!-- Account auth diagnostics (READ-ONLY) — why can't this user log in /
+           sign up. Same read-out as `bin/ots customers diagnose`. -->
+      <AdminAccountDiagnosticsSection :user-id="publicId" />
     </div>
+
+    <!-- Create-checkout-link form modal (plan/cycle/toggles → URL + copy). -->
+    <AdminCheckoutLinkModal
+      v-if="record"
+      v-model:open="checkoutLinkOpen"
+      :endpoint="`${userUrl()}/checkout-link`"
+      :subject="publicId"
+      :plans="planOptions"
+      :default-plan="record.planid" />
 
     <!-- Shared guarded-action dialog (typed-confirm for purge + suspend). -->
     <AdminConfirmDialog

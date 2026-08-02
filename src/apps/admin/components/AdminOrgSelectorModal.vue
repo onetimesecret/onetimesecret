@@ -19,8 +19,8 @@
    * (contact / owner / billing) via `GET /api/colonel/organizations?search=` and
    * lets the operator select one. Emits the chosen {@link ColonelOrganization}
    * and closes. Deliberately self-contained — it owns its own paginated fetch
-   * (NOT the shared `useAdminOrganizations` store) so dropping it onto any admin
-   * screen never bleeds picker state into that screen's org list.
+   * (NOT the Organizations screen's {@link useOrganizationsList}) so dropping it
+   * onto any admin screen never bleeds picker state into that screen's org list.
    */
   const props = defineProps<{
     /** Whether the picker is shown (use with `v-model:open`). */

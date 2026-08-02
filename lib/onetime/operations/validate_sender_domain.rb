@@ -301,7 +301,7 @@ module Onetime
         @mailer_config.updated             = Familia.now.to_i
         # Partial save: only write verification fields, not the full record.
         # A full save would overwrite api_key with stale in-memory ciphertext
-        # if a concurrent rotate_credentials call updated it since we loaded.
+        # if a concurrent write updated it since we loaded.
         @mailer_config.save_fields(:verification_status, :verified_at, :updated)
 
         true

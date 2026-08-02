@@ -149,6 +149,119 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(result['features']).to have_key('sso')
     end
 
+    # 2026-07-29 API audit, item 4. V2 silently clamps an anonymous secret's
+    # TTL; the web UI's duration dropdown (usePrivacyOptions.ts) filters
+    # against this published value so it stops offering durations the caller
+    # will never get. Must track the same ladder anonymous_max_ttl walks:
+    # configured ceiling (default 7 days), then the free-tier limit when
+    # billing is enabled.
+    describe 'secret_options.ttl_max_anonymous' do
+      let(:default_ceiling) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
+
+      let(:ttl_view_vars) do
+        base_view_vars.merge(
+          'site' => base_view_vars['site'].merge(
+            'secret_options' => { 'default_ttl' => 86_400, 'ttl_options' => [3600, 2_592_000] }
+          )
+        )
+      end
+
+      def secret_options
+        described_class.serialize(ttl_view_vars)['secret_options']
+      end
+
+      # Stub the resolved config key rather than OT.conf, so these specs pin the
+      # serializer's ladder and not the config layer's ERB/alias plumbing.
+      def stub_configured_ceiling(seconds)
+        allow(Onetime::Models::Features::WithEntitlements)
+          .to receive(:configured_anonymous_max_ttl).and_return(seconds)
+      end
+
+      it 'defaults below the free-tier ceiling' do
+        expect(default_ceiling).to be < Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+      end
+
+      context 'when billing is enabled' do
+        before do
+          allow(OT.billing_config).to receive(:enabled?).and_return(true)
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 1_209_600 })
+        end
+
+        it 'publishes the configured ceiling alongside the configured options' do
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
+          expect(secret_options['ttl_options']).to eq([3600, 2_592_000])
+        end
+
+        it 'lets the free-tier limit lower the ceiling' do
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 86_400 })
+
+          expect(secret_options['ttl_max_anonymous']).to eq(86_400)
+        end
+
+        # The audit invariant, holding where tiers exist: an operator who raises
+        # the anonymous ceiling above the free-tier limit must not widen the
+        # dropdown past what a signed-in free-tier user can get.
+        it 'caps a raised ceiling at the free-tier limit' do
+          stub_configured_ceiling(2_592_000)
+
+          expect(secret_options['ttl_max_anonymous']).to eq(1_209_600)
+        end
+
+        it 'reads a non-positive free-tier limit as "unset" and keeps the ceiling' do
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 0 })
+
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
+        end
+
+        it 'drops only the free-tier term, not the ceiling, when the lookup raises' do
+          allow(Onetime::Organization).to receive(:free_tier_limits).and_raise(
+            StandardError, 'billing config unreadable'
+          )
+          allow(OT).to receive(:le)
+
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
+          expect(OT).to have_received(:le).with(
+            a_string_matching(/free-tier TTL limit unavailable/)
+          )
+        end
+
+        it 'does not mutate the site config hash' do
+          site_options = ttl_view_vars['site']['secret_options']
+          secret_options
+
+          expect(site_options).not_to have_key('ttl_max_anonymous')
+        end
+      end
+
+      context 'when billing is disabled (self-hosted)' do
+        before { allow(OT.billing_config).to receive(:enabled?).and_return(false) }
+
+        # The ceiling is about anonymous callers, not about whether the
+        # deployment sells plans, so this is emitted rather than omitted.
+        it 'still publishes the configured ceiling' do
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
+        end
+
+        it 'ignores the free-tier limit entirely' do
+          allow(Onetime::Organization).to receive(:free_tier_limits)
+            .and_return({ 'secret_lifetime.max' => 60 })
+
+          expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
+        end
+
+        # Self-hosted sovereignty: with no free tier to invert against, the
+        # operator's raised ceiling reaches the dropdown unchanged.
+        it 'publishes a ceiling the operator raised above the default' do
+          stub_configured_ceiling(2_592_000)
+
+          expect(secret_options['ttl_max_anonymous']).to eq(2_592_000)
+        end
+      end
+    end
+
     describe 'brand_* bootstrap exposure' do
       let(:brand_view_vars) do
         base_view_vars.merge(
@@ -238,6 +351,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           brand_font_family
           brand_button_text_light
           brand_logo_url
+          brand_logo_dark_url
           brand_logo_alt
           brand_favicon_url
         ].each do |key|
@@ -256,6 +370,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           brand_font_family
           brand_button_text_light
           brand_logo_url
+          brand_logo_dark_url
           brand_logo_alt
           brand_favicon_url
         ].each do |key|
@@ -344,6 +459,26 @@ RSpec.describe Core::Views::ConfigSerializer do
           })
         end
       end
+
+      context 'when platform SSO is enabled but AUTH_ENABLED is off' do
+        before do
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+          ])
+          # Master switch off: build_sso_config early-returns the disabled
+          # shape before consulting env-var provider config
+          # (build_platform_sso_config re-checks as defense in depth).
+          allow(OT).to receive(:conf).and_return(
+            { 'site' => { 'authentication' => { 'enabled' => false } } }
+          )
+        end
+
+        it 'returns disabled SSO with empty providers' do
+          result = described_class.build_sso_config(base_view_vars)
+          expect(result).to eq({ 'enabled' => false, 'providers' => [] })
+        end
+      end
     end
 
     describe 'on custom domain with CustomDomain::SsoConfig' do
@@ -362,6 +497,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Contoso Azure AD',
@@ -392,12 +528,28 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(mock_auth_config).not_to receive(:sso_providers)
           described_class.build_sso_config(custom_domain_view_vars)
         end
+
+        # Single-read contract: the availability check and the returned
+        # record must come from ONE find_by_domain_id call, so a concurrent
+        # disable/delete cannot pass the check on one read and hand back a
+        # stale (or nil) record on a second.
+        it 'loads the SsoConfig once and returns the record the availability check saw' do
+          expect(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .once
+            .and_return(domain_sso_config)
+
+          result = described_class.resolve_tenant_sso_config(custom_domain_view_vars)
+
+          expect(result).to be(domain_sso_config)
+        end
       end
 
       context 'when SigninConfig blocks SSO (sso_permitted_for? returns false)' do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: true,
             provider_type: 'oidc',
             display_name: 'Corp SSO',
@@ -454,6 +606,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: false,
             provider_type: 'entra_id',
             display_name: 'Contoso Azure AD'
@@ -539,6 +692,25 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['providers']).to eq([])
           end
         end
+
+        context 'with platform fallback allowed but AUTH_ENABLED off' do
+          before do
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'google', 'display_name' => 'Google' },
+            ])
+            allow(OT).to receive(:conf).and_return(
+              { 'site' => { 'authentication' => { 'enabled' => false } } }
+            )
+          end
+
+          it 'returns disabled SSO instead of platform fallback' do
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result).to eq({ 'enabled' => false, 'providers' => [] })
+          end
+        end
       end
     end
 
@@ -558,6 +730,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:domain_sso_config) do
           instance_double(
             Onetime::CustomDomain::SsoConfig,
+            domain_id: domain_id,
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Acme Corp Entra',
@@ -602,6 +775,153 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(result['enabled']).to be true
           expect(result['providers'][0]['display_name']).to eq('Fallback SSO')
         end
+      end
+    end
+  end
+
+  describe '.sso_available?' do
+    let(:custom_domain_obj) do
+      instance_double(Onetime::CustomDomain, identifier: domain_id)
+    end
+
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with(custom_display_domain)
+        .and_return(custom_domain_obj)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_providers).and_return([
+        { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+      ])
+    end
+
+    context 'when AUTH_ENABLED is on' do
+      it 'returns true via platform fallback on a custom domain' do
+        expect(described_class.sso_available?(custom_domain_view_vars)).to be true
+      end
+    end
+
+    context 'when AUTH_ENABLED is off' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => false } } }
+        )
+      end
+
+      it 'returns false on a custom domain with fallback allowed' do
+        expect(described_class.sso_available?(custom_domain_view_vars)).to be false
+      end
+
+      it 'returns false on the canonical domain' do
+        expect(described_class.sso_available?(base_view_vars)).to be false
+      end
+    end
+  end
+
+  describe '.resolve_signin' do
+    let(:custom_domain_obj) do
+      instance_double(Onetime::CustomDomain, identifier: domain_id)
+    end
+
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with(custom_display_domain)
+        .and_return(custom_domain_obj)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_providers).and_return([
+        { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+      ])
+    end
+
+    context 'when AUTH_ENABLED is on' do
+      it 'keeps signin available via platform SSO fallback' do
+        expect(described_class.resolve_signin(custom_domain_view_vars)).to be true
+      end
+    end
+
+    context 'when AUTH_ENABLED is off' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => false } } }
+        )
+      end
+
+      it 'no longer reports signin available via SSO' do
+        expect(described_class.resolve_signin(custom_domain_view_vars)).to be false
+      end
+    end
+  end
+
+  describe '.resolve_restrict_to' do
+    let(:custom_domain_obj) do
+      instance_double(Onetime::CustomDomain, identifier: domain_id)
+    end
+
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with(custom_display_domain)
+        .and_return(custom_domain_obj)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with(domain_id)
+        .and_return(nil)
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:sso_providers).and_return([
+        { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+      ])
+    end
+
+    context 'when AUTH_ENABLED is on' do
+      it "pins restrict_to to 'sso' on a custom domain with SSO available" do
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
+      end
+    end
+
+    context 'when AUTH_ENABLED is off' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => false } } }
+        )
+      end
+
+      it "does not pin restrict_to to 'sso'" do
+        result = described_class.resolve_restrict_to(custom_domain_view_vars)
+        expect(result).to be_nil
       end
     end
   end
@@ -999,7 +1319,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     it 'handles nil display_name gracefully' do
-      config = build_domain_sso_config(:github)
+      config = build_domain_sso_config(:oidc)
       allow(config).to receive(:display_name).and_return(nil)
 
       result = described_class.build_tenant_sso_response(config)

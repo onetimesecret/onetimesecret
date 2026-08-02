@@ -64,9 +64,12 @@ module Auth
     #      account_id in the dry-run.
     #
     # Only providers whose resolved issuer is non-'' (oidc, entra_id) can lock a
-    # user out. google/github resolve to the '' sentinel, so their legacy '' row
-    # still matches the exact lookup — those users are NOT locked out and this
-    # operation refuses to run for them.
+    # user out. Issuerless providers (google/github) resolved to the '' sentinel,
+    # so a legacy '' row still matched the exact lookup — those users were never
+    # locked out and this operation refuses to run for them. As of #3902 those
+    # provider types are no longer configurable on the tenant surface at all
+    # (SsoConfig::PROVIDER_TYPES is oidc/entra_id only), so the eligibility
+    # guard below is a defense-in-depth check against pre-#3902 stored records.
     #
     # Idempotent, dry-run by default. Mirrors BulkSsoMigration's conventions.
     #
@@ -80,8 +83,13 @@ module Auth
       IDENTITIES_TABLE = :account_identities
 
       # provider_type values whose live callback resolves a REAL (non-sentinel)
-      # issuer, and can therefore lock a pre-008 tenant user out. OAuth2 providers
-      # (google, github) resolve to '' — their legacy row already matches.
+      # issuer, and can therefore lock a pre-008 tenant user out. Issuerless
+      # OAuth2 providers (google, github) resolved to '' — their legacy rows
+      # already matched — and since #3902 they are no longer configurable
+      # tenant provider types, so this list now equals
+      # SsoConfig::PROVIDER_TYPES. Kept as an explicit local constant: the
+      # guard exists to refuse pre-#3902 stored records, independent of what
+      # the model currently accepts.
       ISSUER_BEARING_PROVIDER_TYPES = %w[oidc entra_id].freeze
 
       Result = Struct.new(
@@ -295,8 +303,10 @@ module Auth
       #                           #2 via omniauth_token_issuer). DERIVED — verify
       #                           against IdP metadata before --confirm, or pass
       #                           --issuer.
-      #   - google/github      -> resolves to '' at callback, so no lockout;
-      #                           refuse (nothing to backfill).
+      #   - anything else      -> a pre-#3902 issuerless record (google/github,
+      #                           since removed from PROVIDER_TYPES) resolved to
+      #                           '' at callback, so no lockout; refuse (nothing
+      #                           to backfill).
       def resolve_issuer(sso_config, override)
         return override.to_s.strip unless override.to_s.strip.empty?
 

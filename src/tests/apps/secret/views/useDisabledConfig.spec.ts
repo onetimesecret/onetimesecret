@@ -72,6 +72,16 @@ interface SetupOptions {
   ssoOnly?: boolean;
   /** Per-domain SSO enforcement (features.sso.enforce_sso_only). */
   enforceSsoOnly?: boolean;
+  // Logo sources
+  /** Tenant-uploaded logo URL (bootstrap.domain_logo — the backend-computed
+   *  /imagine URL identityStore surfaces as logoUri). */
+  tenantLogo?: string | null;
+  /** Install-wide light logo (brand.logo_url → bootstrap.brand_logo_url). */
+  installLogoUrl?: string | null;
+  /** Install-wide dark-theme logo (brand.logo_dark_url). */
+  installLogoDarkUrl?: string | null;
+  /** Operator alt text for the install logo (brand.logo_alt). */
+  installLogoAlt?: string | null;
 }
 
 /**
@@ -101,6 +111,10 @@ function setup(opts: SetupOptions = {}) {
   const bootstrap = useBootstrapStore();
   bootstrap.$patch({
     domain_branding: rawBranding,
+    domain_logo: opts.tenantLogo ?? null,
+    brand_logo_url: opts.installLogoUrl ?? undefined,
+    brand_logo_dark_url: opts.installLogoDarkUrl ?? undefined,
+    brand_logo_alt: opts.installLogoAlt ?? undefined,
     site_host: opts.siteHost ?? 'onetimesecret.com',
     billing_enabled: opts.billingEnabled ?? false,
     authentication: {
@@ -672,6 +686,82 @@ describe('useDisabledConfig', () => {
         displayDomain: 'zebra.example.com',
       });
       expect(config.props.monogramInitial).toBe('Z');
+    });
+  });
+
+  describe('logo resolution', () => {
+    const tenant = 'https://cdn.example.com/imagine/tenant.png';
+    const install = 'https://cdn.example.com/install-light.svg';
+    const installDark = 'https://cdn.example.com/install-dark.svg';
+
+    it('tenant logo wins over the install logo', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        tenantLogo: tenant,
+        installLogoUrl: install,
+        installLogoDarkUrl: installDark,
+        installLogoAlt: 'Acme Corp',
+      });
+      expect(config.props.logoUri).toBe(tenant);
+      // Install-only companions must not leak onto a tenant logo.
+      expect(config.props.logoDarkUri).toBeNull();
+      expect(config.props.logoAlt).toBeNull();
+    });
+
+    it('falls back to the install logo on canonical when no tenant logo', () => {
+      const { config } = setup({
+        domainStrategy: 'canonical',
+        tenantLogo: null,
+        installLogoUrl: install,
+      });
+      expect(config.props.logoUri).toBe(install);
+    });
+
+    it('is null when neither logo is configured (monogram/keyhole path)', () => {
+      const { config } = setup({ tenantLogo: null });
+      expect(config.props.logoUri).toBeNull();
+      expect(config.props.logoDarkUri).toBeNull();
+      expect(config.props.logoAlt).toBeNull();
+    });
+
+    it('does not surface the install logo on a custom domain (identity-leak guard)', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        tenantLogo: null,
+        installLogoUrl: install,
+        installLogoDarkUrl: installDark,
+        installLogoAlt: 'Acme Corp',
+      });
+      expect(config.props.logoUri).toBeNull();
+      expect(config.props.logoDarkUri).toBeNull();
+      expect(config.props.logoAlt).toBeNull();
+    });
+
+    it('exposes operator alt text while the install logo is active', () => {
+      const { config } = setup({
+        installLogoUrl: install,
+        installLogoAlt: 'Acme Corp',
+      });
+      expect(config.props.logoAlt).toBe('Acme Corp');
+    });
+
+    it('alt is null when the install logo has no configured alt text', () => {
+      const { config } = setup({ installLogoUrl: install });
+      expect(config.props.logoAlt).toBeNull();
+    });
+
+    it('exposes the dark install logo alongside the light one', () => {
+      const { config } = setup({
+        installLogoUrl: install,
+        installLogoDarkUrl: installDark,
+      });
+      expect(config.props.logoDarkUri).toBe(installDark);
+    });
+
+    it('dark logo is null without a light install logo to pair with', () => {
+      const { config } = setup({ installLogoDarkUrl: installDark });
+      expect(config.props.logoUri).toBeNull();
+      expect(config.props.logoDarkUri).toBeNull();
     });
   });
 

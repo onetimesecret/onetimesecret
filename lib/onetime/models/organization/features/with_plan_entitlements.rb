@@ -86,7 +86,7 @@ module Onetime
           # @return [Integer] Validated TTL value in seconds (0 to MAX_TTL)
           #
           # @example
-          #   Organization.parse_ttl_env('PLAN_TTL_ANONYMOUS', 604_800)
+          #   Organization.parse_ttl_env('TTL_MAX_ANONYMOUS', 604_800)
           def parse_ttl_env(env_var, default)
             raw = ENV.fetch(env_var, nil)
             return default if raw.nil? || raw.strip.empty?
@@ -103,8 +103,19 @@ module Onetime
 
           # FREE tier default limits when cache is unavailable
           #
-          # The secret_lifetime.max value can be overridden via PLAN_TTL_ANONYMOUS
+          # The secret_lifetime.max value can be overridden via TTL_MAX_ANONYMOUS
           # environment variable for Docker/self-hosted deployments.
+          #
+          # This is the FREE-TIER limit, not the anonymous ceiling. The anonymous
+          # ceiling moved to its own config key in 2026-07 —
+          # site.secret_options.ttl_max_anonymous, resolved by
+          # WithEntitlements.configured_anonymous_max_ttl — because deriving it
+          # from plan state meant it disappeared wherever billing was disabled.
+          # These limits still bound the anonymous grant on billing-enabled
+          # deployments (V2::Logic::Secrets::BaseSecretAction#anonymous_max_ttl
+          # takes the minimum), which is where the audit's invariant
+          # "anonymous grant <= authenticated free-tier grant" has meaning.
+          # 2026-07-29 API audit, item 4.
           #
           # Results are memoized at class level for consistent behavior.
           #
@@ -118,7 +129,7 @@ module Onetime
               'role_owners_per_org.max' => 1,
               'role_admins_per_org.max' => 0,
               'role_members_per_org.max' => 0,
-              'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', WithEntitlements::DEFAULT_FREE_TTL),
+              'secret_lifetime.max' => parse_ttl_env('TTL_MAX_ANONYMOUS', WithEntitlements::DEFAULT_FREE_TTL),
             }.freeze
           end
 

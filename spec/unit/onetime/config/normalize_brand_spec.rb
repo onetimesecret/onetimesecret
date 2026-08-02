@@ -203,6 +203,64 @@ RSpec.describe Onetime::Config do
         end
       end
 
+      context 'logo_dark_url' do
+        it 'prefers BRAND_LOGO_DARK_URL over a brand: YAML value' do
+          brand = normalized({ 'brand' => { 'logo_dark_url' => '/img/yaml-dark.svg' } },
+                             'BRAND_LOGO_DARK_URL' => 'https://cdn.example.com/dark.svg')
+          expect(brand['logo_dark_url']).to eq('https://cdn.example.com/dark.svg')
+        end
+
+        it 'adopts the brand: YAML value when the env var is unset' do
+          brand = normalized({ 'brand' => { 'logo_dark_url' => '/img/yaml-dark.svg' } }, {})
+          expect(brand['logo_dark_url']).to eq('/img/yaml-dark.svg')
+        end
+
+        it 'rejects a *.vue value from the env var' do
+          brand = normalized({ 'brand' => {} }, 'BRAND_LOGO_DARK_URL' => 'DefaultLogo.vue')
+          expect(brand['logo_dark_url']).to be_nil
+        end
+
+        it 'rejects a *.vue value supplied via brand: YAML' do
+          brand = normalized({ 'brand' => { 'logo_dark_url' => 'DarkLogo.vue' } }, {})
+          expect(brand['logo_dark_url']).to be_nil
+        end
+
+        it 'root-relativizes a bare relative path so it resolves on nested routes' do
+          brand = normalized({ 'brand' => {} }, 'BRAND_LOGO_DARK_URL' => 'img/dark.svg')
+          expect(brand['logo_dark_url']).to eq('/img/dark.svg')
+        end
+
+        it 'leaves an already-root-relative path untouched' do
+          brand = normalized({ 'brand' => {} }, 'BRAND_LOGO_DARK_URL' => '/img/dark.svg')
+          expect(brand['logo_dark_url']).to eq('/img/dark.svg')
+        end
+
+        it 'leaves an absolute and a protocol-relative URL untouched' do
+          expect(normalized({ 'brand' => {} }, 'BRAND_LOGO_DARK_URL' => 'https://cdn.example.com/d.svg')['logo_dark_url'])
+            .to eq('https://cdn.example.com/d.svg')
+          expect(normalized({ 'brand' => {} }, 'BRAND_LOGO_DARK_URL' => '//cdn.example.com/d.svg')['logo_dark_url'])
+            .to eq('//cdn.example.com/d.svg')
+        end
+
+        it 'logs the boot notice when the value is not absolute http(s)' do
+          expect(OT).to receive(:le).with(/CONFIG NOTICE: brand\.logo_dark_url/)
+          normalized({ 'brand' => {} }, 'BRAND_LOGO_DARK_URL' => 'img/dark.svg')
+        end
+
+        it 'logs no notice for an absolute https value' do
+          expect(OT).not_to receive(:le).with(/CONFIG NOTICE: brand\.logo_dark_url/)
+          normalized({ 'brand' => {} }, 'BRAND_LOGO_DARK_URL' => 'https://cdn.example.com/d.svg')
+        end
+
+        it 'has no legacy fallback: legacy LOGO_URL and YAML feed only logo_url' do
+          # LEGACY_BRAND_FALLBACKS deliberately omits logo_dark_url — the
+          # legacy single-logo sources have no dark variant to offer.
+          brand = normalized(legacy_conf('logo' => { 'url' => '/img/legacy.png' }),
+                             'LOGO_URL' => '/img/legacy-env.png')
+          expect(brand['logo_dark_url']).to be_nil
+        end
+      end
+
       context 'logo_alt' do
         it 'adopts LOGO_ALT when BRAND_LOGO_ALT is unset' do
           brand = normalized({ 'brand' => {} }, 'LOGO_ALT' => 'Legacy Alt')

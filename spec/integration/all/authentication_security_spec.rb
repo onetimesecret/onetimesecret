@@ -9,9 +9,6 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
     double('Session').tap do |s|
       allow(s).to receive(:short_identifier).and_return('sec123')
       allow(s).to receive(:id).and_return('sess123')
-      allow(s).to receive(:set_info_message)
-      allow(s).to receive(:set_error_message)
-      allow(s).to receive(:set_success_message)
       allow(s).to receive(:replace!)
       allow(s).to receive(:save)
       allow(s).to receive(:clear)
@@ -135,13 +132,12 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
   end
 
   describe 'password reset security vulnerabilities' do
-    let(:secret) { double('Secret', custid: 'security@example.com', identifier: 'secret123', load_owner: customer, destroy!: nil, received!: nil) }
+    let(:secret) { double('Secret', custid: 'security@example.com', identifier: 'secret123', anonymous?: false, load_owner: customer, destroy!: nil, received!: nil) }
 
     before do
       allow(Onetime::Secret).to receive(:find_by_identifier).and_return(secret)
       allow(customer).to receive(:valid_reset_secret!).and_return(true)
       allow(customer).to receive(:update_passphrase)
-      allow(session).to receive(:set_success_message)
     end
 
     it 'prevents password reset without valid secret' do

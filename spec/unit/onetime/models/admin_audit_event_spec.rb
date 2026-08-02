@@ -14,8 +14,15 @@ require 'spec_helper'
 # failure, the write path is best-effort, reads are newest-first, and the capped
 # sorted set is trimmed to its bound.
 RSpec.describe Onetime::AdminAuditEvent do
-  before { described_class.events.clear }
-  after  { described_class.events.clear }
+  before do
+    described_class.events.clear
+    described_class.security_events.clear
+  end
+
+  after do
+    described_class.events.clear
+    described_class.security_events.clear
+  end
 
   describe '.record' do
     it 'persists a success event and returns the stored hash' do
@@ -150,6 +157,57 @@ RSpec.describe Onetime::AdminAuditEvent do
       described_class.record(actor: 'a', verb: 'v', target: 't', result: :success)
 
       expect(described_class.recent(0)).to eq([])
+    end
+  end
+
+  # The security trail is the collection an UNAUTHENTICATED caller can drive, so
+  # its bounds are the thing standing between a flood and an unbounded sorted set
+  # in Valkey. Both bounds are applied by the WRITE path (record_security calls
+  # trim_security!), and that is what these pin: calling trim_security! directly
+  # would still pass if the write path stopped trimming, which would silently
+  # turn `security_events` into an unbounded store.
+  describe '.record_security' do
+    it 'auto-trims to MAX_SECURITY_EVENTS on every write' do
+      stub_const("#{described_class}::MAX_SECURITY_EVENTS", 3)
+
+      5.times { |i| described_class.record_security(actor: 'anonymous', verb: "s#{i}", target: 't', result: :failure) }
+
+      expect(described_class.security_count).to eq(3)
+      expect(described_class.recent_security(3).map { |e| e['verb'] }).to eq(%w[s4 s3 s2])
+    end
+
+    it 'applies the age bound on every write, not only when trimmed by hand' do
+      stub_const("#{described_class}::SECURITY_EVENT_RETENTION", 60)
+      described_class.security_events.add({ 'verb' => 'stale' }, Familia.now - 3600)
+
+      described_class.record_security(actor: 'anonymous', verb: 'fresh', target: 't', result: :failure)
+
+      expect(described_class.recent_security(5).map { |e| e['verb'] }).to eq(%w[fresh])
+    end
+
+    it 'is best-effort: swallows a write error and returns nil without raising' do
+      boom = Class.new do
+        def to_s
+          raise 'boom serializing detail'
+        end
+      end.new
+
+      result = nil
+      expect do
+        result = described_class.record_security(actor: 'anonymous', verb: 'v', target: 't', result: :failure,
+                                                 detail: boom)
+      end.not_to raise_error
+      expect(result).to be_nil
+      expect(described_class.security_count).to eq(0)
+    end
+
+    it 'never writes into the operator trail' do
+      described_class.record(actor: 'a', verb: 'customer.purge', target: 't', result: :success)
+
+      3.times { |i| described_class.record_security(actor: 'anonymous', verb: "s#{i}", target: 't', result: :failure) }
+
+      expect(described_class.count).to eq(1)
+      expect(described_class.recent(5).map { |e| e['verb'] }).to eq(%w[customer.purge])
     end
   end
 

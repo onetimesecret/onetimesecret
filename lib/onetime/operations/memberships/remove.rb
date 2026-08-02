@@ -5,6 +5,7 @@
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model and the shared guard explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require_relative 'support'
 
 module Onetime
@@ -32,12 +33,29 @@ module Onetime
       # ## Audit
       #
       # A real removal records EXACTLY ONE {Onetime::AdminAuditEvent}. `:not_found`
-      # and `:last_owner` mutate and audit NOTHING. No dry_run: removal has no plan
-      # to preview; the confirmation lives in the adapters.
+      # and `:last_owner` MUTATE nothing but each record one `result: :failure`
+      # event: a refused removal is a privileged attempt that must be traceable,
+      # exactly like the raising privilege guard in
+      # {Auth::Operations::Customers::SetSuspension}. A raise out of
+      # `destroy_with_index_cleanup!` records the same way via
+      # {Onetime::AuditedFailure}. No dry_run: removal has no plan to preview; the
+      # confirmation lives in the adapters.
       class Remove
         include Memberships::Support
+        include Onetime::AuditedFailure
 
         AUDIT_VERB = 'membership.remove'
+
+        # See {SetRole::REFUSAL_STATUSES}.
+        REFUSAL_STATUSES = [:not_found, :last_owner].freeze
+
+        # destroy_with_index_cleanup! tears down four entitlement sub-keys and
+        # three index structures; a partial failure leaves the org in an unknown
+        # state, and the success-path record sits after it. Records one
+        # `result: :failure` and re-raises.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @customer&.extid }
 
         # @!attribute status [r] Symbol — :success | :not_found | :last_owner
         Result = Data.define(:status, :org_id, :customer_id, :role)
@@ -79,13 +97,31 @@ module Onetime
 
         private
 
+        # Single exit point for every non-success status, so the refusal audit
+        # cannot be forgotten at an early return.
         def build(status, role)
+          record_refusal(status, role) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             org_id: @org.extid,
             customer_id: @customer.extid,
             role: role,
           )
+        end
+
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op.
+        def record_refusal(status, role)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :failure,
+            detail: { reason: status.to_s, role: role, org_id: @org.extid },
+          )
+        rescue StandardError => ex
+          OT.le "[Memberships::Remove] refusal audit failed: #{ex.class}: #{ex.message}"
         end
       end
     end

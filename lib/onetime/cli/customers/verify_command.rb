@@ -87,6 +87,9 @@ module Onetime
         puts "Error: #{ex.message}. " \
              'Run `bin/ots customers sync-auth-accounts` to reconcile.'
         exit 1
+      rescue Auth::Operations::SetCustomerVerification::AccountClosed => ex
+        puts "Error: #{ex.message}"
+        exit 1
       end
     end
 

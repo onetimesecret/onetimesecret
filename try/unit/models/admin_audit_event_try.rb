@@ -11,6 +11,9 @@
 # - capped sorted-set trimming (count bound enforced)
 # - actor normalization (extid/email, never internal objid)
 # - detail redaction (secrets/tokens/passphrases never stored)
+# - the separate security-telemetry trail (record_security): its own collection,
+#   its own count cap and age bound, and the invariant that flooding it cannot
+#   evict operator records
 
 require_relative '../../support/test_models'
 
@@ -146,5 +149,71 @@ AdminAuditEvent::MAX_EVENTS >= AdminAuditEvent.count
 AdminAuditEvent.recent(0)
 #=> []
 
+## -- Security trail: a SEPARATE retention domain -------------------------
+#
+# The operator trail is count-capped with no TTL and evicts oldest-first, so a
+# writer an unauthenticated caller can drive would be a log-eviction primitive.
+# record_security writes to its own collection with its own budget; these cases
+# pin that the two never share storage.
+
+## security_events is a distinct backing set, not the operator trail
+AdminAuditEvent.security_events.dbkey
+#=> "admin_audit_event:security_events"
+
+## record_security stores the same event shape
+AdminAuditEvent.events.clear
+AdminAuditEvent.security_events.clear
+@sec = AdminAuditEvent.record_security(
+  actor: 'anonymous',
+  verb: 'auth.reset_request_throttled',
+  target: 'ip:203.0.x.x',
+  result: :failure,
+  detail: { 'tier' => 'ip' },
+)
+[@sec['actor'], @sec['verb'], @sec['result'], @sec['detail']]
+#=> ["anonymous", "auth.reset_request_throttled", "failure", { "tier" => "ip" }]
+
+## a security write NEVER lands in the operator trail (the eviction boundary)
+[AdminAuditEvent.count, AdminAuditEvent.security_count]
+#=> [0, 1]
+
+## conversely, an operator write never lands in the security trail
+AdminAuditEvent.record(actor: 'ur7xexamples', verb: 'customer.purge', target: 't', result: :success)
+[AdminAuditEvent.count, AdminAuditEvent.security_count]
+#=> [1, 1]
+
+## flooding the security trail past its cap evicts NOTHING from the operator
+## trail — the whole point of the split
+AdminAuditEvent.security_events.clear
+AdminAuditEvent.trim_security!(3)
+5.times { |i| AdminAuditEvent.record_security(actor: 'anonymous', verb: "s#{i}", target: 't', result: :failure) }
+AdminAuditEvent.trim_security!(3)
+[AdminAuditEvent.security_count, AdminAuditEvent.count]
+#=> [3, 1]
+
+## security trimming keeps the newest (oldest overflow dropped)
+AdminAuditEvent.recent_security(3).map { |e| e['verb'] }
+#=> ["s4", "s3", "s2"]
+
+## the security trail also has an AGE bound (the operator trail has none):
+## members scored older than max_age are removed by score
+AdminAuditEvent.security_events.clear
+AdminAuditEvent.security_events.add({ 'verb' => 'stale' }, Familia.now - 100)
+AdminAuditEvent.security_events.add({ 'verb' => 'fresh' }, Familia.now)
+removed = AdminAuditEvent.trim_security!(AdminAuditEvent::MAX_SECURITY_EVENTS, 50)
+[removed, AdminAuditEvent.recent_security(5).map { |e| e['verb'] }]
+#=> [1, ["fresh"]]
+
+## a non-positive max_age disables only the age pass; the count cap still holds
+AdminAuditEvent.security_events.clear
+3.times { |i| AdminAuditEvent.security_events.add({ 'verb' => "n#{i}" }, Familia.now - 1000 + i) }
+[AdminAuditEvent.trim_security!(2, 0), AdminAuditEvent.security_count]
+#=> [1, 2]
+
+## recent_security(0) returns an empty array
+AdminAuditEvent.recent_security(0)
+#=> []
+
 # Cleanup
 AdminAuditEvent.events.clear
+AdminAuditEvent.security_events.clear

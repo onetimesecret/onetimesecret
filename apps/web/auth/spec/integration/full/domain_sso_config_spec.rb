@@ -23,6 +23,7 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/domain_sso_test_fixtures'
+require_relative '../../../operations/backfill_tenant_issuer'
 
 RSpec.describe Onetime::CustomDomain::SsoConfig do
   include DomainSsoTestFixtures
@@ -245,19 +246,20 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       end
     end
 
-    describe 'for Google provider' do
-      let(:config) { build_domain_sso_config(:google) }
-
-      it 'specifies :google_oauth2 strategy' do
-        expect(config.to_omniauth_options[:strategy]).to eq(:google_oauth2)
+    # Tenant SSO is OIDC/Entra-only (#3902): issuerless providers resolve to
+    # the '' issuer sentinel and cannot satisfy (provider, issuer, uid)
+    # partitioning, so they are no longer dispatchable provider types.
+    describe 'for removed issuerless providers' do
+      it 'raises Onetime::Problem for google' do
+        config = build_minimal_domain_sso_config(domain_id: 'dom_removed', provider_type: 'google')
+        expect { config.to_omniauth_options }
+          .to raise_error(Onetime::Problem, /Unsupported SSO provider type: google/)
       end
-    end
 
-    describe 'for GitHub provider' do
-      let(:config) { build_domain_sso_config(:github) }
-
-      it 'specifies :github strategy' do
-        expect(config.to_omniauth_options[:strategy]).to eq(:github)
+      it 'raises Onetime::Problem for github' do
+        config = build_minimal_domain_sso_config(domain_id: 'dom_removed', provider_type: 'github')
+        expect { config.to_omniauth_options }
+          .to raise_error(Onetime::Problem, /Unsupported SSO provider type: github/)
       end
     end
   end
@@ -312,7 +314,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     end
 
     describe 'without domain restrictions' do
-      let(:config) { build_domain_sso_config(:github) }
+      let(:config) { build_domain_sso_config(:oidc, allowed_domains: []) }
 
       it 'allows any email domain' do
         expect(config.valid_email_domain?('user@anydomain.com')).to be true
@@ -342,6 +344,44 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     it 'returns false for empty domain_id' do
       expect(described_class.exists_for_domain?('')).to be false
+    end
+  end
+
+  describe '.tenant_sso_unavailable_reason' do
+    let(:domain_id) { 'dom_ladder_test' }
+
+    before do
+      allow(Onetime::CustomDomain::SigninConfig).to receive_messages(
+        global_auth_enabled: true,
+        sso_permitted_for?: true,
+      )
+    end
+
+    it 'returns :unsupported_provider_type for a pre-#3902 legacy provider_type' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'google')
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
+        .to eq(:unsupported_provider_type)
+    end
+
+    it 'returns :sso_config_disabled before reaching the provider_type check' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'google')
+
+      config.enabled = 'false'
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
+        .to eq(:sso_config_disabled)
+    end
+
+    it 'returns :unsupported_provider_type before reaching the sso_permitted_for? check' do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?).and_return(false)
+
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'github')
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
+        .to eq(:unsupported_provider_type)
+    end
+
+    it 'returns nil for a supported, enabled provider_type' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'oidc')
+      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config)).to be_nil
     end
   end
 
@@ -377,7 +417,11 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   describe 'PROVIDER_METADATA constant' do
     it 'defines metadata for all provider types' do
       expect(described_class::PROVIDER_METADATA).to be_a(Hash)
-      expect(described_class::PROVIDER_METADATA.keys).to include('oidc', 'entra_id', 'google', 'github')
+      expect(described_class::PROVIDER_METADATA.keys).to include('oidc', 'entra_id')
+    end
+
+    it 'excludes removed issuerless providers (#3902)' do
+      expect(described_class::PROVIDER_METADATA.keys).not_to include('google', 'github')
     end
   end
 
@@ -422,11 +466,23 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       expect(DomainSsoTestFixtures::PROVIDER_TYPES.map(&:to_s).sort)
         .to eq(described_class::PROVIDER_TYPES.sort)
     end
+
+    # BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES is an intentionally
+    # decoupled local constant (it must keep refusing pre-#3902 stored
+    # google/github rows even if PROVIDER_TYPES changes later), so this only
+    # guards the direction that would silently break the backfill: a new
+    # provider added to PROVIDER_TYPES without a matching update there. It
+    # deliberately does NOT assert equality — ISSUER_BEARING_PROVIDER_TYPES
+    # retaining historical entries beyond PROVIDER_TYPES is expected.
+    it 'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES covers every current PROVIDER_TYPES value' do
+      expect(described_class::PROVIDER_TYPES - Auth::Operations::BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES)
+        .to eq([]), "PROVIDER_TYPES gained a value BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES doesn't know about"
+    end
   end
 
   describe '#requires_domain_filter?' do
-    it 'returns true for GitHub' do
-      config = build_domain_sso_config(:github)
+    it 'returns true for OIDC' do
+      config = build_domain_sso_config(:oidc)
       expect(config.requires_domain_filter?).to be true
     end
 
@@ -644,22 +700,6 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       end
     end
 
-    context 'with a fully valid Google config' do
-      let(:config) { build_domain_sso_config(:google) }
-
-      it 'returns an empty errors array' do
-        expect(config.validation_errors).to eq([])
-      end
-    end
-
-    context 'with a fully valid GitHub config' do
-      let(:config) { build_domain_sso_config(:github) }
-
-      it 'returns an empty errors array' do
-        expect(config.validation_errors).to eq([])
-      end
-    end
-
     context 'when provider_type is missing' do
       it 'returns an error about provider_type' do
         config = build_domain_sso_config(:oidc)
@@ -714,7 +754,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is missing' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:google)
+        config = build_domain_sso_config(:entra_id)
         config.client_secret = nil
 
         errors = config.validation_errors
@@ -724,7 +764,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is empty string' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:google)
+        config = build_domain_sso_config(:entra_id)
         config.client_secret = ''
 
         errors = config.validation_errors
@@ -780,26 +820,6 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
         errors = config.validation_errors
         expect(errors).to include('issuer is required for OIDC provider')
-      end
-    end
-
-    # Google and GitHub should NOT require tenant_id or issuer
-
-    context 'when Google config has no tenant_id or issuer' do
-      it 'does not return provider-specific field errors' do
-        config = build_domain_sso_config(:google)
-        errors = config.validation_errors
-        expect(errors).not_to include(a_string_matching(/tenant_id/))
-        expect(errors).not_to include(a_string_matching(/issuer/))
-      end
-    end
-
-    context 'when GitHub config has no tenant_id or issuer' do
-      it 'does not return provider-specific field errors' do
-        config = build_domain_sso_config(:github)
-        errors = config.validation_errors
-        expect(errors).not_to include(a_string_matching(/tenant_id/))
-        expect(errors).not_to include(a_string_matching(/issuer/))
       end
     end
 

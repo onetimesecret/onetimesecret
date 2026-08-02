@@ -99,7 +99,10 @@ const makeChallenge = (overrides: Partial<LinkSsoChallenge> = {}): LinkSsoChalle
  * - fetches the challenge context on mount and names provider + claimed email
  * - collects the EXISTING password and completes sign-in on success
  * - keeps the user on the form for a wrong password (retry)
- * - dead-ends (settings pointer) for a missing / expired / spent token
+ * - dead-ends (settings pointer) for a missing / expired / spent token and for
+ *   a terminal conflict (link_conflict — retry can never succeed)
+ * - keeps the form untouched (no clear/refocus) when rate limited — the token
+ *   is still live; inviting an immediate retype would re-trip the throttle
  * - cancel routes to /signin carrying the Connected Identities destination
  */
 describe('LinkSso', () => {
@@ -366,6 +369,84 @@ describe('LinkSso', () => {
 
       expect(mockSetAuthenticated).not.toHaveBeenCalled();
       expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(true);
+    });
+
+    // #3889: link_conflict (account re-emailed since mint, or identity bound to
+    // another account) is unrecoverable by retry. It must dead-end like a spent
+    // token — never re-offer the password form as if the password were wrong.
+    it('dead-ends with the specific reason on a terminal conflict (link_conflict)', async () => {
+      mockState.verifyLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'link_conflict';
+        mockState.error.value = 'web.link_sso.errors.link_conflict';
+        return null;
+      });
+      wrapper = mountComponent();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="link-sso-password-input"]').setValue('pw');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockSetAuthenticated).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="link-sso-password-input"]').exists()).toBe(false);
+      // The panel names the actual reason, not the generic expired copy.
+      expect(wrapper.find('#link-sso-unavailable-message').text()).toBe(
+        'web.link_sso.errors.link_conflict'
+      );
+    });
+
+    // #3889: link_rate_limited fires BEFORE the token is consumed, so the
+    // challenge is still live — but clearing + refocusing the password invites
+    // an immediate retype that re-trips the throttle. Keep the form (with the
+    // typed password) and surface the "wait" copy inline.
+    it('keeps the form without clearing the password when rate limited', async () => {
+      mockState.verifyLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'link_rate_limited';
+        mockState.error.value = 'web.link_sso.errors.link_rate_limited';
+        return null;
+      });
+      wrapper = mountComponent();
+      await flushPromises();
+
+      const input = wrapper.find<HTMLInputElement>('[data-testid="link-sso-password-input"]');
+      await input.setValue('correct horse');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockSetAuthenticated).not.toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
+      // Not a dead-end: still on the form, error inline, password preserved.
+      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="link-sso-error"]').text()).toBe(
+        'web.link_sso.errors.link_rate_limited'
+      );
+      expect(input.element.value).toBe('correct horse');
+    });
+
+    // invalid_request (400) means the submit was malformed — not a password
+    // verdict. The view's guards should make it unreachable, but if the backend
+    // disagrees the form must not clear/refocus as if the password were wrong.
+    it('keeps the form without clearing the password on invalid_request', async () => {
+      mockState.verifyLink.mockImplementation(async () => {
+        mockState.errorCode.value = 'invalid_request';
+        mockState.error.value = 'web.link_sso.errors.invalid_request';
+        return null;
+      });
+      wrapper = mountComponent();
+      await flushPromises();
+
+      const input = wrapper.find<HTMLInputElement>('[data-testid="link-sso-password-input"]');
+      await input.setValue('typed pw');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockSetAuthenticated).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="link-sso-unavailable"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="link-sso-error"]').text()).toBe(
+        'web.link_sso.errors.invalid_request'
+      );
+      expect(input.element.value).toBe('typed pw');
     });
   });
 

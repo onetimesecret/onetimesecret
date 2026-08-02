@@ -10,6 +10,7 @@
 # mirroring AdminVerifyDomain.
 require 'colonel/models/banned_ip'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -40,13 +41,39 @@ module Onetime
     # while the historic `banned_by` field keeps its existing objid value for
     # bit-for-bit parity.
     #
-    # Stateless, single `#call`, returns an immutable {Result}. A ban that is a
-    # no-op (the IP is already covered by an existing ban) returns
-    # `status: :already_banned` and records NO audit event (nothing mutated),
-    # mirroring the "only audit an actual change" rule used by the customer verbs.
+    # Stateless, single `#call`, returns an immutable {Result}. A ban that
+    # cannot proceed because the IP is already covered by an existing ban
+    # returns `status: :already_banned`, mutates NOTHING, and records one
+    # `result: :failure` event.
+    #
+    # That is deliberately NOT the `:no_change` treatment the customer verbs
+    # use, and the discriminator is the ADAPTER: colonel `SetRole` renders a
+    # `:no_change` as a successful response, whereas colonel `BanIP` renders
+    # `:already_banned` as a 422 form error ("IP address is already banned").
+    # It is a REFUSAL of an attempted privileged mutation, so it is traceable —
+    # the "only audit an actual change" rule governs the SUCCESS event, not
+    # whether a refusal leaves a trace.
     class BanIP
+      include Onetime::AuditedFailure
+
       # Audit verb recorded for every successful ban.
       AUDIT_VERB = 'ip.ban'
+
+      # A privileged mutation was asked for and REFUSED.
+      REFUSAL_STATUSES = [:already_banned].freeze
+
+      # TARGET NOTE: the success event targets `banned.ip_address` (the stored,
+      # normalised form), which does not exist on a failure path — `banned` is a
+      # local. The failure targets the operator's `@ip_address` input instead:
+      # the same kind of identifier, just not normalised by the model.
+      #
+      # `BannedIP.ban!` writes the record and its index BEFORE the success
+      # record runs, so a partial ban would otherwise be invisible. Records one
+      # `result: :failure` and re-raises.
+      audit_failures :call,
+        verb: AUDIT_VERB,
+        target: -> { @ip_address },
+        detail: -> { { reason: @reason, expiration: @expiration } }
 
       # @!attribute status [r]
       #   @return [Symbol] :success (banned) or :already_banned (no-op)
@@ -77,6 +104,7 @@ module Onetime
         # (bit-for-bit preserved), so this branch is reached only off the request
         # path (e.g. the CLI).
         if Onetime::BannedIP.banned?(@ip_address)
+          record_refusal(:already_banned)
           return Result.new(
             status: :already_banned,
             id: nil,
@@ -112,6 +140,22 @@ module Onetime
           banned_by: banned.banned_by,
           banned_at: banned.banned_at,
         )
+      end
+
+      private
+
+      # Same verb/actor as the success event; see the TARGET NOTE above for why
+      # the target is the raw input. Best-effort: never break the op.
+      def record_refusal(status)
+        Onetime::AdminAuditEvent.record(
+          actor: @actor,
+          verb: AUDIT_VERB,
+          target: @ip_address,
+          result: :failure,
+          detail: { reason: status.to_s, expiration: @expiration },
+        )
+      rescue StandardError => ex
+        OT.le "[BanIP] refusal audit failed: #{ex.class}: #{ex.message}"
       end
     end
   end

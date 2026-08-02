@@ -98,6 +98,17 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
       it 'returns an AuthFailure' do
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
       end
+
+      it 'does NOT set the credentialed-failure env marker (ambient credentials)' do
+        # Session cookies are ambient, not explicitly-presented credentials.
+        # A session failure must never trip NoAuthStrategy's anonymous
+        # fallthrough refusal (docs/security/audits/2026-07-29-api.md item 1)
+        # — otherwise every logged-out browser request on a noauth-capable
+        # chain would 401 instead of rendering anonymously.
+        result
+        expect(env_unauthenticated_session)
+          .not_to have_key(Onetime::Application::AuthStrategies::Helpers::CREDENTIALED_FAILURE_ENV_KEY)
+      end
     end
 
     # -----------------------------------------------------------------

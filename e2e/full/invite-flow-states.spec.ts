@@ -187,10 +187,11 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Verify signup_required state is shown (account_exists: false)
+    // Verify signup_required state is shown (the unauthenticated default —
+    // the API never discloses whether an account exists, AZ7/#3856)
     const signupState = page.getByTestId('invite-signup-required');
-    // Note: If account_exists is true, we'll see signin-required instead
-    // This depends on whether the test email happens to exist
+    // Note: signin-required only appears after a signup attempt comes back
+    // with the generic signup_unavailable error
     const signinState = page.getByTestId('invite-signin-required');
 
     const isSignupRequired = await signupState.isVisible().catch(() => false);

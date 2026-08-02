@@ -59,15 +59,13 @@ export interface TestSsoConnectionResponse {
   provider_type: SsoProviderType;
   message: string;
   details: {
-    // Success details (OIDC/Entra/Google)
+    // Success details (OIDC/Entra)
     issuer?: string;
     authorization_endpoint?: string;
     token_endpoint?: string;
     jwks_uri?: string;
     userinfo_endpoint?: string;
     scopes_supported?: string[];
-    // GitHub-specific
-    client_id_format?: string;
     note?: string;
     // Error details
     error_code?: string;

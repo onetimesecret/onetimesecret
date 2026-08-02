@@ -76,10 +76,15 @@ RSpec.describe Core::Views::BaseView do
       )
     end
 
-    it 'includes secret options' do
+    # ttl_max_anonymous is not config: ConfigSerializer appends the hard
+    # anonymous TTL cap (WithEntitlements::ANONYMOUS_MAX_TTL) so the duration
+    # dropdown can filter out durations the server would clamp. Emitted on
+    # every deployment, billing enabled or not.
+    it 'includes secret options plus the anonymous TTL ceiling' do
       expect(subject.serialized_data['secret_options']).to eq({
         'default_ttl' => 86_400,
         'ttl_options' => [3600, 86_400],
+        'ttl_max_anonymous' => Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL,
       },
                                                              )
     end

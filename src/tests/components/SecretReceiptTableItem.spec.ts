@@ -42,7 +42,6 @@ function createReceipt(overrides: Partial<ReceiptList> = {}): ReceiptList {
     key: 'test-key',
     shortid: 'abc123',
     state: 'new',
-    custid: 'cust-123',
     owner_id: 'owner-123',
     created: now,
     updated: now,

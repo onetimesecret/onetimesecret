@@ -40,6 +40,7 @@ const mockMfaEnabled = ref(true);
 const mockWebAuthnEnabled = ref(true);
 const mockHasPassword = ref(true);
 const mockSsoEnabled = ref(false);
+const mockPasswordAuthPermitted = ref(true);
 vi.mock('@/utils/features', () => ({
   isMfaEnabled: () => mockMfaEnabled.value,
   isWebAuthnEnabled: () => mockWebAuthnEnabled.value,
@@ -54,6 +55,10 @@ vi.mock('@/utils/features', () => ({
   // so the pre-existing card matrix is unchanged; the dedicated block below
   // flips it on.
   isSsoEnabledOf: () => mockSsoEnabled.value,
+  // Policy axis (#3886): whether the account may hold a local password.
+  // Default ON (the backend default for consumer accounts); the SSO-enforced
+  // block below flips it off.
+  isPasswordAuthPermittedOf: () => mockPasswordAuthPermitted.value,
 }));
 
 // Mock useAccount composable
@@ -105,6 +110,7 @@ describe('SecurityOverview', () => {
     mockWebAuthnEnabled.value = true;
     mockHasPassword.value = true;
     mockSsoEnabled.value = false;
+    mockPasswordAuthPermitted.value = true;
     mockAccountInfo.value = {
       email_verified: true,
       mfa_enabled: false,
@@ -628,17 +634,84 @@ describe('SecurityOverview', () => {
     });
   });
 
-  // Coverage for the SSO-only (no password) path added on fix/sso-ui:
-  // SecurityOverview filters password-dependent cards via hasPasswordOf and
-  // renders an SSO-managed empty state when every card is filtered out.
-  describe('SSO-Only Account (no password)', () => {
-    // hasPasswordOf is mocked to return mockHasPassword, so setting it false
-    // drives both the card filter (component line 150) and the empty-state
-    // v-if (line 265, `!hasPw`). No store seeding is needed — the component
-    // reads the predicate, not the store ref.
+  // Passwordless account where policy PERMITS password auth (#3886): the
+  // password card is replaced by a Set-password affordance routing to the
+  // mailbox-proof reset-password request page. MFA and recovery codes stay
+  // hidden (still password-dependent).
+  describe('Passwordless Account with password auth permitted (#3886)', () => {
+    beforeEach(() => {
+      mockHasPassword.value = false;
+      mockPasswordAuthPermitted.value = true;
+    });
+
+    it('shows the Set-password card instead of hiding the password card', () => {
+      wrapper = mountComponent();
+
+      const card = findCardByIcon('lock-closed-solid');
+      expect(card).toBeDefined();
+      expect(card?.text()).toContain('web.settings.security.set_password_title');
+      expect(card?.text()).toContain('web.settings.security.not_set');
+    });
+
+    it('links the Set-password card to the reset-password request page', () => {
+      wrapper = mountComponent();
+
+      const card = findCardByIcon('lock-closed-solid');
+      const link = card?.find('.router-link');
+      expect(link?.text()).toContain('web.settings.security.set');
+      expect(link?.attributes('href')).toBe('/account/settings/security/reset-password');
+    });
+
+    it('keeps MFA and recovery codes cards hidden (password-dependent)', () => {
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('key-solid')).toBeUndefined();
+      expect(findCardByIcon('document-text-solid')).toBeUndefined();
+    });
+
+    it('does not render the SSO-managed empty state', () => {
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(false);
+      expect(wrapper.find('.grid').exists()).toBe(true);
+    });
+
+    it('does not show the SSO-managed empty state while accountInfo is unavailable (pending or failed fetch)', () => {
+      mockAccountInfo.value = null;
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.settings.security.sso_managed_title');
+    });
+
+    it('shows a Change-password card (not Set) for a hybrid account with a password, even ignoring policy', () => {
+      mockHasPassword.value = true;
+      mockPasswordAuthPermitted.value = false;
+      wrapper = mountComponent();
+
+      const card = findCardByIcon('lock-closed-solid');
+      expect(card?.text()).toContain('web.auth.change_password.title');
+      expect(card?.text()).not.toContain('web.settings.security.set_password_title');
+    });
+  });
+
+  // Coverage for the SSO-ENFORCED (no password, password auth NOT permitted)
+  // path: SecurityOverview filters password-dependent cards via hasPasswordOf
+  // and renders an SSO-managed empty state when every card is filtered out.
+  // Since #3886 the pure-filter path requires isPasswordAuthPermittedOf to be
+  // false — otherwise a Set-password card takes the password card's place.
+  describe('SSO-Enforced Account (no password, password auth not permitted)', () => {
+    beforeEach(() => {
+      // hasPasswordOf is mocked to return mockHasPassword, so setting it false
+      // drives both the card filter and the empty-state v-if (`!hasPw`). No
+      // store seeding is needed — the component reads the predicate, not the
+      // store ref.
+      mockHasPassword.value = false;
+      mockPasswordAuthPermitted.value = false;
+    });
 
     it('hides password, MFA, and recovery codes cards', () => {
-      mockHasPassword.value = false;
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
@@ -648,7 +721,6 @@ describe('SecurityOverview', () => {
     });
 
     it('still shows the passkey card when WebAuthn is enabled', () => {
-      mockHasPassword.value = false;
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
@@ -657,7 +729,6 @@ describe('SecurityOverview', () => {
     });
 
     it('renders the SSO-managed empty state when all cards are filtered out', () => {
-      mockHasPassword.value = false;
       mockWebAuthnEnabled.value = false;
       wrapper = mountComponent();
 
@@ -666,7 +737,6 @@ describe('SecurityOverview', () => {
     });
 
     it('does not render the cards grid when all cards are filtered out', () => {
-      mockHasPassword.value = false;
       mockWebAuthnEnabled.value = false;
       wrapper = mountComponent();
 

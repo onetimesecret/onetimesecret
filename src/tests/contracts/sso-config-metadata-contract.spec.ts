@@ -71,27 +71,19 @@ describe('SSO_PROVIDER_METADATA constant', () => {
       });
     });
 
-    describe('google', () => {
-      it('requires domain filter (Workspace needs explicit filtering for enterprise)', () => {
-        expect(SSO_PROVIDER_METADATA.google.requiresDomainFilter).toBe(true);
+    // Tenant SSO is OIDC/Entra-only: issuerless providers (google, github)
+    // cannot satisfy per-tenant identity partitioning keyed
+    // (provider, issuer, uid) and were removed from the tenant surface
+    // (#3902, PR #3900). Platform-level SSO retains them separately.
+    describe('removed issuerless providers', () => {
+      it('does not define metadata for google or github', () => {
+        expect(SSO_PROVIDER_METADATA).not.toHaveProperty('google');
+        expect(SSO_PROVIDER_METADATA).not.toHaveProperty('github');
       });
 
-      it('does NOT have IdP-controlled access', () => {
-        expect(SSO_PROVIDER_METADATA.google.idpControlsAccess).toBe(false);
-      });
-    });
-
-    describe('github', () => {
-      it('requires domain filter', () => {
-        expect(SSO_PROVIDER_METADATA.github.requiresDomainFilter).toBe(true);
-      });
-
-      it('does NOT have IdP-controlled access', () => {
-        expect(SSO_PROVIDER_METADATA.github.idpControlsAccess).toBe(false);
-      });
-
-      it('description mentions domain filter recommendation', () => {
-        expect(SSO_PROVIDER_METADATA.github.description).toContain('domain filter');
+      it('rejects google and github as provider types', () => {
+        expect(ssoProviderTypeSchema.safeParse('google').success).toBe(false);
+        expect(ssoProviderTypeSchema.safeParse('github').success).toBe(false);
       });
     });
   });
@@ -155,26 +147,44 @@ describe('customDomainSsoConfigCanonical schema', () => {
 
   describe('full payload parsing with metadata fields', () => {
     // Schema: customDomainSsoConfigCanonical (keyed by domain_id)
+    // Every field populated, to exercise full-payload parsing.
     const validPayload = {
       domain_id: 'dm_123',
-      provider_type: 'github' as SsoProviderType,
+      provider_type: 'entra_id' as SsoProviderType,
       enabled: true,
-      display_name: 'GitHub SSO',
+      display_name: 'Entra ID SSO',
       client_id: 'client-abc',
       client_secret_masked: '****5678',
-      tenant_id: null,
+      tenant_id: 'tenant-123',
       issuer: null,
       allowed_domains: [],
-      requires_domain_filter: true,
-      idp_controls_access: false,
+      requires_domain_filter: false,
+      idp_controls_access: true,
       enforce_sso_only: false,
       grant_org_scope: false,
       created_at: 1700000000,
       updated_at: 1700000000,
     };
 
-    it('parses payload with GitHub metadata values', () => {
+    it('parses payload with Entra ID metadata values', () => {
       const result = customDomainSsoConfigCanonical.safeParse(validPayload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.requires_domain_filter).toBe(false);
+        expect(result.data.idp_controls_access).toBe(true);
+      }
+    });
+
+    it('parses payload with generic OIDC metadata values', () => {
+      const oidcPayload = {
+        ...validPayload,
+        provider_type: 'oidc' as SsoProviderType,
+        tenant_id: null,
+        issuer: 'https://idp.example.com',
+        requires_domain_filter: true,
+        idp_controls_access: false,
+      };
+      const result = customDomainSsoConfigCanonical.safeParse(oidcPayload);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.requires_domain_filter).toBe(true);
@@ -182,19 +192,13 @@ describe('customDomainSsoConfigCanonical schema', () => {
       }
     });
 
-    it('parses payload with Entra ID metadata values', () => {
-      const entraPayload = {
-        ...validPayload,
-        provider_type: 'entra_id' as SsoProviderType,
-        tenant_id: 'tenant-123',
-        requires_domain_filter: false,
-        idp_controls_access: true,
-      };
-      const result = customDomainSsoConfigCanonical.safeParse(entraPayload);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.requires_domain_filter).toBe(false);
-        expect(result.data.idp_controls_access).toBe(true);
+    it('rejects payloads with removed issuerless provider types (#3902)', () => {
+      for (const removed of ['google', 'github']) {
+        const result = customDomainSsoConfigCanonical.safeParse({
+          ...validPayload,
+          provider_type: removed,
+        });
+        expect(result.success).toBe(false);
       }
     });
 

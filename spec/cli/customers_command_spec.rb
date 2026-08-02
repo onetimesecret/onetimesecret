@@ -164,6 +164,22 @@ RSpec.describe 'Customers Command', type: :cli do
       expect(output[:stdout]).to include('sync-auth-accounts')
       expect(last_exit_code).to eq(1)
     end
+
+    it 'translates AccountClosed to a plain error and exits 1' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+        .and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_raise(
+        Auth::Operations::SetCustomerVerification::AccountClosed,
+        'Cannot change verification for customer cust_ext_target: Rodauth account is closed',
+      )
+
+      output = run_cli_command_quietly('customers', 'verify', 'target@example.com')
+      expect(output[:stdout]).to include('Rodauth account is closed')
+      expect(output[:stdout]).not_to include('sync-auth-accounts')
+      expect(last_exit_code).to eq(1)
+    end
   end
 
   describe 'unverify subcommand' do
@@ -197,6 +213,22 @@ RSpec.describe 'Customers Command', type: :cli do
 
       output = run_cli_command_quietly('customers', 'unverify', 'missing@example.com')
       expect(output[:stdout]).to include('Customer not found')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'translates AccountClosed to a plain error and exits 1' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+        .and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_raise(
+        Auth::Operations::SetCustomerVerification::AccountClosed,
+        'Cannot change verification for customer cust_ext_target: Rodauth account is closed',
+      )
+
+      output = run_cli_command_quietly('customers', 'unverify', 'target@example.com')
+      expect(output[:stdout]).to include('Rodauth account is closed')
+      expect(output[:stdout]).not_to include('sync-auth-accounts')
       expect(last_exit_code).to eq(1)
     end
   end

@@ -46,7 +46,7 @@ module Core
         }
         output['authentication'] = site.fetch('authentication', nil)
         output['homepage_mode']  = view_vars['homepage_mode']
-        output['secret_options'] = site['secret_options']
+        output['secret_options'] = build_secret_options(site)
         output['site_host']      = site['host']
         output['support_host']   = site.dig('support', 'host')
         regions                  = features.fetch('regions', {})
@@ -78,6 +78,7 @@ module Core
         output['brand_font_family']           = view_vars['brand_font_family']
         output['brand_button_text_light']     = view_vars['brand_button_text_light']
         output['brand_logo_url']              = view_vars['brand_logo_url']
+        output['brand_logo_dark_url']         = view_vars['brand_logo_dark_url']
         output['brand_logo_alt']              = view_vars['brand_logo_alt']
         output['brand_favicon_url']           = view_vars['brand_favicon_url']
         output['support_email']               = view_vars['support_email']
@@ -116,6 +117,68 @@ module Core
       end
 
       class << self
+        # Site secret_options with the anonymous TTL ceiling replaced by the
+        # value the server actually enforces.
+        #
+        # secret_options already carries the raw ttl_max_anonymous config value;
+        # the merge overwrites it with the resolved ceiling, so the frontend
+        # never sees a configured number that the free-tier limit would have
+        # lowered underneath it.
+        #
+        # @param site [Hash] site config section
+        # @return [Hash, nil] secret_options for the bootstrap payload
+        def build_secret_options(site)
+          secret_options = site['secret_options']
+          return secret_options unless secret_options.is_a?(Hash)
+
+          secret_options.merge('ttl_max_anonymous' => anonymous_ttl_ceiling)
+        end
+
+        # Anonymous TTL ceiling for the duration dropdown (2026-07-29 API
+        # audit, item 4).
+        #
+        # V2 silently clamps an anonymous secret's TTL (V2::Logic::Secrets::
+        # BaseSecretAction#anonymous_max_ttl). Publishing the same number lets
+        # the web UI (src/shared/composables/usePrivacyOptions.ts) drop
+        # durations the server would quietly reduce, instead of offering a
+        # duration the caller will never get.
+        #
+        # Mirrors that method's ladder. The configured ceiling
+        # (site.secret_options.ttl_max_anonymous, default 7 days) is read on
+        # every deployment, billing enabled or not, and has no fail-open case,
+        # so this key is always emitted. The free-tier limit can only lower it
+        # further, and only when billing is enabled. The third term server-side
+        # is the config ttl_options max; here it is implicit, since the dropdown
+        # is built from ttl_options in the first place.
+        #
+        # @return [Integer] Ceiling in seconds
+        def anonymous_ttl_ceiling
+          [
+            Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
+            free_tier_ttl_override,
+          ].compact.min
+        end
+
+        # Free-tier secret_lifetime limit, when it applies.
+        #
+        # Consulted only with billing enabled, and only when positive — with
+        # billing off there is no free tier to bound the anonymous grant
+        # against. The rescue drops only this term; the configured ceiling still
+        # stands, because a bootstrap read must never take the page down over a
+        # billing-config fault.
+        #
+        # @return [Integer, nil] Limit in seconds, or nil when not applicable
+        def free_tier_ttl_override
+          return nil unless OT.billing_config.enabled?
+
+          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          free_tier_max.positive? ? free_tier_max : nil
+        rescue StandardError => ex
+          OT.le "[ConfigSerializer] free-tier TTL limit unavailable (#{ex.class}: #{ex.message}); " \
+                'anonymous duration ceiling falls back to the configured value'
+          nil
+        end
+
         # Provides the base template for configuration serializer output
         #
         # @return [Hash] Template with all possible configuration output fields
@@ -131,6 +194,7 @@ module Core
             'brand_font_family' => nil,
             'brand_button_text_light' => nil,
             'brand_logo_url' => nil,
+            'brand_logo_dark_url' => nil,
             'brand_logo_alt' => nil,
             'brand_favicon_url' => nil,
             'd9s_enabled' => nil,
@@ -300,6 +364,7 @@ module Core
         # platform SSO configuration (from env vars).
         #
         # Resolution priority:
+        #   0. AUTH_ENABLED master switch off => disabled, unconditionally
         #   1. CustomDomain::SsoConfig for tenant (if custom domain with domain SSO config)
         #   2. Platform SSO providers (from env vars, if fallback allowed)
         #   3. Disabled (empty providers)
@@ -307,6 +372,17 @@ module Core
         # @param view_vars [Hash] View variables containing domain context
         # @return [Boolean, Hash] false if disabled, otherwise config hash
         def build_sso_config(view_vars)
+          # AUTH_ENABLED master switch: with authentication off there is no
+          # SSO surface at all — tenant or platform — so return the disabled
+          # shape before resolving anything. The tenant ladder
+          # (SsoConfig.tenant_sso_unavailable_reason, rung :auth_disabled)
+          # and build_platform_sso_config each enforce this too, but the
+          # branches below must not depend on those internal checks: the
+          # master switch is this method's own contract, guarded here.
+          unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
+            return { 'enabled' => false, 'providers' => [] }
+          end
+
           # Try tenant-specific SSO config first
           tenant_config = resolve_tenant_sso_config(view_vars)
 
@@ -340,14 +416,26 @@ module Core
         # governs the TENANT's SSO only; build_sso_config's platform-fallback
         # policy is unchanged.
         #
+        # Single-read contract: the record is loaded exactly once and handed
+        # to the availability check via its sso_config: pass-through, so the
+        # verdict and the returned record are the same object. Checking first
+        # and re-loading after would leave a window where an operator
+        # disabling or deleting the SsoConfig between the two reads passes the
+        # check but returns nil — and build_sso_config would then silently
+        # fall through to platform fallback for a domain that had tenant SSO
+        # a moment earlier.
+        #
         # @param view_vars [Hash] View variables
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
           domain_id = resolve_domain_id(view_vars)
           return nil unless domain_id
-          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
 
-          Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+          config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+          return nil unless config
+          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
+
+          config
         end
 
         # Resolve domain identifier from view variables
@@ -436,8 +524,18 @@ module Core
         # This is the original behavior - reading SSO providers from
         # AuthConfig which derives them from environment variables.
         #
+        # Also gated on the AUTH_ENABLED master switch as defense in depth:
+        # build_sso_config (the sole caller today) returns the disabled shape
+        # before reaching here, but this builder must never advertise platform
+        # providers on its own if it gains another caller — so it re-checks
+        # rather than relying on the caller's guard.
+        #
         # @return [Boolean, Hash] false if disabled, otherwise config hash
         def build_platform_sso_config
+          unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
+            return { 'enabled' => false, 'providers' => [] }
+          end
+
           return false unless Onetime.auth_config.sso_enabled?
 
           providers = Onetime.auth_config.sso_providers

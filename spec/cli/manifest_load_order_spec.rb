@@ -30,6 +30,7 @@ RSpec.describe 'CLI command file self-sufficiency' do
   harness = <<~RUBY
     cli_rb = File.join(Dir.pwd, 'lib/onetime/cli.rb')
     head, manifest = File.read(cli_rb).split('# Load core CLI commands', 2)
+    abort 'marker comment not found in lib/onetime/cli.rb' if manifest.nil?
     eval(head, TOPLEVEL_BINDING, cli_rb, 1)
 
     paths = manifest.scan(/^require_relative '([^']+)'/).flatten

@@ -6,6 +6,11 @@ require_relative 'base'
 require 'securerandom'
 require 'stripe'
 
+# apply_tax_policy! — required explicitly rather than relying on
+# controllers.rb happening to load controllers/billing.rb (which requires the
+# op) after this file.
+require_relative '../operations/create_checkout_link'
+
 module Billing
   module Controllers
     class Plans
@@ -134,21 +139,6 @@ module Billing
           cancel_url: cancel_url,
           locale: req.env['rack.locale']&.first || 'auto',
 
-          # Stripe Tax: automatic tax calculation for all regions
-          #
-          # How tax works:
-          # - EU Customers: Can enter VAT number → reverse charge applied automatically
-          # - Canadian Customers: GST/HST calculated based on province
-          # - Other Regions: Stripe Tax calculates per Dashboard configuration
-          #
-          # Dashboard prerequisites (Settings → Tax):
-          # 1. Stripe Tax enabled
-          # 2. Tax registrations added for applicable jurisdictions
-          # 3. Products have appropriate tax codes (or default tax code set)
-          #
-          automatic_tax: { enabled: true },
-          tax_id_collection: { enabled: true },  # EU B2B VAT reverse charge
-
           # Show the "Add promotion code" field on the Stripe-hosted checkout.
           # Promotion codes must first be created in the Stripe Dashboard
           # (Products → Coupons → Promotion codes).
@@ -169,6 +159,24 @@ module Billing
             session_params[:customer_email] = cust.email
           end
         end
+
+        # Deployment tax policy (STRIPE_AUTOMATIC_TAX): shared with every
+        # other checkout path. Applied after customer handling because
+        # customer_update requires a bound :customer id.
+        #
+        # Scope note: this path shares the TAX BLOCK only. Unlike
+        # BillingController#create_checkout_session it does not delegate to
+        # build_session_params, so its subscription metadata keeps this
+        # surface's historical shape (debug_info JSON + customer_extid, no
+        # orgid). Deliberate: changing it would change webhook-visible
+        # metadata. checkout_completed#find_target_organization falls back to
+        # stripe_customer_id and then the customer's default org when orgid is
+        # absent, so this shape resolves correctly today.
+        #
+        # Dashboard prerequisites when enabled (Settings → Tax): Stripe Tax
+        # active, registrations for applicable jurisdictions, tax codes on
+        # products (or a default tax code).
+        Billing::Operations::CreateCheckoutLink.apply_tax_policy!(session_params)
 
         # Subscription metadata for webhook processing and debugging
         #

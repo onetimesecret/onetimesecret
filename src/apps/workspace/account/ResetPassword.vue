@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { hasPasswordOf } from '@/utils/features';
 import { ref, computed } from 'vue';
 
 const { t } = useI18n();
@@ -14,13 +15,21 @@ const { requestPasswordReset, isLoading, error, clearErrors } = useAuth();
 const email = computed(() => bootstrapStore.email ?? '');
 const successMessage = ref('');
 
+// Set-password mode (#3886): a passwordless account reaching this page is
+// SETTING a first password, not resetting one. Same mailbox-proof flow and
+// endpoint either way (Rodauth set_password inserts a hash when none
+// exists) — only the copy changes.
+const hasPw = computed(() => hasPasswordOf(bootstrapStore));
+
 const handleSubmit = async () => {
   clearErrors();
   successMessage.value = '';
 
   const success = await requestPasswordReset(email.value);
   if (success) {
-    successMessage.value = t('web.auth.passwordReset.emailSent');
+    successMessage.value = t(
+      hasPw.value ? 'web.auth.passwordReset.emailSent' : 'web.auth.password_setup_request.emailSent'
+    );
   }
 };
 </script>
@@ -31,10 +40,10 @@ const handleSubmit = async () => {
       <div class="bg-white shadow dark:bg-gray-800 sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
           <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-            {{ t('web.auth.password_reset_request.title') }}
+            {{ hasPw ? t('web.auth.password_reset_request.title') : t('web.auth.password_setup_request.title') }}
           </h3>
           <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
-            <p>{{ t('web.auth.password_reset_request.description') }}</p>
+            <p>{{ hasPw ? t('web.auth.password_reset_request.description') : t('web.auth.password_setup_request.description') }}</p>
           </div>
 
           <!-- Success message -->
@@ -87,7 +96,7 @@ const handleSubmit = async () => {
                 data-testid="password-reset-request-submit"
                 class="inline-flex justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700">
                 <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
-                <span v-else>{{ t('web.auth.password_reset_request.button') }}</span>
+                <span v-else>{{ hasPw ? t('web.auth.password_reset_request.button') : t('web.auth.password_setup_request.button') }}</span>
               </button>
             </div>
           </form>

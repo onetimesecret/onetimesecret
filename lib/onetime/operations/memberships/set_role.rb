@@ -5,6 +5,7 @@
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model and the shared guard explicitly.
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 require_relative 'support'
 
 module Onetime
@@ -28,14 +29,36 @@ module Onetime
       # A real change records EXACTLY ONE {Onetime::AdminAuditEvent}. An idempotent
       # `:no_change` (already at the target role) mutates and audits NOTHING.
       #
+      # A REFUSED change (`:invalid_role` / `:not_found` / `:last_owner`) records
+      # exactly one `result: :failure` event — the operator attempted a privileged
+      # mutation and was refused, which belongs in the trail for the same reason
+      # {Auth::Operations::Customers::SetSuspension}'s raising privilege guard does.
+      # Whether a refusal comes back as a Result or as an exception is an
+      # implementation detail; the audit trail must not depend on it. `:no_change`
+      # is deliberately NOT a refusal: nothing was attempted that could fail.
+      #
       # ## Sole-owner guardrail
       #
       # Demoting the last remaining owner is refused (`:last_owner`) so the org is
       # never orphaned. See {Memberships::Support#sole_owner?}.
       class SetRole
         include Memberships::Support
+        include Onetime::AuditedFailure
 
         AUDIT_VERB = 'membership.set_role'
+
+        # Statuses meaning "a privileged mutation was asked for and refused".
+        # Each records one `result: :failure` event via {#build}. `:success` and
+        # `:no_change` are excluded (the former audits its own event, the latter
+        # is an idempotent no-op).
+        REFUSAL_STATUSES = [:invalid_role, :not_found, :last_owner].freeze
+
+        # change_role! / save can raise (datastore, materialization), and the
+        # success-path record sits after them — so without this a blown-up role
+        # change leaves no trace. Records one `result: :failure` and re-raises.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @customer&.extid }
 
         # Assignable roles — sourced from the model constant (never a hardcoded
         # fork), so owner/admin/member stay in lockstep with ROLE_ENTITLEMENTS.
@@ -94,7 +117,11 @@ module Onetime
 
         private
 
+        # Single exit point for every non-success status, so the refusal audit
+        # cannot be forgotten at one of the four early returns.
         def build(status, from, to)
+          record_refusal(status, from, to) if REFUSAL_STATUSES.include?(status)
+
           Result.new(
             status: status,
             org_id: @org.extid,
@@ -102,6 +129,21 @@ module Onetime
             from: from,
             to: to,
           )
+        end
+
+        # Same verb/target/actor as the success event so a filter on
+        # `membership.set_role` shows the attempt alongside the completions.
+        # Best-effort like every audit write: never break the op.
+        def record_refusal(status, from, to)
+          Onetime::AdminAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :failure,
+            detail: { reason: status.to_s, from: from, to: to, org_id: @org.extid },
+          )
+        rescue StandardError => ex
+          OT.le "[Memberships::SetRole] refusal audit failed: #{ex.class}: #{ex.message}"
         end
       end
     end

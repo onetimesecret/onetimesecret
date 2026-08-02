@@ -161,6 +161,24 @@ e = @resp['details']['entitlements']
 #=> [true, true]
 
 # ----------------------------------------------------------------
+# Available entitlements (the catalog the console's override picker offers)
+# ----------------------------------------------------------------
+
+## Available entitlements: EXACTLY the names known_entitlement? accepts, sorted.
+## This is the anti-drift invariant — if the picker's options and the server's
+## validation predicate disagree, an operator picks a name the endpoint rejects.
+@resp = JSON.parse(last_response.body)
+avail = @resp['details']['available_entitlements']
+avail.map { |entry| entry['name'] } == ::Billing::Config.load_entitlements.keys.sort
+#=> true
+
+## Available entitlements: each entry carries name + description (+ category)
+@resp = JSON.parse(last_response.body)
+entry = @resp['details']['available_entitlements'].first
+%w[name description category].all? { |k| entry.key?(k) }
+#=> true
+
+# ----------------------------------------------------------------
 # Members + domains rosters
 # ----------------------------------------------------------------
 
@@ -179,13 +197,17 @@ members.is_a?(Array) && (members.empty? || %w[extid email role is_owner].all? { 
 # Reconcile (entitlements-only: org has no Stripe subscription)
 # ----------------------------------------------------------------
 
-## Reconcile: 200 with mode=entitlements_only + before/after diff
+# The record also carries the membership-cascade slot (#3907 item 3) — null
+# when the run did not cascade, counts when it did — so the key must always
+# be present.
+
+## Reconcile: 200 with mode=entitlements_only + before/after diff + cascade slot
 @before_count = Onetime::AdminAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/reconcile", {}, colonel_headers
 @resp = JSON.parse(last_response.body)
 rec = @resp['record']
-[last_response.status, rec['mode'], rec.key?('before'), rec.key?('after')]
-#=> [200, 'entitlements_only', true, true]
+[last_response.status, rec['mode'], rec.key?('before'), rec.key?('after'), rec.key?('memberships')]
+#=> [200, 'entitlements_only', true, true, true]
 
 ## Reconcile: records exactly one audit event with the reconcile verb + org target
 @evt = Onetime::AdminAuditEvent.recent(1).first

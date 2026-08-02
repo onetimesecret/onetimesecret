@@ -66,8 +66,9 @@ export type ColonelEntitlementOverrideRecord = z.infer<
 /**
  * `POST /api/colonel/organizations/:org_id/entitlements/:action` and
  * `DELETE /api/colonel/organizations/:org_id/entitlements/overrides` →
- * `{ record }` ack. `ManageEntitlementOverride` returns only `record` (no
- * `details`), which `createApiResponseSchema` already makes optional.
+ * `{ record }` ack. `ManageEntitlementOverride` returns only `record`;
+ * `createApiResponseSchema` requires `record` and makes only `details`
+ * optional, so the absent `details` parses fine.
  */
 export const colonelEntitlementOverrideResponseSchema = createApiResponseSchema(
   colonelEntitlementOverrideRecordSchema
@@ -75,6 +76,49 @@ export const colonelEntitlementOverrideResponseSchema = createApiResponseSchema(
 
 export type ColonelEntitlementOverrideResponse = z.infer<
   typeof colonelEntitlementOverrideResponseSchema
+>;
+
+/**
+ * The recomputed MEMBERSHIP entitlement-override state after a grant / revoke
+ * / clear (#3907) — the membership-scoped sibling of
+ * `colonelEntitlementOverrideRecordSchema`, returned by
+ * `ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride`:
+ *   POST   /api/colonel/organizations/:org_id/members/:member_id/entitlements/grant
+ *   POST   /api/colonel/organizations/:org_id/members/:member_id/entitlements/revoke
+ *   DELETE /api/colonel/organizations/:org_id/members/:member_id/entitlements/overrides
+ *
+ * Same shape one scope down: `org_id` and `member_id` are both PUBLIC extids,
+ * `entitlement` is null on a full clear, and `effective_entitlements` is the
+ * membership's materialised result
+ * ((org ∩ role template) + grants - revokes).
+ */
+export const colonelMembershipEntitlementOverrideRecordSchema = z.object({
+  org_id: z.string(),
+  member_id: z.string(),
+  entitlement: z.string().nullable().optional(),
+  action: z.enum(['granted', 'revoked', 'cleared']),
+  effective_entitlements: z.array(z.string()),
+  grants: z.array(z.string()),
+  revokes: z.array(z.string()),
+});
+
+export type ColonelMembershipEntitlementOverrideRecord = z.infer<
+  typeof colonelMembershipEntitlementOverrideRecordSchema
+>;
+
+/**
+ * Membership entitlement-override endpoints → `{ record }` ack.
+ * `ManageMembershipEntitlementOverride` returns only `record`;
+ * `createApiResponseSchema` requires `record` and makes only `details`
+ * optional, so the absent `details` parses fine. Registered as
+ * `colonelMembershipEntitlementOverride` in `registry.ts`.
+ */
+export const colonelMembershipEntitlementOverrideResponseSchema = createApiResponseSchema(
+  colonelMembershipEntitlementOverrideRecordSchema
+);
+
+export type ColonelMembershipEntitlementOverrideResponse = z.infer<
+  typeof colonelMembershipEntitlementOverrideResponseSchema
 >;
 
 // ============================================================================
@@ -117,6 +161,25 @@ export const colonelOrganizationDetailEntitlementsSchema = z.object({
   }),
 });
 
+/**
+ * One entry of the literal entitlement catalog (billing.yaml), as emitted by
+ * `GetOrganizationDetail#build_available_entitlements`. This is the SAME set
+ * the server's validation predicate consults
+ * (`Onetime::Operations::Org::EntitlementOverride.known_entitlement?` →
+ * `::Billing::Config.load_entitlements.key?`), so the override picker's options
+ * cannot drift from what the endpoint accepts.
+ *
+ * `description` / `category` are nullable: billing.yaml carries both today, but
+ * an entry may omit either and the backend passes the absence through as null.
+ */
+export const colonelAvailableEntitlementSchema = z.object({
+  name: z.string(),
+  description: z.string().nullable(),
+  category: z.string().nullable(),
+});
+
+export type ColonelAvailableEntitlement = z.infer<typeof colonelAvailableEntitlementSchema>;
+
 /** One organization member row on the detail page. */
 export const colonelOrganizationDetailMemberSchema = z.object({
   extid: z.string(),
@@ -153,12 +216,21 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   archived_at: transforms.fromNumber.toDateNullable,
   archived_comment: z.string().nullable(),
   contact_email: z.string().nullable(),
-  owner_id: z.string(),
+  // Nullable to agree with the LIST schema (colonel.ts), which declares the
+  // same field from the same Ruby expression as nullable. An org with no owner
+  // is an expected state — the line below reads `owner&.email` for exactly that
+  // reason — and a required string here would fail the parse for the WHOLE
+  // detail response, blanking the page rather than dropping one field.
+  owner_id: z.string().nullable(),
   owner_email: z.string().nullable(),
   billing_email: z.string().nullable(),
   member_count: z.number(),
   domain_count: z.number(),
-  created: transforms.fromNumber.toDate,
+  // Ruby emits `org.created&.to_i`, so nil IS reachable here — unlike the LIST
+  // side, which uses `org.created.to_i` with no safe navigation and is
+  // correctly non-nullable. Both sibling record schemas above (member, domain)
+  // already use toDateNullable.
+  created: transforms.fromNumber.toDateNullable,
   updated: transforms.fromNumber.toDateNullable,
   planid: z.string().nullable(),
   stripe_customer_id: z.string().nullable(),
@@ -170,9 +242,17 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   sync_status_reason: z.string().nullable(),
 });
 
-/** The `details` envelope: entitlement breakdown + members + domains. */
+/** The `details` envelope: entitlement breakdown + catalog + members + domains. */
 export const colonelOrganizationDetailDetailsSchema = z.object({
   entitlements: colonelOrganizationDetailEntitlementsSchema,
+  /**
+   * The entitlement catalog the override picker offers. `.default([])` so a
+   * backend that predates the field (or a fixture that omits it) degrades to
+   * "catalog unavailable" instead of failing the whole detail parse and
+   * bricking the page — and an empty catalog already carries the right
+   * meaning: treat every typed name as known (fail open, like the server).
+   */
+  available_entitlements: z.array(colonelAvailableEntitlementSchema).default([]),
   members: z.array(colonelOrganizationDetailMemberSchema),
   domains: z.array(colonelOrganizationDetailDomainSchema),
 });
@@ -209,10 +289,26 @@ export const colonelReconcileSnapshotSchema = z.object({
 });
 
 /**
+ * Membership-cascade counts from an applied reconcile (#3907 item 3):
+ * `rematerialize_all_memberships!` totals, surfaced so a partial cascade is
+ * operator-visible without log access. `failed_ids` are membership OBJIDs
+ * (internal — the identifier `bin/ots memberships doctor` follow-up works in;
+ * same posture as the record's `org_id`).
+ */
+export const colonelReconcileMembershipCascadeSchema = z.object({
+  success: z.number(),
+  failed: z.number(),
+  total: z.number(),
+  failed_ids: z.array(z.string()),
+});
+
+/**
  * `POST /api/colonel/organizations/:org_id/reconcile` → `{ record }`. MUTATING:
  * re-pulls Stripe and rewrites billing + re-materializes (`stripe_sync`), or
  * re-materializes entitlements from the current plan when there is no
  * subscription (`entitlements_only`). `before`/`after` drive the success diff.
+ * `memberships` is null when the run did not cascade (skip statuses) or the
+ * cascade raised server-side (logs carry that case).
  */
 export const colonelReconcileOrganizationRecordSchema = z.object({
   org_id: z.string(),
@@ -221,7 +317,13 @@ export const colonelReconcileOrganizationRecordSchema = z.object({
   status: z.string(),
   reason: z.string().nullable(),
   before: colonelReconcileSnapshotSchema,
-  after: colonelReconcileSnapshotSchema,
+  // Nullable to match the op's Result contract: `after` is nil on dry runs
+  // and Stripe errors. Today the colonel adapter pins dry_run:false and 4xxes
+  // Stripe errors before responding, so null never reaches the wire — but the
+  // D12 preview work (#3907 item 4) will change that, and a non-nullable
+  // schema here would reject those responses with no compile-time signal.
+  after: colonelReconcileSnapshotSchema.nullable(),
+  memberships: colonelReconcileMembershipCascadeSchema.nullable(),
 });
 
 export const colonelReconcileOrganizationResponseSchema = createApiResponseSchema(
@@ -229,9 +331,44 @@ export const colonelReconcileOrganizationResponseSchema = createApiResponseSchem
 );
 
 export type ColonelReconcileSnapshot = z.infer<typeof colonelReconcileSnapshotSchema>;
+export type ColonelReconcileMembershipCascade = z.infer<
+  typeof colonelReconcileMembershipCascadeSchema
+>;
 export type ColonelReconcileOrganizationRecord = z.infer<
   typeof colonelReconcileOrganizationRecordSchema
 >;
 export type ColonelReconcileOrganizationResponse = z.infer<
   typeof colonelReconcileOrganizationResponseSchema
+>;
+
+/**
+ * `POST /api/colonel/organizations/:org_id/transfer-ownership` → `{ record }`
+ * ack (#3907 — console peer of `bin/ots org transfer-ownership`). MUTATING:
+ * promotes the new owner, pivots the legacy `owner_id` mirror, and demotes
+ * every other owner membership. All ids are PUBLIC extids (mirroring
+ * `TransferOrganizationOwnership#success_data`, which mirrors the CLI's --json
+ * payload). `from_owner_id` is null when the previous `owner_id` pointed at no
+ * live customer (`orphaned_owner: true` — the transfer repairs it). `status`
+ * is the op's vocabulary verbatim (`success` | `no_change` — failure statuses
+ * surface as 4xx form errors, never as a 200).
+ */
+export const colonelTransferOrganizationOwnershipRecordSchema = z.object({
+  org_id: z.string(),
+  status: z.string(),
+  from_owner_id: z.string().nullable(),
+  to_owner_id: z.string(),
+  demoted: z.array(z.string()),
+  demoted_to: z.string(),
+  orphaned_owner: z.boolean(),
+});
+
+export const colonelTransferOrganizationOwnershipResponseSchema = createApiResponseSchema(
+  colonelTransferOrganizationOwnershipRecordSchema
+);
+
+export type ColonelTransferOrganizationOwnershipRecord = z.infer<
+  typeof colonelTransferOrganizationOwnershipRecordSchema
+>;
+export type ColonelTransferOrganizationOwnershipResponse = z.infer<
+  typeof colonelTransferOrganizationOwnershipResponseSchema
 >;

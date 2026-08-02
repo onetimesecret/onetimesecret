@@ -94,5 +94,101 @@ OT.boot! :test, false
 @result_metadata.is_a?(Otto::Security::Authentication::StrategyResult)
 #=> true
 
+## Anonymous fallthrough refusal: when a credentialed strategy already
+## rejected presented credentials (marker set in env), NoAuthStrategy must
+## return an AuthFailure echoing that reason — never anonymous success.
+## Regression for docs/security/audits/2026-07-29-api.md item 1.
+@marker_key = Onetime::Application::AuthStrategies::Helpers::CREDENTIALED_FAILURE_ENV_KEY
+@env_refused = {
+  'rack.session' => {},
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0',
+  @marker_key => '[CREDENTIALS_INVALID] Invalid credentials'
+}
+@result_refused = @strategy.authenticate(@env_refused, nil)
+[
+  @result_refused.class.name,
+  @result_refused.failure_reason
+]
+#=> ['Otto::Security::Authentication::AuthFailure', '[CREDENTIALS_INVALID] Invalid credentials']
+
+## Chain simulation: BasicAuthStrategy rejects an unrecognized Authorization
+## scheme and marks the env; NoAuthStrategy (same env, as in Otto's
+## RouteAuthWrapper OR chain) then refuses instead of going anonymous.
+@env_bearer = {
+  'rack.session' => {},
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0',
+  'HTTP_AUTHORIZATION' => 'Bearer some_token'
+}
+@basic_strategy = Onetime::Application::AuthStrategies::BasicAuthStrategy.new
+@basic_result = @basic_strategy.authenticate(@env_bearer, nil)
+@noauth_after_basic = @strategy.authenticate(@env_bearer, nil)
+[
+  @basic_result.class.name,
+  @env_bearer.key?(@marker_key),
+  @noauth_after_basic.class.name
+]
+#=> ['Otto::Security::Authentication::AuthFailure', true, 'Otto::Security::Authentication::AuthFailure']
+
+## An Authorization header WITHOUT a credentialed-strategy failure (noauth-only
+## route: no credentialed strategy ran, no marker) is ignored — the request
+## stays anonymous. Proxy-forwarded or browser-cached Basic headers must not
+## break noauth-only pages.
+@env_header_only = {
+  'rack.session' => {},
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0',
+  'HTTP_AUTHORIZATION' => 'Basic eDp5'
+}
+@result_header_only = @strategy.authenticate(@env_header_only, nil)
+[
+  @result_header_only.class.name,
+  @result_header_only.user.nil?
+]
+#=> ['Otto::Security::Authentication::StrategyResult', true]
+
+## A valid session outranks a rejected Authorization header: the refusal only
+## applies to requests that would otherwise become ANONYMOUS. A logged-in user
+## whose browser re-sends cached Basic credentials — or whose request passes
+## through an htpasswd reverse proxy that forwards its own header — must keep
+## their session identity instead of being 401'd mid-session.
+@env_session_and_marker = {
+  'rack.session' => {
+    'authenticated' => true,
+    'external_id' => @test_customer.extid,
+    'email' => @test_customer.email
+  },
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0',
+  'HTTP_AUTHORIZATION' => 'Basic eDp5',
+  @marker_key => '[CREDENTIALS_INVALID] Invalid credentials'
+}
+@result_session_and_marker = @strategy.authenticate(@env_session_and_marker, nil)
+[
+  @result_session_and_marker.class.name,
+  @result_session_and_marker.authenticated?,
+  @result_session_and_marker.user&.custid == @test_customer.custid
+]
+#=> ['Otto::Security::Authentication::StrategyResult', true, true]
+
+## Marker + a session that resolves NO identity (logged out, or stale/deleted
+## customer) still fails closed — the fallthrough hole stays shut.
+@env_stale_session_and_marker = {
+  'rack.session' => {
+    'authenticated' => true,
+    'external_id' => 'nonexistent@example.com'
+  },
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0',
+  @marker_key => '[CREDENTIALS_INVALID] Invalid credentials'
+}
+@result_stale = @strategy.authenticate(@env_stale_session_and_marker, nil)
+[
+  @result_stale.class.name,
+  @result_stale.failure_reason
+]
+#=> ['Otto::Security::Authentication::AuthFailure', '[CREDENTIALS_INVALID] Invalid credentials']
+
 # Cleanup
 @test_customer.delete!

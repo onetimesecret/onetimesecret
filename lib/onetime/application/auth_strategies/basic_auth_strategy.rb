@@ -65,7 +65,10 @@ module Onetime
             #
             # Checked AFTER credential validation so the outcome is only ever
             # observable to someone holding valid credentials (non-enumerating).
-            return failure('[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
+            # Marked as a credentialed failure so noauth-capable chains fail
+            # closed (401) instead of letting a suspended account proceed
+            # anonymously.
+            return credentialed_failure(env, '[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
 
             OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
 
@@ -96,7 +99,12 @@ module Onetime
             # 1. User doesn't exist (cust is nil)
             # 2. Invalid credentials (valid_credentials is false)
             # The timing is identical in both cases due to our mitigation strategy
-            failure('[CREDENTIALS_INVALID] Invalid credentials')
+            #
+            # Marked as a credentialed failure: the request explicitly
+            # presented credentials, so NoAuthStrategy must refuse anonymous
+            # fallthrough on auth=basicauth,noauth chains (401, not a silent
+            # anonymous 200). See Helpers::CREDENTIALED_FAILURE_ENV_KEY.
+            credentialed_failure(env, '[CREDENTIALS_INVALID] Invalid credentials')
           end
         end
 
@@ -108,6 +116,15 @@ module Onetime
         # Basic Auth header. Returns a failure AuthResult on any parsing
         # error, or an array [username, apikey] on success.
         #
+        # Failure semantics matter for the noauth fallthrough guard:
+        # - AUTH_HEADER_MISSING is a plain failure (no credentials were
+        #   presented), so anonymous fallthrough on basicauth,noauth chains
+        #   remains allowed — that IS the anonymous use of those routes.
+        # - Any failure with an Authorization header present (wrong scheme,
+        #   malformed payload) is a credentialed failure: the caller tried
+        #   to authenticate, so the request must fail closed (401), never
+        #   silently proceed anonymous.
+        #
         # @param env [Hash] Rack environment
         # @return [Array<String>, Otto::Security::Authentication::AuthFailure] [username, apikey] or failure result
         def parse_basic_auth_credentials(env)
@@ -115,14 +132,16 @@ module Onetime
           return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
 
           unless auth_header.start_with?('Basic ')
-            return failure('[AUTH_TYPE_INVALID] Invalid authorization type')
+            return credentialed_failure(env, '[AUTH_TYPE_INVALID] Invalid authorization type')
           end
 
           encoded          = auth_header.sub('Basic ', '')
           decoded          = Base64.decode64(encoded)
           username, apikey = decoded.split(':', 2)
 
-          return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
+          unless username && apikey
+            return credentialed_failure(env, '[CREDENTIALS_FORMAT_INVALID] Invalid credentials format')
+          end
 
           [username, apikey]
         end

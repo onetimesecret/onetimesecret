@@ -122,18 +122,36 @@ module Onetime::Receipt::Features
         organization ||= Onetime::Organization.load(org_id) unless org_id.to_s.empty?
         return if organization.nil?
 
+        # Domain context for custom-domain shares (#3642): the domain_id
+        # shortid plus the public FQDN. Keyed on domain_id -- the strict
+        # "registered custom domain" signal (share_domain can be set without a
+        # resolved CustomDomain). Absent entirely, never null, for
+        # default-domain shares.
+        domain_attrs = if domain_id.to_s.empty?
+                         {}
+                       else
+                         # share_domain can be unset even when domain_id is
+                         # stamped (writers outside spawn_pair); the
+                         # absent-not-null contract applies per key.
+                         attrs           = { 'domain_id' => domain_id.to_s.slice(0, 8) }
+                         attrs['domain'] = share_domain unless share_domain.to_s.empty?
+                         attrs
+                       end
+
         organization.record_audit_event(
           kind,
           at: at,
           **event_attrs,
           # Shortids only: full identifiers are capability tokens (the
-          # secret identifier IS the link) and must not leak into the trail.
-          # Placed AFTER the splat so these canonical fields always win over a
-          # caller-supplied attr sharing the same key -- a composed caller
-          # (#3639 actor, #3640 network context) can never override the
-          # receipt/secret identity of the event it is annotating.
+          # secret identifier IS the link; a full domain objid is likewise
+          # withheld) and must not leak into the trail. Placed AFTER the splat
+          # so these canonical fields always win over a caller-supplied attr
+          # sharing the same key -- a composed caller (#3639 actor, #3640
+          # network context) can never override the receipt/secret/domain
+          # identity of the event it is annotating.
           'receipt' => shortid,
           'secret' => secret_shortid.to_s,
+          **domain_attrs,
         )
       rescue StandardError => ex
         OT.le "[audit-trail] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"

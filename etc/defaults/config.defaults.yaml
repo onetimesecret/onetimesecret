@@ -222,6 +222,20 @@ site:
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+    # Maximum TTL for secrets created without an account (anonymous callers).
+    # Default: 604800 (7 days) — a sane default, not a hard limit. Self-hosted
+    # deployments may raise or lower it; the effective ceiling is the lower of
+    # this value and the ttl_options maximum, bounded by 365 days. When billing
+    # is enabled the free-tier plan limit applies as well, so the anonymous
+    # grant never exceeds what an authenticated free-tier user receives.
+    #
+    # PLAN_TTL_ANONYMOUS is the deprecated alias, read only here — this line is
+    # the single place the old name survives. The ceiling itself is read from
+    # the resolved config key (site.secret_options.ttl_max_anonymous) via
+    # WithEntitlements.configured_anonymous_max_ttl, never from the env var.
+    # Organization.free_tier_limits does read ENV['TTL_MAX_ANONYMOUS'] directly
+    # for its secret_lifetime fallback, and does not honour the alias.
+    ttl_max_anonymous: <%= ENV['TTL_MAX_ANONYMOUS'] || ENV['PLAN_TTL_ANONYMOUS'] || nil %>
     # Settings for the passphrase field that protects access to secrets
     passphrase:
       # Require users to enter a passphrase when creating secrets
@@ -301,6 +315,51 @@ site:
     # If empty or not set, signups are allowed from any domain (default).
     # Environment variable: ALLOWED_SIGNUP_DOMAIN (comma-separated list)
     allowed_signup_domains: <%= ENV['ALLOWED_SIGNUP_DOMAIN']&.split(',')&.map(&:strip) || [] %>
+    # Rate limiting for reset-password requests (#3872, #3948). Applies in EVERY
+    # auth mode — full mode enforces it in the Rodauth route hook, simple mode
+    # in AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns.
+    # POST /auth/reset-password-request is enumeration-safe (#3857) but keeps
+    # an accepted timing residual; exploiting it needs many samples, so this
+    # throttles requests per client IP (tight tier) and per submitted login
+    # (higher backstop for IP-rotating callers) BEFORE any account lookup.
+    # Enabled by default (protective); set RESET_REQUEST_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/reset_request_rate_limiter.rb.
+    reset_request_rate_limit:
+      enabled: <%= ENV['RESET_REQUEST_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Requests permitted per window from a single client IP.
+      max_per_ip: <%= ENV['RESET_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      # Higher backstop cap per submitted login (catches IP rotation).
+      max_per_email: <%= ENV['RESET_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 30 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['RESET_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once a tier's cap is hit (1 hour).
+      lockout: <%= ENV['RESET_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>
+    # Rate limiting for unauthenticated account creation (#3948, audit
+    # 2026-07-30 finding #4). POST /auth/create-account previously had no
+    # limiter in EITHER auth mode, leaving unthrottled account creation: one
+    # Customer record (no TTL) plus one welcome email per distinct address,
+    # with subaddressing folding many addresses onto one mailbox. Throttles per
+    # client IP BEFORE any account lookup or write, in both modes: full mode
+    # via the Rodauth before_create_account_route hook (apps/web/auth/config/
+    # hooks/create_account.rb), simple mode via
+    # AccountAPI::Logic::Account::CreateAccount#raise_concerns. Single tier by
+    # necessity, not choice — every request in the abuse pattern carries a
+    # fresh address, so a per-email tier would cap nothing.
+    # Enabled by default (protective); set
+    # CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false to opt out.
+    # See lib/onetime/security/create_account_rate_limiter.rb.
+    create_account_rate_limit:
+      enabled: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Signups permitted per window from a single masked client IP. The bucket
+      # is a whole /24 (office, campus NAT), and behind an unconfigured reverse
+      # proxy it is the entire deployment — so this is deliberately loose
+      # relative to the one signup a person needs. Raise it for dense-NAT
+      # populations; a too-tight value here is a signup-funnel outage.
+      max_per_ip: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_LOCKOUT'] || 3600 %>
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecret.com.
   support:
@@ -412,21 +471,36 @@ site:
 
       # How to resolve client IP behind proxies:
       #
-      # 'filter' (default): Rack walks X-Forwarded-For right-to-left,
-      #   automatically skipping RFC1918 private IPs (10.x, 172.16-31.x,
-      #   192.168.x). Returns first non-private IP. Works for most k8s/cloud
-      #   deployments where proxies have internal IPs.
+      # 'filter' (default): CIDR-walk. Otto::Utils.resolve_client_ip walks the
+      #   forwarded chain LEFT-TO-RIGHT and returns the first entry that is not
+      #   in the trusted-proxy set — i.e. the LEFTMOST non-proxy entry becomes
+      #   the client IP. The trusted set is the RFC1918/loopback/link-local
+      #   private ranges (always trusted in this mode) plus every range in
+      #   `cidrs` below. Works for most k8s/cloud deployments where the proxy
+      #   tier has enumerable internal addresses. Note: filter mode ignores
+      #   `header` below and reads the X-Forwarded-For family (X-Forwarded-For,
+      #   X-Real-IP, X-Client-IP).
+      #
+      #   SECURITY — read before enabling: the edge proxy MUST OVERWRITE
+      #   X-Forwarded-For with the real peer address so the resolved client IP
+      #   is always proxy-attested:
+      #     nginx:  proxy_set_header X-Forwarded-For $remote_addr;
+      #     Caddy:  header_up X-Forwarded-For {remote_host}
+      #   Use 'depth' instead when you cannot make the edge overwrite: it counts
+      #   positions from the right, so a forged leftmost entry is never reached.
       #
       # 'depth': Position-based counting. Skip exactly N rightmost hops.
       #   Use when:
       #   - CDN has a public IP (not RFC1918)
       #   - Variable proxy depth that filter can't handle
       #   - You need deterministic hop selection regardless of IP class
+      #   - Your edge appends to X-Forwarded-For and you cannot change it
       #
       # When filter and depth differ:
       #   - CDN with public IP: filter returns CDN IP (add to cidrs or use depth)
       #   - Variable hop count: filter handles automatically; depth fails if wrong
-      #   - Spoofed private IP in header: filter skips it; depth trusts if in range
+      #   - Forged leftmost entry: filter returns it (see SECURITY above); depth
+      #     ignores it, since only the position N-from-the-right is read
       #
       mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>
 
@@ -537,6 +611,10 @@ brand:
   # served path (e.g. "/brand-logo.svg", #3774). A root-relative value renders in
   # the web UI but is omitted from emails (which need an absolute URL).
   logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>
+  # Dark-theme variant of the masthead logo, shown when the app's dark mode is
+  # active. Web UI only (emails always use logo_url). A pack can carry it as
+  # brand-logo-dark.svg / brand-logo-dark.png and set this to the served path.
+  logo_dark_url: <%= ENV['BRAND_LOGO_DARK_URL']&.to_json %>
   # Accessible name for the brand logo. Unset falls back to an i18n string
   # derived from the product name.
   logo_alt: <%= ENV['BRAND_LOGO_ALT']&.to_json %>

@@ -52,21 +52,31 @@ OT.info 'Cleaned Redis for custom-domain default-OFF resolver test run'
 @ts      = Familia.now.to_i
 @entropy = SecureRandom.hex(4)
 
+# SsoConfig.create! validates (client_id + issuer required for the default
+# oidc provider), so even fixtures that only exercise enabled? carry
+# minimal-but-valid credentials.
+def sso_config!(domain_id, enabled:)
+  Onetime::CustomDomain::SsoConfig.create!(
+    domain_id: domain_id, enabled: enabled,
+    client_id: "client-#{domain_id}", issuer: 'https://idp.example.com',
+  )
+end
+
 # SSO-only tenant: enabled SsoConfig, no SigninConfig record at all.
 @sso_only_domain = "dof_sso_only_#{@ts}_#{@entropy}"
-Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_only_domain, enabled: true)
+sso_config!(@sso_only_domain, enabled: true)
 
 # Tenant with a persisted SsoConfig whose master switch is OFF (present but
 # not available).
 @sso_disabled_domain = "dof_sso_off_#{@ts}_#{@entropy}"
-Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_disabled_domain, enabled: false)
+sso_config!(@sso_disabled_domain, enabled: false)
 
 # Tenant with an enabled SsoConfig AND a persisted-but-DISABLED SigninConfig:
 # the record exists but its master switch is off, so the tenant is "not
 # explicitly configured" for password sign-in while SSO remains permitted
 # (sso_permitted_for? defers when the master switch is off).
 @sso_with_disabled_signin = "dof_sso_dis_signin_#{@ts}_#{@entropy}"
-Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_with_disabled_signin, enabled: true)
+sso_config!(@sso_with_disabled_signin, enabled: true)
 @disabled_signin_cfg = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @sso_with_disabled_signin, enabled: false, signin_enabled: false
 )
@@ -76,7 +86,7 @@ Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_with_disabled_signin, e
 # activation authority says no — the only fixture that reaches the last rung
 # of the availability ladder.
 @sso_not_permitted_domain = "dof_sso_not_perm_#{@ts}_#{@entropy}"
-Onetime::CustomDomain::SsoConfig.create!(domain_id: @sso_not_permitted_domain, enabled: true)
+sso_config!(@sso_not_permitted_domain, enabled: true)
 Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @sso_not_permitted_domain, enabled: true, signin_enabled: true, sso_enabled: false
 )

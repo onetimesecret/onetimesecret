@@ -22,12 +22,21 @@ require 'spec_helper'
 RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: true do
   # Helper to create a mock organization with specific entitlements
   def mock_organization(planid:, entitlements:)
-    org = double('Organization', planid: planid, objid: "org_#{SecureRandom.hex(4)}")
-    allow(org).to receive(:entitlements).and_return(entitlements)
+    org = double('Organization', planid: planid, objid: "org_#{SecureRandom.hex(4)}", extid: "org_ext_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?) do |entitlement|
       entitlements.include?(entitlement.to_s)
     end
     org
+  end
+
+  # ADR-012 Stage 3: require_entitlement! authorizes via auth_membership.can?,
+  # not auth_org.can?. Mirror the org double's entitlement list so each
+  # spec's entitlements apply to both the org pre-check and the membership.
+  def mock_membership(org)
+    membership = double('OrganizationMembership', status: 'active')
+    allow(membership).to receive(:active?).and_return(true)
+    allow(membership).to receive(:can?) { |entitlement| org.can?(entitlement) }
+    membership
   end
 
   # Helper to create a mock customer
@@ -61,28 +70,21 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     customer ||= mock_customer
     session = mock_session
 
-    # Create membership mock for entitlement checks
-    membership = double('OrganizationMembership')
-    allow(membership).to receive(:active?).and_return(true)
-    allow(membership).to receive(:can?) do |entitlement|
-      org.respond_to?(:entitlements) && org.entitlements.include?(entitlement.to_s)
-    end
-
-    # StrategyResult metadata uses organization_context nested structure
-    org_context = { organization: org, organization_id: org&.respond_to?(:objid) ? org.objid : 'org_test' }
-    metadata = { organization_context: org_context }
-
     strategy_result = double('StrategyResult')
     allow(strategy_result).to receive(:session).and_return(session)
     allow(strategy_result).to receive(:user).and_return(customer)
-    allow(strategy_result).to receive(:metadata).and_return(metadata)
+    allow(strategy_result).to receive(:metadata).and_return({ organization: org })
     allow(strategy_result).to receive(:auth_method).and_return(auth_method)
 
-    logic = logic_class.new(strategy_result, params)
+    # Base#initialize auto-runs process_params when params are present — before
+    # any stubs exist — so build with nil params and inject them after stubbing.
+    # Examples invoke logic.process_params explicitly.
+    logic = logic_class.new(strategy_result, nil, 'en')
 
-    # Stub auth_org and auth_membership — these are what require_entitlement! uses
+    # Stub the auth context pair (ADR-012 Stage 3): auth_org supplies plan
+    # info, auth_membership is the authorization authority.
     allow(logic).to receive(:auth_org).and_return(org)
-    allow(logic).to receive(:auth_membership).and_return(membership)
+    allow(logic).to receive(:auth_membership).and_return(org && mock_membership(org))
 
     # Mock cust accessor for logic classes that need it
     allow(logic).to receive(:cust).and_return(customer)
@@ -90,6 +92,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     # Mock sess accessor
     allow(logic).to receive(:sess).and_return(session)
 
+    logic.instance_variable_set(:@params, params)
     logic
   end
 

@@ -5,6 +5,7 @@
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Onetime
   module Operations
@@ -27,8 +28,14 @@ module Onetime
       # with no live session key returns `status: :not_found` and records NO audit
       # event (nothing mutated) — the "only audit an actual change" rule.
       class Delete
+        include Onetime::AuditedFailure
+
         # Audit verb recorded for every successful revoke.
         AUDIT_VERB = 'session.delete'
+
+        # Destructive verb: record the attempt when the delete raises (the
+        # success-path record below is unreachable in that case) and re-raise.
+        audit_failures :call, verb: AUDIT_VERB, target: -> { @session_id }
 
         # @!attribute status [r] Symbol :deleted (removed) or :not_found (no-op)
         Result = Data.define(:status, :session_id, :key)

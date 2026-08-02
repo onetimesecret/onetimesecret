@@ -240,6 +240,8 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
       end
     end
 
+    # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail
+    # with the same verb/target as a success — differing only in result:/detail.
     describe 'refusals' do
       it 'returns :not_member when the target has no membership (D28)' do
         allow(Onetime::OrganizationMembership)
@@ -250,7 +252,16 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(result.status).to eq(:not_member)
         expect(org).not_to have_received(:owner_id=)
         expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: 'organization.transfer_ownership',
+          target: 'on_org_ext',
+          result: :failure,
+          detail: {
+            reason: 'not_member', from: nil, to: 'ur_new_ext',
+            demoted_to: 'admin', dry_run: false
+          },
+        )
       end
 
       it 'returns :not_member when the membership exists but is not active' do
@@ -260,7 +271,14 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
 
         expect(result.status).to eq(:not_member)
         expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'organization.transfer_ownership',
+            target: 'on_org_ext',
+            result: :failure,
+            detail: hash_including(reason: 'not_member'),
+          ),
+        )
       end
 
       %w[owner bogus].each do |role|
@@ -270,7 +288,14 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
           expect(result.status).to eq(:invalid_role)
           expect(org).not_to have_received(:owner_id=)
           expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-          expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+          expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+            hash_including(
+              verb: 'organization.transfer_ownership',
+              target: 'on_org_ext',
+              result: :failure,
+              detail: hash_including(reason: 'invalid_role', demoted_to: role),
+            ),
+          )
         end
       end
 
@@ -401,8 +426,15 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
       end
     end
 
+    # The Onetime::AuditedFailure mechanism. apply! rolls back and re-raises
+    # BEFORE the success-path record call, so an aborted transfer — which can
+    # leave the org with two owners, and doctor check 4 is `repairable: false` —
+    # would otherwise leave no trace at all. Message expectations, not store
+    # reads: AdminAuditEvent.record swallows its own errors. The composed
+    # SetRole is an instance_double here, so its own failure event does not
+    # fire; in production a failed transfer emits both (D26).
     describe 'rollback' do
-      it 'restores owner_id, un-promotes the new owner, re-raises, and audits NOTHING' do
+      it 'restores owner_id, un-promotes the new owner, re-raises, and records ONE failure' do
         allow(Onetime::Operations::Memberships::SetRole).to receive(:new) do |args|
           calls << [args[:customer].extid, args[:new_role]]
           if args[:new_role] == 'admin' && args[:customer].extid == 'ur_old_ext'
@@ -423,7 +455,18 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(org).to have_received(:owner_id=).with('cust-obj-old').ordered
         # The new owner is put back at the role they held before the promote.
         expect(calls.last).to eq(['ur_new_ext', 'member'])
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            actor: actor,
+            verb: 'organization.transfer_ownership',
+            target: 'on_org_ext', # literal: a broken target lambda lands as 'unknown'
+            result: :failure,
+            detail: hash_including(
+              error: 'Onetime::Problem', message: 'boom',
+              dry_run: false, to: 'ur_new_ext',
+            ),
+          ),
+        )
       end
 
       it 'raises when the promote itself fails, before any owner_id write' do
@@ -441,7 +484,14 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect { build.call }.to raise_error(Onetime::Problem, /Failed to set role 'owner'/)
 
         expect(org).not_to have_received(:owner_id=)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'organization.transfer_ownership',
+            target: 'on_org_ext',
+            result: :failure,
+            detail: hash_including(error: 'Onetime::Problem'),
+          ),
+        )
       end
     end
   end

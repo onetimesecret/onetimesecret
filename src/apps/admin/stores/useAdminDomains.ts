@@ -15,6 +15,18 @@ import {
   type ColonelDomainVerifyDetails,
 } from '@/schemas/api/internal/responses/colonel-domains';
 import {
+  colonelDomainConfigDeleteResponseSchema,
+  colonelDomainConfigsEnsureResponseSchema,
+  colonelDomainConfigsResponseSchema,
+  colonelDomainConfigUpsertResponseSchema,
+  type ColonelDomainConfigDeleteDetails,
+  type ColonelDomainConfigsDetails,
+  type ColonelDomainConfigsEnsureDetails,
+  type ColonelDomainConfigUpsertDetails,
+  type DomainConfigKind,
+  type EditableDomainConfigKind,
+} from '@/schemas/api/internal/responses/colonel-domain-configs';
+import {
   colonelDomainProbeResponseSchema,
   colonelDomainRepairResponseSchema,
   colonelDomainTransferResponseSchema,
@@ -109,6 +121,11 @@ export interface DomainTransferOptions {
   toOrg: string;
   /** Optional ownership assertion; a mismatch is a 4xx on field `from_org`. */
   fromOrg?: string;
+  dryRun: boolean;
+}
+
+/** Options for the configs-ensure verb. `dryRun` is explicit — never defaulted here. */
+export interface DomainConfigsEnsureOptions {
   dryRun: boolean;
 }
 
@@ -251,6 +268,99 @@ async function removeDomain(
   return parsed.ok ? parsed.data.details ?? null : null;
 }
 
+// ---------------------------------------------------------------------------
+// Per-domain CONFIG operations (the seven per-custom-domain config records).
+//
+// Same conventions as the verbs above: throw on network/HTTP failure so
+// useAdminMutation can classify it, resolve `null` when a 2xx ack fails its
+// Zod contract (a tripwire, not a gate — the mutation still happened
+// server-side). Audit is written SERVER-SIDE by each operation.
+// ---------------------------------------------------------------------------
+
+/** Path for a domain's configs subresource. */
+function domainConfigsPath(extid: string): string {
+  return `${domainPath(extid)}/configs`;
+}
+
+/**
+ * Read all seven config entries for a domain: `{ exists, config|null }` per
+ * kind. READ-ONLY (no audit). The sso/mailer configs arrive REDACTED.
+ */
+async function fetchDomainConfigs(
+  $api: AxiosInstance,
+  extid: string
+): Promise<ColonelDomainConfigsDetails | null> {
+  const response = await $api.get(domainConfigsPath(extid));
+  const parsed = gracefulParse(
+    colonelDomainConfigsResponseSchema,
+    response.data,
+    'ColonelDomainConfigsResponse'
+  );
+  return parsed.ok ? parsed.data.details ?? null : null;
+}
+
+/**
+ * Upsert one editable config kind: create-if-missing (model defaults +
+ * provided fields) else partial update. sso/mailer are NOT editable here —
+ * the server answers 422.
+ */
+async function upsertDomainConfig(
+  $api: AxiosInstance,
+  extid: string,
+  kind: EditableDomainConfigKind,
+  body: Record<string, unknown>
+): Promise<ColonelDomainConfigUpsertDetails | null> {
+  const response = await $api.put(
+    `${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`,
+    body
+  );
+  const parsed = gracefulParse(
+    colonelDomainConfigUpsertResponseSchema,
+    response.data,
+    'ColonelDomainConfigUpsertResponse'
+  );
+  return parsed.ok ? parsed.data.details ?? null : null;
+}
+
+/** Delete one config record (any of the seven kinds). Missing record → 404. */
+async function deleteDomainConfig(
+  $api: AxiosInstance,
+  extid: string,
+  kind: DomainConfigKind
+): Promise<ColonelDomainConfigDeleteDetails | null> {
+  const response = await $api.delete(
+    `${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`
+  );
+  const parsed = gracefulParse(
+    colonelDomainConfigDeleteResponseSchema,
+    response.data,
+    'ColonelDomainConfigDeleteResponse'
+  );
+  return parsed.ok ? parsed.data.details ?? null : null;
+}
+
+/**
+ * Materialize missing config records among the five editable kinds, with model
+ * defaults (everything disabled — behavior-neutral). The endpoint DEFAULTS
+ * `dry_run` to true, so an apply must send `dry_run: false` explicitly; the
+ * caller must check `details.dry_run` on the ack before reporting creations.
+ */
+async function ensureDomainConfigs(
+  $api: AxiosInstance,
+  extid: string,
+  options: DomainConfigsEnsureOptions
+): Promise<ColonelDomainConfigsEnsureDetails | null> {
+  const response = await $api.post(`${domainConfigsPath(extid)}/ensure`, {
+    dry_run: options.dryRun,
+  });
+  const parsed = gracefulParse(
+    colonelDomainConfigsEnsureResponseSchema,
+    response.data,
+    'ColonelDomainConfigsEnsureResponse'
+  );
+  return parsed.ok ? parsed.data.details ?? null : null;
+}
+
 /** Bind every per-domain verb to one Axios instance for the store's surface. */
 function bindOperations($api: AxiosInstance) {
   return {
@@ -262,6 +372,13 @@ function bindOperations($api: AxiosInstance) {
     transfer: (extid: string, options: DomainTransferOptions) =>
       transferDomain($api, extid, options),
     remove: (extid: string, dryRun: boolean) => removeDomain($api, extid, dryRun),
+    fetchConfigs: (extid: string) => fetchDomainConfigs($api, extid),
+    upsertConfig: (extid: string, kind: EditableDomainConfigKind, body: Record<string, unknown>) =>
+      upsertDomainConfig($api, extid, kind, body),
+    deleteConfig: (extid: string, kind: DomainConfigKind) =>
+      deleteDomainConfig($api, extid, kind),
+    ensureConfigs: (extid: string, options: DomainConfigsEnsureOptions) =>
+      ensureDomainConfigs($api, extid, options),
   };
 }
 
