@@ -24,7 +24,7 @@ Use short responses. Write in plain language.
 
 ## Pull Request Reviews
 
-### Repo invariants (not defects; do not flag in review)
+### Repo conventions (not defects; do not flag in review)
 
 - Session data is stored under string keys, never symbols. Reads and writes
   agree on string keys by design.
