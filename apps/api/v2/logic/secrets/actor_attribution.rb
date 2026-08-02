@@ -34,11 +34,15 @@ module V2::Logic
       #   authenticated_other — authenticated caller who does NOT own it
       #   anonymous           — unauthenticated caller (or unknown)
       #
-      # The optional 'actor_id' is a SHORTID of the acting customer's internal
-      # object identifier (never the email or full custid), matching the
-      # shortids-only convention the trail already uses for receipt/secret ids
-      # (Receipt#shortid). It is included only for authenticated actors, where a
-      # real objid exists; anonymous events carry the discriminator alone.
+      # The optional 'actor_id' is the FULL objid of the acting customer (never
+      # the email or custid). Unique traceability (NIST AU-3, PCI DSS 10.2.2)
+      # requires binding each event to a uniquely resolvable individual, and a
+      # customer objid grants no access -- unlike a secret identifier it is not
+      # a capability token, so the shortid convention for receipt/secret ids
+      # does not apply. Identity (email/display name) is resolved at read/
+      # export time via an org-membership join and never enters the append-only
+      # trail. Included only for authenticated actors, where a real objid
+      # exists; anonymous events carry the discriminator alone.
       #
       # @param target_secret [Onetime::Secret, nil] the secret being consumed.
       # @return [Hash] string-keyed audit attrs, always carrying 'actor'.
@@ -60,18 +64,18 @@ module V2::Logic
         actor               = target_secret&.owner?(cust) ? 'creator' : 'authenticated_other'
         context             = { 'actor' => actor }
         # Only attach an id when we actually resolved one; never store a nil.
-        shortid             = actor_shortid
-        context['actor_id'] = shortid unless shortid.nil?
+        objid               = actor_objid
+        context['actor_id'] = objid unless objid.nil?
         context
       end
 
-      # An 8-char shortid of the acting customer's object identifier, mirroring
-      # Receipt#shortid (identifier.slice(0, 8)). Kept short and non-sensitive so
-      # it can never leak an email or a capability token into the trail. Returns
-      # nil (dropped by the caller) when no stable objid is available.
-      def actor_shortid
+      # The FULL objid of the acting customer, recorded untruncated so the
+      # trail binds the event to a uniquely resolvable individual (AU-3 /
+      # PCI 10.2.2). Never the email or custid. Returns nil (dropped by the
+      # caller) when no stable objid is available.
+      def actor_objid
         objid = cust&.objid.to_s
-        objid.empty? ? nil : objid.slice(0, 8)
+        objid.empty? ? nil : objid
       end
     end
   end

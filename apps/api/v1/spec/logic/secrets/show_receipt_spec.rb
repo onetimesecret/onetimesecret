@@ -19,6 +19,9 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
     double('Onetime::Customer',
       anonymous?: false,
       custid: 'cust123',
+      # Receipt#owner? and the receipt-view actor context (#3637) read the
+      # caller's objid.
+      objid: 'obj123',
       increment_field: nil)
   end
 

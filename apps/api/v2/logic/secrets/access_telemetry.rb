@@ -13,6 +13,9 @@ module V2::Logic
     # (`previewed!`) as a side effect of a GET (#3633): the lifecycle field
     # now only moves on a genuine reveal or burn, while "the link was
     # fetched" is captured as append-only telemetry the creator can see.
+    #
+    # Including classes must also include ActorAttribution: fetch events
+    # record their actor explicitly via lifecycle_actor_context (#3637).
     module AccessTelemetry
       private
 
@@ -40,7 +43,13 @@ module V2::Logic
         end
 
         receipt = secret.load_receipt
-        receipt&.record_access_event(kind, context: request_network_context)
+        # The actor is recorded EXPLICITLY on every fetch event (#3637): an
+        # audit consumer must never have to infer "who" from the creator_/
+        # previewed kind rename above. Same discriminator + anonymous guard as
+        # the lifecycle events (ActorAttribution#lifecycle_actor_context),
+        # merged with the privacy-safe network context; both are string-keyed.
+        context = request_network_context.merge(lifecycle_actor_context(secret))
+        receipt&.record_access_event(kind, context: context)
       rescue StandardError => ex
         OT.le "[access-telemetry] #{ex.class}: #{ex.message} (kind=#{kind})"
         nil
