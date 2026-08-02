@@ -382,6 +382,60 @@ describe('UserMenu', () => {
     });
   });
 
+  describe('Activity menu item', () => {
+    const openMenu = async () => {
+      const trigger = wrapper.find('button[aria-haspopup="true"]');
+      await trigger.trigger('click');
+      await nextTick();
+    };
+
+    it('deep-links to the active org audit trail for owners', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'owner', extid: 'org_abc' };
+
+      wrapper = mountComponent();
+      await openMenu();
+
+      const link = wrapper.find('a[href="/org/org_abc/activity"]');
+      expect(link.exists()).toBe(true);
+    });
+
+    it('is shown for admins', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'admin', extid: 'org_abc' };
+
+      wrapper = mountComponent();
+      await openMenu();
+
+      expect(wrapper.find('a[href="/org/org_abc/activity"]').exists()).toBe(true);
+    });
+
+    it('is hidden for members (route requires owner/admin)', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'member', extid: 'org_abc' };
+
+      wrapper = mountComponent();
+      await openMenu();
+
+      expect(wrapper.find('a[href="/org/org_abc/activity"]').exists()).toBe(false);
+    });
+
+    it('is hidden when no organization is loaded', async () => {
+      mockCurrentOrganizationRef.value = null;
+
+      wrapper = mountComponent();
+      await openMenu();
+
+      expect(wrapper.find('a[href$="/activity"]').exists()).toBe(false);
+    });
+
+    it('is hidden while awaiting MFA', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'owner', extid: 'org_abc' };
+
+      wrapper = mountComponent({ awaitingMfa: true });
+      await openMenu();
+
+      expect(wrapper.find('a[href="/org/org_abc/activity"]').exists()).toBe(false);
+    });
+  });
+
   describe('MFA State', () => {
     it('shows limited menu when awaiting MFA', async () => {
       wrapper = mountComponent({

@@ -99,6 +99,14 @@ const userRole = computed(() =>
 // Org extid for display/copy (useful for support and testing)
 const orgExtid = computed(() => currentOrganization.value?.extid || null);
 
+// Deep link to the active org's audit trail. The tab is entitlement-proof (an
+// unentitled org lands on it and sees an upgrade notice instead of being
+// redirected), so the only gate is the owner/admin role the /org/:extid route
+// itself requires.
+const orgActivityPath = computed(() =>
+  orgExtid.value ? `/org/${orgExtid.value}/activity` : null
+);
+
 // Only restrict members on custom domains — admins see the full menu like owners.
 // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
 const isCustomDomainMember = computed(() => isCustom.value && !!userRole.value && userRole.value === 'member');
@@ -176,6 +184,9 @@ const menuItems = computed<MenuItem[]>(() => [
   { id: 'domains', to: '/domains', label: t('web.organizations.tabs.domains'),
     icon: { collection: 'heroicons', name: 'globe-alt' },
     condition: () => !props.awaitingMfa },
+  { id: 'activity', to: orgActivityPath.value ?? undefined, label: t('web.organizations.tabs.activity'),
+    icon: { collection: 'heroicons', name: 'clock' },
+    condition: () => !props.awaitingMfa && !!orgActivityPath.value && isElevatedRole.value },
   { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
     condition: () => !props.awaitingMfa && !!billing_enabled.value && userRole.value === 'owner' },
