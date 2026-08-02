@@ -415,6 +415,67 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
   end
 
+  # Domain context on custom-domain shares (#3642). Events for receipts
+  # created through a registered custom domain carry WHERE the share lives:
+  # the domain_id shortid (8 chars, matching the trail-wide shortid policy)
+  # and the public FQDN. Default-domain shares carry neither key -- absent,
+  # not null. The guard is domain_id: share_domain can be set even when no
+  # CustomDomain record resolved, and alone it must not imply one.
+  describe 'domain context on custom-domain shares (#3642)' do
+    # Realistic CustomDomain objid: long enough that the 8-char slice
+    # differs from the full value, so leakage is detectable.
+    let(:domain_id) { '01997b2a8f3e4d5c6b7a8901' }
+
+    before { link_to_org!(receipt, org) }
+
+    it 'carries the domain_id shortid and FQDN for a custom-domain receipt' do
+      receipt.domain_id    = domain_id
+      receipt.share_domain = 'secrets.example.com'
+      receipt.save_fields(:domain_id, :share_domain)
+
+      receipt.record_org_audit_event('created')
+
+      event = org.audit_events_page.first
+      expect(event['domain_id']).to eq(domain_id[0, 8])
+      expect(event['domain']).to eq('secrets.example.com')
+      # Alongside the existing shortid context, not instead of it.
+      expect(event['receipt']).to eq(receipt.shortid)
+      expect(event['secret']).to eq(receipt.secret_shortid)
+    end
+
+    it 'omits both keys entirely for a default-domain receipt' do
+      receipt.record_org_audit_event('created')
+
+      event = org.audit_events_page.first
+      expect(event.keys).not_to include('domain_id', 'domain')
+    end
+
+    it 'omits both keys when share_domain is set without a registered domain' do
+      # index_receipt_to_domain can stamp share_domain with no CustomDomain
+      # resolved; the trail must not fabricate a domain_id-less "custom
+      # domain" event from it.
+      receipt.share_domain = 'secrets.example.com'
+      receipt.save_fields(:share_domain)
+
+      receipt.record_org_audit_event('created')
+
+      event = org.audit_events_page.first
+      expect(event.keys).not_to include('domain_id', 'domain')
+    end
+
+    it 'never leaks the full domain objid into the trail' do
+      receipt.domain_id    = domain_id
+      receipt.share_domain = 'secrets.example.com'
+      receipt.save_fields(:domain_id, :share_domain)
+
+      receipt.record_org_audit_event('secret_get')
+
+      raw = org.audit_events.membersraw.join
+      expect(raw).to include(domain_id[0, 8])
+      expect(raw).not_to include(domain_id)
+    end
+  end
+
   describe 'isolation' do
     let(:other_org) do
       described_class.new(

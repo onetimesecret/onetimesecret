@@ -21,7 +21,10 @@ module OrganizationAPI::Logic
     #   receipt/metadata page was loaded — distinct from opening the secret
     #   link itself), 'revealed', 'burned', 'expired', 'orphaned'. Events
     #   carry receipt/secret shortids only — never full identifiers, which
-    #   are capability tokens.
+    #   are capability tokens. Custom-domain shares additionally carry
+    #   domain context: 'domain_id' (8-char shortid) and 'domain' (the
+    #   public FQDN, e.g. secrets.acme.com); both are absent for
+    #   default-domain shares.
     class ListAuditEvents < OrganizationAPI::Logic::Base
       DEFAULT_LIMIT = 50
 
