@@ -38,7 +38,9 @@ CI provides it as a build artifact.
 | `api`              | valkey                     | `spec:api`                                          | non-blocking step, T3 simple job         |
 | `smoke`            | valkey                     | `pnpm test:smoke`                                   | smoke-test (T3)                          |
 
-The billing matrix rows are the same lanes with `--overlay billing`.
+The billing matrix rows are the full-mode lanes with `--overlay billing`.
+Billing requires `AUTHENTICATION_MODE=full`; `run` rejects the overlay on
+any other lane.
 
 Directories exist for dimensions that change **which specs run** (auth
 mode, database engine — mirroring `spec/integration/{simple,full,disabled}`).

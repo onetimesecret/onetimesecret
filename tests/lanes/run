@@ -99,6 +99,13 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
 fi
 set +a
 
+# Billing rides on the full-mode auth stack (Stripe customer records live
+# in the auth database); it has no meaning in other modes.
+if [[ "${BILLING_ENABLED:-false}" == "true" && "${AUTHENTICATION_MODE:-}" != "full" ]]; then
+  echo "error: billing requires AUTHENTICATION_MODE=full (lane '${LANE}' is '${AUTHENTICATION_MODE:-unset}')" >&2
+  exit 64
+fi
+
 # ── Service preflight ────────────────────────────────────────────────────
 # Test services live in containers on 127.0.0.1 21xx ports (compose.test.yml
 # is the single source of truth). If they aren't up, start them — the
