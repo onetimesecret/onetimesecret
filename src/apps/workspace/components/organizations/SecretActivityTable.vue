@@ -138,8 +138,18 @@ onMounted(() => fetchPage(0));
 // Org switch via URL navigation reuses the component — restart at page 1.
 // Clearing records first routes the fresh context through the skeleton
 // instead of showing the previous org's rows while the new page loads.
+// Errors and actors reset too: a latched error/mismatch from the previous
+// org would otherwise suppress the skeleton (its gate requires both clear)
+// and render the old org's failure banner over the new org's first fetch.
+// Paging state likewise: if the new org's first fetch fails, Retry replays
+// offset.value — a stale offset would land mid-trail in the new org.
 watch(orgExtid, () => {
   records.value = [];
+  actors.value = {};
+  error.value = null;
+  validationError.value = false;
+  offset.value = 0;
+  total.value = 0;
   fetchPage(0);
 });
 </script>

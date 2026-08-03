@@ -271,6 +271,93 @@ describe('SecretActivityTable', () => {
     });
   });
 
+  describe('org switch', () => {
+    // The orgExtid watcher must reset the FULL previous-org context — not
+    // just records. A latched error/validationError would otherwise suppress
+    // the skeleton (its gate requires both clear) and render the old org's
+    // failure banner over the new org's first fetch.
+
+    it('clears a latched error on switch so the skeleton renders for the new org', async () => {
+      mockApi.get.mockRejectedValueOnce(new Error('Network down'));
+      wrapper = await mountComponent('on1abc123');
+      expect(wrapper.find('[data-testid="org-audit-error"]').exists()).toBe(true);
+
+      // The new org's first fetch stays in flight.
+      mockApi.get.mockReturnValue(new Promise(() => {}));
+      await wrapper.setProps({ orgExtid: 'on1def456' });
+      await flushPromises();
+
+      expect(mockApi.get).toHaveBeenLastCalledWith(
+        '/api/organizations/on1def456/audit-events',
+        expect.objectContaining({ params: { offset: 0, limit: 50 } })
+      );
+      expect(wrapper.find('[data-testid="org-audit-error"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="table-skeleton"]').exists()).toBe(true);
+    });
+
+    it('clears a latched contract mismatch on switch so the skeleton renders', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      respondWith(buildResponse({ records: [buildEvent({ at: 'yesterday' })] }));
+      wrapper = await mountComponent('on1abc123');
+      expect(wrapper.find('[data-testid="org-audit-contract-mismatch"]').exists()).toBe(true);
+
+      mockApi.get.mockReturnValue(new Promise(() => {}));
+      await wrapper.setProps({ orgExtid: 'on1def456' });
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="org-audit-contract-mismatch"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="table-skeleton"]').exists()).toBe(true);
+    });
+
+    it('drops the previous org resolved-identity map across the switch', async () => {
+      respondWith(
+        buildResponse({
+          records: [buildEvent({ actor: 'creator', actor_id: FULL_ACTOR_OBJID })],
+          actors: {
+            [FULL_ACTOR_OBJID]: { email: 'alice@example.com', extid: 'cx1abc123' },
+          },
+        })
+      );
+      wrapper = await mountComponent('on1abc123');
+      expect(wrapper.text()).toContain('alice@example.com');
+
+      mockApi.get.mockReturnValue(new Promise(() => {}));
+      await wrapper.setProps({ orgExtid: 'on1def456' });
+      await flushPromises();
+
+      // Rows are cleared on switch, so a stale map cannot render today —
+      // assert the setup state directly (defense-in-depth): the map must be
+      // empty while the new org's first fetch is in flight, not still holding
+      // org A's identities.
+      const vm = wrapper.vm as unknown as { actors: Record<string, unknown> };
+      expect(vm.actors).toEqual({});
+    });
+
+    it('retry after a failed first fetch of the new org requests page 1, not the stale offset', async () => {
+      // Paginate org A to offset 50 (server-echoed on the next-page response).
+      respondWith(buildResponse({ records: [buildEvent()], total: 120, offset: 0 }));
+      wrapper = await mountComponent('on1abc123');
+      respondWith(buildResponse({ records: [buildEvent()], total: 120, offset: 50 }));
+      await wrapper.find('[data-testid="org-audit-next"]').trigger('click');
+      await flushPromises();
+
+      // Org B's first fetch fails → Retry replays fetchPage(offset.value).
+      // With a stale offset the retry would land mid-trail in org B.
+      mockApi.get.mockRejectedValueOnce(new Error('Network down'));
+      await wrapper.setProps({ orgExtid: 'on1def456' });
+      await flushPromises();
+      expect(wrapper.find('[data-testid="org-audit-error"]').exists()).toBe(true);
+
+      await wrapper.find('[data-testid="org-audit-error"] button').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.get).toHaveBeenLastCalledWith(
+        '/api/organizations/on1def456/audit-events',
+        expect.objectContaining({ params: { offset: 0, limit: 50 } })
+      );
+    });
+  });
+
   describe('kind labels and icons', () => {
     it('resolves a known kind to its i18n label key and dedicated icon', async () => {
       respondWith(buildResponse({ records: [buildEvent({ kind: 'burned' })] }));
