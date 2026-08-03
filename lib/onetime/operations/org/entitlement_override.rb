@@ -4,7 +4,7 @@
 
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -237,7 +237,7 @@ module Onetime
           # emitted from HERE. Adapters MUST NOT audit or the trail
           # double-records. `detail` for clear stays {} — the cleared set is
           # unbounded and the pre-extraction endpoint recorded {} too.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: audit_verb,
             target: @org.extid,
@@ -268,7 +268,7 @@ module Onetime
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: audit_verb,
             target: @org.extid,

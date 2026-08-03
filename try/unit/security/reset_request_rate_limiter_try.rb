@@ -190,7 +190,7 @@ end
 
 ## -- Audit trail --------------------------------------------------------
 
-## A cap-hit writes ONE queryable AdminAuditEvent, so an enumeration attempt
+## A cap-hit writes ONE queryable ColonelAuditEvent, so an enumeration attempt
 ## leaves more than a log line. Counted as a delta rather than by clearing the
 ## shared store, which other tryout files also write to.
 set_reset_request_rate_limit(
@@ -198,8 +198,8 @@ set_reset_request_rate_limit(
   'window' => 900, 'lockout' => 900,
 )
 @audit_verb  = Onetime::Security::ResetRequestRateLimiter::AUDIT_VERB
-@audit_count = -> { Onetime::AdminAuditEvent.recent_security(500).count { |e| e['verb'] == @audit_verb } }
-@admin_count = -> { Onetime::AdminAuditEvent.count }
+@audit_count = -> { Onetime::ColonelAuditEvent.recent_security(500).count { |e| e['verb'] == @audit_verb } }
+@admin_count = -> { Onetime::ColonelAuditEvent.count }
 @audit_ip    = '203.0.113.99'
 @audit_email = "target_audit_#{@tag}@example.com"
 cleanup(@redis, ip: @audit_ip, email: @audit_email)
@@ -216,7 +216,7 @@ cleanup(@redis, ip: @audit_ip, email: @audit_email)
 #=> 0
 
 ## The event names the tier, the caps, and an unauthenticated actor
-@audit_event = Onetime::AdminAuditEvent.recent_security(500).find { |e| e['verb'] == @audit_verb }
+@audit_event = Onetime::ColonelAuditEvent.recent_security(500).find { |e| e['verb'] == @audit_verb }
 [@audit_event['actor'], @audit_event['result'], @audit_event['detail']['tier'],
  @audit_event['detail']['count'], @audit_event['detail']['max_attempts']]
 #=> ['anonymous', 'failure', 'ip', 2, 2]

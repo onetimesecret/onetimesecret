@@ -21,7 +21,7 @@
 # Run: bundle exec rspec apps/web/auth/spec/operations/customers/change_email_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'auth/database'
 require 'auth/operations/customers/change_email'
 
@@ -101,7 +101,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   let(:verifier) { instance_double(Auth::Operations::Customers::SetVerification, call: :success) }
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(OT).to receive(:info)
     allow(Onetime::Customer).to receive(:email_index).and_return(email_index)
     allow(Onetime::Organization).to receive(:contact_email_index).and_return(contact_email_index)
@@ -184,8 +184,8 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     it 'records exactly one audit event with OBSCURED addresses' do
       op.call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once
-      expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
         actor: 'cli',
         verb: 'customer.change_email',
         target: 'ur_c',
@@ -204,7 +204,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       op.call
 
       detail = nil
-      expect(Onetime::AdminAuditEvent).to have_received(:record) { |kwargs| detail = kwargs[:detail] }
+      expect(Onetime::ColonelAuditEvent).to have_received(:record) { |kwargs| detail = kwargs[:detail] }
       expect(detail[:from]).not_to eq(old_email)
       expect(detail[:to]).not_to eq(new_email)
     end
@@ -233,7 +233,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       expect(trace).to be_empty
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
     it 'reports how many orgs WOULD be re-indexed' do
@@ -264,7 +264,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       result = op(new_email: 'not-an-email').call
 
       expect(result.status).to eq(:invalid_email)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: 'cli',
           verb: 'customer.change_email',
@@ -280,7 +280,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       expect(result.status).to eq(:no_change)
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 
@@ -323,7 +323,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       expect(result.status).to eq(:email_taken)
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           verb: 'customer.change_email',
           target: 'ur_c',
@@ -365,14 +365,14 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     # The Onetime::AuditedFailure mechanism. This re-raise happens from the
     # MIDDLE of the swap, before record_audit ever runs, so without the macro
     # an attempted takeover that blew up left nothing at all in the trail.
-    # Message expectation, not a store read: AdminAuditEvent.record swallows
+    # Message expectation, not a store read: ColonelAuditEvent.record swallows
     # its own errors.
     it 're-raises a non-uniqueness SQL error, records ONE failure, no Customer write' do
       allow(by_id).to receive(:update).and_raise(StandardError, 'connection reset')
 
       expect { op.call }.to raise_error(StandardError, 'connection reset')
       expect(customer).not_to have_received(:save)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: 'cli',
           # AUDIT_VERB, never the side-effect verb this op also emits.
@@ -411,7 +411,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       op.call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(verb: 'customer.change_email', result: :partial)
       )
     end
@@ -532,7 +532,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         it 'carries those warnings into the single :partial audit event' do
           op.call
 
-          expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+          expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
             hash_including(
               verb: 'customer.change_email',
               result: :partial,
@@ -747,7 +747,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       it 'records the forced clear under its own verb so the trail stays replayable' do
         op.call
 
-        expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
           actor: 'cli',
           verb: 'customer.set_verification',
           target: 'ur_c',
@@ -771,7 +771,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
         op.call
 
-        expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
           hash_including(verb: 'customer.change_email', result: :verification_not_reset)
         )
       end
@@ -953,7 +953,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     it 'records --reason and --ticket in the audit detail when supplied' do
       op(reason: 'support request', ticket: 'ZD-9182').call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
         hash_including(detail: hash_including(reason: 'support request', ticket: 'ZD-9182'))
       )
     end
@@ -962,7 +962,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       op(reason: '  ', ticket: nil).call
 
       detail = nil
-      expect(Onetime::AdminAuditEvent).to have_received(:record) { |kwargs| detail = kwargs[:detail] }
+      expect(Onetime::ColonelAuditEvent).to have_received(:record) { |kwargs| detail = kwargs[:detail] }
       expect(detail).not_to have_key(:reason)
       expect(detail).not_to have_key(:ticket)
     end

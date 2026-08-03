@@ -13,7 +13,7 @@
 # The cross-store mutation (Rodauth `accounts` row, Customer hash, the global +
 # org-scoped email indexes, default-workspace contact_email, pending self-service
 # change markers, session revocation, verification reset) AND the single
-# AdminAuditEvent are all owned by Auth::Operations::Customers::ChangeEmail — the
+# ColonelAuditEvent are all owned by Auth::Operations::Customers::ChangeEmail — the
 # one implementation. The colonel `POST /users/:user_id/email` endpoint is the
 # other adapter. This command owns only CLI concerns: resolution, flags, the
 # confirmation prompt, rendering, exit codes. It NEVER audits.

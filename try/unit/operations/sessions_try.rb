@@ -28,7 +28,7 @@ require 'onetime/operations/sessions/inspect_session'
 require 'onetime/operations/sessions/delete_session'
 require 'onetime/session/sidecar'
 
-AE  = Onetime::AdminAuditEvent
+AE  = Onetime::ColonelAuditEvent
 DB  = Familia.dbclient
 
 @actor = 'ur1colonelpub' # a PUBLIC id (extid-shaped), never an objid

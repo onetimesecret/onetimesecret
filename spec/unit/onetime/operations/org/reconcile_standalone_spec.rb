@@ -30,7 +30,7 @@
 # Run: bundle exec rspec spec/unit/onetime/operations/org/reconcile_standalone_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/org/reconcile'
 
 RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing disabled)' do
@@ -41,7 +41,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
   end
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
     # Keep the swallowed-anomaly log lines out of the spec output; asserted
     # explicitly in the degradable-cascade examples below.
     allow(OT).to receive(:le)
@@ -145,7 +145,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
 
       it 'records EXACTLY ONE audit event with the unchanged verb' do
         result
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           actor: actor,
           verb: 'organization.reconcile',
           target: 'on_org_sa',
@@ -197,7 +197,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
 
       it 'audits nothing and does not reload' do
         result
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
         expect(Onetime::Organization).not_to have_received(:load)
       end
     end
@@ -236,7 +236,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
         expect(result.reason).to include('membership cascade failed')
         # A raised cascade has no counts to report: nil, never fabricated.
         expect(result.memberships).to be_nil
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
       end
 
       it 'logs a falsey materializer return rather than inventing a status' do

@@ -8,7 +8,7 @@
 # implementation, shared with the colonel POST /users/:user_id/checkout-link
 # endpoint). This command owns CLI concerns only: identifier resolution,
 # option parsing, and output formatting. The op creates the session AND
-# records the AdminAuditEvent.
+# records the ColonelAuditEvent.
 #
 # Usage:
 #   bin/ots billing checkout-links create user@example.com --plan identity_plus_v1

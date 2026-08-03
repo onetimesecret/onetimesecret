@@ -6,7 +6,7 @@
 #
 # `billing sync-org` is a billing-namespace alias over the same audited
 # Onetime::Operations::Org::Reconcile op as `org reconcile`. The mutation and
-# its single AdminAuditEvent are the op's job — covered by
+# its single ColonelAuditEvent are the op's job — covered by
 # spec/unit/onetime/operations/org/reconcile_spec.rb. Here the op is stubbed
 # at its constructor (same approach as spec/cli/org_command_spec.rb) so these
 # stay pure adapter tests: op construction, status -> stats mapping, per-org
@@ -255,12 +255,12 @@ RSpec.describe Onetime::CLI::BillingSyncOrgCommand, type: :cli do
   end
 
   describe 'audit non-authorship' do
-    it 'never records an AdminAuditEvent from the adapter (the op owns the single audit)' do
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+    it 'never records an ColonelAuditEvent from the adapter (the op owns the single audit)' do
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
 
       capture_output { cmd.call(extid: 'on_org_ext_12345') }
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 end

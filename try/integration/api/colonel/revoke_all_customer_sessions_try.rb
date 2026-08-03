@@ -17,7 +17,7 @@
 #   the customer's live blobs is GONE (tracked AND untracked), the sidecars are
 #   destroyed, and Customer#active_sessions is cleared
 # - a DIFFERENT customer's session is untouched
-# - EXACTLY ONE AdminAuditEvent (verb 'session.revoke_all', target = the extid)
+# - EXACTLY ONE ColonelAuditEvent (verb 'session.revoke_all', target = the extid)
 #
 # Run: try --agent try/integration/api/colonel/revoke_all_customer_sessions_try.rb
 
@@ -43,7 +43,7 @@ def last_response; @test.last_response; end
 
 Store = Onetime::Operations::Sessions::Store
 SM    = Onetime::SessionMetadata
-AE    = Onetime::AdminAuditEvent
+AE    = Onetime::ColonelAuditEvent
 DB    = Familia.dbclient
 
 @timestamp = Familia.now.to_i

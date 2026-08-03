@@ -24,7 +24,7 @@ OT.boot! :test
 require 'onetime/operations/ban_ip'
 require 'onetime/operations/unban_ip'
 
-AE  = Onetime::AdminAuditEvent
+AE  = Onetime::ColonelAuditEvent
 BIP = Onetime::BannedIP
 
 # Documentation-range IPs (RFC 5737 TEST-NET-3), unlikely to collide with fixtures.

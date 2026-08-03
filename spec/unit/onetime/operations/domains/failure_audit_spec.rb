@@ -4,7 +4,7 @@
 
 # The FAILURE half of the domain ops' audit contract.
 #
-# Every AdminAuditEvent.record call in these ops sits AFTER the mutation, on
+# Every ColonelAuditEvent.record call in these ops sits AFTER the mutation, on
 # the success path, so until Onetime::AuditedFailure was applied a create that
 # blew up, a refused create, a config upsert rejected by a model setter, and a
 # materialize-outcome contract drift all left the admin trail completely empty.
@@ -17,14 +17,14 @@
 # try/integration/api/colonel/domain_configs_try.rb). This file covers the ops
 # with no incumbent spec of their own.
 #
-# Message expectations, not store reads: AdminAuditEvent.record swallows its
+# Message expectations, not store reads: ColonelAuditEvent.record swallows its
 # own errors and returns nil, so a store read here could pass or fail for
 # reasons unrelated to the mechanism.
 #
 # Run: pnpm run test:rspec spec/unit/onetime/operations/domains/failure_audit_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/domains/create'
 require 'onetime/operations/domains/ensure_domain_configs'
 require 'onetime/operations/domains/upsert_domain_config'
@@ -32,7 +32,7 @@ require 'onetime/operations/domains/upsert_domain_config'
 RSpec.describe 'domain operations failure auditing' do
   let(:actor) { 'ur_col_public_extid' } # PUBLIC identity (extid/email)
 
-  before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
   describe Onetime::Operations::Domains::Create do
     let(:org) { double('Organization', objid: 'org-obj-1', extid: 'on_org_ext') }
@@ -49,7 +49,7 @@ RSpec.describe 'domain operations failure auditing' do
       result = build(domain: 'bogus').call
 
       expect(result.status).to eq(:invalid)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'domain.create',
         target: 'bogus',
@@ -64,7 +64,7 @@ RSpec.describe 'domain operations failure auditing' do
 
       build(domain: overlong).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(target: overlong[0, described_class::MAX_TARGET_LENGTH]),
       )
     end
@@ -81,7 +81,7 @@ RSpec.describe 'domain operations failure auditing' do
 
       expect { build.call }.to raise_error(Onetime::Problem, /index claim failed/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'domain.create',
@@ -121,7 +121,7 @@ RSpec.describe 'domain operations failure auditing' do
         described_class.new(domain: domain, actor: actor, dry_run: false).call
       end.to raise_error(Onetime::Problem, /Unexpected materialize outcome/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'domain.configs_ensure',
@@ -139,7 +139,7 @@ RSpec.describe 'domain operations failure auditing' do
       result = described_class.new(domain: domain, actor: actor, dry_run: true).call
 
       expect(result.status).to eq(:planned)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 
@@ -164,7 +164,7 @@ RSpec.describe 'domain operations failure auditing' do
         ).call
       end.to raise_error(Onetime::Problem, /not a public domain/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'domain.config_upsert',

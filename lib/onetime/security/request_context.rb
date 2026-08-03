@@ -62,7 +62,7 @@ module Onetime
       extend self
 
       # String keys so they splat cleanly through the model layer's **event_attrs
-      # (see Receipt#record_org_audit_event) and JSON round-trip in the trail.
+      # (see Receipt#record_org_secret_activity_event) and JSON round-trip in the trail.
       NET_IP_PARTIAL = 'net_ip_partial'
       NET_UA_PARTIAL = 'net_ua_partial'
       NET_IP_HASH    = 'net_ip_hash'

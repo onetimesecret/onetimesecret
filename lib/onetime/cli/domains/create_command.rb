@@ -7,7 +7,7 @@
 # This is the CLI peer of `POST /api/colonel/domains`. Both adapters call the
 # same op (Onetime::Operations::Domains::Create), which owns validation,
 # creation, certificate provisioning and the single `domain.create`
-# AdminAuditEvent. Every other colonel domain verb (verify / probe / repair /
+# ColonelAuditEvent. Every other colonel domain verb (verify / probe / repair /
 # transfer / remove) already had a CLI peer; create was the gap.
 #
 # Usage:

@@ -6,7 +6,7 @@
 # lib/onetime/operations/README.md. Lives alongside the incumbent domain ops in
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic), so require the audit model explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/models/custom_domain/config_registry'
 
@@ -22,7 +22,7 @@ module Onetime
       # (editable kinds only — never sso/mailer) and for coercing `attrs` via
       # {Onetime::CustomDomain::ConfigRegistry.coerce_field!}; this op applies
       # them with the correct storage encoding and records EXACTLY ONE
-      # {Onetime::AdminAuditEvent} per successful mutation (CONTRACT 4). The
+      # {Onetime::ColonelAuditEvent} per successful mutation (CONTRACT 4). The
       # audit detail carries field NAMES only, never values (recipients /
       # allowlists are semi-sensitive).
       #
@@ -108,7 +108,7 @@ module Onetime
           end
 
           # Exactly one audit event per successful mutation. Field names only.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,

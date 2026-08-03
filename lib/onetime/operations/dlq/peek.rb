@@ -14,7 +14,7 @@ module Onetime
       #
       # READ-ONLY: every message is popped with a manual ack and immediately
       # nack-requeued ({Store.peek}), so the queue is left exactly as found. No
-      # {Onetime::AdminAuditEvent} (CONTRACT 4).
+      # {Onetime::ColonelAuditEvent} (CONTRACT 4).
       #
       # Bounded (CONTRACT 6): at most `limit` messages are inspected, clamped to
       # {MAX_LIMIT}, and never more than the queue actually holds — one request can

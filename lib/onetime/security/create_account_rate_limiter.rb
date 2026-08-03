@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 
 module Onetime
   module Security
@@ -115,7 +115,7 @@ module Onetime
     #      <masked-ip> is the STORED subject — the privacy-masked address, not
     #      the raw one and not the /16-obscured form in the log line.
     #   2. `POST /api/colonel/ratelimit/reset` with kind=create_account_ip,
-    #      which performs the delete AND records an AdminAuditEvent.
+    #      which performs the delete AND records an ColonelAuditEvent.
     #
     # Fail semantics mirror the other security limiters: Redis errors propagate
     # rather than silently permitting an unthrottled signup flood.
@@ -239,7 +239,7 @@ module Onetime
       # SEPARATE RETENTION DOMAIN, and a BOUNDED WRITE FREQUENCY — both are
       # required, not stylistic. This is the SECOND unauthenticated writer into
       # the audit store, and the MAX_EVENTS rationale on
-      # {Onetime::AdminAuditEvent} (rewritten when ResetRequestRateLimiter became
+      # {Onetime::ColonelAuditEvent} (rewritten when ResetRequestRateLimiter became
       # the first) requires any further unauthenticated-triggerable verb to carry
       # a comparable per-window bound or move to its own collection. This does
       # both:
@@ -264,7 +264,7 @@ module Onetime
       #
       # Best-effort, matching every other audit call site.
       def record_create_account_throttle_audit(obscured_ip, count)
-        Onetime::AdminAuditEvent.record_security(
+        Onetime::ColonelAuditEvent.record_security(
           actor: 'anonymous',
           verb: AUDIT_VERB,
           target: "ip:#{obscured_ip}",

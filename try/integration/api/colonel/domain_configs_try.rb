@@ -148,7 +148,7 @@ hp = @resp['details']['configs']['homepage']['config']
 # ----------------------------------------------------------------
 
 ## ensure with NO body defaults to dry_run=true and plans the three missing kinds
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 post "/api/colonel/domains/#{@extid}/configs/ensure", {}, colonel_headers
 @resp = JSON.parse(last_response.body)
 d = @resp['details']
@@ -157,7 +157,7 @@ d = @resp['details']
 
 ## ensure dry-run mutates NOTHING and audits NOTHING
 [
-  Onetime::AdminAuditEvent.count - @before_audit,
+  Onetime::ColonelAuditEvent.count - @before_audit,
   Onetime::CustomDomain::SigninConfig.exists_for_domain?(@domain.identifier),
   Onetime::CustomDomain::SignupConfig.exists_for_domain?(@domain.identifier),
   Onetime::CustomDomain::IncomingConfig.exists_for_domain?(@domain.identifier),
@@ -169,7 +169,7 @@ d = @resp['details']
 # ----------------------------------------------------------------
 
 ## ensure apply creates the missing kinds and skips sso+mailer with a reason
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 post "/api/colonel/domains/#{@extid}/configs/ensure", { 'dry_run' => 'false' }, colonel_headers
 @resp = JSON.parse(last_response.body)
 d = @resp['details']
@@ -177,8 +177,8 @@ d = @resp['details']
 #=> [200, false, %w[incoming signin signup], %w[api homepage], [{'kind' => 'sso', 'reason' => 'requires_credentials'}, {'kind' => 'mailer', 'reason' => 'requires_credentials'}]]
 
 ## ensure apply records EXACTLY ONE domain.configs_ensure audit event
-@after_audit = Onetime::AdminAuditEvent.count
-@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+@after_audit = Onetime::ColonelAuditEvent.count
+@latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [@after_audit - @before_audit, @latest['verb'], @latest['actor']]
 #=> [1, "domain.configs_ensure", @colonel.extid]
 
@@ -191,10 +191,10 @@ d = @resp['details']
 #=> [false, false, false]
 
 ## ensure re-run: nothing missing, nothing created, NO audit event
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 post "/api/colonel/domains/#{@extid}/configs/ensure", { 'dry_run' => 'false' }, colonel_headers
 @resp = JSON.parse(last_response.body)
-[@resp['details']['created'], @resp['details']['existing'].sort, Onetime::AdminAuditEvent.count - @before_audit]
+[@resp['details']['created'], @resp['details']['existing'].sort, Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [[], %w[api homepage incoming signin signup], 0]
 
 # ----------------------------------------------------------------
@@ -202,7 +202,7 @@ post "/api/colonel/domains/#{@extid}/configs/ensure", { 'dry_run' => 'false' }, 
 # ----------------------------------------------------------------
 
 ## PUT signin: partial update returns real JSON booleans and outcome=updated
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 put "/api/colonel/domains/#{@extid}/configs/signin",
   { 'enabled' => 'true', 'signin_enabled' => 'true' }, colonel_headers
 @resp = JSON.parse(last_response.body)
@@ -213,8 +213,8 @@ d = @resp['details']
 #=> [200, 'signin', 'updated', true, true, false, nil]
 
 ## PUT signin: ONE domain.config_upsert audit event with changed field NAMES
-@after_audit = Onetime::AdminAuditEvent.count
-@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+@after_audit = Onetime::ColonelAuditEvent.count
+@latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [@after_audit - @before_audit, @latest['verb'], @latest['actor'],
  @latest['detail'].to_s.include?('signin_enabled')]
 #=> [1, "domain.config_upsert", @colonel.extid, true]
@@ -225,11 +225,11 @@ cfg = Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain.identifier)
 #=> [true, true, false]
 
 ## PUT signin on the SECOND domain (no ensure ran there): outcome=created
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 put "/api/colonel/domains/#{@extid2}/configs/signin", { 'enabled' => 'true' }, colonel_headers
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details']['outcome'], @resp['details']['config']['enabled'],
- Onetime::AdminAuditEvent.count - @before_audit]
+ Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [200, 'created', true, 1]
 
 # ----------------------------------------------------------------
@@ -245,20 +245,20 @@ put "/api/colonel/domains/#{@extid2}/configs/signin", { 'enabled' => 'true' }, c
 # ----------------------------------------------------------------
 
 ## PUT signin with an invalid restrict_to enum -> 422 at the adapter, no audit
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 put "/api/colonel/domains/#{@extid}/configs/signin", { 'restrict_to' => 'bogus' }, colonel_headers
-[last_response.status, Onetime::AdminAuditEvent.count - @before_audit]
+[last_response.status, Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [422, 0]
 
 ## PUT signup with an invalid allowed_signup_domains entry -> 422 from the model setter
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 put "/api/colonel/domains/#{@extid}/configs/signup",
   { 'allowed_signup_domains' => ['not_a_domain'] }, colonel_headers
-[last_response.status, Onetime::AdminAuditEvent.count - @before_audit]
+[last_response.status, Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [422, 1]
 
 ## the in-op failure is recorded with the UNCHANGED upsert verb + domain target
-@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+@latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [@latest['verb'], @latest['target'], @latest['result'],
  @latest['detail']['config'], @latest['detail']['changed']]
 #=> ["domain.config_upsert", @extid, "failure", 'signup', ['allowed_signup_domains']]
@@ -338,23 +338,23 @@ mailer = @resp['details']['configs']['mailer']
 # ----------------------------------------------------------------
 
 ## DELETE signin: 200 with deleted:true and ONE domain.config_delete audit event
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
 @resp = JSON.parse(last_response.body)
-@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+@latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [last_response.status, @resp['details']['kind'], @resp['details']['deleted'],
- Onetime::AdminAuditEvent.count - @before_audit, @latest['verb'], @latest['actor']]
+ Onetime::ColonelAuditEvent.count - @before_audit, @latest['verb'], @latest['actor']]
 #=> [200, 'signin', true, 1, "domain.config_delete", @colonel.extid]
 
 ## DELETE signin again: the record is gone -> 404 and ONE result: :failure event
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
-[last_response.status, Onetime::AdminAuditEvent.count - @before_audit,
+[last_response.status, Onetime::ColonelAuditEvent.count - @before_audit,
  Onetime::CustomDomain::SigninConfig.exists_for_domain?(@domain.identifier)]
 #=> [404, 1, false]
 
 ## the refused delete carries the UNCHANGED verb + domain target, result failure
-@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+@latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [@latest['verb'], @latest['target'], @latest['result'],
  @latest['detail']['reason'], @latest['detail']['config']]
 #=> ["domain.config_delete", @extid, "failure", 'not_found', 'signin']

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/dlq/store'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -25,7 +25,7 @@ module Onetime
       # ## Audit (exactly once)
       #
       # A replay that PROCESSES at least one message (replayed or failed) records
-      # EXACTLY ONE {Onetime::AdminAuditEvent} — verb `queue.dlq.replay`, target the
+      # EXACTLY ONE {Onetime::ColonelAuditEvent} — verb `queue.dlq.replay`, target the
       # DLQ name, detail the replayed/failed counts. A replay of an empty queue, or
       # one that processed nothing, mutates nothing and records NO event (the "only
       # audit an actual change" rule shared with BanIP / Sessions::Delete).
@@ -108,7 +108,7 @@ module Onetime
 
           # Exactly one audit event per replay that actually processed a message.
           if processed.positive?
-            Onetime::AdminAuditEvent.record(
+            Onetime::ColonelAuditEvent.record(
               actor: @actor,
               verb: AUDIT_VERB,
               target: @queue,

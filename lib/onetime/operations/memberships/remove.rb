@@ -4,7 +4,7 @@
 
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model and the shared guard explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require_relative 'support'
 
@@ -32,7 +32,7 @@ module Onetime
       #
       # ## Audit
       #
-      # A real removal records EXACTLY ONE {Onetime::AdminAuditEvent}. `:not_found`
+      # A real removal records EXACTLY ONE {Onetime::ColonelAuditEvent}. `:not_found`
       # and `:last_owner` MUTATE nothing but each record one `result: :failure`
       # event: a refused removal is a privileged attempt that must be traceable,
       # exactly like the raising privilege guard in
@@ -84,7 +84,7 @@ module Onetime
 
           # One audit event per real removal, emitted from the op (adapters MUST
           # NOT audit). Public ids only; no secret detail.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
@@ -113,7 +113,7 @@ module Onetime
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status, role)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,

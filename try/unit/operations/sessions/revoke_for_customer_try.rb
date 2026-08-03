@@ -11,7 +11,7 @@
 # it) to make the invalidation genuine, not mocked. Covers:
 # - after revoke: the live `session:<sid>` blob is GONE (Store.find_key -> nil),
 #   the sidecar is destroyed, the sid is ZREM'd from Customer#active_sessions
-# - EXACTLY ONE customer-scoped AdminAuditEvent per revoke: verb 'session.revoke',
+# - EXACTLY ONE customer-scoped ColonelAuditEvent per revoke: verb 'session.revoke',
 #   target = the customer id, actor = the acting colonel's PUBLIC id, session_id
 #   in detail, and blob_deleted reflects whether a live blob was present
 # - IDEMPOTENT: a second revoke still returns revoked:true, still audits (this op
@@ -31,7 +31,7 @@ require 'onetime/operations/sessions/revoke_for_customer'
 RFC   = Onetime::Operations::Sessions::RevokeForCustomer
 Store = Onetime::Operations::Sessions::Store
 SM    = Onetime::SessionMetadata
-AE    = Onetime::AdminAuditEvent
+AE    = Onetime::ColonelAuditEvent
 DB    = Familia.dbclient
 
 @nonce = Familia.generate_id[0, 12]

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Auth
@@ -19,7 +19,7 @@ module Auth
       # ## Audit (epic #20 CONTRACT 4)
       #
       # Repairs mutate customer records, so a repaired customer records ONE
-      # AdminAuditEvent (summarizing the repair actions) when an `actor` is
+      # ColonelAuditEvent (summarizing the repair actions) when an `actor` is
       # supplied and `repair: true`. It is one event per repaired customer (not per
       # field, and never on audit-only runs), which keeps the capped audit set
       # bounded even on a `--all --repair` sweep. Per-action OT.info logging is
@@ -688,7 +688,7 @@ module Auth
         def audit_repair(repaired)
           return if @actor.nil?
 
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
@@ -699,7 +699,7 @@ module Auth
 
         # Same verb/target/actor as the success event, so the failed repair sits
         # next to the completed ones under one filter. Routed through
-        # Onetime::AuditedFailure.record (not AdminAuditEvent.record directly) so
+        # Onetime::AuditedFailure.record (not ColonelAuditEvent.record directly) so
         # it inherits the shared rules: authorization rejections are dropped, an
         # exception already recorded by an inner audited op is not recorded
         # twice, and the write is best-effort.

@@ -4,7 +4,7 @@
 
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -17,7 +17,7 @@ module Onetime
       # (`DELETE /api/colonel/sessions/:session_id`) and the `bin/ots session delete`
       # CLI are thin adapters over it. The model mutation is IDENTICAL to the prior
       # inline CLI call (`dbclient.del(session_key)`); the op adds exactly one thing
-      # the inline call lacked: one {Onetime::AdminAuditEvent} per successful delete,
+      # the inline call lacked: one {Onetime::ColonelAuditEvent} per successful delete,
       # mirroring the Slice-4 {Onetime::Operations::BanIP} / `UnbanIP` precedent.
       #
       # Deleting a session logs that user out mid-flight, so the HTTP path gates it
@@ -71,7 +71,7 @@ module Onetime
 
           # One audit event per successful mutation. The session id is a public
           # identifier; never put session contents (tokens, etc.) into detail.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @session_id,

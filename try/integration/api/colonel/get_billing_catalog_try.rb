@@ -18,7 +18,7 @@
 # - 200 for colonel with the record/details envelope
 # - details carries config_plans + live_plans + a drift summary
 # - source is "local_config" when the Stripe cache is empty (test env)
-# - READ-ONLY: the request records NO AdminAuditEvent (CONTRACT 4)
+# - READ-ONLY: the request records NO ColonelAuditEvent (CONTRACT 4)
 #
 # Run: try --agent try/integration/api/colonel/get_billing_catalog_try.rb
 
@@ -104,8 +104,8 @@ plan = @resp['details']['config_plans'].first
 plan.nil? || (%w[planid name tier entitlements limits] - plan.keys).empty?
 #=> true
 
-## READ-ONLY: the request records NO AdminAuditEvent (CONTRACT 4)
-@before = Onetime::AdminAuditEvent.events.size
+## READ-ONLY: the request records NO ColonelAuditEvent (CONTRACT 4)
+@before = Onetime::ColonelAuditEvent.events.size
 get @path, {}, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
-Onetime::AdminAuditEvent.events.size - @before
+Onetime::ColonelAuditEvent.events.size - @before
 #=> 0

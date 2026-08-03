@@ -32,14 +32,14 @@
 # Exactly one check (#4, org.domains membership) is shared between them, and
 # doctor DELEGATES that repair to Onetime::Operations::Domains::Repair so there
 # is a single implementation, a single cross-org guard, and a single
-# `domain.repair` AdminAuditEvent. Check #8 reports orphans so a single
+# `domain.repair` ColonelAuditEvent. Check #8 reports orphans so a single
 # `doctor --all` gives the complete picture, but never fixes them — assigning an
 # organization is a human decision (use `domains repair --org-id`).
 #
 # ## Audit coverage gap (known, deliberate for now)
 #
 # Doctor's index-housekeeping repairs (display_domain_index entries, stale
-# org.domains entries) mutate with an OT.info line but NO AdminAuditEvent. They
+# org.domains entries) mutate with an OT.info line but NO ColonelAuditEvent. They
 # have no single extid-identified target and no colonel surface; extracting an
 # Operations::Domains::RepairIndexes op is tracked separately. Only the #4
 # membership repair is audited today, by the op it delegates to.
@@ -470,7 +470,7 @@ module Onetime
       # The op resolves the domain object, enforces the cross-org guard in
       # Organization#add_domain (which RAISES when the domain already belongs to
       # another org — the raw sorted-set add this replaced bypassed it), and
-      # records the single `domain.repair` AdminAuditEvent. Doctor must never
+      # records the single `domain.repair` ColonelAuditEvent. Doctor must never
       # record its own.
       #
       # Wrapped per domain so one cross-org conflict cannot abort an --all scan.

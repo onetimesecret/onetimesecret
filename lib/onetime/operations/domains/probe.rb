@@ -22,7 +22,7 @@ module Onetime
       #
       # READ-ONLY: a probe reaches out over the network but mutates NOTHING in our
       # data store, so — like the orphaned scan / system read-outs — it records NO
-      # {Onetime::AdminAuditEvent} (CONTRACT 4: audit is for mutations). The
+      # {Onetime::ColonelAuditEvent} (CONTRACT 4: audit is for mutations). The
       # `bin/ots domains probe` CLI and the colonel endpoint
       # (`GET /api/colonel/domains/:extid/probe`) are thin adapters over it.
       #

@@ -9,7 +9,7 @@
 # {Onetime::Operations::BanIP} — it lives in the central operations home rather
 # than an app-scoped one. Loaded at the call site (colonel logic + the `bin/ots
 # banner` CLI), so require the audit dependency explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -196,7 +196,7 @@ module Onetime
     # the colonel `POST /api/colonel/banner` endpoint are thin adapters over it.
     # The Redis write is IDENTICAL to the prior inline CLI call
     # (`db.set` / `db.setex` + `Onetime::Runtime.update_features`); the op adds
-    # exactly one {Onetime::AdminAuditEvent} per successful publish.
+    # exactly one {Onetime::ColonelAuditEvent} per successful publish.
     #
     # Content is stored VERBATIM (raw HTML) — the CLI never sanitised on write and
     # neither does this op, so CLI/UI render identically. Callers (the colonel
@@ -273,8 +273,8 @@ module Onetime
 
         # One audit event per successful publish. The banner content is
         # non-secret (it is shown to every visitor), so it is safe to record; the
-        # AdminAuditEvent redactor still truncates overlong values.
-        Onetime::AdminAuditEvent.record(
+        # ColonelAuditEvent redactor still truncates overlong values.
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: BannerState::KEY,
@@ -293,7 +293,7 @@ module Onetime
     # and the colonel `DELETE /api/colonel/banner` endpoint are thin adapters over
     # it. The Redis delete is IDENTICAL to the prior inline CLI call (`db.del` +
     # `Onetime::Runtime.update_features(global_banner: nil)`); the op adds exactly
-    # one {Onetime::AdminAuditEvent} per successful clear.
+    # one {Onetime::ColonelAuditEvent} per successful clear.
     #
     # Stateless, single `#call`, returns an immutable {Result}. Clearing when no
     # banner is set returns `status: :not_set` and records NO audit event —
@@ -346,7 +346,7 @@ module Onetime
 
         # One audit event per successful mutation. No detail: the fact of the clear
         # is the whole record (the cleared content is not re-logged here).
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: BannerState::KEY,

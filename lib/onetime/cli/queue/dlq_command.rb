@@ -411,7 +411,7 @@ module Onetime
             end
 
             # Live purge — the single audited implementation records exactly one
-            # AdminAuditEvent for the (non-empty) purge.
+            # ColonelAuditEvent for the (non-empty) purge.
             result = Onetime::Operations::Dlq::Purge.new(
               connection: conn, queue: dlq_name, actor: CLI_ACTOR,
             ).call

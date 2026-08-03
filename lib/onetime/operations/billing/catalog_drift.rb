@@ -17,7 +17,7 @@ module Onetime
       # a glance which plans exist on only one side and which diverge in
       # entitlements or limits.
       #
-      # READ-ONLY: it never writes and therefore emits NO AdminAuditEvent
+      # READ-ONLY: it never writes and therefore emits NO ColonelAuditEvent
       # (CONTRACT 4 — audit is for mutations only).
       #
       # ## Why an op for a read

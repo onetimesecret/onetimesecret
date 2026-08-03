@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/security/login_rate_limiter'
 
 module Core::Logic
@@ -210,7 +210,7 @@ module Core::Logic
         #
         # A colonel-passphrase-as-any-customer branch is deliberately absent: any
         # such implicit impersonation would mint an authenticated-as-arbitrary
-        # -customer session with no AdminAuditEvent (see ticket 52). If a genuine
+        # -customer session with no ColonelAuditEvent (see ticket 52). If a genuine
         # impersonation need ever arises it must be an explicit operation gated by
         # both authz layers (Otto role=colonel + verify_one_of_roles!(colonel:true))
         # that writes an audit event on every use — never a clause here.
@@ -245,9 +245,9 @@ module Core::Logic
       def record_colonel_signin
         return unless cust && cust.role.to_s == 'colonel'
 
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: cust.extid,
-          verb: Onetime::AdminAuditEvent::VERB_COLONEL_SIGNIN,
+          verb: Onetime::ColonelAuditEvent::VERB_COLONEL_SIGNIN,
           target: cust.extid,
           result: :success,
           detail: {

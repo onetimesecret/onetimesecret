@@ -29,7 +29,7 @@ module Onetime
 
         # Audit actor sentinel for CLI-initiated ingestion (matches the send-test
         # / customer / session CLI convention). The op attributes the one
-        # per-batch AdminAuditEvent to this on the shell path.
+        # per-batch ColonelAuditEvent to this on the shell path.
         CLI_ACTOR = Onetime::Operations::Email::SyncProviderFeedback::CLI_ACTOR
 
         option :provider,

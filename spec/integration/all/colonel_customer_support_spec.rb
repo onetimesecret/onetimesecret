@@ -400,7 +400,7 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       db.set("session:#{other_sid}", JSON.generate(
         'authenticated' => true, 'external_id' => 'ur_someone_else',
       ))
-      audit_before = Onetime::AdminAuditEvent.count
+      audit_before = Onetime::ColonelAuditEvent.count
 
       data = run_logic(
         ColonelAPI::Logic::Colonel::SuspendUser,
@@ -421,15 +421,15 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       expect(db.exists("session:#{other_sid}")).to eq(1)
 
       # Exactly one audit event, from the op layer.
-      expect(Onetime::AdminAuditEvent.count).to eq(audit_before + 1)
-      event = Onetime::AdminAuditEvent.recent(1).first
+      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before + 1)
+      event = Onetime::ColonelAuditEvent.recent(1).first
       expect(event['verb']).to eq('customer.suspend')
       expect(event['target']).to eq(target.extid)
     end
 
     it 'unsuspends reversibly (data intact) and audits customer.unsuspend' do
       run_logic(ColonelAPI::Logic::Colonel::SuspendUser, { 'user_id' => target.extid })
-      audit_before = Onetime::AdminAuditEvent.count
+      audit_before = Onetime::ColonelAuditEvent.count
 
       data = run_logic(ColonelAPI::Logic::Colonel::UnsuspendUser, { 'user_id' => target.extid })
 
@@ -440,15 +440,15 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       # Nothing destroyed: the account still exists with its email intact.
       expect(reloaded.email).to eq(target.email)
 
-      expect(Onetime::AdminAuditEvent.count).to eq(audit_before + 1)
-      expect(Onetime::AdminAuditEvent.recent(1).first['verb']).to eq('customer.unsuspend')
+      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before + 1)
+      expect(Onetime::ColonelAuditEvent.recent(1).first['verb']).to eq('customer.unsuspend')
     end
 
     it 'refuses to suspend a colonel-role account (privilege guard)' do
       other_colonel = create_customer(
         email: "colonel2-#{SecureRandom.hex(4)}@example.com", role: 'colonel',
       )
-      audit_before = Onetime::AdminAuditEvent.count
+      audit_before = Onetime::ColonelAuditEvent.count
 
       logic = ColonelAPI::Logic::Colonel::SuspendUser.new(
         strategy_result_for(colonel), { 'user_id' => other_colonel.extid },
@@ -456,7 +456,7 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       expect { logic.raise_concerns }.to raise_error(OT::FormError, /cannot be suspended/i)
 
       expect(Onetime::Customer.load(other_colonel.objid).suspended?).to be(false)
-      expect(Onetime::AdminAuditEvent.count).to eq(audit_before)
+      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before)
     end
 
     it 'rejects non-colonel actors (defense-in-depth below the router role gate)' do
@@ -470,12 +470,12 @@ RSpec.describe 'Colonel customer support features', type: :integration do
 
     it 'is idempotent: re-suspending audits nothing and reports changed=false' do
       run_logic(ColonelAPI::Logic::Colonel::SuspendUser, { 'user_id' => target.extid })
-      audit_before = Onetime::AdminAuditEvent.count
+      audit_before = Onetime::ColonelAuditEvent.count
 
       data = run_logic(ColonelAPI::Logic::Colonel::SuspendUser, { 'user_id' => target.extid })
 
       expect(data[:details][:changed]).to be(false)
-      expect(Onetime::AdminAuditEvent.count).to eq(audit_before)
+      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before)
     end
   end
 

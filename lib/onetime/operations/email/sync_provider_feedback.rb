@@ -43,7 +43,7 @@ module Onetime
       # empty or unchanged — stamps `EmailSuppression.sync_status[provider]`, so
       # the deliverability summary's "never synced" banner reflects whether a
       # sync ever RAN, not whether it ever imported something. The
-      # {Onetime::AdminAuditEvent} is a separate, narrower signal: it comes
+      # {Onetime::ColonelAuditEvent} is a separate, narrower signal: it comes
       # transitively from {IngestFeedback} and only fires when a record is
       # actually accepted (CONTRACT 4 — audit state changes, not no-ops). A
       # clean run stamps sync_status with `imported: 0` and writes no audit
@@ -56,7 +56,7 @@ module Onetime
         PROVIDERS = %w[ses lettermint].freeze
 
         # Audit actor sentinel for the CLI/cron sync path (matches the send-test
-        # CLI convention). The one AdminAuditEvent IngestFeedback records per
+        # CLI convention). The one ColonelAuditEvent IngestFeedback records per
         # accepting batch is attributed to this.
         CLI_ACTOR = 'cli'
 

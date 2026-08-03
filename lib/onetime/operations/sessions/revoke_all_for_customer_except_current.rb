@@ -17,7 +17,7 @@ module Onetime
       #
       # {RevokeAllForCustomer} is the colonel/offboarding primitive: it clears ALL
       # sessions (including the current one), also deletes the Rodauth SQL
-      # `account_active_session_keys` rows, and writes an {Onetime::AdminAuditEvent}.
+      # `account_active_session_keys` rows, and writes an {Onetime::ColonelAuditEvent}.
       # None of that fits a user changing their own password:
       #
       #   1. On a self-service PASSWORD CHANGE the user must KEEP the session they
@@ -29,7 +29,7 @@ module Onetime
       #      from inside the reset transaction would be redundant and risks a lock
       #      wait, so this op is deliberately REDIS-ONLY.
       #   3. A self-service revoke is an auth-log event (the caller logs it via
-      #      Auth::Logging), NOT an admin-audit-trail event — so no AdminAuditEvent
+      #      Auth::Logging), NOT an admin-audit-trail event — so no ColonelAuditEvent
       #      is written here, keeping the colonel audit view free of self-service
       #      noise.
       #

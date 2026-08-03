@@ -14,7 +14,7 @@
 # - 404 for a non-existent user
 # - 422 for an invalid role
 # - Success shape for each verb
-# - Every mutation records exactly one AdminAuditEvent with actor = colonel extid
+# - Every mutation records exactly one ColonelAuditEvent with actor = colonel extid
 #
 # Run: try --agent try/integration/api/colonel/customer_admin_try.rb
 
@@ -36,7 +36,7 @@ def get(*args);    @test.get(*args);    end
 def delete(*args); @test.delete(*args); end
 def last_response; @test.last_response; end
 
-AE = Onetime::AdminAuditEvent
+AE = Onetime::ColonelAuditEvent
 
 @ts = Familia.now.to_i
 

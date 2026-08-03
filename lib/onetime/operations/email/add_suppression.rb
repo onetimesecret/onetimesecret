@@ -7,7 +7,7 @@
 # {Onetime::Operations::Email::RemoveSuppression}; loaded at the call site, so
 # require the dependencies explicitly.
 require 'onetime/models/email_suppression'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -25,7 +25,7 @@ module Onetime
       # ## Audit rule (CONTRACT 4)
       #
       # {EmailSuppression.suppress!} returns :created | :updated | nil. This op
-      # records EXACTLY ONE {Onetime::AdminAuditEvent} (verb `email.suppress`)
+      # records EXACTLY ONE {Onetime::ColonelAuditEvent} (verb `email.suppress`)
       # ONLY on a real state change (status non-nil). A blank address mutates
       # nothing and records one `result: :failure` instead: it is a REFUSED
       # attempt (the colonel adapter renders it as a form error, "Address is
@@ -72,7 +72,7 @@ module Onetime
           normalized = Onetime::EmailSuppression.normalize(@address)
 
           if status
-            Onetime::AdminAuditEvent.record(
+            Onetime::ColonelAuditEvent.record(
               actor: @actor,
               verb: AUDIT_VERB,
               target: normalized,
@@ -92,7 +92,7 @@ module Onetime
 
         # Same verb/actor as the success event. Best-effort: never break the op.
         def record_refusal(reason)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @address.to_s,

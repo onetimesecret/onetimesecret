@@ -11,7 +11,7 @@
 # Run: pnpm run test:rspec spec/unit/onetime/operations/memberships/remove_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/memberships/remove'
 
 RSpec.describe Onetime::Operations::Memberships::Remove do
@@ -25,7 +25,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
     double('Customer', objid: 'cust-obj-1', extid: 'ur_member')
   end
 
-  before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
   context 'when an active member is removed' do
     let(:membership) do
@@ -48,7 +48,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
     it 'records EXACTLY ONE audit event (verb membership.remove, public ids, org_id in detail)' do
       described_class.new(org: org, customer: customer, actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.remove',
         target: 'ur_member',
@@ -67,7 +67,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
     result = described_class.new(org: org, customer: customer, actor: actor).call
 
     expect(result.status).to eq(:not_found)
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: actor,
       verb: 'membership.remove',
       target: 'ur_member',
@@ -93,7 +93,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(result.status).to eq(:last_owner)
       expect(owner_membership).not_to have_received(:destroy_with_index_cleanup!)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.remove',
         target: 'ur_member',
@@ -117,7 +117,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
   # The Onetime::AuditedFailure mechanism. destroy_with_index_cleanup! runs
   # BEFORE the success-path record call, so a teardown that blows up partway
   # leaves the org in an unknown state with no trail unless the macro fires.
-  # Message expectation, not a store read: AdminAuditEvent.record swallows its
+  # Message expectation, not a store read: ColonelAuditEvent.record swallows its
   # own errors, so a store read could pass or fail for unrelated reasons.
   it 'records ONE result: :failure event when the teardown raises, and re-raises' do
     membership = double('OrganizationMembership', role: 'admin', owner?: false)
@@ -129,7 +129,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
       described_class.new(org: org, customer: customer, actor: actor).call
     end.to raise_error(Onetime::Problem, /redis down/)
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(
         actor: actor,
         verb: 'membership.remove',

@@ -19,7 +19,7 @@
 # #record_colonel_signin.
 #
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 
 module Auth
   module Operations
@@ -158,9 +158,9 @@ module Auth
       def record_colonel_signin(customer)
         return unless customer.role.to_s == 'colonel'
 
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: customer.extid,
-          verb: Onetime::AdminAuditEvent::VERB_COLONEL_SIGNIN,
+          verb: Onetime::ColonelAuditEvent::VERB_COLONEL_SIGNIN,
           target: customer.extid,
           result: :success,
           detail: {

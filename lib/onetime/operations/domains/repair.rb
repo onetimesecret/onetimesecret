@@ -7,7 +7,7 @@
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic + CLI), so require the audit model explicitly, mirroring
 # AdminVerifyDomain / BanIP.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -29,7 +29,7 @@ module Onetime
       #
       # `dry_run: true` (the safe default) computes the plan — the issues found and
       # what would change — and mutates NOTHING and audits NOTHING. `dry_run: false`
-      # applies the repairs and records EXACTLY ONE {Onetime::AdminAuditEvent} per
+      # applies the repairs and records EXACTLY ONE {Onetime::ColonelAuditEvent} per
       # successful mutation. A run that finds no issues (`:no_issues`) or is blocked
       # mutates nothing and records no audit event (the "only audit an actual
       # change" rule).
@@ -127,7 +127,7 @@ module Onetime
           repairs_applied = repairs.map(&:call)
 
           # Exactly one audit event per successful mutation. Non-secret detail only.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,
@@ -187,7 +187,7 @@ module Onetime
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,

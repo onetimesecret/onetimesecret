@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 
 module Onetime
   module Security
@@ -125,7 +125,7 @@ module Onetime
     #   2. `POST /api/colonel/ratelimit/reset` with `kind=reset_request_ip`
     #      and `subject=<masked-ip>` (colonel role; ColonelAPI::Logic::Colonel::
     #      ResetRateLimit -> Onetime::Operations::RateLimit::Reset). Unlike the
-    #      CLI this performs the delete AND records an AdminAuditEvent.
+    #      CLI this performs the delete AND records an ColonelAuditEvent.
     #
     # The per-email cap is deliberately the LOOSER tier (mirroring
     # LoginRateLimiter's global backstop, RL-3): a TIGHT per-email lockout
@@ -277,7 +277,7 @@ module Onetime
       # Raises LimitExceeded when the tier is locked; otherwise logs as the
       # count approaches/reaches the cap (the detection tie-in for #3872 —
       # alert on these alongside the reset_password_request_no_account events).
-      # The cap-hit also writes one AdminAuditEvent, so the signal is queryable
+      # The cap-hit also writes one ColonelAuditEvent, so the signal is queryable
       # and not only greppable — see record_reset_request_throttle_audit.
       def enforce_reset_request_tier!(keys, max_attempts, tier_label, subject)
         allowed, detail = reset_request_redis.eval(
@@ -309,13 +309,13 @@ module Onetime
       end
 
       # Write the queryable counterpart of the OT.le line above: one
-      # {Onetime::AdminAuditEvent} per cap-hit, readable through the admin audit
+      # {Onetime::ColonelAuditEvent} per cap-hit, readable through the admin audit
       # view (GET /api/colonel/audit) and the CLI. A log line alone is not a
       # signal an operator can query — an enumeration attempt against the reset
       # flow otherwise leaves nothing to search for.
       #
       # SEPARATE RETENTION DOMAIN — this is the control. The write goes to
-      # {Onetime::AdminAuditEvent.record_security}, whose `security_events`
+      # {Onetime::ColonelAuditEvent.record_security}, whose `security_events`
       # collection has its own count cap and age bound, NOT to `.record`, which
       # holds the operator trail (purge, role change, suspension,
       # impersonation). That trail is capped by count with no TTL and evicts
@@ -343,10 +343,10 @@ module Onetime
       # this route, and normalize_actor would otherwise stamp 'unknown', which
       # reads as "we failed to resolve it" rather than "there is none".
       #
-      # Best-effort, matching every other audit call site: AdminAuditEvent.record
+      # Best-effort, matching every other audit call site: ColonelAuditEvent.record
       # already swallows its own errors, and this rescue covers assembly.
       def record_reset_request_throttle_audit(tier_label, obscured_subject, count, max_attempts)
-        Onetime::AdminAuditEvent.record_security(
+        Onetime::ColonelAuditEvent.record_security(
           actor: 'anonymous',
           verb: AUDIT_VERB,
           target: "#{tier_label}:#{obscured_subject}",
