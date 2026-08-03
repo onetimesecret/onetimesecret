@@ -47,7 +47,12 @@ site:
     utf8_sanitizer: true
     authenticity_token: true
     http_origin: false
-    xss_header: false
+    # xss_header, referrer_policy and permissions_policy ship ON since the
+    # 2026-08-02 audit (M-3); enabled here so the test posture matches
+    # production and integration boots don't warn via SECURITY_CRITICAL_KEYS.
+    xss_header: true
+    referrer_policy: true
+    permissions_policy: true
     frame_options: false
     path_traversal: false
     cookie_tossing: false
