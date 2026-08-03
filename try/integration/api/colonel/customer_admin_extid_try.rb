@@ -169,7 +169,7 @@ delete "/api/colonel/users/#{@purge_extid}", {}, @colonel_get_headers
 # REGRESSION (purge_user.rb#handle_result_status). The adapter previously
 # discarded the Purge Result and answered 200 `deleted: true` for a record that
 # was never destroyed — a phantom success, and a phantom audit trail too, since
-# the op writes no AdminAuditEvent on :not_found. The third element asserts the
+# the op writes no ColonelAuditEvent on :not_found. The third element asserts the
 # record SURVIVES, which is what made the old success response a lie.
 ## DELETE surfaces the operation's :not_found status instead of a phantom success
 begin

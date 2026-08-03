@@ -147,7 +147,7 @@ module Onetime::Receipt::Features
       #   actor discriminator) threaded down from the reveal cascade (#3639).
       #   Forwarded to the org audit trail; nil fails safe to the 'unknown'
       #   actor (ADR-023; never misattributed to the creator). See
-      #   #lifecycle_audit_attrs.
+      #   #lifecycle_activity_attrs.
       # @return [Boolean, nil] true if THIS caller performed the transition;
       #   a falsy value if the in-memory guard or the atomic claim lost.
       def revealed!(actor_context: nil)
@@ -174,7 +174,7 @@ module Onetime::Receipt::Features
 
         # The audit event fires only inside the won-CAS branch, so the actor is
         # recorded exactly once; a race loser returned above and records nothing.
-        record_org_audit_event('revealed', **lifecycle_audit_attrs(actor_context))
+        record_org_secret_activity_event('revealed', **lifecycle_activity_attrs(actor_context))
         true
       end
 
@@ -208,13 +208,13 @@ module Onetime::Receipt::Features
 
         # A system-detected transition: no individual acted, so the event
         # carries the 'system' actor and never an actor_id (#3637).
-        record_org_audit_event('orphaned', 'actor' => 'system')
+        record_org_secret_activity_event('orphaned', 'actor' => 'system')
         true
       end
 
       # @param actor_context [Hash, nil] request-scoped audit context threaded
       #   down from the burn cascade (#3639); see #revealed! and
-      #   #lifecycle_audit_attrs. nil fails safe to the 'unknown' actor
+      #   #lifecycle_activity_attrs. nil fails safe to the 'unknown' actor
       #   (ADR-023).
       def burned!(actor_context: nil)
         # See guard comment on `revealed!` (was `received!`)
@@ -238,7 +238,7 @@ module Onetime::Receipt::Features
           }
 
         # Actor recorded exactly once inside the won-CAS branch (see revealed!).
-        record_org_audit_event('burned', **lifecycle_audit_attrs(actor_context))
+        record_org_secret_activity_event('burned', **lifecycle_activity_attrs(actor_context))
         true
       end
 
@@ -274,7 +274,7 @@ module Onetime::Receipt::Features
           }
 
         # System-detected, like orphaned!: 'system' actor, never an actor_id.
-        record_org_audit_event('expired', 'actor' => 'system')
+        record_org_secret_activity_event('expired', 'actor' => 'system')
         true
       end
 
@@ -294,7 +294,7 @@ module Onetime::Receipt::Features
       # Pass the request-scoped actor context threaded into a lifecycle
       # transition (revealed!/burned!, #3639) through as string-keyed audit
       # attributes. Actor validation is centralized in
-      # AccessTimeline#record_org_audit_event so every event kind -- lifecycle,
+      # AccessTimeline#record_org_secret_activity_event so every event kind -- lifecycle,
       # fetch telemetry, receipt views, creation -- obeys the same rules
       # (fail-safe 'anonymous', no actor_id on anonymous/system events, full
       # untruncated objid for authenticated actors). Callers without request
@@ -303,7 +303,7 @@ module Onetime::Receipt::Features
       #
       # @param actor_context [Hash, nil] string- or symbol-keyed audit attrs.
       # @return [Hash] string-keyed attrs, empty when no context was threaded.
-      def lifecycle_audit_attrs(actor_context)
+      def lifecycle_activity_attrs(actor_context)
         actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
       end
 

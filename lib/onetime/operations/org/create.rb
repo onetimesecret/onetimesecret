@@ -4,7 +4,7 @@
 
 # Loaded at the call site (CLI today, a colonel endpoint later), which run
 # outside the app autoloaders — require the audit model explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -44,7 +44,7 @@ module Onetime
       #
       # ## Audit (CONTRACT 4)
       #
-      # Exactly ONE {Onetime::AdminAuditEvent} per successful create, emitted
+      # Exactly ONE {Onetime::ColonelAuditEvent} per successful create, emitted
       # here. Adapters MUST NOT audit. Every rejection mutates nothing and
       # audits nothing.
       #
@@ -223,7 +223,7 @@ module Onetime
 
           # Exactly one audit event per successful create. PUBLIC ids only —
           # never objid/custid.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: org.extid,
@@ -302,7 +302,7 @@ module Onetime
         # Best-effort: never break the op.
         def record_refusal(check)
           owner_extid = @owner&.extid.to_s
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             # :missing_owner has no owner to name. Use the SAME sentinel the

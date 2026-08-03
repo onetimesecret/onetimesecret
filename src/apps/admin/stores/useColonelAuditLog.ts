@@ -1,4 +1,4 @@
-// src/apps/admin/stores/useAdminAuditLog.ts
+// src/apps/admin/stores/useColonelAuditLog.ts
 
 import { defineStore } from 'pinia';
 import type { z } from 'zod';
@@ -14,7 +14,7 @@ import type { ColonelAuditEvent } from '@/schemas/api/internal/responses/colonel
 type ColonelAuditEventsResponse = z.infer<typeof colonelAuditEventsResponseSchema>;
 
 /** Server-side filters the audit endpoint supports. */
-export interface AuditLogFilters {
+export interface ColonelAuditFilters {
   /** Case-insensitive substring over the acting colonel's extid/email. */
   actor?: string;
   /** Exact action (`customer.set_role`) or category prefix (`customer`). */
@@ -25,13 +25,13 @@ export interface AuditLogFilters {
  * Per-resource admin store for the audit log (observability lane, CONTRACT 3).
  *
  * Sibling of {@link useAdminSessions}: one server page per request over the
- * NEW `GET /api/colonel/audit` endpoint — the read side of the AdminAuditEvent
+ * NEW `GET /api/colonel/audit` endpoint — the read side of the ColonelAuditEvent
  * flight recorder every mutating admin op writes into. The endpoint supports
  * server-side `actor` / `verb` filters; the view drives them through
  * {@link fetchPage}. Reading the log never writes an audit event (CONTRACT 4).
  * ZERO import edge into `src/apps/colonel/*` or `colonelInfoStore`.
  */
-export const useAdminAuditLog = defineStore('adminAuditLog', () => {
+export const useColonelAuditLog = defineStore('colonelAuditLog', () => {
   /** Rows for the current page only (one server page — never accumulated). */
   const events = ref<ColonelAuditEvent[]>([]);
   const pagination = ref<PageMeta | null>(null);
@@ -56,7 +56,7 @@ export const useAdminAuditLog = defineStore('adminAuditLog', () => {
    */
   async function fetchPage(
     targetPage: number = pager.page.value,
-    filters?: AuditLogFilters
+    filters?: ColonelAuditFilters
   ): Promise<{ items: ColonelAuditEvent[]; pagination: PageMeta | null } | null> {
     try {
       const result = await pager.fetchPage(targetPage, {

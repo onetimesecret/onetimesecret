@@ -26,7 +26,7 @@ module ColonelAPI
       # Thin HTTP adapter over {Onetime::Operations::Billing::CatalogDrift}, the
       # single implementation (shared with `bin/ots billing catalog drift`),
       # which REUSES the incumbent Billing::Plan source (CONTRACT 5). It NEVER
-      # writes, so it emits NO AdminAuditEvent (CONTRACT 4 — audit is for
+      # writes, so it emits NO ColonelAuditEvent (CONTRACT 4 — audit is for
       # mutations only). Catalog sync stays CLI-only until this view is trusted
       # (spec: read-only drift first).
       #

@@ -13,7 +13,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::ClearBanner} — the single, audited
       # implementation of the clear verb (epic #41). This class keeps only the HTTP
       # concerns; the op owns the Redis delete, the runtime refresh, and the
-      # AdminAuditEvent (CONTRACT 4).
+      # ColonelAuditEvent (CONTRACT 4).
       #
       # Idempotent by delegation: clearing when no banner is set is a no-op that
       # records NO audit event (the op returns :not_set). We return 200 with

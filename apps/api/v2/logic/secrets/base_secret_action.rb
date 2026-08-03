@@ -455,7 +455,7 @@ module V2::Logic
         # anonymous_user? check in update_stats). actor_id is the FULL objid:
         # unique traceability (AU-3 / PCI 10.2.2), resolved to an identity at
         # read time (#3637).
-        receipt.record_org_audit_event(
+        receipt.record_org_secret_activity_event(
           'created',
           organization: auth_org,
           'actor' => 'creator',

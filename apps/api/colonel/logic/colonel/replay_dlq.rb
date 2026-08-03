@@ -15,7 +15,7 @@ module ColonelAPI
       # implementation of the DLQ replay verb (epic #42 / CONTRACT 4). This class
       # keeps only the HTTP concerns (param validation + role gate + allowlist +
       # broker-availability); the op owns the republish/ack/nack loop and the
-      # AdminAuditEvent (exactly one per replay that processes ≥ 1 message).
+      # ColonelAuditEvent (exactly one per replay that processes ≥ 1 message).
       #
       # Replay can re-trigger side effects (emails, webhooks), so the UI gates it
       # behind an explicit confirm dialog. `dry_run` (default false) is honoured so

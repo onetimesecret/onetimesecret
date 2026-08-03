@@ -4,7 +4,7 @@
 
 require_relative 'sso_config/base'
 require_relative 'sso_config/serializers'
-require_relative 'sso_config/audit_logger'
+require_relative 'sso_config/change_logger'
 require_relative 'sso_config/ssrf_protection'
 require_relative 'sso_config/get_sso_config'
 require_relative 'sso_config/patch_sso_config'

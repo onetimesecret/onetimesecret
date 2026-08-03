@@ -1,9 +1,9 @@
-# lib/onetime/models/organization/features/audit_trail.rb
+# lib/onetime/models/organization/features/secret_activity.rb
 #
 # frozen_string_literal: true
 
 module Onetime::Organization::Features
-  # Organization-scoped audit trail of secret activity (#3633).
+  # Organization-scoped secret activity trail (#3633).
   #
   # A single capped sorted set per organization (score = epoch seconds,
   # member = compact event hash) recording what happened to the org's
@@ -19,30 +19,30 @@ module Onetime::Organization::Features
   # Design notes:
   # - Append-only; the trail never drives behavior, so there is no CAS and
   #   a failed append must never break the calling path (callers guard).
-  # - Capped at AUDIT_EVENTS_MAX (newest kept) to bound memory against
-  #   mechanical hammering of anonymous read endpoints. For long-horizon or
-  #   compliance-grade retention, a durable export (e.g. via the jobs
-  #   publisher) can consume the same fan-out point later.
+  # - Capped at SECRET_ACTIVITY_MAX_EVENTS (newest kept) to bound memory
+  #   against mechanical hammering of anonymous read endpoints. For
+  #   long-horizon or compliance-grade retention, a durable export (e.g. via
+  #   the jobs publisher) can consume the same fan-out point later.
   # - No TTL: organizations are permanent records; the cap is the bound.
   # - Members are plain Hashes; Familia JSON round-trips them (string keys
   #   on read). A `nonce` field keeps members unique when two identical
   #   events land in the same second.
-  module AuditTrail
-    Familia::Base.add_feature self, :audit_trail
+  module SecretActivity
+    Familia::Base.add_feature self, :secret_activity
 
     # Newest events retained when trimming the trail.
-    AUDIT_EVENTS_MAX = 10_000
+    SECRET_ACTIVITY_MAX_EVENTS = 10_000
 
     def self.included(base)
       OT.ld "[features] #{base}: #{name}"
 
-      base.sorted_set :audit_events
+      base.sorted_set :secret_activity_events
 
       base.include InstanceMethods
     end
 
     module InstanceMethods
-      # Append an audit event to the organization's trail.
+      # Append a secret activity event to the organization's trail.
       #
       # @param kind [String, Symbol] what happened. The receipt fan-out
       #   emits: 'created', 'status_get' / 'secret_get' (a third party
@@ -57,7 +57,7 @@ module Onetime::Organization::Features
       #   actor when known). Keep values short and non-sensitive: never
       #   include secret content, full identifiers, or passphrases.
       # @return [Hash, nil] the recorded event, or nil when kind is blank.
-      def record_audit_event(kind, at: Familia.now, **attrs)
+      def record_secret_activity_event(kind, at: Familia.now, **attrs)
         return if kind.to_s.empty?
 
         event = {
@@ -66,29 +66,29 @@ module Onetime::Organization::Features
           'nonce' => SecureRandom.hex(4),
         }.merge(attrs.transform_keys(&:to_s))
 
-        audit_events.add(event, at.to_f)
-        audit_events.remrangebyrank(0, -(AUDIT_EVENTS_MAX + 1))
+        secret_activity_events.add(event, at.to_f)
+        secret_activity_events.remrangebyrank(0, -(SECRET_ACTIVITY_MAX_EVENTS + 1))
 
         event
       end
 
-      # @return [Integer] number of retained audit events (saturates at
-      #   AUDIT_EVENTS_MAX).
-      def audit_event_count
-        audit_events.element_count
+      # @return [Integer] number of retained secret activity events
+      #   (saturates at SECRET_ACTIVITY_MAX_EVENTS).
+      def secret_activity_event_count
+        secret_activity_events.element_count
       end
 
-      # A page of audit events, newest first.
+      # A page of secret activity events, newest first.
       #
       # @param offset [Integer] events to skip from the newest end.
       # @param limit [Integer] maximum events to return.
       # @return [Array<Hash>] events (string keys) newest-first; each
       #   includes its 'kind', 'at' and any recorded context.
-      def audit_events_page(offset: 0, limit: 50)
+      def secret_activity_events_page(offset: 0, limit: 50)
         offset = [offset.to_i, 0].max
         limit  = limit.to_i.clamp(1, 200)
 
-        audit_events.revrange(offset, offset + limit - 1)
+        secret_activity_events.revrange(offset, offset + limit - 1)
       end
     end
   end

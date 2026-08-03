@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/sessions/store'
 
@@ -14,7 +14,7 @@ module Auth
       # The ONE implementation of the suspension verb. The colonel
       # `SuspendUser` / `UnsuspendUser` Logic classes are thin adapters over
       # it. This is a MUTATING admin op, so it records exactly one
-      # AdminAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
+      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
       # idempotent no-op (already in the target state) mutates nothing and is
       # therefore not audited.
       #
@@ -120,7 +120,7 @@ module Auth
           sessions_revoked = @suspended ? revoke_sessions : 0
 
           # One audit event per successful mutation, emitted from the op layer.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND,
             target: @customer.extid,

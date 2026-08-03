@@ -1,14 +1,14 @@
-# apps/api/domains/logic/config_audit_logger.rb
+# apps/api/domains/logic/config_change_logger.rb
 #
 # frozen_string_literal: true
 
 module DomainsAPI
   module Logic
-    # Shared machinery for the per-config AuditLogger modules
+    # Shared machinery for the per-config ChangeLogger modules
     # (SsoConfig, SenderConfig, SignupConfig, SigninConfig).
     #
     # Each per-config module keeps its own public entry points
-    # (log_*_audit_event / compute_*_changes) plus its field lists and log
+    # (log_*_change_event / compute_*_changes) plus its field lists and log
     # tag; this module provides the payload construction, change
     # computation, and value normalization they all share.
     #
@@ -18,12 +18,12 @@ module DomainsAPI
     # SECURITY: Sensitive fields are NEVER logged with their values. For
     # credential changes we log only that the field changed.
     #
-    module ConfigAuditLogger
+    module ConfigChangeLogger
       private
 
       # Build and emit a structured audit event.
       #
-      # @param tag [String] Log tag, e.g. 'DOMAIN_SSO_AUDIT'
+      # @param tag [String] Log tag, e.g. 'DOMAIN_SSO_CHANGE'
       # @param event [String, Symbol] Event type
       # @param domain [Onetime::CustomDomain] Domain being modified
       # @param org [Onetime::Organization] Organization that owns the domain
@@ -35,7 +35,7 @@ module DomainsAPI
       # @param timestamp [Integer] Unix timestamp; pass explicitly when
       #   multiple audit events in one request must share the same value
       # @return [void]
-      def log_config_audit_event(tag:, event:, domain:, org:, actor:, extra: {}, changes: nil, details: nil, timestamp: Time.now.to_i)
+      def log_config_change_event(tag:, event:, domain:, org:, actor:, extra: {}, changes: nil, details: nil, timestamp: Time.now.to_i)
         payload              = {
           event: event.to_s,
           domain_id: domain.identifier,

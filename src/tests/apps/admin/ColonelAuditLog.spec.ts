@@ -1,4 +1,4 @@
-// src/tests/apps/admin/AdminAuditLog.spec.ts
+// src/tests/apps/admin/ColonelAuditLog.spec.ts
 
 import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
@@ -23,7 +23,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-import AdminAuditLog from '@/apps/admin/views/AdminAuditLog.vue';
+import ColonelAuditLog from '@/apps/admin/views/ColonelAuditLog.vue';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -62,11 +62,11 @@ function auditPayload(rows = [auditRow()]) {
 }
 
 const mountView = (pinia: ReturnType<typeof createPinia>) =>
-  mount(AdminAuditLog, { global: { plugins: [pinia, i18n] } });
+  mount(ColonelAuditLog, { global: { plugins: [pinia, i18n] } });
 
 const listGetCount = () => mockApi.get.mock.calls.filter((c) => c[0] === LIST_URL).length;
 
-describe('AdminAuditLog (flight-recorder playback — observability lane)', () => {
+describe('ColonelAuditLog (flight-recorder playback — observability lane)', () => {
   let wrapper: VueWrapper;
   let pinia: ReturnType<typeof createPinia>;
 
@@ -118,7 +118,7 @@ describe('AdminAuditLog (flight-recorder playback — observability lane)', () =
 
   // The actor box is MANUAL search (the debounce was removed deliberately):
   // typing issues nothing, submitting the form issues exactly one fetch.
-  // Full coverage lives in AdminAuditLogSearch.spec.ts.
+  // Full coverage lives in ColonelAuditLogSearch.spec.ts.
   it('searches the actor box on submit, not while typing', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
     wrapper = mountView(pinia);

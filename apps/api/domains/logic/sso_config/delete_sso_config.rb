@@ -4,7 +4,7 @@
 
 require 'onetime/models/custom_domain/sso_config'
 require_relative 'base'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -20,7 +20,7 @@ module DomainsAPI
       # or another configured method.
       #
       class DeleteSsoConfig < Base
-        include AuditLogger
+        include ChangeLogger
 
         attr_reader :deleted_provider_type
 
@@ -54,7 +54,7 @@ module DomainsAPI
           deleted = Onetime::CustomDomain::SsoConfig.delete_for_domain!(@custom_domain.identifier)
 
           if deleted
-            log_sso_audit_event(
+            log_sso_change_event(
               event: :domain_sso_config_deleted,
               domain: @custom_domain,
               org: @organization,

@@ -4,7 +4,7 @@
 
 # Domain-owned (app-scoped) operation — mirrors Operations::Domains::Transfer.
 # Loaded at the call site (colonel logic + CLI), so require deps explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/domain_validation/strategy'
 require 'onetime/operations/delete_sender_domain'
@@ -16,7 +16,7 @@ module Onetime
       # implementation of the remove verb (#3731 P3). The colonel endpoint
       # (DELETE /api/colonel/domains/:extid) and 'bin/ots domains remove' are
       # thin adapters over it. Mirrors the Transfer op: dry_run:true default,
-      # exactly-once AdminAuditEvent emitted FROM THE OP ONLY, Result Data.
+      # exactly-once ColonelAuditEvent emitted FROM THE OP ONLY, Result Data.
       #
       # ## Teardown parity
       #
@@ -138,7 +138,7 @@ module Onetime
           end
 
           # --- EXACTLY ONE audit event, applied path only ---
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: plan.extid,

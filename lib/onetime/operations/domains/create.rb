@@ -6,7 +6,7 @@
 # lib/onetime/operations/README.md. Loaded at the call site (colonel logic +
 # CLI), which run outside the app autoloaders, so require the audit model and
 # the validation strategy explicitly (mirrors Repair / Transfer / Remove).
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/domain_validation/strategy'
 
@@ -22,7 +22,7 @@ module Onetime
       #
       # Before this op existed, create was the ONE domain verb with no extracted
       # operation: the colonel logic class validated, created, requested the
-      # certificate and wrote its own AdminAuditEvent inline, and there was no
+      # certificate and wrote its own ColonelAuditEvent inline, and there was no
       # CLI peer at all. A CLI-only reimplementation would have forked the audit
       # path, so the logic is centralised here and both adapters stay thin.
       #
@@ -36,7 +36,7 @@ module Onetime
       #
       # ## Audit (CONTRACT 4)
       #
-      # Exactly ONE {Onetime::AdminAuditEvent} per successful create, emitted
+      # Exactly ONE {Onetime::ColonelAuditEvent} per successful create, emitted
       # here. Adapters MUST NOT audit. A rejected create (invalid / duplicate)
       # mutates nothing but records one `result: :failure` event — a refused
       # attempt to attach a domain to an org is exactly what an operator
@@ -58,7 +58,7 @@ module Onetime
         AUDIT_VERB = 'domain.create'
 
         # Bound on the failure target. `@domain_input` is raw operator text and
-        # `target` is NOT length-capped by AdminAuditEvent (only `detail` is), so
+        # `target` is NOT length-capped by ColonelAuditEvent (only `detail` is), so
         # an :invalid rejection could otherwise write an unbounded string. 253 is
         # the max FQDN length — anything a valid domain could ever need.
         MAX_TARGET_LENGTH = 253
@@ -169,7 +169,7 @@ module Onetime
           cert   = @request_certificate ? provision_certificate(domain) : nil
 
           # Exactly one audit event per successful create. Public ids only.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: domain.extid,
@@ -209,7 +209,7 @@ module Onetime
         # audit_failures for why the target is the FQDN rather than an extid.
         # Best-effort: never break the op.
         def record_refusal(check)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: failure_target,

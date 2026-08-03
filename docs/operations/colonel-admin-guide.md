@@ -43,7 +43,7 @@ Notes:
   promoting.
 - The mutation runs through the shared `Auth::Operations::Customers::SetRole`
   operation (the same implementation the admin API uses), so it records an
-  `AdminAuditEvent` (actor / verb / target / result) just like a UI action.
+  `ColonelAuditEvent` (actor / verb / target / result) just like a UI action.
 - Add `-f`/`--force` to skip the confirmation prompt in automation.
 - To revoke access, `demote` the account; the role is removed immediately.
 
@@ -77,7 +77,7 @@ assertions each route must satisfy are in `docs/operations/pentest-scope.md`.
 
 ### Audit trail
 
-Every mutating operation records exactly one `AdminAuditEvent` capturing the
+Every mutating operation records exactly one `ColonelAuditEvent` capturing the
 acting colonel, the verb, the target, and the result — whether it originated
 from the console or the CLI (both go through the same shared operations). This is
 the non-negotiable backstop for privileged actions.

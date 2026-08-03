@@ -135,7 +135,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
 
       # The kind rename ('previewed') is presentation; the actor is recorded
       # explicitly so the trail's consumer never infers it from the kind.
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('previewed')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(owner.objid)
@@ -172,7 +172,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       logic.process_params
       logic.process
 
-      event = Onetime::Organization.load(trail_org.objid).audit_events_page.first
+      event = Onetime::Organization.load(trail_org.objid).secret_activity_events_page.first
       expect(event['kind']).to eq('secret_get')
       expect(event['net_ip_partial']).to eq('203.0.113.0')
       expect(event['net_ip_hash']).to match(/\A[0-9a-f]{64}\z/)
@@ -194,7 +194,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       logic.process
 
       trail = Onetime::Organization.load(trail_org.objid)
-      raw   = trail.audit_events.membersraw.join
+      raw   = trail.secret_activity_events.membersraw.join
       expect(raw).not_to include(raw_ip)
       expect(raw).not_to include(full_ua)
       expect(raw).not_to include('119.0.0.0')
@@ -237,7 +237,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(owner_objid)
@@ -257,7 +257,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('authenticated_other')
       expect(event['actor_id']).to eq(other_objid)
     end
@@ -272,7 +272,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('anonymous')
       expect(event['actor']).not_to eq('creator')

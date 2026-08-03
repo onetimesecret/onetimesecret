@@ -11,7 +11,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/purge_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'auth/operations/customers/purge'
 
 RSpec.describe Auth::Operations::Customers::Purge do
@@ -21,7 +21,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
   let(:deleter) { instance_double(Auth::Operations::DeleteCustomer) }
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Auth::Operations::DeleteCustomer).to receive(:new).and_return(deleter)
   end
 
@@ -33,7 +33,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
     expect(result.status).to eq(:success)
     expect(result.extid).to eq('ur_p')
     expect(Auth::Operations::DeleteCustomer).to have_received(:new).with(customer: customer)
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
       verb: 'customer.purge',
       target: 'ur_p',
@@ -48,6 +48,6 @@ RSpec.describe Auth::Operations::Customers::Purge do
     result = described_class.new(customer: customer, actor: 'x').call
 
     expect(result.status).to eq(:not_found)
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
   end
 end

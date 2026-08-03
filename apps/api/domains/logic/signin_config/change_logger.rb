@@ -1,15 +1,15 @@
-# apps/api/domains/logic/signin_config/audit_logger.rb
+# apps/api/domains/logic/signin_config/change_logger.rb
 #
 # frozen_string_literal: true
 
-require_relative '../config_audit_logger'
+require_relative '../config_change_logger'
 
 module DomainsAPI
   module Logic
     module SigninConfig
       # Audit logging for Domain Signin configuration changes.
       #
-      # Shared machinery lives in DomainsAPI::Logic::ConfigAuditLogger.
+      # Shared machinery lives in DomainsAPI::Logic::ConfigChangeLogger.
       # SigninConfig has no sensitive fields, so all values are safe to log.
       #
       # Events:
@@ -19,8 +19,8 @@ module DomainsAPI
       #   - domain_signin_config_enabled: Signin config enabled for domain
       #   - domain_signin_config_disabled: Signin config disabled for domain
       #
-      module AuditLogger
-        include DomainsAPI::Logic::ConfigAuditLogger
+      module ChangeLogger
+        include DomainsAPI::Logic::ConfigChangeLogger
 
         # Log a Domain Signin audit event with structured data.
         #
@@ -30,9 +30,9 @@ module DomainsAPI
         # @param actor [Onetime::Customer] User performing the action
         # @param details [Hash, nil] Additional event-specific details
         # @return [void]
-        def log_signin_audit_event(event:, domain:, org:, actor:, details: nil)
-          log_config_audit_event(
-            tag: 'DOMAIN_SIGNIN_AUDIT',
+        def log_signin_change_event(event:, domain:, org:, actor:, details: nil)
+          log_config_change_event(
+            tag: 'DOMAIN_SIGNIN_CHANGE',
             event: event,
             domain: domain,
             org: org,

@@ -34,7 +34,7 @@ def post(*args);   @test.post(*with_csrf(args));   end
 def get(*args);    @test.get(*args);    end
 def last_response; @test.last_response; end
 
-AE  = Onetime::AdminAuditEvent
+AE  = Onetime::ColonelAuditEvent
 SUP = Onetime::EmailSuppression
 
 @timestamp = Familia.now.to_i

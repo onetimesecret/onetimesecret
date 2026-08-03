@@ -17,7 +17,7 @@ module ColonelAPI
       # errors).
       #
       # READ-ONLY: rendering has NO side effects (it never dispatches an email), so
-      # it records NO AdminAuditEvent (CONTRACT 4). Over HTTP the preview always
+      # it records NO ColonelAuditEvent (CONTRACT 4). Over HTTP the preview always
       # uses the template's SAMPLE data — no operator-supplied variables — so a
       # preview can never carry live customer data.
       #

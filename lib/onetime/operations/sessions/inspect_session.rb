@@ -11,7 +11,7 @@ module Onetime
       # verb (epic #40 / D3). The colonel endpoint (`GET /api/colonel/sessions/:id`)
       # and the `bin/ots session inspect` CLI are thin adapters over it.
       #
-      # READ-ONLY: records NO {Onetime::AdminAuditEvent} (CONTRACT 4).
+      # READ-ONLY: records NO {Onetime::ColonelAuditEvent} (CONTRACT 4).
       #
       # Stateless, single `#call`, returns an immutable {Result}. A miss (no key for
       # the id, or an empty value) returns `found: false` with nil fields.

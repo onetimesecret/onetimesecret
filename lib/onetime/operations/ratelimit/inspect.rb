@@ -15,7 +15,7 @@ module Onetime
       # never touches Redis itself — see ratelimit_command.rb).
       #
       # READ-ONLY: reads TTL + value for each key, mutates nothing, records NO
-      # AdminAuditEvent (CONTRACT 4). Bounded to the fixed keys the registry
+      # ColonelAuditEvent (CONTRACT 4). Bounded to the fixed keys the registry
       # names PLUS, for two-tier limiters, a subject-scoped SCAN of the per-IP
       # tier's variable-suffix keys (RL-1). The SCAN is bounded to one subject
       # (a locked tier stops accruing new IPs) and cursor-based — never a

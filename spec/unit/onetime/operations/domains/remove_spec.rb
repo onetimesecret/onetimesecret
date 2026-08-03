@@ -10,7 +10,7 @@
 #
 #   1. Mocked contract — dry-run previews nothing, apply tears down in the
 #      RemoveDomain#process order (delete_vhost -> DeleteSenderDomain -> destroy!),
-#      emits EXACTLY ONE AdminAuditEvent, and never calls org.remove_domain
+#      emits EXACTLY ONE ColonelAuditEvent, and never calls org.remove_domain
 #      (destroy! owns org participation). No datastore.
 #
 #   2. Real datastore — the display_domain_index re-assertion crux. Familia's
@@ -24,7 +24,7 @@
 # Run: RACK_ENV=test bundle exec rspec spec/unit/onetime/operations/domains/remove_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/domains/remove'
 
 RSpec.describe Onetime::Operations::Domains::Remove do
@@ -60,7 +60,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
     let(:sender_op) { double('DeleteSenderDomain', call: nil) }
 
     before do
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
       allow(Onetime::Organization).to receive(:load).with('org-1').and_return(org)
       allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)
@@ -82,7 +82,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         expect(result.reasserts_survivor).to be false
 
         expect(domain).not_to have_received(:destroy!)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
     end
 
@@ -102,7 +102,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         result = described_class.new(domain: domain, actor: actor, dry_run: false).call
 
         expect(result.status).to eq(:removed)
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           actor: actor,
           verb: 'domain.remove',
           target: 'cd_ext1',
@@ -141,7 +141,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         expect(result.status).to eq(:removed)
         expect(result.org_name).to be_nil
         expect(domain).to have_received(:destroy!)
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
       end
     end
 
@@ -154,7 +154,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
         expect(result.status).to eq(:removed)
         expect(domain).to have_received(:destroy!)
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
       end
     end
 
@@ -169,7 +169,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
           described_class.new(domain: domain, actor: actor, dry_run: false).call
         end.to raise_error(Familia::Problem, 'datastore gone')
 
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
             actor: actor,
             verb: 'domain.remove',
@@ -193,7 +193,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
           described_class.new(domain: domain, actor: actor).call
         end.to raise_error(Familia::Problem, 'index read failed')
 
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
             verb: 'domain.remove',
             result: :failure,
@@ -218,7 +218,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       # Stub only the audit sink so we can count/inspect events without writing
       # to the shared capped audit set. Everything else (destroy!, the index,
       # the passthrough strategy, DeleteSenderDomain) runs for real.
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
       @records = []
       @fqdns   = []
     end
@@ -284,7 +284,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       # (c) resolution follows the index to the survivor
       expect(Onetime::CustomDomain.load_by_display_domain(fqdn).objid).to eq(survivor.objid)
       # (d) exactly one audit, flagged as a re-assertion
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(verb: 'domain.remove', result: :success, detail: hash_including(reasserted: true))
       )
     end
@@ -301,7 +301,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       expect(result.status).to eq(:removed)
       expect(result.reasserts_survivor).to be false
       expect(index.get(fqdn)).to be_nil
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(detail: hash_including(reasserted: false))
       )
     end
@@ -325,7 +325,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       expect(result.reasserts_survivor).to be false
       expect(index.get(fqdn)).to be_nil
       expect(domain.exists?).to be false
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
     end
   end
 end

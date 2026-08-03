@@ -1,7 +1,7 @@
-// src/tests/shared/composables/useOrgAuditEvents.spec.ts
+// src/tests/shared/composables/useSecretActivity.spec.ts
 
 /**
- * useOrgAuditEvents (#3637) — read-time actor identity resolution.
+ * useSecretActivity (#3637) — read-time actor identity resolution.
  *
  * The composable's paging/error/validation behavior is exercised end-to-end
  * through SecretActivityTable.spec.ts (real composable, real schema, mocked
@@ -11,7 +11,7 @@
  * actors fall through to the bare objid.
  */
 
-import { useOrgAuditEvents } from '@/shared/composables/useOrgAuditEvents';
+import { useSecretActivity } from '@/shared/composables/useSecretActivity';
 import { flushPromises } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
@@ -52,13 +52,13 @@ const buildResponse = (
   details,
 });
 
-describe('useOrgAuditEvents — actors resolution map', () => {
+describe('useSecretActivity — actors resolution map', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('exposes an empty actors map before any fetch', () => {
-    const { actors } = useOrgAuditEvents(ref('on1abc123'));
+    const { actors } = useSecretActivity(ref('on1abc123'));
 
     expect(actors.value).toEqual({});
   });
@@ -71,7 +71,7 @@ describe('useOrgAuditEvents — actors resolution map', () => {
       data: buildResponse({ offset: 0, limit: 50, actors: resolution }),
     });
 
-    const { actors, records, validationError, fetchPage } = useOrgAuditEvents(ref('on1abc123'));
+    const { actors, records, validationError, fetchPage } = useSecretActivity(ref('on1abc123'));
     await fetchPage(0);
     await flushPromises();
 
@@ -83,7 +83,7 @@ describe('useOrgAuditEvents — actors resolution map', () => {
   it('accepts a response WITHOUT details.actors (older backend) and defaults to {}', async () => {
     mockApi.get.mockResolvedValue({ data: buildResponse() });
 
-    const { actors, records, validationError, fetchPage } = useOrgAuditEvents(ref('on1abc123'));
+    const { actors, records, validationError, fetchPage } = useSecretActivity(ref('on1abc123'));
     await fetchPage(0);
     await flushPromises();
 
@@ -103,7 +103,7 @@ describe('useOrgAuditEvents — actors resolution map', () => {
       data: buildResponse({ offset: 50, limit: 50 }),
     });
 
-    const { actors, fetchPage, next } = useOrgAuditEvents(ref('on1abc123'));
+    const { actors, fetchPage, next } = useSecretActivity(ref('on1abc123'));
     await fetchPage(0);
     await flushPromises();
     expect(actors.value).toEqual(pageOne);
@@ -129,7 +129,7 @@ describe('useOrgAuditEvents — actors resolution map', () => {
       }),
     });
 
-    const { actors, validationError, fetchPage, refresh } = useOrgAuditEvents(ref('on1abc123'));
+    const { actors, validationError, fetchPage, refresh } = useSecretActivity(ref('on1abc123'));
     await fetchPage(0);
     await flushPromises();
     expect(validationError.value).toBe(false);
@@ -141,7 +141,7 @@ describe('useOrgAuditEvents — actors resolution map', () => {
   });
 });
 
-describe('useOrgAuditEvents — abort and superseded-request handling', () => {
+describe('useSecretActivity — abort and superseded-request handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -150,7 +150,7 @@ describe('useOrgAuditEvents — abort and superseded-request handling', () => {
     // A request that never settles — abort() is the only way out.
     mockApi.get.mockImplementation(() => new Promise(() => {}));
 
-    const { isLoading, fetchPage, abort } = useOrgAuditEvents(ref('on1abc123'));
+    const { isLoading, fetchPage, abort } = useSecretActivity(ref('on1abc123'));
     void fetchPage(0);
     expect(isLoading.value).toBe(true);
 
@@ -175,7 +175,7 @@ describe('useOrgAuditEvents — abort and superseded-request handling', () => {
         ]),
       });
 
-    const { records, actors, fetchPage } = useOrgAuditEvents(ref('on1abc123'));
+    const { records, actors, fetchPage } = useSecretActivity(ref('on1abc123'));
     const first = fetchPage(0);
     const second = fetchPage(0); // supersedes (and aborts) the first
 

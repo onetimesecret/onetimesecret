@@ -10,7 +10,7 @@ operator-facing log exists outside the entitlement entirely.
 |---|---|---|---|---|
 | Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted set, capped (10,000 newest per org) | Shipped |
 | Security Events (#2799) | **Security Events** | who did what to the account/org (login, MFA, SSO config) | SQL (`account_authentication_audit_logs`), TTL-based | Backend table live (Rodauth); product surface unstarted |
-| Operator audit log | — (colonel-only) | what operators did in the admin console | `AdminAuditLog` (Familia) | Shipped, colonel app only |
+| Operator audit log | — (colonel-only) | what operators did in the admin console | `ColonelAuditEvent` (Familia) | Shipped, colonel app only |
 
 Do not conflate them. Per ADR-021, "audit log" in the strict, actor-attributed
 compliance sense is Security Events; Secret Activity began as access/usage
@@ -18,6 +18,13 @@ telemetry and has since gained full actor attribution (see below) — but the tw
 remain separate stores with separate retention, deliberately (ADR-021
 Decision 2: correlation happens at the presentation layer, never by merging
 backends).
+
+Code identifiers follow the stream names (#3977; authoritative table in ADR-021
+Decision 5): Secret Activity uses the `SecretActivity` prefix, the operator log
+uses `ColonelAudit*`, the `SecurityEvent` prefix is reserved for #2799, and the
+per-domain config loggers are `ConfigChangeLogger` / `ChangeLogger` (log lines
+only, not a stream). The `audit_logs` entitlement label and Rodauth's
+`account_authentication_audit_logs` table are intentionally unchanged.
 
 ## Secret Activity
 
@@ -32,38 +39,38 @@ thread them down; the model layer validates and appends.
 ┌─────────────────────────────────────────┐
 │ V2 secrets logic                        │
 │  BaseSecretAction ─── 'created' ────────┼──┐
-│  AccessTelemetry ── fetch kinds ────────┼──┤   ┌───────────────────────────────┐
-│    (secret_get, status_get, previewed,  │  │   │ Receipt                       │
-│     creator_status_get)                 │  │   │  Features::AccessTimeline     │
-│  ShowReceipt (v1+v2) ─ receipt_viewed ──┼──┼──▶│                               │
-│  RevealSecret / BurnSecret /            │  │   │  record_access_event          │
-│   ShowSecret ── actor_context ──────────┼──┘   │   (per-receipt timeline,      │
-│    │                                    │      │    cap 100, saturation guard) │
-│    ▼                                    │      │        │                      │
-│  ActorAttribution                       │      │        ▼                      │
-│   lifecycle_actor_context(secret)       │      │  record_org_audit_event ◀── lifecycle
-│   → {'actor' =>..., 'actor_id' =>objid} │      │   • normalize_actor_attrs     │   transitions
-│  Security::RequestContext (ADR-022)     │      │     (CENTRALIZED validation)  │   (revealed!,
-│   → net_ip_partial / net_ua_partial /   │      │   • forces receipt/secret     │   burned!,
-│     net_ip_hash                         │      │     shortids after the splat  │   expired!,
-└─────────────────────────────────────────┘      └────────────┬──────────────────┘   orphaned!)
+│  AccessTelemetry ── fetch kinds ────────┼──┤   ┌──────────────────────────────────────┐
+│    (secret_get, status_get, previewed,  │  │   │ Receipt                              │
+│     creator_status_get)                 │  │   │  Features::AccessTimeline            │
+│  ShowReceipt (v1+v2) ─ receipt_viewed ──┼──┼──▶│                                      │
+│  RevealSecret / BurnSecret /            │  │   │  record_access_event                 │
+│   ShowSecret ── actor_context ──────────┼──┘   │   (per-receipt timeline,             │
+│    │                                    │      │    cap 100, saturation guard)        │
+│    ▼                                    │      │        │                             │
+│  ActorAttribution                       │      │        ▼                             │
+│   lifecycle_actor_context(secret)       │      │  record_org_secret_activity_event ◀── lifecycle
+│   → {'actor' =>..., 'actor_id' =>objid} │      │   • normalize_actor_attrs            │   transitions
+│  Security::RequestContext (ADR-022)     │      │     (CENTRALIZED validation)         │   (revealed!,
+│   → net_ip_partial / net_ua_partial /   │      │   • forces receipt/secret            │   burned!,
+│     net_ip_hash                         │      │     shortids after the splat         │   expired!,
+└─────────────────────────────────────────┘      └────────────┬─────────────────────────┘   orphaned!)
                                                               ▼
-                                                 ┌───────────────────────────────┐
-                                                 │ Organization                  │
-                                                 │  Features::AuditTrail         │
-                                                 │  record_audit_event           │
-                                                 │  sorted set `audit_events`    │
-                                                 │  (score = epoch s, member =   │
-                                                 │   event hash; cap 10,000)     │
-                                                 └───────────────────────────────┘
+                                                 ┌──────────────────────────────────────┐
+                                                 │ Organization                         │
+                                                 │  Features::SecretActivity            │
+                                                 │  record_secret_activity_event        │
+                                                 │  sorted set `secret_activity_events` │
+                                                 │  (score = epoch s, member =          │
+                                                 │   event hash; cap 10,000)            │
+                                                 └──────────────────────────────────────┘
 ```
 
 Key files:
 
-- `lib/onetime/models/organization/features/audit_trail.rb` — the store
+- `lib/onetime/models/organization/features/secret_activity.rb` — the store
 - `lib/onetime/models/receipt/features/access_timeline.rb` — the chokepoint
-  (`record_org_audit_event`, `normalize_actor_attrs`) and the per-receipt
-  timeline
+  (`record_org_secret_activity_event`, `normalize_actor_attrs`) and the
+  per-receipt timeline
 - `lib/onetime/models/receipt/features/deprecated_fields.rb` — lifecycle
   transitions (CAS-gated; the audit emit fires only in the won-CAS branch, so
   each transition records exactly once — ADR-019)
@@ -126,8 +133,8 @@ Two rules follow (decided on #3637, with #3639):
 The two identifier conventions therefore coexist in one record: `receipt` /
 `secret` stay shortids (capability-token policy), `actor_id` is full
 (traceability policy). `normalize_actor_attrs` in
-`Receipt#record_org_audit_event` enforces the actor half centrally for every
-event:
+`Receipt#record_org_secret_activity_event` enforces the actor half centrally
+for every event:
 
 - unrecognized/missing actor fails safe to `unknown` with an error log
   (ADR-023: `anonymous` would assert "unauthenticated", a fact an actorless
@@ -150,7 +157,8 @@ Email and display name **never enter the append-only trail** (GDPR
 minimization: erasure requests never have to touch it, and a recorded email
 would go stale). Instead, the read endpoint resolves identity per page:
 
-- `ListAuditEvents` (`apps/api/organizations/logic/organizations/list_audit_events.rb`)
+- `ListSecretActivity` (`apps/api/organizations/logic/organizations/list_secret_activity.rb`,
+  serving `GET /api/organizations/:extid/secret-activity`)
   collects the distinct `actor_id`s on the page and joins each through
   `OrganizationMembership.find_by_org_customer` — **active memberships only**,
   best-effort per actor (one bad record cannot fail the page).
@@ -172,8 +180,8 @@ would go stale). Instead, the read endpoint resolves identity per page:
   8-char actor ids persist in old events and simply never resolve.
 
 The frontend contract lives in
-`src/schemas/api/organizations/responses/audit-events.ts`; the pager in
-`src/shared/composables/useOrgAuditEvents.ts`.
+`src/schemas/api/organizations/responses/secret-activity.ts`; the pager in
+`src/shared/composables/useSecretActivity.ts`.
 
 ### Retention and abuse bounds
 
@@ -184,7 +192,7 @@ Two caps, one TTL rule:
   the org trail, so one hammered link (scanner, monitor) cannot evict every
   other receipt's history. Lifecycle transitions bypass the guard. The
   timeline key's TTL is clamped to its receipt's remaining TTL.
-- **Org trail**: newest 10,000 events (`AUDIT_EVENTS_MAX`), no TTL
+- **Org trail**: newest 10,000 events (`SECRET_ACTIVITY_MAX_EVENTS`), no TTL
   (organizations are permanent records). `receipt_viewed` is additionally
   bounded to once per receipt by an atomic claim (`claim_once!`), since the
   receipt page is not covered by the timeline saturation guard.
@@ -229,8 +237,9 @@ Current state:
 
 ## Operator audit log (colonel)
 
-`AdminAuditLog` records operator actions in the admin console and is rendered
-only by the colonel app (`AdminAuditLog.vue`). It sits outside the
+`ColonelAuditEvent` (formerly `AdminAuditEvent`; renamed in #3977) records
+operator actions in the admin console and is rendered only by the colonel app
+(`ColonelAuditLog.vue`). It sits outside the
 `audit_logs` entitlement and outside ADR-021's two-stream model — it answers
 "what did *our operators* do," not "what happened in a customer's org."
 Mentioned here only to prevent the name collision.
@@ -251,7 +260,7 @@ Mentioned here only to prevent the name collision.
   UA are architecturally unavailable at the capture layer.
 - **One authority per value** (ADR-027 spirit): actor validation lives in
   exactly one place (`normalize_actor_attrs`); identity resolution lives in
-  exactly one place (`ListAuditEvents`); neither is duplicated per call site.
+  exactly one place (`ListSecretActivity`); neither is duplicated per call site.
 
 ## Known divergences and open items
 

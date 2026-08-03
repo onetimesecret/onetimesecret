@@ -202,7 +202,7 @@ members.is_a?(Array) && (members.empty? || %w[extid email role is_owner].all? { 
 # be present.
 
 ## Reconcile: 200 with mode=entitlements_only + before/after diff + cascade slot
-@before_count = Onetime::AdminAuditEvent.count
+@before_count = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/reconcile", {}, colonel_headers
 @resp = JSON.parse(last_response.body)
 rec = @resp['record']
@@ -210,9 +210,9 @@ rec = @resp['record']
 #=> [200, 'entitlements_only', true, true, true]
 
 ## Reconcile: records exactly one audit event with the reconcile verb + org target
-@evt = Onetime::AdminAuditEvent.recent(1).first
+@evt = Onetime::ColonelAuditEvent.recent(1).first
 [
-  Onetime::AdminAuditEvent.count - @before_count,
+  Onetime::ColonelAuditEvent.count - @before_count,
   @evt['verb'],
   @evt['actor'] == @colonel.extid,
   @evt['target'] == @org.extid,

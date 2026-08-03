@@ -40,7 +40,7 @@ replaces the send history Receipts can't provide (grounding correction 3).
 - **Event log `Onetime::EmailActivity`**: Horreum keyed by `email_hash` with a
   per-instance capped `sorted_set :events` (member `"kind:ms:nonce"` + JSON
   detail, cap 100, `remrangebyrank` — the `Receipt::AccessTimeline` shape) plus
-  a global capped `class_sorted_set :recent` (AdminAuditEvent shape,
+  a global capped `class_sorted_set :recent` (ColonelAuditEvent shape,
   trim-on-write, MAX 10_000) for the admin feed. Kinds: `sent`, `suppressed`,
   `hard_bounce`, `soft_bounce`, `complaint`, `unsubscribed`, `resubscribed`.
   Fail-open writes (a logging failure never breaks a send). Detail carries
@@ -73,7 +73,7 @@ replaces the send history Receipts can't provide (grounding correction 3).
 - Enqueue funnel: `lib/onetime/jobs/publisher.rb` (`enqueue_email`, `enqueue_email_raw`, fallbacks `FALLBACK_STRATEGIES`)
 - Worker semantics (suppressed ≠ failure): `lib/onetime/jobs/workers/email_worker.rb` — suppressed results must `ack!`, never `reject!`/DLQ
 - Model shape precedent: `apps/web/billing/models/pending_federated_subscription.rb` (identifier_field :email_hash, feature :expiration, PII/NOT-PII field partition)
-- Event log precedents: `lib/onetime/models/admin_audit_event.rb` (capped class ZSET, fail-open) and `lib/onetime/models/receipt/features/access_timeline.rb` (per-entity capped timeline)
+- Event log precedents: `lib/onetime/models/colonel_audit_event.rb` (capped class ZSET, fail-open) and `lib/onetime/models/receipt/features/access_timeline.rb` (per-entity capped timeline)
 - Blocklist stack precedent (op/route/UI to copy, lookup NOT to copy): `apps/api/colonel/models/banned_ip.rb`
 - Model registration/load order: `lib/onetime/models.rb`
 - Config pipeline: `etc/defaults/config.defaults.yaml`, `src/schemas/contracts/config/section/mail.ts`, `lib/onetime/operations/config/validate.rb`
@@ -109,7 +109,7 @@ replaces the send history Receipts can't provide (grounding correction 3).
   recovered from the hash later; suppression created from a webhook uses the
   provider-supplied address before discarding it.
 - `EmailSuppression` and `EmailActivity` writes happen inside the delivery
-  path — keep them one round-trip each and fail-open (AdminAuditEvent
+  path — keep them one round-trip each and fail-open (ColonelAuditEvent
   precedent) so Redis blips degrade to "sent without logging", never "blocked".
 - Multi-tenancy: entries are GLOBAL (platform reputation is shared). Per-org
   scoping is deliberately out of scope for v1; the `source`/`note` fields keep

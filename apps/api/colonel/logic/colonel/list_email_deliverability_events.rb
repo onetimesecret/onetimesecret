@@ -47,7 +47,7 @@ module ColonelAPI
         private
 
         # Emit fields explicitly (never the raw stored hash) — the
-        # ListAuditEvents allowlist idiom.
+        # ListColonelAuditEvents allowlist idiom.
         def format_event(event)
           {
             id: event['id'].to_s,

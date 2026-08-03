@@ -6,7 +6,7 @@
 # lib/onetime/operations/README.md. Lives alongside the incumbent domain ops in
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic + CLI), so require the audit model explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -35,7 +35,7 @@ module Onetime
       # names + ids) and mutates/audits NOTHING. `dry_run: false` performs the
       # transfer (remove from old collection → update org_id → add to new
       # collection, rolling back org_id if the add fails) and records EXACTLY ONE
-      # {Onetime::AdminAuditEvent}. A blocked run (`:mismatch`) and a transfer
+      # {Onetime::ColonelAuditEvent}. A blocked run (`:mismatch`) and a transfer
       # that blows up mid-apply each record one `result: :failure` event: this is
       # the highest-blast-radius domain verb, and a half-applied transfer that
       # left no trace was the exact gap {Onetime::AuditedFailure} exists to close.
@@ -130,7 +130,7 @@ module Onetime
           end
 
           # Exactly one audit event per successful transfer. Non-secret detail only.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,
@@ -149,7 +149,7 @@ module Onetime
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status, from_id)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,

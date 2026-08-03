@@ -15,9 +15,9 @@ GET    /:extid                              OrganizationAPI::Logic::Organization
 PUT    /:extid                              OrganizationAPI::Logic::Organizations::UpdateOrganization response=json auth=sessionauth
 DELETE /:extid                              OrganizationAPI::Logic::Organizations::DeleteOrganization response=json auth=sessionauth
 
-# Organization Audit Trail
-# Secret activity audit events; requires the audit_logs entitlement (admin/owner on qualifying plans)
-GET    /:extid/audit-events                 OrganizationAPI::Logic::Organizations::ListAuditEvents response=json auth=sessionauth
+# Organization Secret Activity
+# Secret activity events; requires the audit_logs entitlement (admin/owner on qualifying plans)
+GET    /:extid/secret-activity              OrganizationAPI::Logic::Organizations::ListSecretActivity response=json auth=sessionauth
 
 # Organization Invitations
 # Invite management for organization owners/admins

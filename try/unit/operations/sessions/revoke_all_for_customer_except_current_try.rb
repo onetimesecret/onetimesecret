@@ -10,7 +10,7 @@
 # RevokeAllForCustomer clears EVERY session (incl. current) + the Rodauth SQL rows
 # + writes an admin audit event, this op:
 # - preserves ONE current session (the one the user is changing their password from)
-# - is Redis-only (no Rodauth SQL, no AdminAuditEvent)
+# - is Redis-only (no Rodauth SQL, no ColonelAuditEvent)
 # - still kills untracked (pre-sidecar) blobs via the best-effort scan
 #
 # Covers:
@@ -19,7 +19,7 @@
 # - a DIFFERENT customer's session is untouched (identity match is exact)
 # - the preserved sid keeps BOTH its sidecar and its index entry; revoked sids lose
 #   both
-# - NO AdminAuditEvent is written (self-service, not an admin action)
+# - NO ColonelAuditEvent is written (self-service, not an admin action)
 # - except_session_id: nil revokes ALL (parity with RevokeAllForCustomer, sans SQL/audit)
 # - scan_untracked: false skips the best-effort sweep (tracked-only kill) so the
 #   password hooks keep the keyspace SCAN out of Rodauth's open SQL transaction
@@ -41,13 +41,13 @@ require 'securerandom'
 require 'onetime/operations/sessions/track_metadata'
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 # The op deliberately does NOT write admin audit events; require the model here so
-# the "no AdminAuditEvent was written" assertion can reference the class.
-require 'onetime/models/admin_audit_event'
+# the "no ColonelAuditEvent was written" assertion can reference the class.
+require 'onetime/models/colonel_audit_event'
 
 RXC   = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent
 Store = Onetime::Operations::Sessions::Store
 SM    = Onetime::SessionMetadata
-AE    = Onetime::AdminAuditEvent
+AE    = Onetime::ColonelAuditEvent
 DB    = Familia.dbclient
 
 @nonce = Familia.generate_id[0, 12]

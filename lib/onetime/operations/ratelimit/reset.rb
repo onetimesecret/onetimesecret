@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/ratelimit/registry'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -19,7 +19,7 @@ module Onetime
       #
       # The DELETE is exactly the CLI's emitted `DEL <keys>` (and equivalent to the
       # limiter modules' own `clear_*_rate_limit!`). The op adds one thing: exactly
-      # one {Onetime::AdminAuditEvent} per reset that ACTUALLY removed a key. A
+      # one {Onetime::ColonelAuditEvent} per reset that ACTUALLY removed a key. A
       # reset of an already-clear subject is an idempotent no-op — `status:
       # :not_set`, NO audit event. That is NOT a refusal: the colonel adapter
       # returns 200 with `cleared: false` and "No active rate-limit state to
@@ -83,7 +83,7 @@ module Onetime
           # One audit event per successful reset. The subject may be an IP or a
           # (public) secret identifier; it is the audit target. Never record the
           # counter VALUES — only the fact + shape of the reset.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: "#{@kind}:#{@subject}",

@@ -18,7 +18,7 @@
 # only runs when the auth Rack app boots for HTTP serving; CLI runs
 # don't go through that path. Load the op explicitly so the call site
 # resolves at runtime. The admin wrapper reuses SetCustomerVerification
-# and adds the AdminAuditEvent for this operator-initiated change.
+# and adds the ColonelAuditEvent for this operator-initiated change.
 #
 # Auth::Database has to be required alongside it: SetCustomerVerification
 # reaches for `Auth::Database.connection` at call time WITHOUT requiring it

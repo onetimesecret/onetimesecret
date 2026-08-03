@@ -1,15 +1,15 @@
-# apps/api/domains/logic/sender_config/audit_logger.rb
+# apps/api/domains/logic/sender_config/change_logger.rb
 #
 # frozen_string_literal: true
 
-require_relative '../config_audit_logger'
+require_relative '../config_change_logger'
 
 module DomainsAPI
   module Logic
     module SenderConfig
       # Audit logging for Domain Sender Configuration changes.
       #
-      # Shared machinery lives in DomainsAPI::Logic::ConfigAuditLogger.
+      # Shared machinery lives in DomainsAPI::Logic::ConfigChangeLogger.
       #
       # SECURITY: Sensitive fields (api_key) are NEVER logged.
       # For credential changes, we log only that the field changed, not its value.
@@ -22,8 +22,8 @@ module DomainsAPI
       #   - domain_sender_config_enabled: Sender config enabled for domain
       #   - domain_sender_config_disabled: Sender config disabled for domain
       #
-      module AuditLogger
-        include DomainsAPI::Logic::ConfigAuditLogger
+      module ChangeLogger
+        include DomainsAPI::Logic::ConfigChangeLogger
 
         # Fields that contain sensitive data and must never be logged
         SENSITIVE_FIELDS = %w[api_key].freeze
@@ -47,9 +47,9 @@ module DomainsAPI
         #   Pass explicitly to ensure multiple audit events in one request share
         #   the same timestamp.
         # @return [void]
-        def log_sender_audit_event(event:, domain:, org:, actor:, provider: nil, changes: nil, details: nil, timestamp: Time.now.to_i)
-          log_config_audit_event(
-            tag: 'DOMAIN_SENDER_AUDIT',
+        def log_sender_change_event(event:, domain:, org:, actor:, provider: nil, changes: nil, details: nil, timestamp: Time.now.to_i)
+          log_config_change_event(
+            tag: 'DOMAIN_SENDER_CHANGE',
             event: event,
             domain: domain,
             org: org,

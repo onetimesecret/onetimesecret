@@ -21,7 +21,7 @@ module ColonelAPI
       # broker connection on the request path. When the broker is not connected the
       # list degrades to empty + `connected: false` rather than erroring.
       #
-      # Read-only: no AdminAuditEvent (CONTRACT 4 — audit is for mutations).
+      # Read-only: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

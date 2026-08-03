@@ -18,7 +18,7 @@ module ColonelAPI
       # implementation of the cross-store swap (Rodauth `accounts` row, Customer
       # hash, global + org-scoped email indexes, default-workspace contact_email,
       # pending self-service change markers, session revocation, verification
-      # reset). The OP owns the AdminAuditEvent; this class NEVER audits — that
+      # reset). The OP owns the ColonelAuditEvent; this class NEVER audits — that
       # would double-record.
       #
       # Support works from the console, not the shell (D43), so this endpoint is
@@ -99,7 +99,7 @@ module ColonelAPI
 
           handle_result_status
 
-          # NOTE: no audit here — the op owns the single AdminAuditEvent.
+          # NOTE: no audit here — the op owns the single ColonelAuditEvent.
           success_data
         end
 

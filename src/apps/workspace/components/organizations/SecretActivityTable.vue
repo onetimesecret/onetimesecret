@@ -1,11 +1,11 @@
 <!-- src/apps/workspace/components/organizations/SecretActivityTable.vue -->
 
 <script setup lang="ts">
-import { AUDIT_EVENT_KINDS, type AuditEventKind } from '@/schemas/api/organizations';
+import { SECRET_ACTIVITY_KINDS, type SecretActivityKind } from '@/schemas/api/organizations';
 import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
-import { useOrgAuditEvents } from '@/shared/composables/useOrgAuditEvents';
+import { useSecretActivity } from '@/shared/composables/useSecretActivity';
 import { formatDisplayDateTime } from '@/utils/format';
 import { useNow } from '@vueuse/core';
 import { formatDistance } from 'date-fns';
@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n';
  * Secret Activity table (#3637) — renders the org's secret-access audit
  * trail: creations, link/status fetches, reveals, burns and expiries.
  *
- * Owns its own fetching via useOrgAuditEvents: the parent mounts it lazily
+ * Owns its own fetching via useSecretActivity: the parent mounts it lazily
  * (v-if per tab), so mounting IS activation. The composable keeps network
  * errors and contract mismatches distinct, and so does this template — a
  * parse failure must never masquerade as the "no activity yet" empty state.
@@ -46,7 +46,7 @@ const {
   prev,
   refresh,
   abort,
-} = useOrgAuditEvents(orgExtid);
+} = useSecretActivity(orgExtid);
 
 // Reactive clock so the relative "3 minutes ago" labels refresh on their own
 // while the tab stays open. Coarse tick — these labels change on a
@@ -58,10 +58,10 @@ const now = useNow({ interval: 30_000 });
  * its raw name — the schema admits it on purpose, so the row still renders
  * instead of hiding activity.
  */
-const KNOWN_KINDS = new Set<string>(AUDIT_EVENT_KINDS);
+const KNOWN_KINDS = new Set<string>(SECRET_ACTIVITY_KINDS);
 
 /** Decorative icon per kind; unknown kinds get the neutral info glyph. */
-const KIND_ICONS: Record<AuditEventKind, string> = {
+const KIND_ICONS: Record<SecretActivityKind, string> = {
   created: 'plus-circle',
   status_get: 'signal',
   secret_get: 'key',
@@ -87,7 +87,7 @@ const kindLabel = (kind: string): string =>
   KNOWN_KINDS.has(kind) ? t(`web.organizations.audit.kinds.${kind}`) : kind;
 
 const kindIcon = (kind: string): string =>
-  KIND_ICONS[kind as AuditEventKind] ?? 'information-circle';
+  KIND_ICONS[kind as SecretActivityKind] ?? 'information-circle';
 
 const actorLabel = (actor: string): string =>
   KNOWN_ACTORS.has(actor) ? t(`web.organizations.audit.actors.${actor}`) : actor;

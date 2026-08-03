@@ -3,7 +3,7 @@
 /**
  * SecretActivityTable (#3637) — org secret-access audit trail.
  *
- * Mounts the real component + real useOrgAuditEvents composable + real Zod
+ * Mounts the real component + real useSecretActivity composable + real Zod
  * schema, with only the HTTP layer (useApi) mocked. That keeps the
  * error-vs-validationError split honest: the contract-mismatch state is
  * exercised by feeding a genuinely malformed payload through gracefulParse,
@@ -154,7 +154,7 @@ describe('SecretActivityTable', () => {
 
       expect(mockApi.get).toHaveBeenCalledTimes(1);
       expect(mockApi.get).toHaveBeenCalledWith(
-        '/api/organizations/on1abc123/audit-events',
+        '/api/organizations/on1abc123/secret-activity',
         expect.objectContaining({
           params: { offset: 0, limit: 50 },
         })
@@ -242,7 +242,7 @@ describe('SecretActivityTable', () => {
     });
 
     it('renders the dedicated mismatch state, never the empty state', async () => {
-      // Envelope missing `details` → fails auditEventsResponseSchema.
+      // Envelope missing `details` → fails secretActivityResponseSchema.
       respondWith({
         user_id: 'usr_123',
         organization_id: 'org_123',
@@ -303,7 +303,7 @@ describe('SecretActivityTable', () => {
       await flushPromises();
 
       expect(mockApi.get).toHaveBeenLastCalledWith(
-        '/api/organizations/on1def456/audit-events',
+        '/api/organizations/on1def456/secret-activity',
         expect.objectContaining({ params: { offset: 0, limit: 50 } })
       );
       expect(wrapper.find('[data-testid="org-audit-error"]').exists()).toBe(false);
@@ -367,7 +367,7 @@ describe('SecretActivityTable', () => {
       await flushPromises();
 
       expect(mockApi.get).toHaveBeenLastCalledWith(
-        '/api/organizations/on1def456/audit-events',
+        '/api/organizations/on1def456/secret-activity',
         expect.objectContaining({ params: { offset: 0, limit: 50 } })
       );
     });
@@ -615,7 +615,7 @@ describe('SecretActivityTable', () => {
       await flushPromises();
 
       expect(mockApi.get).toHaveBeenLastCalledWith(
-        '/api/organizations/on1abc123/audit-events',
+        '/api/organizations/on1abc123/secret-activity',
         expect.objectContaining({
           params: { offset: 50, limit: 50 },
         })

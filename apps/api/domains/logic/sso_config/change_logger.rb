@@ -1,15 +1,15 @@
-# apps/api/domains/logic/sso_config/audit_logger.rb
+# apps/api/domains/logic/sso_config/change_logger.rb
 #
 # frozen_string_literal: true
 
-require_relative '../config_audit_logger'
+require_relative '../config_change_logger'
 
 module DomainsAPI
   module Logic
     module SsoConfig
       # Audit logging for Domain SSO configuration changes.
       #
-      # Shared machinery lives in DomainsAPI::Logic::ConfigAuditLogger.
+      # Shared machinery lives in DomainsAPI::Logic::ConfigChangeLogger.
       #
       # SECURITY: Sensitive fields (client_id, client_secret) are NEVER logged.
       # For credential changes, we log only that the field changed, not its value.
@@ -22,8 +22,8 @@ module DomainsAPI
       #   - domain_sso_config_enabled: SSO enabled for domain
       #   - domain_sso_config_disabled: SSO disabled for domain
       #
-      module AuditLogger
-        include DomainsAPI::Logic::ConfigAuditLogger
+      module ChangeLogger
+        include DomainsAPI::Logic::ConfigChangeLogger
 
         # Fields that contain sensitive data and must never be logged
         SENSITIVE_FIELDS = %w[client_id client_secret].freeze
@@ -44,9 +44,9 @@ module DomainsAPI
         # @param changes [Hash, nil] Field changes for update events
         # @param details [Hash, nil] Additional event-specific details
         # @return [void]
-        def log_sso_audit_event(event:, domain:, org:, actor:, provider_type:, changes: nil, details: nil)
-          log_config_audit_event(
-            tag: 'DOMAIN_SSO_AUDIT',
+        def log_sso_change_event(event:, domain:, org:, actor:, provider_type:, changes: nil, details: nil)
+          log_config_change_event(
+            tag: 'DOMAIN_SSO_CHANGE',
             event: event,
             domain: domain,
             org: org,

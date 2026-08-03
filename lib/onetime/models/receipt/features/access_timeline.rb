@@ -61,7 +61,7 @@ module Onetime::Receipt::Features
       # @param context [Hash, nil] optional privacy-safe request context to
       #   attach to the org-trail event (e.g. the masked-partial IP / UA and the
       #   keyed correlation hash from Onetime::Security::RequestContext; #3640).
-      #   String-keyed and forwarded verbatim to record_org_audit_event, which
+      #   String-keyed and forwarded verbatim to record_org_secret_activity_event, which
       #   splats it into the org audit event. nil / empty records no extra
       #   context. Only the fetch/telemetry path supplies this today.
       # @return [String, nil] the recorded member, or nil when nothing was
@@ -80,7 +80,7 @@ module Onetime::Receipt::Features
         # evict every other receipt's history from the org-wide cap. Each
         # receipt therefore contributes at most ACCESS_EVENTS_MAX fetch
         # events to the trail; lifecycle transitions are unaffected (they
-        # call record_org_audit_event directly).
+        # call record_org_secret_activity_event directly).
         saturated = access_count >= ACCESS_EVENTS_MAX
 
         member = format('%s:%d:%s', kind, (at.to_f * 1000).to_i, SecureRandom.hex(4))
@@ -100,17 +100,17 @@ module Onetime::Receipt::Features
 
         # Fan out to the organization's audit trail (no-op without org
         # context). The org trail is the durable, org-wide view of the same
-        # activity; see Organization::Features::AuditTrail. Forward any
+        # activity; see Organization::Features::SecretActivity. Forward any
         # privacy-safe request context (masked IP / UA, keyed hash; #3640) as
         # extra string-keyed event attrs.
         context_attrs = context || {}
-        record_org_audit_event(kind, at: at, **context_attrs) unless saturated
+        record_org_secret_activity_event(kind, at: at, **context_attrs) unless saturated
 
         member
       end
 
       # Append this receipt's activity to its organization's audit trail
-      # (Organization::Features::AuditTrail). No-op for receipts without an
+      # (Organization::Features::SecretActivity). No-op for receipts without an
       # organization context. Best-effort by design: the trail is
       # observability, so a failure here must never break the calling path
       # (state transitions, read endpoints).
@@ -128,7 +128,7 @@ module Onetime::Receipt::Features
       #   compose without touching this method's core. Values must already be
       #   audit-safe (short, non-sensitive; never raw IPs or capability tokens).
       # @return [Hash, nil] the recorded event, or nil when skipped.
-      def record_org_audit_event(kind, at: Familia.now, organization: nil, **event_attrs)
+      def record_org_secret_activity_event(kind, at: Familia.now, organization: nil, **event_attrs)
         organization ||= Onetime::Organization.load(org_id) unless org_id.to_s.empty?
         return if organization.nil?
 
@@ -148,7 +148,7 @@ module Onetime::Receipt::Features
                          attrs
                        end
 
-        organization.record_audit_event(
+        organization.record_secret_activity_event(
           kind,
           at: at,
           **normalize_actor_attrs(event_attrs, kind),
@@ -167,7 +167,7 @@ module Onetime::Receipt::Features
           **domain_attrs,
         )
       rescue StandardError => ex
-        OT.le "[audit-trail] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"
+        OT.le "[secret-activity] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"
         nil
       end
 
@@ -201,7 +201,7 @@ module Onetime::Receipt::Features
         actor          = attrs['actor'].to_s
         unless RECOGNIZED_ACTORS.include?(actor)
           # Never log the rejected value: a bad caller could pass anything.
-          OT.le "[audit-trail] missing/unrecognized actor; recording 'unknown' " \
+          OT.le "[secret-activity] missing/unrecognized actor; recording 'unknown' " \
                 "(kind=#{kind}, receipt=#{shortid})"
           actor = 'unknown'
         end
@@ -215,7 +215,7 @@ module Onetime::Receipt::Features
             attrs.delete('actor_id')
           elsif id.include?('@')
             # Never log the value itself: it is the email being kept out.
-            OT.le "[audit-trail] dropped email-like actor_id (kind=#{kind}, receipt=#{shortid})"
+            OT.le "[secret-activity] dropped email-like actor_id (kind=#{kind}, receipt=#{shortid})"
             attrs.delete('actor_id')
           end
         end
@@ -280,7 +280,7 @@ module Onetime::Receipt::Features
       #
       # @param actor_context [Hash, nil] request-scoped actor attrs computed
       #   by the receipt page's logic layer (#3637), forwarded through the
-      #   centralized actor validation in record_org_audit_event. nil records
+      #   centralized actor validation in record_org_secret_activity_event. nil records
       #   the event under the fail-safe 'unknown' actor (ADR-023).
       # @return [Hash, nil] the recorded audit event, or nil when already
       #   recorded or when there is no org context.
@@ -288,7 +288,7 @@ module Onetime::Receipt::Features
         return unless claim_once!(:receipt_viewed_at)
 
         attrs = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
-        record_org_audit_event('receipt_viewed', **attrs)
+        record_org_secret_activity_event('receipt_viewed', **attrs)
       end
 
       # Claim the one-time display of the secret's plaintext value to its

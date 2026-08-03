@@ -4,7 +4,7 @@
 
 # Loaded from the auth app AND from the CLI (which runs outside the auth app's
 # autoloader), so every dependency is required explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
@@ -730,7 +730,7 @@ module Auth
           # The wrapper never got far enough to record its own verb, and a
           # verification state change with no event is a hole in the trail. Same
           # verb and shape the wrapper would have emitted (epic #20 CONTRACT 4).
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: 'customer.set_verification',
             target: @customer.extid,
@@ -901,7 +901,7 @@ module Auth
         # Same verb/target/actor as the success event; obscured addresses only,
         # exactly like record_audit. Best-effort: never break the op.
         def record_refusal(status, old_email)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: failure_target,
@@ -1065,7 +1065,7 @@ module Auth
           detail[:reason] = @reason.to_s unless @reason.to_s.strip.empty?
           detail[:ticket] = @ticket.to_s unless @ticket.to_s.strip.empty?
 
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,

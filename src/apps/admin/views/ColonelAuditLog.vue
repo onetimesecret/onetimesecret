@@ -1,10 +1,10 @@
-<!-- src/apps/admin/views/AdminAuditLog.vue -->
+<!-- src/apps/admin/views/ColonelAuditLog.vue -->
 
 <script setup lang="ts">
 
   import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
-  import { useAdminAuditLog } from '@/apps/admin/stores/useAdminAuditLog';
+  import { useColonelAuditLog } from '@/apps/admin/stores/useColonelAuditLog';
   import type { ColonelAuditEvent } from '@/schemas/api/internal/responses/colonel-audit';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
@@ -14,9 +14,9 @@
 
   /**
    * Audit Log screen (observability lane) — the playback for the flight
-   * recorder: every mutating admin op writes an AdminAuditEvent; this screen
+   * recorder: every mutating admin op writes an ColonelAuditEvent; this screen
    * reads them newest-first over `GET /api/colonel/audit` via the NEW
-   * {@link useAdminAuditLog} store (no `src/apps/colonel/*` / `colonelInfoStore`).
+   * {@link useColonelAuditLog} store (no `src/apps/colonel/*` / `colonelInfoStore`).
    *
    * - LIST: DataTable + KitPagination, timestamp/actor/action/target/result/detail.
    * - ACTOR SEARCH: MANUAL, never as-you-type. The operator submits with Enter
@@ -33,7 +33,7 @@
    */
   const { t } = useI18n();
 
-  const store = useAdminAuditLog();
+  const store = useColonelAuditLog();
   /**
    * `error` and `validationError` are the two failure modes usePaginatedFetch
    * deliberately keeps apart, and they must NOT collapse into one state here:
@@ -75,7 +75,7 @@
    * writes (customer.set_role, session.delete, queue.dlq.replay, …).
    *
    * The server matches `verb` as an exact action OR a dotted prefix
-   * (list_audit_events.rb: `verb == filter || verb.start_with?("#{filter}.")`)
+   * (list_colonel_audit_events.rb: `verb == filter || verb.start_with?("#{filter}.")`)
    * and validates nothing against an allowlist, so ONE entry here reaches every
    * verb beneath it — `membership` covers membership.add / .remove / .set_role
    * AND the interpolated membership.entitlement.<action> family — and an

@@ -85,15 +85,15 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
     end
 
     it 'records EXACTLY ONE audit event from the op (adapter must not double-record)' do
-      before_count = Onetime::AdminAuditEvent.count
+      before_count = Onetime::ColonelAuditEvent.count
 
       run_logic(
         { 'org_id' => org.extid, 'member_id' => owner.extid,
           'entitlement' => 'audit_probe', 'action' => 'grant' },
       )
 
-      event = Onetime::AdminAuditEvent.recent(1).first
-      expect(Onetime::AdminAuditEvent.count - before_count).to eq(1)
+      event = Onetime::ColonelAuditEvent.recent(1).first
+      expect(Onetime::ColonelAuditEvent.count - before_count).to eq(1)
       expect(event['verb']).to eq('membership.entitlement.grant')
       expect(event['actor']).to eq(colonel.extid)
       expect(event['target']).to eq(owner.extid)
@@ -151,7 +151,7 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
       expect(membership.entitlements_grants.size).to eq(0)
       expect(membership.entitlements_revokes.size).to eq(0)
 
-      event = Onetime::AdminAuditEvent.recent(1).first
+      event = Onetime::ColonelAuditEvent.recent(1).first
       expect(event['verb']).to eq('membership.entitlement.clear')
       expect(event['detail']).to eq('org_id' => org.extid)
     end
@@ -192,7 +192,7 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
     it 'raises not-found when the customer exists but is not a member (:not_found from the op)' do
       outsider = create_customer(email: "outsider-#{SecureRandom.hex(4)}@example.com")
 
-      before_count = Onetime::AdminAuditEvent.count
+      before_count = Onetime::ColonelAuditEvent.count
 
       expect do
         run_logic(
@@ -205,8 +205,8 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
       # still an attempt, so it lands in the trail with the same verb/target as
       # a success, differing only in result:/detail. (The `raise_concerns`
       # rejections above never reach the op and so record nothing at all.)
-      expect(Onetime::AdminAuditEvent.count).to eq(before_count + 1)
-      event = Onetime::AdminAuditEvent.recent(1).first
+      expect(Onetime::ColonelAuditEvent.count).to eq(before_count + 1)
+      event = Onetime::ColonelAuditEvent.recent(1).first
       expect(event['verb']).to eq('membership.entitlement.grant')
       expect(event['target']).to eq(outsider.extid)
       expect(event['result']).to eq('failure')

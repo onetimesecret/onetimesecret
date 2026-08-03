@@ -1,8 +1,8 @@
-# apps/api/domains/spec/logic/signup_config/audit_logger_spec.rb
+# apps/api/domains/spec/logic/signup_config/change_logger_spec.rb
 #
 # frozen_string_literal: true
 
-# Unit tests for AuditLogger#compute_signup_changes — the normalization seam
+# Unit tests for ChangeLogger#compute_signup_changes — the normalization seam
 # pinned by issue #3245.
 #
 # The change-detector compares parsed/normalized values: callers (e.g.
@@ -12,16 +12,16 @@
 # These specs document and pin that contract.
 #
 # RUN:
-#   pnpm run test:rspec apps/api/domains/spec/logic/signup_config/audit_logger_spec.rb
+#   pnpm run test:rspec apps/api/domains/spec/logic/signup_config/change_logger_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../../../../apps/api/domains/application'
 
-RSpec.describe DomainsAPI::Logic::SignupConfig::AuditLogger do
-  # Minimal host class — AuditLogger is a mixin and compute_signup_changes
+RSpec.describe DomainsAPI::Logic::SignupConfig::ChangeLogger do
+  # Minimal host class — ChangeLogger is a mixin and compute_signup_changes
   # doesn't touch instance state, so any include site is sufficient.
   let(:host_class) do
-    Class.new { include DomainsAPI::Logic::SignupConfig::AuditLogger }
+    Class.new { include DomainsAPI::Logic::SignupConfig::ChangeLogger }
   end
   let(:host) { host_class.new }
 
@@ -112,12 +112,12 @@ RSpec.describe DomainsAPI::Logic::SignupConfig::AuditLogger do
       context 'when provided as an empty string' do
         let(:new_params) { { 'validation_strategy' => '' } }
 
-        # Pins the responsibility split: AuditLogger treats key-presence as
+        # Pins the responsibility split: ChangeLogger treats key-presence as
         # "provided" and compares normalized values. '' normalizes to nil and
         # mismatches the existing 'domain_allowlist'. The caller (e.g.
         # PatchSignupConfig#normalized_change_params) is responsible for
         # excluding blank-valued fields from the hash it passes in. If a
-        # future refactor moves blank-handling into AuditLogger itself, this
+        # future refactor moves blank-handling into ChangeLogger itself, this
         # test should be revisited.
         it 'is recorded as a change' do
           expect(changes['validation_strategy']).to eq(from: 'domain_allowlist', to: '')
@@ -195,7 +195,7 @@ RSpec.describe DomainsAPI::Logic::SignupConfig::AuditLogger do
 
       context 'with integer 0' do
         # Pins the asymmetry with `1`: only `true`, 'true', '1', 1 coerce
-        # truthy (audit_logger.rb extract_new_value). Everything else,
+        # truthy (change_logger.rb extract_new_value). Everything else,
         # including 0, falls through to false. Matches existing false state
         # so no change recorded.
         let(:new_params) { { 'enabled' => 0 } }

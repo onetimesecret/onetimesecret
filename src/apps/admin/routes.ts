@@ -178,11 +178,11 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     // Audit log reader (observability): newest-first playback of the
-    // AdminAuditEvent trail every mutating admin op writes. Read-only; no
+    // ColonelAuditEvent trail every mutating admin op writes. Read-only; no
     // route params (filters are in-page).
     path: '/colonel/audit',
-    name: 'AdminAuditLog',
-    component: () => import('@/apps/admin/views/AdminAuditLog.vue'),
+    name: 'ColonelAuditLog',
+    component: () => import('@/apps/admin/views/ColonelAuditLog.vue'),
     meta: {
       ...adminDefaultMeta,
       title: 'web.admin.audit.title',

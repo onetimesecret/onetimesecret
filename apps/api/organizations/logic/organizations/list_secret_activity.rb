@@ -1,17 +1,17 @@
-# apps/api/organizations/logic/organizations/list_audit_events.rb
+# apps/api/organizations/logic/organizations/list_secret_activity.rb
 #
 # frozen_string_literal: true
 
 module OrganizationAPI::Logic
   module Organizations
-    # List Audit Events
+    # List Secret Activity
     #
-    # @api Returns a page of the organization's audit trail, newest first:
-    #   secret creation, link/status fetches, reveals, burns and expiries
-    #   recorded for receipts created in this organization's context
-    #   (see Organization::Features::AuditTrail). Requires the `audit_logs`
-    #   entitlement, which the role/plan intersection grants to admins and
-    #   owners on plans that include it.
+    # @api Returns a page of the organization's secret activity trail,
+    #   newest first: secret creation, link/status fetches, reveals, burns
+    #   and expiries recorded for receipts created in this organization's
+    #   context (see Organization::Features::SecretActivity). Requires the
+    #   `audit_logs` entitlement, which the role/plan intersection grants to
+    #   admins and owners on plans that include it.
     #
     #   Event kinds: 'created' (secret concealed/generated), 'status_get'
     #   / 'secret_get' (a third party fetched the status/secret link),
@@ -33,7 +33,7 @@ module OrganizationAPI::Logic
     #   (`details.actors`); actors that no longer resolve — removed members,
     #   out-of-org actors, legacy truncated ids — are absent from the map and
     #   render as the bare objid.
-    class ListAuditEvents < OrganizationAPI::Logic::Base
+    class ListSecretActivity < OrganizationAPI::Logic::Base
       DEFAULT_LIMIT = 50
 
       attr_reader :organization, :events, :offset, :limit
@@ -64,7 +64,7 @@ module OrganizationAPI::Logic
       end
 
       def process
-        @events = organization.audit_events_page(offset: offset, limit: limit)
+        @events = organization.secret_activity_events_page(offset: offset, limit: limit)
         @actors = resolve_actors(@events)
 
         success_data
@@ -76,7 +76,7 @@ module OrganizationAPI::Logic
           organization_id: organization.extid,
           records: events,
           count: events.size,
-          total: organization.audit_event_count,
+          total: organization.secret_activity_event_count,
           details: {
             offset: offset,
             limit: limit,
@@ -105,7 +105,7 @@ module OrganizationAPI::Logic
 
           map[actor_id] = { 'email' => customer.email, 'extid' => customer.extid }
         rescue StandardError => ex
-          OT.le '[ListAuditEvents] actor resolution failed',
+          OT.le '[ListSecretActivity] actor resolution failed',
             organization: organization.objid,
             actor_id: actor_id,
             error: ex.message

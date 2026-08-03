@@ -93,20 +93,20 @@ RSpec.describe Onetime::Receipt, type: :integration do
   # Network context threading (#3640): the fetch path passes privacy-safe
   # request context (masked IP / UA, keyed hash) down to the org-trail fan-out,
   # which has no request object of its own. record_access_event forwards the
-  # string-keyed context to record_org_audit_event verbatim; when absent it
+  # string-keyed context to record_org_secret_activity_event verbatim; when absent it
   # forwards nothing (backward-compatible with lifecycle callers).
   describe '#record_access_event context threading' do
     it 'forwards a present context to the org-trail fan-out' do
       context = { 'net_ip_partial' => '203.0.113.0', 'net_ip_hash' => 'abc123' }
 
-      expect(receipt).to receive(:record_org_audit_event)
+      expect(receipt).to receive(:record_org_secret_activity_event)
         .with('status_get', hash_including(at: anything, **context))
 
       receipt.record_access_event('status_get', context: context)
     end
 
     it 'forwards no extra attrs when context is nil (default)' do
-      expect(receipt).to receive(:record_org_audit_event) do |kind, **kwargs|
+      expect(receipt).to receive(:record_org_secret_activity_event) do |kind, **kwargs|
         expect(kind).to eq('status_get')
         expect(kwargs.keys).to contain_exactly(:at)
       end
@@ -163,18 +163,18 @@ RSpec.describe Onetime::Receipt, type: :integration do
 
     # Actor threading (#3637): the receipt page's logic layer computes the
     # actor context and record_receipt_view! forwards it, string-keyed, into
-    # record_org_audit_event -- where the centralized validation applies.
+    # record_org_secret_activity_event -- where the centralized validation applies.
     it 'forwards the actor context to the org-trail fan-out' do
       full_objid = "customer_objid_#{SecureRandom.hex(12)}"
 
-      expect(receipt).to receive(:record_org_audit_event)
+      expect(receipt).to receive(:record_org_secret_activity_event)
         .with('receipt_viewed', 'actor' => 'creator', 'actor_id' => full_objid)
 
       receipt.record_receipt_view!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
     end
 
     it 'forwards no actor attrs when the context is nil (default)' do
-      expect(receipt).to receive(:record_org_audit_event).with('receipt_viewed')
+      expect(receipt).to receive(:record_org_secret_activity_event).with('receipt_viewed')
 
       receipt.record_receipt_view!
     end

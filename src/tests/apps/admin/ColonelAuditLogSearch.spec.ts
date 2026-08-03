@@ -1,4 +1,4 @@
-// src/tests/apps/admin/AdminAuditLogSearch.spec.ts
+// src/tests/apps/admin/ColonelAuditLogSearch.spec.ts
 
 import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
@@ -23,7 +23,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-import AdminAuditLog from '@/apps/admin/views/AdminAuditLog.vue';
+import ColonelAuditLog from '@/apps/admin/views/ColonelAuditLog.vue';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -62,7 +62,7 @@ function auditPayload(rows = [auditRow()]) {
 }
 
 const mountView = (pinia: ReturnType<typeof createPinia>) =>
-  mount(AdminAuditLog, { global: { plugins: [pinia, i18n] } });
+  mount(ColonelAuditLog, { global: { plugins: [pinia, i18n] } });
 
 const listGetCount = () => mockApi.get.mock.calls.filter((c) => c[0] === LIST_URL).length;
 
@@ -76,7 +76,7 @@ const searchButton = (w: VueWrapper) => w.find('[data-testid="audit-actor-search
  * debounced as-you-type box turned every typing pause into a full-set scan.
  * These specs pin the "typing is inert, submitting searches" contract.
  */
-describe('AdminAuditLog actor search (manual submit, no debounce)', () => {
+describe('ColonelAuditLog actor search (manual submit, no debounce)', () => {
   let wrapper: VueWrapper;
   let pinia: ReturnType<typeof createPinia>;
 

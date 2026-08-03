@@ -5,7 +5,7 @@
 # Domain-owned (app-scoped) operation — see decision D3 in
 # lib/onetime/operations/README.md. Loaded at the call site (colonel logic),
 # so require the audit model explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/models/custom_domain/config_registry'
 
@@ -32,7 +32,7 @@ module Onetime
       # `dry_run: false` creates the missing records race-safely
       # (HomepageConfig/ApiConfig via find_or_create_for_domain; the rest via
       # exists-check + create! with a duplicate-race rescue) and records
-      # EXACTLY ONE {Onetime::AdminAuditEvent} — none when nothing was created.
+      # EXACTLY ONE {Onetime::ColonelAuditEvent} — none when nothing was created.
       class EnsureDomainConfigs
         include Onetime::AuditedFailure
 
@@ -109,7 +109,7 @@ module Onetime
           # Exactly one audit event per applied run that created something;
           # none when every record already existed.
           if created.any?
-            Onetime::AdminAuditEvent.record(
+            Onetime::ColonelAuditEvent.record(
               actor: @actor,
               verb: AUDIT_VERB,
               target: @domain.extid,

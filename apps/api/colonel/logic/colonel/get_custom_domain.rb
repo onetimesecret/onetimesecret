@@ -19,7 +19,7 @@ module ColonelAPI
       # Colonel access is cross-organization: like VerifyCustomDomain / ProbeDomain,
       # any domain resolves by extid with NO ownership/membership gate.
       #
-      # READ-ONLY: emits NO AdminAuditEvent (CONTRACT 4 — audit is for mutations),
+      # READ-ONLY: emits NO ColonelAuditEvent (CONTRACT 4 — audit is for mutations),
       # matching ProbeDomain / GetSessionDetail.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this

@@ -29,7 +29,7 @@ terminology and visibility rules need to be settled before either frontend ships
 | | #2799 | #3633 / #3635 / #3637 |
 |---|---|---|
 | **What it logs** | Auth / account / SSO security events (login, MFA, password change, SSO config change) | Secret lifecycle & access events (created, secret_get, revealed, burned, expired, orphaned…) |
-| **Source** | Rodauth SQL (`account_authentication_audit_logs`) + proposed Familia `AuditEvent` | Familia `AuditTrail` (Redis sorted set) |
+| **Source** | Rodauth SQL (`account_authentication_audit_logs`) + proposed Familia `AuditEvent` | Familia `AuditTrail` (Redis sorted set; since renamed `SecretActivity` — Decision 5) |
 | **Actor attribution** | Yes (actor id, email, IP, UA) | No (recipients are anonymous capability-token holders) |
 | **Retention** | TTL-based (90 days proposed) | Cap-based (newest 10,000 events per org) |
 | **Status** | Unstarted | Backend shipped (#3635); UX in #3637 |
@@ -129,6 +129,25 @@ Raw credentials, session tokens, TOTP/MFA secrets, full unobscured emails (keep
 Failed logins and MFA failures appear in **both** views — the individual needs them
 ("someone is trying to get into my account"); the org needs them for brute-force /
 credential-stuffing detection. Do not treat failures as admin-only.
+
+### Decision 5 — Code identifier naming (#3977)
+
+Added 2026-08-03, when #3977 aligned code identifiers with Decision 1's stream
+names. This table is the authority for stream prefixes; code touching a stream
+uses its prefix. Bare "audit" is reserved for the strict, actor-attributed
+accountability sense (per Decision 1's rationale) — it appears only in the
+operator stream and in the shared feature/entitlement label.
+
+| Stream | User-facing name | Code prefix | Key identifiers |
+|---|---|---|---|
+| Secret Activity | Secret Activity | `SecretActivity` | `Organization::Features::SecretActivity`, `ListSecretActivity`, `useSecretActivity`, `secret-activity.ts` |
+| Operator audit log | Operations Ledger | `ColonelAudit` | `ColonelAuditEvent`, `ListColonelAuditEvents`, `ColonelAuditLog.vue`, `colonel-audit.ts` |
+| Security Events | Security Events | `SecurityEvent` | **Reserved for #2799** — do not use for anything else |
+| Config-change loggers | — (log lines only) | `ConfigChangeLogger` | `ConfigChangeLogger`, per-config `ChangeLogger` modules |
+
+Intentionally unchanged by #3977: the `audit_logs` entitlement label (Decision 1
+retains "audit log" as the feature/entitlement name) and Rodauth's
+`account_authentication_audit_logs` table (upstream schema).
 
 ## Scope of this record
 

@@ -1,15 +1,15 @@
-# apps/api/domains/logic/signup_config/audit_logger.rb
+# apps/api/domains/logic/signup_config/change_logger.rb
 #
 # frozen_string_literal: true
 
-require_relative '../config_audit_logger'
+require_relative '../config_change_logger'
 
 module DomainsAPI
   module Logic
     module SignupConfig
       # Audit logging for Domain Signup configuration changes.
       #
-      # Shared machinery lives in DomainsAPI::Logic::ConfigAuditLogger.
+      # Shared machinery lives in DomainsAPI::Logic::ConfigChangeLogger.
       #
       # Unlike SsoConfig, SignupConfig has no sensitive credential fields, so
       # all configured fields are safe to log with their actual values.
@@ -22,8 +22,8 @@ module DomainsAPI
       #   - domain_signup_config_enabled: Signup validation enabled for domain
       #   - domain_signup_config_disabled: Signup validation disabled for domain
       #
-      module AuditLogger
-        include DomainsAPI::Logic::ConfigAuditLogger
+      module ChangeLogger
+        include DomainsAPI::Logic::ConfigChangeLogger
 
         # Fields safe to log with their actual values
         SAFE_FIELDS = %w[validation_strategy enabled allowed_signup_domains].freeze
@@ -41,9 +41,9 @@ module DomainsAPI
         # @param changes [Hash, nil] Field changes for update events
         # @param details [Hash, nil] Additional event-specific details
         # @return [void]
-        def log_signup_audit_event(event:, domain:, org:, actor:, validation_strategy:, changes: nil, details: nil)
-          log_config_audit_event(
-            tag: 'DOMAIN_SIGNUP_AUDIT',
+        def log_signup_change_event(event:, domain:, org:, actor:, validation_strategy:, changes: nil, details: nil)
+          log_config_change_event(
+            tag: 'DOMAIN_SIGNUP_CHANGE',
             event: event,
             domain: domain,
             org: org,

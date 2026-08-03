@@ -210,7 +210,7 @@ const sortedEntitlements = computed(() =>
 const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
 // Secret Activity (audit trail) — gates the panel CONTENT only, never the
-// tab. Mirrors the backend contract (list_audit_events.rb): the materialized
+// tab. Mirrors the backend contract (list_secret_activity.rb): the materialized
 // membership entitlements are plan ∩ role, and audit_logs sits in the
 // admin tier — so a plain member is 403'd server-side even on an entitled
 // plan. org.entitlements in the API payload is the PLAN-level set, so the

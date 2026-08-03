@@ -4,5 +4,5 @@
  * Organizations API endpoints index
  */
 
-export * from './audit-events';
+export * from './secret-activity';
 export * from './organizations';

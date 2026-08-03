@@ -229,7 +229,7 @@ The architecture the design leans on is **sound and real**. `Delivery::Base#deli
 is a genuine 100% choke point (worker, `:sync`/`:async_thread` fallbacks,
 `deliver_raw`, CLI, DLQ replay all pass through it); `normalize_email` whitelists
 exactly the six documented keys; the KeyDerivation `PURPOSES` table, the
-`pending_federated_subscription`/`banned_ip`/`admin_audit_event` model precedents,
+`pending_federated_subscription`/`banned_ip`/`colonel_audit_event` model precedents,
 and the entire Stripe webhook pipeline all exist as described and are cloneable.
 No fundamental rework is required. Three items to **resolve before the slices that
 depend on them**, however:

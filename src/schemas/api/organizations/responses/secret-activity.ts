@@ -1,11 +1,11 @@
-// src/schemas/api/organizations/responses/audit-events.ts
+// src/schemas/api/organizations/responses/secret-activity.ts
 
 /**
- * Organization audit-events (Secret Activity) endpoint schemas (#3637).
+ * Organization secret-activity endpoint schemas (#3637).
  *
  * Shape verified against the live logic class
- * (apps/api/organizations/logic/organizations/list_audit_events.rb) and its
- * contract spec (list_audit_events_spec.rb): the envelope nests offset/limit
+ * (apps/api/organizations/logic/organizations/list_secret_activity.rb) and its
+ * contract spec (list_secret_activity_spec.rb): the envelope nests offset/limit
  * under `details` (NOT top-level) and carries an extra top-level `user_id`.
  */
 
@@ -14,12 +14,12 @@ import { z } from 'zod';
 
 /**
  * The event kinds the trail writes today
- * (lib/onetime/models/organization/features/audit_trail.rb). The schema
+ * (lib/onetime/models/organization/features/secret_activity.rb). The schema
  * deliberately validates `kind` as a plain string — an unknown future kind
  * must pass validation and render with a raw-kind fallback label, not knock
  * the whole page into the contract-mismatch state.
  */
-export const AUDIT_EVENT_KINDS = [
+export const SECRET_ACTIVITY_KINDS = [
   'created',
   'status_get',
   'secret_get',
@@ -33,7 +33,7 @@ export const AUDIT_EVENT_KINDS = [
   'reveal_failed_undecryptable',
 ] as const;
 
-export type AuditEventKind = (typeof AUDIT_EVENT_KINDS)[number];
+export type SecretActivityKind = (typeof SECRET_ACTIVITY_KINDS)[number];
 
 /**
  * One org audit event. Base fields are kind/at/nonce plus receipt/secret
@@ -49,7 +49,7 @@ export type AuditEventKind = (typeof AUDIT_EVENT_KINDS)[number];
  * per-kind fields the backend adds later. `at` arrives as a Unix-second
  * float and is transformed to Date.
  */
-export const auditEventSchema = z.looseObject({
+export const secretActivityEventSchema = z.looseObject({
   kind: z.string(),
   at: transforms.fromNumber.toDate,
   nonce: z.string(),
@@ -62,19 +62,19 @@ export const auditEventSchema = z.looseObject({
   net_ua_partial: z.string().optional(),
 });
 
-export type OrgAuditEvent = z.infer<typeof auditEventSchema>;
+export type SecretActivityEvent = z.infer<typeof secretActivityEventSchema>;
 
 /**
  * Audit events list response
- * GET /api/organizations/:extid/audit-events
+ * GET /api/organizations/:extid/secret-activity
  *
  * `total` is the org-wide event count and saturates at the retention cap
- * (10,000 — AUDIT_EVENTS_MAX); `count` is the size of this page.
+ * (10,000 — SECRET_ACTIVITY_MAX_EVENTS); `count` is the size of this page.
  */
-export const auditEventsResponseSchema = z.object({
+export const secretActivityResponseSchema = z.object({
   user_id: z.string(),
   organization_id: z.string(),
-  records: z.array(auditEventSchema),
+  records: z.array(secretActivityEventSchema),
   count: z.number().int().min(0),
   total: z.number().int().min(0),
   details: z.object({
@@ -92,7 +92,7 @@ export const auditEventsResponseSchema = z.object({
   }),
 });
 
-export type AuditEventsResponse = z.infer<typeof auditEventsResponseSchema>;
+export type SecretActivityResponse = z.infer<typeof secretActivityResponseSchema>;
 
 /** Read-time actor resolution map (details.actors), normalized to non-optional. */
-export type AuditActorsMap = NonNullable<AuditEventsResponse['details']['actors']>;
+export type SecretActivityActorsMap = NonNullable<SecretActivityResponse['details']['actors']>;

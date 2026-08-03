@@ -12,7 +12,7 @@ require_relative 'models/custom_domain'
 # Receipt.participates_in declarations reference those classes
 require_relative 'models/receipt'
 require_relative 'models/feedback'
-require_relative 'models/admin_audit_event'
+require_relative 'models/colonel_audit_event'
 require_relative 'models/daily_metric'
 require_relative 'models/email_suppression'
 require_relative 'models/session_metadata'

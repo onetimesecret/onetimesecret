@@ -31,7 +31,7 @@ require 'onetime/operations/domains/orphaned_scan'
 require 'onetime/operations/domains/repair'
 require 'onetime/operations/domains/transfer'
 
-AE = Onetime::AdminAuditEvent
+AE = Onetime::ColonelAuditEvent
 
 @actor = 'ur1colonelpub' # a PUBLIC id (extid-shaped), never an objid
 

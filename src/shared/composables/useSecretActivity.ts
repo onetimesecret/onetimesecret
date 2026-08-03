@@ -1,7 +1,7 @@
-// src/shared/composables/useOrgAuditEvents.ts
+// src/shared/composables/useSecretActivity.ts
 
 /**
- * Offset/limit pager over GET /api/organizations/:extid/audit-events — the
+ * Offset/limit pager over GET /api/organizations/:extid/secret-activity — the
  * org's secret-access audit trail (#3637).
  *
  * `error` and `validationError` are deliberately kept apart and must NOT
@@ -23,37 +23,37 @@
  */
 
 import {
-  auditEventsResponseSchema,
-  type AuditActorsMap,
-  type OrgAuditEvent,
+  secretActivityResponseSchema,
+  type SecretActivityActorsMap,
+  type SecretActivityEvent,
 } from '@/schemas/api/organizations';
 import { classifyError } from '@/schemas/errors';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { computed, ref, type Ref } from 'vue';
 
-/** Server default page size (list_audit_events.rb DEFAULT_LIMIT). */
+/** Server default page size (list_secret_activity.rb DEFAULT_LIMIT). */
 const DEFAULT_LIMIT = 50;
 
 /**
- * Per-org retention cap (audit_trail.rb AUDIT_EVENTS_MAX). When `total`
+ * Per-org retention cap (secret_activity.rb SECRET_ACTIVITY_MAX_EVENTS). When `total`
  * saturates here the trail has been trimmed — older events are gone and the
  * UI should say so rather than imply a complete history.
  */
-const AUDIT_EVENTS_RETENTION_MAX = 10_000;
+const SECRET_ACTIVITY_RETENTION_MAX = 10_000;
 
 /* eslint-disable max-lines-per-function */
-export function useOrgAuditEvents(orgExtid: Ref<string>) {
+export function useSecretActivity(orgExtid: Ref<string>) {
   const $api = useApi();
 
-  const records = ref<OrgAuditEvent[]>([]);
+  const records = ref<SecretActivityEvent[]>([]);
   /**
    * Read-time identity resolution for the current page (details.actors),
    * keyed by full actor objid. Missing key = unresolved actor (removed
    * member / out-of-org) — callers render the bare objid. Defaults to {}
    * so older backend responses without the map still work.
    */
-  const actors = ref<AuditActorsMap>({});
+  const actors = ref<SecretActivityActorsMap>({});
   const isLoading = ref(false);
   /** Network/HTTP failure message; null when the last fetch succeeded. */
   const error = ref<string | null>(null);
@@ -68,7 +68,7 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
   const count = computed(() => records.value.length);
   const hasNext = computed(() => offset.value + count.value < total.value);
   const hasPrev = computed(() => offset.value > 0);
-  const isCapped = computed(() => total.value >= AUDIT_EVENTS_RETENTION_MAX);
+  const isCapped = computed(() => total.value >= SECRET_ACTIVITY_RETENTION_MAX);
 
   /** Abort the in-flight request, if any. */
   function abort() {
@@ -92,7 +92,7 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
     isLoading.value = true;
 
     try {
-      const response = await $api.get(`/api/organizations/${orgExtid.value}/audit-events`, {
+      const response = await $api.get(`/api/organizations/${orgExtid.value}/secret-activity`, {
         params: { offset: Math.max(0, targetOffset), limit: limit.value },
         signal: controller.signal,
       });
@@ -102,7 +102,7 @@ export function useOrgAuditEvents(orgExtid: Ref<string>) {
       // mid-flight. Never apply a superseded response over the current state.
       if (controller.signal.aborted) return;
 
-      const result = gracefulParse(auditEventsResponseSchema, response.data, 'AuditEventsResponse');
+      const result = gracefulParse(secretActivityResponseSchema, response.data, 'SecretActivityResponse');
       if (!result.ok) {
         // Contract mismatch: do NOT degrade to an empty list (see header note).
         records.value = [];

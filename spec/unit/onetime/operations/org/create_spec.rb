@@ -26,7 +26,7 @@
 # Run: bundle exec rspec spec/unit/onetime/operations/org/create_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/org/create'
 
 RSpec.describe Onetime::Operations::Org::Create do
@@ -55,7 +55,7 @@ RSpec.describe Onetime::Operations::Org::Create do
     end
 
     before do
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
       allow(Onetime::Organization).to receive(:create!).and_return(org)
       allow(Onetime::Organization).to receive(:contact_email_exists?).and_return(false)
       allow(org).to receive(:description=)
@@ -86,7 +86,7 @@ RSpec.describe Onetime::Operations::Org::Create do
       it 'records EXACTLY ONE audit event, public ids only' do
         build.call
 
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           actor: actor,
           verb: 'organization.create',
           target: 'on_new_ext',
@@ -175,7 +175,7 @@ RSpec.describe Onetime::Operations::Org::Create do
           expect(result.org_id).to be_nil
           expect(result.objid).to be_nil
           expect(Onetime::Organization).not_to have_received(:create!)
-          expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
             hash_including(
               actor: actor,
               verb: 'organization.create',
@@ -214,7 +214,7 @@ RSpec.describe Onetime::Operations::Org::Create do
 
         expect(result.status).to eq(:email_taken)
         expect(result.message).to eq('Organization exists for that email address')
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
             verb: 'organization.create',
             target: 'ur_owner_ext',
@@ -228,14 +228,14 @@ RSpec.describe Onetime::Operations::Org::Create do
       # success-path record call and reserves contact_email via HSETNX, so a
       # non-race failure can leave a partial reservation with no trail unless
       # the macro fires. Message expectation, not a store read:
-      # AdminAuditEvent.record swallows its own errors.
+      # ColonelAuditEvent.record swallows its own errors.
       it 're-raises any other Onetime::Problem and records ONE failure event' do
         allow(Onetime::Organization).to receive(:create!)
           .and_raise(Onetime::Problem.new('Display name required'))
 
         expect { build.call }.to raise_error(Onetime::Problem, 'Display name required')
 
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
             actor: actor,
             verb: 'organization.create',
@@ -258,7 +258,7 @@ RSpec.describe Onetime::Operations::Org::Create do
         2.times { expect(op.validate.status).to eq(:ok) }
 
         expect(Onetime::Organization).not_to have_received(:create!)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
 
       it 'returns the normalized values an HTTP adapter would echo back' do
@@ -281,7 +281,7 @@ RSpec.describe Onetime::Operations::Org::Create do
 
     before do
       # Layer 2 exercises the WRITE path, not the audit model.
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
       @orgs            = []
       @customers       = []
       @reserved_emails = []
