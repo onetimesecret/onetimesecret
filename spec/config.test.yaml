@@ -53,11 +53,13 @@ site:
     xss_header: true
     referrer_policy: true
     permissions_policy: true
-    frame_options: false
-    path_traversal: false
+    # ON in production defaults (etc/config.yaml) and in SECURITY_CRITICAL_KEYS,
+    # so enabled here to match prod posture and keep integration boots warn-free.
+    frame_options: true
+    path_traversal: true
+    strict_transport: true
     cookie_tossing: false
     ip_spoofing: false
-    strict_transport: false
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.
