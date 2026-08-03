@@ -195,10 +195,12 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
   }),
 }));
 
-// Mock features (SSO feature flag)
+// Mock features (SSO opt-in flag + default-ON audit logs instance flag)
 const mockOrgsSsoEnabled = ref(false);
+const mockOrgsAuditLogsEnabled = ref(true);
 vi.mock('@/utils/features', () => ({
   isOrgsSsoEnabled: () => mockOrgsSsoEnabled.value,
+  isOrgsAuditLogsEnabled: () => mockOrgsAuditLogsEnabled.value,
 }));
 
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
@@ -236,6 +238,7 @@ describe('OrganizationSettings', () => {
     mockDomainCount.value = 0;
     mockCanCreateDomain.value = true;
     mockOrgsSsoEnabled.value = false;
+    mockOrgsAuditLogsEnabled.value = true;
   });
 
   afterEach(() => {
@@ -664,6 +667,62 @@ describe('OrganizationSettings', () => {
         await switchToActivityTab(wrapper);
 
         expect(findActivityTable(wrapper).exists()).toBe(false);
+      });
+    });
+
+    describe('instance flag off (ORGS_AUDIT_LOGS_ENABLED=false)', () => {
+      // Distinct axis from the entitlement: when the instance flag is off the
+      // tab is EXCLUDED entirely (not disabled, not upgrade-noticed) — even
+      // for an entitled admin.
+      beforeEach(() => {
+        mockOrgsAuditLogsEnabled.value = false;
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+      });
+
+      it('does not render the Activity tab at all', async () => {
+        wrapper = await mountComponent();
+
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+        const activityTab = navTabs
+          .findAll('button')
+          .find((tab) => tab.attributes('id') === 'org-tab-activity');
+        expect(activityTab).toBeUndefined();
+        expect(findPanel(wrapper).exists()).toBe(false);
+      });
+
+      it('never activates activity via keyboard traversal', async () => {
+        wrapper = await mountComponent();
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+
+        // Cycle through every reachable tab; activity must never become
+        // selected and its panel must never mount.
+        const tabCount = navTabs.findAll('button').length;
+        for (let i = 0; i <= tabCount; i++) {
+          await navTabs.trigger('keydown', { key: 'ArrowRight' });
+          await flushPromises();
+          await nextTick();
+
+          const selected = navTabs
+            .findAll('button')
+            .find((tab) => tab.attributes('aria-selected') === 'true');
+          expect(selected?.attributes('id')).not.toBe('org-tab-activity');
+          expect(findPanel(wrapper).exists()).toBe(false);
+          expect(findActivityTable(wrapper).exists()).toBe(false);
+        }
+      });
+    });
+
+    describe('instance flag on (default)', () => {
+      it('renders the Activity tab (unchanged behavior)', async () => {
+        // beforeEach default: mockOrgsAuditLogsEnabled = true (absent key on
+        // older backends also reads as ON — see features.spec.ts)
+        wrapper = await mountComponent();
+
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+        const activityTab = navTabs
+          .findAll('button')
+          .find((tab) => tab.attributes('id') === 'org-tab-activity');
+        expect(activityTab).toBeDefined();
       });
     });
 

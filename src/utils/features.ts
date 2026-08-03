@@ -548,6 +548,27 @@ export function isOrgsCustomMailEnabled(): boolean {
 }
 
 /**
+ * Checks if the organization Secret Activity (audit trail) UI is enabled.
+ * When true (the default), the Activity tab renders in org settings and the
+ * panel content gates on the audit_logs entitlement + admin/owner role.
+ * Default is ON — only an explicit `false` (ORGS_AUDIT_LOGS_ENABLED=false)
+ * disables it; an absent key (older backend without the flag) keeps the
+ * feature on. This inverts the sibling helpers' `=== true` opt-in check.
+ *
+ * SSR/no-window guard returns true (not false like the default-OFF siblings):
+ * absent information means ON for this flag, matching featuresSchema.parse({})
+ * which yields audit_logs_enabled: true.
+ */
+export function isOrgsAuditLogsEnabled(): boolean {
+  if (typeof window === 'undefined') return true;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.audit_logs_enabled !== false;
+  debugLog.features('features.isOrgsAuditLogsEnabled', { audit_logs_enabled: features?.organizations?.audit_logs_enabled, result });
+  return result;
+}
+
+/**
  * Checks if organization-level incoming secrets configuration is enabled.
  * When true, organizations with incoming_secrets entitlement can configure
  * incoming secret receiving for their domains.
