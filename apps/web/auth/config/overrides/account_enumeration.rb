@@ -100,6 +100,13 @@ module Auth::Config::Overrides
       # Frozen, precomputed Argon2id hash used to equalize login timing for
       # non-existent accounts (M-1). Built once at configure time.
       attr_reader :dummy_password_hash
+
+      # Test hook: clears the per-process memoized dummy hash so a spec that
+      # re-runs configure under a changed environment (RACK_ENV, argon2
+      # secret) rebuilds it. Never called in production code paths.
+      def reset_dummy_password_hash!
+        @dummy_password_hash = nil
+      end
     end
 
     def self.configure(auth)
@@ -121,6 +128,11 @@ module Auth::Config::Overrides
       # "invalid password" everywhere else.
       auth.no_matching_login_message GENERIC_LOGIN_MESSAGE
 
+      # Memoized ONCE PER PROCESS on this module — the guard lives here, not
+      # on Auth::Config.configured. A test that resets `configured = false`
+      # and re-runs configure (e.g. under a different RACK_ENV or argon2
+      # secret) will KEEP the stale hash unless it calls
+      # reset_dummy_password_hash! in teardown first.
       @dummy_password_hash ||= build_dummy_password_hash
 
       auth_class = auth.instance_variable_get(:@auth)
@@ -249,22 +261,46 @@ module Auth::Config::Overrides
       # pass before_create_account's duplicate check; the loser's INSERT hits
       # the uniqueness constraint and stock Rodauth answers "already an
       # account with this login". Answer with the generic success instead.
+      #
+      # Rodauth 2.44.0's save_account traps the constraint violation itself
+      # (raises_uniqueness_violation? in base.rb) and returns falsy — but
+      # that is an implementation detail, not a guaranteed interface, so BOTH
+      # duplicate signals are covered: a falsy return AND a raised
+      # Sequel::UniqueConstraintViolation route to the same generic success.
+      # (MRI adapters raise Sequel::UniqueConstraintViolation; the broader
+      # ConstraintViolation fallback in Rodauth is jdbc-sqlite-only.) Scoped
+      # to the HTTP create-account route: elsewhere — internal_request has
+      # current_route nil — a raise bubbles and a falsy return passes through
+      # unchanged, preserving stock behavior.
       def save_account
-        saved = super
+        saved = begin
+          super
+        rescue Sequel::UniqueConstraintViolation
+          raise unless current_route == :create_account
 
-        if !saved && current_route == :create_account
-          Auth::Logging.log_auth_event(
-            :registration_duplicate_insert_race,
-            level: :info,
-            email: OT::Utils.obscure_email(param(login_param)),
-          )
-          duplicate_signup_success_response
+          duplicate_insert_race_cover # HALTS via throw; never returns
         end
+
+        duplicate_insert_race_cover if !saved && current_route == :create_account
 
         saved
       end
 
       private
+
+      # M-2 race-window cover shared by save_account's falsy-return and
+      # raise-on-conflict branches. HALTS via duplicate_signup_success_response
+      # (create_account_response's request.halt throw — a throw, not an
+      # exception, so it cannot be re-caught by save_account's rescue).
+      # require_response fails loud if a future Rodauth stops halting here.
+      def duplicate_insert_race_cover
+        Auth::Logging.log_auth_event(
+          :registration_duplicate_insert_race,
+          level: :info,
+          email: OT::Utils.obscure_email(param(login_param)),
+        )
+        duplicate_signup_success_response
+      end
 
       # M-1 timing pad: verify the submitted password against the precomputed
       # dummy hash through the SAME private password_hash_match? the real
