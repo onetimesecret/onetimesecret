@@ -103,7 +103,9 @@ describe('middlewareShape — defaults', () => {
     expect(result.utf8_sanitizer).toBe(true);
     expect(result.authenticity_token).toBe(true);
     expect(result.http_origin).toBe(false);
-    expect(result.xss_header).toBe(false);
+    expect(result.xss_header).toBe(true);
+    expect(result.referrer_policy).toBe(true);
+    expect(result.permissions_policy).toBe(true);
     expect(result.frame_options).toBe(true);
     expect(result.path_traversal).toBe(true);
     expect(result.cookie_tossing).toBe(false);
