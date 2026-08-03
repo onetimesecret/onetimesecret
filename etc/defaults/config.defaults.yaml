@@ -747,6 +747,12 @@ features:
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
     custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>
     incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>
+    # Gates exposure (UI + list API) of the organization secret-activity
+    # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
+    # the sibling flags above, because the trail ships working out of the
+    # box — this is an opt-out exclusion (ORGS_AUDIT_LOGS_ENABLED=false),
+    # not an opt-in feature. Does not stop event collection.
+    audit_logs_enabled: <%= ENV['ORGS_AUDIT_LOGS_ENABLED'] != 'false' %>
 
 # Main Database Configuration
 redis:
