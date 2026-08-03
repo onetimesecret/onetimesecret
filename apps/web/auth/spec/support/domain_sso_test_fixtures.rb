@@ -22,8 +22,11 @@ module DomainSsoTestFixtures
   # Constants
   # ==========================================================================
 
-  # Supported SSO provider types (matches PROVIDER_TYPES constant in model)
-  PROVIDER_TYPES = %i[oidc entra_id google github].freeze
+  # Supported SSO provider types (matches PROVIDER_TYPES constant in model).
+  # Tenant SSO is OIDC/Entra-only (#3902): issuerless providers (google,
+  # github) resolve to the shared '' issuer sentinel and cannot satisfy the
+  # (provider, issuer, uid) identity partitioning, so they were removed.
+  PROVIDER_TYPES = %i[oidc entra_id].freeze
 
   # Mock encryption key for testing (32 bytes for AES-256)
   TEST_ENCRYPTION_KEY = 'test_encryption_key_32_bytes_ok!'.freeze
@@ -72,20 +75,6 @@ module DomainSsoTestFixtures
       client_secret: 'entra_domain_test_client_secret_value',
       allowed_domains: ['contoso.onmicrosoft.com', 'contoso.com'],
     },
-    google: {
-      provider_type: 'google',
-      display_name: 'Google Workspace',
-      client_id: 'google_domain_test_client_id.apps.googleusercontent.com',
-      client_secret: 'google_domain_test_client_secret',
-      allowed_domains: ['company.com'],
-    },
-    github: {
-      provider_type: 'github',
-      display_name: 'GitHub Enterprise',
-      client_id: 'github_domain_test_client_id',
-      client_secret: 'github_domain_test_client_secret',
-      allowed_domains: [], # GitHub typically doesn't restrict by email domain
-    },
   }.freeze
 
   # ==========================================================================
@@ -94,7 +83,7 @@ module DomainSsoTestFixtures
 
   # Build CustomDomain::SsoConfig attributes hash for a given provider type
   #
-  # @param provider [Symbol] one of :oidc, :entra_id, :google, :github
+  # @param provider [Symbol] one of :oidc, :entra_id
   # @param overrides [Hash] attributes to override defaults
   # @return [Hash] complete attributes hash
   def build_domain_sso_config_attributes(provider = :oidc, overrides = {})
@@ -116,7 +105,7 @@ module DomainSsoTestFixtures
   # This creates an instance with stubbed persistence methods,
   # suitable for testing model behavior without Redis.
   #
-  # @param provider [Symbol] one of :oidc, :entra_id, :google, :github
+  # @param provider [Symbol] one of :oidc, :entra_id
   # @param overrides [Hash] attributes to override defaults
   # @return [Onetime::CustomDomain::SsoConfig] stubbed instance
   #
@@ -235,23 +224,6 @@ module DomainSsoTestFixtures
         tenant_id: 'contoso-tenant-uuid-1234',
         scope: 'openid profile email',
       }
-    when :google
-      {
-        strategy: :google_oauth2,
-        name: extid,
-        client_id: anything,
-        client_secret: anything,
-        scope: 'openid,email,profile',
-        prompt: 'select_account',
-      }
-    when :github
-      {
-        strategy: :github,
-        name: extid,
-        client_id: anything,
-        client_secret: anything,
-        scope: 'user:email',
-      }
     end
   end
 
@@ -273,8 +245,6 @@ module DomainSsoTestFixtures
     {
       oidc: ['user@example.com', 'admin@subsidiary.example.com'],
       entra_id: ['user@contoso.onmicrosoft.com', 'admin@contoso.com'],
-      google: ['employee@company.com'],
-      github: [], # No domain restriction
     }
   end
 
@@ -283,7 +253,6 @@ module DomainSsoTestFixtures
     {
       oidc: ['user@attacker.com', 'admin@not-example.com'],
       entra_id: ['user@external.com', 'admin@fabrikam.com'],
-      google: ['personal@gmail.com', 'work@other-company.com'],
     }
   end
 

@@ -4,6 +4,8 @@
 
 # Reuses (does not rewrite) the incumbent delete primitive.
 require 'auth/operations/delete_customer'
+require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
 
 module Auth
   module Operations
@@ -23,6 +25,16 @@ module Auth
       # primitive (it is a maintenance sweep, not per-record admin actions), so it
       # does not flood the capped audit set with thousands of events.
       class Purge
+        include Onetime::AuditedFailure
+
+        AUDIT_VERB = 'customer.purge'
+
+        # The most destructive customer verb there is: a purge that raises
+        # partway (DeleteCustomer blowing up mid-teardown) can leave the account
+        # in an indeterminate state, and the success-path record below never
+        # runs. Records one `result: :failure` and re-raises.
+        audit_failures :call, verb: AUDIT_VERB, target: -> { @customer&.extid }
+
         # @!attribute status [r]
         #   @return [Symbol] :success (destroyed) or :not_found (nothing to delete)
         Result = Data.define(:status, :extid, :custid)
@@ -49,7 +61,7 @@ module Auth
           # never put secret content / tokens / passphrases into detail.
           Onetime::AdminAuditEvent.record(
             actor: @actor,
-            verb: 'customer.purge',
+            verb: AUDIT_VERB,
             target: extid,
             result: :success,
             detail: { email: obscure(@customer) },

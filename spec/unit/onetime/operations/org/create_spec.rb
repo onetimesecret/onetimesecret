@@ -140,6 +140,16 @@ RSpec.describe Onetime::Operations::Org::Create do
         expect(org).to have_received(:owner_id=).with('cust-obj-1')
         expect(org).to have_received(:save).once
       end
+
+      it 'applies both writes when a legacy owner_id AND a description need it' do
+        allow(org).to receive(:owner_id).and_return('legacy-custid')
+
+        build(description: 'Primary tenant').call
+
+        expect(org).to have_received(:owner_id=).with('cust-obj-1')
+        expect(org).to have_received(:description=).with('Primary tenant')
+        expect(org).to have_received(:save).twice
+      end
     end
 
     describe 'rejections' do
@@ -151,7 +161,10 @@ RSpec.describe Onetime::Operations::Org::Create do
         description_too_long: { description: 'd' * 501 },
         email_taken: { contact_email: 'taken@acme.test' },
       }.each do |status, overrides|
-        it "returns :#{status} and mutates + audits NOTHING" do
+        # A rejection MUTATES nothing, but it is still a refused privileged
+        # create, so it records exactly one result: :failure event. The target
+        # is the OWNER's extid, not an org extid — the org does not exist.
+        it "returns :#{status}, mutates NOTHING, and records ONE failure event" do
           allow(owner).to receive(:anonymous?).and_return(true) if status == :anonymous_owner
           allow(Onetime::Organization).to receive(:contact_email_exists?).and_return(true) if status == :email_taken
 
@@ -162,7 +175,17 @@ RSpec.describe Onetime::Operations::Org::Create do
           expect(result.org_id).to be_nil
           expect(result.objid).to be_nil
           expect(Onetime::Organization).not_to have_received(:create!)
-          expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+          expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+            hash_including(
+              actor: actor,
+              verb: 'organization.create',
+              # :missing_owner has no owner to name, so it falls back to the
+              # SAME sentinel the AuditedFailure resolver uses.
+              target: status == :missing_owner ? 'unknown' : 'ur_owner_ext',
+              result: :failure,
+              detail: hash_including(reason: status.to_s),
+            ),
+          )
         end
       end
 
@@ -191,15 +214,40 @@ RSpec.describe Onetime::Operations::Org::Create do
 
         expect(result.status).to eq(:email_taken)
         expect(result.message).to eq('Organization exists for that email address')
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'organization.create',
+            target: 'ur_owner_ext',
+            result: :failure,
+            detail: hash_including(reason: 'email_taken'),
+          ),
+        )
       end
 
-      it 're-raises any other Onetime::Problem instead of laundering it into a rejection' do
+      # The Onetime::AuditedFailure mechanism. create! runs BEFORE the
+      # success-path record call and reserves contact_email via HSETNX, so a
+      # non-race failure can leave a partial reservation with no trail unless
+      # the macro fires. Message expectation, not a store read:
+      # AdminAuditEvent.record swallows its own errors.
+      it 're-raises any other Onetime::Problem and records ONE failure event' do
         allow(Onetime::Organization).to receive(:create!)
           .and_raise(Onetime::Problem.new('Display name required'))
 
         expect { build.call }.to raise_error(Onetime::Problem, 'Display name required')
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            actor: actor,
+            verb: 'organization.create',
+            # The org does NOT exist on this path — the target is the owner.
+            target: 'ur_owner_ext',
+            result: :failure,
+            detail: hash_including(
+              error: 'Onetime::Problem', message: 'Display name required',
+              owner_id: 'ur_owner_ext',
+            ),
+          ),
+        )
       end
     end
 
@@ -295,6 +343,43 @@ RSpec.describe Onetime::Operations::Org::Create do
 
       expect(org.owner_id).to eq(@owner.objid)
       expect(Onetime::Customer.load(org.owner_id)).not_to be_nil
+    end
+
+    # #3907: create! itself writes the objid, so the signup path
+    # (CreateOrganization), which calls create! WITHOUT this op's D31
+    # normalization, also lands orgs that satisfy doctor checks 1, 2 and 4.
+    # Provable only by bypassing the op.
+    it 'needs no D31 normalization: bare Organization.create! writes the objid' do
+      org = Onetime::Organization.create!("Bare #{suffix}", @owner)
+      @orgs << org
+
+      expect(org.owner_id).to eq(@owner.objid)
+      expect(org_doctor_issues(org)).to be_empty
+    end
+
+    # A fresh customer has custid == objid (Customer#init custid ||= objid), so
+    # the example above passes whichever space create! writes. Only an owner
+    # whose custid DIVERGED — the legacy v1 email-custid shape — tells the two
+    # apart; this is the assertion that fails if create! reverts to custid.
+    it 'writes the objid even when the owner custid diverged (legacy v1 shape)' do
+      legacy = track_customer(Onetime::Customer.create!(email: "legacy_#{suffix}@onetimesecret.com"))
+      legacy.custid = legacy.email
+      legacy.save
+
+      org = Onetime::Organization.create!("Legacy #{suffix}", legacy)
+      @orgs << org
+
+      expect(org.owner_id).to eq(legacy.objid)
+      expect(org.owner_id).not_to eq(legacy.custid)
+
+      # created_by is born in lock-step with owner_id (chore Branch 1 steady
+      # state) — a custid write here would put the legacy email into an
+      # immutable, safe-dumped field and strand the org in Branch 3b.
+      expect(org.created_by).to eq(legacy.objid)
+      expect(org.created_by).to eq(org.owner_id)
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, legacy.objid)
+      membership.destroy! if membership.respond_to?(:exists?) && membership.exists?
     end
 
     it 'lands exactly one active owner membership' do

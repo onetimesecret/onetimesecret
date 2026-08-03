@@ -61,6 +61,8 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
     )
   end
 
+  let(:cascade) { { success: 4, failed: 0, total: 4, failed_ids: [] } }
+
   let(:materialize_result) do
     Billing::Operations::MaterializeResult.new(
       status: :materialized,
@@ -68,6 +70,18 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       entitlements_count: 7,
       source: :config,
       reason: nil,
+      memberships: cascade,
+    )
+  end
+
+  # The op uses the engine's INSTANCE form on the stripe path so it can read
+  # the MaterializeResult (and the cascade counts riding on it, #3907 item 3)
+  # back off the instance after #call.
+  let(:engine) do
+    instance_double(
+      Billing::Operations::ApplySubscriptionToOrg,
+      call: true,
+      materialize_result: materialize_result,
     )
   end
 
@@ -76,7 +90,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
     allow(Onetime::Organization).to receive(:load).with('org-obj-1').and_return(reloaded_org)
     allow(Billing::Operations::ApplySubscriptionToOrg)
       .to receive(:materialize_entitlements_for_org).and_return(materialize_result)
-    allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:call).and_return(true)
+    allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:new).and_return(engine)
   end
 
   describe 'entitlements-only mode (no stripe_subscription_id)' do
@@ -89,7 +103,13 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(result.dry_run).to be(false)
       expect(Billing::Operations::ApplySubscriptionToOrg)
         .to have_received(:materialize_entitlements_for_org).with(org, dry_run: false).once
-      expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:call)
+      expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:new)
+    end
+
+    it 'passes the engine cascade counts through on Result#memberships (#3907)' do
+      result = described_class.new(org: org, actor: actor, dry_run: false).call
+
+      expect(result.memberships).to eq(cascade)
     end
 
     it 'snapshots before/after around the reload' do
@@ -147,8 +167,29 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
 
         expect(result.status).to eq(engine_status)
         expect(result.reason).to eq(reason)
+        # No cascade ran on a skip/miss, so no counts to report (#3907).
+        expect(result.memberships).to be_nil
         expect(Onetime::AdminAuditEvent).to have_received(:record).once
       end
+    end
+
+    it 'passes :materialized through with reason still nil (no synthesis)' do
+      # Synthesis is keyed on status == :would_materialize, not on reason.nil?
+      # alone — :materialized is the engine's other nil-reason status and must
+      # come through untouched.
+      allow(Billing::Operations::ApplySubscriptionToOrg)
+        .to receive(:materialize_entitlements_for_org)
+        .and_return(
+          Billing::Operations::MaterializeResult.new(
+            status: :materialized, planid: 'identity_plus_v1',
+            entitlements_count: 7, source: :cache, reason: nil
+          )
+        )
+
+      result = described_class.new(org: org, actor: actor, dry_run: false).call
+
+      expect(result.status).to eq(:materialized)
+      expect(result.reason).to be_nil
     end
 
     it 'previews with dry_run: true — no audit, no after snapshot' do
@@ -170,6 +211,26 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
         .to have_received(:materialize_entitlements_for_org).with(org, dry_run: true)
       expect(Onetime::AdminAuditEvent).not_to have_received(:record)
       expect(Onetime::Organization).not_to have_received(:load)
+    end
+
+    it 'synthesizes a human-readable reason for :would_materialize' do
+      # The engine hardcodes reason: nil on :would_materialize
+      # (apply_subscription_to_org.rb, would_materialize_result), so without
+      # synthesis a dry run has nothing for adapters to print. The op builds
+      # the reason from the MaterializeResult fields it otherwise discards —
+      # reason stays the human-readable carrier for the preview shape.
+      allow(Billing::Operations::ApplySubscriptionToOrg)
+        .to receive(:materialize_entitlements_for_org)
+        .and_return(
+          Billing::Operations::MaterializeResult.new(
+            status: :would_materialize, planid: 'identity_plus_month',
+            entitlements_count: 12, source: :config, reason: nil
+          )
+        )
+
+      result = described_class.new(org: org, actor: actor).call
+
+      expect(result.reason).to eq('Would materialize 12 entitlements for plan identity_plus_month')
     end
 
     it 'defaults to dry_run: true' do
@@ -199,7 +260,23 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
         expand: ['items.data.price.product'],
       )
       expect(Billing::Operations::ApplySubscriptionToOrg)
-        .to have_received(:call).with(org, subscription, owner: true).once
+        .to have_received(:new).with(org, subscription, owner: true).once
+      expect(engine).to have_received(:call).once
+    end
+
+    it 'reads the cascade counts back off the engine instance (#3907)' do
+      result = described_class.new(org: org, actor: actor, dry_run: false).call
+
+      expect(result.memberships).to eq(cascade)
+    end
+
+    it 'reports nil memberships when the engine result is unavailable' do
+      allow(engine).to receive(:materialize_result).and_return(nil)
+
+      result = described_class.new(org: org, actor: actor, dry_run: false).call
+
+      expect(result.status).to eq(:applied)
+      expect(result.memberships).to be_nil
     end
 
     it 'records EXACTLY ONE audit event with mode stripe_sync' do
@@ -220,13 +297,16 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(result.status).to eq(:planned)
       expect(result.mode).to eq('stripe_sync')
       expect(result.after).to be_nil
+      expect(result.memberships).to be_nil
       expect(result.reason).to include('sub_123')
       expect(Stripe::Subscription).not_to have_received(:retrieve)
-      expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:call)
+      expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:new)
       expect(Onetime::AdminAuditEvent).not_to have_received(:record)
     end
 
-    it 'returns :stripe_error instead of raising, and audits nothing' do
+    # Stripe refusing the reconcile writes NOTHING (hence after: nil), but the
+    # operator did attempt the mutation — it belongs in the trail as a failure.
+    it 'returns :stripe_error instead of raising, and records ONE failure event' do
       allow(Stripe::Subscription).to receive(:retrieve).and_raise(Stripe::StripeError.new('no such subscription'))
 
       result = nil
@@ -235,7 +315,44 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(result.status).to eq(:stripe_error)
       expect(result.reason).to eq('no such subscription')
       expect(result.after).to be_nil
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'organization.reconcile',
+          target: 'on_org_ext',
+          result: :failure,
+          detail: hash_including(
+            mode: 'stripe_sync', status: 'stripe_error',
+            reason: 'no such subscription',
+          ),
+        ),
+      )
+    end
+
+    # The Onetime::AuditedFailure mechanism. A reconcile cascades to every
+    # membership; a raise partway leaves the org and its members in an unknown
+    # entitlement state, and the success-path record sits after the dispatch.
+    it 'records ONE failure event when the apply raises, and re-raises' do
+      # The raise comes from the engine INSTANCE: the op calls
+      # `ApplySubscriptionToOrg.new(...).call` (not the class-level .call) so
+      # it can read materialize_result back afterwards (#3907 item 3).
+      allow(engine).to receive(:call).and_raise(Onetime::Problem, 'cascade blew up')
+
+      expect do
+        described_class.new(org: org, actor: actor, dry_run: false).call
+      end.to raise_error(Onetime::Problem, /cascade blew up/)
+
+      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          actor: actor,
+          verb: 'organization.reconcile',
+          target: 'on_org_ext', # literal: a broken target lambda lands as 'unknown'
+          result: :failure,
+          detail: hash_including(
+            error: 'Onetime::Problem', message: 'cascade blew up', dry_run: false,
+          ),
+        ),
+      )
     end
   end
 

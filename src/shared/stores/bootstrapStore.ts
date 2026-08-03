@@ -55,6 +55,7 @@ const DEFAULTS: BootstrapPayload = {
   brand_font_family: undefined,
   brand_button_text_light: undefined,
   brand_logo_url: undefined,
+  brand_logo_dark_url: undefined,
   brand_logo_alt: undefined,
   brand_favicon_url: undefined,
 };
@@ -244,6 +245,17 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * @param data - Partial BootstrapPayload data to merge
      */
     update(data: Partial<BootstrapPayload>): void {
+      // has_password: null means the server couldn't determine it (transient
+      // auth-DB failure during serialization). Treat it like an absent field
+      // so a blipped refresh never clobbers a known-good true/false. init()
+      // intentionally skips this drop: on first load there is no prior value
+      // to preserve, and consumers (hasPasswordOf) gate on === true, so a
+      // null in state already reads conservatively as "no password known".
+      if (data.has_password === null) {
+        const { has_password: _unknown, ...known } = data;
+        data = known;
+      }
+
       // Use functional $patch to avoid _DeepPartial type issues with complex Stripe types
       // Filter out undefined values to match previous updateIfDefined behavior
       this.$patch((state) => {

@@ -97,6 +97,7 @@ module BillingTestHelpers
     def populate_test_plans(plans)
       ensure_billing_loaded!
       ensure_familia_configured!
+      ensure_billing_loaded!
       plans.each do |plan_data|
         plan                                                    = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
         plan.entitlements.clear

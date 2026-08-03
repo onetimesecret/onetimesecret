@@ -70,6 +70,31 @@ module Onetime
             keys: ['email_auth:attempts:ip:%s', 'email_auth:locked:ip:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
+          # Two entries because ResetRequestRateLimiter has two subject TYPES and
+          # a `keys` template takes one subject. Both live on the Customer shard,
+          # matching its `reset_request_redis`. SUBJECTS ARE THE STORED FORM: the
+          # IP is the privacy-masked value the middleware resolved (/24 IPv4, /48
+          # IPv6), not the raw address; the email is normalized (strip + NFC +
+          # case-fold). A raw address or mixed-case login reads back `not_set`.
+          'reset_request_ip' => {
+            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            keys: ['reset_request:attempts:ip:%s', 'reset_request:locked:ip:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
+          'reset_request_email' => {
+            subject: 'normalized email (strip + NFC + case-fold)',
+            keys: ['reset_request:attempts:email:%s', 'reset_request:locked:email:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
+          # Single-tier IP limiter on unauthenticated account creation. SUBJECT
+          # IS THE STORED FORM: the privacy-masked IP (/24 IPv4, /48 IPv6), not
+          # the raw address and not the /16-obscured form the lockout log line
+          # prints. A raw address reads back `not_set`.
+          'create_account_ip' => {
+            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            keys: ['create_account:attempts:ip:%s', 'create_account:locked:ip:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
           'dns' => {
             subject: 'domain identifier (sanitized)',
             keys: ['dns:ratelimit:%s'],

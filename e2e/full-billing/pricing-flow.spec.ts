@@ -250,23 +250,24 @@ test.describe('CTA Navigation', () => {
     await expect(page).toHaveURL(/interval=yearly/);
   });
 
-  test('free tier CTA goes to signup without query params', async ({ page }) => {
+  test('free tier CTA goes to signup without billing params', async ({ page }) => {
     await page.goto('/pricing');
     await waitForPricingPageLoad(page);
 
     // Find free plan CTA - it has different text like "Get started free"
-    // The free tier uses getCtaLabel which returns 'get_started_free' for free tier
+    // The free tier uses getCtaLabel which returns 'get_started_free' for free tier.
+    // No conditional skip: /billing/api/plans emits the price-less free plan, so a
+    // missing CTA is the regression this test exists to catch (the skip is what let
+    // the plans endpoint drop free_v1 unnoticed).
     const freePlanCta = page.getByRole('link', { name: /get started free/i }).first();
-    const isVisible = await freePlanCta.isVisible().catch(() => false);
-
-    test.skip(!isVisible, 'No free tier plan found');
+    await expect(freePlanCta).toBeVisible();
 
     await freePlanCta.click();
 
-    // Should navigate to plain /signup without query params
-    await expect(page).toHaveURL('/signup');
+    // Should navigate to /signup carrying only the return-path redirect
+    await expect(page).toHaveURL(/\/signup\?redirect=/);
 
-    // Ensure no product or interval params
+    // Ensure no product or interval params - free tier skips the checkout flow
     const url = page.url();
     expect(url).not.toContain('product=');
     expect(url).not.toContain('interval=');
@@ -597,7 +598,8 @@ test.describe('Navigation Integration', () => {
  *
  * ## CTA Buttons
  * - [ ] Paid plan CTA goes to /signup?product=X&interval=Y
- * - [ ] Free plan CTA goes to /signup (no params)
+ * - [ ] Free plan banner renders above the paid grid
+ * - [ ] Free plan CTA goes to /signup?redirect=... (no product/interval params)
  * - [ ] Yearly plans include interval=yearly in URL
  *
  * ## Plan Cards

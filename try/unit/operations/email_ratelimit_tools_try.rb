@@ -28,6 +28,8 @@ OT.boot! :test
 require 'onetime/operations/email/list_templates'
 require 'onetime/operations/email/preview_template'
 require 'onetime/operations/email/send_test'
+require 'onetime/operations/email/add_suppression'
+require 'onetime/operations/email/remove_suppression'
 require 'onetime/operations/ratelimit/registry'
 require 'onetime/operations/ratelimit/inspect'
 require 'onetime/operations/ratelimit/reset'
@@ -133,13 +135,22 @@ AE.count
 
 # ---- RateLimit::Registry (CLI golden-master key derivation) -----------
 
-## the registry knows the six canonical limiter kinds
+## the registry knows the canonical limiter kinds, in registry order
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "email_auth_ip", "dns"]
+#=> ["feedback", "passphrase", "invite", "login", "email_auth_ip", "reset_request_ip", "reset_request_email", "create_account_ip", "dns"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')
 #=> ["feedback:submissions:1.2.3.4", "feedback:locked:1.2.3.4"]
+
+## the reset-request IP tier derives the keys ResetRequestRateLimiter writes,
+## so a deployment-wide IP lockout is clearable by the operator tooling
+Onetime::Operations::RateLimit::Registry.keys_for('reset_request_ip', '203.0.113.0')
+#=> ["reset_request:attempts:ip:203.0.113.0", "reset_request:locked:ip:203.0.113.0"]
+
+## the reset-request email backstop derives its own pair from the same subject
+Onetime::Operations::RateLimit::Registry.keys_for('reset_request_email', 'user@example.com')
+#=> ["reset_request:attempts:email:user@example.com", "reset_request:locked:email:user@example.com"]
 
 ## an unknown kind yields nil (the CLI prints its "Unknown" branch)
 Onetime::Operations::RateLimit::Registry.keys_for('nope', 'x')
@@ -184,9 +195,71 @@ AE.events.clear
 @noop.status
 #=> :not_set
 
-## a no-op reset records NO audit event (nothing mutated)
+## a no-op reset records NO audit event (nothing mutated, nothing REFUSED)
+# The colonel adapter returns 200 / "No active rate-limit state to reset" for
+# :not_set, so it is not an operator-visible failure — unlike UnbanIP's
+# :not_found (a 404), which IS recorded as a refusal.
 AE.count
 #=> 0
+
+# ---- RateLimit::Reset: an unknown kind RAISES, and is audited ---------
+#
+# The Onetime::AuditedFailure mechanism: the success record sits after the
+# SCAN + DEL, so a reset that blew up left no trace of the attempt.
+
+## an unknown limiter kind raises ArgumentError
+AE.events.clear
+begin
+  Onetime::Operations::RateLimit::Reset.new(kind: 'bogus', subject: '9.9.9.9', actor: @actor).call
+  :no_raise
+rescue ArgumentError
+  :raised
+end
+#=> :raised
+
+## the raise recorded ONE result: :failure event with the unchanged verb/target shape
+@rl_ev = AE.recent(1).first
+[AE.count, @rl_ev['verb'], @rl_ev['target'], @rl_ev['result'], @rl_ev['detail']['error']]
+#=> [1, "ratelimit.reset", "bogus:9.9.9.9", "failure", "ArgumentError"]
+
+# ---- Email::SendTest: a delivery failure is audited, then re-raised ---
+
+## a send whose backend blows up re-raises the original error
+AE.events.clear
+@backend = Onetime::Mail::Mailer.delivery_backend
+@backend.define_singleton_method(:deliver) { |*| raise(Onetime::Problem, 'smtp refused') }
+begin
+  Onetime::Operations::Email::SendTest.new(to: 'ops@example.com', actor: @actor).call
+  :no_raise
+rescue Onetime::Problem
+  :raised
+ensure
+  @backend.singleton_class.remove_method(:deliver)
+end
+#=> :raised
+
+## the failed send recorded ONE result: :failure event targeting the recipient
+@st_ev = AE.recent(1).first
+[AE.count, @st_ev['verb'], @st_ev['target'], @st_ev['result'], @st_ev['detail']['dry_run']]
+#=> [1, "email.test_send", "ops@example.com", "failure", false]
+
+# ---- Email suppression refusals --------------------------------------
+
+## removing an address that is not suppressed is a REFUSED mutation (404 at the adapter)
+AE.events.clear
+@rm = Onetime::Operations::Email::RemoveSuppression.new(
+  address: "never-suppressed-#{SecureRandom.hex(4)}@example.com", actor: @actor,
+).call
+@rm_ev = AE.recent(1).first
+[@rm.status, AE.count, @rm_ev['verb'], @rm_ev['result'], @rm_ev['detail']['reason']]
+#=> [:not_found, 1, "email.suppression_remove", "failure", 'not_found']
+
+## a blank-address suppress is a REFUSED mutation, not a silent no-op
+AE.events.clear
+@blank = Onetime::Operations::Email::AddSuppression.new(address: '  ', actor: @actor).call
+@bl_ev = AE.recent(1).first
+[@blank.status, AE.count, @bl_ev['verb'], @bl_ev['result'], @bl_ev['detail']['reason']]
+#=> [nil, 1, "email.suppress", "failure", 'blank_address']
 
 # Cleanup
 @db.del('feedback:submissions:9.9.9.9', 'feedback:locked:9.9.9.9')

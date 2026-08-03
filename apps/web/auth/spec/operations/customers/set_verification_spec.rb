@@ -5,8 +5,9 @@
 # Unit tests for Auth::Operations::Customers::SetVerification.
 #
 # Covers: it reuses (delegates to) the incumbent SetCustomerVerification op,
-# passes through the result symbol + db, audits exactly once on :success, and
-# does not audit on :no_change.
+# passes through the result symbol + db, audits exactly once on :success,
+# does not audit on :no_change, and records one result: :failure (then
+# re-raises) when the inner op raises one of its documented error classes.
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/set_verification_spec.rb
 
@@ -64,6 +65,34 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
 
     expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
       customer: customer, verified: false, verified_by: nil, db: db
+    )
+  end
+
+  # The Onetime::AuditedFailure mechanism. This wrapper's ENTIRE job is the
+  # audit event, and all three documented error classes are raised by the inner
+  # op before it — so an operator repeatedly trying to verify a closed or
+  # missing account previously left no trace whatsoever. Message expectation,
+  # not a store read: AdminAuditEvent.record swallows its own errors.
+  it 'records ONE result: :failure event when the inner op raises, and re-raises' do
+    error_class = Auth::Operations::SetCustomerVerification::AccountNotFound
+    allow(inner).to receive(:call).and_raise(error_class, 'no auth row for ur_v')
+
+    expect do
+      described_class.new(
+        customer: customer, verified: true, actor: 'ur_col', verified_by: 'colonel_admin'
+      ).call
+    end.to raise_error(error_class, /no auth row for ur_v/)
+
+    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        actor: 'ur_col',
+        verb: 'customer.set_verification',
+        target: 'ur_v', # literal: a broken target lambda silently lands as 'unknown'
+        result: :failure,
+        detail: hash_including(
+          error: error_class.name, message: 'no auth row for ur_v', verified: true,
+        ),
+      ),
     )
   end
 end

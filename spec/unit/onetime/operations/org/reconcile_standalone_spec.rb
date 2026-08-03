@@ -87,7 +87,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
     before do
       allow(Onetime::Organization).to receive(:load).with('org-obj-sa').and_return(reloaded_org)
       allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:materialize_entitlements_for_org)
-      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:call)
+      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:new)
       allow(Stripe::Subscription).to receive(:retrieve)
     end
 
@@ -125,13 +125,17 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
         result
         expect(Billing::Operations::ApplySubscriptionToOrg)
           .not_to have_received(:materialize_entitlements_for_org)
-        expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:call)
+        expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:new)
       end
 
-      it 'reports the cascade counts in the reason (D14: not a Result field)' do
+      it 'reports the cascade counts in the reason (the human-readable carrier)' do
         expect(result.reason).to eq(
           'Billing disabled: materialized STANDALONE_ENTITLEMENTS; memberships re-materialized 3/3'
         )
+      end
+
+      it 'also reports the cascade counts structurally on Result#memberships (#3907)' do
+        expect(result.memberships).to eq(cascade_result)
       end
 
       it 'snapshots before/after around the reload' do
@@ -167,7 +171,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
         expect(result.status).to eq(:standalone)
         expect(result.mode).to eq('entitlements_only')
         expect(Stripe::Subscription).not_to have_received(:retrieve)
-        expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:call)
+        expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:new)
         expect(org).to have_received(:materialize_standalone_entitlements!).once
       end
     end
@@ -179,6 +183,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
         expect(result.status).to eq(:planned)
         expect(result.dry_run).to be(true)
         expect(result.after).to be_nil
+        expect(result.memberships).to be_nil
         expect(org).not_to have_received(:materialize_standalone_entitlements!)
         expect(org).not_to have_received(:rematerialize_all_memberships!)
       end
@@ -209,6 +214,11 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
 
         expect(result.status).to eq(:standalone)
         expect(result.reason).to include('1/3')
+        # The partial counts are also structural (#3907) — this is what lets
+        # the CLI and colonel response show the drift without log access.
+        expect(result.memberships).to eq(
+          { success: 1, failed: 2, total: 3, failed_ids: %w[mem_p mem_q] }
+        )
         expect(OT).to have_received(:le).with(
           '[org-reconcile] membership re-materialization had failures',
           hash_including(memberships_failed: 2, memberships_failed_ids: %w[mem_p mem_q]),
@@ -224,6 +234,8 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
 
         expect(result.status).to eq(:standalone)
         expect(result.reason).to include('membership cascade failed')
+        # A raised cascade has no counts to report: nil, never fabricated.
+        expect(result.memberships).to be_nil
         expect(Onetime::AdminAuditEvent).to have_received(:record).once
       end
 
@@ -339,6 +351,12 @@ RSpec.describe Onetime::Operations::Org::Reconcile, 'standalone mode (billing di
       expect(result.reason).to eq(
         'Billing disabled: materialized STANDALONE_ENTITLEMENTS; memberships re-materialized 2/2'
       )
+    end
+
+    it 'reports the real cascade counts on Result#memberships (#3907)' do
+      result = described_class.new(org: org, actor: actor, dry_run: false).call
+
+      expect(result.memberships).to eq(success: 2, failed: 0, total: 2, failed_ids: [])
     end
 
     it 'repairs drift left in the materialized set' do

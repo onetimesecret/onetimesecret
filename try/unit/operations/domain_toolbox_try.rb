@@ -13,7 +13,12 @@
 # - Repair/Transfer dry-run: compute a plan, mutate NOTHING, audit NOTHING.
 # - Repair/Transfer apply: mutate + record EXACTLY ONE audit event.
 # - Repair no-op (no issues) records no audit event.
-# - Transfer ownership mismatch is blocked (:mismatch), no audit.
+# - Repair :needs_org and Transfer :mismatch are REFUSED privileged mutations:
+#   they mutate nothing but each record ONE result: :failure event, same verb
+#   and target as a success. A refusal that returns a Result must be as
+#   traceable as one that raises.
+# - A Transfer that blows up mid-apply records ONE result: :failure event via
+#   Onetime::AuditedFailure and re-raises (the success-path record never runs).
 #
 # Run: try --agent try/unit/operations/domain_toolbox_try.rb
 
@@ -134,11 +139,16 @@ AE.count
 
 # ---- Repair: orphaned needs a target org ------------------------------
 
-## an orphaned domain with no target org is blocked (:needs_org), no audit
+## an orphaned domain with no target org is blocked (:needs_org)
 AE.events.clear
 @nblk = Onetime::Operations::Domains::Repair.new(domain: @orphan, actor: @actor, dry_run: false).call
 [@nblk.status, AE.count]
-#=> [:needs_org, 0]
+#=> [:needs_org, 1]
+
+## the refusal is recorded as a FAILURE on the repair verb, targeting the domain
+@nev = AE.recent(1).first
+[@nev['verb'], @nev['target'], @nev['result'], @nev['detail']['reason']]
+#=> ["domain.repair", @orphan.extid, "failure", "needs_org"]
 
 # ---- Transfer: dry-run computes, mutates/audits nothing ---------------
 
@@ -186,13 +196,43 @@ AE.count
 
 # ---- Transfer: explicit from_org mismatch is blocked ------------------
 
-## an explicit from_org that isn't the current owner is a :mismatch (no audit)
+## an explicit from_org that isn't the current owner is a :mismatch
 AE.events.clear
 @mm = Onetime::Operations::Domains::Transfer.new(
   domain: @tdom, to_org: @org1, from_org: @org1, actor: @actor, dry_run: false,
 ).call
 [@mm.status, AE.count]
-#=> [:mismatch, 0]
+#=> [:mismatch, 1]
+
+## the refusal is recorded as a FAILURE on the transfer verb, targeting the domain
+@mmev = AE.recent(1).first
+[@mmev['verb'], @mmev['target'], @mmev['result'], @mmev['detail']['reason']]
+#=> ["domain.transfer", @tdom.extid, "failure", "mismatch"]
+
+# ---- Transfer: a raise mid-apply is audited, then re-raised -----------
+#
+# The Onetime::AuditedFailure mechanism. The success-path record sits AFTER
+# the collection add, so without the macro a transfer that rolls back leaves
+# no trace at all. A frozen destination org makes add_domain blow up.
+
+## a transfer that raises mid-apply re-raises the original error
+AE.events.clear
+@boom_org = Onetime::Organization.load(@org1.objid)
+@boom_org.define_singleton_method(:add_domain) { |*| raise(Onetime::Problem, 'collection add exploded') }
+begin
+  Onetime::Operations::Domains::Transfer.new(
+    domain: @tdom, to_org: @boom_org, actor: @actor, dry_run: false,
+  ).call
+  :no_raise
+rescue StandardError => ex
+  ex.class.to_s
+end
+#=> "RuntimeError"
+
+## it recorded EXACTLY ONE result: :failure event with the unchanged verb/target
+@bev = AE.recent(1).first
+[AE.count, @bev['verb'], @bev['target'], @bev['result'], @bev['detail']['dry_run']]
+#=> [1, "domain.transfer", @tdom.extid, "failure", false]
 
 # ---- Cleanup ----------------------------------------------------------
 

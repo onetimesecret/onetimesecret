@@ -31,6 +31,7 @@ import {
 import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
+import { isOrgsSsoEnabled } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -67,7 +68,18 @@ const organization = computed(() =>
 );
 const { can } = useEntitlements(organization);
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+/**
+ * Entitlement only — the form distinguishes "upgrade to configure" (this) from
+ * "unavailable on this instance" (ORGS_SSO_ENABLED), so the two must not be
+ * fused into one prop the way DomainsTable fuses them.
+ */
 const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
+/**
+ * Both gates the tenant-SSO endpoints enforce. Fetching credentials without
+ * the install flag returns "Organization SSO is not enabled on this instance"
+ * (DomainsAPI::Logic::SsoConfig::Base), so don't ask.
+ */
+const canFetchSsoConfig = computed(() => isOrgsSsoEnabled() && canManageSso.value);
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
 // ---------------------------------------------------------------------------
@@ -178,7 +190,7 @@ onMounted(async () => {
     await initializeSigninConfig();
   }
 
-  if (canManageSso.value) {
+  if (canFetchSsoConfig.value) {
     await initializeSsoConfig();
     if (wantsSsoModal.value) showSsoModal.value = true;
   }
@@ -192,8 +204,8 @@ watch(canCustomSignin, async (entitled) => {
   }
 });
 
-watch(canManageSso, async (entitled) => {
-  if (entitled && !ssoInitialized.value) {
+watch(canFetchSsoConfig, async (allowed) => {
+  if (allowed && !ssoInitialized.value) {
     await initializeSsoConfig();
     if (wantsSsoModal.value) showSsoModal.value = true;
   }

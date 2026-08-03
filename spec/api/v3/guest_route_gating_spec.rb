@@ -23,13 +23,6 @@ require 'v3/logic/secrets'
 # needing full HTTP authentication infrastructure.
 #
 RSpec.describe 'API V3 Guest Route Gating', type: :integration do
-  # Helper to create a mock organization
-  def mock_organization
-    org = double('Organization', planid: 'free_v1', objid: "org_#{SecureRandom.hex(4)}")
-    allow(org).to receive(:entitlements).and_return(%w[create_secrets basic_sharing api_access])
-    org
-  end
-
   # Helper to create a mock customer
   def mock_customer(anonymous: false)
     customer = double('Customer', custid: anonymous ? 'anon' : 'test@example.com', role: 'customer')
@@ -61,35 +54,25 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
     customer = mock_customer(anonymous: anonymous)
     session = mock_session
 
-    # For authenticated users, provide a mock organization to prevent lazy creation
-    # during initialization (auth_org is called in process_params)
-    org = anonymous ? nil : mock_organization
-
-    # Create membership mock for authenticated users
-    membership = nil
-    unless anonymous
-      membership = double('OrganizationMembership')
-      allow(membership).to receive(:active?).and_return(true)
-      allow(membership).to receive(:can?) { |_ent| true }
-    end
-
-    # StrategyResult metadata uses organization_context nested structure
-    org_context = { organization: org, organization_id: org&.objid }
-    metadata = { organization_context: org_context }
-
     strategy_result = double('StrategyResult')
     allow(strategy_result).to receive(:session).and_return(session)
     allow(strategy_result).to receive(:user).and_return(customer)
     allow(strategy_result).to receive(:auth_method).and_return(auth_method)
-    allow(strategy_result).to receive(:metadata).and_return(metadata)
+    allow(strategy_result).to receive(:metadata).and_return({ organization: nil })
 
-    logic = logic_class.new(strategy_result, params)
+    # Base#initialize auto-runs process_params when params are present — before
+    # any stubs exist — so build with nil params and inject them after stubbing.
+    # Examples invoke logic.process_params explicitly.
+    logic = logic_class.new(strategy_result, nil, 'en')
 
-    # Mock accessors — auth_org/auth_membership used by require_entitlement!
-    allow(logic).to receive(:auth_org).and_return(org)
-    allow(logic).to receive(:auth_membership).and_return(membership)
+    # Mock accessors. auth_org is stubbed to nil so authenticated cases don't
+    # lazy-create a default workspace through the Customer double; the
+    # resulting EntitlementRequired (context unavailable) is swallowed by
+    # raises_guest_routes_disabled? — these specs only assert the guest gate.
+    allow(logic).to receive(:auth_org).and_return(nil)
     allow(logic).to receive(:cust).and_return(customer)
     allow(logic).to receive(:sess).and_return(session)
+    logic.instance_variable_set(:@params, params)
 
     logic
   end

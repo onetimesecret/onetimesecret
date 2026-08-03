@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/admin_audit_event'
+require 'onetime/audited_failure'
+
 module Auth
   module Operations
     module Customers
@@ -17,6 +20,15 @@ module Auth
       # and colonel adapters both reference it rather than keeping their own copy.
       class SetRole
         include Onetime::LoggerMethods
+        include Onetime::AuditedFailure
+
+        AUDIT_VERB = 'customer.set_role'
+
+        # Privilege escalation/demotion is the highest-value verb in the trail,
+        # and the InvalidRole guard raises before the success-path record. A
+        # rejected attempt to hand out `colonel` must be visible. Records one
+        # `result: :failure` and re-raises.
+        audit_failures :call, verb: AUDIT_VERB, target: -> { @customer&.extid }
 
         # Assignable roles, highest to lowest. This is the authoritative list;
         # adapters validate against it (do not fork a second copy).
@@ -58,7 +70,7 @@ module Auth
           # One audit event per successful mutation, emitted from the op layer.
           Onetime::AdminAuditEvent.record(
             actor: @actor,
-            verb: 'customer.set_role',
+            verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
             detail: { from: from, to: @role },

@@ -2,6 +2,10 @@
 #
 # frozen_string_literal: true
 
+# Operations live outside the app autoloaders — required for the shared field
+# limits below (same pattern as the CLI adapter in lib/onetime/cli/org).
+require 'onetime/operations/org/create'
+
 module OrganizationAPI::Logic
   module Organizations
     # Create Organization
@@ -14,6 +18,11 @@ module OrganizationAPI::Logic
       include Onetime::LoggerMethods
 
       SCHEMAS = { response: 'organization' }.freeze
+
+      # Field limits shared with the admin create path — the operation is the
+      # single source of truth so the two surfaces cannot drift (#3907).
+      MAX_DISPLAY_NAME = Onetime::Operations::Org::Create::MAX_DISPLAY_NAME
+      MAX_DESCRIPTION  = Onetime::Operations::Org::Create::MAX_DESCRIPTION
 
       attr_reader :organization, :display_name, :description, :contact_email
 
@@ -36,10 +45,10 @@ module OrganizationAPI::Logic
           )
         end
 
-        if display_name.length > 100
+        if display_name.length > MAX_DISPLAY_NAME
           raise_form_error(
             error_key: 'api.organizations.errors.display_name_too_long',
-            args: { max: 100 },
+            args: { max: MAX_DISPLAY_NAME },
             field: 'display_name',
             error_type: :invalid,
           )
@@ -55,10 +64,10 @@ module OrganizationAPI::Logic
         end
 
         # Description is optional but limit length if provided
-        if !description.empty? && description.length > 500
+        if !description.empty? && description.length > MAX_DESCRIPTION
           raise_form_error(
             error_key: 'api.organizations.errors.description_too_long',
-            args: { max: 500 },
+            args: { max: MAX_DESCRIPTION },
             field: 'description',
             error_type: :invalid,
           )

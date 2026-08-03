@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import BrandMark from '@/shared/components/logos/BrandMark.vue';
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
@@ -41,6 +42,7 @@
     installLogoUri,
     installLogoAlt,
     logoSource,
+    logoDarkSource,
   } = storeToRefs(identityStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -76,6 +78,16 @@
   // holds an operator-logo rung of its own — config authority lives in the
   // brand: block and resolution in the identity resolver (#3612).
   const getLogoUrl = () => props.logo?.url || logoSource.value;
+  // Dark-theme variant: the resolver's logoDarkSource pairs the dark asset
+  // with whichever logo logoSource resolved (tenant BrandSettings.logo_dark_url
+  // with the tenant's uploaded logo, install BRAND_LOGO_DARK_URL with the
+  // install logo — each rung nulls itself when the other layer's logo is
+  // showing). Nulled when a caller prop overrides the logo, since the dark
+  // asset describes the resolver's choice, not the caller's. Swapped via the
+  // app's class-based `dark:` variants so it follows the site theme toggle,
+  // not the OS scheme.
+  const getLogoDarkUrl = () =>
+    props.logo?.url ? null : logoDarkSource.value;
   // Alt text: caller > operator BRAND_LOGO_ALT (only while the install logo
   // is the asset being shown) > i18n string derived from the product name.
   // When platform identity is suppressed (custom domain / tenant logo), the
@@ -141,6 +153,7 @@
   // Helper function to get logo configuration
   const getLogoConfig = () => ({
     url: getLogoUrl(),
+    darkUrl: getLogoDarkUrl(),
     alt: getLogoAlt(),
     href: getLogoHref(),
     size: getLogoSize(),
@@ -256,14 +269,18 @@
             data-testid="header-logo-link"
             class="flex items-center gap-3"
             :aria-label="logoConfig.alt">
-            <img
+            <!-- Light/dark img pair + dark-mode swap live in BrandMark; the
+                 fallback slot stays empty because logoConfig.url is always a
+                 real asset URL here (the sentinel takes the component branch
+                 above). A 404'd logo simply renders nothing. -->
+            <BrandMark
               id="logo"
-              :src="logoConfig.url"
-              class="w-auto object-contain transition-transform"
-              :class="imgHeightClass"
-              :style="imgInlineStyle"
-              :height="logoConfig.size"
-              :alt="logoConfig.alt" />
+              :logo-uri="logoConfig.url"
+              :logo-dark-uri="logoConfig.darkUrl"
+              :alt="logoConfig.alt"
+              :img-class="['w-auto object-contain transition-transform', imgHeightClass]"
+              :img-style="imgInlineStyle"
+              :height="logoConfig.size" />
             <span
               v-if="logoConfig.showSiteName"
               class="font-brand text-lg font-bold leading-tight">

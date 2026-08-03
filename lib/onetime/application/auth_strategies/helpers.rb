@@ -18,6 +18,53 @@ module Onetime
     module AuthStrategies
       # Shared helper methods for authentication strategies
       module Helpers
+        # Rack env key recording that THIS request presented explicit
+        # credentials (an Authorization header) that a credentialed strategy
+        # examined and rejected. Value is the failure reason string.
+        #
+        # Set by BasicAuthStrategy (and subclasses) via #credentialed_failure;
+        # read by NoAuthStrategy to refuse anonymous fallthrough on
+        # multi-strategy chains (auth=basicauth,noauth). Without this guard,
+        # Otto's RouteAuthWrapper OR-logic lets a request with INVALID Basic
+        # credentials degrade to a successful anonymous request (silent 200
+        # with null owner) instead of a 401. See docs/security/audits/
+        # 2026-07-29-api.md item 1.
+        #
+        # Deliberately NOT set for ambient credentials (session cookies): an
+        # unauthenticated or stale session must keep degrading to anonymous
+        # on noauth-capable routes, or every logged-out browser request
+        # would 401. Only explicitly-presented credentials fail closed.
+        #
+        # NOTE: this guard assumes credentialed strategies run BEFORE noauth
+        # in the route's auth= chain (all current routes comply:
+        # auth=basicauth,noauth). A gem-side enforcement in Otto's
+        # RouteAuthWrapper would remove that ordering assumption.
+        CREDENTIALED_FAILURE_ENV_KEY = 'onetime.auth.credentialed_failure'
+
+        # Record and return an authentication failure for explicitly
+        # presented credentials (Authorization header).
+        #
+        # Marks the Rack env so that a later anonymous-capable strategy in
+        # the same request (NoAuthStrategy) refuses to fall through to
+        # anonymous, producing a 401 instead of a silent anonymous success.
+        #
+        # @param env [Hash] Rack environment (shared across the strategy chain)
+        # @param reason [String] failure reason, e.g. '[CREDENTIALS_INVALID] ...'
+        # @return [Otto::Security::Authentication::AuthFailure]
+        def credentialed_failure(env, reason)
+          env[CREDENTIALED_FAILURE_ENV_KEY] = reason
+          failure(reason)
+        end
+
+        # The recorded credentialed-failure reason for this request, if any.
+        #
+        # @param env [Hash] Rack environment
+        # @return [String, nil] failure reason or nil when no credentialed
+        #   strategy rejected presented credentials in this request
+        def credentialed_failure_reason(env)
+          env[CREDENTIALED_FAILURE_ENV_KEY]
+        end
+
         # Loads customer from session if authenticated
         #
         # @param session [Hash] Rack session

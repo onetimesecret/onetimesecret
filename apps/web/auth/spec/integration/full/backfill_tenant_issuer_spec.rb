@@ -115,18 +115,22 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
     domain.save
     Onetime::CustomDomain.display_domain_index.put(display, domain.domainid)
 
-    attrs = {
-      domain_id: domain.identifier,
-      provider_type: provider_type,
-      display_name: "Backfill SSO #{run}",
-      client_id: "client-#{run}",
-      client_secret: "secret-#{run}",
-      enabled: enabled,
-      grant_org_scope: grant_org_scope,
-    }
-    attrs[:issuer]    = issuer    unless issuer.nil?
-    attrs[:tenant_id] = tenant_id unless tenant_id.nil?
-    sso = Onetime::CustomDomain::SsoConfig.create!(**attrs)
+    # These fixtures simulate pre-#3902 rows (issuerless providers, missing
+    # issuer/tenant_id) that predate model validation and cannot pass
+    # SsoConfig.create! — write them the way they were originally written:
+    # direct field assignment + save.
+    sso                 = Onetime::CustomDomain::SsoConfig.new(domain_id: domain.identifier)
+    sso.provider_type   = provider_type
+    sso.display_name    = "Backfill SSO #{run}"
+    sso.client_id       = "client-#{run}"
+    sso.client_secret   = "secret-#{run}"
+    sso.enabled         = enabled.to_s
+    sso.grant_org_scope = grant_org_scope.to_s
+    sso.issuer          = issuer unless issuer.nil?
+    sso.tenant_id       = tenant_id unless tenant_id.nil?
+    sso.created         = Familia.now.to_i
+    sso.updated         = sso.created
+    sso.save
 
     Tenant.new(domain: domain, org: org, sso: sso, provider: sso.platform_route_name, issuer: issuer)
   end

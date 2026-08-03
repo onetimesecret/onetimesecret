@@ -105,6 +105,8 @@ module V2::Logic
         max_ttl    = if auth_org && auth_org.respond_to?(:limit_for)
                     org_limit = auth_org.limit_for('secret_lifetime')
                     org_limit.positive? ? org_limit : config_max
+                  elsif anonymous_user?
+                    anonymous_max_ttl(config_max)
                   else
                     config_max
                   end
@@ -118,7 +120,7 @@ module V2::Logic
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # This runs before clamping so the user gets a clear error with upgrade path
         # instead of a silent clamp.
-        free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+        free_ttl = free_tier_ttl_ceiling
         if ttl > free_ttl && auth_org && !auth_org.can?('extended_default_expiration')
           require_entitlement!('extended_default_expiration')
         end
@@ -129,6 +131,78 @@ module V2::Logic
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
         @ttl = max_ttl if ttl > max_ttl
+      end
+
+      # The authenticated free-tier TTL ceiling (14 days).
+      #
+      # Sole consumer is the loud entitlement gate in process_ttl. The anonymous
+      # path does NOT derive from this — it has its own configured ceiling (see
+      # anonymous_max_ttl), which on a billing-enabled deployment is additionally
+      # bounded by the free-tier limit.
+      #
+      # @return [Integer] Free-tier TTL ceiling in seconds
+      def free_tier_ttl_ceiling
+        Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+      end
+
+      # Anonymous TTL ceiling (2026-07-29 API audit, item 4).
+      #
+      # Lowest of up to three ceilings:
+      #
+      #   1. The configured anonymous ceiling
+      #      (site.secret_options.ttl_max_anonymous, env TTL_MAX_ANONYMOUS,
+      #      default 7 days). Read on every deployment, billing or not — that
+      #      is the fix for the original audit finding, where the ceiling was
+      #      derived from plan state and so vanished with billing disabled.
+      #      Operators may raise it: a self-hosted install on a private network
+      #      does not share the hosted service's anonymous-abuse threat model.
+      #   2. config ttl_options.max, so an operator who caps durations globally
+      #      still wins over a larger anonymous setting.
+      #   3. the free-tier secret_lifetime limit, consulted ONLY when billing is
+      #      enabled and only when positive. This is what preserves the audit's
+      #      invariant (anonymous grant <= authenticated free-tier grant) where
+      #      that invariant means something. With billing disabled there are no
+      #      plans and no free tier, so there is no tier to invert against and
+      #      the term is correctly absent rather than fail-open.
+      #
+      # This is a silent clamp, not a loud 403/422. The anonymous web UI does
+      # not depend on that leniency — usePrivacyOptions.ts derives a ttlCeiling
+      # from the secret_options.ttl_max_anonymous bootstrap key and filters
+      # over-ceiling durations out of the dropdown, so the browser flow never
+      # asks for more than it can have. The clamp remains for non-browser API
+      # callers (curl, SDKs, integrations), which can still POST an
+      # over-ceiling ttl and today get a shortened secret rather than an
+      # error. Turning that into a loud rejection is a v3 contract decision;
+      # V2's clamp is deliberately unchanged.
+      #
+      # @param config_max [Integer] ttl_options.max fallback from config
+      # @return [Integer] Maximum TTL in seconds for anonymous callers
+      # The rescue below only skips the free-tier term; the configured ceiling
+      # still applies. BillingConfig.instance is a Singleton whose initialize
+      # parses billing.yaml — so the only way here is a config/boot fault, not a
+      # transient datastore blip. Log the exception class so an unreachable or
+      # malformed billing config is distinguishable from billing genuinely being
+      # disabled, which is otherwise the same silent code path.
+      def anonymous_max_ttl(config_max)
+        ceilings = [
+          Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
+          config_max,
+        ]
+
+        billing_enabled = begin
+          Onetime::BillingConfig.instance.enabled?
+        rescue StandardError => ex
+          OT.le "[anonymous_max_ttl] BillingConfig unavailable (#{ex.class}: #{ex.message}); " \
+                "anonymous TTL ceiling falls back to #{ceilings.min}"
+          false
+        end
+
+        if billing_enabled
+          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          ceilings << free_tier_max if free_tier_max.positive?
+        end
+
+        ceilings.min
       end
 
       def process_secret
@@ -210,9 +284,13 @@ module V2::Logic
         return if recipient.empty?
 
         if anonymous_user?
-          raise_form_error 'An account is required to send emails.',
-            field: 'recipient',
-            error_type: 'requires_account'
+          # Account-required is an authentication failure, not a field
+          # validation problem: Onetime::Unauthorized maps to 401 at the Otto
+          # edge (otto_hooks.rb), where FormError's blanket handler would
+          # return a misleading 422. (2026-07-29 API audit, item 2. V1 is
+          # intentionally unchanged: its legacy contract collapses both
+          # classes to 404, so no status bug exists there.)
+          raise Onetime::Unauthorized, 'An account is required to send emails.'
         end
 
         recipient.each do |email_address|

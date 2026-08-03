@@ -34,8 +34,11 @@ to the `revealed` value when the deprecated `received` field is empty.
 
 ## Authentication
 
-V1 uses HTTP Basic Auth exclusively. The username is the account email;
-the password is the API token. Session/cookie auth is rejected.
+V1 uses HTTP Basic Auth exclusively. The username is the account email or
+the customer external ID (`ur…` prefix); the password is the API token.
+The username is never an organization ID (`on…`) nor the UUIDv7 `owner_id`
+seen in responses — those do not resolve to a customer. Session/cookie auth
+is rejected.
 
 Anonymous access is allowed on these endpoints:
 
@@ -68,7 +71,9 @@ The server-wide `AUTHENTICATION_MODE` setting controls V1 behavior:
 - **`custid` format**: v0.24 stores UUIDs internally. V1 translates back to
   email via `opts[:custid]`, falling back to `v1_custid` and `custid` fields.
   The resolution chain: caller-supplied email > `v1_custid` (migrated) >
-  `custid` (legacy) > `"anon"`.
+  `custid` (legacy) > `"anon"`. Note this translation is V1-only: in V2/V3
+  responses `custid` is a deprecated field that is always null on
+  post-migration records — consumers there should read `owner_id` instead.
 - **Key length**: v0.24 generates ~63-character keys (v0.23 used ~31 chars).
   This is intentional — v0.24 uses a more secure identifier algorithm.
   `secret_shortkey` (burn responses) is 8 chars (was 6). Clients must treat

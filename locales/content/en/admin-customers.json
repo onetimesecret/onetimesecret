@@ -343,6 +343,66 @@
     "text": "Plans loaded from local config — Stripe is not configured or unreachable.",
     "content_hash": "df83e326"
   },
+  "web.admin.customers.actions.checkoutLink.button": {
+    "text": "Create checkout link",
+    "content_hash": "9c5082cb"
+  },
+  "web.admin.customers.actions.checkoutLink.modalTitle": {
+    "text": "Create checkout link",
+    "content_hash": "9c5082cb"
+  },
+  "web.admin.customers.actions.checkoutLink.planLabel": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.admin.customers.actions.checkoutLink.planPlaceholder": {
+    "text": "Plan family id (e.g. identity_plus_v1)",
+    "content_hash": "12eba027"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleLabel": {
+    "text": "Billing cycle",
+    "content_hash": "d69f731e"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleMonthly": {
+    "text": "Monthly",
+    "content_hash": "9b11f6b7"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleYearly": {
+    "text": "Yearly",
+    "content_hash": "6e69b59e"
+  },
+  "web.admin.customers.actions.checkoutLink.allowPromo": {
+    "text": "Allow promotion codes",
+    "content_hash": "ebe7bc8b"
+  },
+  "web.admin.customers.actions.checkoutLink.submit": {
+    "text": "Create link",
+    "content_hash": "e6b850cf"
+  },
+  "web.admin.customers.actions.checkoutLink.resultLead": {
+    "text": "Checkout link created. Share it with the customer — it can be used once and expires.",
+    "content_hash": "6ff1fb0e"
+  },
+  "web.admin.customers.actions.checkoutLink.copy": {
+    "text": "Copy checkout link",
+    "content_hash": "f1e51ca7"
+  },
+  "web.admin.customers.actions.checkoutLink.expiry": {
+    "text": "Expires in ~{hours}h ({date}).",
+    "content_hash": "4c878a15"
+  },
+  "web.admin.customers.actions.checkoutLink.regionLabel": {
+    "text": "Region",
+    "content_hash": "d3a008ef"
+  },
+  "web.admin.customers.actions.checkoutLink.parseError": {
+    "text": "The server accepted the request but returned an unreadable response, so no link can be shown. Check Stripe before retrying.",
+    "content_hash": "e7e08290"
+  },
+  "web.admin.customers.actions.checkoutLink.done": {
+    "text": "Done",
+    "content_hash": "11a6767d"
+  },
   "web.admin.customers.actions.verify.button": {
     "text": "Verify",
     "content_hash": "eea2745e"
@@ -518,5 +578,113 @@
   "web.admin.customers.detail.sessions.revokeAll.capped": {
     "text": "Killed {count} sessions, but the untracked-session sweep was truncated — an older session may remain. Re-run to be sure.",
     "content_hash": "e3d295a6"
+  },
+  "web.admin.customers.detail.diagnostics.title": {
+    "text": "Account Diagnostics",
+    "content_hash": "5574ece8"
+  },
+  "web.admin.customers.detail.diagnostics.loading": {
+    "text": "Running diagnosis…",
+    "content_hash": "062c83d5"
+  },
+  "web.admin.customers.detail.diagnostics.loadError": {
+    "text": "Unable to load diagnostics.",
+    "content_hash": "69e69f49"
+  },
+  "web.admin.customers.detail.diagnostics.healthy": {
+    "text": "No blocking condition found. Auth state looks healthy — suspect client-side issues (cookies, custom-domain signin config) or the wrong region.",
+    "content_hash": "f6d5f8d1"
+  },
+  "web.admin.customers.detail.diagnostics.authUnavailable": {
+    "text": "Auth database not available (simple auth mode) — SQL-side checks were skipped.",
+    "content_hash": "d668907c"
+  },
+  "web.admin.customers.detail.diagnostics.authFailed": {
+    "text": "Auth database did not answer, so SQL-side checks could not run: {reason}",
+    "content_hash": "46d047c0"
+  },
+  "web.admin.customers.detail.diagnostics.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
+  "web.admin.customers.detail.diagnostics.facts.authStatus": {
+    "text": "Auth status",
+    "content_hash": "34def169"
+  },
+  "web.admin.customers.detail.diagnostics.facts.noAccount": {
+    "text": "No auth account",
+    "content_hash": "a9968e9e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.password": {
+    "text": "Password",
+    "content_hash": "e7cf3ef4"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordSet": {
+    "text": "Set",
+    "content_hash": "b6f6f3ad"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordNone": {
+    "text": "None",
+    "content_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfa": {
+    "text": "MFA",
+    "content_hash": "d39ce053"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfaNone": {
+    "text": "None",
+    "content_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.loginFailures": {
+    "text": "Failed attempts",
+    "content_hash": "63e7f0a8"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lockedBadge": {
+    "text": "Locked out",
+    "content_hash": "ace29f74"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiter": {
+    "text": "Rate limiter",
+    "content_hash": "32892404"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged": {
+    "text": "Engaged",
+    "content_hash": "1b0d851e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterClear": {
+    "text": "Clear",
+    "content_hash": "83b12c22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verification": {
+    "text": "Verification email",
+    "content_hash": "23fac8fb"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationPending": {
+    "text": "Pending — last sent {date}",
+    "content_hash": "9ab8d1b6"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationNone": {
+    "text": "None pending",
+    "content_hash": "a4d4cc22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.sessions": {
+    "text": "Active sessions",
+    "content_hash": "61ad9909"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lastLogin": {
+    "text": "Last login (auth)",
+    "content_hash": "373e7fb1"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.title": {
+    "text": "Authentication log",
+    "content_hash": "48ad8ba8"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.empty": {
+    "text": "No authentication events recorded.",
+    "content_hash": "d2332558"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.unavailable": {
+    "text": "Authentication log could not be read: {reason}",
+    "content_hash": "ab18af57"
   }
 }

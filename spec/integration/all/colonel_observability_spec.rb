@@ -43,10 +43,22 @@ RSpec.describe 'Colonel observability endpoints', type: :integration do
     create_customer(email: "colonel-#{SecureRandom.hex(4)}@example.com", role: 'colonel')
   end
 
-  before { Onetime::AdminAuditEvent.events.clear }
+  before do
+    Onetime::AdminAuditEvent.events.clear
+    Onetime::AdminAuditEvent.security_events.clear
+  end
 
   def record_event(actor: 'ur_colonel1', verb: 'customer.set_role', target: 'ur_target', result: :success, detail: nil)
     Onetime::AdminAuditEvent.record(actor: actor, verb: verb, target: target, result: result, detail: detail)
+  end
+
+  # The second trail: events an UNAUTHENTICATED caller can cause, stored under
+  # their own cap so they cannot evict operator records.
+  def record_security_event(actor: 'anonymous', verb: 'auth.reset_request_throttled', target: 'ip:203.0.x.x',
+                            result: :failure, detail: nil)
+    Onetime::AdminAuditEvent.record_security(
+      actor: actor, verb: verb, target: target, result: result, detail: detail,
+    )
   end
 
   # ---------------------------------------------------------------------------
@@ -111,6 +123,36 @@ RSpec.describe 'Colonel observability endpoints', type: :integration do
 
       expect(data[:details][:events]).to eq([])
       expect(data[:details][:pagination][:total_count]).to eq(1)
+    end
+
+    # The model keeps operator activity and unauthenticated security telemetry
+    # in two separately-capped collections, so a flood of anonymous events can
+    # never evict a privileged record. That is a storage split only: the reader
+    # merges both trails, so the operator still sees one feed.
+    it 'merges the security-telemetry trail into the same chronological feed' do
+      record_event(verb: 'customer.set_role')
+      record_security_event(verb: 'auth.reset_request_throttled')
+      record_event(verb: 'banner.set')
+
+      data = list
+
+      expect(data[:details][:events].map { |e| e[:verb] })
+        .to eq(%w[banner.set auth.reset_request_throttled customer.set_role])
+      expect(data[:details][:pagination][:total_count]).to eq(3)
+    end
+
+    it 'filters and paginates across both trails' do
+      record_security_event(verb: 'auth.reset_request_throttled')
+      record_event(verb: 'customer.purge')
+
+      filtered = list('verb' => 'auth')
+      expect(filtered[:details][:events].map { |e| e[:actor] }).to eq(%w[anonymous])
+      expect(filtered[:details][:pagination][:total_count]).to eq(1)
+
+      # Merged order is [customer.purge, auth.reset_request_throttled]; page 2
+      # exercises the offset slice over the merge, not a raw ZREVRANGE offset.
+      page2 = list('page' => 2, 'per_page' => 1)
+      expect(page2[:details][:events].map { |e| e[:verb] }).to eq(%w[auth.reset_request_throttled])
     end
 
     it 'filters by actor with case-insensitive substring matching' do

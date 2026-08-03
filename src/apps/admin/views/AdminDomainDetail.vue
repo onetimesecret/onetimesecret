@@ -3,6 +3,7 @@
 <script setup lang="ts">
 
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
+  import DomainConfigsSection from '@/apps/admin/components/domains/DomainConfigsSection.vue';
   import DomainProbeResult from '@/apps/admin/components/domains/DomainProbeResult.vue';
   import DomainStateBadge from '@/apps/admin/components/domains/DomainStateBadge.vue';
   import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
@@ -753,6 +754,11 @@
           </p>
         </div>
       </section>
+
+      <!-- Per-domain config records (signin/signup/homepage/api/incoming/sso/mailer) -->
+      <DomainConfigsSection
+        :extid="publicId"
+        :display-domain="record.display_domain" />
 
       <!-- DNS records to publish (same component the attach panel uses) -->
       <section

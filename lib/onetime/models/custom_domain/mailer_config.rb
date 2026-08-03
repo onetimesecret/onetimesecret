@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::MailerConfig - Per-domain mail sender configuration
 #
@@ -118,19 +120,28 @@ module Onetime
       field :created
       field :updated
 
+      # Field encoding spec consumed by the boolean_encoding feature (below)
+      # and the registry's load-time setter check. Mailer is not
+      # colonel-editable (ConfigRegistry KINDS `editable: false`), so this
+      # does not enter the registry's composed FIELD_SPECS (#3951). The
+      # TRI-STATE worker-written outcome fields (dns_verified /
+      # provider_verified: nil = unknown) are deliberately excluded — they
+      # keep parse_boolean_field's nil-preserving semantics.
+      FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :string },
+      }.freeze
+
+      # Tolerant predicate + normalizing setter for `enabled` per the spec
+      # above (#3951). Must come after both the field declaration and the
+      # constant.
+      feature :boolean_encoding
+
       def init
         self.enabled             ||= 'false'
         self.verification_status ||= 'pending'
         self.sending_mode        ||= 'platform'
         # Job lifecycle fields default to nil (no job enqueued yet)
         # Outcome fields default to nil (unknown/pending)
-      end
-
-      # Check if this mailer config is enabled.
-      #
-      # @return [Boolean] true if mailer config is active
-      def enabled?
-        enabled.to_s == 'true'
       end
 
       # Check if the sender address has been verified via DNS.
@@ -240,19 +251,6 @@ module Onetime
         self.verified_at         = nil
         self.verification_status = 'pending'
         self.updated             = Familia.now.to_i
-        save
-      end
-
-      # Rotate the API key without affecting verification state.
-      #
-      # Credential rotation is independent of DNS verification -- the
-      # DKIM/SPF records don't change when the API key changes.
-      #
-      # @param new_api_key [String] The new provider API key
-      # @return [void]
-      def rotate_credentials(new_api_key)
-        self.api_key = new_api_key
-        self.updated = Familia.now.to_i
         save
       end
 

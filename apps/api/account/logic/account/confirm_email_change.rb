@@ -84,14 +84,21 @@ module AccountAPI::Logic
           notify: true,
         ).call
 
-        handle_result_status(@change_result)
-
         # ADAPTER-OWNED, by construction: the operation deletes every STORED
         # session blob, but the current request's in-memory Rack session is
         # written back by the session middleware after this call returns — which
         # would re-create the blob that was just revoked. The op has no request
         # context, so this cannot move into it.
-        sess.clear if sess
+        #
+        # Runs BEFORE the status mapping: a `:partial` whose swap LANDED
+        # (`:secondary_writes_incomplete` — both authoritative stores hold the new
+        # address) revokes sessions too, and the mapping below raises on
+        # `:partial`. Clearing only on the paths that return would leave the one
+        # session blob the revocation exists to kill alive on exactly the messy
+        # path.
+        clear_current_session(@change_result)
+
+        handle_result_status(@change_result)
 
         OT.info "[confirm-email-change] Email change confirmed cid/#{@owner.objid} " \
                 "status/#{@change_result.status} new/#{OT::Utils.obscure_email(new_email)} " \
@@ -105,6 +112,31 @@ module AccountAPI::Logic
       end
 
       private
+
+      # Drop the current request's session, but ONLY once the address has
+      # actually changed hands — on `:email_taken` and the system-error statuses
+      # nothing moved and signing the caller out would be gratuitous.
+      def clear_current_session(result)
+        return unless sess
+        return unless swap_landed?(result)
+
+        sess.clear
+      end
+
+      # `:no_change` counts: the account already holds the address, the
+      # redemption is idempotent, and this surface still sends the caller to
+      # /signin. `:verification_not_reset` counts: the op only computes it AFTER
+      # the swap landed and RevokeAllForCustomer ran — unreachable here today
+      # (this adapter passes `require_verification: false`), but if that
+      # parameter ever changes, skipping the clear would write this session back
+      # and resurrect the blob the op just deleted. `:partial` counts only in
+      # the sub-case where the Customer hash committed — the other sub-case
+      # rolled the accounts row back.
+      def swap_landed?(result)
+        return true if [:success, :no_change, :verification_not_reset].include?(result.status)
+
+        result.status == :partial && result.warnings.include?(:secondary_writes_incomplete)
+      end
 
       # Map the operation's status vocabulary onto this surface's form errors.
       # Messages and error_types are preserved verbatim from the pre-extraction
@@ -128,13 +160,17 @@ module AccountAPI::Logic
         # :partial — SQL committed, the Redis side did not complete. The op has
         # already recorded the audit event and compensated where it safely
         # could; `customers doctor --check auth_email_drift` is the remediation.
+        # Where the swap LANDED the op also revoked sessions and mailed both
+        # addresses, and `clear_current_session` has already dropped this one —
+        # so the caller is signed out even though this reports an error.
         #
         # `:verification_not_reset` cannot reach this branch: it is only produced
         # when `require_verification: true`, and this adapter always passes false
         # (D34 — the redeemed token is the proof of ownership). It falls into the
         # fail-closed `else` deliberately rather than being whitelisted above, so
         # if that parameter is ever changed the surface refuses instead of
-        # reporting a clean success.
+        # reporting a clean success — but it IS a swap-landed status, so
+        # `swap_landed?` counts it and the session clear has already fired.
         else
           auth_logger.error '[confirm-email-change] Email change did not fully land',
             extid: @owner.extid,

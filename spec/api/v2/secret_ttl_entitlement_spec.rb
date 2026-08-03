@@ -26,9 +26,7 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
   FREE_TTL = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
 
   def mock_organization(planid:, entitlements:, secret_lifetime: FREE_TTL)
-    org_id = "org_#{SecureRandom.hex(4)}"
-    org = double('Organization', planid: planid, objid: org_id, extid: org_id)
-    allow(org).to receive(:entitlements).and_return(entitlements)
+    org = double('Organization', planid: planid, objid: "org_#{SecureRandom.hex(4)}", extid: "org_ext_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?) do |entitlement|
       entitlements.include?(entitlement.to_s)
     end
@@ -36,6 +34,16 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
       resource.to_s == 'secret_lifetime' ? secret_lifetime : 0
     end
     org
+  end
+
+  # ADR-012 Stage 3: require_entitlement! authorizes via auth_membership.can?,
+  # not auth_org.can?. Mirror the org double's entitlement list so each
+  # spec's entitlements apply to both the org pre-check and the membership.
+  def mock_membership(org)
+    membership = double('OrganizationMembership', status: 'active')
+    allow(membership).to receive(:active?).and_return(true)
+    allow(membership).to receive(:can?) { |entitlement| org.can?(entitlement) }
+    membership
   end
 
   def mock_customer(custid: 'test@example.com', anonymous: false)
@@ -61,37 +69,23 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
     customer ||= mock_customer(anonymous: org.nil?)
     session = mock_session
 
-    # Create membership mock for entitlement checks
-    membership = nil
-    if org
-      membership = double('OrganizationMembership')
-      allow(membership).to receive(:active?).and_return(true)
-      allow(membership).to receive(:can?) do |entitlement|
-        org.entitlements.include?(entitlement.to_s)
-      end
-
-      # Stub the class-level lookup BEFORE construction so auth_membership
-      # finds the mock during process_params
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-        .with(org.objid, customer.objid)
-        .and_return(membership)
-    end
-
-    # StrategyResult metadata uses organization_context nested structure
-    org_context = { organization: org, organization_id: org&.objid }
-
     strategy_result = double('StrategyResult')
     allow(strategy_result).to receive(:session).and_return(session)
     allow(strategy_result).to receive(:user).and_return(customer)
     allow(strategy_result).to receive(:metadata).and_return(
-      organization_context: org_context,
+      organization_context: { organization: org },
     )
     allow(strategy_result).to receive(:auth_method).and_return(auth_method)
 
-    logic = logic_class.new(strategy_result, params)
-
+    # Base#initialize auto-runs process_params when params are present — before
+    # any stubs exist — so build with nil params and inject them after stubbing.
+    # Examples invoke logic.process_params explicitly.
+    logic = logic_class.new(strategy_result, nil, 'en')
     allow(logic).to receive(:cust).and_return(customer)
     allow(logic).to receive(:sess).and_return(session)
+    allow(logic).to receive(:auth_org).and_return(org)
+    allow(logic).to receive(:auth_membership).and_return(org && mock_membership(org))
+    logic.instance_variable_set(:@params, params)
     logic
   end
 
@@ -150,10 +144,8 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
       let(:org) { mock_organization(planid: 'free_v1', entitlements: %w[create_secrets api_access], secret_lifetime: FREE_TTL) }
 
       it 'raises EntitlementRequired with extended_default_expiration' do
-        # process_params runs in constructor, so error is raised during create_logic
-        expect {
-          create_logic(logic_class, params: conceal_params(2_592_000), org: org)
-        }.to raise_error(Onetime::EntitlementRequired) do |error|
+        logic = create_logic(logic_class, params: conceal_params(2_592_000), org: org)
+        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired) do |error|
           expect(error.entitlement).to eq('extended_default_expiration')
           expect(error.current_plan).to eq('free_v1')
         end
@@ -162,10 +154,8 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
       it 'fires BEFORE clamping (V2 contract: error, not silent clamp)' do
         # Even though plan_max would clamp the request to FREE_TTL, V2's
         # gate runs first and rejects. This is the key V2-vs-V1 difference.
-        # process_params runs in constructor, so error is raised during create_logic
-        expect {
-          create_logic(logic_class, params: conceal_params(FREE_TTL + 1), org: org)
-        }.to raise_error(Onetime::EntitlementRequired)
+        logic = create_logic(logic_class, params: conceal_params(FREE_TTL + 1), org: org)
+        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired)
       end
     end
 
@@ -240,10 +230,8 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
 
       it 'still rejects a TTL of 14 days + 1 second (new boundary enforced)' do
         ttl = (14 * 24 * 60 * 60) + 1
-        # process_params runs in constructor, so error is raised during create_logic
-        expect {
-          create_logic(logic_class, params: conceal_params(ttl), org: org)
-        }.to raise_error(Onetime::EntitlementRequired)
+        logic = create_logic(logic_class, params: conceal_params(ttl), org: org)
+        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired)
       end
 
       it 'FREE_TTL constant resolves to 14 days' do

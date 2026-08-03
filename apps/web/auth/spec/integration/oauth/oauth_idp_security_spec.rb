@@ -96,17 +96,23 @@ RSpec.describe 'OAuth/OIDC IdP security boundaries', type: :integration, sqlite_
       MSG
     end
 
-    # Re-seed the canonical dev SP client if missing (a sibling spec may
-    # have truncated oauth_applications).
-    unless auth_db[:oauth_applications].where(client_id: 'onetimesecret-sp-dev').any?
-      require 'auth/initializers/seed_dev_oauth_client'
-      Auth::Initializers::SeedDevOAuthClient.new.execute(nil)
-    end
-
-    # Seed the secondary client used by cross-client isolation tests.
-    # Mirrors the column shape from SeedDevOAuthClient#execute so we
-    # exercise the same authentication code path.
+    # Secret for the secondary client. Chosen once per file; any row left
+    # behind by an earlier file hashes a different secret, so drop it and let
+    # the per-example guard below insert a row whose hash we know.
     @other_client_secret = "spec-other-secret-#{SecureRandom.hex(12)}"
+    auth_db[:oauth_applications].where(client_id: 'onetimesecret-sp-spec-other').delete
+  end
+
+  # Both clients are re-seeded per example, not in before(:all): on PostgreSQL
+  # clear_auth_database's TRUNCATE ... CASCADE takes oauth_applications with it
+  # (FK to accounts), so a once-per-file seed survives only the first example.
+  # On SQLite the rows are preserved and these are two indexed SELECTs.
+  before do
+    ensure_dev_oauth_client!
+
+    # Secondary client used by cross-client isolation tests. Mirrors the column
+    # shape from SeedDevOAuthClient#execute so we exercise the same
+    # authentication code path.
     if auth_db[:oauth_applications].where(client_id: 'onetimesecret-sp-spec-other').empty?
       auth_db[:oauth_applications].insert(
         account_id: nil,

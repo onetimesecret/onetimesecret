@@ -255,6 +255,71 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
       end
     end
 
+    # Flipping preview mutates session-scoped Redis keys and changes what the
+    # admin sees, so it is a mutating admin op (CONTRACT 4). It recorded nothing
+    # before. Verb strings are a contract with the admin console's action filter
+    # — pin them literally.
+    context 'audit trail' do
+      before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+
+      it 'records entitlement_preview.set with the previewed plan' do
+        logic = create_logic(planid: 'identity_v1')
+
+        logic.process_params
+        logic.raise_concerns
+        logic.process
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          actor: colonel_customer.extid,
+          verb: 'entitlement_preview.set',
+          target: colonel_customer.extid,
+          result: :success,
+          detail: { planid: 'identity_v1' },
+        )
+      end
+
+      it 'records entitlement_preview.clear with no detail' do
+        session_data[:entitlement_preview_planid] = 'identity_v1'
+        logic = create_logic(planid: nil)
+
+        logic.process_params
+        logic.raise_concerns
+        logic.process
+
+        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          actor: colonel_customer.extid,
+          verb: 'entitlement_preview.clear',
+          target: colonel_customer.extid,
+          result: :success,
+          detail: nil,
+        )
+      end
+
+      it 'never puts session key names or entitlement lists in the event' do
+        logic = create_logic(planid: 'multi_team_v1')
+
+        logic.process_params
+        logic.raise_concerns
+        logic.process
+
+        payload = nil
+        expect(Onetime::AdminAuditEvent).to have_received(:record) { |args| payload = args }
+
+        expect(payload[:detail]).to eq(planid: 'multi_team_v1')
+        expect(payload.inspect).not_to include('entitlement_preview_grants')
+        expect(payload.inspect).not_to include('audit_logs')
+      end
+
+      it 'writes NO event when the plan is rejected in raise_concerns' do
+        logic = create_logic(planid: 'nonexistent_plan')
+
+        logic.process_params
+        expect { logic.raise_concerns }.to raise_error(OT::FormError)
+
+        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      end
+    end
+
     context 'validation' do
       it 'raises error for invalid plan ID' do
         logic = create_logic(planid: 'nonexistent_plan')

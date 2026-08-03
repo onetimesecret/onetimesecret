@@ -52,6 +52,17 @@
   // Package-specific rules
   packageRules: [
     {
+      // brace-expansion is dev-only and transitive (three minimatch majors:
+      // minimatch@3 from eslint 9, @9 from glob@10/editorconfig, @10 from
+      // typescript-estree/glob@13). Renovate cannot express that — it proposes a
+      // single flat version, and for CVE-2026-14257 it proposed v5, whose CJS
+      // build exports `{expand, ...}` rather than a callable and so breaks
+      // minimatch@3/9 at require() time. Patched floors are pinned per major
+      // line in pnpm-workspace.yaml `overrides:`; see the comments there.
+      matchPackageNames: ['brace-expansion'],
+      enabled: false,
+    },
+    {
       matchPackageNames: ['encryptor'],
       recreateWhen: 'never',
     },

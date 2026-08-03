@@ -118,18 +118,24 @@ module Auth
               # Guidance must only name paths that actually exist for an
               # SSO-only account: (1) connecting another provider — offered in
               # the same Connected Identities panel — lifts the guard
-              # (locked.size becomes 2); (2) signing out and using "Forgot
-              # password" sets a password (SSO-created accounts are open per
+              # (locked.size becomes 2); (2) the in-app Set-password card on
+              # Settings → Security (#3886), which emails a mailbox-proof
+              # set-password link (SSO-created accounts are open per
               # rodauth-omniauth, and Rodauth's set_password inserts a hash
-              # when none exists). There is deliberately NO in-app set-password
-              # page for passwordless accounts (SecurityOverview hides the
-              # password card when !hasPw), so never point users at Settings.
+              # when none exists). The card is hidden when password auth is
+              # not permitted (SSO-enforced domains), and this route does not
+              # resolve domain policy — so the API string hedges with "if
+              # available" while leading with the always-actionable path. The
+              # web UI ignores this string: useConnectedIdentities maps
+              # error_code to a policy-aware localized message via
+              # isPasswordAuthPermitted().
               response.status = 409
               next {
                 error: 'Cannot remove your only sign-in method. Connect ' \
-                       'another provider first, or sign out and use ' \
-                       '"Forgot password" to set a password, then remove ' \
-                       'this identity.',
+                       'another provider first, or set a password from ' \
+                       'Settings → Security if password sign-in is ' \
+                       'available for your account, then remove this ' \
+                       'identity.',
                 error_code: 'last_credential',
               }
             end

@@ -181,11 +181,11 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     after do
-      ENV.delete('PLAN_TTL_ANONYMOUS')
+      ENV.delete('TTL_MAX_ANONYMOUS')
       test_class.reset_free_tier_limits!
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is not set' do
+    context 'when TTL_MAX_ANONYMOUS is not set' do
       it 'returns default secret_lifetime.max of 14 days (matches free_v1 plan)' do
         # See #3111: the constant must match `free_v1.limits.secret_lifetime`
         # in etc/billing.yaml (1_209_600) so that empty-planid orgs get the
@@ -210,8 +210,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is set to 30 days' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '2592000' }
+    context 'when TTL_MAX_ANONYMOUS is set to 30 days' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '2592000' }
 
       it 'returns overridden secret_lifetime.max' do
         limits = test_class.free_tier_limits
@@ -225,8 +225,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS exceeds MAX_TTL' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '999999999' }
+    context 'when TTL_MAX_ANONYMOUS exceeds MAX_TTL' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '999999999' }
 
       it 'caps secret_lifetime.max at MAX_TTL' do
         limits = test_class.free_tier_limits
@@ -234,8 +234,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is invalid' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = 'invalid' }
+    context 'when TTL_MAX_ANONYMOUS is invalid' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = 'invalid' }
 
       it 'falls back to DEFAULT_FREE_TTL (14 days)' do
         limits = test_class.free_tier_limits
@@ -253,11 +253,11 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
 
       it 'can be reset for testing' do
-        ENV['PLAN_TTL_ANONYMOUS'] = '1000'
+        ENV['TTL_MAX_ANONYMOUS'] = '1000'
         first_limits = test_class.free_tier_limits
         expect(first_limits['secret_lifetime.max']).to eq(1000)
 
-        ENV['PLAN_TTL_ANONYMOUS'] = '2000'
+        ENV['TTL_MAX_ANONYMOUS'] = '2000'
         # Without reset, should return memoized value
         expect(test_class.free_tier_limits['secret_lifetime.max']).to eq(1000)
 
@@ -324,11 +324,11 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     after do
-      ENV.delete('PLAN_TTL_ANONYMOUS')
+      ENV.delete('TTL_MAX_ANONYMOUS')
       test_class.reset_free_tier_limits!
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is not set' do
+    context 'when TTL_MAX_ANONYMOUS is not set' do
       it 'limit_for returns default 14 days for secret_lifetime (#3111)' do
         expect(org.limit_for('secret_lifetime')).to eq(1_209_600)
         expect(org.limit_for('secret_lifetime')).to eq(described_class::DEFAULT_FREE_TTL)
@@ -341,35 +341,35 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is set to 30 days' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '2592000' }
+    context 'when TTL_MAX_ANONYMOUS is set to 30 days' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '2592000' }
 
       it 'limit_for returns overridden value' do
         expect(org.limit_for('secret_lifetime')).to eq(2_592_000)
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS is negative' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '-500' }
+    context 'when TTL_MAX_ANONYMOUS is negative' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '-500' }
 
       it 'limit_for clamps to zero' do
         expect(org.limit_for('secret_lifetime')).to eq(0)
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS explicitly downgrades to legacy 7 days' do
+    context 'when TTL_MAX_ANONYMOUS explicitly downgrades to legacy 7 days' do
       # Operators who want the old 7-day cap can still opt in via env var.
       # This protects deployments that intentionally relied on the legacy
       # constant value before #3111 was filed.
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '604800' }
+      before { ENV['TTL_MAX_ANONYMOUS'] = '604800' }
 
       it 'limit_for honors the operator override' do
         expect(org.limit_for('secret_lifetime')).to eq(604_800)
       end
     end
 
-    context 'when PLAN_TTL_ANONYMOUS matches the new default exactly' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '1209600' }
+    context 'when TTL_MAX_ANONYMOUS matches the new default exactly' do
+      before { ENV['TTL_MAX_ANONYMOUS'] = '1209600' }
 
       it 'limit_for returns 14 days (idempotent override)' do
         expect(org.limit_for('secret_lifetime')).to eq(1_209_600)
@@ -406,7 +406,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     after do
-      ENV.delete('PLAN_TTL_ANONYMOUS')
+      ENV.delete('TTL_MAX_ANONYMOUS')
       test_class.reset_free_tier_limits!
     end
 
@@ -455,6 +455,92 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
         # Documents the intent: free_v1 is "2 weeks" — twice 1 week.
         expect(org.limit_for('secret_lifetime')).to eq(2 * 604_800)
       end
+    end
+  end
+
+  # The anonymous ceiling is deliberately NOT a plan derivation. It reads
+  # site.secret_options.ttl_max_anonymous (env TTL_MAX_ANONYMOUS, or the
+  # deprecated PLAN_TTL_ANONYMOUS alias, resolved in config.defaults.yaml) so it
+  # applies on deployments with billing disabled, where plan state does not
+  # exist. 2026-07-29 API audit, item 4.
+  describe '.configured_anonymous_max_ttl' do
+    let(:described_module) { Onetime::Models::Features::WithEntitlements }
+
+    def stub_conf(value)
+      conf = { 'site' => { 'secret_options' => { 'ttl_max_anonymous' => value } } }
+      allow(OT).to receive(:conf).and_return(conf)
+    end
+
+    it 'defaults to 7 days when the key is unset' do
+      stub_conf(nil)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+    end
+
+    it 'honours an operator value below the default' do
+      stub_conf(86_400)
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(86_400)
+    end
+
+    # The self-hosted case this key exists for: raising is supported, because
+    # the 7-day rule is hosted-service policy rather than a safety invariant.
+    it 'honours an operator value above the default' do
+      stub_conf(2_592_000)
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(2_592_000)
+    end
+
+    it 'coerces a String, as ERB delivers when the env var is set' do
+      stub_conf('2592000')
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(2_592_000)
+    end
+
+    it 'bounds the value at MAX_TTL' do
+      stub_conf(999_999_999)
+
+      expect(described_module.configured_anonymous_max_ttl).to eq(described_module::MAX_TTL)
+    end
+
+    # "0" reads as "unset me", not "anonymous secrets expire immediately".
+    it 'falls back to the default for a non-positive value' do
+      stub_conf(0)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+    end
+
+    it 'falls back to the default for a negative value' do
+      stub_conf(-500)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+    end
+
+    it 'falls back to the default and warns for a malformed value' do
+      stub_conf('not-a-number')
+      allow(OT).to receive(:lw)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+      expect(OT).to have_received(:lw).with(
+        a_string_matching(/Invalid site\.secret_options\.ttl_max_anonymous/), hash_including(:default)
+      )
+    end
+
+    # Stub the dig, not OT.conf itself — spec_helper's teardown reads OT.conf
+    # and a raising stub would take the whole example group down with it.
+    it 'falls back to the default when the config read raises' do
+      faulty = instance_double(Hash)
+      allow(faulty).to receive(:dig).and_raise(StandardError, 'config unreadable')
+      allow(OT).to receive(:conf).and_return(faulty)
+      allow(OT).to receive(:le)
+
+      expect(described_module.configured_anonymous_max_ttl)
+        .to eq(described_module::ANONYMOUS_MAX_TTL)
+      expect(OT).to have_received(:le).with(a_string_matching(/ttl_max_anonymous unreadable/))
     end
   end
 end

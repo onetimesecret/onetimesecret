@@ -44,6 +44,7 @@
 # corner_style: "rounded"                      # rounded | square | pill
 # font_family: "sans"                          # sans | serif | mono
 # logo_url: "https://cdn.example.com/logo.svg" # masthead + email logo; absolute for email, or "/brand-logo.svg" for a pack-carried file
+# logo_dark_url: "https://cdn.example.com/logo-dark.svg" # dark-theme masthead logo; or "/brand-logo-dark.svg" for a pack-carried file
 # logo_alt: "Example logo"                     # logo alt text
 # favicon_url: "https://cdn.example.com/favicon.ico" # /favicon.ico 302 redirect
 # apple_touch_icon_url: "https://cdn.example.com/touch.png" # head apple-touch-icon

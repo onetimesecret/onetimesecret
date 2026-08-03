@@ -52,7 +52,7 @@ Acceptance is **always an explicit user click**. Signup/signin establishes auth;
 | POST | `/api/org/:extid/invitations/:token/resend` | sessionauth (admin) | `OrganizationAPI::Logic::Invitations::ResendInvitation` |
 | DELETE | `/api/org/:extid/invitations/:token` | sessionauth (admin) | `OrganizationAPI::Logic::Invitations::RevokeInvitation` |
 
-`ShowInvite` returns structured responses for *every* invitation state (pending/accepted/declined/expired). Only truly unknown tokens 404. The response carries computed flags `actionable` and `account_exists` so the frontend can branch without a second round-trip.
+`ShowInvite` returns structured responses for *every* invitation state (pending/accepted/declined/expired). Only truly unknown tokens 404. The response carries a computed `actionable` flag so the frontend can branch without a second round-trip. It deliberately carries **no** `account_exists` flag (AZ7 anti-enumeration hardening): unauthenticated visitors always start in the signup flow, and the frontend falls back to signin only when the signup endpoint returns its generic `signup_unavailable` error (#3856) — which likewise never confirms account existence.
 
 ## Dimensions we track
 
@@ -65,7 +65,7 @@ Reference: industry comparison across 10 SaaS products (Clerk, GitHub, Slack, No
 | Token lifecycle | New token on resend (old invalidated) | `ResendInvitation` calls `generate_token!`, max 3 resends |
 | Role at invite | Set at invite (`through_attrs[:role]`) | Majority pattern |
 | Account creation | Embedded in flow | Inline `InviteSignUpForm` / `InviteSignInForm` |
-| Account-exists branching | Returned in `ShowInvite` response (`account_exists`) | Same pattern as Clerk `__clerk_status`, WorkOS user-exists fork |
+| Account-exists branching | Not disclosed by the API (AZ7/#3856) | Signup is the default path; frontend falls back to signin on the generic `signup_unavailable` error. Differs from Clerk `__clerk_status` / WorkOS user-exists fork by design (anti-enumeration) |
 | Admin confirmation | Not required (`requires_admin_approval?` hardcoded `false`) | Branch exists in `accept!` for the future approval workflow |
 | Email match | Strict, case-insensitive | Enforced in `accept!` and at signup hook (`before_create_account`) — defense in depth |
 | Anti-enumeration | `InviteTokenRateLimiter` on GET (per-IP) | Mirrors GitHub verified-email matching, in spirit |

@@ -53,9 +53,9 @@ require 'securerandom'
 
 # Pre-boot env: identical shape to oauth_idp_protocol_spec.rb so the trio can
 # be invoked in a single rspec call (boot is memoized, first writer wins).
-ENV['AUTH_OAUTH_ENABLED']        = 'true'
-ENV['OAUTH_ISSUER']              ||= 'http://localhost:3000/auth'
-ENV['OAUTH_JWT_RSA_PRIVATE_KEY'] ||= OpenSSL::PKey::RSA.new(2048).to_pem
+ENV['AUTH_OAUTH_ENABLED']           = 'true'
+ENV['OAUTH_ISSUER']               ||= 'http://localhost:3000/auth'
+ENV['OAUTH_JWT_RSA_PRIVATE_KEY']  ||= OpenSSL::PKey::RSA.new(2048).to_pem
 ENV['OAUTH_SP_DEV_CLIENT_SECRET'] ||= "spec-sp-secret-#{SecureRandom.hex(12)}"
 
 ENV['AUTHENTICATION_MODE'] ||= 'full'
@@ -69,7 +69,7 @@ require 'digest'
 require 'json'
 require 'jwt'
 
-RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_database: true do
+RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integration do
   let(:client_id)     { 'onetimesecret-sp-dev' }
   let(:client_secret) { ENV.fetch('OAUTH_SP_DEV_CLIENT_SECRET') }
   let(:redirect_uri)  { 'http://localhost:3000/auth/sso/local/callback' }
@@ -83,6 +83,8 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
   # The RSA private key the IdP signs ID tokens / JWT access tokens with.
   let(:rsa_private)   { OpenSSL::PKey::RSA.new(ENV.fetch('OAUTH_JWT_RSA_PRIVATE_KEY')) }
   let(:rsa_public)    { rsa_private.public_key }
+  let(:created_account_ids) { [] }
+  let(:created_grant_ids)   { [] }
 
   before(:all) do
     boot_onetime_app
@@ -94,19 +96,15 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
         without AUTH_OAUTH_ENABLED.
       MSG
     end
-
-    unless auth_db[:oauth_applications].where(client_id: 'onetimesecret-sp-dev').any?
-      require 'auth/initializers/seed_dev_oauth_client'
-      Auth::Initializers::SeedDevOAuthClient.new.execute(nil)
-    end
   end
 
-  let(:created_account_ids) { [] }
-  let(:created_grant_ids)   { [] }
+  # Per-example, not before(:all): on PostgreSQL clear_auth_database's
+  # TRUNCATE ... CASCADE takes oauth_applications with it (FK to accounts).
+  before { ensure_dev_oauth_client! }
 
   after do
-    auth_db[:oauth_grants].where(id: created_grant_ids).delete    unless created_grant_ids.empty?
-    auth_db[:accounts].where(id: created_account_ids).delete     unless created_account_ids.empty?
+    auth_db[:oauth_grants].where(id: created_grant_ids).delete unless created_grant_ids.empty?
+    auth_db[:accounts].where(id: created_account_ids).delete unless created_account_ids.empty?
   end
 
   # ─── Helpers (mirror the existing two specs to keep this file independently
@@ -114,7 +112,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
 
   def create_verified_account
     email = "oauth-lc-#{SecureRandom.hex(6)}@example.com"
-    id = auth_db[:accounts].insert(
+    id    = auth_db[:accounts].insert(
       email: email,
       status_id: 2, # Verified
       created_at: Time.now,
@@ -131,7 +129,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
                               challenge: code_challenge, method: 'S256',
                               nonce: nil, expires_at: Time.now + 300)
     app_id = auth_db[:oauth_applications].where(client_id: client_id).get(:id)
-    code = SecureRandom.urlsafe_base64(32)
+    code   = SecureRandom.urlsafe_base64(32)
 
     grant_id = auth_db[:oauth_grants].insert(
       account_id: account_id,
@@ -160,12 +158,13 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
     header 'Host', 'localhost:3000'
     header 'Authorization', basic_auth_header
     header 'Accept', 'application/json'
-    post '/auth/token', {
-      grant_type:    'authorization_code',
-      code:          code,
-      redirect_uri:  redirect,
-      code_verifier: verifier,
-    }
+    post '/auth/token',
+      {
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: redirect,
+        code_verifier: verifier,
+      }
     JSON.parse(last_response.body)
   end
 
@@ -174,10 +173,11 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
     header 'Host', 'localhost:3000'
     header 'Authorization', basic_auth_header
     header 'Accept', 'application/json'
-    post '/auth/token', {
-      grant_type:    'refresh_token',
-      refresh_token: refresh_token,
-    }
+    post '/auth/token',
+      {
+        grant_type: 'refresh_token',
+        refresh_token: refresh_token,
+      }
     JSON.parse(last_response.body)
   end
 
@@ -199,7 +199,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
   # the granted scopes — see oidc.rb:769-773. Default left off so callers
   # only opt-in when they actually need it.
   def redeem_fresh_grant(scopes: 'openid email profile', nonce: nil, with_refresh: false)
-    scopes = "#{scopes} offline_access" if with_refresh && !scopes.split.include?('offline_access')
+    scopes  = "#{scopes} offline_access" if with_refresh && !scopes.split.include?('offline_access')
     account = create_verified_account
     grant   = seed_authorization_code(account_id: account[:id], scopes: scopes, nonce: nonce)
     body    = post_token_for_code(grant[:code])
@@ -237,7 +237,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
       expect(body['access_token']).to be_a(String).and(satisfy { |s| !s.empty? })
       expect(body['token_type'].to_s.downcase).to eq('bearer')
-      # Note: we don't assert access_token != access_v1. The gem derives jti
+      # NOTE: we don't assert access_token != access_v1. The gem derives jti
       # from SHA256(aud:iat) (oauth_jwt_base.rb:98-106) and uses Time.now.to_i
       # for iat, so two redemptions in the same wallclock second produce
       # byte-identical JWTs. This is a known JWT-with-1s-resolution quirk,
@@ -315,27 +315,35 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # This assertion documents the current behavior so a future gem
       # upgrade that fixes the AND-chain will (intentionally) break this
       # test and prompt revisit.
-      account = create_verified_account
-      grant   = seed_authorization_code(account_id: account[:id])
-      redeemed = post_token_for_code(grant[:code])
+      account           = create_verified_account
+      grant             = seed_authorization_code(account_id: account[:id])
+      redeemed          = post_token_for_code(grant[:code])
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
       live_access_token = redeemed.fetch('access_token')
 
       # Decode without verification to learn the real claims.
-      live_payload, live_header = JWT.decode(live_access_token, rsa_public, true,
-                                             algorithm: 'RS256')
-      past_payload = live_payload.merge(
+      live_payload, live_header = JWT.decode(
+        live_access_token,
+        rsa_public,
+        true,
+        algorithm: 'RS256',
+      )
+      past_payload              = live_payload.merge(
         'iat' => Time.now.to_i - 7200,
         'exp' => Time.now.to_i - 3600, # 1 hour ago
       )
-      past_token = JWT.encode(past_payload, rsa_private, 'RS256',
-                              live_header.merge('typ' => 'at+jwt'))
+      past_token                = JWT.encode(
+        past_payload,
+        rsa_private,
+        'RS256',
+        live_header.merge('typ' => 'at+jwt'),
+      )
 
       get_userinfo(past_token)
       # Documenting current (broken) behavior. If this starts failing with
       # 401, the gem fixed the AND-chain — update this expectation.
       expect(last_response.status).to eq(200),
-        "If status is 401, the gem now correctly enforces JWT exp at /userinfo. " \
+        'If status is 401, the gem now correctly enforces JWT exp at /userinfo. ' \
         "Update this test and re-evaluate. Body: #{last_response.body[0, 200]}"
     end
 
@@ -344,9 +352,9 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # valid_oauth_grant_ds (oauth_base.rb:596-602) which filters
       # `expires_in >= CURRENT_TIMESTAMP`. Forcing the row's expires_in into
       # the past while leaving the JWT intact tests THIS gate specifically.
-      account = create_verified_account
-      grant   = seed_authorization_code(account_id: account[:id])
-      redeemed = post_token_for_code(grant[:code])
+      account      = create_verified_account
+      grant        = seed_authorization_code(account_id: account[:id])
+      redeemed     = post_token_for_code(grant[:code])
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
       access_token = redeemed.fetch('access_token')
 
@@ -369,9 +377,9 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # just need the downstream consequence: once oauth_grants.revoked_at is
       # set, /userinfo must reject the bearer (valid_oauth_grant_ds filters
       # revoked_at IS NULL).
-      account = create_verified_account
-      grant   = seed_authorization_code(account_id: account[:id])
-      redeemed = post_token_for_code(grant[:code])
+      account      = create_verified_account
+      grant        = seed_authorization_code(account_id: account[:id])
+      redeemed     = post_token_for_code(grant[:code])
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
       access_token = redeemed.fetch('access_token')
 
@@ -395,9 +403,13 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
 
     # Decodes the id_token from a redemption result, returning [payload, header].
     def decode_id_token(result)
-      JWT.decode(result.fetch('id_token'), rsa_public, true,
-                 algorithm: 'RS256',
-                 verify_iat: false) # iat is exercised in its own example
+      JWT.decode(
+        result.fetch('id_token'),
+        rsa_public,
+        true,
+        algorithm: 'RS256',
+        verify_iat: false,
+      ) # iat is exercised in its own example
     end
 
     it 'sets iat to roughly "now" and exp to iat + oauth_access_token_expires_in' do
@@ -424,7 +436,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # is_authorization_server? (oauth_jwt_base.rb:45-46). sub: by default
       # the public subject is the account row's id as a string (jwt_subject
       # at oidc.rb:363+).
-      result = redeem_fresh_grant
+      result      = redeem_fresh_grant
       payload, _h = decode_id_token(result)
 
       expect(payload['iss']).to eq(issuer)
@@ -441,15 +453,20 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       body    = post_token_for_code(grant[:code])
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
 
-      payload, _h = JWT.decode(body.fetch('id_token'), rsa_public, true,
-                                algorithm: 'RS256', verify_iat: false)
+      payload, _h = JWT.decode(
+        body.fetch('id_token'),
+        rsa_public,
+        true,
+        algorithm: 'RS256',
+        verify_iat: false,
+      )
       expect(payload['nonce']).to eq(fixed_nonce)
     end
 
     it 'omits nonce when the grant has none' do
       # Same hook as above — nil column means the gem skips setting the
       # claim (oidc.rb:562 guards with `if oauth_grant[..nonce]`).
-      result = redeem_fresh_grant
+      result      = redeem_fresh_grant
       payload, _h = decode_id_token(result)
       expect(payload).not_to have_key('nonce')
     end
@@ -465,7 +482,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # apps/web/auth/config/features/oauth.rb overrides id_token_claims to
       # drop :auth_time when it serializes to 0. A non-zero auth_time from
       # an active session still passes through.
-      result = redeem_fresh_grant
+      result      = redeem_fresh_grant
       payload, _h = decode_id_token(result)
       expect(payload).not_to have_key('auth_time'),
         "Expected auth_time to be omitted absent an active_sessions row; got #{payload['auth_time'].inspect}"
@@ -481,7 +498,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # ruby-jwt thumbprint, which uses a different algorithm from json-jwt
       # and won't match what the gem emits. Just assert membership in the
       # JWKS set.
-      result = redeem_fresh_grant
+      result               = redeem_fresh_grant
       _payload, jwt_header = decode_id_token(result)
 
       id_token_kid = jwt_header['kid']
@@ -503,18 +520,23 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # oidc.rb /userinfo (line 159) calls fill_with_account_claims, the
       # same helper that id_token claim-filling uses (oidc.rb:543). So for
       # the same scopes the user-facing claims should match the id_token.
-      result = redeem_fresh_grant
-      id_payload, _h = JWT.decode(result.fetch('id_token'), rsa_public, true,
-                                   algorithm: 'RS256', verify_iat: false)
+      result         = redeem_fresh_grant
+      id_payload, _h = JWT.decode(
+        result.fetch('id_token'),
+        rsa_public,
+        true,
+        algorithm: 'RS256',
+        verify_iat: false,
+      )
 
-      access_token = result.fetch('access_token')
+      access_token   = result.fetch('access_token')
       get_userinfo(access_token)
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
-      userinfo = JSON.parse(last_response.body)
+      userinfo       = JSON.parse(last_response.body)
 
       expect(userinfo['sub']).to eq(id_payload['sub'])
       expect(userinfo['email']).to eq(id_payload['email']).and(eq(result['account'][:email]))
-      expect(userinfo['email_verified']).to eq(id_payload['email_verified']).and(eq(true))
+      expect(userinfo['email_verified']).to eq(id_payload['email_verified']).and(be(true))
     end
   end
 
@@ -532,8 +554,13 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       body    = post_token_for_code(grant[:code])
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
 
-      payload, _h = JWT.decode(body.fetch('id_token'), rsa_public, true,
-                                algorithm: 'RS256', verify_iat: false)
+      payload, _h = JWT.decode(
+        body.fetch('id_token'),
+        rsa_public,
+        true,
+        algorithm: 'RS256',
+        verify_iat: false,
+      )
       expect(payload).not_to have_key('email'),
         "openid-only grant leaked email into id_token: #{payload.inspect}"
       expect(payload).not_to have_key('email_verified')
@@ -541,7 +568,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       access_token = body.fetch('access_token')
       get_userinfo(access_token)
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
-      userinfo = JSON.parse(last_response.body)
+      userinfo     = JSON.parse(last_response.body)
       expect(userinfo).not_to have_key('email'),
         "openid-only grant leaked email into /userinfo: #{userinfo.inspect}"
       expect(userinfo['sub']).not_to be_nil # sub is unconditional
@@ -566,17 +593,17 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       # constraint is the source of truth — the plain grant can never exist,
       # so /token never sees one. If the constraint is ever dropped, this
       # fails loudly rather than the gap reopening silently.
-      account = create_verified_account
+      account        = create_verified_account
       plain_verifier = SecureRandom.urlsafe_base64(48).tr('=', '')
 
-      expect {
+      expect do
         seed_authorization_code(
           account_id: account[:id],
-          challenge:  plain_verifier, # plain: challenge IS the verifier
-          method:     'plain',
+          challenge: plain_verifier, # plain: challenge IS the verifier
+          method: 'plain',
         )
-      }.to raise_error(
-        Sequel::CheckConstraintViolation, /oauth_grants_pkce_s256_only/,
+      end.to raise_error(
+        Sequel::CheckConstraintViolation, /oauth_grants_pkce_s256_only/
       )
     end
   end

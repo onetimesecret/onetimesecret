@@ -188,6 +188,136 @@ describe('AdminAuditLog (flight-recorder playback — observability lane)', () =
     expect(wrapper.find('[data-testid="audit-error"]').exists()).toBe(false);
   });
 
+  /**
+   * The category select is the ONLY discovery surface for a verb family: a
+   * prefix that is missing here is unreachable from the UI even though the
+   * server would happily filter on it. `membership` was absent while
+   * membership.add / .remove / .set_role / .entitlement.<action> were live.
+   */
+  it('offers every live verb prefix as an action category', async () => {
+    mockApi.get.mockResolvedValue({ data: auditPayload() });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    // The leading `value=""` option is FilterBar's "All actions"; drop it.
+    const values = wrapper
+      .find('#kit-filter-verb')
+      .findAll('option')
+      .map((o) => (o.element as HTMLOptionElement).value)
+      .filter((v) => v !== '');
+
+    expect(values).toEqual([
+      'customer',
+      'session',
+      'secret',
+      'domain',
+      'organization',
+      'membership',
+      'entitlement_preview',
+      'banner',
+      'queue',
+      'email',
+      'ratelimit',
+      'ip',
+      'colonel',
+    ]);
+    expect(values).toHaveLength(13);
+  });
+
+  it('sends a category prefix verbatim so it prefix-matches the whole family', async () => {
+    mockApi.get.mockResolvedValue({ data: auditPayload() });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    // `membership` must reach membership.entitlement.<action>, which is built
+    // by interpolation server-side and is therefore not a literal verb.
+    await wrapper.find('#kit-filter-verb').setValue('membership');
+    await flushPromises();
+
+    expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
+      params: { page: 1, per_page: 50, verb: 'membership' },
+    });
+  });
+
+  /**
+   * usePaginatedFetch keeps `validationError` separate from `error` precisely so
+   * a view can tell "the response arrived but broke the contract" from "the
+   * request threw". Before this, the audit screen read only `error`, so a Zod
+   * mismatch degraded the store to `[]` and the operator saw "No audit events
+   * recorded yet" — a broken read contract wearing the costume of a quiet log.
+   *
+   * Latent by design: the live payload parses green, so the branch is forced
+   * with a well-formed HTTP 200 whose `events` is not an array.
+   */
+  describe('contract mismatch (payload arrived, failed Zod)', () => {
+    const brokenPayload = {
+      shrimp: '',
+      record: {},
+      details: {
+        events: 'not-an-array',
+        pagination: { page: 1, per_page: 50, total_count: 0, total_pages: 0 },
+      },
+    };
+
+    it('renders the contract-mismatch state and NOT the empty state', async () => {
+      mockApi.get.mockResolvedValue({ data: brokenPayload });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      const mismatch = wrapper.find('[data-testid="audit-contract-error"]');
+      expect(mismatch.exists()).toBe(true);
+      expect(mismatch.attributes('role')).toBe('alert');
+      expect(mismatch.text()).toContain('web.admin.audit.list.contractError');
+
+      // The lie this bug told: no empty state, and no "no events" copy anywhere.
+      expect(wrapper.find('[data-testid="audit-table-empty"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="audit-table"]').exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.admin.audit.list.empty');
+    });
+
+    it('is distinct from the network-error banner', async () => {
+      mockApi.get.mockResolvedValue({ data: brokenPayload });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      // A contract mismatch never throws, so the network banner must stay away.
+      expect(wrapper.find('[data-testid="audit-error"]').exists()).toBe(false);
+
+      wrapper.unmount();
+      mockApi.get.mockRejectedValue(new Error('Network Error'));
+      wrapper = mountView(createPinia());
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="audit-error"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="audit-contract-error"]').exists()).toBe(false);
+    });
+
+    it('an empty-but-valid page still shows the ordinary empty state', async () => {
+      mockApi.get.mockResolvedValue({ data: auditPayload([]) });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="audit-contract-error"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="audit-table-empty"]').exists()).toBe(true);
+    });
+
+    it('retry clears the mismatch once the payload parses again', async () => {
+      mockApi.get.mockResolvedValue({ data: brokenPayload });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      const mismatch = wrapper.find('[data-testid="audit-contract-error"]');
+      expect(mismatch.exists()).toBe(true);
+
+      mockApi.get.mockResolvedValue({ data: auditPayload() });
+      await mismatch.find('button').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="audit-contract-error"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="audit-table"]').text()).toContain('customer.set_role');
+    });
+  });
+
   it('is read-only: renders no mutation affordances (no POST/DELETE ever fired)', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
     wrapper = mountView(pinia);

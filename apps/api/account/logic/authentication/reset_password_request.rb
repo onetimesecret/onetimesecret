@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/security/reset_request_rate_limiter'
 
 module AccountAPI::Logic
   module Authentication
@@ -11,15 +12,37 @@ module AccountAPI::Logic
 
     class ResetPasswordRequest < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Security::ResetRequestRateLimiter
 
       attr_reader :login_or_email
       attr_accessor :token
 
       def process_params
-        @login_or_email = sanitize_email(params['login'])
+        # Scrub BEFORE sanitizing: Rack::Parser caches the parsed form in
+        # rack.request.form_hash ahead of the UTF8Sanitizer (middleware_stack.rb),
+        # so params arrive UTF-8-TAGGED but not UTF-8-VALIDATED, and
+        # sanitize_email -> Sanitize.fragment raises ArgumentError on an invalid
+        # byte sequence. This method runs in Onetime::Logic::Base's constructor,
+        # BEFORE #raise_concerns runs the limiter, so a raise here is a 500 that
+        # costs the caller no limiter budget — an uncapped hole in the cap.
+        @login_or_email = sanitize_email(params['login'].to_s.scrub(''))
       end
 
       def raise_concerns
+        # Throughput cap (#3872). First by design: every submission costs
+        # budget, and a throttled probe reaches neither the format check below
+        # nor the timing-sensitive lookup in #process — the residual channel
+        # this bounds. Raises Onetime::LimitExceeded, rendered as the ADR-013
+        # 429 (lib/onetime/application/otto_hooks.rb); both tiers key only on
+        # request-observable inputs, so the 429 adds no enumeration oracle.
+        #
+        # Sole limiter call site when the Auth app is not mounted; the other is
+        # the Rodauth before_reset_password_request_route hook in
+        # apps/web/auth/config/hooks/reset_password_request.rb. Keep them in
+        # lockstep on ordering and on subjects — each passes the string ITS path
+        # resolves accounts with, keeping a bucket 1:1 with the lookup.
+        enforce_reset_request_rate_limit!(reset_request_client_ip, @login_or_email)
+
         # Security (CWE-204): email enumeration prevention. Validate only the
         # email FORMAT here — do NOT check account existence in the validation
         # layer. Existence is handled in #process, which returns the same generic
@@ -71,18 +94,24 @@ module AccountAPI::Logic
           return success_data
         end
 
-        secret                    = Onetime::Secret.create! @login_or_email, [@login_or_email]
+        # owner_id, never a positional custid: the auto-generated identifier is
+        # emailed as the reset token (it fills the :key slot of /forgot/:key),
+        # so it must stay unguessable, and ResetPassword#process resolves the
+        # account from it via secret.load_owner.
+        secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
         secret.save
 
         cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately
 
+        # shortid only: the full identifier is the live reset token, so logging
+        # it would hand accounts to anyone with log access mid-reset.
         auth_logger.debug 'Delivering password reset email',
           {
             customer_id: cust.extid,
             email: cust.obscure_email,
-            secret_identifier: secret.identifier,
+            secret_identifier: secret.shortid,
             token: token&.slice(0, 8), # Only log first 8 chars for debugging
           }
 
@@ -116,7 +145,7 @@ module AccountAPI::Logic
             customer_id: cust.extid,
             email: cust.obscure_email,
             session_id: safe_session_id,
-            secret_identifier: secret.identifier,
+            secret_identifier: secret.shortid, # truncated: the full identifier is the live token
             queued: queued,
           }
 
@@ -125,6 +154,17 @@ module AccountAPI::Logic
 
       def success_data
         { objid: nil, sent: true }
+      end
+
+      private
+
+      # Edge-masked client IP from the same StrategyResult metadata the other
+      # logic-layer limiters read (CreateIncomingSecret#incoming_client_ip).
+      # AuthStrategies::Helpers#client_ip sources it from env['otto.client_ip'],
+      # so the key is trusted-proxy-resolved and not header-spoofable. nil skips
+      # the IP tier; the per-login backstop still applies.
+      def reset_request_client_ip
+        strategy_result&.metadata&.[](:ip)
       end
     end
   end

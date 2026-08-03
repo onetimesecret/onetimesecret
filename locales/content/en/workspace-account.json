@@ -431,6 +431,26 @@
     "text": "Enable",
     "content_hash": "5342e09f"
   },
+  "web.settings.security.set": {
+    "text": "Set",
+    "context": "Action link on the Security Overview Set-password card for passwordless accounts (#3886)",
+    "content_hash": "b6f6f3ad"
+  },
+  "web.settings.security.not_set": {
+    "text": "Not set",
+    "context": "Status badge on the Security Overview password card when the account has no password",
+    "content_hash": "4895f731"
+  },
+  "web.settings.security.set_password_title": {
+    "text": "Set password",
+    "context": "Title of the Security Overview card offering a passwordless (SSO-provisioned) account a first password (#3886)",
+    "content_hash": "4e411687"
+  },
+  "web.settings.security.set_password_description": {
+    "text": "Add a password to your account so you can also sign in without your identity provider",
+    "context": "Description on the Set-password card; the password is an additional recovery credential, SSO keeps working",
+    "content_hash": "a6970402"
+  },
   "web.settings.security.codes_available": {
     "text": "{0} codes available",
     "content_hash": "76d6236d"
@@ -538,6 +558,21 @@
   "web.settings.api.api_disabled_notice": {
     "text": "The API is disabled for this instance.",
     "content_hash": "66d12d6b"
+  },
+  "web.settings.api.api_username": {
+    "text": "API Username",
+    "context": "Heading of the API-settings card showing the customer external ID used as the HTTP Basic auth username",
+    "content_hash": "0b3e483e"
+  },
+  "web.settings.api.api_username_description": {
+    "text": "Your username for HTTP Basic authentication",
+    "context": "Subtitle under the API Username heading on the API settings page",
+    "content_hash": "f3e65de3"
+  },
+  "web.settings.api.basic_auth_hint": {
+    "text": "For HTTP Basic auth, use your account email or this ID as the username and your API token as the password.",
+    "context": "Hint under the copyable customer ID on the API settings page explaining which credentials Basic auth accepts",
+    "content_hash": "cfa3806d"
   },
   "web.settings.privacy.title": {
     "text": "Privacy Settings",

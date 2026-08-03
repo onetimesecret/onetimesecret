@@ -200,7 +200,10 @@ describe('AdminDomainDetail', () => {
       props: { id: EXTID },
       global: {
         plugins: [pinia, i18n],
-        stubs: { RouterLink: RouterLinkStub },
+        // DomainConfigsSection owns its own /configs fetch and has its own
+        // spec (DomainConfigsSection.spec.ts); stub it here so this spec's
+        // request-count assertions stay about the detail read.
+        stubs: { RouterLink: RouterLinkStub, DomainConfigsSection: true },
       },
     });
 

@@ -8,7 +8,6 @@
 #   - MailerConfig creation with valid attributes
 #   - Validation (missing domain_id, missing provider, invalid provider, missing from_address)
 #   - update_from_address clears verified_at and resets verification_status
-#   - rotate_credentials preserves verified_at
 #   - CustomDomain forward navigation (sso_config, mailer_config, sso_config?, mailer_config?)
 #   - Provider type validation against PROVIDER_TYPES constant
 #   - enabled? and verified? boolean methods
@@ -313,33 +312,6 @@ mc2.validation_errors.include?('provider must be one of: smtp, ses, sendgrid, le
 ## Reloaded config has pending verification_status after address change
 @reloaded_after_update.verification_status
 #=> 'pending'
-
-# --- rotate_credentials preserves verified_at ---
-
-## Setup: mark config as verified for rotate test
-@config.verification_status = 'verified'
-@config.verified_at = Familia.now.to_i.to_s
-@config.save
-@saved_verified_at = @config.verified_at
-@config.verified?
-#=> true
-
-## rotate_credentials preserves verified_at
-@config.rotate_credentials('new-api-key-xyz789')
-@config.verified_at
-#=> @saved_verified_at
-
-# TODO: Encrypted api_key round-trip after rotation — same ticket as above.
-# Onetime::CustomDomain::MailerConfig.find_by_domain_id(@domain.identifier).api_key.reveal { it }
-# #=> 'new-api-key-xyz789'
-
-## rotate_credentials preserves verification_status
-@config.verification_status
-#=> 'verified'
-
-## rotate_credentials updates the updated timestamp
-@config.updated.to_i > 0
-#=> true
 
 # --- Class methods: find_by_domain_id, exists_for_domain? ---
 

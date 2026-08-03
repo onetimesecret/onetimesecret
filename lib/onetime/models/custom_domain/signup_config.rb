@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../features/boolean_encoding'
+
 #
 # CustomDomain::SignupConfig - Per-domain signup email validation strategy
 #
@@ -82,34 +84,36 @@ module Onetime
       field :created
       field :updated
 
+      # Colonel-writable fields, aggregated into
+      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
+      # validates at load time that every key has a setter here). This model's
+      # MIXED boolean encoding is declared HERE so the registry carries no
+      # second copy: `enabled` stores a legacy 'true'/'false' STRING while
+      # signup_enabled/autoverify store REAL booleans. The boolean_encoding
+      # feature (below) reads these specs to build tolerant predicates and
+      # normalizing setters, so writers that assign the "wrong" encoding
+      # (console, create!, the `.to_s` workspace writers in apps/api/domains)
+      # are normalized to the declared storage on assignment (#3951).
+      # allowed_signup_domains routes through the model setter
+      # (PublicSuffix validation, raises Onetime::Problem).
+      FIELD_SPECS = {
+        'enabled' => { type: :boolean, storage: :string },
+        'signup_enabled' => { type: :boolean, storage: :native },
+        'autoverify' => { type: :boolean, storage: :native },
+        'validation_strategy' => { type: :enum, values: STRATEGY_TYPES, nullable: false },
+        'allowed_signup_domains' => { type: :string_array },
+      }.freeze
+
+      # Tolerant predicates + normalizing setters for the boolean fields in
+      # FIELD_SPECS above (#3951). Must come after both the field
+      # declarations and the constant.
+      feature :boolean_encoding
+
       def init
         self.enabled             ||= 'false'
         self.validation_strategy ||= 'passthrough'
         self.signup_enabled        = false if signup_enabled.nil?
         self.autoverify            = false if autoverify.nil?
-      end
-
-      # Check if this config is enabled.
-      #
-      # @return [Boolean] true if per-domain validation is active
-      def enabled?
-        enabled.to_s == 'true'
-      end
-
-      # Whether signup is enabled on this domain.
-      # Treats legacy nil as false (conservative: off until explicitly enabled).
-      #
-      # @return [Boolean]
-      def signup_enabled?
-        signup_enabled == true
-      end
-
-      # Whether new accounts skip email verification on this domain.
-      # Treats legacy nil as false (conservative: require verification).
-      #
-      # @return [Boolean]
-      def autoverify?
-        autoverify == true
       end
 
       # Returns metadata for the current validation strategy.

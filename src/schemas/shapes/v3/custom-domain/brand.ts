@@ -31,6 +31,33 @@ export {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+ * Read-tolerant URL field for tenant brand assets.
+ *
+ * The canonical contract requires an absolute URL (`z.string().url()`), but
+ * the Ruby write validator (BrandSettings.validate_url_fields!) accepts
+ * "https:// URL or relative path starting with /" — so an app-relative
+ * logo/favicon is legitimately stored and would fail the canonical parse on
+ * READ, nulling the whole brand and dropping ALL of the domain's branding
+ * over one cosmetic field. Same read-tolerance rationale as border_radius
+ * below: accept what the write authority accepts, coerce anything else to
+ * undefined (unset) instead of failing the response.
+ */
+const isRenderableAssetUrl = (val: string): boolean => {
+  if (val.startsWith('/')) return true;
+  try {
+    new URL(val);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const readTolerantAssetUrl = z
+  .string()
+  .transform((val) => (isRenderableAssetUrl(val) ? val : undefined))
+  .nullish();
+
+/**
  * V3 brand settings schema.
  *
  * V3 sends native types - booleans are native, no string transforms needed.
@@ -71,6 +98,12 @@ export const brandSettingsSchema = brandSettingsCanonical.extend({
     .union([z.string(), z.number()])
     .transform((val) => (isValidBorderRadius(val) ? val : undefined))
     .nullish(),
+
+  // Read-tolerance for stored asset URLs (see readTolerantAssetUrl above).
+  // Write strictness stays with the canonical contract + Ruby validator.
+  logo_url: readTolerantAssetUrl,
+  logo_dark_url: readTolerantAssetUrl,
+  favicon_url: readTolerantAssetUrl,
 });
 
 /**

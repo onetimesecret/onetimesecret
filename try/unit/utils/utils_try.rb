@@ -123,6 +123,72 @@ Onetime::Utils.obscure_email('No email here')
 Onetime::Utils.obscure_email('user@domain.com.au')
 #=> 'us***@d***.com.au'
 
+## Handle invalid UTF-8 bytes outside the address (gsub would raise; drop them, mask the rest)
+Onetime::Utils.obscure_email("note\xFF user@example.com")
+#=> 'note us***@e***.com'
+
+## Handle invalid UTF-8 bytes tagged as binary (gsub would raise Encoding::CompatibilityError)
+Onetime::Utils.obscure_email("user@example.com \xFF".dup.force_encoding(Encoding::ASCII_8BIT))
+#=> 'us***@e***.com '
+
+## Invalid byte INSIDE the local part still masks (an un-normalized U+FFFD here
+## would break the pattern match and print the whole address in the clear)
+Onetime::Utils.obscure_email("us\xFFer@example.com")
+#=> 'us***@e***.com'
+
+## A U+FFFD ALREADY in the local part still masks: the diagnose op scrubs its
+## Result in marker mode, so obscure_email's input arrives pre-marked
+Onetime::Utils.obscure_email("us\u{FFFD}er@example.com")
+#=> 'us***@e***.com'
+
+## A U+FFFD already in the domain still masks
+Onetime::Utils.obscure_email("user@exa\u{FFFD}mple.com")
+#=> 'us***@e***.com'
+
+## Marker-mode scrub output feeds back through the mask intact (the exact
+## op -> CLI adapter hand-off)
+Onetime::Utils.obscure_email(Onetime::Utils.utf8_safe("login:locked:us\xFFer@example.com", replacement: "\u{FFFD}"))
+#=> 'login:locked:us***@e***.com'
+
+## Invalid byte INSIDE the domain still masks
+Onetime::Utils.obscure_email("user@exa\xFFmple.com")
+#=> 'us***@e***.com'
+
+## Invalid byte inside an address embedded in a rate-limiter key still masks
+Onetime::Utils.obscure_email("login:locked:us\xFFer@example.com")
+#=> 'login:locked:us***@e***.com'
+
+## Invalid byte inside an address on a binary-tagged string still masks
+Onetime::Utils.obscure_email("login:locked:us\xFFer@example.com".dup.force_encoding(Encoding::ASCII_8BIT))
+#=> 'login:locked:us***@e***.com'
+
+## Unicode local part is masked (Truemail accepts these, so they are storable)
+Onetime::Utils.obscure_email('josé@example.com')
+#=> 'jo***@e***.com'
+
+## Unicode domain (IDN) is masked
+Onetime::Utils.obscure_email('user@пример.рф')
+#=> 'us***@п***.рф'
+
+## utf8_safe leaves valid text alone
+Onetime::Utils.utf8_safe('plain text')
+#=> 'plain text'
+
+## utf8_safe drops invalid bytes by default (presentation choice, not a safety
+## one — obscure_email normalizes markers itself, so redaction is safe either way)
+Onetime::Utils.utf8_safe("us\xFFer")
+#=> 'user'
+
+## utf8_safe marks invalid bytes when a caller asks for the marker (what the
+## diagnose op does, so colonel keeps the corruption signal)
+Onetime::Utils.utf8_safe("us\xFFer", replacement: "\u{FFFD}")
+#=> "us\u{FFFD}er"
+
+## The marker constant is shared between the producers and obscure_email so they
+## cannot drift onto different markers
+Onetime::Utils.utf8_safe("us\xFFer", replacement: Onetime::Utils::Strings::UNICODE_REPLACEMENT_CHAR)
+#=> "us\u{FFFD}er"
+
 ## random_fortune returns a string
 ## Create a mock fortunes collection
 mock_fortunes = ["Fortune favors the bold.", "The early bird gets the worm."]

@@ -67,16 +67,20 @@ RSpec.describe 'Organization.create_from_v1_customer! created_by dual-write',
     expect(@org).to be_a(Onetime::Organization)
   end
 
-  it 'sets owner_id to the customer custid' do
-    expect(@org.owner_id).to eq(@customer.custid)
+  it 'sets owner_id to the customer objid (#3907)' do
+    expect(@org.owner_id).to eq(@customer.objid)
   end
 
-  it 'sets created_by to the customer custid (ADR-012)' do
-    expect(@org.created_by).to eq(@customer.custid)
+  it 'sets created_by to the customer objid (ADR-012, #3907)' do
+    expect(@org.created_by).to eq(@customer.objid)
   end
 
   it 'created_by equals owner_id (lock-step invariant)' do
     expect(@org.created_by).to eq(@org.owner_id)
+  end
+
+  it 'preserves the v1 email identity in v1_source_custid, not in the audit fields' do
+    expect(@org.v1_source_custid).to eq(@email)
   end
 
   it 'marks the org as default workspace' do
@@ -85,8 +89,8 @@ RSpec.describe 'Organization.create_from_v1_customer! created_by dual-write',
 
   it 'safe_dump exposes both owner_id and created_by' do
     dump = @org.safe_dump
-    expect(dump[:owner_id]).to eq(@customer.custid)
-    expect(dump[:created_by]).to eq(@customer.custid)
+    expect(dump[:owner_id]).to eq(@customer.objid)
+    expect(dump[:created_by]).to eq(@customer.objid)
     expect(dump[:created_by]).to eq(dump[:owner_id])
   end
 
