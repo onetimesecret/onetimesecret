@@ -31,10 +31,15 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListAuditEvents do
     )
   end
 
+  # Full actor objids (never truncated in the trail — NIST AU-3/PCI 10.2.2).
+  # 'cust-gone-456' models a since-removed member: its objid stays in the
+  # trail but no longer resolves through the org-membership join.
   let(:sample_events) do
     [
-      { 'kind' => 'revealed', 'at' => 1_783_200_100.0, 'receipt' => 'rcpt2', 'secret' => 'scrt2' },
-      { 'kind' => 'created',  'at' => 1_783_200_000.0, 'receipt' => 'rcpt1', 'secret' => 'scrt1' },
+      { 'kind' => 'revealed', 'at' => 1_783_200_100.0, 'receipt' => 'rcpt2', 'secret' => 'scrt2',
+        'actor_id' => 'cust-actor-789' },
+      { 'kind' => 'created',  'at' => 1_783_200_000.0, 'receipt' => 'rcpt1', 'secret' => 'scrt1',
+        'actor_id' => 'cust-gone-456' },
     ]
   end
 
@@ -52,6 +57,23 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListAuditEvents do
       Onetime::OrganizationMembership,
       active?: true,
       can?: true
+    )
+  end
+
+  let(:actor_customer) do
+    instance_double(
+      Onetime::Customer,
+      objid: 'cust-actor-789',
+      extid: 'ext-cust-actor-789',
+      email: 'actor@example.com'
+    )
+  end
+
+  let(:actor_membership) do
+    instance_double(
+      Onetime::OrganizationMembership,
+      active?: true,
+      customer: actor_customer
     )
   end
 
@@ -79,9 +101,15 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListAuditEvents do
     allow(Onetime::Organization).to receive(:find_by_extid)
       .with('ext-org-123')
       .and_return(organization)
+    # Unknown/removed actors (e.g. 'cust-gone-456') fall through to nil.
+    allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+      .and_return(nil)
     allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
       .with('org-123', 'cust-123')
       .and_return(membership)
+    allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+      .with('org-123', 'cust-actor-789')
+      .and_return(actor_membership)
     allow(organization).to receive(:audit_events_page).and_return(sample_events)
     allow(organization).to receive(:audit_event_count).and_return(42)
   end
@@ -145,7 +173,66 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListAuditEvents do
       expect(data[:total]).to eq(42)
       expect(data[:organization_id]).to eq('ext-org-123')
       expect(data[:user_id]).to eq('ext-cust-123')
-      expect(data[:details]).to eq({ offset: 0, limit: 50 })
+      expect(data[:details]).to eq({
+        offset: 0,
+        limit: 50,
+        actors: { 'cust-actor-789' => { 'email' => 'actor@example.com', 'extid' => 'ext-cust-actor-789' } },
+      })
+    end
+  end
+
+  describe 'actor resolution' do
+    before do
+      logic.process_params
+      logic.raise_concerns
+    end
+
+    it 'resolves active members to email + extid, keyed by full objid' do
+      data = logic.process
+
+      expect(data[:details][:actors]).to eq(
+        'cust-actor-789' => { 'email' => 'actor@example.com', 'extid' => 'ext-cust-actor-789' },
+      )
+    end
+
+    it 'omits removed/unknown actors so the UI renders the bare objid' do
+      data = logic.process
+
+      expect(data[:details][:actors]).not_to have_key('cust-gone-456')
+    end
+
+    it 'never mutates events — actor_id stays the raw full objid' do
+      data = logic.process
+
+      expect(data[:records].map { |ev| ev['actor_id'] }).to eq(%w[cust-actor-789 cust-gone-456])
+      expect(data[:records].none? { |ev| ev.key?('email') }).to be(true)
+    end
+
+    it 'excludes actors whose membership is no longer active' do
+      allow(actor_membership).to receive(:active?).and_return(false)
+
+      data = logic.process
+
+      expect(data[:details][:actors]).to eq({})
+    end
+
+    it 'skips an actor whose resolution raises instead of failing the page' do
+      allow(actor_membership).to receive(:customer).and_raise(StandardError, 'redis hiccup')
+
+      data = logic.process
+
+      expect(data[:details][:actors]).to eq({})
+      expect(OT).to have_received(:le).with(/actor resolution failed/, hash_including(actor_id: 'cust-actor-789'))
+    end
+
+    it 'leaves events without an actor_id out of the lookup entirely' do
+      allow(organization).to receive(:audit_events_page).and_return([
+        { 'kind' => 'expired', 'at' => 1_783_200_200.0, 'receipt' => 'rcpt3', 'secret' => 'scrt3' },
+      ])
+
+      data = logic.process
+
+      expect(data[:details][:actors]).to eq({})
     end
   end
 

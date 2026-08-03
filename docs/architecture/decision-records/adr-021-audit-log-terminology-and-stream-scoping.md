@@ -34,6 +34,14 @@ terminology and visibility rules need to be settled before either frontend ships
 | **Retention** | TTL-based (90 days proposed) | Cap-based (newest 10,000 events per org) |
 | **Status** | Unstarted | Backend shipped (#3635); UX in #3637 |
 
+> **Status note (2026-08-02):** the context table above predates #3639/#3637.
+> Secret Activity now DOES record actor attribution at capture time
+> (`creator | authenticated_other | anonymous | system | unknown`, with
+> `actor_id` as the full customer objid, identity resolved at read time) —
+> see `docs/architecture/audit-logging.md` and ADR-023. The terminology and
+> scoping decisions below are unaffected; Decision 1's "Actor?: No" for #3635
+> described the pre-#3639 state.
+
 ## Decision
 
 ### Decision 1 — Distinct names for the two streams

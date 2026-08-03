@@ -13,6 +13,7 @@ module V1::Logic
     # for rationale. The v0.24 model renamed the method.
     class BurnSecret < V1::Logic::Base
       include Onetime::Security::PassphraseRateLimiter
+      include ActorAttribution
 
       attr_reader :key, :passphrase, :continue
       attr_reader :receipt, :secret, :correct_passphrase, :greenlighted
@@ -58,7 +59,7 @@ module V1::Logic
             # or burn already consumed the secret, burned! returns false and
             # this request must not count the burn nor report success (the
             # controller then renders its standard not-found response).
-            @greenlighted = secret.burned!
+            @greenlighted = secret.burned!(actor_context: lifecycle_actor_context(secret))
             owner.increment_field(:secrets_burned) if greenlighted && owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_burned

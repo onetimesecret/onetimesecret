@@ -4,6 +4,7 @@
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
 import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
+import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
@@ -38,13 +39,14 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { z } from 'zod';
 
-type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso';
+type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso' | 'activity';
 
 // URL tab names map to internal tab names
 // URL: members -> internal: members (team kept as backwards-compat alias)
 // URL: settings -> internal: general
 // URL: subscription -> internal: subscription (billing kept as backwards-compat alias)
 // URL: sso -> internal: sso
+// URL: activity -> internal: activity
 const URL_TO_TAB: Record<string, TabType> = {
   members: 'members',
   team: 'members', // backwards compatibility for old URLs
@@ -53,6 +55,7 @@ const URL_TO_TAB: Record<string, TabType> = {
   billing: 'subscription', // backwards compatibility for old URLs
   settings: 'general',
   sso: 'sso',
+  activity: 'activity',
 };
 
 const TAB_TO_URL: Record<TabType, string> = {
@@ -61,6 +64,7 @@ const TAB_TO_URL: Record<TabType, string> = {
   subscription: 'subscription',
   general: 'settings',
   sso: 'sso',
+  activity: 'activity',
 };
 
 const props = withDefaults(defineProps<{
@@ -125,6 +129,8 @@ const setActiveTab = (tab: TabType) => {
 
 // Watch for route param changes (e.g., back/forward navigation).
 // Reject navigation to entitlement-gated tabs the user can't access.
+// NOTE: 'activity' is deliberately NOT in this gated list — the tab stays
+// reachable when unentitled and renders an inline upgrade notice instead.
 watch(
   () => route.params.tab,
   (newTab) => {
@@ -202,6 +208,21 @@ const sortedEntitlements = computed(() =>
 
 // SSO visibility: feature flag AND entitlement must both pass (dual-control)
 const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
+
+// Secret Activity (audit trail) — gates the panel CONTENT only, never the
+// tab. Mirrors the backend contract (list_audit_events.rb): the materialized
+// membership entitlements are plan ∩ role, and audit_logs sits in the
+// admin tier — so a plain member is 403'd server-side even on an entitled
+// plan. org.entitlements in the API payload is the PLAN-level set, so the
+// role must be checked separately here or members mount the table and land
+// in a generic error state.
+const isAuditRoleAllowed = computed(() =>
+  ['owner', 'admin'].includes(organization.value?.current_user_role ?? '')
+);
+const canViewAuditLogs = computed(() => {
+  if (!organization.value) return false;
+  return isAuditRoleAllowed.value && can(ENTITLEMENTS.AUDIT_LOGS);
+});
 
 // Role-based gate: only owners and admins can add new domains (mirrors
 // route guard `requireDomainAdminRole` and backend check). Hides the UI
@@ -648,7 +669,9 @@ onMounted(async () => {
   await loadOrganization();
 
   // Redirect away from entitlement-gated tabs the user can't access
-  // (e.g. direct URL navigation to /org/.../members without manage_members)
+  // (e.g. direct URL navigation to /org/.../members without manage_members).
+  // 'activity' is deliberately absent: deep links to it always land, and the
+  // panel itself swaps in an upgrade notice when unentitled.
   if (
     (activeTab.value === 'members' && !canManageMembers.value) ||
     (activeTab.value === 'sso' && !canManageSso.value)
@@ -660,7 +683,8 @@ onMounted(async () => {
   // identify the current user's membership record.
   loadMembers();
 
-  // Load data for the initial tab
+  // Load data for the initial tab. 'activity' needs no case here:
+  // SecretActivityTable owns its fetching and mounts lazily with the panel.
   if (activeTab.value === 'members') {
     await loadInvitations();
   } else if (activeTab.value === 'domains') {
@@ -673,6 +697,10 @@ onMounted(async () => {
   }
 });
 
+// Per-tab lazy loads on tab switch. 'activity' has no case here on purpose:
+// its panel is v-if'd on the active tab, so SecretActivityTable mounts on
+// activation and fetches its own first page (refetching fresh on each visit —
+// desirable for an audit trail).
 watch(activeTab, async (newTab) => {
   if (newTab === 'members') {
     // Load members and invitations when switching to members tab
@@ -733,10 +761,13 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 
 // Keyboard navigation for tabs (WCAG 2.1 AA)
 const handleTabKeydown = (e: KeyboardEvent) => {
-  // Build navigable tabs array — only tabs the user can actually reach
+  // Build navigable tabs array — only tabs the user can actually reach.
+  // 'activity' is always included: even unentitled users can open it (the
+  // panel shows the upgrade prompt), so it must stay keyboard-reachable.
   const tabs: TabType[] = ['domains'];
   if (canManageMembers.value) tabs.push('members');
   if (canManageSso.value) tabs.push('sso');
+  tabs.push('activity');
   tabs.push('general');
 
   const currentIndex = tabs.indexOf(activeTab.value);
@@ -868,6 +899,24 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
+          </button>
+          <!-- Activity tab — always visible; the panel gates on the
+               audit_logs entitlement (upgrade notice when unentitled) -->
+          <button
+            id="org-tab-activity"
+            role="tab"
+            :aria-selected="activeTab === 'activity'"
+            :tabindex="activeTab === 'activity' ? 0 : -1"
+            aria-controls="org-panel-activity"
+            data-testid="org-tab-activity"
+            @click="setActiveTab('activity')"
+            :class="[
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
+              activeTab === 'activity'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.activity') }}
           </button>
           <!-- Settings tab - always last -->
           <button
@@ -1861,6 +1910,69 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Activity Tab (Secret Activity audit trail) — the panel always
+             renders; only its CONTENT gates on the audit_logs entitlement -->
+        <section
+          v-if="activeTab === 'activity'"
+          id="org-panel-activity"
+          role="tabpanel"
+          aria-labelledby="org-tab-activity"
+          tabindex="0"
+          data-testid="org-section-activity"
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ t('web.organizations.audit.title') }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.audit.description') }}
+            </p>
+            <!-- Access notice for non-admin members: their role is the blocker
+                 (backend 403s regardless of plan), so no upgrade upsell -->
+            <div
+              v-if="!isAuditRoleAllowed"
+              role="status"
+              data-testid="org-audit-role-notice"
+              class="mt-4 flex items-center gap-3 rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/40">
+              <OIcon
+                collection="heroicons"
+                name="lock-closed"
+                class="size-5 flex-shrink-0 text-gray-400 dark:text-gray-500"
+                aria-hidden="true" />
+              <p class="flex-1 text-sm text-gray-600 dark:text-gray-300">
+                {{ t('web.organizations.audit.role_required') }}
+              </p>
+            </div>
+            <div
+              v-else-if="!canViewAuditLogs"
+              role="status"
+              class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+              <OIcon
+                collection="heroicons"
+                name="information-circle"
+                class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+                aria-hidden="true" />
+              <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+                {{ t('web.organizations.audit.upgrade_prompt') }}
+              </p>
+              <router-link
+                :to="`/billing/${orgId}/plans`"
+                class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200">
+                {{ t('web.billing.overview.view_plans_action') }}
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-right"
+                  class="size-4"
+                  aria-hidden="true" />
+              </router-link>
+            </div>
+          </div>
+
+          <div v-if="canViewAuditLogs" class="p-6">
+            <SecretActivityTable :org-extid="orgId" />
           </div>
         </section>
       </div>

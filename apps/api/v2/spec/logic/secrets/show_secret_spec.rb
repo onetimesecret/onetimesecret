@@ -122,6 +122,24 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(timeline.access_events.last).to start_with('previewed:')
       expect(Onetime::Secret.load(owner_pair.last.identifier).state).to eq('new')
     end
+
+    it 'records the fetch actor explicitly: creator with the full objid (#3637)' do
+      owner = Onetime::Customer.create!(email: "show-fetch-actor-#{SecureRandom.hex(6)}@example.com")
+      owner_pair = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value')
+      org = link_receipt_to_org!(owner_pair.first)
+      as_owner = double('Customer', custid: owner.custid, objid: owner.objid, anonymous?: false)
+
+      logic = build_logic({ 'identifier' => owner_pair.last.identifier }, customer: as_owner)
+      logic.process_params
+      logic.process
+
+      # The kind rename ('previewed') is presentation; the actor is recorded
+      # explicitly so the trail's consumer never infers it from the kind.
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('previewed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq(owner.objid)
+    end
   end
 
   # End-to-end network context capture (#3640, ADR-022): a metadata fetch
@@ -160,6 +178,10 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(event['net_ip_hash']).to match(/\A[0-9a-f]{64}\z/)
       expect(event['net_ua_partial']).to include('Chrome')
       expect(event['net_ua_partial']).not_to include('119.0.0.0')
+      # Fetch events also carry an explicit actor (#3637): anonymous caller,
+      # so no actor_id rides along with the network context.
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
     end
 
     # THE NO-REGRESSION GUARD at the endpoint boundary.
@@ -218,7 +240,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       event = org.audit_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
-      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+      expect(event['actor_id']).to eq(owner_objid)
     end
 
     it 'records actor=authenticated_other when an authenticated non-owner reveals' do
@@ -237,7 +259,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(logic.secret_value).to eq('a secret value')
       event = org.audit_events_page.first
       expect(event['actor']).to eq('authenticated_other')
-      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+      expect(event['actor_id']).to eq(other_objid)
     end
 
     # THE privacy pin: an anonymous reveal of a guest link (owner_id nil, caller

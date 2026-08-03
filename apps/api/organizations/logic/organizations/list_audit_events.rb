@@ -25,6 +25,14 @@ module OrganizationAPI::Logic
     #   domain context: 'domain_id' (8-char shortid) and 'domain' (the
     #   public FQDN, e.g. secrets.acme.com); both are absent for
     #   default-domain shares.
+    #
+    #   Actor identity is different: events carry the FULL customer objid
+    #   (an objid grants no access, and NIST AU-3 / PCI DSS 10.2.2 require
+    #   unique traceability to an individual). The objid is resolved to
+    #   email/extid at read time via the org-membership join
+    #   (`details.actors`); actors that no longer resolve — removed members,
+    #   out-of-org actors, legacy truncated ids — are absent from the map and
+    #   render as the bare objid.
     class ListAuditEvents < OrganizationAPI::Logic::Base
       DEFAULT_LIMIT = 50
 
@@ -57,6 +65,7 @@ module OrganizationAPI::Logic
 
       def process
         @events = organization.audit_events_page(offset: offset, limit: limit)
+        @actors = resolve_actors(@events)
 
         success_data
       end
@@ -71,8 +80,36 @@ module OrganizationAPI::Logic
           details: {
             offset: offset,
             limit: limit,
+            actors: @actors,
           },
         }
+      end
+
+      private
+
+      # Read-time actor resolution (never written back into the trail — the
+      # trail stays email-free for GDPR minimization). Only currently-active
+      # members resolve; everything else stays out of the map so the UI
+      # falls back to the raw objid, matching CloudTrail's deleted-principal
+      # semantics. Best-effort per actor: one bad record must not 500 the
+      # page.
+      def resolve_actors(events)
+        actor_ids = events.map { |ev| ev['actor_id'] }.reject { |id| id.to_s.empty? }.uniq
+
+        actor_ids.each_with_object({}) do |actor_id, map|
+          membership = Onetime::OrganizationMembership.find_by_org_customer(organization.objid, actor_id)
+          next unless membership&.active?
+
+          customer = membership.customer
+          next unless customer
+
+          map[actor_id] = { 'email' => customer.email, 'extid' => customer.extid }
+        rescue StandardError => ex
+          OT.le '[ListAuditEvents] actor resolution failed',
+            organization: organization.objid,
+            actor_id: actor_id,
+            error: ex.message
+        end
       end
     end
   end

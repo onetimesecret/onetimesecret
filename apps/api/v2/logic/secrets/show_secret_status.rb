@@ -15,6 +15,7 @@ module V2::Logic
     #   receipt, visible to the secret's creator.
     class ShowSecretStatus < V2::Logic::Base
       include AccessTelemetry
+      include ActorAttribution # fetch events record their actor (#3637)
 
       SCHEMAS = { response: 'secretStatus' }.freeze
 

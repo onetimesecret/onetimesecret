@@ -145,8 +145,9 @@ module Onetime::Receipt::Features
       #
       # @param actor_context [Hash, nil] request-scoped audit context (e.g. the
       #   actor discriminator) threaded down from the reveal cascade (#3639).
-      #   Forwarded to the org audit trail; nil is treated as an unknown/anonymous
-      #   actor (never misattributed to the creator). See #lifecycle_audit_attrs.
+      #   Forwarded to the org audit trail; nil fails safe to the 'unknown'
+      #   actor (ADR-023; never misattributed to the creator). See
+      #   #lifecycle_audit_attrs.
       # @return [Boolean, nil] true if THIS caller performed the transition;
       #   a falsy value if the in-memory guard or the atomic claim lost.
       def revealed!(actor_context: nil)
@@ -205,13 +206,16 @@ module Onetime::Receipt::Features
             timestamp: updated,
           }
 
-        record_org_audit_event('orphaned')
+        # A system-detected transition: no individual acted, so the event
+        # carries the 'system' actor and never an actor_id (#3637).
+        record_org_audit_event('orphaned', 'actor' => 'system')
         true
       end
 
       # @param actor_context [Hash, nil] request-scoped audit context threaded
       #   down from the burn cascade (#3639); see #revealed! and
-      #   #lifecycle_audit_attrs. nil is treated as an unknown/anonymous actor.
+      #   #lifecycle_audit_attrs. nil fails safe to the 'unknown' actor
+      #   (ADR-023).
       def burned!(actor_context: nil)
         # See guard comment on `revealed!` (was `received!`)
         return unless state?(:new) || state?(:previewed)
@@ -269,7 +273,8 @@ module Onetime::Receipt::Features
             age_seconds: age,
           }
 
-        record_org_audit_event('expired')
+        # System-detected, like orphaned!: 'system' actor, never an actor_id.
+        record_org_audit_event('expired', 'actor' => 'system')
         true
       end
 
@@ -284,60 +289,22 @@ module Onetime::Receipt::Features
         truncate.to_s == 'true'
       end
 
-      # Recognized actor discriminators for lifecycle audit events (#3639). An
-      # empty or unexpected value fails safe to 'anonymous' rather than being
-      # recorded verbatim: the trail must never carry an actor label the rest of
-      # the system doesn't understand, and an unknown actor must never be
-      # misattributed to the creator. (Defined above `private` -- `private` does
-      # not scope constants; see RuboCop Lint/UselessConstantScoping.)
-      LIFECYCLE_ACTORS = %w[creator authenticated_other anonymous].freeze
-
-      # Max length of a stored actor_id, matching Receipt#shortid
-      # (objid.slice(0, 8)). Clamping is defense in depth so a full objid/custid
-      # can never leak into the trail even if a caller supplies an unreduced value.
-      ACTOR_ID_MAX_LENGTH = 8
-
       private
 
-      # Normalize the request-scoped actor context threaded into a lifecycle
-      # transition (revealed!/burned!, #3639) into string-keyed audit attributes.
-      #
-      # The org audit trail records the terminal lifecycle events with WHO acted
-      # ('actor' => 'creator' | 'authenticated_other' | 'anonymous'), computed at
-      # the logic layer where the request's customer is in scope. This model
-      # method never sees request context, so it fails safe: a missing/blank
-      # actor context is recorded as 'anonymous' — the same "never misattribute an
-      # unknown actor to the creator" precedent the fetch-side telemetry follows.
-      # Callers without request context (v1 paths, account verification, direct
-      # receipt.revealed! test calls) therefore still emit a well-formed actor.
+      # Pass the request-scoped actor context threaded into a lifecycle
+      # transition (revealed!/burned!, #3639) through as string-keyed audit
+      # attributes. Actor validation is centralized in
+      # AccessTimeline#record_org_audit_event so every event kind -- lifecycle,
+      # fetch telemetry, receipt views, creation -- obeys the same rules
+      # (fail-safe 'anonymous', no actor_id on anonymous/system events, full
+      # untruncated objid for authenticated actors). Callers without request
+      # context (v1 paths, account verification, direct receipt.revealed! test
+      # calls) pass nothing and are recorded under the fail-safe actor.
       #
       # @param actor_context [Hash, nil] string- or symbol-keyed audit attrs.
-      # @return [Hash] string-keyed attrs with a guaranteed known 'actor' and,
-      #   for authenticated actors only, an 8-char 'actor_id'.
+      # @return [Hash] string-keyed attrs, empty when no context was threaded.
       def lifecycle_audit_attrs(actor_context)
-        attrs = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
-
-        # Fail safe: an empty or unrecognized actor becomes 'anonymous'.
-        actor          = attrs['actor'].to_s
-        actor          = 'anonymous' unless LIFECYCLE_ACTORS.include?(actor)
-        attrs['actor'] = actor
-
-        if actor == 'anonymous'
-          # An anonymous event has no identity: never attach an id to it, even
-          # if a caller supplied one.
-          attrs.delete('actor_id')
-        elsif attrs.key?('actor_id')
-          # Authenticated actor: keep the id but clamp it to the shortid policy;
-          # drop it entirely if blank so we never store an empty token.
-          id = attrs['actor_id'].to_s
-          if id.empty?
-            attrs.delete('actor_id')
-          else
-            attrs['actor_id'] = id.slice(0, ACTOR_ID_MAX_LENGTH)
-          end
-        end
-
-        attrs
+        actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
       end
 
       # See Onetime::Models::Features::StateCas for +compare_and_set_state!+,

@@ -21,8 +21,12 @@ require 'onetime/security/request_context'
 #     without org context write nowhere and raise nothing.
 #   CONTAINMENT - a failing trail write never breaks or reverts the
 #     product action it observes (reveal/burn must still succeed).
-#   NON-LEAKAGE - events carry shortids only; the full secret identifier
-#     is a capability token and must never appear in the trail.
+#   NON-LEAKAGE - receipt/secret context carries shortids only; those full
+#     identifiers are capability tokens and must never appear in the trail.
+#     The actor_id is deliberately the OPPOSITE convention: the FULL customer
+#     objid, stored untruncated for unique traceability (NIST AU-3, PCI DSS
+#     10.2.2) -- an objid grants no access, and identity is resolved at
+#     read/export time. An email must never enter the trail in any field.
 RSpec.describe Onetime::Organization, type: :integration do
   before(:all) do
     require 'onetime'
@@ -114,6 +118,11 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(events.first['kind']).to eq('status_get')
       expect(events.first['receipt']).to eq(receipt.shortid)
       expect(events.first['secret']).to eq(receipt.secret_shortid)
+      # A fetch recorded without actor context falls to the fail-safe actor:
+      # every event in the trail carries a recognized 'actor' (#3637), and the
+      # fail-safe is the explicit 'unknown' sentinel (ADR-023).
+      expect(events.first['actor']).to eq('unknown')
+      expect(events.first).not_to have_key('actor_id')
     end
 
     it 'never leaks the full secret identifier into the trail' do
@@ -244,6 +253,25 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(kinds).to eq(['receipt_viewed'])
     end
 
+    it 'threads the actor context from the receipt view into the trail (#3637)' do
+      full_objid = "customer_objid_#{SecureRandom.hex(12)}"
+      receipt.record_receipt_view!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('receipt_viewed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq(full_objid)
+    end
+
+    it 'records the receipt view without actor context under the fail-safe actor' do
+      receipt.record_receipt_view!
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('receipt_viewed')
+      expect(event['actor']).to eq('unknown')
+      expect(event).not_to have_key('actor_id')
+    end
+
     it 'records revealed exactly once even if called repeatedly' do
       receipt.revealed!
       receipt.revealed! # guard: state is no longer :new/:previewed
@@ -260,12 +288,16 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(kinds).to eq(['burned'])
     end
 
-    it 'records orphaned exactly once' do
+    it 'records orphaned exactly once, as a system actor with no actor_id' do
       receipt.orphaned!
       receipt.orphaned!
 
-      kinds = org.audit_events_page.map { |e| e['kind'] }
-      expect(kinds).to eq(['orphaned'])
+      events = org.audit_events_page
+      expect(events.map { |e| e['kind'] }).to eq(['orphaned'])
+      # System-detected transition: no acting individual, so 'system' and
+      # never an actor_id (#3637).
+      expect(events.first['actor']).to eq('system')
+      expect(events.first).not_to have_key('actor_id')
     end
 
     it 'does not record expired for a receipt that has not expired' do
@@ -283,8 +315,11 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.expired!
       receipt.expired! # second call: state already advanced, guard holds
 
-      kinds = org.audit_events_page.map { |e| e['kind'] }
-      expect(kinds).to eq(['expired'])
+      events = org.audit_events_page
+      expect(events.map { |e| e['kind'] }).to eq(['expired'])
+      # System-detected, like orphaned: 'system' actor, never an actor_id.
+      expect(events.first['actor']).to eq('system')
+      expect(events.first).not_to have_key('actor_id')
     end
 
     it 'reaches the trail through the full reveal cascade (secret -> receipt -> org)' do
@@ -301,56 +336,61 @@ RSpec.describe Onetime::Organization, type: :integration do
   # specs pin the trail-facing half of that contract:
   #   * record_org_audit_event forwards arbitrary string-keyed event_attrs;
   #   * revealed!/burned! record the threaded actor exactly once (CAS-gated);
-  #   * a missing actor context fails safe to 'anonymous' (never 'creator');
+  #   * a missing actor context fails safe to 'unknown' (ADR-023: never
+  #     'creator', and never 'anonymous' — that would assert "unauthenticated",
+  #     a fact an actorless event cannot support);
   #   * the full Secret -> Receipt -> Org cascade carries the actor down.
   describe 'actor attribution on lifecycle events (#3639)' do
     before { link_to_org!(receipt, org) }
 
+    let(:full_objid) { "customer_objid_#{SecureRandom.hex(12)}" }
+
     it 'record_org_audit_event forwards extra string-keyed attrs into the event' do
-      receipt.record_org_audit_event('revealed', 'actor' => 'creator', 'actor_id' => 'abcd1234')
+      receipt.record_org_audit_event('revealed', 'actor' => 'creator', 'actor_id' => full_objid)
 
       event = org.audit_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
-      expect(event['actor_id']).to eq('abcd1234')
+      expect(event['actor_id']).to eq(full_objid)
     end
 
     it 'threads the actor through revealed! into the trail' do
-      receipt.revealed!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })
+      receipt.revealed!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
 
       event = org.audit_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
-      expect(event['actor_id']).to eq('abcd1234')
+      expect(event['actor_id']).to eq(full_objid)
     end
 
     it 'threads the actor through burned! into the trail' do
-      receipt.burned!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'beef5678' })
+      receipt.burned!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => full_objid })
 
       event = org.audit_events_page.first
       expect(event['kind']).to eq('burned')
       expect(event['actor']).to eq('authenticated_other')
-      expect(event['actor_id']).to eq('beef5678')
+      expect(event['actor_id']).to eq(full_objid)
     end
 
-    it 'defaults a missing actor context to anonymous on revealed! (never misattributed)' do
-      receipt.revealed! # v1 / account-verification path: no request context
+    it 'defaults a missing actor context to unknown on revealed! (ADR-023, never misattributed)' do
+      receipt.revealed! # defensive path: no request context threaded
 
       event = org.audit_events_page.first
-      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).to eq('unknown')
       expect(event).not_to have_key('actor_id')
     end
 
-    it 'defaults a blank actor to anonymous on burned! (never misattributed)' do
+    it 'defaults a blank actor to unknown on burned! (ADR-023, never misattributed)' do
       receipt.burned!(actor_context: { 'actor' => '' })
 
       event = org.audit_events_page.first
-      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).to eq('unknown')
     end
 
-    # Privacy no-regression guards for lifecycle_audit_attrs normalization.
-    # These pin the three ways an actor context is reduced before it is stored,
-    # so a future change can't silently start leaking identity into the trail.
+    # Privacy no-regression guards for the centralized actor validation in
+    # record_org_audit_event (#3637). These pin the ways an actor context is
+    # reduced before it is stored, so a future change can't silently start
+    # leaking identity (or misattributing events) in the trail.
     it 'never attaches an actor_id to an anonymous event, even if one is supplied' do
       # An anonymous actor has no identity to record; an id riding along on the
       # context must be dropped, not stored against 'anonymous'.
@@ -361,26 +401,67 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(event).not_to have_key('actor_id')
     end
 
-    it 'fails an unrecognized actor safe to anonymous and drops its id' do
+    it 'fails an unrecognized actor safe to unknown and keeps its id (ADR-023)' do
       # An actor label outside the known set is never recorded verbatim: it
-      # fails safe to anonymous (never misattributed to the creator) and any
-      # id it carried is dropped with it.
-      receipt.revealed!(actor_context: { 'actor' => 'root', 'actor_id' => 'abcd1234' })
+      # fails safe to the explicit 'unknown' sentinel (never misattributed to
+      # the creator, never asserted 'anonymous'). A valid id riding along is
+      # KEPT — record what is known, mark the rest unknown.
+      receipt.revealed!(actor_context: { 'actor' => 'root', 'actor_id' => full_objid })
 
       event = org.audit_events_page.first
-      expect(event['actor']).to eq('anonymous')
-      expect(event).not_to have_key('actor_id')
+      expect(event['actor']).to eq('unknown')
+      expect(event['actor_id']).to eq(full_objid)
     end
 
-    it 'clamps an over-long actor_id to the 8-char shortid policy' do
-      # Defense in depth: even if a caller supplies an unreduced objid/custid,
-      # the trail stores only the 8-char shortid -- a full identifier (which
-      # could be a capability token) can never leak in.
-      receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234efgh5678' })
+    it 'records an explicit unknown actor with its id (indeterminate ownership, ADR-023)' do
+      # The nil-target_secret branch in lifecycle_actor_context records
+      # 'unknown' + the authenticated principal's objid; the validator must
+      # pass both through unchanged (unknown is id-carrying).
+      receipt.burned!(actor_context: { 'actor' => 'unknown', 'actor_id' => full_objid })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('unknown')
+      expect(event['actor_id']).to eq(full_objid)
+    end
+
+    it 'stores the full actor objid untruncated (unique traceability, AU-3 / PCI 10.2.2)' do
+      # The trail must bind the event to a uniquely resolvable individual; a
+      # truncated id collides. An objid grants no access, so the shortid
+      # convention for receipt/secret capability tokens does not apply here.
+      receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
 
       event = org.audit_events_page.first
       expect(event['actor']).to eq('creator')
-      expect(event['actor_id']).to eq('abcd1234')
+      expect(event['actor_id']).to eq(full_objid)
+      expect(event['actor_id'].length).to be > 8
+    end
+
+    it 'drops an email-like actor_id (an email must never enter the trail)' do
+      # GDPR minimization: the append-only trail is exempt from erasure only
+      # because no personal identifier ever enters it. Defense in depth
+      # against a caller passing cust.email where an objid belongs.
+      receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'person@example.com' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('creator')
+      expect(event).not_to have_key('actor_id')
+      expect(org.audit_events.membersraw.join).not_to include('person@example.com')
+    end
+
+    it 'drops a blank actor_id rather than storing an empty token' do
+      receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => '' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('creator')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    it 'never attaches an actor_id to a system event, even if one is supplied' do
+      receipt.record_org_audit_event('expired', 'actor' => 'system', 'actor_id' => full_objid)
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('system')
+      expect(event).not_to have_key('actor_id')
     end
 
     it 'records the threaded actor exactly once; a race-loser records nothing' do

@@ -160,6 +160,24 @@ RSpec.describe Onetime::Receipt, type: :integration do
 
       expect(after_ttl).to be <= before_ttl
     end
+
+    # Actor threading (#3637): the receipt page's logic layer computes the
+    # actor context and record_receipt_view! forwards it, string-keyed, into
+    # record_org_audit_event -- where the centralized validation applies.
+    it 'forwards the actor context to the org-trail fan-out' do
+      full_objid = "customer_objid_#{SecureRandom.hex(12)}"
+
+      expect(receipt).to receive(:record_org_audit_event)
+        .with('receipt_viewed', 'actor' => 'creator', 'actor_id' => full_objid)
+
+      receipt.record_receipt_view!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
+    end
+
+    it 'forwards no actor attrs when the context is nil (default)' do
+      expect(receipt).to receive(:record_org_audit_event).with('receipt_viewed')
+
+      receipt.record_receipt_view!
+    end
   end
 
   # The atomic claim primitive underpins both the one-time receipt_viewed audit

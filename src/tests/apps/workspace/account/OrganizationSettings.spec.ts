@@ -61,6 +61,17 @@ vi.mock('@/apps/workspace/components/domains/DomainsTable.vue', () => ({
     template: '<div class="domains-table" />',
   },
 }));
+// SecretActivityTable owns its own fetching (mounting IS activation), so it
+// must be mocked here — otherwise switching to the Activity tab fires a real
+// useApi fetch this suite doesn't stub.
+vi.mock('@/apps/workspace/components/organizations/SecretActivityTable.vue', () => ({
+  default: {
+    name: 'SecretActivityTable',
+    template:
+      '<div class="secret-activity-table" data-testid="secret-activity-table" :data-org-extid="orgExtid" />',
+    props: ['orgExtid'],
+  },
+}));
 vi.mock('@/shared/components/closet/ListSkeleton.vue', () => ({
   default: {
     name: 'ListSkeleton',
@@ -135,6 +146,9 @@ const mockOrganization = {
   entitlements: ['manage_members'],
   limits: { teams: 1 },
   planid: 'plan_starter', // Required for billing email field to be visible
+  // Audit-trail role gate (#3637): admin/owner required. 'admin' keeps
+  // isOwner false so owner-only sections stay unaffected.
+  current_user_role: 'admin',
 };
 
 const mockFetchOrganization = vi.fn();
@@ -176,6 +190,7 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
     ENTITLEMENTS: {
       MANAGE_MEMBERS: 'manage_members',
       MANAGE_SSO: 'manage_sso',
+      AUDIT_LOGS: 'audit_logs',
     },
   }),
 }));
@@ -553,6 +568,128 @@ describe('OrganizationSettings', () => {
       // When domains exist, the domain list is shown instead of EmptyState
       const emptyState = wrapper.find('[data-testid="org-section-sso"] [data-testid="empty-state"]');
       expect(emptyState.exists()).toBe(false);
+    });
+  });
+
+  /**
+   * Activity tab — Secret Activity audit trail (#3637).
+   *
+   * The audit_logs entitlement gates the panel CONTENT only, never the tab:
+   * the tab is always rendered (and keyboard-reachable), and an unentitled
+   * user who opens it lands on an inline upgrade notice — no redirect, no
+   * hidden tab. SecretActivityTable owns its fetching, so when unentitled the
+   * content div (and therefore the fetch) never mounts.
+   */
+  describe('Activity Tab — Secret Activity', () => {
+    const switchToActivityTab = async (w: VueWrapper) => {
+      const navTabs = w.find('nav[aria-label="Organization settings tabs"]');
+      const tabs = navTabs.findAll('button');
+      const activityTab = tabs.find((tab) => tab.attributes('id') === 'org-tab-activity');
+      if (!activityTab) {
+        throw new Error('Activity tab not found');
+      }
+      await activityTab.trigger('click');
+      await flushPromises();
+      await nextTick();
+      return activityTab;
+    };
+
+    const findPanel = (w: VueWrapper) => w.find('[data-testid="org-section-activity"]');
+    const findActivityTable = (w: VueWrapper) => w.find('[data-testid="secret-activity-table"]');
+
+    describe('entitled organization', () => {
+      beforeEach(() => {
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+      });
+
+      it('shows the activity panel with the SecretActivityTable', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        const panel = findPanel(wrapper);
+        expect(panel.exists()).toBe(true);
+        expect(panel.text()).toContain('web.organizations.audit.title');
+        expect(panel.text()).toContain('web.organizations.audit.description');
+
+        const table = findActivityTable(wrapper);
+        expect(table.exists()).toBe(true);
+        // The table fetches for the org in the route.
+        expect(table.attributes('data-org-extid')).toBe('on1abc123');
+      });
+
+      it('does not show the upgrade notice', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        expect(findPanel(wrapper).text()).not.toContain(
+          'web.organizations.audit.upgrade_prompt'
+        );
+      });
+    });
+
+    describe('unentitled organization', () => {
+      // beforeEach default: mockEntitlements = ['manage_members'] (no audit_logs)
+
+      it('still renders the Activity tab in the tab bar', async () => {
+        wrapper = await mountComponent();
+
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+        const activityTab = navTabs
+          .findAll('button')
+          .find((tab) => tab.attributes('id') === 'org-tab-activity');
+        expect(activityTab).toBeDefined();
+        expect(activityTab!.text()).toContain('web.organizations.tabs.activity');
+      });
+
+      it('opens the panel with the upgrade notice instead of redirecting', async () => {
+        wrapper = await mountComponent();
+        const activityTab = await switchToActivityTab(wrapper);
+
+        // No redirect: the tab stays selected and its panel renders.
+        expect(activityTab.attributes('aria-selected')).toBe('true');
+        const panel = findPanel(wrapper);
+        expect(panel.exists()).toBe(true);
+        expect(panel.text()).toContain('web.organizations.audit.upgrade_prompt');
+
+        // The upgrade CTA links to the plans page.
+        const plansLink = panel
+          .findAll('a')
+          .find((a) => a.attributes('href') === '/billing/on1abc123/plans');
+        expect(plansLink).toBeDefined();
+        expect(plansLink!.text()).toContain('web.billing.overview.view_plans_action');
+      });
+
+      it('never mounts SecretActivityTable (so its fetch cannot fire)', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        expect(findActivityTable(wrapper).exists()).toBe(false);
+      });
+    });
+
+    describe('member role (entitled plan)', () => {
+      // Backend materializes membership entitlements as plan ∩ role and
+      // audit_logs is admin-tier, so a plain member is 403'd server-side even
+      // on an entitled plan. The UI must show the role notice — not the
+      // upgrade prompt, and never mount the table (whose fetch would 403).
+      beforeEach(() => {
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+        mockFetchOrganization.mockResolvedValue({
+          ...mockOrganization,
+          current_user_role: 'member',
+        });
+      });
+
+      it('shows the role notice instead of the table or upgrade prompt', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        const panel = findPanel(wrapper);
+        expect(panel.find('[data-testid="org-audit-role-notice"]').exists()).toBe(true);
+        expect(panel.text()).toContain('web.organizations.audit.role_required');
+        expect(panel.text()).not.toContain('web.organizations.audit.upgrade_prompt');
+        expect(findActivityTable(wrapper).exists()).toBe(false);
+      });
     });
   });
 });

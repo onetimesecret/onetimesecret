@@ -253,7 +253,7 @@ module V2::Logic
         # creator's live view/link is instead driven by the append-only access
         # timeline (view_count/first_access). record_receipt_view! is
         # idempotent, bounding the org trail against a hammered receipt page.
-        receipt.record_receipt_view!
+        receipt.record_receipt_view!(actor_context: receipt_view_actor_context)
 
         success_data
       end
@@ -272,6 +272,21 @@ module V2::Logic
       end
 
       private
+
+      # Actor attribution for the receipt-page view (#3637). Anonymous guard
+      # FIRST, mirroring ActorAttribution#lifecycle_actor_context: an
+      # anonymous caller never reaches the ownership test, so an anonymous
+      # view of a guest receipt can never be misattributed to the creator.
+      # Ownership uses the same Receipt#owner?(cust) predicate @show_receipt
+      # already relies on. actor_id is the FULL customer objid (AU-3 unique
+      # traceability); a blank objid is dropped by the centralized validation
+      # in record_org_audit_event.
+      def receipt_view_actor_context
+        return { 'actor' => 'anonymous' } if anonymous_user?
+
+        actor = receipt.owner?(cust) ? 'creator' : 'authenticated_other'
+        { 'actor' => actor, 'actor_id' => cust.objid }
+      end
 
       def _receipt_attributes
         # Start with safe receipt attributes

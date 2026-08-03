@@ -29,6 +29,16 @@ module Onetime::Receipt::Features
     # Newest events retained when trimming the timeline.
     ACCESS_EVENTS_MAX = 100
 
+    # Recognized actor discriminators for org audit events (#3637/#3639).
+    # 'system' marks transitions the application detected itself (expired,
+    # orphaned) with no acting individual. 'unknown' is the ADR-023 sentinel
+    # for an actor -- or an actor-subject relationship -- that cannot be
+    # established; it is also the fail-safe for a missing or unexpected value:
+    # the trail must never carry an actor label the rest of the system doesn't
+    # understand, never misattribute to the creator, and never assert
+    # 'anonymous' for an event that may have had an authenticated caller.
+    RECOGNIZED_ACTORS = %w[creator authenticated_other anonymous system unknown].freeze
+
     def self.included(base)
       OT.ld "[features] #{base}: #{name}"
 
@@ -141,14 +151,17 @@ module Onetime::Receipt::Features
         organization.record_audit_event(
           kind,
           at: at,
-          **event_attrs,
-          # Shortids only: full identifiers are capability tokens (the
-          # secret identifier IS the link; a full domain objid is likewise
-          # withheld) and must not leak into the trail. Placed AFTER the splat
-          # so these canonical fields always win over a caller-supplied attr
-          # sharing the same key -- a composed caller (#3639 actor, #3640
-          # network context) can never override the receipt/secret/domain
-          # identity of the event it is annotating.
+          **normalize_actor_attrs(event_attrs, kind),
+          # Shortids only for receipt/secret/domain: those full identifiers are
+          # capability tokens (the secret identifier IS the link; a full domain
+          # objid is likewise withheld) and must not leak into the trail. This
+          # convention deliberately does NOT extend to 'actor_id': a customer
+          # objid grants no access, so it is stored in full for unique
+          # traceability (see #normalize_actor_attrs).
+          # Placed AFTER the splat so these canonical fields always win over a
+          # caller-supplied attr sharing the same key -- a composed caller
+          # (#3639 actor, #3640 network context) can never override the
+          # receipt/secret/domain identity of the event it is annotating.
           'receipt' => shortid,
           'secret' => secret_shortid.to_s,
           **domain_attrs,
@@ -156,6 +169,58 @@ module Onetime::Receipt::Features
       rescue StandardError => ex
         OT.le "[audit-trail] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"
         nil
+      end
+
+      # Centralized actor validation for EVERY org audit event (#3637). The
+      # trail must bind each event to a uniquely resolvable individual (NIST
+      # AU-3, PCI DSS 10.2.2): 'actor_id' is the acting customer's FULL objid,
+      # stored untruncated. Identity (email/display name) is resolved at
+      # read/export time via an org-membership join and never enters the
+      # append-only trail.
+      #
+      #   * a missing or unrecognized actor fails safe to 'unknown' with an
+      #     error log (ADR-023: 'anonymous' would assert "unauthenticated", a
+      #     fact an actorless event cannot support; 'unknown' is the accurate
+      #     sentinel and never misattributes to the creator). Any valid
+      #     actor_id riding along is KEPT -- record what is known, mark the
+      #     rest unknown;
+      #   * 'anonymous' and 'system' events have no acting individual and
+      #     never carry an actor_id, even if a caller supplied one;
+      #   * a blank actor_id is dropped (never store an empty token);
+      #   * an actor_id containing '@' is dropped and logged -- defense in
+      #     depth: an email must never enter the trail (GDPR minimization;
+      #     erasure requests never touch it), so a caller passing an email
+      #     where an objid belongs loses the id, not the event.
+      #
+      # @param event_attrs [Hash] caller-supplied event attrs (any key type).
+      # @param kind [String, Symbol] event kind, for the log line only.
+      # @return [Hash] string-keyed attrs with a guaranteed recognized 'actor'.
+      def normalize_actor_attrs(event_attrs, kind)
+        attrs = event_attrs.transform_keys(&:to_s)
+
+        actor          = attrs['actor'].to_s
+        unless RECOGNIZED_ACTORS.include?(actor)
+          # Never log the rejected value: a bad caller could pass anything.
+          OT.le "[audit-trail] missing/unrecognized actor; recording 'unknown' " \
+                "(kind=#{kind}, receipt=#{shortid})"
+          actor = 'unknown'
+        end
+        attrs['actor'] = actor
+
+        if %w[anonymous system].include?(actor)
+          attrs.delete('actor_id')
+        elsif attrs.key?('actor_id')
+          id = attrs['actor_id'].to_s
+          if id.empty?
+            attrs.delete('actor_id')
+          elsif id.include?('@')
+            # Never log the value itself: it is the email being kept out.
+            OT.le "[audit-trail] dropped email-like actor_id (kind=#{kind}, receipt=#{shortid})"
+            attrs.delete('actor_id')
+          end
+        end
+
+        attrs
       end
 
       # Atomic conditional set that claims a one-time timestamp field, run as a
@@ -213,12 +278,17 @@ module Onetime::Receipt::Features
       # It does NOT advance lifecycle state (#3633): receipt_viewed_at gates
       # nothing and is not part of is_previewed.
       #
+      # @param actor_context [Hash, nil] request-scoped actor attrs computed
+      #   by the receipt page's logic layer (#3637), forwarded through the
+      #   centralized actor validation in record_org_audit_event. nil records
+      #   the event under the fail-safe 'unknown' actor (ADR-023).
       # @return [Hash, nil] the recorded audit event, or nil when already
       #   recorded or when there is no org context.
-      def record_receipt_view!
+      def record_receipt_view!(actor_context: nil)
         return unless claim_once!(:receipt_viewed_at)
 
-        record_org_audit_event('receipt_viewed')
+        attrs = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
+        record_org_audit_event('receipt_viewed', **attrs)
       end
 
       # Claim the one-time display of the secret's plaintext value to its

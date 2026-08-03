@@ -1,16 +1,16 @@
 ---
 id: "023"
-status: proposed
+status: accepted
 title: "ADR-023: Audit Actor Attribution Accuracy — Never Fabricate an Actor"
 ---
 
 ## Status
 
-Proposed
+Accepted (2026-08-02)
 
 ## Date
 
-2026-07-09
+2026-07-09 (proposed) / 2026-08-02 (accepted)
 
 <!--
 Owner:  ops@solutious.com
@@ -88,18 +88,33 @@ the actor is unresolved.
 
 ## Consequences
 
-- Add `unknown` to the recognized lifecycle actors (`LIFECYCLE_ACTORS`) and have
-  `lifecycle_actor_context` return `{ 'actor' => 'unknown', 'actor_id' => … }`
+- Add `unknown` to the recognized lifecycle actors (`RECOGNIZED_ACTORS`) and
+  have `lifecycle_actor_context` return `{ 'actor' => 'unknown', 'actor_id' => … }`
   on the nil-`target_secret` branch instead of `authenticated_other`
   (`apps/api/v2/logic/secrets/actor_attribution.rb`,
-  `receipt/features/deprecated_fields.rb`). Today that branch logs and records
-  `authenticated_other`; this ADR proposes `unknown`. It is genuinely a
-  can't-happen path (all call sites pass a loaded secret), so this is
+  `receipt/features/deprecated_fields.rb`). It is genuinely a can't-happen
+  path (all call sites pass a loaded secret), so this is
   correctness-of-principle on a defensive branch, not a live bug.
 - Any future actor-attributed surface (Security Events #2799 included) adopts the
   same `unknown` sentinel + alert rather than inventing a stream-local default.
 - Consumers / UI that render `actor` must handle `unknown` explicitly (show
   "unknown", not a blank or a misleading label).
+
+## Ratification note (2026-08-02)
+
+Implemented as part of #3637, with two extensions the decision statement
+compels:
+
+- The centralized validator (`normalize_actor_attrs`,
+  `receipt/features/access_timeline.rb`) previously failed a missing or
+  unrecognized actor safe to `anonymous` — the value Rule 1 rejects, since an
+  actorless event cannot support "unauthenticated". The fail-safe is now
+  `unknown` + error log, and a valid `actor_id` riding along is kept (Rule 2).
+- Ratification surfaced a live instance of the defect this ADR predicted: the
+  v1 reveal/burn paths threaded no actor context, so authenticated v1
+  consumers were recorded as `anonymous`. v1 now threads
+  `lifecycle_actor_context` (`apps/api/v1/logic/secrets/actor_attribution.rb`),
+  mirroring the v2 module and the v1 receipt-view precedent.
 
 ## References
 
