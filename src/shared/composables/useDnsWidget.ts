@@ -187,6 +187,17 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
       document.head.appendChild(link);
 
       // Load JS (using Vite-resolved URL)
+      //
+      // Known residual (M-4): the widget's sanitizer blocks scripting from
+      // hostile API HTML but still allows <form action="https://anywhere"> —
+      // FORM is in _APX_ALLOWED_TAGS and `action` passes the URI allowlist for
+      // any https origin (`formaction` is dropped, `action` is not). A hostile
+      // Approximated response could therefore render a credential-harvesting
+      // form posting cross-origin. The widget's own form is built by trusted
+      // template code, not API HTML, so dropping `action` (and arguably
+      // FORM/INPUT/TEXTAREA) from the allowlist should be safe — the API's
+      // instruction steps are copy-paste guidance, not forms. Verify against a
+      // real Approximated payload before tightening dnswidget.v1.js.
       const script = document.createElement('script');
       script.src = dnsWidgetJs;
       // [S5] Carry the per-request CSP nonce so the injected script passes the
