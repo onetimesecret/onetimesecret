@@ -97,9 +97,14 @@ overlays for a shell session: `echo billing > .overlays` (gitignored).
 
 ## CI adoption status
 
-`.github/workflows/ci.yml` does not consume this tree yet. Migration:
-replace each Ruby job's `services:` block with
-`docker compose -f compose.test.yml up --wait` and its env/composite-action
-wiring with `tests/lanes/run <lane>` (matrix rows become lane names +
-overlays). Until then, CI still runs services on canonical ports — the
-tree is the target state, adopted job by job.
+`.github/workflows/ci.yml` runs its Ruby test jobs through this tree:
+each job starts services with `docker compose -f compose.test.yml up
+--wait` and executes `tests/lanes/run <lane>` via the `run-test-lane`
+composite action (which layers on the CI-only concerns: failure-tail PR
+comments, job summaries, `RSPEC_OUTPUT_FILE`/`COVERAGE` plumbing). The
+full-mode matrix rows are lane names + overlays.
+
+Not yet migrated: `ruby-4-preview.yml` and `migration-tests.yml` still
+carry their own `services:` blocks and env wiring; `ci.yml`'s
+container-validation job keeps a `services:` block on purpose (it needs
+valkey published beyond loopback for `host.docker.internal`).

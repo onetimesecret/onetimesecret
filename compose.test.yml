@@ -24,8 +24,10 @@
 # a test service and a test run can never reach dev data. If a URL in the
 # test tree doesn't point at a 21xx port, that's a bug.
 #
-# Images are digest-pinned to the exact images CI uses
-# (.github/workflows/ci.yml). Update both together.
+# This file is where test-service images are pinned. A few workflows still
+# carry their own copies of these pins (ruby-4-preview.yml,
+# migration-tests.yml, and ci.yml's container-validation valkey, which must
+# publish beyond loopback); update those together with this file.
 
 name: ots-test
 
