@@ -64,9 +64,8 @@ clean runner — if they work there, they work here:
 
 ```bash
 bin/setup --test           # test lane: throwaway datastore on :2163
-pnpm run test:rspec:fast   # RSpec fast suite
+tests/lanes/run unit       # Ruby: unit tryouts + RSpec fast suite
 pnpm test                  # Vitest (frontend)
-bundle exec try            # Tryouts (Ruby behavior tests)
 ```
 
 `bin/setup --test` switches the checkout into test mode (a `.test-mode`

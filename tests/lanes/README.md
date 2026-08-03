@@ -120,7 +120,20 @@ and executes `tests/lanes/run <lane>`:
 - `.github/workflows/ruby-4-preview.yml` — runs lanes directly (no
   composite): the workflow is advisory-only, so failure-tail comments
   and results plumbing would be noise.
+- `.github/workflows/fresh-clone.yml` — the contributor-path job runs
+  `tests/lanes/run unit` directly: it proves the commands CONTRIBUTING.md
+  documents, and `bin/setup --test` has already started the compose
+  services by the time the lane's preflight runs.
 
-Exception: `ci.yml`'s container-validation job keeps a `services:` block
-on purpose (it needs valkey published beyond loopback for
-`host.docker.internal`).
+Exceptions:
+
+- `ci.yml`'s container-validation job keeps a `services:` block on
+  purpose (it needs valkey published beyond loopback for
+  `host.docker.internal`).
+- `devcontainer-ci.yml` and `installer.yml` run `rake spec:fast` raw
+  (via `pnpm run test:rspec:fast`): their environments cannot run
+  `compose.test.yml` (the devcontainer can't nest containers; macOS
+  runners have no container runtime), and the runner's preflight
+  requires every endpoint in the lane's env — including rabbitmq — to
+  be reachable. They prove `bin/setup` on constrained environments, not
+  the lane contract. Tracked in #3982.
