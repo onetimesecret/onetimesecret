@@ -1,4 +1,4 @@
-// src/tests/apps/admin/useAdminAuditLog.spec.ts
+// src/tests/apps/admin/useColonelAuditLog.spec.ts
 
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,7 +13,7 @@ vi.mock('@/shared/composables/useApi', () => ({
   useApi: () => mockApi,
 }));
 
-import { useAdminAuditLog } from '@/apps/admin/stores/useAdminAuditLog';
+import { useColonelAuditLog } from '@/apps/admin/stores/useColonelAuditLog';
 
 function auditPayload() {
   return {
@@ -43,7 +43,7 @@ function auditPayload() {
   };
 }
 
-describe('useAdminAuditLog', () => {
+describe('useColonelAuditLog', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
   });
@@ -53,12 +53,12 @@ describe('useAdminAuditLog', () => {
   });
 
   it('uses a unique store id', () => {
-    expect(useAdminAuditLog().$id).toBe('adminAuditLog');
+    expect(useColonelAuditLog().$id).toBe('colonelAuditLog');
   });
 
   it('fetches the audit endpoint and maps the page via its own selector', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
-    const store = useAdminAuditLog();
+    const store = useColonelAuditLog();
 
     await store.fetchPage(1);
 
@@ -74,7 +74,7 @@ describe('useAdminAuditLog', () => {
 
   it('passes actor and verb filters through as server query params', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
-    const store = useAdminAuditLog();
+    const store = useColonelAuditLog();
 
     await store.fetchPage(1, { actor: 'ur_colonel1', verb: 'customer' });
 
@@ -85,7 +85,7 @@ describe('useAdminAuditLog', () => {
 
   it('omits empty filters from the query', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
-    const store = useAdminAuditLog();
+    const store = useColonelAuditLog();
 
     await store.fetchPage(1, { actor: '', verb: undefined });
 
@@ -96,7 +96,7 @@ describe('useAdminAuditLog', () => {
 
   it('degrades to empty on a schema mismatch (validationError, no throw)', async () => {
     mockApi.get.mockResolvedValue({ data: { details: { events: 'not-an-array' } } });
-    const store = useAdminAuditLog();
+    const store = useColonelAuditLog();
 
     const result = await store.fetchPage(1);
 
@@ -108,7 +108,7 @@ describe('useAdminAuditLog', () => {
 
   it('clears rows and rethrows on a network failure', async () => {
     mockApi.get.mockRejectedValue(new Error('Network Error'));
-    const store = useAdminAuditLog();
+    const store = useColonelAuditLog();
 
     await expect(store.fetchPage(1)).rejects.toThrow('Network Error');
     expect(store.events).toEqual([]);
@@ -117,7 +117,7 @@ describe('useAdminAuditLog', () => {
 
   it('$reset restores initial state', async () => {
     mockApi.get.mockResolvedValue({ data: auditPayload() });
-    const store = useAdminAuditLog();
+    const store = useColonelAuditLog();
     await store.fetchPage(1);
     expect(store.events).toHaveLength(1);
 
