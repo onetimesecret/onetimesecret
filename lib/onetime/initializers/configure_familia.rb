@@ -147,11 +147,17 @@ module Onetime
         #
         # encryption_personalization feeds BLAKE2b key derivation for
         # XChaCha20-Poly1305 (used once rbnacl/libsodium are present). It is
-        # PERMANENT: Familia has no rotation/history mechanism for it, so
-        # changing this value makes every existing XChaCha20 envelope
-        # undecryptable. 'FamilialMatters' is Familia's long-standing default
-        # and therefore the only value compatible with any XChaCha20 data an
-        # installation may already hold.
+        # ROTATABLE as of familia 2.12 (delano/familia#333): decrypt walks the
+        # current value, then each encryption_personalization_history entry in
+        # order, then the library default 'FamilialMatters' (always appended
+        # automatically as the last candidate), trying each derived key until
+        # Poly1305 auth succeeds. Encrypt is fail-closed and only ever uses the
+        # current value. We intentionally leave the value at the library
+        # default in this release and do NOT set the history knob (nothing to
+        # rotate from yet). The per-deployment rotation is the v0.27.0
+        # write-side flip, and it requires every process reading this datastore
+        # to be on >= this release first -- a datastore-scoped invariant, not a
+        # fleet-scoped one.
         Familia.config.encryption_personalization = 'FamilialMatters'
 
         # encryption_hkdf_salt feeds HKDF-SHA256 key derivation for
