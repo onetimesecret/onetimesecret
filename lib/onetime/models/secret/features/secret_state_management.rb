@@ -194,10 +194,10 @@ module Onetime::Secret::Features
       # must never mask the SecretUndecryptable the caller is about to see.
       # The actor context reveal! already threads rides along so even a
       # failed attempt is attributed (#3637); validation is centralized in
-      # AccessTimeline#record_org_audit_event.
+      # AccessTimeline#record_org_secret_activity_event.
       def record_reveal_failed_undecryptable(actor_context = nil)
         attrs = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
-        load_receipt&.record_org_audit_event('reveal_failed_undecryptable', **attrs)
+        load_receipt&.record_org_secret_activity_event('reveal_failed_undecryptable', **attrs)
       rescue StandardError => ex
         OT.le "[reveal-rollback] #{ex.class}: #{ex.message} (secret=#{shortid})"
         nil

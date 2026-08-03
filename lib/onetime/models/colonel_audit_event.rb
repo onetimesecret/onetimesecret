@@ -1,9 +1,9 @@
-# lib/onetime/models/admin_audit_event.rb
+# lib/onetime/models/colonel_audit_event.rb
 #
 # frozen_string_literal: true
 
 module Onetime
-  # AdminAuditEvent — the single write path every mutating admin operation calls.
+  # ColonelAuditEvent — the single write path every mutating admin operation calls.
   #
   # Every mutating admin op records who did what to whom and the result, so audit
   # logging is a property of the Operations layer rather than something bolted onto
@@ -14,7 +14,7 @@ module Onetime
   #
   # ## Backing store
   #
-  # One global, capped Redis sorted set (`admin_audit_event:events`) via Familia.
+  # One global, capped Redis sorted set (`colonel_audit_event:events`) via Familia.
   # Each event is a JSON payload stored as a member, scored by its creation time
   # (a high-precision float from Familia.now), so:
   #
@@ -41,7 +41,7 @@ module Onetime
   # may be passed and its extid/email is extracted automatically.
   #
   # @example Record a successful role change from within an op's #call
-  #   AdminAuditEvent.record(
+  #   ColonelAuditEvent.record(
   #     actor:  colonel.extid,
   #     verb:   'customer.set_role',
   #     target: customer.extid,
@@ -49,18 +49,18 @@ module Onetime
   #     detail: { role: 'colonel' },
   #   )
   #
-  class AdminAuditEvent < Familia::Horreum
+  class ColonelAuditEvent < Familia::Horreum
     # No SCHEMA constant on purpose: this is a backend-only audit store with no
     # wire representation — it is never serialised into an API response, so there
     # is no frontend Zod shape to link to (unlike Customer/Secret/etc.). Declaring
-    # `SCHEMA = 'models/admin_audit_event'` would point the schema-scanner at a
-    # nonexistent `shapes/admin_audit_event`. Matches the Features /
+    # `SCHEMA = 'models/colonel_audit_event'` would point the schema-scanner at a
+    # nonexistent `shapes/colonel_audit_event`. Matches the Features /
     # OrganizationMembership precedent for non-serialised models. The read API
     # (GET /api/colonel/audit) declares its own wire contract instead: the logic
     # class links `response: 'colonelAuditEvents'`, whose Zod shape lives at
     # src/schemas/api/internal/responses/colonel-audit.ts.
 
-    prefix :admin_audit_event
+    prefix :colonel_audit_event
 
     # Global, bounded event history. member = JSON event payload, score = created
     # epoch seconds (float). This is a single site-wide admin audit trail, not a
@@ -111,7 +111,7 @@ module Onetime
     #
     # So: a new verb reachable without authentication MUST use {.record_security}.
     # Both trails are merged newest-first for reading by
-    # ColonelAPI::Logic::Colonel::ListAuditEvents, so the split costs no
+    # ColonelAPI::Logic::Colonel::ListColonelAuditEvents, so the split costs no
     # queryability.
     MAX_EVENTS = 10_000
 
@@ -222,7 +222,7 @@ module Onetime
       end
 
       # Newest-first slice of the audit trail. Backs the admin audit view
-      # (GET /api/colonel/audit via ColonelAPI::Logic::Colonel::ListAuditEvents).
+      # (GET /api/colonel/audit via ColonelAPI::Logic::Colonel::ListColonelAuditEvents).
       #
       # @param limit [Integer] max events to return (most recent first).
       # @param offset [Integer] rank offset into the newest-first ordering
@@ -321,7 +321,7 @@ module Onetime
 
       def log_record_failure(ex, verb, target, result)
         OT.le(
-          '[AdminAuditEvent] record failed',
+          '[ColonelAuditEvent] record failed',
           exception: ex,
           verb: verb.to_s,
           target: target.to_s,

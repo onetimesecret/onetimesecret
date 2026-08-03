@@ -1,10 +1,10 @@
-# spec/unit/onetime/models/admin_audit_event_spec.rb
+# spec/unit/onetime/models/colonel_audit_event_spec.rb
 #
 # frozen_string_literal: true
 
 require 'spec_helper'
 
-# Unit tests for Onetime::AdminAuditEvent — the single write path every mutating
+# Unit tests for Onetime::ColonelAuditEvent — the single write path every mutating
 # admin operation calls (epic #3653 / ticket #21).
 #
 # These exercise the real Familia-backed sorted set on the test database (port
@@ -13,7 +13,7 @@ require 'spec_helper'
 # Coverage mirrors the acceptance criteria: an event is written on success, on
 # failure, the write path is best-effort, reads are newest-first, and the capped
 # sorted set is trimmed to its bound.
-RSpec.describe Onetime::AdminAuditEvent do
+RSpec.describe Onetime::ColonelAuditEvent do
   before do
     described_class.events.clear
     described_class.security_events.clear
