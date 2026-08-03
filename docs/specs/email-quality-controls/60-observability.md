@@ -47,7 +47,7 @@ happened to mail for this address?".
 
 - Counter precedent: `record_sent_metric` in `lib/onetime/mail/delivery/base.rb`; `Onetime::Customer.class_counter :emails_sent` (customer counter_fields feature)
 - Scheduled-job template: `lib/onetime/jobs/scheduled/dlq_monitor_job.rb` (passive check + WARN), `heartbeat_job.rb` (interval stats); base `lib/onetime/jobs/scheduled_job.rb`; config shape in `etc/defaults/config.defaults.yaml` `jobs:`
-- Global feed store: slice 20's `EmailActivity` `class_sorted_set :recent` (AdminAuditEvent revrange pattern, CONTRACT 6 bounded)
+- Global feed store: slice 20's `EmailActivity` `class_sorted_set :recent` (ColonelAuditEvent revrange pattern, CONTRACT 6 bounded)
 - Read-only op conventions: `lib/onetime/operations/ratelimit/inspect.rb` (no audit, bounded reads)
 - Colonel stats wiring: existing `/info /stats` routes in `apps/api/colonel/routes.txt`; stat tiles per `docs/specs/colonel-ui/61-debt-stats-stubs.md` caveats (no stubbed tiles — real numbers or nothing)
 - Sentry usage in jobs/workers: `lib/onetime/jobs/workers/base_worker.rb` trace helpers

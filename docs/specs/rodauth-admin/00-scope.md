@@ -95,14 +95,14 @@ listing tables backing an **enabled** feature:
 
 Every mutation here needs a new `Auth::Operations::*` (or extends existing
 `Auth::Operations::Customers::*`) verb, a colonel route with both auth layers,
-and an `AdminAuditEvent` entry, per the existing `colonel-ui` mutation
+and a `ColonelAuditEvent` entry, per the existing `colonel-ui` mutation
 contract (D4).
 
 ## Two subtleties
 
 **Two audit trails, not one.** `account_authentication_audit_logs` is
 Rodauth's own record of auth *events* (login, password change, MFA setup) per
-account — read-only, rendered as a timeline. `AdminAuditEvent` is Colonel's
+account — read-only, rendered as a timeline. `ColonelAuditEvent` is Colonel's
 record of *admin actions* (an operator revoking a session, clearing a
 lockout). Every mutation added here writes the latter; the former is display
 data. Don't conflate them in the UI or the data model.
@@ -158,7 +158,7 @@ sequence it accordingly (see phasing below).
    existing Sessions console + customer detail "sessions" panel. In `full`
    mode the current console is showing operators the wrong store.
 4. **Mutating operations**: lockout clear, MFA disable/reset, session/JWT
-   revoke, SSO unlink — each with typed-confirmation dialog + AdminAuditEvent,
+   revoke, SSO unlink — each with typed-confirmation dialog + ColonelAuditEvent,
    following the `colonel-ui` D4 contract exactly.
 5. **Cleanup**: delete `apps/web/auth/routes/admin.rb`'s dev stub once its
    stats are subsumed by Phase 1.
