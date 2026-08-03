@@ -1,9 +1,14 @@
 // vitest.config.ts
 
 import vue from '@vitejs/plugin-vue';
-import { builtinModules } from 'node:module';
 import { resolve } from 'path';
 import { defineConfig } from 'vitest/config';
+
+// direnv exports .env.test into the shell, which can leak NODE_ENV=production
+// into vitest. Production mode changes Vite's externalization of Node builtins
+// (malformed bare "node:" specifiers) and flips NODE_ENV-conditional code under
+// test. Tests must always run in test mode regardless of the caller's shell.
+process.env.NODE_ENV = 'test';
 
 // use mock service workers lib to mock API requests (any fetch or axios requests).
 
@@ -26,23 +31,9 @@ import { defineConfig } from 'vitest/config';
 
 // @vue/test-utils, mount function. Testing components with props.
 
-const nodeBuiltinsPlugin = () => {
-  const builtins = new Set(builtinModules);
-  return {
-    name: 'resolve-node-builtins',
-    enforce: 'pre',
-    resolveId(id: string) {
-      if (id.startsWith('node:') || builtins.has(id)) {
-        return { id, external: true };
-      }
-      return null;
-    },
-  };
-};
-
 // Functional components: <template functional>, uses `props.keyName`, context (listeners, slots, children etc)
 export default defineConfig({
-  plugins: [vue(), nodeBuiltinsPlugin()],
+  plugins: [vue()],
   test: {
     globalSetup: ['src/tests/globalSetup.ts'],
     globals: true,
