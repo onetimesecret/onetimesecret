@@ -14,7 +14,7 @@ module ColonelAPI
       # Thin adapter over Auth::Operations::Customers::SetPlan (the single
       # implementation). This class handles HTTP concerns (param sanitization,
       # authorization, catalog validation, response shape); the op performs the
-      # mutation AND records the AdminAuditEvent — so a plan change is audited
+      # mutation AND records the ColonelAuditEvent — so a plan change is audited
       # like every other mutating admin verb (epic #20 CONTRACT 4).
       #
       # Validates that the requested plan_id exists in the billing catalog

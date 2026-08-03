@@ -9,7 +9,7 @@ module V2::Logic
     #
     # The lifecycle emit happens deep inside the atomic consume cascade
     # (Secret#reveal!/#burned! -> Receipt#revealed!/#burned! ->
-    # record_org_audit_event), which has no request context. So the discriminator
+    # record_org_secret_activity_event), which has no request context. So the discriminator
     # is computed HERE, where the request's customer (`cust`) is in scope, and
     # threaded down as an opaque `actor_context` hash.
     #

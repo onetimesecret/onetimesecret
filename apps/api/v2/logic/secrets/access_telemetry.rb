@@ -65,7 +65,7 @@ module V2::Logic
       # Onetime::Security::RequestContext and ADR-022 for the full stance.
       #
       # @return [Hash{String=>String}] string-keyed network attrs, forwarded via
-      #   record_access_event(context:) -> record_org_audit_event(**event_attrs).
+      #   record_access_event(context:) -> record_org_secret_activity_event(**event_attrs).
       #   Empty when no request context is available (e.g. in unit tests that
       #   supply no metadata), in which case the event records without them.
       def request_network_context

@@ -1,4 +1,4 @@
-# apps/api/colonel/logic/colonel/list_audit_events.rb
+# apps/api/colonel/logic/colonel/list_colonel_audit_events.rb
 #
 # frozen_string_literal: true
 
@@ -9,7 +9,7 @@ module ColonelAPI
     module Colonel
       # List Audit Events
       #
-      # @api Returns the admin audit trail (Onetime::AdminAuditEvent) newest
+      # @api Returns the admin audit trail (Onetime::ColonelAuditEvent) newest
       #   first, with pagination and simple filters: `actor` (case-insensitive
       #   substring over the acting colonel's extid/email — the sessions-search
       #   idiom) and `verb` (an exact action like `customer.set_role`, or a
@@ -19,17 +19,17 @@ module ColonelAPI
       #   are stored apart only so the latter cannot evict the former.
       #
       # This is the read side of the flight recorder: every mutating admin op
-      # writes an AdminAuditEvent; this endpoint plays it back. READ-ONLY —
+      # writes an ColonelAuditEvent; this endpoint plays it back. READ-ONLY —
       # per CONTRACT 4 (reads never audit), listing the log must never itself
       # write an audit event.
-      class ListAuditEvents < ColonelAPI::Logic::Base
+      class ListColonelAuditEvents < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelAuditEvents' }.freeze
 
         # Ceiling on how many events a single read may load into Ruby: the two
         # trails' caps summed, i.e. the entire store. Both are trimmed on every
         # write, so this is a fixed bound, not a function of traffic.
-        MAX_COMBINED = Onetime::AdminAuditEvent::MAX_EVENTS +
-                       Onetime::AdminAuditEvent::MAX_SECURITY_EVENTS
+        MAX_COMBINED = Onetime::ColonelAuditEvent::MAX_EVENTS +
+                       Onetime::ColonelAuditEvent::MAX_SECURITY_EVENTS
 
         attr_reader :events,
           :total_count,
@@ -65,7 +65,7 @@ module ColonelAPI
             @total_count = matching.size
             @events      = matching.slice(offset, per_page) || []
           else
-            @total_count = Onetime::AdminAuditEvent.count + Onetime::AdminAuditEvent.security_count
+            @total_count = Onetime::ColonelAuditEvent.count + Onetime::ColonelAuditEvent.security_count
             @events      = merged_events(offset + per_page).slice(offset, per_page) || []
           end
 
@@ -79,7 +79,7 @@ module ColonelAPI
 
         # Newest-first view over BOTH audit trails.
         #
-        # AdminAuditEvent stores operator activity and unauthenticated security
+        # ColonelAuditEvent stores operator activity and unauthenticated security
         # telemetry in two separately-capped sorted sets, so that a flood of
         # anonymous events (e.g. reset-request throttle cap-hits) cannot evict
         # privileged records — see the WRITE-FREQUENCY INVARIANT on the model.
@@ -94,7 +94,7 @@ module ColonelAPI
           limit = [limit.to_i, MAX_COMBINED].min
           return [] if limit <= 0
 
-          (Onetime::AdminAuditEvent.recent(limit) + Onetime::AdminAuditEvent.recent_security(limit))
+          (Onetime::ColonelAuditEvent.recent(limit) + Onetime::ColonelAuditEvent.recent_security(limit))
             .sort_by { |event| -event['created'].to_f }
             .first(limit)
         end

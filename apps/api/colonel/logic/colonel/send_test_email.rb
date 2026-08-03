@@ -14,7 +14,7 @@ module ColonelAPI
       # audited implementation shared with the `bin/ots email test` CLI (ticket
       # #44). This class keeps only the HTTP concerns (recipient validation, the
       # dry-run/enqueue flags, and mapping a delivery failure to a form error); the
-      # op owns the build + dispatch + the AdminAuditEvent (CONTRACT 4).
+      # op owns the build + dispatch + the ColonelAuditEvent (CONTRACT 4).
       #
       # Test send DISPATCHES A REAL EMAIL, so the UI gates it behind an
       # AdminConfirmDialog (one-click confirm, low-risk verb) that shows the

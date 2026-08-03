@@ -55,7 +55,7 @@ module ColonelAPI
       #   }
       # }
       #
-      # READ-ONLY: emits NO AdminAuditEvent (CONTRACT 4).
+      # READ-ONLY: emits NO ColonelAuditEvent (CONTRACT 4).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

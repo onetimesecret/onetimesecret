@@ -125,7 +125,7 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(owner_objid)
@@ -145,7 +145,7 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('authenticated_other')
       expect(event['actor_id']).to eq(other_objid)
     end
@@ -161,7 +161,7 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('anonymous')
       expect(event['actor']).not_to eq('creator')

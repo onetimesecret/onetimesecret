@@ -13,7 +13,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Domains::Remove} — the single,
       # audited implementation of the remove verb. The op owns the teardown, the
-      # display_domain_index re-assertion, and the AdminAuditEvent; this class
+      # display_domain_index re-assertion, and the ColonelAuditEvent; this class
       # resolves the domain and threads the `dry_run` flag.
       #
       # `dry_run` defaults to TRUE (dry-run default): the screen previews the
@@ -51,7 +51,7 @@ module ColonelAPI
           OT.info "[RemoveCustomDomain] #{result.display_domain} -> " \
                   "status=#{result.status}, dry_run=#{dry_run}, org=#{result.org_id}"
 
-          # NOTE: no audit here — the op owns the single AdminAuditEvent
+          # NOTE: no audit here — the op owns the single ColonelAuditEvent
           # (exactly-once, applied path only). This adapter never audits.
           success_data
         end

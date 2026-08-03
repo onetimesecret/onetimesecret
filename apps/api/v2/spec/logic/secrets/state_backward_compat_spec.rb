@@ -157,7 +157,7 @@ RSpec.describe 'V2 API State Backward Compatibility' do
     # #previewed! was retired in #3633: viewing a secret link no longer mutates
     # lifecycle state. The telemetry-derived "previewed" signal (is_viewed /
     # viewed timestamp) is covered by the safe_dump contexts above; the
-    # receipt-page-view audit event is covered in organization_audit_trail_spec.
+    # receipt-page-view audit event is covered in organization_secret_activity_spec.
 
     describe '#revealed!' do
       it 'sets state and timestamp' do

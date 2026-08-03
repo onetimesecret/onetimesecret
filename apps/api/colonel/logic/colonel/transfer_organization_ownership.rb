@@ -22,7 +22,7 @@ module ColonelAPI
       # the response shape.
       #
       # Audit (D26): the op records exactly ONE `organization.transfer_ownership`
-      # AdminAuditEvent per applied transfer — none on :no_change, a guardrail
+      # ColonelAuditEvent per applied transfer — none on :no_change, a guardrail
       # status, or a rolled-back failure. The composed SetRole calls each record
       # their own `membership.set_role` event: nominally two (promote + demote),
       # but 0..n in practice — promotion is skipped when the new owner already

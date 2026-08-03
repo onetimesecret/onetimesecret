@@ -139,5 +139,5 @@ GET    /billing/catalog                   ColonelAPI::Logic::Colonel::GetBilling
 GET    /billing/stripe-organizations      ColonelAPI::Logic::Colonel::ListStripeOrganizations response=json auth=sessionauth role=colonel scope=internal
 
 # Observability: audit trail reader + daily activity trends (both read-only)
-GET    /audit                             ColonelAPI::Logic::Colonel::ListAuditEvents response=json auth=sessionauth role=colonel scope=internal
+GET    /audit                             ColonelAPI::Logic::Colonel::ListColonelAuditEvents response=json auth=sessionauth role=colonel scope=internal
 GET    /trends                            ColonelAPI::Logic::Colonel::GetTrends response=json auth=sessionauth role=colonel scope=internal

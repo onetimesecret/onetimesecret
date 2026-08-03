@@ -13,7 +13,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::SetBanner} — the single, audited
       # implementation of the set verb (epic #41). This class keeps only the HTTP
       # concerns (param extraction + length/TTL validation); the op owns the Redis
-      # write, the runtime refresh, and the AdminAuditEvent (CONTRACT 4).
+      # write, the runtime refresh, and the ColonelAuditEvent (CONTRACT 4).
       #
       # The banner is user-facing globally, so we bound its length here (the note
       # in the ticket). The content is stored VERBATIM (raw HTML) — NOT run through

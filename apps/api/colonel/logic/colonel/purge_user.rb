@@ -12,7 +12,7 @@ module ColonelAPI
       # Purge (permanently delete) a single user.
       #
       # Thin adapter over Auth::Operations::Customers::Purge (which reuses
-      # Auth::Operations::DeleteCustomer and records the AdminAuditEvent). This
+      # Auth::Operations::DeleteCustomer and records the ColonelAuditEvent). This
       # class only handles HTTP concerns.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
@@ -81,7 +81,7 @@ module ColonelAPI
         #
         # :not_found means DeleteCustomer found nothing to destroy — the record
         # vanished between raise_concerns and the destroy — and in that case the
-        # op records NO AdminAuditEvent. Reporting `deleted: true` would invent
+        # op records NO ColonelAuditEvent. Reporting `deleted: true` would invent
         # both a deletion and an audit trail. The CLI peer (`bin/ots customers
         # purge-one`) applies the same discipline by exiting 1 on this status.
         #

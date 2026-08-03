@@ -14,7 +14,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::Sessions::Delete} — the single,
       # audited implementation of the session-delete verb (epic #40 / CONTRACT 4).
       # This class keeps only the HTTP concerns (param validation + the not-found
-      # 404); the op owns the model mutation and the AdminAuditEvent.
+      # 404); the op owns the model mutation and the ColonelAuditEvent.
       #
       # Deleting a session logs that user out mid-flight, so the UI gates this
       # behind AdminConfirmDialog typed-confirmation (retype the session id).

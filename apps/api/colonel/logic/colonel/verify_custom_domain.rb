@@ -16,7 +16,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::AdminVerifyDomain}, which reuses the
       # incumbent {Onetime::Operations::VerifyDomain} (shared DNS/SSL verifier, no
-      # duplication) and records the AdminAuditEvent (CONTRACT 4). The response
+      # duplication) and records the ColonelAuditEvent (CONTRACT 4). The response
       # reports the HONEST post-verification state (verified / resolving / pending /
       # unverified, plus any op error) — it never fakes success.
       #

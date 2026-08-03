@@ -17,7 +17,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::Memberships::SetRole} — the single,
       # audited, entitlement-materializing implementation. This class resolves the
       # org + member and maps the op's Result status to an HTTP outcome. The OP
-      # owns the AdminAuditEvent (do NOT audit here — that would double-record).
+      # owns the ColonelAuditEvent (do NOT audit here — that would double-record).
       #
       # Security invariant: BOTH the router (role=colonel) AND this logic
       # (verify_one_of_roles!) enforce the colonel role.

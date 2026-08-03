@@ -15,7 +15,7 @@ module ColonelAPI
       # docs/specs/colonel-ui/40-*). The op invalidates the session by deleting
       # the live encrypted `session:<sid>` blob (adaptation #1 — that, not a
       # Rodauth index row, is what logs the user out), tidies the sidecar + the
-      # per-customer index, and writes ONE customer-scoped AdminAuditEvent.
+      # per-customer index, and writes ONE customer-scoped ColonelAuditEvent.
       #
       # Deleting a session logs that user out mid-flight, so the UI gates this
       # behind typed-confirmation (same as the global DeleteSession).

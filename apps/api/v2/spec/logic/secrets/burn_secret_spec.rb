@@ -176,7 +176,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       logic.process
 
       expect(logic.greenlighted).to be true
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('burned')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(owner_objid)
@@ -196,7 +196,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       logic.process
 
       expect(logic.greenlighted).to be true
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('authenticated_other')
       expect(event['actor_id']).to eq(other_objid)
     end
@@ -210,7 +210,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       logic.process
 
       expect(logic.greenlighted).to be true
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('burned')
       expect(event['actor']).to eq('anonymous')
       expect(event['actor']).not_to eq('creator')

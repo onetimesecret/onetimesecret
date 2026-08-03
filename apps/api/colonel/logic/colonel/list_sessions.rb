@@ -15,7 +15,7 @@ module ColonelAPI
       # the HTTP concerns (param coercion + role gate); the op owns the bounded
       # scan, the optional search filter, and pagination.
       #
-      # Read-only: no AdminAuditEvent (CONTRACT 4 — audit is for mutations).
+      # Read-only: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

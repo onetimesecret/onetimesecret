@@ -1,22 +1,22 @@
-# apps/api/organizations/spec/logic/organizations/list_audit_events_spec.rb
+# apps/api/organizations/spec/logic/organizations/list_secret_activity_spec.rb
 #
 # frozen_string_literal: true
 
-# Authorization and shape coverage for the audit-events endpoint (#3633).
+# Authorization and shape coverage for the secret-activity endpoint (#3633).
 #
 # The trail's write-side fidelity (completeness, accuracy, isolation,
 # containment) is covered in
-# apps/api/v2/spec/models/organization_audit_trail_spec.rb. This spec pins
+# apps/api/v2/spec/models/organization_secret_activity_spec.rb. This spec pins
 # the read side: only authenticated, active members whose membership grants
 # the `audit_logs` entitlement can read a trail, and pagination inputs are
 # clamped server-side.
 #
-# Run: pnpm run test:rspec apps/api/organizations/spec/logic/organizations/list_audit_events_spec.rb
+# Run: pnpm run test:rspec apps/api/organizations/spec/logic/organizations/list_secret_activity_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'organizations/logic'
 
-RSpec.describe OrganizationAPI::Logic::Organizations::ListAuditEvents do
+RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
   let(:customer) do
     instance_double(
       Onetime::Customer,
@@ -110,8 +110,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListAuditEvents do
     allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
       .with('org-123', 'cust-actor-789')
       .and_return(actor_membership)
-    allow(organization).to receive(:audit_events_page).and_return(sample_events)
-    allow(organization).to receive(:audit_event_count).and_return(42)
+    allow(organization).to receive(:secret_activity_events_page).and_return(sample_events)
+    allow(organization).to receive(:secret_activity_event_count).and_return(42)
   end
 
   describe 'authorization' do
@@ -226,7 +226,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListAuditEvents do
     end
 
     it 'leaves events without an actor_id out of the lookup entirely' do
-      allow(organization).to receive(:audit_events_page).and_return([
+      allow(organization).to receive(:secret_activity_events_page).and_return([
         { 'kind' => 'expired', 'at' => 1_783_200_200.0, 'receipt' => 'rcpt3', 'secret' => 'scrt3' },
       ])
 

@@ -1521,7 +1521,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
       expect(action.send(:index_receipt_to_organization)).to be true
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('created')
       expect(event['actor']).to eq('creator')
       # The customer double's objid ('obj123'), stored verbatim.

@@ -16,7 +16,7 @@ module ColonelAPI
       # this reads Customer#active_sessions and resolves each sid to a lightweight
       # {Onetime::SessionMetadata} record — no scan, no decrypt, no blob read.
       #
-      # Read-only: no AdminAuditEvent (CONTRACT 4 — audit is for mutations). The
+      # Read-only: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations). The
       # op self-heals its index (prunes stale sids), but that is not a session
       # mutation and is not audited.
       #

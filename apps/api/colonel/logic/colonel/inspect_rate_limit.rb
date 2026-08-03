@@ -14,7 +14,7 @@ module ColonelAPI
       # implementation whose keys the `bin/ots ratelimit keys` CLI also emits
       # (ticket #44). READ-ONLY: reads TTL + value for a bounded, fixed set of keys
       # (CONTRACT 6 — never an unbounded KEYS/SCAN), mutates nothing, records NO
-      # AdminAuditEvent (CONTRACT 4).
+      # ColonelAuditEvent (CONTRACT 4).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

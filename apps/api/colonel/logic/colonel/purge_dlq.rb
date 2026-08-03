@@ -15,7 +15,7 @@ module ColonelAPI
       # implementation of the DLQ purge verb (epic #42 / CONTRACT 4). This class
       # keeps only the HTTP concerns (param validation + role gate + allowlist +
       # broker-availability); the op owns the `queue.purge` mutation and the
-      # AdminAuditEvent (exactly one per non-empty purge).
+      # ColonelAuditEvent (exactly one per non-empty purge).
       #
       # Purge is irreversible message loss, so the UI gates it behind
       # AdminConfirmDialog typed-confirmation (retype the queue name) with the

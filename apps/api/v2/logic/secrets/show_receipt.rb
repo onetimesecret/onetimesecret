@@ -280,7 +280,7 @@ module V2::Logic
       # Ownership uses the same Receipt#owner?(cust) predicate @show_receipt
       # already relies on. actor_id is the FULL customer objid (AU-3 unique
       # traceability); a blank objid is dropped by the centralized validation
-      # in record_org_audit_event.
+      # in record_org_secret_activity_event.
       def receipt_view_actor_context
         return { 'actor' => 'anonymous' } if anonymous_user?
 

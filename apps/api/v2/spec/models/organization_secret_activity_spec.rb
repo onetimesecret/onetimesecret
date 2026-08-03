@@ -1,4 +1,4 @@
-# apps/api/v2/spec/models/organization_audit_trail_spec.rb
+# apps/api/v2/spec/models/organization_secret_activity_spec.rb
 #
 # frozen_string_literal: true
 
@@ -49,14 +49,14 @@ RSpec.describe Onetime::Organization, type: :integration do
     receipt.save_fields(:org_id)
   end
 
-  describe '#record_audit_event (accuracy)' do
+  describe '#record_secret_activity_event (accuracy)' do
     it 'stores kind, timestamp and context, and pages newest-first' do
       t1 = Familia.now.to_f - 20
       t2 = Familia.now.to_f - 10
-      org.record_audit_event('created', at: t1, 'receipt' => 'abc123')
-      org.record_audit_event('revealed', at: t2, 'receipt' => 'abc123')
+      org.record_secret_activity_event('created', at: t1, 'receipt' => 'abc123')
+      org.record_secret_activity_event('revealed', at: t2, 'receipt' => 'abc123')
 
-      events = org.audit_events_page
+      events = org.secret_activity_events_page
       expect(events.size).to eq(2)
 
       newest, oldest = events
@@ -68,42 +68,42 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
 
     it 'records nothing for a blank kind' do
-      expect(org.record_audit_event('')).to be_nil
-      expect(org.record_audit_event(nil)).to be_nil
-      expect(org.audit_event_count).to eq(0)
+      expect(org.record_secret_activity_event('')).to be_nil
+      expect(org.record_secret_activity_event(nil)).to be_nil
+      expect(org.secret_activity_event_count).to eq(0)
     end
 
     it 'retains two identical events in the same second (no silent overwrite)' do
       at = Familia.now.to_f
-      org.record_audit_event('secret_get', at: at, 'receipt' => 'abc123')
-      org.record_audit_event('secret_get', at: at, 'receipt' => 'abc123')
+      org.record_secret_activity_event('secret_get', at: at, 'receipt' => 'abc123')
+      org.record_secret_activity_event('secret_get', at: at, 'receipt' => 'abc123')
 
-      expect(org.audit_event_count).to eq(2)
+      expect(org.secret_activity_event_count).to eq(2)
     end
 
     it 'evicts only the oldest events past the retention cap' do
-      stub_const('Onetime::Organization::Features::AuditTrail::AUDIT_EVENTS_MAX', 5)
+      stub_const('Onetime::Organization::Features::SecretActivity::SECRET_ACTIVITY_MAX_EVENTS', 5)
 
       base = Familia.now.to_f - 100
-      8.times { |i| org.record_audit_event('secret_get', at: base + i) }
+      8.times { |i| org.record_secret_activity_event('secret_get', at: base + i) }
 
-      expect(org.audit_event_count).to eq(5)
-      ats = org.audit_events_page.map { |e| e['at'] }
+      expect(org.secret_activity_event_count).to eq(5)
+      ats = org.secret_activity_events_page.map { |e| e['at'] }
       expect(ats.min).to be_within(0.001).of(base + 3)
       expect(ats.max).to be_within(0.001).of(base + 7)
     end
 
     it 'clamps pagination inputs and windows correctly' do
       base = Familia.now.to_f - 100
-      5.times { |i| org.record_audit_event('secret_get', at: base + i) }
+      5.times { |i| org.record_secret_activity_event('secret_get', at: base + i) }
 
-      page = org.audit_events_page(offset: 2, limit: 2)
+      page = org.secret_activity_events_page(offset: 2, limit: 2)
       expect(page.size).to eq(2)
       expect(page[0]['at']).to be_within(0.001).of(base + 2)
       expect(page[1]['at']).to be_within(0.001).of(base + 1)
 
-      expect(org.audit_events_page(offset: -3, limit: 0).size).to eq(1)
-      expect(org.audit_events_page(offset: 0, limit: 9_999).size).to eq(5)
+      expect(org.secret_activity_events_page(offset: -3, limit: 0).size).to eq(1)
+      expect(org.secret_activity_events_page(offset: 0, limit: 9_999).size).to eq(5)
     end
   end
 
@@ -113,7 +113,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       receipt.record_access_event('status_get')
 
-      events = org.audit_events_page
+      events = org.secret_activity_events_page
       expect(events.size).to eq(1)
       expect(events.first['kind']).to eq('status_get')
       expect(events.first['receipt']).to eq(receipt.shortid)
@@ -129,7 +129,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       link_to_org!(receipt, org)
       receipt.record_access_event('secret_get')
 
-      raw = org.audit_events.membersraw.join
+      raw = org.secret_activity_events.membersraw.join
       expect(raw).not_to include(secret.identifier)
       expect(raw).not_to include(receipt.identifier)
     end
@@ -154,7 +154,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       it 'carries the masked partial IP, partial UA, and keyed hash into the trail' do
         receipt.record_access_event('secret_get', context: context)
 
-        event = org.audit_events_page.first
+        event = org.secret_activity_events_page.first
         expect(event['kind']).to eq('secret_get')
         expect(event['net_ip_partial']).to eq('203.0.113.0')
         expect(event['net_ua_partial']).to eq('Mozilla/*.* Chrome/*.*.*.*')
@@ -166,7 +166,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       it 'keeps the shortid-only context intact when no network context is given' do
         receipt.record_access_event('status_get')
 
-        event = org.audit_events_page.first
+        event = org.secret_activity_events_page.first
         expect(event).to include('receipt', 'secret', 'kind', 'at')
         expect(event.keys).not_to include('net_ip_partial', 'net_ua_partial', 'net_ip_hash')
       end
@@ -188,7 +188,7 @@ RSpec.describe Onetime::Organization, type: :integration do
           receipt.record_access_event('secret_get', context: real_context)
         end
 
-        raw = org.audit_events.membersraw.join
+        raw = org.secret_activity_events.membersraw.join
 
         # No raw dotted-quad IPv4, no full IPv6, no full UA, no version token.
         expect(raw).not_to include(raw_ip)
@@ -197,7 +197,7 @@ RSpec.describe Onetime::Organization, type: :integration do
         expect(raw).not_to include('119.0.0.0')
 
         # Belt and suspenders: scan every stored attribute value directly.
-        org.audit_events_page(limit: 200).each do |event|
+        org.secret_activity_events_page(limit: 200).each do |event|
           event.each_value do |value|
             expect(value.to_s).not_to include(raw_ip)
             expect(value.to_s).not_to include(raw_ipv6)
@@ -212,7 +212,7 @@ RSpec.describe Onetime::Organization, type: :integration do
         )
         2.times { receipt.record_access_event('status_get', context: real_context) }
 
-        hashes = org.audit_events_page.map { |e| e['net_ip_hash'] }
+        hashes = org.secret_activity_events_page.map { |e| e['net_ip_hash'] }
         expect(hashes.uniq.size).to eq(1)
         expect(hashes.first).to match(/\A[0-9a-f]{64}\z/)
       end
@@ -220,7 +220,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
     it 'writes nowhere and raises nothing for receipts without org context' do
       expect { receipt.record_access_event('status_get') }.not_to raise_error
-      expect(org.audit_event_count).to eq(0)
+      expect(org.secret_activity_event_count).to eq(0)
     end
 
     it 'caps one receipt\'s fetch contribution so a hammered link cannot flood the trail' do
@@ -232,11 +232,11 @@ RSpec.describe Onetime::Organization, type: :integration do
       # The receipt's own timeline saturates at the cap, and fan-out stops
       # with it: other receipts' history in the org trail stays safe.
       expect(receipt.access_count).to eq(3)
-      expect(org.audit_event_count).to eq(3)
+      expect(org.secret_activity_event_count).to eq(3)
 
       # Lifecycle transitions are not subject to the fetch bound.
       receipt.revealed!
-      expect(org.audit_events_page.first['kind']).to eq('revealed')
+      expect(org.secret_activity_events_page.first['kind']).to eq('revealed')
     end
   end
 
@@ -249,7 +249,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       # 'preview' is UI language; the trail records what mechanically
       # happened: the receipt page was loaded.
-      kinds = org.audit_events_page.map { |e| e['kind'] }
+      kinds = org.secret_activity_events_page.map { |e| e['kind'] }
       expect(kinds).to eq(['receipt_viewed'])
     end
 
@@ -257,7 +257,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       full_objid = "customer_objid_#{SecureRandom.hex(12)}"
       receipt.record_receipt_view!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('receipt_viewed')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(full_objid)
@@ -266,7 +266,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'records the receipt view without actor context under the fail-safe actor' do
       receipt.record_receipt_view!
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('receipt_viewed')
       expect(event['actor']).to eq('unknown')
       expect(event).not_to have_key('actor_id')
@@ -276,7 +276,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.revealed!
       receipt.revealed! # guard: state is no longer :new/:previewed
 
-      kinds = org.audit_events_page.map { |e| e['kind'] }
+      kinds = org.secret_activity_events_page.map { |e| e['kind'] }
       expect(kinds).to eq(['revealed'])
     end
 
@@ -284,7 +284,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.burned!
       receipt.burned!
 
-      kinds = org.audit_events_page.map { |e| e['kind'] }
+      kinds = org.secret_activity_events_page.map { |e| e['kind'] }
       expect(kinds).to eq(['burned'])
     end
 
@@ -292,7 +292,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.orphaned!
       receipt.orphaned!
 
-      events = org.audit_events_page
+      events = org.secret_activity_events_page
       expect(events.map { |e| e['kind'] }).to eq(['orphaned'])
       # System-detected transition: no acting individual, so 'system' and
       # never an actor_id (#3637).
@@ -303,7 +303,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'does not record expired for a receipt that has not expired' do
       receipt.expired!
 
-      expect(org.audit_event_count).to eq(0)
+      expect(org.secret_activity_event_count).to eq(0)
       expect(receipt.state).to eq('new')
     end
 
@@ -315,7 +315,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.expired!
       receipt.expired! # second call: state already advanced, guard holds
 
-      events = org.audit_events_page
+      events = org.secret_activity_events_page
       expect(events.map { |e| e['kind'] }).to eq(['expired'])
       # System-detected, like orphaned: 'system' actor, never an actor_id.
       expect(events.first['actor']).to eq('system')
@@ -325,7 +325,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'reaches the trail through the full reveal cascade (secret -> receipt -> org)' do
       expect(secret.reveal!).to eq('a secret value')
 
-      kinds = org.audit_events_page.map { |e| e['kind'] }
+      kinds = org.secret_activity_events_page.map { |e| e['kind'] }
       expect(kinds).to eq(['revealed'])
     end
   end
@@ -334,7 +334,7 @@ RSpec.describe Onetime::Organization, type: :integration do
   # must carry WHO acted; the discriminator is computed at the request-scoped
   # logic layer and threaded through the atomic consume cascade. These model
   # specs pin the trail-facing half of that contract:
-  #   * record_org_audit_event forwards arbitrary string-keyed event_attrs;
+  #   * record_org_secret_activity_event forwards arbitrary string-keyed event_attrs;
   #   * revealed!/burned! record the threaded actor exactly once (CAS-gated);
   #   * a missing actor context fails safe to 'unknown' (ADR-023: never
   #     'creator', and never 'anonymous' — that would assert "unauthenticated",
@@ -345,10 +345,10 @@ RSpec.describe Onetime::Organization, type: :integration do
 
     let(:full_objid) { "customer_objid_#{SecureRandom.hex(12)}" }
 
-    it 'record_org_audit_event forwards extra string-keyed attrs into the event' do
-      receipt.record_org_audit_event('revealed', 'actor' => 'creator', 'actor_id' => full_objid)
+    it 'record_org_secret_activity_event forwards extra string-keyed attrs into the event' do
+      receipt.record_org_secret_activity_event('revealed', 'actor' => 'creator', 'actor_id' => full_objid)
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(full_objid)
@@ -357,7 +357,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'threads the actor through revealed! into the trail' do
       receipt.revealed!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(full_objid)
@@ -366,7 +366,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'threads the actor through burned! into the trail' do
       receipt.burned!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => full_objid })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('burned')
       expect(event['actor']).to eq('authenticated_other')
       expect(event['actor_id']).to eq(full_objid)
@@ -375,7 +375,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'defaults a missing actor context to unknown on revealed! (ADR-023, never misattributed)' do
       receipt.revealed! # defensive path: no request context threaded
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('unknown')
       expect(event).not_to have_key('actor_id')
     end
@@ -383,12 +383,12 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'defaults a blank actor to unknown on burned! (ADR-023, never misattributed)' do
       receipt.burned!(actor_context: { 'actor' => '' })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('unknown')
     end
 
     # Privacy no-regression guards for the centralized actor validation in
-    # record_org_audit_event (#3637). These pin the ways an actor context is
+    # record_org_secret_activity_event (#3637). These pin the ways an actor context is
     # reduced before it is stored, so a future change can't silently start
     # leaking identity (or misattributing events) in the trail.
     it 'never attaches an actor_id to an anonymous event, even if one is supplied' do
@@ -396,7 +396,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       # context must be dropped, not stored against 'anonymous'.
       receipt.revealed!(actor_context: { 'actor' => 'anonymous', 'actor_id' => 'abcd1234' })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('anonymous')
       expect(event).not_to have_key('actor_id')
     end
@@ -408,7 +408,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       # KEPT — record what is known, mark the rest unknown.
       receipt.revealed!(actor_context: { 'actor' => 'root', 'actor_id' => full_objid })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('unknown')
       expect(event['actor_id']).to eq(full_objid)
     end
@@ -419,7 +419,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       # pass both through unchanged (unknown is id-carrying).
       receipt.burned!(actor_context: { 'actor' => 'unknown', 'actor_id' => full_objid })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('unknown')
       expect(event['actor_id']).to eq(full_objid)
     end
@@ -430,7 +430,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       # convention for receipt/secret capability tokens does not apply here.
       receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => full_objid })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq(full_objid)
       expect(event['actor_id'].length).to be > 8
@@ -442,24 +442,24 @@ RSpec.describe Onetime::Organization, type: :integration do
       # against a caller passing cust.email where an objid belongs.
       receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'person@example.com' })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('creator')
       expect(event).not_to have_key('actor_id')
-      expect(org.audit_events.membersraw.join).not_to include('person@example.com')
+      expect(org.secret_activity_events.membersraw.join).not_to include('person@example.com')
     end
 
     it 'drops a blank actor_id rather than storing an empty token' do
       receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => '' })
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('creator')
       expect(event).not_to have_key('actor_id')
     end
 
     it 'never attaches an actor_id to a system event, even if one is supplied' do
-      receipt.record_org_audit_event('expired', 'actor' => 'system', 'actor_id' => full_objid)
+      receipt.record_org_secret_activity_event('expired', 'actor' => 'system', 'actor_id' => full_objid)
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('system')
       expect(event).not_to have_key('actor_id')
     end
@@ -471,7 +471,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       # The loser lost the CAS: it neither transitions nor appends an event.
       expect(loser.revealed!(actor_context: { 'actor' => 'authenticated_other' })).to be_falsey
 
-      events = org.audit_events_page
+      events = org.secret_activity_events_page
       expect(events.map { |e| e['kind'] }).to eq(['revealed'])
       expect(events.first['actor']).to eq('creator')
     end
@@ -480,7 +480,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(secret.reveal!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'beef5678' }))
         .to eq('a secret value')
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('authenticated_other')
       expect(event['actor_id']).to eq('beef5678')
@@ -489,7 +489,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     it 'carries the actor down the full Secret -> Receipt -> Org burn cascade' do
       expect(secret.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })).to be true
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('burned')
       expect(event['actor']).to eq('creator')
       expect(event['actor_id']).to eq('abcd1234')
@@ -514,9 +514,9 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.share_domain = 'secrets.example.com'
       receipt.save_fields(:domain_id, :share_domain)
 
-      receipt.record_org_audit_event('created')
+      receipt.record_org_secret_activity_event('created')
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['domain_id']).to eq(domain_id[0, 8])
       expect(event['domain']).to eq('secrets.example.com')
       # Alongside the existing shortid context, not instead of it.
@@ -525,9 +525,9 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
 
     it 'omits both keys entirely for a default-domain receipt' do
-      receipt.record_org_audit_event('created')
+      receipt.record_org_secret_activity_event('created')
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event.keys).not_to include('domain_id', 'domain')
     end
 
@@ -538,9 +538,9 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.domain_id = domain_id
       receipt.save_fields(:domain_id)
 
-      receipt.record_org_audit_event('created')
+      receipt.record_org_secret_activity_event('created')
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['domain_id']).to eq(domain_id[0, 8])
       expect(event.keys).not_to include('domain')
     end
@@ -552,9 +552,9 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.share_domain = 'secrets.example.com'
       receipt.save_fields(:share_domain)
 
-      receipt.record_org_audit_event('created')
+      receipt.record_org_secret_activity_event('created')
 
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event.keys).not_to include('domain_id', 'domain')
     end
 
@@ -563,9 +563,9 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.share_domain = 'secrets.example.com'
       receipt.save_fields(:domain_id, :share_domain)
 
-      receipt.record_org_audit_event('secret_get')
+      receipt.record_org_secret_activity_event('secret_get')
 
-      raw = org.audit_events.membersraw.join
+      raw = org.secret_activity_events.membersraw.join
       expect(raw).to include(domain_id[0, 8])
       expect(raw).not_to include(domain_id)
     end
@@ -586,8 +586,8 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.record_access_event('secret_get')
       receipt.revealed!
 
-      expect(org.audit_event_count).to eq(2)
-      expect(other_org.audit_event_count).to eq(0)
+      expect(org.secret_activity_event_count).to eq(2)
+      expect(other_org.secret_activity_event_count).to eq(0)
     end
   end
 
