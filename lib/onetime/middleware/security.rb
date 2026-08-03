@@ -13,6 +13,7 @@ require 'rack/utf8_sanitizer'
 
 require_relative 'instrumented_authenticity_token'
 require_relative 'permissions_policy'
+require_relative 'xss_header'
 
 module Onetime
   module Middleware
@@ -246,15 +247,18 @@ Onetime::Middleware::Security.middleware_components = {
   # like passwords and secrets. OTS uses Onetime::Security::InputSanitizers
   # for field-aware sanitization instead.
 
-  # XSS Header: Sets X-XSS-Protection (HTML responses, legacy browsers) AND
+  # XSS Header: Sets X-XSS-Protection: 0 (HTML responses) AND
   # X-Content-Type-Options: nosniff (all responses). The nosniff header is the
   # load-bearing half: it stops browsers from MIME-sniffing responses into
   # executable types. Ships enabled since the 2026-08-02 audit (M-3.1) —
   # previously nosniff existed only as a meta tag in head-base.rue, which
-  # browsers ignore for non-HTML resources.
+  # browsers ignore for non-HTML resources. Uses the Onetime subclass rather
+  # than Rack::Protection::XSSHeader because the latter can only emit
+  # `1; mode=...`, which is an XS-Leaks vector in the legacy browsers that
+  # still ship the XSS auditor (see xss_header.rb).
   'XSSHeader' => {
     key: :xss_header,
-    klass: Rack::Protection::XSSHeader,
+    klass: Onetime::Middleware::XSSHeader,
   },
 
   # Referrer Policy: Emits Referrer-Policy: no-referrer on every response.

@@ -48,6 +48,28 @@ RSpec.describe 'Security header emission (audit 2026-08-02 M-3)' do
     end
   end
 
+  describe 'X-XSS-Protection (xss_header)' do
+    let(:html_downstream) do
+      ->(_env) { [200, { 'content-type' => 'text/html' }, ['<html></html>']] }
+    end
+
+    it 'emits 0 on HTML responses — never 1; mode=block (XS-Leaks vector)' do
+      app = build_security({ 'xss_header' => true }, app: html_downstream)
+      expect(headers_for(app)['x-xss-protection']).to eq('0')
+    end
+
+    it 'does not emit the header on non-HTML responses' do
+      app = build_security({ 'xss_header' => true })
+      expect(headers_for(app)).not_to have_key('x-xss-protection')
+    end
+
+    it 'does not clobber a value a downstream layer already set' do
+      custom = ->(_env) { [200, { 'content-type' => 'text/html', 'x-xss-protection' => '0' }, []] }
+      app    = build_security({ 'xss_header' => true }, app: custom)
+      expect(headers_for(app)['x-xss-protection']).to eq('0')
+    end
+  end
+
   describe 'Referrer-Policy (referrer_policy)' do
     it 'emits no-referrer — never the rack-protection default — when enabled' do
       app = build_security({ 'referrer_policy' => true })
@@ -110,18 +132,18 @@ RSpec.describe 'Security header emission (audit 2026-08-02 M-3)' do
   end
 
   describe 'config defaults (etc/defaults/config.defaults.yaml)' do
-    DEFAULTS_PATH = File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml')
-    TOGGLE_KEYS   = %w[MIDDLEWARE_XSS_HEADER MIDDLEWARE_REFERRER_POLICY MIDDLEWARE_PERMISSIONS_POLICY].freeze
+    let(:defaults_path) { File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml') }
+    let(:toggle_keys)   { %w[MIDDLEWARE_XSS_HEADER MIDDLEWARE_REFERRER_POLICY MIDDLEWARE_PERMISSIONS_POLICY] }
 
     # Render the shipped defaults (explicit path = no layering) with a clean
     # slate for the MIDDLEWARE_* env vars so we assert the true
     # out-of-the-box posture.
     def middleware_defaults(env_overrides = {})
-      saved = TOGGLE_KEYS.to_h { |k| [k, ENV.delete(k)] }
+      saved = toggle_keys.to_h { |k| [k, ENV.delete(k)] }
       env_overrides.each { |k, v| ENV[k] = v }
-      Onetime::Config.load(DEFAULTS_PATH).dig('site', 'middleware')
+      Onetime::Config.load(defaults_path).dig('site', 'middleware')
     ensure
-      TOGGLE_KEYS.each { |k| ENV.delete(k) }
+      toggle_keys.each { |k| ENV.delete(k) }
       saved.each { |k, v| ENV[k] = v if v }
     end
 
@@ -138,7 +160,7 @@ RSpec.describe 'Security header emission (audit 2026-08-02 M-3)' do
     end
 
     it 'still honors the env-var kill switches' do
-      TOGGLE_KEYS.each do |key|
+      toggle_keys.each do |key|
         config_key = key.sub('MIDDLEWARE_', '').downcase
         middleware = middleware_defaults(key => 'false')
         expect(middleware[config_key]).to be(false), "#{key}=false should disable #{config_key}"
