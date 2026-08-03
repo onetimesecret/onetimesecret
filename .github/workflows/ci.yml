@@ -581,11 +581,14 @@ jobs:
       # API contract specs (spec/api/) — a different axis than auth mode.
       # Blocking since the #3225 / ADR-012 Stage 3 membership-contract drift
       # was repaired (mock helpers rewritten to the membership model); this
-      # step was continue-on-error while that subset was red.
+      # step was continue-on-error while that subset was red. Runs through
+      # the composite so a failure gets the same failure-tail PR comment
+      # and results plumbing as every other lane.
       - name: Run api lane (spec/api)
-        env:
-          LANES_NO_AUTOSTART: '1'
-        run: tests/lanes/run api
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: api
+          results-file: 'rspec_api_results.json'
 
   ruby-integration-full:
     name: 'T3 · Ruby Integration (Full, ${{ matrix.name }})'
