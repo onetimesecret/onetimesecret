@@ -1,9 +1,9 @@
-# apps/api/domains/try/logic/config_audit_logger_try.rb
+# apps/api/domains/try/logic/config_change_logger_try.rb
 #
 # frozen_string_literal: true
 
-# Tests for the shared ConfigAuditLogger change-computation machinery
-# used by the per-config AuditLogger modules (SsoConfig, SenderConfig,
+# Tests for the shared ConfigChangeLogger change-computation machinery
+# used by the per-config ChangeLogger modules (SsoConfig, SenderConfig,
 # SignupConfig, SigninConfig).
 #
 # Covers compute_config_changes:
@@ -18,11 +18,11 @@ require_relative '../../../../../try/support/test_helpers'
 
 OT.boot! :test
 
-require 'apps/api/domains/logic/config_audit_logger'
+require 'apps/api/domains/logic/config_change_logger'
 
 # Harness exposing the module's private methods for direct testing.
-class AuditLoggerHarness
-  include DomainsAPI::Logic::ConfigAuditLogger
+class ChangeLoggerHarness
+  include DomainsAPI::Logic::ConfigChangeLogger
 
   def compute(...)
     compute_config_changes(...)
@@ -45,7 +45,7 @@ class ArrayFakeConfig
   def domains = ['B.example.com', 'a.example.com']
 end
 
-@harness = AuditLoggerHarness.new
+@harness = ChangeLoggerHarness.new
 @full    = FullFakeConfig.new
 @bare    = BareFakeConfig.new
 

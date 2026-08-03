@@ -4,7 +4,7 @@
 
 require 'onetime/models/custom_domain/signin_config'
 require_relative 'base'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -19,7 +19,7 @@ module DomainsAPI
       # default-OFF opt-in posture (open only when tenant SSO is available).
       #
       class DeleteSigninConfig < Base
-        include AuditLogger
+        include ChangeLogger
 
         def process_params
           @domain_id = sanitize_identifier(params['extid'])
@@ -43,7 +43,7 @@ module DomainsAPI
           deleted = Onetime::CustomDomain::SigninConfig.delete_for_domain!(@custom_domain.identifier)
 
           if deleted
-            log_signin_audit_event(
+            log_signin_change_event(
               event: :domain_signin_config_deleted,
               domain: @custom_domain,
               org: @organization,

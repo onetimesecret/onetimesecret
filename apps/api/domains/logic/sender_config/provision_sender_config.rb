@@ -6,7 +6,7 @@ require 'onetime/models/custom_domain/mailer_config'
 require 'onetime/operations/provision_sender_domain'
 require_relative 'base'
 require_relative 'serializers'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -35,7 +35,7 @@ module DomainsAPI
       class ProvisionSenderConfig < Base
         include Onetime::LoggerMethods
         include Serializers
-        include AuditLogger
+        include ChangeLogger
 
         attr_reader :mailer_config
 
@@ -83,7 +83,7 @@ module DomainsAPI
               provider: provider,
               record_count: result.dns_records.size
 
-            log_sender_audit_event(
+            log_sender_change_event(
               event: :domain_sender_provisioned,
               domain: @custom_domain,
               org: @organization,

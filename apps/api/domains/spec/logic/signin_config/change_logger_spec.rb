@@ -1,27 +1,27 @@
-# apps/api/domains/spec/logic/signin_config/audit_logger_spec.rb
+# apps/api/domains/spec/logic/signin_config/change_logger_spec.rb
 #
 # frozen_string_literal: true
 
-# Unit tests for SigninConfig::AuditLogger.
+# Unit tests for SigninConfig::ChangeLogger.
 #
-# The AuditLogger module provides structured logging for signin
+# The ChangeLogger module provides structured logging for signin
 # config changes. Tests cover:
-#   - log_signin_audit_event payload structure
+#   - log_signin_change_event payload structure
 #   - extract_ip_address from strategy_result metadata
 #
 # RUN:
-#   pnpm run test:rspec apps/api/domains/spec/logic/signin_config/audit_logger_spec.rb
+#   pnpm run test:rspec apps/api/domains/spec/logic/signin_config/change_logger_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../../../../apps/api/domains/application'
 
-RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
-  # The AuditLogger mixin calls respond_to?(:strategy_result) which checks
+RSpec.describe DomainsAPI::Logic::SigninConfig::ChangeLogger do
+  # The ChangeLogger mixin calls respond_to?(:strategy_result) which checks
   # public visibility by default. In production, strategy_result is a public
   # attr_reader on Logic::Base. We mirror that here.
   let(:host_class) do
     Class.new do
-      include DomainsAPI::Logic::SigninConfig::AuditLogger
+      include DomainsAPI::Logic::SigninConfig::ChangeLogger
 
       attr_accessor :strategy_result_mock
 
@@ -57,14 +57,14 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
     )
   end
 
-  describe '#log_signin_audit_event' do
-    it 'logs with the DOMAIN_SIGNIN_AUDIT tag' do
+  describe '#log_signin_change_event' do
+    it 'logs with the DOMAIN_SIGNIN_CHANGE tag' do
       expect(OT).to receive(:info).with(
-        a_string_matching(/\[DOMAIN_SIGNIN_AUDIT\]/),
+        a_string_matching(/\[DOMAIN_SIGNIN_CHANGE\]/),
         anything,
       )
 
-      host.log_signin_audit_event(
+      host.log_signin_change_event(
         event: :domain_signin_config_created,
         domain: domain,
         org: org,
@@ -78,7 +78,7 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
         anything,
       )
 
-      host.log_signin_audit_event(
+      host.log_signin_change_event(
         event: :domain_signin_config_created,
         domain: domain,
         org: org,
@@ -92,7 +92,7 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
         captured_payload = JSON.parse(json_str)
       end
 
-      host.log_signin_audit_event(
+      host.log_signin_change_event(
         event: :domain_signin_config_replaced,
         domain: domain,
         org: org,
@@ -113,7 +113,7 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
         captured_payload = JSON.parse(json_str)
       end
 
-      host.log_signin_audit_event(
+      host.log_signin_change_event(
         event: :domain_signin_config_created,
         domain: domain,
         org: org,
@@ -130,7 +130,7 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
         captured_payload = JSON.parse(json_str)
       end
 
-      host.log_signin_audit_event(
+      host.log_signin_change_event(
         event: :domain_signin_config_replaced,
         domain: domain,
         org: org,
@@ -147,7 +147,7 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
         captured_payload = JSON.parse(json_str)
       end
 
-      host.log_signin_audit_event(
+      host.log_signin_change_event(
         event: :domain_signin_config_created,
         domain: domain,
         org: org,
@@ -164,7 +164,7 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
         captured_payload = JSON.parse(json_str)
       end
 
-      host.log_signin_audit_event(
+      host.log_signin_change_event(
         event: :domain_signin_config_created,
         domain: domain,
         org: org,
@@ -189,7 +189,7 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::AuditLogger do
             anything,
           )
 
-          host.log_signin_audit_event(
+          host.log_signin_change_event(
             event: event_name,
             domain: domain,
             org: org,

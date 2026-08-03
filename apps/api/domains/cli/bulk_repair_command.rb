@@ -15,7 +15,7 @@
 #      false. Every org-owned domain in the system was reported as "mismatched"
 #      and then "repaired" — the scan summary was meaningless.
 #
-#   2. The mutation loop recorded NO AdminAuditEvent. It walked every custom
+#   2. The mutation loop recorded NO ColonelAuditEvent. It walked every custom
 #      domain in the install and mutated org collections with zero audit trail.
 #
 # `domains doctor --all --repair` already scans every domain, detects the same

@@ -4,7 +4,7 @@
 
 require 'onetime/models/custom_domain/signup_config'
 require_relative 'base'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -24,7 +24,7 @@ module DomainsAPI
       # - enabled: Optional. Boolean to enable/disable (preserves existing if omitted)
       #
       class PatchSignupConfig < Base
-        include AuditLogger
+        include ChangeLogger
 
         VALID_STRATEGY_TYPES = Onetime::CustomDomain::SignupConfig::STRATEGY_TYPES.freeze
 
@@ -78,7 +78,7 @@ module DomainsAPI
           if @existing_config
             changes = compute_signup_changes(@existing_config, normalized_change_params)
             update_existing_config
-            log_signup_audit_event(
+            log_signup_change_event(
               event: :domain_signup_config_updated,
               domain: @custom_domain,
               org: @organization,
@@ -88,7 +88,7 @@ module DomainsAPI
             )
           else
             create_new_config
-            log_signup_audit_event(
+            log_signup_change_event(
               event: :domain_signup_config_created,
               domain: @custom_domain,
               org: @organization,
@@ -215,7 +215,7 @@ module DomainsAPI
           return if was_enabled == is_enabled
 
           if is_enabled && (was_enabled.nil? || was_enabled == false)
-            log_signup_audit_event(
+            log_signup_change_event(
               event: :domain_signup_config_enabled,
               domain: @custom_domain,
               org: @organization,
@@ -223,7 +223,7 @@ module DomainsAPI
               validation_strategy: @effective_strategy,
             )
           elsif was_enabled == true && !is_enabled
-            log_signup_audit_event(
+            log_signup_change_event(
               event: :domain_signup_config_disabled,
               domain: @custom_domain,
               org: @organization,
