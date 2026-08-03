@@ -25,9 +25,34 @@ import { defineConfig } from 'vitest/config';
 
 // @vue/test-utils, mount function. Testing components with props.
 
+const nodeBuiltinsPlugin = () => {
+  const builtins = new Set([
+    'fs',
+    'path',
+    'url',
+    'os',
+    'crypto',
+    'child_process',
+    'util',
+    'stream',
+    'events',
+    'assert',
+  ]);
+  return {
+    name: 'resolve-node-builtins',
+    enforce: 'pre',
+    resolveId(id: string) {
+      if (id.startsWith('node:') || builtins.has(id)) {
+        return { id, external: true };
+      }
+      return null;
+    },
+  };
+};
+
 // Functional components: <template functional>, uses `props.keyName`, context (listeners, slots, children etc)
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), nodeBuiltinsPlugin()],
   test: {
     globalSetup: ['src/tests/globalSetup.ts'],
     globals: true,
@@ -48,12 +73,7 @@ export default defineConfig({
       reportsDirectory: 'coverage',
       all: true, // include untested source files so they report as 0% covered
       include: ['src/**'],
-      exclude: [
-        'src/tests/**',
-        'src/**/*.spec.ts',
-        'src/**/*.spec.vue',
-        'src/**/*.d.ts',
-      ],
+      exclude: ['src/tests/**', 'src/**/*.spec.ts', 'src/**/*.spec.vue', 'src/**/*.d.ts'],
     },
     setupFiles: [
       'src/tests/setup-env.ts',
