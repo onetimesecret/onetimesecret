@@ -1934,6 +1934,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                  (backend 403s regardless of plan), so no upgrade upsell -->
             <div
               v-if="!isAuditRoleAllowed"
+              role="status"
               data-testid="org-audit-role-notice"
               class="mt-4 flex items-center gap-3 rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/40">
               <OIcon
@@ -1947,6 +1948,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             </div>
             <div
               v-else-if="!canViewAuditLogs"
+              role="status"
               class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
               <OIcon
                 collection="heroicons"
