@@ -8,7 +8,7 @@
 # This verifies that {} (BasicAuth's session value) supports all these operations
 # without raising NoMethodError or TypeError.
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/session_bracket_access_spec.rb

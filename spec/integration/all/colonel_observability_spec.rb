@@ -10,7 +10,7 @@ require 'securerandom'
 require 'colonel/application'
 
 # Integration tests for the observability colonel endpoints against real Redis
-# (port 2121; type: :integration flushes after each example):
+# (port 2163; type: :integration flushes after each example):
 #
 #   1. Audit log reader — ListAuditEvents (GET /api/colonel/audit): newest-first
 #      pagination, actor/verb filters, and the CONTRACT 4 invariant that reading

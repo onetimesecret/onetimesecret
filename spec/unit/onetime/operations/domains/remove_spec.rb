@@ -207,7 +207,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
   # ------------------------------------------------------------------ #
   # Layer 2 — real datastore (the display_domain_index re-assertion crux)
   #
-  # These require the test Valkey (spec/config.test.yaml -> :2121). No blanket
+  # These require the test Valkey (spec/config.test.yaml -> :2163). No blanket
   # flush: each example registers its records/fqdns and the after(:each) hook
   # tears down only those, so nothing clobbers another example's fixtures.
   # ------------------------------------------------------------------ #

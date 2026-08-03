@@ -6,12 +6,12 @@ require 'spec_helper'
 require 'rack/test'
 require 'json'
 
-# Integration tests use REAL Valkey/Redis on port 2121
+# Integration tests use REAL Valkey/Redis on port 2163
 # The ConfigureFamilia initializer enforces this for safety (prevents
 # accidentally writing to production Redis on default port 6379).
 #
 # To run integration tests:
-#   pnpm run test:database:start  # Start Valkey on port 2121
+#   pnpm run test:database:start  # Start Valkey on port 2163
 #   pnpm run test:rspec:integration   # rake spec:integration:all
 #
 # FakeRedis is NOT used for integration tests because:
@@ -39,7 +39,7 @@ RSpec.configure do |config|
     next if context.class.metadata[:shared_db_state]
     next if context.class.metadata[:billing]
 
-    if test_redis_port == 2121
+    if test_redis_port == 2163
       begin
         Familia.dbclient.flushdb
       rescue StandardError => e
@@ -56,7 +56,7 @@ RSpec.configure do |config|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
-    if test_redis_port == 2121
+    if test_redis_port == 2163
       begin
         Familia.dbclient.flushdb
       rescue StandardError => e

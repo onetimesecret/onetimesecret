@@ -17,7 +17,7 @@
 # 5. verify_account_redirect reads session -> redirects to /billing/plans/X/Y
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
 # - AUTHENTICATION_MODE=full
 #

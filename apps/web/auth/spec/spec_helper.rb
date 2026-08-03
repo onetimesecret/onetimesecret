@@ -363,7 +363,7 @@ end
 # Helper module for integration tests that need production config
 #
 # Integration tests require:
-# - Valkey running on port 2121 (pnpm run test:database:start)
+# - Valkey running on port 2163 (pnpm run test:database:start)
 # - AUTH_DATABASE_URL set for SQLite auth database
 #
 # Tests using this helper should be tagged with `type: :integration`
@@ -374,7 +374,7 @@ module ProductionConfigHelper
 
     @valkey_available = begin
       require 'redis'
-      redis = Redis.new(url: 'redis://127.0.0.1:2121/0')
+      redis = Redis.new(url: 'redis://127.0.0.1:2163/0')
       redis.ping == 'PONG'
     rescue StandardError
       false
@@ -511,7 +511,7 @@ module ProductionConfigHelper
       # Fail closed: refuse to TRUNCATE unless the target is a test database.
       # The dbname is the only thing separating the test PG (onetime_auth_test)
       # from a leaked dev value (onetime_authdb); AUTH_DATABASE_URL is read from
-      # ENV, so a run outside the sanctioned :2132 PG lane must not wipe dev.
+      # ENV, so a run outside the sanctioned :2154 PG lane must not wipe dev.
       dbname = db.opts[:database].to_s
       unless dbname =~ /test/i
         raise "[auth spec_helper] Refusing to TRUNCATE non-test database: " \
@@ -605,7 +605,7 @@ RSpec.configure do |config|
   # Skip integration tests if Valkey not available
   config.before(:each, type: :integration) do
     unless valkey_available?
-      skip 'Valkey not available on port 2121 (run: pnpm run test:database:start)'
+      skip 'Valkey not available on port 2163 (run: pnpm run test:database:start)'
     end
   end
 

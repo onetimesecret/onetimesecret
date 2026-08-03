@@ -45,19 +45,19 @@ RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ## Testing
 
 ```bash
-bin/setup --test               # throwaway datastore on :2121, .test-mode marker
-pnpm run test:rspec:fast       # RSpec fast suite
-pnpm test                      # Vitest (frontend)
-bundle exec try                # Tryouts (Ruby behavior tests)
+bin/setup --test               # containerized test services (compose.test.yml), .test-mode marker
+tests/lanes/run unit           # Tryouts + RSpec fast suite (see: tests/lanes/run --list)
+pnpm test                      # Vitest (frontend; no services needed)
 ```
+
+Ruby tests run through the lane runner, which scrubs ambient dev env vars
+and loads the lane's own environment — the same entrypoint CI uses. See
+[tests/lanes/](../../tests/lanes/) for the full lane matrix (integration,
+PostgreSQL-backed auth, billing, migrations).
 
 `bin/setup --test` puts the checkout in test mode: with direnv installed,
 every shell in the checkout loads `.env.test` and runs `RACK_ENV=test` until
-you switch back with plain `bin/setup`. Without direnv the suites still work —
-`spec_helper` forces `RACK_ENV=test` itself.
-
-The integration suites (PostgreSQL-backed auth, billing) need extra services;
-see [tests/lanes/](../../tests/lanes/) for the lane matrix CI runs.
+you switch back with plain `bin/setup`.
 
 ## Debugging
 
@@ -137,7 +137,7 @@ pnpm run database:stop      # Stop server
 pnpm run database:status    # Check if server is running
 ```
 
-Test datastore helpers (port 2121, no persistence — started by
+Test datastore helpers (port 2163, no persistence — started by
 `bin/setup --test`):
 
 ```bash

@@ -24,7 +24,7 @@
 #      - Tests that raw payload is correctly parsed into Stripe::Event
 #
 # Setup Requirements:
-#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2121/0'
+#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2163/0'
 #   - Mocked ProcessWebhookEvent operation
 #
 # Run with: bundle exec rspec apps/web/billing/spec/workers/billing_worker_spec.rb

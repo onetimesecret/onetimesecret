@@ -29,7 +29,7 @@
 # the default (require_verification: false) and claim immediately.
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=full
 #
 # RUN:

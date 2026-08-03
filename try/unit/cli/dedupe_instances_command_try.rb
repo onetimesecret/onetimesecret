@@ -5,7 +5,7 @@
 # Integration tests for DedupeInstancesCommand that exercise sorted set
 # and set deduplication/normalization against a real Redis instance.
 #
-# Requires the test Redis on port 2121 (pnpm run test:database:start).
+# Requires the test Redis on port 2163 (pnpm run test:database:start).
 #
 # Run: bundle exec try try/unit/cli/dedupe_instances_command_try.rb
 

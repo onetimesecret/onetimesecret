@@ -49,7 +49,7 @@
 #     is only registered when verify_account is enabled.
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=full (auto-set for specs under integration/full/)
 #
 # RUN:

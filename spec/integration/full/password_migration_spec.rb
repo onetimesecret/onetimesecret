@@ -19,7 +19,7 @@ require 'argon2'
 # 4. Subsequent logins use Rodauth directly
 #
 # Requirements:
-# - Valkey running on port 2121 (pnpm run test:database:start)
+# - Valkey running on port 2163 (pnpm run test:database:start)
 # - Full auth mode enabled
 #
 RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
@@ -49,7 +49,7 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
     # Reload auth config to pick up AUTHENTICATION_MODE env var
     Onetime.auth_config.reload!
 
-    # Boot application (Redis/Valkey must be running on port 2121)
+    # Boot application (Redis/Valkey must be running on port 2163)
     Onetime.boot! :test
 
     # Prepare the application registry

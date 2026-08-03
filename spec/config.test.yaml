@@ -126,7 +126,7 @@ features:
     incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>
 
 redis:
-  uri: 'redis://127.0.0.1:2121/0'
+  uri: 'redis://127.0.0.1:2163/0'
   dbs:
     session: 0
     custom_domain: 0
