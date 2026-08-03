@@ -55,6 +55,18 @@ module OrganizationAPI::Logic
           )
         end
 
+        # Instance-level exclusion: self-hosted operators can remove the
+        # activity trail from the product with ORGS_AUDIT_LOGS_ENABLED=false.
+        # Default-true contract — only an explicit false disables; a missing
+        # key (older config file) counts as enabled. Gates exposure only:
+        # event collection (Organization::Features::SecretActivity) is
+        # unaffected. Mirrors DomainConfigAuthorization#verify_feature_flag!.
+        if OT.conf.dig('features', 'organizations', 'audit_logs_enabled') == false
+          OT.info '[ListSecretActivity] Authorization denied: audit_logs_enabled feature flag disabled',
+            { extid: @extid, actor: cust&.custid }.to_json
+          raise_form_error('Secret activity is not enabled on this instance', error_type: :forbidden)
+        end
+
         @organization = load_organization(@extid)
 
         # Membership + plan gate in one: materialized entitlements are the

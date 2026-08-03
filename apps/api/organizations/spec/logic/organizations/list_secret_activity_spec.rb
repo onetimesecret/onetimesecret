@@ -162,6 +162,44 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
     end
   end
 
+  # Instance-level exclusion (ORGS_AUDIT_LOGS_ENABLED). Default-true contract:
+  # only an explicit false disables — an absent key (older config file) must
+  # count as enabled. The check gates exposure only; SecretActivity collection
+  # is out of scope here.
+  describe 'instance feature flag' do
+    def conf_with_audit_logs_flag(orgs_features)
+      base     = OT.conf
+      features = (base['features'] || {}).merge('organizations' => orgs_features)
+      base.merge('features' => features)
+    end
+
+    it 'rejects with forbidden before loading the org when the flag is false' do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => false))
+
+      logic.process_params
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError) { |ex|
+        expect(ex.error_type).to eq(:forbidden)
+      }
+      expect(Onetime::Organization).not_to have_received(:find_by_extid)
+    end
+
+    it 'proceeds when the flag is explicitly true' do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => true))
+
+      logic.process_params
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'counts an absent key as enabled (default-true contract)' do
+      allow(OT).to receive(:conf).and_return(conf_with_audit_logs_flag({}))
+
+      logic.process_params
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+  end
+
   describe 'response shape' do
     it 'returns the page newest-first with count, total, and paging details' do
       logic.process_params
