@@ -160,7 +160,7 @@ module Onetime
       # spec/config.test.yaml, whose uri is hardcoded to :2163, so they pass.
       if OT.mode?(:test) || ENV['RACK_ENV'] == 'test'
         redis_uri = @conf.dig('redis', 'uri').to_s
-        unless redis_uri.include?(':2163')
+        unless redis_uri.match?(%r{:2163(?:[/?]|\z)})
           raise Onetime::Problem,
             'Test/tryout boot MUST use the test datastore (Redis port 2163), ' \
             "got: #{redis_uri.empty? ? '<unset>' : redis_uri}. Enter test mode " \

@@ -97,7 +97,8 @@ module Onetime
         raise Onetime::Problem, "Redis URI not configured (#{uri})" if raise_error
 
         # Test environment safety: Ensure tests use port 2163
-        if ENV['RACK_ENV'] == 'test' && !uri.include?(':2163')
+        # (boundary-anchored so e.g. :21630 doesn't pass)
+        if ENV['RACK_ENV'] == 'test' && !uri.match?(%r{:2163(?:[/?]|\z)})
           raise Onetime::Problem, "Test environment MUST use Redis port 2163, got: #{uri}. Set VALKEY_URL='valkey://127.0.0.1:2163/0'"
         end
 
