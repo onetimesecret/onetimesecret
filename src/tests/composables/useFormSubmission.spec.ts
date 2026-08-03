@@ -240,6 +240,27 @@ describe('useFormSubmission', () => {
       );
     });
 
+    it('rejects an invalid redirect even when onSuccess throws', async () => {
+      const redirectUrl = 'https://evil.example.com/phish';
+      const { submitForm, error } = createSubmission({
+        redirectUrl,
+        redirectDelay: 100,
+        onSuccess: () => {
+          throw new Error('onSuccess blew up');
+        },
+      });
+      await submitForm();
+
+      // Validation ran eagerly (before the fetch/onSuccess), so the warning
+      // is logged despite the throw, and no navigation timer was scheduled.
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[useFormSubmission] Ignoring non-internal redirect URL:',
+        redirectUrl
+      );
+      expect(vi.getTimerCount()).toBe(0);
+      expect(error.value).toBe('onSuccess blew up');
+    });
+
     it('still reports success when the redirect is refused', async () => {
       const { submitForm, success, error } = createSubmission({
         redirectUrl: '//evil.example.com',

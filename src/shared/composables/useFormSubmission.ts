@@ -29,6 +29,23 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
     success.value = '';
 
     try {
+      // [L-7] Validate the redirect target eagerly, before the request runs,
+      // so an invalid target is detected and rejected even if onSuccess
+      // throws or navigates. Only validated internal paths are ever used,
+      // preventing open redirects if a future caller passes
+      // user-influenced input.
+      let validatedRedirectUrl: string | undefined;
+      if (options.redirectUrl) {
+        if (isValidInternalPath(options.redirectUrl)) {
+          validatedRedirectUrl = options.redirectUrl;
+        } else {
+          console.warn(
+            '[useFormSubmission] Ignoring non-internal redirect URL:',
+            options.redirectUrl
+          );
+        }
+      }
+
       let formData: FormData | URLSearchParams;
       let submissionUrl: string;
       const url: string | undefined = options.url;
@@ -122,20 +139,11 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
         await options.onSuccess(jsonData);
       }
 
-      if (options.redirectUrl) {
-        // [L-7] Only navigate to validated internal paths to prevent open
-        // redirects if a future caller passes user-influenced input.
-        if (isValidInternalPath(options.redirectUrl)) {
-          const redirectUrl = options.redirectUrl;
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, options.redirectDelay || 3000);
-        } else {
-          console.warn(
-            '[useFormSubmission] Ignoring non-internal redirect URL:',
-            options.redirectUrl
-          );
-        }
+      if (validatedRedirectUrl) {
+        const redirectUrl = validatedRedirectUrl;
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, options.redirectDelay || 3000);
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
