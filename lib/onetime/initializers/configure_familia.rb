@@ -160,9 +160,10 @@ module Onetime
         # default to 'FamilialMatters' and only *falls back* to the legacy
         # value on decrypt. Pinning the legacy value keeps any AES writes
         # byte-compatible with existing data and with familia 2.10.x nodes
-        # (mixed fleets / rollback), and makes legacy decrypts succeed on the
-        # first salt candidate instead of the fallback. Rotating this later is
-        # supported via encryption_hkdf_salt_history.
+        # (mixed-version nodes on one datastore / rollback), and makes legacy
+        # decrypts succeed on the first salt candidate instead of the
+        # fallback. Rotating this later is supported via
+        # encryption_hkdf_salt_history.
         # (Guarded: the knob only exists in familia >= 2.11.)
         if Familia.config.respond_to?(:encryption_hkdf_salt=)
           Familia.config.encryption_hkdf_salt         = 'FamiliaEncryption'
