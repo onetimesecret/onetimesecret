@@ -8,7 +8,7 @@
 #   fresh runner
 #     -> bin/setup                              # the documented setup command
 #     -> bin/setup --test                       # the documented test lane
-#     -> pnpm run test:rspec:fast && pnpm test  # the documented suites
+#     -> tests/lanes/run unit && pnpm test      # the documented suites
 #     -> bin/setup --test                       # second run = idempotency (Zulip)
 #     -> git status --porcelain == empty        # litter check (Zulip)
 #
@@ -21,7 +21,7 @@
 #   - No config-seeding composite actions and no Valkey service container:
 #     bin/setup does all app-level setup itself (seeds etc/ from
 #     defaults, installs deps, generates locales + schemas; the --test lane
-#     starts its own throwaway datastore on :2121). Reproducing those steps
+#     starts its own throwaway datastore on :2163). Reproducing those steps
 #     in YAML would test an idealized path, not the artifact a contributor
 #     runs.
 #   - No build step before the suite: TR-01 is that the RSpec fast suite is
@@ -48,6 +48,7 @@ on:
       - 'etc/defaults/**'
       - '.github/workflows/fresh-clone.yml'
       - 'scripts/test-install/ttfhw-chart.sh'
+      - 'tests/lanes/**'
   schedule:
     # Weekly: catches registry/runner/dependency rot with no commit
     # (the scheduled-lane pattern — Sentry/Supabase run their install paths on
@@ -57,7 +58,7 @@ on:
 
 permissions:
   contents: read
-  actions: read  # ttfhw-chart.sh reads past run/job durations
+  actions: read # ttfhw-chart.sh reads past run/job durations
 
 jobs:
   fresh-clone:
@@ -71,7 +72,7 @@ jobs:
       # A contributor installs a datastore too. redis-server (Ubuntu 24.04
       # universe, 7.x) is what the clean-room validation used; bin/setup
       # discovers it via `command -v redis-server` and starts its own instance
-      # on :2121, so the apt-started service on :6379 is harmless.
+      # on :2163, so the apt-started service on :6379 is harmless.
       - name: Install datastore (redis-server, Valkey-compatible)
         run: |
           sudo apt-get update
@@ -83,7 +84,7 @@ jobs:
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          bundler-cache: false  # bin/setup runs `bundle install` itself
+          bundler-cache: false # bin/setup runs `bundle install` itself
 
       - name: Setup Node (.node-version)
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
@@ -121,8 +122,8 @@ jobs:
       - name: Run bin/setup --test (documented test lane)
         run: bin/setup --test
 
-      - name: "RSpec fast suite (TR-01: no build ever run)"
-        run: pnpm run test:rspec:fast
+      - name: 'Unit lane (TR-01: no build ever run)'
+        run: tests/lanes/run unit
 
       - name: Vitest suite
         run: pnpm test

@@ -1,0 +1,5 @@
+# Lane: migrations-sqlite — SQLite migration/trigger specs
+# (spec/integration/full/database_triggers/sqlite_spec.rb).
+# CI job: migration-tests-sqlite (.github/workflows/migration-tests.yml)
+AUTHENTICATION_MODE=full
+AUTH_DATABASE_URL='sqlite::memory:'

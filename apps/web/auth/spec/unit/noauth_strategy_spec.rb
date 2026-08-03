@@ -4,7 +4,7 @@
 
 # Unit tests for NoAuthStrategy — allows all requests, tries session first.
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/unit/noauth_strategy_spec.rb

@@ -19,7 +19,7 @@
 #   3. Organization must have custom_signup_validation entitlement
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=simple (login_as creates a Valkey-backed Customer
 #   with a passphrase; full mode routes /auth/login through Rodauth, which
 #   has no matching account row, so every login 401s)

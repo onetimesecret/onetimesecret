@@ -12,7 +12,7 @@
 #      owner_id -> demote. Memberships::SetRole is stubbed at its constructor so
 #      the ordering is directly observable; it has its own coverage.
 #
-#   2. Real datastore (Valkey on 2121, see spec/config.test.yaml) — the
+#   2. Real datastore (Valkey on 2163, see spec/config.test.yaml) — the
 #      post-condition that actually matters: BOTH parties' entitlements are
 #      re-materialized (the incoming owner GAINS manage_org, the outgoing owner
 #      LOSES it) and the org still passes all five `bin/ots org doctor`

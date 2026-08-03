@@ -34,8 +34,8 @@ require 'simplecov' if ENV['COVERAGE'] == 'true'
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
-# Test database URL: spec/config.test.yaml hardcodes redis://127.0.0.1:2121/0
-# (port 2121 avoids conflicts with development Redis on 6379). It is not
+# Test database URL: spec/config.test.yaml hardcodes redis://127.0.0.1:2163/0
+# (port 2163 avoids conflicts with development Redis on 6379). It is not
 # overridable via VALKEY_URL/REDIS_URL; see [#2128] which centralized the
 # test Redis URL in config instead of env vars scattered across spec helpers.
 
@@ -62,7 +62,7 @@ require 'fileutils'
 #
 # Testing approaches:
 # - Unit tests: Most don't actually need Redis - they test pure Ruby logic
-# - Integration tests: Use real Valkey on port 2121 (see integration_spec_helper.rb)
+# - Integration tests: Use real Valkey on port 2163 (see integration_spec_helper.rb)
 #
 # Future alternative if needed:
 # - mock_redis gem supports redis ~> 5.0 and is actively maintained
@@ -70,7 +70,7 @@ require 'fileutils'
 # - See: https://rubygems.org/gems/mock_redis
 #
 # For now, tests requiring Redis should read from the spec/config.test.yaml
-#   pnpm run test:database:start  # Start Valkey on port 2121
+#   pnpm run test:database:start  # Start Valkey on port 2163
 #   pnpm run test:rspec
 
 # Configure Timecop for time manipulation in tests
@@ -273,7 +273,7 @@ RSpec.configure do |config|
 
   # Clean Redis/Valkey database after each integration test to prevent state leakage.
   # This ensures tests don't pollute each other regardless of which helper they require.
-  # Port 2121 check prevents accidental flush of development/production databases.
+  # Port 2163 check prevents accidental flush of development/production databases.
   config.after(:each, type: :integration) do |example|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
@@ -282,7 +282,7 @@ RSpec.configure do |config|
     if redis_uri_string
       begin
         uri = URI.parse(redis_uri_string)
-        Familia.dbclient.flushdb if uri.port == 2121
+        Familia.dbclient.flushdb if uri.port == 2163
       rescue URI::InvalidURIError
         # Malformed URI wouldn't match the port check, safe to ignore
       rescue StandardError => e

@@ -225,6 +225,59 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,**/{postgres,sqlite}*_spec.rb' #{rspec_format_options}"
     end
 
+    # Migration/trigger suites, run by .github/workflows/migration-tests.yml
+    # via the migrations-* lanes (tests/lanes/). Separate from full:postgres
+    # because migration-tests is a paths-filtered workflow that needs fast,
+    # focused feedback on schema changes — not the whole full-mode matrix.
+    namespace :migrations do
+      desc 'Run SQLite migration/trigger specs'
+      task :sqlite do
+        env = {
+          'RACK_ENV' => 'test',
+          'AUTHENTICATION_MODE' => 'full',
+          'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        }
+        sh env, "bundle exec rspec spec/integration/full/database_triggers/sqlite_spec.rb #{rspec_format_options}"
+      end
+
+      desc 'Run PostgreSQL migration/trigger/infrastructure specs'
+      task :postgres do
+        env   = {
+          'RACK_ENV' => 'test',
+          'AUTHENTICATION_MODE' => 'full',
+          'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+          'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        }
+        specs = %w[
+          spec/integration/full/database_triggers/postgres_spec.rb
+          spec/integration/full/postgres_infrastructure_spec.rb
+        ].join(' ')
+        sh env, "bundle exec rspec #{specs} --tag postgres_database #{rspec_format_options}"
+      end
+
+      desc 'Verify migrations use the elevated connection (dual-URL config)'
+      task :verify_dual_url do
+        env    = {
+          'RACK_ENV' => 'test',
+          'AUTHENTICATION_MODE' => 'full',
+          'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+          'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        }
+        script = <<~RUBY
+          require "bundler/setup"
+          require_relative "lib/onetime"
+          require_relative "apps/web/auth/database"
+
+          # This should use AUTH_DATABASE_URL_MIGRATIONS for migrations
+          # and AUTH_DATABASE_URL for normal operations
+          Auth::Database.ensure_migrations!
+
+          puts "Dual URL configuration verified"
+        RUBY
+        sh env, 'bundle', 'exec', 'ruby', '-e', script
+      end
+    end
+
     desc 'Run all integration tests (all modes, isolated processes)'
     task all: INTEGRATION_MODES
 
@@ -237,7 +290,7 @@ namespace :spec do
   # NOT folded into spec:integration:<mode> on purpose: doing so would re-mix
   # the API-contract and auth-mode taxonomies. Most specs are mode-agnostic
   # entitlement/wire-format checks; the few that need a specific mode set it
-  # themselves. Real Valkey on port 2121 is required (type: :integration).
+  # themselves. Real Valkey on port 2163 is required (type: :integration).
   #
   # NOTE: a subset currently fails against the membership-based entitlement
   # contract (#3225 / ADR-012 Stage 3): they stub the removed `logic.org` and
@@ -250,7 +303,7 @@ namespace :spec do
   # the known #3225 drift. CI runs this lane via a dedicated non-blocking step
   # (continue-on-error) — see .github/workflows/ci.yml — so visibility is kept
   # without blocking. Add it back to spec:all once #3225 greens the lane.
-  desc 'Run API contract specs (spec/api/, mode-agnostic; needs Valkey on 2121)'
+  desc 'Run API contract specs (spec/api/, mode-agnostic; needs Valkey on 2163)'
   task :api do
     env = { 'RACK_ENV' => 'test', 'AUTHENTICATION_MODE' => 'simple' }
     sh env, "bundle exec rspec spec/api #{rspec_format_options}"

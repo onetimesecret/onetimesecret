@@ -7,7 +7,7 @@
 # When BasicAuth succeeds, StrategyResult.session is {} (empty hash).
 # This verifies Logic::Base handles that contract without crashing.
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/basic_auth_logic_base_spec.rb

@@ -4,7 +4,7 @@
 
 # Unit tests for SessionAuthStrategy — requires authenticated Rack session.
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/unit/session_auth_strategy_spec.rb

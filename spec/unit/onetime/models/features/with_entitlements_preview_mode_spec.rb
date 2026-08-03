@@ -15,7 +15,7 @@ require_relative '../../../../../lib/onetime/models/organization/features/with_m
 # WithMaterializedLimits#limit_for — consult it so every consumer above them
 # is preview-aware without a session parameter.
 #
-# Session grants/revokes sets are written to real Redis (port 2121) because
+# Session grants/revokes sets are written to real Redis (port 2163) because
 # the reconciler reads them via Familia.dbclient.
 RSpec.describe 'WithEntitlements Preview Mode', billing: true do
   # Lightweight in-memory set mirroring the Familia set interface used by

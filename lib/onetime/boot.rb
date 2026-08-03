@@ -145,7 +145,7 @@ module Onetime
 
       # Test/tryout datastore safety (fail closed + loud).
       #
-      # Any boot in test mode MUST target the isolated test Valkey (port 2121),
+      # Any boot in test mode MUST target the isolated test Valkey (port 2163),
       # never a dev/prod datastore. This lives here — not only in the
       # configure_familia initializer — because tryouts that boot with
       # connect_to_db=false SKIP that initializer (see the skip-list below),
@@ -157,12 +157,12 @@ module Onetime
       # `OT.boot!(:test, ...)` even when RACK_ENV isn't 'test' — e.g. running a
       # tryout in the default dev mode without flipping .test-mode. Sanctioned
       # test runs (pnpm test:*, or the .test-mode direnv lane) load
-      # spec/config.test.yaml, whose uri is hardcoded to :2121, so they pass.
+      # spec/config.test.yaml, whose uri is hardcoded to :2163, so they pass.
       if OT.mode?(:test) || ENV['RACK_ENV'] == 'test'
         redis_uri = @conf.dig('redis', 'uri').to_s
-        unless redis_uri.include?(':2121')
+        unless redis_uri.match?(%r{:2163(?:[/?]|\z)})
           raise Onetime::Problem,
-            'Test/tryout boot MUST use the test datastore (Redis port 2121), ' \
+            'Test/tryout boot MUST use the test datastore (Redis port 2163), ' \
             "got: #{redis_uri.empty? ? '<unset>' : redis_uri}. Enter test mode " \
             '(bin/setup --test / .test-mode) or run via `RACK_ENV=test`.'
         end

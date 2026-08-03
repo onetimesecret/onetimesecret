@@ -8,7 +8,7 @@ require 'spec_helper'
 # admin operation calls (epic #3653 / ticket #21).
 #
 # These exercise the real Familia-backed sorted set on the test database (port
-# 2121), so each example clears the global events set to stay isolated.
+# 2163), so each example clears the global events set to stay isolated.
 #
 # Coverage mirrors the acceptance criteria: an event is written on success, on
 # failure, the write path is best-effort, reads are newest-first, and the capped

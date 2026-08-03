@@ -78,8 +78,14 @@ unset RACK_ENV AUTHENTICATION_MODE BILLING_ENABLED ORGS_SSO_ENABLED \
       REDIS_URL VALKEY_URL RABBITMQ_URL \
       AUTH_DATABASE_URL AUTH_DATABASE_URL_MIGRATIONS \
       AUTH_DATABASE_URL_PG AUTH_DATABASE_URL_MIGRATIONS_PG \
+      AUTH_DATABASE_URL_TEST_SUPERUSER \
       SECRET SESSION_SECRET AUTH_SECRET ARGON2_SECRET ACCOUNT_ID_SECRET \
       FEDERATION_SECRET IDENTIFIER_SECRET
+
+# libpq reads these ambiently (a dev shell's .env.test exports PGPORT and a
+# passwordless superuser URL via direnv); they must not reach the lane either.
+unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE \
+      PGSERVICE PGSSLMODE PGOPTIONS PGPASSFILE
 
 set -a
 # shellcheck source=/dev/null
@@ -98,6 +104,51 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
   done
 fi
 set +a
+
+# Billing rides on the full-mode auth stack (Stripe customer records live
+# in the auth database); it has no meaning in other modes.
+if [[ "${BILLING_ENABLED:-false}" == "true" && "${AUTHENTICATION_MODE:-}" != "full" ]]; then
+  echo "error: billing requires AUTHENTICATION_MODE=full (lane '${LANE}' is '${AUTHENTICATION_MODE:-unset}')" >&2
+  exit 64
+fi
+
+# ── Service preflight ────────────────────────────────────────────────────
+# Test services live in containers on 127.0.0.1 21xx ports (compose.test.yml
+# is the single source of truth). If they aren't up, start them — the
+# sanctioned path must also be the zero-setup path. Opt out (e.g. CI, where
+# the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
+port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
+# Ports come from the lane's own env, so this can't drift from
+# compose.test.yml (whose URLs the lane files mirror).
+REQUIRED_PORTS=()
+for _url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
+  [[ "$_url" =~ 127\.0\.0\.1:([0-9]+) ]] && REQUIRED_PORTS+=("${BASH_REMATCH[1]}")
+done
+
+missing=0
+for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missing=1; done
+
+if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
+  echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
+  if command -v docker >/dev/null 2>&1; then
+    docker compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+  elif command -v podman >/dev/null 2>&1; then
+    podman compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+  else
+    echo "error: docker/podman not found; start test services manually:" >&2
+    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    exit 69
+  fi
+fi
+
+for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
+  if ! port_open "$p"; then
+    echo "error: test service on 127.0.0.1:${p} unreachable. Start with:" >&2
+    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    exit 69
+  fi
+done
 
 echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "billing=${BILLING_ENABLED:-false}" \

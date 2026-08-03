@@ -7,7 +7,7 @@ require 'spec_helper'
 RSpec.describe 'default_workspace_creation_try', type: :integration, order: :defined, shared_db_state: true do
   before(:all) do
     require 'securerandom'
-    # Clear Redis env vars to ensure test config defaults are used (port 2121)
+    # Clear Redis env vars to ensure test config defaults are used (port 2163)
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
 

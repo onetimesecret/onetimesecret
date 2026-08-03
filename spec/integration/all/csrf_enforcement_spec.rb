@@ -12,7 +12,7 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     require 'rack/mock'
     require 'base64'
 
-    # Clear Redis env vars to ensure test config defaults are used (port 2121)
+    # Clear Redis env vars to ensure test config defaults are used (port 2163)
     @original_rack_env = ENV['RACK_ENV']
     @original_redis_url = ENV['REDIS_URL']
     @original_valkey_url = ENV['VALKEY_URL']

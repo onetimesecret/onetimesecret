@@ -12,7 +12,7 @@
 # IMPORTANT: Set test environment BEFORE loading anything
 # These must be set before OT.boot! reads config files
 ENV['STRIPE_API_KEY'] ||= 'sk_test_mock'
-ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2121/0'
+ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2163/0'
 ENV['RACK_ENV']   ||= 'test'
 
 # Use SQLite for auth database in billing tests
@@ -339,7 +339,7 @@ RSpec.configure do |config|
     end
   end
 
-  # Billing tests use REAL Redis on port 2121 (not FakeRedis)
+  # Billing tests use REAL Redis on port 2163 (not FakeRedis)
   # Supports both `type: :billing` and `:billing` symbol tag patterns
   billing_setup = lambda do |_example|
     mock_billing_config!

@@ -45,14 +45,14 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
     # NOTE: Unlike boot_part2_spec.rb, we do NOT stub `Familia.uri=` here.
     # That spec stubs it because it asserts on global-state flags, not the DB
     # itself. Here the DB connection IS the subject, so we take the real path
-    # against Valkey on port 2121.
+    # against Valkey on port 2163.
   end
 
   after(:each) do
     Onetime.reset_ready!
   end
 
-  describe 'golden path against real Valkey on port 2121' do
+  describe 'golden path against real Valkey on port 2163' do
     it 'exposes a real ConnectionPool on Onetime::Runtime.infrastructure.database_pool' do
       Onetime.boot!(:test)
 
@@ -151,7 +151,7 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
     it 'is blocked by the test-datastore guard before it can touch a bad datastore' do
       closed_port = ephemeral_closed_port
 
-      # Load config, then rewrite the URI to a closed, non-:2121 port before
+      # Load config, then rewrite the URI to a closed, non-:2163 port before
       # boot runs. This is cleaner than stubbing VALKEY_URL because
       # config.test.yaml hardcodes the URI without ERB - the ENV var wouldn't
       # propagate. OT::Config.after_load would deep_freeze the returned hash if
@@ -167,7 +167,7 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
       allow(OT::Config).to receive(:load).and_return(processed_conf)
       allow(OT::Config).to receive(:after_load).and_return(processed_conf)
 
-      # boot!(:test) against a non-:2121 datastore now fails closed at the
+      # boot!(:test) against a non-:2163 datastore now fails closed at the
       # boot.rb datastore guard (added in "Enforce datastore safety for tests
       # and tryouts", boot.rb:161, keyed on OT.mode?(:test)) BEFORE any
       # initializer runs — so the connection pool is never built and Familia.uri

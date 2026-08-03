@@ -41,7 +41,7 @@
 # Auth::Config::Hooks::MFA/Login — so the hook body executing here is the
 # production hook body, not a copy of it.
 #
-# REQUIREMENTS: Valkey on port 2121 (pnpm run test:database:start).
+# REQUIREMENTS: Valkey on port 2163 (pnpm run test:database:start).
 #
 # RUN:
 #   AUTHENTICATION_MODE=full AUTH_DATABASE_URL=sqlite::memory: \

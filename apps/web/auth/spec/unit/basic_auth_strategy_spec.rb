@@ -4,7 +4,7 @@
 
 # Unit tests for BasicAuthStrategy — HTTP Basic Auth with API key validation.
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/unit/basic_auth_strategy_spec.rb
