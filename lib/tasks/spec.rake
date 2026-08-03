@@ -225,6 +225,59 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,**/{postgres,sqlite}*_spec.rb' #{rspec_format_options}"
     end
 
+    # Migration/trigger suites, run by .github/workflows/migration-tests.yml
+    # via the migrations-* lanes (tests/lanes/). Separate from full:postgres
+    # because migration-tests is a paths-filtered workflow that needs fast,
+    # focused feedback on schema changes — not the whole full-mode matrix.
+    namespace :migrations do
+      desc 'Run SQLite migration/trigger specs'
+      task :sqlite do
+        env = {
+          'RACK_ENV' => 'test',
+          'AUTHENTICATION_MODE' => 'full',
+          'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        }
+        sh env, "bundle exec rspec spec/integration/full/database_triggers/sqlite_spec.rb #{rspec_format_options}"
+      end
+
+      desc 'Run PostgreSQL migration/trigger/infrastructure specs'
+      task :postgres do
+        env   = {
+          'RACK_ENV' => 'test',
+          'AUTHENTICATION_MODE' => 'full',
+          'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+          'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        }
+        specs = %w[
+          spec/integration/full/database_triggers/postgres_spec.rb
+          spec/integration/full/postgres_infrastructure_spec.rb
+        ].join(' ')
+        sh env, "bundle exec rspec #{specs} --tag postgres_database #{rspec_format_options}"
+      end
+
+      desc 'Verify migrations use the elevated connection (dual-URL config)'
+      task :verify_dual_url do
+        env    = {
+          'RACK_ENV' => 'test',
+          'AUTHENTICATION_MODE' => 'full',
+          'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+          'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        }
+        script = <<~RUBY
+          require "bundler/setup"
+          require_relative "lib/onetime"
+          require_relative "apps/web/auth/database"
+
+          # This should use AUTH_DATABASE_URL_MIGRATIONS for migrations
+          # and AUTH_DATABASE_URL for normal operations
+          Auth::Database.ensure_migrations!
+
+          puts "Dual URL configuration verified"
+        RUBY
+        sh env, 'bundle', 'exec', 'ruby', '-e', script
+      end
+    end
+
     desc 'Run all integration tests (all modes, isolated processes)'
     task all: INTEGRATION_MODES
 
