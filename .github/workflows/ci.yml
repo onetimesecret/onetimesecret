@@ -516,8 +516,10 @@ jobs:
     steps:
       - *checkout-step
 
-      - name: Start test services (valkey)
-        run: docker compose -f compose.test.yml up --wait -d valkey
+      # valkey + rabbitmq, not valkey alone: base.env carries RABBITMQ_URL
+      # for every lane and the lane runner's preflight requires every
+      # endpoint in the lane's env to be reachable.
+      - *start-core-services
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env

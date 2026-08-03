@@ -35,8 +35,12 @@ CI provides it as a build artifact.
 | `full-pg`          | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                    | ruby-integration-full — PG rows          |
 | `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`              | ruby-integration-full — PG agnostic rows |
 | `disabled`         | valkey, rabbitmq           | `spec:integration:disabled`                         | ruby-integration-disabled (T3)           |
-| `api`              | valkey                     | `spec:api`                                          | non-blocking step, T3 simple job         |
-| `smoke`            | valkey                     | `pnpm test:smoke`                                   | smoke-test (T3)                          |
+| `api`              | valkey, rabbitmq           | `spec:api`                                          | blocking step, T3 simple job             |
+| `smoke`            | valkey, rabbitmq           | `pnpm test:smoke`                                   | smoke-test (T3)                          |
+
+`api` and `smoke` don't exercise the job queue, but `base.env` carries
+`RABBITMQ_URL` for every lane and the runner's preflight requires every
+endpoint in a lane's env to be reachable — so rabbitmq must be up.
 
 The billing matrix rows are the full-mode lanes with `--overlay billing`.
 Billing requires `AUTHENTICATION_MODE=full`; `run` rejects the overlay on
