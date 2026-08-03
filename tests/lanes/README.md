@@ -27,16 +27,18 @@ CI provides it as a build artifact.
 
 ## Lanes
 
-| Lane               | Services                   | Runs                                                | CI job                                   |
-| ------------------ | -------------------------- | --------------------------------------------------- | ---------------------------------------- |
-| `unit`             | valkey, rabbitmq           | `try:unit`, `spec:fast`                             | ruby-unit (T2)                           |
-| `simple`           | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3)             |
-| `full-sqlite`      | valkey, rabbitmq           | `spec:integration:full`                             | ruby-integration-full — SQLite rows      |
-| `full-pg`          | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                    | ruby-integration-full — PG rows          |
-| `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`              | ruby-integration-full — PG agnostic rows |
-| `disabled`         | valkey, rabbitmq           | `spec:integration:disabled`                         | ruby-integration-disabled (T3)           |
-| `api`              | valkey, rabbitmq           | `spec:api`                                          | blocking step, T3 simple job             |
-| `smoke`            | valkey, rabbitmq           | `pnpm test:smoke`                                   | smoke-test (T3)                          |
+| Lane                | Services                   | Runs                                                        | CI job                                   |
+| ------------------- | -------------------------- | ----------------------------------------------------------- | ---------------------------------------- |
+| `unit`              | valkey, rabbitmq           | `try:unit`, `spec:fast`                                     | ruby-unit (T2)                           |
+| `simple`            | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`         | ruby-integration-simple (T3)             |
+| `full-sqlite`       | valkey, rabbitmq           | `spec:integration:full`                                     | ruby-integration-full — SQLite rows      |
+| `full-pg`           | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                            | ruby-integration-full — PG rows          |
+| `full-pg-agnostic`  | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                      | ruby-integration-full — PG agnostic rows |
+| `disabled`          | valkey, rabbitmq           | `spec:integration:disabled`                                 | ruby-integration-disabled (T3)           |
+| `api`               | valkey, rabbitmq           | `spec:api`                                                  | blocking step, T3 simple job             |
+| `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                           | smoke-test (T3)                          |
+| `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                        | migration-tests.yml — SQLite job         |
+| `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` + dual-URL check     | migration-tests.yml — PostgreSQL job     |
 
 `api` and `smoke` don't exercise the job queue, but `base.env` carries
 `RABBITMQ_URL` for every lane and the runner's preflight requires every
@@ -101,14 +103,24 @@ overlays for a shell session: `echo billing > .overlays` (gitignored).
 
 ## CI adoption status
 
-`.github/workflows/ci.yml` runs its Ruby test jobs through this tree:
-each job starts services with `docker compose -f compose.test.yml up
---wait` and executes `tests/lanes/run <lane>` via the `run-test-lane`
-composite action (which layers on the CI-only concerns: failure-tail PR
-comments, job summaries, `RSPEC_OUTPUT_FILE`/`COVERAGE` plumbing). The
-full-mode matrix rows are lane names + overlays.
+Every workflow that runs Ruby test suites enters through this tree; each
+job starts services with `docker compose -f compose.test.yml up --wait`
+and executes `tests/lanes/run <lane>`:
 
-Not yet migrated: `ruby-4-preview.yml` and `migration-tests.yml` still
-carry their own `services:` blocks and env wiring; `ci.yml`'s
-container-validation job keeps a `services:` block on purpose (it needs
-valkey published beyond loopback for `host.docker.internal`).
+- `.github/workflows/ci.yml` — all Ruby test jobs, via the
+  `run-test-lane` composite action (which layers on the CI-only
+  concerns: failure-tail PR comments, job summaries,
+  `RSPEC_OUTPUT_FILE`/`COVERAGE` plumbing). The full-mode matrix rows
+  are lane names + overlays.
+- `.github/workflows/migration-tests.yml` — the SQLite and PostgreSQL
+  jobs run the `migrations-*` lanes via the same composite. The
+  concurrent-boot job is deliberately not a lane (it choreographs
+  parallel boot processes, which is CI-side orchestration, rule 4) but
+  still takes services from `compose.test.yml`.
+- `.github/workflows/ruby-4-preview.yml` — runs lanes directly (no
+  composite): the workflow is advisory-only, so failure-tail comments
+  and results plumbing would be noise.
+
+Exception: `ci.yml`'s container-validation job keeps a `services:` block
+on purpose (it needs valkey published beyond loopback for
+`host.docker.internal`).
