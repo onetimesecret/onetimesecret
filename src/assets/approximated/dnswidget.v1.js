@@ -293,10 +293,14 @@ window.apxDns = {
     // converted to real listeners), and URL attributes restricted to the
     // same scheme allowlist used for DOMPurify in GlobalBroadcast.vue.
     // ------------------------------------------------------------------
+    // FORM is deliberately absent: sanitizeHtmlToFragment unwraps forms so
+    // API-supplied fragments keep their visible content but cannot submit
+    // data anywhere (the widget's own domain-entry form is trusted template
+    // markup that never passes through the sanitizer).
     "_APX_ALLOWED_TAGS": {
         A:1, ARTICLE:1, B:1, BLOCKQUOTE:1, BR:1, BUTTON:1, CAPTION:1,
         CIRCLE:1, CODE:1, DD:1, DIV:1, DL:1, DT:1, ELLIPSE:1, EM:1,
-        FIELDSET:1, FOOTER:1, FORM:1, G:1, H1:1, H2:1, H3:1, H4:1, H5:1,
+        FIELDSET:1, FOOTER:1, G:1, H1:1, H2:1, H3:1, H4:1, H5:1,
         H6:1, HEADER:1, HR:1, I:1, IMG:1, INPUT:1, LABEL:1, LEGEND:1,
         LI:1, LINE:1, OL:1, OPTION:1, P:1, PATH:1, POLYGON:1, POLYLINE:1,
         PRE:1, RECT:1, S:1, SECTION:1, SELECT:1, SMALL:1, SPAN:1,
@@ -307,8 +311,14 @@ window.apxDns = {
     "_APX_ALLOWED_ATTR": /^(?:class|id|type|value|placeholder|readonly|disabled|checked|selected|multiple|rows|cols|size|maxlength|minlength|required|name|alt|title|target|rel|for|style|tabindex|autocomplete|spellcheck|role|lang|dir|d|viewbox|preserveaspectratio|fill|fill-rule|clip-rule|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-dasharray|cx|cy|r|rx|ry|x|y|x1|x2|y1|y2|points|transform|xmlns(?::[a-z]+)?|aria-[a-z-]+|data-[\w.:-]+)$/,
     // Mirrors the restrictive ALLOWED_URI_REGEXP used with DOMPurify in
     // GlobalBroadcast.vue: https?/mailto, relative paths and fragments.
-    // Blocks javascript:, data:, vbscript:, etc.
+    // Blocks javascript:, data:, vbscript:, etc. NOTE: this regex alone
+    // misclassifies protocol-relative URLs ("//host") as relative paths;
+    // _APX_PROTOCOL_RELATIVE below is checked first to reject them.
     "_APX_ALLOWED_URI": /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i,
+    // Protocol-relative URLs (//host, and \\ or /\ variants — browsers
+    // normalize backslashes to slashes) inherit the page scheme but
+    // navigate cross-origin, so they are rejected outright.
+    "_APX_PROTOCOL_RELATIVE": /^[\\/][\\/]/,
     // Control/whitespace characters stripped before URI validation so
     // "java\nscript:" style smuggling cannot bypass the scheme check.
     "_APX_ATTR_WHITESPACE": /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g,
@@ -373,7 +383,10 @@ window.apxDns = {
                 rest = rest.slice(m[0].length);
                 continue;
             }
-            m = rest.match(/^\.querySelector\(\s*(['"])([^'"]*)\1\s*\)/);
+            // Defense in depth: re-enforce the compile-time selector
+            // allowlist (same character set and 128-char cap as
+            // _compileTrustedHandler) so the two parsers cannot drift.
+            m = rest.match(/^\.querySelector\(\s*(['"])([A-Za-z0-9_ .#>:()-]{0,128})\1\s*\)/);
             if(m){
                 node = node.querySelector(m[2]);
                 rest = rest.slice(m[0].length);
@@ -381,7 +394,20 @@ window.apxDns = {
             }
             return null;
         }
-        return (node && node.nodeType === 1) ? node : null;
+        if(!node || node.nodeType !== 1){
+            return null;
+        }
+        // Containment: the resolved element must live inside the widget
+        // container. Legitimate copy-button chains only reach sibling
+        // inputs within the widget's own markup; a chain that climbs out
+        // of the widget (e.g. to copy unrelated page content such as a
+        // token from an adjacent panel) resolves to null.
+        var config = window.apxDns.config;
+        var root = (config && config.widget_id) ? document.getElementById(config.widget_id) : null;
+        if(!root || !root.contains(node)){
+            return null;
+        }
+        return node;
     },
     "_sanitizeAttributes": function(el){
         var attrs = Array.prototype.slice.call(el.attributes);
@@ -400,13 +426,17 @@ window.apxDns = {
                 el.removeAttribute(attrs[i].name);
                 continue;
             }
-            if(name === 'srcdoc' || name === 'formaction' || name === 'ping' || name === 'background'){
+            // Form-submission attributes are dropped unconditionally:
+            // FORM elements are unwrapped by sanitizeHtmlToFragment, and
+            // no surviving element may point a submission anywhere.
+            if(name === 'srcdoc' || name === 'formaction' || name === 'action' || name === 'ping' || name === 'background'){
                 el.removeAttribute(attrs[i].name);
                 continue;
             }
-            if(name === 'href' || name === 'src' || name === 'action' || name === 'xlink:href'){
+            if(name === 'href' || name === 'src' || name === 'xlink:href'){
                 var normalized = rawValue.replace(window.apxDns._APX_ATTR_WHITESPACE, '');
-                if(!window.apxDns._APX_ALLOWED_URI.test(normalized)){
+                if(window.apxDns._APX_PROTOCOL_RELATIVE.test(normalized) ||
+                   !window.apxDns._APX_ALLOWED_URI.test(normalized)){
                     el.removeAttribute(attrs[i].name);
                 }
                 continue;
@@ -436,7 +466,20 @@ window.apxDns = {
             if(!template.content.contains(el)){
                 continue; // already removed with a disallowed ancestor
             }
-            if(!window.apxDns._APX_ALLOWED_TAGS[el.tagName.toUpperCase()]){
+            var tag = el.tagName.toUpperCase();
+            if(tag === 'FORM'){
+                // Form-submission primitive: unwrap. Children are kept
+                // (and sanitized in later iterations) but with no FORM
+                // ancestor — and with action/formaction stripped and the
+                // `form` attribute outside _APX_ALLOWED_ATTR — nothing in
+                // a sanitized fragment can submit data anywhere.
+                while(el.firstChild){
+                    el.parentNode.insertBefore(el.firstChild, el);
+                }
+                el.parentNode.removeChild(el);
+                continue;
+            }
+            if(!window.apxDns._APX_ALLOWED_TAGS[tag]){
                 el.parentNode.removeChild(el);
                 continue;
             }

