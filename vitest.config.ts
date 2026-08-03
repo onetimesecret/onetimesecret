@@ -1,6 +1,7 @@
 // vitest.config.ts
 
 import vue from '@vitejs/plugin-vue';
+import { builtinModules } from 'node:module';
 import { resolve } from 'path';
 import { defineConfig } from 'vitest/config';
 
@@ -26,18 +27,7 @@ import { defineConfig } from 'vitest/config';
 // @vue/test-utils, mount function. Testing components with props.
 
 const nodeBuiltinsPlugin = () => {
-  const builtins = new Set([
-    'fs',
-    'path',
-    'url',
-    'os',
-    'crypto',
-    'child_process',
-    'util',
-    'stream',
-    'events',
-    'assert',
-  ]);
+  const builtins = new Set(builtinModules);
   return {
     name: 'resolve-node-builtins',
     enforce: 'pre',
@@ -71,7 +61,7 @@ export default defineConfig({
       // summary in the CI log. Only emitted when run with --coverage.
       reporter: ['text', 'cobertura'],
       reportsDirectory: 'coverage',
-      all: true, // include untested source files so they report as 0% covered
+      // Explicit include patterns make untested source files report as 0% covered
       include: ['src/**'],
       exclude: ['src/tests/**', 'src/**/*.spec.ts', 'src/**/*.spec.vue', 'src/**/*.d.ts'],
     },
