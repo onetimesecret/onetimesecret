@@ -9,7 +9,7 @@ import { useOrgAuditEvents } from '@/shared/composables/useOrgAuditEvents';
 import { formatDisplayDateTime } from '@/utils/format';
 import { useNow } from '@vueuse/core';
 import { formatDistance } from 'date-fns';
-import { computed, onMounted, toRef, watch } from 'vue';
+import { computed, onMounted, onUnmounted, toRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 /**
@@ -45,6 +45,7 @@ const {
   next,
   prev,
   refresh,
+  abort,
 } = useOrgAuditEvents(orgExtid);
 
 // Reactive clock so the relative "3 minutes ago" labels refresh on their own
@@ -134,6 +135,10 @@ const showSkeleton = computed(
 );
 
 onMounted(() => fetchPage(0));
+
+// Tab switch / navigation unmounts the component mid-fetch; drop the request
+// so its response can't resolve into a dead component tree.
+onUnmounted(abort);
 
 // Org switch via URL navigation reuses the component — restart at page 1.
 // Clearing records first routes the fresh context through the skeleton

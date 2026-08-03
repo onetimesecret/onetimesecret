@@ -162,6 +162,21 @@ describe('SecretActivityTable', () => {
     });
   });
 
+  describe('unmount', () => {
+    it('aborts the in-flight request on unmount', async () => {
+      // Never-resolving request stays in flight until unmount.
+      mockApi.get.mockReturnValue(new Promise(() => {}));
+
+      const localWrapper = await mountComponent();
+      const { signal } = mockApi.get.mock.calls[0][1] as { signal: AbortSignal };
+      expect(signal.aborted).toBe(false);
+
+      localWrapper.unmount();
+
+      expect(signal.aborted).toBe(true);
+    });
+  });
+
   describe('loading state', () => {
     it('renders the table skeleton while the request is in flight', async () => {
       // Never-resolving request keeps isLoading pinned true.
