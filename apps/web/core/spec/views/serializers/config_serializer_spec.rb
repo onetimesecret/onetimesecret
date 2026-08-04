@@ -1122,6 +1122,58 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(orgs['incoming_secrets_enabled']).to be false
           end
         end
+
+        # Defense-in-depth for hand-edited config files: a YAML loader (or a
+        # quoted value) can deliver the string 'false' where the shipped ERB
+        # emits a real boolean. Ruby's 'false' != false is true, so a raw
+        # comparison would silently re-enable the flag against operator intent.
+        context "when the string 'false' (hand-edited config)" do
+          let(:view_vars_string_false) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => 'false' }
+              )
+            )
+          end
+
+          it 'treats it as disabled' do
+            result = described_class.build_feature_flags(view_vars_string_false)
+
+            expect(result['organizations']['audit_logs_enabled']).to be false
+          end
+        end
+
+        context "when the string 'true'" do
+          let(:view_vars_string_true) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => 'true' }
+              )
+            )
+          end
+
+          it 'stays enabled' do
+            result = described_class.build_feature_flags(view_vars_string_true)
+
+            expect(result['organizations']['audit_logs_enabled']).to be true
+          end
+        end
+
+        context 'when nil (key present, no value)' do
+          let(:view_vars_nil_audit_logs) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => nil }
+              )
+            )
+          end
+
+          it 'stays enabled (default-true contract)' do
+            result = described_class.build_feature_flags(view_vars_nil_audit_logs)
+
+            expect(result['organizations']['audit_logs_enabled']).to be true
+          end
+        end
       end
     end
   end
