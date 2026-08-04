@@ -340,9 +340,17 @@ module Core
         # Deep copy to prevent mutations
         safe_features = OT::Config.deep_clone(features_config)
 
-        # Remove sensitive cluster credentials from domains config
-        if safe_features.dig('domains', 'cluster')
-          safe_features['domains'].delete('cluster')
+        # Remove sensitive credentials and internal endpoints from the domains
+        # config. 'approximated' carries the Approximated API key and proxy
+        # settings; 'acme' is the internal ACME listener; 'cluster' is the
+        # pre-rename key the approximated block used to live under. This scrub
+        # was blocklisting only 'cluster' after the rename, which is how the
+        # Approximated api_key reached view_vars — ConfigSerializer's
+        # transform_domains allowlist is the primary gate, this is depth.
+        if safe_features['domains'].is_a?(Hash)
+          %w[cluster approximated acme].each do |sensitive_key|
+            safe_features['domains'].delete(sensitive_key)
+          end
         end
 
         safe_features

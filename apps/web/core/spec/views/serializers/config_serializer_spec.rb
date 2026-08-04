@@ -262,6 +262,65 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
+    # The features.domains config subtree carries the Approximated proxy
+    # credentials (approximated.api_key et al.) and the internal ACME
+    # listener config. The bootstrap payload is served to every visitor, so
+    # the serializer must allowlist the frontend-facing fields instead of
+    # passing the subtree through verbatim. DNS proxy targets for domain
+    # owners are served by the authenticated domains API
+    # (DomainValidation::Features.safe_dump), not the bootstrap.
+    describe 'domains allowlist' do
+      let(:domains_config) do
+        {
+          'enabled' => true,
+          'require_verified' => true,
+          'default' => 'eu.example.com',
+          'validation_strategy' => 'approximated',
+          'approximated' => {
+            'api_key' => 'secret-api-key',
+            'proxy_ip' => '203.0.113.10',
+            'proxy_host' => 'proxy.example.net',
+            'proxy_name' => 'proxy',
+            'vhost_target' => 'target.example.net',
+          },
+          'acme' => {
+            'enabled' => true,
+            'listen_address' => '127.0.0.1',
+            'port' => 12_020,
+          },
+        }
+      end
+
+      let(:domains_view_vars) do
+        base_view_vars.merge(
+          'features' => base_view_vars['features'].merge('domains' => domains_config)
+        )
+      end
+
+      it 'emits only the allowlisted fields' do
+        result = described_class.serialize(domains_view_vars)
+        expect(result['domains']).to eq(
+          'enabled' => true,
+          'require_verified' => true,
+          'default' => 'eu.example.com',
+          'validation_strategy' => 'approximated'
+        )
+      end
+
+      it 'never emits the Approximated credentials or ACME config' do
+        result = described_class.serialize(domains_view_vars)
+        expect(result['domains']).not_to have_key('approximated')
+        expect(result['domains']).not_to have_key('acme')
+        expect(result.to_s).not_to include('secret-api-key')
+      end
+
+      it 'omits the domains key entirely when the feature is disabled' do
+        result = described_class.serialize(base_view_vars)
+        expect(result['domains_enabled']).to be(false)
+        expect(result['domains']).to be_nil
+      end
+    end
+
     describe 'brand_* bootstrap exposure' do
       let(:brand_view_vars) do
         base_view_vars.merge(
