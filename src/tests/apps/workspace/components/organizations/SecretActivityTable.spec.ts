@@ -15,6 +15,7 @@
 import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 
 // ─── HTTP layer ──────────────────────────────────────────────────────────────
@@ -22,6 +23,16 @@ const mockApi = {
   get: vi.fn(),
 };
 vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
+
+// ─── Instance flags (#3990) ──────────────────────────────────────────────────
+// Collection axis + retention cap, both from the bootstrap features payload.
+// Defaults mirror the wire contract: collect on, cap 10,000.
+const mockCollectEnabled = ref(true);
+const mockMaxEvents = ref(10_000);
+vi.mock('@/utils/features', () => ({
+  isSecretActivityCollectEnabled: () => mockCollectEnabled.value,
+  getSecretActivityMaxEvents: () => mockMaxEvents.value,
+}));
 
 // Deterministic classifier output so the error banner's detail line is
 // assertable without pulling the whole error-classification module in.
@@ -140,6 +151,8 @@ describe('SecretActivityTable', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCollectEnabled.value = true;
+    mockMaxEvents.value = 10_000;
     // Default: one burned event on page 1.
     respondWith(buildResponse());
   });
@@ -566,6 +579,57 @@ describe('SecretActivityTable', () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+    });
+
+    it('honors a non-default operator-configured cap (#3990)', async () => {
+      mockMaxEvents.value = 500;
+      respondWith(buildResponse({ records: [buildEvent()], total: 500 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(true);
+    });
+
+    it('does not treat 10,000 as capped when the configured cap is higher', async () => {
+      mockMaxEvents.value = 50_000;
+      respondWith(buildResponse({ records: [buildEvent()], total: 10_000 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+    });
+  });
+
+  describe('collection-paused notice (#3990)', () => {
+    it('renders the paused banner above a populated trail when collection is off', async () => {
+      mockCollectEnabled.value = false;
+
+      wrapper = await mountComponent();
+
+      const notice = wrapper.find('[data-testid="org-audit-paused"]');
+      expect(notice.exists()).toBe(true);
+      expect(notice.text()).toContain('web.organizations.audit.collection_paused_notice');
+      // Historical events keep rendering — the banner warns the trail is
+      // frozen, it does not hide it.
+      expect(wrapper.find('[data-testid="org-audit-table"]').exists()).toBe(true);
+    });
+
+    it('renders the paused banner alongside the empty state (frozen ≠ no activity yet)', async () => {
+      mockCollectEnabled.value = false;
+      respondWith(buildResponse({ records: [], total: 0 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-paused"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="org-audit-empty"]').exists()).toBe(true);
+    });
+
+    it('hides the paused banner when collection is on', async () => {
+      mockCollectEnabled.value = true;
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-paused"]').exists()).toBe(false);
     });
   });
 

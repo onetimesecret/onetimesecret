@@ -29,18 +29,12 @@ import {
 } from '@/schemas/api/organizations';
 import { classifyError } from '@/schemas/errors';
 import { useApi } from '@/shared/composables/useApi';
+import { getSecretActivityMaxEvents } from '@/utils/features';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { computed, ref, type Ref } from 'vue';
 
 /** Server default page size (list_secret_activity.rb DEFAULT_LIMIT). */
 const DEFAULT_LIMIT = 50;
-
-/**
- * Per-org retention cap (secret_activity.rb SECRET_ACTIVITY_MAX_EVENTS). When `total`
- * saturates here the trail has been trimmed — older events are gone and the
- * UI should say so rather than imply a complete history.
- */
-const SECRET_ACTIVITY_RETENTION_MAX = 10_000;
 
 /* eslint-disable max-lines-per-function */
 export function useSecretActivity(orgExtid: Ref<string>) {
@@ -68,7 +62,12 @@ export function useSecretActivity(orgExtid: Ref<string>) {
   const count = computed(() => records.value.length);
   const hasNext = computed(() => offset.value + count.value < total.value);
   const hasPrev = computed(() => offset.value > 0);
-  const isCapped = computed(() => total.value >= SECRET_ACTIVITY_RETENTION_MAX);
+  // Per-org retention cap — features.secret_activity.max_events from the
+  // bootstrap payload (#3990; SECRET_ACTIVITY_MAX_EVENTS, default 10,000).
+  // When `total` saturates at the cap the trail has been trimmed — older
+  // events are gone and the UI should say so rather than imply a complete
+  // history.
+  const isCapped = computed(() => total.value >= getSecretActivityMaxEvents());
 
   /** Abort the in-flight request, if any. */
   function abort() {

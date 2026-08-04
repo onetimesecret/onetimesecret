@@ -27,6 +27,13 @@ vi.mock('@/schemas/errors', () => ({
   }),
 }));
 
+// Operator-configured retention cap (#3990) — default mirrors the contract.
+const mockMaxEvents = ref(10_000);
+vi.mock('@/utils/features', () => ({
+  getSecretActivityMaxEvents: () => mockMaxEvents.value,
+  isSecretActivityCollectEnabled: () => true,
+}));
+
 // Full customer objid — the wire format for actor_id since #3637.
 const FULL_ACTOR_OBJID = '0198c0ffee15deadbeef4b1dfacade42';
 
@@ -138,6 +145,64 @@ describe('useSecretActivity — actors resolution map', () => {
     await flushPromises();
     expect(validationError.value).toBe(true);
     expect(actors.value).toEqual({});
+  });
+});
+
+describe('useSecretActivity — retention cap (isCapped, #3990)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockMaxEvents.value = 10_000;
+  });
+
+  it('saturates at the default 10,000 cap', async () => {
+    mockApi.get.mockResolvedValue({
+      data: { ...buildResponse(), total: 10_000 },
+    });
+
+    const { isCapped, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(isCapped.value).toBe(true);
+  });
+
+  it('honors a non-default operator-configured cap', async () => {
+    mockMaxEvents.value = 500;
+    mockApi.get.mockResolvedValue({
+      data: { ...buildResponse(), total: 500 },
+    });
+
+    const { isCapped, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(isCapped.value).toBe(true);
+  });
+
+  it('stays uncapped below the configured cap', async () => {
+    mockMaxEvents.value = 500;
+    mockApi.get.mockResolvedValue({
+      data: { ...buildResponse(), total: 499 },
+    });
+
+    const { isCapped, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(isCapped.value).toBe(false);
+  });
+
+  it('does not treat 10,000 as capped when the configured cap is higher', async () => {
+    mockMaxEvents.value = 50_000;
+    mockApi.get.mockResolvedValue({
+      data: { ...buildResponse(), total: 10_000 },
+    });
+
+    const { isCapped, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(isCapped.value).toBe(false);
   });
 });
 

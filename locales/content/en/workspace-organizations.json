@@ -764,6 +764,10 @@
     "text": "Only the newest 10,000 events are retained; older activity has been trimmed.",
     "content_hash": "6af1562d"
   },
+  "web.organizations.audit.collection_paused_notice": {
+    "text": "Event collection is paused; new secret activity is not being recorded.",
+    "content_hash": "cb09d147"
+  },
   "web.organizations.audit.load_error": {
     "text": "Unable to load secret activity.",
     "content_hash": "52fde814"

@@ -371,6 +371,27 @@ describe('Bootstrap Zod schema validation', () => {
       const result = featuresSchema.safeParse(features);
       expect(result.success).toBe(true);
     });
+
+    it('populates secret_activity nested defaults when absent (#3990)', () => {
+      // Cascade-default workaround: .default(inner.parse({})) must yield the
+      // contract defaults, not an empty object.
+      const result = featuresSchema.parse({});
+      expect(result.secret_activity).toEqual({ collect_enabled: true, max_events: 10_000 });
+    });
+
+    it('accepts an explicit secret_activity payload (#3990)', () => {
+      const result = featuresSchema.safeParse({
+        secret_activity: { collect_enabled: false, max_events: 500 },
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a non-positive secret_activity.max_events (#3990)', () => {
+      const result = featuresSchema.safeParse({
+        secret_activity: { collect_enabled: true, max_events: 0 },
+      });
+      expect(result.success).toBe(false);
+    });
   });
 
   describe('organizationSchema', () => {
