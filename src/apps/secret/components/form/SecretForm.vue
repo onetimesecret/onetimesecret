@@ -533,7 +533,7 @@
                     :keyboard-shortcut-enabled="true"
                     :show-keyboard-hint="false"
                     :aria-label="
-                      selectedAction === 'create-link' ? 'Create Secret Link' : 'Generate Password'
+                      selectedAction === 'create-link' ? 'Create secret link' : 'Generate password'
                     "
                     :aria-describedby="
                       selectedAction === 'create-link'

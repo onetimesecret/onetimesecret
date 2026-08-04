@@ -777,8 +777,8 @@ describe('MastHead', () => {
               main_navigation: 'Main Navigation',
             },
             COMMON: {
-              header_create_account: 'Create Account',
-              header_sign_in: 'Sign In',
+              header_create_account: 'Create account',
+              header_sign_in: 'Sign in',
             },
           },
         },
@@ -1185,8 +1185,8 @@ describe('MastHead', () => {
               main_navigation: 'Main Navigation',
             },
             COMMON: {
-              header_create_account: 'Create Account',
-              header_sign_in: 'Sign In',
+              header_create_account: 'Create account',
+              header_sign_in: 'Sign in',
             },
           },
         },

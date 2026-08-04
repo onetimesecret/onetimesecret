@@ -170,7 +170,7 @@
                   <!-- Quick Actions Card -->
                   <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
                     <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                      Quick Actions
+                      Quick actions
                     </h3>
                     <slot name="quick-actions">
                       <div class="space-y-2">
@@ -179,14 +179,14 @@
                           class="block w-full rounded-lg bg-brand-500 px-3 py-2 text-center
                                  text-sm font-medium text-white
                                  transition-colors hover:bg-brand-600">
-                          Create New Secret
+                          Create new secret
                         </router-link>
                         <router-link
                           to="/account/settings/api"
                           class="block w-full rounded-lg border border-gray-300 px-3 py-2
                                  text-center text-sm font-medium transition-colors
                                  hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                          Generate API Key
+                          Generate API key
                         </router-link>
                       </div>
                     </slot>
