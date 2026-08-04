@@ -184,6 +184,53 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
       expect(Onetime::Organization).not_to have_received(:find_by_extid)
     end
 
+    # The denial is an operator-visible security event: extid/actor must land
+    # in OT.info's **payload (structured, filterable) rather than being
+    # concatenated into the message string.
+    it 'logs the denial with a structured payload' do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => false))
+
+      logic.process_params
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+
+      expect(OT).to have_received(:info).with(
+        a_string_including('audit_logs_enabled feature flag disabled'),
+        hash_including(extid: anything, actor: anything),
+      )
+    end
+
+    # Parity with ConfigSerializer#build_feature_flags: a hand-edited config
+    # can deliver the string 'false' where the shipped ERB emits a real
+    # boolean. If only the serializer handled it, the UI would hide the tab
+    # while this endpoint kept serving the trail.
+    it "rejects when the flag is the string 'false' (hand-edited config)" do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => 'false'))
+
+      logic.process_params
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError) { |ex|
+        expect(ex.error_type).to eq(:forbidden)
+      }
+      expect(Onetime::Organization).not_to have_received(:find_by_extid)
+    end
+
+    it "proceeds when the flag is the string 'true'" do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => 'true'))
+
+      logic.process_params
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'counts nil as enabled (default-true contract)' do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => nil))
+
+      logic.process_params
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
     it 'proceeds when the flag is explicitly true' do
       allow(OT).to receive(:conf)
         .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => true))

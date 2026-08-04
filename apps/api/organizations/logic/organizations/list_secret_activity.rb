@@ -61,9 +61,19 @@ module OrganizationAPI::Logic
         # key (older config file) counts as enabled. Gates exposure only:
         # event collection (Organization::Features::SecretActivity) is
         # unaffected. Mirrors DomainConfigAuthorization#verify_feature_flag!.
-        if OT.conf.dig('features', 'organizations', 'audit_logs_enabled') == false
+        #
+        # Compared on the string form, same as ConfigSerializer#build_feature_flags:
+        # a hand-edited config that yields the string 'false' must disable BOTH
+        # surfaces. A strict `== false` here would leave the API serving the
+        # trail while the UI hides the tab — the operator would believe the
+        # feature is off while it is still readable.
+        if OT.conf.dig('features', 'organizations', 'audit_logs_enabled').to_s == 'false'
+          # Keyword args reach OT.info's **payload and are emitted as
+          # SemanticLogger structured payload (filterable/alertable), not
+          # concatenated into the message string.
           OT.info '[ListSecretActivity] Authorization denied: audit_logs_enabled feature flag disabled',
-            { extid: @extid, actor: cust&.custid }.to_json
+            extid: @extid,
+            actor: cust&.custid
           raise_form_error('Secret activity is not enabled on this instance', error_type: :forbidden)
         end
 
