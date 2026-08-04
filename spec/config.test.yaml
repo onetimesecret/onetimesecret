@@ -47,12 +47,19 @@ site:
     utf8_sanitizer: true
     authenticity_token: true
     http_origin: false
-    xss_header: false
-    frame_options: false
-    path_traversal: false
+    # xss_header, referrer_policy and permissions_policy ship ON since the
+    # 2026-08-02 audit (M-3); enabled here so the test posture matches
+    # production and integration boots don't warn via SECURITY_CRITICAL_KEYS.
+    xss_header: true
+    referrer_policy: true
+    permissions_policy: true
+    # ON in production defaults (etc/config.yaml) and in SECURITY_CRITICAL_KEYS,
+    # so enabled here to match prod posture and keep integration boots warn-free.
+    frame_options: true
+    path_traversal: true
+    strict_transport: true
     cookie_tossing: false
     ip_spoofing: false
-    strict_transport: false
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.
@@ -76,6 +83,12 @@ site:
     required: false
     colonels:
       - 'CHANGEME@EXAMPLE.com'
+    # Disabled under test so full-mode specs that request magic links are not
+    # throttled (the cap is per masked IP, and the whole suite shares one);
+    # the L-5 limiter tests enable it in-process. See
+    # email_auth_rate_limiter.rb.
+    email_auth_rate_limit:
+      enabled: false
     # Disabled under test so full-mode reset-password specs are not throttled;
     # the #3872 limiter tests enable it in-process. See
     # reset_request_rate_limiter.rb.

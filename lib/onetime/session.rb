@@ -131,6 +131,25 @@ module Onetime
 
     private
 
+    # Number of leading session-id characters that survive into log output.
+    SID_LOG_PREFIX_LENGTH = 8 unless defined?(SID_LOG_PREFIX_LENGTH)
+
+    # Log-safe session id (2026-08-02 audit, L-3): first 8 hex chars + '...'.
+    #
+    # A full session id in a log line IS the session cookie — the id is the
+    # bearer credential, so anyone with log access could hijack the session if
+    # trace logging were ever enabled in production. Eight hex chars (32 bits)
+    # are plenty to correlate log lines for one session while leaving 224+
+    # bits unrecoverable. Accepts raw strings and Rack SessionId objects; used
+    # by EVERY log site in this class — never interpolate a raw sid into logs.
+    def sid_for_log(sid)
+      str = sid.respond_to?(:public_id) ? sid.public_id : sid
+      str = str.to_s
+      return str if str.length <= SID_LOG_PREFIX_LENGTH
+
+      "#{str[0, SID_LOG_PREFIX_LENGTH]}..."
+    end
+
     # Create a StringKey instance for a session ID
     #
     # This creates a Familia::StringKey that maps to:
@@ -154,16 +173,17 @@ module Onetime
 
       session_logger.info 'Session deletion initiated',
         {
-          session_id: sid_string,
+          session_id: sid_for_log(sid_string),
           operation: 'delete',
         }
 
       if stringkey = get_stringkey(sid_string)
         result = stringkey.del
+        # NOTE: no redis_key field — the dbkey embeds the full sid, which must
+        # never reach the logs (audit L-3). It is derivable: session:<sid>.
         session_logger.trace 'Session deleted from Redis',
           {
-            session_id: sid_string,
-            redis_key: stringkey.dbkey,
+            session_id: sid_for_log(sid_string),
             deleted: result,
             operation: 'delete',
           }
@@ -198,7 +218,7 @@ module Onetime
           unless doomed.empty?
             session_logger.warn 'Session destroyed with in-flight sidecar state',
               {
-                session_id: sid_string,
+                session_id: sid_for_log(sid_string),
                 fields: doomed,
                 operation: 'delete',
               }
@@ -206,7 +226,7 @@ module Onetime
         rescue StandardError => ex
           session_logger.error 'Sidecar purge failed (orphans are TTL-bounded)',
             {
-              session_id: sid_string,
+              session_id: sid_for_log(sid_string),
               error: ex.message,
               error_class: ex.class.name,
               operation: 'delete',
@@ -216,7 +236,7 @@ module Onetime
       else
         session_logger.trace 'No session found to delete',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             operation: 'delete',
           }
 
@@ -225,7 +245,7 @@ module Onetime
       new_sid = generate_sid
       session_logger.trace 'New session generated after deletion',
         {
-          session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
+          session_id: sid_for_log(new_sid),
           operation: 'delete',
         }
 
@@ -247,6 +267,30 @@ module Onetime
       matched = super
       warn_dropped_secure_cookie(request) if !matched && options[:secure] && !request.ssl?
       matched
+    end
+
+    # UPGRADE-ONLY Secure-flag fallback (2026-08-02 audit, L-1).
+    #
+    # The configured `secure` option comes from Onetime.session_config, which
+    # defaults to true only when site.ssl / the SSL env var is set or the app
+    # runs in production (boot.rb#ssl_enabled?). On a misconfigured deployment
+    # (e.g. RACK_ENV unset-to-development behind a TLS terminator, SSL flag
+    # forgotten) that leaves options[:secure] false and the session cookie
+    # would be minted WITHOUT the Secure attribute even though the client is
+    # on HTTPS.
+    #
+    # This override closes that gap per-request: when the request itself is
+    # HTTPS — Rack::Request#ssl? honors X-Forwarded-Proto natively, and the
+    # AssumeHttps middleware (#3837/#3843) upgrades the scheme for tunnels
+    # that don't forward it — the cookie gets Secure regardless of config.
+    #
+    # Same invariant as AssumeHttps: upgrade-only. A configured secure:true is
+    # never weakened (that path is governed by security_matches? above), and a
+    # plain-HTTP request is left untouched, so development over http://
+    # continues to receive its (non-Secure) cookie.
+    def set_cookie(request, response, cookie)
+      cookie[:secure] = true if !cookie[:secure] && request.ssl?
+      super
     end
 
     # Emit the dropped-secure-cookie warning at most once per
@@ -390,7 +434,7 @@ module Onetime
 
       session_logger.trace 'Session lookup initiated',
         {
-          session_id: sid_string,
+          session_id: sid_for_log(sid_string),
           sid_type: sid.class.name,
           operation: 'read',
         }
@@ -399,7 +443,7 @@ module Onetime
       unless sid_string && valid_session_id?(sid_string)
         session_logger.trace 'Session ID invalid or missing',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             valid: false,
             operation: 'read',
           }
@@ -407,7 +451,7 @@ module Onetime
         new_sid = generate_sid
         session_logger.trace 'New session created',
           {
-            session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
+            session_id: sid_for_log(new_sid),
             operation: 'read',
           }
 
@@ -422,7 +466,7 @@ module Onetime
 
         session_logger.trace 'Redis lookup complete',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             has_data: !stored_data.nil?,
             data_size: stored_data&.bytesize,
             ttl: stringkey&.ttl,
@@ -434,7 +478,7 @@ module Onetime
         unless stored_data
           session_logger.trace 'No session data found',
             {
-              session_id: sid_string,
+              session_id: sid_for_log(sid_string),
               operation: 'read',
             }
 
@@ -447,7 +491,7 @@ module Onetime
 
         session_logger.trace 'HMAC verification',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             has_hmac: !hmac.nil?,
             data_length: data&.length,
             hmac_length: hmac&.length,
@@ -459,7 +503,7 @@ module Onetime
         unless hmac && valid_hmac?(data, hmac)
           session_logger.warn 'Session HMAC verification failed',
             {
-              session_id: sid_string,
+              session_id: sid_for_log(sid_string),
               has_hmac: !hmac.nil?,
               operation: 'read',
             }
@@ -473,7 +517,7 @@ module Onetime
         encrypted_data = Base64.strict_decode64(data)
         session_logger.trace 'Base64 decode complete',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             encrypted_size: encrypted_data.bytesize,
             operation: 'read',
           }
@@ -483,7 +527,7 @@ module Onetime
         unless decrypted_data
           session_logger.warn 'Session decryption failed',
             {
-              session_id: sid_string,
+              session_id: sid_for_log(sid_string),
               operation: 'read',
             }
           new_sid = generate_sid
@@ -492,7 +536,7 @@ module Onetime
 
         session_logger.trace 'AES-256-GCM decryption complete',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             decrypted_size: decrypted_data.bytesize,
             operation: 'read',
           }
@@ -524,22 +568,22 @@ module Onetime
         rescue StandardError => ex
           session_logger.error 'Sidecar merge failed (skipped)',
             {
-              session_id: sid_string,
+              session_id: sid_for_log(sid_string),
               error: ex.message,
               error_class: ex.class.name,
               operation: 'read',
             }
         end
 
+        # Deliberately sparse (audit L-3/L-4): no account_id/external_id, no
+        # MFA/auth-state fields, no key names. A key count plus a single
+        # authenticated boolean is what session debugging actually needs; the
+        # full contents are one Redis GET away for someone with access.
         session_logger.trace 'Session loaded successfully',
           {
-            session_id: sid_string,
-            session_keys: session_data.keys,
-            account_id: session_data['account_id'],
-            external_id: session_data['external_id'],
-            authenticated_at: session_data['authenticated_at'],
-            awaiting_mfa: session_data['awaiting_mfa'],
-            two_factor_auth_setup: session_data['two_factor_auth_setup'],
+            session_id: sid_for_log(sid_string),
+            key_count: session_data.size,
+            authenticated: session_data['authenticated'] == true,
             operation: 'read',
           }
 
@@ -550,7 +594,7 @@ module Onetime
         # Log error with structured context
         session_logger.error 'Error reading session',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             error: ex.message,
             error_class: ex.class.name,
             backtrace: ex.backtrace&.first(5),
@@ -593,8 +637,8 @@ module Onetime
 
       session_logger.trace 'Session write initiated',
         {
-          session_id: sid_string,
-          session_keys: session_data&.keys,
+          session_id: sid_for_log(sid_string),
+          key_count: session_data&.size,
           session_data_class: session_data.class.name,
           operation: 'write',
         }
@@ -629,7 +673,7 @@ module Onetime
       rescue StandardError => ex
         session_logger.error 'Sidecar commit failed (fields stay in blob)',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             error: ex.message,
             error_class: ex.class.name,
             operation: 'write',
@@ -641,7 +685,7 @@ module Onetime
       json_data = Familia::JsonSerializer.dump(session_data)
       session_logger.trace 'JSON serialization complete',
         {
-          session_id: sid_string,
+          session_id: sid_for_log(sid_string),
           json_size: json_data.bytesize,
           operation: 'write',
         }
@@ -651,7 +695,7 @@ module Onetime
       encrypted_data = encrypt_data(json_data)
       session_logger.trace 'AES-256-GCM encryption complete',
         {
-          session_id: sid_string,
+          session_id: sid_for_log(sid_string),
           encrypted_size: encrypted_data.bytesize,
           operation: 'write',
         }
@@ -660,7 +704,7 @@ module Onetime
       encoded = Base64.strict_encode64(encrypted_data)
       session_logger.trace 'Base64 encoding complete',
         {
-          session_id: sid_string,
+          session_id: sid_for_log(sid_string),
           encoded_size: encoded.bytesize,
           operation: 'write',
         }
@@ -672,7 +716,7 @@ module Onetime
 
       session_logger.trace 'HMAC computation complete',
         {
-          session_id: sid_string,
+          session_id: sid_for_log(sid_string),
           hmac_length: hmac.length,
           signed_data_size: signed_data.bytesize,
           operation: 'write',
@@ -685,10 +729,11 @@ module Onetime
       # Key: session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
       # Value: eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
       stringkey.set(signed_data)
+      # NOTE: no redis_key field — the dbkey embeds the full sid, which must
+      # never reach the logs (audit L-3). It is derivable: session:<sid>.
       session_logger.trace 'Redis SET complete',
         {
-          session_id: sid_string,
-          redis_key: stringkey.dbkey,
+          session_id: sid_for_log(sid_string),
           operation: 'write',
         }
 
@@ -697,7 +742,7 @@ module Onetime
         stringkey.update_expiration(expiration: @expire_after)
         session_logger.trace 'Expiration updated',
           {
-            session_id: sid_string,
+            session_id: sid_for_log(sid_string),
             expire_after: @expire_after,
             operation: 'write',
           }
@@ -725,7 +770,7 @@ module Onetime
         rescue StandardError => ex
           session_logger.error 'Session metadata sidecar failed (swallowed)',
             {
-              session_id: sid_string,
+              session_id: sid_for_log(sid_string),
               error: ex.message,
               error_class: ex.class.name,
               operation: 'write',
@@ -738,16 +783,15 @@ module Onetime
       ttl_value  = stringkey.ttl
       expires_at = ttl_value > 0 ? Time.now + ttl_value : nil
 
-      # Structured trace logging with all critical session fields
+      # Deliberately sparse (audit L-3/L-4): the old entry logged account_id,
+      # external_id, authenticated_at, MFA state and every session key name —
+      # a full auth-state disclosure if trace ever ran in production. Size,
+      # TTL and a single authenticated boolean cover the debugging need.
       session_logger.trace 'Session saved successfully',
         {
-          session_id: sid_string,
-          session_keys: session_data&.keys,
-          account_id: session_data&.fetch('account_id', 'n/a'),
-          external_id: session_data&.fetch('external_id', 'n/a'),
-          authenticated_at: session_data&.fetch('authenticated_at', 'n/a'),
-          two_factor_auth_setup: session_data&.fetch('two_factor_auth_setup', 'n/a'),
-          awaiting_mfa: session_data&.fetch('awaiting_mfa', 'n/a'),
+          session_id: sid_for_log(sid_string),
+          key_count: session_data&.size,
+          authenticated: session_data&.[]('authenticated') == true,
           ttl: ttl_value,
           data_size: data_size,
           expires_at: expires_at,
@@ -762,8 +806,8 @@ module Onetime
       # Log error with structured context
       session_logger.error 'Error writing session',
         {
-          session_id: sid_string,
-          session_keys: session_data&.keys,
+          session_id: sid_for_log(sid_string),
+          key_count: session_data&.size,
           error: ex.message,
           error_class: ex.class.name,
           backtrace: ex.backtrace&.first(5),

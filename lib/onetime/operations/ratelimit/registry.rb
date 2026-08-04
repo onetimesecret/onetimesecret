@@ -60,6 +60,16 @@ module Onetime
             scan_keys: ['login:attempts:%s:*', 'login:locked:%s:*'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
+          # Single-tier IP limiter on unauthenticated magic-link requests
+          # (audit 2026-08-02 L-5). SUBJECT IS THE STORED FORM: the
+          # privacy-masked IP (/24 IPv4, /48 IPv6), not the raw address and not
+          # the /16-obscured form the lockout log line prints. A raw address
+          # reads back `not_set`.
+          'email_auth_ip' => {
+            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            keys: ['email_auth:attempts:ip:%s', 'email_auth:locked:ip:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
           # Two entries because ResetRequestRateLimiter has two subject TYPES and
           # a `keys` template takes one subject. Both live on the Customer shard,
           # matching its `reset_request_redis`. SUBJECTS ARE THE STORED FORM: the

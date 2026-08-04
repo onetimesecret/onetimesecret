@@ -4,6 +4,12 @@ import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import { defineConfig } from 'vitest/config';
 
+// direnv exports .env.test into the shell, which can leak NODE_ENV=production
+// into vitest. Production mode changes Vite's externalization of Node builtins
+// (malformed bare "node:" specifiers) and flips NODE_ENV-conditional code under
+// test. Tests must always run in test mode regardless of the caller's shell.
+process.env.NODE_ENV = 'test';
+
 // use mock service workers lib to mock API requests (any fetch or axios requests).
 
 // test.environment is global setting. Can also use magic comments
@@ -46,14 +52,9 @@ export default defineConfig({
       // summary in the CI log. Only emitted when run with --coverage.
       reporter: ['text', 'cobertura'],
       reportsDirectory: 'coverage',
-      all: true, // include untested source files so they report as 0% covered
+      // Explicit include patterns make untested source files report as 0% covered
       include: ['src/**'],
-      exclude: [
-        'src/tests/**',
-        'src/**/*.spec.ts',
-        'src/**/*.spec.vue',
-        'src/**/*.d.ts',
-      ],
+      exclude: ['src/tests/**', 'src/**/*.spec.ts', 'src/**/*.spec.vue', 'src/**/*.d.ts'],
     },
     setupFiles: [
       'src/tests/setup-env.ts',

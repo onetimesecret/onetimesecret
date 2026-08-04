@@ -75,6 +75,8 @@ const middlewareSchema = z.object({
   authenticity_token: z.boolean().optional(),
   http_origin: z.boolean().optional(),
   xss_header: z.boolean().optional(),
+  referrer_policy: z.boolean().optional(),
+  permissions_policy: z.boolean().optional(),
   frame_options: z.boolean().optional(),
   path_traversal: z.boolean().optional(),
   cookie_tossing: z.boolean().optional(),

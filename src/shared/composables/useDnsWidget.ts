@@ -187,6 +187,20 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
       document.head.appendChild(link);
 
       // Load JS (using Vite-resolved URL)
+      //
+      // [M-4] Sanitizer status: the previously documented form residual is
+      // closed — sanitizeHtmlToFragment now unwraps FORM elements from
+      // API-supplied HTML (children survive, submission primitive doesn't)
+      // and strips action/formaction unconditionally; protocol-relative
+      // "//host" URLs are rejected; and compiled copy-button element chains
+      // only resolve to elements contained within the widget element (so a
+      // hostile chain cannot copy content from elsewhere on the page).
+      // Remaining residual: hostile API HTML can still render arbitrary
+      // *static* styled content inside the widget — social-engineering text
+      // and plain https:// links to attacker sites — which no DOM sanitizer
+      // can distinguish from legitimate provider instructions. A hostile
+      // copy chain can also still copy widget-internal (API-authored)
+      // content, which discloses nothing the API did not already control.
       const script = document.createElement('script');
       script.src = dnsWidgetJs;
       // [S5] Carry the per-request CSP nonce so the injected script passes the

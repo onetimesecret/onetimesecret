@@ -263,10 +263,12 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         expect(response).to have_key('field-error')
         expect(response['field-error']).to be_an(Array)
         expect(response['field-error'].length).to eq(2)
-        # Rodauth uses 'login' as the field name, not 'email'
-        expect(response['field-error'][0]).to eq('login')
-        # Rodauth returns "no matching login" for non-existent accounts
-        expect(response['field-error'][1]).to eq('no matching login')
+        # Enumeration safety (audit 2026-08-02 M-1, config/overrides/
+        # account_enumeration.rb): non-existent accounts and wrong passwords
+        # both answer with the same generic tuple on the password field, so
+        # the response no longer discloses whether the email is registered.
+        expect(response['field-error'][0]).to eq('password')
+        expect(response['field-error'][1]).to eq('Invalid email or password')
       end
     end
 

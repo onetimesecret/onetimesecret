@@ -315,6 +315,31 @@ site:
     # If empty or not set, signups are allowed from any domain (default).
     # Environment variable: ALLOWED_SIGNUP_DOMAIN (comma-separated list)
     allowed_signup_domains: <%= ENV['ALLOWED_SIGNUP_DOMAIN']&.split(',')&.map(&:strip) || [] %>
+    # Rate limiting for magic-link (email auth) requests (audit 2026-08-02
+    # L-5). POST /auth/email-login-request previously relied solely on
+    # Rodauth's built-in email_auth_skip_resend_email_within throttle, which
+    # is PER ACCOUNT — it bounds resends for one mailbox but caps nothing
+    # across addresses, leaving unauthenticated mail dispatch unbounded per
+    # origin. Throttles per client IP BEFORE any account lookup, via the
+    # Rodauth before_email_auth_request_route hook (apps/web/auth/config/
+    # hooks/email_auth_request.rb). Full mode only by construction: the
+    # email_auth feature (and its request route) exists only there. ADDITIVE:
+    # the per-account resend throttle stays.
+    # Enabled by default (protective); set EMAIL_AUTH_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/email_auth_rate_limiter.rb.
+    email_auth_rate_limit:
+      enabled: <%= ENV['EMAIL_AUTH_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Magic-link requests permitted per window from a single masked client
+      # IP. The bucket is a whole /24 (office, campus NAT), and behind an
+      # unconfigured reverse proxy it is the entire deployment — so this is
+      # deliberately loose relative to the one link a person needs. Raise it
+      # for dense-NAT populations; a too-tight value here is a
+      # passwordless-login outage.
+      max_per_ip: <%= ENV['EMAIL_AUTH_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['EMAIL_AUTH_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['EMAIL_AUTH_RATE_LIMIT_LOCKOUT'] || 3600 %>
     # Rate limiting for reset-password requests (#3872, #3948). Applies in EVERY
     # auth mode — full mode enforces it in the Rodauth route hook, simple mode
     # in AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns.
@@ -406,10 +431,11 @@ site:
     # Validates HTTP Origin header matches expected origin
     # ENV: MIDDLEWARE_HTTP_ORIGIN (default: false)
     http_origin: <%= ENV['MIDDLEWARE_HTTP_ORIGIN'] == 'true' %>
-    # Sets X-XSS-Protection header to enable browser XSS filtering
-    # Modern browsers rely less on this as CSP becomes standard
-    # ENV: MIDDLEWARE_XSS_HEADER (default: false)
-    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
+    # Sets X-XSS-Protection (HTML, legacy browsers) and X-Content-Type-Options:
+    # nosniff (all responses) headers. nosniff prevents browsers from
+    # MIME-sniffing responses into executable types. (audit 2026-08-02 M-3)
+    # ENV: MIDDLEWARE_XSS_HEADER (default: true)
+    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] != 'false' %>
     # Prevents your site from being embedded in frames (clickjacking protection)
     # Sets X-Frame-Options header to SAMEORIGIN or DENY
     # ENV: MIDDLEWARE_FRAME_OPTIONS (default: true)
@@ -430,6 +456,14 @@ site:
     # Disable only for development or when behind a secure proxy
     # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: true)
     strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>
+    # Emits Referrer-Policy: no-referrer as an HTTP response header so secret
+    # URLs can never leak via the Referer header. (audit 2026-08-02 M-3)
+    # ENV: MIDDLEWARE_REFERRER_POLICY (default: true)
+    referrer_policy: <%= ENV['MIDDLEWARE_REFERRER_POLICY'] != 'false' %>
+    # Emits Permissions-Policy header disabling geolocation/microphone/camera.
+    # (audit 2026-08-02 M-3)
+    # ENV: MIDDLEWARE_PERMISSIONS_POLICY (default: true)
+    permissions_policy: <%= ENV['MIDDLEWARE_PERMISSIONS_POLICY'] != 'false' %>
   # Security Configuration
   # Additional security settings beyond middleware
   security:

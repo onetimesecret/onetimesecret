@@ -34,6 +34,9 @@
 #                       before_recovery_auth, after_add_recovery_codes,
 #                       before_view_recovery_codes
 #   email_auth.rb       before_email_auth_route, after_email_auth_request
+#   email_auth_request.rb  before_email_auth_request_route (rate limiting per
+#                       client IP, audit 2026-08-02 L-5; NOT the redemption-
+#                       side hooks, which email_auth.rb owns)
 #   reset_password_request.rb  before_reset_password_request_route (rate
 #                       limiting per client IP + per submitted login, #3872)
 #   create_account.rb   before_create_account_route (rate limiting per client
@@ -78,5 +81,6 @@ module Auth::Config::Hooks
   require_relative 'hooks/password'
   require_relative 'hooks/reset_password_request'
   require_relative 'hooks/email_auth'
+  require_relative 'hooks/email_auth_request'
   require_relative 'hooks/webauthn'
 end

@@ -63,50 +63,58 @@ module Auth::Config::Hooks
           throw_rodauth_error
         end
 
-        # Check SQLite (auth database)
+        # Check SQL (auth database) for an existing account.
+        #
+        # SECURITY (audit 2026-08-02 M-2): a duplicate email must NOT be
+        # distinguishable from a fresh signup in the HTTP response — the old
+        # "Unable to create account" error here was a registration-state
+        # oracle. duplicate_signup_success_response (defined in
+        # config/overrides/account_enumeration.rb) answers with the SAME
+        # generic success a fresh signup returns and HALTS; no account row is
+        # written. For an unverified duplicate it also re-sends the
+        # verification email (throttled), so the success message stays true.
+        # Under internal_request (e.g. the invite flow's
+        # Auth::Config.create_account) the helper fails CLOSED: it raises
+        # Rodauth::InternalRequestError exactly as the old error-throw here
+        # did, so internal callers can never mistake a duplicate for a fresh
+        # signup (see the SECURITY note on the helper).
         existing_account = db[:accounts].where(email: email).first
 
         if existing_account
-          diagnostic_hint = <<~HINT.strip
-            Registration blocked: Account exists in authdb but may be missing from
-            Redis. This can occur after clearing Redis without resetting authdb.
-            Consider: (1) deleting the account from authdb, or (2) resetting both
-            databases together.
-          HINT
-
           Auth::Logging.log_auth_event(
-            :registration_blocked_auth_db_conflict,
-            level: :error,
+            :registration_duplicate_auth_account,
+            level: :info,
             email: OT::Utils.obscure_email(email),
             account_id: existing_account[:id],
-            diagnostic_hint: diagnostic_hint,
+            response_mode: 'generic_success',
           )
 
-          set_error_flash(create_account_error_flash)
-          request.env['rodauth.error_flash'] = create_account_error_flash
-          throw_rodauth_error
+          duplicate_signup_success_response(existing_account: existing_account)
         end
 
         # Check Redis (customer database)
-        # Note: In shared Redis dev setups, a customer may exist without an auth account
+        # Note: In shared Redis dev setups, a customer may exist without an
+        # auth account. Same M-2 generic-success treatment: a Redis-only
+        # duplicate is still a registration-state oracle if it errors. The
+        # diagnostic hint is preserved for the worktree/multi-instance dev
+        # scenario where this state is usually unintentional.
         if Onetime::Customer.email_exists?(email)
           diagnostic_hint = <<~HINT.strip
-            Registration blocked: Customer record exists in Redis but no auth account
-            found. This typically occurs in worktree/multi-instance dev setups with
-            shared Redis. Consider: (1) using isolated Redis per instance, (2) clearing
+            Customer record exists in Redis but no auth account found. This
+            typically occurs in worktree/multi-instance dev setups with shared
+            Redis. Consider: (1) using isolated Redis per instance, (2) clearing
             Redis data, or (3) logging in with existing account if it exists elsewhere.
           HINT
 
           Auth::Logging.log_auth_event(
-            :registration_blocked_redis_conflict,
-            level: :error,
+            :registration_duplicate_customer_record,
+            level: :warn,
             email: OT::Utils.obscure_email(email),
             diagnostic_hint: diagnostic_hint,
+            response_mode: 'generic_success',
           )
 
-          set_error_flash(create_account_error_flash)
-          request.env['rodauth.error_flash'] = create_account_error_flash
-          throw_rodauth_error
+          duplicate_signup_success_response
         end
 
         # When an invite_token is supplied, validate the invitation up front:

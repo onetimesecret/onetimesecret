@@ -20,13 +20,18 @@ require_relative '../../integration/integration_spec_helper'
 #    DB round-trip per successful change request in full auth mode.
 #
 # Tests drive the logic class directly (no HTTP layer), following the pattern
-# in spec/api/account/get_permissions_spec.rb. Runs in the default (simple)
-# auth mode: verify_password delegates to cust.passphrase?, and the
-# memoization contract under test is mode-independent.
+# in spec/api/account/get_permissions_spec.rb. Runs in simple auth mode only
+# (skips when AUTHENTICATION_MODE=full): verify_password delegates to
+# cust.passphrase? in simple mode, and the memoization contract under test
+# is mode-independent. The spec:api rake task and tests/lanes/api lane both
+# set AUTHENTICATION_MODE=simple; the skip guard handles direct invocation
+# with a full-mode shell environment.
 #
 RSpec.describe 'AccountAPI::Logic::Account::RequestEmailChange', type: :integration do
   before(:all) do
     Onetime.boot! :test
+
+    skip 'requires simple auth mode' if Onetime.auth_config.full_enabled?
 
     require 'account/logic/account/request_email_change'
   end

@@ -3,8 +3,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Security headers -->
-  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- Security headers. The authoritative copies are HTTP response headers
+       emitted by Onetime::Middleware::Security (Referrer-Policy: no-referrer,
+       X-Content-Type-Options: nosniff, Permissions-Policy) — keep these meta
+       fallbacks in sync with the middleware values (audit 2026-08-02 M-3).
+       no-referrer (not strict-origin-when-cross-origin): secret URLs must
+       never appear in a Referer header, including same-origin navigations. -->
+  <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
   <!-- Note: X-Frame-Options is set via HTTP header in middleware, not meta tag -->

@@ -12,6 +12,8 @@ require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
 require_relative 'instrumented_authenticity_token'
+require_relative 'permissions_policy'
+require_relative 'xss_header'
 
 module Onetime
   module Middleware
@@ -36,14 +38,20 @@ module Onetime
 
       # Middleware keys whose protections are security-critical: switching one of
       # these off silently weakens the app, so a disable is logged at warn level.
-      # Toggles that ship OFF by design (http_origin, xss_header, cookie_tossing,
+      # Toggles that ship OFF by design (http_origin, cookie_tossing,
       # ip_spoofing) are intentionally excluded to keep the log quiet.
+      # xss_header, referrer_policy and permissions_policy ship ON since the
+      # 2026-08-02 audit (M-3): they emit X-Content-Type-Options,
+      # Referrer-Policy and Permissions-Policy as real response headers.
       SECURITY_CRITICAL_KEYS = %w[
         frame_options
         path_traversal
         strict_transport
         authenticity_token
         utf8_sanitizer
+        xss_header
+        referrer_policy
+        permissions_policy
       ].freeze
 
       # The wrapped Rack application
@@ -239,10 +247,40 @@ Onetime::Middleware::Security.middleware_components = {
   # like passwords and secrets. OTS uses Onetime::Security::InputSanitizers
   # for field-aware sanitization instead.
 
-  # XSS Header: Sets X-XSS-Protection to mitigate reflected XSS in older browsers.
+  # XSS Header: Sets X-XSS-Protection: 0 (HTML responses) AND
+  # X-Content-Type-Options: nosniff (all responses). The nosniff header is the
+  # load-bearing half: it stops browsers from MIME-sniffing responses into
+  # executable types. Ships enabled since the 2026-08-02 audit (M-3.1) —
+  # previously nosniff existed only as a meta tag in head-base.rue, which
+  # browsers ignore for non-HTML resources. Uses the Onetime subclass rather
+  # than Rack::Protection::XSSHeader because the latter can only emit
+  # `1; mode=...`, which is an XS-Leaks vector in the legacy browsers that
+  # still ship the XSS auditor (see xss_header.rb).
   'XSSHeader' => {
     key: :xss_header,
-    klass: Rack::Protection::XSSHeader,
+    klass: Onetime::Middleware::XSSHeader,
+  },
+
+  # Referrer Policy: Emits Referrer-Policy: no-referrer on every response.
+  # Secret links carry secret identifiers in the URL path, so ANY referrer
+  # leakage — including same-origin navigations that a laxer policy like
+  # strict-origin-when-cross-origin would permit to be recorded — is a
+  # disclosure vector. no-referrer suppresses the Referer header entirely
+  # (2026-08-02 audit, M-3.2). The meta tag in head-base.rue mirrors this
+  # value; keep the two in sync. Uses ||= semantics, so a route that needs a
+  # different policy can set its own header downstream without being clobbered.
+  'ReferrerPolicy' => {
+    key: :referrer_policy,
+    klass: Rack::Protection::ReferrerPolicy,
+    options: { referrer_policy: 'no-referrer' },
+  },
+
+  # Permissions Policy: Emits Permissions-Policy disabling geolocation,
+  # microphone and camera as an HTTP response header (2026-08-02 audit, M-3.3).
+  # Same policy as the head-base.rue meta tag, promoted to a real header.
+  'PermissionsPolicy' => {
+    key: :permissions_policy,
+    klass: Onetime::Middleware::PermissionsPolicy,
   },
 
   # Frame Options: Prevents clickjacking by restricting iframe embedding.
