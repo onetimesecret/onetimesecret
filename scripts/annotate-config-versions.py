@@ -12,7 +12,8 @@ config files and — via --check — proves in CI that they are still there and
 still say the same thing. Splitting them means nobody re-runs `git tag
 --contains` 253 times just to verify a comment.
 
-Marker contract (ANNOTATION-SPEC.md §1 — frozen, do not "improve"):
+Marker contract — frozen, do not "improve".
+See docs/development/config-version-annotations.md, "The marker":
 
     Recognizer:  [ \\t]+# Since (v[0-9]+\\.[0-9]+\\.[0-9]+|unreleased)[ \\t]*$
     Writer:      exactly two spaces, then `# Since v0.24.3` / `# Since unreleased`

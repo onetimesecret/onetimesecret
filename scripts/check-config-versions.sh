@@ -2,9 +2,9 @@
 #
 # check-config-versions.sh
 #
-# The RATCHET for "# Since vX.Y.Z" config annotations (ANNOTATION-SPEC §5), in
-# the same idiom as check-env-reference.sh. Dependency-free (git plus
-# grep/sed/awk/sort/comm/join only).
+# The RATCHET for "# Since vX.Y.Z" config annotations, in the same idiom as
+# check-env-reference.sh. Dependency-free (git plus grep/sed/awk/sort/comm/join
+# only). Contract: docs/development/config-version-annotations.md
 #
 # The one-time backfill that annotated .env.reference and etc/defaults/*.yaml is
 # worthless the moment the next PR adds an undated key, and actively harmful the
@@ -49,7 +49,7 @@ export LC_ALL=C
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# --- The recognizer (ANNOTATION-SPEC §1) --------------------------------
+# --- The recognizer (see "The marker" in the contract doc) --------------
 # This is the ONLY pattern that defines a marker. Do not "improve" it here
 # without changing the spec and every other tool in the family.
 MARKER_RE='[[:blank:]]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[[:blank:]]*$'

@@ -30,7 +30,8 @@ does almost no git work:
        with word boundaries, then the earliest STABLE tag (vX.Y.Z, no suffix)
        that contains the introducing commit and is `--merged HEAD`.
 
-Rules that decide whether a key gets a row at all (ANNOTATION-SPEC.md §2, §4):
+Rules that decide whether a key gets a row at all
+(docs/development/config-version-annotations.md, "Policy"):
 
   - Baseline v0.24.0. A key whose first release predates v0.24.0 gets NO row;
     its missing marker is what says "predates v0.24". Comparison is numeric —
@@ -93,7 +94,8 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-# --- Frozen policy (ANNOTATION-SPEC.md §2). Not knobs; do not add flags. ---
+# --- Frozen policy. Not knobs; do not add flags. ---
+# See docs/development/config-version-annotations.md, "Policy".
 BASELINE = (0, 24, 0)
 UNRELEASED = "unreleased"
 

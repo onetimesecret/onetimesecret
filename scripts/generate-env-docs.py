@@ -27,8 +27,8 @@ The sentinels are HTML comments, so they are invisible in the rendered page but
 unambiguous to this script and to a human reading a diff. Everything outside
 them survives regeneration untouched; everything inside is disposable.
 
-English only (ANNOTATION-SPEC.md §6). The other locales are translations fed by
-the existing translation pipeline and are never touched here.
+English only. The other locales are translations fed by the existing
+translation pipeline and are never touched here.
 
 Since markers: emitted verbatim inside the fenced blocks, exactly as they
 appear in .env.reference. This script never invents, parses or rewrites a
@@ -100,8 +100,9 @@ END_SENTINEL = "<!-- END GENERATED: .env.reference -->"
 BANNER_RE = re.compile(r"^#\s*═+\s*$")
 BANNER_TITLE_RE = re.compile(r"^#\s*(.+?)\s*$")
 
-# ANNOTATION-SPEC.md §1 recognizer, verbatim. Used ONLY to decide whether the
-# legend paragraph is warranted — never to parse or rewrite a marker.
+# The marker recognizer, verbatim (docs/development/config-version-annotations.md).
+# Used ONLY to decide whether the legend paragraph is warranted — never to
+# parse or rewrite a marker.
 SINCE_MARKER_RE = re.compile(r"[ \t]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[ \t]*$")
 
 # Section names are shouted in .env.reference. Title-casing them reads better as
