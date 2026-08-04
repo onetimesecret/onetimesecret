@@ -558,6 +558,15 @@ export function isOrgsCustomMailEnabled(): boolean {
  * SSR/no-window guard returns true (not false like the default-OFF siblings):
  * absent information means ON for this flag, matching featuresSchema.parse({})
  * which yields audit_logs_enabled: true.
+ *
+ * Reads the bootstrap snapshot directly via getBootstrapValue, like the other
+ * organizations flag wrappers here, rather than through getValidatedFeatures()
+ * (used only by isSsoEnforcedForDomain). That helper memoizes the parsed
+ * features in a module-level cache that is never invalidated, so a flag read
+ * through it would freeze at the first parse instead of following
+ * bootstrapStore.update() -> updateBootstrapSnapshot. Schema validation buys
+ * nothing here either: the serializer normalizes this key to a real boolean,
+ * and `!== false` already implements the default-true contract.
  */
 export function isOrgsAuditLogsEnabled(): boolean {
   if (typeof window === 'undefined') return true;
