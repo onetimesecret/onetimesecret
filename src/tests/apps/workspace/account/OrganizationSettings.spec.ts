@@ -7,11 +7,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 
-// Mock vue-router
+// Mock vue-router.
+// `params` is a shared mutable object so tests can simulate a deep link
+// (e.g. /org/on1abc123/activity) by setting `mockRouteParams.tab` before mount.
+// Reset in beforeEach.
+const mockRouteParams: Record<string, string | undefined> = {
+  extid: 'on1abc123',
+  orgid: 'on1abc123',
+};
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     path: '/org/on1abc123',
-    params: { extid: 'on1abc123', orgid: 'on1abc123' },
+    params: mockRouteParams,
     query: {},
   }),
   useRouter: () => ({
@@ -239,13 +246,17 @@ describe('OrganizationSettings', () => {
     mockCanCreateDomain.value = true;
     mockOrgsSsoEnabled.value = false;
     mockOrgsAuditLogsEnabled.value = true;
+    delete mockRouteParams.tab;
   });
 
   afterEach(() => {
     wrapper?.unmount();
   });
 
-  const mountComponent = async () => {
+  // Mounts without awaiting. Use when a test needs the pre-fetch render, i.e.
+  // the window before onMounted's awaits (initDefinitions / fetchAllPermissions
+  // / loadOrganization) resolve.
+  const mountComponentUnsettled = () => {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       initialState: {
@@ -263,6 +274,11 @@ describe('OrganizationSettings', () => {
         },
       },
     });
+    return wrapper;
+  };
+
+  const mountComponent = async () => {
+    mountComponentUnsettled();
     await flushPromises();
     await nextTick();
     return wrapper;
@@ -710,6 +726,47 @@ describe('OrganizationSettings', () => {
           expect(findActivityTable(wrapper).exists()).toBe(false);
         }
       });
+
+      // Deep link (/org/<extid>/activity) on a flag-off install. The URL
+      // segment must never seat activeTab='activity' — not even for the window
+      // before onMounted's three awaits (initDefinitions / fetchAllPermissions
+      // / loadOrganization) resolve, since no tab and no panel matches
+      // 'activity' when the flag is off. resolveInitialTab() applies the
+      // instance flag synchronously; checkInitialTabRedirect() only corrects
+      // it after those fetches land, which is too late to be the only guard.
+      describe('deep link to /activity', () => {
+        beforeEach(() => {
+          mockRouteParams.tab = 'activity';
+        });
+
+        it('never seats activity before the mount fetches resolve', () => {
+          wrapper = mountComponentUnsettled();
+
+          // Synchronous assertion: no flushPromises, so onMounted's awaits
+          // (and checkInitialTabRedirect) have not run yet.
+          expect((wrapper.vm as unknown as { activeTab: string }).activeTab).toBe('domains');
+          expect(findPanel(wrapper).exists()).toBe(false);
+          // The loading skeleton (isLoading starts true) covers this window,
+          // so the invalid tab state was never painted — but the state itself
+          // must still be valid, independent of that coverage.
+          expect(wrapper.find('[role="status"][aria-busy="true"]').exists()).toBe(true);
+        });
+
+        it('lands on the default tab with its panel rendered, not a blank area', async () => {
+          wrapper = await mountComponent();
+
+          const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+          const selected = navTabs
+            .findAll('button')
+            .find((tab) => tab.attributes('aria-selected') === 'true');
+          expect(selected?.attributes('id')).toBe('org-tab-domains');
+
+          // Content area is populated, not empty.
+          expect(wrapper.find('[data-testid="org-section-domains"]').exists()).toBe(true);
+          expect(findPanel(wrapper).exists()).toBe(false);
+          expect(findActivityTable(wrapper).exists()).toBe(false);
+        });
+      });
     });
 
     describe('instance flag on (default)', () => {
@@ -723,6 +780,16 @@ describe('OrganizationSettings', () => {
           .findAll('button')
           .find((tab) => tab.attributes('id') === 'org-tab-activity');
         expect(activityTab).toBeDefined();
+      });
+
+      it('honours a deep link to /activity (flag guard does not overreach)', async () => {
+        mockRouteParams.tab = 'activity';
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+
+        wrapper = await mountComponent();
+
+        expect((wrapper.vm as unknown as { activeTab: string }).activeTab).toBe('activity');
+        expect(findPanel(wrapper).exists()).toBe(true);
       });
     });
 

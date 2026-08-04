@@ -103,11 +103,32 @@
 
   const orgId = computed(() => route.params.extid as string);
 
-  // Resolve initial tab from route param or prop
+  // Resolve initial tab from route param or prop.
+  //
+  // Only the INSTANCE flag is applied here — it's the one gate knowable
+  // synchronously from the bootstrap snapshot. A deep link to /activity on an
+  // install with ORGS_AUDIT_LOGS_ENABLED=false would otherwise seat
+  // activeTab='activity' with no matching tab or panel until onMounted's three
+  // awaits resolve and checkInitialTabRedirect() fires. Nothing is painted in
+  // that window today — isLoading starts true so the skeleton covers the
+  // content area, and the tab bar is v-if'd on `organization`, which is still
+  // null — but guarding here removes the invalid state rather than leaving it
+  // to hold on that await ordering. The entitlement-gated tabs ('members',
+  // 'sso') are deliberately NOT handled here: they depend on permissions that
+  // aren't known until fetchAllPermissions() resolves, so they stay in
+  // checkInitialTabRedirect().
+  //
+  // Calls isOrgsAuditLogsEnabled() rather than the orgAuditLogsFeatureEnabled
+  // computed below — that binding is declared later and is still in its TDZ
+  // when this runs during setup.
   const resolveInitialTab = (): TabType => {
     const urlTab = route.params.tab as string | undefined;
     if (urlTab && URL_TO_TAB[urlTab]) {
-      return URL_TO_TAB[urlTab];
+      const resolved = URL_TO_TAB[urlTab];
+      if (resolved === 'activity' && !isOrgsAuditLogsEnabled()) {
+        return props.initialTab;
+      }
+      return resolved;
     }
     return props.initialTab;
   };
