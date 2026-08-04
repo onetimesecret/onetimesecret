@@ -23,18 +23,6 @@
     "text": "Ignorer l'avertissement de troncature",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Oups ! La page que vous recherchez n'existe pas ou a été déplacée.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Page introuvable",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Page introuvable",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Ignorer l'avertissement",
     "source_hash": "9f6e4da3"

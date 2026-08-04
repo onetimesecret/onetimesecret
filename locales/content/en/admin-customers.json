@@ -584,8 +584,8 @@
     "content_hash": "5574ece8"
   },
   "web.admin.customers.detail.diagnostics.loading": {
-    "text": "Running diagnosis…",
-    "content_hash": "062c83d5"
+    "text": "Running diagnosis...",
+    "content_hash": "b7806458"
   },
   "web.admin.customers.detail.diagnostics.loadError": {
     "text": "Unable to load diagnostics.",

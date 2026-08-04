@@ -23,18 +23,6 @@
     "text": "Zavřít varování o zkrácení",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Jejda! Stránka, kterou hledáš, neexistuje nebo byla přesunuta.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Stránka nenalezena",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Stránka nenalezena",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Zavřít varování",
     "source_hash": "9f6e4da3"

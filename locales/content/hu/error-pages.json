@@ -23,18 +23,6 @@
     "text": "Csonkolási figyelmeztetés elvetése",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Hoppá! A keresett oldal nem létezik vagy áthelyezésre került.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Az oldal nem található",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Az oldal nem található",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Figyelmeztetés elvetése",
     "source_hash": "9f6e4da3"

@@ -853,16 +853,16 @@
     "content_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "Recovery Code",
-    "content_hash": "cf25d0fc"
+    "text": "Recovery code",
+    "content_hash": "5bda8302"
   },
   "web.auth.mfa.recovery_code_placeholder": {
     "text": "Enter recovery code",
     "content_hash": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Verify Recovery Code",
-    "content_hash": "c244c7bd"
+    "text": "Verify recovery code",
+    "content_hash": "e612b9d3"
   },
   "web.auth.mfa.six_digit_code": {
     "text": "Enter 6-digit authentication code",

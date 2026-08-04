@@ -56,8 +56,8 @@
     "content_hash": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Secret Information",
-    "content_hash": "b4f8c120"
+    "text": "Secret information",
+    "content_hash": "181e08d5"
   },
   "incoming.secret_content_placeholder": {
     "text": "Paste sensitive information here (passwords, keys, etc.)",
@@ -68,12 +68,12 @@
     "content_hash": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Send Secret",
-    "content_hash": "2a09f5e0"
+    "text": "Send secret",
+    "content_hash": "d0a305bd"
   },
   "incoming.submit_secret": {
-    "text": "Send Secret",
-    "content_hash": "2a09f5e0"
+    "text": "Send secret",
+    "content_hash": "d0a305bd"
   },
   "incoming.submitting_button": {
     "text": "Sending...",
@@ -84,12 +84,12 @@
     "content_hash": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Clear Form",
-    "content_hash": "f6c2bb83"
+    "text": "Clear form",
+    "content_hash": "0aec613d"
   },
   "incoming.reset_form": {
-    "text": "Clear Form",
-    "content_hash": "f6c2bb83"
+    "text": "Clear form",
+    "content_hash": "0aec613d"
   },
   "incoming.success_title": {
     "text": "Sent Successfully",
@@ -112,8 +112,8 @@
     "content_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Send Another Secret",
-    "content_hash": "8a61d95c"
+    "text": "Send another secret",
+    "content_hash": "b955dc69"
   },
   "incoming.tagline1": {
     "text": "Share sensitive information securely",

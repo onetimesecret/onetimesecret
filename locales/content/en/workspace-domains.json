@@ -36,8 +36,8 @@
     "content_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Default Time-to-Live",
-    "content_hash": "ce3c65fe"
+    "text": "Default time-to-live",
+    "content_hash": "5808d52d"
   },
   "web.domains.default_ttl_hint": {
     "text": "How long secrets should remain accessible by default",
@@ -708,24 +708,24 @@
     "content_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Email Provider",
-    "content_hash": "a7ed3f4e"
+    "text": "Email provider",
+    "content_hash": "7fee2682"
   },
   "web.domains.email.provider_placeholder": {
     "text": "Select an email provider",
     "content_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "From Name",
-    "content_hash": "2f13b589"
+    "text": "From name",
+    "content_hash": "b28f93ea"
   },
   "web.domains.email.from_name_placeholder": {
     "text": "e.g. Acme Security",
     "content_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "From Address",
-    "content_hash": "60643eae"
+    "text": "From address",
+    "content_hash": "d465bcfa"
   },
   "web.domains.email.from_address_placeholder": {
     "text": "e.g. secrets{'@'}example.com",
@@ -737,20 +737,20 @@
     "content_hash": "510d274d"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Reply-To Address",
-    "content_hash": "4538ea9c"
+    "text": "Reply-to address",
+    "content_hash": "c67584de"
   },
   "web.domains.email.reply_to_placeholder": {
     "text": "e.g. support{'@'}example.com",
     "content_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Save Changes",
-    "content_hash": "35322b5b"
+    "text": "Save changes",
+    "content_hash": "dd0ae7a5"
   },
   "web.domains.email.discard_changes": {
-    "text": "Discard Changes",
-    "content_hash": "e07e053c"
+    "text": "Discard changes",
+    "content_hash": "f9bfa3dc"
   },
   "web.domains.email.provider_ses": {
     "text": "Amazon SES",
@@ -1017,24 +1017,24 @@
     "content_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Add Recipient",
-    "content_hash": "25f93c13"
+    "text": "Add recipient",
+    "content_hash": "06e6f549"
   },
   "web.domains.incoming.remove_recipient": {
     "text": "Remove",
     "content_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Email Address",
-    "content_hash": "09bf25ef"
+    "text": "Email address",
+    "content_hash": "f2488fd4"
   },
   "web.domains.incoming.email_placeholder": {
     "text": "recipient{'@'}example.com",
     "content_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Display Name",
-    "content_hash": "18d67c99"
+    "text": "Display name",
+    "content_hash": "2b7f6a84"
   },
   "web.domains.incoming.name_placeholder": {
     "text": "e.g. Security Team",
@@ -1069,12 +1069,12 @@
     "content_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Save Changes",
-    "content_hash": "35322b5b"
+    "text": "Save changes",
+    "content_hash": "dd0ae7a5"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Discard Changes",
-    "content_hash": "e07e053c"
+    "text": "Discard changes",
+    "content_hash": "f9bfa3dc"
   },
   "web.domains.incoming.update_success": {
     "text": "Incoming secrets configuration saved successfully",
@@ -1113,8 +1113,8 @@
     "content_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Enable Incoming Secrets",
-    "content_hash": "c0b25980"
+    "text": "Enable incoming secrets",
+    "content_hash": "b7bcb710"
   },
   "web.domains.incoming.enabled_hint": {
     "text": "Allow external users to send secrets to recipients on this domain",
@@ -1153,8 +1153,8 @@
     "content_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Delete All Recipients",
-    "content_hash": "207d0dbe"
+    "text": "Delete all recipients",
+    "content_hash": "3b8333f1"
   },
   "web.domains.unsaved_changes_confirmation": {
     "text": "You have unsaved changes. Are you sure you want to leave?",

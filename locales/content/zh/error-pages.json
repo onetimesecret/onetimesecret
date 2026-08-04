@@ -23,18 +23,6 @@
     "text": "关闭截断警告",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "哎呀，您正在寻找的页面不存在或已被移动。",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - 页面未找到",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - 页面未找到",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "关闭警告",
     "source_hash": "9f6e4da3"

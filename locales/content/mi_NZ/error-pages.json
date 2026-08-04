@@ -23,18 +23,6 @@
     "text": "Whakakore whakatūpato poronga",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Auē! Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Kāore i Kitea te Whārangi",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Kāore i Kitea te Whārangi",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Whakakore whakatūpato",
     "source_hash": "9f6e4da3"

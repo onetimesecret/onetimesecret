@@ -64,8 +64,8 @@
     "content_hash": "59961746"
   },
   "web.admin.bannedIps.form.ipLabel": {
-    "text": "IP Address or CIDR",
-    "content_hash": "133d0819"
+    "text": "IP address or CIDR",
+    "content_hash": "1954f0de"
   },
   "web.admin.bannedIps.form.reasonLabel": {
     "text": "Reason (optional)",

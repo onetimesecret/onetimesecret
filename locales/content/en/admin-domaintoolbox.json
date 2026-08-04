@@ -20,8 +20,8 @@
     "content_hash": "f52af6c5"
   },
   "web.admin.domaintoolbox.fields.extidPlaceholder": {
-    "text": "cd_… (domain extid)",
-    "content_hash": "bb9bf49a"
+    "text": "cd_... (domain extid)",
+    "content_hash": "2054b31b"
   },
   "web.admin.domaintoolbox.orphaned.title": {
     "text": "Orphaned domains",

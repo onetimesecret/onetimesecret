@@ -17,12 +17,12 @@
     "content_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Generate Password",
-    "content_hash": "fdcbfcc7"
+    "text": "Generate password",
+    "content_hash": "bd5bede8"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Generate Password is disabled when the form is valid",
-    "content_hash": "dc0e2b8c"
+    "text": "Generate password is disabled when the form is valid",
+    "content_hash": "def2c1ce"
   },
   "web.COMMON.email_placeholder": {
     "text": "e.g. tom{'@'}myspace.com",
@@ -41,8 +41,8 @@
     "content_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Get Started",
-    "content_hash": "983f3110"
+    "text": "Get started",
+    "content_hash": "61e8d44a"
   },
   "web.COMMON.confirm_password_placeholder": {
     "text": "Confirm your password",
@@ -105,16 +105,16 @@
     "content_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Create Account",
-    "content_hash": "0dffe234"
+    "text": "Create account",
+    "content_hash": "798ca2ce"
   },
   "web.COMMON.about": {
     "text": "About",
     "content_hash": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Sign In",
-    "content_hash": "bcc0bcc9"
+    "text": "Sign in",
+    "content_hash": "bfd402b2"
   },
   "web.COMMON.header_dashboard": {
     "text": "Account",
@@ -233,7 +233,7 @@
     "content_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Sent to: ",
+    "text": "Sent to:",
     "content_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
@@ -249,8 +249,8 @@
     "content_hash": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Create Account",
-    "content_hash": "0dffe234"
+    "text": "Create account",
+    "content_hash": "798ca2ce"
   },
   "web.COMMON.share_a_secret": {
     "text": "Share a secret",
@@ -297,8 +297,8 @@
     "content_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Send Feedback",
-    "content_hash": "84195de9"
+    "text": "Send feedback",
+    "content_hash": "8235980b"
   },
   "web.COMMON.verification_sent_to": {
     "text": "A verification was sent to",
@@ -345,8 +345,8 @@
     "content_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Create Incoming",
-    "content_hash": "5bb95106"
+    "text": "Create incoming",
+    "content_hash": "8ea87481"
   },
   "web.COMMON.faq_title": {
     "text": "F.A.Q.",
@@ -429,8 +429,8 @@
     "content_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Save Changes",
-    "content_hash": "35322b5b"
+    "text": "Save changes",
+    "content_hash": "dd0ae7a5"
   },
   "web.COMMON.saving": {
     "text": "Saving...",
@@ -705,12 +705,12 @@
     "content_hash": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Show More",
-    "content_hash": "ba8a80fd"
+    "text": "Show more",
+    "content_hash": "f5c9bd13"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Show Less",
-    "content_hash": "0264d7b0"
+    "text": "Show less",
+    "content_hash": "94ea9b1d"
   },
   "web.LABELS.show_passphrase": {
     "text": "Show passphrase",
@@ -741,8 +741,8 @@
     "content_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Expiration Time",
-    "content_hash": "c5db84a8"
+    "text": "Expiration time",
+    "content_hash": "78ec92f7"
   },
   "web.LABELS.secret_ttl": {
     "text": "Expires in",
@@ -773,8 +773,8 @@
     "content_hash": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Save All",
-    "content_hash": "d3c54e39"
+    "text": "Save all",
+    "content_hash": "5bc6bf7b"
   },
   "web.LABELS.update": {
     "text": "Update",
@@ -793,24 +793,24 @@
     "content_hash": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Secret Status",
-    "content_hash": "57330d93"
+    "text": "Secret status",
+    "content_hash": "eed59782"
   },
   "web.LABELS.need_help": {
     "text": "Need help?",
     "content_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Create New Secret",
-    "content_hash": "311d266c"
+    "text": "Create new secret",
+    "content_hash": "369eed0c"
   },
   "web.LABELS.actions": {
     "text": "Actions",
     "content_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "No Passphrase Required",
-    "content_hash": "6b43174d"
+    "text": "No passphrase required",
+    "content_hash": "f4be9f23"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Copy to clipboard",
@@ -825,24 +825,24 @@
     "content_hash": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Secret Link",
-    "content_hash": "a02fb1cd"
+    "text": "Secret link",
+    "content_hash": "18ddf44f"
   },
   "web.LABELS.dismiss": {
     "text": "Dismiss",
     "content_hash": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Security Details",
-    "content_hash": "96d2098c"
+    "text": "Security details",
+    "content_hash": "193a178c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} Items",
-    "content_hash": "63e0dea7"
+    "text": "{count} items",
+    "content_hash": "f65216b3"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} Recipients",
-    "content_hash": "48187543"
+    "text": "{count} recipients",
+    "content_hash": "40605ad6"
   },
   "web.LABELS.view": {
     "text": "View",
@@ -857,12 +857,12 @@
     "content_hash": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "View Progress",
-    "content_hash": "6c072c1f"
+    "text": "View progress",
+    "content_hash": "c2e39c2c"
   },
   "web.LABELS.help_section": {
-    "text": "Help Section",
-    "content_hash": "614e14f0"
+    "text": "Help section",
+    "content_hash": "e8a939e0"
   },
   "web.LABELS.passphrase_protected": {
     "text": "Protected with passphrase",
@@ -905,24 +905,24 @@
     "content_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Create Link",
-    "content_hash": "cac74fdb"
+    "text": "Create link",
+    "content_hash": "e6b850cf"
   },
   "web.LABELS.create_link": {
-    "text": "Create Secret Link",
-    "content_hash": "a30a47b9"
+    "text": "Create secret link",
+    "content_hash": "610fd42e"
   },
   "web.LABELS.create_request_short": {
-    "text": "Create Request",
-    "content_hash": "71a0bd40"
+    "text": "Create request",
+    "content_hash": "72912edd"
   },
   "web.LABELS.create_request": {
-    "text": "Create Request Link",
-    "content_hash": "190463dc"
+    "text": "Create request link",
+    "content_hash": "2237ebaa"
   },
   "web.LABELS.related_settings": {
-    "text": "Related Settings",
-    "content_hash": "68574b20"
+    "text": "Related settings",
+    "content_hash": "50b00b91"
   },
   "web.LABELS.benefits": {
     "text": "Benefits",
@@ -1404,12 +1404,12 @@
     "content_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
-    "text": "Get Started Free",
-    "content_hash": "6bb5a4a7"
+    "text": "Get started free",
+    "content_hash": "16f8bfcd"
   },
   "web.pricing.start_trial": {
-    "text": "Get Started",
-    "content_hash": "983f3110"
+    "text": "Get started",
+    "content_hash": "61e8d44a"
   },
   "web.pricing.already_have_account": {
     "text": "Already have an account?",

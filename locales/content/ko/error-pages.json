@@ -23,18 +23,6 @@
     "text": "잘림 경고 닫기",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "죄송합니다! 찾고 계신 페이지가 존재하지 않거나 이동되었습니다.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - 페이지를 찾을 수 없음",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - 페이지를 찾을 수 없음",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "경고 닫기",
     "source_hash": "9f6e4da3"

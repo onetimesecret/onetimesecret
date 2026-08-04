@@ -264,12 +264,12 @@
     "content_hash": "b607e540"
   },
   "web.admin.organizations.entitlements.picker.selectPlaceholder": {
-    "text": "Select an entitlement…",
-    "content_hash": "53af3be8"
+    "text": "Select an entitlement...",
+    "content_hash": "60f13aa7"
   },
   "web.admin.organizations.entitlements.picker.other": {
-    "text": "Other — not in the catalog…",
-    "content_hash": "f08bc3a3"
+    "text": "Other — not in the catalog...",
+    "content_hash": "aa4b06d7"
   },
   "web.admin.organizations.entitlements.picker.customLabel": {
     "text": "Entitlement name (not in the catalog)",

@@ -23,18 +23,6 @@
     "text": "Bỏ qua cảnh báo cắt ngắn",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Rất tiếc! Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Không tìm thấy trang",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Không tìm thấy trang",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Bỏ qua cảnh báo",
     "source_hash": "9f6e4da3"

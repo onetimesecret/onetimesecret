@@ -48,8 +48,8 @@
     "content_hash": "4a379f10"
   },
   "web.colonel.saveAll": {
-    "text": "Save All",
-    "content_hash": "d3c54e39"
+    "text": "Save all",
+    "content_hash": "5bc6bf7b"
   },
   "web.colonel.unsavedChanges": {
     "text": "Unsaved changes",
@@ -116,8 +116,8 @@
     "content_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
-    "text": "Quick Actions",
-    "content_hash": "2cc2b6f7"
+    "text": "Quick actions",
+    "content_hash": "1810407f"
   },
   "web.colonel.recentActivity": {
     "text": "Recent Activity",
@@ -168,32 +168,32 @@
     "content_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "View Activity",
-    "content_hash": "9c28f55c"
+    "text": "View activity",
+    "content_hash": "4bf3f8dd"
   },
   "web.colonel.actions.viewActivityDesc": {
     "text": "Monitor system activity and usage",
     "content_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "Manage Accounts",
-    "content_hash": "9d114268"
+    "text": "Manage accounts",
+    "content_hash": "daeaf38a"
   },
   "web.colonel.actions.manageAccountsDesc": {
     "text": "User account administration",
     "content_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Configure Domains",
-    "content_hash": "74402af9"
+    "text": "Configure domains",
+    "content_hash": "3d9efb37"
   },
   "web.colonel.actions.configureDomainsDesc": {
     "text": "Domain and DNS settings",
     "content_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "System Settings",
-    "content_hash": "1f87f883"
+    "text": "System settings",
+    "content_hash": "28c83220"
   },
   "web.colonel.actions.systemSettingsDesc": {
     "text": "Application configuration",
@@ -636,8 +636,8 @@
     "content_hash": "3f5b3dfa"
   },
   "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP Address",
-    "content_hash": "3c3de0c9"
+    "text": "IP address",
+    "content_hash": "0302a467"
   },
   "web.colonel.bannedIps.form.reasonLabel": {
     "text": "Reason",
@@ -652,8 +652,8 @@
     "content_hash": "f91a5285"
   },
   "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Quick Ban",
-    "content_hash": "c32d0943"
+    "text": "Quick ban",
+    "content_hash": "44d96a7e"
   },
   "web.colonel.bannedIps.actions.unban": {
     "text": "Unban",
