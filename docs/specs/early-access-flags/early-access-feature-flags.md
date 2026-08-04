@@ -152,8 +152,8 @@ derived from it (mirror of the `entitlement_keys_spec.rb` pattern).
 ### 2.2 Storage — the existing hashkey, unchanged
 
 `Customer#feature_flags` (`customer.rb:99`) stays as-is. Per-customer Redis
-hash means revoking a bad experiment for every customer is a scan-and-delete
-script, not a migration. No org- or membership-level storage: if an
+hash means revoking a bad experiment across a datastore is a scan-and-delete
+script (per region in multi-region deployments), not a migration. No org- or membership-level storage: if an
 experiment must be limited to certain plans later, that is the plan-feature
 axis composing with this one (§3.2), not a reason to move the flag.
 
@@ -200,7 +200,7 @@ effective(flag, cust) =
 - **Support/operator**: colonel customer screen (fits
   `docs/specs/colonel-ui/22-customers-ui.md` surface) gets a flag editor for
   any registry flag, plus a CLI (`bin/ots customers flags ...`) for scripted
-  grant/revoke and the all-customers clear.
+  grant/revoke and per-datastore bulk clear.
 
 ### 2.6 Read paths — exactly one per side (the ADR-020 rule)
 
@@ -261,7 +261,7 @@ user-visible change.*
 
 **Stage 1 — write paths.**
 Self-serve settings endpoint + "Early access" settings UI. Colonel flag
-editor + CLI (incl. all-customers clear). Install-config kill-switch path
+editor + CLI (incl. per-datastore bulk clear). Install-config kill-switch path
 through `config_serializer`, ANDed in both read paths. *Outcome: opt-in is
 self-serve, revocation is layered, ops can act without a deploy.*
 
