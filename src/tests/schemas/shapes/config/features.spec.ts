@@ -1,14 +1,19 @@
 // src/tests/schemas/shapes/config/features.spec.ts
 //
-// Coverage for the features shape — regions, incoming, domains (incl. the
-// ACME endpoint and proxy sub-trees). The `jurisdictions` union added in
-// PR #3206 lives on the contract because `z.union(...)` is a type-format
-// helper; this file exercises all three branches there to lock that down.
+// Coverage for the features shape — regions, incoming, and domains. The
+// `jurisdictions` union added in PR #3206 lives on the contract because
+// `z.union(...)` is a type-format helper; this file exercises all three
+// branches there to lock that down.
+//
+// The domains contract is the allowlisted subset ConfigSerializer emits:
+// the `approximated` (proxy credentials) and `acme` (internal listener)
+// blocks are server-side only and are asserted absent here so they cannot
+// quietly rejoin the client-facing contract.
 
 import { describe, it, expect } from 'vitest';
 import {
   featuresIncomingSchema,
-  featuresDomainsAcmeSchema,
+  featuresDomainsSchema,
   featuresRegionsSchema,
 } from '@/schemas/contracts/config/section/features';
 import {
@@ -16,8 +21,6 @@ import {
   featuresRegionsShape,
   featuresIncomingShape,
   featuresDomainsShape,
-  featuresDomainsProxyShape,
-  featuresDomainsAcmeShape,
 } from '@/schemas/shapes/config/section/features';
 
 describe('featuresIncomingShape — defaults and bounds', () => {
@@ -75,51 +78,30 @@ describe('featuresRegions jurisdictions union (contract-side)', () => {
   });
 });
 
-describe('featuresDomainsAcmeShape — defaults', () => {
-  it('defaults enabled/listen_address/port on empty input', () => {
-    const result = featuresDomainsAcmeShape.parse({});
-    expect(result.enabled).toBe(false);
-    expect(result.listen_address).toBe('127.0.0.1');
-    expect(result.port).toBe('12020');
-  });
-
-  it('accepts both string and number forms of port', () => {
-    expect(featuresDomainsAcmeShape.parse({ port: 12020 }).port).toBe(12020);
-    expect(featuresDomainsAcmeShape.parse({ port: '8443' }).port).toBe('8443');
-  });
-
-  it('contract leaves enabled/port undefined', () => {
-    const result = featuresDomainsAcmeSchema.parse({});
-    expect(result.enabled).toBeUndefined();
-    expect(result.port).toBeUndefined();
-  });
-});
-
-describe('featuresDomainsProxyShape — passthrough', () => {
-  it('is a re-export of the contract (no augmentation)', () => {
-    expect(featuresDomainsProxyShape.parse({})).toEqual({});
-  });
-
-  it('preserves nullable string fields', () => {
-    const result = featuresDomainsProxyShape.parse({ api_key: null, proxy_ip: '10.0.0.1' });
-    expect(result.api_key).toBeNull();
-    expect(result.proxy_ip).toBe('10.0.0.1');
-  });
-});
-
 describe('featuresDomainsShape — composed defaults', () => {
-  it('defaults enabled/require_verified/validation_strategy and nested acme', () => {
-    const result = featuresDomainsShape.parse({ acme: {} });
+  it('defaults enabled/require_verified/validation_strategy', () => {
+    const result = featuresDomainsShape.parse({});
     expect(result.enabled).toBe(false);
     expect(result.require_verified).toBe(false);
     expect(result.validation_strategy).toBe('passthrough');
-    expect(result.acme?.enabled).toBe(false);
-    expect(result.acme?.listen_address).toBe('127.0.0.1');
-    expect(result.acme?.port).toBe('12020');
   });
 
   it('rejects validation_strategy values outside the enum', () => {
     expect(() => featuresDomainsShape.parse({ validation_strategy: 'made_up' })).toThrow();
+  });
+
+  it('does not declare the server-side approximated/acme blocks', () => {
+    expect(featuresDomainsSchema.shape).not.toHaveProperty('approximated');
+    expect(featuresDomainsSchema.shape).not.toHaveProperty('acme');
+  });
+
+  it('strips server-side blocks if they ever appear in input', () => {
+    const result = featuresDomainsShape.parse({
+      approximated: { api_key: 'leaked' },
+      acme: { listen_address: '127.0.0.1' },
+    });
+    expect(result).not.toHaveProperty('approximated');
+    expect(result).not.toHaveProperty('acme');
   });
 });
 
@@ -128,13 +110,12 @@ describe('featuresShape — composed defaults', () => {
     const result = featuresShape.parse({
       regions: {},
       incoming: {},
-      domains: { acme: {} },
+      domains: {},
     });
     expect(result.regions?.enabled).toBe(false);
     expect(result.incoming?.enabled).toBe(false);
     expect(result.incoming?.memo_max_length).toBe(50);
     expect(result.incoming?.default_ttl).toBe(604800);
     expect(result.domains?.enabled).toBe(false);
-    expect(result.domains?.acme?.port).toBe('12020');
   });
 });
