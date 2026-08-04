@@ -354,9 +354,9 @@ if [[ -s "$tmp/fail_changed" ]]; then
       echo "  $f:  $k"
       echo "      base:     # Since $was"
       if [[ "$now" == "(no marker)" ]]; then
-        echo "      worktree:    (no marker)"
+        echo "      worktree: (no marker)"
       else
-        echo "      worktree:    # Since $now"
+        echo "      worktree: # Since $now"
       fi
     done < "$tmp/fail_changed"
     echo ""
