@@ -1175,6 +1175,120 @@ RSpec.describe Core::Views::ConfigSerializer do
           end
         end
       end
+
+      # secret_activity is the data-existence axis (#3990): whether events are
+      # recorded at all (SECRET_ACTIVITY_COLLECT) and how many are retained
+      # (SECRET_ACTIVITY_MAX_EVENTS). Same default-true / opt-out contract as
+      # audit_logs_enabled above, which remains the separate UI-exposure axis.
+      describe 'secret_activity (collection axis + retention cap)' do
+        def view_vars_with_secret_activity(secret_activity)
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge('secret_activity' => secret_activity)
+          )
+        end
+
+        context 'when the key is absent (older config file)' do
+          it 'defaults to collect_enabled true with the 10,000 cap' do
+            result = described_class.build_feature_flags(base_view_vars)
+
+            expect(result['secret_activity']).to eq(
+              'collect_enabled' => true,
+              'max_events' => 10_000,
+            )
+          end
+        end
+
+        describe 'collect_enabled (default-true contract)' do
+          it 'is true when explicitly true' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => true)
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be true
+          end
+
+          it 'is false when explicitly false (operator opt-out)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => false)
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be false
+          end
+
+          # Same hand-edited-config defense as audit_logs_enabled: the string
+          # 'false' must pause the banner-facing flag, or the UI would say
+          # "recording" while the model (which shares the string-compare
+          # idiom) had already paused.
+          it "treats the string 'false' as disabled (hand-edited config)" do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => 'false')
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be false
+          end
+
+          it "stays enabled for the string 'true'" do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => 'true')
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be true
+          end
+
+          it 'stays enabled when nil (key present, no value)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => nil)
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be true
+          end
+        end
+
+        # max_events mirrors the boot-time coercion + clamp (SecretActivity
+        # .configure!) so the UI never advertises a cap the backend ignored.
+        describe 'max_events (coercion + floor clamp parity with boot)' do
+          it 'passes through a configured cap above the floor' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => 5_000)
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(5_000)
+          end
+
+          it 'clamps below-floor values up to MIN_MAX_EVENTS (floor 100)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => 5)
+            )
+
+            expect(result['secret_activity']['max_events'])
+              .to eq(Onetime::Organization::Features::SecretActivity::MIN_MAX_EVENTS)
+          end
+
+          it 'coerces an integer-shaped string (ENV/hand-edited YAML)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => '500')
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(500)
+          end
+
+          it 'falls back to the 10,000 default for non-numeric garbage' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => 'unbounded')
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(10_000)
+          end
+
+          it 'falls back to the 10,000 default when nil' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => nil)
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(10_000)
+          end
+        end
+      end
     end
   end
 
