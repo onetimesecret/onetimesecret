@@ -59,3 +59,14 @@ The derived/independent split follows from an asymmetry in rotation capability: 
 - **We lose**: Operational simplicity of one root secret. Operators must back up three independent values plus coordinate FEDERATION_SECRET across instances.
 - **We gain**: Rotation isolation. Familia's rolling key versioning handles SECRET rotation cleanly; auth and password secrets rotate on their own timelines via Rodauth's `hmac_old_secret` and re-hash-on-login respectively.
 - **Risk**: AUTH_SECRET and ARGON2_SECRET cannot be regenerated if lost. This is the explicit trade for rotation isolation.
+
+## Familia 2.12 Capabilities (v0.26.4+)
+
+Familia 2.12 unlocks additional cryptographic options. These are available but not yet enabled:
+
+| Capability | Status | Notes |
+|------------|--------|-------|
+| `encryption_personalization` rotation | Available | Set a per-deployment value; legacy `'FamilialMatters'` decrypts automatically via built-in fallback. No history entry needed for the default. |
+| Per-field `algorithm:` override | Available | Enables reader-before-writer XChaCha20 rollout: deploy readers that accept both algorithms, then flip writers per-field. |
+| Blank `VERIFIABLE_ID_HMAC_SECRET` rejection | Active | Library rejects blank secrets at mint time (delano/familia#335). OTS boot-time derivation guard (`configure_familia.rb`) is defense-in-depth. |
+| Verification-on-read | Blocked | `verified_identifier?` would reject identifiers minted under prior keys. Requires upstream secret-history mechanism; re-minting is not viable. Tracked in #3630. |
