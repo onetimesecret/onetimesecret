@@ -1,4 +1,7 @@
 # etc/defaults/config.defaults.yaml
+#
+# A trailing `# Since vX.Y.Z` is the release that setting first shipped in;
+# `# Since unreleased` means the next one. No marker means it predates v0.24.0.
 ---
 site:
   host: <%= ENV['HOST'] || 'localhost:3000' %>
@@ -17,7 +20,7 @@ site:
   #   warn    - log loudly on mismatch, keep booting (default)
   #   enforce - refuse to boot on mismatch
   #   off     - skip the check (escape hatch for multi-tenant datastores)
-  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>
+  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>  # Since v0.26.0
   # API and UI Configuration
   interface:
     ui:
@@ -73,7 +76,7 @@ site:
         # config and the ?variant= URL override take precedence; blank uses the
         # frontend default (closed). Applies to the canonical site only —
         # custom domains use custom_disabled_variant below.
-        disabled_variant: <%= ENV['DEFAULT_DISABLED_HOMEPAGE_VARIANT'] || nil %>
+        disabled_variant: <%= ENV['DEFAULT_DISABLED_HOMEPAGE_VARIANT'] || nil %>  # Since v0.25.10
         # Deployment-wide default landing page for CUSTOM DOMAINS whose homepage
         # is private (homepage disabled, or incoming mode degraded at runtime).
         # Same values as disabled_variant (closed / minimal / v1). Kept separate
@@ -81,24 +84,24 @@ site:
         # domain does NOT inherit disabled_variant. Per-domain config
         # (homepage_config.disabled_homepage_variant) and the ?variant= URL
         # override take precedence; blank uses the frontend default (closed).
-        custom_disabled_variant: <%= ENV['DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT'] || nil %>
+        custom_disabled_variant: <%= ENV['DEFAULT_CUSTOM_DOMAIN_DISABLED_HOMEPAGE_VARIANT'] || nil %>  # Since v0.26.2
         # Links rendered when a public visitor lands on the homepage but
         # the secret form is gated by auth (e.g. mode=external). Recipients
         # arriving via a shared link use these to learn about the service.
         public_links:
           # URL the "What is this link?" affordance points at. When empty,
           # the affordance is hidden in the disabled-homepage view.
-          recipient_intro: <%= ENV['HOMEPAGE_PUBLIC_LINKS_RECIPIENT_INTRO'] || nil %>
+          recipient_intro: <%= ENV['HOMEPAGE_PUBLIC_LINKS_RECIPIENT_INTRO'] || nil %>  # Since v0.25.6
 
       # Form field visibility flags
       # Controls which optional fields appear on the secret creation form.
       # All default to true (visible). Set to 'false' to hide from the UI.
       # These are independent of API guest_routes, which gate endpoint access.
       capabilities:
-        burn: <%= ENV['UI_CAPABILITIES_BURN'] != 'false' %>
-        show: <%= ENV['UI_CAPABILITIES_SHOW'] != 'false' %>
-        receipt: <%= ENV['UI_CAPABILITIES_RECEIPT'] != 'false' %>
-        recipient: <%= ENV['UI_CAPABILITIES_RECIPIENT'] != 'false' %>
+        burn: <%= ENV['UI_CAPABILITIES_BURN'] != 'false' %>  # Since v0.25.0
+        show: <%= ENV['UI_CAPABILITIES_SHOW'] != 'false' %>  # Since v0.25.0
+        receipt: <%= ENV['UI_CAPABILITIES_RECEIPT'] != 'false' %>  # Since v0.25.0
+        recipient: <%= ENV['UI_CAPABILITIES_RECIPIENT'] != 'false' %>  # Since v0.25.0
       # Header configuration
       # Controls the site header and masthead layout. Brand identity — which
       # logo asset renders and what the product is called — lives in the
@@ -179,7 +182,7 @@ site:
       # Separate from footer_links which are for public pages
       workspace_links:
         # Global toggle to enable/disable all footer links
-        enabled: <%= ENV['WORKSPACE_LINKS'] == 'true' %>
+        enabled: <%= ENV['WORKSPACE_LINKS'] == 'true' %>  # Since v0.25.0
         links:
         - text: API Docs
           i18n_key: web.footer.api_docs
@@ -193,10 +196,10 @@ site:
           url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
         <% end %>
       # Show or hide the version number in the workspace footer
-      show_version: <%= ENV['FOOTER_VERSION_ENABLED'] != 'false' %>
+      show_version: <%= ENV['FOOTER_VERSION_ENABLED'] != 'false' %>  # Since v0.25.5
       # Show or hide the "Need help?" modal trigger on secret pages
       help:
-        enabled: <%= ENV['HELP_ENABLED'] != 'false' %>
+        enabled: <%= ENV['HELP_ENABLED'] != 'false' %>  # Since v0.25.5
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:
@@ -253,10 +256,10 @@ site:
       # Maximum number of characters allowed in a secret's body. Enforced
       # server-side on secret creation and used as the single source of
       # truth for the client-side textarea limit.
-      maximum_length: <%= ENV['SECRET_MAX_LENGTH'] || 10000 %>
+      maximum_length: <%= ENV['SECRET_MAX_LENGTH'] || 10000 %>  # Since v0.26.0
     # How long (in seconds) a generated password remains visible on the
     # receipt page after creation. Set to 0 to disable receipt-page display.
-    generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>
+    generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>  # Since v0.24.0
     # Settings for password generation (when users click "Generate Password")
     password_generation:
       # Default length for generated passwords
@@ -264,7 +267,7 @@ site:
       # Server-enforced ceiling on requested generated-password length.
       # Rejects oversized `length` values before allocation (DoS guard);
       # matches the frontend Zod max so the two limits stay in lockstep.
-      maximum_length: <%= ENV['PASSWORD_GEN_MAX_LENGTH'] || 128 %>
+      maximum_length: <%= ENV['PASSWORD_GEN_MAX_LENGTH'] || 128 %>  # Since v0.26.0
       # Character sets to include in generated passwords
       character_sets:
         # Include uppercase letters (A-Z)
@@ -325,15 +328,15 @@ site:
     # Enabled by default (protective); set RESET_REQUEST_RATE_LIMIT_ENABLED=false
     # to opt out. See lib/onetime/security/reset_request_rate_limiter.rb.
     reset_request_rate_limit:
-      enabled: <%= ENV['RESET_REQUEST_RATE_LIMIT_ENABLED'] != 'false' %>
+      enabled: <%= ENV['RESET_REQUEST_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.3
       # Requests permitted per window from a single client IP.
-      max_per_ip: <%= ENV['RESET_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      max_per_ip: <%= ENV['RESET_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 10 %>  # Since v0.26.3
       # Higher backstop cap per submitted login (catches IP rotation).
-      max_per_email: <%= ENV['RESET_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 30 %>
+      max_per_email: <%= ENV['RESET_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 30 %>  # Since v0.26.3
       # Counting window in seconds (1 hour).
-      window: <%= ENV['RESET_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>
+      window: <%= ENV['RESET_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>  # Since v0.26.3
       # Lockout duration in seconds once a tier's cap is hit (1 hour).
-      lockout: <%= ENV['RESET_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>
+      lockout: <%= ENV['RESET_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since v0.26.3
     # Rate limiting for unauthenticated account creation (#3948, audit
     # 2026-07-30 finding #4). POST /auth/create-account previously had no
     # limiter in EITHER auth mode, leaving unthrottled account creation: one
@@ -349,17 +352,17 @@ site:
     # CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false to opt out.
     # See lib/onetime/security/create_account_rate_limiter.rb.
     create_account_rate_limit:
-      enabled: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_ENABLED'] != 'false' %>
+      enabled: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.3
       # Signups permitted per window from a single masked client IP. The bucket
       # is a whole /24 (office, campus NAT), and behind an unconfigured reverse
       # proxy it is the entire deployment — so this is deliberately loose
       # relative to the one signup a person needs. Raise it for dense-NAT
       # populations; a too-tight value here is a signup-funnel outage.
-      max_per_ip: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      max_per_ip: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_MAX_PER_IP'] || 10 %>  # Since v0.26.3
       # Counting window in seconds (1 hour).
-      window: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_WINDOW'] || 3600 %>
+      window: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_WINDOW'] || 3600 %>  # Since v0.26.3
       # Lockout duration in seconds once the cap is hit (1 hour).
-      lockout: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_LOCKOUT'] || 3600 %>
+      lockout: <%= ENV['CREATE_ACCOUNT_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since v0.26.3
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecret.com.
   support:
@@ -369,67 +372,67 @@ site:
   # Session handling is auth-mode agnostic (works with simple or full mode).
   session:
     # Session secret for HMAC signing. Falls back to site.secret if not set.
-    secret: <%= ENV['SESSION_SECRET'] %>
+    secret: <%= ENV['SESSION_SECRET'] %>  # Since v0.24.0
     # Session lifetime in seconds (default: 24 hours)
-    expire_after: 86400
+    expire_after: 86400  # Since v0.24.0
     # Cookie name
-    key: 'onetime.session'
+    key: 'onetime.session'  # Since v0.24.0
     # Require HTTPS for cookies (recommended: true in production)
     # OMIT the key entirely when SSL env is not 'true' so boot.rb's ssl_enabled?
     # fallback can default this to true in production / when site.ssl is on.
     # (Emitting `null` here fails schema validation — the contract is
     # boolean-or-absent, not boolean-or-null; see site.ts `secure`.)
     <% if ENV['SSL'] == 'true' %>
-    secure: true
+    secure: true  # Since v0.24.0
     <% end %>
     # SameSite cookie attribute (strict|lax|none)
     # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations
-    same_site: lax
+    same_site: lax  # Since v0.24.0
     # Prevent JavaScript access to cookies (always true in Rack)
-    httponly: true
+    httponly: true  # Since v0.24.0
   # Middleware Configuration
   # Controls which security and performance middleware components are enabled.
   # Each setting can be overridden via environment variables.
   middleware:
     # Serve static files for frontend vue application
     # ENV: MIDDLEWARE_STATIC_FILES (default: true)
-    static_files: <%= ENV['MIDDLEWARE_STATIC_FILES'] != 'false' %>
+    static_files: <%= ENV['MIDDLEWARE_STATIC_FILES'] != 'false' %>  # Since v0.24.0
     # Sanitizes request parameters to ensure proper UTF-8 encoding
     # Prevents encoding-based attacks and malformed input
     # ENV: MIDDLEWARE_UTF8_SANITIZER (default: true)
-    utf8_sanitizer: <%= ENV['MIDDLEWARE_UTF8_SANITIZER'] != 'false' %>
+    utf8_sanitizer: <%= ENV['MIDDLEWARE_UTF8_SANITIZER'] != 'false' %>  # Since v0.24.0
     # Protects against Cross-Site Request Forgery (CSRF) attacks
     # Validates that requests originate from the same site
     # ENV: MIDDLEWARE_AUTHENTICITY_TOKEN (default: true)
-    authenticity_token: <%= ENV['MIDDLEWARE_AUTHENTICITY_TOKEN'] != 'false' %>
+    authenticity_token: <%= ENV['MIDDLEWARE_AUTHENTICITY_TOKEN'] != 'false' %>  # Since v0.24.0
     # Protects against Cross-Site Request Forgery (CSRF) attacks
     # Validates HTTP Origin header matches expected origin
     # ENV: MIDDLEWARE_HTTP_ORIGIN (default: false)
-    http_origin: <%= ENV['MIDDLEWARE_HTTP_ORIGIN'] == 'true' %>
+    http_origin: <%= ENV['MIDDLEWARE_HTTP_ORIGIN'] == 'true' %>  # Since v0.24.0
     # Sets X-XSS-Protection header to enable browser XSS filtering
     # Modern browsers rely less on this as CSP becomes standard
     # ENV: MIDDLEWARE_XSS_HEADER (default: false)
-    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
+    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>  # Since v0.24.0
     # Prevents your site from being embedded in frames (clickjacking protection)
     # Sets X-Frame-Options header to SAMEORIGIN or DENY
     # ENV: MIDDLEWARE_FRAME_OPTIONS (default: true)
-    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] != 'false' %>
+    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] != 'false' %>  # Since v0.24.0
     # Blocks directory traversal attacks using "../" in paths
     # Critical for preventing unauthorized file access
     # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: true)
-    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] != 'false' %>
+    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] != 'false' %>  # Since v0.24.0
     # Protects against cookie tossing attacks
     # Prevents session fixation via manipulated cookies
     # ENV: MIDDLEWARE_COOKIE_TOSSING (default: false)
-    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] == 'true' %>
+    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] == 'true' %>  # Since v0.24.0
     # Prevents IP spoofing attacks by validating IP addresses
     # Useful when IP-based access controls are implemented
     # ENV: MIDDLEWARE_IP_SPOOFING (default: false)
-    ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>
+    ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>  # Since v0.24.0
     # Forces all connections to use HTTPS via HSTS headers
     # Disable only for development or when behind a secure proxy
     # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: true)
-    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>
+    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>  # Since v0.24.0
   # Security Configuration
   # Additional security settings beyond middleware
   security:
@@ -478,7 +481,7 @@ site:
       # X-Forwarded-For, set true and set `mode` to depth, which picks the
       # client by its position in the chain so a forged entry is never
       # reached.
-      enabled: <%= ENV['TRUSTED_PROXY_ENABLED'] == 'true' %>
+      enabled: <%= ENV['TRUSTED_PROXY_ENABLED'] == 'true' %>  # Since v0.25.5
 
       # How to resolve client IP behind proxies:
       #
@@ -513,7 +516,7 @@ site:
       #   - Forged leftmost entry: filter returns it (see SECURITY above); depth
       #     ignores it, since only the position N-from-the-right is read
       #
-      mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>
+      mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>  # Since v0.25.5
 
       # Depth mode only: which header to read the forwarding chain from.
       # The accepted set is closed — exactly one of:
@@ -535,19 +538,19 @@ site:
       # them.) If the edge only sets one of those, have it write the chain
       # into X-Forwarded-For. Filter mode ignores this setting and reads the
       # X-Forwarded-For family (X-Forwarded-For, X-Real-IP, X-Client-IP).
-      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
+      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>  # Since v0.25.5
 
       # Filter mode only: Additional CIDR ranges to trust as proxies
       # beyond RFC1918 defaults. Use when your CDN or proxy has public IPs.
       # Example: ["203.0.113.0/24", "2001:db8::/32"]
-      cidrs: <%= ENV['TRUSTED_PROXY_CIDRS']&.split(',')&.map(&:strip) || [] %>
+      cidrs: <%= ENV['TRUSTED_PROXY_CIDRS']&.split(',')&.map(&:strip) || [] %>  # Since v0.25.5
 
       # Depth mode only: Number of proxy hops to skip from the right.
       # 1 = standard single reverse proxy (nginx/Caddy)
       # 2 = CDN → reverse proxy → app
       # No-proxy / direct connection: set enabled: false above rather
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
-      depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
+      depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>  # Since v0.25.5
 
     # Assume HTTPS at the origin (opt-in, INDEPENDENT of trusted_proxy).
     #
@@ -563,7 +566,7 @@ site:
     # default when this is on: pairing assume_https with site.ssl:false makes
     # config-driven share/email/redirect links emit http:// while clients use
     # https (mixed-content downgrade of generated URLs).
-    assume_https: <%= ENV['ASSUME_HTTPS'] == 'true' %>
+    assume_https: <%= ENV['ASSUME_HTTPS'] == 'true' %>  # Since v0.26.2
 
   # Admin (Colonel) Configuration
   # Network-level posture for the Colonel admin surfaces.
@@ -590,7 +593,7 @@ site:
     # bypass the allowlist.
     #
     # Example: ["100.64.0.0/10", "10.0.0.0/8"]
-    allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>
+    allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>  # Since v0.26.0
 
   # Brand pack selection (#3739, v2 #3774). A brand pack is the single unit of
   # branding: a directory of root-served assets (favicon.ico, icon-*.png,
@@ -605,8 +608,8 @@ site:
   #   2. public/branding/<name>  — vendor space (tracked default + generated packs)
   # brand_assets_dir (an explicit path, e.g. a runtime mount) wins over
   # brand_pack; a missing path or unknown name falls back to the default pack.
-  brand_pack: <%= ENV['BRAND_PACK']&.to_json %>
-  brand_assets_dir: <%= ENV['BRAND_ASSETS_DIR']&.to_json %>
+  brand_pack: <%= ENV['BRAND_PACK']&.to_json %>  # Since v0.26.0
+  brand_assets_dir: <%= ENV['BRAND_ASSETS_DIR']&.to_json %>  # Since v0.26.0
 
 # Brand block. Each BRAND_* env var is interpolated as a JSON-quoted scalar
 # (`&.to_json`) so the value survives the YAML layer intact. Without quoting, an
@@ -625,33 +628,33 @@ site:
 # always wins over both. The tracked default pack ships a value-free brand.yaml,
 # so an unconfigured install keeps every key nil (neutral posture, #3049).
 brand:
-  primary_color: <%= ENV['BRAND_PRIMARY_COLOR']&.to_json %>
-  product_name: <%= ENV['BRAND_PRODUCT_NAME']&.to_json %>
-  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN']&.to_json %>
-  support_email: <%= ENV['BRAND_SUPPORT_EMAIL']&.to_json %>
-  corner_style: <%= ENV['BRAND_CORNER_STYLE']&.to_json %>
-  font_family: <%= ENV['BRAND_FONT_FAMILY']&.to_json %>
-  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT']&.to_json %>
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR']&.to_json %>  # Since v0.26.0
+  product_name: <%= ENV['BRAND_PRODUCT_NAME']&.to_json %>  # Since v0.26.0
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN']&.to_json %>  # Since v0.26.0
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL']&.to_json %>  # Since v0.26.0
+  corner_style: <%= ENV['BRAND_CORNER_STYLE']&.to_json %>  # Since v0.26.0
+  font_family: <%= ENV['BRAND_FONT_FAMILY']&.to_json %>  # Since v0.26.0
+  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT']&.to_json %>  # Since v0.26.0
   # Masthead/email logo. An absolute http(s) URL works everywhere; a brand pack
   # can instead carry its own brand-logo.svg / brand-logo.png and set this to the
   # served path (e.g. "/brand-logo.svg", #3774). A root-relative value renders in
   # the web UI but is omitted from emails (which need an absolute URL).
-  logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>
+  logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>  # Since v0.26.0
   # Dark-theme variant of the masthead logo, shown when the app's dark mode is
   # active. Web UI only (emails always use logo_url). A pack can carry it as
   # brand-logo-dark.svg / brand-logo-dark.png and set this to the served path.
-  logo_dark_url: <%= ENV['BRAND_LOGO_DARK_URL']&.to_json %>
+  logo_dark_url: <%= ENV['BRAND_LOGO_DARK_URL']&.to_json %>  # Since v0.26.3
   # Accessible name for the brand logo. Unset falls back to an i18n string
   # derived from the product name.
-  logo_alt: <%= ENV['BRAND_LOGO_ALT']&.to_json %>
-  favicon_url: <%= ENV['BRAND_FAVICON_URL']&.to_json %>
+  logo_alt: <%= ENV['BRAND_LOGO_ALT']&.to_json %>  # Since v0.26.0
+  favicon_url: <%= ENV['BRAND_FAVICON_URL']&.to_json %>  # Since v0.26.0
   # URL overrides for the mobile/social variety pack served in the HTML head.
   # When unset, neutral bundled defaults (public/web) are used; replacing the
   # files via the brand directory is the alternative to these URL overrides.
-  apple_touch_icon_url: <%= ENV['BRAND_APPLE_TOUCH_ICON_URL']&.to_json %>
-  og_image_url: <%= ENV['BRAND_OG_IMAGE_URL']&.to_json %>
-  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER']&.to_json %>
-  signature_name: <%= ENV['BRAND_SIGNATURE_NAME']&.to_json %>
+  apple_touch_icon_url: <%= ENV['BRAND_APPLE_TOUCH_ICON_URL']&.to_json %>  # Since v0.26.0
+  og_image_url: <%= ENV['BRAND_OG_IMAGE_URL']&.to_json %>  # Since v0.26.0
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER']&.to_json %>  # Since v0.26.0
+  signature_name: <%= ENV['BRAND_SIGNATURE_NAME']&.to_json %>  # Since v0.26.0
 
 features:
   regions:
@@ -668,7 +671,7 @@ features:
     #   JURISDICTIONS=EU:eu.example.com,CA:ca.example.com
     #   JURISDICTIONS=US:us.onetimesecret.com,EU:eu.onetimesecret.com,APAC:apac.onetimesecret.com
     #
-    jurisdictions: <%= ENV['JURISDICTIONS'] || '' %>
+    jurisdictions: <%= ENV['JURISDICTIONS'] || '' %>  # Since v0.25.5
   # Incoming Secrets Feature
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
@@ -694,15 +697,15 @@ features:
     # INCOMING_RATE_LIMIT_ENABLED=false to opt out. See
     # lib/onetime/security/incoming_rate_limiter.rb.
     rate_limit:
-      enabled: <%= ENV['INCOMING_RATE_LIMIT_ENABLED'] != 'false' %>
+      enabled: <%= ENV['INCOMING_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.0
       # Submissions permitted per window from a single client IP.
-      max_per_ip: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      max_per_ip: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_IP'] || 10 %>  # Since v0.26.0
       # Higher backstop cap per recipient hash (catches IP-rotating spam).
-      max_per_recipient: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_RECIPIENT'] || 30 %>
+      max_per_recipient: <%= ENV['INCOMING_RATE_LIMIT_MAX_PER_RECIPIENT'] || 30 %>  # Since v0.26.0
       # Counting window in seconds (1 hour).
-      window: <%= ENV['INCOMING_RATE_LIMIT_WINDOW'] || 3600 %>
+      window: <%= ENV['INCOMING_RATE_LIMIT_WINDOW'] || 3600 %>  # Since v0.26.0
       # Lockout duration in seconds once a tier's cap is hit (1 hour).
-      lockout: <%= ENV['INCOMING_RATE_LIMIT_LOCKOUT'] || 3600 %>
+      lockout: <%= ENV['INCOMING_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since v0.26.0
     # Recipients who can receive incoming secrets
     # Each recipient needs an email and optional display name.
     # Email addresses are hashed at startup and never exposed in API responses.
@@ -726,7 +729,7 @@ features:
     # When true, secret creation rejects an unverified custom share_domain
     # with a form error. When false (default), creation is allowed regardless
     # of the domain's verification status. Canonical domains are unaffected.
-    require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>
+    require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>  # Since v0.25.2
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
@@ -736,15 +739,15 @@ features:
     #   - passthrough: No validation or cert management
     #   - approximated: Use approximated.app API for SSL certs and validation (requires cluster config)
     #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint)
-    validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>
+    validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>  # Since v0.24.0
 
     # Approximated proxy configuration (required for 'approximated' strategy)
     approximated:
       api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
-      proxy_ip: <%= ENV['APPROXIMATED_PROXY_IP'] || nil %>
-      proxy_host: <%= ENV['APPROXIMATED_PROXY_HOST'] || nil %>
-      proxy_name: <%= ENV['APPROXIMATED_PROXY_NAME'] || nil %>
-      vhost_target: <%= ENV['APPROXIMATED_VHOST_TARGET'] || nil %>
+      proxy_ip: <%= ENV['APPROXIMATED_PROXY_IP'] || nil %>  # Since v0.24.0
+      proxy_host: <%= ENV['APPROXIMATED_PROXY_HOST'] || nil %>  # Since v0.24.0
+      proxy_name: <%= ENV['APPROXIMATED_PROXY_NAME'] || nil %>  # Since v0.24.0
+      vhost_target: <%= ENV['APPROXIMATED_VHOST_TARGET'] || nil %>  # Since v0.24.0
 
     # Internal ACME endpoint configuration (for 'caddy_on_demand' strategy)
     # This endpoint allows Caddy to verify domains before issuing certificates.
@@ -759,26 +762,26 @@ features:
     #
     # The listen_address and port settings only apply to standalone mode.
     acme:
-      enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' %>
+      enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' %>  # Since v0.24.0
       # IP address to bind to in standalone mode (should always be localhost)
-      listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
+      listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>  # Since v0.24.0
       # Port for standalone mode (Caddy's ask directive points here)
-      port: <%= ENV['ACME_PORT'] || '12020' %>
+      port: <%= ENV['ACME_PORT'] || '12020' %>  # Since v0.24.0
   # Organizations UI
   # Shows the organization switcher in the navigation bar. Organizations
   # always exist under the hood (every customer has one for Stripe billing).
   # This flag controls whether users can see and switch between multiple orgs.
   organizations:
-    enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>
-    sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
-    custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>
-    incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>
+    enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>  # Since v0.25.0
+    sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>  # Since v0.25.0
+    custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>  # Since v0.25.0
+    incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>  # Since v0.25.0
     # Gates exposure (UI + list API) of the organization secret-activity
     # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
     # the sibling flags above, because the trail ships working out of the
     # box — this is an opt-out exclusion (ORGS_AUDIT_LOGS_ENABLED=false),
     # not an opt-in feature. Does not stop event collection.
-    audit_logs_enabled: <%= ENV['ORGS_AUDIT_LOGS_ENABLED'] != 'false' %>
+    audit_logs_enabled: <%= ENV['ORGS_AUDIT_LOGS_ENABLED'] != 'false' %>  # Since unreleased
 
 # Main Database Configuration
 redis:
@@ -843,7 +846,7 @@ emailer:
   # When set, decouples domain provisioning from the sending transport.
   # Valid values: ses, sendgrid, lettermint, smtp
   # If unset, falls back to mode (EMAILER_MODE).
-  sender_provider: <%= ENV['CUSTOM_MAIL_PROVIDER'] || nil %>
+  sender_provider: <%= ENV['CUSTOM_MAIL_PROVIDER'] || nil %>  # Since v0.25.8
   region: <%= ENV['EMAILER_REGION'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
   from_name: <%= ENV['FROM_NAME'] || 'Support' %>
@@ -858,11 +861,11 @@ emailer:
   # Recipient ("To:") address for /feedback submissions.
   # When set, feedback emails are delivered here instead of the first colonel
   # in the database. Useful for routing to a shared inbox or alias.
-  feedback_to: <%= ENV['FEEDBACK_TO_EMAIL'] || nil %>
+  feedback_to: <%= ENV['FEEDBACK_TO_EMAIL'] || nil %>  # Since v0.25.2
   # Whether to include the logo image in HTML emails (default: false).
   # Set to true only when recipients can reach the app's base URI to
   # load the image; otherwise a broken image looks less trustworthy.
-  show_logo: <%= ENV['EMAILER_SHOW_LOGO'] == 'true' %>
+  show_logo: <%= ENV['EMAILER_SHOW_LOGO'] == 'true' %>  # Since v0.25.6
 
 # Email Provider DNS Validation Settings
 # --------------------------------------
@@ -896,7 +899,7 @@ email_providers:
     access_key_id: <%= ENV['CUSTOM_MAIL_SES_ACCESS_KEY_ID'] || ENV['AWS_ACCESS_KEY_ID'] %>
     secret_access_key: <%= ENV['CUSTOM_MAIL_SES_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_ACCESS_KEY'] %>
     # Number of DKIM selectors (SES uses 3 by default)
-    dkim_selector_count: 3
+    dkim_selector_count: 3  # Since v0.25.0
     # SPF include domain
     spf_include: amazonses.com
 
@@ -906,7 +909,7 @@ email_providers:
     # Override via CUSTOM_MAIL_SENDGRID_SUBDOMAIN env var
     subdomain: <%= ENV['CUSTOM_MAIL_SENDGRID_SUBDOMAIN'] || 'em' %>
     # DKIM selector names
-    dkim_selectors:
+    dkim_selectors:  # Since v0.25.0
       - s1
       - s2
     # SPF include domain
@@ -928,7 +931,7 @@ email_providers:
     # Team token for Lettermint Team API (domain provisioning)
     # Required for custom mail sender domain management
     # Override via LETTERMINT_TEAM_TOKEN env var
-    team_token: <%= ENV['LETTERMINT_TEAM_TOKEN'] %>
+    team_token: <%= ENV['LETTERMINT_TEAM_TOKEN'] %>  # Since v0.25.0
     # API base URL (for enterprise/on-premise deployments)
     # Override via LETTERMINT_BASE_URL env var
     api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>
@@ -1014,7 +1017,7 @@ mail:
 # When disabled, email delivery falls back to synchronous mode.
 jobs:
   # Global toggle for background job system
-  enabled: <%= ENV['JOBS_ENABLED'] == 'true' || false %>
+  enabled: <%= ENV['JOBS_ENABLED'] == 'true' || false %>  # Since v0.24.0
 
   # RabbitMQ connection URL
   # Format: amqp://[user:password@]host[:port][/vhost]
@@ -1024,31 +1027,31 @@ jobs:
   #  rabbitmqctl add_vhost dev
   #  rabbitmqctl set_permissions -p dev guest ".*" ".*" ".*"
   #
-  rabbitmq_url: <%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672/dev' %>
+  rabbitmq_url: <%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672/dev' %>  # Since v0.24.0
 
   # Publisher settings (Puma process)
   # Channel pool size for multi-threaded web server
-  channel_pool_size: <%= ENV['RABBITMQ_CHANNEL_POOL_SIZE']&.to_i || 5 %>
+  channel_pool_size: <%= ENV['RABBITMQ_CHANNEL_POOL_SIZE']&.to_i || 5 %>  # Since v0.24.0
 
   # Fallback to synchronous delivery when RabbitMQ unavailable
   # Recommended: true for production to ensure emails always send
-  fallback_to_sync: <%= ENV['JOBS_FALLBACK_SYNC'] != 'false' %>
+  fallback_to_sync: <%= ENV['JOBS_FALLBACK_SYNC'] != 'false' %>  # Since v0.24.0
 
   # Worker settings (consumer processes)
   workers:
     email:
-      threads: <%= ENV['EMAIL_WORKER_THREADS']&.to_i || 4 %>
-      prefetch: <%= ENV['EMAIL_WORKER_PREFETCH']&.to_i || 10 %>
+      threads: <%= ENV['EMAIL_WORKER_THREADS']&.to_i || 4 %>  # Since v0.24.0
+      prefetch: <%= ENV['EMAIL_WORKER_PREFETCH']&.to_i || 10 %>  # Since v0.24.0
     notifications:
-      threads: <%= ENV['NOTIFICATION_WORKER_THREADS']&.to_i || 2 %>
-      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 5 %>
+      threads: <%= ENV['NOTIFICATION_WORKER_THREADS']&.to_i || 2 %>  # Since v0.24.0
+      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 5 %>  # Since v0.24.0
     billing:
-      threads: <%= ENV['BILLING_WORKER_THREADS']&.to_i || 2 %>
-      prefetch: <%= ENV['BILLING_WORKER_PREFETCH']&.to_i || 5 %>
+      threads: <%= ENV['BILLING_WORKER_THREADS']&.to_i || 2 %>  # Since v0.24.0
+      prefetch: <%= ENV['BILLING_WORKER_PREFETCH']&.to_i || 5 %>  # Since v0.24.0
 
   # Scheduler settings (rufus-scheduler daemon)
   scheduler:
-    enabled: <%= ENV['JOBS_SCHEDULER_ENABLED'] == 'true' || false %>
+    enabled: <%= ENV['JOBS_SCHEDULER_ENABLED'] == 'true' || false %>  # Since v0.24.0
 
   # Plan Cache Refresh Job
   # Proactively refreshes Billing::Plan cache from Stripe API every 6 hours.
@@ -1096,10 +1099,10 @@ jobs:
     # How often to scan for expiring secrets (rufus-scheduler interval)
     check_interval: '1h'
     # Send warning N hours before secret expires
-    warning_hours: 24
+    warning_hours: 24  # Since v0.24.0
     # Only warn for secrets with TTL greater than this (hours)
     # Prevents spamming for short-lived secrets
-    min_ttl_hours: 48
+    min_ttl_hours: 48  # Since v0.24.0
     # Maximum warnings to process per job run (rate limiting)
     # Prevents queue overflow; remaining secrets processed in next run
     batch_size: 100
@@ -1112,15 +1115,15 @@ jobs:
     # Feature flag — default ON (see #3780)
     enabled: true
     # Seconds per HTTP fetch (connect + read)
-    timeout: 5
+    timeout: 5  # Since v0.26.0
     # Response size ceiling in bytes (100 KB), streamed-enforced
-    max_response_bytes: 102400
+    max_response_bytes: 102400  # Since v0.26.0
     # Maximum redirects followed, each re-validated against the SSRF guard
-    max_redirects: 3
+    max_redirects: 3  # Since v0.26.0
     # Allowed image content types. SVG is intentionally excluded (script/XXE
     # risk) and rejected at fetch time. This array REPLACES on override
     # (deep_merge) — restate it in full to change the set.
-    allowed_content_types:
+    allowed_content_types:  # Since v0.26.0
       - image/x-icon
       - image/vnd.microsoft.icon
       - image/png
@@ -1137,11 +1140,11 @@ jobs:
     # Domains loaded+scanned per page while paginating the full set
     batch_size: 500
     # Stop retrying a domain after this many terminal non-success attempts
-    max_attempts: 6
+    max_attempts: 6  # Since v0.26.0
     # Backoff base in days (doubles each attempt: 1, 2, 4, 8, ...)
-    base_days: 1
+    base_days: 1  # Since v0.26.0
     # Backoff ceiling in days (the doubling never schedules further out than this)
-    cap_days: 30
+    cap_days: 30  # Since v0.26.0
 
   # Data maintenance jobs
   # Scheduled jobs for Redis data consistency checks and repairs.
@@ -1162,7 +1165,7 @@ jobs:
     data_audit:
       enabled: false
       interval: '6h'
-      sample_size: 100
+      sample_size: 100  # Since v0.24.0
 
     # Phase 3: GC stale participation sorted set members (daily 5 AM)
     participation_gc:
@@ -1207,29 +1210,29 @@ internationalization:
   #   long    - March 21, 2026 / March 21, 2026 2:30 PM
   #
   # Or pass a raw date-fns pattern: https://date-fns.org/docs/format
-  date_format: <%= ENV['I18N_DATE_FORMAT'] || 'locale' %>
-  datetime_format: <%= ENV['I18N_DATETIME_FORMAT'] || 'locale' %>
+  date_format: <%= ENV['I18N_DATE_FORMAT'] || 'locale' %>  # Since v0.24.6
+  datetime_format: <%= ENV['I18N_DATETIME_FORMAT'] || 'locale' %>  # Since v0.24.6
   fallback_locale:
-    ca: [ca_ES, en]
-    ca-ES: [ca_ES, en]
-    da: [da_DK, en]
-    da-DK: [da_DK, en]
+    ca: [ca_ES, en]  # Since v0.24.3
+    ca-ES: [ca_ES, en]  # Since v0.24.3
+    da: [da_DK, en]  # Since v0.24.3
+    da-DK: [da_DK, en]  # Since v0.24.3
     de: [de, de_AT, en]
     de-AT: [de_AT, de, en]
-    el: [el_GR, en]
-    el-GR: [el_GR, en]
+    el: [el_GR, en]  # Since v0.24.3
+    el-GR: [el_GR, en]  # Since v0.24.3
     fr: [fr_FR, fr_CA, en]
     fr-CA: [fr_CA, fr_FR, en]
     it: [it_IT, en]
-    mi: [mi_NZ, en]
-    mi-NZ: [mi_NZ, en]
+    mi: [mi_NZ, en]  # Since v0.24.3
+    mi-NZ: [mi_NZ, en]  # Since v0.24.3
     pt: [pt_BR, pt_PT, en]
-    pt-BR: [pt_BR, pt_PT, en]
-    pt-PT: [pt_PT, pt_BR, en]
-    sl: [sl_SI, en]
-    sl-SI: [sl_SI, en]
-    sv: [sv_SE, en]
-    sv-SE: [sv_SE, en]
+    pt-BR: [pt_BR, pt_PT, en]  # Since v0.24.3
+    pt-PT: [pt_PT, pt_BR, en]  # Since v0.24.3
+    sl: [sl_SI, en]  # Since v0.24.3
+    sl-SI: [sl_SI, en]  # Since v0.24.3
+    sv: [sv_SE, en]  # Since v0.24.3
+    sv-SE: [sv_SE, en]  # Since v0.24.3
     default: [en]
   # A list of ISO language codes (e.g., 'en' for English, 'es'
   # for Spanish, etc.). There is a corresponding file in
@@ -1293,7 +1296,7 @@ diagnostics:
       sampleRate: <%= ENV['SENTRY_SAMPLE_RATE'] || '0.10' %>
       maxBreadcrumbs: <%= ENV['SENTRY_MAX_BREADCRUMBS'] || 5 %>
       logErrors: <%= ENV['SENTRY_LOG_ERRORS'] != 'false' %>
-      org_id: <%= ENV['SENTRY_ORG_ID'] || nil %>
+      org_id: <%= ENV['SENTRY_ORG_ID'] || nil %>  # Since v0.25.0
     # Ruby backend-specific Sentry configuration
     #
     # `dsn` - Backend-specific Sentry DSN
@@ -1316,7 +1319,7 @@ diagnostics:
     #
     # `dsn` - Workers-specific Sentry DSN
     workers:
-      dsn: <%= ENV['SENTRY_DSN_WORKERS'] || nil %>
+      dsn: <%= ENV['SENTRY_DSN_WORKERS'] || nil %>  # Since v0.25.0
 development:
   # Development Mode Configuration
   #
@@ -1361,7 +1364,7 @@ development:
   # - Colonel UI component: Browser-based override via sessionStorage
   #
   # SECURITY: Must remain false in production. No query param support.
-  domain_context_enabled: <%= ENV['DOMAIN_CONTEXT_ENABLED'] == 'true' %>
+  domain_context_enabled: <%= ENV['DOMAIN_CONTEXT_ENABLED'] == 'true' %>  # Since v0.24.0
   # DEVELOPMENT TOOL: Allow application to run without a site.secret
   #
   # Only effective when development.enabled is true. The config normalization
@@ -1408,7 +1411,7 @@ development:
   #
   # @see lib/onetime/application/auth_strategies/dev_basic_auth_strategy.rb
   # @see https://github.com/onetimesecret/onetimesecret/issues/2735
-  devbasicauth: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>
+  devbasicauth: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>  # Since v0.24.6
   # DEVELOPMENT TOOL: Session Auth for browser-based dev workflows
   #
   # Enables the devsessionauth strategy which validates sessions belong to dev users.
@@ -1422,7 +1425,7 @@ development:
   #
   # @see lib/onetime/application/auth_strategies/dev_session_auth_strategy.rb
   # @see https://github.com/onetimesecret/onetimesecret/issues/2735
-  devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>
+  devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>  # Since v0.24.6
 
 # Compatibility Configuration
 # Controls how the boot process responds to deprecated configuration keys.
@@ -1432,7 +1435,7 @@ compatibility:
   #   strict (default): raise an error and refuse to start
   #   warn:             log a migration message and continue
   #   silent:           ignore
-  deprecated_config_mode: <%= ENV['DEPRECATED_CONFIG_MODE'] || 'strict' %>
+  deprecated_config_mode: <%= ENV['DEPRECATED_CONFIG_MODE'] || 'strict' %>  # Since v0.25.5
 
 # Experimental features
 #
