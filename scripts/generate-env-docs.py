@@ -204,6 +204,50 @@ def fenced(body_lines):
     return ["```bash", *body_lines, "```"]
 
 
+def clean_preamble(lines):
+    """Drop the parts of .env.reference's header that are not documentation.
+
+    Two paragraphs earn their place on the page: the [derived]/[independent]/
+    [federation] legend, and the pointer to .env.example. Two do not — the file
+    naming itself, which means nothing once the content is a web page, and its
+    restatement of the `# Since` convention, which this script has already
+    emitted as prose immediately above. Reproducing either makes the page open
+    by explaining a file the reader is not looking at.
+    """
+    # Paragraphs in this header are separated by bare `#` lines, not blank
+    # ones — splitting on blanks alone sees the entire header as one paragraph
+    # and discards the legend along with the part being removed.
+    def is_separator(line):
+        return not line.strip() or line.strip() == "#"
+
+    paragraphs, current = [], []
+    for line in lines:
+        if is_separator(line):
+            if current:
+                paragraphs.append(current)
+                current = []
+        else:
+            current.append(line)
+    if current:
+        paragraphs.append(current)
+
+    kept = []
+    for para in paragraphs:
+        text = "\n".join(para)
+        if len(para) == 1 and para[0].strip().lstrip("#").strip() == ENV_REFERENCE.name:
+            continue                      # "# .env.reference"
+        if "# Since" in text:
+            continue                      # duplicate of the legend above
+        kept.append(para)
+
+    out = []
+    for index, para in enumerate(kept):
+        if index:
+            out.append("#")
+        out += para
+    return trim_blank_lines(out)
+
+
 def build_generated_block(env_text):
     """Returns (lines between and including the two sentinels, section count)."""
     preamble, sections = parse_env_reference(env_text)
@@ -227,6 +271,7 @@ def build_generated_block(env_text):
             "",
         ]
 
+    preamble = clean_preamble(preamble)
     if preamble:
         out += fenced(preamble)
         out.append("")
