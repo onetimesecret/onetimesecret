@@ -18,6 +18,17 @@ turn; ask only when irreversible.
 
 When context gets large: write current state to tasks/mission.md. Include: what's done, what's next, what's blocked, any open questions. The next session should be able to continue from tasks/mission.md without reading the full history.
 
+### Using git
+
+NEVER AMEND, RESTORE or REBASE unless asked.
+
+Use `--no-pager` to avoid hanging on paging. Pipe to head or tail if you suspect a large output. For example:
+
+```bash
+git --no-pager diff
+git --no-pager show abcd1234 | head -n 20
+```
+
 ### Responses
 
 Use short responses. Write in plain language.

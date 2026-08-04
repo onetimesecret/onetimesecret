@@ -1068,6 +1068,113 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(orgs['incoming_secrets_enabled']).to be true
         end
       end
+
+      # audit_logs_enabled inverts the sibling default: it is an opt-out
+      # exclusion (ORGS_AUDIT_LOGS_ENABLED=false), so a missing key — e.g.
+      # an install running an older config file — must still read as true.
+      describe 'audit_logs_enabled (default-true contract)' do
+        context 'when the key is absent (older config file)' do
+          it 'defaults to true, unlike sibling flags' do
+            result = described_class.build_feature_flags(base_view_vars)
+
+            expect(result['organizations']['audit_logs_enabled']).to be true
+          end
+        end
+
+        context 'when explicitly true' do
+          let(:view_vars_with_audit_logs) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => true }
+              )
+            )
+          end
+
+          it 'includes audit_logs_enabled as true' do
+            result = described_class.build_feature_flags(view_vars_with_audit_logs)
+
+            expect(result['organizations']['audit_logs_enabled']).to be true
+          end
+        end
+
+        context 'when explicitly false (operator opt-out)' do
+          let(:view_vars_without_audit_logs) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => false }
+              )
+            )
+          end
+
+          it 'includes audit_logs_enabled as false' do
+            result = described_class.build_feature_flags(view_vars_without_audit_logs)
+
+            expect(result['organizations']['audit_logs_enabled']).to be false
+          end
+
+          it 'does not affect other organization flags' do
+            result = described_class.build_feature_flags(view_vars_without_audit_logs)
+            orgs = result['organizations']
+
+            expect(orgs['enabled']).to be true
+            expect(orgs['sso_enabled']).to be false
+            expect(orgs['custom_mail_enabled']).to be false
+            expect(orgs['incoming_secrets_enabled']).to be false
+          end
+        end
+
+        # Defense-in-depth for hand-edited config files: a YAML loader (or a
+        # quoted value) can deliver the string 'false' where the shipped ERB
+        # emits a real boolean. Ruby's 'false' != false is true, so a raw
+        # comparison would silently re-enable the flag against operator intent.
+        context "when the string 'false' (hand-edited config)" do
+          let(:view_vars_string_false) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => 'false' }
+              )
+            )
+          end
+
+          it 'treats it as disabled' do
+            result = described_class.build_feature_flags(view_vars_string_false)
+
+            expect(result['organizations']['audit_logs_enabled']).to be false
+          end
+        end
+
+        context "when the string 'true'" do
+          let(:view_vars_string_true) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => 'true' }
+              )
+            )
+          end
+
+          it 'stays enabled' do
+            result = described_class.build_feature_flags(view_vars_string_true)
+
+            expect(result['organizations']['audit_logs_enabled']).to be true
+          end
+        end
+
+        context 'when nil (key present, no value)' do
+          let(:view_vars_nil_audit_logs) do
+            base_view_vars.merge(
+              'features' => base_view_vars['features'].merge(
+                'organizations' => { 'enabled' => true, 'audit_logs_enabled' => nil }
+              )
+            )
+          end
+
+          it 'stays enabled (default-true contract)' do
+            result = described_class.build_feature_flags(view_vars_nil_audit_logs)
+
+            expect(result['organizations']['audit_logs_enabled']).to be true
+          end
+        end
+      end
     end
   end
 

@@ -236,7 +236,33 @@
 			header_up X-Forwarded-Proto {http.request.scheme}
 			header_up X-Geo-Country {http.request.header.X-Geo-Country}
 			header_up X-Original-Host {http.request.host}
-			header_up X-Real-IP {http.request.remote.host}
+
+			# IP Forwarding & TRUSTED_PROXY_ENABLED security:
+			# To safely use TRUSTED_PROXY_ENABLED=true (default 'filter' mode), we must
+			# explicitly overwrite X-Forwarded-For and X-Real-IP with Caddy's resolved
+			# client IP. If we do not overwrite X-Forwarded-For, Caddy's default behavior
+			# of appending the client IP allows clients to inject/spoof arbitrary leftmost
+			# IPs into the forwarded header.
+			#
+			# {client_ip} honours Caddy's own `trusted_proxies` setting: with none
+			# configured it equals the direct peer ({remote_host}); with a CDN's ranges
+			# declared there it resolves to the real visitor. If Caddy sits behind
+			# another proxy, declare that proxy in `trusted_proxies` or this writes the
+			# upstream's address as the client IP.
+			#
+			# ONLY correct for filter mode. TRUSTED_PROXY_MODE=depth picks the client
+			# by counting TRUSTED_PROXY_DEPTH hops from the RIGHT of the chain, so
+			# collapsing X-Forwarded-For to a single entry leaves nothing to count and
+			# resolution falls back to the wrong address — IP rate limits, audit
+			# attribution, and network restrictions then key on a proxy, not the user.
+			# Running depth mode? Drop the X-Forwarded-For line below and let Caddy
+			# append, preserving the hop chain, and set TRUSTED_PROXY_DEPTH to the
+			# number of hops your topology puts in the chain (see .env.reference).
+			# Depth mode tolerates an untrusted leftmost entry only while that hop
+			# count is fixed and correct — a chain shorter or longer than configured
+			# selects the peer or a client-supplied entry.
+			header_up X-Forwarded-For {client_ip}
+			header_up X-Real-IP {client_ip}
 
 			# Filter request headers to prevent header smuggling
 			header_down -Server

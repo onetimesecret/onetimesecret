@@ -253,6 +253,11 @@ module Core
               # could never reach IncomingConfig.ready?. Same canonical/custom
               # split as RecipientResolver / HomepageConfig#incoming_available?.
               'incoming_secrets_enabled' => features.dig('organizations', 'incoming_secrets_enabled') || false,
+              # Default-true contract: only an explicit false disables — a
+              # missing key (older config file) must still read as enabled.
+              # Compare on the string form so a hand-edited config that yields
+              # 'false' (quoted/ERB-stringified) still disables the flag.
+              'audit_logs_enabled' => features.dig('organizations', 'audit_logs_enabled').to_s != 'false',
             },
           }
         end

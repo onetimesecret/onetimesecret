@@ -16,6 +16,7 @@ import {
   getAuthFeatures,
   isOrganizationSwitcherEnabled,
   isOrgsSsoEnabled,
+  isOrgsAuditLogsEnabled,
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
   isOwnerOrAdminOf,
@@ -805,6 +806,78 @@ describe('features utility', () => {
       });
 
       const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  // Default-ON flag (unlike the opt-in siblings): only an explicit `false`
+  // disables. Absent keys — including the ambient vitest state where the
+  // bootstrap seeds no `features` at all — must read as enabled.
+  describe('isOrgsAuditLogsEnabled', () => {
+    it('returns true when organizations.audit_logs_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { audit_logs_enabled: true } });
+
+      const result = isOrgsAuditLogsEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.audit_logs_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { audit_logs_enabled: false } });
+
+      const result = isOrgsAuditLogsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when organizations object is empty (absent key = default ON)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      const result = isOrgsAuditLogsEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when organizations is undefined (older backend)', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isOrgsAuditLogsEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when features object is undefined (no bootstrap key)', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isOrgsAuditLogsEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when audit_logs_enabled is null (only literal false disables)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { audit_logs_enabled: null } });
+
+      const result = isOrgsAuditLogsEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for non-boolean values (fail-open by design)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { audit_logs_enabled: 'no' } });
+
+      const result = isOrgsAuditLogsEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('is independent of the sibling opt-in flags', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { enabled: false, sso_enabled: false, audit_logs_enabled: false },
+      });
+
+      const result = isOrgsAuditLogsEnabled();
 
       expect(result).toBe(false);
     });
