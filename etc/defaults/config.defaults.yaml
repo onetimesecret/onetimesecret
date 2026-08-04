@@ -779,6 +779,17 @@ features:
     # box — this is an opt-out exclusion (ORGS_AUDIT_LOGS_ENABLED=false),
     # not an opt-in feature. Does not stop event collection.
     audit_logs_enabled: <%= ENV['ORGS_AUDIT_LOGS_ENABLED'] != 'false' %>
+  # Secret Activity Trail (collection)
+  # The data-existence axis of the org secret-activity trail: whether events
+  # are recorded at all (GDPR data minimization). UI + list API exposure is
+  # the separate organizations.audit_logs_enabled axis above. Both default
+  # ON; these are opt-out exclusions.
+  secret_activity:
+    # When false, event recording pauses; existing events stay readable.
+    collect: <%= ENV['SECRET_ACTIVITY_COLLECT'] != 'false' %>
+    # Newest events retained per organization (floor: 100). Lowering this
+    # deletes (not hides) each org's oldest events on its next write.
+    max_events: <%= ENV['SECRET_ACTIVITY_MAX_EVENTS'] || 10000 %>
 
 # Main Database Configuration
 redis:
