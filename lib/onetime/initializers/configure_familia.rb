@@ -133,8 +133,12 @@ module Onetime
         #
         # Safe to set per deployment: nothing reads identifiers back through
         # Familia::VerifiableIdentifier.verified_identifier? yet, so tags minted
-        # under any prior (committed-fallback or empty) key still resolve. Revisit
-        # if verification-on-read is ever introduced -- tracked in issue #3630.
+        # under any prior (committed-fallback or empty) key still resolve.
+        #
+        # Verification-on-read (#3630): enabling verified_identifier? would reject
+        # identifiers minted under prior keys. Requires upstream secret-history
+        # mechanism (no familia support as of 2.12); re-minting is not viable since
+        # existing links must keep resolving.
         identifier_secret                  = ENV['IDENTIFIER_SECRET'].to_s
         if identifier_secret.empty?
           identifier_secret = Onetime::KeyDerivation.derive_hex(secret_key, :identifier)
@@ -146,12 +150,14 @@ module Onetime
         # can never silently strand ciphertext.
         #
         # encryption_personalization feeds BLAKE2b key derivation for
-        # XChaCha20-Poly1305 (used once rbnacl/libsodium are present). It is
-        # PERMANENT: Familia has no rotation/history mechanism for it, so
-        # changing this value makes every existing XChaCha20 envelope
-        # undecryptable. 'FamilialMatters' is Familia's long-standing default
-        # and therefore the only value compatible with any XChaCha20 data an
-        # installation may already hold.
+        # XChaCha20-Poly1305 (used once rbnacl/libsodium are present).
+        # 'FamilialMatters' is Familia's long-standing default and the only
+        # value compatible with any XChaCha20 data an installation may hold.
+        #
+        # Familia 2.12 supports rotation via encryption_personalization_history:
+        # set a per-deployment value and the library falls back to prior values
+        # (including the hardcoded 'FamilialMatters' default) on decrypt. See
+        # #3987 for the v0.27 rotation plan.
         Familia.config.encryption_personalization = 'FamilialMatters'
 
         # encryption_hkdf_salt feeds HKDF-SHA256 key derivation for
@@ -160,9 +166,10 @@ module Onetime
         # default to 'FamilialMatters' and only *falls back* to the legacy
         # value on decrypt. Pinning the legacy value keeps any AES writes
         # byte-compatible with existing data and with familia 2.10.x nodes
-        # (mixed fleets / rollback), and makes legacy decrypts succeed on the
-        # first salt candidate instead of the fallback. Rotating this later is
-        # supported via encryption_hkdf_salt_history.
+        # (mixed-version nodes on one datastore / rollback), and makes legacy
+        # decrypts succeed on the first salt candidate instead of the
+        # fallback. Rotating this later is supported via
+        # encryption_hkdf_salt_history.
         # (Guarded: the knob only exists in familia >= 2.11.)
         if Familia.config.respond_to?(:encryption_hkdf_salt=)
           Familia.config.encryption_hkdf_salt         = 'FamiliaEncryption'

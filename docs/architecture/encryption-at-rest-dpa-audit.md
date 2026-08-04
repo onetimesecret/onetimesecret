@@ -71,8 +71,11 @@ under the new default cannot be read by 2.10.x (which has no fallback
 loop). Mitigations in this branch: rbnacl + libsodium ship in the same
 image as the familia upgrade (no AES-writes-under-new-salt window in
 practice), and we pin `encryption_hkdf_salt = 'FamiliaEncryption'`
-(Finding F3) so any AES write remains 2.10.x-compatible. Deploy the whole
-fleet in one rollout; do not run mixed old/new nodes longer than necessary.
+(Finding F3) so any AES write remains 2.10.x-compatible. Upgrade every
+process sharing a datastore in one rollout; do not run mixed old/new
+nodes against the same datastore longer than necessary. (Regions are
+independent — each region's rollout stands alone, and the same rule
+holds for a self-hosted install.)
 
 **F3 (high, latent): domain-separation inputs were implicit.** We never set
 `encryption_personalization` (XChaCha BLAKE2b) or `encryption_hkdf_salt`
@@ -183,7 +186,7 @@ familia encrypted fields eventually.
    (`apt install libsodium23` / `apk add libsodium` / `brew install
    libsodium`). Without it, `require 'rbnacl'` fails to find the library
    and boot fails — which is preferable to silently staying on AES.
-3. **Deploy fleet-wide in one rollout** (F2). Verify post-deploy:
+3. **Deploy every node sharing a datastore in one rollout** (F2). Verify post-deploy:
    `Familia::Encryption.status[:default_algorithm] == 'xchacha20poly1305'`.
 4. **Rollback window**: removing rbnacl/libsodium after deploy makes
    secrets created since the deploy unreadable (clean errors). Rolling the
