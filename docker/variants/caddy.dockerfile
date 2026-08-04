@@ -58,7 +58,7 @@
 #   * Experience downtime during certificate re-issuance
 
 # Build stage: compile Caddy with plugins using xcaddy
-FROM golang:1.26-bookworm@sha256:8e8aa801e8417ef0b5c42b504dd34db3db911bb73dba933bd8bde75ed815fdbb AS builder
+FROM golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651 AS builder
 
 # Build arguments
 ARG CADDY_VERSION=e2eee6a7fce366321294c9c2a79f3146891dcbdf # v2.11.4
