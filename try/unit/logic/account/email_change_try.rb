@@ -455,11 +455,12 @@ rescue => e
 end
 #=> [true, { confirmed: true, redirect: '/signin' }]
 
-## Confirming for a customer the revoke cannot RESOLVE (never persisted, so it
-## is absent from the extid index) completes normally AND sweeps nobody: a
-## bystander's session blob survives. This is the blank-identity guard —
-## matching an empty extid against every blob would nuke the keyspace, so
-## RevokeAllForCustomer bails before scanning (purge_untracked).
+## Confirming for a customer that was never persisted REFUSES fail-closed
+## instead of completing: Familia 2.12 raises PersistenceError when
+## `update_in_class_email_index` runs on an unsaved record (familia#370), the
+## op rescues that into `:partial` (nothing committed, nothing to compensate),
+## and ConfirmEmailChange's fail-closed else maps `:partial` to a FormError.
+## The revoke step is never reached, so a bystander's session blob survives.
 @bare_cust = Onetime::Customer.new email: generate_unique_test_email('bare') # deliberately NOT saved
 @bystander_cust = Onetime::Customer.new email: generate_unique_test_email('bystander')
 @bystander_cust.save
@@ -468,11 +469,24 @@ end
 @sweep_db.set(@bystander_blob,
               @sweep_codec.encode({ 'external_id' => @bystander_cust.extid, 'authenticated' => true }),
               ex: 3600)
-[
-  build_confirm(@bare_cust, {}, generate_unique_test_email('bare-new')).process,
-  @sweep_db.exists(@bystander_blob),
-]
-#=> [{ confirmed: true, redirect: '/signin' }, 1]
+begin
+  build_confirm(@bare_cust, {}, generate_unique_test_email('bare-new')).process
+  :no_raise
+rescue OT::FormError => e
+  [e.message, @sweep_db.exists(@bystander_blob)]
+end
+#=> ['Email change could not be completed', 1]
+
+## The blank-identity guard itself, at the op level (the confirm path above can
+## no longer reach it — the op refuses before revoking): a custid that resolves
+## to NO customer bails before scanning (purge_untracked's nil-customer guard).
+## Matching an empty identity against every blob would nuke the keyspace, so an
+## unresolvable target sweeps nobody — the bystander's blob survives.
+result = Onetime::Operations::Sessions::RevokeAllForCustomer.new(
+  custid: 'ur_unresolvable_target', actor: 'ur_test_actor',
+).call
+[result.blobs_deleted, result.untracked_deleted, result.scan_capped, @sweep_db.exists(@bystander_blob)]
+#=> [0, 0, false, 1]
 
 ## Simple auth mode skips the Rodauth SQL path and still clears the session
 # In test env auth mode is simple, so full_enabled? is false and there is no
