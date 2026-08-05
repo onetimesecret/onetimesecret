@@ -631,19 +631,20 @@ module Auth::Config::Hooks
       # Global: Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated)
       #
       auth.before_omniauth_create_account do
-        email       = omniauth_email.to_s.strip.downcase
-        email_parts = email.split('@')
+        email = omniauth_email.to_s.strip.downcase
 
         # Reject unusable emails from IdP (distinct from policy rejection): a
-        # missing/empty claim, or one without both a local part and a domain.
+        # missing/empty claim, or any shape the accounts.valid_email CHECK
+        # constraint would reject (internal spaces, comma/semicolon in either
+        # part, a dotless domain, etc. — see SignupValidation::VALID_EMAIL_PATTERN).
         # Redirect with a stable error code so Login.vue can show a localized
         # message — matches the email_auth/omniauth_on_failure convention.
         # Inline JSON via throw_error_status was clobbered by omniauth_on_failure,
         # collapsing the specific code into the generic sso_failed. Failing here
-        # (rather than letting a blank local part like "@example.com" fall
-        # through to account creation, which 500s on the PG valid_email CHECK)
-        # keeps the user on a localized error instead of a frozen screen (#3478).
-        if email_parts.length != 2 || email_parts.first.to_s.empty? || email_parts.last.to_s.empty?
+        # (rather than letting a claim the CHECK rejects fall through to account
+        # creation, which 500s as Sequel::CheckConstraintViolation) keeps the
+        # user on a localized error instead of a frozen screen (#3478, #3971).
+        unless Onetime::SignupValidation.structurally_valid_email?(email)
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
             level: :warn,
@@ -662,7 +663,7 @@ module Auth::Config::Hooks
             :omniauth_domain_rejected,
             level: :warn,
             email: OT::Utils.obscure_email(email),
-            domain: email_parts.last,
+            domain: email.split('@').last,
             display_domain: display_domain,
             provider: omniauth_provider,
           )

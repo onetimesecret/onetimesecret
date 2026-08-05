@@ -117,6 +117,52 @@ Onetime::SignupValidation.resolve_signup_config('nonexistent.example.com')
 Onetime::SignupValidation.resolve_signup_config(nil)
 #=> nil
 
+# --- structurally_valid_email? mirrors the accounts.valid_email CHECK (#3971) ---
+#
+# constraint :valid_email, email: /^[^,;@ \r\n]+@[^,@; \r\n]+\.[^,@; \r\n]+$/
+# (apps/web/auth/migrations/001_initial.rb). Every shape below that the CHECK
+# rejects but a naive `email.split('@').length == 2` guard accepts previously
+# reached the INSERT and raised Sequel::CheckConstraintViolation -> 500 on the
+# SSO callback (the frozen-loading-screen failure #3478 exists to prevent).
+
+## A normal email is structurally valid
+Onetime::SignupValidation.structurally_valid_email?('alice@contoso.com')
+#=> true
+
+## An internal space in the local part is rejected (PG CHECK rejects it too)
+Onetime::SignupValidation.structurally_valid_email?('al ice@contoso.com')
+#=> false
+
+## A comma in the local part is rejected
+Onetime::SignupValidation.structurally_valid_email?('al,ice@contoso.com')
+#=> false
+
+## A semicolon in the domain is rejected
+Onetime::SignupValidation.structurally_valid_email?('alice@cont;oso.com')
+#=> false
+
+## A dotless domain is rejected (plausible from internal AD FS / OIDC issuers)
+Onetime::SignupValidation.structurally_valid_email?('alice@contoso')
+#=> false
+
+## An empty claim is rejected
+Onetime::SignupValidation.structurally_valid_email?('')
+#=> false
+
+## A claim with no '@' is rejected
+Onetime::SignupValidation.structurally_valid_email?('alice.contoso.com')
+#=> false
+
+## A blank local part (leading '@') is rejected
+Onetime::SignupValidation.structurally_valid_email?('@contoso.com')
+#=> false
+
+## \A/\z anchoring rejects an embedded newline that ^/$ would let through
+## ("ok@example.com\nbad" would pass a ^/$-anchored guard here and still be
+## rejected by PG, whose ^/$ are string anchors -- reintroducing the 500)
+Onetime::SignupValidation.structurally_valid_email?("ok@example.com\nbad")
+#=> false
+
 # --- Cleanup ---
 
 OT.conf['site']['authentication']['allowed_signup_domains'] = @original_allowed
