@@ -40,7 +40,7 @@ module Onetime
             # These DEFAULTS are the effective values when the YAML config
             # sets ttl_options to nil (e.g. no TTL_OPTIONS env var). The
             # deep_merge nil-preservation rule means nil in YAML keeps
-            # this array intact. The max here (365.days) becomes the global
+            # this array intact. The max here (30.days) becomes the global
             # TTL ceiling — override via TTL_OPTIONS env var in production
             # if a lower cap is needed.
             'ttl_options' => [
@@ -55,10 +55,11 @@ module Onetime
               1.week,         # 604800
               2.weeks,        # 1209600
               30.days,        # 2592000
-              90.days,        # 7776000
-              180.days,       # 15552000
-              365.days,       # 31536000
             ],
+            # Absolute TTL ceiling applied to all secrets, regardless of
+            # ttl_options. Default: nil (uses DEFAULT_TTL_CEILING = 45 days).
+            # Operators raise via TTL_CEILING env var (max: 365 days).
+            'ttl_ceiling' => nil,
             # Ceiling for secrets created without an account. A default, not an
             # invariant: operators may raise or lower it (env TTL_MAX_ANONYMOUS).
             # Resolved and bounded by
@@ -506,6 +507,16 @@ module Onetime
         parsed = Integer(ttl_max_anonymous.to_s.strip, exception: false)
         unless parsed.nil?
           conf['site']['secret_options']['ttl_max_anonymous'] = parsed
+        end
+      end
+
+      # Same treatment for ttl_ceiling: ERB returns String from TTL_CEILING.
+      # Malformed values are left for configured_ttl_ceiling to reject loudly.
+      ttl_ceiling = conf.dig('site', 'secret_options', 'ttl_ceiling')
+      unless ttl_ceiling.nil? || ttl_ceiling.is_a?(Integer)
+        parsed = Integer(ttl_ceiling.to_s.strip, exception: false)
+        unless parsed.nil?
+          conf['site']['secret_options']['ttl_ceiling'] = parsed
         end
       end
 

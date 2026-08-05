@@ -222,6 +222,11 @@ site:
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+    # Absolute TTL ceiling applied to all secrets, regardless of ttl_options.
+    # Default: 3888000 (45 days = 30 days + 50% grace period). Operators on
+    # self-hosted deployments can raise this up to 31536000 (365 days) to
+    # allow longer-lived secrets. Plan limits still apply independently.
+    ttl_ceiling: <%= ENV['TTL_CEILING'] || nil %>
     # Maximum TTL for secrets created without an account (anonymous callers).
     # Default: 604800 (7 days) — a sane default, not a hard limit. Self-hosted
     # deployments may raise or lower it; the effective ceiling is the lower of

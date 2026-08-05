@@ -291,7 +291,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       # OT::Config is going to supply its defaults. OT.conf is nil because
       # this testing code path starts each testcase with it nil on purpose
       # so there is no influence from the config.test.yaml. That's why
-      # there are 14 ttl_options and not 3 (from the yaml).
+      # there are 11 ttl_options and not 3 (from the yaml).
       raw_config = minimal_config.dup
 
       processed_config = Onetime::Config.after_load(raw_config)
@@ -299,7 +299,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
       expect(secret_options['default_ttl']).to eq(7.days)
       expect(secret_options['ttl_options']).to be_an(Array)
-      expect(secret_options['ttl_options'].length).to eq(14)
+      expect(secret_options['ttl_options'].length).to eq(11)
     end
 
     it 'uses values from config file when specified' do

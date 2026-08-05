@@ -125,11 +125,11 @@ module V2::Logic
           require_entitlement!('extended_default_expiration')
         end
 
-        # Apply the absolute safety ceiling (365 days). Plan/config limits
-        # are enforced by the bounds check below; this prevents resource
-        # exhaustion from values beyond any reasonable secret lifetime.
-        max_ttl_ceiling = Onetime::Models::Features::WithEntitlements::MAX_TTL
-        @ttl = max_ttl_ceiling if ttl && ttl >= max_ttl_ceiling
+        # Apply the configured TTL ceiling (default: 45 days). Operators
+        # raise it via TTL_CEILING env var for self-hosted deployments.
+        # Plan/config limits are enforced by the bounds check below.
+        ttl_ceiling = Onetime::Models::Features::WithEntitlements.configured_ttl_ceiling
+        @ttl = ttl_ceiling if ttl && ttl > ttl_ceiling
 
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl

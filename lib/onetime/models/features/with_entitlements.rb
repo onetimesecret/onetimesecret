@@ -53,6 +53,13 @@ module Onetime
         # plan. See #3111 for the drift bug this constant previously caused.
         DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
+        # Default TTL ceiling for all secrets: 30 days + 50% grace period.
+        # Always enforced regardless of ttl_options. Operators raise it via
+        # TTL_CEILING env var (up to MAX_TTL). The grace period allows a
+        # request slightly above 30 days to succeed without requiring the
+        # operator to explicitly reconfigure.
+        DEFAULT_TTL_CEILING = 45 * 24 * 60 * 60  # 45 days
+
         # Default ceiling for secrets created by anonymous (unauthenticated)
         # callers: 7 days. This is the shipped default, NOT an invariant.
         #
@@ -102,6 +109,31 @@ module Onetime
           OT.le "[WithEntitlements] ttl_max_anonymous unreadable (#{ex.class}: #{ex.message}); " \
                 "using default #{ANONYMOUS_MAX_TTL}"
           ANONYMOUS_MAX_TTL
+        end
+
+        # Resolve the configured TTL ceiling.
+        #
+        # Always enforced as the global maximum TTL, independent of
+        # ttl_options. Operators set TTL_CEILING to allow longer-lived
+        # secrets on self-hosted deployments. Bounded to [1, MAX_TTL].
+        #
+        # @return [Integer] Global TTL ceiling in seconds
+        def self.configured_ttl_ceiling
+          raw = OT.conf.dig('site', 'secret_options', 'ttl_ceiling')
+          return DEFAULT_TTL_CEILING if raw.nil?
+
+          value = Integer(raw)
+          return DEFAULT_TTL_CEILING unless value.positive?
+
+          value.clamp(1, MAX_TTL)
+        rescue ArgumentError, TypeError
+          OT.lw '[WithEntitlements] Invalid site.secret_options.ttl_ceiling, using default',
+            { value: raw.inspect, default: DEFAULT_TTL_CEILING }
+          DEFAULT_TTL_CEILING
+        rescue StandardError => ex
+          OT.le "[WithEntitlements] ttl_ceiling unreadable (#{ex.class}: #{ex.message}); " \
+                "using default #{DEFAULT_TTL_CEILING}"
+          DEFAULT_TTL_CEILING
         end
 
         def self.included(base)
