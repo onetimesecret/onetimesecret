@@ -15,7 +15,10 @@
 import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { ref } from 'vue';
+import { createI18n } from 'vue-i18n';
 import { createTestI18n } from '@tests/setup';
 
 // ─── HTTP layer ──────────────────────────────────────────────────────────────
@@ -597,6 +600,40 @@ describe('SecretActivityTable', () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+    });
+
+    /**
+     * The notice states a retention number, so it must state the CONFIGURED
+     * one — the pre-#3990 string hardcoded "10,000" and lied on every instance
+     * running a different cap. Mounted against the REAL generated bundle (not
+     * the pass-through i18n, and not hand-typed copy) so the assertion tests
+     * the wiring: drop the `{ max }` argument and vue-i18n renders a silent
+     * double-space sentence rather than a visible `{max}`, which only the
+     * shipped string can catch.
+     *
+     * The cap is 10,000 rather than a small number so the thousands separator
+     * from toLocaleString() is part of the contract under test.
+     */
+    it('interpolates the configured cap into the capped notice (#3990)', async () => {
+      const realEn = JSON.parse(
+        readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+      );
+      const realI18n = createI18n({ legacy: false, locale: 'en', messages: { en: realEn } });
+
+      mockMaxEvents.value = 10_000;
+      respondWith(buildResponse({ records: [buildEvent()], total: 10_000 }));
+
+      wrapper = mount(SecretActivityTable, {
+        props: { orgExtid: 'on1abc123' },
+        global: { plugins: [realI18n] },
+      });
+      await flushPromises();
+
+      const text = wrapper.find('[data-testid="org-audit-capped"]').text();
+      // Locale-independent: whatever separator the runtime picks, the notice
+      // must carry the formatted cap the helper produced.
+      expect(text).toContain((10_000).toLocaleString());
+      expect(text).not.toContain('{max}');
     });
   });
 

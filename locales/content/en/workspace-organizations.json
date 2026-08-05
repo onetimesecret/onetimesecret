@@ -761,8 +761,8 @@
     "content_hash": "62fb14c2"
   },
   "web.organizations.audit.capped_notice": {
-    "text": "Only the newest 10,000 events are retained; older activity has been trimmed.",
-    "content_hash": "6af1562d"
+    "text": "Only the newest {max} events are retained; older activity has been trimmed.",
+    "content_hash": "da7901e2"
   },
   "web.organizations.audit.collection_paused_notice": {
     "text": "Event collection is paused; new secret activity is not being recorded.",
