@@ -200,12 +200,12 @@
   // Track selected action from SplitButton
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
-  // Recipient field shows in create-link mode unless ui.capabilities.recipient
-  // is explicitly disabled. An unset flag is treated as enabled (config default).
+  // Recipient field shows in both modes unless ui.capabilities.recipient is
+  // explicitly disabled. An unset flag is treated as enabled (config default).
+  // Generated passwords are mailed too, so hiding the field in generate mode
+  // silently dropped the only way to reach the recipient.
   const { uiCapabilities } = storeToRefs(bootstrapStore);
-  const showRecipient = computed(
-    () => selectedAction.value === 'create-link' && uiCapabilities.value?.recipient !== false
-  );
+  const showRecipient = computed(() => uiCapabilities.value?.recipient !== false);
 
   // Platform detection for keyboard hint (desktop only)
   const isDesktop = useMediaQuery('(min-width: 640px)');
@@ -327,7 +327,7 @@
             </div>
           </div>
 
-          <!-- Recipient Field (create-link mode only) -->
+          <!-- Recipient Field (both modes: generated passwords are mailed too) -->
           <div
             v-if="showRecipient"
             class="mt-4">
