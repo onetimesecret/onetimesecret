@@ -2,8 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'rack/constants'
+
 require_relative 'instrumented_authenticity_token'
-require_relative 'session_skip'
 
 module Onetime
   module Middleware
@@ -97,12 +98,15 @@ module Onetime
       # True when Onetime::Middleware::SessionSkip marked this request's session
       # as non-persisting (#3997). AuthenticityToken.token does
       # `session[:csrf] ||= random`, which both loads AND dirties the session —
-      # the decisive reason anonymous probe endpoints (/health, /api/v*/status)
-      # minted a Valkey session key per request. The :skip flag already
-      # suppresses the write, so minting here would only hand the client a token
-      # that no session will ever validate against. Read-only: never sets :skip.
+      # but this middleware is not the only dirtier, nor the first:
+      # InstrumentedAuthenticityToken's inherited `accepts?` runs the same
+      # `session[:csrf] ||= …` on every request before its safe-method check.
+      # It is rack-session's :skip flag that suppresses the Valkey write, not
+      # this gate; skipping the mint here only avoids handing the client a
+      # token that no persisted session will ever validate against (and the
+      # session load that minting would force). Read-only: never sets :skip.
       def session_skipped?(env)
-        options = env[Onetime::Middleware::SessionSkip::SESSION_OPTIONS_KEY]
+        options = env[Rack::RACK_SESSION_OPTIONS]
         options.respond_to?(:[]) && options[:skip] == true
       end
 

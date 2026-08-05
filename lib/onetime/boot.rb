@@ -77,9 +77,13 @@ module Onetime
 
     # Session configuration defaults
     # Ensures middleware always has valid values even if site.session is not configured
-    # NOTE: `merge` below is shallow, so an operator who defines site.session in
-    # their own yaml replaces each key they name. skip_paths must be listed here
-    # or such a config would hand SessionSkip a nil list (#3997).
+    # NOTE: when the config loads from the default path, config.defaults.yaml is
+    # deep-merged UNDER the operator's yaml (Config#load), so skip_paths
+    # normally resolves from the defaults file even when the operator sets
+    # other site.session keys. This copy is the fallback for explicit-path
+    # config loads and a missing defaults file. Either way, an operator-defined
+    # skip_paths REPLACES the shipped list wholesale — which is why boot! logs
+    # the resolved list (#3997).
     SESSION_DEFAULTS = {
       'expire_after' => 86_400,      # 24 hours
       'key' => 'onetime.session',
@@ -223,6 +227,12 @@ module Onetime
       end
 
       started!
+
+      # skip_paths is operator-overridable and an override REPLACES the shipped
+      # list wholesale, with no error for an empty or malformed result. Surface
+      # the resolved list so a config that silently re-enables per-probe
+      # session minting (#3997) is visible at boot.
+      OT.boot_logger.info "Session skip_paths: #{session_config['skip_paths'].inspect}"
 
       # Log completion with timing
       boot_elapsed_ms = ((Onetime.now_in_μs - boot_start) / 1000.0).round
