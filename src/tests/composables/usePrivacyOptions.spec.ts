@@ -42,6 +42,7 @@ const TTL_OPTIONS = [MINUTE, HOUR, DAY, WEEK, TWO_WEEKS, THIRTY_DAYS];
 interface StoreSetup {
   ttl_options?: number[];
   ttl_max_anonymous?: number | null;
+  ttl_ceiling?: number | null;
   authenticated?: boolean;
   secret_lifetime?: number | null;
   /** Authenticated with no organization at all (server skips the plan limit). */
@@ -57,6 +58,7 @@ function setupStore(config: StoreSetup = {}) {
     default_ttl: WEEK,
     ttl_options: config.ttl_options ?? TTL_OPTIONS,
     ttl_max_anonymous: config.ttl_max_anonymous ?? undefined,
+    ttl_ceiling: config.ttl_ceiling ?? undefined,
   };
   bootstrapStore.authenticated = config.authenticated ?? false;
 
@@ -181,6 +183,52 @@ describe('usePrivacyOptions', () => {
       setupStore({ ttl_options: [WEEK, ONE_YEAR_PLUS_GRACE + 1], ttl_max_anonymous: null });
 
       expect(values()).toEqual([WEEK]);
+    });
+  });
+
+  describe('lifetimeOptions — global TTL ceiling (#4008)', () => {
+    it('filters anonymous options by ttl_ceiling when present', () => {
+      setupStore({ ttl_ceiling: WEEK, ttl_max_anonymous: null });
+
+      expect(values()).toEqual([MINUTE, HOUR, DAY, WEEK]);
+    });
+
+    it('uses the lower of ttl_ceiling and ttl_max_anonymous', () => {
+      setupStore({ ttl_ceiling: THIRTY_DAYS, ttl_max_anonymous: WEEK });
+
+      expect(values()).toEqual([MINUTE, HOUR, DAY, WEEK]);
+    });
+
+    it('uses ttl_ceiling when it is lower than ttl_max_anonymous', () => {
+      setupStore({ ttl_ceiling: DAY, ttl_max_anonymous: WEEK });
+
+      expect(values()).toEqual([MINUTE, HOUR, DAY]);
+    });
+
+    it('applies ttl_ceiling to authenticated callers', () => {
+      setupStore({
+        authenticated: true,
+        secret_lifetime: THIRTY_DAYS,
+        ttl_ceiling: WEEK,
+      });
+
+      expect(values()).toEqual([MINUTE, HOUR, DAY, WEEK]);
+    });
+
+    it('uses the lower of ttl_ceiling and plan limit for authenticated callers', () => {
+      setupStore({
+        authenticated: true,
+        secret_lifetime: DAY,
+        ttl_ceiling: THIRTY_DAYS,
+      });
+
+      expect(values()).toEqual([MINUTE, HOUR, DAY]);
+    });
+
+    it('fails open when ttl_ceiling is absent (legacy payloads)', () => {
+      setupStore({ ttl_ceiling: null, ttl_max_anonymous: null });
+
+      expect(values()).toEqual(TTL_OPTIONS);
     });
   });
 

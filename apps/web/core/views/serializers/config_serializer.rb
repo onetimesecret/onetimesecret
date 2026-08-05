@@ -136,7 +136,10 @@ module Core
           secret_options = site['secret_options']
           return secret_options unless secret_options.is_a?(Hash)
 
-          secret_options.merge('ttl_max_anonymous' => anonymous_ttl_ceiling)
+          secret_options.merge(
+            'ttl_max_anonymous' => anonymous_ttl_ceiling,
+            'ttl_ceiling' => Onetime::Models::Features::WithEntitlements.configured_ttl_ceiling,
+          )
         end
 
         # Anonymous TTL ceiling for the duration dropdown (2026-07-29 API

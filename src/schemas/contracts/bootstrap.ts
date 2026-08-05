@@ -381,6 +381,16 @@ export const secretOptionsSchema = z.object({
    * @sync lib/onetime/models/features/with_entitlements.rb — ANONYMOUS_MAX_TTL
    */
   ttl_max_anonymous: z.number().int().positive().nullish(),
+  /**
+   * Global TTL ceiling the server applies to ALL secrets regardless of auth
+   * status (seconds). Operators raise it via TTL_CEILING env var.
+   * Default: 3888000 (45 days). Max: 31536000 (365 days).
+   *
+   * @sync apps/web/core/views/serializers/config_serializer.rb — build_secret_options
+   * @sync apps/api/v2/logic/secrets/base_secret_action.rb — process_ttl
+   * @sync lib/onetime/models/features/with_entitlements.rb — configured_ttl_ceiling
+   */
+  ttl_ceiling: z.number().int().positive().nullish(),
   passphrase: passphraseSchema.optional(),
   password_generation: passwordGenerationSchema.optional(),
 });

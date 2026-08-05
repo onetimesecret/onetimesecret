@@ -95,14 +95,20 @@ export function usePrivacyOptions(formOperations?: {
     const positiveOrNull = (value: number | null | undefined) =>
       typeof value === 'number' && value > 0 ? value : null;
 
+    const globalCeiling = positiveOrNull(secret_options.value?.ttl_ceiling);
+
+    let ceiling: number | null;
     if (authenticated.value) {
-      // No org means the server never consults a plan limit, so neither do we.
-      // -1 (unlimited) and 0 (unset) both fall through to null.
       const organization = bootstrapStore.organization;
-      return organization ? positiveOrNull(organization.limits?.secret_lifetime) : null;
+      ceiling = organization ? positiveOrNull(organization.limits?.secret_lifetime) : null;
+    } else {
+      ceiling = positiveOrNull(secret_options.value?.ttl_max_anonymous);
     }
 
-    return positiveOrNull(secret_options.value?.ttl_max_anonymous);
+    if (globalCeiling !== null && ceiling !== null) {
+      return Math.min(ceiling, globalCeiling);
+    }
+    return globalCeiling ?? ceiling;
   });
 
   /**

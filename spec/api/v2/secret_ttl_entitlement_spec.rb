@@ -243,11 +243,94 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
     end
   end
 
+  TTL_CEILING = Onetime::Models::Features::WithEntitlements::DEFAULT_TTL_CEILING
+
+  shared_examples 'TTL ceiling enforcement (#4008)' do |logic_class_proc|
+    let(:logic_class) { logic_class_proc.call }
+
+    def conceal_params(ttl)
+      { 'secret' => { 'secret' => 'test value', 'ttl' => ttl.to_s } }
+    end
+
+    context 'with the default TTL ceiling (45 days)' do
+      let(:org) do
+        mock_organization(
+          planid: 'identity_plus_v1',
+          entitlements: %w[create_secrets api_access extended_default_expiration],
+          secret_lifetime: 365 * 24 * 60 * 60,
+        )
+      end
+
+      it 'preserves a TTL at exactly the ceiling' do
+        logic = create_logic(logic_class, params: conceal_params(TTL_CEILING), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(TTL_CEILING)
+      end
+
+      it 'clamps a TTL above the ceiling to the ceiling' do
+        logic = create_logic(logic_class, params: conceal_params(TTL_CEILING + 1), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(TTL_CEILING)
+      end
+
+      it 'preserves a TTL below the ceiling' do
+        thirty_days = 30 * 24 * 60 * 60
+        logic = create_logic(logic_class, params: conceal_params(thirty_days), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(thirty_days)
+      end
+    end
+
+    context 'with an overridden TTL_CEILING' do
+      let(:org) do
+        mock_organization(
+          planid: 'identity_plus_v1',
+          entitlements: %w[create_secrets api_access extended_default_expiration],
+          secret_lifetime: 365 * 24 * 60 * 60,
+        )
+      end
+
+      it 'respects a raised ceiling (90 days)' do
+        ninety_days = 90 * 24 * 60 * 60
+        allow(OT).to receive(:conf).and_return(
+          'site' => {
+            'secret_options' => {
+              'default_ttl' => 7 * 24 * 60 * 60,
+              'ttl_options' => [60, 3600, 86_400, 604_800, 2_592_000, ninety_days],
+              'ttl_ceiling' => ninety_days,
+              'password_generation' => { 'default_length' => 12 },
+            },
+            'interface' => {
+              'api' => {
+                'guest_routes' => {
+                  'enabled' => true,
+                  'conceal' => true, 'generate' => true, 'reveal' => true,
+                  'burn' => true, 'show' => true, 'receipt' => true,
+                },
+              },
+            },
+          },
+        )
+
+        logic = create_logic(logic_class, params: conceal_params(ninety_days), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(ninety_days)
+      end
+    end
+
+    it 'DEFAULT_TTL_CEILING resolves to 45 days' do
+      expect(TTL_CEILING).to eq(45 * 24 * 60 * 60)
+      expect(TTL_CEILING).to eq(3_888_000)
+    end
+  end
+
   describe V2::Logic::Secrets::ConcealSecret do
     include_examples 'extended_default_expiration TTL gate', -> { V2::Logic::Secrets::ConcealSecret }
+    include_examples 'TTL ceiling enforcement (#4008)', -> { V2::Logic::Secrets::ConcealSecret }
   end
 
   describe V2::Logic::Secrets::GenerateSecret do
     include_examples 'extended_default_expiration TTL gate', -> { V2::Logic::Secrets::GenerateSecret }
+    include_examples 'TTL ceiling enforcement (#4008)', -> { V2::Logic::Secrets::GenerateSecret }
   end
 end
