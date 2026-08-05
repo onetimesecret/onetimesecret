@@ -12,9 +12,11 @@
 # Onetime::Session is a Rack::Session::Abstract::PersistedSecure subclass, so
 # any request that loads AND dirties the session commits it — a
 # `session:<64-hex>` string key in Valkey with the full 24h TTL, plus a
-# Set-Cookie. The decisive dirtier was not the app: CsrfResponseHeader calls
-# `AuthenticityToken.token(session)` on every response, and that does
-# `session[:csrf] ||= random`. Load balancers, uptime monitors and
+# Set-Cookie. The dirtiers are middleware, not the app, and there is more than
+# one: InstrumentedAuthenticityToken's inherited `accepts?` does
+# `session[:csrf] ||= random` on every request before its safe-method check,
+# and CsrfResponseHeader calls `AuthenticityToken.token(session)` (the same
+# `||=`) when exposing the masked token. Load balancers, uptime monitors and
 # orchestrators poll /health and /api/v*/status constantly and keep no
 # cookies, so every poll leaked a key nobody would ever use.
 #
@@ -127,11 +129,44 @@ RSpec.describe 'Session skip on anonymous probe endpoints (#3997)', type: :integ
       end
 
       it 'returns no X-CSRF-Token header' do
-        # AuthenticityToken.token is the dirtier; suppressing the header and
-        # suppressing the write are the same act.
+        # The write is suppressed by rack-session's :skip flag, not by
+        # withholding this header (AuthenticityToken#accepts? dirties the
+        # session on the way in regardless). The header is withheld because a
+        # token backed by a session that will never persist could never
+        # validate.
         probe path
 
         expect(last_response.headers['x-csrf-token']).to be_nil
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # 1b. Path aliases: the Otto router normalizes (unescape + strip trailing
+  #     slash) before dispatch, so these spellings are served as the probe
+  #     route. The skip matcher normalizes identically; matching the raw
+  #     string here would serve the request AND mint a session.
+  # ---------------------------------------------------------------------------
+  {
+    '/health/' => 'trailing slash',
+    '/api/v2/status/' => 'trailing slash on a mounted probe route',
+    '/api/v2/%73tatus' => 'percent-encoded path segment',
+  }.each do |path, alias_kind|
+    describe "GET #{path} (#{alias_kind}) without a cookie" do
+      it 'is served (not a routing 404, so the assertion below is meaningful)' do
+        probe path
+
+        expect(last_response.status).to be < 400
+      end
+
+      it 'writes no session key to Valkey' do
+        expect { probe path }.not_to change { session_blob_keys.size }
+      end
+
+      it 'returns no Set-Cookie header' do
+        probe path
+
+        expect(set_cookie_header).to be_nil
       end
     end
   end

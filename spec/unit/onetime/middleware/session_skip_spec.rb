@@ -18,13 +18,19 @@ require 'onetime/middleware/session_skip'
 #      PATH_INFO is therefore mount-relative. A matcher that read PATH_INFO
 #      alone would skip `/api/v2/status` and `/api/v3/status` correctly by
 #      accident while also skipping any other app's `/status`.
-#   2. The comparison is exact equality. Prefix/substring matching would sweep
-#      in `/api/v*/secret/:identifier/status`, a capability-token data read
+#   2. The comparison is exact equality AFTER Otto::Utils.normalize_path — the
+#      same canonicalization the Otto router applies before dispatch. The
+#      router serves `/api/v2/status/` and percent-encoded spellings as the
+#      status route, so matching the raw string would let those aliases mint
+#      sessions; prefix/substring matching would instead sweep in
+#      `/api/v*/secret/:identifier/status`, a capability-token data read
 #      audited via SecretActivity, and silently stop persisting its session.
 #
 # Both are asserted below as a matcher table, with the near-miss rows
-# (trailing slash, case, traversal, hyphen/word extensions) present precisely
-# because they are what a looser matcher would let through.
+# (case, traversal, hyphen/word extensions) present precisely because they
+# are what a looser matcher would let through, and the alias rows (trailing
+# slash, percent-encoding) because they are what a raw-string matcher would
+# wrongly let mint sessions.
 RSpec.describe Onetime::Middleware::SessionSkip do
   # The full default probe list, as shipped in SESSION_DEFAULTS and
   # config.defaults.yaml.
@@ -80,6 +86,12 @@ RSpec.describe Onetime::Middleware::SessionSkip do
       ['/api/v1',  '/status',          'API v1 app'],
       ['/api/v2',  '/status',          'API v2 app'],
       ['/api/v3',  '/status',          'API v3 app'],
+      # Aliases the Otto router normalizes to a probe route before dispatch.
+      # Matching the raw string here would serve them AND mint a session.
+      ['',         '/health/',         'trailing slash — router strips it before dispatch'],
+      ['/api/v2',  '/status/',         'trailing slash on a mounted probe route'],
+      ['/api/v2',  '/%73tatus',        'percent-encoded — router unescapes before dispatch'],
+      ['',         '/%68ealth',        'percent-encoded core probe route'],
     ].each do |script_name, path_info, mount_description|
       it "sets :skip for #{script_name}#{path_info} (#{mount_description})" do
         expect(skip_flag_for(script_name, path_info)).to be true
@@ -121,8 +133,7 @@ RSpec.describe Onetime::Middleware::SessionSkip do
       ['',        '/health-check',      'prefix match would catch it'],
       ['',        '/healthz',           'prefix match would catch it'],
       ['',        '/',                  'homepage — the session-minting control'],
-      ['',        '/health/../colonel', 'unnormalized traversal must not match /health'],
-      ['/api/v2', '/status/',           'trailing slash is a different path'],
+      ['',        '/health/../colonel', 'dot segments are not collapsed (the router does not either)'],
       ['',        '/HEALTH',            'matching is case-sensitive'],
       ['/api/v2', '/api/v2/status',     'double-prefixed path'],
       ['/auth',   '/auth/health',       'double-prefixed auth health path'],
@@ -243,6 +254,14 @@ RSpec.describe Onetime::Middleware::SessionSkip do
       env = env_for('', '/health')
 
       described_class.new(downstream, skip_paths: '/health').call(env)
+
+      expect(env['rack.session.options'][:skip]).to be true
+    end
+
+    it 'normalizes configured entries so a trailing-slash entry still matches' do
+      env = env_for('', '/health')
+
+      described_class.new(downstream, skip_paths: ['/health/']).call(env)
 
       expect(env['rack.session.options'][:skip]).to be true
     end

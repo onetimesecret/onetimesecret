@@ -11,7 +11,13 @@
 # sees PATH_INFO with the mount prefix stripped. The paths it matches are
 # therefore /health and /health/* — which covers the auth app's externally
 # visible /auth/health, since that arrives as SCRIPT_NAME='/auth' +
-# PATH_INFO='/health'.
+# PATH_INFO='/health' (full auth mode; in other modes the auth app is
+# unmounted and no app routes /auth/health at all).
+#
+# Matching is on the NORMALIZED path (Otto::Utils.normalize_path — unescape,
+# strip one trailing slash), the same canonicalization the Otto router applies
+# before dispatch. Gating the raw string would let `/health/` or
+# `/health%2Fadvanced` through to the handler ungated.
 #
 # IP classification is delegated to Otto::Privacy::IPPrivacy.private_or_localhost?
 #
@@ -66,10 +72,26 @@ end
 #=> true
 
 ## health_endpoint? - Does NOT match a mount-relative /auth/health
-## No app is mounted such that PATH_INFO equals '/auth/health'; the auth app's
-## health endpoint reaches this middleware as PATH_INFO='/health'.
+## No app ROUTES a PATH_INFO of '/auth/health': in full mode the auth app's
+## health endpoint reaches this middleware as PATH_INFO='/health'; in other
+## modes the auth app is unmounted and the request 404s at core's router, so
+## a literal branch here would only gate a 404.
 @middleware.health_endpoint?('/auth/health')
 #=> false
+
+## health_endpoint? - Matches /health/ (trailing slash — the router strips it
+## before dispatch, so the gate must too)
+@middleware.health_endpoint?('/health/')
+#=> true
+
+## health_endpoint? - Matches /health%2Fadvanced (percent-encoded — the router
+## unescapes before dispatch, so the gate must too)
+@middleware.health_endpoint?('/health%2Fadvanced')
+#=> true
+
+## health_endpoint? - Matches /%68ealth (percent-encoded first segment)
+@middleware.health_endpoint?('/%68ealth')
+#=> true
 
 ## health_endpoint? - Does NOT match root path
 @middleware.health_endpoint?('/')
@@ -236,6 +258,19 @@ Otto::Privacy::IPPrivacy.private_or_localhost?('not_an_ip')
 
 ## call - Blocks /health/advanced from public IP 1.1.1.1
 @env = create_env('/health/advanced', '1.1.1.1')
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 403
+
+## call - Blocks the percent-encoded alias /health%2Fadvanced from a public IP
+## (the router would dispatch it as /health/advanced, so the gate must catch it)
+@env = create_env('/health%2Fadvanced', '8.8.8.8')
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 403
+
+## call - Blocks /health/ (trailing slash) from a public IP
+@env = create_env('/health/', '8.8.8.8')
 @status, @headers, @body = @middleware.call(@env)
 @status
 #=> 403

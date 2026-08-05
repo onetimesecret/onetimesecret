@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'otto/utils'
+
 module Onetime
   module Middleware
     # HealthAccessControl - Restricts health endpoints to localhost/private networks
@@ -12,10 +14,17 @@ module Onetime
     # Paths covered (MOUNT-RELATIVE): /health and /health/*
     #
     # This middleware runs inside Rack::URLMap, once per mounted app, so
-    # PATH_INFO here has the mount prefix stripped. The auth app's health check
-    # is externally /auth/health but arrives as SCRIPT_NAME='/auth' +
-    # PATH_INFO='/health' — it is covered by the /health branch, not by any
-    # '/auth/health' literal. The same holds for any future mount.
+    # PATH_INFO here has the mount prefix stripped. In full auth mode the auth
+    # app's health check is externally /auth/health but arrives as
+    # SCRIPT_NAME='/auth' + PATH_INFO='/health' — covered by the /health
+    # branch, not by any '/auth/health' literal. In simple/disabled modes the
+    # auth app is unmounted, so /auth/health falls through to the core app
+    # (PATH_INFO='/auth/health') where no route serves it: it passes this
+    # middleware unmatched and 404s at the router, disclosing nothing.
+    #
+    # Matching is on the NORMALIZED path (Otto::Utils.normalize_path), the
+    # same canonicalization the Otto router applies before dispatch — see
+    # health_endpoint?.
     #
     # Uses Otto::Privacy::IPPrivacy.private_or_localhost? which covers:
     # - RFC 1918 (10/8, 172.16/12, 192.168/16)
@@ -85,11 +94,19 @@ module Onetime
 
       # `path` is PATH_INFO, i.e. mount-relative (the URLMap prefix lives in
       # SCRIPT_NAME). So '/health' covers every app's health endpoint whatever
-      # it is mounted under, including the auth app's external /auth/health.
-      # A literal '/auth/health' branch would be dead code here: no app is
-      # mounted such that PATH_INFO takes that value.
+      # it is mounted under, including the auth app's external /auth/health in
+      # full mode. No mounted app ROUTES a PATH_INFO of '/auth/health' (in
+      # non-full modes the request reaches core unmatched and 404s at the
+      # router), so a literal '/auth/health' branch would only gate a 404.
+      #
+      # Normalize before matching, with the same canonicalization the Otto
+      # router applies before dispatch: the router serves `/health/` and
+      # percent-encoded spellings like `/health%2Fadvanced` as health routes,
+      # so gating the raw string would let those aliases through to the
+      # handler ungated.
       def health_endpoint?(path)
-        path == '/health' || path.start_with?('/health/')
+        normalized = Otto::Utils.normalize_path(path)
+        normalized == '/health' || normalized.start_with?('/health/')
       end
 
       def forbidden_response
