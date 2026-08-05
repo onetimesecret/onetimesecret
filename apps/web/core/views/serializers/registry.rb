@@ -79,7 +79,11 @@ module Core
             # payload, even by accident. This guards top-level keys only —
             # nested subtrees are each serializer's job to allowlist (e.g.
             # ConfigSerializer#transform_domains).
-            declared, undeclared = output.partition { |key, _| serializer.output_template.key?(key) }.map(&:to_h)
+            #
+            # output_template builds a fresh hash on every call, so hoist it
+            # out of the block rather than rebuilding it once per output key.
+            template             = serializer.output_template
+            declared, undeclared = output.partition { |key, _| template.key?(key) }.map(&:to_h)
 
             undeclared.each_key do |key|
               app_logger.warn 'Serializer key not in output template; stripped',
