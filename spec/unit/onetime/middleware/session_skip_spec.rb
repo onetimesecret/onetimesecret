@@ -249,6 +249,11 @@ RSpec.describe Onetime::Middleware::SessionSkip do
   end
 
   describe 'env key handling' do
+    # A Rack-conforming server always populates both SCRIPT_NAME and
+    # PATH_INFO; an env missing either means an upstream middleware
+    # mangled the stack. These tests guard the matcher's nil-tolerance
+    # for that degenerate input — they do not describe a request shape
+    # that occurs in practice.
     it 'treats a missing SCRIPT_NAME as an empty mount prefix' do
       env = { 'PATH_INFO' => '/health', 'rack.session.options' => {} }
 
