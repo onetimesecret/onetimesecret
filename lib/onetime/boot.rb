@@ -77,11 +77,24 @@ module Onetime
 
     # Session configuration defaults
     # Ensures middleware always has valid values even if site.session is not configured
+    # NOTE: `merge` below is shallow, so an operator who defines site.session in
+    # their own yaml replaces each key they name. skip_paths must be listed here
+    # or such a config would hand SessionSkip a nil list (#3997).
     SESSION_DEFAULTS = {
       'expire_after' => 86_400,      # 24 hours
       'key' => 'onetime.session',
       'same_site' => 'lax',
       'httponly' => true,
+      # Anonymous probe endpoints that must not mint a persisted session.
+      # Exact-match, full external paths. See config.defaults.yaml.
+      'skip_paths' => [
+        '/health',
+        '/health/advanced',
+        '/auth/health',
+        '/api/v1/status',
+        '/api/v2/status',
+        '/api/v3/status',
+      ].freeze,
     }.freeze
 
     attr_reader :conf, :instance, :boot_registry, :boot_error

@@ -4,9 +4,14 @@
 
 # Tests for Onetime::Middleware::HealthAccessControl
 #
-# This middleware restricts health check endpoints (/health, /health/*, /auth/health)
-# to requests from localhost and private network IPs.
-# Public IPs receive a 403 JSON error response.
+# This middleware restricts health check endpoints to requests from localhost
+# and private network IPs. Public IPs receive a 403 JSON error response.
+#
+# Matching is MOUNT-RELATIVE: the middleware runs inside Rack::URLMap, so it
+# sees PATH_INFO with the mount prefix stripped. The paths it matches are
+# therefore /health and /health/* — which covers the auth app's externally
+# visible /auth/health, since that arrives as SCRIPT_NAME='/auth' +
+# PATH_INFO='/health'.
 #
 # IP classification is delegated to Otto::Privacy::IPPrivacy.private_or_localhost?
 #
@@ -55,9 +60,16 @@ end
 @middleware.health_endpoint?('/health/foo/bar/baz')
 #=> true
 
-## health_endpoint? - Matches /auth/health path
-@middleware.health_endpoint?('/auth/health')
+## health_endpoint? - Matches /health under ANY mount (auth app sees /health
+## after URLMap strips the '/auth' prefix into SCRIPT_NAME)
+@middleware.health_endpoint?('/health')
 #=> true
+
+## health_endpoint? - Does NOT match a mount-relative /auth/health
+## No app is mounted such that PATH_INFO equals '/auth/health'; the auth app's
+## health endpoint reaches this middleware as PATH_INFO='/health'.
+@middleware.health_endpoint?('/auth/health')
+#=> false
 
 ## health_endpoint? - Does NOT match root path
 @middleware.health_endpoint?('/')
@@ -185,8 +197,10 @@ Otto::Privacy::IPPrivacy.private_or_localhost?('not_an_ip')
 @status
 #=> 200
 
-## call - Allows /auth/health from 192.168.1.1
-@env = create_env('/auth/health', '192.168.1.1')
+## call - Allows the auth app's health endpoint from 192.168.1.1
+## Externally /auth/health; mount-relative PATH_INFO is '/health'.
+@env = create_env('/health', '192.168.1.1')
+@env['SCRIPT_NAME'] = '/auth'
 @status, @headers, @body = @middleware.call(@env)
 @status
 #=> 200
@@ -226,8 +240,10 @@ Otto::Privacy::IPPrivacy.private_or_localhost?('not_an_ip')
 @status
 #=> 403
 
-## call - Blocks /auth/health from public IP 203.0.113.50
-@env = create_env('/auth/health', '203.0.113.50')
+## call - Blocks the auth app's health endpoint from public IP 203.0.113.50
+## Externally /auth/health; mount-relative PATH_INFO is '/health'.
+@env = create_env('/health', '203.0.113.50')
+@env['SCRIPT_NAME'] = '/auth'
 @status, @headers, @body = @middleware.call(@env)
 @status
 #=> 403

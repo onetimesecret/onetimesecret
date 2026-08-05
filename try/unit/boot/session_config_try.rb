@@ -35,7 +35,7 @@ SessionDefaults['same_site']
 ## SESSION_DEFAULTS has expected structure
 keys = SessionDefaults.keys.sort
 keys
-#=> ['expire_after', 'httponly', 'key', 'same_site']
+#=> ['expire_after', 'httponly', 'key', 'same_site', 'skip_paths']
 
 ## SESSION_DEFAULTS is frozen (immutable)
 SessionDefaults.frozen?

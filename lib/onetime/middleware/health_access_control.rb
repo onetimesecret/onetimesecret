@@ -9,7 +9,13 @@ module Onetime
     # Health check endpoints expose internal system status and should only be
     # accessible from trusted networks (localhost, private IP ranges).
     #
-    # Paths covered: /health, /health/*, /auth/health
+    # Paths covered (MOUNT-RELATIVE): /health and /health/*
+    #
+    # This middleware runs inside Rack::URLMap, once per mounted app, so
+    # PATH_INFO here has the mount prefix stripped. The auth app's health check
+    # is externally /auth/health but arrives as SCRIPT_NAME='/auth' +
+    # PATH_INFO='/health' — it is covered by the /health branch, not by any
+    # '/auth/health' literal. The same holds for any future mount.
     #
     # Uses Otto::Privacy::IPPrivacy.private_or_localhost? which covers:
     # - RFC 1918 (10/8, 172.16/12, 192.168/16)
@@ -77,10 +83,13 @@ module Onetime
         end
       end
 
+      # `path` is PATH_INFO, i.e. mount-relative (the URLMap prefix lives in
+      # SCRIPT_NAME). So '/health' covers every app's health endpoint whatever
+      # it is mounted under, including the auth app's external /auth/health.
+      # A literal '/auth/health' branch would be dead code here: no app is
+      # mounted such that PATH_INFO takes that value.
       def health_endpoint?(path)
-        path == '/health' ||
-          path.start_with?('/health/') ||
-          path == '/auth/health'
+        path == '/health' || path.start_with?('/health/')
       end
 
       def forbidden_response

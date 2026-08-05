@@ -387,6 +387,24 @@ site:
     same_site: lax
     # Prevent JavaScript access to cookies (always true in Rack)
     httponly: true
+    # Paths that must NOT mint or persist a session (#3997).
+    # Anonymous probe endpoints polled by load balancers, uptime monitors and
+    # orchestrators — none keep cookies, so every poll used to write a
+    # session:<hex> key with the full expire_after TTL.
+    #
+    # Matching is EXACT string equality against the full external path
+    # (SCRIPT_NAME + PATH_INFO), so these are written as the client sees them
+    # even though the middleware runs per-mount inside Rack::URLMap.
+    #
+    # WARNING: never list /api/v*/secret/*/status here. Those are
+    # capability-token data reads audited via SecretActivity, not probes.
+    skip_paths:
+      - /health
+      - /health/advanced
+      - /auth/health
+      - /api/v1/status
+      - /api/v2/status
+      - /api/v3/status
   # Middleware Configuration
   # Controls which security and performance middleware components are enabled.
   # Each setting can be overridden via environment variables.

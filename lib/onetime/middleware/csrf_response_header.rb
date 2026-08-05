@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'instrumented_authenticity_token'
+require_relative 'session_skip'
 
 module Onetime
   module Middleware
@@ -71,7 +72,7 @@ module Onetime
         status, headers, body = @app.call(env)
 
         session = env['rack.session']
-        if session
+        if session && !session_skipped?(env)
           csrf_token              = Rack::Protection::AuthenticityToken.token(session)
           headers['X-CSRF-Token'] = csrf_token if csrf_token
         end
@@ -91,6 +92,18 @@ module Onetime
       # marker without denying.
       def csrf_rejection?(env)
         env[CSRF_REJECTION_KEY] == true
+      end
+
+      # True when Onetime::Middleware::SessionSkip marked this request's session
+      # as non-persisting (#3997). AuthenticityToken.token does
+      # `session[:csrf] ||= random`, which both loads AND dirties the session —
+      # the decisive reason anonymous probe endpoints (/health, /api/v*/status)
+      # minted a Valkey session key per request. The :skip flag already
+      # suppresses the write, so minting here would only hand the client a token
+      # that no session will ever validate against. Read-only: never sets :skip.
+      def session_skipped?(env)
+        options = env[Onetime::Middleware::SessionSkip::SESSION_OPTIONS_KEY]
+        options.respond_to?(:[]) && options[:skip] == true
       end
 
       # True when the session already carries a non-empty raw CSRF token.
