@@ -177,7 +177,7 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
       it 'silently clamps when ttl exceeds the plan secret_lifetime ceiling' do
         logic = create_logic(logic_class, params: conceal_params(7_776_000), org: org)
         expect { logic.process_params }.not_to raise_error
-        # 30 days global cap applies first (line 130: `@ttl = 30.days if ttl >= 30.days`)
+        # Plan secret_lifetime ceiling (2,592,000) applies via bounds enforcement
         expect(logic.ttl).to eq(2_592_000)
       end
     end

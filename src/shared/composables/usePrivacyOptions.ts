@@ -114,7 +114,7 @@ export function usePrivacyOptions(formOperations?: {
    * get and are never told about.
    */
   const lifetimeOptions = computed<LifetimeOption[]>(() => {
-    const globalTtl = 3600 * 24 * 30; // 30 days
+    const globalTtl = 3600 * 24 * 365; // 365 days (absolute safety ceiling)
     const ceiling = ttlCeiling.value;
 
     const available = (secret_options.value?.ttl_options ?? []).filter(

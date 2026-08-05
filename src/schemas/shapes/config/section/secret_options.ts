@@ -35,14 +35,14 @@ const secretOptionBoundariesShape = augment(secretOptionBoundariesSchema, {
   /**
    * Available TTL options for secret creation (in seconds).
    * @min 60 - One minute
-   * @max 2592000 - 30 days
-   * @default [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
+   * @max 31536000 - 365 days
+   * @default [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000, 7776000, 15552000, 31536000]
    */
   ttl_options: () =>
     z
-      .array(z.number().int().positive().min(60).max(2592000))
+      .array(z.number().int().positive().min(60).max(31536000))
       .nullable()
-      .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+      .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000, 7776000, 15552000, 31536000]),
 
   /**
    * Maximum secret size in bytes
