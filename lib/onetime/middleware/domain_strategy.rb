@@ -27,9 +27,11 @@ module Onetime
     class DomainStrategy
       include Onetime::LoggerMethods
 
-      @canonical_domain        = nil
-      @domains_enabled         = nil
-      @canonical_domain_parsed = nil
+      @canonical_domain         = nil
+      @domains_enabled          = nil
+      @canonical_domain_parsed  = nil
+      @canonical_domains        = nil
+      @canonical_domains_parsed = nil
 
       # Domain Context Override state (set at boot from config/env)
       @domain_context_enabled  = nil
@@ -56,9 +58,11 @@ module Onetime
       #   - @application_context: Metadata about which app this middleware serves
       #
       # Class-level state (shared by all instances):
-      #   - @canonical_domain: The configured primary domain
+      #   - @canonical_domain: The primary display host (default || site.host)
       #   - @domains_enabled: Whether custom domain feature is active
-      #   - @canonical_domain_parsed: Pre-parsed domain object
+      #   - @canonical_domain_parsed: Pre-parsed primary domain object
+      #   - @canonical_domains / @canonical_domains_parsed: Full canonical set
+      #     (site.host AND features.domains.default) used for classification
       #
       # The initialize call to `initialize_from_config()` is idempotent across instances.
       # Subsequent calls overwrite class variables, but this is safe because configuration
@@ -121,7 +125,7 @@ module Onetime
           else
             display_domain  = env[Rack::DetectHost.result_field_name]
             # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
-            domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
+            domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domains_parsed)
           end
         end
 
@@ -178,10 +182,20 @@ module Onetime
         header_override = env[DOMAIN_CONTEXT_HEADER]
         return [header_override, :header] unless header_override.to_s.empty?
 
-        # Implicit override: browser navigated to non-canonical domain
-        return [detected_host, :detected_host] if detected_host && detected_host != canonical_domain
+        # Implicit override: browser navigated to a host outside the canonical
+        # set. A request to site.host is NOT an implicit override even when
+        # features.domains.default names a different host.
+        return [detected_host, :detected_host] if detected_host && !canonical_host?(detected_host)
 
         [nil, nil]
+      end
+
+      # True when host exactly matches one of the configured canonical hosts
+      # (site.host or features.domains.default), by string comparison.
+      def canonical_host?(host)
+        hosts = self.class.canonical_domains
+        hosts = [canonical_domain].compact if hosts.nil? || hosts.empty?
+        hosts.include?(host)
       end
 
       def domain_context_enabled?
@@ -200,25 +214,46 @@ module Onetime
         self.class.canonical_domain_parsed
       end
 
+      # Full canonical set for classification. Falls back to the primary
+      # parsed domain when the set was never initialized (e.g., partial boot).
+      def canonical_domains_parsed
+        parsed = self.class.canonical_domains_parsed
+        return parsed unless parsed.nil? || parsed.empty?
+
+        [canonical_domain_parsed].compact
+      end
+
       module Chooserator
         class << self
           # Determines the domain strategy for a request domain.
           #
+          # Accepts one or more canonical hosts. In a split deployment,
+          # site.host and features.domains.default are BOTH canonical anchors:
+          # a match against ANY host is :canonical, and :canonical beats
+          # :subdomain across the whole set before the custom-domain lookup.
+          #
           # @param request_domain [String] The domain from the current request
-          # @param canonical_domain [PublicSuffix::Domain, String] The configured primary domain
+          # @param canonical_domains [PublicSuffix::Domain, String, Array] The
+          #   configured canonical host(s)
           # @return [Symbol, nil] Domain strategy (:canonical, :subdomain, :custom) or nil if invalid
-          def choose_strategy(request_domain, canonical_domain)
-            # Guard against nil canonical_domain (can happen if class init ran before Runtime.features was set)
-            return nil if canonical_domain.nil?
+          def choose_strategy(request_domain, canonical_domains)
+            canonical_domains = [canonical_domains] unless canonical_domains.is_a?(Array)
+            canonical_domains = canonical_domains.compact
+            # Guard against empty canonical set (can happen if class init ran before Runtime.features was set)
+            return nil if canonical_domains.empty?
             return nil if request_domain.nil? || request_domain.to_s.strip.empty?
 
-            canonical_domain = Parser.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
-            request_domain   = Parser.parse(request_domain)
+            canonical_domains = canonical_domains.map do |host|
+              host.is_a?(PublicSuffix::Domain) ? host : Parser.parse(host)
+            end
+            request_domain    = Parser.parse(request_domain)
 
-            case request_domain
-            when ->(d) { canonical?(d, canonical_domain) }    then :canonical
-            when ->(d) { subdomain_of?(d, canonical_domain) } then :subdomain
-            when ->(d) { known_custom_domain?(d.name) }       then :custom
+            if canonical_domains.any? { |host| canonical?(request_domain, host) }
+              :canonical
+            elsif canonical_domains.any? { |host| subdomain_of?(request_domain, host) }
+              :subdomain
+            elsif known_custom_domain?(request_domain.name)
+              :custom
             end
           rescue PublicSuffix::DomainInvalid => ex
             Onetime.http_logger.debug 'Invalid domain in strategy selection',
@@ -232,7 +267,7 @@ module Onetime
               {
                 exception: ex,
                 request_domain: request_domain,
-                canonical_domain: canonical_domain,
+                canonical_domains: canonical_domains,
               }
             nil
           end
@@ -356,6 +391,8 @@ module Onetime
         attr_reader :canonical_domain,
           :domains_enabled,
           :canonical_domain_parsed,
+          :canonical_domains,
+          :canonical_domains_parsed,
           :domain_context_enabled
 
         alias domains_enabled? domains_enabled
@@ -373,6 +410,16 @@ module Onetime
           @domains_enabled  = domains_config.fetch('enabled', false)
           @canonical_domain = get_canonical_domain(domains_config)
 
+          default_host = domains_enabled ? domains_config.fetch('default') : nil
+          site_host    = OT.conf.dig('site', 'host') || nil
+
+          # Canonical SET: both configured hosts anchor classification. In a
+          # split deployment (site.host serves the app, default anchors
+          # generated links) a request to either host must classify :canonical,
+          # never :invalid.
+          @canonical_domains        = [default_host, site_host].compact.map(&:to_s).reject(&:empty?).uniq
+          @canonical_domains_parsed = []
+
           # Load domain context override setting from development config
           dev_config              = OT.conf&.dig('development') || {}
           @domain_context_enabled = dev_config['domain_context_enabled'] == true
@@ -381,19 +428,25 @@ module Onetime
             {
               domains_enabled: domains_enabled,
               canonical_domain: canonical_domain,
+              canonical_domains: canonical_domains,
               domain_context_enabled: domain_context_enabled,
             }
 
           # We don't need to get into any domain parsing if domains are disabled
           return unless domains_enabled?
 
-          @canonical_domain_parsed = Parser.parse(canonical_domain)
+          @canonical_domain_parsed  = Parser.parse(canonical_domain)
+          @canonical_domains_parsed = parse_canonical_set(canonical_domains)
+
+          warn_if_default_shadows_custom_domain(default_host, site_host)
         rescue PublicSuffix::DomainInvalid => ex
           OT.le "[middleware] DomainStrategy: Invalid canonical domain: #{canonical_domain.inspect} error=#{ex.message}"
           @domains_enabled = false
         end
 
         # The canonical domain is the configured default domain or the site host.
+        # This remains the PRIMARY display host (display_domain fallback);
+        # classification uses the full canonical set instead.
         # @return [String, nil] The canonical domain or nil
         def get_canonical_domain(domains_config)
           default_domain = domains_enabled ? domains_config.fetch('default') : nil
@@ -401,11 +454,53 @@ module Onetime
           default_domain || site_host
         end
 
+        # Parses each canonical host, skipping unparseable entries (e.g. an IP
+        # literal site.host in dev). The primary host is parsed separately and
+        # still disables domains on failure.
+        def parse_canonical_set(hosts)
+          hosts.filter_map do |host|
+            Parser.parse(host)
+          rescue PublicSuffix::DomainInvalid => ex
+            Onetime.http_logger.debug 'DomainStrategy skipping unparseable canonical host',
+              {
+                host: host,
+                error: ex.message,
+              }
+            nil
+          end
+        end
+
+        # Boot-time drift guard (companion to CustomDomain.overlaps_canonical_domain?,
+        # #3841): registration blocks new domains that collide with canonical hosts,
+        # but nothing stops an operator from later pointing features.domains.default
+        # at an ALREADY-REGISTERED custom domain. Requests to that host classify
+        # :canonical before the custom-domain lookup, so its per-domain brand and
+        # signin configuration silently never apply. Advisory only: never changes
+        # classification and never fails boot (Redis may be unavailable here).
+        def warn_if_default_shadows_custom_domain(default_host, site_host)
+          return if default_host.to_s.empty?
+          return if default_host == site_host
+          return if Onetime::CustomDomain.from_display_domain(default_host).nil?
+
+          OT.le "[middleware] DomainStrategy: features.domains.default #{default_host.inspect} " \
+                'is a registered custom domain; its per-domain brand/signin configuration will be ' \
+                'IGNORED on requests to this host because it classifies as :canonical. ' \
+                'Unset features.domains.default or remove the custom domain registration.'
+        rescue StandardError => ex
+          Onetime.http_logger.debug 'DomainStrategy drift check skipped',
+            {
+              exception: ex,
+              default_host: default_host,
+            }
+        end
+
         def reset!
-          @canonical_domain        = nil
-          @domains_enabled         = nil
-          @canonical_domain_parsed = nil
-          @domain_context_enabled  = nil
+          @canonical_domain         = nil
+          @domains_enabled          = nil
+          @canonical_domain_parsed  = nil
+          @canonical_domains        = nil
+          @canonical_domains_parsed = nil
+          @domain_context_enabled   = nil
         end
       end
 
