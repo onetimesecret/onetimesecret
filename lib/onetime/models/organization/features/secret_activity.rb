@@ -66,8 +66,15 @@ module Onetime::Organization::Features
     # Any org whose accessor already ran has memoized a DataType with the old
     # cap and will NOT pick this up.
     #
+    # Deliberately unrescued: a malformed cap is a configuration error, and
+    # the caller — not this method — owns the fallback policy (the boot
+    # initializer rescues to DEFAULT_MAX_EVENTS). Any future caller passing
+    # unvalidated input (admin endpoint, rake task) must do the same rather
+    # than silently applying a default it did not choose.
+    #
     # @param max_events [Integer] desired cap (newest events retained).
     # @return [Integer] the applied (clamped) cap.
+    # @raise [ArgumentError, TypeError] when max_events is not Integer-able.
     def self.configure!(max_events)
       max = [Integer(max_events), MIN_MAX_EVENTS].max
 
