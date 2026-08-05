@@ -11,6 +11,7 @@
 #   bin/ots customers role demote user@example.com               # Demote to customer
 #   bin/ots customers role list                                  # List all colonels
 #   bin/ots customers role list --role admin                     # List users with specific role
+#   bin/ots customers role reconcile                              # Rebuild the role index from source
 #
 # The actual role mutation + admin audit event is performed by the shared
 # Auth::Operations::Customers::SetRole op (single implementation); this command
@@ -27,7 +28,7 @@ module Onetime
       argument :action,
         type: :string,
         required: true,
-        desc: 'Action to perform: promote, demote, or list'
+        desc: 'Action to perform: promote, demote, list, or reconcile'
 
       argument :email,
         type: :string,
@@ -59,9 +60,11 @@ module Onetime
           demote_customer(email, force)
         when 'list'
           list_customers_by_role(role)
+        when 'reconcile'
+          reconcile_role_index
         else
           puts "Unknown action: #{action}"
-          puts 'Valid actions: promote, demote, list'
+          puts 'Valid actions: promote, demote, list, reconcile'
           exit 1
         end
       end
@@ -148,6 +151,20 @@ module Onetime
 
         puts '-' * 40
         puts "Total: #{customers.size}"
+      end
+
+      # Rebuilds customer:role_index:* from the authoritative `role` field on
+      # every customer record. The index is a derived cache -- targeted
+      # writers (save_fields, multi_field_update, multi_field_fast_write)
+      # persist `role` without going through the full Familia#save path that
+      # maintains the index, so a customer's role and its index membership
+      # can drift apart silently (#3974). This does not affect authorization
+      # (authorization_policies.rb reads the field directly), only the
+      # trustworthiness of `role list` / `colonel_count` as an audit tool.
+      def reconcile_role_index
+        puts 'Rebuilding customer role index from source (customer.role field)...'
+        processed = Onetime::Customer.rebuild_role_index
+        puts "Done: #{processed} customers scanned."
       end
 
       def validate_email_provided!(email, action)
