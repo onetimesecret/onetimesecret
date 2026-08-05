@@ -200,12 +200,12 @@
   // Track selected action from SplitButton
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
-  // Recipient field shows in create-link mode unless ui.capabilities.recipient
-  // is explicitly disabled. An unset flag is treated as enabled (config default).
+  // Recipient field shows in both modes unless ui.capabilities.recipient is
+  // explicitly disabled. An unset flag is treated as enabled (config default).
+  // Generated passwords are mailed too, so hiding the field in generate mode
+  // silently dropped the only way to reach the recipient.
   const { uiCapabilities } = storeToRefs(bootstrapStore);
-  const showRecipient = computed(
-    () => selectedAction.value === 'create-link' && uiCapabilities.value?.recipient !== false
-  );
+  const showRecipient = computed(() => uiCapabilities.value?.recipient !== false);
 
   // Platform detection for keyboard hint (desktop only)
   const isDesktop = useMediaQuery('(min-width: 640px)');
@@ -327,36 +327,6 @@
             </div>
           </div>
 
-          <!-- Recipient Field (create-link mode only) -->
-          <div
-            v-if="showRecipient"
-            class="mt-4">
-            <label
-              for="workspace-recipient"
-              class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
-            </label>
-            <div class="relative">
-              <input
-                id="workspace-recipient"
-                :value="form.recipient"
-                type="email"
-                name="recipient[]"
-                autocomplete="email"
-                :placeholder="t('web.COMMON.email_placeholder')"
-                :class="[cornerClass]"
-                class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
-                  py-2.5 pl-4 pr-4 text-sm text-gray-900 placeholder:text-gray-400
-                  transition-colors duration-200
-                  hover:border-gray-300/80 hover:bg-white/90
-                  focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
-                  dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
-                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
-                @input="(e) => operations.updateField('recipient', (e.target as HTMLInputElement).value)" />
-            </div>
-          </div>
-
           <!-- Generate Password display for Generate mode -->
           <div
             v-show="selectedAction === 'generate-password'"
@@ -414,6 +384,40 @@
                 class="mx-auto max-w-md text-gray-600 dark:text-gray-300">
                 {{ t('web.homepage.password_generation_description') }}
               </p>
+            </div>
+          </div>
+
+          <!--
+            Recipient Field, shown in both modes: generated passwords are
+            mailed too. It sits below the content area and the generator panel
+            so the reading order stays "what gets shared" then "who receives it".
+          -->
+          <div
+            v-if="showRecipient"
+            class="mt-4">
+            <label
+              for="workspace-recipient"
+              class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
+              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+            </label>
+            <div class="relative">
+              <input
+                id="workspace-recipient"
+                :value="form.recipient"
+                type="email"
+                name="recipient[]"
+                autocomplete="email"
+                :placeholder="t('web.COMMON.email_placeholder')"
+                :class="[cornerClass]"
+                class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
+                  py-2.5 pl-4 pr-4 text-sm text-gray-900 placeholder:text-gray-400
+                  transition-colors duration-200
+                  hover:border-gray-300/80 hover:bg-white/90
+                  focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
+                  dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
+                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
+                @input="(e) => operations.updateField('recipient', (e.target as HTMLInputElement).value)" />
             </div>
           </div>
         </div>
