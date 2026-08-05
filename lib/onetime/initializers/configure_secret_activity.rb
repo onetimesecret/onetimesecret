@@ -20,6 +20,9 @@ module Onetime
     # not a connection was opened. connect_to_db gates connections, not
     # model loading.
     #
+    # NOTE: configure! mutates Familia::RelatedFieldDefinition.opts — not a
+    # public API. Tracked upstream: https://github.com/delano/familia/issues/390
+    #
     class ConfigureSecretActivity < Onetime::Boot::Initializer
       @provides = [:secret_activity]
 
