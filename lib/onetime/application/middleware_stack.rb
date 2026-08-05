@@ -278,6 +278,28 @@ module Onetime
           # off, so native Rack X-Forwarded-Proto handling is unaffected.
           builder.use Onetime::Middleware::AssumeHttps
 
+          # Built once, shared by both AdminNetworkIsolation (below) and
+          # IPPrivacyMiddleware, so their trusted-proxy resolution can never
+          # drift apart. See ip_privacy_security_config.
+          ip_privacy_config = ip_privacy_security_config
+
+          # Admin network isolation - optional CIDR allowlist for the Colonel
+          # surfaces (/colonel + /api/colonel). No-op unless
+          # site.admin.allowed_cidrs is configured; then a request from
+          # outside the allowlist gets a 404 (indistinguishable-from-absent).
+          #
+          # Mounted BEFORE IPPrivacyMiddleware and given the same security
+          # config so it resolves the REAL client IP itself, rather than the
+          # masked value IPPrivacyMiddleware would otherwise have already
+          # written to REMOTE_ADDR / X-Forwarded-For by the time this ran. An
+          # allowlist entry finer than the masking granularity (a /32 or /128
+          # host entry) would otherwise silently never match against the
+          # masked value, or silently over-match the masked block (#3912).
+          # The real IP is used for the containment check only and never
+          # written to env, so the privacy contract is unaffected.
+          logger.debug 'Setting up Admin Network Isolation middleware'
+          builder.use Onetime::Middleware::AdminNetworkIsolation, ip_privacy_config
+
           # IP Privacy - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
           # Uses Otto's privacy middleware as a standalone Rack component.
@@ -288,7 +310,6 @@ module Onetime
           # visitor IP from every downstream consumer (ban checks, sessions,
           # identity resolution, the Colonel "current IP" panel). See
           # ip_privacy_security_config.
-          ip_privacy_config = ip_privacy_security_config
           logger.debug 'Setting up IP Privacy middleware',
             {
               note: 'masks public and private IPs',
@@ -313,14 +334,6 @@ module Onetime
           # Health endpoint access control - restrict to localhost/private networks
           logger.debug 'Setting up Health Access Control middleware'
           builder.use Onetime::Middleware::HealthAccessControl
-
-          # Admin network isolation - optional CIDR allowlist for the Colonel
-          # surfaces (/colonel + /api/colonel). No-op unless
-          # site.admin.allowed_cidrs is configured; then a request from outside
-          # the allowlist gets a 404 (indistinguishable-from-absent). Runs after
-          # IP privacy so it can use the trusted-proxy-resolved client IP.
-          logger.debug 'Setting up Admin Network Isolation middleware'
-          builder.use Onetime::Middleware::AdminNetworkIsolation
 
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
