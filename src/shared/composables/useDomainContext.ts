@@ -70,7 +70,10 @@ function getConfig() {
   const store = getBootstrapStore();
   return {
     domainsEnabled: store.domains_enabled,
-    canonicalDomain: store.site_host,
+    // canonical_domain is the canonical LINK domain (DEFAULT_DOMAIN, resolved
+    // server-side as default||site.host). site_host is the app's own hostname
+    // and may differ; fall back to it only for older bootstrap payloads.
+    canonicalDomain: store.canonical_domain || store.site_host,
     displayDomain: store.display_domain,
     serverDomainContext: store.domain_context,
     domainStrategy: store.domain_strategy,

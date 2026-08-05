@@ -144,6 +144,7 @@ describe('useDomainContext', () => {
   function setupBootstrapStore(config: {
     domains_enabled?: boolean;
     site_host?: string;
+    canonical_domain?: string;
     display_domain?: string;
     custom_domains?: string[];
     domain_strategy?: 'canonical' | 'subdomain' | 'custom' | 'invalid';
@@ -157,6 +158,8 @@ describe('useDomainContext', () => {
     const bootstrapStore = useBootstrapStore();
     bootstrapStore.domains_enabled = config.domains_enabled ?? true;
     bootstrapStore.site_host = config.site_host ?? 'onetimesecret.com';
+    // Schema default is '' (older payloads omit it) - only set when provided
+    bootstrapStore.canonical_domain = config.canonical_domain ?? '';
     bootstrapStore.display_domain = config.display_domain ?? config.site_host ?? 'onetimesecret.com';
     bootstrapStore.custom_domains = config.custom_domains ?? [];
     bootstrapStore.domain_strategy = config.domain_strategy ?? 'canonical';
@@ -316,6 +319,76 @@ describe('useDomainContext', () => {
 
       expect(currentContext.value.domain).toBe('onetimesecret.com');
       expect(isContextActive.value).toBe(true);
+    });
+  });
+
+  describe('canonical link domain source', () => {
+    // The canonical entry represents the share-LINK domain (DEFAULT_DOMAIN,
+    // resolved server-side as default||site.host and exposed as
+    // canonical_domain), not the app's own hostname (site_host).
+
+    it('uses canonical_domain for the default entry when it differs from site_host', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'eu.onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.displayName).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+      expect(availableDomains.value).toContain('onetimesecret.com');
+      expect(availableDomains.value).not.toContain('eu.onetimesecret.com');
+    });
+
+    it('falls back to site_host when canonical_domain is absent (older payloads)', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        canonical_domain: '',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
+
+      await waitForInit();
+
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+    });
+
+    it('marks custom domains non-canonical against canonical_domain, not site_host', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'eu.onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
+
+      await waitForInit();
+
+      // Custom domain preferred on init
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
+
+      await setContext('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
     });
   });
 
