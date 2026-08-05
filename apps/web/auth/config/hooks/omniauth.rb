@@ -704,6 +704,16 @@ module Auth::Config::Hooks
         signup_domain_id = custom_domain&.identifier
 
         # Create Customer record (same as regular signup)
+        #
+        # verified: true when the Rodauth account is already status=Verified
+        # (status_id == 2) — the IdP asserted the email, so Rodauth creates
+        # the account pre-verified and never fires after_verify_account (the
+        # hook that flips this flag for password signups). Hardcoding false
+        # unconditionally here left every SSO-provisioned customer unable to
+        # exercise any system role, since has_system_role? gates on
+        # verified? before it checks the role field (#3973). 'sso' keeps the
+        # provenance distinguishable from 'email'/'invite_token' — a
+        # federated assertion is a different kind of proof.
         customer = Onetime::ErrorHandler.safe_execute(
           'create_customer_omniauth',
           account_id: account_id,
@@ -715,6 +725,8 @@ module Auth::Config::Hooks
             db: db,
             provisioning_origin: 'sso_jit',
             signup_domain_id: signup_domain_id,
+            verified: account[:status_id] == 2,
+            verified_by: 'sso',
           ).call
         end
 
