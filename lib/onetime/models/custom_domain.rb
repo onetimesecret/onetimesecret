@@ -1052,15 +1052,23 @@ module Onetime
         PublicSuffix.valid?(input, default_rule: nil)
       end
 
-      # Whether the input is exactly the configured site host. Narrower
-      # than overlaps_canonical_domain? by design: callers (e.g.
-      # share_domain filtering) ask "is this THE site host?", not "does
-      # this collide with any canonical host or subdomain thereof?".
+      # Whether the input is exactly one of the canonical hosts
+      # (site.host or features.domains.default). Narrower than
+      # overlaps_canonical_domain? by design: exact match only, no
+      # base-domain overlap. Callers (e.g. share_domain filtering) ask
+      # "is this THE default domain?", not "does this collide with any
+      # canonical host or subdomain thereof?". Covers both canonical
+      # hosts so a split deployment (site.host=api.example.com,
+      # domains.default=secrets.example.com) filters the default link
+      # domain the same way the DomainStrategy middleware classifies it.
       def default_domain?(input)
         display_domain = Onetime::CustomDomain.display_domain(input)
-        site_host      = OT.conf.dig('site', 'host')
-        OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
-        display_domain.eql?(site_host)
+        hosts          = canonical_hosts
+        OT.ld "[CustomDomain.default_domain?] #{display_domain} in #{hosts.inspect}"
+        hosts.any? do |host|
+          # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
+          display_domain.eql?(host.split(':').first.to_s.downcase)
+        end
       rescue PublicSuffix::Error => ex
         OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}"
         false
@@ -1083,11 +1091,8 @@ module Onetime
       # Placed before entitlement checks in AddDomain so it is absolute
       # (no colonel bypass) — this is a system-integrity invariant.
       def overlaps_canonical_domain?(input)
-        canonical_hosts = [
-          OT.conf&.dig('site', 'host'),
-          OT.conf&.dig('features', 'domains', 'default'),
-        ].map(&:to_s).reject(&:empty?)
-        return false if canonical_hosts.empty?
+        hosts = canonical_hosts
+        return false if hosts.empty?
 
         # Control characters are invalid in domain names (RFC 952/1123).
         # Treat as overlap to block registration -- a domain that cannot
@@ -1102,7 +1107,7 @@ module Onetime
         input_display = display_domain(input)
         input_base    = base_domain(input)
 
-        canonical_hosts.any? do |host|
+        hosts.any? do |host|
           # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
           bare_host = host.split(':').first.to_s.downcase
           next true if input_display.eql?(bare_host)
@@ -1119,6 +1124,20 @@ module Onetime
         OT.le "[CustomDomain.overlaps_canonical_domain?] #{ex.message} for `#{input}`"
         true
       end
+
+      # Canonical hosts for this deployment, in precedence order:
+      # site.host, then features.domains.default (nil/empty rejected,
+      # deduped). Single source of truth for default_domain? and
+      # overlaps_canonical_domain? — the DomainStrategy middleware derives
+      # its canonical set from the same two config values, and models read
+      # config directly rather than depending on the middleware.
+      def canonical_hosts
+        [
+          OT.conf&.dig('site', 'host'),
+          OT.conf&.dig('features', 'domains', 'default'),
+        ].map(&:to_s).reject(&:empty?).uniq
+      end
+      private :canonical_hosts
 
       # ASCII control characters (0x00-0x1F, 0x7F) are invalid in domain
       # names per RFC 952/1123. PublicSuffix does not reject them, so we

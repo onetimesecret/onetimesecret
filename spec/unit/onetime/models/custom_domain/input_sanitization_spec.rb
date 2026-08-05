@@ -212,6 +212,111 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
   end
 
   # ------------------------------------------------------------------ #
+  # default_domain? — exact-match filter used by share_domain handling.
+  # Covers BOTH canonical hosts (site.host and features.domains.default)
+  # so a split deployment filters its default link domain the same way
+  # the DomainStrategy middleware classifies it, while staying narrower
+  # than overlaps_canonical_domain? (no base-domain overlap).
+  # ------------------------------------------------------------------ #
+
+  describe '.default_domain?' do
+    before do
+      allow(OT).to receive(:conf).and_return({
+        'site' => { 'host' => 'example.com' }
+      })
+    end
+
+    context 'with only site.host configured' do
+      it 'matches the site host exactly' do
+        expect(described_class.default_domain?('example.com')).to be true
+      end
+
+      it 'normalizes casing' do
+        expect(described_class.default_domain?('EXAMPLE.COM')).to be true
+      end
+
+      it 'normalizes a trailing dot' do
+        expect(described_class.default_domain?('example.com.')).to be true
+      end
+
+      it 'does not match a subdomain of the site host (exact match only)' do
+        expect(described_class.default_domain?('sub.example.com')).to be false
+      end
+
+      it 'does not match an unrelated domain' do
+        expect(described_class.default_domain?('other-site.org')).to be false
+      end
+    end
+
+    context 'when site.host carries a port' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'example.com:443' }
+        })
+      end
+
+      it 'strips the port before comparing' do
+        expect(described_class.default_domain?('example.com')).to be true
+      end
+    end
+
+    # Split deployment: the site host serves the app while a distinct
+    # default link domain serves secret links. Both are canonical for
+    # the DomainStrategy middleware, so both must be filtered here.
+    context 'when features.domains.default differs from site.host' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'api.example.com' },
+          'features' => { 'domains' => { 'default' => 'secrets.example.com' } },
+        })
+      end
+
+      it 'matches the default link domain' do
+        expect(described_class.default_domain?('secrets.example.com')).to be true
+      end
+
+      it 'still matches the site host' do
+        expect(described_class.default_domain?('api.example.com')).to be true
+      end
+
+      it 'does not match a sibling subdomain (no base-domain overlap)' do
+        expect(described_class.default_domain?('other.example.com')).to be false
+      end
+
+      it 'does not match the shared base domain' do
+        expect(described_class.default_domain?('example.com')).to be false
+      end
+    end
+
+    context 'when features.domains.default is empty' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'example.com' },
+          'features' => { 'domains' => { 'default' => '' } },
+        })
+      end
+
+      it 'still matches the site host' do
+        expect(described_class.default_domain?('example.com')).to be true
+      end
+
+      it 'does not match an unrelated domain' do
+        expect(described_class.default_domain?('other-site.org')).to be false
+      end
+    end
+
+    context 'when no canonical hosts are configured' do
+      before do
+        allow(OT).to receive(:conf).and_return({})
+      end
+
+      it 'returns false' do
+        expect(described_class.default_domain?('example.com')).to be false
+      end
+    end
+  end
+
+  # ------------------------------------------------------------------ #
   # create! backstop — the write gate enforces the canonical invariant
   # itself, so console/CLI callers can't bypass the endpoint guard (#3841).
   # The guard raises before any Redis access.
