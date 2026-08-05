@@ -289,6 +289,18 @@ const organizationFeaturesInner = z.object({
   audit_logs_enabled: z.boolean().default(true),
 });
 
+// Same cascade-default workaround as organizationFeaturesInner above.
+const secretActivityFeaturesInner = z.object({
+  // Default-ON: collection only stops on an explicit false — set via
+  // SECRET_ACTIVITY_COLLECT=false (GDPR data minimization, #3990). Absent
+  // (older backends without the flag) keeps events being recorded.
+  collect_enabled: z.boolean().default(true),
+  // Operator-configured retention cap (SECRET_ACTIVITY_MAX_EVENTS); the
+  // backend clamps to a floor of 100 at read time, so a positive int is
+  // the whole wire contract here.
+  max_events: z.number().int().positive().default(10000),
+});
+
 export const featuresSchema = z.object({
   markdown: z.boolean().default(false),
   // Sign-in availability for the current domain context (AND of global
@@ -307,6 +319,7 @@ export const featuresSchema = z.object({
   restrict_to: z.enum(['password', 'email_auth', 'webauthn', 'sso']).nullable().optional(),
   magic_links: z.boolean().optional(),
   organizations: organizationFeaturesInner.default(organizationFeaturesInner.parse({})),
+  secret_activity: secretActivityFeaturesInner.default(secretActivityFeaturesInner.parse({})),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
