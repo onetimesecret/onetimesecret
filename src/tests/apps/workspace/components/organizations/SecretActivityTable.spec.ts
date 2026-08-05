@@ -15,6 +15,10 @@
 import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { ref } from 'vue';
+import { createI18n } from 'vue-i18n';
 import { createTestI18n } from '@tests/setup';
 
 // ─── HTTP layer ──────────────────────────────────────────────────────────────
@@ -22,6 +26,16 @@ const mockApi = {
   get: vi.fn(),
 };
 vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
+
+// ─── Instance flags (#3990) ──────────────────────────────────────────────────
+// Collection axis + retention cap, both from the bootstrap features payload.
+// Defaults mirror the wire contract: collect on, cap 10,000.
+const mockCollectEnabled = ref(true);
+const mockMaxEvents = ref(10_000);
+vi.mock('@/utils/features', () => ({
+  isSecretActivityCollectEnabled: () => mockCollectEnabled.value,
+  getSecretActivityMaxEvents: () => mockMaxEvents.value,
+}));
 
 // Deterministic classifier output so the error banner's detail line is
 // assertable without pulling the whole error-classification module in.
@@ -140,6 +154,8 @@ describe('SecretActivityTable', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCollectEnabled.value = true;
+    mockMaxEvents.value = 10_000;
     // Default: one burned event on page 1.
     respondWith(buildResponse());
   });
@@ -566,6 +582,91 @@ describe('SecretActivityTable', () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+    });
+
+    it('honors a non-default operator-configured cap (#3990)', async () => {
+      mockMaxEvents.value = 500;
+      respondWith(buildResponse({ records: [buildEvent()], total: 500 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(true);
+    });
+
+    it('does not treat 10,000 as capped when the configured cap is higher', async () => {
+      mockMaxEvents.value = 50_000;
+      respondWith(buildResponse({ records: [buildEvent()], total: 10_000 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+    });
+
+    /**
+     * The notice states a retention number, so it must state the CONFIGURED
+     * one — the pre-#3990 string hardcoded "10,000" and lied on every instance
+     * running a different cap. Mounted against the REAL generated bundle (not
+     * the pass-through i18n, and not hand-typed copy) so the assertion tests
+     * the wiring: drop the `{ max }` argument and vue-i18n renders a silent
+     * double-space sentence rather than a visible `{max}`, which only the
+     * shipped string can catch.
+     *
+     * The cap is 10,000 rather than a small number so the thousands separator
+     * from toLocaleString() is part of the contract under test.
+     */
+    it('interpolates the configured cap into the capped notice (#3990)', async () => {
+      const realEn = JSON.parse(
+        readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+      );
+      const realI18n = createI18n({ legacy: false, locale: 'en', messages: { en: realEn } });
+
+      mockMaxEvents.value = 10_000;
+      respondWith(buildResponse({ records: [buildEvent()], total: 10_000 }));
+
+      wrapper = mount(SecretActivityTable, {
+        props: { orgExtid: 'on1abc123' },
+        global: { plugins: [realI18n] },
+      });
+      await flushPromises();
+
+      const text = wrapper.find('[data-testid="org-audit-capped"]').text();
+      // Locale-independent: whatever separator the runtime picks, the notice
+      // must carry the formatted cap the helper produced.
+      expect(text).toContain((10_000).toLocaleString());
+      expect(text).not.toContain('{max}');
+    });
+  });
+
+  describe('collection-paused notice (#3990)', () => {
+    it('renders the paused banner above a populated trail when collection is off', async () => {
+      mockCollectEnabled.value = false;
+
+      wrapper = await mountComponent();
+
+      const notice = wrapper.find('[data-testid="org-audit-paused"]');
+      expect(notice.exists()).toBe(true);
+      expect(notice.text()).toContain('web.organizations.audit.collection_paused_notice');
+      // Historical events keep rendering — the banner warns the trail is
+      // frozen, it does not hide it.
+      expect(wrapper.find('[data-testid="org-audit-table"]').exists()).toBe(true);
+    });
+
+    it('renders the paused banner alongside the empty state (frozen ≠ no activity yet)', async () => {
+      mockCollectEnabled.value = false;
+      respondWith(buildResponse({ records: [], total: 0 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-paused"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="org-audit-empty"]').exists()).toBe(true);
+    });
+
+    it('hides the paused banner when collection is on', async () => {
+      mockCollectEnabled.value = true;
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-paused"]').exists()).toBe(false);
     });
   });
 
