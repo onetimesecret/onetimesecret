@@ -43,13 +43,13 @@ describe('secretOptionBoundariesShape — TTL bounds', () => {
     expect(() => secretOptionBoundariesShape.parse({ ttl_options: [30] })).toThrow();
   });
 
-  it('rejects ttl_options entries above 30 days', () => {
-    expect(() => secretOptionBoundariesShape.parse({ ttl_options: [2592001] })).toThrow();
+  it('rejects ttl_options entries above 365 days', () => {
+    expect(() => secretOptionBoundariesShape.parse({ ttl_options: [31536001] })).toThrow();
   });
 
-  it('accepts boundary values 60s and 30 days', () => {
-    const result = secretOptionBoundariesShape.parse({ ttl_options: [60, 2592000] });
-    expect(result.ttl_options).toEqual([60, 2592000]);
+  it('accepts boundary values 60s and 365 days', () => {
+    const result = secretOptionBoundariesShape.parse({ ttl_options: [60, 31536000] });
+    expect(result.ttl_options).toEqual([60, 31536000]);
   });
 
   it('rejects non-positive default_ttl', () => {

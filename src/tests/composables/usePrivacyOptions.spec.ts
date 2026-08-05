@@ -176,8 +176,9 @@ describe('usePrivacyOptions', () => {
       expect(values()).toEqual([]);
     });
 
-    it('still applies the 30-day global cap', () => {
-      setupStore({ ttl_options: [WEEK, THIRTY_DAYS + 1], ttl_max_anonymous: null });
+    it('still applies the global safety cap (1 year + 50% grace)', () => {
+      const ONE_YEAR_PLUS_GRACE = Math.floor(3600 * 24 * 365 * 1.5);
+      setupStore({ ttl_options: [WEEK, ONE_YEAR_PLUS_GRACE + 1], ttl_max_anonymous: null });
 
       expect(values()).toEqual([WEEK]);
     });
