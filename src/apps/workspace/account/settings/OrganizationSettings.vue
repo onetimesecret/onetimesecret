@@ -712,8 +712,11 @@
     // Redirect away from entitlement-gated tabs the user can't access
     // (e.g. direct URL navigation to /org/.../members without manage_members).
     // 'activity' is entitlement-exempt (deep links land; the panel swaps in an
-    // upgrade notice when unentitled) but IS gated on the instance flag: when
-    // ORGS_AUDIT_LOGS_ENABLED=false the tab doesn't exist, so deep links bounce.
+    // upgrade notice when unentitled). Its instance-flag clause below is
+    // unreachable in practice — resolveInitialTab() rejects a flag-off
+    // /activity deep link synchronously during setup, and the route watcher
+    // bounces later navigations — so it stands as defense in depth against a
+    // future path that seats activeTab without passing either gate.
     if (
       (activeTab.value === 'members' && !canManageMembers.value) ||
       (activeTab.value === 'sso' && !canManageSso.value) ||
