@@ -57,8 +57,13 @@ module Core
         output['regions_enabled'] = regions.fetch('enabled', false)
         output['regions']         = transform_regions(regions) if output['regions_enabled']
 
+        # Only send the allowlisted domains fields when the feature is enabled.
+        # The raw config subtree also carries the Approximated credentials
+        # (approximated.api_key et al.) and the internal ACME listener — the
+        # DNS proxy targets a domain owner needs are served by the
+        # authenticated domains API via DomainValidation::Features.safe_dump.
         output['domains_enabled'] = domains.fetch('enabled', false)
-        output['domains']         = domains if output['domains_enabled']
+        output['domains']         = transform_domains(domains) if output['domains_enabled']
 
         # Link to the pricing page can be seen regardless of authentication status
         output['billing_enabled'] = OT.billing_config.enabled?
@@ -259,7 +264,27 @@ module Core
               # 'false' (quoted/ERB-stringified) still disables the flag.
               'audit_logs_enabled' => features.dig('organizations', 'audit_logs_enabled').to_s != 'false',
             },
+            'secret_activity' => {
+              # Same default-true contract as audit_logs_enabled above: only
+              # an explicit false pauses collection; compare on the string
+              # form for quoted/ERB-stringified 'false'. This is the
+              # data-existence axis — audit_logs_enabled is UI exposure.
+              'collect_enabled' => features.dig('secret_activity', 'collect').to_s != 'false',
+              'max_events' => resolve_secret_activity_max_events(features),
+            },
           }
+        end
+
+        # The retention cap actually enforced on the org trail: mirrors the
+        # boot-time coercion (ConfigureSecretActivity) and clamp
+        # (SecretActivity.configure!) so the UI never advertises a cap the
+        # backend ignored.
+        def resolve_secret_activity_max_events(features)
+          feature = Onetime::Organization::Features::SecretActivity
+          max     = Integer(features.dig('secret_activity', 'max_events'))
+          [max, feature::MIN_MAX_EVENTS].max
+        rescue ArgumentError, TypeError
+          Onetime::Organization::Features::SecretActivity::DEFAULT_MAX_EVENTS
         end
 
         # Resolve restrict_to for the current request context.
@@ -491,6 +516,26 @@ module Core
                 'display_name' => config.display_name.to_s,
               },
             ],
+          }
+        end
+
+        # Transform domains config for frontend consumption
+        #
+        # Allowlist, not blocklist: the features.domains subtree includes the
+        # Approximated proxy credentials and the internal ACME endpoint
+        # config, which must never reach the bootstrap payload. The frontend
+        # consumes validation_strategy (src/utils/features.ts) and the
+        # optional require_verified/default fields; everything else stays
+        # server-side.
+        #
+        # @param domains [Hash] Raw domains config from features
+        # @return [Hash] Frontend-safe domains fields
+        def transform_domains(domains)
+          {
+            'enabled' => domains.fetch('enabled', false),
+            'require_verified' => domains.fetch('require_verified', false),
+            'default' => domains['default'],
+            'validation_strategy' => domains.fetch('validation_strategy', 'passthrough'),
           }
         end
 

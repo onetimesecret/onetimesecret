@@ -65,36 +65,15 @@ const featuresRegionsSchema = z.object({
 });
 
 /**
- * Domain proxy configuration (for approximated strategy)
- */
-const featuresDomainsProxySchema = z.object({
-  api_key: nullableString,
-  proxy_ip: nullableString,
-  proxy_host: nullableString,
-  proxy_name: nullableString,
-  vhost_target: nullableString,
-});
-
-/**
- * ACME endpoint configuration (for caddy_on_demand strategy)
- *
- * `port` accepts string or number: the shipped YAML uses
- * `<%= ENV['ACME_PORT'] || '12020' %>`, which renders to the bareword
- * `12020`, and YAML auto-coerces that to an integer at parse time.
- * Both representations are semantically the same TCP port.
- */
-const featuresDomainsAcmeSchema = z.object({
-  enabled: z.boolean().optional(),
-  listen_address: z.string().optional(),
-  port: z.union([z.string(), z.number()]).optional(),
-});
-
-/**
  * Domains feature configuration
  *
- * Field names mirror `features.domains` in etc/defaults/config.defaults.yaml.
- * The bootstrap payload is the raw Ruby hash (see ConfigSerializer), so any
- * rename here must be applied on the Ruby side as well.
+ * Allowlisted subset of `features.domains` from
+ * etc/defaults/config.defaults.yaml, serialized by
+ * ConfigSerializer#transform_domains — any rename here must be applied on
+ * the Ruby side as well. The `approximated` (proxy credentials) and `acme`
+ * (internal listener) blocks are server-side only and must never appear in
+ * a client-facing payload — do not re-add them here; per-domain DNS targets
+ * come from the authenticated domains API.
  */
 const featuresDomainsSchema = z.object({
   enabled: z.boolean().optional(),
@@ -103,8 +82,6 @@ const featuresDomainsSchema = z.object({
   validation_strategy: z
     .enum(['passthrough', 'approximated', 'caddy_on_demand'])
     .optional(),
-  approximated: featuresDomainsProxySchema.optional(),
-  acme: featuresDomainsAcmeSchema.optional(),
 });
 
 /**
@@ -121,6 +98,4 @@ export {
   featuresRegionsSchema,
   featuresIncomingSchema,
   featuresDomainsSchema,
-  featuresDomainsProxySchema,
-  featuresDomainsAcmeSchema,
 };

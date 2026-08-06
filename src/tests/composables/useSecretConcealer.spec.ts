@@ -136,6 +136,23 @@ describe('useSecretConcealer', () => {
 
       expect(vi.mocked(useSecretStore)).toHaveBeenCalled();
     });
+
+    it('rejects generate submission with a malformed recipient email', async () => {
+      const store = {
+        conceal: vi.fn(),
+        generate: vi.fn(),
+        setApiMode: vi.fn(),
+      };
+      vi.mocked(useSecretStore).mockReturnValue(store);
+
+      const { form, operations, submit } = useSecretConcealer();
+      operations.updateField('recipient', 'not-an-email');
+
+      await submit('generate');
+
+      expect(form.recipient).toBe('not-an-email');
+      expect(store.generate).not.toHaveBeenCalled();
+    });
   });
 
   describe('API mode selection', () => {

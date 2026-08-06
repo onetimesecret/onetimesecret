@@ -45,6 +45,11 @@ const sessionConfigSchema = z.object({
   secure: z.boolean().optional(),
   same_site: z.enum(['strict', 'lax', 'none']).optional(),
   httponly: z.boolean().optional(),
+  /**
+   * Full external paths (SCRIPT_NAME + PATH_INFO) matched EXACTLY, for which
+   * no session is persisted — anonymous probe endpoints only (#3997).
+   */
+  skip_paths: z.array(z.string()).optional(),
 });
 
 /**

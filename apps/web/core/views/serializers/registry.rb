@@ -73,17 +73,28 @@ module Core
               next result
             end
 
-            output.each_key do |key|
-              # Detect keys that are not defined in the serializer output_template
-              unless serializer.output_template.key?(key)
-                app_logger.warn 'Serializer key not in output template',
-                  {
-                    key: key,
-                    serializer: serializer.to_s,
-                    module: 'SerializerRegistry',
-                  }
-              end
+            # Strip keys that are not defined in the serializer
+            # output_template. The template is the output boundary schema: a
+            # key a serializer never declared must not reach the bootstrap
+            # payload, even by accident. This guards top-level keys only —
+            # nested subtrees are each serializer's job to allowlist (e.g.
+            # ConfigSerializer#transform_domains).
+            #
+            # output_template builds a fresh hash on every call, so hoist it
+            # out of the block rather than rebuilding it once per output key.
+            template             = serializer.output_template
+            declared, undeclared = output.partition { |key, _| template.key?(key) }.map(&:to_h)
 
+            undeclared.each_key do |key|
+              app_logger.warn 'Serializer key not in output template; stripped',
+                {
+                  key: key,
+                  serializer: serializer.to_s,
+                  module: 'SerializerRegistry',
+                }
+            end
+
+            declared.each_key do |key|
               # Detect key collisions with output from previous serializers
               if seen_keys.key?(key)
                 app_logger.warn 'Serializer key collision detected',
@@ -98,7 +109,7 @@ module Core
               end
             end
 
-            result.merge(output)
+            result.merge(declared)
           end
         end
 
