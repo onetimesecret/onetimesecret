@@ -114,7 +114,10 @@ export function usePrivacyOptions(formOperations?: {
    * get and are never told about.
    */
   const lifetimeOptions = computed<LifetimeOption[]>(() => {
-    const globalTtl = 3600 * 24 * 30; // 30 days
+    // Mirrors the server's absolute bound (WithEntitlements::MAX_TTL,
+    // 365 days). Real per-caller ceilings arrive via ttlCeiling; this only
+    // drops options the server would refuse on any deployment.
+    const globalTtl = 3600 * 24 * 365;
     const ceiling = ttlCeiling.value;
 
     const available = (secret_options.value?.ttl_options ?? []).filter(

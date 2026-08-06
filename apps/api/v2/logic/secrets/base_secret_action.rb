@@ -125,8 +125,14 @@ module V2::Logic
           require_entitlement!('extended_default_expiration')
         end
 
-        # Apply a global maximum
-        @ttl = 30.days if ttl && ttl >= 30.days
+        # Absolute safety bound: nothing outlives MAX_TTL (365 days). The
+        # real ceilings — plan limit, anonymous cap, config ttl_options —
+        # are enforced by the bounds check below; this clamp exists because
+        # an unlimited plan resolves limit_for to Infinity and the ladder
+        # then has no terminal bound. (A hardcoded 30-day clamp here used
+        # to override all of those ceilings; see #4008.)
+        safety_max = Onetime::Models::Features::WithEntitlements::MAX_TTL
+        @ttl = safety_max if ttl > safety_max
 
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
