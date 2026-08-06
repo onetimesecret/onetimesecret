@@ -63,6 +63,18 @@ const sessionTree: AugmentTree = {
   secure: (b) => b.default(true),
   same_site: (e) => e.default('lax'),
   httponly: (b) => b.default(true),
+  // Anonymous probe endpoints that must not mint a persisted session (#3997).
+  // Exact-match against the full external path; never list
+  // /api/v*/secret/*/status here (capability-token data reads, not probes).
+  skip_paths: (a) =>
+    a.default([
+      '/health',
+      '/health/advanced',
+      '/auth/health',
+      '/api/v1/status',
+      '/api/v2/status',
+      '/api/v3/status',
+    ]),
 };
 
 const cspTree: AugmentTree = {
