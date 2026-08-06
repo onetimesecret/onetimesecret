@@ -161,9 +161,13 @@ module Onetime
     # ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] first, then falls back
     # to billing.yaml 'payment_method_configuration'.
     #
-    # Leave unset to use the Dashboard default.
+    # Leave unset to use the Dashboard default. Blank or whitespace-only
+    # values are treated as unset and return nil; a blank ENV value counts
+    # as explicitly unset and does not fall back to the billing.yaml key.
     def payment_method_configuration
-      ENV.fetch('STRIPE_PAYMENT_METHOD_CONFIGURATION', nil) || config['payment_method_configuration']
+      value = ENV.fetch('STRIPE_PAYMENT_METHOD_CONFIGURATION', nil) || config['payment_method_configuration']
+      value = value.to_s.strip
+      value.empty? ? nil : value
     end
 
     # Schema version
