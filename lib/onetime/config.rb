@@ -141,6 +141,10 @@ module Onetime
             'default_passphrase' => nil,
             'recipients' => [],
           },
+          'secret_activity' => {
+            'collect' => true,
+            'max_events' => 10_000,
+          },
         },
         'internationalization' => {
           'enabled' => false,

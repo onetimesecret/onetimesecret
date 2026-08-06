@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import { SECRET_ACTIVITY_KINDS, type SecretActivityKind } from '@/schemas/api/organizations';
+import { getSecretActivityMaxEvents, isSecretActivityCollectEnabled } from '@/utils/features';
 import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
@@ -28,6 +29,25 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const orgExtid = toRef(props, 'orgExtid');
+
+/**
+ * Collection paused (#3990): SECRET_ACTIVITY_COLLECT=false stops event
+ * RECORDING instance-wide while historical events keep rendering. The notice
+ * must sit above every state — a live-looking trail (or an innocent-looking
+ * empty state) is a lie of omission when nothing new is being written.
+ * Read once at setup: the instance flag ships in the bootstrap payload and
+ * cannot change without a reload.
+ */
+const collectionPaused = !isSecretActivityCollectEnabled();
+
+/**
+ * Retention cap for the capped notice (#3990). The cap is operator-
+ * configurable, so the notice interpolates it — a hardcoded "10,000" would
+ * state a false retention claim on an instance configured to anything else.
+ * Read once at setup alongside collectionPaused: same bootstrap snapshot,
+ * same reload-to-change lifetime.
+ */
+const maxEventsLabel = getSecretActivityMaxEvents().toLocaleString();
 
 const {
   records,
@@ -161,6 +181,23 @@ watch(orgExtid, () => {
 
 <template>
   <div>
+    <!--
+      Collection-paused notice (#3990) — warning tone, rendered above every
+      state: historical events still display while nothing new is recorded,
+      so a live-looking trail (or the empty state) must not read as current.
+    -->
+    <div
+      v-if="collectionPaused"
+      data-testid="org-audit-paused"
+      class="mb-4 flex items-center gap-2 rounded-md bg-amber-50 px-4 py-2.5 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+      <OIcon
+        collection="heroicons"
+        name="pause-circle"
+        class="size-4 shrink-0"
+        aria-hidden="true" />
+      {{ t('web.organizations.audit.collection_paused_notice') }}
+    </div>
+
     <!-- Loading State — initial fetch only; refetches keep their state mounted -->
     <TableSkeleton v-if="showSkeleton" />
 
@@ -226,7 +263,7 @@ watch(orgExtid, () => {
 
     <!-- Event List -->
     <div v-else>
-      <!-- Retention-cap notice — the trail keeps only the newest 10,000 events -->
+      <!-- Retention-cap notice — the trail keeps only the newest max_events -->
       <div
         v-if="isCapped"
         data-testid="org-audit-capped"
@@ -236,7 +273,7 @@ watch(orgExtid, () => {
           name="information-circle"
           class="size-4 shrink-0"
           aria-hidden="true" />
-        {{ t('web.organizations.audit.capped_notice') }}
+        {{ t('web.organizations.audit.capped_notice', { max: maxEventsLabel }) }}
       </div>
 
       <!--

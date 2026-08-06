@@ -17,6 +17,7 @@ require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
 require_relative '../middleware/retry_after_header'
 require_relative '../middleware/entitlement_preview_context'
+require_relative '../middleware/session_skip'
 require 'otto'
 
 module Onetime
@@ -362,6 +363,13 @@ module Onetime
               secure: session_config['secure'],
               same_site: session_config['same_site'].to_sym,
             }
+
+          # Suppress session persistence for anonymous probe endpoints (#3997).
+          # Must come after Onetime::Session so env['rack.session.options']
+          # already exists to be mutated. Exact, mount-aware path matching —
+          # see Onetime::Middleware::SessionSkip.
+          builder.use Onetime::Middleware::SessionSkip,
+            skip_paths: session_config['skip_paths']
 
           # Identity resolution middleware (after session)
           builder.use Onetime::Middleware::IdentityResolution

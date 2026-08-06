@@ -40,8 +40,6 @@ export {
   featuresRegionsShape,
   featuresIncomingShape,
   featuresDomainsShape,
-  featuresDomainsProxyShape,
-  featuresDomainsAcmeShape,
 } from './section/features';
 
 export { i18nShape } from './section/i18n';

@@ -17,6 +17,8 @@ import {
   isOrganizationSwitcherEnabled,
   isOrgsSsoEnabled,
   isOrgsAuditLogsEnabled,
+  isSecretActivityCollectEnabled,
+  getSecretActivityMaxEvents,
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
   isOwnerOrAdminOf,
@@ -880,6 +882,128 @@ describe('features utility', () => {
       const result = isOrgsAuditLogsEnabled();
 
       expect(result).toBe(false);
+    });
+  });
+
+  // Collection axis (#3990) — default-ON like isOrgsAuditLogsEnabled: only an
+  // explicit `false` (SECRET_ACTIVITY_COLLECT=false) pauses collection.
+  describe('isSecretActivityCollectEnabled', () => {
+    it('returns true when secret_activity.collect_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { collect_enabled: true } });
+
+      const result = isSecretActivityCollectEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when secret_activity.collect_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { collect_enabled: false } });
+
+      const result = isSecretActivityCollectEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when secret_activity object is empty (absent key = default ON)', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: {} });
+
+      const result = isSecretActivityCollectEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when secret_activity is undefined (older backend)', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isSecretActivityCollectEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when features object is undefined (no bootstrap key)', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isSecretActivityCollectEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when collect_enabled is null (only literal false disables)', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { collect_enabled: null } });
+
+      const result = isSecretActivityCollectEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for non-boolean values (fail-open by design)', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { collect_enabled: 'no' } });
+
+      const result = isSecretActivityCollectEnabled();
+
+      expect(result).toBe(true);
+    });
+  });
+
+  // Retention cap (#3990) — anything absent, non-numeric, or non-positive
+  // falls back to the 10,000 default; only a positive integer passes through.
+  describe('getSecretActivityMaxEvents', () => {
+    it('returns the configured cap when max_events is a positive integer', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { max_events: 500 } });
+
+      const result = getSecretActivityMaxEvents();
+
+      expect(result).toBe(500);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns 10000 when secret_activity is undefined (older backend)', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = getSecretActivityMaxEvents();
+
+      expect(result).toBe(10_000);
+    });
+
+    it('returns 10000 when features object is undefined (no bootstrap key)', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = getSecretActivityMaxEvents();
+
+      expect(result).toBe(10_000);
+    });
+
+    it('returns 10000 when max_events is absent from secret_activity', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { collect_enabled: true } });
+
+      const result = getSecretActivityMaxEvents();
+
+      expect(result).toBe(10_000);
+    });
+
+    it('returns 10000 for a non-numeric value', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { max_events: 'lots' } });
+
+      const result = getSecretActivityMaxEvents();
+
+      expect(result).toBe(10_000);
+    });
+
+    it('returns 10000 for zero and negative values', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { max_events: 0 } });
+      expect(getSecretActivityMaxEvents()).toBe(10_000);
+
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { max_events: -5 } });
+      expect(getSecretActivityMaxEvents()).toBe(10_000);
+    });
+
+    it('returns 10000 for a non-integer value', () => {
+      getBootstrapValueMock.mockReturnValue({ secret_activity: { max_events: 99.5 } });
+
+      const result = getSecretActivityMaxEvents();
+
+      expect(result).toBe(10_000);
     });
   });
 

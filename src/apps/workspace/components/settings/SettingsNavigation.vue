@@ -87,7 +87,7 @@ const isParentActive = (item: SettingsNavigationItem): boolean => {
                 'size-5 transition-colors',
                 isParentActive(item)
                   ? 'text-brand-600 dark:text-brand-400'
-                  : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400',
+                  : 'text-gray-500 group-hover:text-gray-600 dark:text-gray-400 dark:group-hover:text-gray-300',
               ]"
               aria-hidden="true" />
             <span class="flex-1">{{ item.label }}</span>
@@ -119,7 +119,7 @@ const isParentActive = (item: SettingsNavigationItem): boolean => {
                   'size-4',
                   isActiveRoute(child.to)
                     ? 'text-brand-600 dark:text-brand-400'
-                    : 'text-gray-400 dark:text-gray-500',
+                    : 'text-gray-500 dark:text-gray-400',
                 ]"
                 aria-hidden="true" />
               {{ child.label }}

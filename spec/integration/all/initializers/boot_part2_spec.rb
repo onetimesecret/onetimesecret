@@ -212,6 +212,18 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         expect(initializer).not_to be_nil
         expect(initializer.completed?).to be true
       end
+
+      it "pins the crypto domain-separation config to the byte-compatible values" do
+        # Regression pin for issue #3630 (familia 2.12 read-side prep): these
+        # values determine whether existing ciphertext stays decryptable. The
+        # v0.27.0 write-side rotation flip must consciously edit this spec; no
+        # gem bump or initializer refactor may drift them silently.
+        Onetime.boot!(:test)
+
+        expect(Familia.config.encryption_personalization).to eq('FamilialMatters')
+        expect(Familia.config.encryption_hkdf_salt).to eq('FamiliaEncryption')
+        expect(Familia.config.encryption_hkdf_salt_history).to eq(['FamilialMatters'])
+      end
     end
 
     context "regarding error handling" do
