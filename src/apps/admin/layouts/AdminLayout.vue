@@ -99,7 +99,7 @@
         <span class="flex flex-col leading-none group-hover:hidden">
           <span class="font-brand text-lg font-bold tracking-tight">{{ t('web.colonel.admin') }}</span>
           <span
-            class="mt-1 font-brand text-[10px] font-semibold tracking-[0.2em] text-gray-400 uppercase dark:text-gray-500">
+            class="mt-1 font-brand text-[10px] font-semibold tracking-[0.2em] text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.colonel.nav.consoleTag') }}
           </span>
         </span>
@@ -122,7 +122,7 @@
                (Overview pinned top, broadcast lever floating bottom). -->
           <p
             v-if="band.labelKey"
-            class="px-3 pt-5 pb-1 font-brand text-[11px] font-semibold tracking-[0.15em] text-gray-400 uppercase first:pt-4 dark:text-gray-500">
+            class="px-3 pt-5 pb-1 font-brand text-[11px] font-semibold tracking-[0.15em] text-gray-500 uppercase first:pt-4 dark:text-gray-400">
             {{ t(band.labelKey) }}
           </p>
           <div
@@ -147,7 +147,7 @@
                 :class="
                   route.path === section.to
                     ? 'text-brand-600 dark:text-brand-400'
-                    : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400'
+                    : 'text-gray-500 group-hover:text-gray-600 dark:text-gray-400 dark:group-hover:text-gray-300'
                 " />
               <span class="truncate">{{ t(section.labelKey) }}</span>
             </router-link>
@@ -161,7 +161,7 @@
            product name — to respect the tenant's applied branding. -->
       <a
         href="/"
-        class="flex shrink-0 items-center gap-1.5 border-t border-gray-200 px-5 py-3 text-xs font-medium text-gray-400 transition-colors hover:text-gray-700 dark:border-gray-800 dark:text-gray-500 dark:hover:text-gray-200"
+        class="flex shrink-0 items-center gap-1.5 border-t border-gray-200 px-5 py-3 text-xs font-medium text-gray-500 transition-colors hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
         data-testid="admin-back-to-site">
         <OIcon
           collection="heroicons"
@@ -183,7 +183,7 @@
           :aria-label="t('web.colonel.admin')">
           <router-link
             to="/colonel"
-            class="shrink-0 rounded font-brand font-semibold tracking-wider text-gray-400 uppercase hover:text-gray-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-500 dark:hover:text-gray-300">
+            class="shrink-0 rounded font-brand font-semibold tracking-wider text-gray-500 uppercase hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200">
             {{ t('web.colonel.admin') }}
           </router-link>
           <template v-if="route.meta.title && route.path !== '/colonel'">

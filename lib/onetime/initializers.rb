@@ -19,6 +19,7 @@ require_relative 'initializers/setup_i18n'        # requires: [:i18n]
 require_relative 'initializers/setup_loggers'
 require_relative 'initializers/set_secrets'
 require_relative 'initializers/configure_domains'
+require_relative 'initializers/configure_secret_activity'
 require_relative 'initializers/configure_truemail'
 require_relative 'initializers/configure_rhales'
 require_relative 'initializers/load_fortunes'

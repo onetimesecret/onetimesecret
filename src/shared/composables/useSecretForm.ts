@@ -11,6 +11,7 @@ export interface SecretFormState {
   validation: {
     errors: Map<keyof SecretFormData, string>;
     validate: () => boolean;
+    validateRecipient: () => boolean;
   };
   operations: {
     updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
@@ -146,6 +147,20 @@ export function useSecretForm() {
         }
 
         return errors.size === 0;
+      },
+
+      // Recipient-only check for flows that skip full-form validation (e.g.
+      // generate mode, where `secret` isn't user-typed so the full schema
+      // can't pass). Recipient is still user input in that mode and still
+      // gets mailed, so it needs its own format check.
+      validateRecipient: () => {
+        const result = formSchema.shape.recipient.safeParse(form.recipient);
+        errors.delete('recipient');
+        if (!result.success) {
+          errors.set('recipient', result.error.issues[0]?.message ?? 'Invalid recipient email');
+          return false;
+        }
+        return true;
       },
     },
     operations,

@@ -262,6 +262,65 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
+    # The features.domains config subtree carries the Approximated proxy
+    # credentials (approximated.api_key et al.) and the internal ACME
+    # listener config. The bootstrap payload is served to every visitor, so
+    # the serializer must allowlist the frontend-facing fields instead of
+    # passing the subtree through verbatim. DNS proxy targets for domain
+    # owners are served by the authenticated domains API
+    # (DomainValidation::Features.safe_dump), not the bootstrap.
+    describe 'domains allowlist' do
+      let(:domains_config) do
+        {
+          'enabled' => true,
+          'require_verified' => true,
+          'default' => 'eu.example.com',
+          'validation_strategy' => 'approximated',
+          'approximated' => {
+            'api_key' => 'secret-api-key',
+            'proxy_ip' => '203.0.113.10',
+            'proxy_host' => 'proxy.example.net',
+            'proxy_name' => 'proxy',
+            'vhost_target' => 'target.example.net',
+          },
+          'acme' => {
+            'enabled' => true,
+            'listen_address' => '127.0.0.1',
+            'port' => 12_020,
+          },
+        }
+      end
+
+      let(:domains_view_vars) do
+        base_view_vars.merge(
+          'features' => base_view_vars['features'].merge('domains' => domains_config)
+        )
+      end
+
+      it 'emits only the allowlisted fields' do
+        result = described_class.serialize(domains_view_vars)
+        expect(result['domains']).to eq(
+          'enabled' => true,
+          'require_verified' => true,
+          'default' => 'eu.example.com',
+          'validation_strategy' => 'approximated'
+        )
+      end
+
+      it 'never emits the Approximated credentials or ACME config' do
+        result = described_class.serialize(domains_view_vars)
+        expect(result['domains']).not_to have_key('approximated')
+        expect(result['domains']).not_to have_key('acme')
+        expect(result.to_s).not_to include('secret-api-key')
+      end
+
+      it 'omits the domains key entirely when the feature is disabled' do
+        result = described_class.serialize(base_view_vars)
+        expect(result['domains_enabled']).to be(false)
+        expect(result['domains']).to be_nil
+      end
+    end
+
     describe 'brand_* bootstrap exposure' do
       let(:brand_view_vars) do
         base_view_vars.merge(
@@ -1172,6 +1231,120 @@ RSpec.describe Core::Views::ConfigSerializer do
             result = described_class.build_feature_flags(view_vars_nil_audit_logs)
 
             expect(result['organizations']['audit_logs_enabled']).to be true
+          end
+        end
+      end
+
+      # secret_activity is the data-existence axis (#3990): whether events are
+      # recorded at all (SECRET_ACTIVITY_COLLECT) and how many are retained
+      # (SECRET_ACTIVITY_MAX_EVENTS). Same default-true / opt-out contract as
+      # audit_logs_enabled above, which remains the separate UI-exposure axis.
+      describe 'secret_activity (collection axis + retention cap)' do
+        def view_vars_with_secret_activity(secret_activity)
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge('secret_activity' => secret_activity)
+          )
+        end
+
+        context 'when the key is absent (older config file)' do
+          it 'defaults to collect_enabled true with the 10,000 cap' do
+            result = described_class.build_feature_flags(base_view_vars)
+
+            expect(result['secret_activity']).to eq(
+              'collect_enabled' => true,
+              'max_events' => 10_000,
+            )
+          end
+        end
+
+        describe 'collect_enabled (default-true contract)' do
+          it 'is true when explicitly true' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => true)
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be true
+          end
+
+          it 'is false when explicitly false (operator opt-out)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => false)
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be false
+          end
+
+          # Same hand-edited-config defense as audit_logs_enabled: the string
+          # 'false' must pause the banner-facing flag, or the UI would say
+          # "recording" while the model (which shares the string-compare
+          # idiom) had already paused.
+          it "treats the string 'false' as disabled (hand-edited config)" do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => 'false')
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be false
+          end
+
+          it "stays enabled for the string 'true'" do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => 'true')
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be true
+          end
+
+          it 'stays enabled when nil (key present, no value)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('collect' => nil)
+            )
+
+            expect(result['secret_activity']['collect_enabled']).to be true
+          end
+        end
+
+        # max_events mirrors the boot-time coercion + clamp (SecretActivity
+        # .configure!) so the UI never advertises a cap the backend ignored.
+        describe 'max_events (coercion + floor clamp parity with boot)' do
+          it 'passes through a configured cap above the floor' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => 5_000)
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(5_000)
+          end
+
+          it 'clamps below-floor values up to MIN_MAX_EVENTS (floor 100)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => 5)
+            )
+
+            expect(result['secret_activity']['max_events'])
+              .to eq(Onetime::Organization::Features::SecretActivity::MIN_MAX_EVENTS)
+          end
+
+          it 'coerces an integer-shaped string (ENV/hand-edited YAML)' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => '500')
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(500)
+          end
+
+          it 'falls back to the 10,000 default for non-numeric garbage' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => 'unbounded')
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(10_000)
+          end
+
+          it 'falls back to the 10,000 default when nil' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('max_events' => nil)
+            )
+
+            expect(result['secret_activity']['max_events']).to eq(10_000)
           end
         end
       end
