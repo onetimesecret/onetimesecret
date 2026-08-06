@@ -112,6 +112,41 @@ env = {'REMOTE_ADDR' => '172.16.5.100', 'HTTP_X_FORWARDED_HOST' => 'internal.exa
 env['rack.detected_host']
 #=> 'internal.example.com'
 
+## Trusts forwarded headers when otto.via_trusted_proxy is true, even with
+## public REMOTE_ADDR. Regression: with TRUSTED_PROXY_ENABLED, Otto's
+## IPPrivacyMiddleware rewrites REMOTE_ADDR to the resolved public visitor
+## IP before DetectHost runs; the private_ip? heuristic then discarded
+## forwarded host headers and every custom domain fell back to canonical.
+env = {
+  'REMOTE_ADDR' => '203.0.113.50',
+  'otto.via_trusted_proxy' => true,
+  'HTTP_APX_INCOMING_HOST' => 'custom.example.com',
+  'HTTP_HOST' => 'canonical.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'custom.example.com'
+
+## Ignores forwarded headers when otto.via_trusted_proxy is false, even with
+## private REMOTE_ADDR. The recorded trust decision (configured CIDRs) wins
+## over the any-RFC-1918-peer heuristic.
+env = {
+  'REMOTE_ADDR' => '10.0.0.1',
+  'otto.via_trusted_proxy' => false,
+  'HTTP_X_FORWARDED_HOST' => 'spoofed.example.com',
+  'HTTP_HOST' => 'real.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'real.example.com'
+
+## Falls back to private_ip? heuristic when otto.via_trusted_proxy is absent
+## (bare-Rack stacks without IPPrivacyMiddleware)
+env = {'REMOTE_ADDR' => '10.0.0.1', 'HTTP_X_FORWARDED_HOST' => 'forwarded.example.com', 'HTTP_HOST' => 'direct.example.com'}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'forwarded.example.com'
+
 
 
 # Put everything back the way we found it

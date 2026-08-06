@@ -65,9 +65,12 @@ module Rack
   #
   # **Trusted Proxy Validation**: This middleware only trusts forwarded host
   # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host, Forwarded)
-  # when the request originates from a private or loopback IP address. This
-  # indicates the request passed through a trusted reverse proxy in the local
-  # network. Direct requests from public IPs can only use the Host header.
+  # when the request arrived via a trusted reverse proxy. The trust decision
+  # comes from env['otto.via_trusted_proxy'] when Otto's IPPrivacyMiddleware
+  # is mounted upstream (it checks the original connecting peer against the
+  # configured trusted-proxy CIDRs before rewriting REMOTE_ADDR), falling
+  # back to a private/loopback REMOTE_ADDR check when that key is absent.
+  # Direct requests from public IPs can only use the Host header.
   #
   # This prevents header spoofing attacks where malicious clients set
   # X-Forwarded-Host to impersonate different hosts.
@@ -150,11 +153,28 @@ module Rack
       result_field_name = self.class.result_field_name
       detected_host     = nil
 
-      # Determine which headers to check based on whether request comes from trusted proxy
-      # Forwarded headers can be spoofed by clients, so we only trust them when
-      # REMOTE_ADDR is a private/loopback IP (indicating a trusted reverse proxy)
+      # Determine which headers to check based on whether request comes from
+      # a trusted proxy. Forwarded headers can be spoofed by clients, so they
+      # are only honored for requests that arrived via trusted infrastructure.
+      #
+      # Trust source, in order:
+      #
+      # 1. env['otto.via_trusted_proxy'] — recorded by Otto's
+      #    IPPrivacyMiddleware (mounted earlier in the stack) from the
+      #    ORIGINAL REMOTE_ADDR against the configured trusted-proxy CIDRs,
+      #    before it rewrites REMOTE_ADDR to the resolved client IP. Once
+      #    that rewrite happens, REMOTE_ADDR no longer identifies the
+      #    connecting peer: with proxy trust enabled it holds the real
+      #    (public) visitor IP, so re-checking it here would wrongly discard
+      #    forwarded host headers and fail every custom domain to canonical.
+      # 2. private_ip?(REMOTE_ADDR) — legacy heuristic for stacks where
+      #    IPPrivacyMiddleware is absent (bare-Rack tests, standalone use).
       remote_addr        = env['REMOTE_ADDR']
-      from_trusted_proxy = self.class.private_ip?(remote_addr)
+      from_trusted_proxy = if env.key?('otto.via_trusted_proxy')
+        env['otto.via_trusted_proxy'] == true
+      else
+        self.class.private_ip?(remote_addr)
+      end
 
       headers_to_check = if from_trusted_proxy
         HEADER_PRECEDENCE
