@@ -14,6 +14,9 @@
 # - automatic tax (config-driven via billing_config.automatic_tax?):
 #   automatic_tax + billing_address_collection always, customer_update only
 #   with :customer; omitted entirely when the config is off
+# - payment method configuration (config-driven via
+#   billing_config.payment_method_configuration): pins the session to a
+#   pmc_... id when set; key entirely absent when unset
 # - dry_run: :would_create with the resolved price id, no Stripe call
 # - failures: billing disabled, Stripe unconfigured, plan resolution failure,
 #   missing price for interval, region mismatch
@@ -73,8 +76,9 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
     )
   end
 
-  let(:deployment_region) { nil }
-  let(:automatic_tax)     { false }
+  let(:deployment_region)             { nil }
+  let(:automatic_tax)                 { false }
+  let(:payment_method_configuration)  { nil }
 
   def call_op(**overrides)
     described_class.call(
@@ -94,6 +98,7 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       stripe_key: 'sk_test_mock',
       region: deployment_region,
       automatic_tax?: automatic_tax,
+      payment_method_configuration: payment_method_configuration,
     )
     allow(Onetime).to receive(:conf).and_return(
       'site' => { 'host' => 'test.example.com', 'ssl' => true },
@@ -243,6 +248,35 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
           expect(params).not_to have_key(:billing_address_collection)
           expect(params).not_to have_key(:tax_id_collection)
           expect(params).not_to have_key(:customer_update)
+        end
+      end
+    end
+  end
+
+  # The payment-method-configuration pin is deployment policy
+  # (STRIPE_PAYMENT_METHOD_CONFIGURATION / billing.yaml
+  # 'payment_method_configuration'), never a per-call choice — there is no
+  # parameter for it.
+  describe 'payment method configuration (config-driven)' do
+    context 'when billing_config.payment_method_configuration is set' do
+      let(:payment_method_configuration) { 'pmc_test_abc123' }
+
+      it 'pins the session to the configured pmc id' do
+        call_op
+
+        expect(Stripe::Checkout::Session).to have_received(:create).with(
+          hash_including(payment_method_configuration: 'pmc_test_abc123'),
+          anything,
+        )
+      end
+    end
+
+    context 'when billing_config.payment_method_configuration is nil' do
+      it 'omits the key entirely (Stripe falls back to the Dashboard default)' do
+        call_op
+
+        expect(Stripe::Checkout::Session).to have_received(:create) do |params, _opts|
+          expect(params).not_to have_key(:payment_method_configuration)
         end
       end
     end

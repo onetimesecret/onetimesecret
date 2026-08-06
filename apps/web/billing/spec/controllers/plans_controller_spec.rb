@@ -79,6 +79,38 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(session.allow_promotion_codes).to eq(true)
     end
 
+    # Payment-method-configuration pin (issue #4013): deployment policy via
+    # STRIPE_PAYMENT_METHOD_CONFIGURATION / billing.yaml, applied by this
+    # legacy path with the same guarded assignment as build_session_params.
+    # Asserted against the create params (not the retrieved session) because
+    # the stubbed session object does not echo this key back.
+    context 'payment method configuration (issue #4013)' do
+      it 'pins the checkout session to the configured pmc id' do
+        allow(Onetime.billing_config)
+          .to receive(:payment_method_configuration).and_return('pmc_test123')
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(Stripe::Checkout::Session).to have_received(:create).with(
+          hash_including(payment_method_configuration: 'pmc_test123'),
+          anything,
+        )
+      end
+
+      it 'omits the key entirely when the config is unset' do
+        allow(Onetime.billing_config)
+          .to receive(:payment_method_configuration).and_return(nil)
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(Stripe::Checkout::Session).to have_received(:create) do |params, _opts|
+          expect(params).not_to have_key(:payment_method_configuration)
+        end
+      end
+    end
+
     it 'creates checkout session with correct plan', :vcr do
       get "/billing/plans/#{product}/#{interval}"
 
