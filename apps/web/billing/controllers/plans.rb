@@ -172,7 +172,8 @@ module Billing
         # orgid). Deliberate: changing it would change webhook-visible
         # metadata. checkout_completed#find_target_organization falls back to
         # stripe_customer_id and then the customer's default org when orgid is
-        # absent, so this shape resolves correctly today.
+        # absent, so this shape resolves correctly today. Migration to
+        # build_session_params is tracked in #4017.
         #
         # Dashboard prerequisites when enabled (Settings → Tax): Stripe Tax
         # active, registrations for applicable jurisdictions, tax codes on
