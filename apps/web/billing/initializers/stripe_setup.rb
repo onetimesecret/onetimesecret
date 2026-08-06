@@ -22,6 +22,11 @@ module Billing
         # about config, not an obscure downstream navigation failure.
         Onetime.billing_config.validate_checkout_host!
 
+        # Warn-only: a blank STRIPE_PAYMENT_METHOD_CONFIGURATION masks any
+        # billing.yaml pin (checkout silently reverts to the Dashboard
+        # default), so surface it at boot without ever failing the deploy.
+        Onetime.billing_config.warn_blank_payment_method_configuration!
+
         # Don't bring Stripe into this unless billing is enabled
         require 'stripe'
 

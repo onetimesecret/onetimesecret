@@ -157,6 +157,11 @@ Every checkout-session creation path passes the configured ID as
 default. Invalid IDs are rejected by Stripe at session-creation time, not
 at boot.
 
+Note: a blank-but-set env var (`STRIPE_PAYMENT_METHOD_CONFIGURATION=`) counts
+as explicitly unset — it masks the `billing.yaml` key rather than falling back
+to it, so checkout uses the Dashboard default. Boot logs a warning when this
+happens.
+
 ## Regional Setup
 
 For multi-region deployments, create separate products per region with `region` metadata:

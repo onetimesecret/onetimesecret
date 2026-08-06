@@ -170,6 +170,34 @@ module Onetime
       value.empty? ? nil : value
     end
 
+    # Boot-time visibility: warn (never raise) when the payment method
+    # configuration is blank-but-set.
+    #
+    # A blank ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] is truthy through
+    # the `||` in #payment_method_configuration, so it masks any
+    # billing.yaml 'payment_method_configuration' value instead of falling
+    # back to it — the pin is dropped and checkout reverts to the Stripe
+    # Dashboard default. That is deliberate (blank ENV means explicitly
+    # unset), but an operator who meant to paste a pmc_... ID should hear
+    # about it at boot, not when a customer reaches checkout. Reads the
+    # raw values because the accessor collapses every blank case to nil.
+    def warn_blank_payment_method_configuration!
+      env_value  = ENV.fetch('STRIPE_PAYMENT_METHOD_CONFIGURATION', nil)
+      yaml_value = config['payment_method_configuration']
+
+      env_blank  = !env_value.nil? && env_value.to_s.strip.empty?
+      yaml_blank = !yaml_value.nil? && yaml_value.to_s.strip.empty?
+
+      if env_blank && !yaml_value.to_s.strip.empty?
+        OT.lw '[BillingConfig] STRIPE_PAYMENT_METHOD_CONFIGURATION is set but blank, masking ' \
+              "billing.yaml payment_method_configuration #{yaml_value.to_s.strip.inspect}; " \
+              'checkout will use the Stripe Dashboard default payment method configuration'
+      elsif env_blank || yaml_blank
+        OT.lw '[BillingConfig] payment_method_configuration is blank and treated as unset; ' \
+              'checkout will use the Stripe Dashboard default payment method configuration'
+      end
+    end
+
     # Schema version
     def schema_version
       config['schema_version']
