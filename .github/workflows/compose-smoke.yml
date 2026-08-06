@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Compose interpolates ${SECRET:?...} even for `config`. Interpolation
       # variables come from the shell environment and the project-directory
@@ -142,7 +142,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Seed throwaway secrets into $GITHUB_ENV (compose interpolation) and
       # repo-root .env (the `env_file:` target). Shared with app-boot-pinned;
@@ -261,7 +261,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Shared with full-stack-smoke — same $GITHUB_ENV + .env seeding, incl.
       # the full-mode AUTH_SECRET / ACCOUNT_ID_SECRET. See the script header.
@@ -308,7 +308,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Read the exact image tag the README documents so this test can never
       # drift from the docs (the whole point — testing the documented path).
