@@ -87,6 +87,13 @@ unset RACK_ENV AUTHENTICATION_MODE BILLING_ENABLED ORGS_SSO_ENABLED \
 unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE \
       PGSERVICE PGSSLMODE PGOPTIONS PGPASSFILE
 
+# Dev-shell feature exports flip behavior the suites assert against:
+# CUSTOM_MAIL_* configures a real mail provider (live SES creds ->
+# WebMock-blocked real HTTP calls), INCOMING_*/ORGS_* enable features the
+# specs expect off, BRAND_PACK overrides neutral brand defaults. Clear the
+# whole families; lane env files re-set anything a lane actually owns.
+unset "${!CUSTOM_MAIL_@}" "${!INCOMING_@}" "${!ORGS_@}" BRAND_PACK
+
 set -a
 # shellcheck source=/dev/null
 source "${LANES_DIR}/base.env"
