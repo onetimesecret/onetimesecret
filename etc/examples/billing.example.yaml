@@ -48,6 +48,16 @@ stripe_api_version: "2025-12-15.clover"
 # the frontend allowlists checkout URLs served from this host.
 checkout_host: <%= ENV['STRIPE_CHECKOUT_HOST'] || '' %>
 
+# Enable Stripe automatic tax on checkout sessions ('true' or '1'; anything
+# else, or unset, disables it). Requires Stripe Tax to be configured in the
+# Dashboard (tax registrations + product tax codes) first.
+automatic_tax: <%= ENV['STRIPE_AUTOMATIC_TAX'] || '' %>
+
+# Stripe payment method configuration ID (pmc_...) to pin on checkout
+# sessions instead of the Dashboard default. Leave empty to use the
+# Dashboard default.
+payment_method_configuration: <%= ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] || '' %>
+
 currency: <%= ENV['BILLING_CURRENCY'] || ENV['CURRENCY'] || 'cad' %>
 
 # Product Matching Configuration

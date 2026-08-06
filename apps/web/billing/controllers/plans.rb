@@ -164,7 +164,8 @@ module Billing
         # other checkout path. Applied after customer handling because
         # customer_update requires a bound :customer id.
         #
-        # Scope note: this path shares the TAX BLOCK only. Unlike
+        # Scope note: this path shares the tax block and the pmc pin below
+        # only. Unlike
         # BillingController#create_checkout_session it does not delegate to
         # build_session_params, so its subscription metadata keeps this
         # surface's historical shape (debug_info JSON + customer_extid, no
@@ -177,6 +178,9 @@ module Billing
         # active, registrations for applicable jurisdictions, tax codes on
         # products (or a default tax code).
         Billing::Operations::CreateCheckoutLink.apply_tax_policy!(session_params)
+
+        pmc                                           = Onetime.billing_config.payment_method_configuration
+        session_params[:payment_method_configuration] = pmc if pmc
 
         # Subscription metadata for webhook processing and debugging
         #

@@ -112,7 +112,10 @@ module Billing
       # @param tier [String] resolved tier (webhook metadata)
       # @param price_id [String] Stripe price id
       # @param cancel_url [String] absolute URL for checkout cancellation
-      # @param allow_promotion_codes [Boolean] show the promo-code field
+      # @param allow_promotion_codes [Boolean] show the promo-code field.
+      #   Deliberately per-caller policy: the self-serve controller passes
+      #   true, this admin op defaults to false (Plans#checkout_redirect
+      #   hardcodes true on its own path).
       # @param locale [String, nil] Stripe Checkout locale (request paths only)
       # @return [Hash] Stripe::Checkout::Session create params
       def self.build_session_params(customer:, org:, plan_id:, tier:, price_id:,
@@ -145,6 +148,9 @@ module Billing
           params[:customer] = org.stripe_customer_id
           params.delete(:customer_email)
         end
+
+        pmc                                   = Onetime.billing_config.payment_method_configuration
+        params[:payment_method_configuration] = pmc if pmc
 
         apply_tax_policy!(params)
       end

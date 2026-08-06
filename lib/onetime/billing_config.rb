@@ -154,6 +154,18 @@ module Onetime
       %w[true 1].include?(raw.to_s.strip.downcase)
     end
 
+    # Stripe payment method configuration ID (pmc_...).
+    #
+    # Pins checkout sessions to a specific payment method configuration
+    # rather than the Dashboard default. Checks
+    # ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] first, then falls back
+    # to billing.yaml 'payment_method_configuration'.
+    #
+    # Leave unset to use the Dashboard default.
+    def payment_method_configuration
+      ENV.fetch('STRIPE_PAYMENT_METHOD_CONFIGURATION', nil) || config['payment_method_configuration']
+    end
+
     # Schema version
     def schema_version
       config['schema_version']

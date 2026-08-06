@@ -138,6 +138,25 @@ and only apply to checkouts in that currency. Percent-off coupons work across
 currencies. See `apps/web/billing/lib/currency_migration_service.rb` for how
 incompatible coupons are surfaced during currency migrations.
 
+## Payment Method Configuration
+
+By default, Stripe Checkout offers whatever payment methods the Dashboard's
+default payment method configuration enables — which anyone with Dashboard
+access can change silently. To make checkout deterministic, pin a specific
+configuration:
+
+1. Find (or create) a payment method configuration under
+   [Stripe Dashboard → Settings → Payments → Payment methods](https://dashboard.stripe.com/settings/payment_methods)
+   and copy its ID (`pmc_...`).
+2. Set `STRIPE_PAYMENT_METHOD_CONFIGURATION=pmc_...` in the environment, or
+   `payment_method_configuration` in `billing.yaml` (the env var wins when
+   both are set).
+
+Every checkout-session creation path passes the configured ID as
+`payment_method_configuration`. Leave it unset to keep using the Dashboard
+default. Invalid IDs are rejected by Stripe at session-creation time, not
+at boot.
+
 ## Regional Setup
 
 For multi-region deployments, create separate products per region with `region` metadata:
