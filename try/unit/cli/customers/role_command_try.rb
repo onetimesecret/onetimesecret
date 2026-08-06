@@ -369,6 +369,36 @@ demote_customer(@colonel_email)
 reset_role(@colonel_email, 'colonel')
 #=> "colonel"
 
+# -------------------------------------------------------------------
+# Reconcile: rebuild_role_index repairs drift between the role field
+# and the index (#3974). Targeted writers (save_fields et al.) persist
+# `role` without going through the full Familia#save path that
+# maintains customer:role_index:*, so the two can drift apart silently.
+# -------------------------------------------------------------------
+
+## A customer promoted via a targeted writer (save_fields) is NOT
+## reflected in the role index -- this is the drift #3974 describes
+@drifted_email = "drifted_#{@test_suffix}@test.example.com"
+@drifted = Onetime::Customer.create!(email: @drifted_email)
+@drifted.role = 'colonel'
+@drifted.save_fields(:role)
+Onetime::Customer.find_all_by_role('colonel').map(&:email).include?(@drifted_email)
+#=> false
+
+## ...even though the field itself says colonel
+Onetime::Customer.find_by_email(@drifted_email).role.to_s
+#=> "colonel"
+
+## rebuild_role_index reconciles the drifted entry into the index
+Onetime::Customer.rebuild_role_index
+Onetime::Customer.find_all_by_role('colonel').map(&:email).include?(@drifted_email)
+#=> true
+
+## Reset drifted customer to non-colonel and clean up
+@drifted.destroy!
+Onetime::Customer.email_exists?(@drifted_email)
+#=> false
+
 # TEARDOWN
 
 [@regular_email, @colonel_email, @admin_email, @staff_email].each do |email|
