@@ -142,10 +142,24 @@ module Billing
 
       customer_id = org.stripe_customer_id
 
-      # Build current plan info from active subscription
+      # Single retrieve shared with the coupon check below. Discounts come
+      # back as bare ID strings unless expanded.
+      subscription = nil
       if org.stripe_subscription_id
-        subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
-        first_item   = subscription.items.data.first
+        begin
+          subscription = Stripe::Subscription.retrieve(
+            id: org.stripe_subscription_id,
+            expand: ['discounts'],
+          )
+        rescue Stripe::InvalidRequestError
+          # Subscription deleted between mismatch check and retrieve —
+          # assess as if there were none
+        end
+      end
+
+      # Build current plan info from active subscription
+      if subscription
+        first_item = subscription.items.data.first
 
         if subscription.status == 'past_due'
           result[:blockers] << 'Subscription is past_due — resolve payment before migrating'
@@ -184,7 +198,7 @@ module Billing
       end
 
       # Warning flags
-      warnings          = check_migration_warnings(customer_id, existing_currency, org.stripe_subscription_id)
+      warnings          = check_migration_warnings(customer_id, existing_currency, subscription)
       result[:warnings] = warnings
 
       result
@@ -339,9 +353,10 @@ module Billing
     #
     # @param customer_id [String] Stripe customer ID
     # @param existing_currency [String] Current currency
-    # @param subscription_id [String, nil] Current subscription ID
+    # @param subscription [Stripe::Subscription, nil] Current subscription,
+    #   retrieved with expand: ['discounts'] (nil when the org has none)
     # @return [Hash] Warning flags
-    def check_migration_warnings(customer_id, existing_currency, subscription_id)
+    def check_migration_warnings(customer_id, existing_currency, subscription)
       warnings = {
         has_credit_balance: false,
         credit_balance_amount: 0,
@@ -371,15 +386,13 @@ module Billing
       end
 
       # Amount-off coupon check (currency-specific; percentage coupons are fine)
-      if subscription_id
-        begin
-          sub      = Stripe::Subscription.retrieve(subscription_id)
-          discount = sub.discounts&.first
-          if discount&.coupon&.amount_off && discount.coupon.currency == existing_currency
-            warnings[:has_incompatible_coupons] = true
-          end
-        rescue Stripe::InvalidRequestError
-          # Subscription may have been deleted between check and retrieve
+      if subscription
+        discount = subscription.discounts&.first
+        # Unexpanded discounts are bare ID strings — coupon data requires
+        # the subscription retrieved with expand: ['discounts']
+        if discount.respond_to?(:coupon) && discount.coupon&.amount_off &&
+           discount.coupon.currency == existing_currency
+          warnings[:has_incompatible_coupons] = true
         end
       end
 
