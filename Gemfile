@@ -18,7 +18,11 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', '~> 2.5'
+# TODO(#4024): revert to a plain version constraint (the release after otto
+# 2.7.0) once the depth-mode peer-trust fix (delano/otto#226) ships to
+# RubyGems. The git ref consumes that fix so depth mode gets a forwarded-host
+# trust signal (otto.via_trusted_proxy) ahead of the release.
+gem 'otto', git: 'https://github.com/delano/otto', branch: 'claude/depth-mode-peer-trust-slv7bv'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'

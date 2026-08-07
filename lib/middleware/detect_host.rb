@@ -70,8 +70,10 @@ module Rack
   #
   # - env['otto.via_trusted_proxy'] is true — recorded by Otto's
   #   IPPrivacyMiddleware (mounted earlier in the stack) from the ORIGINAL
-  #   connecting peer against the configured trusted-proxy CIDRs, before it
-  #   rewrites REMOTE_ADDR to the resolved client IP; or
+  #   connecting peer, before it rewrites REMOTE_ADDR to the resolved client
+  #   IP. Otto grants it when the peer matches a configured trusted-proxy
+  #   CIDR (filter mode) or whenever count-based depth mode is active
+  #   (configuring a depth asserts the peer is the proxy tier; otto#226); or
   # - REMOTE_ADDR is a private/loopback address — the legacy heuristic that
   #   keeps self-hosted installs behind a local reverse proxy working when
   #   no trusted-proxy list is configured.
@@ -192,11 +194,13 @@ module Rack
       #    trust from default-config self-hosters behind a local reverse
       #    proxy, whose masked REMOTE_ADDR stays private. Non-boolean values
       #    (nil, strings from a future otto) also fall through gracefully.
-      # c. Known gap: in TRUSTED_PROXY_MODE=depth otto's trust list is empty
-      #    so the key is always false AND REMOTE_ADDR is rewritten to the
-      #    public client IP — forwarded-host trust is unavailable. This is a
-      #    pre-existing limitation tracked upstream in otto; do not attempt
-      #    to work around it here.
+      # c. TRUSTED_PROXY_MODE=depth: fixed upstream in otto#226. Depth and
+      #    CIDRs are mutually exclusive so otto's matcher list is empty, but
+      #    configuring a depth is the operator's assertion that the
+      #    connecting peer is their proxy tier, so otto records the key true
+      #    and grant (a) applies. (Until the otto#151 depth remap is
+      #    reconciled, depth mode remains spoofable in the documented
+      #    single-proxy setup — operator docs steer to filter mode.)
       remote_addr        = env['REMOTE_ADDR']
       from_trusted_proxy = env[VIA_TRUSTED_PROXY_KEY] == true ||
                            self.class.private_ip?(remote_addr)
