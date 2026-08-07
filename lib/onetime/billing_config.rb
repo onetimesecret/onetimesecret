@@ -39,13 +39,17 @@ module Onetime
     end
 
     # Whether billing is enabled
-    # Returns false if file doesn't exist or enabled is not true.
-    # ENV['BILLING_ENABLED'] overrides config when set ('true'/'false').
+    # Returns false if file doesn't exist or enabled is not set.
+    # ENV['BILLING_ENABLED'] overrides config when set; a blank ENV value
+    # counts as explicitly unset (billing off) and does not fall back to
+    # the config file. Accepts true/1/false/0 (case-insensitive); any
+    # other set value raises Onetime::ConfigError rather than silently
+    # disabling billing (BILLING_ENABLED=1 used to mean "off").
     def enabled?
       env_val = ENV.fetch('BILLING_ENABLED', nil)
-      return env_val == 'true' unless env_val.nil?
+      return strict_bool!('BILLING_ENABLED', env_val) unless env_val.nil?
 
-      config['enabled'].to_s == 'true'
+      strict_bool!("billing.yaml 'enabled'", config['enabled'])
     end
 
     # Stripe API key
@@ -142,16 +146,19 @@ module Onetime
     #
     # Deployment-level policy, not a per-checkout choice. Checks
     # ENV['STRIPE_AUTOMATIC_TAX'] first, then the config file key
-    # 'automatic_tax', mirroring checkout_host. 'true' and '1' enable it;
-    # any other value (or unset) is false.
+    # 'automatic_tax', mirroring checkout_host. Accepts true/1/false/0
+    # (case-insensitive); unset and blank are false. Any other set value
+    # raises Onetime::ConfigError — before this, STRIPE_AUTOMATIC_TAX=yes
+    # silently disabled tax collection on every checkout, which is a
+    # compliance exposure, not a default.
     #
     # Requires Stripe Tax to be configured in the Dashboard (Settings → Tax:
     # tax registrations + product tax codes) before enabling.
     def automatic_tax?
       raw = ENV.fetch('STRIPE_AUTOMATIC_TAX', nil)
-      raw = config['automatic_tax'] if raw.nil?
+      return strict_bool!('STRIPE_AUTOMATIC_TAX', raw) unless raw.nil?
 
-      %w[true 1].include?(raw.to_s.strip.downcase)
+      strict_bool!("billing.yaml 'automatic_tax'", config['automatic_tax'])
     end
 
     # Stripe payment method configuration ID (pmc_...).
@@ -265,6 +272,19 @@ module Onetime
     end
 
     private
+
+    # Strict boolean parsing for deployment flags. nil/blank mean unset
+    # (false); anything outside true/1/false/0 raises so a typo'd flag
+    # fails the boot instead of silently flipping the feature off.
+    def strict_bool!(name, raw)
+      value = raw.to_s.strip.downcase
+      return false if value.empty?
+      return true  if %w[true 1].include?(value)
+      return false if %w[false 0].include?(value)
+
+      raise Onetime::ConfigError,
+        "#{name} is #{raw.inspect} — unrecognized boolean. Use true/1 or false/0, or leave unset."
+    end
 
     def load_config
       unless @path && File.exist?(@path)
