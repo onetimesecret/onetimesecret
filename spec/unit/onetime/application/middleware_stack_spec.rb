@@ -138,10 +138,13 @@ RSpec.describe Onetime::Application::MiddlewareStack do
         )
       end
 
-      it 'maps Onetime depth N to otto trusted_proxy_depth N + 1' do
-        # otto#151 remap: otto appends REMOTE_ADDR to the chain, one hop longer
-        # than Onetime's XFF-only chain.
-        expect(config.trusted_proxy_depth).to eq(3)
+      it 'maps Onetime depth N DIRECTLY to otto trusted_proxy_depth N' do
+        # No +1: otto's chain[-(N+1)] index already accounts for the appended
+        # REMOTE_ADDR, so depth N = "N proxy hops counting the connecting peer"
+        # — the operator-facing meaning of `depth: N`. The former +1 remap
+        # made honest documented-topology requests resolve the proxy address
+        # (short-chain fallback) and let one forged leftmost XFF entry win.
+        expect(config.trusted_proxy_depth).to eq(2)
       end
 
       it 'activates count-based depth mode' do
@@ -152,14 +155,14 @@ RSpec.describe Onetime::Application::MiddlewareStack do
         expect(config.trusted_proxies).to be_empty
       end
 
-      it 'clamps Onetime depth to 1..10 before the +1 remap' do
+      it 'clamps Onetime depth to 1..10' do
         stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 50)
-        expect(config.trusted_proxy_depth).to eq(11) # clamp(1,10) => 10, +1 => 11
+        expect(config.trusted_proxy_depth).to eq(10) # clamp(1,10) => 10
       end
 
-      it 'treats a zero/blank depth as the minimum (1) before remap' do
+      it 'treats a zero/blank depth as the minimum (1)' do
         stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 0)
-        expect(config.trusted_proxy_depth).to eq(2) # clamp(1,10) => 1, +1 => 2
+        expect(config.trusted_proxy_depth).to eq(1) # clamp(1,10) => 1
       end
     end
 

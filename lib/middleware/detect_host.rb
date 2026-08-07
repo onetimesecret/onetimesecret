@@ -198,9 +198,11 @@ module Rack
       #    CIDRs are mutually exclusive so otto's matcher list is empty, but
       #    configuring a depth is the operator's assertion that the
       #    connecting peer is their proxy tier, so otto records the key true
-      #    and grant (a) applies. (Until the otto#151 depth remap is
-      #    reconciled, depth mode remains spoofable in the documented
-      #    single-proxy setup — operator docs steer to filter mode.)
+      #    and grant (a) applies. Depth counts hops from the right with the
+      #    peer as hop 1 (the otto#151 remap was dropped), so a forged
+      #    leftmost XFF entry is never selected; as with all count-based
+      #    trust, the origin must be unreachable except through the proxy
+      #    tier.
       remote_addr        = env['REMOTE_ADDR']
       from_trusted_proxy = env[VIA_TRUSTED_PROXY_KEY] == true ||
                            self.class.private_ip?(remote_addr)
