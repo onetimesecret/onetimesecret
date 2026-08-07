@@ -250,14 +250,16 @@
 			# another proxy, declare that proxy in `trusted_proxies` or this writes the
 			# upstream's address as the client IP.
 			#
-			# ONLY correct for filter mode. TRUSTED_PROXY_MODE=depth picks the client
-			# by counting TRUSTED_PROXY_DEPTH hops from the RIGHT of the chain, so
-			# collapsing X-Forwarded-For to a single entry leaves nothing to count and
-			# resolution falls back to the wrong address — IP rate limits, audit
-			# attribution, and network restrictions then key on a proxy, not the user.
-			# Running depth mode? Drop the X-Forwarded-For line below and let Caddy
-			# append, preserving the hop chain, and set TRUSTED_PROXY_DEPTH to the
-			# number of hops your topology puts in the chain (see .env.reference).
+			# Correct for filter mode AND for TRUSTED_PROXY_MODE=depth with
+			# TRUSTED_PROXY_DEPTH=1: the overwrite leaves exactly one attested entry
+			# (Caddy's resolved client), which depth 1 selects — the safest
+			# single-proxy depth config. With a depth of 2 or more, collapsing
+			# X-Forwarded-For to a single entry leaves fewer hops than the count and
+			# resolution falls back to the peer — IP rate limits, audit attribution,
+			# and network restrictions then key on a proxy, not the user. Running
+			# depth >= 2? Drop the X-Forwarded-For line below and let Caddy append,
+			# preserving the hop chain, and set TRUSTED_PROXY_DEPTH to the number of
+			# hops your topology puts in the chain (see .env.reference).
 			# Depth mode tolerates an untrusted leftmost entry only while that hop
 			# count is fixed and correct — a chain shorter or longer than configured
 			# selects the peer or a client-supplied entry.

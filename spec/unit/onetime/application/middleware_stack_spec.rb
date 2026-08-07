@@ -160,9 +160,14 @@ RSpec.describe Onetime::Application::MiddlewareStack do
         expect(config.trusted_proxy_depth).to eq(10) # clamp(1,10) => 10
       end
 
-      it 'treats a zero/blank depth as the minimum (1)' do
+      it 'treats a zero depth as the minimum (1)' do
         stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 0)
         expect(config.trusted_proxy_depth).to eq(1) # clamp(1,10) => 1
+      end
+
+      it 'treats an absent depth as the minimum (1)' do
+        stub_conf('enabled' => true, 'mode' => 'depth')
+        expect(config.trusted_proxy_depth).to eq(1) # nil.to_i => 0, clamp => 1
       end
     end
 

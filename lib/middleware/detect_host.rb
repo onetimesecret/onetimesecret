@@ -200,9 +200,11 @@ module Rack
       #    connecting peer is their proxy tier, so otto records the key true
       #    and grant (a) applies. Depth counts hops from the right with the
       #    peer as hop 1 (the otto#151 remap was dropped), so a forged
-      #    leftmost XFF entry is never selected; as with all count-based
-      #    trust, the origin must be unreachable except through the proxy
-      #    tier.
+      #    leftmost XFF entry is never selected — provided each counted hop
+      #    appends exactly one entry; a chain shorter or longer than the
+      #    configured depth selects the peer or a client-supplied entry. As
+      #    with all count-based trust, the origin must be unreachable except
+      #    through the proxy tier.
       remote_addr        = env['REMOTE_ADDR']
       from_trusted_proxy = env[VIA_TRUSTED_PROXY_KEY] == true ||
                            self.class.private_ip?(remote_addr)
