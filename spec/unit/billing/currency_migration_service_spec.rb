@@ -552,6 +552,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     it 'works when org has no active subscription' do
       allow(org).to receive(:stripe_subscription_id).and_return(nil)
+      allow(Onetime.billing_config).to receive(:currency).and_return('usd')
 
       result = described_class.execute_immediate_migration(
         org, 'price_cad_456',
@@ -561,6 +562,11 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
       expect(Stripe::Subscription).not_to have_received(:cancel)
       expect(result[:success]).to be true
+      expect(result[:migration][:refund_amount]).to eq(0)
+      expect(result[:migration][:refund_failed]).to be false
+      # No subscription to take a currency from — falls back to the
+      # configured billing currency, not a hardcoded one
+      expect(result[:migration][:refund_formatted]).to eq('USD 0.00')
     end
 
     context 'with a paid invoice eligible for a prorated refund' do
@@ -574,7 +580,9 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
           amount_paid: 2900, currency: 'eur',
         })
       end
-      let(:credit_note) { double(id: 'cn_123', amount: 1450) }
+      # Amount differs from the computed credit (e.g. tax adjustments) to
+      # prove the response reports what actually moved
+      let(:credit_note) { double(id: 'cn_123', amount: 1425) }
 
       before do
         allow(Stripe::Invoice).to receive(:list)
@@ -621,7 +629,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
             metadata: { reason: 'currency_migration_proration' },
           },
         )
-        expect(result[:migration][:refund_amount]).to eq(1450)
+        expect(result[:migration][:refund_amount]).to eq(1425)
+        expect(result[:migration][:refund_failed]).to be false
       end
 
       it 'targets the migrated subscription when listing paid invoices' do
@@ -630,6 +639,24 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         expect(Stripe::Invoice).to have_received(:list).with(
           hash_including(customer: 'cus_123', subscription: 'sub_123', status: 'paid')
         )
+      end
+
+      context 'when Stripe rejects the credit note' do
+        before do
+          allow(stripe_client).to receive(:create)
+            .with(Stripe::CreditNote, anything)
+            .and_raise(Stripe::InvalidRequestError.new('Amount exceeds refundable amount', 'refund_amount'))
+          allow(OT).to receive(:lw)
+          allow(OT).to receive(:le)
+        end
+
+        it 'reports the failure instead of claiming a refund' do
+          result = execute
+
+          expect(result[:migration][:refund_failed]).to be true
+          expect(result[:migration][:refund_amount]).to eq(0)
+          expect(OT).to have_received(:le).with(/Prorated refund of 1450 failed/)
+        end
       end
     end
 

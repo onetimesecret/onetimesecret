@@ -268,6 +268,8 @@ module Billing
     def execute_immediate_migration(org, new_price_id, success_url:, cancel_url:)
       customer_id     = org.stripe_customer_id
       prorated_credit = 0
+      credit_note     = nil
+      subscription    = nil
 
       # Pre-flight: clean up
       expire_open_checkout_sessions(customer_id)
@@ -298,7 +300,7 @@ module Billing
 
         # Issue refund for prorated unused time if applicable
         if prorated_credit.positive?
-          issue_prorated_refund(customer_id, subscription.id, prorated_credit)
+          credit_note = issue_prorated_refund(customer_id, subscription.id, prorated_credit)
         end
       end
 
@@ -336,13 +338,22 @@ module Billing
       # Clear any pending migration intent (immediate path completes in one step)
       org.clear_currency_migration_intent!
 
+      # Report the credit note's actual amount, not the computed credit —
+      # a nil credit note means no money moved
+      refund_failed = prorated_credit.positive? && credit_note.nil?
+      if refund_failed
+        OT.le "[CurrencyMigrationService] Prorated refund of #{prorated_credit} failed for #{customer_id} — reporting refund_amount 0"
+      end
+      refund_amount = credit_note ? credit_note.amount : 0
+
       {
         success: true,
         migration: {
           mode: 'immediate',
           checkout_url: checkout_session.url,
-          refund_amount: prorated_credit,
-          refund_formatted: format_amount(prorated_credit, subscription&.currency || 'cad'),
+          refund_amount: refund_amount,
+          refund_formatted: format_amount(refund_amount, subscription&.currency || Onetime.billing_config.currency),
+          refund_failed: refund_failed,
         },
       }
     end
