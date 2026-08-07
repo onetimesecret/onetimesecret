@@ -21,6 +21,8 @@ Commit `d847cce` ("refactor(billing): centralize Stripe checkout session paramet
 
 **Recommendation:** Confirm the hosted onetimesecret.com production environment has `STRIPE_AUTOMATIC_TAX=true` set; if not, tax collection has been silently disabled since `d847cce` landed. Consider a boot-time log line (parallel to the `skip_paths` boot-log precedent in `boot.rb:235`) surfacing the resolved tax policy so a misconfiguration is visible.
 
+**Update 2026-08-07:** Partly overtaken by the #4013 work — `STRIPE_AUTOMATIC_TAX` is now documented (`93abc98c`) and boot validation covers the `STRIPE_AUTOMATIC_TAX`/`BILLING_ENABLED` combination. Issue #4025 tracks the related currency-migration no-tax defect. Still open: confirming the production env var, and the boot-time log of the resolved tax policy.
+
 ---
 
 ## Self-corrected within the window (verified fixed, not re-flagged)
