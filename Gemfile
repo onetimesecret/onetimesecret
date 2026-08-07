@@ -19,12 +19,14 @@ source 'https://rubygems.org/'
 # ====================================
 
 # TODO(#4024): revert to a plain version constraint (the release after otto
-# 2.7.0) once the depth-mode peer-trust fix (delano/otto#226) ships to
-# RubyGems. The git ref consumes that fix so depth mode gets a forwarded-host
-# trust signal (otto.via_trusted_proxy) ahead of the release. Pinned to an
-# immutable commit (delano/otto#227 head) so installs stay reproducible even
-# if the branch moves or is deleted.
-gem 'otto', git: 'https://github.com/delano/otto', ref: 'd11847467359d6aa080c3f1b7ef973c1e8e65573'
+# 2.7.0) once the depth-mode peer-trust fix (delano/otto#226) and the
+# tri-state otto.via_trusted_proxy contract (delano/otto#228) ship to
+# RubyGems. The git ref consumes both: depth mode gets a forwarded-host
+# trust signal, and the key is written only when proxy trust is configured
+# (present => authoritative, absent => legacy heuristics apply). Pinned to
+# an immutable commit (delano/otto#228 head) so installs stay reproducible
+# even if the branch moves or is deleted.
+gem 'otto', git: 'https://github.com/delano/otto', ref: 'f720e48aee60f2e4bd107a795f24edf6714d1b11'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'

@@ -13,11 +13,12 @@
 # 3. Port stripping
 # 4. Multiple host handling
 # 5. Empty and missing header handling
-# 6. Trusted proxy validation: forwarded headers are trusted when EITHER
-#    env['otto.via_trusted_proxy'] == true (recorded by Otto's
-#    IPPrivacyMiddleware from the original peer) OR REMOTE_ADDR is a
-#    private/loopback IP (legacy heuristic). The otto key can grant trust
-#    but never revoke the heuristic.
+# 6. Trusted proxy validation (tri-state, otto#228): when
+#    env['otto.via_trusted_proxy'] is PRESENT it is authoritative in both
+#    directions — true grants forwarded-header trust, false (or any
+#    non-true value) denies it. When the key is ABSENT (no proxy trust
+#    configured, or no IPPrivacyMiddleware mounted) the legacy heuristic
+#    applies: a private/loopback REMOTE_ADDR grants trust.
 
 require_relative '../../support/test_helpers'
 
@@ -131,14 +132,15 @@ env = {
 env['rack.detected_host']
 #=> 'custom.example.com'
 
-## Still trusts forwarded headers when otto.via_trusted_proxy is false but
-## REMOTE_ADDR is private: trust is a grant-only OR — the key can GRANT
-## trust, it never REVOKES the private-peer heuristic. This is deliberate
-## back-compat: IPPrivacyMiddleware is mounted unconditionally and records
-## false on every request when no trusted proxies are configured, so false
-## is ambiguous between "untrusted peer" and "no proxy trust configured".
-## Treating it as authoritative stripped forwarded-host trust from
-## default-config self-hosters behind a local reverse proxy.
+## A false key is an AUTHORITATIVE DENY (tri-state, otto#228), even with a
+## private REMOTE_ADDR: otto writes the key only when the operator
+## configured proxy trust, so false means "trust is configured and this
+## peer failed it". Honoring the private-IP heuristic anyway would let any
+## request resolving to a private REMOTE_ADDR bypass the operator's
+## explicit trust decision. (The pre-tri-state grant-only OR existed
+## because otto wrote false on every unconfigured request, making false
+## ambiguous — that ambiguity is gone: unconfigured deployments get an
+## ABSENT key, pinned below.)
 env = {
   'REMOTE_ADDR' => '10.0.0.1',
   'otto.via_trusted_proxy' => false,
@@ -147,12 +149,12 @@ env = {
 }
 @middleware.call(env)
 env['rack.detected_host']
-#=> 'proxied.example.com'
+#=> 'direct.example.com'
 
 ## Non-boolean key values (nil, or a truthy-looking string from a future
-## otto) never grant trust — only `true` does. With a public REMOTE_ADDR the
-## heuristic also declines, so the request degrades gracefully to the Host
-## header instead of a spoofable trust cliff.
+## otto) never grant trust — only `true` does. With a public REMOTE_ADDR
+## the request degrades gracefully to the Host header instead of a
+## spoofable trust cliff.
 [nil, 'true'].map do |value|
   env = {
     'REMOTE_ADDR' => '203.0.113.50',
@@ -164,6 +166,20 @@ env['rack.detected_host']
   env['rack.detected_host']
 end
 #=> ['real.example.com', 'real.example.com']
+
+## A PRESENT non-boolean key suppresses the private-IP heuristic too:
+## presence implies the authoritative contract, so the value must be
+## exactly true to grant. (nil here means "key present, value nil" —
+## distinct from the absent-key fallback pinned below.)
+env = {
+  'REMOTE_ADDR' => '10.0.0.1',
+  'otto.via_trusted_proxy' => nil,
+  'HTTP_X_FORWARDED_HOST' => 'proxied.example.com',
+  'HTTP_HOST' => 'direct.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'direct.example.com'
 
 ## Discarding Apx-Incoming-Host from an untrusted source escalates the log
 ## to WARN — the 2026-08-05 incident signature (custom domains silently

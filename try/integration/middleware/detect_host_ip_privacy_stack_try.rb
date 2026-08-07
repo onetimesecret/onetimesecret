@@ -9,15 +9,17 @@
 # (MiddlewareStack.ip_privacy_security_config) so config-construction drift is
 # covered too, not just the middleware contract.
 #
-# Purpose: pin the cross-gem contract that DetectHost depends on. DetectHost
-# trusts forwarded host headers when EITHER env['otto.via_trusted_proxy'] is
-# true (recorded by otto from the ORIGINAL connecting peer before it rewrites
-# REMOTE_ADDR to the resolved/masked client IP) OR REMOTE_ADDR is private
-# (legacy heuristic). The detect_host_try.rb tryouts inject the otto key by
-# hand, so they would keep passing if a future otto release renamed the key or
-# stopped setting it — while production silently regressed to the
-# private_ip?(REMOTE_ADDR) fallback and re-broke every custom domain (the
-# 2026-08-05 TRUSTED_PROXY_ENABLED incident). These tests fail instead.
+# Purpose: pin the cross-gem contract that DetectHost depends on. The otto
+# key is tri-state (otto#228): PRESENT means proxy trust is configured and
+# the boolean is authoritative both directions (recorded by otto from the
+# ORIGINAL connecting peer before it rewrites REMOTE_ADDR to the resolved/
+# masked client IP); ABSENT means no proxy trust configured, the only case
+# where DetectHost's private_ip?(REMOTE_ADDR) heuristic applies. The
+# detect_host_try.rb tryouts inject the otto key by hand, so they would keep
+# passing if a future otto release renamed the key or stopped setting it —
+# while production silently regressed to the heuristic and re-broke every
+# custom domain (the 2026-08-05 TRUSTED_PROXY_ENABLED incident). These tests
+# fail instead.
 #
 # We're testing:
 # 1. The key-name contract: Otto::EnvKeys::VIA_TRUSTED_PROXY still equals
@@ -26,8 +28,9 @@
 # 3. The incident shape: trusted proxy peer + public visitor in XFF ->
 #    REMOTE_ADDR rewritten to a public IP, forwarded host headers still trusted
 # 4. Direct public request: forwarded host headers ignored, Host wins
-# 5. Direct-connect config + private peer: forwarded host headers trusted via
-#    the private-peer heuristic (back-compat for self-hosted installs)
+# 5. Direct-connect config + private peer: otto leaves the key ABSENT
+#    (tri-state), so the private-peer heuristic grants trust (back-compat
+#    for self-hosted installs)
 # 6. Depth mode: otto records peer trust from the depth assertion (otto#226),
 #    so forwarded host headers are honored via the otto key alone
 # 7. Depth padding resistance (the otto#151 remap fix): a forged leftmost
@@ -101,11 +104,12 @@ OT.send(:conf=, @saved_conf)
   @direct_config,
 )
 
-## Key-name contract pin: DetectHost carries its own frozen literal (to stay
-## otto-agnostic) that must mirror otto's documented env key
-## (Otto::EnvKeys::VIA_TRUSTED_PROXY). If an otto upgrade renames the key,
-## this fails loudly instead of DetectHost silently never seeing the trust
-## signal. (Pinned as a value pair, not a bare `==`, so rubocop's Lint/Void
+## Key-name contract pin: DetectHost::VIA_TRUSTED_PROXY_KEY now references
+## Otto::EnvKeys::VIA_TRUSTED_PROXY directly (one rename surface), so the
+## two can no longer drift — this case pins the canonical STRING value, so
+## an upstream rename still fails here as a deliberate decision point
+## rather than silently changing the env contract other consumers read.
+## (Pinned as a value pair, not a bare `==`, so rubocop's Lint/Void
 ## autocorrect cannot delete the expression.)
 [Otto::EnvKeys::VIA_TRUSTED_PROXY, Rack::DetectHost::VIA_TRUSTED_PROXY_KEY]
 #=> ['otto.via_trusted_proxy', 'otto.via_trusted_proxy']
@@ -158,12 +162,14 @@ OT.send(:conf=, @saved_conf)
 #=> ['eu.onetimesecret.com', false]
 
 ## Direct-connect deployment (no trusted proxies configured): a private peer
-## still gets forwarded-host trust. Otto records via_trusted_proxy=false (its
-## trust list is empty), but the masked REMOTE_ADDR (10.0.0.0) stays private,
-## so DetectHost's private-peer heuristic grants trust — the false key never
-## revokes it. This pins pre-incident back-compat for default-config
-## self-hosted installs behind a local reverse proxy (nginx/Caddy on the same
-## box or LAN), which never declare site.network.trusted_proxy.
+## still gets forwarded-host trust. Under the tri-state contract (otto#228)
+## otto leaves the key ABSENT when no proxy trust is configured — absence,
+## not a spurious false, is what lets DetectHost's private-peer heuristic
+## apply (the masked REMOTE_ADDR 10.0.0.0 stays private). This pins
+## back-compat for default-config self-hosted installs behind a local
+## reverse proxy (nginx/Caddy on the same box or LAN), which never declare
+## site.network.trusted_proxy — AND pins that otto no longer writes the
+## ambiguous false that forced the old grant-only read.
 @direct_stack.call(
   {
     'REMOTE_ADDR' => '10.0.0.5',
@@ -171,7 +177,7 @@ OT.send(:conf=, @saved_conf)
     'HTTP_HOST' => 'eu.onetimesecret.com',
   },
 )
-[@captured['rack.detected_host'], @captured['otto.via_trusted_proxy']]
+[@captured['rack.detected_host'], @captured.key?('otto.via_trusted_proxy')]
 #=> ['forwarded.example.com', false]
 
 ## Depth mode grants forwarded-host trust (otto#226 — the deliberate flip of
