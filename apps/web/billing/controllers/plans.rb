@@ -9,6 +9,7 @@ require 'stripe'
 # apply_tax_policy! — required explicitly rather than relying on
 # controllers.rb happening to load controllers/billing.rb (which requires the
 # op) after this file.
+require_relative '../lib/pmc_resource_missing'
 require_relative '../operations/create_checkout_link'
 
 module Billing
@@ -232,6 +233,15 @@ module Billing
 
         res.redirect checkout_session.url
       rescue Stripe::StripeError => ex
+        # ADR-033: the configured payment_method_configuration is only
+        # format-checked at boot; existence in the connected Stripe account
+        # is discovered here, at first use — so that discovery must be loud
+        # and operator-actionable. Log-only: the user-facing redirect below
+        # is unchanged, and no other error is re-classified.
+        if ::Billing::PmcResourceMissing.pmc_resource_missing?(ex)
+          billing_logger.error ::Billing::PmcResourceMissing.operator_message(ex)
+        end
+
         billing_logger.error 'Stripe checkout session creation failed',
           {
             exception: ex,

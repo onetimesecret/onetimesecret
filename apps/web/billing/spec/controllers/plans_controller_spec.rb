@@ -109,6 +109,70 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
           expect(params).not_to have_key(:payment_method_configuration)
         end
       end
+
+      # ADR-033: boot only format-checks the configured pmc id; existence in
+      # the connected Stripe account is discovered here, at first use. That
+      # discovery must produce a pointed operator log WITHOUT changing the
+      # user-facing redirect, and must not fire for any other Stripe error.
+      context 'resource_missing discrimination' do
+        let(:billing_logger_spy) { spy('BillingLogger') }
+
+        before do
+          allow(Onetime).to receive(:get_logger).and_call_original
+          allow(Onetime).to receive(:get_logger).with('Billing').and_return(billing_logger_spy)
+          allow(Onetime.billing_config)
+            .to receive(:payment_method_configuration).and_return('pmc_test123')
+        end
+
+        def stub_resource_missing(message, param)
+          allow(Stripe::Checkout::Session).to receive(:create).and_raise(
+            Stripe::InvalidRequestError.new(
+              message, param, http_status: 400, code: 'resource_missing'
+            ),
+          )
+        end
+
+        it 'logs a pointed operator error and keeps the generic /signup redirect' do
+          stub_resource_missing(
+            "No such payment method configuration: 'pmc_test123'",
+            'payment_method_configuration',
+          )
+
+          get "/billing/plans/#{product}/#{interval}"
+
+          # User-facing behavior unchanged: same generic redirect as any
+          # other Stripe error.
+          expect(last_response.status).to eq(302)
+          expect(last_response.location).to eq("/signup?product=#{product}&interval=#{interval}")
+
+          expect(billing_logger_spy).to have_received(:error).with(
+            a_string_including('"pmc_test123"')
+              .and(a_string_including('does not exist in the connected Stripe account'))
+              .and(a_string_including('live/test mode mismatch'))
+              .and(a_string_including('STRIPE_PAYMENT_METHOD_CONFIGURATION')),
+          )
+          # The pre-existing generic error log still fires afterwards.
+          expect(billing_logger_spy).to have_received(:error).with(
+            'Stripe checkout session creation failed', hash_including(:exception)
+          )
+        end
+
+        it 'does not emit the pmc log line for resource_missing on a different param' do
+          stub_resource_missing("No such customer: 'cus_nope'", 'customer')
+
+          get "/billing/plans/#{product}/#{interval}"
+
+          expect(last_response.status).to eq(302)
+          expect(last_response.location).to eq("/signup?product=#{product}&interval=#{interval}")
+
+          expect(billing_logger_spy).not_to have_received(:error).with(
+            a_string_including('does not exist in the connected Stripe account'),
+          )
+          expect(billing_logger_spy).to have_received(:error).with(
+            'Stripe checkout session creation failed', hash_including(:exception)
+          )
+        end
+      end
     end
 
     it 'creates checkout session with correct plan', :vcr do
