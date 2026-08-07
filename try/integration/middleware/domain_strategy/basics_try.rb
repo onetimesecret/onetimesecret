@@ -120,7 +120,7 @@ Onetime::Middleware::DomainStrategy.domains_enabled?
 #=> false
 
 
-## DomainStrategy class method 'get_canonical_domain' returns the correct domain when domains enabled with default
+## DomainStrategy class method 'canonical_domain' returns the correct domain when domains enabled with default
 config_with_domains = {
   'enabled' => true,
   'default' => 'example.com'

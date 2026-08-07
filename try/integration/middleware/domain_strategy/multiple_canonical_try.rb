@@ -103,6 +103,26 @@ config = { 'enabled' => true, 'default' => @default_host }
 @chooser.choose_strategy('sub.example-app.com', @strategy_class.canonical_domains_parsed)
 #=> :subdomain
 
+## Class-level canonical_host? treats site.host as canonical
+@strategy_class.canonical_host?(@site_host)
+#=> true
+
+## Class-level canonical_host? treats the default host as canonical
+@strategy_class.canonical_host?(@default_host)
+#=> true
+
+## Class-level canonical_host? normalizes case and port
+@strategy_class.canonical_host?('EXAMPLE-APP.COM:443')
+#=> true
+
+## Class-level canonical_host? rejects subdomains of canonical hosts
+@strategy_class.canonical_host?('sub.example-app.com')
+#=> false
+
+## Class-level canonical_host? rejects hosts outside the set
+@strategy_class.canonical_host?('custom.example.org')
+#=> false
+
 ## Default unset: behavior identical to today (site.host is sole canonical)
 @strategy_class.reset!
 OT.conf['site']['host'] = @site_host
@@ -126,6 +146,68 @@ config = { 'enabled' => true, 'default' => @default_host }
 @strategy_class.initialize_from_config(config)
 @strategy_class.canonical_domains_parsed.map(&:name)
 #=> ['example-links.net']
+
+## Unparseable host in the canonical set does not poison exact matches
+@chooser.choose_strategy('example-links.net', ['127.0.0.1:3000', 'example-links.net'])
+#=> :canonical
+
+## Canonical set with only unparseable hosts classifies nil (:invalid)
+@chooser.choose_strategy('example-links.net', ['127.0.0.1:3000'])
+#=> nil
+
+## Re-init with an unparseable primary disables domains and clears the parsed set
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
+@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => '127.0.0.1:3000' })
+[@strategy_class.domains_enabled?, @strategy_class.canonical_domains_parsed]
+#=> [false, []]
+
+## Re-init that disables domains clears the parsed set (no stale fallback)
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
+@strategy_class.initialize_from_config({ 'enabled' => false })
+[@strategy_class.domains_enabled?, @strategy_class.canonical_domains_parsed]
+#=> [false, []]
+
+# Custom-Domain Shadowing Tests (#3841 follow-up)
+#
+# A REGISTERED custom domain that falls under a canonical host's base
+# domain must keep :custom — the subdomain/peer sweeps across the
+# canonical set run only for unregistered hosts. Brand/signin config is
+# gated on :custom, so a :subdomain or :canonical reclassification would
+# silently drop it.
+
+## Registered custom domain under site.host's base domain stays :custom
+Onetime::CustomDomain.singleton_class.send(:alias_method, :shadow_orig_from_display_domain, :from_display_domain)
+Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
+  %w[secrets.example-app.com secrets.example.com example-app.com].include?(domain) ? Object.new : nil
+end
+@chooser.choose_strategy('secrets.example-app.com', [@default_host, @site_host])
+#=> :custom
+
+## Unregistered subdomain of site.host still classifies :subdomain
+@chooser.choose_strategy('other.example-app.com', [@default_host, @site_host])
+#=> :subdomain
+
+## Registered custom domain that peers a canonical subdomain host stays :custom
+@chooser.choose_strategy('secrets.example.com', ['eu.example.com'])
+#=> :custom
+
+## Unregistered peer of a canonical subdomain host still classifies :canonical
+@chooser.choose_strategy('other.example.com', ['eu.example.com'])
+#=> :canonical
+
+## Exact canonical-set match beats an identical custom-domain registration
+@chooser.choose_strategy('example-app.com', [@default_host, @site_host])
+#=> :canonical
+
+## Restoring the real lookup returns the sweeps to normal
+Onetime::CustomDomain.singleton_class.send(:alias_method, :from_display_domain, :shadow_orig_from_display_domain)
+Onetime::CustomDomain.singleton_class.send(:remove_method, :shadow_orig_from_display_domain)
+@chooser.choose_strategy('unregistered.example-app.com', [@default_host, @site_host])
+#=> :subdomain
 
 # Implicit Override Consistency Tests (dev-only domain context feature)
 
@@ -156,56 +238,10 @@ env = { Rack::DetectHost.result_field_name => 'custom.example.org' }
 middleware.detect_domain_override(env)
 #=> ['custom.example.org', :detected_host]
 
-# Drift Guard Tests (features.domains.default names a registered custom domain)
-
-## Guard logs a loud error when default is a registered custom domain
-OT.conf['site']['host'] = @site_host
-captured = []
-Onetime::CustomDomain.singleton_class.send(:alias_method, :orig_from_display_domain, :from_display_domain)
-Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
-  domain == 'example-links.net' ? Object.new : nil
-end
-Onetime.singleton_class.send(:alias_method, :orig_le, :le)
-Onetime.define_singleton_method(:le) { |*msgs, **_kw| captured.concat(msgs) }
-begin
-  @strategy_class.reset!
-  @strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
-ensure
-  Onetime.singleton_class.send(:alias_method, :le, :orig_le)
-  Onetime.singleton_class.send(:remove_method, :orig_le)
-end
-captured.any? { |msg| msg.include?('registered custom domain') }
-#=> true
-
-## Classification is unchanged: shadowed default still classifies :canonical
-@chooser.choose_strategy(@default_host, @strategy_class.canonical_domains_parsed)
-#=> :canonical
-
-## Guard stays silent when default is not a registered custom domain
-captured = []
-Onetime.singleton_class.send(:alias_method, :orig_le, :le)
-Onetime.define_singleton_method(:le) { |*msgs, **_kw| captured.concat(msgs) }
-begin
-  @strategy_class.reset!
-  @strategy_class.initialize_from_config({ 'enabled' => true, 'default' => 'unregistered.example.org' })
-ensure
-  Onetime.singleton_class.send(:alias_method, :le, :orig_le)
-  Onetime.singleton_class.send(:remove_method, :orig_le)
-end
-captured.any? { |msg| msg.include?('registered custom domain') }
-#=> false
-
-## CustomDomain lookup raising does not crash boot or disable domains
-Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |_domain|
-  raise StandardError, 'redis unavailable'
-end
-@strategy_class.reset!
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
-[@strategy_class.domains_enabled?, @strategy_class.canonical_domain]
-#=> [true, 'example-links.net']
+# Drift guard (features.domains.default names a registered custom domain)
+# lives in the ConfigureDomains initializer so it runs once per boot, not
+# once per mounted app. See try/unit/boot/configure_domains_drift_try.rb.
 
 # Teardown
-Onetime::CustomDomain.singleton_class.send(:alias_method, :from_display_domain, :orig_from_display_domain)
-Onetime::CustomDomain.singleton_class.send(:remove_method, :orig_from_display_domain)
 OT.conf['site']['host'] = @site_host_orig
 @strategy_class.reset!

@@ -16,7 +16,8 @@ module Onetime
     # - Onetime::DomainValidation::Features.* (all config values)
     #
     class ConfigureDomains < Onetime::Boot::Initializer
-      @provides = [:domains]
+      @depends_on = [:familia_config]
+      @provides   = [:domains]
 
       def execute(_context)
         domains_config = OT.conf.dig('features', 'domains') || {}
@@ -39,6 +40,31 @@ module Onetime
         unless klass.api_configured?
           app_logger.debug "No domain cluster api key configured (strategy: #{klass.strategy_name})"
         end
+
+        warn_if_default_shadows_custom_domain(domains_config['default'], OT.conf.dig('site', 'host'))
+      end
+
+      # Boot-time drift guard (companion to CustomDomain.overlaps_canonical_domain?,
+      # #3841): registration blocks new domains that collide with canonical hosts,
+      # but nothing stops an operator from later pointing features.domains.default
+      # at an ALREADY-REGISTERED custom domain. Requests to that host classify
+      # :canonical before the custom-domain lookup, so its per-domain brand and
+      # signin configuration silently never apply. Advisory only: never changes
+      # classification and never fails boot (Redis may be unavailable here).
+      # Runs here (once per boot) rather than in the DomainStrategy middleware,
+      # which initializes once per mounted app, and uses the display_domain
+      # index lookup rather than hydrating the full record.
+      def warn_if_default_shadows_custom_domain(default_host, site_host)
+        return if default_host.to_s.empty?
+        return if default_host == site_host
+        return if Onetime::CustomDomain.resolve_domain_id(default_host).nil?
+
+        OT.le "[init] ConfigureDomains: features.domains.default #{default_host.inspect} " \
+              'is a registered custom domain; its per-domain brand/signin configuration will be ' \
+              'IGNORED on requests to this host because it classifies as :canonical. ' \
+              'Unset features.domains.default or remove the custom domain registration.'
+      rescue StandardError => ex
+        app_logger.debug "[init] ConfigureDomains drift check skipped: #{ex.class}: #{ex.message}"
       end
     end
   end

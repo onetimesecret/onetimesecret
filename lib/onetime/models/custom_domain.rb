@@ -1065,12 +1065,9 @@ module Onetime
         display_domain = Onetime::CustomDomain.display_domain(input)
         hosts          = canonical_hosts
         OT.ld "[CustomDomain.default_domain?] #{display_domain} in #{hosts.inspect}"
-        hosts.any? do |host|
-          # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
-          display_domain.eql?(host.split(':').first.to_s.downcase)
-        end
-      rescue PublicSuffix::Error => ex
-        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}"
+        hosts.include?(display_domain)
+      rescue PublicSuffix::Error, Onetime::Problem => ex
+        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}`"
         false
       end
 
@@ -1108,11 +1105,9 @@ module Onetime
         input_base    = base_domain(input)
 
         hosts.any? do |host|
-          # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
-          bare_host = host.split(':').first.to_s.downcase
-          next true if input_display.eql?(bare_host)
+          next true if input_display.eql?(host)
 
-          canonical_base = base_domain(bare_host)
+          canonical_base = base_domain(host)
 
           # Skip base-domain comparison when this canonical host can't be
           # resolved (e.g. localhost in development)
@@ -1125,17 +1120,14 @@ module Onetime
         true
       end
 
-      # Canonical hosts for this deployment, in precedence order:
-      # site.host, then features.domains.default (nil/empty rejected,
-      # deduped). Single source of truth for default_domain? and
-      # overlaps_canonical_domain? — the DomainStrategy middleware derives
-      # its canonical set from the same two config values, and models read
-      # config directly rather than depending on the middleware.
+      # Canonical hosts for this deployment, normalized (lowercased,
+      # port-stripped) with the primary host first: features.domains.default
+      # when present, else site.host. Derived through Utils::CanonicalHosts —
+      # the same derivation point the DomainStrategy middleware uses — so
+      # default_domain? and overlaps_canonical_domain? can never disagree
+      # with request classification about which hosts are canonical.
       def canonical_hosts
-        [
-          OT.conf&.dig('site', 'host'),
-          OT.conf&.dig('features', 'domains', 'default'),
-        ].map(&:to_s).reject(&:empty?).uniq
+        Onetime::Utils::CanonicalHosts.normalized_hosts
       end
       private :canonical_hosts
 

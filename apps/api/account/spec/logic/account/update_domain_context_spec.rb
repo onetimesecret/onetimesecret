@@ -65,7 +65,9 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
       'site' => {},
       'features' => { 'domains' => { 'enabled' => true } },
     })
-    allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_return(canonical_domain)
+    allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?) do |host|
+      host == canonical_domain
+    end
   end
 
   describe '#process_params' do
@@ -134,6 +136,24 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
 
     context 'when domain is the canonical domain' do
       let(:params) { { 'domain' => canonical_domain } }
+
+      it 'does not raise any error' do
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    # Split deployment: site.host serves the app while
+    # features.domains.default anchors links. Both are in the canonical
+    # set, so both are valid domain contexts.
+    context 'when domain is the site host in a split deployment' do
+      let(:site_host) { 'app.onetimesecret.com' }
+      let(:params) { { 'domain' => site_host } }
+
+      before do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?) do |host|
+          [canonical_domain, site_host].include?(host)
+        end
+      end
 
       it 'does not raise any error' do
         expect { logic.raise_concerns }.not_to raise_error

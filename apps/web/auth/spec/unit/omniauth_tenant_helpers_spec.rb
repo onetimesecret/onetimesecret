@@ -125,6 +125,52 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # canonical_domain?
+  # ==========================================================================
+
+  describe '.canonical_domain?' do
+    it 'returns false for an empty host' do
+      expect(helpers.canonical_domain?('')).to be false
+    end
+
+    # Split deployment: site.host serves the app while
+    # features.domains.default anchors generated links. Both hosts are
+    # canonical to the DomainStrategy middleware, so the auth hook must
+    # agree — otherwise SSO initiation on site.host resolves as a tenant
+    # request and dead-ends in handle_missing_tenant_config.
+    context 'with a split-deployment canonical set' do
+      before do
+        require 'onetime/middleware/domain_strategy'
+
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'api.example.com' },
+          'features' => { 'domains' => { 'enabled' => true, 'default' => 'secrets.example.com' } },
+        })
+        Onetime::Middleware::DomainStrategy.reset!
+        Onetime::Middleware::DomainStrategy.initialize_from_config(
+          { 'enabled' => true, 'default' => 'secrets.example.com' }
+        )
+      end
+
+      after do
+        Onetime::Middleware::DomainStrategy.reset!
+      end
+
+      it 'treats site.host as canonical' do
+        expect(helpers.canonical_domain?('api.example.com')).to be true
+      end
+
+      it 'treats the default link domain as canonical' do
+        expect(helpers.canonical_domain?('secrets.example.com')).to be true
+      end
+
+      it 'rejects a host outside the canonical set' do
+        expect(helpers.canonical_domain?('tenant.example.org')).to be false
+      end
+    end
+  end
+
+  # ==========================================================================
   # merge_strategy_options
   # ==========================================================================
 

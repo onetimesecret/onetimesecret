@@ -314,6 +314,19 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
         expect(described_class.default_domain?('example.com')).to be false
       end
     end
+
+    # Invalid input raises Onetime::Problem out of display_domain (control
+    # chars directly, PublicSuffix errors converted); the filter must treat
+    # it as "not the default domain", mirroring overlaps_canonical_domain?.
+    context 'with invalid input' do
+      it 'returns false for input containing control characters' do
+        expect(described_class.default_domain?("exam\x00ple.com")).to be false
+      end
+
+      it 'returns false for a host without a valid public suffix' do
+        expect(described_class.default_domain?('localhost')).to be false
+      end
+    end
   end
 
   # ------------------------------------------------------------------ #

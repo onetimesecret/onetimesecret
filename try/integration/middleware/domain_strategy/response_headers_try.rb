@@ -36,7 +36,7 @@ def disable_runtime_domains!
 end
 
 # Fully enable domains: class-level config + runtime feature flag.
-# This sets canonical_domain_parsed so Chooserator can classify domains.
+# This sets canonical_domains_parsed so Chooserator can classify domains.
 def enable_domains_fully!
   config = { 'enabled' => true, 'default' => @canonical_domain }
   @strategy_class.initialize_from_config(config)
@@ -81,18 +81,18 @@ status, headers, body = middleware.call(env)
 # -- Canonical domain: headers when domains enabled and host is canonical --
 
 ## O-Domain-Strategy header is "canonical" for the canonical domain
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => @canonical_domain }
 status, headers, body = middleware.call(env)
 headers['O-Domain-Strategy']
 #=> 'canonical'
 
 ## O-Display-Domain header is the canonical domain for a canonical request
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => @canonical_domain }
 status, headers, body = middleware.call(env)
 headers['O-Display-Domain']
@@ -101,18 +101,18 @@ headers['O-Display-Domain']
 # -- Subdomain: headers for subdomain of canonical --
 
 ## O-Domain-Strategy header is "subdomain" for a subdomain of the canonical domain
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => 'api.onetimesecret.com' }
 status, headers, body = middleware.call(env)
 headers['O-Domain-Strategy']
 #=> 'subdomain'
 
 ## O-Display-Domain header is the subdomain for a subdomain request
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => 'api.onetimesecret.com' }
 status, headers, body = middleware.call(env)
 headers['O-Display-Domain']
@@ -145,9 +145,9 @@ headers['O-Display-Domain']
 # -- Invalid domain: nil strategy becomes :invalid --
 
 ## O-Domain-Strategy header is "invalid" when Chooserator returns nil
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => '.leading-dot.invalid' }
 status, headers, body = middleware.call(env)
 headers['O-Domain-Strategy']
@@ -156,27 +156,27 @@ headers['O-Domain-Strategy']
 # -- Header/env consistency --
 
 ## O-Domain-Strategy header matches env['onetime.domain_strategy'].to_s
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => @canonical_domain }
 status, headers, body = middleware.call(env)
 headers['O-Domain-Strategy'] == env['onetime.domain_strategy'].to_s
 #=> true
 
 ## O-Display-Domain header matches env['onetime.display_domain'].to_s
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => @canonical_domain }
 status, headers, body = middleware.call(env)
 headers['O-Display-Domain'] == env['onetime.display_domain'].to_s
 #=> true
 
 ## Header/env consistency holds for subdomain requests
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => 'eu.onetimesecret.com' }
 status, headers, body = middleware.call(env)
 [
@@ -202,18 +202,18 @@ status, headers, body = middleware.call(env)
 # -- www variant treated as canonical --
 
 ## O-Domain-Strategy header is "canonical" for www variant
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => 'www.onetimesecret.com' }
 status, headers, body = middleware.call(env)
 headers['O-Domain-Strategy']
 #=> 'canonical'
 
 ## O-Display-Domain header is the www variant (not stripped to apex)
+middleware = @strategy_class.new(create_app)
 enable_domains_fully!
 disable_domain_context!
-middleware = @strategy_class.new(create_app)
 env = { Rack::DetectHost.result_field_name => 'www.onetimesecret.com' }
 status, headers, body = middleware.call(env)
 headers['O-Display-Domain']
