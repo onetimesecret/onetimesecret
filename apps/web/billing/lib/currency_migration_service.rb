@@ -298,7 +298,7 @@ module Billing
 
         # Issue refund for prorated unused time if applicable
         if prorated_credit.positive?
-          issue_prorated_refund(customer_id, prorated_credit)
+          issue_prorated_refund(customer_id, subscription.id, prorated_credit)
         end
       end
 
@@ -528,30 +528,38 @@ module Billing
 
     # Issue refund for prorated unused time
     #
-    # Finds the latest paid invoice for the customer and creates a partial refund.
-    # Uses Stripe::Refund instead of customer credit balance (credit is currency-specific
-    # and won't transfer to the new currency).
+    # Finds the migrated subscription's latest paid invoice and issues a
+    # credit note with refund_amount against it. A credit note (rather than a
+    # raw Stripe::Refund) adjusts Stripe Tax reporting so collected tax is not
+    # overstated after the partial refund. Customer credit balance is not used
+    # (credit is currency-specific and won't transfer to the new currency).
     #
     # @param customer_id [String] Stripe customer ID
+    # @param subscription_id [String] Stripe subscription ID being migrated
     # @param amount [Integer] Refund amount in smallest currency unit
-    # @param currency [String] Currency code
-    # @return [Stripe::Refund, nil] The refund object or nil if no eligible invoice
-    def issue_prorated_refund(customer_id, amount)
-      # Find the latest paid invoice with a payment intent
+    # @return [Stripe::CreditNote, nil] The credit note, or nil if there is no
+    #   eligible invoice or Stripe rejected the amount
+    def issue_prorated_refund(customer_id, subscription_id, amount)
+      # Scope to the migrated subscription — the customer's latest paid
+      # invoice may be an unrelated one
       invoices = Stripe::Invoice.list(
         customer: customer_id,
+        subscription: subscription_id,
         status: 'paid',
         limit: 1,
       )
 
       invoice = invoices.data.first
-      return nil unless invoice&.payment_intent
+      return nil unless invoice
 
-      Stripe::Refund.create(
+      # refund_amount must reconcile against the invoice's post-payment
+      # amount; Stripe raises InvalidRequestError otherwise
+      Billing::StripeClient.new.create(
+        Stripe::CreditNote,
         {
-          payment_intent: invoice.payment_intent,
-          amount: amount,
-          reason: 'requested_by_customer',
+          invoice: invoice.id,
+          refund_amount: amount,
+          memo: 'Prorated refund for unused time (currency migration)',
           metadata: {
             reason: 'currency_migration_proration',
           },

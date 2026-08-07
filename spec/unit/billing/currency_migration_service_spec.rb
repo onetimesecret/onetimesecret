@@ -564,13 +564,24 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     end
 
     context 'with a paid invoice eligible for a prorated refund' do
-      let(:paid_invoice) { double(id: 'in_123', payment_intent: 'pi_123') }
+      # Clover-shaped invoice: no payment_intent reader. Must be a real
+      # Stripe::Invoice (not a bare double) so the gem's breaking-change
+      # guard for payment_intent access stays armed.
+      let(:paid_invoice) do
+        Stripe::Invoice.construct_from({
+          id: 'in_123', object: 'invoice',
+          customer: 'cus_123', status: 'paid',
+          amount_paid: 2900, currency: 'eur',
+        })
+      end
+      let(:credit_note) { double(id: 'cn_123', amount: 1450) }
 
       before do
         allow(Stripe::Invoice).to receive(:list)
           .with(hash_including(status: 'paid'))
           .and_return(double(data: [paid_invoice]))
-        allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
+        allow(stripe_client).to receive(:create)
+          .with(Stripe::CreditNote, anything).and_return(credit_note)
       end
 
       def execute
@@ -598,17 +609,27 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         )
       end
 
-      it 'issues the prorated refund for the preview amount' do
+      it 'issues a credit note refund against the subscription invoice' do
         result = execute
 
-        expect(Stripe::Refund).to have_received(:create).with(
-          hash_including(
-            payment_intent: 'pi_123',
-            amount: 1450,
-            reason: 'requested_by_customer'
-          )
+        expect(stripe_client).to have_received(:create).with(
+          Stripe::CreditNote,
+          {
+            invoice: 'in_123',
+            refund_amount: 1450,
+            memo: kind_of(String),
+            metadata: { reason: 'currency_migration_proration' },
+          },
         )
         expect(result[:migration][:refund_amount]).to eq(1450)
+      end
+
+      it 'targets the migrated subscription when listing paid invoices' do
+        execute
+
+        expect(Stripe::Invoice).to have_received(:list).with(
+          hash_including(customer: 'cus_123', subscription: 'sub_123', status: 'paid')
+        )
       end
     end
 
