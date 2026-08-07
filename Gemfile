@@ -26,7 +26,7 @@ source 'https://rubygems.org/'
 # (present => authoritative, absent => legacy heuristics apply). Pinned to
 # an immutable commit (delano/otto#228 head) so installs stay reproducible
 # even if the branch moves or is deleted.
-gem 'otto', git: 'https://github.com/delano/otto', ref: 'fc4a6915e21a53eafa650e9f7f1e55463ae08166'
+gem 'otto', git: 'https://github.com/delano/otto', ref: '65003bb69ca970de0e1878962fdfb78b61f3f018'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
