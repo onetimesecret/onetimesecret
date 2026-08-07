@@ -41,7 +41,7 @@ require_relative '../../support/test_helpers'
 require 'logger'
 require 'stringio'
 require 'otto'
-# Documentation-only module: NOT loaded by `require 'otto'`, must be explicit.
+# Not loaded by `require 'otto'` — consumers must require it explicitly.
 require 'otto/env_keys'
 
 require 'middleware/detect_host'

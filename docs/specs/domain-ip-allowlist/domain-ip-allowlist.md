@@ -122,8 +122,9 @@ resolution behind proxies — but no filtering primitive.
    exclusive, so `otto.via_trusted_proxy` is always false in depth mode).
    *Since fixed: otto#226 grants depth-mode peer trust
    (`via_trusted_proxy=true`, forwarded proto honored), otto#228 makes the
-   key tri-state, and the depth `+1` remap off-by-one was dropped (#4028),
-   so depth resolves the documented client and resists XFF padding.*
+   key tri-state, and the depth `+1` remap off-by-one was dropped
+   (PR #4028, for #4024), so depth resolves the documented client and
+   resists XFF padding.*
 4. **Geo headers are trusted unconditionally** in the released 2.6.0
    (`otto-2.6.0/lib/otto/privacy/geo_resolver.rb:164-197`): `CF-IPCountry`
    et al. are honored with no trusted-proxy gate, and the built-in range
