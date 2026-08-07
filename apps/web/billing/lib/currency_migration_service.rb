@@ -467,21 +467,24 @@ module Billing
       first_item = subscription.items.data.first
       return 0 unless first_item
 
+      # Basil (2025-03-31) moved item changes into subscription_details
       invoice = Stripe::Invoice.create_preview(
         customer: subscription.customer,
         subscription: subscription.id,
-        subscription_items: [{
-          id: first_item.id,
-          deleted: true,
-        }],
-        subscription_proration_behavior: 'create_prorations',
-        subscription_proration_date: Time.now.to_i,
+        subscription_details: {
+          items: [{
+            id: first_item.id,
+            deleted: true,
+          }],
+          proration_behavior: 'create_prorations',
+          proration_date: Time.now.to_i,
+        },
       )
 
       # Credit lines have negative amounts
       invoice.lines.data.select { |line| line.amount < 0 }.sum(&:amount).abs
     rescue Stripe::StripeError => ex
-      OT.ld "[CurrencyMigrationService] Invoice preview failed (#{ex.message}), falling back to manual calculation"
+      OT.lw "[CurrencyMigrationService] Invoice preview failed (#{ex.message}), falling back to manual calculation"
       manual_prorated_credit(subscription)
     end
 

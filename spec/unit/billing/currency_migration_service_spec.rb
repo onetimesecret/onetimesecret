@@ -7,7 +7,7 @@
 # Tests currency conflict detection, diagnostic assessment, and
 # migration execution (graceful and immediate paths).
 #
-# Run: pnpm run test:rspec spec/unit/billing/currency_migration_service_spec.rb
+# Run: tests/lanes/run unit
 
 require 'spec_helper'
 
@@ -531,33 +531,53 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       expect(result[:success]).to be true
     end
 
-    it 'issues prorated refund using Stripe invoice preview amount' do
-      invoice = double(id: 'in_123', payment_intent: 'pi_123')
-      allow(Stripe::Invoice).to receive(:list).and_return(double(data: [invoice]))
-      allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
-      allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
+    context 'with a paid invoice eligible for a prorated refund' do
+      let(:paid_invoice) { double(id: 'in_123', payment_intent: 'pi_123') }
 
-      result = described_class.execute_immediate_migration(
-        org, 'price_cad_456',
-        success_url: 'https://example.com/success',
-        cancel_url: 'https://example.com/cancel',
-      )
+      before do
+        allow(Stripe::Invoice).to receive(:list)
+          .with(hash_including(status: 'paid'))
+          .and_return(double(data: [paid_invoice]))
+        allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
+      end
 
-      expect(Stripe::Invoice).to have_received(:create_preview).with(
-        hash_including(
+      def execute
+        described_class.execute_immediate_migration(
+          org, 'price_cad_456',
+          success_url: 'https://example.com/success',
+          cancel_url: 'https://example.com/cancel',
+        )
+      end
+
+      # Basil (2025-03-31) moved subscription_items/subscription_proration_*
+      # into subscription_details; the old top-level params are rejected under
+      # the pinned clover version and silently fell back to manual math.
+      it 'requests the proration preview with the subscription_details shape' do
+        execute
+
+        expect(Stripe::Invoice).to have_received(:create_preview).with(
           customer: 'cus_123',
           subscription: 'sub_123',
-          subscription_proration_behavior: 'create_prorations'
+          subscription_details: {
+            items: [{ id: 'si_123', deleted: true }],
+            proration_behavior: 'create_prorations',
+            proration_date: kind_of(Integer),
+          },
         )
-      )
-      expect(Stripe::Refund).to have_received(:create).with(
-        hash_including(
-          payment_intent: 'pi_123',
-          amount: 1450,
-          reason: 'requested_by_customer'
+      end
+
+      it 'issues the prorated refund for the preview amount' do
+        result = execute
+
+        expect(Stripe::Refund).to have_received(:create).with(
+          hash_including(
+            payment_intent: 'pi_123',
+            amount: 1450,
+            reason: 'requested_by_customer'
+          )
         )
-      )
-      expect(result[:migration][:refund_amount]).to eq(1450)
+        expect(result[:migration][:refund_amount]).to eq(1450)
+      end
     end
 
     # Deployment tax policy + pmc pin: shared with every other checkout path
@@ -626,7 +646,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       allow(Stripe::Invoice).to receive(:create_preview)
         .and_raise(Stripe::InvalidRequestError.new('No such subscription', 'subscription'))
       allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
-      allow(OT).to receive(:ld)
+      allow(OT).to receive(:lw)
 
       result = described_class.execute_immediate_migration(
         org, 'price_cad_456',
@@ -637,6 +657,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       # Manual calculation should produce a positive credit (halfway through period)
       expect(result[:migration][:refund_amount]).to be > 0
       expect(result[:migration][:refund_amount]).to be_a(Integer)
+      expect(OT).to have_received(:lw).with(/Invoice preview failed/)
     end
   end
 end
