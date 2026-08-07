@@ -343,7 +343,9 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     context 'when the subscription was deleted between check and retrieve' do
       before do
         allow(Stripe::Subscription).to receive(:retrieve)
-          .and_raise(Stripe::InvalidRequestError.new('No such subscription: sub_123', 'id'))
+          .and_raise(Stripe::InvalidRequestError.new(
+            'No such subscription: sub_123', 'id', code: 'resource_missing'
+          ))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
 
@@ -352,6 +354,21 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
         expect(result[:current_plan]).to be_nil
         expect(result[:warnings][:has_incompatible_coupons]).to be false
+      end
+    end
+
+    context 'when the subscription retrieve fails for another reason' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .and_raise(Stripe::InvalidRequestError.new(
+            'Invalid array', 'expand', code: 'parameter_invalid_empty'
+          ))
+      end
+
+      it 're-raises instead of assessing a clean migration' do
+        expect do
+          described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+        end.to raise_error(Stripe::InvalidRequestError, /Invalid array/)
       end
     end
 
@@ -624,6 +641,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
           Stripe::CreditNote,
           {
             invoice: 'in_123',
+            amount: 1450,
             refund_amount: 1450,
             memo: kind_of(String),
             metadata: { reason: 'currency_migration_proration' },

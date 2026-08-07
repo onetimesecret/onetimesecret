@@ -151,9 +151,11 @@ module Billing
             id: org.stripe_subscription_id,
             expand: ['discounts'],
           )
-        rescue Stripe::InvalidRequestError
+        rescue Stripe::InvalidRequestError => ex
           # Subscription deleted between mismatch check and retrieve —
-          # assess as if there were none
+          # assess as if there were none. Any other failure must surface
+          # rather than report a clean can_migrate: true
+          raise unless ex.code == 'resource_missing'
         end
       end
 
@@ -563,12 +565,15 @@ module Billing
       invoice = invoices.data.first
       return nil unless invoice
 
-      # refund_amount must reconcile against the invoice's post-payment
-      # amount; Stripe raises InvalidRequestError otherwise
+      # amount defines the note total (one of amount/lines/shipping_cost is
+      # required); refund_amount controls how much of it is refunded. Both
+      # must reconcile against the invoice's post-payment amount; Stripe
+      # raises InvalidRequestError otherwise
       Billing::StripeClient.new.create(
         Stripe::CreditNote,
         {
           invoice: invoice.id,
+          amount: amount,
           refund_amount: amount,
           memo: 'Prorated refund for unused time (currency migration)',
           metadata: {
