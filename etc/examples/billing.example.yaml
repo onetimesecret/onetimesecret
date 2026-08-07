@@ -55,7 +55,7 @@ automatic_tax: <%= ENV['STRIPE_AUTOMATIC_TAX'] || '' %>
 
 # Stripe payment method configuration ID (pmc_...) to pin on checkout
 # sessions instead of the Dashboard default. Leave empty to use the
-# Dashboard default.
+# Dashboard default. Values that don't start with pmc_ fail at boot.
 payment_method_configuration: <%= ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] || '' %>
 
 currency: <%= ENV['BILLING_CURRENCY'] || ENV['CURRENCY'] || 'cad' %>

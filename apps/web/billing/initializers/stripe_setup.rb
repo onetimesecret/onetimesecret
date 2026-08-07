@@ -27,10 +27,12 @@ module Billing
         # customer's first checkout (apply_tax_policy!).
         Onetime.billing_config.automatic_tax?
 
-        # Warn-only: a blank STRIPE_PAYMENT_METHOD_CONFIGURATION masks any
+        # Fail the deploy on a malformed payment method configuration (a
+        # set value must be a pmc_... ID); also warn — without failing —
+        # when a blank STRIPE_PAYMENT_METHOD_CONFIGURATION masks any
         # billing.yaml pin (checkout silently reverts to the Dashboard
-        # default), so surface it at boot without ever failing the deploy.
-        Onetime.billing_config.warn_blank_payment_method_configuration!
+        # default).
+        Onetime.billing_config.validate_payment_method_configuration!
 
         # Don't bring Stripe into this unless billing is enabled
         require 'stripe'

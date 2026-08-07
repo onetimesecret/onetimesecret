@@ -177,21 +177,47 @@ module Onetime
       value.empty? ? nil : value
     end
 
-    # Boot-time visibility: warn (never raise) when the payment method
-    # configuration is blank-but-set.
+    # Boot-time validation for the payment method configuration.
     #
-    # A blank ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] is truthy through
-    # the `||` in #payment_method_configuration, so it masks any
-    # billing.yaml 'payment_method_configuration' value instead of falling
-    # back to it — the pin is dropped and checkout reverts to the Stripe
-    # Dashboard default. That is deliberate (blank ENV means explicitly
-    # unset), but an operator who meant to paste a pmc_... ID should hear
-    # about it at boot, not when a customer reaches checkout. Reads the
-    # raw values because the accessor collapses every blank case to nil.
-    def warn_blank_payment_method_configuration!
+    # Two deterministic local checks (ADR-033):
+    #
+    # 1. Raise when the resolved value does not look like a Stripe payment
+    #    method configuration ID (pmc_...). A typo or a pasted ID of the
+    #    wrong type (e.g. price_...) would otherwise surface as a Stripe
+    #    error at a customer's first checkout; failing the boot names the
+    #    offending source instead. Only the pmc_ prefix is checked —
+    #    Stripe may evolve the suffix charset. Whether the ID actually
+    #    exists is a remote-API question left to first use.
+    #
+    # 2. Warn (never raise) when the value is blank-but-set. A blank
+    #    ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] is truthy through the
+    #    `||` in #payment_method_configuration, so it masks any
+    #    billing.yaml 'payment_method_configuration' value instead of
+    #    falling back to it — the pin is dropped and checkout reverts to
+    #    the Stripe Dashboard default. That is deliberate (blank ENV means
+    #    explicitly unset), but an operator who meant to paste a pmc_...
+    #    ID should hear about it at boot, not when a customer reaches
+    #    checkout. Reads the raw values because the accessor collapses
+    #    every blank case to nil. When the value resolves to a real pin,
+    #    no warning applies — checkout IS pinned, whatever a blank
+    #    lower-precedence source holds.
+    def validate_payment_method_configuration!
       env_value  = ENV.fetch('STRIPE_PAYMENT_METHOD_CONFIGURATION', nil)
       yaml_value = config['payment_method_configuration']
+      resolved   = payment_method_configuration
 
+      unless resolved.nil?
+        return if resolved.start_with?('pmc_')
+
+        # A blank ENV value never resolves (it collapses to nil above), so
+        # a non-nil resolved value came from ENV whenever ENV is set at all.
+        source = env_value.nil? ? "billing.yaml 'payment_method_configuration'" : 'STRIPE_PAYMENT_METHOD_CONFIGURATION'
+        raise Onetime::ConfigError,
+          "#{source} is #{resolved.inspect} — not a payment method configuration ID. " \
+          'Use a pmc_... ID (Stripe Dashboard → Settings → Payments → Payment methods), or leave unset.'
+      end
+
+      # Past here the value resolved to nil — the only cases worth a warning.
       env_blank  = !env_value.nil? && env_value.to_s.strip.empty?
       yaml_blank = !yaml_value.nil? && yaml_value.to_s.strip.empty?
 

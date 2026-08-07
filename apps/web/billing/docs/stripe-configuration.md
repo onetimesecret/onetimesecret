@@ -154,8 +154,10 @@ configuration:
 
 Every checkout-session creation path passes the configured ID as
 `payment_method_configuration`. Leave it unset to keep using the Dashboard
-default. Invalid IDs are rejected by Stripe at session-creation time, not
-at boot.
+default. A malformed value — anything that does not start with `pmc_`, such
+as a pasted `price_...` ID — fails at boot with a config error naming the
+offending source. A well-formed `pmc_...` ID that does not exist in the
+Stripe account is still rejected by Stripe at session-creation time.
 
 Note: a blank-but-set env var (`STRIPE_PAYMENT_METHOD_CONFIGURATION=`) counts
 as explicitly unset — it masks the `billing.yaml` key rather than falling back
