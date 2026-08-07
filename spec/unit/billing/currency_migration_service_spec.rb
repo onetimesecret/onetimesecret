@@ -163,7 +163,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -205,7 +206,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -231,7 +233,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
       before do
         allow(mock_customer).to receive(:balance).and_return(-5000)
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -256,7 +259,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
 
         items = [
@@ -286,7 +290,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -296,32 +301,57 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
         expect(result[:warnings][:has_incompatible_coupons]).to be true
       end
+
+      it 'retrieves the subscription once with discounts expanded' do
+        described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+
+        expect(Stripe::Subscription).to have_received(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).once
+      end
     end
 
-    # Regression: Stripe API returns `discounts` (array) not `discount` (singular).
-    # Prior to fix, accessing sub.discount on newer API versions raised NoMethodError.
-    context 'with discounts array containing amount-off coupon (Stripe API regression)' do
+    # Regression: without expand: ['discounts'], clover returns bare discount
+    # ID strings; `discount&.coupon` on a String raised NoMethodError.
+    context 'with unexpanded discount ID strings (clover regression)' do
       let(:subscription) do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
           cancel_at_period_end: false,
-          discounts: [{ coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } }],
+          discounts: ['di_123'],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
 
-      it 'detects incompatible coupon from discounts array' do
+      it 'does not raise and reports no incompatible coupons' do
+        result = nil
+        expect do
+          result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+        end.not_to raise_error
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
+      end
+    end
+
+    context 'when the subscription was deleted between check and retrieve' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .and_raise(Stripe::InvalidRequestError.new('No such subscription: sub_123', 'id'))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'treats it as no subscription instead of raising' do
         result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
-        expect(result[:warnings][:has_incompatible_coupons]).to be true
+        expect(result[:current_plan]).to be_nil
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
       end
     end
 
@@ -338,7 +368,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -363,7 +394,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
