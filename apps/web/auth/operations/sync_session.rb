@@ -207,8 +207,41 @@ module Auth
           end
           retried_customer || raise(OT::Problem, "Customer index sync failed for #{@account[:email]}")
         end
+        reconcile_verification_state(customer)
         link_customer_to_account(customer) unless customer_linked?(customer)
         customer
+      end
+
+      # Reconciles customer.verified with the Rodauth account's own status
+      # when they've drifted apart (#3973).
+      #
+      # Rodauth is the source of truth for verification. A password account
+      # only reaches status=Verified via after_verify_account, which already
+      # flips this flag in lockstep -- so this is a no-op there. An
+      # SSO-provisioned account, though, is created already-verified by
+      # Rodauth (the IdP asserted the email) while
+      # Auth::Operations::CreateCustomer previously hardcoded verified: false
+      # at creation time with no path back to correct it, since this method's
+      # caller (find_existing_customer) only runs create_customer -- the one
+      # branch that DOES set it correctly -- when no customer record exists
+      # yet. Running the check here, on every login via the find branch,
+      # self-heals any customer already stuck in that state without an
+      # operator having to reach for `bin/ots customers verify`.
+      # @param customer [Onetime::Customer]
+      def reconcile_verification_state(customer)
+        return if customer.verified?
+        return unless rodauth_status_verified?
+
+        customer.verified    = true
+        customer.verified_by = 'sso'
+        customer.save_fields(:verified, :verified_by)
+
+        Auth::Logging.log_operation(
+          :customer_verification_reconciled,
+          level: :info,
+          customer_id: customer.custid,
+          correlation_id: @correlation_id,
+        )
       end
 
       # Finds existing customer by external_id or email

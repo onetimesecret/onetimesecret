@@ -22,12 +22,26 @@ module Auth
       #   Set on newly-created Customer records. Ignored for existing customers to
       #   preserve original signup context (same "don't rewrite history" rule as
       #   provisioning_origin).
-      def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil)
+      # @param verified [Boolean] Verification state for a newly-created Customer.
+      #   Defaults to false (the password-signup path: verification happens later,
+      #   via after_verify_account). SSO/OmniAuth JIT provisioning passes true here
+      #   when the Rodauth account is already status=Verified (the IdP asserted the
+      #   email) — hardcoding false unconditionally left every SSO-provisioned
+      #   customer unable to exercise any system role (#3973), since
+      #   has_system_role? gates on verified? before it checks the role field.
+      #   Ignored when the customer already exists (we don't rewrite history).
+      # @param verified_by [String, nil] Provenance for `verified`, distinguishing
+      #   a federated IdP assertion ('sso') from email confirmation ('email') or
+      #   an invite token ('invite_token'). Ignored when the customer already exists.
+      def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil,
+                     verified: false, verified_by: nil)
         @account_id          = account_id
         @account             = account
         @db                  = db || Auth::Database.connection
         @provisioning_origin = provisioning_origin
         @signup_domain_id    = signup_domain_id
+        @verified            = verified
+        @verified_by         = verified_by
       end
 
       # Executes the customer creation/loading operation
@@ -62,7 +76,8 @@ module Auth
           customer = Onetime::Customer.create!(
             email: email,
             role: 'customer',
-            verified: false, # needs to be updated in after_verify_account
+            verified: @verified,
+            verified_by: @verified ? @verified_by : nil,
             provisioning_origin: @provisioning_origin,
             signup_domain_id: @signup_domain_id,
           )
