@@ -92,7 +92,7 @@ jobs:
     steps:
       - &checkout-step
         name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Check for CI flags
         id: check-flags
@@ -253,7 +253,7 @@ jobs:
       # fetch-depth: 0 — pre-commit's --from-ref/--to-ref needs both the base and
       # head commits present; the default shallow checkout lacks the base.
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
 
@@ -383,7 +383,7 @@ jobs:
       # Check out the PR head commit (not the merge commit) so coverage line
       # numbers map correctly to the diff for GitHub Code Quality.
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
@@ -466,7 +466,7 @@ jobs:
       # Check out the PR head commit (not the merge commit) so coverage line
       # numbers map correctly to the diff for GitHub Code Quality.
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
@@ -819,7 +819,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           sparse-checkout: .github/scripts
           sparse-checkout-cone-mode: false
