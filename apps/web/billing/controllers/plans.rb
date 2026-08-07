@@ -9,6 +9,7 @@ require 'stripe'
 # apply_tax_policy! — required explicitly rather than relying on
 # controllers.rb happening to load controllers/billing.rb (which requires the
 # op) after this file.
+require_relative '../lib/pmc_resource_missing'
 require_relative '../operations/create_checkout_link'
 
 module Billing
@@ -164,19 +165,24 @@ module Billing
         # other checkout path. Applied after customer handling because
         # customer_update requires a bound :customer id.
         #
-        # Scope note: this path shares the TAX BLOCK only. Unlike
+        # Scope note: this path shares the tax block and the pmc pin below
+        # only. Unlike
         # BillingController#create_checkout_session it does not delegate to
         # build_session_params, so its subscription metadata keeps this
         # surface's historical shape (debug_info JSON + customer_extid, no
         # orgid). Deliberate: changing it would change webhook-visible
         # metadata. checkout_completed#find_target_organization falls back to
         # stripe_customer_id and then the customer's default org when orgid is
-        # absent, so this shape resolves correctly today.
+        # absent, so this shape resolves correctly today. Migration to
+        # build_session_params is tracked in #4017.
         #
         # Dashboard prerequisites when enabled (Settings → Tax): Stripe Tax
         # active, registrations for applicable jurisdictions, tax codes on
         # products (or a default tax code).
         Billing::Operations::CreateCheckoutLink.apply_tax_policy!(session_params)
+
+        pmc                                           = Onetime.billing_config.payment_method_configuration
+        session_params[:payment_method_configuration] = pmc if pmc
 
         # Subscription metadata for webhook processing and debugging
         #
@@ -227,6 +233,15 @@ module Billing
 
         res.redirect checkout_session.url
       rescue Stripe::StripeError => ex
+        # ADR-033: the configured payment_method_configuration is only
+        # format-checked at boot; existence in the connected Stripe account
+        # is discovered here, at first use — so that discovery must be loud
+        # and operator-actionable. Log-only: the user-facing redirect below
+        # is unchanged, and no other error is re-classified.
+        if ::Billing::PmcResourceMissing.pmc_resource_missing?(ex)
+          billing_logger.error ::Billing::PmcResourceMissing.operator_message(ex)
+        end
+
         billing_logger.error 'Stripe checkout session creation failed',
           {
             exception: ex,
