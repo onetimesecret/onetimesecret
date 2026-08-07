@@ -367,8 +367,11 @@ export const passphraseSchema = z.object({
  */
 export const secretOptionsSchema = z.object({
   default_ttl: z.number().int().positive().default(604800),
+  // Max mirrors the server's absolute bound (WithEntitlements::MAX_TTL,
+  // 365 days) so operator-configured options beyond 30 days survive
+  // bootstrap validation (#4008). Per-caller ceilings apply at request time.
   ttl_options: z
-    .array(z.number().int().positive().min(60).max(2592000))
+    .array(z.number().int().positive().min(60).max(31536000))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
   /**
    * TTL ceiling the server silently applies to anonymous (guest) secrets, in
