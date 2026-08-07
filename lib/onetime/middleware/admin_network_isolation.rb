@@ -30,14 +30,24 @@ module Onetime
     #
     # The allowlist check MUST use the trusted-proxy-resolved client IP, never a
     # raw forwarding header, or the allowlist is trivially spoofable by sending
-    # `X-Forwarded-For: <an-allowed-ip>`. We resolve from the canonical
-    # env['otto.client_ip'] set once by the universal IPPrivacyMiddleware mount
-    # (configured from site.network.trusted_proxy via
-    # MiddlewareStack.ip_privacy_security_config), with the same
-    # Otto::Utils.resolve_client_ip fallback the auth strategies use. This is the
-    # identical resolution the rest of the stack relies on, so the network gate
-    # agrees with ban checks, sessions, and audit attribution. When the IP cannot
-    # be resolved and an allowlist is configured, the request is denied (404) —
+    # `X-Forwarded-For: <an-allowed-ip>`. It must ALSO use the real client IP,
+    # never the IP-privacy-MASKED one — an allowlist entry finer than the
+    # privacy masking granularity (IPv4 finer than /24, IPv6 finer than /48)
+    # would otherwise silently never match (a /32 or /128 host entry) or
+    # silently over-match (any entry whose host bits are zero matches the
+    # entire masked block) (#3912).
+    #
+    # So this middleware is mounted BEFORE the universal IPPrivacyMiddleware
+    # (MiddlewareStack.configure) and resolves the client IP itself, via the
+    # same Otto::Utils.resolve_client_ip the auth strategies and
+    # IPPrivacyMiddleware itself use, fed the identical
+    # Otto::Security::Config (MiddlewareStack.ip_privacy_security_config) —
+    # so this gate's trusted-proxy trust decision cannot drift from the rest
+    # of the stack's. The resolved real IP is used for the containment check
+    # ONLY; it is never written to env, so no downstream consumer (logging,
+    # sessions, the privacy fingerprint) ever sees it — the privacy contract
+    # is unaffected by this middleware running first. When the IP cannot be
+    # resolved and an allowlist is configured, the request is denied (404) —
     # fail closed.
     #
     # ## Path matching
@@ -50,8 +60,14 @@ module Onetime
     # which app is handling the request.
     #
     class AdminNetworkIsolation
-      def initialize(app)
+      # @param app [#call] Rack application
+      # @param security_config [Otto::Security::Config, nil] the same config
+      #   handed to IPPrivacyMiddleware (MiddlewareStack.ip_privacy_security_config),
+      #   so this middleware's client-IP resolution and trusted-proxy trust
+      #   decision agree with the rest of the stack's.
+      def initialize(app, security_config = nil)
         @app             = app
+        @security_config = security_config
         @logger          = Onetime.get_logger('AdminNetworkIsolation')
         @allowed_ranges  = parse_allowed_cidrs(configured_cidrs)
 
@@ -109,19 +125,22 @@ module Onetime
       def allowed?(client_ip)
         return false if client_ip.nil? || client_ip.empty?
 
-        addr = IPAddr.new(client_ip)
+        # .native collapses an IPv4-mapped IPv6 address (::ffff:203.0.113.7,
+        # common on dual-stack sockets) to its IPv4 form. Without it,
+        # IPAddr#include? never matches across families, so such a client
+        # would never match an IPv4 CIDR entry even when it should (#3912).
+        addr = IPAddr.new(client_ip).native
         @allowed_ranges.any? { |range| range.include?(addr) }
       rescue IPAddr::InvalidAddressError
         false
       end
 
-      # Resolve the client IP from the trusted-proxy-aware canonical value, with
-      # the same fallback the auth strategies use. Never trusts a raw header.
+      # Resolve the REAL client IP (never the IP-privacy-masked one — this
+      # middleware runs before IPPrivacyMiddleware precisely so it can see the
+      # real value) via the same trusted-proxy-aware resolver and config the
+      # rest of the stack uses. Never trusts a raw header directly.
       def resolve_client_ip(env)
-        canonical = env['otto.client_ip']
-        return canonical if canonical && !canonical.empty?
-
-        Otto::Utils.resolve_client_ip(env, env['otto.security_config'])
+        Otto::Utils.resolve_client_ip(env, @security_config)
       rescue StandardError => ex
         @logger.warn "Client IP resolution failed; denying admin surface: #{ex.message}"
         nil
