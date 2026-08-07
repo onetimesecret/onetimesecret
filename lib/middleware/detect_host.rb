@@ -65,9 +65,22 @@ module Rack
   #
   # **Trusted Proxy Validation**: This middleware only trusts forwarded host
   # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host, Forwarded)
-  # when the request originates from a private or loopback IP address. This
-  # indicates the request passed through a trusted reverse proxy in the local
-  # network. Direct requests from public IPs can only use the Host header.
+  # when the request arrived via a trusted reverse proxy. Trust is granted
+  # when EITHER of two independent signals says so:
+  #
+  # - env['otto.via_trusted_proxy'] is true — recorded by Otto's
+  #   IPPrivacyMiddleware (mounted earlier in the stack) from the ORIGINAL
+  #   connecting peer against the configured trusted-proxy CIDRs, before it
+  #   rewrites REMOTE_ADDR to the resolved client IP; or
+  # - REMOTE_ADDR is a private/loopback address — the legacy heuristic that
+  #   keeps self-hosted installs behind a local reverse proxy working when
+  #   no trusted-proxy list is configured.
+  #
+  # A false (or missing, or non-boolean) key never suppresses the heuristic:
+  # IPPrivacyMiddleware is mounted unconditionally and writes false on every
+  # request when proxy trust is unconfigured, so false is ambiguous between
+  # "untrusted peer" and "no proxy trust configured". Direct requests from
+  # public IPs can only use the Host header.
   #
   # This prevents header spoofing attacks where malicious clients set
   # X-Forwarded-Host to impersonate different hosts.
@@ -110,6 +123,11 @@ module Rack
         '127.0.0.1',
         '::1',
       ].freeze
+
+      # Rack env key written by Otto's IPPrivacyMiddleware. Mirrors
+      # Otto::EnvKeys::VIA_TRUSTED_PROXY — kept as a literal so this
+      # middleware stays otto-agnostic (a tryout pins the equality).
+      VIA_TRUSTED_PROXY_KEY = 'otto.via_trusted_proxy'
     end
 
     # Class-level setting initialized from ENV variable
@@ -140,7 +158,8 @@ module Rack
     # @return [Array] Standard Rack response array from the next middleware
     #
     # This method:
-    # 1. Determines if request is from a trusted proxy (private/loopback IP)
+    # 1. Determines if request is from a trusted proxy (otto's trusted-proxy
+    #    signal, or a private/loopback REMOTE_ADDR)
     # 2. Examines headers in order of precedence (forwarded headers only from trusted proxies)
     # 3. Normalizes and validates each potential host
     # 4. Accepts the first valid host found
@@ -150,17 +169,43 @@ module Rack
       result_field_name = self.class.result_field_name
       detected_host     = nil
 
-      # Determine which headers to check based on whether request comes from trusted proxy
-      # Forwarded headers can be spoofed by clients, so we only trust them when
-      # REMOTE_ADDR is a private/loopback IP (indicating a trusted reverse proxy)
+      # Determine which headers to check based on whether request comes from
+      # a trusted proxy. Forwarded headers can be spoofed by clients, so they
+      # are only honored for requests that arrived via trusted infrastructure.
+      #
+      # Trust is a deliberate OR of two independent signals — the otto key
+      # can GRANT trust but never REVOKE the legacy heuristic:
+      #
+      # a. env['otto.via_trusted_proxy'] == true wins outright. Otto's
+      #    IPPrivacyMiddleware (mounted earlier in the stack) records it from
+      #    the ORIGINAL connecting peer against the configured trusted-proxy
+      #    CIDRs, then rewrites REMOTE_ADDR to the resolved client IP. After
+      #    that rewrite REMOTE_ADDR no longer identifies the peer — with
+      #    proxy trust enabled it holds the real (public) visitor IP, so
+      #    re-checking it here would wrongly discard forwarded host headers
+      #    and fail every custom domain to canonical (2026-08-05 incident).
+      # b. A false key does NOT suppress private_ip?(REMOTE_ADDR).
+      #    IPPrivacyMiddleware is mounted unconditionally and writes false on
+      #    every request when no trusted proxies are configured, so false is
+      #    ambiguous between "untrusted peer" and "no proxy trust
+      #    configured". Treating it as authoritative stripped forwarded-host
+      #    trust from default-config self-hosters behind a local reverse
+      #    proxy, whose masked REMOTE_ADDR stays private. Non-boolean values
+      #    (nil, strings from a future otto) also fall through gracefully.
+      # c. Known gap: in TRUSTED_PROXY_MODE=depth otto's trust list is empty
+      #    so the key is always false AND REMOTE_ADDR is rewritten to the
+      #    public client IP — forwarded-host trust is unavailable. This is a
+      #    pre-existing limitation tracked upstream in otto; do not attempt
+      #    to work around it here.
       remote_addr        = env['REMOTE_ADDR']
-      from_trusted_proxy = self.class.private_ip?(remote_addr)
+      from_trusted_proxy = env[VIA_TRUSTED_PROXY_KEY] == true ||
+                           self.class.private_ip?(remote_addr)
 
       headers_to_check = if from_trusted_proxy
         HEADER_PRECEDENCE
       else
-        # Direct public requests: only trust the Host header, not forwarded headers
-        logger.debug("[DetectHost] Direct request from #{remote_addr}, ignoring forwarded headers")
+        # Untrusted source: only the Host header is honored.
+        log_untrusted_request(env, remote_addr)
         ['Host']
       end
 
@@ -192,6 +237,48 @@ module Rack
       env[result_field_name] = detected_host
 
       @app.call(env)
+    end
+
+    private
+
+    # Logs why forwarded host headers are being ignored for this request,
+    # stating the actual trust inputs (the otto key's presence/value and the
+    # private_ip? result). REMOTE_ADDR is labeled post-proxy-resolution: by
+    # the time this middleware runs, IPPrivacyMiddleware may have rewritten
+    # it, so it does not necessarily identify the connecting peer.
+    #
+    # Escalates to WARN when Apx-Incoming-Host is among the discarded
+    # headers: Approximated ingress always sends it and a legitimate direct
+    # public client never does, so a discard here is the exact signature of
+    # the 2026-08-05 incident (custom domains falling back to canonical).
+    #
+    # @param env [Hash] Rack environment hash
+    # @param remote_addr [String, nil] env['REMOTE_ADDR'] after any rewrite
+    # @return [void]
+    def log_untrusted_request(env, remote_addr)
+      via_key      = env.key?(VIA_TRUSTED_PROXY_KEY) ? env[VIA_TRUSTED_PROXY_KEY].inspect : 'absent'
+      trust_inputs = "#{VIA_TRUSTED_PROXY_KEY}=#{via_key}, " \
+                     "private_ip=#{self.class.private_ip?(remote_addr)}, " \
+                     "remote_addr=#{remote_addr} (post-proxy-resolution)"
+
+      discarded    = FORWARDED_HEADERS.select do |header|
+        env.key?("HTTP_#{header.tr('-', '_').upcase}")
+      end
+
+      if discarded.empty?
+        logger.debug("[DetectHost] Untrusted source, no forwarded host headers present (#{trust_inputs})")
+      elsif discarded.include?('Apx-Incoming-Host')
+        logger.warn(
+          "[DetectHost] Discarding forwarded host headers (#{discarded.join(', ')}) " \
+          'from untrusted source; Apx-Incoming-Host present — matches the 2026-08-05 ' \
+          "Approximated-ingress incident signature (#{trust_inputs})",
+        )
+      else
+        logger.debug(
+          "[DetectHost] Discarding forwarded host headers (#{discarded.join(', ')}) " \
+          "from untrusted source (#{trust_inputs})",
+        )
+      end
     end
 
     module ClassMethods

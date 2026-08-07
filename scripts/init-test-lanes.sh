@@ -270,14 +270,78 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Hermetic boundary: clear every variable the lane files own. Whatever
-# direnv loaded for dev (or a previous lane) stops here.
-unset RACK_ENV AUTHENTICATION_MODE BILLING_ENABLED ORGS_SSO_ENABLED \
+# ── Hermetic boundary: the ONE env scrub block ──────────────────────────
+# Clears everything a dev shell exports (direnv-loaded or otherwise) that
+# the config templates (etc/defaults/config.defaults.yaml,
+# spec/config.test.yaml) or the suites read. Ownership rule:
+#   - variable FAMILIES we own are cleared with prefix globs ("${!PREFIX_@}");
+#     never re-list a glob-covered name explicitly;
+#   - SINGLETONS (no family prefix) are listed explicitly, grouped by why
+#     they matter;
+#   - families whose prefix we don't own (libpq's PG*, GOOGLE_/GITHUB_)
+#     are named var-by-var so we don't take out GITHUB_PERSONAL_ACCESS_TOKEN
+#     or CI's GITHUB_* and friends, which tests never read.
+# Do not add a second unset block elsewhere — extend this one. Lane env
+# files re-set anything a lane actually owns (AUTH_SECRET from base.env,
+# AUTH_DATABASE_URL* from the full/migrations lanes).
+
+# Core mode, endpoint, and secret singletons.
+unset RACK_ENV AUTHENTICATION_MODE BILLING_ENABLED \
       REDIS_URL VALKEY_URL RABBITMQ_URL \
-      AUTH_DATABASE_URL AUTH_DATABASE_URL_MIGRATIONS \
-      AUTH_DATABASE_URL_PG AUTH_DATABASE_URL_MIGRATIONS_PG \
-      SECRET SESSION_SECRET AUTH_SECRET ARGON2_SECRET ACCOUNT_ID_SECRET \
+      SECRET SESSION_SECRET ARGON2_SECRET ACCOUNT_ID_SECRET \
       FEDERATION_SECRET IDENTIFIER_SECRET
+
+# libpq reads these ambiently (a dev shell's .env.test exports PGPORT and a
+# passwordless superuser URL via direnv); they must not reach the lane either.
+unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE \
+      PGSERVICE PGSSLMODE PGOPTIONS PGPASSFILE
+
+# Feature families that flip behavior the suites assert against:
+# CUSTOM_MAIL_* configures a real mail provider (live SES creds ->
+# WebMock-blocked real HTTP calls), INCOMING_*/ORGS_*/DOMAINS_* enable
+# features the specs expect off, AUTH_* flips auth-config predicates
+# (AUTH_SSO_ENABLED, AUTH_AUTOVERIFY, AUTH_PASSWORD_REQUIREMENTS_ENABLED)
+# and carries AUTH_SECRET/AUTH_DATABASE_URL*, TRUSTED_PROXY_* rewires
+# proxy trust (REMOTE_ADDR resolution feeding DetectHost), ACME_* opens
+# the ACME endpoint, BRAND_* overrides neutral brand defaults,
+# APPROXIMATED_* is a live third-party API key, STRIPE_* is a live sandbox
+# key (billing specs replay committed VCR cassettes; no key needed), and
+# SENTRY_* carries DSNs plus an auth token.
+unset "${!CUSTOM_MAIL_@}" "${!INCOMING_@}" "${!ORGS_@}" \
+      "${!DOMAINS_@}" "${!AUTH_@}" "${!TRUSTED_PROXY_@}" "${!ACME_@}" \
+      "${!BRAND_@}" "${!APPROXIMATED_@}" "${!STRIPE_@}" "${!SENTRY_@}"
+
+# Feature master-switch singletons the globs above cannot reach
+# (ENABLE_ORGS is the orgs master switch but has no ORGS_ prefix).
+unset ENABLE_ORGS REGIONS_ENABLED JOBS_ENABLED I18N_ENABLED \
+      DIAGNOSTICS_ENABLED
+
+# Site identity: a dev shell exports HOST=dev.onetime.dev and SSL=true via
+# direnv. The suites assert against the shipped default (127.0.0.1:3000,
+# http), so these must not survive either. Same story for the domain and
+# jurisdiction identity vars.
+unset HOST SSL DEFAULT_DOMAIN JURISDICTION JURISDICTIONS SUPPORT_HOST
+
+# SSO provider credentials. AuthConfig#sso_providers registers a provider
+# purely from the presence of its required_vars (lib/onetime/auth_config.rb
+# #provider_definitions), and restrict_to only resolves to 'sso' when at
+# least one provider registers — so a dev shell's ENTRA_* silently turns
+# "no provider configured" assertions into "SSO-only is active".
+unset "${!OIDC_@}" "${!ENTRA_@}" "${!SSO_@}" \
+      GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_ROUTE_NAME \
+      GOOGLE_DISPLAY_NAME GOOGLE_TRUST_EMAIL_FOR_LINKING \
+      GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET GITHUB_ROUTE_NAME \
+      GITHUB_DISPLAY_NAME GITHUB_TRUST_EMAIL_FOR_LINKING
+
+# Mail provider config. The defaults ERB interpolates these straight into
+# config.defaults.yaml, so an exported EMAILER_REGION= (empty) yields a nil
+# where the schema demands a string, a real LETTERMINT_API_TOKEN makes the
+# "token missing" validation specs pass a token, and SMTP_* points mail at
+# a real relay. FROM/REPLYTO/FEEDBACK/VERIFIER identities leak dev
+# addresses into rendered-mail assertions.
+unset "${!EMAILER_@}" "${!LETTERMINT_@}" "${!SMTP_@}" \
+      FROM FROM_NAME FROM_EMAIL REPLYTO_EMAIL FEEDBACK_TO_EMAIL \
+      VERIFIER_EMAIL
 
 set -a
 # shellcheck source=/dev/null
@@ -296,6 +360,51 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
   done
 fi
 set +a
+
+# Billing rides on the full-mode auth stack (Stripe customer records live
+# in the auth database); it has no meaning in other modes.
+if [[ "${BILLING_ENABLED:-false}" == "true" && "${AUTHENTICATION_MODE:-}" != "full" ]]; then
+  echo "error: billing requires AUTHENTICATION_MODE=full (lane '${LANE}' is '${AUTHENTICATION_MODE:-unset}')" >&2
+  exit 64
+fi
+
+# ── Service preflight ────────────────────────────────────────────────────
+# Test services live in containers on 127.0.0.1 21xx ports (compose.test.yml
+# is the single source of truth). If they aren't up, start them — the
+# sanctioned path must also be the zero-setup path. Opt out (e.g. CI, where
+# the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
+port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
+# Ports come from the lane's own env, so this can't drift from
+# compose.test.yml (whose URLs the lane files mirror).
+REQUIRED_PORTS=()
+for _url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
+  [[ "$_url" =~ 127\.0\.0\.1:([0-9]+) ]] && REQUIRED_PORTS+=("${BASH_REMATCH[1]}")
+done
+
+missing=0
+for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missing=1; done
+
+if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
+  echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
+  if command -v docker >/dev/null 2>&1; then
+    docker compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+  elif command -v podman >/dev/null 2>&1; then
+    podman compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+  else
+    echo "error: docker/podman not found; start test services manually:" >&2
+    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    exit 69
+  fi
+fi
+
+for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
+  if ! port_open "$p"; then
+    echo "error: test service on 127.0.0.1:${p} unreachable. Start with:" >&2
+    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    exit 69
+  fi
+done
 
 echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "billing=${BILLING_ENABLED:-false}" \
