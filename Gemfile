@@ -24,7 +24,7 @@ source 'https://rubygems.org/'
 # trust signal (otto.via_trusted_proxy) ahead of the release. Pinned to an
 # immutable commit (delano/otto#227 head) so installs stay reproducible even
 # if the branch moves or is deleted.
-gem 'otto', git: 'https://github.com/delano/otto', ref: 'e7fa0b21410342d4f239c64bdd85e94972fe686f'
+gem 'otto', git: 'https://github.com/delano/otto', ref: 'd11847467359d6aa080c3f1b7ef973c1e8e65573'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'

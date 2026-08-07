@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/delano/otto
-  revision: e7fa0b21410342d4f239c64bdd85e94972fe686f
-  ref: e7fa0b21410342d4f239c64bdd85e94972fe686f
+  revision: d11847467359d6aa080c3f1b7ef973c1e8e65573
+  ref: d11847467359d6aa080c3f1b7ef973c1e8e65573
   specs:
     otto (2.7.0)
       concurrent-ruby (~> 1.3, < 2.0)
