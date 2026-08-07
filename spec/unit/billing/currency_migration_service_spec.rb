@@ -725,7 +725,15 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     it 'falls back to manual calculation when invoice preview fails' do
       allow(Stripe::Invoice).to receive(:create_preview)
         .and_raise(Stripe::InvalidRequestError.new('No such subscription', 'subscription'))
-      allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
+      paid_invoice = Stripe::Invoice.construct_from({
+        id: 'in_123', object: 'invoice', customer: 'cus_123', status: 'paid',
+      })
+      allow(Stripe::Invoice).to receive(:list)
+        .with(hash_including(status: 'paid'))
+        .and_return(double(data: [paid_invoice]))
+      allow(stripe_client).to receive(:create)
+        .with(Stripe::CreditNote, anything)
+        .and_return(double(id: 'cn_123', amount: 1450))
       allow(OT).to receive(:lw)
 
       result = described_class.execute_immediate_migration(
@@ -734,9 +742,14 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         cancel_url: 'https://example.com/cancel',
       )
 
-      # Manual calculation should produce a positive credit (halfway through period)
-      expect(result[:migration][:refund_amount]).to be > 0
-      expect(result[:migration][:refund_amount]).to be_a(Integer)
+      # Manual calculation should produce a positive credit (halfway through
+      # period) which drives the credit-note refund
+      expect(stripe_client).to have_received(:create).with(
+        Stripe::CreditNote,
+        hash_including(refund_amount: (a_value > 0))
+      )
+      expect(result[:migration][:refund_amount]).to eq(1450)
+      expect(result[:migration][:refund_failed]).to be false
       expect(OT).to have_received(:lw).with(/Invoice preview failed/)
     end
   end
