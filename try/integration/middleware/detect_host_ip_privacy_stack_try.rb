@@ -179,6 +179,13 @@ OT.send(:conf=, @saved_conf)
 ## rewritten to the (masked) PUBLIC client, so the private-peer heuristic
 ## still declines — the otto key is the ONLY trust signal here, which is
 ## exactly the cross-gem contract this file exists to pin.
+##
+## The two-entry XFF is load-bearing: otto's depth chain is XFF + REMOTE_ADDR
+## and this config trusts depth 2 (ots depth 1 + the otto#151 remap), so a
+## single-entry XFF would leave the chain too short — otto would fall back to
+## REMOTE_ADDR (10.0.0.5, private), the private-peer heuristic would grant
+## trust, and the otto-key-only assertion would silently weaken. Do NOT
+## "align" this XFF with the single-entry filter-mode case above.
 @depth_stack.call(
   {
     'REMOTE_ADDR' => '10.0.0.5',
