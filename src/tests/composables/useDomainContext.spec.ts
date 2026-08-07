@@ -368,6 +368,79 @@ describe('useDomainContext', () => {
       expect(currentContext.value.isCanonical).toBe(true);
     });
 
+    // Split deployment: the browser is on a regional host (display_domain ===
+    // site_host) while the canonical link domain differs. Being on a
+    // canonical-set host is not "on a custom domain" -- the canonical entry
+    // must still be listed so currentContext resolves to a selectable value.
+
+    it('lists the canonical entry when browsing on a regional host with no custom domains', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'eu.onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'eu.onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, hasMultipleContexts } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['onetimesecret.com']);
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+      expect(availableDomains.value).toContain(currentContext.value.domain);
+      expect(hasMultipleContexts.value).toBe(false);
+    });
+
+    it('lists canonical alongside custom domains when browsing on a regional host', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'eu.onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'eu.onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['acme.example.com', 'onetimesecret.com']);
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(availableDomains.value).toContain(currentContext.value.domain);
+    });
+
+    it('setContext(canonical) round-trips when browsing on a regional host', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'eu.onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'eu.onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
+
+      await waitForInit();
+
+      expect(currentContext.value.domain).toBe('acme.example.com');
+
+      await setContext('onetimesecret.com');
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+
+      await setContext('acme.example.com');
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
+    });
+
     it('marks custom domains non-canonical against canonical_domain, not site_host', async () => {
       setupBootstrapStore({
         domains_enabled: true,

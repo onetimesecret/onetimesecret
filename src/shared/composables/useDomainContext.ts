@@ -92,10 +92,13 @@ function getDomainDisplayName(domain: string): string {
 
 /** Build available domains list from store */
 function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>): string[] {
-  const { canonicalDomain, displayDomain } = getConfig();
+  // The canonical link-domain entry is always listed, regardless of which
+  // host the browser is on: currentContext falls back to it and
+  // resetContext/getPreferredDomain can select it, so setContext must be
+  // able to round-trip every one of those values.
+  const { canonicalDomain } = getConfig();
   const domainNames = storeDomains.map((d) => d.display_domain);
-  const onCustomDomain = displayDomain && displayDomain !== canonicalDomain;
-  if (!onCustomDomain && canonicalDomain && !domainNames.includes(canonicalDomain)) {
+  if (canonicalDomain && !domainNames.includes(canonicalDomain)) {
     domainNames.push(canonicalDomain);
   }
   return domainNames;
