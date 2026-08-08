@@ -179,6 +179,49 @@ describe('BrandedHero logo', () => {
   });
 });
 
+describe('BrandedHero dark logo variant', () => {
+  let wrapper: VueWrapper;
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount();
+  });
+
+  // The tenant's BrandSettings.logo_dark_url reaches the hero through the
+  // identity resolver's logoDarkSource and BrandMark's class-based dark swap —
+  // the same seam MastHead uses.
+  it('renders the tenant dark logo (BrandMark dark swap) when configured', async () => {
+    wrapper = mountHero(
+      {},
+      {
+        domain_branding: {
+          description: 'Acme Corp',
+          primary_color: '#36454F',
+          logo_dark_url: 'https://cdn.example/acme-logo-dark.png',
+        },
+      }
+    );
+    await nextTick();
+
+    const dark = wrapper.find('[data-testid="logo-dark"]');
+    expect(dark.exists()).toBe(true);
+    expect(dark.attributes('src')).toBe('https://cdn.example/acme-logo-dark.png');
+    expect(dark.classes()).toContain('hidden');
+    expect(dark.classes()).toContain('dark:block');
+    // The light logo is swapped out in dark mode.
+    expect(wrapper.find('[data-testid="brand-logo"]').classes()).toContain('dark:hidden');
+  });
+
+  it('renders only the light logo when no dark variant is configured', async () => {
+    wrapper = mountHero();
+    await nextTick();
+
+    expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+    expect(wrapper.findAll('img')).toHaveLength(1);
+    // The lone light logo carries no dark:hidden — nothing to swap to.
+    expect(wrapper.find('[data-testid="brand-logo"]').classes()).not.toContain('dark:hidden');
+  });
+});
+
 describe('BrandedHero logo-only', () => {
   let wrapper: VueWrapper;
 
