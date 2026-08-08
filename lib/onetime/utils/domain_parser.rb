@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'concurrent/map'
+require 'ipaddr'
 require 'public_suffix'
 require 'uri'
 
@@ -244,14 +245,22 @@ module Onetime
           str = str.to_s.strip
           return nil if str.empty?
 
-          # Bracketed IPv6 literal per RFC 3986 §3.2.2, optionally with a
+          # Bracketed IP literal per RFC 3986 §3.2.2, optionally with a
           # port (e.g. "[2001:db8::1]:8080"). Splitting these on ':' like a
           # hostname:port pair would mangle them into garbage like "[2001",
-          # so extract the address inside the brackets; anything bracketed
-          # but malformed yields nil rather than a mangled host.
+          # so extract the address inside the brackets. Brackets are
+          # reserved for IPv6 literals, so the content must parse as one —
+          # anything else ("[dead.beef]", "[1.2.3.4]", unbalanced brackets)
+          # yields nil rather than a counterfeit hostname.
           if str.start_with?('[')
-            match = str.match(/\A\[([0-9a-fA-F:.]+)\](?::\d+)?\z/)
-            return match && match[1]
+            match = str.match(/\A\[([^\]]+)\](?::\d+)?\z/)
+            return nil unless match
+
+            begin
+              return IPAddr.new(match[1]).ipv6? ? match[1] : nil
+            rescue IPAddr::InvalidAddressError
+              return nil
+            end
           end
 
           # If it looks like a URL, only extract via URI parsing - don't guess

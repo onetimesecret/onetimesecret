@@ -9,9 +9,6 @@ Changed
   escapes, DoS bounds — delegate; don't reimplement. Earliest
   ``host=`` wins, matching the ``X-Forwarded-Host`` first-value
   convention. (#4040)
-- IIS original-URL headers (``X-Original-URL``, ``X-Rewrite-URL``)
-  join the trust-gated precedence list; only absolute-URL values can
-  contribute a host. (#4040)
 - Detected hosts must pass ``DomainParser.basically_valid?`` —
   extract, then validate, the same gate ``DomainStrategy`` already
   applies. (#4040)
@@ -21,8 +18,8 @@ Fixed
 
 - ``DomainParser.extract_hostname`` now unwraps bracketed IPv6 literals
   (``[2001:db8::1]:8080`` → ``2001:db8::1``) instead of mangling them by
-  splitting on the first colon, and returns nil for malformed bracket
-  expressions. (#4040)
+  splitting on the first colon. Bracket contents must parse as IPv6 —
+  malformed or counterfeit literals (``[dead.beef]``) return nil. (#4040)
 
 AI Assistance
 -------------
