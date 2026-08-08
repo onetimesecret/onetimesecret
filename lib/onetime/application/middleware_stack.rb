@@ -167,9 +167,10 @@ module Onetime
         # ConfigureTrustedProxy Rack monkeypatch or a ClientIpHelpers depth
         # walker — this method is the whole of the translation.
         #
-        # Returns nil when trusted proxy support is disabled, which leaves the
-        # middleware in its default direct-connection mode (REMOTE_ADDR is the
-        # client) — correct for deployments not behind a proxy.
+        # When trusted proxy support is disabled the config carries an empty
+        # trust list, which leaves the middleware in its default
+        # direct-connection mode (REMOTE_ADDR is the client) — correct for
+        # deployments not behind a proxy.
         #
         # The returned config also enables full IP masking (mask_private_ips)
         # so the single universal IPPrivacyMiddleware mount masks private/
@@ -182,10 +183,13 @@ module Onetime
         #     PRIVATE_PROXY_RANGES regex PLUS every entry in `cidrs` (real IPAddr
         #     CIDR containment via add_trusted_proxy). Otto::Utils.resolve_client_ip
         #     walks the forwarded chain and returns the first non-proxy hop.
-        #   - depth: count-based. Trusts the last N hops. Onetime depth N maps to
-        #     otto trusted_proxy_depth = N + 1 because otto's chain appends
-        #     REMOTE_ADDR (one hop longer than Onetime's XFF-only chain). See the
-        #     otto v2.3.0 migration guide. Mutually exclusive with add_trusted_proxy.
+        #   - depth: count-based. Trusts the last N hops, counting the
+        #     connecting peer as hop 1: Onetime depth N maps DIRECTLY to otto
+        #     trusted_proxy_depth = N (otto's chain[-(N+1)] index already
+        #     accounts for the appended REMOTE_ADDR — see delano/otto#228's
+        #     migration-guide correction; the former `+ 1` here reproduced the
+        #     deleted walker's off-by-one). Mutually exclusive with
+        #     add_trusted_proxy.
         #
         # Header (site.network.trusted_proxy.header): in depth mode otto 2.3.1
         # counts hops from the configured forwarded header — 'X-Forwarded-For'
@@ -231,11 +235,17 @@ module Onetime
 
           if mode == 'depth'
             ots_depth                  = tp['depth'].to_i.clamp(1, 10)
-            # otto#151 remap: otto's chain is XFF + [REMOTE_ADDR], one hop longer
-            # than Onetime's XFF-only chain, so resolve the same client by
-            # trusting one extra hop. Mutually exclusive with add_trusted_proxy —
-            # do NOT also register CIDRs (otto raises).
-            config.trusted_proxy_depth = ots_depth + 1
+            # Direct mapping — no +1. Otto's chain is XFF + [REMOTE_ADDR] with
+            # the client at chain[-(N+1)], so depth N already means "N proxy
+            # hops counting the connecting peer as hop 1" — exactly what the
+            # operator-facing `depth: N` documents (1 = single reverse proxy).
+            # The former otto#151 `+ 1` remap reproduced an off-by-one of the
+            # deleted ClientIpHelpers walker: honest documented-topology
+            # requests hit otto's short-chain fallback and resolved the PROXY
+            # address, and one forged leftmost XFF entry got selected as the
+            # client. Mutually exclusive with add_trusted_proxy — do NOT also
+            # register CIDRs (otto raises).
+            config.trusted_proxy_depth = ots_depth
           else
             # filter / CIDR-walk: trust the private proxy ranges plus any
             # operator-configured public CIDRs (e.g. a CDN's egress ranges).
