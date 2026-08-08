@@ -135,10 +135,14 @@ module Onetime
             # dns_check_completed_at and updated are scalar fields — save_fields handles those.
             mailer_config.dns_check_results.value = result[:records]
 
-            # Compute dns_verified outcome: true if all records have value_matches=true
+            # Compute dns_verified outcome: true only when there is at least one
+            # checked record AND every one matched. An empty record set (domain
+            # not provisioned, or every record optional) is absence of evidence,
+            # not verification — [].all? would report true.
             records                    = result[:records] || []
             all_matched                = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
-            mailer_config.dns_verified = all_matched
+            dns_verified               = records.any? && all_matched
+            mailer_config.dns_verified = dns_verified
 
             # Mark job as completed
             mailer_config.dns_check_status       = JobLifecycle::COMPLETED
@@ -155,12 +159,12 @@ module Onetime
               final_status = mailer_config.update_verification_status!
               log_info "DNS record check complete (final): #{domain_id}",
                 record_count: records.size,
-                dns_verified: all_matched,
+                dns_verified: dns_verified,
                 verification_status: final_status
             else
               log_info "DNS record check complete: #{domain_id}",
                 record_count: records.size,
-                dns_verified: all_matched,
+                dns_verified: dns_verified,
                 provider_check_status: mailer_config.provider_check_status
             end
 

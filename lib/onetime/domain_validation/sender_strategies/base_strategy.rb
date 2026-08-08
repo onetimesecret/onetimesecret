@@ -6,7 +6,7 @@ require 'resolv'
 require 'concurrent'
 require 'json'
 require_relative '../../utils/retry_helper'
-require_relative '../record_normalizer'
+require_relative '../record_matcher'
 
 module Onetime
   module DomainValidation
@@ -262,7 +262,10 @@ module Onetime
 
         # Check whether the expected value appears in the actual DNS results.
         #
-        # Delegates to type-specific matchers for clarity and testability.
+        # The matching discipline lives in RecordMatcher, shared with the
+        # Mail fact-finding pipeline (issue #4047). TXT dispatch goes
+        # through the instance method so per-strategy overrides (and
+        # instrumentation) keep working.
         #
         # @param type [String] Record type
         # @param expected [String] Expected value
@@ -270,70 +273,34 @@ module Onetime
         # @return [Boolean]
         #
         def record_matches?(type, expected, actual_values)
-          case type
-          when 'TXT'
-            txt_record_matches?(expected.to_s.strip, actual_values)
-          when 'CNAME', 'MX'
-            normalized_expected = expected.to_s.downcase.chomp('.')
-            actual_values.any? { |v| v.downcase.chomp('.') == normalized_expected }
-          else
-            false
-          end
+          return txt_record_matches?(expected.to_s.strip, actual_values) if type == 'TXT'
+
+          RecordMatcher.record_matches?(type, expected, actual_values)
         end
 
         # Check whether a TXT record matches expected value.
-        #
-        # Dispatch (issue #4023):
-        # - SPF (v=spf1): spf_record_matches? — customers commonly merge
-        #   multiple provider includes into one SPF record, so we extract the
-        #   include: directive and verify it appears in any actual SPF record.
-        # - DMARC/DKIM tag-lists (v=DMARC1 / v=DKIM1): RecordNormalizer
-        #   subset comparison per RFC 6376 Section 3.2 grammar. Raw string
-        #   comparison false-negatives on semantically identical records
-        #   ("v=DMARC1; p=none;" vs "v=DMARC1;p=none").
-        # - Anything else (opaque provider verification tokens): exact match
-        #   after trim. Deliberately tighter than the old substring check.
-        #
-        # Note: expected is NOT globally downcased here — DKIM p= base64 key
-        # data is case-sensitive (RFC 6376 Section 3.2).
+        # See RecordMatcher#txt_record_matches? for the dispatch discipline.
+        # SPF dispatch goes through the instance method (see record_matches?).
         #
         # @param expected [String] Expected value, trimmed
         # @param actual_values [Array<String>] DNS results
         # @return [Boolean]
         #
         def txt_record_matches?(expected, actual_values)
-          if RecordNormalizer.spf?(expected)
-            spf_record_matches?(expected.downcase, actual_values)
-          elsif RecordNormalizer.tag_list?(expected)
-            actual_values.any? { |v| RecordNormalizer.subset_match?(expected, v) }
-          else
-            actual_values.any? { |v| v.strip == expected }
-          end
+          return spf_record_matches?(expected.downcase, actual_values) if RecordNormalizer.spf?(expected)
+
+          RecordMatcher.txt_record_matches?(expected, actual_values)
         end
 
         # Check whether an SPF record matches expected value.
-        #
-        # Extracts the include: directive from the expected SPF record and
-        # verifies it appears in any actual SPF record, regardless of other
-        # mechanisms present. This allows customers to combine multiple
-        # provider includes in a single record.
+        # See RecordMatcher#spf_record_matches? for the include: semantics.
         #
         # @param normalized_expected [String] Downcased expected SPF value
         # @param actual_values [Array<String>] DNS results
         # @return [Boolean]
         #
         def spf_record_matches?(normalized_expected, actual_values)
-          spf_include = normalized_expected[/include:\S+/]
-
-          if spf_include
-            actual_values.any? do |v|
-              downcased = v.downcase
-              downcased.start_with?('v=spf1') && downcased.include?(spf_include)
-            end
-          else
-            # SPF without include: directive - match the full record
-            actual_values.any? { |v| v.downcase.include?(normalized_expected) }
-          end
+          RecordMatcher.spf_record_matches?(normalized_expected, actual_values)
         end
 
         # Run verification for all required records using per-thread resolvers.
@@ -476,26 +443,13 @@ module Onetime
         end
 
         # Filter a TXT result set down to records relevant to the expected
-        # value. Only DMARC and SPF expectations have a discriminator; other
-        # types and TXT purposes pass through unfiltered.
-        #
-        # Zero survivors keeps existing not-found semantics (no match, no
-        # error_type). One survivor plus unrelated TXT records still verifies.
+        # value. See RecordMatcher#select_txt_record_set for the selection
+        # rules and RFC references.
         #
         # @return [Array(Array<String>, Boolean)] [candidates, ambiguous]
         #
         def select_txt_record_set(type, expected, actual_values)
-          return [actual_values, false] unless type == 'TXT'
-
-          discriminator = if RecordNormalizer.dmarc?(expected)
-                            RecordNormalizer.method(:dmarc?)
-                          elsif RecordNormalizer.spf?(expected)
-                            RecordNormalizer.method(:spf?)
-                          end
-          return [actual_values, false] unless discriminator
-
-          survivors = actual_values.select { |v| discriminator.call(v) }
-          [survivors, survivors.size > 1]
+          RecordMatcher.select_txt_record_set(type, expected, actual_values)
         end
 
         # Lookup DNS records by type.

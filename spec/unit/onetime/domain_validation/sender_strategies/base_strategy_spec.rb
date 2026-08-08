@@ -734,9 +734,27 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       expect(strategy.spf_record_matches?(expected, actual)).to be false
     end
 
-    it 'falls back to substring match when no include directive in expected' do
+    it 'requires every expected term when no include directive in expected' do
       expected = 'v=spf1 mx ~all'
       actual = ['v=spf1 mx ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be true
+    end
+
+    # PR #4051 review: String#include? accepted include:amazonses.com.evil
+    # as include:amazonses.com, reporting a misconfigured zone as verified.
+    it 'does not match an include whose domain merely starts with the expected one' do
+      expected = 'v=spf1 include:amazonses.com ~all'
+      actual = ['v=spf1 include:amazonses.com.evil ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be false
+    end
+
+    # PR #4051 review: whole-record containment permanently false-negatived
+    # a correct zone whenever the provider's SPF carried no include:.
+    it 'tolerates extra mechanisms on the no-include path' do
+      expected = 'v=spf1 mx -all'
+      actual = ['v=spf1 mx include:other.com -all']
 
       expect(strategy.spf_record_matches?(expected, actual)).to be true
     end
