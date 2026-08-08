@@ -3,19 +3,18 @@
 Changed
 -------
 
-- ``Rack::DetectHost`` now delegates RFC 7239 ``Forwarded`` parsing to
-  ``Rack::Utils.forwarded_values``, Rack's hardened quoted-string-aware
-  parser with denial-of-service bounds. The earliest ``host=`` parameter
-  in the header wins, mirroring the first-value convention already used
-  for ``X-Forwarded-Host``. (#4040)
-- ``Rack::DetectHost`` now also consults the IIS-family original-URL
-  headers (``X-Original-URL``, ``X-Rewrite-URL``) in its trust-gated
-  precedence list; a host is extracted only when the value is an
-  absolute URL — the usual path-only form falls through. (#4040)
-- ``Rack::DetectHost`` rejects detected hosts that fail
-  ``DomainParser.basically_valid?``, so header values containing control
-  characters, quotes, or other non-hostname junk can no longer become
-  the detected host. (#4040)
+- ``Rack::DetectHost`` parses ``Forwarded`` via
+  ``Rack::Utils.forwarded_values`` instead of a hand-rolled scanner.
+  When the framework already ships a hardened parser — quoting,
+  escapes, DoS bounds — delegate; don't reimplement. Earliest
+  ``host=`` wins, matching the ``X-Forwarded-Host`` first-value
+  convention. (#4040)
+- IIS original-URL headers (``X-Original-URL``, ``X-Rewrite-URL``)
+  join the trust-gated precedence list; only absolute-URL values can
+  contribute a host. (#4040)
+- Detected hosts must pass ``DomainParser.basically_valid?`` —
+  extract, then validate, the same gate ``DomainStrategy`` already
+  applies. (#4040)
 
 Fixed
 -----
