@@ -114,10 +114,75 @@ env = {
 env['rack.detected_host']
 #=> 'first.example.com'
 
-## Falls back when the first Forwarded element has no host parameter
+## Uses the earliest host parameter when the first element lacks one,
+## mirroring Rack::Utils.forwarded_values and the X-Forwarded-Host
+## first-value convention
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for=203.0.113.7;proto=https, for=203.0.113.8;host=second.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'second.example.com'
+
+## Falls back when no Forwarded element carries a host parameter
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'for=203.0.113.7;proto=https, for=203.0.113.8;proto=https',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## A non-RFC bare hostname in Forwarded is not a host parameter; falls back
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'legacy.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## A bracketed IPv6 Forwarded host is rejected (domain names required)
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'for=203.0.113.7;host="[2001:db8::1]:8443"',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## Headers outside FORWARDED_HEADERS (e.g. IIS X-Original-URL) are never
+## consulted, even from a trusted source — proxies aren't expected to
+## sanitize headers this middleware doesn't list
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_ORIGINAL_URL' => 'https://spoofed.example.com/page',
+  'HTTP_X_REWRITE_URL' => 'https://spoofed.example.com/page',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## Header junk in X-Forwarded-Host (invalid hostname characters) is rejected
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_FORWARDED_HOST' => 'semi;colon.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## A bracketed IPv6 X-Forwarded-Host no longer yields a mangled host
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_FORWARDED_HOST' => '[2001:db8::1]:8080',
   'HTTP_HOST' => 'fallback.example.com',
 }
 @middleware.call(env)
