@@ -84,6 +84,16 @@ vi.mock('@/types/billing', () => ({
     }).format(amount / 100),
 }));
 
+// PlanCard imports the locale-aware wrapper (#4048); pin en-US so assertions
+// stay deterministic regardless of the active app/browser locale.
+vi.mock('@/utils/format/currency', () => ({
+  formatCurrency: (amount: number, currency: string = 'USD') => new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+    }).format(amount / 100),
+  activeIntlLocale: () => 'en-US',
+}));
+
 // Test fixtures
 // Plan IDs are now family-keyed without interval suffix
 // Backend returns separate plan objects for monthly/yearly with the same id

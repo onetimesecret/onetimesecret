@@ -9,7 +9,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { Plan as BillingPlan } from '@/services/billing.service';
-  import { formatCurrency } from '@/types/billing';
+  import { formatCurrency } from '@/utils/format/currency';
   import { computed } from 'vue';
 
   const props = defineProps<{

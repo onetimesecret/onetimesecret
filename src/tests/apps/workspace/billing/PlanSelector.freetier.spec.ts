@@ -108,6 +108,13 @@ vi.mock('@/types/billing', () => ({
   getPlanLabel: (planId: string) => planId,
 }));
 
+// PlanCard imports the locale-aware wrapper (#4048); mock it the same way so
+// assertions stay locale-independent.
+vi.mock('@/utils/format/currency', () => ({
+  formatCurrency: (amount: number, currency = 'cad') => `${currency.toUpperCase()} ${(amount / 100).toFixed(2)}`,
+  activeIntlLocale: () => undefined,
+}));
+
 vi.mock('@/schemas/errors', () => ({
   classifyError: (err: unknown) => ({ message: err instanceof Error ? err.message : 'Unknown error' }),
 }));
