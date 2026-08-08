@@ -676,6 +676,32 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
           expect(OT).to have_received(:le).with(/Prorated refund of 1450 failed/)
         end
       end
+
+      # The old subscription is already cancelled by the time the credit note
+      # is created — a transient Stripe failure here must not abort the
+      # migration (HTTP 500 with no checkout URL and the intent never
+      # cleared would strand the customer without a subscription).
+      context 'when Stripe is unreachable during the credit note' do
+        before do
+          allow(stripe_client).to receive(:create)
+            .with(Stripe::CreditNote, anything)
+            .and_raise(Stripe::APIConnectionError.new('Connection to Stripe failed'))
+          allow(OT).to receive(:lw)
+          allow(OT).to receive(:le)
+        end
+
+        it 'proceeds with the checkout and reports the failed refund' do
+          result = execute
+
+          expect(result[:success]).to be true
+          expect(result[:migration][:checkout_url]).to include('stripe.com')
+          expect(result[:migration][:refund_failed]).to be true
+          expect(result[:migration][:refund_amount]).to eq(0)
+          expect(org).to have_received(:clear_currency_migration_intent!)
+          expect(OT).to have_received(:lw)
+            .with(/Stripe::APIConnectionError.*Connection to Stripe failed/)
+        end
+      end
     end
 
     # Deployment tax policy + pmc pin: shared with every other checkout path

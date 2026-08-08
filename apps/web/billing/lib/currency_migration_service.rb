@@ -550,8 +550,14 @@ module Billing
     # @param customer_id [String] Stripe customer ID
     # @param subscription_id [String] Stripe subscription ID being migrated
     # @param amount [Integer] Refund amount in smallest currency unit
+    # The refund is best-effort: any Stripe failure (invalid params, rate
+    # limits, connectivity) returns nil so the migration checkout can still
+    # proceed — the caller reports refund_failed instead of stranding the
+    # customer with a cancelled subscription and no new checkout. Non-Stripe
+    # errors still raise (programming bugs must surface).
+    #
     # @return [Stripe::CreditNote, nil] The credit note, or nil if there is no
-    #   eligible invoice or Stripe rejected the amount
+    #   eligible invoice or any Stripe error occurred
     def issue_prorated_refund(customer_id, subscription_id, amount)
       # Scope to the migrated subscription — the customer's latest paid
       # invoice may be an unrelated one
@@ -581,8 +587,8 @@ module Billing
           },
         },
       )
-    rescue Stripe::InvalidRequestError => ex
-      OT.lw "[CurrencyMigrationService] Could not issue prorated refund: #{ex.message}"
+    rescue Stripe::StripeError => ex
+      OT.lw "[CurrencyMigrationService] Could not issue prorated refund (#{ex.class}): #{ex.message}"
       nil
     end
 
