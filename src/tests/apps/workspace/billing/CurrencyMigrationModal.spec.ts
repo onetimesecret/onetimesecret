@@ -303,6 +303,91 @@ describe('CurrencyMigrationModal', () => {
     });
   });
 
+  describe('Refund Failure (immediate mode)', () => {
+    const confirmImmediate = async (w: VueWrapper) => {
+      const immediateRadio = w.find('input[value="immediate"]');
+      await immediateRadio.setValue(true);
+      await nextTick();
+      const confirmBtn = w.findAll('button').find(
+        btn => btn.text().includes('currency_migration.confirm')
+      );
+      await confirmBtn?.trigger('click');
+      await nextTick();
+      await nextTick();
+    };
+
+    it('shows warning and does NOT auto-redirect when refund_failed is true', async () => {
+      mockMigrateCurrency.mockResolvedValueOnce({
+        success: true,
+        migration: {
+          mode: 'immediate',
+          checkout_url: 'https://checkout.stripe.com/cs_789',
+          refund_amount: 0,
+          refund_formatted: '€0.00',
+          refund_failed: true,
+        },
+      });
+
+      wrapper = await mountComponent();
+      await confirmImmediate(wrapper);
+
+      expect(wrapper.emitted('immediate-redirect')).toBeFalsy();
+      expect(wrapper.text()).toContain('web.billing.currency_migration.refund_failed_warning');
+    });
+
+    it('reaches checkout via explicit continue action after refund failure', async () => {
+      mockMigrateCurrency.mockResolvedValueOnce({
+        success: true,
+        migration: {
+          mode: 'immediate',
+          checkout_url: 'https://checkout.stripe.com/cs_789',
+          refund_amount: 0,
+          refund_formatted: '€0.00',
+          refund_failed: true,
+        },
+      });
+
+      wrapper = await mountComponent();
+      await confirmImmediate(wrapper);
+
+      const continueBtn = wrapper.findAll('button').find(
+        btn => btn.text().includes('currency_migration.refund_failed_continue')
+      );
+      expect(continueBtn).toBeTruthy();
+      await continueBtn?.trigger('click');
+      await nextTick();
+
+      expect(wrapper.emitted('immediate-redirect')).toBeTruthy();
+      expect(wrapper.emitted('immediate-redirect')![0][0]).toBe(
+        'https://checkout.stripe.com/cs_789'
+      );
+    });
+
+    it('auto-redirects unchanged when refund_failed is false', async () => {
+      mockMigrateCurrency.mockResolvedValueOnce({
+        success: true,
+        migration: {
+          mode: 'immediate',
+          checkout_url: 'https://checkout.stripe.com/cs_790',
+          refund_amount: 700,
+          refund_formatted: '€7.00',
+          refund_failed: false,
+        },
+      });
+
+      wrapper = await mountComponent();
+      await confirmImmediate(wrapper);
+
+      expect(wrapper.emitted('immediate-redirect')).toBeTruthy();
+      expect(wrapper.emitted('immediate-redirect')![0][0]).toBe(
+        'https://checkout.stripe.com/cs_790'
+      );
+      expect(wrapper.text()).not.toContain(
+        'web.billing.currency_migration.refund_failed_warning'
+      );
+    });
+  });
+
   describe('Error Handling', () => {
     it('displays error when migration fails', async () => {
       mockMigrateCurrency.mockRejectedValueOnce(new Error('past_due subscription'));
