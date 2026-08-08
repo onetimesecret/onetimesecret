@@ -161,6 +161,21 @@ describe('BrandedHero logo', () => {
     expect(wrapper.find('svg').exists()).toBe(false);
   });
 
+  it('carries the logo→heading gap on the image, so a 404 leaves no phantom spacing', async () => {
+    wrapper = mountHero();
+    await nextTick();
+
+    // The mb-8 gap rides on the image, not the surviving logoUri-gated wrapper.
+    expect(wrapper.find('img').classes()).toContain('mb-8');
+
+    await wrapper.find('img').trigger('error');
+
+    // The image (and its margin) are gone; nothing keeps a 2rem gap above the
+    // heading. The wrapper survives (logoUri is still non-null) but is empty.
+    expect(wrapper.find('img').exists()).toBe(false);
+    expect(wrapper.find('.mb-8').exists()).toBe(false);
+  });
+
   it('wraps the logo in a router-link only when logoLinkTo is passed', async () => {
     wrapper = mountHero({ logoLinkTo: '/' });
     await nextTick();

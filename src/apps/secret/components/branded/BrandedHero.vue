@@ -44,7 +44,14 @@
          so a broken or absent logo leaves the branded page text-only with no
          generic placeholder (empty fallback slot). The tenant's dark variant
          (logoDarkSource → BrandSettings.logo_dark_url) swaps in under the
-         site's class-based dark mode, matching MastHead. -->
+         site's class-based dark mode, matching MastHead.
+
+         The logo→heading gap (mb-8) rides on the image itself (via imgClass),
+         not this wrapper: the wrapper is gated on logoUri (non-null), which
+         stays true when the asset 404s, so putting the margin here would leave
+         a phantom 2rem gap above the heading once BrandMark falls back to its
+         empty slot. On the image, the spacing collapses with the image — the
+         same reason IncomingForm carries its spacing in imgClass. -->
     <!--
       Sizing: a fixed height with `w-auto max-w-full` lets wide, rectangular
       logos (common when they include the company name) use the full column
@@ -58,7 +65,7 @@
     -->
     <div
       v-if="logoUri"
-      class="mb-8 flex justify-center">
+      class="flex justify-center">
       <!-- One BrandMark, conditionally wrapped: forked link/bare copies of the
            logo markup drift independently (only one branch gets a fix). -->
       <component
@@ -68,7 +75,7 @@
           :logo-uri="logoUri"
           :logo-dark-uri="logoDarkSource"
           :alt="displayName"
-          :img-class="[cornerClass, 'h-16 w-auto max-w-full object-contain sm:h-20']"
+          :img-class="[cornerClass, 'mb-8 h-16 w-auto max-w-full object-contain sm:h-20']"
           data-testid="brand-logo" />
       </component>
     </div>
