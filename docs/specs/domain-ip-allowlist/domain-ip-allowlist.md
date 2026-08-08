@@ -83,9 +83,12 @@ resolution behind proxies — but no filtering primitive.
   (`resolve_client_ip_by_depth`, `utils.rb:208`) counts exactly N trusted
   hops from the right with junk positions preserved — not spoofable by XFF
   padding, but assumes origin lockdown.
-- **IP privacy middleware** (`IPPrivacyMiddleware`, auto-mounted innermost):
-  sets `env['otto.client_ip']` and `env['otto.via_trusted_proxy']`; masks
-  IPs, scrubs UA/referer, rewrites forwarded headers.
+- **IP privacy middleware** (`IPPrivacyMiddleware`, auto-mounted innermost
+  in 2.6.0; *since otto#219 it mounts outermost, so all other middleware
+  sees masked values*): sets `env['otto.client_ip']` and
+  `env['otto.via_trusted_proxy']` (*tri-state since otto#228: written only
+  when proxy trust is configured*); masks IPs, scrubs UA/referer, rewrites
+  forwarded headers.
 - **Rejection plumbing**: `raise Otto::ForbiddenError` from anywhere in the
   Otto request chain yields a content-negotiated 403 with security headers
   (`otto-2.6.0/lib/otto/core/error_handler.rb:13`). (Not available to plain
@@ -117,6 +120,11 @@ resolution behind proxies — but no filtering primitive.
    Depth mode is the robust option but permanently disables
    `Request#secure?`'s forwarded-proto trust (modes are mutually
    exclusive, so `otto.via_trusted_proxy` is always false in depth mode).
+   *Since fixed: otto#226 grants depth-mode peer trust
+   (`via_trusted_proxy=true`, forwarded proto honored), otto#228 makes the
+   key tri-state, and the depth `+1` remap off-by-one was dropped
+   (PR #4028, for #4024), so depth resolves the documented client and
+   resists XFF padding.*
 4. **Geo headers are trusted unconditionally** in the released 2.6.0
    (`otto-2.6.0/lib/otto/privacy/geo_resolver.rb:164-197`): `CF-IPCountry`
    et al. are honored with no trusted-proxy gate, and the built-in range

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'ipaddr'
+require 'otto/env_keys'
 require_relative 'logging'
 
 module Rack
@@ -65,24 +66,27 @@ module Rack
   #
   # **Trusted Proxy Validation**: This middleware only trusts forwarded host
   # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host, Forwarded)
-  # when the request arrived via a trusted reverse proxy. Trust is granted
-  # when EITHER of two independent signals says so:
+  # when the request arrived via a trusted reverse proxy. The otto trust key
+  # is TRI-STATE (otto#228) and, when present, authoritative in BOTH
+  # directions:
   #
-  # - env['otto.via_trusted_proxy'] is true — recorded by Otto's
+  # - env['otto.via_trusted_proxy'] PRESENT — recorded by Otto's
   #   IPPrivacyMiddleware (mounted earlier in the stack) from the ORIGINAL
   #   connecting peer, before it rewrites REMOTE_ADDR to the resolved client
-  #   IP. Otto grants it when the peer matches a configured trusted-proxy
-  #   CIDR (filter mode) or whenever count-based depth mode is active
-  #   (configuring a depth asserts the peer is the proxy tier; otto#226); or
-  # - REMOTE_ADDR is a private/loopback address — the legacy heuristic that
-  #   keeps self-hosted installs behind a local reverse proxy working when
-  #   no trusted-proxy list is configured.
+  #   IP, and only when the operator configured proxy trust. true = the peer
+  #   matched a trusted-proxy CIDR (filter mode) or count-based depth mode
+  #   is active (configuring a depth asserts the peer is the proxy tier;
+  #   otto#226). false = trust IS configured and the peer failed it — an
+  #   authoritative deny; the heuristic below does not apply.
+  # - Key ABSENT — no proxy trust configured (or the otto middleware is not
+  #   mounted). Only then does the legacy heuristic apply: a private/
+  #   loopback REMOTE_ADDR grants trust, keeping self-hosted installs behind
+  #   a local reverse proxy working without any trusted-proxy config.
   #
-  # A false (or missing, or non-boolean) key never suppresses the heuristic:
-  # IPPrivacyMiddleware is mounted unconditionally and writes false on every
-  # request when proxy trust is unconfigured, so false is ambiguous between
-  # "untrusted peer" and "no proxy trust configured". Direct requests from
-  # public IPs can only use the Host header.
+  # A present-but-non-boolean value (a future otto surprise) is treated as
+  # untrusted rather than falling through to the heuristic: presence implies
+  # the authoritative contract. Direct requests from public IPs can only use
+  # the Host header.
   #
   # This prevents header spoofing attacks where malicious clients set
   # X-Forwarded-Host to impersonate different hosts.
@@ -103,11 +107,13 @@ module Rack
     # and is not used for host detection
     unless defined?(HEADER_PRECEDENCE)
       # Forwarded headers that require trusted proxy validation.
-      # These headers can be spoofed by clients and should only be trusted
-      # when the request comes from a private/loopback IP (trusted proxy).
+      # These headers can be spoofed by clients and are only trusted when
+      # otto's tri-state key grants it (otto.via_trusted_proxy == true) or,
+      # with the key absent (no proxy trust configured), when REMOTE_ADDR is
+      # a private/loopback address — see the trust decision in #call.
       FORWARDED_HEADERS = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
-        'Apx-Incoming-Host',  # Check Approximated (if it exists)
+        'Apx-Incoming-Host',  # Approximated-specific (approximated.app custom-domain ingress); like all forwarded headers, only honored behind trusted infra
         'X-Original-Host',    # Various proxy services
         'Forwarded',          # RFC 7239 standard (host parameter)
       ].freeze
@@ -126,10 +132,10 @@ module Rack
         '::1',
       ].freeze
 
-      # Rack env key written by Otto's IPPrivacyMiddleware. Mirrors
-      # Otto::EnvKeys::VIA_TRUSTED_PROXY — kept as a literal so this
-      # middleware stays otto-agnostic (a tryout pins the equality).
-      VIA_TRUSTED_PROXY_KEY = 'otto.via_trusted_proxy'
+      # Rack env key written by Otto's IPPrivacyMiddleware. Referenced from
+      # Otto::EnvKeys so a rename upstream has exactly one surface to update
+      # (previously a duplicated literal pinned by a tryout).
+      VIA_TRUSTED_PROXY_KEY = Otto::EnvKeys::VIA_TRUSTED_PROXY
     end
 
     # Class-level setting initialized from ENV variable
@@ -175,41 +181,41 @@ module Rack
       # a trusted proxy. Forwarded headers can be spoofed by clients, so they
       # are only honored for requests that arrived via trusted infrastructure.
       #
-      # Trust is a deliberate OR of two independent signals — the otto key
-      # can GRANT trust but never REVOKE the legacy heuristic:
+      # The otto key is tri-state (otto#228); a PRESENT key is authoritative
+      # in both directions and the heuristic applies only when it is absent:
       #
-      # a. env['otto.via_trusted_proxy'] == true wins outright. Otto's
-      #    IPPrivacyMiddleware (mounted earlier in the stack) records it from
-      #    the ORIGINAL connecting peer against the configured trusted-proxy
-      #    CIDRs, then rewrites REMOTE_ADDR to the resolved client IP. After
-      #    that rewrite REMOTE_ADDR no longer identifies the peer — with
-      #    proxy trust enabled it holds the real (public) visitor IP, so
-      #    re-checking it here would wrongly discard forwarded host headers
-      #    and fail every custom domain to canonical (2026-08-05 incident).
-      # b. A false key does NOT suppress private_ip?(REMOTE_ADDR).
-      #    IPPrivacyMiddleware is mounted unconditionally and writes false on
-      #    every request when no trusted proxies are configured, so false is
-      #    ambiguous between "untrusted peer" and "no proxy trust
-      #    configured". Treating it as authoritative stripped forwarded-host
-      #    trust from default-config self-hosters behind a local reverse
-      #    proxy, whose masked REMOTE_ADDR stays private. Non-boolean values
-      #    (nil, strings from a future otto) also fall through gracefully.
-      # c. TRUSTED_PROXY_MODE=depth: fixed upstream in otto#226. Depth and
-      #    CIDRs are mutually exclusive so otto's matcher list is empty, but
-      #    configuring a depth is the operator's assertion that the
-      #    connecting peer is their proxy tier, so otto records the key true
-      #    and grant (a) applies. Depth counts hops from the right with the
-      #    peer as hop 1 (the otto#151 remap was dropped), so extra leftmost
-      #    XFF entries — forged or from farther upstream — never shift the
-      #    selection. The hazard is a depth/topology mismatch: a chain
-      #    shorter than the depth falls back to the peer (misattribution),
-      #    and a depth larger than the real proxy hop count selects a
-      #    client-supplied entry (spoofable). Each counted hop must append
-      #    exactly one entry. As with all count-based trust, the origin must
-      #    be unreachable except through the proxy tier.
+      # a. Key present: otto's IPPrivacyMiddleware (mounted earlier in the
+      #    stack) recorded it from the ORIGINAL connecting peer — before
+      #    rewriting REMOTE_ADDR to the resolved client IP — and only
+      #    because the operator configured proxy trust (CIDR matchers, or a
+      #    depth: otto#226 grants depth-mode peer trust; the otto#151 remap
+      #    was dropped, so extra leftmost XFF entries never shift the
+      #    right-anchored selection; a chain shorter than the depth falls
+      #    back to the peer, and a depth larger than the real hop count
+      #    selects a client-supplied entry — each hop must append exactly
+      #    one entry and the origin must stay unreachable except through
+      #    the proxy tier). After the rewrite REMOTE_ADDR no
+      #    longer identifies the peer — with proxy trust enabled it holds
+      #    the real (public) visitor IP, so re-checking it here would
+      #    wrongly discard forwarded host headers and fail every custom
+      #    domain to canonical (2026-08-05 incident). A false key means the
+      #    configured trust REJECTED this peer — honoring the private-IP
+      #    heuristic anyway would let any request that resolves to a
+      #    private REMOTE_ADDR bypass the operator's explicit trust
+      #    decision. A present-but-non-boolean value (a future otto
+      #    surprise) is treated as untrusted: presence implies the
+      #    authoritative contract.
+      # b. Key absent: no proxy trust configured, or the otto middleware is
+      #    not mounted (bare-Rack stacks). Only here does the legacy
+      #    heuristic apply: a private/loopback REMOTE_ADDR grants trust,
+      #    keeping default-config self-hosted installs behind a local
+      #    reverse proxy (nginx/Caddy on the same box or LAN) working.
       remote_addr        = env['REMOTE_ADDR']
-      from_trusted_proxy = env[VIA_TRUSTED_PROXY_KEY] == true ||
-                           self.class.private_ip?(remote_addr)
+      from_trusted_proxy = if env.key?(VIA_TRUSTED_PROXY_KEY)
+        env[VIA_TRUSTED_PROXY_KEY] == true
+      else
+        self.class.private_ip?(remote_addr)
+      end
 
       headers_to_check = if from_trusted_proxy
         HEADER_PRECEDENCE
