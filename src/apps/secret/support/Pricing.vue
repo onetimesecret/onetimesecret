@@ -196,12 +196,13 @@
       <div
         class="mb-8 flex items-center justify-center gap-3"
         role="group"
-        aria-label="Billing interval">
+        :aria-label="t('web.billing.plans.billing_interval')">
         <button
+          type="button"
           @click="billingInterval = 'month'"
           :aria-pressed="billingInterval === 'month'"
           :class="[
-            'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+            'rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
             billingInterval === 'month'
               ? 'bg-brand-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
@@ -209,10 +210,11 @@
           {{ t('web.billing.plans.monthly') }}
         </button>
         <button
+          type="button"
           @click="billingInterval = 'year'"
           :aria-pressed="billingInterval === 'year'"
           :class="[
-            'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+            'rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
             billingInterval === 'year'
               ? 'bg-brand-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
@@ -247,7 +249,7 @@
           <RouterLink
             v-if="signupEnabled && freePlan"
             :to="getSignupUrl(freePlan)"
-            class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
+            class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
             {{ t('web.pricing.get_started_free') }}
           </RouterLink>
           <span
@@ -276,7 +278,7 @@
               v-if="signupEnabled"
               :to="getSignupUrl(currentPlan)"
               :class="[
-                'block w-full rounded-md px-4 py-2 text-center text-sm font-semibold transition-colors',
+                'block w-full rounded-md px-4 py-2 text-center text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
                 isPlanRecommended(currentPlan) || isPlanHighlighted(currentPlan)
                   ? 'bg-brand-600 text-white hover:bg-brand-500'
                   : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700',
@@ -327,7 +329,7 @@
           {{ t('web.pricing.already_have_account') }}
           <RouterLink
             :to="signinUrl"
-            class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+            class="rounded-sm font-medium text-brand-600 hover:text-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:text-brand-400 dark:hover:text-brand-300">
             {{ t('web.pricing.sign_in') }}
           </RouterLink>
         </p>
