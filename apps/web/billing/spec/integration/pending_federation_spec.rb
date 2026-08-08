@@ -367,6 +367,17 @@ RSpec.describe 'PendingFederatedSubscription Model', :unit do
       expect(described_planid(subscription)).to be_nil
     end
 
+    it 'returns nil for an empty-string price id instead of raising ArgumentError' do
+      subscription = Stripe::Subscription.construct_from(
+        id: "sub_extract_#{SecureRandom.hex(4)}",
+        object: 'subscription',
+        metadata: { 'plan_id' => nil },
+        items: { data: [{ price: { id: '' } }] },
+      )
+      expect(Billing::PlanValidator).not_to receive(:resolve_plan_id)
+      expect(described_planid(subscription)).to be_nil
+    end
+
     it 'does not store a malformed metadata plan_id verbatim' do
       subscription = build_subscription('plan_id' => 'Identity Plus!')
       allow(Billing::PlanValidator).to receive(:resolve_plan_id)

@@ -129,8 +129,8 @@ module Billing
       end
 
       item     = subscription.items&.data&.first
-      price_id = item&.price&.id
-      return nil unless price_id
+      price_id = item&.price&.id.to_s.strip
+      return nil if price_id.empty?
 
       Billing::PlanValidator.resolve_plan_id(price_id)
     rescue Billing::CatalogMissError
