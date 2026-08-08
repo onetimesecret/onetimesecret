@@ -120,15 +120,47 @@ export function getInvoiceStatusLabel(
   return t(`web.billing.invoices.${status}`);
 }
 
-export function formatCurrency(amount: number, currency?: string | null): string {
-  // A default parameter value only fills in `undefined`, so a `null` currency
-  // slipped straight through to Intl.NumberFormat, which throws a RangeError on
-  // a null currency code. `null` does reach here: the plan record falls back to
-  // `plan.currency` when the Stripe price has none, and that can itself be null.
-  // Normalise null or empty to the USD default so display never crashes.
-  const resolvedCurrency = currency || 'USD';
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: resolvedCurrency,
-  }).format(amount / 100); // Assuming amount is in cents
+/**
+ * Format an amount in cents as a localized currency string.
+ *
+ * Pure helper: no app imports, safe to call from anywhere. For display in
+ * components, prefer the locale-aware wrapper in `@/utils/format/currency`
+ * which resolves the active i18n locale automatically.
+ *
+ * Defensive by design (#4048):
+ * - Falsy currency (null/undefined/'') coerces to 'USD' instead of throwing.
+ * - Locale codes are normalized from underscore form (de_AT) to BCP-47 (de-AT).
+ * - An invalid locale falls back to the browser locale; an invalid currency
+ *   code degrades to a plain "12.34 XYZ" rendering instead of crashing.
+ *
+ * @param amount - Amount in cents
+ * @param currency - ISO 4217 currency code; falsy values coerce to 'USD'
+ * @param locale - BCP-47 or underscore-form locale; omitted = browser locale
+ */
+export function formatCurrency(
+  amount: number,
+  currency?: string | null,
+  locale?: string
+): string {
+  const currencyCode = (currency || 'USD').toUpperCase();
+  const normalizedLocale = locale ? locale.replace(/_/g, '-') : undefined;
+
+  const localeCandidates: (string | undefined)[] = normalizedLocale
+    ? [normalizedLocale, undefined]
+    : [undefined];
+
+  for (const candidate of localeCandidates) {
+    try {
+      return new Intl.NumberFormat(candidate, {
+        style: 'currency',
+        currency: currencyCode,
+      }).format(amount / 100); // Amount is in cents
+    } catch (error) {
+      if (!(error instanceof RangeError)) throw error;
+      // RangeError: invalid locale (retry without) or invalid currency (fall
+      // through to plain rendering below).
+    }
+  }
+
+  return `${(amount / 100).toFixed(2)} ${currencyCode}`;
 }
