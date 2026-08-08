@@ -45,10 +45,15 @@ module Onetime
       # it only gets a discriminator here for record-set selection.
       SPF_DISCRIMINATOR = /\A\s*v=spf1(?:\s|\z)/i
 
-      # DMARC policy tags where presence of the tag satisfies the
-      # expectation regardless of value: a customer publishing p=reject
-      # against our expected p=none has hardened their policy, not broken it.
+      # DMARC policy tags compared by strength, not equality: a customer
+      # publishing p=reject against our expected p=none has hardened their
+      # policy, not broken it. A weaker published policy (p=none against
+      # expected p=quarantine) fails, as does any value outside the RFC 7489
+      # Section 6.3 keywords (none / quarantine / reject).
       DMARC_POLICY_TAGS = %w[p sp].freeze
+
+      # RFC 7489 Section 6.3 policy keywords in increasing strength.
+      DMARC_POLICY_STRENGTH = { 'none' => 0, 'quarantine' => 1, 'reject' => 2 }.freeze
 
       # DKIM tags whose values compare case-insensitively (key type, hash
       # algorithms, service type). Everything else in a DKIM record defaults
@@ -138,7 +143,7 @@ module Onetime
 
         case kind
         when :dmarc
-          return true if DMARC_POLICY_TAGS.include?(name)
+          return policy_satisfied?(expected, published) if DMARC_POLICY_TAGS.include?(name)
 
           # Remaining DMARC values are ABNF keywords (case-insensitive per
           # RFC 5234 Section 2.3), URIs, or domain names (RFC 4343).
@@ -156,6 +161,19 @@ module Onetime
         else
           expected == published
         end
+      end
+
+      # Policy keywords are ABNF keywords (case-insensitive per RFC 5234
+      # Section 2.3). The published policy must be a recognized keyword at
+      # least as strong as the expected one. When the expected value itself
+      # is not a recognized keyword, fall back to case-insensitive equality
+      # rather than accepting any published value.
+      def policy_satisfied?(expected, published)
+        expected_strength = DMARC_POLICY_STRENGTH[expected.downcase]
+        return expected.casecmp?(published) if expected_strength.nil?
+
+        published_strength = DMARC_POLICY_STRENGTH[published.downcase]
+        !published_strength.nil? && published_strength >= expected_strength
       end
 
       def strip_wsp(value)

@@ -120,9 +120,15 @@ export function getInvoiceStatusLabel(
   return t(`web.billing.invoices.${status}`);
 }
 
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
+export function formatCurrency(amount: number, currency?: string | null): string {
+  // A default parameter value only fills in `undefined`, so a `null` currency
+  // slipped straight through to Intl.NumberFormat, which throws a RangeError on
+  // a null currency code. `null` does reach here: the plan record falls back to
+  // `plan.currency` when the Stripe price has none, and that can itself be null.
+  // Normalise null or empty to the USD default so display never crashes.
+  const resolvedCurrency = currency || 'USD';
   return new Intl.NumberFormat(undefined, {
     style: 'currency',
-    currency,
+    currency: resolvedCurrency,
   }).format(amount / 100); // Assuming amount is in cents
 }

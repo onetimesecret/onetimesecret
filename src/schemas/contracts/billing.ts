@@ -229,6 +229,14 @@ export const immediateMigrationResponseSchema = z.object({
     checkout_url: checkoutUrlSchema,
     refund_amount: z.number(),
     refund_formatted: z.string(),
+    /**
+     * True when the prorated refund (Stripe credit note) could not be issued.
+     * The old subscription is already cancelled at this point, so the customer
+     * must still complete checkout — but the UI must surface the failure
+     * instead of silently redirecting. Defaults to false so responses from
+     * older backends that omit the flag still parse.
+     */
+    refund_failed: z.boolean().default(false),
   }),
 });
 
