@@ -156,6 +156,57 @@ env = {
 env['rack.detected_host']
 #=> 'fallback.example.com'
 
+## X-Original-URL (IIS/ARR) contributes a host when it carries an absolute URL
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_ORIGINAL_URL' => 'https://original.example.com/admin?tab=1',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'original.example.com'
+
+## X-Original-URL with the usual IIS path-only form falls through
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_ORIGINAL_URL' => '/admin?tab=1',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## X-Rewrite-URL (IIS URL Rewrite) contributes a host from an absolute URL
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_REWRITE_URL' => 'https://rewrite.example.com/page',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'rewrite.example.com'
+
+## X-Original-Host takes precedence over X-Original-URL
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_ORIGINAL_HOST' => 'orig-host.example.com',
+  'HTTP_X_ORIGINAL_URL' => 'https://orig-url.example.com/page',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'orig-host.example.com'
+
+## IIS URL headers are ignored from untrusted sources like other forwarded headers
+env = {
+  'REMOTE_ADDR' => '203.0.113.99',
+  'HTTP_X_ORIGINAL_URL' => 'https://spoofed.example.com/page',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
 ## Header junk in X-Forwarded-Host (invalid hostname characters) is rejected
 env = {
   'REMOTE_ADDR' => '192.168.1.1',

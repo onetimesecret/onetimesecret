@@ -8,6 +8,10 @@ Changed
   parser with denial-of-service bounds. The earliest ``host=`` parameter
   in the header wins, mirroring the first-value convention already used
   for ``X-Forwarded-Host``. (#4040)
+- ``Rack::DetectHost`` now also consults the IIS-family original-URL
+  headers (``X-Original-URL``, ``X-Rewrite-URL``) in its trust-gated
+  precedence list; a host is extracted only when the value is an
+  absolute URL — the usual path-only form falls through. (#4040)
 - ``Rack::DetectHost`` rejects detected hosts that fail
   ``DomainParser.basically_valid?``, so header values containing control
   characters, quotes, or other non-hostname junk can no longer become

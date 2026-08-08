@@ -36,10 +36,14 @@ module Rack
   # 1. `X-Forwarded-Host` - Commonly used by proxies and load balancers.
   # 2. `Apx-Incoming-Host` - Approximated.app custom-domain ingress.
   # 3. `X-Original-Host` - Used by various proxy services.
-  # 4. `Forwarded` - RFC 7239 standard; the first `host=` parameter is
+  # 4. `X-Original-URL` - IIS/ARR original URL; host extracted only when
+  #    the value is an absolute URL (IIS normally sends path + query only,
+  #    which fails hostname validation and falls through).
+  # 5. `X-Rewrite-URL` - IIS URL Rewrite pre-rewrite URL; same caveat.
+  # 6. `Forwarded` - RFC 7239 standard; the first `host=` parameter is
   #    extracted (via `Rack::Utils.forwarded_values`), with quoted values
   #    and ports handled per the RFC.
-  # 5. `Host` - Default HTTP host header.
+  # 7. `Host` - Default HTTP host header.
   #
   # It also includes validation to filter out invalid or local hosts (e.g.,
   # `localhost`, `127.0.0.1`) and IP addresses, ensuring only legitimate
@@ -116,10 +120,16 @@ module Rack
       # otto's tri-state key grants it (otto.via_trusted_proxy == true) or,
       # with the key absent (no proxy trust configured), when REMOTE_ADDR is
       # a private/loopback address — see the trust decision in #call.
+      # X-Forwarded-Server is deliberately absent: it typically names the
+      # proxy's own hostname, not the client-requested host. Scheme-only
+      # headers (X-Forwarded-Proto, CF-Visitor, ...) don't belong here
+      # either — this middleware detects hosts, not schemes.
       FORWARDED_HEADERS = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
         'Apx-Incoming-Host',  # Approximated-specific (approximated.app custom-domain ingress); like all forwarded headers, only honored behind trusted infra
         'X-Original-Host',    # Various proxy services
+        'X-Original-URL',     # IIS/ARR original URL; contributes a host only in absolute-URI form — path-only values fail hostname validation and fall through
+        'X-Rewrite-URL',      # IIS URL Rewrite pre-rewrite URL; same absolute-URI caveat as X-Original-URL
         'Forwarded',          # RFC 7239 standard (host parameter)
       ].freeze
 
