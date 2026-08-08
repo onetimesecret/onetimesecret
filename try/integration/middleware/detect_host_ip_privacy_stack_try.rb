@@ -28,7 +28,8 @@
 # 4. Direct public request: forwarded host headers ignored, Host wins
 # 5. Direct-connect config + private peer: forwarded host headers trusted via
 #    the private-peer heuristic (back-compat for self-hosted installs)
-# 6. Depth mode: forwarded-host trust unavailable (known otto limitation)
+# 6. Depth mode: otto records peer trust from the depth assertion (otto#226),
+#    so forwarded host headers are honored via the otto key alone
 
 require_relative '../../support/test_helpers'
 
@@ -170,14 +171,21 @@ OT.send(:conf=, @saved_conf)
 [@captured['rack.detected_host'], @captured['otto.via_trusted_proxy']]
 #=> ['forwarded.example.com', false]
 
-## KNOWN LIMITATION (pinned deliberately; tracked for an upstream otto fix):
-## in depth mode otto's trusted-proxy list is empty (depth and CIDRs are
-## mutually exclusive), so it records via_trusted_proxy=false even though the
-## request DID arrive through the counted proxy tier, AND it rewrites
-## REMOTE_ADDR to the (masked) public client — both trust signals decline and
-## forwarded-host trust is unavailable: Apx-Incoming-Host is discarded, Host
-## wins. When otto learns to record depth-based trust in via_trusted_proxy,
-## this expectation flips and must be updated deliberately.
+## Depth mode grants forwarded-host trust (otto#226 — the deliberate flip of
+## the KNOWN LIMITATION this case used to pin): depth and CIDRs are mutually
+## exclusive so otto's matcher list is empty, but configuring a depth asserts
+## the connecting peer is the proxy tier, so otto records
+## via_trusted_proxy=true from the pre-rewrite peer. REMOTE_ADDR is still
+## rewritten to the (masked) PUBLIC client, so the private-peer heuristic
+## still declines — the otto key is the ONLY trust signal here, which is
+## exactly the cross-gem contract this file exists to pin.
+##
+## The two-entry XFF is load-bearing: otto's depth chain is XFF + REMOTE_ADDR
+## and this config trusts depth 2 (ots depth 1 + the otto#151 remap), so a
+## single-entry XFF would leave the chain too short — otto would fall back to
+## REMOTE_ADDR (10.0.0.5, private), the private-peer heuristic would grant
+## trust, and the otto-key-only assertion would silently weaken. Do NOT
+## "align" this XFF with the single-entry filter-mode case above.
 @depth_stack.call(
   {
     'REMOTE_ADDR' => '10.0.0.5',
@@ -191,4 +199,4 @@ OT.send(:conf=, @saved_conf)
   @captured['otto.via_trusted_proxy'],
   Rack::DetectHost.private_ip?(@captured['REMOTE_ADDR']),
 ]
-#=> ['eu.onetimesecret.com', false, false]
+#=> ['ca.metalbaum.example.com', true, false]
