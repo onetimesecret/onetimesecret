@@ -523,6 +523,10 @@
     "text": "IP address",
     "content_hash": "0302a467"
   },
+  "web.admin.customers.detail.sessions.columns.country": {
+    "text": "Country",
+    "content_hash": "701d021d"
+  },
   "web.admin.customers.detail.sessions.columns.device": {
     "text": "Device",
     "content_hash": "6ba0bdec"

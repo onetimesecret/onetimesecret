@@ -77,6 +77,7 @@ module Onetime
           meta.org_id           = active_org_id(customer)
           meta.auth_method      = auth_method
           meta.mfa_used         = mfa_used
+          meta.geo_country      = geo_country
           meta.save
 
           # Score by last-activity so the per-customer list reads newest-first.
@@ -142,6 +143,17 @@ module Onetime
         # not invent one — the field exists for a future enrichment path.
         def mfa_used
           nil
+        end
+
+        # geo_country is the country Otto's IPPrivacyMiddleware already resolved
+        # for this request and stamped into the Rack env (otto.privacy.geo_country,
+        # ISO 3166-1 alpha-2 or the '**' unknown sentinel). It runs upstream of the
+        # session write, so this is a plain env read — NOT an IP lookup, and never
+        # derived from the (masked) ip_address. nil when @env is absent (e.g. tests
+        # that call TrackMetadata directly with env: nil) or the privacy layer is
+        # disabled; consumers render '**'/nil as "Unknown".
+        def geo_country
+          @env&.dig('otto.privacy.geo_country')
         end
       end
     end

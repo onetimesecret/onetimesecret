@@ -127,6 +127,23 @@ SM.load(@am_sid)&.destroy!
 @am.auth_method
 #=> "webauthn"
 
+# ---- geo_country: read from the Rack env, never an IP lookup -----------
+
+## a request env carrying a resolved country persists it on the sidecar
+@geo_sid = "trygeo_#{@nonce}"
+SM.load(@geo_sid)&.destroy!
+@geo = TM.new(session_id: @geo_sid, session_data: @auth_session,
+              env: { 'otto.privacy.geo_country' => 'US' }).call
+@geo.geo_country
+#=> "US"
+
+## with no env (env: nil) geo_country is nil — no lookup is invented
+@nogeo_sid = "trynogeo_#{@nonce}"
+SM.load(@nogeo_sid)&.destroy!
+@nogeo = TM.new(session_id: @nogeo_sid, session_data: @auth_session).call
+@nogeo.geo_country.nil?
+#=> true
+
 ## org resolution is nil-safe: a customer with no organization writes the sidecar
 ## with org_id = nil, never raising (own rescue). (@cust has no org yet.)
 @no_org_sid = "trynoorg_#{@nonce}"
@@ -147,6 +164,8 @@ SM.load(@org_sid)&.destroy!
 # Cleanup
 SM.load(@sid)&.destroy!
 SM.load(@am_sid)&.destroy!
+SM.load(@geo_sid)&.destroy!
+SM.load(@nogeo_sid)&.destroy!
 SM.load(@no_org_sid)&.destroy!
 SM.load(@org_sid)&.destroy!
 @org.destroy!
