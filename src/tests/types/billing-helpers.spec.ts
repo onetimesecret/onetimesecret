@@ -49,6 +49,18 @@ describe('formatCurrency', () => {
     expect(result).toContain('50');
   });
 
+  it('falls back to USD when currency is null instead of throwing', () => {
+    // A plan can reach the UI with a null currency (no Stripe price currency
+    // and no plan currency), which used to crash Intl.NumberFormat.
+    expect(() => formatCurrency(5000, null)).not.toThrow();
+    expect(formatCurrency(5000, null)).toContain('50');
+  });
+
+  it('falls back to USD when currency is an empty string', () => {
+    expect(() => formatCurrency(5000, '')).not.toThrow();
+    expect(formatCurrency(5000, '')).toContain('50');
+  });
+
   it('formats EUR currency', () => {
     const result = formatCurrency(1999, 'EUR');
     expect(result).toContain('19.99');
