@@ -57,27 +57,10 @@ function getNewFeatures(plan: BillingPlan, allPlans: BillingPlan[]): string[] {
   return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
 }
 
-/**
- * Logic extracted from PlanSelector.vue: getPlanPricePerMonth
- *
- * Returns the monthly display price for a plan.
- * ISSUE: Uses amount / 12 for yearly plans (loses precision)
- * FIX: Should use monthly_equivalent_amount from API when available.
- */
-function getPlanPricePerMonth(
-  plan: BillingPlan & { monthly_equivalent_amount?: number }
-): number {
-  // For yearly plans, prefer API-provided monthly equivalent
-  if (plan.interval === 'year') {
-    if (plan.monthly_equivalent_amount !== undefined) {
-      return plan.monthly_equivalent_amount;
-    }
-    // Fallback to calculation (may lose precision)
-    return Math.floor(plan.amount / 12);
-  }
-  // For monthly plans, show the amount as-is
-  return plan.amount;
-}
+// NOTE: getPlanPricePerMonth (monthly-equivalent display for yearly plans) was
+// removed. PRICING DISPLAY POLICY (see PlanCard.vue): the headline price is
+// always the amount actually charged for the plan's interval — never a derived
+// monthly-equivalent rate.
 
 /**
  * Deduplicate plans by plan_code
@@ -478,57 +461,6 @@ describe('PlanSelector Logic', () => {
     });
   });
 
-  describe('getPlanPricePerMonth', () => {
-    it('uses monthly_equivalent_amount for yearly plans when available', () => {
-      const yearlyPlan = createMockPlan({
-        interval: 'year',
-        amount: 14388, // $143.88/year
-      }) as BillingPlan & { monthly_equivalent_amount?: number };
-      yearlyPlan.monthly_equivalent_amount = 1199; // $11.99/month (API literal)
-
-      expect(getPlanPricePerMonth(yearlyPlan)).toBe(1199);
-    });
-
-    it('falls back to amount/12 calculation when monthly_equivalent not available', () => {
-      const yearlyPlan = createMockPlan({
-        interval: 'year',
-        amount: 14388, // $143.88/year
-      });
-
-      // 14388 / 12 = 1199
-      expect(getPlanPricePerMonth(yearlyPlan)).toBe(1199);
-    });
-
-    it('handles precision loss in fallback calculation', () => {
-      const yearlyPlan = createMockPlan({
-        interval: 'year',
-        amount: 15000, // $150/year
-      });
-
-      // 15000 / 12 = 1250 (loses 0.00 cents)
-      expect(getPlanPricePerMonth(yearlyPlan)).toBe(1250);
-    });
-
-    it('returns amount directly for monthly plans', () => {
-      const monthlyPlan = createMockPlan({
-        interval: 'month',
-        amount: 1499, // $14.99/month
-      });
-
-      expect(getPlanPricePerMonth(monthlyPlan)).toBe(1499);
-    });
-
-    it('ignores monthly_equivalent_amount for monthly plans', () => {
-      const monthlyPlan = createMockPlan({
-        interval: 'month',
-        amount: 1499,
-      }) as BillingPlan & { monthly_equivalent_amount?: number };
-      monthlyPlan.monthly_equivalent_amount = 999; // Should be ignored
-
-      expect(getPlanPricePerMonth(monthlyPlan)).toBe(1499);
-    });
-  });
-
   describe('deduplicatePlans', () => {
     it('removes duplicate plans by plan_code', () => {
       const plans = [
@@ -800,31 +732,6 @@ describe('PlanSelector Logic', () => {
         freePlan.is_popular = false;
 
         expect(isPlanRecommended(freePlan)).toBe(false);
-      });
-    });
-
-    describe('free plan pricing display', () => {
-      it('getPlanPricePerMonth returns 0 for free plan', () => {
-        const freePlan = createMockPlan({
-          id: 'free_v1',
-          tier: 'free',
-          interval: 'month',
-          amount: 0,
-        });
-
-        expect(getPlanPricePerMonth(freePlan)).toBe(0);
-      });
-
-      it('free plan yearly also returns 0', () => {
-        const freePlanYearly = createMockPlan({
-          id: 'free_v1',
-          tier: 'free',
-          interval: 'year',
-          amount: 0,
-        });
-
-        // 0 / 12 = 0
-        expect(getPlanPricePerMonth(freePlanYearly)).toBe(0);
       });
     });
 
