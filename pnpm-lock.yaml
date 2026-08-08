@@ -97,7 +97,7 @@ importers:
         version: 2.2.3(marked@17.0.4)
       nanoid:
         specifier: ^5.1.7
-        version: 5.1.7
+        version: 5.1.16
       pinia:
         specifier: ^3.0.4
         version: 3.0.4(typescript@5.9.3)(vue@3.5.34(typescript@5.9.3))
@@ -3565,8 +3565,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.7:
-    resolution: {integrity: sha512-ua3NDgISf6jdwezAheMOk4mbE1LXjm1DfMUDMuJf4AqxLFK3ccGpgWizwa5YV7Yz9EpXwEaWoRXSb/BnV0t5dQ==}
+  nanoid@5.1.16:
+    resolution: {integrity: sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==}
     engines: {node: ^18 || >=20}
     hasBin: true
 
@@ -8098,7 +8098,7 @@ snapshots:
 
   nanoid@3.3.17: {}
 
-  nanoid@5.1.7: {}
+  nanoid@5.1.16: {}
 
   napi-postinstall@0.3.4: {}
 
