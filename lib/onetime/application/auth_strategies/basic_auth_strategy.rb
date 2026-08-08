@@ -67,8 +67,9 @@ module Onetime
             # observable to someone holding valid credentials (non-enumerating).
             # Marked as a credentialed failure so noauth-capable chains fail
             # closed (401) instead of letting a suspended account proceed
-            # anonymously.
-            return credentialed_failure('[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
+            # anonymously (env passed so a valid session still outranks the
+            # rejected header, matching the pre-terminal-AuthFailure behavior).
+            return credentialed_failure('[ACCOUNT_SUSPENDED] Account suspended', env) if cust.suspended?
 
             OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
 
@@ -103,8 +104,9 @@ module Onetime
             # Terminal failure: the request explicitly presented credentials,
             # so Otto's RouteAuthWrapper fails the chain closed (401, not a
             # silent anonymous 200) instead of letting NoAuthStrategy accept it
-            # as anonymous. See Helpers#credentialed_failure.
-            credentialed_failure('[CREDENTIALS_INVALID] Invalid credentials')
+            # as anonymous — unless a valid session identity outranks the header
+            # (env passed). See Helpers#credentialed_failure.
+            credentialed_failure('[CREDENTIALS_INVALID] Invalid credentials', env)
           end
         end
 
@@ -132,7 +134,7 @@ module Onetime
           return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
 
           unless auth_header.start_with?('Basic ')
-            return credentialed_failure('[AUTH_TYPE_INVALID] Invalid authorization type')
+            return credentialed_failure('[AUTH_TYPE_INVALID] Invalid authorization type', env)
           end
 
           encoded          = auth_header.sub('Basic ', '')
@@ -140,7 +142,7 @@ module Onetime
           username, apikey = decoded.split(':', 2)
 
           unless username && apikey
-            return credentialed_failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format')
+            return credentialed_failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format', env)
           end
 
           [username, apikey]

@@ -84,7 +84,7 @@ module Onetime
           # anonymous.
           if OT.production?
             reason = '[DEV_AUTH_BLOCKED] Development auth disabled in production'
-            return credentialed_failure(reason) if env['HTTP_AUTHORIZATION']
+            return credentialed_failure(reason, env) if env['HTTP_AUTHORIZATION']
 
             return failure(reason)
           end
@@ -99,7 +99,7 @@ module Onetime
           # Credentialed failure: an Authorization header was presented and
           # rejected, so anonymous fallthrough must be refused downstream.
           unless valid_dev_credentials?(username, apikey)
-            return credentialed_failure('[DEV_PREFIX_REQUIRED] Development credentials must use dev_ prefix')
+            return credentialed_failure('[DEV_PREFIX_REQUIRED] Development credentials must use dev_ prefix', env)
           end
 
           # Attempt to load or create the dev user
@@ -115,7 +115,7 @@ module Onetime
           # Credentialed failure: see BasicAuthStrategy — presented-but-
           # rejected credentials must fail closed, never proceed anonymous.
           unless cust && valid_credentials
-            return credentialed_failure('[CREDENTIALS_INVALID] Invalid credentials')
+            return credentialed_failure('[CREDENTIALS_INVALID] Invalid credentials', env)
           end
 
           OT.ld "[dev_basic_auth] Authenticated dev user '#{cust.custid}'"

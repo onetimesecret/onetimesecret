@@ -19,6 +19,14 @@
 # the session (or anonymous). See docs/security/audits/2026-07-29-api.md
 # item 1 and Otto::Security::Authentication::AuthFailure.
 #
+# The one exception is deliberate: when the SAME request also resolves a valid
+# session identity, the credentialed strategy makes its failure NON-terminal
+# (Helpers#credentialed_failure), so the chain reaches this strategy and the
+# session wins. A logged-in browser is therefore never 401'd by a stale cached
+# Basic credential or a reverse-proxy-forwarded htpasswd header — the session
+# outranks the stray Authorization header, exactly as before terminal
+# AuthFailures replaced the env-marker guard.
+#
 # On noauth-ONLY routes no credentialed strategy runs, so an Authorization
 # header (any scheme) is ignored and the request stays anonymous — refusing
 # there would break deployments behind Basic-auth reverse proxies that

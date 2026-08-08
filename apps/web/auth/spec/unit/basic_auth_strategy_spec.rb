@@ -287,6 +287,36 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
         expect(result.failure_reason).to include('AUTH_HEADER_MISSING')
       end
 
+      # A valid session identity on the SAME request outranks a rejected
+      # Authorization header: the failure must be NON-terminal so Otto's chain
+      # continues to the session-resolving NoAuthStrategy instead of 401ing a
+      # logged-in browser that also carries a stale cached Basic credential or a
+      # reverse proxy's forwarded htpasswd header. This is the carve-out the old
+      # env-marker guard enforced (NoAuthStrategy refused only when cust.nil?);
+      # it must survive the move to terminal AuthFailures.
+      context 'when a valid session accompanies a rejected Authorization header' do
+        let(:env_session_plus_bad_basic) do
+          encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
+          {
+            'rack.session' => {
+              'authenticated' => true,
+              'external_id' => test_customer.extid,
+              'email' => test_customer.email,
+            },
+            'REMOTE_ADDR' => '127.0.0.1',
+            'HTTP_USER_AGENT' => 'Test/1.0',
+            'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+          }
+        end
+
+        it 'fails NON-terminally so the session outranks the rejected header' do
+          result = basic_auth_strategy.authenticate(env_session_plus_bad_basic, nil)
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+          expect(result.terminal?).to be false
+          expect(result.failure_reason).to include('CREDENTIALS_INVALID')
+        end
+      end
+
       it 'authenticates on valid credentials (no failure)' do
         result = basic_auth_strategy.authenticate(env_basic_auth_valid, nil)
         expect(result).not_to be_a(Otto::Security::Authentication::AuthFailure)

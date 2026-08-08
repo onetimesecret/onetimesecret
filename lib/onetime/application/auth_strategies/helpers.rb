@@ -18,18 +18,28 @@ module Onetime
     module AuthStrategies
       # Shared helper methods for authentication strategies
       module Helpers
-        # Build a terminal authentication failure for explicitly-presented
-        # credentials (an Authorization header) that were examined and
-        # rejected.
+        # Build an authentication failure for explicitly-presented credentials
+        # (an Authorization header) that were examined and rejected.
         #
-        # `terminal: true` makes Otto's RouteAuthWrapper halt the strategy
-        # chain and fail closed (401) regardless of strategy order, so a
-        # later (or earlier) anonymous-capable strategy such as NoAuthStrategy
-        # cannot let invalid credentials degrade to a silent anonymous 200
-        # with a null owner. This replaces the former env-marker guard
-        # (`onetime.auth.credentialed_failure`) that NoAuthStrategy had to
-        # read, which assumed credentialed strategies ran BEFORE noauth in the
-        # chain. See docs/security/audits/2026-07-29-api.md item 1 and
+        # The failure is TERMINAL — Otto's RouteAuthWrapper halts the strategy
+        # chain and fails closed (401) regardless of strategy order, so a later
+        # (or earlier) anonymous-capable strategy such as NoAuthStrategy cannot
+        # let invalid credentials degrade to a silent anonymous 200 with a null
+        # owner — EXCEPT when this same request already resolves a valid session
+        # identity. In that case the failure is NON-terminal so the chain
+        # continues to the session-resolving NoAuthStrategy: a valid session
+        # OUTRANKS a rejected Authorization header, so a logged-in browser is
+        # never 401'd mid-session by a stale cached Basic credential or by a
+        # reverse proxy forwarding its own htpasswd header. That carve-out is
+        # safe because the audit hole (item 1) was invalid credentials becoming
+        # *anonymous*, and a session-authenticated request is not anonymous.
+        #
+        # This replaces the former env-marker guard
+        # (`onetime.auth.credentialed_failure`) that NoAuthStrategy had to read:
+        # the terminal/non-terminal decision now travels on the AuthFailure
+        # itself, with no cross-strategy env coupling and no dependence on
+        # credentialed strategies running BEFORE noauth in the chain. See
+        # docs/security/audits/2026-07-29-api.md item 1 and
         # Otto::Security::Authentication::AuthFailure.
         #
         # Only use this for EXPLICITLY-presented credentials. Ambient
@@ -38,8 +48,13 @@ module Onetime
         # on noauth-capable routes rather than 401ing every browser request.
         #
         # @param reason [String] failure reason, e.g. '[CREDENTIALS_INVALID] ...'
+        # @param env [Hash, nil] the Rack env, so the session carve-out can be
+        #   evaluated. Passing nil (bare unit-level strategy calls) keeps the
+        #   strict terminal behavior.
         # @return [Otto::Security::Authentication::AuthFailure]
-        def credentialed_failure(reason)
+        def credentialed_failure(reason, env = nil)
+          return failure(reason) if valid_session_identity?(env)
+
           failure(reason, terminal: true)
         end
 
@@ -115,6 +130,24 @@ module Onetime
         end
 
         private
+
+        # Whether THIS request already resolves a valid (non-stale) session
+        # identity. Used only by #credentialed_failure to decide whether a
+        # rejected Authorization header should fail the chain closed or defer to
+        # the session. A nil/non-Hash env (bare unit-level strategy invocations)
+        # or an anonymous/stale session yields false, preserving the strict
+        # terminal default. Reuses #load_user_from_session so the credential
+        # watermark staleness check (#3810) applies identically here — a session
+        # that predates the customer's last credential change does NOT count as a
+        # valid identity and cannot rescue a rejected Authorization header.
+        #
+        # @param env [Hash, nil] Rack environment
+        # @return [Boolean]
+        def valid_session_identity?(env)
+          return false unless env.is_a?(Hash)
+
+          !load_user_from_session(env['rack.session']).nil?
+        end
 
         # Resolve the client IP for auth metadata.
         #
