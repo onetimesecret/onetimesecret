@@ -13,6 +13,7 @@
 require_relative '../support/billing_spec_helper'
 require_relative '../../models/plan'
 require_relative '../../operations/catalog/config_loader'
+require_relative '../../operations/catalog/plan_persister'
 
 RSpec.describe Billing::Plan, type: :billing do
   # Note: We don't use with_test_plans context here because it requires
@@ -228,6 +229,110 @@ RSpec.describe Billing::Plan, type: :billing do
       all_intervals = plans.flat_map(&:available_intervals).uniq
       expect(all_intervals).to include('month')
       expect(all_intervals).to include('year')
+    end
+  end
+
+  describe '.upsert_config_only_plans currency inheritance' do
+    # Issue #4048 defect 2: config-only plans (free tier) used to be stamped
+    # with OT.billing_config.currency even when the Stripe-sourced plans on
+    # the same pricing page carried a different currency, mixing $ and EUR
+    # in one grid. They now inherit the Stripe catalog currency when one is
+    # cached, falling back to config currency only when no Stripe-sourced
+    # plan exists (the config-only fallback path).
+    #
+    # Test config (billing.test.yaml): region EU, currency cad.
+
+    before do
+      # Reset Plan.load stubs so ConfigLoader can create real Plan instances
+      allow(Billing::Plan).to receive(:load).and_call_original
+      Billing::Plan.clear_cache
+    end
+
+    # Persist a plan as if it came from a Stripe catalog pull. A non-empty
+    # stripe_product_id is what marks it Stripe-sourced.
+    def persist_stripe_plan(plan_id:, currency:, region: 'EU', active: 'true')
+      Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(
+        plan_id: plan_id,
+        stripe_product_id: "prod_#{plan_id}",
+        name: "Stripe #{plan_id}",
+        tier: 'single_account',
+        currency: currency,
+        region: region,
+        tenancy: 'multi',
+        display_order: '10',
+        show_on_plans_page: 'true',
+        description: 'Stripe-sourced plan for currency inheritance specs',
+        active: active,
+        plan_code: plan_id,
+        is_popular: 'false',
+        plan_name_label: nil,
+        includes_plan: nil,
+        entitlements: [],
+        features: [],
+        limits: {},
+        prices: {
+          month: {
+            stripe_price_id: "price_#{plan_id}",
+            amount: '1000',
+            currency: currency,
+            billing_scheme: 'per_unit',
+            usage_type: 'licensed',
+            trial_period_days: nil,
+            nickname: nil,
+            active: 'true',
+          },
+        },
+        stripe_updated_at: Time.now.to_i.to_s,
+      )
+    end
+
+    def free_plan
+      Billing::Plan.load('free_v1')
+    end
+
+    it 'inherits the Stripe sibling currency instead of config currency' do
+      persist_stripe_plan(plan_id: 'stripe_eur_v1', currency: 'eur')
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(OT.billing_config.currency).to eq('cad') # sanity: proves inheritance
+      expect(free_plan.currency).to eq('eur')
+    end
+
+    it 'falls back to config currency when no Stripe-sourced plans exist' do
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('cad')
+    end
+
+    it 'ignores inactive (pruned) Stripe plans' do
+      persist_stripe_plan(plan_id: 'stripe_stale_v1', currency: 'eur', active: 'false')
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('cad')
+    end
+
+    it 'ignores Stripe plans from other regions' do
+      persist_stripe_plan(plan_id: 'stripe_nz_v1', currency: 'nzd', region: 'NZ')
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('cad')
+    end
+
+    it 'picks the majority currency and warns when Stripe plans disagree' do
+      persist_stripe_plan(plan_id: 'stripe_eur_a_v1', currency: 'eur')
+      persist_stripe_plan(plan_id: 'stripe_eur_b_v1', currency: 'eur')
+      persist_stripe_plan(plan_id: 'stripe_usd_v1', currency: 'usd')
+
+      allow(OT).to receive(:lw).and_call_original
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('eur')
+      expect(OT).to have_received(:lw)
+        .with(/mixed currencies/, hash_including(chosen: 'eur'))
     end
   end
 
