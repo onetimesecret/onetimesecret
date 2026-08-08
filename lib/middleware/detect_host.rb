@@ -107,8 +107,10 @@ module Rack
     # and is not used for host detection
     unless defined?(HEADER_PRECEDENCE)
       # Forwarded headers that require trusted proxy validation.
-      # These headers can be spoofed by clients and should only be trusted
-      # when the request comes from a private/loopback IP (trusted proxy).
+      # These headers can be spoofed by clients and are only trusted when
+      # otto's tri-state key grants it (otto.via_trusted_proxy == true) or,
+      # with the key absent (no proxy trust configured), when REMOTE_ADDR is
+      # a private/loopback address — see the trust decision in #call.
       FORWARDED_HEADERS = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
         'Apx-Incoming-Host',  # Approximated-specific (approximated.app custom-domain ingress); like all forwarded headers, only honored behind trusted infra
