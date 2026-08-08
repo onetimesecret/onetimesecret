@@ -228,7 +228,7 @@ module Rack
       # Try headers in order of precedence
       headers_to_check.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        host       = self.class.normalize_host(env[header_key])
+        host       = self.class.normalize_host(env[header_key], forwarded: header == 'Forwarded')
         next if host.nil?
 
         if self.class.valid_domain_name?(host)
@@ -301,19 +301,83 @@ module Rack
       # Extracts and normalizes the host from a header value.
       #
       # @param value_unsafe [String, nil] Raw header value from the request
+      # @param forwarded [Boolean] Whether the value uses RFC 7239 Forwarded syntax
       # @return [String, nil] Normalized host without port number, or nil if empty
       #
       # This method:
       # - Takes the first host if multiple are provided (comma-separated)
+      # - Extracts the host parameter from the first RFC 7239 Forwarded element
       # - Delegates to DomainParser for port stripping and normalization
       # - Returns nil for empty values
-      def normalize_host(value_unsafe)
-        # Handle comma-separated hosts (e.g., X-Forwarded-Host header)
-        first_host = value_unsafe.to_s.split(',').first.to_s
+      def normalize_host(value_unsafe, forwarded: false)
+        first_host = if forwarded
+          forwarded_host(value_unsafe)
+        else
+          # Handle comma-separated hosts (e.g., X-Forwarded-Host header)
+          value_unsafe.to_s.split(',').first.to_s
+        end
 
         # Delegate core normalization to DomainParser
         Onetime::Utils::DomainParser.extract_hostname(first_host)
       end
+
+      # Extracts the host parameter from the first RFC 7239 Forwarded element.
+      # Delimiters inside quoted strings do not split elements or parameters.
+      # Malformed quoted strings fail closed so the next header in the
+      # precedence list can be considered.
+      def forwarded_host(value_unsafe)
+        first_element = split_quoted_header(value_unsafe.to_s, ',').first
+        return nil if first_element.nil?
+
+        split_quoted_header(first_element, ';').each do |pair|
+          name, raw_value = pair.split('=', 2)
+          next unless name&.strip&.casecmp?('host')
+
+          return decode_forwarded_value(raw_value)
+        end
+
+        nil
+      end
+
+      def split_quoted_header(value, delimiter)
+        parts   = []
+        current = +''
+        quoted  = false
+        escaped = false
+
+        value.each_char do |character|
+          if escaped
+            current << character
+            escaped = false
+          elsif quoted && character == '\\'
+            current << character
+            escaped = true
+          elsif character == '"'
+            current << character
+            quoted = !quoted
+          elsif character == delimiter && !quoted
+            parts << current
+            current = +''
+          else
+            current << character
+          end
+        end
+
+        return [] if quoted || escaped
+
+        parts << current
+      end
+
+      def decode_forwarded_value(raw_value)
+        value = raw_value.to_s.strip
+        return nil if value.empty?
+        return value unless value.start_with?('"')
+        return nil unless value.length >= 2 && value.end_with?('"')
+
+        value[1...-1].gsub(/\\(.)/m, '\\1')
+      end
+
+      private :forwarded_host, :split_quoted_header, :decode_forwarded_value
 
       # Determines if a string is a valid host for use in this application.
       #

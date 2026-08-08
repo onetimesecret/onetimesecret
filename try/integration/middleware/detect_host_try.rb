@@ -84,6 +84,56 @@ env = { 'REMOTE_ADDR' => '192.168.1.1', 'HTTP_X_FORWARDED_HOST' => 'first.com, s
 env['rack.detected_host']
 #=> 'first.com'
 
+## Extracts host from the first RFC 7239 Forwarded element
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'for=203.0.113.7;host=forwarded.example.com;proto=https',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'forwarded.example.com'
+
+## Handles a quoted RFC 7239 host value and strips its port
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'for=203.0.113.7;host="Forwarded.Example.COM:8443";proto=https',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'forwarded.example.com'
+
+## Honors only the first Forwarded element, without splitting on quoted commas
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'for="client,alias";host=first.example.com, for=203.0.113.8;host=second.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'first.example.com'
+
+## Falls back when the first Forwarded element has no host parameter
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'for=203.0.113.7;proto=https, for=203.0.113.8;host=second.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## A malformed quoted Forwarded value fails closed and falls back to Host
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_FORWARDED' => 'for=203.0.113.7;host="unterminated.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
 ## Handles missing headers gracefully
 env    = {}
 @middleware.call(env)
