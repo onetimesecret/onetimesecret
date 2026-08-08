@@ -17,6 +17,32 @@ module Onetime
   module SignupValidation
     extend self
 
+    # Mirrors the `accounts.valid_email` CHECK constraint
+    # (apps/web/auth/migrations/001_initial.rb) so a claim rejected by the
+    # database is also rejected here, before it ever reaches the INSERT.
+    #
+    # The CHECK is PostgreSQL-only (SQLite stores email as a plain String —
+    # see that migration), so an SSO/OmniAuth email guard that only counts
+    # '@' characters lets shapes through that 500 on the CHECK (internal
+    # spaces, comma/semicolon in either part, a dotless domain) — the
+    # Sequel::CheckConstraintViolation surfaces as the frozen-loading-screen
+    # failure #3478 exists to prevent. Duplicating the pattern here — rather
+    # than only relying on the database to raise — keeps the guard effective
+    # on SQLite installs too, whose primary CI leg has no CHECK to catch a
+    # regression of this kind.
+    #
+    # Anchored with \A/\z, not ^/$: Ruby's ^/$ match at line boundaries, so
+    # "ok@example.com\nbad" would pass a ^/$ guard here and still be
+    # rejected by PG (whose ^/$ are string anchors) — reintroducing the 500
+    # this exists to prevent (#3971).
+    VALID_EMAIL_PATTERN = /\A[^,;@ \r\n]+@[^,@; \r\n]+\.[^,@; \r\n]+\z/
+
+    # @param email [String] Email address to validate
+    # @return [Boolean] true if the email matches the accounts.valid_email shape
+    def structurally_valid_email?(email)
+      email.to_s.match?(VALID_EMAIL_PATTERN)
+    end
+
     # Validate an email address for signup, with per-domain strategy support.
     #
     # @param email [String] Email address to validate

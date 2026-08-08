@@ -6,7 +6,7 @@ import Skeleton from '@/shared/components/closet/Skeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { BillingService, type Plan as BillingPlan, type PlanChangePreviewResponse } from '@/services/billing.service';
-import { formatCurrency } from '@/types/billing';
+import { formatCurrency } from '@/utils/format/currency';
 import { classifyError } from '@/schemas/errors';
 import { formatDisplayDate } from '@/utils/format';
 import { computed, ref, watch } from 'vue';

@@ -41,6 +41,15 @@ module Billing
 
           upserted_count = 0
 
+          # One page, one currency: when this runs after a Stripe sync (Pull),
+          # config-only plans inherit the currency the Stripe-sourced plans
+          # carry, instead of being stamped with OT.billing_config.currency.
+          # Otherwise a deployment whose Stripe catalog bills in EUR would
+          # render a pricing grid mixing EUR paid plans with a USD free tier.
+          # Nil when no Stripe-sourced plan is cached (e.g. the full config
+          # fallback path, where everything already shares config currency).
+          inherited_currency = stripe_catalog_currency(OT.billing_config.region)
+
           plans_hash.each do |plan_key, plan_def|
             prices = plan_def['prices'] || []
 
@@ -65,7 +74,7 @@ module Billing
               next
             end
 
-            plan = upsert_plan_from_config(plan_id, plan_def, nil)
+            plan = upsert_plan_from_config(plan_id, plan_def, nil, currency_override: inherited_currency)
             next unless plan
 
             upserted_count += 1
@@ -144,14 +153,78 @@ module Billing
           plans_count
         end
 
+        # Currency carried by already-persisted Stripe-sourced plans for a region
+        #
+        # Stripe-sourced plans are identified by a non-empty stripe_product_id
+        # (config-loaded plans never have one). Inactive (pruned) plans and
+        # plans from other regions are ignored.
+        #
+        # The point of inheriting is that one pricing grid renders one
+        # currency, and the grid only renders plans marked show_on_plans_page
+        # (see BillingController#list_plans). So visible plans decide the
+        # currency; hidden ones are consulted only when nothing is visible,
+        # where matching the Stripe catalog still beats the config default.
+        #
+        # When the deciding plans carry mixed currencies the most common one
+        # wins, ties broken alphabetically so the choice cannot flap between
+        # boots with Redis key order. Mixed currencies mean the Stripe catalog
+        # itself is incoherent, so a warning is logged for the operator.
+        #
+        # @param region [String, nil] Deployment region to match
+        # @return [String, nil] Inherited currency, or nil when no
+        #   Stripe-sourced plan exists in the cache
+        def stripe_catalog_currency(region)
+          stripe_plans = Billing::Plan.list_plans.select do |plan|
+            !plan.stripe_product_id.to_s.empty? &&
+              plan.active.to_s == 'true' &&
+              Billing::RegionNormalizer.match?(plan.region, region)
+          end
+
+          visible    = stripe_plans.select { |plan| plan.show_on_plans_page.to_s == 'true' }
+          currencies = named_currencies(visible)
+          # Fall back on the currency, not on the plan: a visible set that
+          # carries no currency at all decides nothing.
+          currencies = named_currencies(stripe_plans) if currencies.empty?
+
+          return nil if currencies.empty?
+
+          distinct = currencies.uniq
+          return distinct.first if distinct.size == 1
+
+          tallies = currencies.tally
+          chosen  = tallies.min_by { |currency, count| [-count, currency] }.first
+          OT.lw '[ConfigLoader] Stripe-sourced plans carry mixed currencies for region; ' \
+                'using most common (ties broken alphabetically)',
+            {
+              region: region,
+              currencies: tallies,
+              chosen: chosen,
+            }
+          chosen
+        end
+
+        # Non-empty currencies carried by the given plans
+        #
+        # @param plans [Array<Billing::Plan>]
+        # @return [Array<String>]
+        def named_currencies(plans)
+          plans.filter_map do |plan|
+            currency = plan.currency.to_s
+            currency.empty? ? nil : currency
+          end
+        end
+
         # Upsert a single plan from config definition
         #
         # @param plan_id [String] Plan identifier
         # @param plan_def [Hash] Plan definition from YAML
         # @param prices_list [Array, nil] List of price definitions, or nil for config-only plans
+        # @param currency_override [String, nil] Currency inherited from Stripe-sourced
+        #   siblings; outranks the config default everywhere a currency is
+        #   written, and yields only to a currency the price row states itself
         # @return [Billing::Plan, nil] The upserted plan or nil on failure
         # rubocop:disable Metrics/PerceivedComplexity
-        def upsert_plan_from_config(plan_id, plan_def, prices_list)
+        def upsert_plan_from_config(plan_id, plan_def, prices_list, currency_override: nil)
           # Extract plan attributes from config
           tier               = plan_def['tier']
           tenancy            = plan_def['tenancy'] || 'multi'
@@ -168,12 +241,12 @@ module Billing
 
           # Build nested prices hash from all intervals (if provided)
           prices_data     = {}
-          family_currency = OT.billing_config.currency
+          family_currency = currency_override || OT.billing_config.currency
 
           if prices_list && !prices_list.empty?
             prices_list.each do |price|
               interval       = price['interval'].to_sym # :month or :year
-              plan_currency  = price['currency'] || OT.billing_config.currency
+              plan_currency  = price['currency'] || currency_override || OT.billing_config.currency
 
               prices_data[interval] = {
                 stripe_price_id: price['price_id'],
@@ -186,7 +259,15 @@ module Billing
                 active: 'true',
               }
             end
-            family_currency = prices_list.first['currency'] || OT.billing_config.currency
+            # No caller combines an override with price rows today
+            # (upsert_config_only_plans only handles `prices: []`, and
+            # load_all_from_config passes no override), so this is a coherence
+            # guard, not a live path: an inherited currency must not be
+            # downgraded to the config default just because a price row is
+            # silent about its own. The price rows above follow the same
+            # precedence, since the plans page reads currency off the price
+            # row, not off the plan.
+            family_currency = prices_list.first['currency'] || currency_override || OT.billing_config.currency
           end
 
           # Create or update Plan instance
