@@ -374,9 +374,14 @@ describe('Bootstrap Zod schema validation', () => {
 
     it('populates secret_activity nested defaults when absent (#3990)', () => {
       // Cascade-default workaround: .default(inner.parse({})) must yield the
-      // contract defaults, not an empty object.
+      // contract defaults, not an empty object. geo_country_enabled defaults
+      // OFF (#3989) pending counsel review of org-tier geo exposure.
       const result = featuresSchema.parse({});
-      expect(result.secret_activity).toEqual({ collect_enabled: true, max_events: 10_000 });
+      expect(result.secret_activity).toEqual({
+        collect_enabled: true,
+        max_events: 10_000,
+        geo_country_enabled: false,
+      });
     });
 
     it('accepts an explicit secret_activity payload (#3990)', () => {

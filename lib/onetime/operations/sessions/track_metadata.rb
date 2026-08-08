@@ -31,6 +31,10 @@ module Onetime
         # before any auth strategy has warmed the cache.
         include Onetime::Application::OrganizationLoader
 
+        # Otto's GeoResolver sentinel for "no country resolved" — stored verbatim
+        # (consumers render it, nil, or absent as "Unknown").
+        UNKNOWN_COUNTRY = '**'
+
         # @param session_id [String] the PLAIN session id (== live blob key name).
         # @param session_data [Hash] the post-login session hash (string keys) as
         #   seen by write_session. Anonymous/CSRF-only sessions lack
@@ -144,10 +148,6 @@ module Onetime
         def mfa_used
           nil
         end
-
-        # Otto's GeoResolver sentinel for "no country resolved" — stored verbatim
-        # (consumers render it, nil, or absent as "Unknown").
-        UNKNOWN_COUNTRY = '**'
 
         # geo_country is the country Otto's IPPrivacyMiddleware already resolved
         # for this request and stamped into the Rack env (otto.privacy.geo_country,
