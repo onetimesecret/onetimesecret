@@ -131,6 +131,7 @@ module Onetime
           {
             ip: client_ip(env),
             user_agent: env['HTTP_USER_AGENT'],
+            country: env['otto.privacy.geo_country'],
             domain_strategy: env['onetime.domain_strategy'],
             display_domain: env['onetime.display_domain'],
           }.merge(additional)

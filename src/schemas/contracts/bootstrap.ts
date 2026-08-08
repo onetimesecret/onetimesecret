@@ -299,6 +299,12 @@ const secretActivityFeaturesInner = z.object({
   // backend clamps to a floor of 100 at read time, so a positive int is
   // the whole wire contract here.
   max_events: z.number().int().positive().default(10000),
+  // Default-OFF (#3989): the country column is a legally-sensitive org-tier
+  // geo feature pending counsel review, so it only appears on an explicit
+  // true — set via SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true. Absent (the default,
+  // and all older backends) keeps the column hidden. Inverse default of the
+  // collect_enabled sibling above.
+  geo_country_enabled: z.boolean().default(false),
 });
 
 export const featuresSchema = z.object({

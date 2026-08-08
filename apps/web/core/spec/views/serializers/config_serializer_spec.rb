@@ -1253,7 +1253,43 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['secret_activity']).to eq(
               'collect_enabled' => true,
               'max_events' => 10_000,
+              'geo_country_enabled' => false,
             )
+          end
+        end
+
+        # geo_country_enabled is the DEFAULT-OFF (opt-in) inverse of the flags
+        # above: only an explicit true enables the org Secret Activity country
+        # column, gated pending counsel review (#3989; ADR-021 Decision 4).
+        describe 'geo_country_enabled (default-OFF opt-in contract)' do
+          it 'is false when the key is absent' do
+            result = described_class.build_feature_flags(base_view_vars)
+
+            expect(result['secret_activity']['geo_country_enabled']).to be false
+          end
+
+          it 'is true only when explicitly true' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('geo_country_enabled' => true)
+            )
+
+            expect(result['secret_activity']['geo_country_enabled']).to be true
+          end
+
+          it "enables on the string 'true' (ERB-stringified config)" do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('geo_country_enabled' => 'true')
+            )
+
+            expect(result['secret_activity']['geo_country_enabled']).to be true
+          end
+
+          it 'stays false for explicit false' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('geo_country_enabled' => false)
+            )
+
+            expect(result['secret_activity']['geo_country_enabled']).to be false
           end
         end
 

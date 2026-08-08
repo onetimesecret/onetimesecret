@@ -271,6 +271,11 @@ module Core
               # data-existence axis — audit_logs_enabled is UI exposure.
               'collect_enabled' => features.dig('secret_activity', 'collect').to_s != 'false',
               'max_events' => resolve_secret_activity_max_events(features),
+              # Country column on the org Secret Activity trail. DEFAULT-OFF
+              # (opt-in) — the inverse polarity of the flags above — gated
+              # pending counsel review of org-tier geo exposure (#3989; ADR-021
+              # Decision 4). Only an explicit true enables it.
+              'geo_country_enabled' => features.dig('secret_activity', 'geo_country_enabled').to_s == 'true',
             },
           }
         end

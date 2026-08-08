@@ -684,9 +684,17 @@
     "text": "Actor",
     "content_hash": "449995c4"
   },
+  "web.organizations.audit.columns.country": {
+    "text": "Country",
+    "content_hash": "701d021d"
+  },
   "web.organizations.audit.columns.when": {
     "text": "When",
     "content_hash": "cf9c7aa2"
+  },
+  "web.organizations.audit.country_unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
   },
   "web.organizations.audit.kinds.created": {
     "text": "Secret created",
