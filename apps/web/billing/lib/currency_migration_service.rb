@@ -4,6 +4,7 @@
 
 require 'stripe'
 require_relative 'stripe_client'
+require_relative '../operations/create_checkout_link'
 
 module Billing
   # CurrencyMigrationService - Handles Stripe currency conflict resolution
@@ -304,6 +305,14 @@ module Billing
           },
         },
       }
+
+      # Deployment tax policy + payment-method-configuration pin: shared with
+      # every other checkout path (see Plans#checkout_redirect). Applied after
+      # :customer is bound because customer_update requires a customer id.
+      Billing::Operations::CreateCheckoutLink.apply_tax_policy!(session_params)
+
+      pmc                                           = Onetime.billing_config.payment_method_configuration
+      session_params[:payment_method_configuration] = pmc if pmc
 
       checkout_session = stripe_client.create(
         Stripe::Checkout::Session,

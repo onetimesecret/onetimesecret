@@ -1006,6 +1006,11 @@ module Billing
 
         json_response(result)
       rescue Stripe::InvalidRequestError => ex
+        # ADR-033: a missing payment_method_configuration must be loud and
+        # operator-actionable, same as the other checkout-creation paths.
+        if ::Billing::PmcResourceMissing.pmc_resource_missing?(ex)
+          billing_logger.error ::Billing::PmcResourceMissing.operator_message(ex)
+        end
         billing_logger.warn 'Currency migration request failed',
           {
             exception: ex,

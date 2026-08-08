@@ -461,6 +461,10 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       double(id: 'cs_new_123', url: 'https://checkout.stripe.com/c/pay/cs_new_123')
     end
 
+    let(:stripe_client)                { double('StripeClient', create: checkout_session) }
+    let(:automatic_tax)                { false }
+    let(:payment_method_configuration) { nil }
+
     let(:proration_preview) do
       Stripe::Invoice.construct_from({
         id: 'in_preview',
@@ -478,8 +482,10 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       allow(Stripe::Invoice).to receive(:list).and_return(double(data: []))
       allow(Stripe::Invoice).to receive(:create_preview).and_return(proration_preview)
-      allow(Billing::StripeClient).to receive(:new).and_return(
-        double(create: checkout_session)
+      allow(Billing::StripeClient).to receive(:new).and_return(stripe_client)
+      allow(Onetime.billing_config).to receive_messages(
+        automatic_tax?: automatic_tax,
+        payment_method_configuration: payment_method_configuration,
       )
       allow(org).to receive(:clear_currency_migration_intent!)
     end
@@ -552,6 +558,68 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         )
       )
       expect(result[:migration][:refund_amount]).to eq(1450)
+    end
+
+    # Deployment tax policy + pmc pin: shared with every other checkout path
+    # (regression coverage for #4025 — this path previously built session
+    # params inline without them).
+    context 'when billing_config.automatic_tax? is enabled' do
+      let(:automatic_tax) { true }
+
+      it 'applies the deployment tax policy to the checkout session' do
+        described_class.execute_immediate_migration(
+          org, 'price_cad_456',
+          success_url: 'https://example.com/success',
+          cancel_url: 'https://example.com/cancel',
+        )
+
+        expect(stripe_client).to have_received(:create).with(
+          Stripe::Checkout::Session,
+          hash_including(
+            automatic_tax: { enabled: true },
+            billing_address_collection: 'required',
+            tax_id_collection: { enabled: true },
+            # customer_update is present because :customer is always bound
+            # on this path (org.stripe_customer_id).
+            customer_update: { address: 'auto' },
+          ),
+        )
+      end
+    end
+
+    context 'when billing_config.payment_method_configuration is set' do
+      let(:payment_method_configuration) { 'pmc_test_abc123' }
+
+      it 'pins the session to the configured payment method configuration' do
+        described_class.execute_immediate_migration(
+          org, 'price_cad_456',
+          success_url: 'https://example.com/success',
+          cancel_url: 'https://example.com/cancel',
+        )
+
+        expect(stripe_client).to have_received(:create).with(
+          Stripe::Checkout::Session,
+          hash_including(payment_method_configuration: 'pmc_test_abc123'),
+        )
+      end
+    end
+
+    context 'when automatic tax is disabled and no pmc is configured' do
+      it 'omits the tax and payment method configuration params' do
+        described_class.execute_immediate_migration(
+          org, 'price_cad_456',
+          success_url: 'https://example.com/success',
+          cancel_url: 'https://example.com/cancel',
+        )
+
+        expect(stripe_client).to have_received(:create) do |_resource, params|
+          expect(params).not_to have_key(:automatic_tax)
+          expect(params).not_to have_key(:billing_address_collection)
+          expect(params).not_to have_key(:tax_id_collection)
+          expect(params).not_to have_key(:customer_update)
+          expect(params).not_to have_key(:payment_method_configuration)
+        end
+      end
     end
 
     it 'falls back to manual calculation when invoice preview fails' do
