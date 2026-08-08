@@ -73,26 +73,46 @@ module Onetime
 
       # Check whether an SPF record matches expected value.
       #
-      # Extracts the include: directive from the expected SPF record and
-      # verifies it appears in any actual SPF record, regardless of other
-      # mechanisms present. This allows customers to combine multiple
-      # provider includes in a single record.
+      # Comparison is term-wise, never substring. An SPF record is a
+      # whitespace-separated term list (RFC 7208 Section 4.6.1), so
+      # `include:amazonses.com` must appear as a whole term: a zone
+      # containing `include:amazonses.com.evil` is a different mechanism
+      # and must not verify.
+      #
+      # When the expected record carries an include: directive we require
+      # only that term, so customers can merge several provider includes
+      # into one record. Without an include: (a provider using only mx,
+      # a:, or redirect=) we require every expected term to be present —
+      # the same tolerance, applied to the whole term list. Substring
+      # containment would false-negative `v=spf1 mx -all` against a zone
+      # holding `v=spf1 mx include:other.com -all`.
       #
       # @param normalized_expected [String] Downcased expected SPF value
       # @param actual_values [Array<String>] DNS results
       # @return [Boolean]
       def spf_record_matches?(normalized_expected, actual_values)
-        spf_include = normalized_expected[/include:\S+/]
+        expected_terms = spf_terms(normalized_expected)
+        spf_include    = expected_terms.find { |term| term.start_with?('include:') }
+        required_terms = spf_include ? [spf_include] : expected_terms
 
-        if spf_include
-          actual_values.any? do |v|
-            downcased = v.downcase
-            downcased.start_with?('v=spf1') && downcased.include?(spf_include)
-          end
-        else
-          # SPF without include: directive - match the full record
-          actual_values.any? { |v| v.downcase.include?(normalized_expected) }
+        return false if required_terms.empty?
+
+        actual_values.any? do |v|
+          downcased = v.downcase
+          next false unless downcased.start_with?('v=spf1')
+
+          actual_terms = spf_terms(downcased)
+          required_terms.all? { |term| actual_terms.include?(term) }
         end
+      end
+
+      # Split an SPF record into its whitespace-separated terms
+      # (RFC 7208 Section 4.6.1). Callers pass downcased input.
+      #
+      # @param record [String] Downcased SPF record
+      # @return [Array<String>]
+      def spf_terms(record)
+        record.to_s.split(/\s+/).reject(&:empty?)
       end
 
       # Filter a TXT result set down to records relevant to the expected

@@ -130,13 +130,18 @@ require_relative '../../../lib/onetime/domain_validation/record_matcher'
 
 # --- txt_record_matches? / spf_record_matches? internals ---
 
-## SPF expected without an include: falls back to whole-record containment
+## SPF expected without an include: requires every expected term
 @matcher.txt_record_matches?('v=spf1 -all', ['v=spf1 -all'])
 #=> true
 
-## The no-include fallback still requires the expected content to appear
+## The no-include path still requires each expected term to appear
 @matcher.txt_record_matches?('v=spf1 -all', ['v=spf1 mx ~all'])
 #=> false
+
+## The no-include path tolerates extra terms in the customer record, the
+## same way the include: path does (PR #4051 review)
+@matcher.txt_record_matches?('v=spf1 mx -all', ['v=spf1 mx include:other.com -all'])
+#=> true
 
 ## spf_record_matches? only considers actual records that are SPF: an
 ## include: mechanism embedded in a non-SPF TXT record does not count
@@ -146,6 +151,19 @@ require_relative '../../../lib/onetime/domain_validation/record_matcher'
 ## spf_record_matches? finds the include among other mechanisms, any case
 @matcher.spf_record_matches?('v=spf1 include:amazonses.com ~all', ['v=spf1 a mx INCLUDE:AMAZONSES.COM -all'])
 #=> true
+
+## Mechanisms match as whole terms: a longer domain that merely starts
+## with the expected one is a different include (PR #4051 review)
+@matcher.spf_record_matches?('v=spf1 include:amazonses.com ~all', ['v=spf1 include:amazonses.com.evil ~all'])
+#=> false
+
+## The same term discipline applies to the no-include path
+@matcher.spf_record_matches?('v=spf1 mx -all', ['v=spf1 mxtra -all'])
+#=> false
+
+## An expected value that is SPF-flagged but carries no terms never matches
+@matcher.spf_record_matches?('', ['v=spf1 -all'])
+#=> false
 
 # --- select_txt_record_set: ambiguity detection ---
 
