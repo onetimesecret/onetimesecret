@@ -35,6 +35,7 @@ import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { type Customer } from '@/schemas/shapes/v3';
 import { ENTITLEMENTS } from '@/types/organization';
+import { isOrgsAuditLogsEnabled } from '@/utils/features';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -99,12 +100,19 @@ const userRole = computed(() =>
 // Org extid for display/copy (useful for support and testing)
 const orgExtid = computed(() => currentOrganization.value?.extid || null);
 
-// Deep link to the active org's audit trail. The tab is entitlement-proof (an
-// unentitled org lands on it and sees an upgrade notice instead of being
-// redirected), so the only gate is the owner/admin role the /org/:extid route
-// itself requires.
+// Deep link to the active org's audit trail. Two gates on different axes:
+//  - the owner/admin role the /org/:extid route itself requires;
+//  - the instance flag (ORGS_AUDIT_LOGS_ENABLED=false removes the Activity tab
+//    entirely, so the link would dead-end on the Domains panel).
+// The audit_logs ENTITLEMENT is deliberately not a gate: the tab is
+// entitlement-proof — an unentitled org lands on it and sees an upgrade notice
+// instead of being redirected. Mirrors OrganizationSettings.vue.
+const auditLogsFeatureEnabled = computed(() => isOrgsAuditLogsEnabled());
+
 const orgActivityPath = computed(() =>
-  orgExtid.value ? `/org/${orgExtid.value}/activity` : null
+  orgExtid.value && auditLogsFeatureEnabled.value
+    ? `/org/${orgExtid.value}/activity`
+    : null
 );
 
 // Only restrict members on custom domains — admins see the full menu like owners.
