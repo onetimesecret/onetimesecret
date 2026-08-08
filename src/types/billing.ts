@@ -162,5 +162,5 @@ export function formatCurrency(
     }
   }
 
-  return `${(amount / 100).toFixed(2)} ${String(currency || '').toUpperCase()}`.trim();
+  return `${(amount / 100).toFixed(2)} ${currencyCode}`;
 }

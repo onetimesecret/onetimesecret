@@ -250,7 +250,7 @@ RSpec.describe Billing::Plan, type: :billing do
 
     # Persist a plan as if it came from a Stripe catalog pull. A non-empty
     # stripe_product_id is what marks it Stripe-sourced.
-    def persist_stripe_plan(plan_id:, currency:, region: 'EU', active: 'true')
+    def persist_stripe_plan(plan_id:, currency:, region: 'EU', active: 'true', show_on_plans_page: 'true')
       Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(
         plan_id: plan_id,
         stripe_product_id: "prod_#{plan_id}",
@@ -260,7 +260,7 @@ RSpec.describe Billing::Plan, type: :billing do
         region: region,
         tenancy: 'multi',
         display_order: '10',
-        show_on_plans_page: 'true',
+        show_on_plans_page: show_on_plans_page,
         description: 'Stripe-sourced plan for currency inheritance specs',
         active: active,
         plan_code: plan_id,
@@ -333,6 +333,101 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(free_plan.currency).to eq('eur')
       expect(OT).to have_received(:lw)
         .with(/mixed currencies/, hash_including(chosen: 'eur'))
+    end
+
+    # A perfect tally tie used to resolve by Hash#tally insertion order, which
+    # follows Redis key enumeration - the inherited currency could flap between
+    # boots. Ties now break alphabetically.
+    it 'breaks a currency tie deterministically' do
+      persist_stripe_plan(plan_id: 'stripe_usd_tie_v1', currency: 'usd')
+      persist_stripe_plan(plan_id: 'stripe_eur_tie_v1', currency: 'eur')
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('eur')
+    end
+
+    # The pricing grid only renders show_on_plans_page plans, so a hidden plan
+    # in another currency must not outvote what the customer actually sees.
+    it 'ignores hidden Stripe plans when visible ones exist' do
+      persist_stripe_plan(plan_id: 'stripe_visible_eur_v1', currency: 'eur')
+      persist_stripe_plan(plan_id: 'stripe_hidden_usd_a_v1', currency: 'usd', show_on_plans_page: 'false')
+      persist_stripe_plan(plan_id: 'stripe_hidden_usd_b_v1', currency: 'usd', show_on_plans_page: 'false')
+
+      allow(OT).to receive(:lw).and_call_original
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('eur')
+      # The visible set is coherent, so the operator gets no mixed-currency
+      # warning about a disagreement they cannot see on the page.
+      expect(OT).not_to have_received(:lw).with(/mixed currencies/, anything)
+    end
+
+    # Guard, not a regression test: this passes pre-fix too. It pins the
+    # fallback so a later tightening of the visibility filter cannot silently
+    # strand the free tier on config currency.
+    it 'falls back to hidden Stripe plans when none are visible' do
+      persist_stripe_plan(plan_id: 'stripe_hidden_only_v1', currency: 'eur', show_on_plans_page: 'false')
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('eur')
+    end
+
+    # Blank currencies don't decide anything: a visible plan carrying none
+    # must not shadow a hidden plan that carries one.
+    it 'falls through to hidden plans when visible ones carry no currency' do
+      persist_stripe_plan(plan_id: 'stripe_visible_blank_v1', currency: '')
+      persist_stripe_plan(plan_id: 'stripe_hidden_eur_v1', currency: 'eur', show_on_plans_page: 'false')
+
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
+
+      expect(free_plan.currency).to eq('eur')
+    end
+
+    # currency_override used to be discarded the moment a plan carried price
+    # rows. No caller combines the two today (upsert_config_only_plans only
+    # handles `prices: []`), so these pin the precedence contract rather than
+    # a live defect.
+    describe 'currency_override precedence with price rows' do
+      def upsert_probe(prices)
+        Billing::Operations::Catalog::ConfigLoader.upsert_plan_from_config(
+          'override_probe_v1',
+          {
+            'name' => 'Override Probe',
+            'tier' => 'single_account',
+            'description' => 'currency_override precedence probe',
+            'show_on_plans_page' => false,
+          },
+          prices,
+          currency_override: 'eur',
+        )
+      end
+
+      it 'keeps the inherited currency when price rows omit one' do
+        plan = upsert_probe([{ 'interval' => 'month', 'amount' => 1000, 'price_id' => 'price_probe' }])
+
+        expect(plan.currency).to eq('eur')
+      end
+
+      # The plans page reads currency off the price row (BillingController
+      # #plan_page_record), so the price row has to inherit too - otherwise the
+      # plan says EUR and the card still renders the config currency.
+      it 'stamps the inherited currency onto the price rows' do
+        plan = upsert_probe([{ 'interval' => 'month', 'amount' => 1000, 'price_id' => 'price_probe' }])
+
+        expect(plan.prices_hash['month']['currency']).to eq('eur')
+      end
+
+      it 'lets an explicit price currency outrank the inherited one' do
+        plan = upsert_probe(
+          [{ 'interval' => 'month', 'amount' => 1000, 'price_id' => 'price_probe', 'currency' => 'usd' }],
+        )
+
+        expect(plan.currency).to eq('usd')
+        expect(plan.prices_hash['month']['currency']).to eq('usd')
+      end
     end
   end
 
