@@ -259,10 +259,10 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       end
 
       it 'returns 409 with fallback assessment instead of 500' do
-        # This test requires a plan with stripe_price_id, but config-only plans
-        # don't have Stripe price IDs. Need to mock Plan.load or use VCR cassettes.
-        skip 'Config-only plans lack stripe_price_id - test needs VCR cassette or mock'
-
+        # Plans loaded from billing.test.yaml via with_test_plans DO carry
+        # stripe_price_id (ConfigLoader maps prices[].price_id), so the
+        # request reaches Stripe::Checkout::Session.create and the stubbed
+        # currency-conflict error.
         post "/billing/api/org/#{organization.extid}/checkout", {
           product: product,
           interval: interval,

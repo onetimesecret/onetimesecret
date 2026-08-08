@@ -7,7 +7,7 @@
 # Tests currency conflict detection, diagnostic assessment, and
 # migration execution (graceful and immediate paths).
 #
-# Run: pnpm run test:rspec spec/unit/billing/currency_migration_service_spec.rb
+# Run: tests/lanes/run unit
 
 require 'spec_helper'
 
@@ -163,7 +163,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -205,7 +206,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -231,7 +233,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
       before do
         allow(mock_customer).to receive(:balance).and_return(-5000)
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -256,7 +259,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
 
         items = [
@@ -286,7 +290,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -296,32 +301,74 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
         expect(result[:warnings][:has_incompatible_coupons]).to be true
       end
+
+      it 'retrieves the subscription once with discounts expanded' do
+        described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+
+        expect(Stripe::Subscription).to have_received(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).once
+      end
     end
 
-    # Regression: Stripe API returns `discounts` (array) not `discount` (singular).
-    # Prior to fix, accessing sub.discount on newer API versions raised NoMethodError.
-    context 'with discounts array containing amount-off coupon (Stripe API regression)' do
+    # Regression: without expand: ['discounts'], clover returns bare discount
+    # ID strings; `discount&.coupon` on a String raised NoMethodError.
+    context 'with unexpanded discount ID strings (clover regression)' do
       let(:subscription) do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
           cancel_at_period_end: false,
-          discounts: [{ coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } }],
+          discounts: ['di_123'],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
 
-      it 'detects incompatible coupon from discounts array' do
+      it 'does not raise and reports no incompatible coupons' do
+        result = nil
+        expect do
+          result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+        end.not_to raise_error
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
+      end
+    end
+
+    context 'when the subscription was deleted between check and retrieve' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .and_raise(Stripe::InvalidRequestError.new(
+            'No such subscription: sub_123', 'id', code: 'resource_missing'
+          ))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'treats it as no subscription instead of raising' do
         result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
-        expect(result[:warnings][:has_incompatible_coupons]).to be true
+        expect(result[:current_plan]).to be_nil
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
+      end
+    end
+
+    context 'when the subscription retrieve fails for another reason' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .and_raise(Stripe::InvalidRequestError.new(
+            'Invalid array', 'expand', code: 'parameter_invalid_empty'
+          ))
+      end
+
+      it 're-raises instead of assessing a clean migration' do
+        expect do
+          described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+        end.to raise_error(Stripe::InvalidRequestError, /Invalid array/)
       end
     end
 
@@ -338,7 +385,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -363,7 +411,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       before do
-        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with({ id: 'sub_123', expand: ['discounts'] }).and_return(subscription)
         allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
         allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       end
@@ -520,6 +569,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     it 'works when org has no active subscription' do
       allow(org).to receive(:stripe_subscription_id).and_return(nil)
+      allow(Onetime.billing_config).to receive(:currency).and_return('usd')
 
       result = described_class.execute_immediate_migration(
         org, 'price_cad_456',
@@ -529,35 +579,129 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
       expect(Stripe::Subscription).not_to have_received(:cancel)
       expect(result[:success]).to be true
+      expect(result[:migration][:refund_amount]).to eq(0)
+      expect(result[:migration][:refund_failed]).to be false
+      # No subscription to take a currency from — falls back to the
+      # configured billing currency, not a hardcoded one
+      expect(result[:migration][:refund_formatted]).to eq('USD 0.00')
     end
 
-    it 'issues prorated refund using Stripe invoice preview amount' do
-      invoice = double(id: 'in_123', payment_intent: 'pi_123')
-      allow(Stripe::Invoice).to receive(:list).and_return(double(data: [invoice]))
-      allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
-      allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
+    context 'with a paid invoice eligible for a prorated refund' do
+      # Clover-shaped invoice: no payment_intent reader. Must be a real
+      # Stripe::Invoice (not a bare double) so the gem's breaking-change
+      # guard for payment_intent access stays armed.
+      let(:paid_invoice) do
+        Stripe::Invoice.construct_from({
+          id: 'in_123', object: 'invoice',
+          customer: 'cus_123', status: 'paid',
+          amount_paid: 2900, currency: 'eur',
+        })
+      end
+      # Amount differs from the computed credit (e.g. tax adjustments) to
+      # prove the response reports what actually moved
+      let(:credit_note) { double(id: 'cn_123', amount: 1425) }
 
-      result = described_class.execute_immediate_migration(
-        org, 'price_cad_456',
-        success_url: 'https://example.com/success',
-        cancel_url: 'https://example.com/cancel',
-      )
+      before do
+        allow(Stripe::Invoice).to receive(:list)
+          .with(hash_including(status: 'paid'))
+          .and_return(double(data: [paid_invoice]))
+        allow(stripe_client).to receive(:create)
+          .with(Stripe::CreditNote, anything).and_return(credit_note)
+      end
 
-      expect(Stripe::Invoice).to have_received(:create_preview).with(
-        hash_including(
+      def execute
+        described_class.execute_immediate_migration(
+          org, 'price_cad_456',
+          success_url: 'https://example.com/success',
+          cancel_url: 'https://example.com/cancel',
+        )
+      end
+
+      # Basil (2025-03-31) moved subscription_items/subscription_proration_*
+      # into subscription_details; the old top-level params are rejected under
+      # the pinned clover version and silently fell back to manual math.
+      it 'requests the proration preview with the subscription_details shape' do
+        execute
+
+        expect(Stripe::Invoice).to have_received(:create_preview).with(
           customer: 'cus_123',
           subscription: 'sub_123',
-          subscription_proration_behavior: 'create_prorations'
+          subscription_details: {
+            items: [{ id: 'si_123', deleted: true }],
+            proration_behavior: 'create_prorations',
+            proration_date: kind_of(Integer),
+          },
         )
-      )
-      expect(Stripe::Refund).to have_received(:create).with(
-        hash_including(
-          payment_intent: 'pi_123',
-          amount: 1450,
-          reason: 'requested_by_customer'
+      end
+
+      it 'issues a credit note refund against the subscription invoice' do
+        result = execute
+
+        expect(stripe_client).to have_received(:create).with(
+          Stripe::CreditNote,
+          {
+            invoice: 'in_123',
+            amount: 1450,
+            refund_amount: 1450,
+            memo: kind_of(String),
+            metadata: { reason: 'currency_migration_proration' },
+          },
         )
-      )
-      expect(result[:migration][:refund_amount]).to eq(1450)
+        expect(result[:migration][:refund_amount]).to eq(1425)
+        expect(result[:migration][:refund_failed]).to be false
+      end
+
+      it 'targets the migrated subscription when listing paid invoices' do
+        execute
+
+        expect(Stripe::Invoice).to have_received(:list).with(
+          hash_including(customer: 'cus_123', subscription: 'sub_123', status: 'paid')
+        )
+      end
+
+      context 'when Stripe rejects the credit note' do
+        before do
+          allow(stripe_client).to receive(:create)
+            .with(Stripe::CreditNote, anything)
+            .and_raise(Stripe::InvalidRequestError.new('Amount exceeds refundable amount', 'refund_amount'))
+          allow(OT).to receive(:lw)
+          allow(OT).to receive(:le)
+        end
+
+        it 'reports the failure instead of claiming a refund' do
+          result = execute
+
+          expect(result[:migration][:refund_failed]).to be true
+          expect(result[:migration][:refund_amount]).to eq(0)
+          expect(OT).to have_received(:le).with(/Prorated refund of 1450 failed/)
+        end
+      end
+
+      # The old subscription is already cancelled by the time the credit note
+      # is created — a transient Stripe failure here must not abort the
+      # migration (HTTP 500 with no checkout URL and the intent never
+      # cleared would strand the customer without a subscription).
+      context 'when Stripe is unreachable during the credit note' do
+        before do
+          allow(stripe_client).to receive(:create)
+            .with(Stripe::CreditNote, anything)
+            .and_raise(Stripe::APIConnectionError.new('Connection to Stripe failed'))
+          allow(OT).to receive(:lw)
+          allow(OT).to receive(:le)
+        end
+
+        it 'proceeds with the checkout and reports the failed refund' do
+          result = execute
+
+          expect(result[:success]).to be true
+          expect(result[:migration][:checkout_url]).to include('stripe.com')
+          expect(result[:migration][:refund_failed]).to be true
+          expect(result[:migration][:refund_amount]).to eq(0)
+          expect(org).to have_received(:clear_currency_migration_intent!)
+          expect(OT).to have_received(:lw)
+            .with(/Stripe::APIConnectionError.*Connection to Stripe failed/)
+        end
+      end
     end
 
     # Deployment tax policy + pmc pin: shared with every other checkout path
@@ -625,8 +769,16 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     it 'falls back to manual calculation when invoice preview fails' do
       allow(Stripe::Invoice).to receive(:create_preview)
         .and_raise(Stripe::InvalidRequestError.new('No such subscription', 'subscription'))
-      allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
-      allow(OT).to receive(:ld)
+      paid_invoice = Stripe::Invoice.construct_from({
+        id: 'in_123', object: 'invoice', customer: 'cus_123', status: 'paid',
+      })
+      allow(Stripe::Invoice).to receive(:list)
+        .with(hash_including(status: 'paid'))
+        .and_return(double(data: [paid_invoice]))
+      allow(stripe_client).to receive(:create)
+        .with(Stripe::CreditNote, anything)
+        .and_return(double(id: 'cn_123', amount: 1450))
+      allow(OT).to receive(:lw)
 
       result = described_class.execute_immediate_migration(
         org, 'price_cad_456',
@@ -634,9 +786,15 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         cancel_url: 'https://example.com/cancel',
       )
 
-      # Manual calculation should produce a positive credit (halfway through period)
-      expect(result[:migration][:refund_amount]).to be > 0
-      expect(result[:migration][:refund_amount]).to be_a(Integer)
+      # Manual calculation should produce a positive credit (halfway through
+      # period) which drives the credit-note refund
+      expect(stripe_client).to have_received(:create).with(
+        Stripe::CreditNote,
+        hash_including(refund_amount: (a_value > 0))
+      )
+      expect(result[:migration][:refund_amount]).to eq(1450)
+      expect(result[:migration][:refund_failed]).to be false
+      expect(OT).to have_received(:lw).with(/Invoice preview failed/)
     end
   end
 end
