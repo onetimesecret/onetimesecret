@@ -396,6 +396,14 @@
     "text": "/month",
     "content_hash": "eec5d08b"
   },
+  "web.billing.plans.per_year": {
+    "text": "/year",
+    "content_hash": "a2d5f1bc"
+  },
+  "web.billing.plans.billing_interval": {
+    "text": "Billing interval",
+    "content_hash": "3ce28209"
+  },
   "web.billing.plans.save_yearly": {
     "text": "Save {percent}% with yearly billing",
     "content_hash": "88c451f2"
