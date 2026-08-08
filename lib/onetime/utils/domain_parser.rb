@@ -61,6 +61,7 @@ module Onetime
         # @example
         #   extract_hostname('https://Example.COM:443/path') # => 'example.com'
         #   extract_hostname('Example.COM:8080')            # => 'example.com'
+        #   extract_hostname('[2001:db8::1]:8080')          # => '2001:db8::1'
         #   extract_hostname(URI('https://foo.bar'))        # => 'foo.bar'
         #   extract_hostname(nil)                           # => nil
         #
@@ -69,7 +70,9 @@ module Onetime
 
           host = case input
                  when URI
-                   input.host
+                   # #hostname (not #host) so bracketed IPv6 literals come back
+                   # as the bare address ("::1" rather than "[::1]")
+                   input.hostname
                  when String
                    extract_from_string(input)
                  else
@@ -241,11 +244,21 @@ module Onetime
           str = str.to_s.strip
           return nil if str.empty?
 
+          # Bracketed IPv6 literal per RFC 3986 §3.2.2, optionally with a
+          # port (e.g. "[2001:db8::1]:8080"). Splitting these on ':' like a
+          # hostname:port pair would mangle them into garbage like "[2001",
+          # so extract the address inside the brackets; anything bracketed
+          # but malformed yields nil rather than a mangled host.
+          if str.start_with?('[')
+            match = str.match(/\A\[([0-9a-fA-F:.]+)\](?::\d+)?\z/)
+            return match && match[1]
+          end
+
           # If it looks like a URL, only extract via URI parsing - don't guess
           if str.include?('://')
             begin
               uri  = URI.parse(str)
-              host = uri.host
+              host = uri.hostname
 
               # For file:// URLs, treat "localhost" (any case) as local machine
               # Ruby's URI::File is case-sensitive but RFC 8089 treats localhost specially

@@ -4,6 +4,7 @@
 
 require 'ipaddr'
 require 'otto/env_keys'
+require 'rack/utils'
 require_relative 'logging'
 
 module Rack
@@ -29,12 +30,16 @@ module Rack
   # to accurately determine the host for proper URL generation, redirection,
   # and processing in multi-tenant applications.
   #
-  # This middleware prioritizes host detection in the following order:
+  # This middleware prioritizes host detection in the following order
+  # (mirroring HEADER_PRECEDENCE below):
   #
   # 1. `X-Forwarded-Host` - Commonly used by proxies and load balancers.
-  # 2. `X-Original-Host` - Used by various proxy services.
-  # 3. `Forwarded` - The standard header as per RFC 7239.
-  # 4. `Host` - Default HTTP host header.
+  # 2. `Apx-Incoming-Host` - Approximated.app custom-domain ingress.
+  # 3. `X-Original-Host` - Used by various proxy services.
+  # 4. `Forwarded` - RFC 7239 standard; the first `host=` parameter is
+  #    extracted (via `Rack::Utils.forwarded_values`), with quoted values
+  #    and ports handled per the RFC.
+  # 5. `Host` - Default HTTP host header.
   #
   # It also includes validation to filter out invalid or local hosts (e.g.,
   # `localhost`, `127.0.0.1`) and IP addresses, ensuring only legitimate
@@ -306,7 +311,7 @@ module Rack
       #
       # This method:
       # - Takes the first host if multiple are provided (comma-separated)
-      # - Extracts the host parameter from the first RFC 7239 Forwarded element
+      # - Extracts the first host parameter from RFC 7239 Forwarded values
       # - Delegates to DomainParser for port stripping and normalization
       # - Returns nil for empty values
       def normalize_host(value_unsafe, forwarded: false)
@@ -321,63 +326,25 @@ module Rack
         Onetime::Utils::DomainParser.extract_hostname(first_host)
       end
 
-      # Extracts the host parameter from the first RFC 7239 Forwarded element.
-      # Delimiters inside quoted strings do not split elements or parameters.
-      # Malformed quoted strings fail closed so the next header in the
-      # precedence list can be considered.
+      # Extracts the first host parameter from an RFC 7239 Forwarded value.
+      #
+      # Parsing is delegated to Rack::Utils.forwarded_values, which handles
+      # quoted strings and escape sequences, bounds parameter and escape
+      # counts against denial of service, and fails closed (nil) on
+      # malformed input or unknown parameter names — letting the next header
+      # in the precedence list be considered. Element boundaries are
+      # flattened: the earliest host parameter anywhere in the header wins,
+      # mirroring the first-value convention used for X-Forwarded-Host.
       def forwarded_host(value_unsafe)
-        first_element = split_quoted_header(value_unsafe.to_s, ',').first
-        return nil if first_element.nil?
-
-        split_quoted_header(first_element, ';').each do |pair|
-          name, raw_value = pair.split('=', 2)
-          next unless name&.strip&.casecmp?('host')
-
-          return decode_forwarded_value(raw_value)
+        case Rack::Utils.forwarded_values(value_unsafe)
+        in { host: [first_host, *] }
+          first_host
+        else
+          nil
         end
-
-        nil
       end
 
-      def split_quoted_header(value, delimiter)
-        parts   = []
-        current = +''
-        quoted  = false
-        escaped = false
-
-        value.each_char do |character|
-          if escaped
-            current << character
-            escaped = false
-          elsif quoted && character == '\\'
-            current << character
-            escaped = true
-          elsif character == '"'
-            current << character
-            quoted = !quoted
-          elsif character == delimiter && !quoted
-            parts << current
-            current = +''
-          else
-            current << character
-          end
-        end
-
-        return [] if quoted || escaped
-
-        parts << current
-      end
-
-      def decode_forwarded_value(raw_value)
-        value = raw_value.to_s.strip
-        return nil if value.empty?
-        return value unless value.start_with?('"')
-        return nil unless value.length >= 2 && value.end_with?('"')
-
-        value[1...-1].gsub(/\\(.)/m, '\\1')
-      end
-
-      private :forwarded_host, :split_quoted_header, :decode_forwarded_value
+      private :forwarded_host
 
       # Determines if a string is a valid host for use in this application.
       #
@@ -385,12 +352,16 @@ module Rack
       # @return [Boolean] true if the host is a valid domain name
       #
       # Note: This method intentionally rejects IP addresses as we require
-      # domain names for our application's routing logic.
+      # domain names for our application's routing logic. It also requires
+      # DomainParser.basically_valid? (RFC 952/1123 charset, label and
+      # length limits) so header junk that survives extraction — control
+      # characters, quotes, semicolons — can never become the detected
+      # host. DomainStrategy applies the same gate after extraction.
       def valid_domain_name?(host)
         return false if INVALID_HOSTS.include?(host)
         return false if valid_ip?(host)
 
-        true
+        Onetime::Utils::DomainParser.basically_valid?(host)
       end
 
       # Determines if a string represents a private IP address.
