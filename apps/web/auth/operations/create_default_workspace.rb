@@ -294,6 +294,24 @@ module Auth
         return false unless pending
         return false unless pending.active?
 
+        # A pending record without a resolved planid cannot deliver any
+        # benefit. Claiming it anyway would mark the org federated (showing
+        # the "subscription synced" notification for a sync that applied
+        # nothing) and destroy the only copy of the pending state. Leave the
+        # record intact: now that the org exists with an email_hash, the next
+        # subscription webhook re-syncs it directly through the federated
+        # path, which resolves the plan from subscription metadata.
+        if pending.planid.to_s.strip.empty?
+          auth_logger.error '[create-default-workspace] Pending federated subscription has no planid; leaving unclaimed',
+            {
+              org: org.extid,
+              hash_prefix: org.email_hash[0..7],
+              status: pending.subscription_status,
+              region: pending.region,
+            }
+          return false
+        end
+
         # SECURITY AUDIT (verify-disabled residual): we are about to apply a
         # cross-region subscription benefit. If the customer's email ownership
         # was never proven AND this deployment has no email-verification step at
@@ -316,7 +334,7 @@ module Auth
 
         # Apply subscription benefits
         org.subscription_status     = pending.subscription_status
-        org.planid                  = pending.planid if pending.planid
+        org.planid                  = pending.planid
         org.subscription_period_end = pending.subscription_period_end
         org.mark_subscription_federated!
 
