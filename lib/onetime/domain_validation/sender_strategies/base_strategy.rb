@@ -6,6 +6,7 @@ require 'resolv'
 require 'concurrent'
 require 'json'
 require_relative '../../utils/retry_helper'
+require_relative '../record_normalizer'
 
 module Onetime
   module DomainValidation
@@ -259,41 +260,6 @@ module Onetime
           dns&.close unless resolver
         end
 
-        # Verify a single DNS record by comparing expected value against live DNS.
-        #
-        # Uses a shared resolver to avoid opening/closing connections per record.
-        #
-        # @param record [Hash] A record hash from required_dns_records
-        # @param resolver [Resolv::DNS] Shared resolver instance
-        # @param bypass_cache [Boolean] Skip cache read/write when true
-        # @return [Hash] Verification result with optional :error_type
-        #
-        def verify_record(record, resolver:, bypass_cache: false)
-          actual, error_type = case record[:type]
-                               when 'TXT'
-                                 lookup_txt_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                               when 'CNAME'
-                                 lookup_cname_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                               when 'MX'
-                                 lookup_mx_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                               else
-                                 [[], nil]
-                               end
-
-          verified = record_matches?(record[:type], record[:value], actual)
-
-          result              = {
-            type: record[:type],
-            host: record[:host],
-            expected: record[:value],
-            actual: actual,
-            verified: verified,
-            purpose: record[:purpose],
-          }
-          result[:error_type] = error_type if error_type
-          result
-        end
-
         # Check whether the expected value appears in the actual DNS results.
         #
         # Delegates to type-specific matchers for clarity and testability.
@@ -304,12 +270,11 @@ module Onetime
         # @return [Boolean]
         #
         def record_matches?(type, expected, actual_values)
-          normalized_expected = expected.to_s.downcase.chomp('.')
-
           case type
           when 'TXT'
-            txt_record_matches?(normalized_expected, actual_values)
+            txt_record_matches?(expected.to_s.strip, actual_values)
           when 'CNAME', 'MX'
+            normalized_expected = expected.to_s.downcase.chomp('.')
             actual_values.any? { |v| v.downcase.chomp('.') == normalized_expected }
           else
             false
@@ -318,22 +283,31 @@ module Onetime
 
         # Check whether a TXT record matches expected value.
         #
-        # Handles SPF records specially: customers commonly merge multiple
-        # provider includes into one SPF record (e.g., "v=spf1 include:amazonses.com
-        # include:sendgrid.net ~all"). We extract the include: directive and verify
-        # it appears in any actual TXT record starting with "v=spf1".
+        # Dispatch (issue #4023):
+        # - SPF (v=spf1): spf_record_matches? — customers commonly merge
+        #   multiple provider includes into one SPF record, so we extract the
+        #   include: directive and verify it appears in any actual SPF record.
+        # - DMARC/DKIM tag-lists (v=DMARC1 / v=DKIM1): RecordNormalizer
+        #   subset comparison per RFC 6376 Section 3.2 grammar. Raw string
+        #   comparison false-negatives on semantically identical records
+        #   ("v=DMARC1; p=none;" vs "v=DMARC1;p=none").
+        # - Anything else (opaque provider verification tokens): exact match
+        #   after trim. Deliberately tighter than the old substring check.
         #
-        # For non-SPF TXT records, full substring match is used.
+        # Note: expected is NOT globally downcased here — DKIM p= base64 key
+        # data is case-sensitive (RFC 6376 Section 3.2).
         #
-        # @param normalized_expected [String] Downcased expected value
+        # @param expected [String] Expected value, trimmed
         # @param actual_values [Array<String>] DNS results
         # @return [Boolean]
         #
-        def txt_record_matches?(normalized_expected, actual_values)
-          if normalized_expected.start_with?('v=spf1')
-            spf_record_matches?(normalized_expected, actual_values)
+        def txt_record_matches?(expected, actual_values)
+          if RecordNormalizer.spf?(expected)
+            spf_record_matches?(expected.downcase, actual_values)
+          elsif RecordNormalizer.tag_list?(expected)
+            actual_values.any? { |v| RecordNormalizer.subset_match?(expected, v) }
           else
-            actual_values.any? { |v| v.downcase.include?(normalized_expected) }
+            actual_values.any? { |v| v.strip == expected }
           end
         end
 
@@ -438,6 +412,9 @@ module Onetime
 
         # Verify a single record, using a pre-fetched cached value if available.
         #
+        # Both branches evaluate the full record set (selection + matching),
+        # so a cache hit can also surface 'ambiguous_record_set'.
+        #
         # @param record [Hash] A record hash from required_dns_records
         # @param resolver [Resolv::DNS] Shared resolver instance
         # @param cached_value [Array<String>, nil] Pre-fetched cache value or nil
@@ -446,9 +423,8 @@ module Onetime
         #
         def verify_record_with_cache(record, resolver:, cached_value:, bypass_cache:)
           if cached_value && !bypass_cache
-            # Use cached value directly - no error_type since cache hit
-            verified = record_matches?(record[:type], record[:value], cached_value)
-            return {
+            verified, match_error = evaluate_record_set(record, cached_value)
+            result                = {
               type: record[:type],
               host: record[:host],
               expected: record[:value],
@@ -457,11 +433,13 @@ module Onetime
               purpose: record[:purpose],
               from_cache: true,
             }
+            result[:error_type]   = match_error if match_error
+            return result
           end
 
           # Perform live DNS lookup
-          actual, error_type = lookup_dns_by_type(record[:type], record[:host], resolver: resolver, bypass_cache: true)
-          verified           = record_matches?(record[:type], record[:value], actual)
+          actual, error_type    = lookup_dns_by_type(record[:type], record[:host], resolver: resolver, bypass_cache: true)
+          verified, match_error = evaluate_record_set(record, actual)
 
           result              = {
             type: record[:type],
@@ -472,8 +450,52 @@ module Onetime
             purpose: record[:purpose],
             from_cache: false,
           }
-          result[:error_type] = error_type if error_type
+          effective_error     = error_type || match_error
+          result[:error_type] = effective_error if effective_error
           result
+        end
+
+        # Select the relevant records from the DNS result set, then match.
+        #
+        # RFC 7489 Section 6.6.3 (DMARC) and RFC 7208 Section 4.5 (SPF) both
+        # require record-set selection before evaluation: filter the TXT set
+        # by discriminator, discard unrelated records, and treat more than
+        # one surviving record as an error — never a pass. A duplicate DMARC
+        # or SPF record fails at receiving MTAs, so reporting it verified
+        # would be a false green (issue #4023).
+        #
+        # @param record [Hash] A record hash from required_dns_records
+        # @param actual_values [Array<String>] Full DNS result set
+        # @return [Array(Boolean, String|nil)] [verified, error_type or nil]
+        #
+        def evaluate_record_set(record, actual_values)
+          candidates, ambiguous = select_txt_record_set(record[:type], record[:value], actual_values)
+          return [false, 'ambiguous_record_set'] if ambiguous
+
+          [record_matches?(record[:type], record[:value], candidates), nil]
+        end
+
+        # Filter a TXT result set down to records relevant to the expected
+        # value. Only DMARC and SPF expectations have a discriminator; other
+        # types and TXT purposes pass through unfiltered.
+        #
+        # Zero survivors keeps existing not-found semantics (no match, no
+        # error_type). One survivor plus unrelated TXT records still verifies.
+        #
+        # @return [Array(Array<String>, Boolean)] [candidates, ambiguous]
+        #
+        def select_txt_record_set(type, expected, actual_values)
+          return [actual_values, false] unless type == 'TXT'
+
+          discriminator = if RecordNormalizer.dmarc?(expected)
+                            RecordNormalizer.method(:dmarc?)
+                          elsif RecordNormalizer.spf?(expected)
+                            RecordNormalizer.method(:spf?)
+                          end
+          return [actual_values, false] unless discriminator
+
+          survivors = actual_values.select { |v| discriminator.call(v) }
+          [survivors, survivors.size > 1]
         end
 
         # Lookup DNS records by type.

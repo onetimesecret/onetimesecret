@@ -15,6 +15,7 @@
 #   results  = strategy.verify_dns_records(mailer_config)
 #
 
+require_relative '../record_normalizer'
 require_relative 'base_strategy'
 require_relative 'provider_config'
 require_relative 'ses_validation'
