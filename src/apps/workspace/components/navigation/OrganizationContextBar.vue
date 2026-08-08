@@ -22,7 +22,7 @@ import DomainContextSwitcher from '@/apps/workspace/components/navigation/Domain
 import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
-import { isOrganizationSwitcherEnabled } from '@/utils/features';
+import { isOrganizationSwitcherEnabled, isOrgsAuditLogsEnabled } from '@/utils/features';
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -72,13 +72,17 @@ const orgSettingsPath = computed(() => {
   return `/org/${org.extid}`;
 });
 
-// Explicit deep link to the org audit trail. The tab is entitlement-proof (an
-// unentitled org lands on it and sees the upgrade notice rather than being
-// redirected), so this is gated on role alone — the same owner/admin gate the
-// /org/:extid route itself enforces. Suppressed where the route hides org
-// scope entirely.
+// Explicit deep link to the org audit trail. Gated on the owner/admin role the
+// /org/:extid route enforces (via orgSettingsPath), on the instance flag —
+// ORGS_AUDIT_LOGS_ENABLED=false removes the Activity tab entirely, so the link
+// would dead-end on the Domains panel — and suppressed where the route hides
+// org scope. The audit_logs ENTITLEMENT is deliberately not a gate: the tab is
+// entitlement-proof (an unentitled org lands on it and sees the upgrade notice
+// rather than being redirected). Mirrors OrganizationSettings.vue.
 const orgActivityPath = computed(() =>
-  visibility.value.organization !== 'hide' && orgSettingsPath.value
+  visibility.value.organization !== 'hide' &&
+  orgSettingsPath.value &&
+  isOrgsAuditLogsEnabled()
     ? `${orgSettingsPath.value}/activity`
     : null
 );

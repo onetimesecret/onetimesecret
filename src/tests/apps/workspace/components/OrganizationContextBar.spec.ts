@@ -46,9 +46,13 @@ vi.mock('@/shared/composables/useScopeSwitcherVisibility', () => ({
 }));
 
 // Enable the org switcher feature flag so the static-org-name fallback path
-// (gated on isOrganizationSwitcherEnabled) can be exercised.
+// (gated on isOrganizationSwitcherEnabled) can be exercised. The audit-logs
+// flag is default-ON (ORGS_AUDIT_LOGS_ENABLED=false is the only way off), so
+// the mock ref starts true and the Activity-link tests flip it.
+const mockAuditLogsEnabled = ref(true);
 vi.mock('@/utils/features', () => ({
   isOrganizationSwitcherEnabled: () => true,
+  isOrgsAuditLogsEnabled: () => mockAuditLogsEnabled.value,
 }));
 
 // Mock axios
@@ -83,6 +87,7 @@ describe('OrganizationContextBar', () => {
     mockLockDomainSwitcher.value = false;
     mockIsSoloDefaultContext.value = false;
     mockVisibility.value = { organization: 'show', domain: 'hide' };
+    mockAuditLogsEnabled.value = true;
   });
 
   afterEach(() => {
@@ -245,6 +250,24 @@ describe('OrganizationContextBar', () => {
 
     it('is hidden when the route hides org scope', async () => {
       mockVisibility.value = { organization: 'hide', domain: 'show' };
+
+      wrapper = mountComponent({
+        organizations: [ownerOrg],
+        currentOrganization: ownerOrg,
+        isListFetched: true,
+      });
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="org-context-activity"]').exists()).toBe(false);
+    });
+
+    // Instance-flag axis, distinct from role and from the audit_logs
+    // entitlement: with ORGS_AUDIT_LOGS_ENABLED=false the Activity tab does not
+    // exist, so the entry point must not either — otherwise an owner clicks
+    // through and lands silently on the Domains panel.
+    it('is hidden when the instance audit-logs flag is off', async () => {
+      mockAuditLogsEnabled.value = false;
 
       wrapper = mountComponent({
         organizations: [ownerOrg],

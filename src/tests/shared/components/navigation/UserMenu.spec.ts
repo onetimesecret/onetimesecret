@@ -128,6 +128,15 @@ vi.mock('@/shared/composables/useScopeSwitcherVisibility', () => ({
   }),
 }));
 
+// Instance-level audit-logs flag (ORGS_AUDIT_LOGS_ENABLED). Default-ON, so the
+// ref starts true; the Activity tests flip it. Spreads the real module so the
+// other feature helpers this component graph reaches keep their behaviour.
+const mockAuditLogsEnabled = ref(true);
+vi.mock('@/utils/features', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/features')>()),
+  isOrgsAuditLogsEnabled: () => mockAuditLogsEnabled.value,
+}));
+
 // Mock product identity store state (mutable for per-test customization)
 // The component uses storeToRefs(useProductIdentity()), so isCustom must be
 // a ref for storeToRefs to extract it properly.
@@ -159,6 +168,7 @@ describe('UserMenu', () => {
     mockCurrentOrganizationRef.value = null;
     mockIsCustomRef.value = false;
     mockIsSoloDefaultContext.value = false;
+    mockAuditLogsEnabled.value = true;
   });
 
   afterEach(() => {
@@ -430,6 +440,20 @@ describe('UserMenu', () => {
       mockCurrentOrganizationRef.value = { current_user_role: 'owner', extid: 'org_abc' };
 
       wrapper = mountComponent({ awaitingMfa: true });
+      await openMenu();
+
+      expect(wrapper.find('a[href="/org/org_abc/activity"]').exists()).toBe(false);
+    });
+
+    // Instance-flag axis, distinct from role and from the audit_logs
+    // entitlement: with ORGS_AUDIT_LOGS_ENABLED=false the Activity tab does not
+    // exist, so the menu entry must not either — otherwise an owner clicks
+    // through and lands silently on the Domains panel.
+    it('is hidden when the instance audit-logs flag is off', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'owner', extid: 'org_abc' };
+      mockAuditLogsEnabled.value = false;
+
+      wrapper = mountComponent();
       await openMenu();
 
       expect(wrapper.find('a[href="/org/org_abc/activity"]').exists()).toBe(false);
