@@ -86,9 +86,38 @@ require 'onetime/domain_validation/sender_strategies/strategy'
 @normalizer.subset_match?('v=DMARC1;p=none', 'v=DMARC1; p=reject')
 #=> true
 
-## Published sp= value also satisfies by presence
+## Published sp= follows the same strength ordering (both hardened here)
 @normalizer.subset_match?('v=DMARC1;p=none;sp=none', 'v=DMARC1;p=quarantine;sp=reject')
 #=> true
+
+## Policy keywords compare case-insensitively (ABNF keywords, RFC 5234 2.3)
+@normalizer.subset_match?('v=DMARC1;p=none', 'v=DMARC1; p=NONE')
+#=> true
+
+## Weaker published policy fails: p=none does not satisfy expected p=quarantine
+@normalizer.subset_match?('v=DMARC1;p=quarantine', 'v=DMARC1; p=none')
+#=> false
+
+## Unrecognized published policy value fails (p=bogus is not an RFC 7489 keyword)
+@normalizer.subset_match?('v=DMARC1;p=none', 'v=DMARC1; p=bogus')
+#=> false
+
+## Empty published policy value fails
+@normalizer.subset_match?('v=DMARC1;p=none', 'v=DMARC1; p=')
+#=> false
+
+## WSP around a policy value trims away (TAG_SPEC); strength still applies
+@normalizer.subset_match?('v=DMARC1;p=quarantine', 'v=DMARC1; p= REJECT ')
+#=> true
+
+## Weaker published sp= fails even when p= is satisfied
+@normalizer.subset_match?('v=DMARC1;p=none;sp=reject', 'v=DMARC1;p=none;sp=none')
+#=> false
+
+## Unrecognized EXPECTED policy falls back to case-insensitive equality
+[@normalizer.subset_match?('v=DMARC1;p=custom', 'v=DMARC1;p=CUSTOM'),
+ @normalizer.subset_match?('v=DMARC1;p=custom', 'v=DMARC1;p=reject')]
+#=> [true, false]
 
 ## Missing expected tag fails
 @normalizer.subset_match?('v=DMARC1;p=none', 'v=DMARC1')

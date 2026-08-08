@@ -816,6 +816,27 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
         expect(strategy.txt_record_matches?('v=DMARC1; p=none;', ['v=DMARC1; p=reject'])).to be true
       end
 
+      it 'compares policy keywords case-insensitively (RFC 5234 ABNF keywords)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p=NONE'])).to be true
+      end
+
+      it 'rejects a weaker published policy (p=none against expected p=quarantine)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=quarantine', ['v=DMARC1; p=none'])).to be false
+      end
+
+      it 'rejects a published policy outside the RFC 7489 keywords (p=bogus)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p=bogus'])).to be false
+      end
+
+      it 'rejects an empty published policy value (p=)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p='])).to be false
+      end
+
+      it 'applies the same strength ordering to sp=' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none;sp=none', ['v=DMARC1;p=none;sp=reject'])).to be true
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none;sp=reject', ['v=DMARC1;p=none;sp=none'])).to be false
+      end
+
       it 'does not match when an expected tag is absent' do
         expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1'])).to be false
       end
