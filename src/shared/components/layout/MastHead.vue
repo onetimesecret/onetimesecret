@@ -97,9 +97,7 @@
   const getLogoAlt = () =>
     props.logo?.alt ||
     installLogoAlt.value ||
-    (showPlatformIdentity.value
-      ? t('web.homepage.one_time_secret_literal', { product_name: productName.value })
-      : displayName.value);
+    (showPlatformIdentity.value ? productName.value : displayName.value);
   const getLogoHref = () => props.logo?.href || headerConfig.value?.logo?.href || '/';
 
   // Custom install-wide logo: operator set BRAND_LOGO_URL. Distinct from the
@@ -146,7 +144,13 @@
   // The wordmark text is the resolver's productName (brand.product_name or
   // the neutral default) — the deprecated header.branding.site_name is
   // absorbed into brand.product_name by Config#normalize_brand (#3612).
-  const getSiteName = () => props.logo?.siteName || t('web.homepage.one_time_secret_literal', { product_name: productName.value });
+  //
+  // Read directly from the resolver rather than through the
+  // `web.homepage.one_time_secret_literal` i18n key: several locale
+  // translations of that key still carry a hardcoded literal brand string
+  // instead of the `{product_name}` placeholder, which would leak the
+  // platform brand onto a neutral/private-label install (#3571).
+  const getSiteName = () => props.logo?.siteName || productName.value;
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
