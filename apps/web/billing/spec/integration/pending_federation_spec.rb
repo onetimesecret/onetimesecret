@@ -114,6 +114,15 @@ RSpec.describe 'PendingFederation: Webhook Storage', :integration, :process_webh
       expect(pending.subscription_status).to eq('active')
     end
 
+    it 'stores the plan id from subscription metadata (cross-region price not in local catalog)' do
+      # The fixture's price ('price_test') is deliberately absent from the
+      # local catalog, mirroring a cross-region webhook. The plan must come
+      # from subscription metadata, or the later claim applies no benefit.
+      operation.call
+      pending = track_pending(Billing::PendingFederatedSubscription.find_by_email_hash(email_hash))
+      expect(pending.planid).to eq('identity_plus_v1')
+    end
+
     it 'stores region from metadata' do
       operation.call
       pending = track_pending(Billing::PendingFederatedSubscription.find_by_email_hash(email_hash))
@@ -299,6 +308,8 @@ RSpec.describe 'PendingFederation: Webhook Storage', :integration, :process_webh
 end
 
 RSpec.describe 'PendingFederatedSubscription Model', :unit do
+  include ProcessWebhookEventHelpers
+
   let(:email_hash) { "test_hash_#{SecureRandom.hex(8)}" }
   let(:created_pending_records) { [] }
 
@@ -322,6 +333,50 @@ RSpec.describe 'PendingFederatedSubscription Model', :unit do
     pending.save
     created_pending_records << pending
     pending
+  end
+
+  describe '.extract_plan_id' do
+    def build_subscription(metadata_overrides = {})
+      build_stripe_subscription(
+        id: "sub_extract_#{SecureRandom.hex(4)}",
+        customer: "cus_extract_#{SecureRandom.hex(4)}",
+        status: 'active',
+        metadata: metadata_overrides,
+      )
+    end
+
+    it 'prefers the canonical plan_id from subscription metadata (no catalog dependency)' do
+      # The fixture's price ('price_test') is not in the local catalog; the
+      # metadata path must resolve without ever reaching the catalog.
+      subscription = build_subscription # fixture default: plan_id => identity_plus_v1
+      expect(Billing::PlanValidator).not_to receive(:resolve_plan_id)
+      expect(described_planid(subscription)).to eq('identity_plus_v1')
+    end
+
+    it 'falls back to catalog lookup when metadata has no plan_id' do
+      subscription = build_subscription('plan_id' => nil)
+      allow(Billing::PlanValidator).to receive(:resolve_plan_id)
+        .with('price_test').and_return('basic_v1')
+      expect(described_planid(subscription)).to eq('basic_v1')
+    end
+
+    it 'returns nil when metadata is absent and the price is not in the local catalog' do
+      subscription = build_subscription('plan_id' => nil)
+      allow(Billing::PlanValidator).to receive(:resolve_plan_id)
+        .and_raise(Billing::CatalogMissError.new(price_id: 'price_test'))
+      expect(described_planid(subscription)).to be_nil
+    end
+
+    it 'does not store a malformed metadata plan_id verbatim' do
+      subscription = build_subscription('plan_id' => 'Identity Plus!')
+      allow(Billing::PlanValidator).to receive(:resolve_plan_id)
+        .and_raise(Billing::CatalogMissError.new(price_id: 'price_test'))
+      expect(described_planid(subscription)).to be_nil
+    end
+
+    def described_planid(subscription)
+      Billing::PendingFederatedSubscription.extract_plan_id(subscription)
+    end
   end
 
   describe '#active?' do

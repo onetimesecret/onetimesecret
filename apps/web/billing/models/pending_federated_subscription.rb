@@ -2,7 +2,9 @@
 #
 # frozen_string_literal: true
 
+require_relative '../metadata'
 require_relative '../lib/plan_validator'
+require_relative '../lib/plan_resolver'
 
 module Billing
   # PendingFederatedSubscription - Temporary storage for federation webhooks
@@ -103,23 +105,40 @@ module Billing
       pending
     end
 
-    # Extract plan ID from subscription using PlanValidator
+    # Extract plan ID from subscription
     #
-    # Uses the same resolution logic as update_federated_org in the mixin,
-    # avoiding direct Stripe API calls in the model.
+    # Metadata-first: pending records exist precisely for CROSS-REGION
+    # subscriptions, whose price IDs are not in the local catalog by design.
+    # The canonical family plan_id stamped into subscription metadata at
+    # checkout is the authoritative source — the same rule as the federated
+    # path in ApplySubscriptionToOrg#apply_plan_id. Catalog lookup is only a
+    # fallback for subscriptions without plan_id metadata (legacy Payment
+    # Links), where a local price match is still possible.
     #
     # @param subscription [Stripe::Subscription]
     # @return [String, nil]
     def self.extract_plan_id(subscription)
-      item = subscription.items&.data&.first
-      return nil unless item
+      plan_id = subscription.metadata&.[](Billing::Metadata::FIELD_PLAN_ID).to_s.strip
 
-      price_id = item.price&.id
+      return plan_id if !plan_id.empty? && Billing::PlanResolver.canonical_plan_id?(plan_id)
+
+      unless plan_id.empty?
+        Onetime.billing_logger.warn '[PendingFederatedSubscription] Malformed plan_id metadata, trying catalog',
+          plan_id: plan_id,
+          subscription_id: subscription.id
+      end
+
+      item     = subscription.items&.data&.first
+      price_id = item&.price&.id
       return nil unless price_id
 
-      # Use PlanValidator for consistent plan resolution (no Stripe API call)
       Billing::PlanValidator.resolve_plan_id(price_id)
-    rescue StandardError
+    rescue Billing::CatalogMissError
+      # Expected for cross-region prices when metadata is absent: store the
+      # pending record without a plan; the claim path skips planless records
+      # and the next subscription webhook re-syncs the org directly.
+      Onetime.billing_logger.warn '[PendingFederatedSubscription] No plan_id metadata and price not in local catalog',
+        subscription_id: subscription.id
       nil
     end
 
