@@ -19,8 +19,13 @@ RSpec.describe Auth::Operations::ResolveLoginLocation do
       expect(described_class.call(geo_country: 'US', masked_ip: '203.0.113.0')).to eq('US')
     end
 
-    it 'upcases nothing but accepts a well-formed code as-is' do
+    it 'accepts a well-formed code as-is' do
       expect(described_class.call(geo_country: 'FR', masked_ip: '198.51.100.0')).to eq('FR')
+    end
+
+    it 'normalizes a lowercase / whitespace-padded code to canonical alpha-2' do
+      expect(described_class.call(geo_country: 'ca', masked_ip: '198.51.100.0')).to eq('CA')
+      expect(described_class.call(geo_country: '  de  ', masked_ip: '198.51.100.0')).to eq('DE')
     end
 
     it "falls back to the masked IP when the country is the '**' unknown sentinel" do

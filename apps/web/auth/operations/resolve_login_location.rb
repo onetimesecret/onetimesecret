@@ -29,17 +29,28 @@ module Auth
       # @param masked_ip [String, nil] request.env['otto.client_ip'] (masked)
       # @return [String] a country code, a masked IP, or FALLBACK — never a raw IP
       def self.call(geo_country:, masked_ip:)
-        return geo_country if valid_country?(geo_country)
+        country = normalize_country(geo_country)
+        return country if country
         return masked_ip if masked_ip.is_a?(String) && !masked_ip.strip.empty?
 
         FALLBACK
       end
 
-      # A well-formed, known alpha-2 code (not the '**' unknown sentinel).
-      def self.valid_country?(code)
-        code.is_a?(String) && code != UNKNOWN_COUNTRY && code.match?(/\A[A-Z]{2}\z/)
+      # Strip/upcase to the canonical alpha-2 form, mirroring
+      # Onetime::Security::RequestContext#normalize_country so a deployment whose
+      # custom geo header emits a lowercase or whitespace-padded code still
+      # prefers the country over the masked IP. Returns nil for the '**' unknown
+      # sentinel, a blank value, or anything not a well-formed alpha-2 code.
+      def self.normalize_country(code)
+        return nil unless code.is_a?(String)
+
+        normalized = code.strip.upcase
+        return nil if normalized == UNKNOWN_COUNTRY
+        return nil unless normalized.match?(/\A[A-Z]{2}\z/)
+
+        normalized
       end
-      private_class_method :valid_country?
+      private_class_method :normalize_country
     end
   end
 end

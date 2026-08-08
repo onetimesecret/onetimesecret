@@ -89,8 +89,14 @@ module V2::Logic
       # question; ADR-022 does not yet cover country). When off, country: nil is
       # passed, so RequestContext omits net_country entirely and nothing is
       # stored — distinct from the `collect` axis, which gates ALL events.
+      #
+      # String-coerced (not `== true`) so a hand-edited YAML value ('true' vs a
+      # bare true) enables capture in lockstep with the frontend exposure gate
+      # (config_serializer.rb uses the same `.to_s == 'true'`). Divergence here
+      # would light up the UI Country column while the backend never captured
+      # net_country, leaving rows perpetually "Unknown".
       def geo_country_enabled?
-        OT.conf.dig('features', 'secret_activity', 'geo_country_enabled') == true
+        OT.conf.dig('features', 'secret_activity', 'geo_country_enabled').to_s == 'true'
       end
     end
   end
