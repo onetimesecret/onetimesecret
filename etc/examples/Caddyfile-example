@@ -260,9 +260,11 @@
 			# depth >= 2? Drop the X-Forwarded-For line below and let Caddy append,
 			# preserving the hop chain, and set TRUSTED_PROXY_DEPTH to the number of
 			# hops your topology puts in the chain (see .env.reference).
-			# Depth mode tolerates an untrusted leftmost entry only while that hop
-			# count is fixed and correct — a chain shorter or longer than configured
-			# selects the peer or a client-supplied entry.
+			# Depth mode tolerates untrusted leftmost entries (selection is anchored
+			# at the right, so left-side padding never shifts it), but the count must
+			# match the topology: a chain shorter than the depth falls back to the
+			# peer, and a depth larger than the real hop count selects a
+			# client-supplied entry.
 			header_up X-Forwarded-For {client_ip}
 			header_up X-Real-IP {client_ip}
 

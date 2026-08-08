@@ -21,10 +21,12 @@ Fixed
   client that smuggled one forged leftmost ``X-Forwarded-For`` entry past
   the proxy got the forged value resolved as its client IP. The depth value
   now maps directly (``trusted_proxy_depth = depth``), which resolves the
-  true client on honest chains and never selects a forged leftmost entry,
-  provided each counted hop appends exactly one entry (positions are counted
-  raw from the right; a chain shorter or longer than the configured depth
-  selects the peer or a client-supplied entry — keep the edge locked down).
+  true client on honest chains and never selects a forged leftmost entry:
+  positions are counted raw from the right, so left-side padding cannot
+  shift the selection. The depth must match the real hop count, each hop
+  appending exactly one entry — a shorter chain falls back to the peer,
+  while a depth larger than the real hop count selects a client-supplied
+  entry (keep the edge locked down).
   Operators who compensated for the bug by setting ``depth`` one lower than
   their real hop count should correct it to the actual number of proxies.
   (#4024)
