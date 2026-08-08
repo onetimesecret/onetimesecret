@@ -217,6 +217,28 @@ module Onetime
           # session metadata, rate-limit keys, and logs.
           config.ip_privacy_config.mask_private_ips = true
 
+          # Country-level geo resolution. Otto::Privacy::Config#geo_enabled
+          # already defaults true, but set it explicitly so this can't silently
+          # regress if that default changes. Enabling geo trusts nothing on its
+          # own: CDN provider headers (CF-IPCountry et al.) are only READ when
+          # geo_headers_trusted? passes — filter mode with a matched trusted-proxy
+          # CIDR — and otherwise the country resolves to Otto's '**' unknown.
+          config.ip_privacy_config.geo_enabled = true
+
+          # Optional local MaxMind country DB for deployments without a
+          # geo-tagging CDN (direct-connect, or trusted_proxy depth mode where
+          # header geo is never honored). Works in ALL modes. geo_db_path= does
+          # not build the reader itself (that is configure_ip_privacy's job, and
+          # a bare Otto::Security::Config has no access to it), so build it here —
+          # a bad path / missing maxmind-db gem then fails at boot, not per
+          # request. Requires the optional 'maxmind-db' gem; inert by default
+          # (site.network.geo.db_path is unset).
+          geo_db_path = OT.conf.dig('site', 'network', 'geo', 'db_path').to_s.strip
+          unless geo_db_path.empty?
+            config.ip_privacy_config.geo_db_path = geo_db_path
+            config.ip_privacy_config.load_geo_database!
+          end
+
           # No declared reverse proxy means no hop to trust: leave the proxy list
           # empty so the middleware resolves the client from REMOTE_ADDR (and
           # still masks it per the flag above).
@@ -255,6 +277,14 @@ module Onetime
 
               config.add_trusted_proxy(cidr.to_s.strip)
             end
+
+            # Optional operator-configured geo header, checked BEFORE the built-in
+            # CDN provider headers. Filter mode ONLY: geo headers are honored just
+            # when geo_headers_trusted? passes (trusted_proxies configured — never
+            # true in depth mode), and setting geo_header under depth would trip
+            # Otto's depth/geo_header boot conflict. Depth-mode geo uses geo.db_path.
+            geo_header = OT.conf.dig('site', 'network', 'geo', 'header').to_s.strip
+            config.ip_privacy_config.geo_header = geo_header unless geo_header.empty?
           end
 
           config

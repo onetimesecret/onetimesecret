@@ -567,6 +567,34 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
+    # Country-level geo resolution (#3989). Otto resolves an ISO-3166-1
+    # alpha-2 country code into env['otto.privacy.geo_country'] (or '**'
+    # unknown — never a guess), consumed by the login/MFA alert emails, the
+    # Colonel session sidecar (geo_country), and — opt-in — the org Secret
+    # Activity trail (see features.secret_activity.geo_country_enabled). Geo is
+    # ON by default in Otto; nothing here is required to get country from a CDN.
+    #
+    # Trust model (IMPORTANT):
+    #   - Vendor GEO headers (Cloudflare CF-IPCountry, CloudFront, Fastly,
+    #     Akamai, Azure, Vercel, ...) are honored ONLY in FILTER mode with
+    #     trusted_proxy.enabled=true and the CDN's ranges in trusted_proxy.cidrs
+    #     (so the header is proven to come from the edge). Out of the box, or in
+    #     DEPTH mode, header geo is NOT trusted and country resolves to '**'.
+    #   - DEPTH mode never trusts geo headers; use db_path (below) or accept '**'.
+    geo:
+      # Optional app-level geo header, checked BEFORE the built-in vendor
+      # headers. FILTER MODE ONLY — setting it under depth mode would trip
+      # Otto's boot-time depth/geo_header conflict, so it is ignored there.
+      # Leave blank to use only the built-in vendor headers (e.g. CF-IPCountry).
+      header: <%= ENV['GEO_HEADER'] %>
+
+      # Optional path to a local MaxMind-format country database (.mmdb) for
+      # deployments without a geo-tagging CDN (direct-connect, or depth mode).
+      # Looked up on the ALREADY-MASKED IP, so raw addresses never reach it.
+      # Works in ALL modes. Requires the optional 'maxmind-db' gem; a bad path
+      # or missing gem fails at boot (not per-request). Blank = disabled.
+      db_path: <%= ENV['GEO_DB_PATH'] %>
+
     # Assume HTTPS at the origin (opt-in, INDEPENDENT of trusted_proxy).
     #
     # Upgrade-only: when true, requests that do not already look like HTTPS
@@ -808,6 +836,13 @@ features:
     # Newest events retained per organization (floor: 100). Lowering this
     # deletes (not hides) each org's oldest events on its next write.
     max_events: <%= ENV['SECRET_ACTIVITY_MAX_EVENTS'] || 10000 %>
+    # Country-level geo capture on Secret Activity events (#3989). A distinct
+    # axis from `collect`: gates ONLY the net_country attribute, pending
+    # counsel review of org-tier geo exposure (ADR-021 Decision 4 open
+    # question; ADR-022 does not yet cover this attribute). Defaults OFF
+    # (opt-in) — the inverse polarity of the sibling flags — because this is
+    # the not-yet-reviewed surface, not an already-approved one.
+    geo_country_enabled: <%= ENV['SECRET_ACTIVITY_GEO_COUNTRY_ENABLED'] == 'true' %>
 
 # Main Database Configuration
 redis:
