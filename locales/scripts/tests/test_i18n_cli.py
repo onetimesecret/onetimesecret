@@ -366,7 +366,7 @@ class TasksFlowTest(I18nCliTestCase):
         self.assertOk(self.run_cli("db", "init"), "db init")
 
     def test_create_next_update_export_roundtrip(self) -> None:
-        self.assertOk(self.run_cli("tasks", "create", "eo"), "create")
+        self.assertOk(self.run_cli("tasks", "create", "eo", "--apply"), "create")
         nxt = self.run_cli("tasks", "next", "eo", "--json")
         self.assertOk(nxt, "next")
         task = json.loads(nxt.stdout)
@@ -419,7 +419,7 @@ class TasksFlowTest(I18nCliTestCase):
         path.write_text(json.dumps(d), encoding="utf-8")
 
         self.assertOk(
-            self.run_cli("tasks", "create", "eo", "--missing-only"),
+            self.run_cli("tasks", "create", "eo", "--missing-only", "--apply"),
             "create --missing-only",
         )
         conn = sqlite3.connect(self.db_dir / "tasks.db")
@@ -457,28 +457,38 @@ class TasksFlowTest(I18nCliTestCase):
             conn.close()
             return sum(len(json.loads(k)) for (k,) in rows)
 
-        # Bare create: fully-translated locale, nothing to do.
-        self.assertOk(self.run_cli("tasks", "create", "eo"), "bare create")
+        # Applied create: fully-translated locale, nothing to do.
+        self.assertOk(self.run_cli("tasks", "create", "eo", "--apply"), "create")
         self.assertEqual(
-            enqueued(), 0, "bare create re-enqueued already-translated keys"
+            enqueued(), 0, "default create re-enqueued already-translated keys"
         )
 
-        # --all: target-blind, queues the whole en key set for re-translation.
-        self.assertOk(self.run_cli("tasks", "create", "eo", "--all"), "create --all")
-        self.assertGreater(enqueued(), 0, "--all enqueued nothing")
-
-        # The retired flag still parses (old scripts/slash commands pass it),
-        # but contradicting --all is an error, not a silent preference.
+        # Without --apply even --all is a preview: nothing may reach the DB.
         self.assertOk(
-            self.run_cli("tasks", "create", "eo", "--missing-only"),
+            self.run_cli("tasks", "create", "eo", "--all"), "preview --all"
+        )
+        self.assertEqual(enqueued(), 0, "create without --apply wrote to the DB")
+
+        # --all --apply: target-blind, queues the whole en key set.
+        self.assertOk(
+            self.run_cli("tasks", "create", "eo", "--all", "--apply"),
+            "create --all --apply",
+        )
+        self.assertGreater(enqueued(), 0, "--all --apply enqueued nothing")
+
+        # The retired flags still parse (old scripts/slash commands pass them),
+        # but contradicting the current default is an error, not a preference.
+        self.assertOk(
+            self.run_cli("tasks", "create", "eo", "--missing-only", "--apply"),
             "create --missing-only (accepted, now the default)",
         )
-        contradiction = self.run_cli(
-            "tasks", "create", "eo", "--all", "--missing-only"
-        )
-        self.assertNotEqual(
-            contradiction.returncode, 0, "--all --missing-only must not succeed"
-        )
+        for combo in (("--all", "--missing-only"), ("--apply", "--dry-run")):
+            contradiction = self.run_cli("tasks", "create", "eo", *combo)
+            self.assertNotEqual(
+                contradiction.returncode,
+                0,
+                f"{' '.join(combo)} must not succeed",
+            )
 
     def test_export_skips_empty_translation_preserving_skip(self) -> None:
         # An empty/whitespace completed translation must not blank existing
@@ -503,7 +513,7 @@ class TasksFlowTest(I18nCliTestCase):
             json.dumps({full_key: {"text": "KEEP", "skip": True}}),
             encoding="utf-8",
         )
-        self.assertOk(self.run_cli("tasks", "create", "eo"), "create")
+        self.assertOk(self.run_cli("tasks", "create", "eo", "--apply"), "create")
         db = sqlite3.connect(self.db_dir / "tasks.db")
         (task_id,) = db.execute(
             "SELECT id FROM translation_tasks "
@@ -532,7 +542,7 @@ class TasksFlowTest(I18nCliTestCase):
     def test_next_human_header_uses_locale_not_hardcoded(self) -> None:
         # Regression: format_task_human once hardcoded 'Esperanto' as the third
         # column header for every locale.
-        self.assertOk(self.run_cli("tasks", "create", "eo"), "create")
+        self.assertOk(self.run_cli("tasks", "create", "eo", "--apply"), "create")
         proc = self.run_cli("tasks", "next", "eo")
         self.assertOk(proc, "next")
         self.assertIn("eo", proc.stdout)
@@ -587,7 +597,7 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
 
     def test_missing_only_enqueues_missing_and_stale_not_current(self) -> None:
         self.assertOk(
-            self.run_cli("tasks", "create", "de", "--missing-only"),
+            self.run_cli("tasks", "create", "de", "--missing-only", "--apply"),
             "create --missing-only",
         )
         self.assertEqual(
@@ -601,7 +611,8 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
         import sqlite3
 
         self.assertOk(
-            self.run_cli("tasks", "create", "de", "--missing-only"), "create"
+            self.run_cli("tasks", "create", "de", "--missing-only", "--apply"),
+            "create",
         )
         conn = sqlite3.connect(self.db_dir / "tasks.db")
         (snap,) = conn.execute(
@@ -615,7 +626,8 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
 
     def test_export_stamps_and_advances_source_hash(self) -> None:
         self.assertOk(
-            self.run_cli("tasks", "create", "de", "--missing-only"), "create"
+            self.run_cli("tasks", "create", "de", "--missing-only", "--apply"),
+            "create",
         )
         nxt = json.loads(self.run_cli("tasks", "next", "de", "--json").stdout)
         trans = {leaf: f"X-{leaf}" for leaf in nxt["keys"]}
@@ -641,16 +653,18 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
         self.assertRegex(proc.stdout, r"missing.*:\s*1")
         self.assertRegex(proc.stdout, r"current:\s*1")
 
-    def test_recreate_after_completion_freezes_watermark(self) -> None:
-        # The false-'current' trap: complete a translation against en hash H1,
-        # let en drift to H2 without re-translating, then re-create + export.
-        # export must stamp the FROZEN snapshot (H1) — the hash the text was
-        # actually made against — so the key stays correctly stale, instead of
-        # advancing to H2 and reading 'current' forever.
+    def test_recreate_after_completion_reopens_the_level(self) -> None:
+        # Complete a translation against en hash H1, let en drift to H2 without
+        # exporting, then re-create. The completed row must be REOPENED — status
+        # back to pending, unexported translations discarded, snapshot advanced
+        # to H2 — not left completed with a refreshed key set it can't satisfy
+        # (stranded: `tasks next` never re-serves completed rows) and not
+        # exported with a watermark newer than the text (false-'current').
         import sqlite3
 
         self.assertOk(
-            self.run_cli("tasks", "create", "de", "--missing-only"), "create"
+            self.run_cli("tasks", "create", "de", "--missing-only", "--apply"),
+            "create",
         )
         nxt = json.loads(self.run_cli("tasks", "next", "de", "--json").stdout)
         trans = {leaf: f"T-{leaf}" for leaf in nxt["keys"]}
@@ -667,28 +681,35 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
 
         # Re-create hits the completed level row via ON CONFLICT.
         self.assertOk(
-            self.run_cli("tasks", "create", "de", "--missing-only"), "re-create"
+            self.run_cli("tasks", "create", "de", "--missing-only", "--apply"),
+            "re-create",
         )
-        # The completed row's snapshot must NOT have advanced to newhash1.
         conn = sqlite3.connect(self.db_dir / "tasks.db")
-        (snap,) = conn.execute(
-            "SELECT source_hashes_json FROM translation_tasks "
-            "WHERE locale='de' AND status='completed'"
+        (status, translations, snap) = conn.execute(
+            "SELECT status, translations_json, source_hashes_json "
+            "FROM translation_tasks WHERE locale='de'"
         ).fetchone()
         conn.close()
+        self.assertEqual(status, "pending", "completed row was not reopened")
+        self.assertIsNone(
+            translations, "reopened row kept its discarded translations"
+        )
         self.assertEqual(
             json.loads(snap).get("tagline"),
-            "aaaa1111",
-            "completed row's snapshot was refreshed to the drifted en hash",
+            "newhash1",
+            "reopened row's snapshot must track the en hash it will be "
+            "re-translated against",
         )
 
-        self.assertOk(self.run_cli("tasks", "export", "de"), "export")
+        # Nothing is completed anymore: export finds no rows (nonzero exit)
+        # and must not touch the stale key.
+        proc = self.run_cli("tasks", "export", "de")
+        self.assertIn("No completed tasks", proc.stdout)
         de = json.loads((self.content / "de" / "00.json").read_text("utf-8"))
         self.assertEqual(
             de["web.C.tagline"]["source_hash"],
-            "aaaa1111",
-            "export stamped the drifted hash instead of the frozen watermark; "
-            "the stale key would read 'current' forever",
+            "deadbeef",
+            "export wrote a discarded translation's watermark",
         )
 
     def test_stats_json_stays_flat_for_consumers(self) -> None:
@@ -760,7 +781,7 @@ class MigrateAddsColumnTest(I18nCliTestCase):
         conn.close()
 
         env = {**self.env, "I18N_DB_FILE": str(legacy)}
-        proc = self.run_cli("tasks", "create", "eo", env=env)
+        proc = self.run_cli("tasks", "create", "eo", "--apply", env=env)
         self.assertNotEqual(
             proc.returncode, 0, "create on a pre-column DB must not exit 0"
         )
@@ -973,7 +994,7 @@ class TasksUpdateStrictTest(I18nCliTestCase):
             "utf-8",
         )
         self.assertOk(self.run_cli("db", "init"), "db init")
-        self.assertOk(self.run_cli("tasks", "create", "de"), "create")
+        self.assertOk(self.run_cli("tasks", "create", "de", "--apply"), "create")
         self.task_id = self._only_task_id()
 
     def _only_task_id(self) -> int:
