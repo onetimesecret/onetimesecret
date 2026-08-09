@@ -439,6 +439,47 @@ class TasksFlowTest(I18nCliTestCase):
             f"missing-only enqueued {enqueued}, expected only {missing_key}",
         )
 
+    def test_create_defaults_to_missing_only_and_all_is_opt_in(self) -> None:
+        # The default must be the safe one: a locale that is already fully
+        # translated enqueues NOTHING, and only --all re-queues reviewed work.
+        import sqlite3
+
+        eo = self.content / "eo"
+        eo.mkdir(parents=True)
+        for f in sorted((self.content / "en").glob("*.json")):
+            shutil.copy(f, eo / f.name)
+
+        def enqueued() -> int:
+            conn = sqlite3.connect(self.db_dir / "tasks.db")
+            rows = conn.execute(
+                "SELECT keys_json FROM translation_tasks WHERE locale='eo'"
+            ).fetchall()
+            conn.close()
+            return sum(len(json.loads(k)) for (k,) in rows)
+
+        # Bare create: fully-translated locale, nothing to do.
+        self.assertOk(self.run_cli("tasks", "create", "eo"), "bare create")
+        self.assertEqual(
+            enqueued(), 0, "bare create re-enqueued already-translated keys"
+        )
+
+        # --all: target-blind, queues the whole en key set for re-translation.
+        self.assertOk(self.run_cli("tasks", "create", "eo", "--all"), "create --all")
+        self.assertGreater(enqueued(), 0, "--all enqueued nothing")
+
+        # The retired flag still parses (old scripts/slash commands pass it),
+        # but contradicting --all is an error, not a silent preference.
+        self.assertOk(
+            self.run_cli("tasks", "create", "eo", "--missing-only"),
+            "create --missing-only (accepted, now the default)",
+        )
+        contradiction = self.run_cli(
+            "tasks", "create", "eo", "--all", "--missing-only"
+        )
+        self.assertNotEqual(
+            contradiction.returncode, 0, "--all --missing-only must not succeed"
+        )
+
     def test_export_skips_empty_translation_preserving_skip(self) -> None:
         # An empty/whitespace completed translation must not blank existing
         # content or strip an intentional skip flag on export.
