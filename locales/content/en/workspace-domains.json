@@ -191,6 +191,9 @@
     "text": "Default domain has no settings page",
     "content_hash": "59b8806e"
   },
+  "web.domains.link_domain_no_settings": {
+    "text": "This domain has no settings page"
+  },
   "web.domains.please_enter_a_domain_name": {
     "text": "Please enter a {0} domain name",
     "content_hash": "167f2d19"
