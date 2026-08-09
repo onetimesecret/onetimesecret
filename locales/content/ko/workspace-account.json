@@ -694,5 +694,33 @@
   "web.settings.security.sso_managed_description": {
     "text": "회원님의 계정은 조직의 Single Sign-On 공급자를 통해 인증됩니다. 비밀번호, 다단계 인증, 복구 코드는 ID 공급자가 관리합니다.",
     "source_hash": "cd0cf39f"
+  },
+  "web.settings.api.api_username": {
+    "text": "API 사용자 이름",
+    "source_hash": "0b3e483e"
+  },
+  "web.settings.api.api_username_description": {
+    "text": "HTTP Basic 인증을 위한 사용자 이름",
+    "source_hash": "f3e65de3"
+  },
+  "web.settings.api.basic_auth_hint": {
+    "text": "HTTP Basic 인증의 경우 계정 이메일 또는 이 ID를 사용자 이름으로, API 토큰을 비밀번호로 사용하세요.",
+    "source_hash": "cfa3806d"
+  },
+  "web.settings.security.set": {
+    "text": "설정됨",
+    "source_hash": "b6f6f3ad"
+  },
+  "web.settings.security.not_set": {
+    "text": "설정되지 않음",
+    "source_hash": "4895f731"
+  },
+  "web.settings.security.set_password_title": {
+    "text": "비밀번호 설정",
+    "source_hash": "4e411687"
+  },
+  "web.settings.security.set_password_description": {
+    "text": "ID 제공자 없이도 로그인할 수 있도록 계정에 비밀번호를 추가하세요",
+    "source_hash": "a6970402"
   }
 }
