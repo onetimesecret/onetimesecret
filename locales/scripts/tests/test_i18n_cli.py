@@ -84,12 +84,20 @@ class I18nCliTestCase(unittest.TestCase):
         for f in _en_slice():
             shutil.copy(f, self.content / "en" / f.name)
 
+        # Drop every ambient I18N_* override before re-adding our own: an
+        # exported I18N_DB_FILE in the developer's shell outranks
+        # I18N_DB_DIR (config.py cascades DB_DIR -> DB_FILE only as a
+        # default) and would point the whole suite at the real tasks.db.
         self.env = {
-            **os.environ,
-            "I18N_CONTENT_DIR": str(self.content),
-            "I18N_GENERATED_DIR": str(self.generated),
-            "I18N_DB_DIR": str(self.db_dir),
+            k: v for k, v in os.environ.items() if not k.startswith("I18N_")
         }
+        self.env.update(
+            {
+                "I18N_CONTENT_DIR": str(self.content),
+                "I18N_GENERATED_DIR": str(self.generated),
+                "I18N_DB_DIR": str(self.db_dir),
+            }
+        )
 
     def run_cli(
         self, *args: str, cwd: Path | None = None, env: dict | None = None
@@ -892,6 +900,556 @@ class ValidatePrGitDiffTest(I18nCliTestCase):
         # git discovery routed exactly the changed eo file; en (source) filtered.
         self.assertEqual(summary["files_checked"], 1)
         self.assertEqual(summary["locales"], ["eo"])
+
+
+class TasksUpdateStrictTest(I18nCliTestCase):
+    """`tasks update --validate` stays advisory; `--strict` turns it into a gate.
+
+    The advisory contract is documented in AGENT_TRANSLATION_PROTOCOL.md and
+    existing callers depend on it, so the no-``--strict`` path is pinned here
+    as a regression guard, not just as a foil for the gate.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        # Controlled two-leaf level so one task owns exactly {submit, cancel}.
+        en = self.content / "en"
+        for f in en.glob("*.json"):
+            f.unlink()
+        (en / "00.json").write_text(
+            json.dumps(
+                {
+                    "web.U.submit": {
+                        "text": "Submit",
+                        "content_hash": "aaaa1111",
+                    },
+                    "web.U.cancel": {
+                        "text": "Cancel",
+                        "content_hash": "bbbb2222",
+                    },
+                }
+            ),
+            "utf-8",
+        )
+        self.assertOk(self.run_cli("db", "init"), "db init")
+        self.assertOk(self.run_cli("tasks", "create", "de"), "create")
+        self.task_id = self._only_task_id()
+
+    def _only_task_id(self) -> int:
+        import sqlite3
+
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        rows = conn.execute(
+            "SELECT id FROM translation_tasks WHERE locale='de'"
+        ).fetchall()
+        conn.close()
+        self.assertEqual(len(rows), 1, f"expected one de task, got {rows}")
+        return rows[0][0]
+
+    def _stored(self) -> dict | None:
+        import sqlite3
+
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        (raw,) = conn.execute(
+            "SELECT translations_json FROM translation_tasks WHERE id=?",
+            (self.task_id,),
+        ).fetchone()
+        conn.close()
+        return json.loads(raw) if raw else None
+
+    def _seed_clean(self) -> dict:
+        """A known-good stored payload, so a refused write is observable."""
+        good = {"submit": "Senden", "cancel": "Abbrechen"}
+        self.assertOk(
+            self.run_cli(
+                "tasks", "update", str(self.task_id), json.dumps(good)
+            ),
+            "seed",
+        )
+        self.assertEqual(self._stored(), good)
+        return good
+
+    # --- advisory (no --strict) --------------------------------------------
+
+    def test_validate_without_strict_warns_saves_and_exits_zero(self) -> None:
+        # THE regression guard: documented advisory behaviour. A key-set
+        # mismatch under plain --validate must warn on stderr and STILL write.
+        proc = self.run_cli(
+            "tasks",
+            "update",
+            str(self.task_id),
+            json.dumps({"submit": "Senden"}),
+            "--validate",
+        )
+        self.assertOk(proc, "--validate advisory")
+        self.assertIn("Missing translations for: cancel", proc.stderr)
+        self.assertEqual(
+            self._stored(),
+            {"submit": "Senden"},
+            "--validate without --strict must still save (advisory contract)",
+        )
+
+    def test_validate_without_strict_warns_on_extra_keys_and_saves(self) -> None:
+        payload = {"submit": "Senden", "cancel": "Abbrechen", "bogus": "X"}
+        proc = self.run_cli(
+            "tasks",
+            "update",
+            str(self.task_id),
+            json.dumps(payload),
+            "--validate",
+        )
+        self.assertOk(proc, "--validate advisory (extra)")
+        self.assertIn("Extra keys not in source: bogus", proc.stderr)
+        self.assertEqual(self._stored(), payload)
+
+    # --- gate (--strict) ----------------------------------------------------
+
+    def test_strict_refuses_write_on_missing_keys(self) -> None:
+        good = self._seed_clean()
+        proc = self.run_cli(
+            "tasks",
+            "update",
+            str(self.task_id),
+            json.dumps({"submit": "POISON"}),
+            "--validate",
+            "--strict",
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("Missing translations for: cancel", proc.stderr)
+        self.assertEqual(
+            self._stored(), good, "--strict wrote despite refusing"
+        )
+
+    def test_strict_refuses_write_on_extra_keys(self) -> None:
+        good = self._seed_clean()
+        proc = self.run_cli(
+            "tasks",
+            "update",
+            str(self.task_id),
+            json.dumps({"submit": "A", "cancel": "B", "bogus": "C"}),
+            "--validate",
+            "--strict",
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("Extra keys not in source: bogus", proc.stderr)
+        self.assertEqual(self._stored(), good)
+
+    def test_strict_implies_validate(self) -> None:
+        # --strict alone (no --validate) must still validate and gate.
+        good = self._seed_clean()
+        proc = self.run_cli(
+            "tasks",
+            "update",
+            str(self.task_id),
+            json.dumps({"submit": "POISON"}),
+            "--strict",
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("Missing translations for: cancel", proc.stderr)
+        self.assertEqual(self._stored(), good)
+
+    def test_strict_saves_a_clean_payload(self) -> None:
+        payload = {"submit": "Senden", "cancel": "Abbrechen"}
+        proc = self.run_cli(
+            "tasks",
+            "update",
+            str(self.task_id),
+            json.dumps(payload),
+            "--strict",
+        )
+        self.assertOk(proc, "--strict clean payload")
+        self.assertEqual(self._stored(), payload)
+
+    def test_strict_without_translations_does_not_gate(self) -> None:
+        # A status-only update carries no key set to compare; --strict must not
+        # invent a mismatch out of it.
+        proc = self.run_cli(
+            "tasks",
+            "update",
+            str(self.task_id),
+            "--status",
+            "in_progress",
+            "--strict",
+        )
+        self.assertOk(proc, "--strict status-only update")
+
+
+class TasksAuditTest(I18nCliTestCase):
+    """`tasks audit <locale>` — the pre-export gate over completed DB rows.
+
+    Rows are inserted directly: the audit reads ``translation_tasks`` and
+    nothing else, so hand-built rows give exact control over each check
+    (and let a completed-but-empty row exist at all, which the CLI write path
+    cannot produce).
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.assertOk(self.run_cli("db", "init"), "db init")
+        self._seq = 0
+
+    def _insert(
+        self,
+        keys: dict,
+        translations: dict | None,
+        locale: str = "de",
+        status: str = "completed",
+    ) -> int:
+        import sqlite3
+
+        self._seq += 1
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        cur = conn.execute(
+            "INSERT INTO translation_tasks "
+            "(file, level_path, locale, status, keys_json, translations_json) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                "00.json",
+                f"web.A{self._seq}",
+                locale,
+                status,
+                json.dumps(keys),
+                None if translations is None else json.dumps(translations),
+            ),
+        )
+        task_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+        return task_id
+
+    def _audit(self, *args: str, locale: str = "de"):
+        return self.run_cli("tasks", "audit", locale, *args)
+
+    def _findings(self, locale: str = "de") -> list[dict]:
+        proc = self._audit("--json", locale=locale)
+        self.assertOk(proc, "audit --json")
+        return json.loads(proc.stdout)["findings"]
+
+    def _checks(self, locale: str = "de") -> list[str]:
+        return [f["check"] for f in self._findings(locale)]
+
+    # --- clean --------------------------------------------------------------
+
+    def test_clean_locale_has_no_findings_under_either_mode(self) -> None:
+        self._insert(
+            {"hello": "Hello {name}", "bye": "Goodbye"},
+            {"hello": "Hallo {name}", "bye": "Tschüss"},
+        )
+        proc = self._audit()
+        self.assertOk(proc, "audit advisory")
+        self.assertIn(
+            "TOTAL: 0 finding(s) (0 error, 0 advisory) across 1 completed row(s)",
+            proc.stdout,
+        )
+        self.assertOk(self._audit("--strict"), "audit --strict on a clean locale")
+
+    def test_zero_completed_rows_fails_strict(self) -> None:
+        # Same rule as `validate glossary --strict`: a gate that verified
+        # nothing must not read green. Without this, a content/<locale>/ that
+        # has never been through `tasks create` reports pending 0, audits
+        # "clean", and previews as ready-to-export.
+        self._insert({"hello": "Hello"}, None, status="pending")
+        proc = self._audit("--strict")
+        self.assertEqual(
+            proc.returncode, 1, "nothing verified must not pass the gate"
+        )
+        self.assertIn("across 0 completed row(s)", proc.stdout)
+        self.assertIn("Nothing was verified", proc.stdout)
+        self.assertOk(self._audit(), "advisory mode still exits 0")
+
+    def test_stranded_in_progress_row_is_an_error_finding(self) -> None:
+        # `tasks next --stats` counts in_progress separately from pending, so a
+        # stranded claim reads as drained; the per-key checks only see completed
+        # rows, so it reads as clean too. Without this check the locale exports
+        # silently truncated at exit 0.
+        self._insert({"done": "Done"}, {"done": "Fertig"})
+        stranded = self._insert(
+            {"c": "Cee", "d": "Dee"}, None, status="in_progress"
+        )
+        findings = self._findings()
+        self.assertEqual([f["check"] for f in findings], ["status"])
+        self.assertEqual(findings[0]["task_id"], stranded)
+        self.assertEqual(findings[0]["severity"], "error")
+        self.assertIn("2 key(s) will not be exported", findings[0]["detail"])
+        self.assertEqual(
+            self._audit("--strict").returncode,
+            1,
+            "a stranded row must block the export",
+        )
+
+    # --- key_set ------------------------------------------------------------
+
+    def test_key_set_flags_missing_and_extra_keys(self) -> None:
+        self._insert(
+            {"submit": "Submit", "cancel": "Cancel"},
+            {"submit": "Senden", "bogus": "X"},
+        )
+        findings = self._findings()
+        self.assertEqual([f["check"] for f in findings], ["key_set", "key_set"])
+        by_leaf = {f["leaf"]: f for f in findings}
+        self.assertIn("missing", by_leaf["cancel"]["detail"])
+        self.assertIn("extra", by_leaf["bogus"]["detail"])
+        # The dotted key an operator can grep for, not just the leaf.
+        self.assertEqual(by_leaf["cancel"]["key"], "web.A1.cancel")
+
+    def test_completed_row_with_no_translations_is_a_finding(self) -> None:
+        # The export query hides these behind `translations_json IS NOT NULL`;
+        # the audit is the only place a drained-but-empty row surfaces.
+        self._insert({"submit": "Submit"}, None)
+        findings = self._findings()
+        self.assertEqual([f["check"] for f in findings], ["key_set"])
+        self.assertIn("no translations", findings[0]["detail"])
+
+    def test_blank_translation_is_a_finding(self) -> None:
+        # export_locale skips any value failing `.strip()`, so a whitespace
+        # "translation" passes a naive key-set diff and then silently never
+        # reaches content/<locale>. Both sides must agree on what "translated"
+        # means, or the audit reports green for a key that stays English.
+        self._insert(
+            {"submit": "Submit", "cancel": "Cancel", "sep": "  "},
+            {"submit": "   ", "cancel": "Abbrechen", "sep": "  "},
+        )
+        findings = self._findings()
+        self.assertEqual(
+            [(f["check"], f["leaf"]) for f in findings],
+            [("key_set", "submit")],
+            "only the blank translation of a non-blank source is a finding",
+        )
+        self.assertIn("blank", findings[0]["detail"])
+        self.assertEqual(
+            self._audit("--strict").returncode, 1, "a blank must gate"
+        )
+
+    # --- tokens -------------------------------------------------------------
+
+    def test_tokens_flags_dropped_added_and_count_changes(self) -> None:
+        self._insert(
+            {
+                # dropped {var}
+                "vue_drop": "Hello {name}",
+                # renamed -> one dropped + one added, across %{var}
+                "erb_rename": "Hi %{name}",
+                # added printf token
+                "printf_add": "Total",
+                # dropped markup tag pair
+                "tag_drop": "<b>Bold</b> text",
+                # count change: two {n} in source, one in the translation
+                "count_drop": "{n} of {n}",
+            },
+            {
+                "vue_drop": "Hallo",
+                "erb_rename": "Hallo %{nombre}",
+                "printf_add": "Gesamt %s",
+                "tag_drop": "Fetter Text",
+                "count_drop": "{n} insgesamt",
+            },
+        )
+        findings = self._findings()
+        self.assertEqual(
+            sorted({f["check"] for f in findings}),
+            ["tokens"],
+            f"expected only token findings, got {findings}",
+        )
+        detail = {f["leaf"]: f["detail"] for f in findings}
+        self.assertEqual(sorted(detail), sorted(
+            ["vue_drop", "erb_rename", "printf_add", "tag_drop", "count_drop"]
+        ))
+        self.assertIn("missing {name}", detail["vue_drop"])
+        self.assertIn("missing %{name}", detail["erb_rename"])
+        self.assertIn("extra %{nombre}", detail["erb_rename"])
+        self.assertIn("extra %s", detail["printf_add"])
+        # Tokens are listed sorted, so the closing tag leads: "</b>, <b>".
+        self.assertIn("missing </b>, <b>", detail["tag_drop"])
+        # Multiset, not set: {n} survives, but only once.
+        self.assertIn("missing {n}", detail["count_drop"])
+
+    def test_tokens_tolerates_reordering_and_tag_attributes(self) -> None:
+        self._insert(
+            {
+                "reorder": "{a} then {b}",
+                "attrs": 'Read <a href="/en/docs">the docs</a>',
+                "mustache": "{{count}} items",
+            },
+            {
+                "reorder": "{b} dann {a}",
+                "attrs": 'Lies <a href="/de/docs">die Doku</a>',
+                "mustache": "{{count}} Artikel",
+            },
+        )
+        self.assertEqual(self._findings(), [])
+
+    def test_tokens_tolerates_a_different_plural_form_count(self) -> None:
+        # The number of Vue-i18n plural forms is a property of the TARGET
+        # language: en 2, ja 1, ru 3. Counting tokens over the whole string
+        # makes every correct ja translation look like a dropped {count} and
+        # every correct ru one like an extra — which, wired into export-all.sh
+        # as a hard gate, permanently blocks both locales.
+        source = {
+            "fewer": "{count} team | {count} teams",
+            "more": "{count} team | {count} teams",
+            # en singular, translation went plural (a real case in ru).
+            "grew": "Enabled with {count} recipient(s)",
+        }
+        self._insert(
+            source,
+            {
+                "fewer": "{count}チーム",
+                "more": "{count} команда | {count} команды | {count} команд",
+                "grew": "С {count} получателем | С {count} получателями",
+            },
+            locale="ru",
+        )
+        self.assertEqual(self._findings(locale="ru"), [])
+        self.assertOk(
+            self._audit("--strict", locale="ru"),
+            "plural-form counts must not gate an export",
+        )
+
+    def test_tokens_still_catches_a_drop_inside_one_plural_form(self) -> None:
+        self._insert(
+            {"n": "{count} team | {count} teams"},
+            {"n": "{count} Team | Teams"},
+        )
+        findings = self._findings()
+        self.assertEqual([f["check"] for f in findings], ["tokens"])
+        self.assertIn("form 2: missing {count}", findings[0]["detail"])
+
+    # --- en_leak ------------------------------------------------------------
+
+    def test_en_leak_flags_an_untranslated_string(self) -> None:
+        self._insert(
+            {"warn": "Delete this secret forever"},
+            {"warn": "Delete this secret forever"},
+        )
+        findings = self._findings()
+        self.assertEqual([f["check"] for f in findings], ["en_leak"])
+        self.assertEqual(findings[0]["leaf"], "warn")
+
+    def test_en_leak_is_advisory_and_never_gates(self) -> None:
+        # An identical string is the CORRECT translation for a large class of
+        # short UI labels — measured against the shipped tree this check fires
+        # on 132 correct de strings. As a gate the only way to export de would
+        # be to enter a wrong translation, so it reports and stays out of the
+        # exit code.
+        self._insert(
+            {"status": "Status", "ttl": "TTL", "vendor": "Amazon SES"},
+            {"status": "Status", "ttl": "TTL", "vendor": "Amazon SES"},
+        )
+        findings = self._findings()
+        self.assertEqual({f["check"] for f in findings}, {"en_leak"})
+        self.assertEqual({f["severity"] for f in findings}, {"advisory"})
+        proc = self._audit("--strict")
+        self.assertOk(proc, "en_leak alone must not block an export")
+        self.assertIn("(0 error, 3 advisory)", proc.stdout)
+
+    def test_en_leak_does_not_fire_on_brands_empty_or_letterless(self) -> None:
+        # These identical strings are the CORRECT answer. A noisy audit gets
+        # ignored, so the false-positive guards matter more than the catch.
+        keys = {
+            "brand": "Onetime Secret",
+            "brand_plan": "Identity Plus",
+            "brand_tier": "Starlight",
+            "brand_wrapped": "  Onetime Secret  ",
+            "empty": "",
+            "blank": "   ",
+            "numeric": "1,024",
+            "punct": "— · —",
+            "placeholder": "{count}",
+            "printf_only": "%s",
+            "tag_only": "<b></b>",
+            "brand_token": "{app} Starlight",
+        }
+        self._insert(keys, dict(keys))
+        self.assertEqual(
+            self._findings(),
+            [],
+            "en_leak fired on a string that is legitimately identical",
+        )
+
+    def test_en_leak_still_fires_on_prose_around_a_brand(self) -> None:
+        self._insert(
+            {"hero": "Welcome to Onetime Secret"},
+            {"hero": "Welcome to Onetime Secret"},
+        )
+        self.assertEqual(self._checks(), ["en_leak"])
+
+    def test_skipped_rows_are_outside_the_audit_set(self) -> None:
+        # status='skipped' is the row-level "skip" marker (key-level skip never
+        # reaches keys_json at all — io.walk_keys drops it).
+        self._insert(
+            {"warn": "Delete this secret forever"},
+            {"warn": "Delete this secret forever"},
+            status="skipped",
+        )
+        self._insert({"ok": "OK"}, {"ok": "Gut"})
+        proc = self._audit("--strict")
+        self.assertOk(proc, "skipped rows must not gate an export")
+        self.assertIn("across 1 completed row(s)", proc.stdout)
+
+    def test_en_leak_is_silent_for_an_english_target_locale(self) -> None:
+        self._insert(
+            {"warn": "Delete this secret forever"},
+            {"warn": "Delete this secret forever"},
+            locale="en_GB",
+        )
+        proc = self._audit("--strict", locale="en_GB")
+        self.assertOk(proc, "identical IS the translation for en_GB")
+        self.assertIn("across 1 completed row(s)", proc.stdout)
+
+    # --- exit convention + output parity ------------------------------------
+
+    def test_exit_convention_matches_validate_glossary(self) -> None:
+        self._insert({"submit": "Submit"}, {"nope": "X"})
+        self.assertOk(self._audit(), "default is advisory, exit 0")
+        self.assertEqual(
+            self._audit("--strict").returncode,
+            1,
+            "--strict must gate on a finding",
+        )
+        self.assertEqual(
+            self._audit("--json", "--strict").returncode,
+            1,
+            "--json must not swallow the gate",
+        )
+
+    def test_json_carries_the_same_findings_as_the_human_output(self) -> None:
+        self._insert(
+            {"a": "Hello {name}", "b": "Cancel", "c": "Delete forever"},
+            {"a": "Hallo", "b": "Abbrechen", "c": "Delete forever", "d": "X"},
+        )
+        human = self._audit()
+        self.assertOk(human, "audit human")
+        proc = self._audit("--json")
+        self.assertOk(proc, "audit --json")
+        data = json.loads(proc.stdout)
+
+        self.assertEqual(data["locale"], "de")
+        self.assertEqual(data["rows_checked"], 1)
+        self.assertEqual(data["findings_total"], len(data["findings"]))
+        self.assertEqual(
+            data["counts_by_check"],
+            {"status": 0, "key_set": 1, "tokens": 1, "en_leak": 1},
+            f"expected one finding per check, got {data['findings']}",
+        )
+        self.assertEqual(
+            data["findings_total"],
+            3,
+            "human/JSON parity check assumes 3 findings",
+        )
+        self.assertEqual(data["errors_total"], 2)
+        self.assertEqual(data["advisories_total"], 1)
+        # Every JSON finding must be locatable in the human rendering.
+        for finding in data["findings"]:
+            self.assertIn(f"[{finding['check']}]", human.stdout)
+            self.assertIn(f" {finding['key']}: ", human.stdout)
+        self.assertIn("TOTAL: 3 finding(s) (2 error, 1 advisory)", human.stdout)
+
+    def test_missing_db_errors_without_a_traceback(self) -> None:
+        env = {**self.env, "I18N_DB_FILE": str(self.tmp / "absent.db")}
+        proc = self.run_cli("tasks", "audit", "de", env=env)
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("Database not found", proc.stderr)
+        self.assertNotIn("Traceback", proc.stderr)
 
 
 if __name__ == "__main__":
