@@ -122,5 +122,85 @@
   "web.admin.billing.status.changed": {
     "text": "변경됨",
     "source_hash": "2a6141e4"
+  },
+  "web.admin.billing.diff.backToCatalog": {
+    "text": "결제 카탈로그로 돌아가기",
+    "source_hash": "8532b373"
+  },
+  "web.admin.billing.diff.driftedFields": {
+    "text": "다른 필드:",
+    "source_hash": "9890c95b"
+  },
+  "web.admin.billing.diff.notFound": {
+    "text": "카탈로그에 플랜이 없습니다",
+    "source_hash": "0253898b"
+  },
+  "web.admin.billing.diff.notFoundDescription": {
+    "text": "구성된 카탈로그 또는 Stripe 실시간 동기화 캐시에서 ID가 {planid}인 플랜을 찾을 수 없습니다.",
+    "source_hash": "2e69551c"
+  },
+  "web.admin.billing.stripeOrgs.title": {
+    "text": "Stripe 고객",
+    "source_hash": "0463ae27"
+  },
+  "web.admin.billing.stripeOrgs.description": {
+    "text": "Stripe 고객 레코드에 연결된 조직입니다.",
+    "source_hash": "2ab09aec"
+  },
+  "web.admin.billing.stripeOrgs.searchPlaceholder": {
+    "text": "Stripe 고객 ID로 검색",
+    "source_hash": "d5acf08f"
+  },
+  "web.admin.billing.stripeOrgs.empty": {
+    "text": "Stripe 고객 ID가 있는 조직이 없습니다.",
+    "source_hash": "2e373537"
+  },
+  "web.admin.billing.stripeOrgs.emptySearch": {
+    "text": "검색과 일치하는 Stripe 고객 ID가 없습니다.",
+    "source_hash": "75011174"
+  },
+  "web.admin.billing.stripeOrgs.loadError": {
+    "text": "Stripe 고객 목록을 불러올 수 없습니다.",
+    "source_hash": "15e2d9a7"
+  },
+  "web.admin.billing.stripeOrgs.unavailable": {
+    "text": "이 서버에서 Stripe 고객 목록을 아직 사용할 수 없습니다.",
+    "source_hash": "aab6451a"
+  },
+  "web.admin.billing.stripeOrgs.none": {
+    "text": "없음",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.billing.stripeOrgs.capped": {
+    "text": "인덱스 스캔이 한도에 도달하여 총계는 최소값입니다 — 검색 범위를 좁혀 나머지를 확인하세요.",
+    "source_hash": "20bcaa38"
+  },
+  "web.admin.billing.stripeOrgs.stale": {
+    "text": "이 페이지의 인덱스 항목 {count}개가 더 이상 로드되지 않는 조직을 가리키고 있어 건너뛰었습니다.",
+    "source_hash": "51980f83"
+  },
+  "web.admin.billing.stripeOrgs.copyStripeId": {
+    "text": "Stripe 고객 ID 복사",
+    "source_hash": "a77d18b1"
+  },
+  "web.admin.billing.stripeOrgs.columns.organization": {
+    "text": "조직",
+    "source_hash": "d764d425"
+  },
+  "web.admin.billing.stripeOrgs.columns.owner": {
+    "text": "소유자",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.billing.stripeOrgs.columns.plan": {
+    "text": "플랜",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.billing.stripeOrgs.columns.subscription": {
+    "text": "구독",
+    "source_hash": "4999c6c6"
+  },
+  "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
+    "text": "Stripe 고객 ID",
+    "source_hash": "7e1d8bbb"
   }
 }
