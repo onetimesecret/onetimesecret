@@ -310,5 +310,333 @@
   "web.admin.organizations.list.loadError": {
     "text": "Δεν ήταν δυνατή η φόρτωση των οργανισμών.",
     "source_hash": "130d5e70"
+  },
+  "web.admin.organizations.addMember.button": {
+    "text": "Προσθήκη υπάρχοντος λογαριασμού",
+    "source_hash": "45a3b757"
+  },
+  "web.admin.organizations.addMember.title": {
+    "text": "Προσθήκη υπάρχοντος λογαριασμού",
+    "source_hash": "2f676a94"
+  },
+  "web.admin.organizations.addMember.description": {
+    "text": "Προσθέστε κάποιον που έχει ήδη λογαριασμό στο {org}. Χρησιμοποιήστε το όταν κάποιος έχει εγγραφεί μόνος του και δεν μπορεί να προσκληθεί επειδή ο λογαριασμός υπάρχει ήδη.",
+    "source_hash": "bb41faa6"
+  },
+  "web.admin.organizations.addMember.searchLabel": {
+    "text": "Διεύθυνση email ή αναγνωριστικό λογαριασμού",
+    "source_hash": "82b3040b"
+  },
+  "web.admin.organizations.addMember.searchPlaceholder": {
+    "text": "Αναζήτηση με διεύθυνση email",
+    "source_hash": "b75cc66c"
+  },
+  "web.admin.organizations.addMember.searchHint": {
+    "text": "Ταιριάζει με μέρος διεύθυνσης email ή ακριβές αναγνωριστικό λογαριασμού.",
+    "source_hash": "84547a60"
+  },
+  "web.admin.organizations.addMember.searchError": {
+    "text": "Δεν ήταν δυνατή η αναζήτηση λογαριασμών. Ελέγξτε τη σύνδεση και δοκιμάστε ξανά.",
+    "source_hash": "4b6caa41"
+  },
+  "web.admin.organizations.addMember.searchParseError": {
+    "text": "Η αναζήτηση λογαριασμού επέστρεψε μη αναμενόμενη απάντηση. Τα αποτελέσματα μπορεί να είναι ελλιπή.",
+    "source_hash": "0c814231"
+  },
+  "web.admin.organizations.addMember.idle": {
+    "text": "Εισάγετε διεύθυνση email για να βρείτε τον λογαριασμό.",
+    "source_hash": "f6340d35"
+  },
+  "web.admin.organizations.addMember.noResults": {
+    "text": "Κανένας λογαριασμός δεν ταιριάζει με «{term}».",
+    "source_hash": "199b662a"
+  },
+  "web.admin.organizations.addMember.noResultsHint": {
+    "text": "Μόνο υπάρχοντες λογαριασμοί μπορούν να προστεθούν εδώ. Αν το άτομο δεν έχει εγγραφεί ποτέ, προσκαλέστε το αντί αυτού.",
+    "source_hash": "ee90aeeb"
+  },
+  "web.admin.organizations.addMember.select": {
+    "text": "Επιλογή",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.organizations.addMember.selectedEyebrow": {
+    "text": "Επιλεγμένος λογαριασμός",
+    "source_hash": "8b63d947"
+  },
+  "web.admin.organizations.addMember.change": {
+    "text": "Επιλέξτε διαφορετικό λογαριασμό",
+    "source_hash": "d4fe39ab"
+  },
+  "web.admin.organizations.addMember.createdOn": {
+    "text": "Εγγράφηκε {date}",
+    "source_hash": "cfc0e19f"
+  },
+  "web.admin.organizations.addMember.organizationsUnavailable": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των τρεχόντων οργανισμών αυτού του λογαριασμού.",
+    "source_hash": "a35b6bfc"
+  },
+  "web.admin.organizations.addMember.defaultOrg": {
+    "text": "προεπιλεγμένος",
+    "source_hash": "37a8eec1"
+  },
+  "web.admin.organizations.addMember.roleLabel": {
+    "text": "Ρόλος σε αυτόν τον οργανισμό",
+    "source_hash": "817475fa"
+  },
+  "web.admin.organizations.addMember.submit": {
+    "text": "Προσθήκη στον οργανισμό",
+    "source_hash": "0e0cb636"
+  },
+  "web.admin.organizations.addMember.success": {
+    "text": "Προστέθηκε ο/η {account} ως {role}.",
+    "source_hash": "533be0dc"
+  },
+  "web.admin.organizations.addMember.badges.verified": {
+    "text": "Επαληθευμένο",
+    "source_hash": "4f783840"
+  },
+  "web.admin.organizations.addMember.badges.unverified": {
+    "text": "Μη επαληθευμένο",
+    "source_hash": "15133907"
+  },
+  "web.admin.organizations.addMember.badges.suspended": {
+    "text": "Σε αναστολή",
+    "source_hash": "e392a389"
+  },
+  "web.admin.organizations.addMember.badges.alreadyMember": {
+    "text": "Ήδη μέλος",
+    "source_hash": "1739ed7c"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMember": {
+    "text": "Αυτός ο λογαριασμός είναι ήδη μέλος αυτού του οργανισμού, με τον ρόλο {role}. Η προσθήκη δεν αλλάζει υπάρχοντα ρόλο — χρησιμοποιήστε την ενέργεια ορισμού ρόλου για αυτό.",
+    "source_hash": "cb6a4774"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
+    "text": "Αυτός ο λογαριασμός είναι ήδη μέλος αυτού του οργανισμού. Η προσθήκη δεν αλλάζει υπάρχοντα ρόλο.",
+    "source_hash": "035641ec"
+  },
+  "web.admin.organizations.addMember.errors.notFound": {
+    "text": "Αυτός ο λογαριασμός ή οργανισμός δεν υπάρχει πλέον. Αναζητήστε ξανά για να επιβεβαιώσετε τον λογαριασμό.",
+    "source_hash": "bd88db18"
+  },
+  "web.admin.organizations.addMember.errors.invalidRole": {
+    "text": "Αυτός ο ρόλος απορρίφθηκε. Επιλέξτε έναν από τους αναφερόμενους ρόλους και δοκιμάστε ξανά.",
+    "source_hash": "eb696a8f"
+  },
+  "web.admin.organizations.addMember.errors.noSelection": {
+    "text": "Δεν επιλέχθηκε λογαριασμός.",
+    "source_hash": "dd15bb5b"
+  },
+  "web.admin.organizations.addMember.fields.created": {
+    "text": "Εγγράφηκε",
+    "source_hash": "486b3fe0"
+  },
+  "web.admin.organizations.addMember.fields.verified": {
+    "text": "Επαλήθευση",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.organizations.addMember.fields.lastLogin": {
+    "text": "Τελευταία σύνδεση",
+    "source_hash": "0b70af7a"
+  },
+  "web.admin.organizations.addMember.fields.organizations": {
+    "text": "Τρέχοντες οργανισμοί",
+    "source_hash": "cbb5b92f"
+  },
+  "web.admin.organizations.addMember.roleHints.member": {
+    "text": "Καθημερινή πρόσβαση στα μυστικά και domains του οργανισμού.",
+    "source_hash": "d0c7439e"
+  },
+  "web.admin.organizations.addMember.roleHints.admin": {
+    "text": "Μπορεί να διαχειριστεί μέλη, domains και ρυθμίσεις οργανισμού.",
+    "source_hash": "beaa50d7"
+  },
+  "web.admin.organizations.addMember.roleHints.owner": {
+    "text": "Πλήρης έλεγχος, συμπεριλαμβανομένων των χρεώσεων. Χορηγήστε το μόνο όταν ζητηθεί.",
+    "source_hash": "614ace63"
+  },
+  "web.admin.organizations.addMember.roles.member": {
+    "text": "Μέλος",
+    "source_hash": "7c968fb7"
+  },
+  "web.admin.organizations.addMember.roles.admin": {
+    "text": "Διαχειριστής",
+    "source_hash": "c1c224b0"
+  },
+  "web.admin.organizations.addMember.roles.owner": {
+    "text": "Ιδιοκτήτης",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.detail.members.openCustomer": {
+    "text": "Άνοιγμα εγγραφής πελάτη",
+    "source_hash": "c057ca13"
+  },
+  "web.admin.organizations.detail.reconcile.memberships": {
+    "text": "Οι συνδρομές επανυλοποιήθηκαν:",
+    "source_hash": "fe7db10c"
+  },
+  "web.admin.organizations.detail.reconcile.membershipsFailed": {
+    "text": "απέτυχε, παραμένουν παλαιά δικαιώματα:",
+    "source_hash": "cc4dae37"
+  },
+  "web.admin.organizations.entitlements.catalogWarning": {
+    "text": "«{entitlement}» δεν βρίσκεται στον κατάλογο χρεώσεων — ελέγξτε για τυπογραφικό λάθος. Συνεχίζεται ούτως ή άλλως: η χορήγηση δικαιώματος που περιλαμβάνεται σε μεταγενέστερο κατάλογο υποστηρίζεται και δεν αποκλείεται σκόπιμα.",
+    "source_hash": "cbde548a"
+  },
+  "web.admin.organizations.entitlements.matrix.caption": {
+    "text": "Πίνακας επίλυσης δικαιωμάτων: πλάνο, χορηγήσεις και ανακλήσεις παράκαμψης, το επιλυμένο σύνολο και τι έχει υλοποιηθεί.",
+    "source_hash": "9eac8999"
+  },
+  "web.admin.organizations.entitlements.matrix.yes": {
+    "text": "Ναι",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.matrix.no": {
+    "text": "Όχι",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.matrix.empty": {
+    "text": "Αυτός ο οργανισμός δεν έχει δικαιώματα από το πλάνο του και δεν έχει παρακάμψεις.",
+    "source_hash": "f6cf2169"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.entitlement": {
+    "text": "Δικαίωμα",
+    "source_hash": "0d8f0b2d"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.inPlan": {
+    "text": "Στο πλάνο",
+    "source_hash": "e2222361"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.granted": {
+    "text": "Χορηγήθηκε",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.revoked": {
+    "text": "Ανακλήθηκε",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.expected": {
+    "text": "Αναμενόμενο",
+    "source_hash": "ca99b7f1"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.materialized": {
+    "text": "Υλοποιημένο",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.state": {
+    "text": "Κατάσταση",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.formula": {
+    "text": "Επίλυση: αναμενόμενο = (πλάνο ∪ χορηγήσεις) − ανακλήσεις. Υλοποιημένο είναι αυτό που είναι πραγματικά αποθηκευμένο στον οργανισμό.",
+    "source_hash": "bc4bff2d"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.orphaned": {
+    "text": "Ορφανό — υλοποιημένο αλλά μη αναμενόμενο, συνήθως παραμένει από ανάκληση που δεν επανυλοποιήθηκε ποτέ. Η συμφιλίωση το αφαιρεί.",
+    "source_hash": "3a27a9af"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.missing": {
+    "text": "Ελλείπει — αναμενόμενο αλλά μη υλοποιημένο. Αυτό είναι το δικαίωμα που λείπει πραγματικά από τα μέλη αυτή τη στιγμή.",
+    "source_hash": "485e44ad"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.revoked": {
+    "text": "Οι διαγραμμένες σειρές ανακλήθηκαν από παράκαμψη διαχειριστή, η οποία τις αφαιρεί από το αναμενόμενο σύνολο.",
+    "source_hash": "89a2e9b6"
+  },
+  "web.admin.organizations.entitlements.matrix.state.plan": {
+    "text": "Από πλάνο",
+    "source_hash": "1d346b26"
+  },
+  "web.admin.organizations.entitlements.matrix.state.granted": {
+    "text": "Χορηγήθηκε",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.state.revoked": {
+    "text": "Ανακλήθηκε",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.state.orphaned": {
+    "text": "Ορφανό",
+    "source_hash": "8d827807"
+  },
+  "web.admin.organizations.entitlements.matrix.state.missing": {
+    "text": "Ελλείπει",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.organizations.entitlements.picker.selectPlaceholder": {
+    "text": "Επιλέξτε δικαίωμα…",
+    "source_hash": "53af3be8"
+  },
+  "web.admin.organizations.entitlements.picker.other": {
+    "text": "Άλλο — δεν είναι στον κατάλογο…",
+    "source_hash": "f08bc3a3"
+  },
+  "web.admin.organizations.entitlements.picker.customLabel": {
+    "text": "Όνομα δικαιώματος (δεν είναι στον κατάλογο)",
+    "source_hash": "52783229"
+  },
+  "web.admin.organizations.entitlements.picker.backToCatalog": {
+    "text": "Επιστροφή στον κατάλογο",
+    "source_hash": "9b727f40"
+  },
+  "web.admin.organizations.entitlements.picker.uncategorized": {
+    "text": "Χωρίς κατηγορία",
+    "source_hash": "8d40d123"
+  },
+  "web.admin.organizations.entitlements.picker.catalogUnavailable": {
+    "text": "Ο κατάλογος χρεώσεων δεν μπόρεσε να διαβαστεί, επομένως τα ονόματα δικαιωμάτων δεν ελέγχονται εδώ.",
+    "source_hash": "724869ec"
+  },
+  "web.admin.organizations.entitlements.picker.tags.inPlan": {
+    "text": "στο πλάνο",
+    "source_hash": "5f2251bb"
+  },
+  "web.admin.organizations.entitlements.picker.tags.granted": {
+    "text": "χορηγήθηκε",
+    "source_hash": "dd515d19"
+  },
+  "web.admin.organizations.entitlements.picker.tags.revoked": {
+    "text": "ανακλήθηκε",
+    "source_hash": "4bb47f18"
+  },
+  "web.admin.organizations.entitlements.summary.sync": {
+    "text": "Συγχρονισμός",
+    "source_hash": "8d261a37"
+  },
+  "web.admin.organizations.entitlements.summary.materialized": {
+    "text": "Υλοποιημένο",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.summary.materializedAt": {
+    "text": "Τελευταία υλοποίηση",
+    "source_hash": "9325dce9"
+  },
+  "web.admin.organizations.entitlements.summary.planDefinition": {
+    "text": "Ορισμός πλάνου",
+    "source_hash": "6b531454"
+  },
+  "web.admin.organizations.entitlements.summary.yes": {
+    "text": "Ναι",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.summary.no": {
+    "text": "Όχι",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.summary.never": {
+    "text": "Ποτέ",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.organizations.entitlements.summary.planStale": {
+    "text": "Άλλαξε από την υλοποίηση",
+    "source_hash": "e682d8a4"
+  },
+  "web.admin.organizations.entitlements.summary.planCurrent": {
+    "text": "Τρέχον",
+    "source_hash": "e0d1b682"
+  },
+  "web.admin.organizations.entitlements.summary.planUnknown": {
+    "text": "Άγνωστο — δεν ήταν δυνατή η σύγκριση",
+    "source_hash": "b607e540"
   }
 }

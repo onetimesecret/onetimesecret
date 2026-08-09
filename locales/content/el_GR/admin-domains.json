@@ -190,5 +190,657 @@
   "web.admin.domains.verify.success.done": {
     "text": "Η επαλήθευση ολοκληρώθηκε για τον τομέα {domain}.",
     "source_hash": "ed67e22d"
+  },
+  "web.admin.domains.actions.preview": {
+    "text": "Προεπισκόπηση",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domains.actions.probe.button": {
+    "text": "Έλεγχος",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domains.actions.remove.button": {
+    "text": "Αφαίρεση domain",
+    "source_hash": "5ce43507"
+  },
+  "web.admin.domains.actions.remove.previewButton": {
+    "text": "Προεπισκόπηση αφαίρεσης",
+    "source_hash": "6b81bd92"
+  },
+  "web.admin.domains.actions.remove.previewStatus": {
+    "text": "Κατάσταση:",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.remove.previewOrg": {
+    "text": "Οργανισμός:",
+    "source_hash": "5300e286"
+  },
+  "web.admin.domains.actions.remove.reassertsSurvivor": {
+    "text": "Μια άλλη εγγραφή διεκδικεί το ίδιο όνομα domain και θα αναλάβει το ευρετήριο αναζήτησης.",
+    "source_hash": "902838f4"
+  },
+  "web.admin.domains.actions.remove.confirmTitle": {
+    "text": "Αφαίρεση domain;",
+    "source_hash": "716dfac9"
+  },
+  "web.admin.domains.actions.remove.confirmDescription": {
+    "text": "Αυτό διαγράφει οριστικά το {domain} και τις εγγραφές branding, DNS και ρυθμίσεών του. Δεν μπορεί να αναιρεθεί. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του domain για να συνεχίσετε.",
+    "source_hash": "d0b67b47"
+  },
+  "web.admin.domains.actions.remove.success": {
+    "text": "Το domain αφαιρέθηκε.",
+    "source_hash": "2ccaa6d3"
+  },
+  "web.admin.domains.actions.remove.notApplied": {
+    "text": "Ο διακομιστής έκανε προεπισκόπηση της αφαίρεσης αντί να την εφαρμόσει — το domain ΔΕΝ αφαιρέθηκε. Δοκιμάστε ξανά και αναφέρετε το εάν επιμένει.",
+    "source_hash": "dc6d70ae"
+  },
+  "web.admin.domains.actions.repair.title": {
+    "text": "Επιδιόρθωση σύνδεσης οργανισμού",
+    "source_hash": "82b40352"
+  },
+  "web.admin.domains.actions.repair.description": {
+    "text": "Βρείτε και διορθώστε κατεστραμμένες συνδέσεις μεταξύ αυτού του domain και του οργανισμού του. Κάντε προεπισκόπηση πρώτα για να δείτε τι θα αλλάξει.",
+    "source_hash": "531ed287"
+  },
+  "web.admin.domains.actions.repair.orgIdLabel": {
+    "text": "Αναγνωριστικό οργανισμού (μόνο για ορφανά domains)",
+    "source_hash": "0d3010eb"
+  },
+  "web.admin.domains.actions.repair.orgIdPlaceholder": {
+    "text": "Αφήστε κενό εκτός αν το domain δεν έχει ιδιοκτήτη",
+    "source_hash": "118b7132"
+  },
+  "web.admin.domains.actions.repair.statusLabel": {
+    "text": "Κατάσταση:",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.repair.noIssues": {
+    "text": "Δεν βρέθηκαν προβλήματα — τίποτα προς επιδιόρθωση.",
+    "source_hash": "17735887"
+  },
+  "web.admin.domains.actions.repair.button": {
+    "text": "Εφαρμογή επιδιόρθωσης",
+    "source_hash": "4d0ab2d4"
+  },
+  "web.admin.domains.actions.repair.confirmTitle": {
+    "text": "Εφαρμογή επιδιόρθωσης;",
+    "source_hash": "ef0ffae5"
+  },
+  "web.admin.domains.actions.repair.confirmDescription": {
+    "text": "Αυτό αναγράφει εκ νέου τη σύνδεση οργανισμού για το {domain}. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του domain για να συνεχίσετε.",
+    "source_hash": "a9f2702f"
+  },
+  "web.admin.domains.actions.repair.success": {
+    "text": "Η επιδιόρθωση εφαρμόστηκε.",
+    "source_hash": "850bd784"
+  },
+  "web.admin.domains.actions.transfer.title": {
+    "text": "Μεταφορά σε άλλον οργανισμό",
+    "source_hash": "1b0b0655"
+  },
+  "web.admin.domains.actions.transfer.description": {
+    "text": "Μετακινήστε αυτό το domain σε διαφορετικό οργανισμό. Κάντε προεπισκόπηση πρώτα για να επιβεβαιώσετε και τις δύο πλευρές της μετακίνησης.",
+    "source_hash": "457e852d"
+  },
+  "web.admin.domains.actions.transfer.toOrgLabel": {
+    "text": "Αναγνωριστικό οργανισμού προορισμού",
+    "source_hash": "1a3f05c4"
+  },
+  "web.admin.domains.actions.transfer.fromOrgLabel": {
+    "text": "Αναμενόμενο αναγνωριστικό τρέχοντος οργανισμού (προαιρετικό)",
+    "source_hash": "f6e75729"
+  },
+  "web.admin.domains.actions.transfer.fromOrgPlaceholder": {
+    "text": "Επιβεβαιώστε τον τρέχοντα ιδιοκτήτη πριν τη μετακίνηση",
+    "source_hash": "1ac6c59b"
+  },
+  "web.admin.domains.actions.transfer.from": {
+    "text": "Από",
+    "source_hash": "21819769"
+  },
+  "web.admin.domains.actions.transfer.to": {
+    "text": "Προς",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domains.actions.transfer.orphaned": {
+    "text": "Χωρίς οργανισμό (ορφανό)",
+    "source_hash": "6f4c745c"
+  },
+  "web.admin.domains.actions.transfer.button": {
+    "text": "Εφαρμογή μεταφοράς",
+    "source_hash": "fb546c5c"
+  },
+  "web.admin.domains.actions.transfer.confirmTitle": {
+    "text": "Μεταφορά domain;",
+    "source_hash": "801eb986"
+  },
+  "web.admin.domains.actions.transfer.confirmDescription": {
+    "text": "Αυτό μετακινεί το {domain} στον οργανισμό {org}. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του domain για να συνεχίσετε.",
+    "source_hash": "52c8808d"
+  },
+  "web.admin.domains.actions.transfer.success": {
+    "text": "Το domain μεταφέρθηκε.",
+    "source_hash": "91e681ae"
+  },
+  "web.admin.domains.columns.domain": {
+    "text": "Domain",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.columns.organization": {
+    "text": "Οργανισμός",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.columns.state": {
+    "text": "Επαλήθευση",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.domains.columns.tls": {
+    "text": "TLS",
+    "source_hash": "d1c18ec0"
+  },
+  "web.admin.domains.columns.created": {
+    "text": "Δημιουργήθηκε",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.columns.actions": {
+    "text": "Ενέργειες",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.configs.title": {
+    "text": "Ρύθμιση domain",
+    "source_hash": "d46aa480"
+  },
+  "web.admin.domains.configs.description": {
+    "text": "Εγγραφές ρυθμίσεων ανά domain που ελέγχουν τη σύνδεση, εγγραφή, μυστικά αρχικής σελίδας, πρόσβαση API, εισερχόμενα μυστικά, SSO πελάτη και αποστολή email. Μια απουσιάζουσα εγγραφή αποτυγχάνει κλειστά για τα πρώτα πέντε.",
+    "source_hash": "1df99789"
+  },
+  "web.admin.domains.configs.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των εγγραφών ρύθμισης domain.",
+    "source_hash": "9417d718"
+  },
+  "web.admin.domains.configs.retry": {
+    "text": "Επανάληψη",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.configs.degraded": {
+    "text": "Η απάντηση ρύθμισης δεν ταιριάζει με το αναμενόμενο συμβόλαιο. Ανανεώστε και αναφέρετε το εάν επιμένει.",
+    "source_hash": "b5d890c0"
+  },
+  "web.admin.domains.configs.notFoundNote": {
+    "text": "Αυτό το domain δεν υπάρχει πλέον, επομένως οι εγγραφές ρύθμισής του δεν μπορούν να φορτωθούν.",
+    "source_hash": "2d88a392"
+  },
+  "web.admin.domains.configs.detailsToggle": {
+    "text": "Λεπτομέρειες",
+    "source_hash": "45989de4"
+  },
+  "web.admin.domains.configs.notEditable": {
+    "text": "Διαχείριση στις ρυθμίσεις domain του χώρου εργασίας.",
+    "source_hash": "54fe891f"
+  },
+  "web.admin.domains.configs.delete.button": {
+    "text": "Διαγραφή",
+    "source_hash": "e2d0a549"
+  },
+  "web.admin.domains.configs.delete.confirmTitle": {
+    "text": "Διαγραφή ρύθμισης {kind};",
+    "source_hash": "98e672db"
+  },
+  "web.admin.domains.configs.delete.confirmDescription": {
+    "text": "Αυτό διαγράφει οριστικά την εγγραφή ρύθμισης {kind} για το {domain}. Το domain επιστρέφει στη συμπεριφορά απουσιάζουσας εγγραφής. Επαναπληκτρολογήστε τον τύπο για να συνεχίσετε.",
+    "source_hash": "8272c40c"
+  },
+  "web.admin.domains.configs.delete.success": {
+    "text": "Η ρύθμιση διαγράφηκε.",
+    "source_hash": "a0184b66"
+  },
+  "web.admin.domains.configs.edit.button": {
+    "text": "Επεξεργασία",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.domains.configs.edit.createButton": {
+    "text": "Δημιουργία",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.configs.edit.title": {
+    "text": "Ρύθμιση {kind}",
+    "source_hash": "8592148f"
+  },
+  "web.admin.domains.configs.edit.submit": {
+    "text": "Αποθήκευση",
+    "source_hash": "1509f561"
+  },
+  "web.admin.domains.configs.edit.success": {
+    "text": "Η ρύθμιση αποθηκεύτηκε.",
+    "source_hash": "6b5b3c69"
+  },
+  "web.admin.domains.configs.edit.unsetOption": {
+    "text": "Δεν έχει οριστεί",
+    "source_hash": "4895f731"
+  },
+  "web.admin.domains.configs.edit.domainsHint": {
+    "text": "Ένα domain ανά γραμμή.",
+    "source_hash": "6c03f4f7"
+  },
+  "web.admin.domains.configs.ensure.button": {
+    "text": "Δημιουργία ελλειπόντων ρυθμίσεων",
+    "source_hash": "77991b75"
+  },
+  "web.admin.domains.configs.ensure.confirmTitle": {
+    "text": "Δημιουργία ελλειπόντων εγγραφών ρύθμισης;",
+    "source_hash": "3f41dec2"
+  },
+  "web.admin.domains.configs.ensure.confirmDescription": {
+    "text": "Δημιουργεί απενεργοποιημένες εγγραφές στο {domain} για: {kinds}. Όλα ξεκινούν απενεργοποιημένα, επομένως η συμπεριφορά δεν αλλάζει μέχρι να ενεργοποιηθεί μια εγγραφή.",
+    "source_hash": "fed66221"
+  },
+  "web.admin.domains.configs.ensure.applyButton": {
+    "text": "Δημιουργία εγγραφών",
+    "source_hash": "4bcbef42"
+  },
+  "web.admin.domains.configs.ensure.success": {
+    "text": "Οι ελλείπουσες εγγραφές ρύθμισης δημιουργήθηκαν.",
+    "source_hash": "3b6ead80"
+  },
+  "web.admin.domains.configs.ensure.nothingMissing": {
+    "text": "Τίποτα προς δημιουργία — κάθε εγγραφή ρύθμισης υπάρχει ήδη. Η λίστα ανανεώθηκε.",
+    "source_hash": "ad0df0ae"
+  },
+  "web.admin.domains.configs.ensure.notApplied": {
+    "text": "Ο διακομιστής έκανε προεπισκόπηση της αλλαγής αντί να την εφαρμόσει — δεν δημιουργήθηκαν εγγραφές. Δοκιμάστε ξανά και αναφέρετε το εάν επιμένει.",
+    "source_hash": "09d26379"
+  },
+  "web.admin.domains.configs.fields.enabled": {
+    "text": "Ενεργοποιημένο",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.fields.signin_enabled": {
+    "text": "Σύνδεση ενεργοποιημένη",
+    "source_hash": "cabe4898"
+  },
+  "web.admin.domains.configs.fields.email_auth_enabled": {
+    "text": "Ταυτοποίηση email ενεργοποιημένη",
+    "source_hash": "4a762960"
+  },
+  "web.admin.domains.configs.fields.sso_enabled": {
+    "text": "SSO ενεργοποιημένο",
+    "source_hash": "6e77e673"
+  },
+  "web.admin.domains.configs.fields.restrict_to": {
+    "text": "Περιορισμός σε",
+    "source_hash": "a0bdf50a"
+  },
+  "web.admin.domains.configs.fields.signup_enabled": {
+    "text": "Εγγραφή ενεργοποιημένη",
+    "source_hash": "2637d0b2"
+  },
+  "web.admin.domains.configs.fields.autoverify": {
+    "text": "Αυτόματη επαλήθευση",
+    "source_hash": "7e02211c"
+  },
+  "web.admin.domains.configs.fields.validation_strategy": {
+    "text": "Στρατηγική επικύρωσης",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.configs.fields.allowed_signup_domains": {
+    "text": "Επιτρεπόμενα domains εγγραφής",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.admin.domains.configs.fields.secrets_mode": {
+    "text": "Λειτουργία μυστικών",
+    "source_hash": "8d4349d6"
+  },
+  "web.admin.domains.configs.fields.disabled_homepage_variant": {
+    "text": "Απενεργοποιημένη παραλλαγή αρχικής σελίδας",
+    "source_hash": "4695633b"
+  },
+  "web.admin.domains.configs.fields.ready": {
+    "text": "Έτοιμο",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.configs.fields.recipients": {
+    "text": "Παραλήπτες",
+    "source_hash": "1e8568a8"
+  },
+  "web.admin.domains.configs.fields.provider_type": {
+    "text": "Τύπος παρόχου",
+    "source_hash": "8c0f6d3e"
+  },
+  "web.admin.domains.configs.fields.display_name": {
+    "text": "Εμφανιζόμενο όνομα",
+    "source_hash": "2b7f6a84"
+  },
+  "web.admin.domains.configs.fields.issuer": {
+    "text": "Εκδότης",
+    "source_hash": "39e02c46"
+  },
+  "web.admin.domains.configs.fields.tenant_id": {
+    "text": "Αναγνωριστικό πελάτη",
+    "source_hash": "de1f5fff"
+  },
+  "web.admin.domains.configs.fields.has_client_id": {
+    "text": "Αναγνωριστικό πελάτη ορίστηκε",
+    "source_hash": "04a9fa3d"
+  },
+  "web.admin.domains.configs.fields.has_client_secret": {
+    "text": "Μυστικό πελάτη ορίστηκε",
+    "source_hash": "6ee1c9e6"
+  },
+  "web.admin.domains.configs.fields.allowed_domains": {
+    "text": "Επιτρεπόμενα domains",
+    "source_hash": "bcd60db0"
+  },
+  "web.admin.domains.configs.fields.enforce_sso_only": {
+    "text": "Επιβολή μόνο SSO",
+    "source_hash": "b3a3f694"
+  },
+  "web.admin.domains.configs.fields.grant_org_scope": {
+    "text": "Χορήγηση εύρους οργανισμού",
+    "source_hash": "698ea5de"
+  },
+  "web.admin.domains.configs.fields.provider": {
+    "text": "Πάροχος",
+    "source_hash": "472590ae"
+  },
+  "web.admin.domains.configs.fields.from_name": {
+    "text": "Όνομα αποστολέα",
+    "source_hash": "b28f93ea"
+  },
+  "web.admin.domains.configs.fields.from_address": {
+    "text": "Διεύθυνση αποστολέα",
+    "source_hash": "d465bcfa"
+  },
+  "web.admin.domains.configs.fields.reply_to": {
+    "text": "Απάντηση σε",
+    "source_hash": "6b9c49b7"
+  },
+  "web.admin.domains.configs.fields.sending_mode": {
+    "text": "Λειτουργία αποστολής",
+    "source_hash": "e2d6bcf7"
+  },
+  "web.admin.domains.configs.fields.verification_status": {
+    "text": "Κατάσταση επαλήθευσης",
+    "source_hash": "aedfff7e"
+  },
+  "web.admin.domains.configs.fields.dns_verified": {
+    "text": "DNS επαληθευμένο",
+    "source_hash": "8b2128c8"
+  },
+  "web.admin.domains.configs.fields.provider_verified": {
+    "text": "Πάροχος επαληθευμένος",
+    "source_hash": "6f4d9cc4"
+  },
+  "web.admin.domains.configs.fields.has_api_key": {
+    "text": "Κλειδί API ορίστηκε",
+    "source_hash": "d5115386"
+  },
+  "web.admin.domains.configs.fields.created": {
+    "text": "Δημιουργήθηκε",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.configs.fields.updated": {
+    "text": "Ενημερώθηκε",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.configs.kinds.signin": {
+    "text": "Σύνδεση",
+    "source_hash": "5bbbe531"
+  },
+  "web.admin.domains.configs.kinds.signup": {
+    "text": "Εγγραφή",
+    "source_hash": "3cc08ebe"
+  },
+  "web.admin.domains.configs.kinds.homepage": {
+    "text": "Αρχική σελίδα",
+    "source_hash": "9e3391e9"
+  },
+  "web.admin.domains.configs.kinds.api": {
+    "text": "API",
+    "source_hash": "c8e5998f"
+  },
+  "web.admin.domains.configs.kinds.incoming": {
+    "text": "Εισερχόμενα",
+    "source_hash": "e301820a"
+  },
+  "web.admin.domains.configs.kinds.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.admin.domains.configs.kinds.mailer": {
+    "text": "Αποστολέας email",
+    "source_hash": "6c07ba63"
+  },
+  "web.admin.domains.configs.missingNotes.signin": {
+    "text": "Χωρίς εγγραφή: η σύνδεση είναι απενεργοποιημένη σε αυτό το domain εκτός αν το SSO πελάτη είναι ενεργό.",
+    "source_hash": "17dd6099"
+  },
+  "web.admin.domains.configs.missingNotes.signup": {
+    "text": "Χωρίς εγγραφή: η εγγραφή είναι απενεργοποιημένη σε αυτό το domain.",
+    "source_hash": "c3c98956"
+  },
+  "web.admin.domains.configs.missingNotes.homepage": {
+    "text": "Χωρίς εγγραφή: τα μυστικά αρχικής σελίδας είναι απενεργοποιημένα (αποτυγχάνει κλειστά και καταγράφει σφάλμα).",
+    "source_hash": "9a258a88"
+  },
+  "web.admin.domains.configs.missingNotes.api": {
+    "text": "Χωρίς εγγραφή: το δημόσιο API είναι απενεργοποιημένο (αποτυγχάνει κλειστά και καταγράφει σφάλμα).",
+    "source_hash": "fed99f73"
+  },
+  "web.admin.domains.configs.missingNotes.incoming": {
+    "text": "Χωρίς εγγραφή: τα εισερχόμενα μυστικά είναι απενεργοποιημένα.",
+    "source_hash": "b957fbe8"
+  },
+  "web.admin.domains.configs.missingNotes.sso": {
+    "text": "Χωρίς εγγραφή: το SSO πελάτη δεν είναι διαθέσιμο· εφαρμόζεται η εφεδρική πολιτική SSO πλατφόρμας.",
+    "source_hash": "7b05ade8"
+  },
+  "web.admin.domains.configs.missingNotes.mailer": {
+    "text": "Χωρίς εγγραφή: χρησιμοποιείται ο αποστολέας email της πλατφόρμας.",
+    "source_hash": "e027cc99"
+  },
+  "web.admin.domains.configs.status.missing": {
+    "text": "Ελλείπει",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.domains.configs.status.disabled": {
+    "text": "Απενεργοποιημένο",
+    "source_hash": "75081b59"
+  },
+  "web.admin.domains.configs.status.enabled": {
+    "text": "Ενεργοποιημένο",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.status.enabledNotReady": {
+    "text": "Ενεργοποιημένο, μη έτοιμο",
+    "source_hash": "cb806ba4"
+  },
+  "web.admin.domains.detail.openFullPage": {
+    "text": "Άνοιγμα πλήρους σελίδας",
+    "source_hash": "a467911c"
+  },
+  "web.admin.domains.detail.backToList": {
+    "text": "Επιστροφή στα domains",
+    "source_hash": "22fd50fe"
+  },
+  "web.admin.domains.detail.notFound": {
+    "text": "Το domain δεν βρέθηκε",
+    "source_hash": "7b8fc0e6"
+  },
+  "web.admin.domains.detail.notFoundDescription": {
+    "text": "Αυτό το domain δεν υπάρχει ή έχει ήδη αφαιρεθεί.",
+    "source_hash": "e0f0b987"
+  },
+  "web.admin.domains.detail.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση αυτού του domain.",
+    "source_hash": "39e9c657"
+  },
+  "web.admin.domains.detail.retry": {
+    "text": "Επανάληψη",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.detail.never": {
+    "text": "Ποτέ",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.domains.detail.none": {
+    "text": "Κανένα",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.domains.detail.yes": {
+    "text": "Ναι",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.domains.detail.no": {
+    "text": "Όχι",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.domains.detail.organization.open": {
+    "text": "Άνοιγμα οργανισμού",
+    "source_hash": "54a43621"
+  },
+  "web.admin.domains.detail.organization.unknown": {
+    "text": "Ο οργανισμός ιδιοκτήτης δεν περιλαμβάνεται σε αυτή την απάντηση. Ανοίξτε αυτό το domain από τη λίστα domains για να το δείτε.",
+    "source_hash": "bb5bdc9c"
+  },
+  "web.admin.domains.detail.sections.overview": {
+    "text": "Επισκόπηση",
+    "source_hash": "d4b1ea57"
+  },
+  "web.admin.domains.detail.sections.actions": {
+    "text": "Ενέργειες",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.detail.sections.organization": {
+    "text": "Οργανισμός ιδιοκτήτης",
+    "source_hash": "39ad6d9c"
+  },
+  "web.admin.domains.detail.sections.dns": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.admin.domains.detail.sections.diagnostics": {
+    "text": "Διαγνωστικά",
+    "source_hash": "268f14bb"
+  },
+  "web.admin.domains.detail.sections.operations": {
+    "text": "Λειτουργίες ιδιοκτησίας",
+    "source_hash": "eb9a8cbc"
+  },
+  "web.admin.domains.detail.sections.operationsHint": {
+    "text": "Κάθε λειτουργία κάνει προεπισκόπηση πρώτα. Τίποτα δεν γράφεται μέχρι να επιβεβαιώσετε το βήμα εφαρμογής.",
+    "source_hash": "f09bf7bd"
+  },
+  "web.admin.domains.fields.publicId": {
+    "text": "Δημόσιο αναγνωριστικό",
+    "source_hash": "3705b64f"
+  },
+  "web.admin.domains.fields.domainId": {
+    "text": "Εσωτερικό αναγνωριστικό",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.domains.fields.organization": {
+    "text": "Οργανισμός",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.fields.baseDomain": {
+    "text": "Βασικό domain",
+    "source_hash": "33295d5b"
+  },
+  "web.admin.domains.fields.subdomain": {
+    "text": "Subdomain",
+    "source_hash": "ba4520ab"
+  },
+  "web.admin.domains.fields.apex": {
+    "text": "Apex domain",
+    "source_hash": "0a8a42fa"
+  },
+  "web.admin.domains.fields.status": {
+    "text": "Κατάσταση",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domains.fields.created": {
+    "text": "Δημιουργήθηκε",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.fields.updated": {
+    "text": "Ενημερώθηκε",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.fields.verified": {
+    "text": "Επαληθευμένο",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.fields.resolving": {
+    "text": "Επίλυση",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.fields.ready": {
+    "text": "Έτοιμο",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.list.searchPlaceholder": {
+    "text": "Αναζήτηση με όνομα domain ή αναγνωριστικό",
+    "source_hash": "aecdd873"
+  },
+  "web.admin.domains.list.stateFilter": {
+    "text": "Κατάσταση",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domains.list.emptyFilter": {
+    "text": "Κανένα domain δεν ταιριάζει με τα τρέχοντα φίλτρα.",
+    "source_hash": "be4d64ec"
+  },
+  "web.admin.domains.probe.healthLabel": {
+    "text": "Υγεία",
+    "source_hash": "55898449"
+  },
+  "web.admin.domains.probe.certInvalid": {
+    "text": "Το πιστοποιητικό δεν είναι χρησιμοποιήσιμο",
+    "source_hash": "5535f4d4"
+  },
+  "web.admin.domains.probe.noCertificate": {
+    "text": "Δεν επιστράφηκε πιστοποιητικό — η σύνδεση απέτυχε πριν το TLS.",
+    "source_hash": "8ffd63be"
+  },
+  "web.admin.domains.probe.fields.httpStatus": {
+    "text": "Κατάσταση HTTP",
+    "source_hash": "0f7cf91f"
+  },
+  "web.admin.domains.probe.fields.httpError": {
+    "text": "Σφάλμα HTTP",
+    "source_hash": "5c6896d4"
+  },
+  "web.admin.domains.probe.fields.sslError": {
+    "text": "Σφάλμα TLS",
+    "source_hash": "7b827515"
+  },
+  "web.admin.domains.probe.fields.issuer": {
+    "text": "Εκδότης πιστοποιητικού",
+    "source_hash": "2912559a"
+  },
+  "web.admin.domains.probe.fields.subject": {
+    "text": "Υποκείμενο πιστοποιητικού",
+    "source_hash": "d7816b16"
+  },
+  "web.admin.domains.probe.fields.notAfter": {
+    "text": "Λήξη πιστοποιητικού",
+    "source_hash": "1e73119d"
+  },
+  "web.admin.domains.probe.fields.expiresIn": {
+    "text": "{date} ({days} ημέρες)",
+    "source_hash": "a71a6e81"
+  },
+  "web.admin.domains.tls.serving": {
+    "text": "Εξυπηρετεί",
+    "source_hash": "f55e53f9"
+  },
+  "web.admin.domains.tls.resolving": {
+    "text": "Επίλυση",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.tls.none": {
+    "text": "Δεν εξυπηρετεί",
+    "source_hash": "da8a5ab9"
   }
 }
