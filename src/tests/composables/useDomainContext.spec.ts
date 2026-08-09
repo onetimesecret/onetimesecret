@@ -147,6 +147,16 @@ describe('useDomainContext', () => {
     canonical_domain?: string;
     display_domain?: string;
     custom_domains?: string[];
+    /**
+     * Operator link pool (LINK_DOMAINS, #4063), already resolved server-side.
+     *
+     * Defaults to `[]`, which is NOT "empty pool" -- it is the wire shape of a
+     * stale pre-#4063 server, and the composable maps it back to
+     * [canonicalDomain]. That default is why every case written before #4063
+     * keeps its exact HEAD behavior, and it is what makes those cases the AC1
+     * regression fence.
+     */
+    link_domains?: string[];
     domain_strategy?: 'canonical' | 'subdomain' | 'custom' | 'invalid';
   }) {
     const pinia = createTestingPinia({
@@ -162,6 +172,8 @@ describe('useDomainContext', () => {
     bootstrapStore.canonical_domain = config.canonical_domain ?? '';
     bootstrapStore.display_domain = config.display_domain ?? config.site_host ?? 'onetimesecret.com';
     bootstrapStore.custom_domains = config.custom_domains ?? [];
+    // Schema default is [] (pre-#4063 payloads omit it) - see the knob doc above
+    bootstrapStore.link_domains = config.link_domains ?? [];
     bootstrapStore.domain_strategy = config.domain_strategy ?? 'canonical';
 
     return { pinia, bootstrapStore };
@@ -462,6 +474,369 @@ describe('useDomainContext', () => {
 
       await setContext('onetimesecret.com');
       expect(currentContext.value.isCanonical).toBe(true);
+    });
+  });
+
+  /**
+   * Operator link pool (LINK_DOMAINS, #4063).
+   *
+   * The operator publishes the set of domains the picker may offer. That set is
+   * NOT required to contain the canonical host: the motivating install serves
+   * the app from an internal platform address (ge-abcd123.eu.otshosted.com)
+   * which keeps working as a host but must never be offered as a link domain.
+   * So `canonicalDomain` stops being a guaranteed-selectable value, and every
+   * "fall back to canonical" site has to fall back to the pool instead.
+   *
+   * Two invariants drive these cases:
+   *  - setContext silently drops any domain absent from availableDomains, so
+   *    every path that produces a domain must produce a member of it, or ''
+   *    (AC8). `expectSelectable` below is that check.
+   *  - `link_domains: []` on the wire means exactly "stale pre-#4063 server",
+   *    never "empty pool" -- the server resolves an unset LINK_DOMAINS to
+   *    [canonical_domain] before it ever reaches the browser.
+   *
+   * Trap worth knowing when reading these: `isCanonical` is still
+   * `domain === canonicalDomain`. With the canonical host excluded from the
+   * pool, EVERY selectable domain reports isCanonical === false. "Has no extid"
+   * and "is the canonical domain" were the same thing before #4063 and are not
+   * any more.
+   */
+  describe('operator link pool (#4063)', () => {
+    /** The install's own host: serves the app, deliberately not offered. */
+    const INTERNAL_HOST = 'ge-abcd123.eu.otshosted.com';
+
+    /**
+     * AC8: currentContext.domain must always be something setContext would
+     * accept -- a member of availableDomains -- or the empty string.
+     * Compared as an object so a failure names the offending domain.
+     */
+    const expectSelectable = (available: string[], domain: string) =>
+      expect({ domain, selectable: domain === '' || available.includes(domain) }).toEqual({
+        domain,
+        selectable: true,
+      });
+
+    it('AC1: a stale pre-#4063 payload (link_domains: []) lists customs then canonical', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'eu.onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'eu.onetimesecret.com',
+        link_domains: [],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      // Byte-identical to HEAD: the composable re-derives [canonicalDomain]
+      // only because the payload carried no pool at all.
+      expect(availableDomains.value).toEqual([
+        'acme.example.com',
+        'widgets.example.com',
+        'onetimesecret.com',
+      ]);
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+    });
+
+    it('AC1: an unset LINK_DOMAINS (pool === [canonical]) lists customs then canonical', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'eu.onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'eu.onetimesecret.com',
+        // What a #4063 server actually sends when LINK_DOMAINS is unset.
+        link_domains: ['onetimesecret.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual([
+        'acme.example.com',
+        'widgets.example.com',
+        'onetimesecret.com',
+      ]);
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
+    });
+
+    it('AC2: a pool that excludes the canonical host keeps it out of the picker', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        link_domains: ['short.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, setContext } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['short.example.com']);
+      expect(availableDomains.value).not.toContain(INTERNAL_HOST);
+      expect(currentContext.value.domain).toBe('short.example.com');
+      expect(currentContext.value.displayName).toBe('short.example.com');
+      // The excluded canonical host is not selectable, so nothing can be the
+      // "canonical" row: isCanonical is false for every offered domain.
+      expect(currentContext.value.isCanonical).toBe(false);
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+
+      // Not merely hidden: setContext rejects it like any unknown domain.
+      await setContext(INTERNAL_HOST);
+      expect(currentContext.value.domain).toBe('short.example.com');
+    });
+
+    it('AC8: resetContext lands on a pool member when the canonical host is excluded', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        custom_domains: ['acme.example.com'],
+        link_domains: ['short.example.com', 'links.example.net'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, setContext, resetContext } = useDomainContext();
+
+      await waitForInit();
+
+      await setContext('links.example.net');
+      expect(currentContext.value.domain).toBe('links.example.net');
+
+      resetContext();
+
+      // Pool head, not the hidden canonical host.
+      expect(currentContext.value.domain).toBe('short.example.com');
+      expect(currentContext.value.domain).not.toBe(INTERNAL_HOST);
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+    });
+
+    it('AC8: currentContext falls back to a pool member when no organization is set', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        link_domains: ['short.example.com'],
+      });
+
+      // Anonymous / pre-org boot: the fetcher short-circuits and returns false,
+      // so initialization never assigns currentDomain and currentContext is
+      // resolved entirely by its own fallback.
+      mockOrganizationStoreState.currentOrganization = null;
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(currentContext.value.domain).toBe('short.example.com');
+      expect(currentContext.value.domain).not.toBe(INTERNAL_HOST);
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+    });
+
+    it('AC8: currentContext falls back to a pool member when fetchAllPermissions rejects', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        link_domains: ['short.example.com'],
+      });
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockFetchAllPermissions.mockRejectedValue(new Error('Network error'));
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, isLoadingDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(isLoadingDomains.value).toBe(false);
+      expect(currentContext.value.domain).toBe('short.example.com');
+      expect(currentContext.value.domain).not.toBe(INTERNAL_HOST);
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+
+      warnSpy.mockRestore();
+    });
+
+    it('AC8: the domains-disabled branch lands on a pool member', async () => {
+      setupBootstrapStore({
+        domains_enabled: false,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        link_domains: ['short.example.com'],
+      });
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, isContextActive } = useDomainContext();
+
+      await waitForInit();
+
+      expect(isContextActive.value).toBe(false);
+      expect(currentContext.value.domain).toBe('short.example.com');
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+    });
+
+    it('resets to the canonical host when it IS a pool member', async () => {
+      // The historical contract (see 'resetContext > resets to canonical
+      // domain'): reset means "back to the default link domain". Substituting
+      // getPreferredDomain here would return the first CUSTOM domain instead.
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
+        link_domains: ['short.example.com', 'onetimesecret.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, setContext, resetContext } = useDomainContext();
+
+      await waitForInit();
+
+      await setContext('acme.example.com');
+      expect(currentContext.value.domain).toBe('acme.example.com');
+
+      resetContext();
+
+      // Canonical wins over the pool head because it is a member.
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+    });
+
+    it('prefers a real custom domain over an operator pool entry', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        custom_domains: ['acme.example.com'],
+        link_domains: ['go.acme.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['acme.example.com', 'go.acme.com']);
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.extid).toBe('cd_acme_example_com');
+    });
+
+    it('prefers the canonical entry over a sibling pool entry when no custom domains exist', async () => {
+      // The discriminating case for "is this a real custom domain?": the old
+      // test was `d !== canonicalDomain`, which picks the SECOND pool entry
+      // here because it merely differs from canonical. Pool membership is the
+      // correct test, and it leaves the canonical entry preferred.
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        link_domains: ['onetimesecret.com', 'short.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['onetimesecret.com', 'short.example.com']);
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+    });
+
+    it('multi-entry pool: setContext round-trips to any member', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        link_domains: ['a.example.com', 'b.example.com', 'c.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, hasMultipleContexts, setContext } =
+        useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual([
+        'a.example.com',
+        'b.example.com',
+        'c.example.com',
+      ]);
+      expect(hasMultipleContexts.value).toBe(true);
+      expect(currentContext.value.domain).toBe('a.example.com');
+
+      await setContext('c.example.com');
+      expect(currentContext.value.domain).toBe('c.example.com');
+      expect(currentContext.value.extid).toBeUndefined();
+
+      await setContext('b.example.com');
+      expect(currentContext.value.domain).toBe('b.example.com');
+      expectSelectable(availableDomains.value, currentContext.value.domain);
+    });
+
+    it('a pool entry that is also a registered custom domain appears once and keeps its extid', async () => {
+      // The operator listed a host a customer has also registered. It must not
+      // appear twice, and the surviving row is the CUSTOM one -- dropping the
+      // extid would cost it its settings gear and its :extid navigation.
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        custom_domains: ['acme.example.com'],
+        link_domains: ['acme.example.com', 'short.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, getExtidByDomain, setContext } =
+        useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['acme.example.com', 'short.example.com']);
+      expect(
+        availableDomains.value.filter((d) => d === 'acme.example.com')
+      ).toHaveLength(1);
+      expect(getExtidByDomain('acme.example.com')).toBe('cd_acme_example_com');
+
+      await setContext('acme.example.com');
+      expect(currentContext.value.extid).toBe('cd_acme_example_com');
     });
   });
 
@@ -1476,6 +1851,46 @@ describe('useDomainContext', () => {
 
       expect(mockApiPost).not.toHaveBeenCalled();
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
+    });
+
+    // #4063: an operator link-pool entry has no CustomDomain row, so it is
+    // never in custom_domains. Persistence is gated on custom_domains ∪
+    // link_domains; without the union the selection was dropped on both sides
+    // and the picker reset on every reload. The server admits it via
+    // DomainStrategy.canonical_host? (update_domain_context.rb:97).
+    it('selecting an operator link-pool domain stores it and triggers POST', async () => {
+      const { bootstrapStore } = setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'ge-abcd123.eu.otshosted.com',
+        canonical_domain: 'ge-abcd123.eu.otshosted.com',
+        display_domain: 'ge-abcd123.eu.otshosted.com',
+      });
+      bootstrapStore.link_domains = ['a.example.com', 'b.example.com'];
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext, currentContext } = useDomainContext();
+
+      await waitForInit();
+
+      mockApiPost.mockClear();
+
+      await setContext('b.example.com');
+
+      expect(currentContext.value.domain).toBe('b.example.com');
+      expect(mockSessionStorage.getItem('domainContext')).toBe('b.example.com');
+      expect(mockApiPost).toHaveBeenCalledWith('/api/account/update-domain-context', {
+        domain: 'b.example.com',
+      });
+
+      // A sibling of a pool member is not a member: the server would reject it,
+      // so nothing is persisted (setContext also rejects it as unavailable).
+      mockApiPost.mockClear();
+      await setContext('c.example.com');
+
+      expect(mockApiPost).not.toHaveBeenCalled();
+      expect(mockSessionStorage.getItem('domainContext')).toBe('b.example.com');
     });
   });
 
