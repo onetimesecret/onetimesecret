@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "הדוא״ל שלך אומת — כעת באפשרותך להתחבר.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "הגדר סיסמה",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "לחשבון שלך עדיין אין סיסמה. נשלח לך קישור מאובטח בדוא\"ל להגדרת אחת כדי שתוכל גם להיכנס ישירות.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "שלח קישור הגדרה",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "נשלח אליך דוא\"ל עם קישור להגדרת סיסמה לחשבון שלך",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "כבר קיים חשבון עם כתובת דוא\"ל זו אך הוא אינו מקושר לשיטת כניסה זו. היכנס עם השיטה הקיימת שלך, ואז קשר ספק זה תחת הגדרות אבטחה ← זהויות מחוברות.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "לא ניתן לחבר זהות זו. ייתכן שהחיבור הוחל בדומיין שגוי, או שההפעלה שלך פגה. היכנס שוב, ואז חבר אותה מהגדרות החשבון שלך.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "לא יכולנו לסיים להוסיף אותך לארגון שלך. צור קשר עם המנהל שלך.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "לא יכולנו לקשר שיטת כניסה זו. היכנס עם הסיסמה הקיימת שלך, ואז חבר ספק זה תחת הגדרות אבטחה ← זהויות מחוברות.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "בדוק את תיבת הדואר הנכנס שלך — שלחנו לך קישור בדוא\"ל לאישור חיבור החשבון שלך. פתח אותו כדי לסיים את הכניסה.",
+    "source_hash": "b251c8f3"
   }
 }
