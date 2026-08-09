@@ -67,10 +67,15 @@ with no work produce no row, and reviewed translations are never re-enqueued.
 For a locale with no content/ directory yet, every key is missing, so the
 default and --all produce exactly the same tasks: a new language needs no flag.
 
+Without --apply this is a preview: it prints what would be enqueued and writes
+nothing. Writing is not idempotent for drained levels — a conflicting completed
+row is reopened (status back to pending, its translations_json discarded) — so
+the write is an explicit decision, not the default.
+
 Examples:
-    python3 locales/scripts/i18n tasks create fr_CA            # catch up to the en source
-    python3 locales/scripts/i18n tasks create eo --dry-run     # preview without writing
-    python3 locales/scripts/i18n tasks create de --all         # re-enqueue EVERYTHING (rare)
+    python3 locales/scripts/i18n tasks create fr_CA            # preview the catch-up (no writes)
+    python3 locales/scripts/i18n tasks create eo --apply       # actually enqueue the tasks
+    python3 locales/scripts/i18n tasks create de --all --apply # re-enqueue EVERYTHING (rare)
         """,
     )
     c.add_argument(
@@ -78,9 +83,19 @@ Examples:
         help="Target locale code (e.g., 'eo', 'fr_CA', 'de')",
     )
     c.add_argument(
+        "--apply",
+        action="store_true",
+        help=(
+            "Write the generated tasks to the DB. Without it, create only "
+            "previews. Reopens any conflicting completed level (status back to "
+            "pending, its unexported translations discarded), so export before "
+            "re-running create if you want that work kept."
+        ),
+    )
+    c.add_argument(
         "--dry-run",
         action="store_true",
-        help="Show what would be generated without writing",
+        help=argparse.SUPPRESS,  # now the default; accepted so old callers work
     )
     c.add_argument(
         "--all",
@@ -568,18 +583,23 @@ def generate_tasks(
 def insert_tasks(tasks: list[TranslationTask]) -> int:
     """Insert translation tasks into the database.
 
-    Upserts on (file, level_path, locale): inserts new levels, and for levels
-    that already exist refreshes keys_json + updated_at. It never touches status
-    or translations_json, so in-flight / completed work is preserved.
+    Upserts on (file, level_path, locale): inserts new levels, refreshes
+    keys_json + source_hashes_json + updated_at on ones that already exist.
 
-    ``source_hashes_json`` is refreshed on conflict ONLY for non-completed rows.
-    A completed row's snapshot is the en hash its translation was actually made
-    against — the watermark export must stamp. Refreshing it to the current en
-    hash on a re-run (after en drifted post-translation, pre-export) would make
-    export stamp a hash newer than the translation, falsely marking a stale key
-    current and hiding it forever. Freezing it on completed rows keeps the
-    watermark truthful; the drifted key stays stale and a fresh-DB catch-up
-    re-enqueues it.
+    A conflicting **completed** row is REOPENED: status back to ``pending`` and
+    ``translations_json`` cleared. ``generate_tasks`` only emits a level when it
+    has real work (missing/stale keys, or ``--all``), so a conflict with a
+    completed row always means that work must be redone — leaving the row
+    completed would strand it: ``tasks next`` never re-serves it, and its old
+    translations no longer match the refreshed key set. The clobber window is
+    deliberate: a completed level whose translations were never exported loses
+    them and is re-queued, so export before re-running ``create`` (the CLI
+    defaults to a dry run and requires ``--apply`` to make this an explicit
+    decision).
+
+    ``pending`` rows just get their keys/hashes refreshed; ``in_progress`` and
+    ``skipped`` keep their status — an active claim isn't yanked, and a
+    row-level skip is an operator decision create shouldn't override.
 
     Returns:
         Count of inserted/updated rows.
@@ -619,10 +639,16 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
                     VALUES (?, ?, ?, ?, ?)
                     ON CONFLICT(file, level_path, locale) DO UPDATE SET
                         keys_json = excluded.keys_json,
-                        source_hashes_json = CASE
+                        source_hashes_json = excluded.source_hashes_json,
+                        status = CASE
                             WHEN translation_tasks.status = 'completed'
-                                THEN translation_tasks.source_hashes_json
-                            ELSE excluded.source_hashes_json
+                                THEN 'pending'
+                            ELSE translation_tasks.status
+                        END,
+                        translations_json = CASE
+                            WHEN translation_tasks.status = 'completed'
+                                THEN NULL
+                            ELSE translation_tasks.translations_json
                         END,
                         updated_at = datetime('now')
                     """,
@@ -654,6 +680,16 @@ def _create_handler(args) -> int:
         )
         return 1
 
+    # Same for `--dry-run`: previewing is the default, writing is opt-in.
+    if args.apply and args.dry_run:
+        print(
+            "Error: --apply and --dry-run are opposites; --dry-run is the "
+            "default, so pass neither to preview.",
+            file=sys.stderr,
+        )
+        return 1
+
+    dry_run = not args.apply
     missing_only = not args.all
     # Only the dangerous mode gets a marker: the default is unremarkable, and a
     # full re-translation must never be something you scroll past.
@@ -663,7 +699,7 @@ def _create_handler(args) -> int:
 
     tasks, stats = generate_tasks(
         locale=args.locale,
-        dry_run=args.dry_run,
+        dry_run=dry_run,
         missing_only=missing_only,
     )
 
@@ -677,9 +713,9 @@ def _create_handler(args) -> int:
         print(f"    missing (new/untranslated): {stats['missing_keys']}")
         print(f"    stale (en changed since):   {stats['stale_keys']}")
 
-    if args.dry_run:
+    if dry_run:
         print()
-        print("Dry run - no changes made.")
+        print("Preview only - no changes made. Pass --apply to write.")
         return 0
 
     if not tasks:
