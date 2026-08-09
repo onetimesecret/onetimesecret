@@ -87,6 +87,7 @@ SCHEMA_VERSIONS = [
     ("006", "rename_columns"),
     ("007", "translation_issues"),
     ("008", "task_source_hashes"),
+    ("009", "task_exported_at"),
 ]
 
 
@@ -113,6 +114,21 @@ def _ensure_task_columns(conn: sqlite3.Connection) -> list[str]:
             "ALTER TABLE translation_tasks ADD COLUMN source_hashes_json TEXT"
         )
         added.append("source_hashes_json")
+
+    # 009_task_exported_at: export receipt guarding the create/reopen clobber.
+    #
+    # Deliberately NOT backfilled. Every pre-existing completed row lands on
+    # NULL — "not known to be exported" — even though most of them almost
+    # certainly were. That direction is the safe one: a false NULL costs one
+    # refusal that `tasks export` (idempotent: it rewrites identical content and
+    # stamps the receipt) or `--reopen` clears, while a false stamp would
+    # silently drop the protection for exactly the unexported work this column
+    # exists to save.
+    if "exported_at" not in existing:
+        cursor.execute(
+            "ALTER TABLE translation_tasks ADD COLUMN exported_at TEXT"
+        )
+        added.append("exported_at")
 
     return added
 

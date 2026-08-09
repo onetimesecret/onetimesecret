@@ -23,14 +23,22 @@ pnpm run locales:hashes:apply     # writes hashes + seeds watermarks
 python3 locales/scripts/i18n db init      # no-op if DB exists
 python3 locales/scripts/i18n db migrate
 
-# 3. Drain all locales with parallel agents (creates tasks --missing-only,
+# 3. Drain all locales with parallel agents (creates tasks — missing + stale only,
 #    translates, verifies; agents report glossary candidates, they don't write them)
 /i18n:translate-parallel-agents        # installed from locales/slash_commands/
 
-# 4. Export every fully drained locale, then the shared tables once
-locales/scripts/export-all.sh                              # preview (dry-run)
-locales/scripts/export-all.sh --execute                   # export drained locales + db export
-# Skips any locale with pending > 0; run per-locale manually if you need finer control:
+# 4. Export every drained AND clean locale, then the shared tables once
+locales/scripts/export-all.sh                              # preview (dry-run, still runs the audit gate)
+locales/scripts/export-all.sh --execute                   # export gated locales + db export
+# Gate: exports a locale only when pending == 0 AND `tasks audit <locale> --strict`
+# is clean (no stranded in_progress row, no key-set/blank/token defect, and at least
+# one completed row actually checked; the en-leak check is advisory and never gates).
+# After each export it re-checks the written content with
+# `validate variables --locale <locale>` plus the register lint (skipped when
+# .translation-rules/ or generated/i18n/.resolved/ is absent). Failing locales are
+# skipped or reported dirty, nothing is reverted, the loop still finishes every
+# locale, and the script exits non-zero. Per-locale, if you need finer control:
+#   python3 locales/scripts/i18n tasks audit <locale> --strict
 #   python3 locales/scripts/i18n tasks export <locale>
 #   python3 locales/scripts/i18n db export
 
@@ -42,7 +50,8 @@ locales/scripts/review-locale-branches.sh validate         # deterministic check
 
 Two rules that bite:
 
-- **`0 pending` ≠ current.** A drained queue can hide stale keys (English changed after translation). Trust the `--stats` coverage line (current/stale/missing/skipped), not the queue.
+- **Export before you re-create.** `tasks create --apply` reopens a completed level that still has work, discarding its translations. That is free once the level was exported (the text is in `content/`), and refused outright when it wasn't — exit 3, nothing written, offending levels named. Clear it with `tasks export <locale>` to keep the work or `--reopen` to discard it on purpose. `create-all.sh` reports blocked locales at the end and exits non-zero rather than aborting the batch.
+- **`0 pending` proves nothing — neither current nor clean.** A drained queue can hide stale keys (English changed after translation): trust the `--stats` coverage line (current/stale/missing/skipped), not the queue. It can also hide bad writes (wrong key set, dropped placeholder, English left in place): `python3 locales/scripts/i18n tasks audit <locale> --strict` is the cleanliness signal, and it's the gate `export-all.sh` enforces.
 - **Never hand-author hashes.** New en keys are bare `{"text": "..."}`; `locales:hashes:apply` does the rest.
 
 ## Content format
