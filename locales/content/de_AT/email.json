@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Sie haben diese Nachricht erhalten, weil %{sender_email} %{product_name} verwendet hat, um eine Nachricht mit Ihnen zu teilen. Falls Sie sie nicht erwartet haben, können Sie diese E-Mail bedenkenlos ignorieren.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Verknüpfung von %{provider} mit Ihrem %{product_name}-Konto bestätigen",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "SSO-Anmeldung bestätigen",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Jemand hat sich mit %{provider} unter der E-Mail-Adresse %{email_address} angemeldet. Um die Verbindung von %{provider} mit Ihrem %{product_name}-Konto abzuschließen, bestätigen Sie unten.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "%{provider} bestätigen und verknüpfen",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Oder kopieren Sie diesen Link:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Dieser Link läuft in 15 Minuten ab und kann nur einmal verwendet werden.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Wenn Sie nicht versucht haben, sich mit %{provider} anzumelden, können Sie diese E-Mail ignorieren — es wird nichts mit Ihrem Konto verbunden.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Support-Team",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "PS: Diese E-Mail wurde an %{email_address} gesendet.",
+    "source_hash": "8ab1dbea"
   }
 }
