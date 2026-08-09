@@ -258,11 +258,7 @@ module V2::Logic
 
         unless Onetime::CustomDomain.valid?(potential_domain)
           secret_logger.info 'Invalid share domain',
-            {
-              domain: potential_domain,
-              action: 'validate_share_domain',
-              result: :invalid,
-            }
+            { domain: potential_domain, action: 'validate_share_domain', result: :invalid }
           return
         end
 
@@ -609,8 +605,8 @@ module V2::Logic
       # on the input, DomainParser on the configured hosts, so
       # 'Short.Example.COM' matches a pool entry of 'short.example.com'.
       #
-      # Keep textually parallel with the V1 implementation
-      # (apps/api/v1/logic/secrets/base_secret_action.rb).
+      # Keep logically parallel with the V1 implementation (apps/api/v1/...);
+      # logging differs because V1 has no structured secret_logger.
       #
       # @param domain [String] The requested share domain
       # @return [Boolean] true when the domain is an operator link-pool host
@@ -623,7 +619,8 @@ module V2::Logic
       rescue PublicSuffix::Error, Onetime::Problem => ex
         # Unparseable input is not a pool member. Fall through to the
         # CustomDomain lookup, which rejects it as an unknown domain.
-        OT.le "[link_pool_host?] #{ex.message} for `#{domain}`"
+        secret_logger.info 'Unparseable share domain for link pool check',
+          { domain: domain, action: 'link_pool_host', result: :unparseable, error: ex.message }
         false
       end
 

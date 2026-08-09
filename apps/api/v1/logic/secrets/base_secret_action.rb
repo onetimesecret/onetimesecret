@@ -544,8 +544,9 @@ module V1::Logic
       # on the input, DomainParser on the configured hosts, so
       # 'Short.Example.COM' matches a pool entry of 'short.example.com'.
       #
-      # Keep textually parallel with the V2 implementation
-      # (apps/api/v2/logic/secrets/base_secret_action.rb).
+      # Keep logically parallel with the V2 implementation
+      # (apps/api/v2/logic/secrets/base_secret_action.rb); logging differs
+      # because V2 uses the structured secret_logger.
       #
       # @param domain [String] The requested share domain
       # @return [Boolean] true when the domain is an operator link-pool host
