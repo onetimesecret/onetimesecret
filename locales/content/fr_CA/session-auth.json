@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "Votre courriel a été vérifié — vous pouvez maintenant vous connecter.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Définir un mot de passe",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Votre compte n'a pas encore de mot de passe. Nous vous enverrons un lien sécurisé par courriel pour en définir un afin que vous puissiez également vous connecter directement.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Envoyer le lien de configuration",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Un courriel vous a été envoyé avec un lien pour définir un mot de passe pour votre compte",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Un compte avec cette adresse courriel existe déjà mais n'est pas lié à cette méthode de connexion. Connectez-vous avec votre méthode existante, puis liez ce fournisseur sous Paramètres de sécurité → Identités connectées.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Cette identité n'a pas pu être connectée. La connexion a peut-être été démarrée sur le mauvais domaine, ou votre session a expiré. Veuillez vous reconnecter, puis connectez-la depuis les paramètres de votre compte.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Nous n'avons pas pu terminer votre ajout à votre organisation. Veuillez contacter votre administrateur.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Nous n'avons pas pu lier cette méthode de connexion. Connectez-vous avec votre mot de passe existant, puis connectez ce fournisseur sous Paramètres de sécurité → Identités connectées.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Vérifiez votre boîte de réception — nous vous avons envoyé un lien par courriel pour confirmer la connexion de votre compte. Ouvrez-le pour terminer la connexion.",
+    "source_hash": "b251c8f3"
   }
 }
