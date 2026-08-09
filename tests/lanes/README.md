@@ -92,7 +92,11 @@ launched from a dev shell, a lane directory, or CI.
 
 That scrub needs bash 5 — `mapfile`, plus empty-array expansion under
 `set -u` — so the runner checks `BASH_VERSINFO` before anything else and
-refuses to start on an older shell. Stock macOS is bash 3.2 and
+refuses to start on an older shell. The floor is pinned in
+`.bash-version` at the repo root (next to `.ruby-version` and
+`.node-version`); the runner, `bin/setup --doctor`, and the
+hermetic-boundary spec all read it from there rather than each carrying
+their own copy of the number. Stock macOS is bash 3.2 and
 `#!/usr/bin/env bash` finds it, so without the check a Mac contributor
 gets `mapfile: command not found` from inside the boundary block rather
 than a sentence telling them what to install. The fix is `brew install
@@ -129,9 +133,10 @@ list — see the scrub block in `tests/lanes/run` for the one-line
 justification of each.
 
 The container-daemon variables — `DOCKER_HOST`, `DOCKER_CONTEXT`,
-`DOCKER_CERT_PATH`, `DOCKER_TLS_VERIFY`, `CONTAINER_HOST`,
-`XDG_RUNTIME_DIR` — are **not** on that list and never reach the test
-process. The runner snapshots them into shell variables before the scrub
+`DOCKER_CONFIG`, `DOCKER_CERT_PATH`, `DOCKER_TLS_VERIFY`,
+`DOCKER_API_VERSION`, `CONTAINER_HOST`, `CONTAINER_CONNECTION`,
+`CONTAINER_SSHKEY`, `CONTAINERS_CONF`, `XDG_RUNTIME_DIR` — are **not** on
+that list and never reach the test process. The runner snapshots them into shell variables before the scrub
 and hands them to the `docker compose` / `podman compose` autostart
 invocation alone. Without the snapshot, a contributor whose daemon is
 colima, OrbStack, or rootless podman would have autostart talk to the

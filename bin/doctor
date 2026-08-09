@@ -2,24 +2,27 @@
 
 # bin/doctor — check the environment: diff(manifest, reality) + live probes.
 #
-#   bin/doctor                       Contributor context (default): includes
-#                                    dev tooling checks (overmind, direnv, ...).
-#   bin/doctor --operator            Operator context: production-instance
-#                                    checks only; a down service is a failure.
-#   bin/doctor --operator --bundle   Sanitized diagnostic archive for support
-#                                    requests (env var NAMES only, never values).
-#
 # Thin wrapper over bin/setup --doctor — one code path, two front doors.
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+usage() {
+  cat <<'USAGE'
+bin/doctor — check the environment: diff(manifest, reality) + live probes.
+
+  bin/doctor                       Contributor context (default): includes
+                                   dev tooling checks (overmind, direnv, ...).
+  bin/doctor --operator            Operator context: production-instance
+                                   checks only; a down service is a failure.
+  bin/doctor --operator --bundle   Sanitized diagnostic archive for support
+                                   requests (env var NAMES only, never values).
+USAGE
+}
+
 case "${1:-}" in
-  --help|-h|help)
-    sed -n '3,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
-    exit 0
-    ;;
+  --help|-h|help) usage; exit 0 ;;
 esac
 
 exec "$ROOT/bin/setup" --doctor "$@"

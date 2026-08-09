@@ -25,23 +25,45 @@
 # task process via BASH_FUNC_*%%, so an unset function is just as capable
 # of shadowing `git`/`bundle`/`docker`/etc. as a leaked variable.
 
-# ── bash 5 floor ────────────────────────────────────────────────────────
+# ── bash major-version floor ────────────────────────────────────────────
 # The scrub below needs `mapfile` (bash 4) and expands the arrays it fills
 # under `set -u`, which is only safe from 4.4 on. Stock macOS ships
 # 3.2.57, and `#!/usr/bin/env bash` happily picks it: the failure there is
 # "mapfile: command not found" followed by a run that looks like it
-# scrubbed nothing, which is worse than not running at all. Require 5 and
-# say so.
+# scrubbed nothing, which is worse than not running at all. Require the
+# pinned major and say so.
 #
-# This guard sits above `set -euo pipefail` and uses only POSIX test and
-# ${BASH_VERSINFO:-0} (element 0, valid in 3.2) so the shell that must
-# read the message can parse and execute it. Nothing bash-4+ may move
-# above this block.
-if [ "${BASH_VERSINFO:-0}" -lt 5 ]; then
-  echo "error: tests/lanes/run requires bash 5+ (found ${BASH_VERSION:-unknown})" >&2
+# The floor lives in .bash-version, next to .ruby-version and
+# .node-version, because two other places enforce it and a floor that is
+# a literal in each of them drifts: bin/setup --doctor green-lights a
+# contributor's bash while the first lane run fails on it (or FAILs a
+# fresh clone that would in fact work — fresh-clone.yml treats any doctor
+# failure as a red required job). One pin, three readers.
+#
+# This guard sits above `set -euo pipefail` and uses only POSIX test, the
+# `read` builtin, `${BASH_SOURCE[0]}` and `${BASH_VERSINFO:-0}` (element
+# 0, valid in 3.2) so the shell that must read the message can parse and
+# execute it. Nothing bash-4+ may move above this block. `_lanes_floor` is
+# the one name assigned before the scrub — see the ORDERING INVARIANT
+# below — and it is unset again the moment the comparison is done.
+_lanes_floor=''
+# Redirection order matters: `2>/dev/null` has to be in place before the
+# input redirection is attempted, or a missing pin file prints bash's own
+# "No such file or directory" ahead of the message written for this case.
+read -r _lanes_floor 2>/dev/null < "${BASH_SOURCE[0]%/*}/../../.bash-version" || true
+case "${_lanes_floor}" in
+  ''|*[!0-9]*)
+    echo "error: tests/lanes/run cannot read a bash major version from .bash-version" >&2
+    echo "  expected a bare major version (e.g. 5) at the repo root" >&2
+    exit 1
+    ;;
+esac
+if [ "${BASH_VERSINFO:-0}" -lt "${_lanes_floor}" ]; then
+  echo "error: tests/lanes/run requires bash ${_lanes_floor}+ (found ${BASH_VERSION:-unknown})" >&2
   echo "  macOS ships bash 3.2; install a current one: brew install bash" >&2
   exit 1
 fi
+unset -v _lanes_floor
 
 set -euo pipefail
 
@@ -58,8 +80,15 @@ set -euo pipefail
 # environment.
 # xtrace/verbose are not a hermeticity break, but an imported xtrace would
 # echo every sourced lane env value into stderr/CI logs — a secret channel.
-set +o allexport +o noglob +o posix +o xtrace +o verbose
-shopt -u expand_aliases failglob nullglob
+#
+# nocasematch is the subtle one: it makes `case`/`[[ =~ ]]` match without
+# regard to case, so an imported one turns the keep-list `case` below into a
+# case-insensitive filter and a dev shell's `path`/`ci`/`home` (homograph
+# names bash treats as entirely separate variables) sail through the scrub
+# into the task process. extdebug changes function-return semantics. Both
+# are shopt-only, so `set +o` above cannot reach them.
+builtin set +o allexport +o noglob +o posix +o xtrace +o verbose
+builtin shopt -u expand_aliases failglob nullglob nocasematch extdebug
 
 # ── Hermetic boundary: the ONE env scrub block ──────────────────────────
 # Allowlist, not denylist: every exported var the calling shell carries is
@@ -99,15 +128,27 @@ shopt -u expand_aliases failglob nullglob
 # abort on `${LANE}` under `set -u`. That is not hypothetical:
 # run-test-lane/action.yml passes the lane name as step env `LANE`.
 # Every assignment below this block is a fresh, unexported shell variable
-# the scrub can no longer reach. Nothing may be assigned above it.
+# the scrub can no longer reach. The only assignment above it is the
+# version guard's `_lanes_floor`, which is unset again before this line —
+# it holds nothing the run needs later, so the scrub has nothing to break.
+# Nothing else may be assigned above it.
 
 # The scrub's own working variables get the same treatment for the same
 # reason: a caller who exported `_lanes_debug` would otherwise have it
 # cleared out from under the loop that is reading it. Unset first so the
 # assignments that follow start from unexported names.
-unset -v _lanes_debug _lanes_daemon_env _lanes_name _lanes_all_exported \
-         _lanes_var _lanes_all_exported_funcs _lanes_func \
-         _lanes_stubborn _lanes_strip 2>/dev/null || true
+#
+# Every builtin the scrub itself runs is invoked as `builtin <name>`, and the
+# one external it needs (`env`, at the exec boundary) after the function table
+# is already empty. Function lookup precedes builtin lookup in bash, so an
+# imported function named `compgen`/`declare`/`unset` would otherwise BE the
+# scrub — and a scrub that returns nothing looks exactly like a clean
+# environment. (A function named `builtin` itself would still win; bash offers
+# no lookup-proof primitive to bootstrap from, and unlike `awk` or `grep` that
+# name does not occur in dev-shell wrappers by accident.)
+builtin unset -v _lanes_debug _lanes_daemon_env _lanes_name _lanes_all_exported \
+                 _lanes_var _lanes_all_exported_funcs _lanes_func _lanes_attrs \
+                 _lanes_kw _lanes_entry _lanes_stubborn _lanes_strip 2>/dev/null || true
 
 # Snapshot BEFORE unsetting — mutating exported-var state while iterating
 # compgen -e's process substitution is a bug source. Same reason the debug
@@ -131,14 +172,22 @@ _lanes_debug="${LANES_DEBUG_ENV:-}"
 # the task process; these reach a single `env ... docker compose` call and
 # stop there. An exported-but-empty value is meaningful (it overrides a
 # config default), so only genuinely-unset names are skipped.
+#
+# DOCKER_CONTEXT without DOCKER_CONFIG is a half-snapshot: the context name
+# is resolved out of the config directory, so keeping one and dropping the
+# other makes the client look up `colima` in the default ~/.docker and fail
+# with "context not found". The podman pair (CONTAINER_CONNECTION, and
+# CONTAINER_SSHKEY for the key it authenticates with) is the same story.
 _lanes_daemon_env=()
-for _lanes_name in DOCKER_HOST DOCKER_CONTEXT DOCKER_CERT_PATH \
-                   DOCKER_TLS_VERIFY CONTAINER_HOST XDG_RUNTIME_DIR; do
+for _lanes_name in DOCKER_HOST DOCKER_CONTEXT DOCKER_CONFIG DOCKER_CERT_PATH \
+                   DOCKER_TLS_VERIFY DOCKER_API_VERSION \
+                   CONTAINER_HOST CONTAINER_CONNECTION CONTAINER_SSHKEY \
+                   CONTAINERS_CONF XDG_RUNTIME_DIR; do
   if [[ -n "${!_lanes_name+set}" ]]; then
     _lanes_daemon_env+=("${_lanes_name}=${!_lanes_name}")
   fi
 done
-unset _lanes_name
+builtin unset _lanes_name
 
 # Names `unset` could not clear — readonly exported vars (SHELLOPTS when
 # the caller exported it, a dev shell's `readonly -x`) and readonly
@@ -147,7 +196,7 @@ unset _lanes_name
 # survival here never becomes a leak there.
 _lanes_stubborn=()
 
-mapfile -t _lanes_all_exported < <(compgen -e)
+builtin mapfile -t _lanes_all_exported < <(builtin compgen -e)
 
 for _lanes_var in "${_lanes_all_exported[@]}"; do
   case "${_lanes_var}" in
@@ -162,7 +211,7 @@ for _lanes_var in "${_lanes_all_exported[@]}"; do
   # unset fail; don't abort under set -e. Not needed for anything bash
   # itself exports by default (verified: BASH_*, UID, EUID, PPID, RANDOM
   # etc. are shell specials, not exported — compgen -e never lists them).
-  unset -- "${_lanes_var}" 2>/dev/null || true
+  builtin unset -- "${_lanes_var}" 2>/dev/null || true
   if [[ -n "${!_lanes_var+set}" ]]; then
     _lanes_stubborn+=("${_lanes_var}")
     if [[ -n "${_lanes_debug}" ]]; then
@@ -170,7 +219,7 @@ for _lanes_var in "${_lanes_all_exported[@]}"; do
     fi
   fi
 done
-unset _lanes_all_exported _lanes_var
+builtin unset _lanes_all_exported _lanes_var
 
 # Exported shell functions are invisible to `compgen -e` (they live in the
 # environment as BASH_FUNC_name%%=() {...}, not as ordinary vars) so the
@@ -185,8 +234,23 @@ unset _lanes_all_exported _lanes_var
 # debugging dev shell produces. Match on the presence of `x` instead, which
 # still leaves plain `-f` functions alone — a non-exported function cannot
 # cross the exec, so it is not a hazard here.
-mapfile -t _lanes_all_exported_funcs < <(declare -F | awk '$2 ~ /^-f[a-z]*x/ {print $3}')
-for _lanes_func in "${_lanes_all_exported_funcs[@]}"; do
+#
+# Split with builtins rather than piping `declare -F` through awk: awk is a
+# command word, so an exported function named `awk` would be the filter that
+# decides which exported functions get scrubbed. Its (empty) output is
+# indistinguishable from "no exported functions", so a single `awk() { :; };
+# export -f awk` in a dev shell disabled this entire block — including for the
+# `git`/`bundle`/`docker` shadowing this comment describes.
+_lanes_all_exported_funcs=()
+while builtin read -r _lanes_kw _lanes_attrs _lanes_func; do
+  # `declare -F` prints `declare <attrs> <name>`; keep the ones carrying `x`.
+  case "${_lanes_attrs}" in
+    -f*x*) _lanes_all_exported_funcs+=("${_lanes_func}") ;;
+  esac
+done < <(builtin declare -F)
+builtin unset _lanes_kw _lanes_attrs
+
+for _lanes_func in ${_lanes_all_exported_funcs[@]+"${_lanes_all_exported_funcs[@]}"}; do
   if [[ -n "${_lanes_debug}" ]]; then
     echo "[lane:scrub] unset -f ${_lanes_func}" >&2
   fi
@@ -194,15 +258,15 @@ for _lanes_func in "${_lanes_all_exported_funcs[@]}"; do
   # re-materialize it in the task process from its BASH_FUNC_<name>%%
   # environment entry — shadowing the real `bundle`/`rake`/`docker` for
   # the whole lane run. Strip that entry at the exec boundary instead.
-  unset -f -- "${_lanes_func}" 2>/dev/null || true
-  if declare -F -- "${_lanes_func}" >/dev/null 2>&1; then
+  builtin unset -f -- "${_lanes_func}" 2>/dev/null || true
+  if builtin declare -F -- "${_lanes_func}" >/dev/null 2>&1; then
     _lanes_stubborn+=("BASH_FUNC_${_lanes_func}%%")
     if [[ -n "${_lanes_debug}" ]]; then
       echo "[lane:scrub] strip-at-exec ${_lanes_func} (readonly function)" >&2
     fi
   fi
 done
-unset _lanes_all_exported_funcs _lanes_func _lanes_debug
+builtin unset _lanes_all_exported_funcs _lanes_func _lanes_debug
 
 # ── Locale pin (runner-only) ─────────────────────────────────────────────
 # The scrub just cleared LANG/LC_ALL, so without this a lane run falls to
@@ -348,4 +412,50 @@ _lanes_strip=()
 for _lanes_name in ${_lanes_stubborn[@]+"${_lanes_stubborn[@]}"}; do
   _lanes_strip+=(-u "${_lanes_name}")
 done
+
+# The scrub above can only reach names bash can hold in a variable. execve(2)
+# imposes no such rule: `env 'FOO-BAR=x' tests/lanes/run ...` puts an entry in
+# the environment that `compgen -e` does not enumerate and `unset` cannot
+# clear, yet bash forwards it verbatim across both execs — and Ruby's ENV
+# reads it just fine, so it is a leak in every sense that matters here. Ask
+# the real environment (via env(1), which sees exactly what the child would
+# get) for the entries bash cannot name, and add them to the same strip list.
+# Anything left matching BASH_FUNC_*%% is caught here too: those are readonly
+# exported functions the loop above already listed, and re-listing a name is
+# harmless.
+#
+# `builtin command env`, not bare `env`: this is an ordinary command word, so
+# bash resolves a function of that name first, and the function scrub above
+# cannot clear a readonly one (`unset -f` fails; the readonly attribute is
+# only reachable via the caller's BASH_ENV, which is how the boundary spec
+# builds its readonly fixture). An `env` function here would silently return
+# nothing and turn this loop into a no-op — same failure shape as the `awk`
+# one. The `exec` below needs no such guard: exec's operand is not subject to
+# function lookup, verified with `env() { :; }; exec env echo x`.
+#
+# `env -0` is GNU/BSD; busybox env has no such flag. Probe for it rather than
+# letting an unsupported flag turn the loop into that same silent no-op — on
+# a shell without it the names below cannot be enumerated at all, and the run
+# should say so instead of implying a strip that did not happen.
+#
+# The subshell around the probe is load-bearing, not style: `builtin command
+# <external>` loses errexit's condition-context suppression in bash 5.2, so a
+# bare `if builtin command env -0 ...` exits the whole runner (status 125)
+# the moment the flag is unsupported — the exact case being probed for, and
+# `|| true` does not rescue it either. Running it in a subshell keeps the
+# failure where it belongs, in `$?`. Verified: `builtin command false` under
+# `set -e` exits even as an if-condition; `(builtin command false)` does not.
+if (builtin command env -0 </dev/null >/dev/null 2>&1); then
+  while IFS= builtin read -r -d '' _lanes_entry; do
+    _lanes_name="${_lanes_entry%%=*}"
+    if [[ "${_lanes_name}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+      continue
+    fi
+    _lanes_strip+=(-u "${_lanes_name}")
+  done < <(builtin command env -0)
+else
+  echo "[lane:${LANE}] warning: env(1) does not support -0; environment entries" >&2
+  echo "  whose names are not shell identifiers cannot be enumerated or stripped" >&2
+fi
+
 exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"

@@ -789,40 +789,55 @@ doctor_toolchain() {
       doc_warn "node_modules missing" "bin/setup"
     fi
 
-    # tests/lanes/run hard-requires bash 5 (mapfile, plus 4.4+ empty-array
-    # expansion under set -u). Contributor-context only: this script and the
-    # operator paths stay 3.2-clean on purpose, so an operator has no reason
-    # to install a newer bash. What matters is the bash that `#!/usr/bin/env
-    # bash` will resolve on PATH, not the one interpreting this script — on
-    # macOS those differ, and checking the wrong one reports success right up
-    # until the first lane run fails.
-    local lane_bash lane_bash_major lane_bash_full bash_fix
-    lane_bash=$(command -v bash 2>/dev/null || true)
-    lane_bash_major=""
-    lane_bash_full=""
-    if [[ -n "$lane_bash" ]]; then
-      lane_bash_major=$("$lane_bash" -c 'echo "${BASH_VERSINFO[0]:-}"' 2>/dev/null || true)
-      lane_bash_full=$("$lane_bash" -c 'echo "${BASH_VERSION:-}"' 2>/dev/null || true)
+    # tests/lanes/run hard-requires a modern bash (mapfile, plus 4.4+
+    # empty-array expansion under set -u). Contributor-context only: this
+    # script and the operator paths stay 3.2-clean on purpose, so an operator
+    # has no reason to install a newer bash. What matters is the bash that
+    # `#!/usr/bin/env bash` will resolve on PATH, not the one interpreting
+    # this script — on macOS those differ, and checking the wrong one reports
+    # success right up until the first lane run fails.
+    #
+    # The floor itself comes from .bash-version, the same pin file the
+    # runner's own guard reads (alongside .ruby-version/.node-version). A
+    # literal here would be a second copy of the number, and the failure mode
+    # of drift is the gap this check exists to close: doctor green-lights a
+    # bash the runner then rejects.
+    local lane_bash lane_bash_major lane_bash_full bash_fix bash_floor
+    bash_floor=""
+    if [[ -f .bash-version ]]; then
+      bash_floor=$(tr -d '[:space:]' < .bash-version)
     fi
-    if [[ "$(uname -s)" == "Darwin" ]]; then
-      bash_fix="brew install bash (Apple's /bin/bash is frozen at 3.2)"
+    if [[ ! "$bash_floor" =~ ^[0-9]+$ ]]; then
+      doc_fail ".bash-version missing or not a bare major version — cannot check the tests/lanes/run bash floor" \
+        "restore .bash-version at the repo root (a single major version, e.g. 5)"
     else
-      bash_fix="install bash 5+ and put it ahead of any older bash on PATH"
-    fi
-    # The `=~` test gates the arithmetic one, and the order matters: `[[ ]]`
-    # short-circuits, and under `set -euo pipefail` an arithmetic comparison
-    # against a non-numeric string is a fatal "unbound variable" error, not a
-    # false result. Without the gate, a bash on PATH whose probe prints
-    # anything unexpected (a wrapper script's banner, a shell-init warning on
-    # stdout) would abort the whole --doctor run mid-report instead of failing
-    # this one check — and fresh-clone.yml asserts zero doctor failures, so
-    # that takes the job down with no usable report.
-    if [[ -z "$lane_bash_major" ]]; then
-      doc_fail "bash not found on PATH — tests/lanes/run cannot start" "$bash_fix"
-    elif [[ "$lane_bash_major" =~ ^[0-9]+$ && "$lane_bash_major" -ge 5 ]]; then
-      doc_ok "bash $lane_bash_full at $lane_bash (>= 5, required by tests/lanes/run)"
-    else
-      doc_fail "bash $lane_bash_full at $lane_bash — tests/lanes/run requires 5+" "$bash_fix"
+      lane_bash=$(command -v bash 2>/dev/null || true)
+      lane_bash_major=""
+      lane_bash_full=""
+      if [[ -n "$lane_bash" ]]; then
+        lane_bash_major=$("$lane_bash" -c 'echo "${BASH_VERSINFO[0]:-}"' 2>/dev/null || true)
+        lane_bash_full=$("$lane_bash" -c 'echo "${BASH_VERSION:-}"' 2>/dev/null || true)
+      fi
+      if [[ "$(uname -s)" == "Darwin" ]]; then
+        bash_fix="brew install bash (Apple's /bin/bash is frozen at 3.2)"
+      else
+        bash_fix="install bash ${bash_floor}+ and put it ahead of any older bash on PATH"
+      fi
+      # The `=~` test gates the arithmetic one, and the order matters: `[[ ]]`
+      # short-circuits, and under `set -euo pipefail` an arithmetic comparison
+      # against a non-numeric string is a fatal "unbound variable" error, not a
+      # false result. Without the gate, a bash on PATH whose probe prints
+      # anything unexpected (a wrapper script's banner, a shell-init warning on
+      # stdout) would abort the whole --doctor run mid-report instead of failing
+      # this one check — and fresh-clone.yml asserts zero doctor failures, so
+      # that takes the job down with no usable report.
+      if [[ -z "$lane_bash_major" ]]; then
+        doc_fail "bash not found on PATH — tests/lanes/run cannot start" "$bash_fix"
+      elif [[ "$lane_bash_major" =~ ^[0-9]+$ && "$lane_bash_major" -ge "$bash_floor" ]]; then
+        doc_ok "bash $lane_bash_full at $lane_bash (>= $bash_floor, required by tests/lanes/run)"
+      else
+        doc_fail "bash $lane_bash_full at $lane_bash — tests/lanes/run requires ${bash_floor}+" "$bash_fix"
+      fi
     fi
     if [[ -x scripts/check-version-pins.sh ]]; then
       if scripts/check-version-pins.sh &>/dev/null; then
