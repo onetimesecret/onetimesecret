@@ -629,6 +629,29 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   baseuri: z.string().default(''),
   canonical_domain: z.string().default(''),
+  // Resolved link pool for the domain-context picker (#4063). Contract is
+  // Array<String>, never null and never absent from a booted server: the
+  // serializer's output_template seeds `[]` and DomainStrategy.link_domains
+  // resolves an unset LINK_DOMAINS to [canonical_domain] server-side.
+  //
+  // `.default([])` — NOT `.nullable()`, and NOT `.optional()`:
+  //  - a Zod default fires only for `undefined`, so an explicit `null` from a
+  //    hypothetical nil-valued key would be a parse error, not a default.
+  //    That is deliberate: it makes a Ruby-side regression loud.
+  //  - `.optional()` would leave the key out of `bootstrapSchema.parse({})`,
+  //    which is where the store's state shape comes from (bootstrapStore.ts:30),
+  //    so Pinia would not track it reactively.
+  //
+  // `[]` therefore means exactly one thing to consumers: a stale pre-#4063
+  // server (field absent). useDomainContext maps that back to
+  // [canonicalDomain]. The frontend must never re-derive the unset case
+  // itself — the server already resolved it.
+  //
+  // Values are normalized server-side (lowercased, port-stripped), so they
+  // compare directly against `custom_domains` display_domain strings.
+  // `canonical_domain` is NOT guaranteed to be a member: the canonical host
+  // may be an internal platform address the picker deliberately hides.
+  link_domains: z.array(z.string()).default([]),
   custom_domains: z.array(z.string()).optional().default([]),
   display_domain: z.string().default(''),
   domain_branding: brandSettingsCanonical.nullable().default(null),
