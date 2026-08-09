@@ -13,11 +13,17 @@ Open a [GitHub issue](https://github.com/onetimesecret/onetimesecret/issues).
 Include your version (or image tag), how you run it (bare metal, Docker,
 compose), and what you expected versus what happened.
 
-Self-hosting from a checkout? Run `bin/setup --doctor --bundle` and attach
-the archive it writes to `tmp/` — a sanitized diagnostic snapshot (versions,
-file presence, env variable *names* only — never values — and a masked log
-excerpt). It answers most back-and-forth questions up front; still, review
-it before posting.
+Self-hosting from a checkout? Run `bin/setup --doctor --operator --bundle`
+and attach the archive it writes to `tmp/` — a sanitized diagnostic snapshot
+(versions, file presence, env variable *names* only — never values — and a
+masked log excerpt). It answers most back-and-forth questions up front;
+still, review it before posting.
+
+`--operator` is what keeps the report honest for a self-hoster. Without it
+the bundle is collected in contributor context, which adds checks for a
+toolchain you never installed — pnpm, `node_modules`, and a bash 5+ floor
+that only the test-lane runner needs — so the archive arrives full of
+failures that have nothing to do with your problem.
 
 ## Self-hosting: back up your SECRET
 

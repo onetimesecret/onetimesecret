@@ -8,9 +8,11 @@ in a pull request.
 
 Prerequisites: Ruby (exact version in [`.ruby-version`](.ruby-version)),
 Node.js (major version in [`.node-version`](.node-version)),
-[pnpm](https://pnpm.io/installation), and
-[Valkey](https://valkey.io/download/) or Redis. Recommended but optional:
-[direnv](https://direnv.net/) (auto-loads the environment per checkout) and
+[pnpm](https://pnpm.io/installation),
+[Valkey](https://valkey.io/download/) or Redis, and bash 5+ for the test
+lane runner (macOS ships 3.2 — `brew install bash`). Recommended but
+optional: [direnv](https://direnv.net/) (auto-loads the environment per
+checkout) and
 [overmind](https://github.com/DarthSim/overmind) (runs all dev processes).
 
 ```bash

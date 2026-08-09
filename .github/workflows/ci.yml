@@ -426,9 +426,16 @@ jobs:
           fi
           echo "::endgroup::"
 
-      # Enable SimpleCov for the test run below. Writing to GITHUB_ENV makes
-      # COVERAGE available to the lane's `rake spec:fast` process (the lane
-      # runner only clears the mode/endpoint/secret variables it owns).
+      # Enable SimpleCov for the test run below. COVERAGE reaches the lane's
+      # `rake spec:fast` process only because it is one of the six names on
+      # the keep-list in tests/lanes/run — the runner clears every exported
+      # variable except PATH, HOME, CI, LANES_NO_AUTOSTART, RSPEC_OUTPUT_FILE
+      # and COVERAGE before it loads the lane env. Do not copy this pattern
+      # for a new variable: writing it to GITHUB_ENV is not enough, the scrub
+      # discards it silently and the test process never sees it. A new
+      # variable belongs in tests/lanes/base.env (every lane) or the lane's
+      # own env file (one lane); the keep-list is for CI plumbing that cannot
+      # live in those files, and growing it is a reviewed exception each time.
       - name: Enable coverage
         run: echo "COVERAGE=true" >> "$GITHUB_ENV"
 
