@@ -47,7 +47,7 @@ on:
       - '.node-version'
       - 'etc/defaults/**'
       - '.github/workflows/fresh-clone.yml'
-      - 'scripts/test-install/ttfhw-chart.sh'
+      - 'scripts/install-tests/ttfhw-chart.sh'
       - 'tests/lanes/**'
   schedule:
     # Weekly: catches registry/runner/dependency rot with no commit
@@ -171,4 +171,4 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: scripts/test-install/ttfhw-chart.sh
+        run: scripts/install-tests/ttfhw-chart.sh

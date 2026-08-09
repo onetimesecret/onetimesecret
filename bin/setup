@@ -10,10 +10,12 @@
 #   bin/setup --init      Self-hosting init: secrets, env, install mark.
 #                         Auto-detects an existing environment and reconciles
 #                         instead (never regenerates a live SECRET).
+#                         Operator front door: bin/install (thin wrapper).
 #   bin/setup --doctor    Check the environment: diff(manifest, reality) +
 #                         live connectivity probes. --operator drops the
 #                         contributor-tooling checks; --bundle writes a
 #                         sanitized diagnostic archive for support requests.
+#                         Support front door: bin/doctor (thin wrapper).
 #
 # Idempotent: every lane is safe to re-run at any time. Switching lanes is
 # also how you switch modes — `bin/setup --test` enters test mode (creates
@@ -564,10 +566,10 @@ cmd_reconcile() {
 
   # Verify .env and SECRET exist before attempting derive
   if [[ ! -f .env ]]; then
-    die ".env not found — run 'bin/setup --init' first"
+    die ".env not found — run 'bin/install' first"
   fi
   if ! grep -qE '^SECRET=.+' .env 2>/dev/null; then
-    die "SECRET is empty in .env — run 'bin/setup --init' first to generate secrets"
+    die "SECRET is empty in .env — run 'bin/install' first to generate secrets"
   fi
 
   info "Re-deriving child keys from existing SECRET..."
@@ -626,7 +628,7 @@ cmd_init() {
 
   if [[ "$mode" == "full" ]]; then
     info "Re-applying RabbitMQ policies and queue declarations..."
-    bin/ots queue init --force || warn "queue init failed (is RabbitMQ running?) — re-run 'bin/setup --init' after starting RabbitMQ"
+    bin/ots queue init --force || warn "queue init failed (is RabbitMQ running?) — re-run 'bin/install' after starting RabbitMQ"
   fi
 
   # Check Redis/Valkey availability before attempting install mark
@@ -642,7 +644,7 @@ cmd_init() {
       warn "install mark failed (exit $?) — see errors above"
     fi
   else
-    warn "Redis/Valkey not running — skipping install mark (run 'bin/setup --init' again after starting Valkey)"
+    warn "Redis/Valkey not running — skipping install mark (run 'bin/install' again after starting Valkey)"
   fi
 
   echo ""
@@ -665,13 +667,13 @@ cmd_init() {
   echo ""
   warn "  With a Procfile runner:         foreman start -f Procfile.production"
   warn "  For development with Overmind:  bin/dev"
-  warn "  Check environment health:       bin/setup --doctor --operator"
+  warn "  Check environment health:       bin/doctor --operator"
   # --operator is not optional noise here: cmd_bundle collects whatever
   # context doctor is given, and the default is dev. An operator who omits
   # it ships a bundle full of contributor-toolchain failures (pnpm,
   # node_modules, the bash 5+ floor the test-lane runner needs) that say
   # nothing about their install. Keep this string in step with SUPPORT.md.
-  warn "  Support bundle for bug reports: bin/setup --doctor --operator --bundle"
+  warn "  Support bundle for bug reports: bin/doctor --operator --bundle"
 
   echo ""
   cmd_doctor --operator || true
@@ -862,7 +864,7 @@ doctor_files() {
       doc_ok "SECRET set in .env (presence only — value not read)"
     else
       if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
-        doc_fail "SECRET empty or CHANGEME in .env" "bin/setup --init (generates secrets)"
+        doc_fail "SECRET empty or CHANGEME in .env" "bin/install (generates secrets)"
       else
         doc_warn "SECRET empty or CHANGEME in .env" "bin/setup (generates secrets)"
       fi
@@ -875,7 +877,7 @@ doctor_files() {
       fi
     fi
   else
-    doc_down ".env missing" "bin/setup (contributor) or bin/setup --init (self-hosting)"
+    doc_down ".env missing" "bin/setup (contributor) or bin/install (self-hosting)"
   fi
 
   if [[ -f etc/config.yaml ]]; then
@@ -1350,10 +1352,11 @@ Lanes:
                config smoke test. Then: tests/lanes/run unit / pnpm test
   --init       Self-hosting init: env file, secrets, install mark.
                Auto-reconciles when an environment already exists.
+               (Operator front door: bin/install)
   --reconcile  Re-derive child keys and re-apply RabbitMQ policies.
   --doctor     Check the environment: every check diffs a pin/manifest
                against reality or probes a live service (connectivity,
-               never local-CLI presence).
+               never local-CLI presence). (Support front door: bin/doctor)
                  --operator   operator context: skips contributor tooling
                               (overmind, direnv, ...); a down service is a
                               failure, not a warning. [default: --dev]

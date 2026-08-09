@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/test-install/baremetal-boot.sh
+# scripts/install-tests/baremetal-boot.sh
 #
 # Bare-metal boot lane (install-onboarding C7 residuals 1 + 4; clean-room
 # validation recipe's middle step, runs 8/8b/9). The only lane that boots
@@ -15,7 +15,7 @@
 #   3. Boot puma production-mode the documented operator way: the .env
 #      sourced with `set -a` (README bare-metal sequence), overriding only
 #      the connection/port knobs so the throwaway datastore is used.
-#   4. scripts/test-install/proof-of-life.sh — homepage + asset round-trip
+#   4. scripts/install-tests/proof-of-life.sh — homepage + asset round-trip
 #      + v1 create/reveal/at-most-once.
 #
 # Under LANG=C Ruby's Encoding.default_external is US-ASCII: any reader of
@@ -29,7 +29,7 @@
 # dev (6379/5212) or test (2163) datastores.
 #
 # Usage:
-#   scripts/test-install/baremetal-boot.sh
+#   scripts/install-tests/baremetal-boot.sh
 #
 # Env knobs: BM_APP_PORT (default 3214), BM_DB_PORT (default 2130).
 
@@ -140,7 +140,7 @@ pass "puma answering under LANG=C"
 
 # --- 4. proof of life (homepage + asset probe + v1 round-trip) -----------------
 echo "4. proof of life"
-"$ROOT/scripts/test-install/proof-of-life.sh" "$BASE" \
+"$ROOT/scripts/install-tests/proof-of-life.sh" "$BASE" \
   || die "proof-of-life failed against the bare-metal boot"
 
 echo ""

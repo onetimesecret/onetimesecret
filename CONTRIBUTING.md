@@ -93,7 +93,7 @@ runs both). The sources are `locales/` and the Zod definitions in
 - Add or update tests for behavior you change; the suites above should be
   green before you open the PR.
 - If you change a documented setup command, update the docs in the same PR —
-  a CI drift guard (`scripts/test-install/check-docs-commands.sh`) fails
+  a CI drift guard (`scripts/install-tests/check-docs-commands.sh`) fails
   when docs reference commands that don't exist.
 
 ## Where to ask

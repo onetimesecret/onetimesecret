@@ -1,13 +1,13 @@
 # ==============================================================================
 # Installer matrix (install-onboarding testing-strategy §2b)
 # ==============================================================================
-# Runs the Tier-1 clean-room harness (scripts/test-install/run.sh) in CI — the
+# Runs the Tier-1 clean-room harness (scripts/install-tests/run.sh) in CI — the
 # SAME artifact a maintainer runs locally, so local and CI cannot diverge. Each
 # lane installs a documented path from zero inside a pinned base image:
 #
-#   baremetal  ruby:3.4.10-slim — bin/setup --init succeeds + is idempotent
+#   baremetal  ruby:3.4.10-slim — bin/install succeeds + is idempotent
 #   posix      ruby:3.4.10-slim, empty locale — the fresh-server locale repro
-#   ruby-old   ruby:3.3-slim    — bin/setup --init MUST fail with the version gate
+#   ruby-old   ruby:3.3-slim    — bin/install MUST fail with the version gate
 #
 # Plus a cheap bash-3.2 syntax gate (macOS ships bash 3.2; bin/setup is the
 # bare-metal entrypoint that must parse there), and the real macOS lane
@@ -25,6 +25,8 @@ on:
   pull_request:
     paths:
       - 'bin/setup'
+      - 'bin/install'
+      - 'bin/doctor'
       - 'scripts/setup/**'
       - 'Gemfile'
       - 'Gemfile.lock'
@@ -33,7 +35,7 @@ on:
       - '.ruby-version'
       - '.node-version'
       - 'etc/defaults/**'
-      - 'scripts/test-install/run.sh'
+      - 'scripts/install-tests/run.sh'
       - '.github/workflows/installer.yml'
   schedule:
     - cron: '53 6 * * 1'
@@ -44,7 +46,7 @@ permissions:
 
 jobs:
   clean-room:
-    name: 'bin/setup --init from zero (${{ matrix.lane }})'
+    name: 'bin/install from zero (${{ matrix.lane }})'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
@@ -60,7 +62,7 @@ jobs:
       - name: Run clean-room lane
         env:
           LANE: ${{ matrix.lane }}
-        run: ./scripts/test-install/run.sh --lane "$LANE"
+        run: ./scripts/install-tests/run.sh --lane "$LANE"
 
   macos:
     name: 'bin/setup on macOS (bash 3.2 + BSD userland)'
@@ -154,12 +156,12 @@ jobs:
         run: |
           docker run --rm -i -v "$PWD:/src" -w /src bash:3.2 sh -c '
             set -e
-            for f in bin/setup scripts/setup/lib.sh \
-                     scripts/test-install/run.sh \
-                     scripts/test-install/proof-of-life.sh \
-                     scripts/test-install/secret-rotation.sh \
-                     scripts/test-install/baremetal-boot.sh \
-                     scripts/test-install/check-docs-commands.sh; do
+            for f in bin/setup bin/install bin/doctor scripts/setup/lib.sh \
+                     scripts/install-tests/run.sh \
+                     scripts/install-tests/proof-of-life.sh \
+                     scripts/install-tests/secret-rotation.sh \
+                     scripts/install-tests/baremetal-boot.sh \
+                     scripts/install-tests/check-docs-commands.sh; do
               echo "bash -n $f"
               bash -n "$f"
             done

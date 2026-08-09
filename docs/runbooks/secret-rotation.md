@@ -15,7 +15,7 @@ SECRET (64 random bytes, operator-provided or generated)
 ```
 
 **Treat SECRET like the database itself.** Store a copy in a secret manager
-or offline vault the moment it is generated. `bin/setup --init` and
+or offline vault the moment it is generated. `bin/install` and
 `rake ots:secrets` never overwrite an existing SECRET, but a lost `.env`
 plus no backup means the data below is gone.
 
@@ -46,7 +46,7 @@ separately — see `.env.reference`.
   moment the correct key is restored. No secret is consumed by a decrypt
   that cannot succeed.
 - **Surfacing.** `/health/advanced` reports a `secret_verifier` sub-check
-  (mismatch degrades the top-level status); `bin/setup --doctor` runs
+  (mismatch degrades the top-level status); `bin/doctor` runs
   `rake ots:secrets:verify` (exit codes: 0 ok, 1 mismatch, 2 never adopted,
   3 datastore unreachable).
 
@@ -85,7 +85,7 @@ a decrypt-only chain of previous secrets (`SECRET_PREVIOUS`).
    and restart running app processes again so they drop the mismatch state.
 4. Verify: `bundle exec rake ots:secrets:verify` exits 0, and a reveal of a
    pre-rotation secret still works (the harness lane
-   `scripts/test-install/secret-rotation.sh` automates this proof).
+   `scripts/install-tests/secret-rotation.sh` automates this proof).
 5. **Retention:** keep each `SECRET_PREVIOUS` entry for at least the longest
    secret TTL plus the receipt TTL, then drop it.
 
