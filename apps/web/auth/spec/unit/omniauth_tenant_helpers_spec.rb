@@ -62,7 +62,11 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       end
 
       it 'returns true for AzureActivedirectoryV2 (legacy Entra alias)' do
-        strategy = instance_double(OmniAuth::Strategies::AzureActivedirectoryV2)
+        # rubocop:disable RSpec/VerifiedDoubleReference -- the legacy alias
+        # constant no longer exists in the entra-id gem; the string form
+        # deliberately skips verification.
+        strategy = instance_double('OmniAuth::Strategies::AzureActivedirectoryV2')
+        # rubocop:enable RSpec/VerifiedDoubleReference
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::AzureActivedirectoryV2')
 
         expect(helpers.strategy_matches?(strategy, :entra_id)).to be true

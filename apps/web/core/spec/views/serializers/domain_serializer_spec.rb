@@ -317,13 +317,17 @@ RSpec.describe Core::Views::DomainSerializer do
         }
       end
 
+      # rubocop:disable RSpec/VerifiedDoubleReference -- Hashkey is not a real
+      # constant in familia 2.12; the string form deliberately skips
+      # verification.
       let(:brand_double) do
-        instance_double(Familia::Horreum::ClassMethods::Hashkey, hgetall: brand_hash_from_redis)
+        instance_double('Familia::Horreum::ClassMethods::Hashkey', hgetall: brand_hash_from_redis)
       end
 
       let(:logo_double) do
-        instance_double(Familia::Horreum::ClassMethods::Hashkey, :[] => nil)
+        instance_double('Familia::Horreum::ClassMethods::Hashkey', :[] => nil)
       end
+      # rubocop:enable RSpec/VerifiedDoubleReference
 
       let(:custom_domain) do
         instance_double(

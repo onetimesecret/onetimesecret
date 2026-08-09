@@ -483,7 +483,11 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
       # Spy on the Redis-touching collaborators so we can prove the
       # guard raises before any of them run (mirrors the index spies in
       # update_display_domain_spec).
-      index_double = instance_double(Familia::UniqueIndex, hsetnx: 1)
+      # rubocop:disable RSpec/VerifiedDoubleReference -- Familia::UniqueIndex
+      # is not a real constant in familia 2.12; the string form (matching
+      # update_display_domain_spec) intentionally skips verification.
+      index_double = instance_double('Familia::UniqueIndex', hsetnx: 1)
+      # rubocop:enable RSpec/VerifiedDoubleReference
       allow(described_class).to receive(:display_domain_index).and_return(index_double)
       allow(described_class).to receive(:load_by_display_domain)
     end
