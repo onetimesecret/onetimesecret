@@ -1052,24 +1052,61 @@ module Onetime
         PublicSuffix.valid?(input, default_rule: nil)
       end
 
-      # Whether the input is exactly the configured site host. Narrower
-      # than overlaps_canonical_domain? by design: callers (e.g.
-      # share_domain filtering) ask "is this THE site host?", not "does
-      # this collide with any canonical host or subdomain thereof?".
+      # Whether the input is exactly one of the link-ANCHOR hosts
+      # (site.host or features.domains.default). Narrower than
+      # overlaps_canonical_domain? by design: exact match only, no
+      # base-domain overlap. Callers (e.g. share_domain filtering) ask
+      # "is this THE default domain?", not "does this collide with any
+      # canonical host or subdomain thereof?". Covers both anchor
+      # hosts so a split deployment (site.host=api.example.com,
+      # domains.default=secrets.example.com) filters the default link
+      # domain the same way the DomainStrategy middleware classifies it.
+      #
+      # DELIBERATELY reads the ANCHOR set, not the full canonical set
+      # (#4063). Do NOT "fix" this to canonical_hosts/normalized_hosts for
+      # consistency with overlaps_canonical_domain? -- the two questions
+      # diverged when features.domains.link_domains joined the canonical
+      # set. process_share_domain (apps/api/v{1,2}/logic/secrets/
+      # base_secret_action.rb) returns early WITHOUT setting @share_domain
+      # when this returns true, so an operator link-pool host answering
+      # true here silently discards every picker selection and re-anchors
+      # the generated link on the canonical host the operator configured
+      # LINK_DOMAINS to hide. No exception, no log line: every link is
+      # simply wrong. Link-pool hosts are hosts we SERVE, not hosts we
+      # ANCHOR on.
       def default_domain?(input)
         display_domain = Onetime::CustomDomain.display_domain(input)
-        site_host      = OT.conf.dig('site', 'host')
-        OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
-        display_domain.eql?(site_host)
-      rescue PublicSuffix::Error => ex
-        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}"
+        hosts          = anchor_hosts
+        OT.ld "[CustomDomain.default_domain?] #{display_domain} in #{hosts.inspect}"
+        hosts.include?(display_domain)
+      rescue PublicSuffix::Error, Onetime::Problem => ex
+        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}`"
         false
       end
 
       # Whether the input domain overlaps with a canonical site domain.
-      # Checks both exact match and base-domain match so that subdomains
-      # of a canonical host are also blocked (e.g. secrets.example.com
-      # when the site host is eu.example.com — both resolve to example.com).
+      # Two arms with deliberately different reach (#4063):
+      #
+      #   exact match      - the FULL canonical set, including the operator
+      #                      link pool (features.domains.link_domains). A
+      #                      customer may never register a host the
+      #                      deployment already serves as canonical.
+      #   base-domain match - ANCHOR hosts only (site.host and
+      #                      features.domains.default), so subdomain
+      #                      siblings of an anchor are blocked too (e.g.
+      #                      secrets.example.com when the site host is
+      #                      eu.example.com — both resolve to example.com).
+      #
+      # The tradeoff, decided for #4063 and recorded here so it survives
+      # review: running the base-domain sweep over link-pool members would
+      # forbid customers from registering ANY sibling under that base
+      # domain — LINK_DOMAINS=short.example.com would block every
+      # *.example.com registration forever, which for an operator link
+      # domain on a shared public suffix is far worse than the loosening
+      # it replaces. The accepted consequence is that a customer MAY
+      # register a sibling of an operator link domain (other.example.com
+      # while short.example.com is in the pool). Exact-match protection of
+      # the pool member itself is retained.
       #
       # Covers both site.host and features.domains.default: the
       # DomainStrategy middleware treats `domains.default || site.host`
@@ -1083,11 +1120,8 @@ module Onetime
       # Placed before entitlement checks in AddDomain so it is absolute
       # (no colonel bypass) — this is a system-integrity invariant.
       def overlaps_canonical_domain?(input)
-        canonical_hosts = [
-          OT.conf&.dig('site', 'host'),
-          OT.conf&.dig('features', 'domains', 'default'),
-        ].map(&:to_s).reject(&:empty?)
-        return false if canonical_hosts.empty?
+        hosts = canonical_hosts
+        return false if hosts.empty?
 
         # Control characters are invalid in domain names (RFC 952/1123).
         # Treat as overlap to block registration -- a domain that cannot
@@ -1102,12 +1136,12 @@ module Onetime
         input_display = display_domain(input)
         input_base    = base_domain(input)
 
-        canonical_hosts.any? do |host|
-          # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
-          bare_host = host.split(':').first.to_s.downcase
-          next true if input_display.eql?(bare_host)
+        # Exact match against every canonical host, link pool included.
+        return true if hosts.include?(input_display)
 
-          canonical_base = base_domain(bare_host)
+        # Base-domain sweep, anchors only. See the tradeoff note above.
+        anchor_hosts.any? do |host|
+          canonical_base = base_domain(host)
 
           # Skip base-domain comparison when this canonical host can't be
           # resolved (e.g. localhost in development)
@@ -1119,6 +1153,35 @@ module Onetime
         OT.le "[CustomDomain.overlaps_canonical_domain?] #{ex.message} for `#{input}`"
         true
       end
+
+      # The FULL canonical host set for this deployment, normalized
+      # (lowercased, port-stripped) with the primary host first:
+      # features.domains.default when present, else site.host, followed by
+      # site.host and then every features.domains.link_domains entry
+      # (#4063). These are the hosts the deployment SERVES.
+      #
+      # Derived through Utils::CanonicalHosts — the same derivation point
+      # the DomainStrategy middleware uses — so the registration guard can
+      # never disagree with request classification about which hosts are
+      # canonical.
+      #
+      # Sole consumer: overlaps_canonical_domain? (exact-match arm).
+      def canonical_hosts
+        Onetime::Utils::CanonicalHosts.normalized_hosts
+      end
+      private :canonical_hosts
+
+      # The link-ANCHOR host subset, normalized: features.domains.default
+      # and site.host only, primary first. NEVER contains an operator
+      # link-pool member. These are the hosts generated links anchor on.
+      #
+      # Consumers: default_domain? (whole predicate) and the base-domain
+      # arm of overlaps_canonical_domain?. Both would misbehave against
+      # the full set — see the comments on each.
+      def anchor_hosts
+        Onetime::Utils::CanonicalHosts.normalized_anchor_hosts
+      end
+      private :anchor_hosts
 
       # ASCII control characters (0x00-0x1F, 0x7F) are invalid in domain
       # names per RFC 952/1123. PublicSuffix does not reject them, so we

@@ -84,6 +84,10 @@ export const baseBootstrap: BootstrapPayload = {
 
   // Test domain configuration
   canonical_domain: 'test.onetimesecret.com',
+  // AC1 shape (#4063): LINK_DOMAINS unset, so the server resolves the pool to
+  // [canonical_domain]. Scenario fixtures that exercise an operator pool
+  // override this (and may exclude the canonical host entirely).
+  link_domains: ['test.onetimesecret.com'],
   display_domain: 'test.onetimesecret.com',
   domain_branding: {
     button_text_light: true,
