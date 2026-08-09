@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "sessões",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Identidades conectadas",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Gerencie os provedores de single sign-on vinculados à sua conta.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Início de sessão único",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Provedores de identidade que você pode usar para entrar nesta conta",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Conectar um provedor",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Vincule outro provedor de single sign-on que você pode usar para entrar nesta conta.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Conectar {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Emissor",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identificador",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Remover",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Remover identidade conectada",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Tem certeza de que deseja remover esta identidade conectada? Você não poderá mais entrar com ela.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Identidade conectada removida",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Nenhuma identidade conectada",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Você ainda não vinculou nenhum provedor de single sign-on a esta conta.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Início de sessão único",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Esta é a sua única forma de entrar. Conecte outro provedor primeiro ou defina uma senha em Configurações → Segurança para não ficar sem acesso.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Esta é a sua única forma de entrar. Conecte outro provedor primeiro para não ficar sem acesso.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Não foi possível encontrar essa identidade conectada. Ela pode já ter sido removida.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Sua sessão expirou. Entre novamente.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Não foi possível concluir essa ação. Tente novamente.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Vincule seu método de início de sessão",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Você entrou com {provider}, que corresponde à conta existente {email}. Digite a senha dessa conta para vincular {provider} e continuar.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Senha",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Sua senha existente",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Vincular e continuar",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Cancelar",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Esta solicitação de vinculação expirou",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Para sua segurança, a solicitação para vincular este método de início de sessão não é mais válida. Entre com sua senha existente e depois conecte este provedor em Configurações de segurança → Identidades conectadas.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Continuar para entrar",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Essa senha não corresponde a esta conta. Tente novamente.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Esta solicitação de vinculação expirou ou já foi usada. Entre com sua senha existente e depois conecte este provedor nas configurações da sua conta.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Não foi possível vincular este método de início de sessão. Sua conta pode ter mudado ou este provedor já está vinculado a outra conta. Entre com sua senha existente e depois gerencie as conexões em Configurações de segurança → Identidades conectadas.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Muitas tentativas de senha. Aguarde alguns minutos e tente novamente.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Não foi possível processar esta solicitação de vinculação. Entre novamente com seu provedor de SSO.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Não foi possível vincular sua conta. Tente novamente.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Confirme a conexão da sua conta",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Você entrou com {provider}, que corresponde à sua conta {email}. Confirme para conectar {provider} a esta conta e concluir o início de sessão.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Confirmar e conectar",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Cancelar",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Esta solicitação de vinculação não pode ser concluída",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Para sua segurança, esta solicitação para conectar seu método de início de sessão não é mais válida. Entre novamente com seu provedor e enviaremos um novo link por e-mail.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Voltar para entrar",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Esta solicitação de vinculação expirou ou já foi usada. Entre novamente com seu provedor e enviaremos um novo link por e-mail.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Não foi possível conectar este método de início de sessão. Sua conta pode ter mudado ou este provedor já está vinculado a outra conta. Entre novamente com seu provedor para continuar.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "As credenciais da sua conta mudaram depois que este link foi enviado, então ele não é mais válido. Entre novamente com seu provedor e enviaremos um novo link por e-mail.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Algo deu errado do nosso lado e não foi possível verificar este link. Entre novamente com seu provedor e enviaremos um novo por e-mail.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Muitas tentativas a partir do seu dispositivo. Aguarde alguns minutos e abra novamente o link enviado por e-mail ou entre com seu provedor para obter um novo.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Não foi possível confirmar esta conexão. Entre novamente com seu provedor.",
+    "source_hash": "076fa25a"
   }
 }
