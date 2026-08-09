@@ -37,6 +37,11 @@ module LaneHermeticProbe
   KEEPSAKE  = 'lane-selftest-keepsake-2b7d40'
   PLAIN_FN  = 'lane_selftest_plain_fn'
   TRACED_FN = 'lane_selftest_traced_fn'
+  # Readonly shapes: `unset`/`unset -f` fail on these, so they survive the
+  # scrub inside the runner's shell and must be stripped at the exec
+  # boundary instead.
+  RO_FN     = 'lane_selftest_readonly_fn'
+  RO_VAR    = 'LANE_SELFTEST_READONLY_VAR'
 
   module_function
 
@@ -94,6 +99,19 @@ module LaneHermeticProbe
       # invariant in tests/lanes/run stays enforced by a test.
       'LANE' => 'selftest',
       'OVERLAY' => '',
+      # Bash imports an exported SHELLOPTS at startup, so this turns on
+      # allexport inside the runner's own shell before line one — the
+      # caller-ran-`set -a` case. The runner must reset the option before
+      # its first assignment (or the scrub's working variables become
+      # exported and get cleared mid-scrub), and SHELLOPTS itself is
+      # readonly-exported, so it can only leave via the exec-boundary
+      # strip.
+      'SHELLOPTS' => 'allexport',
+      # BASHOPTS is the shopt twin of SHELLOPTS: also imported at startup,
+      # also readonly-exported, so it rides the same exec-boundary strip.
+      # extdebug is the nastiest import — it changes function-return
+      # semantics — which is exactly why the runner must shed it.
+      'BASHOPTS' => 'extdebug',
     }
   end
 
@@ -107,6 +125,11 @@ module LaneHermeticProbe
       #{TRACED_FN}() { :; }
       export -f #{TRACED_FN}
       declare -ft #{TRACED_FN}
+      #{RO_FN}() { :; }
+      export -f #{RO_FN}
+      readonly -f #{RO_FN}
+      export #{RO_VAR}=#{CANARY}
+      readonly #{RO_VAR}
     RC
   end
 
@@ -216,6 +239,27 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
     # clears, so the whole capture necessarily mentions both names.
     expect(result[:task_output]).not_to include(LaneHermeticProbe::PLAIN_FN)
     expect(result[:task_output]).not_to include(LaneHermeticProbe::TRACED_FN)
+  end
+
+  it 'strips readonly exported vars and functions at the exec boundary' do
+    # `unset` cannot clear these inside the runner's shell — the positive
+    # trace lines prove they were there and were routed to the env -u
+    # strip rather than silently surviving.
+    expect(result[:scrub_trace]).to include("[lane:scrub] strip-at-exec #{LaneHermeticProbe::RO_VAR} (readonly)")
+    expect(result[:scrub_trace]).to include("[lane:scrub] strip-at-exec #{LaneHermeticProbe::RO_FN} (readonly function)")
+    expect(env).not_to have_key(LaneHermeticProbe::RO_VAR)
+    expect(result[:task_output]).not_to include(LaneHermeticProbe::RO_FN)
+  end
+
+  it 'survives an allexport caller and keeps its option state to itself' do
+    # SHELLOPTS=allexport in the caller's environment is imported by the
+    # runner's own bash at startup. The runner must reset it before its
+    # first assignment — otherwise its scrub working variables would leak
+    # here as _lanes_* entries — and SHELLOPTS, being readonly-exported,
+    # can only leave via the exec-boundary strip.
+    expect(env).not_to have_key('SHELLOPTS')
+    expect(env).not_to have_key('BASHOPTS')
+    expect(env.keys.grep(/\A_lanes_/)).to be_empty
   end
 
   it 'passes the keep-listed variables through untouched' do

@@ -45,6 +45,22 @@ fi
 
 set -euo pipefail
 
+# ── Inherited option reset ──────────────────────────────────────────────
+# An exported SHELLOPTS/BASHOPTS in the calling environment is imported by
+# bash at startup, so the caller's option state becomes this script's. The
+# dangerous import is allexport (`set -a`): with it on, every assignment
+# below — including the scrub's own working variables — gains the export
+# attribute, so the scrub would list its own state and clear it out from
+# under the loops reading it. Reset the imports that change this script's
+# semantics before the first assignment. The exported SHELLOPTS/BASHOPTS
+# strings themselves are readonly and cannot be unset; the exec boundary
+# at the bottom strips them (like any other scrub survivor) from the task
+# environment.
+# xtrace/verbose are not a hermeticity break, but an imported xtrace would
+# echo every sourced lane env value into stderr/CI logs — a secret channel.
+set +o allexport +o noglob +o posix +o xtrace +o verbose
+shopt -u expand_aliases failglob nullglob
+
 # ── Hermetic boundary: the ONE env scrub block ──────────────────────────
 # Allowlist, not denylist: every exported var the calling shell carries is
 # cleared except the six-name keep-list below, so base.env -> <lane>/env
@@ -90,7 +106,8 @@ set -euo pipefail
 # cleared out from under the loop that is reading it. Unset first so the
 # assignments that follow start from unexported names.
 unset -v _lanes_debug _lanes_daemon_env _lanes_name _lanes_all_exported \
-         _lanes_var _lanes_all_exported_funcs _lanes_func 2>/dev/null || true
+         _lanes_var _lanes_all_exported_funcs _lanes_func \
+         _lanes_stubborn _lanes_strip 2>/dev/null || true
 
 # Snapshot BEFORE unsetting — mutating exported-var state while iterating
 # compgen -e's process substitution is a bug source. Same reason the debug
@@ -123,6 +140,13 @@ for _lanes_name in DOCKER_HOST DOCKER_CONTEXT DOCKER_CERT_PATH \
 done
 unset _lanes_name
 
+# Names `unset` could not clear — readonly exported vars (SHELLOPTS when
+# the caller exported it, a dev shell's `readonly -x`) and readonly
+# exported functions. They survive in THIS shell, but the exec boundary
+# at the bottom strips them from the task environment via `env -u`, so
+# survival here never becomes a leak there.
+_lanes_stubborn=()
+
 mapfile -t _lanes_all_exported < <(compgen -e)
 
 for _lanes_var in "${_lanes_all_exported[@]}"; do
@@ -134,11 +158,17 @@ for _lanes_var in "${_lanes_all_exported[@]}"; do
   if [[ -n "${_lanes_debug}" ]]; then
     echo "[lane:scrub] unset ${_lanes_var}" >&2
   fi
-  # `|| true`: defends against a hypothetical readonly exported var on some
-  # CI image without aborting under set -e. Not needed for anything bash
+  # `|| true`: a readonly exported var (e.g. an exported SHELLOPTS) makes
+  # unset fail; don't abort under set -e. Not needed for anything bash
   # itself exports by default (verified: BASH_*, UID, EUID, PPID, RANDOM
   # etc. are shell specials, not exported — compgen -e never lists them).
   unset -- "${_lanes_var}" 2>/dev/null || true
+  if [[ -n "${!_lanes_var+set}" ]]; then
+    _lanes_stubborn+=("${_lanes_var}")
+    if [[ -n "${_lanes_debug}" ]]; then
+      echo "[lane:scrub] strip-at-exec ${_lanes_var} (readonly)" >&2
+    fi
+  fi
 done
 unset _lanes_all_exported _lanes_var
 
@@ -160,7 +190,17 @@ for _lanes_func in "${_lanes_all_exported_funcs[@]}"; do
   if [[ -n "${_lanes_debug}" ]]; then
     echo "[lane:scrub] unset -f ${_lanes_func}" >&2
   fi
+  # A readonly exported function survives `unset -f`, and bash would
+  # re-materialize it in the task process from its BASH_FUNC_<name>%%
+  # environment entry — shadowing the real `bundle`/`rake`/`docker` for
+  # the whole lane run. Strip that entry at the exec boundary instead.
   unset -f -- "${_lanes_func}" 2>/dev/null || true
+  if declare -F -- "${_lanes_func}" >/dev/null 2>&1; then
+    _lanes_stubborn+=("BASH_FUNC_${_lanes_func}%%")
+    if [[ -n "${_lanes_debug}" ]]; then
+      echo "[lane:scrub] strip-at-exec ${_lanes_func} (readonly function)" >&2
+    fi
+  fi
 done
 unset _lanes_all_exported_funcs _lanes_func _lanes_debug
 
@@ -301,4 +341,11 @@ echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "auth_db=${AUTH_DATABASE_URL:-n/a}"
 
 cd "${REPO_ROOT}"
-exec bash -euo pipefail "${LANE_DIR}/tasks"
+# `env -u` finishes what the scrub could not: readonly exported vars and
+# readonly exported functions survive `unset` in this shell, but env(1)
+# builds the child environment itself, so it can drop them regardless.
+_lanes_strip=()
+for _lanes_name in ${_lanes_stubborn[@]+"${_lanes_stubborn[@]}"}; do
+  _lanes_strip+=(-u "${_lanes_name}")
+done
+exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"
