@@ -51,9 +51,11 @@ pnpm test                      # Vitest (frontend; no services needed)
 ```
 
 Ruby tests run through the lane runner, which scrubs ambient dev env vars
-and loads the lane's own environment — the same entrypoint CI uses. See
-[tests/lanes/](../../tests/lanes/) for the full lane matrix (integration,
-PostgreSQL-backed auth, billing, migrations).
+and loads the lane's own environment — the same entrypoint CI uses. It
+needs bash 5+ (macOS ships 3.2 — `brew install bash`); a too-old one is
+flagged by `bin/setup --doctor`. See [tests/lanes/](../../tests/lanes/)
+for the full lane matrix (integration, PostgreSQL-backed auth, billing,
+migrations).
 
 `bin/setup --test` puts the checkout in test mode: with direnv installed,
 every shell in the checkout loads `.env.test` and runs `RACK_ENV=test` until

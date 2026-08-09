@@ -66,10 +66,10 @@ suggestions.
 
 Run Ruby tests ONLY through the lane runner — never invoke `rspec`,
 `rake spec:*`, `rake try:*`, or `try` directly. Only `tests/lanes/run`
-clears the dev shell's environment (REDIS_URL, AUTH_DATABASE_URL, ...)
-and loads the lane env pointing at the dockerized test services on
-127.0.0.1 21xx ports. A raw invocation inherits ambient env and can
-reach dev data.
+clears the dev shell's entire exported environment except a six-name
+keep-list, then loads the lane env pointing at the dockerized test
+services on 127.0.0.1 21xx ports. A raw invocation inherits ambient env
+and can reach dev data.
 
 ```console
 $ tests/lanes/run --list     # all lanes and overlays
@@ -77,7 +77,8 @@ $ tests/lanes/run unit       # try:unit + spec:fast (most changes)
 $ tests/lanes/run full-pg    # Postgres-backed auth integration
 ```
 
-The runner starts the backing services itself if they aren't up
+The runner needs bash 5+ (macOS ships 3.2: `brew install bash`) and
+starts the backing services itself if they aren't up
 (`docker compose -f compose.test.yml up --wait -d`). Vitest, lint, and
 type-check need no services or lane: run them via pnpm directly.
 Details: `tests/lanes/README.md`.

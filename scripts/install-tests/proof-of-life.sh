@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/test-install/proof-of-life.sh <base-url>
+# scripts/install-tests/proof-of-life.sh <base-url>
 #
 # The standard behavior-based smoke assertion, shared by every install lane
 # (install-onboarding testing-strategy §4). Behavior, not logs: log-text
@@ -24,7 +24,7 @@
 # and any future Goss spec call the identical assertion.
 #
 # Usage:
-#   scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
+#   scripts/install-tests/proof-of-life.sh http://127.0.0.1:3000
 #
 # Exit 0 = the instance is alive and the core loop works; nonzero = a specific
 # assertion failed (message on stderr names which).
