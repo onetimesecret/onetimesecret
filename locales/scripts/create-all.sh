@@ -10,9 +10,11 @@
 # already caught up produces no tasks at all. Pass nothing to get that; `tasks
 # create --all` (target-blind, full re-translation) is deliberately not used here.
 #
-# Safe to re-run: `tasks create` upserts via ON CONFLICT(file, level_path, locale)
-# and only refreshes keys_json + updated_at — it never touches `status` or
-# `translations_json`, so in-flight / completed work is preserved.
+# Re-running is safe for in-flight work (pending rows get refreshed keys,
+# in_progress/skipped rows keep their status) but NOT a no-op for drained
+# levels: a completed row that still has work is REOPENED — status back to
+# pending, its unexported translations discarded. Export before re-running if
+# completed-but-unexported work must be kept.
 #
 # By default this SKIPS locales that already have tasks (so the locales currently
 # being translated are left untouched). Use --force to (re)generate for every
@@ -90,9 +92,9 @@ for locale in "${locales[@]}"; do
 
   echo "== $locale: generating tasks (existing: $existing) =="
   if [ "$DRY_RUN" -eq 1 ]; then
-    python3 locales/scripts/i18n tasks create "$locale" --dry-run | tail -4
-  else
     python3 locales/scripts/i18n tasks create "$locale" | tail -4
+  else
+    python3 locales/scripts/i18n tasks create "$locale" --apply | tail -4
   fi
   created=$((created + 1))
   echo
