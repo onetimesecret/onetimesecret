@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Scanne den QR-Code mit deinem Handy",
-    "source_hash": "99ecf59f"
+    "text": "z. B. Scanne den QR-Code mit deinem Handy",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Bei Fragen kontaktiere onboarding{'@'}example.com",
-    "source_hash": "bee120a7"
+    "text": "z. B. Bei Fragen wende dich an onboarding{'@'}example.com",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Diese Anweisungen werden Empfängern angezeigt, bevor sie den geheimen Inhalt enthüllen",
@@ -156,7 +156,7 @@
     "source_hash": "d521a5be"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Logo",
+    "text": "{0}-Logo",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Dies ist eine Live-Vorschau — deine Änderungen sind für Besucher erst sichtbar, wenn du speicherst.",
-    "source_hash": "cb4b82de"
+    "text": "Dies ist eine Live-Vorschau – deine Änderungen sind für Besucher erst sichtbar, wenn du auf „Aktualisieren“ klickst.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Nenne uns deine Website, und wir lesen ihre Farben und Schriften aus und schließen die Lücke mit einem Klick.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Nach dem Anzeigen",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Favicon von der Domain aktualisieren",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Rufe das Favicon erneut von deiner Domain ab. Das neue Symbol erscheint in Kürze.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Favicon wird aktualisiert – das neue Symbol erscheint in Kürze.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Du hast ein eigenes Favicon hochgeladen, daher ersetzt ein abgerufenes Symbol es nicht.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Favicon hochladen",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Ersetzen",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Favicon entfernen",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG oder SVG. Beim Hochladen wird das abgerufene Symbol ersetzt.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Domain-Favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Domain-Favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG oder SVG. Bis zu 256 KB. Ersetzt das automatisch abgerufene Symbol.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Favicon speichern",
+    "source_hash": "c8a1566c"
   }
 }
