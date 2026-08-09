@@ -31,34 +31,25 @@ from typing import Any
 
 from ..config import CONTENT_DIR, RESOLVED_DIR, SOURCE_LOCALE, iter_locale_dirs
 from ..io import load_json_file, walk_keys
+from ..tokens import (  # noqa: F401  (re-exported: historical public names)
+    ERB_VAR_PATTERN,
+    PRINTF_PATTERN,
+    VUE_VAR_PATTERN,
+    extract_variables,
+)
 
 # ---------------------------------------------------------------------------
-# Shared variable patterns (identical in both legacy scripts)
+# Shared variable patterns
 # ---------------------------------------------------------------------------
-
-# Vue i18n: {variable} - use negative lookbehind to exclude ERB %{variable}
-VUE_VAR_PATTERN = re.compile(r"(?<!%)(?<!\{)\{([a-zA-Z0-9_]+)\}")
-ERB_VAR_PATTERN = re.compile(r"%\{([a-zA-Z0-9_]+)\}")
-PRINTF_PATTERN = re.compile(r"%[sdifuxXoeEgGcp]")
+# The patterns and `extract_variables` moved to :mod:`i18n.tokens` -- ONE
+# definition of "what is a token", shared with ``tasks audit``. Twin
+# normalizers drifting apart has bitten this repo twice (#4023, #4047), so do
+# not re-declare them here. Imported under their historical names, so every
+# call site below (and any outside importer) is unchanged.
 
 # Files that must use Ruby ERB format only (%{var}), not Vue ({var}).
 # Email templates are rendered server-side by Ruby, not by Vue.
 RUBY_ONLY_FILES = {"email.json"}
-
-
-def extract_variables(text: Any) -> dict[str, set[str]]:
-    """Extract all variable patterns from a string.
-
-    Accepts Any type for defensive validation of JSON values.
-    """
-    if not isinstance(text, str):
-        return {"vue": set(), "erb": set(), "printf": set()}
-
-    return {
-        "vue": set(VUE_VAR_PATTERN.findall(text)),
-        "erb": set(ERB_VAR_PATTERN.findall(text)),
-        "printf": set(PRINTF_PATTERN.findall(text)),
-    }
 
 
 def flatten_json(obj: dict[str, Any], prefix: str = "") -> dict[str, str]:
