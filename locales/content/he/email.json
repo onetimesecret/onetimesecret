@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "קיבלת הודעה זו מכיוון ש-%{sender_email} השתמש ב-%{product_name} כדי לשתף איתך סוד. אם לא ציפית לכך, באפשרותך להתעלם מהודעת דוא״ל זו בבטחה.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "אשר קישור %{provider} לחשבון %{product_name} שלך",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "אשר את כניסת ה-SSO שלך",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "מישהו נכנס עם %{provider} באמצעות הדוא\"ל %{email_address}. כדי לסיים לחבר את %{provider} לחשבון %{product_name} שלך, אשר למטה.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "אשר וקשר %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "או העתק והדבק קישור זה:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "קישור זה פג תוקף תוך 15 דקות וניתן להשתמש בו פעם אחת בלבד.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "אם לא ניסית להיכנס עם %{provider}, תוכל להתעלם מדוא\"ל זה בבטחה — שום דבר לא יחובר לחשבון שלך.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "צוות התמיכה",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "נ.ב. דוא\"ל זה נשלח אל %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

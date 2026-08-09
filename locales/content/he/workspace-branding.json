@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "השתמש בטלפון שלך כדי לסרוק את קוד ה-QR",
-    "source_hash": "99ecf59f"
+    "text": "למשל: השתמש בטלפון שלך לסריקת קוד ה-QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "צור קשר עם onboarding{'@'}example.com לכל שאלה",
-    "source_hash": "bee120a7"
+    "text": "למשל: צור קשר עם onboarding{'@'}example.com לכל שאלה",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "הוראות אלו יוצגו לנמענים לפני שיחשפו את תוכן הסוד",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "זוהי תצוגה מקדימה חיה — השינויים שלך לא יהיו גלויים למבקרים עד שתשמור.",
-    "source_hash": "cb4b82de"
+    "text": "זו תצוגה מקדימה חיה — השינויים שלך לא יהיו גלויים למבקרים עד שתלחץ עדכון.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "הפנה אותנו לאתר שלך ואנחנו נקרא את הצבעים והגופנים שלו, ואז נסגור את הפער בלחיצה אחת.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "אחרי החשיפה",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "סמל אתר",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "רענן סמל אתר מהדומיין",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "שלוף שוב את סמל האתר מהדומיין שלך. הסמל החדש יופיע בקרוב.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "מרענן סמל אתר — הסמל החדש יופיע בקרוב.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "העלית סמל אתר מותאם אישית, לכן סמל שנשלף לא יחליף אותו.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "העלה סמל אתר",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "החלף",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "הסר סמל אתר",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG או SVG. העלאה מחליפה את הסמל שנשלף.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "סמל אתר של הדומיין",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "סמל אתר של הדומיין",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG או SVG. עד 256KB. מחליף את הסמל שנשלף אוטומטית.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "שמור סמל אתר",
+    "source_hash": "c8a1566c"
   }
 }
