@@ -55,6 +55,14 @@ Fixed
   the server while ``canonical_domain``/``site_host`` do not, so a
   canonical host configured with a port was never recognized as a member
   of its own link pool. (#4063)
+- Resetting the picker on a tenant-branded host now lands on that host
+  rather than on nothing. With ``LINK_DOMAINS`` unset — the default — the
+  pool is canonical-only and the canonical entry is not offered from a
+  branded host, so the reset cleared ``sessionStorage`` while
+  ``sess['domain_context']`` kept naming the previous selection, which
+  the next page load restored. A blank domain cannot be written back
+  (the endpoint rejects it), and the served host is where links from
+  that host are anchored regardless. (#4063)
 
 AI Assistance
 -------------

@@ -94,10 +94,13 @@ function getConfig() {
     // straight from domain_strategy, and NOT inferred from `display_domain !==
     // canonical_domain` the way the pre-#4063 code did: on an operator
     // link-pool host those two also differ, but the strategy is :canonical and
-    // none of the branded-host rules apply. (display_domain and
-    // domain_strategy are no longer surfaced raw — this predicate is the only
-    // thing either was still being read for.)
+    // none of the branded-host rules apply. (domain_strategy is not surfaced
+    // raw — this predicate is the only thing it is read for.)
     onCustomDomain: store.domain_strategy === 'custom',
+    // The host actually serving this page. Only meaningful alongside
+    // onCustomDomain, where it names the branded host and is the domain the
+    // server anchors links on no matter what share_domain asks for.
+    displayDomain: normalizeDomainHost(store.display_domain),
   };
 }
 
@@ -251,9 +254,12 @@ async function persistDomainContext(
     sessionStorage.setItem('domainContext', domain);
     if (!skipBackendSync) await syncDomainContextToServer($api, domain);
   } else {
-    // Unreachable from setContext (availableDomains gates it) -- this is the
-    // no-offerable-pool tail, where '' is the honest selection and the server
-    // anchors on whichever host served the page.
+    // Unreachable from setContext (availableDomains gates it), and no longer
+    // reachable from resetContext either now that the reset lands on the
+    // served host. What is left is the pre-init tail with no domain at all,
+    // where clearing is the only honest move: '' cannot be synced (the
+    // endpoint rejects a blank domain outright), so writing it would leave the
+    // two halves disagreeing rather than agreeing on "nothing".
     sessionStorage.removeItem('domainContext');
   }
 }
@@ -286,12 +292,24 @@ function buildCurrentContext(): DomainContext {
  * Goes through persistDomainContext rather than only clearing sessionStorage:
  * `sess['domain_context']` has no clear endpoint, so a local-only reset leaves
  * the server still naming the old selection and selectBestDomain restores it
- * on the next load. Writing the default through both halves IS the reset --
- * and when there is no offerable pool to land on, persistDomainContext's own
- * tail clears sessionStorage, which is the old behavior.
+ * on the next load. Writing the default through both halves IS the reset.
+ *
+ * On a branded host the pool fallback can be '' -- getOfferableLinkDomains
+ * drops the canonical entry there, and with LINK_DOMAINS unset that is the
+ * whole pool, which makes this the DEFAULT configuration rather than an edge
+ * case. '' is not a resettable value: the endpoint rejects a blank domain
+ * (UpdateDomainContext#field_specific_concerns), the rejection is swallowed by
+ * syncDomainContextToServer's catch, and the server half would keep naming the
+ * old selection for selectBestDomain to restore. So fall back to the host being
+ * browsed instead. It is a value both halves accept -- it is one of the
+ * customer's own custom domains, so valid_domain? admits it and it is already
+ * in availableDomains -- and it is where determine_share_domain anchors links
+ * from this host regardless of what share_domain asks for. "Reset to canonical"
+ * was always fiction on a branded host; this is what actually happens.
  */
 async function resetDomainContext($api: AxiosInstance | undefined): Promise<void> {
-  const domain = getPoolFallbackDomain();
+  const { onCustomDomain, displayDomain } = getConfig();
+  const domain = getPoolFallbackDomain() || (onCustomDomain ? displayDomain : '');
   currentDomain.value = domain;
   await persistDomainContext($api, domain, false);
 }
