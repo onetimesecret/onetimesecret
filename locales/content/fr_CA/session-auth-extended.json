@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "sessions",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Identités connectées",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Gérer les fournisseurs d'authentification unique liés à votre compte.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Authentification unique",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Fournisseurs d'identité que vous pouvez utiliser pour vous connecter à ce compte",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Connecter un fournisseur",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Lier un autre fournisseur d'authentification unique que vous pouvez utiliser pour vous connecter à ce compte.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Connecter {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Émetteur",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifiant",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Supprimer",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Supprimer l'identité connectée",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Êtes-vous sûr de vouloir supprimer cette identité connectée? Vous ne pourrez plus vous connecter avec celle-ci.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Identité connectée supprimée",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Aucune identité connectée",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Vous n'avez pas encore lié de fournisseurs d'authentification unique à ce compte.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Authentification unique",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "C'est votre seul moyen de connexion. Connectez d'abord un autre fournisseur, ou définissez un mot de passe depuis Paramètres → Sécurité, pour ne pas être bloqué.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "C'est votre seul moyen de connexion. Connectez d'abord un autre fournisseur pour ne pas être bloqué.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Cette identité connectée n'a pas pu être trouvée. Elle a peut-être déjà été supprimée.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Votre session a expiré. Veuillez vous reconnecter.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Nous n'avons pas pu effectuer cette action. Veuillez réessayer.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Lier votre méthode de connexion",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Vous vous êtes connecté avec {provider}, qui correspond au compte existant {email}. Entrez le mot de passe de ce compte pour lier {provider} et continuer.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Mot de passe",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Votre mot de passe existant",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Lier et continuer",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Annuler",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Cette demande de liaison a expiré",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Pour votre sécurité, la demande de liaison de cette méthode de connexion n'est plus valide. Connectez-vous avec votre mot de passe existant, puis connectez ce fournisseur sous Paramètres de sécurité → Identités connectées.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Continuer vers la connexion",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Ce mot de passe ne correspond pas à ce compte. Veuillez réessayer.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Cette demande de liaison a expiré ou a déjà été utilisée. Connectez-vous avec votre mot de passe existant, puis connectez ce fournisseur depuis les paramètres de votre compte.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Nous n'avons pas pu lier cette méthode de connexion. Votre compte a peut-être changé, ou ce fournisseur est déjà lié à un autre compte. Connectez-vous avec votre mot de passe existant, puis gérez les connexions sous Paramètres de sécurité → Identités connectées.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Trop de tentatives de mot de passe. Veuillez attendre quelques minutes, puis réessayer.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Nous n'avons pas pu traiter cette demande de liaison. Veuillez vous reconnecter avec votre fournisseur SSO.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Nous n'avons pas pu lier votre compte. Veuillez réessayer.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Confirmer la connexion de votre compte",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Vous vous êtes connecté avec {provider}, qui correspond à votre compte {email}. Confirmez pour connecter {provider} à ce compte et terminer la connexion.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Confirmer et connecter",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Annuler",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Cette demande de liaison ne peut pas être effectuée",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Pour votre sécurité, cette demande de connexion de votre méthode de connexion n'est plus valide. Connectez-vous à nouveau avec votre fournisseur et nous vous enverrons un nouveau lien par courriel.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Retourner à la connexion",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Cette demande de liaison a expiré ou a déjà été utilisée. Connectez-vous à nouveau avec votre fournisseur et nous vous enverrons un nouveau lien par courriel.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Nous n'avons pas pu connecter cette méthode de connexion. Votre compte a peut-être changé, ou ce fournisseur est déjà lié à un autre compte. Connectez-vous à nouveau avec votre fournisseur pour continuer.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Les identifiants de votre compte ont changé après l'envoi de ce lien, il n'est donc plus valide. Connectez-vous à nouveau avec votre fournisseur et nous vous enverrons un nouveau lien par courriel.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Un problème est survenu de notre côté et nous n'avons pas pu vérifier ce lien. Connectez-vous à nouveau avec votre fournisseur et nous vous en enverrons un nouveau par courriel.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Trop de tentatives depuis votre appareil. Veuillez attendre quelques minutes, puis ouvrez à nouveau le lien envoyé par courriel ou connectez-vous avec votre fournisseur pour en obtenir un nouveau.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Nous n'avons pas pu confirmer cette connexion. Veuillez vous reconnecter avec votre fournisseur.",
+    "source_hash": "076fa25a"
   }
 }
