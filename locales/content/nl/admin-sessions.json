@@ -4,7 +4,7 @@
     "source_hash": "6fa3cbf4"
   },
   "web.admin.sessions.description": {
-    "text": "Inspecteer, doorzoek en trek actieve sessies in voor incidentrespons.",
+    "text": "Inspecteer, zoek en herroep actieve sessies voor incidentrespons.",
     "source_hash": "784a3a44"
   },
   "web.admin.sessions.anonymous": {
@@ -68,7 +68,7 @@
     "source_hash": "424a2551"
   },
   "web.admin.sessions.detail.ttlSeconds": {
-    "text": "Nog {seconds}s",
+    "text": "{seconds}s resterend",
     "source_hash": "3c9d75ce"
   },
   "web.admin.sessions.drawer.title": {
@@ -80,7 +80,7 @@
     "source_hash": "0969eab8"
   },
   "web.admin.sessions.drawer.notFoundDescription": {
-    "text": "Deze sessie bestaat niet meer in Redis. Deze is mogelijk verlopen of al ingetrokken.",
+    "text": "Deze sessie bestaat niet meer in Redis. Deze kan verlopen of al herroepen zijn.",
     "source_hash": "11e3ef05"
   },
   "web.admin.sessions.drawer.loadError": {
@@ -124,7 +124,7 @@
     "source_hash": "14736a2e"
   },
   "web.admin.sessions.fields.locale": {
-    "text": "Landinstelling",
+    "text": "Taal",
     "source_hash": "ca3dc612"
   },
   "web.admin.sessions.fields.ipAddress": {
@@ -144,11 +144,11 @@
     "source_hash": "f32b1158"
   },
   "web.admin.sessions.fields.userAgent": {
-    "text": "User agent",
+    "text": "User Agent",
     "source_hash": "62e01345"
   },
   "web.admin.sessions.fields.orgContext": {
-    "text": "Org-context",
+    "text": "Organisatiecontext",
     "source_hash": "a596d9f2"
   },
   "web.admin.sessions.list.loadError": {
@@ -164,11 +164,11 @@
     "source_hash": "e35312d6"
   },
   "web.admin.sessions.revoke.button": {
-    "text": "Intrekken",
+    "text": "Herroepen",
     "source_hash": "87e6d00b"
   },
   "web.admin.sessions.revoke.confirmTitle": {
-    "text": "Deze sessie intrekken?",
+    "text": "Deze sessie herroepen?",
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
@@ -176,15 +176,15 @@
     "source_hash": "9e08b1b8"
   },
   "web.admin.sessions.revoke.success": {
-    "text": "Sessie ingetrokken",
+    "text": "Sessie herroepen",
     "source_hash": "0af5e14d"
   },
   "web.admin.sessions.scan.summary": {
-    "text": "{shown} geauthenticeerd weergegeven · {anonymous} anoniem verborgen · {scanned} gescand",
+    "text": "Toont {shown} geauthenticeerd · {anonymous} anoniem verborgen · {scanned} gescand",
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Scan afgekapt bij de eerste {scanned} sleutels — geauthenticeerde sessies buiten dit venster worden niet vermeld. Inspecteer een specifieke sessie op ID om deze te bereiken.",
+    "text": "Scan begrensd tot de eerste {scanned} sleutels — geauthenticeerde sessies buiten dit venster worden niet getoond. Inspecteer een specifieke sessie op ID om deze te bereiken.",
     "source_hash": "fa418b4e"
   },
   "web.admin.sessions.search.placeholder": {
@@ -200,7 +200,7 @@
     "source_hash": "c9f11eb4"
   },
   "web.admin.sessions.status.authenticated": {
-    "text": "Geverifieerd",
+    "text": "Geauthenticeerd",
     "source_hash": "6ab694cf"
   },
   "web.admin.sessions.status.anonymous": {

@@ -1,6 +1,6 @@
 {
   "web.admin.kit.confirmDialog.typePrompt": {
-    "text": "Typ ter bevestiging {token} hieronder",
+    "text": "Typ {token} hieronder om te bevestigen",
     "source_hash": "282445b6"
   },
   "web.admin.kit.confirmDialog.inputLabel": {
@@ -52,7 +52,7 @@
     "source_hash": "7708c6e2"
   },
   "web.admin.kit.revealEmail.reveal": {
-    "text": "E-mailadres weergeven",
+    "text": "E-mailadres tonen",
     "source_hash": "f6272277"
   },
   "web.admin.kit.revealEmail.hide": {
