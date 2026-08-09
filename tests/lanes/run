@@ -17,9 +17,13 @@
 # Environment precedence (highest wins):
 #   overlays > lane env > base.env > (nothing)
 #
-# "Nothing" is literal: every mode/endpoint variable the lane files own is
-# cleared before loading, so a dev shell's REDIS_URL or AUTH_DATABASE_URL
-# (direnv-loaded or otherwise) can never leak into a test run.
+# "Nothing" is literal: every variable the calling shell exports is cleared
+# before loading, except a six-name keep-list (see the scrub block below),
+# so a dev shell's REDIS_URL or AUTH_DATABASE_URL (direnv-loaded or
+# otherwise) can never leak into a test run. Exported shell functions are
+# cleared too (`export -f`) — bash re-materializes those in the exec'd
+# task process via BASH_FUNC_*%%, so an unset function is just as capable
+# of shadowing `git`/`bundle`/`docker`/etc. as a leaked variable.
 
 set -euo pipefail
 
@@ -73,77 +77,81 @@ while [[ $# -gt 0 ]]; do
 done
 
 # ── Hermetic boundary: the ONE env scrub block ──────────────────────────
-# Clears everything a dev shell exports (direnv-loaded or otherwise) that
-# the config templates (etc/defaults/config.defaults.yaml,
-# spec/config.test.yaml) or the suites read. Ownership rule:
-#   - variable FAMILIES we own are cleared with prefix globs ("${!PREFIX_@}");
-#     never re-list a glob-covered name explicitly;
-#   - SINGLETONS (no family prefix) are listed explicitly, grouped by why
-#     they matter;
-#   - families whose prefix we don't own (libpq's PG*, GOOGLE_/GITHUB_)
-#     are named var-by-var so we don't take out GITHUB_PERSONAL_ACCESS_TOKEN
-#     or CI's GITHUB_* and friends, which tests never read.
-# Do not add a second unset block elsewhere — extend this one. Lane env
-# files re-set anything a lane actually owns (AUTH_SECRET from base.env,
-# AUTH_DATABASE_URL* from the full/migrations lanes).
+# Allowlist, not denylist: every exported var the calling shell carries is
+# cleared except the six-name keep-list below, so base.env -> <lane>/env
+# -> overlays become the ONLY source of application configuration. A
+# denylist can never be complete — this repo has been bitten three times
+# by vars nobody thought to list (PG*, NODE_ENV, then
+# CUSTOM_MAIL_*/INCOMING_*/ORGS_*/BRAND_* all in one incident). See
+# README.md's "Hermetic runs vs. interactive shells" section.
+#
+# Do NOT add a name here to fix a "missing var" symptom — pin it in
+# base.env (every lane needs it) or the lane's own `env` file
+# (lane-specific) instead. Every entry below is a CI-plumbing or
+# toolchain-resolution singleton with no other home; that's the bar for
+# adding a seventh:
+#   - PATH, HOME     — toolchain resolution (rbenv/ruby, pnpm/node,
+#                       python3, docker/podman all need these; nothing
+#                       else does — verified via `env -i PATH= HOME=`).
+#   - CI              — read directly by billing VCR setup and an
+#                       encryption-timing spec to select CI-safe
+#                       behavior; clearing it would flip CI itself into
+#                       local-dev behavior, the exact bug class this
+#                       fix targets, just inverted.
+#   - LANES_NO_AUTOSTART, RSPEC_OUTPUT_FILE, COVERAGE
+#                     — CI-plumbing signals set at step level (not job
+#                       env) by run-test-lane/action.yml and ci.yml, so
+#                       they arrive as ordinary inherited env at the
+#                       moment this scrub runs — indistinguishable from
+#                       a leaked dev-shell var unless named explicitly.
+# Do not add a second unset block elsewhere — extend this one. The
+# keep-list lives in exactly one place: the `case` pattern below.
 
-# Core mode, endpoint, and secret singletons.
-unset RACK_ENV AUTHENTICATION_MODE BILLING_ENABLED \
-      REDIS_URL VALKEY_URL RABBITMQ_URL \
-      SECRET SESSION_SECRET ARGON2_SECRET ACCOUNT_ID_SECRET \
-      FEDERATION_SECRET IDENTIFIER_SECRET
+# Snapshot BEFORE unsetting — mutating exported-var state while iterating
+# compgen -e's process substitution is a bug source. Same reason the debug
+# flag is read into a shell-local here: LANES_DEBUG_ENV is deliberately NOT
+# on the keep-list (it is a dev-shell export like any other), so reading it
+# live inside the loop would silently stop tracing the moment the loop
+# reached its own name — truncating the trace for every var sorting after
+# it, with no indication the output was incomplete.
+_lanes_debug="${LANES_DEBUG_ENV:-}"
 
-# libpq reads these ambiently (a dev shell's .env.test exports PGPORT and a
-# passwordless superuser URL via direnv); they must not reach the lane either.
-unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE \
-      PGSERVICE PGSSLMODE PGOPTIONS PGPASSFILE
+mapfile -t _lanes_all_exported < <(compgen -e)
 
-# Feature families that flip behavior the suites assert against:
-# CUSTOM_MAIL_* configures a real mail provider (live SES creds ->
-# WebMock-blocked real HTTP calls), INCOMING_*/ORGS_*/DOMAINS_* enable
-# features the specs expect off, AUTH_* flips auth-config predicates
-# (AUTH_SSO_ENABLED, AUTH_AUTOVERIFY, AUTH_PASSWORD_REQUIREMENTS_ENABLED)
-# and carries AUTH_SECRET/AUTH_DATABASE_URL*, TRUSTED_PROXY_* rewires
-# proxy trust (REMOTE_ADDR resolution feeding DetectHost), ACME_* opens
-# the ACME endpoint, BRAND_* overrides neutral brand defaults,
-# APPROXIMATED_* is a live third-party API key, STRIPE_* is a live sandbox
-# key (billing specs replay committed VCR cassettes; no key needed), and
-# SENTRY_* carries DSNs plus an auth token.
-unset "${!CUSTOM_MAIL_@}" "${!INCOMING_@}" "${!ORGS_@}" \
-      "${!DOMAINS_@}" "${!AUTH_@}" "${!TRUSTED_PROXY_@}" "${!ACME_@}" \
-      "${!BRAND_@}" "${!APPROXIMATED_@}" "${!STRIPE_@}" "${!SENTRY_@}"
+for _lanes_var in "${_lanes_all_exported[@]}"; do
+  case "${_lanes_var}" in
+    PATH|HOME|CI|LANES_NO_AUTOSTART|RSPEC_OUTPUT_FILE|COVERAGE)
+      continue
+      ;;
+  esac
+  if [[ -n "${_lanes_debug}" ]]; then
+    echo "[lane:scrub] unset ${_lanes_var}" >&2
+  fi
+  # `|| true`: defends against a hypothetical readonly exported var on some
+  # CI image without aborting under set -e. Not needed for anything bash
+  # itself exports by default (verified: BASH_*, UID, EUID, PPID, RANDOM
+  # etc. are shell specials, not exported — compgen -e never lists them).
+  unset -- "${_lanes_var}" 2>/dev/null || true
+done
+unset _lanes_all_exported _lanes_var
 
-# Feature master-switch singletons the globs above cannot reach
-# (ENABLE_ORGS is the orgs master switch but has no ORGS_ prefix).
-unset ENABLE_ORGS REGIONS_ENABLED JOBS_ENABLED I18N_ENABLED \
-      DIAGNOSTICS_ENABLED
-
-# Site identity: a dev shell exports HOST=dev.onetime.dev and SSL=true via
-# direnv. The suites assert against the shipped default (127.0.0.1:3000,
-# http), so these must not survive either. Same story for the domain and
-# jurisdiction identity vars.
-unset HOST SSL DEFAULT_DOMAIN JURISDICTION JURISDICTIONS SUPPORT_HOST
-
-# SSO provider credentials. AuthConfig#sso_providers registers a provider
-# purely from the presence of its required_vars (lib/onetime/auth_config.rb
-# #provider_definitions), and restrict_to only resolves to 'sso' when at
-# least one provider registers — so a dev shell's ENTRA_* silently turns
-# "no provider configured" assertions into "SSO-only is active".
-unset "${!OIDC_@}" "${!ENTRA_@}" "${!SSO_@}" \
-      GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_ROUTE_NAME \
-      GOOGLE_DISPLAY_NAME GOOGLE_TRUST_EMAIL_FOR_LINKING \
-      GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET GITHUB_ROUTE_NAME \
-      GITHUB_DISPLAY_NAME GITHUB_TRUST_EMAIL_FOR_LINKING
-
-# Mail provider config. The defaults ERB interpolates these straight into
-# config.defaults.yaml, so an exported EMAILER_REGION= (empty) yields a nil
-# where the schema demands a string, a real LETTERMINT_API_TOKEN makes the
-# "token missing" validation specs pass a token, and SMTP_* points mail at
-# a real relay. FROM/REPLYTO/FEEDBACK/VERIFIER identities leak dev
-# addresses into rendered-mail assertions.
-unset "${!EMAILER_@}" "${!LETTERMINT_@}" "${!SMTP_@}" \
-      FROM FROM_NAME FROM_EMAIL REPLYTO_EMAIL FEEDBACK_TO_EMAIL \
-      VERIFIER_EMAIL
+# Exported shell functions are invisible to `compgen -e` (they live in the
+# environment as BASH_FUNC_name%%=() {...}, not as ordinary vars) so the
+# loop above never touches them, and bash silently re-imports any such
+# function into the exec'd task process below — a dev-shell function named
+# `git`/`bundle`/`docker`/`podman`/`rake`/etc. would transparently replace
+# the real binary for the whole lane run. `declare -F` marks exported
+# functions with `-fx` (vs plain `-f` for non-exported ones, including this
+# script's own list_lanes/port_open), so filter on that to unset only what
+# the calling shell exported.
+mapfile -t _lanes_all_exported_funcs < <(declare -F | awk '$2 == "-fx" {print $3}')
+for _lanes_func in "${_lanes_all_exported_funcs[@]}"; do
+  if [[ -n "${_lanes_debug}" ]]; then
+    echo "[lane:scrub] unset -f ${_lanes_func}" >&2
+  fi
+  unset -f -- "${_lanes_func}" 2>/dev/null || true
+done
+unset _lanes_all_exported_funcs _lanes_func _lanes_debug
 
 set -a
 # shellcheck source=/dev/null
