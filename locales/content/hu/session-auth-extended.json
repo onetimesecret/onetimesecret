@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "munkamenet",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Összekapcsolt azonosítók",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Kezelje a fiókjához kapcsolt egyszeri bejelentkezés szolgáltatókat.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Egyszeri bejelentkezés",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Azonosítószolgáltatók, amelyekkel bejelentkezhet ebbe a fiókba",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Szolgáltató csatlakoztatása",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Kapcsoljon hozzá egy másik egyszeri bejelentkezés szolgáltatót, amellyel bejelentkezhet ebbe a fiókba.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "{provider} csatlakoztatása",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Kibocsátó",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Azonosító",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Eltávolítás",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Összekapcsolt azonosító eltávolítása",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Biztosan el szeretné távolítani ezt az összekapcsolt azonosítót? Többé nem fog tudni vele bejelentkezni.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Összekapcsolt azonosító eltávolítva",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Nincsenek összekapcsolt azonosítók",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Még nem kapcsolt egyszeri bejelentkezés szolgáltatót ehhez a fiókhoz.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Egyszeri bejelentkezés",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Ez az egyetlen módja a bejelentkezésnek. Először csatlakoztasson egy másik szolgáltatót, vagy állítson be jelszót a Beállítások → Biztonság menüpontban, hogy ne zárja ki magát.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Ez az egyetlen módja a bejelentkezésnek. Először csatlakoztasson egy másik szolgáltatót, hogy ne zárja ki magát.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Ez az összekapcsolt azonosító nem található. Lehet, hogy már eltávolították.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "A munkamenete lejárt. Jelentkezzen be újra.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Nem sikerült végrehajtani a műveletet. Próbálja újra.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Bejelentkezési módszer összekapcsolása",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Bejelentkezett a(z) {provider} szolgáltatással, amely megegyezik a meglévő {email} fiókkal. Adja meg a fiók jelszavát a(z) {provider} összekapcsolásához és a folytatáshoz.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Jelszó",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Meglévő jelszava",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Összekapcsolás és folytatás",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Mégse",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Ez az összekapcsolási kérelem lejárt",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Az Ön biztonsága érdekében a bejelentkezési módszer összekapcsolásának kérelme már nem érvényes. Jelentkezzen be meglévő jelszavával, majd csatlakoztassa ezt a szolgáltatót a Biztonsági beállítások → Összekapcsolt azonosítók menüpontban.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Tovább a bejelentkezéshez",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Ez a jelszó nem egyezik ezzel a fiókkal. Próbálja újra.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Ez az összekapcsolási kérelem lejárt vagy már felhasználták. Jelentkezzen be meglévő jelszavával, majd csatlakoztassa ezt a szolgáltatót a fiókbeállításokból.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Nem sikerült összekapcsolni ezt a bejelentkezési módszert. Lehet, hogy a fiókja megváltozott, vagy ez a szolgáltató már másik fiókhoz van kapcsolva. Jelentkezzen be meglévő jelszavával, majd kezelje a kapcsolatokat a Biztonsági beállítások → Összekapcsolt azonosítók menüpontban.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Túl sok jelszópróbálkozás. Várjon néhány percet, majd próbálja újra.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Nem sikerült feldolgozni ezt az összekapcsolási kérelmet. Jelentkezzen be újra az SSO szolgáltatójával.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Nem sikerült összekapcsolni a fiókját. Próbálja újra.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Fiók csatlakoztatásának megerősítése",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Bejelentkezett a(z) {provider} szolgáltatással, amely megegyezik a(z) {email} fiókjával. Erősítse meg a(z) {provider} csatlakoztatását ehhez a fiókhoz és a bejelentkezés befejezését.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Megerősítés és csatlakoztatás",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Mégse",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Ez az összekapcsolási kérelem nem teljesíthető",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Az Ön biztonsága érdekében a bejelentkezési módszer csatlakoztatásának kérelme már nem érvényes. Jelentkezzen be újra a szolgáltatójával, és új hivatkozást küldünk e-mailben.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Vissza a bejelentkezéshez",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Ez az összekapcsolási kérelem lejárt vagy már felhasználták. Jelentkezzen be újra a szolgáltatójával, és új hivatkozást küldünk e-mailben.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Nem sikerült csatlakoztatni ezt a bejelentkezési módszert. Lehet, hogy a fiókja megváltozott, vagy ez a szolgáltató már másik fiókhoz van kapcsolva. A folytatáshoz jelentkezzen be újra a szolgáltatójával.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "A fiók hitelesítő adatai megváltoztak a hivatkozás küldése után, így az már nem érvényes. Jelentkezzen be újra a szolgáltatójával, és új hivatkozást küldünk e-mailben.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Valami hiba történt nálunk, és nem tudtuk ellenőrizni ezt a hivatkozást. Jelentkezzen be újra a szolgáltatójával, és új hivatkozást küldünk e-mailben.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Túl sok próbálkozás az eszközéről. Várjon néhány percet, majd nyissa meg újra az e-mailben kapott hivatkozást, vagy jelentkezzen be a szolgáltatójával új hivatkozásért.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Nem sikerült megerősíteni ezt a kapcsolatot. Jelentkezzen be újra a szolgáltatójával.",
+    "source_hash": "076fa25a"
   }
 }
