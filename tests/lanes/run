@@ -25,7 +25,159 @@
 # task process via BASH_FUNC_*%%, so an unset function is just as capable
 # of shadowing `git`/`bundle`/`docker`/etc. as a leaked variable.
 
+# ── bash 5 floor ────────────────────────────────────────────────────────
+# The scrub below needs `mapfile` (bash 4) and expands the arrays it fills
+# under `set -u`, which is only safe from 4.4 on. Stock macOS ships
+# 3.2.57, and `#!/usr/bin/env bash` happily picks it: the failure there is
+# "mapfile: command not found" followed by a run that looks like it
+# scrubbed nothing, which is worse than not running at all. Require 5 and
+# say so.
+#
+# This guard sits above `set -euo pipefail` and uses only POSIX test and
+# ${BASH_VERSINFO:-0} (element 0, valid in 3.2) so the shell that must
+# read the message can parse and execute it. Nothing bash-4+ may move
+# above this block.
+if [ "${BASH_VERSINFO:-0}" -lt 5 ]; then
+  echo "error: tests/lanes/run requires bash 5+ (found ${BASH_VERSION:-unknown})" >&2
+  echo "  macOS ships bash 3.2; install a current one: brew install bash" >&2
+  exit 1
+fi
+
 set -euo pipefail
+
+# ── Hermetic boundary: the ONE env scrub block ──────────────────────────
+# Allowlist, not denylist: every exported var the calling shell carries is
+# cleared except the six-name keep-list below, so base.env -> <lane>/env
+# -> overlays become the ONLY source of application configuration. A
+# denylist can never be complete — this repo has been bitten three times
+# by vars nobody thought to list (PG*, NODE_ENV, then
+# CUSTOM_MAIL_*/INCOMING_*/ORGS_*/BRAND_* all in one incident). See
+# README.md's "Hermetic runs vs. interactive shells" section.
+#
+# Do NOT add a name here to fix a "missing var" symptom — pin it in
+# base.env (every lane needs it) or the lane's own `env` file
+# (lane-specific) instead. Every entry below is a CI-plumbing or
+# toolchain-resolution singleton with no other home; that's the bar for
+# adding a seventh:
+#   - PATH, HOME     — toolchain resolution (rbenv/ruby, pnpm/node,
+#                       python3, docker/podman all need these; nothing
+#                       else does — verified via `env -i PATH= HOME=`).
+#   - CI              — read directly by billing VCR setup and an
+#                       encryption-timing spec to select CI-safe
+#                       behavior; clearing it would flip CI itself into
+#                       local-dev behavior, the exact bug class this
+#                       fix targets, just inverted.
+#   - LANES_NO_AUTOSTART, RSPEC_OUTPUT_FILE, COVERAGE
+#                     — CI-plumbing signals set at step level (not job
+#                       env) by run-test-lane/action.yml and ci.yml, so
+#                       they arrive as ordinary inherited env at the
+#                       moment this scrub runs — indistinguishable from
+#                       a leaked dev-shell var unless named explicitly.
+# Do not add a second unset block elsewhere — extend this one. The
+# keep-list lives in exactly one place: the `case` pattern below.
+#
+# ORDERING INVARIANT: this block runs before the script assigns a single
+# variable of its own, and it has to stay first. Assigning into a name
+# the caller already exported keeps the export attribute, so the scrub
+# would list the runner's own state, clear it, and the run would then
+# abort on `${LANE}` under `set -u`. That is not hypothetical:
+# run-test-lane/action.yml passes the lane name as step env `LANE`.
+# Every assignment below this block is a fresh, unexported shell variable
+# the scrub can no longer reach. Nothing may be assigned above it.
+
+# The scrub's own working variables get the same treatment for the same
+# reason: a caller who exported `_lanes_debug` would otherwise have it
+# cleared out from under the loop that is reading it. Unset first so the
+# assignments that follow start from unexported names.
+unset -v _lanes_debug _lanes_daemon_env _lanes_name _lanes_all_exported \
+         _lanes_var _lanes_all_exported_funcs _lanes_func 2>/dev/null || true
+
+# Snapshot BEFORE unsetting — mutating exported-var state while iterating
+# compgen -e's process substitution is a bug source. Same reason the debug
+# flag is read into a shell-local here: LANES_DEBUG_ENV is deliberately NOT
+# on the keep-list (it is a dev-shell export like any other), so reading it
+# live inside the loop would silently stop tracing the moment the loop
+# reached its own name — truncating the trace for every var sorting after
+# it, with no indication the output was incomplete.
+_lanes_debug="${LANES_DEBUG_ENV:-}"
+
+# Container-daemon addressing is a property of the developer's machine, not
+# of the test environment, so it has to survive the scrub — but only as far
+# as the compose client. A contributor on colima, OrbStack, or rootless
+# podman reaches their daemon through these; clear them and the autostart
+# below silently talks to the default socket (or to nothing) while the
+# lane's own services sit running on the socket we forgot about. Snapshot
+# them here, let the scrub clear them like everything else, and hand them
+# back to the compose invocation alone.
+#
+# This deliberately does NOT grow the keep-list. Keep-list members reach
+# the task process; these reach a single `env ... docker compose` call and
+# stop there. An exported-but-empty value is meaningful (it overrides a
+# config default), so only genuinely-unset names are skipped.
+_lanes_daemon_env=()
+for _lanes_name in DOCKER_HOST DOCKER_CONTEXT DOCKER_CERT_PATH \
+                   DOCKER_TLS_VERIFY CONTAINER_HOST XDG_RUNTIME_DIR; do
+  if [[ -n "${!_lanes_name+set}" ]]; then
+    _lanes_daemon_env+=("${_lanes_name}=${!_lanes_name}")
+  fi
+done
+unset _lanes_name
+
+mapfile -t _lanes_all_exported < <(compgen -e)
+
+for _lanes_var in "${_lanes_all_exported[@]}"; do
+  case "${_lanes_var}" in
+    PATH|HOME|CI|LANES_NO_AUTOSTART|RSPEC_OUTPUT_FILE|COVERAGE)
+      continue
+      ;;
+  esac
+  if [[ -n "${_lanes_debug}" ]]; then
+    echo "[lane:scrub] unset ${_lanes_var}" >&2
+  fi
+  # `|| true`: defends against a hypothetical readonly exported var on some
+  # CI image without aborting under set -e. Not needed for anything bash
+  # itself exports by default (verified: BASH_*, UID, EUID, PPID, RANDOM
+  # etc. are shell specials, not exported — compgen -e never lists them).
+  unset -- "${_lanes_var}" 2>/dev/null || true
+done
+unset _lanes_all_exported _lanes_var
+
+# Exported shell functions are invisible to `compgen -e` (they live in the
+# environment as BASH_FUNC_name%%=() {...}, not as ordinary vars) so the
+# loop above never touches them, and bash silently re-imports any such
+# function into the exec'd task process below — a dev-shell function named
+# `git`/`bundle`/`docker`/`podman`/`rake`/etc. would transparently replace
+# the real binary for the whole lane run. `declare -F`'s second field is an
+# attribute SET, not a single flag: `f` is always there, `x` means exported,
+# and `t`/`r` ride along for traced or readonly functions (-ftx, -frx, and
+# combinations). Matching the literal string `-fx` therefore misses every
+# exported function that carries a second attribute — precisely the ones a
+# debugging dev shell produces. Match on the presence of `x` instead, which
+# still leaves plain `-f` functions alone — a non-exported function cannot
+# cross the exec, so it is not a hazard here.
+mapfile -t _lanes_all_exported_funcs < <(declare -F | awk '$2 ~ /^-f[a-z]*x/ {print $3}')
+for _lanes_func in "${_lanes_all_exported_funcs[@]}"; do
+  if [[ -n "${_lanes_debug}" ]]; then
+    echo "[lane:scrub] unset -f ${_lanes_func}" >&2
+  fi
+  unset -f -- "${_lanes_func}" 2>/dev/null || true
+done
+unset _lanes_all_exported_funcs _lanes_func _lanes_debug
+
+# ── Locale pin (runner-only) ─────────────────────────────────────────────
+# The scrub just cleared LANG/LC_ALL, so without this a lane run falls to
+# the bare POSIX C locale and UTF-8-aware tools lose byte-width info. Pin
+# it here rather than in base.env: base.env is also dotenv-loaded by
+# tests/lanes/.envrc, and rewriting the locale of a contributor's
+# interactive shell is a side effect nobody asked for. This pin exists to
+# make the *hermetic run* deterministic, and only the hermetic run passes
+# through here.
+#
+# Set before `set -a` sourcing so a lane env file can still override it.
+# C.UTF-8 is not universal across libc implementations; that portability
+# question is tracked separately.
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
 
 LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
@@ -76,83 +228,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# ── Hermetic boundary: the ONE env scrub block ──────────────────────────
-# Allowlist, not denylist: every exported var the calling shell carries is
-# cleared except the six-name keep-list below, so base.env -> <lane>/env
-# -> overlays become the ONLY source of application configuration. A
-# denylist can never be complete — this repo has been bitten three times
-# by vars nobody thought to list (PG*, NODE_ENV, then
-# CUSTOM_MAIL_*/INCOMING_*/ORGS_*/BRAND_* all in one incident). See
-# README.md's "Hermetic runs vs. interactive shells" section.
-#
-# Do NOT add a name here to fix a "missing var" symptom — pin it in
-# base.env (every lane needs it) or the lane's own `env` file
-# (lane-specific) instead. Every entry below is a CI-plumbing or
-# toolchain-resolution singleton with no other home; that's the bar for
-# adding a seventh:
-#   - PATH, HOME     — toolchain resolution (rbenv/ruby, pnpm/node,
-#                       python3, docker/podman all need these; nothing
-#                       else does — verified via `env -i PATH= HOME=`).
-#   - CI              — read directly by billing VCR setup and an
-#                       encryption-timing spec to select CI-safe
-#                       behavior; clearing it would flip CI itself into
-#                       local-dev behavior, the exact bug class this
-#                       fix targets, just inverted.
-#   - LANES_NO_AUTOSTART, RSPEC_OUTPUT_FILE, COVERAGE
-#                     — CI-plumbing signals set at step level (not job
-#                       env) by run-test-lane/action.yml and ci.yml, so
-#                       they arrive as ordinary inherited env at the
-#                       moment this scrub runs — indistinguishable from
-#                       a leaked dev-shell var unless named explicitly.
-# Do not add a second unset block elsewhere — extend this one. The
-# keep-list lives in exactly one place: the `case` pattern below.
-
-# Snapshot BEFORE unsetting — mutating exported-var state while iterating
-# compgen -e's process substitution is a bug source. Same reason the debug
-# flag is read into a shell-local here: LANES_DEBUG_ENV is deliberately NOT
-# on the keep-list (it is a dev-shell export like any other), so reading it
-# live inside the loop would silently stop tracing the moment the loop
-# reached its own name — truncating the trace for every var sorting after
-# it, with no indication the output was incomplete.
-_lanes_debug="${LANES_DEBUG_ENV:-}"
-
-mapfile -t _lanes_all_exported < <(compgen -e)
-
-for _lanes_var in "${_lanes_all_exported[@]}"; do
-  case "${_lanes_var}" in
-    PATH|HOME|CI|LANES_NO_AUTOSTART|RSPEC_OUTPUT_FILE|COVERAGE)
-      continue
-      ;;
-  esac
-  if [[ -n "${_lanes_debug}" ]]; then
-    echo "[lane:scrub] unset ${_lanes_var}" >&2
-  fi
-  # `|| true`: defends against a hypothetical readonly exported var on some
-  # CI image without aborting under set -e. Not needed for anything bash
-  # itself exports by default (verified: BASH_*, UID, EUID, PPID, RANDOM
-  # etc. are shell specials, not exported — compgen -e never lists them).
-  unset -- "${_lanes_var}" 2>/dev/null || true
-done
-unset _lanes_all_exported _lanes_var
-
-# Exported shell functions are invisible to `compgen -e` (they live in the
-# environment as BASH_FUNC_name%%=() {...}, not as ordinary vars) so the
-# loop above never touches them, and bash silently re-imports any such
-# function into the exec'd task process below — a dev-shell function named
-# `git`/`bundle`/`docker`/`podman`/`rake`/etc. would transparently replace
-# the real binary for the whole lane run. `declare -F` marks exported
-# functions with `-fx` (vs plain `-f` for non-exported ones, including this
-# script's own list_lanes/port_open), so filter on that to unset only what
-# the calling shell exported.
-mapfile -t _lanes_all_exported_funcs < <(declare -F | awk '$2 == "-fx" {print $3}')
-for _lanes_func in "${_lanes_all_exported_funcs[@]}"; do
-  if [[ -n "${_lanes_debug}" ]]; then
-    echo "[lane:scrub] unset -f ${_lanes_func}" >&2
-  fi
-  unset -f -- "${_lanes_func}" 2>/dev/null || true
-done
-unset _lanes_all_exported_funcs _lanes_func _lanes_debug
-
 set -a
 # shellcheck source=/dev/null
 source "${LANES_DIR}/base.env"
@@ -197,10 +272,14 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missi
 
 if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
+  # `env <snapshot>` scopes the daemon-addressing vars to the compose client
+  # (see the snapshot block above); they never reach the task process.
   if command -v docker >/dev/null 2>&1; then
-    docker compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+    env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+      docker compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
   elif command -v podman >/dev/null 2>&1; then
-    podman compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
+    env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+      podman compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
   else
     echo "error: docker/podman not found; start test services manually:" >&2
     echo "  docker compose -f compose.test.yml up --wait -d" >&2
