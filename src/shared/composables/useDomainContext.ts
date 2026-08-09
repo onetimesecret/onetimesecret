@@ -173,11 +173,18 @@ function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>):
 /** Get the preferred default domain (custom domain preferred over link pool) */
 function getPreferredDomain(available: string[]): string {
   const { linkDomains } = getConfig();
-  // Prefer the first real custom domain; pool membership (not "!== canonical")
-  // is what distinguishes an operator-blessed entry from a customer's domain.
+  // Prefer the first entry the operator did NOT bless -- pool membership, not
+  // "!== canonical", is what separates an operator entry from a customer's own
+  // domain. The two sets can overlap (ConfigureDomains warns about, but does
+  // not prevent, listing a registered CustomDomain in LINK_DOMAINS), so this
+  // predicate is a sufficient test for "customer's domain" and not a necessary
+  // one: an overlapping host fails it and falls to the tail.
   const customDomain = available.find((d) => !linkDomains.includes(d));
-  // Tail is `available[0]` (the pool head, given the ordering above) or ''.
-  // Never a value absent from `available` -- setContext would drop it.
+  // The tail is not a coin flip. buildAvailableDomains puts the org's domains
+  // ahead of every pool entry, so `available[0]` is a customer domain whenever
+  // the org has any, and the pool head only when it has none -- which is the
+  // same answer the predicate would give. Never a value absent from
+  // `available` -- setContext would drop it.
   return customDomain || available[0] || '';
 }
 

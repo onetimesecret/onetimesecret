@@ -749,6 +749,35 @@ describe('useDomainContext', () => {
       expect(currentContext.value.extid).toBe('cd_acme_example_com');
     });
 
+    it('prefers a registered custom domain that is ALSO a pool entry', async () => {
+      // Overlap case: ConfigureDomains warns but does not prevent an operator
+      // from listing a host that is a registered CustomDomain, so both sets can
+      // name the same host. getPreferredDomain's predicate ("not a pool entry")
+      // then matches nothing and the tail takes over -- which is still correct,
+      // because buildAvailableDomains puts the org's own domains ahead of every
+      // pool entry, so `available[0]` IS the customer's domain. The pool entry
+      // cannot win here regardless of the pool's own order.
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: INTERNAL_HOST,
+        canonical_domain: INTERNAL_HOST,
+        display_domain: INTERNAL_HOST,
+        custom_domains: ['brand.example.com'],
+        link_domains: ['go.example.com', 'brand.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['brand.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['brand.example.com', 'go.example.com']);
+      expect(currentContext.value.domain).toBe('brand.example.com');
+      expect(currentContext.value.extid).toBe('cd_brand_example_com');
+    });
+
     it('prefers the canonical entry over a sibling pool entry when no custom domains exist', async () => {
       // The discriminating case for "is this a real custom domain?": the old
       // test was `d !== canonicalDomain`, which picks the SECOND pool entry
