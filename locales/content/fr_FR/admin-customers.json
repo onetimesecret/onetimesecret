@@ -4,8 +4,8 @@
     "source_hash": "aabe76f1"
   },
   "web.admin.customers.description": {
-    "text": "Trouver un client et résoudre les problèmes d'assistance sans SSH.",
-    "source_hash": "c8487e68"
+    "text": "Trouvez un client et résolvez les problèmes d'assistance.",
+    "source_hash": "00961ea3"
   },
   "web.admin.customers.actions.plan.label": {
     "text": "Forfait",
@@ -28,7 +28,7 @@
     "source_hash": "ebe8d40c"
   },
   "web.admin.customers.actions.plan.localConfigWarning": {
-    "text": "Forfaits chargés depuis la configuration locale — Stripe n'est pas configuré ou est injoignable.",
+    "text": "Forfaits chargés depuis la configuration locale — Stripe n'est pas configuré ou est inaccessible.",
     "source_hash": "df83e326"
   },
   "web.admin.customers.actions.purge.button": {
@@ -60,7 +60,7 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Faire passer {email} au rôle {role}.",
+    "text": "Attribuer le rôle {role} à {email}.",
     "source_hash": "9ba063c6"
   },
   "web.admin.customers.actions.role.success": {
@@ -160,7 +160,7 @@
     "source_hash": "d8707d41"
   },
   "web.admin.customers.columns.created": {
-    "text": "Créé le",
+    "text": "Créé",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.columns.lastLogin": {
@@ -172,7 +172,7 @@
     "source_hash": "077807fb"
   },
   "web.admin.customers.detail.openFullPage": {
-    "text": "Ouvrir la page complète",
+    "text": "Ouvrir en pleine page",
     "source_hash": "a467911c"
   },
   "web.admin.customers.detail.notFound": {
@@ -216,11 +216,11 @@
     "source_hash": "90c94ee1"
   },
   "web.admin.customers.detail.billing.subscriptionStatus": {
-    "text": "Statut de l'abonnement",
+    "text": "État de l'abonnement",
     "source_hash": "f0723c4e"
   },
   "web.admin.customers.detail.billing.periodEnd": {
-    "text": "Fin de la période actuelle",
+    "text": "Fin de la période en cours",
     "source_hash": "742b8229"
   },
   "web.admin.customers.detail.billing.latestInvoice": {
@@ -268,11 +268,11 @@
     "source_hash": "ca3dc612"
   },
   "web.admin.customers.detail.fields.created": {
-    "text": "Créé le",
+    "text": "Créé",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.detail.fields.updated": {
-    "text": "Mis à jour le",
+    "text": "Mis à jour",
     "source_hash": "3a5ecca1"
   },
   "web.admin.customers.detail.fields.lastLogin": {
@@ -288,7 +288,7 @@
     "source_hash": "e0830524"
   },
   "web.admin.customers.detail.fields.suspendedReason": {
-    "text": "Motif de suspension",
+    "text": "Motif de la suspension",
     "source_hash": "d6b08d8e"
   },
   "web.admin.customers.detail.organizations.empty": {
@@ -308,7 +308,7 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.customers.detail.receiptColumns.created": {
-    "text": "Créé le",
+    "text": "Créé",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.detail.receipts.empty": {
@@ -324,7 +324,7 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.customers.detail.secretColumns.created": {
-    "text": "Créé le",
+    "text": "Créé",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.detail.secretColumns.expiration": {
@@ -420,7 +420,7 @@
     "source_hash": "a4fa4c65"
   },
   "web.admin.customers.detail.sessions.revokeAll.confirmDescription": {
-    "text": "Cela déconnecte l'utilisateur de tous les appareils et navigateurs — y compris les sessions non affichées dans cette liste — et bloque immédiatement ses routes authentifiées. À utiliser pour un départ ou en cas de suspicion de piratage de compte. Saisissez l'ID de l'utilisateur pour confirmer.",
+    "text": "Cela déconnecte l'utilisateur de tous les appareils et navigateurs — y compris les sessions non affichées dans cette liste — et bloque immédiatement ses routes authentifiées. À utiliser pour un départ ou en cas de suspicion de compromission de compte. Saisissez l'ID de l'utilisateur pour confirmer.",
     "source_hash": "483cdd88"
   },
   "web.admin.customers.detail.sessions.revokeAll.success": {
@@ -428,7 +428,7 @@
     "source_hash": "4e1cce55"
   },
   "web.admin.customers.detail.sessions.revokeAll.capped": {
-    "text": "{count} sessions supprimées, mais le balayage des sessions non suivies a été tronqué — une session plus ancienne peut subsister. Relancez pour en être sûr.",
+    "text": "{count} sessions supprimées, mais le balayage des sessions non suivies a été tronqué — une session plus ancienne peut subsister. Relancez l'opération pour en être sûr.",
     "source_hash": "e3d295a6"
   },
   "web.admin.customers.detail.stats.secretsCreated": {
@@ -482,5 +482,213 @@
   "web.admin.customers.suspended.badge": {
     "text": "Suspendu",
     "source_hash": "e392a389"
+  },
+  "web.admin.customers.actions.checkoutLink.button": {
+    "text": "Créer un lien de paiement",
+    "source_hash": "9c5082cb"
+  },
+  "web.admin.customers.actions.checkoutLink.modalTitle": {
+    "text": "Créer un lien de paiement",
+    "source_hash": "9c5082cb"
+  },
+  "web.admin.customers.actions.checkoutLink.planLabel": {
+    "text": "Forfait",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.customers.actions.checkoutLink.planPlaceholder": {
+    "text": "ID de la famille de forfaits (ex. identity_plus_v1)",
+    "source_hash": "12eba027"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleLabel": {
+    "text": "Cycle de facturation",
+    "source_hash": "d69f731e"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleMonthly": {
+    "text": "Mensuel",
+    "source_hash": "9b11f6b7"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleYearly": {
+    "text": "Annuel",
+    "source_hash": "6e69b59e"
+  },
+  "web.admin.customers.actions.checkoutLink.allowPromo": {
+    "text": "Autoriser les codes promotionnels",
+    "source_hash": "ebe7bc8b"
+  },
+  "web.admin.customers.actions.checkoutLink.submit": {
+    "text": "Créer le lien",
+    "source_hash": "e6b850cf"
+  },
+  "web.admin.customers.actions.checkoutLink.resultLead": {
+    "text": "Lien de paiement créé. Partagez-le avec le client — il est utilisable une seule fois et expire.",
+    "source_hash": "6ff1fb0e"
+  },
+  "web.admin.customers.actions.checkoutLink.copy": {
+    "text": "Copier le lien de paiement",
+    "source_hash": "f1e51ca7"
+  },
+  "web.admin.customers.actions.checkoutLink.expiry": {
+    "text": "Expire dans environ {hours} h ({date}).",
+    "source_hash": "4c878a15"
+  },
+  "web.admin.customers.actions.checkoutLink.regionLabel": {
+    "text": "Région",
+    "source_hash": "d3a008ef"
+  },
+  "web.admin.customers.actions.checkoutLink.parseError": {
+    "text": "Le serveur a accepté la demande mais a renvoyé une réponse illisible ; aucun lien ne peut être affiché. Vérifiez dans Stripe avant de réessayer.",
+    "source_hash": "e7e08290"
+  },
+  "web.admin.customers.actions.checkoutLink.done": {
+    "text": "Terminé",
+    "source_hash": "11a6767d"
+  },
+  "web.admin.customers.actions.purge.typePrompt": {
+    "text": "Pour confirmer, saisissez ci-dessous l'adresse e-mail du compte {token}",
+    "source_hash": "8b2a1819"
+  },
+  "web.admin.customers.actions.purge.unavailable": {
+    "text": "La purge est indisponible : ce compte n'a pas d'adresse e-mail à ressaisir comme confirmation.",
+    "source_hash": "5f20f7e5"
+  },
+  "web.admin.customers.columns.actions": {
+    "text": "Actions",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.customers.detail.diagnostics.title": {
+    "text": "Diagnostic du compte",
+    "source_hash": "5574ece8"
+  },
+  "web.admin.customers.detail.diagnostics.loading": {
+    "text": "Diagnostic en cours…",
+    "source_hash": "062c83d5"
+  },
+  "web.admin.customers.detail.diagnostics.loadError": {
+    "text": "Impossible de charger le diagnostic.",
+    "source_hash": "69e69f49"
+  },
+  "web.admin.customers.detail.diagnostics.healthy": {
+    "text": "Aucune condition bloquante trouvée. L'état d'authentification semble sain — suspectez des problèmes côté client (cookies, configuration de connexion sur domaine personnalisé) ou une mauvaise région.",
+    "source_hash": "f6d5f8d1"
+  },
+  "web.admin.customers.detail.diagnostics.authUnavailable": {
+    "text": "Base de données d'authentification indisponible (mode d'authentification simple) — les vérifications côté SQL ont été ignorées.",
+    "source_hash": "d668907c"
+  },
+  "web.admin.customers.detail.diagnostics.authFailed": {
+    "text": "La base de données d'authentification n'a pas répondu ; les vérifications côté SQL n'ont pas pu être effectuées : {reason}",
+    "source_hash": "46d047c0"
+  },
+  "web.admin.customers.detail.diagnostics.unknown": {
+    "text": "Inconnu",
+    "source_hash": "b764cdc0"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.title": {
+    "text": "Journal d'authentification",
+    "source_hash": "48ad8ba8"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.empty": {
+    "text": "Aucun événement d'authentification enregistré.",
+    "source_hash": "d2332558"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.unavailable": {
+    "text": "Impossible de lire le journal d'authentification : {reason}",
+    "source_hash": "ab18af57"
+  },
+  "web.admin.customers.detail.diagnostics.facts.authStatus": {
+    "text": "État d'authentification",
+    "source_hash": "34def169"
+  },
+  "web.admin.customers.detail.diagnostics.facts.noAccount": {
+    "text": "Aucun compte d'authentification",
+    "source_hash": "a9968e9e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.password": {
+    "text": "Mot de passe",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordSet": {
+    "text": "Défini",
+    "source_hash": "b6f6f3ad"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordNone": {
+    "text": "Aucun",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfa": {
+    "text": "MFA",
+    "source_hash": "d39ce053"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfaNone": {
+    "text": "Aucune",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.loginFailures": {
+    "text": "Tentatives échouées",
+    "source_hash": "63e7f0a8"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lockedBadge": {
+    "text": "Verrouillé",
+    "source_hash": "ace29f74"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiter": {
+    "text": "Limiteur de débit",
+    "source_hash": "32892404"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged": {
+    "text": "Activé",
+    "source_hash": "1b0d851e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterClear": {
+    "text": "Inactif",
+    "source_hash": "83b12c22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verification": {
+    "text": "E-mail de vérification",
+    "source_hash": "23fac8fb"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationPending": {
+    "text": "En attente — dernier envoi {date}",
+    "source_hash": "9ab8d1b6"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationNone": {
+    "text": "Aucun en attente",
+    "source_hash": "a4d4cc22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.sessions": {
+    "text": "Sessions actives",
+    "source_hash": "61ad9909"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lastLogin": {
+    "text": "Dernière connexion (authentification)",
+    "source_hash": "373e7fb1"
+  },
+  "web.admin.customers.detail.receipts.partial": {
+    "text": "Liste partielle — les {count} plus récents sont affichés. Ce client possède davantage de reçus que ceux affichés ici.",
+    "source_hash": "127fd4db"
+  },
+  "web.admin.customers.detail.secrets.partial": {
+    "text": "Liste partielle — les {count} plus récents sont affichés. Ce client possède davantage de secrets que ceux affichés ici.",
+    "source_hash": "a537c8f3"
+  },
+  "web.admin.customers.detail.sessions.columns.country": {
+    "text": "Pays",
+    "source_hash": "701d021d"
+  },
+  "web.admin.customers.detail.sessions.current.badge": {
+    "text": "Cette session",
+    "source_hash": "6da6530a"
+  },
+  "web.admin.customers.detail.sessions.current.tooltip": {
+    "text": "Votre session d'administration actuelle. La révoquer ici n'a aucun effet — elle est recréée pour la suite de cette requête.",
+    "source_hash": "ef097ab1"
+  },
+  "web.admin.customers.verification.verified": {
+    "text": "Vérifié",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.verification.unverified": {
+    "text": "Non vérifié",
+    "source_hash": "15133907"
   }
 }
