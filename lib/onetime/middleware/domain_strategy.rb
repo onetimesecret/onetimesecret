@@ -31,6 +31,8 @@ module Onetime
       @domains_enabled          = nil
       @canonical_domains        = nil
       @canonical_domains_parsed = nil
+      @anchor_domains_parsed    = nil
+      @link_domains             = nil
 
       # Domain Context Override state (set at boot from config/env)
       @domain_context_enabled  = nil
@@ -60,7 +62,16 @@ module Onetime
       #   - @canonical_domain: The primary display host (default || site.host)
       #   - @domains_enabled: Whether custom domain feature is active
       #   - @canonical_domains / @canonical_domains_parsed: Full canonical set
-      #     (site.host AND features.domains.default) used for classification
+      #     (site.host, features.domains.default AND features.domains.link_domains)
+      #     used for classification
+      #   - @anchor_domains_parsed: The ANCHOR subset of the parsed canonical
+      #     set (site.host + features.domains.default only, never a link-pool
+      #     member). Only the anchors get the peer/parent/subdomain sweeps —
+      #     see Chooserator#choose_strategy.
+      #   - @link_domains: The resolved link-picker pool (#4063). A SUBSET of the
+      #     canonical set, and a different question: the canonical set is what we
+      #     will SERVE, the pool is what we OFFER. An internal canonical host can
+      #     serve while being absent from the pool.
       #
       # The initialize call to `initialize_from_config()` is idempotent across instances.
       # Subsequent calls overwrite class variables, but this is safe because configuration
@@ -123,7 +134,11 @@ module Onetime
           else
             display_domain  = env[Rack::DetectHost.result_field_name]
             # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
-            domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domains_parsed)
+            domain_strategy = Chooserator.choose_strategy(
+              display_domain,
+              canonical_domains_parsed,
+              anchor_domains: anchor_domains_parsed,
+            )
           end
         end
 
@@ -189,7 +204,8 @@ module Onetime
       end
 
       # True when host matches one of the configured canonical hosts
-      # (features.domains.default or site.host), normalized comparison.
+      # (features.domains.default, site.host, or a features.domains.link_domains
+      # member), normalized comparison.
       def canonical_host?(host)
         self.class.canonical_host?(host)
       end
@@ -202,6 +218,12 @@ module Onetime
         self.class.canonical_domain # string or nil if not configured
       end
 
+      # Resolved link-picker pool (#4063): the hosts offered in the
+      # domain-context dropdown. Always at least [canonical_domain].
+      def link_domains
+        self.class.link_domains || []
+      end
+
       def domains_enabled?
         Onetime::Runtime.features.domains?
       end
@@ -210,6 +232,14 @@ module Onetime
       # disabled or the configured hosts could not be parsed.
       def canonical_domains_parsed
         self.class.canonical_domains_parsed || []
+      end
+
+      # The anchor subset of the parsed canonical set: site.host and
+      # features.domains.default only. This is what the peer/parent and
+      # subdomain sweeps iterate — a link-pool member participates by exact
+      # match only (#4063). See Chooserator#choose_strategy.
+      def anchor_domains_parsed
+        self.class.anchor_domains_parsed || []
       end
 
       module Chooserator
@@ -222,38 +252,54 @@ module Onetime
           #
           # Precedence (#3841): an exact canonical-set match always wins,
           # then a REGISTERED custom domain, then the subdomain/peer sweeps
-          # across the set. The registration lookup must run before the
+          # across the ANCHOR hosts. The registration lookup must run before the
           # sweeps: a registered custom domain under a canonical host's base
           # domain (e.g. secrets.acme.io when site.host=acme.io) must keep
           # :custom — per-domain brand/signin config is gated on that
           # classification — while an exact canonical match still beats a
           # (misconfigured) identical registration.
           #
+          # ## Exact-match set vs. sweep set (#4063)
+          #
+          # `canonical_domains` is the EXACT-match set: every canonical host,
+          # including features.domains.link_domains members.
+          #
+          # `anchor_domains` is the set the peer/parent and subdomain SWEEPS
+          # iterate, and it is deliberately narrower — the two ANCHOR hosts
+          # (site.host, features.domains.default). It defaults to
+          # `canonical_domains`, which is the pre-#4063 identity for any
+          # caller that has no pool (the two sets are then equal).
+          #
+          # DO NOT "fix" the sweeps back onto the full set for consistency.
+          # An operator blesses one specific link host, not its base domain.
+          # With link_domains=['go.acme.com'], sweeping the full set makes an
+          # UNREGISTERED other.acme.com classify :canonical via peer_of? —
+          # a wide grant on a shared public suffix, and a reintroduction of
+          # the Shlink-style host passthrough #4063 explicitly declines.
+          # CustomDomain.overlaps_canonical_domain? draws the same line (its
+          # base-domain arm is anchor-only, its exact arm covers the pool);
+          # these two must keep agreeing.
+          #
           # @param request_domain [String] The domain from the current request
           # @param canonical_domains [PublicSuffix::Domain, String, Array] The
-          #   configured canonical host(s)
+          #   configured canonical host(s), pool members included
+          # @param anchor_domains [PublicSuffix::Domain, String, Array, nil]
+          #   The anchor subset to sweep; nil means "same as canonical_domains"
           # @return [Symbol, nil] Domain strategy (:canonical, :subdomain, :custom) or nil if invalid
-          def choose_strategy(request_domain, canonical_domains)
+          def choose_strategy(request_domain, canonical_domains, anchor_domains: nil)
             canonical_domains = [canonical_domains] unless canonical_domains.is_a?(Array)
             canonical_domains = canonical_domains.compact
             # Guard against empty canonical set (can happen if class init ran before Runtime.features was set)
             return nil if canonical_domains.empty?
             return nil if request_domain.nil? || request_domain.to_s.strip.empty?
 
-            # Parse per-element, skipping unparseable hosts (e.g. an IP
-            # literal site.host in dev) so one bad entry cannot poison the
-            # whole set — mirrors ClassMethods#parse_canonical_set.
-            canonical_domains = canonical_domains.filter_map do |host|
-              host.is_a?(PublicSuffix::Domain) ? host : Parser.parse(host)
-            rescue PublicSuffix::DomainInvalid => ex
-              Onetime.http_logger.debug 'Skipping unparseable canonical host in strategy selection',
-                {
-                  host: host,
-                  error: ex.message,
-                }
-              nil
-            end
+            canonical_domains = parse_host_set(canonical_domains)
             return nil if canonical_domains.empty?
+
+            # An empty anchor set means no sweeps at all, never a fallback to
+            # the full set: with no anchors there is nothing whose base domain
+            # the deployment owns.
+            sweep_domains = anchor_domains.nil? ? canonical_domains : parse_host_set(anchor_domains)
 
             request_domain = Parser.parse(request_domain)
 
@@ -261,9 +307,9 @@ module Onetime
               :canonical
             elsif known_custom_domain?(request_domain.name)
               :custom
-            elsif canonical_domains.any? { |host| canonical?(request_domain, host) } # rubocop:disable Lint/DuplicateBranch
+            elsif sweep_domains.any? { |host| canonical?(request_domain, host) } # rubocop:disable Lint/DuplicateBranch
               :canonical
-            elsif canonical_domains.any? { |host| subdomain_of?(request_domain, host) }
+            elsif sweep_domains.any? { |host| subdomain_of?(request_domain, host) }
               :subdomain
             end
           rescue PublicSuffix::DomainInvalid => ex
@@ -281,6 +327,28 @@ module Onetime
                 canonical_domains: canonical_domains,
               }
             nil
+          end
+
+          # Parses a host set per-element, skipping unparseable hosts (e.g. an
+          # IP literal site.host in dev) so one bad entry cannot poison the
+          # whole set — mirrors ClassMethods#parse_canonical_set. Elements that
+          # are already parsed pass through untouched, which is the normal case
+          # for the middleware (both sets arrive pre-parsed from class state).
+          #
+          # @param hosts [PublicSuffix::Domain, String, Array]
+          # @return [Array<PublicSuffix::Domain>]
+          def parse_host_set(hosts)
+            hosts = [hosts] unless hosts.is_a?(Array)
+            hosts.compact.filter_map do |host|
+              host.is_a?(PublicSuffix::Domain) ? host : Parser.parse(host)
+            rescue PublicSuffix::DomainInvalid => ex
+              Onetime.http_logger.debug 'Skipping unparseable canonical host in strategy selection',
+                {
+                  host: host,
+                  error: ex.message,
+                }
+              nil
+            end
           end
 
           # Checks if domain matches canonical domain or its standard variants.
@@ -403,6 +471,8 @@ module Onetime
           :domains_enabled,
           :canonical_domains,
           :canonical_domains_parsed,
+          :anchor_domains_parsed,
+          :link_domains,
           :domain_context_enabled
 
         alias domains_enabled? domains_enabled
@@ -421,6 +491,11 @@ module Onetime
 
           default_host = domains_enabled ? domains_config['default'] : nil
           site_host    = OT.conf.dig('site', 'host') || nil
+          # Gated exactly like default_host. CanonicalHosts.link_hosts:
+          # DEFAULTS to reading features.domains.link_domains, so this call
+          # site MUST pass the kwarg explicitly — omitting it would let the
+          # link pool join the canonical set even with domains disabled.
+          link_hosts   = domains_enabled ? domains_config['link_domains'] : nil
 
           # Canonical SET, derived through Utils::CanonicalHosts (the single
           # derivation point shared with CustomDomain). Primary host first:
@@ -428,11 +503,23 @@ module Onetime
           # site.host. In a split deployment (site.host serves the app,
           # default anchors generated links) a request to either host must
           # classify :canonical, never :invalid.
+          #
+          # #4063: features.domains.link_domains joins the set too, appended
+          # after both anchors so the primary is unchanged. That membership is
+          # what makes an operator link domain hit the exact-match arm in
+          # Chooserator (:canonical) rather than falling through to nil
+          # (:invalid). It does NOT make it a link anchor — see
+          # CanonicalHosts.anchor_hosts.
           @canonical_domains        = Onetime::Utils::CanonicalHosts.hosts(
-            default_host: default_host, site_host: site_host,
+            default_host: default_host, site_host: site_host, link_hosts: link_hosts,
           )
           @canonical_domain         = @canonical_domains.first
           @canonical_domains_parsed = []
+          @anchor_domains_parsed    = []
+          # Provisional pool: correct for the domains-disabled and
+          # unparseable-primary paths, both of which return/raise before the
+          # parsed set exists. Recomputed from the parsed set below.
+          @link_domains             = [@canonical_domain].compact
 
           # Load domain context override setting from development config
           dev_config              = OT.conf&.dig('development') || {}
@@ -443,6 +530,7 @@ module Onetime
               domains_enabled: domains_enabled,
               canonical_domain: canonical_domain,
               canonical_domains: canonical_domains,
+              link_domains: link_domains,
               domain_context_enabled: domain_context_enabled,
             }
 
@@ -453,6 +541,8 @@ module Onetime
           # rescue below, which disables the domains feature.
           Parser.parse(canonical_domain)
           @canonical_domains_parsed = parse_canonical_set(canonical_domains)
+          @anchor_domains_parsed    = select_anchor_domains(default_host: default_host, site_host: site_host)
+          @link_domains             = resolve_link_domains(link_hosts)
         rescue PublicSuffix::DomainInvalid => ex
           OT.le "[middleware] DomainStrategy: Invalid canonical domain: #{canonical_domain.inspect} error=#{ex.message}"
           @domains_enabled = false
@@ -463,11 +553,27 @@ module Onetime
         # middleware (auth hooks, logic classes) so they agree with request
         # classification about which hosts are canonical.
         #
+        # Answers against the PARSED set whenever it is populated, because
+        # that is the set `Chooserator#choose_strategy` classifies against.
+        # Reading the raw @canonical_domains strings instead used to let an
+        # unparseable entry (a typo'd features.domains.link_domains member,
+        # now an everyday occurrence) pass admission in
+        # Account::UpdateDomainContext and then classify :invalid on the very
+        # next request — an accepted context the middleware rejects.
+        #
+        # The raw set remains the fallback for the pre-parse / domains-disabled
+        # window, where the parsed set is legitimately empty.
+        #
         # @param host [String, nil] Host to test (port/case-insensitive)
         # @return [Boolean] true when host is one of the canonical hosts
         def canonical_host?(host)
           normalized = Onetime::Utils::DomainParser.extract_hostname(host)
           return false if normalized.nil?
+
+          parsed = canonical_domains_parsed
+          unless parsed.nil? || parsed.empty?
+            return parsed.any? { |candidate| Onetime::Utils::DomainParser.extract_hostname(candidate.name) == normalized }
+          end
 
           hosts = canonical_domains
           hosts = [canonical_domain].compact if hosts.nil? || hosts.empty?
@@ -477,17 +583,83 @@ module Onetime
         # Parses each canonical host, skipping unparseable entries (e.g. an IP
         # literal site.host in dev). The primary host is parsed separately and
         # still disables domains on failure.
+        #
+        # A skip is a per-host config defect, never a feature-level one: the
+        # remaining hosts keep serving and domains_enabled? stays true. Logged
+        # at error level (naming the host) because reaching here means the
+        # PRIMARY parsed while a sibling did not, which is always operator
+        # error rather than the tolerated dev IP-literal case.
         def parse_canonical_set(hosts)
           hosts.filter_map do |host|
             Parser.parse(host)
           rescue PublicSuffix::DomainInvalid => ex
-            Onetime.http_logger.debug 'DomainStrategy skipping unparseable canonical host',
-              {
-                host: host,
-                error: ex.message,
-              }
+            OT.le "[middleware] DomainStrategy: skipping unparseable canonical host: #{host.inspect} " \
+                  "error=#{ex.message} (remaining canonical hosts unaffected)"
             nil
           end
+        end
+
+        # Selects the ANCHOR subset out of the already-parsed canonical set:
+        # site.host and features.domains.default, never a
+        # features.domains.link_domains member (#4063).
+        #
+        # This is the set `Chooserator#choose_strategy` runs its peer/parent
+        # and subdomain sweeps over. A pool member participates in
+        # classification by EXACT match only: the operator blessed one host,
+        # not everything sharing its base domain, which on a shared public
+        # suffix would be a very wide grant. `canonical_host?` (exact) and
+        # `CustomDomain.overlaps_canonical_domain?` (exact arm over the full
+        # set, base-domain arm over anchors only) draw the same line.
+        #
+        # Selecting from @canonical_domains_parsed rather than re-parsing
+        # keeps this free of a second round of parse failures — and of a
+        # second "skipping unparseable canonical host" log line for the same
+        # host, which the boot-log assertions in
+        # try/integration/middleware/domain_strategy/multiple_canonical_try.rb
+        # would see. Anchors are a subset of the canonical set by
+        # construction, so nothing can be missed here.
+        #
+        # @return [Array<PublicSuffix::Domain>] possibly empty (both anchors
+        #   unparseable or unset), which correctly disables the sweeps
+        def select_anchor_domains(default_host:, site_host:)
+          anchors = Onetime::Utils::CanonicalHosts.normalized_anchor_hosts(
+            default_host: default_host, site_host: site_host,
+          )
+          return [] if anchors.empty?
+
+          Array(canonical_domains_parsed).select do |parsed|
+            anchors.include?(Onetime::Utils::DomainParser.extract_hostname(parsed.name))
+          end
+        end
+
+        # Resolves the link-picker pool (#4063) from the PARSED canonical set,
+        # ordered by the configured pool.
+        #
+        # Deriving from the parsed set is what keeps the pool and
+        # classification in agreement: a pool entry we could not parse is not
+        # served as :canonical, so it must not be offered either.
+        #
+        # Entries come back NORMALIZED (lowercased, port-stripped) because they
+        # are taken from the parsed set, so the picker can compare them
+        # directly against CustomDomain display_domain values.
+        #
+        # @param link_hosts [Array<String>, nil] features.domains.link_domains,
+        #   already gated on domains_enabled by the caller
+        # @return [Array<String>] never empty when a canonical domain exists
+        def resolve_link_domains(link_hosts)
+          fallback = [canonical_domain].compact
+          return fallback if link_hosts.nil?
+
+          parsed_names = Array(canonical_domains_parsed).map(&:name)
+          configured   = Onetime::Utils::CanonicalHosts.link_pool(link_hosts: link_hosts)
+
+          resolved = configured.filter_map do |host|
+            normalized = Onetime::Utils::DomainParser.extract_hostname(host)
+            parsed_names.find { |name| name == normalized }
+          end
+          resolved.uniq!
+
+          resolved.empty? ? fallback : resolved
         end
 
         def reset!
@@ -495,6 +667,8 @@ module Onetime
           @domains_enabled          = nil
           @canonical_domains        = nil
           @canonical_domains_parsed = nil
+          @anchor_domains_parsed    = nil
+          @link_domains             = nil
           @domain_context_enabled   = nil
         end
       end
