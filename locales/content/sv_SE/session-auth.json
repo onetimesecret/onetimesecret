@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "Din e-post har verifierats – du kan nu logga in.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Ställ in ett lösenord",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Ditt konto har inget lösenord ännu. Vi skickar dig en säker länk via e-post för att ställa in ett så att du också kan logga in direkt.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Skicka inställningslänk",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Ett e-postmeddelande har skickats till dig med en länk för att ställa in ett lösenord för ditt konto",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Ett konto med denna e-postadress finns redan men är inte länkat till denna inloggningsmetod. Logga in med din befintliga metod och länka sedan denna leverantör under Säkerhetsinställningar → Anslutna identiteter.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Denna identitet kunde inte anslutas. Anslutningen kan ha startats på fel domän, eller så har din session gått ut. Logga in igen och anslut den sedan från dina kontoinställningar.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Vi kunde inte slutföra att lägga till dig i din organisation. Kontakta din administratör.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Vi kunde inte länka den inloggningsmetoden. Logga in med ditt befintliga lösenord och anslut sedan denna leverantör under Säkerhetsinställningar → Anslutna identiteter.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Kontrollera din inkorg — vi har skickat dig en länk via e-post för att bekräfta anslutningen av ditt konto. Öppna den för att slutföra inloggningen.",
+    "source_hash": "b251c8f3"
   }
 }
