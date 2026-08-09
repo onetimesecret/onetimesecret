@@ -71,7 +71,7 @@ Without `--apply`, `create` is a preview: it prints what would be enqueued and w
 
 Applying is not free on a populated DB: a completed level that still has work is **reopened** — status back to `pending`, its translations discarded. That is the point (a stranded completed row would never be re-served), but it means running `create --apply` between completing tasks and `tasks export` throws away the unexported work. Export first, then refresh the queue.
 
-`--all` is the opposite of the default and is rarely what you want: it is target-blind, queues every en key including reviewed ones, and `tasks export` then overwrites the reviewed content with the fresh output. Reach for it only to redo a locale wholesale.
+Catch-up is the only mode. There is no target-blind switch that re-queues reviewed keys — it was removed, and `create` rejects the old `--all` rather than quietly ignoring it. To redo a locale wholesale, delete `locales/content/<locale>/` and re-run `create --apply`: every key is then missing, which is the same queue by a route that makes the intent visible in git.
 
 Tasks are grouped by parent path (e.g., all keys under `web.COMMON.buttons`). This keeps work productive by batching related strings together rather than handling thousands of individual keys. Translators get more context since messages at the same level are usually related.
 

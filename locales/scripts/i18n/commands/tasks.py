@@ -59,13 +59,12 @@ def _register_create(gsub) -> None:
         description="Generate translation tasks by comparing locales.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Default (catch-up) enqueues only keys that still need work: MISSING (absent
-from content/<locale>, or empty text without skip) plus STALE (translated, but
-the target's source_hash watermark no longer matches en's content_hash). Levels
+Enqueues only keys that still need work: MISSING (absent from
+content/<locale>, or empty text without skip) plus STALE (translated, but the
+target's source_hash watermark no longer matches en's content_hash). Levels
 with no work produce no row, and reviewed translations are never re-enqueued.
-
-For a locale with no content/ directory yet, every key is missing, so the
-default and --all produce exactly the same tasks: a new language needs no flag.
+There is no target-blind mode: for a locale with no content/ directory yet
+every key is missing anyway, so a new language needs no flag.
 
 Without --apply this is a preview: it prints what would be enqueued and writes
 nothing. Writing is not idempotent for drained levels — a conflicting completed
@@ -75,7 +74,6 @@ the write is an explicit decision, not the default.
 Examples:
     python3 locales/scripts/i18n tasks create fr_CA            # preview the catch-up (no writes)
     python3 locales/scripts/i18n tasks create eo --apply       # actually enqueue the tasks
-    python3 locales/scripts/i18n tasks create de --all --apply # re-enqueue EVERYTHING (rare)
         """,
     )
     c.add_argument(
@@ -96,16 +94,6 @@ Examples:
         "--dry-run",
         action="store_true",
         help=argparse.SUPPRESS,  # now the default; accepted so old callers work
-    )
-    c.add_argument(
-        "--all",
-        action="store_true",
-        help=(
-            "Target-blind: enqueue EVERY en key, including ones already "
-            "translated and reviewed. Queues a full re-translation of the "
-            "locale, and export then overwrites reviewed content with the new "
-            "output. Only for rebuilding a locale you intend to redo wholesale."
-        ),
     )
     c.add_argument(
         "--missing-only",
@@ -476,28 +464,21 @@ def classify_key(entry: Optional[dict], en_hash: Optional[str]) -> str:
 def generate_tasks(
     locale: str,
     dry_run: bool = False,
-    missing_only: bool = True,
 ) -> tuple[list[TranslationTask], dict[str, int]]:
     """Generate translation tasks from English source files.
 
-    Default (``missing_only``) filters each English file against
-    ``content/<locale>`` so only keys that still need work are enqueued —
-    **missing** (absent, or empty ``text`` without ``skip``) *and* **stale**
-    (translated, but the target's ``source_hash`` watermark no longer matches
-    en's ``content_hash`` — English moved after the translation was made).
-    Levels left with no work produce no row. This is the catch-up path for
-    bringing a locale up to a grown *or edited* English source without
-    re-touching still-current reviewed translations.
-
-    ``missing_only=False`` is target-blind: every English key becomes a task
-    regardless of what the locale already has. That queues a full
-    re-translation, and ``export`` then overwrites reviewed content with the new
-    output — which is why it is not the default and why the CLI spells it
-    ``--all``. For a locale with no ``content/`` directory the two modes are
-    identical (every key is missing), so a new language never needs the flag.
+    Filters each English file against ``content/<locale>`` so only keys that
+    still need work are enqueued — **missing** (absent, or empty ``text``
+    without ``skip``) *and* **stale** (translated, but the target's
+    ``source_hash`` watermark no longer matches en's ``content_hash`` — English
+    moved after the translation was made). Levels left with no work produce no
+    row. This is the only mode: the catch-up path for bringing a locale up to a
+    grown *or edited* English source without re-touching still-current reviewed
+    translations. A locale with no ``content/`` directory has every key missing,
+    so a brand-new language comes out the same as a target-blind pass would.
 
     Every generated task also snapshots the current en ``content_hash`` per leaf
-    into ``source_hashes_json`` (both modes), so ``export`` can stamp the target
+    into ``source_hashes_json``, so ``export`` can stamp the target
     ``source_hash`` with exactly what was translated against — the watermark that
     later marks the key stale if en changes again.
     """
@@ -526,19 +507,18 @@ def generate_tasks(
         # filter and the snapshot stamped into each task row.
         en_hashes = get_source_hashes_from_file(en_file)
 
-        if missing_only:
-            target = get_target_entries(locale, file_name)
-            kept: dict[str, str] = {}
-            for full_key, text in en_keys.items():
-                state = classify_key(target.get(full_key), en_hashes.get(full_key))
-                if state == "missing":
-                    kept[full_key] = text
-                    stats["missing_keys"] += 1
-                elif state == "stale":
-                    kept[full_key] = text
-                    stats["stale_keys"] += 1
-                # "current"/"skipped" → leave the reviewed translation alone.
-            en_keys = kept
+        target = get_target_entries(locale, file_name)
+        kept: dict[str, str] = {}
+        for full_key, text in en_keys.items():
+            state = classify_key(target.get(full_key), en_hashes.get(full_key))
+            if state == "missing":
+                kept[full_key] = text
+                stats["missing_keys"] += 1
+            elif state == "stale":
+                kept[full_key] = text
+                stats["stale_keys"] += 1
+            # "current"/"skipped" → leave the reviewed translation alone.
+        en_keys = kept
 
         # A fully-translated (or empty) file contributes no tasks.
         if not en_keys:
@@ -588,8 +568,8 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
 
     A conflicting **completed** row is REOPENED: status back to ``pending`` and
     ``translations_json`` cleared. ``generate_tasks`` only emits a level when it
-    has real work (missing/stale keys, or ``--all``), so a conflict with a
-    completed row always means that work must be redone — leaving the row
+    has real work (missing/stale keys), so a conflict with a completed row
+    always means that work must be redone — leaving the row
     completed would strand it: ``tasks next`` never re-serves it, and its old
     translations no longer match the refreshed key set. The clobber window is
     deliberate: a completed level whose translations were never exported loses
@@ -669,18 +649,13 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
 
 
 def _create_handler(args) -> int:
-    # `--missing-only` is the default as of the write-gate work; the flag is
-    # still accepted (hidden) so older scripts and slash commands keep working.
-    # Asking for both modes at once is a contradiction, not a preference.
-    if args.all and args.missing_only:
-        print(
-            "Error: --all and --missing-only are opposites; --missing-only is "
-            "the default, so pass neither for catch-up.",
-            file=sys.stderr,
-        )
-        return 1
-
-    # Same for `--dry-run`: previewing is the default, writing is opt-in.
+    # `--missing-only` is the only mode; the flag is still accepted (hidden) so
+    # older scripts and slash commands keep working. `--all` is gone entirely —
+    # argparse rejects it, which is the loud failure a target-blind re-queue
+    # deserves now that nothing implements it.
+    #
+    # `--dry-run` is likewise the default; writing is opt-in, and asking for
+    # both at once is a contradiction, not a preference.
     if args.apply and args.dry_run:
         print(
             "Error: --apply and --dry-run are opposites; --dry-run is the "
@@ -690,17 +665,12 @@ def _create_handler(args) -> int:
         return 1
 
     dry_run = not args.apply
-    missing_only = not args.all
-    # Only the dangerous mode gets a marker: the default is unremarkable, and a
-    # full re-translation must never be something you scroll past.
-    mode = "" if missing_only else " (--all: EVERY key, re-translating reviewed work)"
-    print(f"Generating translation tasks for '{args.locale}'{mode}")
+    print(f"Generating translation tasks for '{args.locale}'")
     print()
 
     tasks, stats = generate_tasks(
         locale=args.locale,
         dry_run=dry_run,
-        missing_only=missing_only,
     )
 
     print()
@@ -708,10 +678,9 @@ def _create_handler(args) -> int:
     print(f"  Files: {stats['total_files']}")
     print(f"  Levels: {stats['total_levels']}")
     print(f"  Keys: {stats['total_keys']}")
-    if missing_only:
-        # In catch-up mode, break the enqueued keys into new vs re-translate.
-        print(f"    missing (new/untranslated): {stats['missing_keys']}")
-        print(f"    stale (en changed since):   {stats['stale_keys']}")
+    # Break the enqueued keys into new vs re-translate.
+    print(f"    missing (new/untranslated): {stats['missing_keys']}")
+    print(f"    stale (en changed since):   {stats['stale_keys']}")
 
     if dry_run:
         print()
@@ -1316,11 +1285,10 @@ def export_locale(
                 translation = translations[key]
 
                 # An empty/whitespace "translation" must never overwrite an
-                # existing value or strip an intentional skip flag. This closes
-                # the target-blind (`create --all`) hazard where a locale's
-                # already-skipped/translated key could be enqueued, "completed"
-                # blank, and clobbered here. The default create never enqueues
-                # such keys; this guards the --all path too.
+                # existing value or strip an intentional skip flag. `create`
+                # never enqueues an already-skipped/translated key, so this is
+                # belt-and-braces against a row blanked by hand (or by a caller
+                # that wrote translations_json directly).
                 if not (isinstance(translation, str) and translation.strip()):
                     continue
 

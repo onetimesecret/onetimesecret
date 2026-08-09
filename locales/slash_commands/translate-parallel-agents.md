@@ -77,9 +77,8 @@ queues both **untranslated** keys and **stale** ones (translated, but en changed
 since — the target `source_hash` no longer matches en's `content_hash`), and
 never requeues already-translated, still-current reviewed strings. A brand-new
 locale needs no extra flag — with no `content/LOCALE` every key is missing, so
-you get the full key set regardless. Never pass `--all` here: it re-queues
-reviewed work for re-translation, and export overwrites the reviewed content
-with the new output. Applying reopens completed levels that still have work
+you get the full key set regardless. Catch-up is the only mode; there is no
+target-blind re-queue. Applying reopens completed levels that still have work
 (their unexported translations are discarded), so export before re-initializing
 a locale mid-drain.
 

@@ -439,15 +439,30 @@ class TasksFlowTest(I18nCliTestCase):
             f"missing-only enqueued {enqueued}, expected only {missing_key}",
         )
 
-    def test_create_defaults_to_missing_only_and_all_is_opt_in(self) -> None:
-        # The default must be the safe one: a locale that is already fully
-        # translated enqueues NOTHING, and only --all re-queues reviewed work.
+    def test_create_is_catch_up_only_and_all_is_rejected(self) -> None:
+        # create has exactly one mode (catch-up) and one write gate (--apply):
+        # a fully-translated locale enqueues NOTHING, a preview never reaches
+        # the DB even when there IS work, and the retired target-blind --all is
+        # refused outright rather than silently ignored.
         import sqlite3
 
         eo = self.content / "eo"
         eo.mkdir(parents=True)
+        victim: tuple[Path, str] | None = None
         for f in sorted((self.content / "en").glob("*.json")):
+            data = json.loads(f.read_text("utf-8"))
             shutil.copy(f, eo / f.name)
+            translatable = [
+                k
+                for k, v in data.items()
+                if isinstance(v, dict)
+                and not v.get("skip")
+                and v.get("text", "") != ""
+                and not k.startswith("_")
+            ]
+            if victim is None and translatable:
+                victim = (eo / f.name, translatable[0])
+        self.assertIsNotNone(victim, "need an en file with a translatable key")
 
         def enqueued() -> int:
             conn = sqlite3.connect(self.db_dir / "tasks.db")
@@ -460,35 +475,43 @@ class TasksFlowTest(I18nCliTestCase):
         # Applied create: fully-translated locale, nothing to do.
         self.assertOk(self.run_cli("tasks", "create", "eo", "--apply"), "create")
         self.assertEqual(
-            enqueued(), 0, "default create re-enqueued already-translated keys"
+            enqueued(), 0, "create re-enqueued already-translated keys"
         )
 
-        # Without --apply even --all is a preview: nothing may reach the DB.
-        self.assertOk(
-            self.run_cli("tasks", "create", "eo", "--all"), "preview --all"
-        )
+        # Now there is real work — but without --apply it stays a preview.
+        path, missing_key = victim
+        d = json.loads(path.read_text("utf-8"))
+        del d[missing_key]
+        path.write_text(json.dumps(d), encoding="utf-8")
+
+        self.assertOk(self.run_cli("tasks", "create", "eo"), "preview")
         self.assertEqual(enqueued(), 0, "create without --apply wrote to the DB")
 
-        # --all --apply: target-blind, queues the whole en key set.
         self.assertOk(
-            self.run_cli("tasks", "create", "eo", "--all", "--apply"),
-            "create --all --apply",
+            self.run_cli("tasks", "create", "eo", "--apply"), "create --apply"
         )
-        self.assertGreater(enqueued(), 0, "--all --apply enqueued nothing")
+        self.assertGreater(enqueued(), 0, "--apply enqueued nothing")
 
-        # The retired flags still parse (old scripts/slash commands pass them),
-        # but contradicting the current default is an error, not a preference.
+        # --all is gone: argparse must reject it, so a caller that still passes
+        # it fails loudly instead of quietly getting a catch-up run.
+        for flag in ("--all", "--all --apply"):
+            rejected = self.run_cli("tasks", "create", "eo", *flag.split())
+            self.assertNotEqual(
+                rejected.returncode, 0, f"{flag} must be rejected"
+            )
+
+        # --missing-only still parses (old scripts/slash commands pass it), but
+        # contradicting the current default is an error, not a preference.
         self.assertOk(
             self.run_cli("tasks", "create", "eo", "--missing-only", "--apply"),
             "create --missing-only (accepted, now the default)",
         )
-        for combo in (("--all", "--missing-only"), ("--apply", "--dry-run")):
-            contradiction = self.run_cli("tasks", "create", "eo", *combo)
-            self.assertNotEqual(
-                contradiction.returncode,
-                0,
-                f"{' '.join(combo)} must not succeed",
-            )
+        contradiction = self.run_cli(
+            "tasks", "create", "eo", "--apply", "--dry-run"
+        )
+        self.assertNotEqual(
+            contradiction.returncode, 0, "--apply --dry-run must not succeed"
+        )
 
     def test_export_skips_empty_translation_preserving_skip(self) -> None:
         # An empty/whitespace completed translation must not blank existing
