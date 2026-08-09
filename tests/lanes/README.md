@@ -77,9 +77,51 @@ port, that's a bug.
 
 ## Hermetic runs vs. interactive shells
 
-`tests/lanes/run` clears every mode/endpoint variable the lane files own
-before loading `base.env` -> `<lane>/env` -> overlays. A test run behaves
-identically whether launched from a dev shell, a lane directory, or CI.
+`tests/lanes/run` clears **every** variable the calling shell exports,
+except a six-name keep-list, before loading `base.env` -> `<lane>/env`
+-> overlays. Allowlist, not denylist: a denylist can never enumerate
+every var that might leak (this repo has been bitten three times —
+`PG*`, `NODE_ENV`, then `CUSTOM_MAIL_*`/`INCOMING_*`/`ORGS_*`/`BRAND_*`
+in one incident), so the boundary now clears everything and lets only
+named exceptions through. A test run behaves identically whether
+launched from a dev shell, a lane directory, or CI.
+
+Exported shell functions (`export -f`) are cleared the same way — bash
+re-materializes those in the exec'd task process regardless of any
+variable scrub, so a dev-shell function shadowing `git`, `bundle`,
+`docker`, `podman`, or `rake` (via `.bashrc`, direnv, an asdf shim, or a
+compromised profile) would otherwise run silently inside every lane.
+
+The keep-list is exactly:
+
+```
+PATH HOME CI LANES_NO_AUTOSTART RSPEC_OUTPUT_FILE COVERAGE
+```
+
+`PATH`/`HOME` resolve the toolchain (rbenv/ruby, pnpm/node, python3,
+docker/podman); `CI` is read directly by billing VCR setup and a timing
+spec to select CI-safe behavior; `LANES_NO_AUTOSTART`/`RSPEC_OUTPUT_FILE`/
+`COVERAGE` are CI-plumbing signals set at step level, indistinguishable
+from a leaked dev-shell var unless named explicitly. That's the whole
+list — see the scrub block in `tests/lanes/run` for the one-line
+justification of each.
+
+**A test needs an env var that isn't reaching it? Add it to `base.env`**
+(if every lane needs it) **or the lane's own `env` file** (if only that
+lane does). Do not add it to the keep-list in `tests/lanes/run` — that
+list is for CI-plumbing and toolchain-resolution singletons only, and
+its existing at all is a deliberate, reviewed exception each time.
+
+To see exactly what got cleared: `LANES_DEBUG_ENV=1 tests/lanes/run
+<lane>` prints every scrubbed variable name to stderr as
+`[lane:scrub] unset NAME`. If the var you expected is in that list, the
+scrub is working correctly — it needs to move into `base.env` or the
+lane's `env` file, not be exempted from the scrub.
+
+Determinism pins — `NODE_ENV`, `TZ`, `LANG`, `LC_ALL` in `base.env` — are
+set on purpose rather than left to platform defaults, for the same
+reason the boundary is an allowlist: leaving them ambient means test
+determinism depends on whichever machine happens to run the suite.
 
 For interactive work, `cd` into a lane and `direnv allow` (once): your
 shell — and your atuin history — carries that lane's environment, the
