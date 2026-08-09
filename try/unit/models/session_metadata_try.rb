@@ -35,7 +35,7 @@ SM.load(@sid)&.destroy!
 # truth for the equality assertion below; sensitive fields are absent BY DESIGN.
 ALLOWED = %i[
   session_id user_id org_id created_at last_activity_at
-  ip_address user_agent auth_method mfa_used
+  ip_address user_agent auth_method mfa_used geo_country
 ].freeze
 
 # ---- persist + reload -------------------------------------------------

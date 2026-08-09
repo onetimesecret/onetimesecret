@@ -31,8 +31,12 @@ import { z } from 'zod';
  * org); ip_address/user_agent are copied as-is from the (already Otto-masked)
  * session data; auth_method is the primary login method stamped at auth time
  * ('password' | 'email_auth' | 'webauthn' | 'omniauth' | null for legacy);
- * mfa_used is a nullable boolean pending an enrichment path. There is NO
- * email/token field — that absence is the security guarantee.
+ * mfa_used is a nullable boolean pending an enrichment path. geo_country is
+ * the Otto-derived country code (or the '**' unknown sentinel) — optional so a
+ * mid-deploy response from an older backend (which omits the key) still parses
+ * instead of dropping the whole session list; the UI renders absent/null/'**'
+ * as "Unknown". There is NO email/token field — that absence is the security
+ * guarantee.
  */
 export const adminCustomerSessionSchema = z.object({
   session_id: z.string(),
@@ -44,6 +48,7 @@ export const adminCustomerSessionSchema = z.object({
   user_agent: z.string().nullable(),
   auth_method: z.string().nullable(),
   mfa_used: z.boolean().nullable(),
+  geo_country: z.string().nullable().optional(),
 });
 
 /**

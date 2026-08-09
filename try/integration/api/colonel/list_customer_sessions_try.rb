@@ -138,7 +138,7 @@ get URL, {}, colonel_headers
 
 ## the row exposes exactly the safe_dump keys and nothing more
 @row.keys.sort
-#=> ["auth_method", "created_at", "ip_address", "last_activity_at", "mfa_used", "org_id", "session_id", "user_agent", "user_id"]
+#=> ["auth_method", "created_at", "geo_country", "ip_address", "last_activity_at", "mfa_used", "org_id", "session_id", "user_agent", "user_id"]
 
 # --- Unknown user_id -----------------------------------------------------
 

@@ -75,6 +75,7 @@ module Onetime
     field :user_agent       # copied AS-IS from session_data (already masked upstream by Otto)
     field :auth_method       # primary login method stamped at auth time: 'password' | 'email_auth' | 'webauthn' | 'omniauth' | nil (legacy)
     field :mfa_used          # true | false | nil
+    field :geo_country       # ISO 3166-1 alpha-2 from Otto (env['otto.privacy.geo_country']); '**' unknown; nil when the privacy layer is absent. Country-only, never a raw IP — resolved by Otto before masking, not derived from ip_address.
 
     # POSITIVE allow-list — the security boundary. No token, no payload, no email.
     safe_dump_fields(
@@ -87,6 +88,7 @@ module Onetime
       :user_agent,
       :auth_method,
       :mfa_used,
+      :geo_country,
     )
   end
 end

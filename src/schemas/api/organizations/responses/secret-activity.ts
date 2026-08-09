@@ -47,7 +47,11 @@ export type SecretActivityKind = (typeof SECRET_ACTIVITY_KINDS)[number];
  * 8-char values — render whatever arrives. 'system' and 'anonymous' never
  * carry actor_id. `looseObject` keeps the schema tolerant of further
  * per-kind fields the backend adds later. `at` arrives as a Unix-second
- * float and is transformed to Date.
+ * float and is transformed to Date. net_country is the Otto-derived country
+ * code for the event's originating IP (#3989); it is a legally-sensitive
+ * org-tier geo field pending counsel review, so the FRONTEND gates its
+ * display behind isSecretActivityGeoCountryEnabled (default OFF) even
+ * though the field may be present on the wire.
  */
 export const secretActivityEventSchema = z.looseObject({
   kind: z.string(),
@@ -60,6 +64,7 @@ export const secretActivityEventSchema = z.looseObject({
   net_ip_partial: z.string().optional(),
   net_ip_hash: z.string().optional(),
   net_ua_partial: z.string().optional(),
+  net_country: z.string().optional(),
 });
 
 export type SecretActivityEvent = z.infer<typeof secretActivityEventSchema>;

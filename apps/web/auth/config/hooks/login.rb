@@ -245,8 +245,10 @@ module Auth::Config::Hooks
 
           # Best-effort new-sign-in security alert for password-only logins.
           # MFA logins fire this from after_two_factor_authentication instead,
-          # so each completed login produces exactly one alert. No geo-IP
-          # service is wired, so the request IP is the best available location.
+          # so each completed login produces exactly one alert. Location is the
+          # country Otto's IPPrivacyMiddleware resolved
+          # (env['otto.privacy.geo_country']), falling back to the already-masked
+          # client IP — never the raw request IP (#3989).
           Onetime::ErrorHandler.safe_execute('new_login_alert_email', account_id: account_id) do
             recipient = Onetime::Customer.find_by_email(account[:email])
             # Customers default locale to "" (matches Redis string load), which is
@@ -258,7 +260,10 @@ module Auth::Config::Hooks
               {
                 email_address: account[:email],
                 device_info: request.user_agent || 'Unknown device',
-                location: request.ip,
+                location: Auth::Operations::ResolveLoginLocation.call(
+                  geo_country: request.env['otto.privacy.geo_country'],
+                  masked_ip: request.env['otto.client_ip'],
+                ),
                 login_at: Time.now.utc.iso8601,
                 locale: locale,
               },

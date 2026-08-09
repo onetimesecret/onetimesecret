@@ -602,6 +602,29 @@ export function isSecretActivityCollectEnabled(): boolean {
 }
 
 /**
+ * Checks if the Secret Activity country column is enabled (#3989) — a
+ * legally-sensitive org-tier geo feature pending counsel review. Default is
+ * OFF — only an explicit `true` (SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true) enables
+ * the column; an absent key (the default, and all older backends) keeps it
+ * hidden. This is the inverse default of the isSecretActivityCollectEnabled
+ * sibling above (`!== false`, default-ON): this is an `=== true` opt-in
+ * check, so anything other than a definitive true stays off.
+ *
+ * SSR/no-window guard returns false, matching the default-off contract.
+ * Reads the bootstrap snapshot directly rather than the memoized
+ * getValidatedFeatures() cache, for the reasons documented on
+ * isSecretActivityCollectEnabled.
+ */
+export function isSecretActivityGeoCountryEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.secret_activity?.geo_country_enabled === true;
+  debugLog.features('features.isSecretActivityGeoCountryEnabled', { geo_country_enabled: features?.secret_activity?.geo_country_enabled, result });
+  return result;
+}
+
+/**
  * Returns the operator-configured secret-activity retention cap (#3990) —
  * features.secret_activity.max_events, the Familia max_length applied to the
  * per-org trail. Anything non-numeric or non-positive falls back to the

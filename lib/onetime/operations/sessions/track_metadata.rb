@@ -31,6 +31,10 @@ module Onetime
         # before any auth strategy has warmed the cache.
         include Onetime::Application::OrganizationLoader
 
+        # Otto's GeoResolver sentinel for "no country resolved" — stored verbatim
+        # (consumers render it, nil, or absent as "Unknown").
+        UNKNOWN_COUNTRY = '**'
+
         # @param session_id [String] the PLAIN session id (== live blob key name).
         # @param session_data [Hash] the post-login session hash (string keys) as
         #   seen by write_session. Anonymous/CSRF-only sessions lack
@@ -77,6 +81,7 @@ module Onetime
           meta.org_id           = active_org_id(customer)
           meta.auth_method      = auth_method
           meta.mfa_used         = mfa_used
+          meta.geo_country      = geo_country
           meta.save
 
           # Score by last-activity so the per-customer list reads newest-first.
@@ -142,6 +147,30 @@ module Onetime
         # not invent one — the field exists for a future enrichment path.
         def mfa_used
           nil
+        end
+
+        # geo_country is the country Otto's IPPrivacyMiddleware already resolved
+        # for this request and stamped into the Rack env (otto.privacy.geo_country,
+        # ISO 3166-1 alpha-2 or the '**' unknown sentinel). It runs upstream of the
+        # session write, so this is a plain env read — NOT an IP lookup, and never
+        # derived from the (masked) ip_address. nil when @env is absent (e.g. tests
+        # that call TrackMetadata directly with env: nil) or the privacy layer is
+        # disabled; consumers render '**'/nil as "Unknown".
+        #
+        # Normalized to the canonical alpha-2 form (strip/upcase) so a custom geo
+        # header emitting a lowercase or padded value stores consistently across
+        # every surface, matching Onetime::Security::RequestContext#normalize_country.
+        # The '**' sentinel is preserved as-is; blank or malformed values store nil.
+        def geo_country
+          raw = @env&.dig('otto.privacy.geo_country')
+          return nil if raw.nil?
+
+          normalized = raw.to_s.strip
+          return nil if normalized.empty?
+          return UNKNOWN_COUNTRY if normalized == UNKNOWN_COUNTRY
+
+          upcased = normalized.upcase
+          upcased.match?(/\A[A-Z]{2}\z/) ? upcased : nil
         end
       end
     end

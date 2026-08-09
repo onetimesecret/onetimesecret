@@ -32,9 +32,12 @@ vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
 // Defaults mirror the wire contract: collect on, cap 10,000.
 const mockCollectEnabled = ref(true);
 const mockMaxEvents = ref(10_000);
+// Country column (#3989): default OFF (opt-in, pending counsel review).
+const mockGeoCountryEnabled = ref(false);
 vi.mock('@/utils/features', () => ({
   isSecretActivityCollectEnabled: () => mockCollectEnabled.value,
   getSecretActivityMaxEvents: () => mockMaxEvents.value,
+  isSecretActivityGeoCountryEnabled: () => mockGeoCountryEnabled.value,
 }));
 
 // Deterministic classifier output so the error banner's detail line is
