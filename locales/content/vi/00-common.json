@@ -1539,5 +1539,9 @@
   "web.TITLES.domain_dns": {
     "text": "Thiết lập DNS",
     "source_hash": "6c63df31"
+  },
+  "web.TITLES.connected_identities": {
+    "text": "Danh tính đã kết nối",
+    "source_hash": "e132c4d9"
   }
 }

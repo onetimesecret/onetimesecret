@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "phiên",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Danh tính đã kết nối",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Quản lý các nhà cung cấp đăng nhập một lần được liên kết với tài khoản của bạn.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Đăng nhập một lần",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Các nhà cung cấp danh tính bạn có thể sử dụng để đăng nhập vào tài khoản này",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Kết nối một nhà cung cấp",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Liên kết một nhà cung cấp đăng nhập một lần khác mà bạn có thể sử dụng để đăng nhập vào tài khoản này.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Kết nối {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Issuer",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Định danh",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Xóa",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Xóa danh tính đã kết nối",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Bạn có chắc chắn muốn xóa danh tính đã kết nối này? Bạn sẽ không thể đăng nhập bằng nó nữa.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Đã xóa danh tính đã kết nối",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Không có danh tính đã kết nối",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Bạn chưa liên kết bất kỳ nhà cung cấp đăng nhập một lần nào với tài khoản này.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Đăng nhập một lần",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Đây là cách duy nhất để bạn đăng nhập. Kết nối một nhà cung cấp khác trước, hoặc đặt mật khẩu từ Cài đặt → Bảo mật, để bạn không bị khóa.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Đây là cách duy nhất để bạn đăng nhập. Kết nối một nhà cung cấp khác trước để bạn không bị khóa.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Không thể tìm thấy danh tính đã kết nối đó. Có thể nó đã bị xóa.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Phiên của bạn đã hết hạn. Vui lòng đăng nhập lại.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Chúng tôi không thể hoàn thành hành động đó. Vui lòng thử lại.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Liên kết phương thức đăng nhập của bạn",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Bạn đã đăng nhập bằng {provider}, khớp với tài khoản hiện có {email}. Nhập mật khẩu của tài khoản đó để liên kết {provider} và tiếp tục.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Mật khẩu",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Mật khẩu hiện có của bạn",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Liên kết và tiếp tục",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Hủy",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Yêu cầu liên kết này đã hết hạn",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Vì sự an toàn của bạn, yêu cầu liên kết phương thức đăng nhập này không còn hợp lệ. Đăng nhập bằng mật khẩu hiện có của bạn, sau đó kết nối nhà cung cấp này trong Cài đặt bảo mật → Danh tính đã kết nối.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Tiếp tục đăng nhập",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Mật khẩu đó không khớp với tài khoản này. Vui lòng thử lại.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Yêu cầu liên kết này đã hết hạn hoặc đã được sử dụng. Đăng nhập bằng mật khẩu hiện có của bạn, sau đó kết nối nhà cung cấp này từ cài đặt tài khoản của bạn.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Chúng tôi không thể liên kết phương thức đăng nhập này. Tài khoản của bạn có thể đã thay đổi, hoặc nhà cung cấp này đã được liên kết với tài khoản khác. Đăng nhập bằng mật khẩu hiện có của bạn, sau đó quản lý kết nối trong Cài đặt bảo mật → Danh tính đã kết nối.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Quá nhiều lần thử mật khẩu. Vui lòng đợi vài phút, sau đó thử lại.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Chúng tôi không thể xử lý yêu cầu liên kết này. Vui lòng đăng nhập lại bằng nhà cung cấp SSO của bạn.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Chúng tôi không thể liên kết tài khoản của bạn. Vui lòng thử lại.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Xác nhận kết nối tài khoản của bạn",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Bạn đã đăng nhập bằng {provider}, khớp với tài khoản {email} của bạn. Xác nhận để kết nối {provider} với tài khoản này và hoàn tất đăng nhập.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Xác nhận và kết nối",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Hủy",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Yêu cầu liên kết này không thể hoàn thành",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Vì sự an toàn của bạn, yêu cầu kết nối phương thức đăng nhập này không còn hợp lệ. Đăng nhập lại bằng nhà cung cấp của bạn và chúng tôi sẽ gửi email cho bạn một liên kết mới.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Quay lại đăng nhập",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Yêu cầu liên kết này đã hết hạn hoặc đã được sử dụng. Đăng nhập lại bằng nhà cung cấp của bạn và chúng tôi sẽ gửi email cho bạn một liên kết mới.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Chúng tôi không thể kết nối phương thức đăng nhập này. Tài khoản của bạn có thể đã thay đổi, hoặc nhà cung cấp này đã được liên kết với tài khoản khác. Đăng nhập lại bằng nhà cung cấp của bạn để tiếp tục.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Thông tin đăng nhập tài khoản của bạn đã thay đổi sau khi liên kết này được gửi, vì vậy nó không còn hợp lệ. Đăng nhập lại bằng nhà cung cấp của bạn và chúng tôi sẽ gửi email cho bạn một liên kết mới.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Đã xảy ra sự cố ở phía chúng tôi và chúng tôi không thể xác minh liên kết này. Đăng nhập lại bằng nhà cung cấp của bạn và chúng tôi sẽ gửi email cho bạn một liên kết mới.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Quá nhiều lần thử từ thiết bị của bạn. Vui lòng đợi vài phút, sau đó mở lại liên kết đã gửi qua email hoặc đăng nhập bằng nhà cung cấp của bạn để nhận liên kết mới.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Chúng tôi không thể xác nhận kết nối này. Vui lòng đăng nhập lại bằng nhà cung cấp của bạn.",
+    "source_hash": "076fa25a"
   }
 }

@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Sử dụng điện thoại để quét mã QR",
-    "source_hash": "99ecf59f"
+    "text": "ví dụ: Dùng điện thoại để quét mã QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Liên hệ onboarding{'@'}example.com nếu có câu hỏi",
-    "source_hash": "bee120a7"
+    "text": "ví dụ: Liên hệ onboarding{'@'}example.com nếu có câu hỏi",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Hướng dẫn này sẽ được hiển thị cho người nhận trước khi họ xem nội dung bí mật",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Đây là bản xem trước trực tiếp — thay đổi của bạn sẽ không hiển thị cho khách truy cập cho đến khi bạn lưu.",
-    "source_hash": "cb4b82de"
+    "text": "Đây là bản xem trước trực tiếp — các thay đổi của bạn sẽ không hiển thị cho khách truy cập cho đến khi bạn nhấp Cập nhật.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Chỉ cho chúng tôi trang web của bạn và chúng tôi sẽ đọc màu sắc cùng phông chữ của nó, rồi thu hẹp khoảng cách chỉ bằng một cú nhấp.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Sau khi hiển thị",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Làm mới favicon từ tên miền",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Lấy lại favicon từ tên miền của bạn. Biểu tượng mới sẽ xuất hiện sau đó.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Đang làm mới favicon — biểu tượng mới sẽ xuất hiện sau đó.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Bạn đã tải lên favicon tùy chỉnh, vì vậy biểu tượng được lấy sẽ không thay thế nó.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Tải lên favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Thay thế",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Xóa favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG hoặc SVG. Tải lên thay thế biểu tượng đã lấy.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Favicon tên miền",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Favicon tên miền",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG hoặc SVG. Tối đa 256KB. Thay thế biểu tượng tự động lấy.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Lưu favicon",
+    "source_hash": "c8a1566c"
   }
 }
