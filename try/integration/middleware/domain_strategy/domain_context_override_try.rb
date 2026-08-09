@@ -51,6 +51,23 @@ def create_middleware_with_override_enabled
   middleware
 end
 
+# Helper to create middleware with domains enabled, domain context enabled,
+# and a #4063 operator link pool ('go.acme.com') in the canonical set.
+#
+# initialize_from_config must run AFTER construction (the constructor
+# re-reads OT.conf's features.domains block, which has no link_domains
+# under test) and @domain_context_enabled must be set AFTER that call,
+# which recomputes it from the development config.
+def create_middleware_with_link_pool
+  middleware = @strategy_class.new(create_app)
+  @strategy_class.initialize_from_config(
+    { 'enabled' => true, 'default' => 'example-links.net', 'link_domains' => ['go.acme.com'] },
+  )
+  enable_runtime_domains!
+  @strategy_class.class_eval { @domain_context_enabled = true }
+  middleware
+end
+
 # Helper to create middleware instance with domain context disabled
 def create_middleware_with_override_disabled
   middleware = @strategy_class.new(create_app)
@@ -110,6 +127,49 @@ middleware = create_middleware_with_override_enabled
 env = { Rack::DetectHost.result_field_name => 'custom.example.org' }
 middleware.detect_domain_override(env)
 #=> ['custom.example.org', :detected_host]
+
+# Operator Link Pool vs Implicit Override (#4063)
+#
+# The implicit branch keys on `detected_host && !canonical_host?(detected_host)`
+# (domain_strategy.rb:192). features.domains.link_domains members are now
+# canonical-set members, so canonical_host? returns TRUE for them and
+# visiting a blessed pool host must NOT read as a dev domain-context
+# override -- an override forces :custom, which would drop the canonical
+# brand/signin config on a host the operator explicitly blessed.
+#
+# These cases configure the class explicitly (config hash into
+# initialize_from_config) instead of via the helpers, because the helpers
+# construct middleware which re-reads OT.conf's features.domains block.
+# @domain_context_enabled must be set AFTER initialize_from_config, which
+# recomputes it from the development config.
+
+## Blessed link-pool host is NOT an implicit domain-context override
+middleware = create_middleware_with_link_pool
+env = { Rack::DetectHost.result_field_name => 'go.acme.com' }
+middleware.detect_domain_override(env)
+#=> [nil, nil]
+
+## Control: an unblessed host is still an implicit override under the same config
+middleware = create_middleware_with_link_pool
+env = { Rack::DetectHost.result_field_name => 'unblessed.example.org' }
+middleware.detect_domain_override(env)
+#=> ['unblessed.example.org', :detected_host]
+
+## A request to the blessed pool host serves :canonical end to end through call
+middleware = create_middleware_with_link_pool
+env = { Rack::DetectHost.result_field_name => 'go.acme.com' }
+middleware.call(env)
+[env['onetime.display_domain'], env['onetime.domain_strategy']]
+#=> ['go.acme.com', :canonical]
+
+## An explicit header override still wins over pool membership
+middleware = create_middleware_with_link_pool
+env = {
+  'HTTP_O_DOMAIN_CONTEXT' => 'go.acme.com',
+  Rack::DetectHost.result_field_name => 'go.acme.com',
+}
+middleware.detect_domain_override(env)
+#=> ['go.acme.com', :header]
 
 # Middleware Integration Tests
 

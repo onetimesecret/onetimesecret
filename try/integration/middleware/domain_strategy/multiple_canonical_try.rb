@@ -21,9 +21,48 @@ OT.boot! :test, false
 @default_host = 'example-links.net'
 @site_host_orig = OT.conf['site']['host']
 
+# #4063 fixtures. @internal_host mirrors the motivating install: an
+# internal platform address that must keep SERVING while being hidden
+# from the customer-facing link picker. @pool_host shares no base domain
+# with any canonical anchor, so it can only classify :canonical by being
+# a canonical-set member -- never via the subdomain/peer sweeps.
+@internal_host = 'ge-abcd123.eu.otshosted.com'
+@pool_host     = 'go.acme.com'
+@short_host    = 'short.example.com'
+
 # Helper to create a minimal Rack app
 def create_app
   ->(env) { [200, {}, ['OK']] }
+end
+
+# Captures OT.le output for the duration of the block. Copied from
+# try/unit/boot/configure_domains_drift_try.rb:27-38 -- the unparseable
+# canonical-host skip is logged at error level precisely so it is
+# observable here.
+def capture_le
+  captured = []
+  Onetime.singleton_class.send(:alias_method, :orig_le, :le)
+  Onetime.define_singleton_method(:le) { |*msgs, **_kw| captured.concat(msgs) }
+  begin
+    yield
+  ensure
+    Onetime.singleton_class.send(:alias_method, :le, :orig_le)
+    Onetime.singleton_class.send(:remove_method, :orig_le)
+  end
+  captured
+end
+
+# Enables the domains feature at the RUNTIME level for the duration of the
+# block, then restores it. DomainStrategy#call short-circuits to :canonical
+# unless Onetime::Runtime.features.domains? is true, so the end-to-end
+# wiring cases need it. Same idiom as
+# try/integration/middleware/domain_strategy/response_headers_try.rb:29-31.
+def with_runtime_domains
+  original = Onetime::Runtime.features
+  Onetime::Runtime.features = original.with(domains_enabled: true)
+  yield
+ensure
+  Onetime::Runtime.features = original
 end
 
 # Domain Validation Tests
@@ -208,6 +247,249 @@ Onetime::CustomDomain.singleton_class.send(:alias_method, :from_display_domain, 
 Onetime::CustomDomain.singleton_class.send(:remove_method, :shadow_orig_from_display_domain)
 @chooser.choose_strategy('unregistered.example-app.com', [@default_host, @site_host])
 #=> :subdomain
+
+# Operator Link Pool Tests (#4063 features.domains.link_domains)
+#
+# One setting, two derived sets. Every link domain JOINS the canonical
+# host set (classification/admission), while the picker reads the pool
+# separately. That split is what lets an internal canonical host keep
+# serving while being hidden from the customer-facing picker.
+#
+# These cases follow the file's idiom: an explicit config hash into
+# initialize_from_config plus direct OT.conf['site']['host'] mutation,
+# never a stub. Each block resets class state first; teardown restores
+# site.host and calls reset! (which nils @link_domains too).
+
+## AC3: an unrelated-base-domain link host joins the canonical set, appended after both anchors
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+config = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
+@strategy_class.initialize_from_config(config)
+@strategy_class.canonical_domains
+#=> ['example-links.net', 'example-app.com', 'go.acme.com']
+
+## AC3: the primary is unchanged by the appended pool member
+@strategy_class.canonical_domain
+#=> 'example-links.net'
+
+## AC3: the link host survives into the parsed set used for classification
+@strategy_class.canonical_domains_parsed.map(&:name)
+#=> ['example-links.net', 'example-app.com', 'go.acme.com']
+
+## AC3: a request to the link host classifies :canonical, not nil (:invalid)
+@chooser.choose_strategy(@pool_host, @strategy_class.canonical_domains_parsed)
+#=> :canonical
+
+## AC8: canonical_host? agrees with the :canonical classification for the link host
+@strategy_class.canonical_host?(@pool_host)
+#=> true
+
+## AC8: canonical_host? and classification BOTH track EXACT pool membership
+# T11 recorded the opposite here (a swept :canonical) as a consequence of
+# pool membership rather than a blessing; T16 removed the widening. A pool
+# member joins the canonical set for EXACT matching only -- the
+# peer/parent and subdomain sweeps iterate the ANCHOR hosts. The operator
+# blessed go.acme.com, not acme.com, so an unregistered sibling on that
+# shared base domain classifies nil (:invalid), matching what
+# canonical_host? -- the admission predicate used by
+# Account::UpdateDomainContext -- already said.
+[@strategy_class.canonical_host?('other.acme.com'),
+ @chooser.choose_strategy('other.acme.com', @strategy_class.canonical_domains_parsed,
+   anchor_domains: @strategy_class.anchor_domains_parsed)]
+#=> [false, nil]
+
+# T16: exact-match set vs. sweep set
+#
+# Two sets come out of initialize_from_config. canonical_domains_parsed is
+# the EXACT-match set (anchors + pool). anchor_domains_parsed is the
+# subset the peer/parent and subdomain sweeps iterate (site.host +
+# features.domains.default). CustomDomain.overlaps_canonical_domain? makes
+# the same split -- exact arm over the full set, base-domain arm over
+# anchors only -- and the two must keep agreeing.
+
+## T16: the anchor set is the pre-#4063 two-element set, pool member excluded
+@strategy_class.anchor_domains_parsed.map(&:name)
+#=> ['example-links.net', 'example-app.com']
+
+## T16: the pool member itself still classifies :canonical, via the exact-match arm
+@chooser.choose_strategy(@pool_host, @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed)
+#=> :canonical
+
+## T16: the PARENT of a pool member is not swept in either (parent_of? is anchor-only)
+@chooser.choose_strategy('acme.com', @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed)
+#=> nil
+
+## T16: an unregistered subdomain of an ANCHOR host still classifies :subdomain
+@chooser.choose_strategy('sub.example-app.com', @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed)
+#=> :subdomain
+
+## T16 asymmetry: an anchor's unregistered peer is :canonical, a pool member's is not
+# @internal_host is subdomain-shaped, so peer_of? applies to it -- this is
+# the pre-#4063 sweep behavior for anchors, untouched. The pool member
+# @pool_host is subdomain-shaped too, and its peer gets nothing. Same
+# request shape, opposite answer: that asymmetry is the whole point.
+@strategy_class.reset!
+OT.conf['site']['host'] = @internal_host
+config = { 'enabled' => true, 'default' => nil, 'link_domains' => [@pool_host] }
+@strategy_class.initialize_from_config(config)
+[@chooser.choose_strategy('other.eu.otshosted.com', @strategy_class.canonical_domains_parsed,
+   anchor_domains: @strategy_class.anchor_domains_parsed),
+ @chooser.choose_strategy('other.acme.com', @strategy_class.canonical_domains_parsed,
+   anchor_domains: @strategy_class.anchor_domains_parsed)]
+#=> [:canonical, nil]
+
+## T16: the anchor set follows site.host when features.domains.default is unset
+@strategy_class.anchor_domains_parsed.map(&:name)
+#=> ['ge-abcd123.eu.otshosted.com']
+
+## T16 wiring: the middleware call path passes the anchor set to the sweeps
+# Guards the call site itself, not just Chooserator: dropping the
+# anchor_domains: kwarg in domain_strategy.rb#call would re-widen every
+# real request while every direct-Chooserator case above stayed green.
+middleware = @strategy_class.new(create_app)
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+@strategy_class.initialize_from_config(
+  { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
+)
+@strategy_class.class_eval { @domain_context_enabled = false }
+env = { Rack::DetectHost.result_field_name => 'other.acme.com' }
+with_runtime_domains { middleware.call(env) }
+env['onetime.domain_strategy']
+#=> :invalid
+
+## T16 wiring control: the blessed pool host still serves :canonical through call
+middleware = @strategy_class.new(create_app)
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+@strategy_class.initialize_from_config(
+  { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
+)
+@strategy_class.class_eval { @domain_context_enabled = false }
+env = { Rack::DetectHost.result_field_name => @pool_host }
+with_runtime_domains { middleware.call(env) }
+[env['onetime.display_domain'], env['onetime.domain_strategy']]
+#=> ['go.acme.com', :canonical]
+
+## AC1 fence: link_domains unset resolves the pool to [canonical_domain] (pre-#4063 behavior)
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
+[@strategy_class.canonical_domains, @strategy_class.link_domains]
+#=> [['example-links.net', 'example-app.com'], ['example-links.net']]
+
+## AC2 (serving half): the canonical host keeps serving while absent from the pool
+# The picker half of AC2 is covered in
+# src/tests/composables/useDomainContext.spec.ts ('operator link pool'):
+# availableDomains must be exactly the pool, canonical absent.
+@strategy_class.reset!
+OT.conf['site']['host'] = @internal_host
+config = { 'enabled' => true, 'default' => nil, 'link_domains' => [@short_host] }
+@strategy_class.initialize_from_config(config)
+[@chooser.choose_strategy(@internal_host, @strategy_class.canonical_domains_parsed),
+ @strategy_class.canonical_domain,
+ @strategy_class.link_domains]
+#=> [:canonical, 'ge-abcd123.eu.otshosted.com', ['short.example.com']]
+
+## AC2 (serving half): canonical_host? still true for the pool-excluded canonical host
+@strategy_class.canonical_host?(@internal_host)
+#=> true
+
+## AC2 (serving half): the pool member serves :canonical alongside it
+[@chooser.choose_strategy(@short_host, @strategy_class.canonical_domains_parsed),
+ @strategy_class.canonical_host?(@short_host)]
+#=> [:canonical, true]
+
+# AC4 (security property): a tenant that registers a CustomDomain matching
+# an operator pool entry must NOT be able to flip it to :custom -- the
+# exact canonical-set arm outranks known_custom_domain?. Otherwise a
+# tenant registration would capture an operator link domain and apply its
+# own brand/signin config to it.
+#
+# The stub is proven LIVE by the control case below: the same registered
+# host, absent from the canonical set, DOES classify :custom. Without
+# that control a dead stub makes the AC4 case pass vacuously.
+
+## AC4 control: the registration stub is live -- registered host outside the canonical set is :custom
+Onetime::CustomDomain.singleton_class.send(:alias_method, :pool_orig_from_display_domain, :from_display_domain)
+Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
+  domain == 'go.acme.com' ? Object.new : nil
+end
+@chooser.choose_strategy(@pool_host, [@default_host, @site_host])
+#=> :custom
+
+## AC4: the same registration does NOT flip a pool member away from :canonical
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+config = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
+@strategy_class.initialize_from_config(config)
+@chooser.choose_strategy(@pool_host, @strategy_class.canonical_domains_parsed)
+#=> :canonical
+
+## AC4: restoring the real lookup drops the host back out of the custom set
+Onetime::CustomDomain.singleton_class.send(:alias_method, :from_display_domain, :pool_orig_from_display_domain)
+Onetime::CustomDomain.singleton_class.send(:remove_method, :pool_orig_from_display_domain)
+@chooser.choose_strategy(@pool_host, [@default_host, @site_host])
+#=> nil
+
+## T16: a REGISTERED sibling of a pool member still classifies :custom
+# known_custom_domain? runs BEFORE the sweeps, so narrowing them to the
+# anchors cannot take a customer's registered domain away from :custom.
+# Without the registration this host would be nil (:invalid) -- see the
+# 'other.acme.com' case above.
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+config = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
+@strategy_class.initialize_from_config(config)
+Onetime::CustomDomain.singleton_class.send(:alias_method, :sibling_orig_from_display_domain, :from_display_domain)
+Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
+  domain == 'sibling.acme.com' ? Object.new : nil
+end
+sibling_strategy = @chooser.choose_strategy('sibling.acme.com', @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed)
+Onetime::CustomDomain.singleton_class.send(:alias_method, :from_display_domain, :sibling_orig_from_display_domain)
+Onetime::CustomDomain.singleton_class.send(:remove_method, :sibling_orig_from_display_domain)
+sibling_strategy
+#=> :custom
+
+## AC7 control: a fully parseable pool logs no skip line (capture_le is discriminating)
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+config = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
+capture_le { @strategy_class.initialize_from_config(config) }
+#=> []
+
+## AC7: one unparseable pool entry is skipped and named in the error log
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+config = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host, '999'] }
+captured = capture_le { @strategy_class.initialize_from_config(config) }
+captured.any? { |msg| msg.include?('skipping unparseable canonical host') && msg.include?('999') }
+#=> true
+
+## AC7: a per-host skip is not a feature-level failure -- domains stay enabled
+@strategy_class.domains_enabled?
+#=> true
+
+## AC7: only parseable entries survive into the parsed set
+@strategy_class.canonical_domains_parsed.map(&:name)
+#=> ['example-links.net', 'example-app.com', 'go.acme.com']
+
+## AC7: the parseable pool member still classifies :canonical
+@chooser.choose_strategy(@pool_host, @strategy_class.canonical_domains_parsed)
+#=> :canonical
+
+## AC7: the resolved pool drops the unparseable entry (offer only what we serve)
+@strategy_class.link_domains
+#=> ['go.acme.com']
+
+## AC8: canonical_host? rejects the unparseable entry the classifier also rejects
+[@strategy_class.canonical_host?('999'),
+ @chooser.choose_strategy('999', @strategy_class.canonical_domains_parsed)]
+#=> [false, nil]
 
 # Implicit Override Consistency Tests (dev-only domain context feature)
 
