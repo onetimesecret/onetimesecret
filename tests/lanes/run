@@ -423,12 +423,39 @@ done
 # Anything left matching BASH_FUNC_*%% is caught here too: those are readonly
 # exported functions the loop above already listed, and re-listing a name is
 # harmless.
-while IFS= read -r -d '' _lanes_entry; do
-  _lanes_name="${_lanes_entry%%=*}"
-  if [[ "${_lanes_name}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
-    continue
-  fi
-  _lanes_strip+=(-u "${_lanes_name}")
-done < <(env -0)
+#
+# `builtin command env`, not bare `env`: this is an ordinary command word, so
+# bash resolves a function of that name first, and the function scrub above
+# cannot clear a readonly one (`unset -f` fails; the readonly attribute is
+# only reachable via the caller's BASH_ENV, which is how the boundary spec
+# builds its readonly fixture). An `env` function here would silently return
+# nothing and turn this loop into a no-op — same failure shape as the `awk`
+# one. The `exec` below needs no such guard: exec's operand is not subject to
+# function lookup, verified with `env() { :; }; exec env echo x`.
+#
+# `env -0` is GNU/BSD; busybox env has no such flag. Probe for it rather than
+# letting an unsupported flag turn the loop into that same silent no-op — on
+# a shell without it the names below cannot be enumerated at all, and the run
+# should say so instead of implying a strip that did not happen.
+#
+# The subshell around the probe is load-bearing, not style: `builtin command
+# <external>` loses errexit's condition-context suppression in bash 5.2, so a
+# bare `if builtin command env -0 ...` exits the whole runner (status 125)
+# the moment the flag is unsupported — the exact case being probed for, and
+# `|| true` does not rescue it either. Running it in a subshell keeps the
+# failure where it belongs, in `$?`. Verified: `builtin command false` under
+# `set -e` exits even as an if-condition; `(builtin command false)` does not.
+if (builtin command env -0 </dev/null >/dev/null 2>&1); then
+  while IFS= builtin read -r -d '' _lanes_entry; do
+    _lanes_name="${_lanes_entry%%=*}"
+    if [[ "${_lanes_name}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+      continue
+    fi
+    _lanes_strip+=(-u "${_lanes_name}")
+  done < <(builtin command env -0)
+else
+  echo "[lane:${LANE}] warning: env(1) does not support -0; environment entries" >&2
+  echo "  whose names are not shell identifiers cannot be enumerated or stripped" >&2
+fi
 
 exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"

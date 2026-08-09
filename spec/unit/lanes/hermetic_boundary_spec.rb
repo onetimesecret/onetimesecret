@@ -46,6 +46,12 @@ module LaneHermeticProbe
   # Bash resolves functions before commands, so this one *was* the filter
   # that decided which functions got scrubbed.
   TOOL_FN   = 'awk'
+  # The same hazard one stage later. The exec-boundary strip runs *after* the
+  # function scrub, so a plain exported function is already gone by then and
+  # only a readonly one is still live to shadow the `env` that enumerates
+  # non-identifier names. Readonly-ness is not preserved across exec, which
+  # is why this one has to come in through BASH_ENV like RO_FN.
+  RO_TOOL_FN = 'env'
   # Environment entries whose names are not valid shell identifiers. execve
   # accepts them, `compgen -e` does not enumerate them, and `unset` cannot
   # clear them — they can only leave at the exec boundary.
@@ -157,6 +163,9 @@ module LaneHermeticProbe
       readonly #{RO_VAR}
       #{TOOL_FN}() { :; }
       export -f #{TOOL_FN}
+      #{RO_TOOL_FN}() { echo "#{CANARY}"; }
+      export -f #{RO_TOOL_FN}
+      readonly -f #{RO_TOOL_FN}
     RC
   end
 
@@ -301,6 +310,19 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
     expect(env).not_to have_key('Coverage')
     # And the real keep-list still works.
     expect(env['CI']).to eq(LaneHermeticProbe::KEEPSAKE)
+  end
+
+  it 'enumerates the environment through a shadow-proof env(1)' do
+    # A readonly `env` function outlives the function scrub, and the
+    # exec-boundary loop that finds non-identifier names is an ordinary
+    # command word away from calling it instead of coreutils — which would
+    # return nothing, strip nothing, and look exactly like a clean
+    # environment. It prints the canary if it ever runs; the odd names below
+    # are what its silence would have let through.
+    expect(result[:scrub_trace])
+      .to include("[lane:scrub] strip-at-exec #{LaneHermeticProbe::RO_TOOL_FN} (readonly function)")
+    expect(result[:output]).not_to include(LaneHermeticProbe::CANARY)
+    expect(result[:functions]).to be_empty
   end
 
   it 'strips environment entries whose names are not shell identifiers' do
