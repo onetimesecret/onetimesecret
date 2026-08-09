@@ -1,0 +1,21 @@
+# Lane: selftest — fixture for the hermetic-boundary regression spec.
+#
+# Not a CI matrix row and not an application test. Its `tasks` file runs
+# no Ruby, no Node, and no application code: it reports the environment
+# the boundary actually delivered so that
+# spec/unit/lanes/hermetic_boundary_spec.rb can assert on it. The scrub
+# block in tests/lanes/run is subtle enough that its last regression (an
+# awk filter that matched only the `-fx` function attribute and so let
+# `-ftx` functions through) was caught by human review rather than by a
+# test; this lane is what makes the next one fail loudly instead.
+#
+# The three service URLs are blanked on purpose. tests/lanes/run builds
+# REQUIRED_PORTS by matching 127.0.0.1:<port> in exactly these three
+# values, so emptying them leaves the array empty — preflight passes,
+# autostart never fires, and the lane finishes in milliseconds with no
+# containers running. If the preflight ever learns to read a fourth
+# endpoint, blank it here too or this lane starts requiring services.
+AUTHENTICATION_MODE=simple
+REDIS_URL=''
+RABBITMQ_URL=''
+AUTH_DATABASE_URL=''

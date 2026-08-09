@@ -20,10 +20,11 @@ $ tests/lanes/run full-pg --overlay billing
 $ docker compose -f compose.test.yml down
 ```
 
-Prerequisites: `bundle install`, `pnpm install`, `python3` (locale
-compilation). Lanes whose specs read built frontend assets (`unit`,
-`smoke`) need `public/web/dist/` populated — `pnpm run build` locally;
-CI provides it as a build artifact.
+Prerequisites: `bash` 5+ (the runner's env scrub needs it; stock macOS
+ships 3.2 — `brew install bash`), `bundle install`, `pnpm install`,
+`python3` (locale compilation). Lanes whose specs read built frontend
+assets (`unit`, `smoke`) need `public/web/dist/` populated — `pnpm run
+build` locally; CI provides it as a build artifact.
 
 ## Lanes
 
@@ -39,10 +40,13 @@ CI provides it as a build artifact.
 | `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                           | smoke-test (T3)                          |
 | `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                        | migration-tests.yml — SQLite job         |
 | `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` + dual-URL check     | migration-tests.yml — PostgreSQL job     |
+| `selftest`          | none                       | prints its own environment (boundary fixture)               | none — driven by `spec/unit/lanes/`      |
 
 `api` and `smoke` don't exercise the job queue, but `base.env` carries
 `RABBITMQ_URL` for every lane and the runner's preflight requires every
-endpoint in a lane's env to be reachable — so rabbitmq must be up.
+`127.0.0.1:21xx` endpoint *present* in a lane's env to be reachable — so
+rabbitmq must be up. `selftest` is the one exception: its own `env`
+blanks all three URLs, which leaves the preflight with nothing to check.
 
 The billing matrix rows are the full-mode lanes with `--overlay billing`.
 Billing requires `AUTHENTICATION_MODE=full`; `run` rejects the overlay on
@@ -77,9 +81,99 @@ port, that's a bug.
 
 ## Hermetic runs vs. interactive shells
 
-`tests/lanes/run` clears every mode/endpoint variable the lane files own
-before loading `base.env` -> `<lane>/env` -> overlays. A test run behaves
-identically whether launched from a dev shell, a lane directory, or CI.
+`tests/lanes/run` clears every variable the calling shell exports,
+except a six-name keep-list, before loading `base.env` -> `<lane>/env`
+-> overlays. Allowlist, not denylist: a denylist can never enumerate
+every var that might leak (this repo has been bitten three times —
+`PG*`, `NODE_ENV`, then `CUSTOM_MAIL_*`/`INCOMING_*`/`ORGS_*`/`BRAND_*`
+in one incident), so the boundary now clears everything and lets only
+named exceptions through. A test run behaves identically whether
+launched from a dev shell, a lane directory, or CI.
+
+That scrub needs bash 5 — `mapfile`, plus empty-array expansion under
+`set -u` — so the runner checks `BASH_VERSINFO` before anything else and
+refuses to start on an older shell. The floor is pinned in
+`.bash-version` at the repo root (next to `.ruby-version` and
+`.node-version`); the runner, `bin/setup --doctor`, and the
+hermetic-boundary spec all read it from there rather than each carrying
+their own copy of the number. Stock macOS is bash 3.2 and
+`#!/usr/bin/env bash` finds it, so without the check a Mac contributor
+gets `mapfile: command not found` from inside the boundary block rather
+than a sentence telling them what to install. The fix is `brew install
+bash`. The floor stops at this file: `bin/setup` stays 3.2-compatible on
+purpose, because it has to run on a Mac before Homebrew bash exists.
+
+Exported shell functions (`export -f`) are cleared the same way — bash
+re-materializes those in the exec'd task process regardless of any
+variable scrub, so a dev-shell function shadowing `git`, `bundle`,
+`docker`, `podman`, or `rake` (via `.bashrc`, direnv, an asdf shim, or a
+compromised profile) would otherwise run silently inside every lane.
+
+The scrub is the first thing `run` does after `set -euo pipefail`, and it
+has to stay there. Assigning into a name the caller already exported keeps
+the export attribute, so a variable the script sets above the scrub would
+be listed and cleared as if it were ambient — then read back as unbound.
+That is not hypothetical: `run-test-lane/action.yml` passes the lane name
+as step env `LANE`, and `LANE="$1"` above the scrub took every CI job down
+with `LANE: unbound variable`. Add new script variables below the block,
+never above it.
+
+The keep-list is exactly:
+
+```
+PATH HOME CI LANES_NO_AUTOSTART RSPEC_OUTPUT_FILE COVERAGE
+```
+
+`PATH`/`HOME` resolve the toolchain (rbenv/ruby, pnpm/node, python3,
+docker/podman); `CI` is read directly by billing VCR setup and a timing
+spec to select CI-safe behavior; `LANES_NO_AUTOSTART`/`RSPEC_OUTPUT_FILE`/
+`COVERAGE` are CI-plumbing signals set at step level, indistinguishable
+from a leaked dev-shell var unless named explicitly. That's the whole
+list — see the scrub block in `tests/lanes/run` for the one-line
+justification of each.
+
+The container-daemon variables — `DOCKER_HOST`, `DOCKER_CONTEXT`,
+`DOCKER_CONFIG`, `DOCKER_CERT_PATH`, `DOCKER_TLS_VERIFY`,
+`DOCKER_API_VERSION`, `CONTAINER_HOST`, `CONTAINER_CONNECTION`,
+`CONTAINER_SSHKEY`, `CONTAINERS_CONF`, `XDG_RUNTIME_DIR` — are **not** on
+that list and never reach the test process. The runner snapshots them into shell variables before the scrub
+and hands them to the `docker compose` / `podman compose` autostart
+invocation alone. Without the snapshot, a contributor whose daemon is
+colima, OrbStack, or rootless podman would have autostart talk to the
+default socket — the wrong daemon, or none — while their services sat
+untouched on the real one. Passing them through to the tests instead
+would be the leak the scrub exists to stop, so they go to the compose
+client and stop there.
+
+**A test needs an env var that isn't reaching it? Add it to `base.env`**
+(if every lane needs it) **or the lane's own `env` file** (if only that
+lane does). Do not add it to the keep-list in `tests/lanes/run` — that
+list is for CI-plumbing and toolchain-resolution singletons only, and
+its existing at all is a deliberate, reviewed exception each time.
+
+To see exactly what got cleared: `LANES_DEBUG_ENV=1 tests/lanes/run
+<lane>` prints every scrubbed variable to stderr as
+`[lane:scrub] unset NAME` and every scrubbed exported function as
+`[lane:scrub] unset -f NAME`. If the var you expected is in that list,
+the scrub is working correctly — it needs to move into `base.env` or the
+lane's `env` file, not be exempted from the scrub.
+
+Determinism pins are set on purpose rather than left to platform
+defaults, for the same reason the boundary is an allowlist: leaving them
+ambient means test determinism depends on whichever machine happens to
+run the suite. Which file a pin lives in decides who else it affects.
+`NODE_ENV=test` and `TZ=UTC` are in `base.env`, which the lane `.envrc`
+hooks below also dotenv-load — so they rewrite an interactive lane shell,
+and that is the intent: a lane shell should behave like a lane run.
+`NODE_ENV` is read directly by application code (`src/utils/debug.ts`,
+`src/utils/schemaValidation.ts`); `TZ` is read by the language runtimes,
+so it moves every timestamp-adjacent assertion. Both change observable
+behavior, which is what puts them on the parity side. `LANG`/`LC_ALL` are
+pinned in `tests/lanes/run` instead, after the scrub and before
+`base.env` loads. A fixed locale is a runner concern, not environment
+parity; pinning it in `base.env` would quietly change the locale of
+every shell that `cd`s into a lane directory, which is a side effect
+nobody asked for.
 
 For interactive work, `cd` into a lane and `direnv allow` (once): your
 shell — and your atuin history — carries that lane's environment, the
@@ -109,9 +203,11 @@ and executes `tests/lanes/run <lane>`:
 
 - `.github/workflows/ci.yml` — all Ruby test jobs, via the
   `run-test-lane` composite action (which layers on the CI-only
-  concerns: failure-tail PR comments, job summaries,
-  `RSPEC_OUTPUT_FILE`/`COVERAGE` plumbing). The full-mode matrix rows
-  are lane names + overlays.
+  concerns: failure-tail PR comments, job summaries, and the
+  `LANES_NO_AUTOSTART`/`RSPEC_OUTPUT_FILE` step env). `COVERAGE` is not
+  the composite's: `ci.yml` writes it to `GITHUB_ENV` itself, and it
+  survives the scrub only because it is keep-listed. The full-mode
+  matrix rows are lane names + overlays.
 - `.github/workflows/migration-tests.yml` — the SQLite and PostgreSQL
   jobs run the `migrations-*` lanes via the same composite. The
   concurrent-boot job is deliberately not a lane (it choreographs
@@ -124,6 +220,12 @@ and executes `tests/lanes/run <lane>`:
   `tests/lanes/run unit` directly: it proves the commands CONTRIBUTING.md
   documents, and `bin/setup --test` has already started the compose
   services by the time the lane's preflight runs.
+
+Every job above pins `runs-on: ubuntu-24.04`, which ships bash 5.2, so
+the runner's bash 5 floor is satisfied with no setup step. The CI
+environment still on bash 3.2 is `installer.yml`'s macOS job, and it
+never enters a lane — see the exceptions below. That is what makes the
+floor safe to require rather than a workflow change.
 
 Exceptions:
 

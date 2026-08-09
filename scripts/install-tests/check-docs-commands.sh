@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/test-install/check-docs-commands.sh
+# scripts/install-tests/check-docs-commands.sh
 #
 # Docs-command drift guard (install-onboarding testing-strategy §2c).
 #
@@ -12,7 +12,7 @@
 # rot on timestamps/versions — see the strategy doc's rejection of
 # runme/byexample/tesh).
 #
-# Runnable locally (`scripts/test-install/check-docs-commands.sh`) and in CI
+# Runnable locally (`scripts/install-tests/check-docs-commands.sh`) and in CI
 # (docs-command-drift.yml) — the same artifact, so the two cannot diverge.
 #
 # Exit 0 = every documented command's target exists; exit 1 = drift found.

@@ -157,7 +157,7 @@ the same pattern.
 3. ~~**Build the C7 slice next, before C4/C5.**~~ ✅ **Done 2026-07-11** —
    PRs #3711 (fresh-clone lane + docs-command drift guard), #3712
    (compose-smoke + CP-11 app healthcheck), #3713 (installer matrix +
-   `scripts/test-install/run.sh`), all merged to `integration/onboarding`.
+   `scripts/install-tests/run.sh`), all merged to `integration/onboarding`.
    How the recipe above mapped to lanes: `install.sh init` from zero →
    `installer.yml` (pinned-image baremetal/posix-locale/ruby-old lanes with
    idempotency re-runs — the POSIX lane covers the `LANG=C` secret-generation

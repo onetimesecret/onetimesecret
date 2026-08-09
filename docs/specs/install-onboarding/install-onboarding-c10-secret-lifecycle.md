@@ -247,7 +247,7 @@ where an existing context file fits):
 - Fast-fail: `secret_verifier_state = :mismatch` → typed error raised in
   `raise_concerns`, no CAS taken.
 
-**Harness lane** — `scripts/test-install/secret-rotation.sh`, wired into the
+**Harness lane** — `scripts/install-tests/secret-rotation.sh`, wired into the
 C7 lane family's CI:
 1. Boot clean, create a secret via the API, capture the link.
 2. Restart with a regenerated SECRET. Assert the boot log carries the
