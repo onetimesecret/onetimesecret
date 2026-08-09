@@ -97,22 +97,52 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     )
   end
 
-  # Sets features.domains.link_domains on the LIVE booted config for the
-  # duration of the block, restoring the previous state (including the key's
-  # absence) afterwards. OT.conf is not deep-frozen under test.
+  # Puts the process in the state an operator actually gets by setting
+  # LINK_DOMAINS, on the LIVE booted config, restoring everything (including
+  # a key's absence) afterwards. OT.conf is not deep-frozen under test.
   #
-  # Deliberately NOT a stub of Utils::CanonicalHosts.link_pool: the chain that
-  # actually broke is OT.conf -> CanonicalHosts.link_pool -> link_pool_host?,
-  # and stubbing the pool reader would skip the config layer under test.
-  def with_link_domains(pool)
-    domains  = OT.conf['features']['domains']
-    had_key  = domains.key?('link_domains')
-    previous = domains['link_domains']
+  # Three things, not one, because link_pool_host? answers from
+  # Middleware::DomainStrategy's RESOLVED pool rather than re-reading config:
+  #
+  #   features.domains.enabled  - the middleware gates its pool on this, and
+  #                               the shipped test config has domains OFF.
+  #   site.host                 - must PARSE, or initialize_from_config lands
+  #                               in its DomainInvalid rescue and disables the
+  #                               feature. The test config's '127.0.0.1:3000'
+  #                               does not parse.
+  #   link_domains              - the pool itself.
+  #
+  # Deliberately NOT a stub of the pool reader: the chain under test is
+  # OT.conf -> DomainStrategy.initialize_from_config -> link_pool_host?, and
+  # stubbing its far end is what let admission drift away from classification
+  # in the first place (a config-only read admitted hosts with the feature off
+  # and hosts that never parsed).
+  def with_link_domains(pool, canonical_host: 'onetimesecret.com', enabled: true)
+    domains       = OT.conf['features']['domains']
+    site          = OT.conf['site']
+    had_pool_key  = domains.key?('link_domains')
+    previous_pool = domains['link_domains']
+    previous_on   = domains['enabled']
+    previous_host = site['host']
 
     domains['link_domains'] = pool
+    domains['enabled']      = enabled
+    site['host']            = canonical_host
+    reload_domain_strategy!
     yield
   ensure
-    had_key ? domains['link_domains'] = previous : domains.delete('link_domains')
+    had_pool_key ? domains['link_domains'] = previous_pool : domains.delete('link_domains')
+    domains['enabled'] = previous_on
+    site['host']       = previous_host
+    reload_domain_strategy!
+  end
+
+  # Re-derives DomainStrategy's class state from the current OT.conf, the way
+  # booting a Rack app would.
+  def reload_domain_strategy!
+    Onetime::Middleware::DomainStrategy.initialize_from_config(
+      OT.conf.dig('features', 'domains') || {},
+    )
   end
 
   describe '#process_ttl config path' do
@@ -913,8 +943,11 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     context 'with an operator link pool configured (#4063)' do
       around { |example| with_link_domains(%w[short.example.com go.acme.com]) { example.run } }
 
-      it 'is a precondition that the pool really is readable from config' do
-        expect(Onetime::Utils::CanonicalHosts.link_pool)
+      # Pins the RESOLVED pool, not the raw config value: admission answers
+      # from DomainStrategy, so a precondition on config alone would stay green
+      # while the middleware resolved something else entirely.
+      it 'is a precondition that the pool really resolved in the middleware' do
+        expect(Onetime::Middleware::DomainStrategy.link_domains)
           .to eq(%w[short.example.com go.acme.com])
       end
 
@@ -1417,6 +1450,88 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           expect { subject.send(:validate_share_domain) }.not_to raise_error
           expect(subject.share_domain).to eq(host_domain)
         end
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # Pool admission is GATED, not a raw config read (#4063)
+    #
+    # link_pool_host? used to read features.domains.link_domains straight out
+    # of config, which skipped both gates the middleware applies. Admission
+    # then disagreed with classification in two ways an operator can reach by
+    # accident: a pool configured while the domains feature is off, and a pool
+    # entry that does not parse. In both cases the middleware classifies the
+    # host :invalid and the picker never offers it, so admitting it here let a
+    # guest anchor secrets on a host the deployment does not serve.
+    #
+    # These two contexts are the reason link_pool_host? delegates to
+    # DomainStrategy at all; without them the delegation looks like a
+    # refactor.
+    # ------------------------------------------------------------------------
+    context 'with a link pool configured but the domains feature disabled (#4063)' do
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: 'short.example.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+        )
+      end
+
+      around do |example|
+        with_link_domains(%w[short.example.com], enabled: false) { example.run }
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      end
+
+      it 'is a precondition that the middleware admits no pool member' do
+        expect(Onetime::Middleware::DomainStrategy.link_pool_host?('short.example.com'))
+          .to be false
+      end
+
+      it "rejects the pool member with 'Unknown domain'" do
+        expect { subject.send(:validate_share_domain) }
+          .to raise_error(Onetime::FormError, /Unknown domain/)
+      end
+    end
+
+    context 'with a link pool whose entry does not parse (#4063)' do
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: 'links.internal',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+        )
+      end
+
+      around do |example|
+        with_link_domains(%w[links.internal]) { example.run }
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      end
+
+      it 'is a precondition that the entry was dropped from the resolved pool' do
+        expect(Onetime::Middleware::DomainStrategy.link_domains).to eq([])
+      end
+
+      it 'does not admit the unparseable host' do
+        expect { subject.send(:validate_share_domain) }
+          .to raise_error(Onetime::FormError, /Unknown domain/)
+      end
+
+      # The dangerous fallback: resolving an all-unparseable pool back to
+      # [canonical_domain] would put the internal platform host in the picker,
+      # the exact outcome LINK_DOMAINS exists to prevent. Boot now refuses this
+      # config outright (Onetime::Config.validate_link_domains!); this pins the
+      # middleware's behavior for the paths that bypass boot validation.
+      it 'does not fall back to the canonical host' do
+        expect(Onetime::Middleware::DomainStrategy.link_domains)
+          .not_to include('onetimesecret.com')
       end
     end
   end

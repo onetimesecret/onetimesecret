@@ -619,7 +619,7 @@ describe('useDomainContext', () => {
       await setContext('links.example.net');
       expect(currentContext.value.domain).toBe('links.example.net');
 
-      resetContext();
+      await resetContext();
 
       // Pool head, not the hidden canonical host.
       expect(currentContext.value.domain).toBe('short.example.com');
@@ -719,7 +719,7 @@ describe('useDomainContext', () => {
       await setContext('acme.example.com');
       expect(currentContext.value.domain).toBe('acme.example.com');
 
-      resetContext();
+      await resetContext();
 
       // Canonical wins over the pool head because it is a member.
       expect(currentContext.value.domain).toBe('onetimesecret.com');
@@ -837,6 +837,119 @@ describe('useDomainContext', () => {
 
       await setContext('acme.example.com');
       expect(currentContext.value.extid).toBe('cd_acme_example_com');
+    });
+
+    // ------------------------------------------------------------------------
+    // Branded host: the canonical domain is not offerable
+    //
+    // Selecting it there is ignored end to end -- process_share_domain nils
+    // anchor hosts, then determine_share_domain falls through to
+    // `display_domain if custom_domain?` and anchors the link on the branded
+    // host regardless. Offering a row the generated link contradicts is worse
+    // than not offering it. Pool members are a different question: v2 honors
+    // an authenticated user's explicit pool selection from a branded host, so
+    // they stay.
+    // ------------------------------------------------------------------------
+    it('drops the canonical domain from the picker while browsing a branded host', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'acme.example.com',
+        domain_strategy: 'custom',
+        custom_domains: ['acme.example.com'],
+        link_domains: ['onetimesecret.com', 'short.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { availableDomains, setContext, currentContext } = useDomainContext();
+
+      await waitForInit();
+
+      // Canonical gone; the pool member survives.
+      expect(availableDomains.value).toEqual(['acme.example.com', 'short.example.com']);
+      expect(availableDomains.value).not.toContain('onetimesecret.com');
+
+      // And it is genuinely unselectable, not merely hidden.
+      await setContext('onetimesecret.com');
+      expect(currentContext.value.domain).not.toBe('onetimesecret.com');
+    });
+
+    it('keeps the canonical domain offerable on a link-pool host', async () => {
+      // Discriminates the guard from the `displayDomain !== canonicalDomain`
+      // heuristic it replaced: on a pool host those two also differ, but the
+      // strategy is :canonical and none of the branded-host rules apply.
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'short.example.com',
+        domain_strategy: 'canonical',
+        link_domains: ['onetimesecret.com', 'short.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['onetimesecret.com', 'short.example.com']);
+    });
+
+    // ------------------------------------------------------------------------
+    // Host normalization
+    //
+    // link_domains comes out of the server's PARSED canonical set (lowercased,
+    // port-stripped) while canonical_domain / site_host are the configured
+    // strings verbatim -- and site.host legally carries a port. Comparing the
+    // two families raw made `linkDomains.includes(canonicalDomain)` fail on
+    // every port-bearing canonical host, which is the single test deciding
+    // whether canonical counts as a pool member at all.
+    // ------------------------------------------------------------------------
+    it('treats a port-bearing canonical host as the pool member it is', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com:3000',
+        canonical_domain: 'onetimesecret.com:3000',
+        display_domain: 'onetimesecret.com:3000',
+        link_domains: ['onetimesecret.com', 'short.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['onetimesecret.com', 'short.example.com']);
+      // Canonical is preferred (it IS a member) and reports itself as such.
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+    });
+
+    it('accepts a raw host in setContext and normalizes it', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        canonical_domain: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        link_domains: ['onetimesecret.com', 'short.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', []);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
+
+      await waitForInit();
+
+      await setContext('Short.Example.COM:8443');
+      expect(currentContext.value.domain).toBe('short.example.com');
     });
   });
 
@@ -1111,16 +1224,20 @@ describe('useDomainContext', () => {
       await waitForInit();
 
       // Start with custom domain
-      setContext('acme.example.com');
+      await setContext('acme.example.com');
       expect(currentContext.value.domain).toBe('acme.example.com');
 
       // Reset
-      resetContext();
+      await resetContext();
       expect(currentContext.value.domain).toBe('onetimesecret.com');
       expect(currentContext.value.isCanonical).toBe(true);
     });
 
-    it('removes domainContext from sessionStorage', async () => {
+    // The reset writes the default through BOTH halves of the preference
+    // rather than clearing the local half. `sess['domain_context']` has no
+    // clear endpoint, so a local-only reset left the server still naming the
+    // old selection and selectBestDomain restored it on the next load.
+    it('replaces domainContext in sessionStorage with the default domain', async () => {
       setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -1135,10 +1252,37 @@ describe('useDomainContext', () => {
 
       await waitForInit();
 
-      setContext('acme.example.com');
+      await setContext('acme.example.com');
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
 
-      resetContext();
+      await resetContext();
+      expect(mockSessionStorage.getItem('domainContext')).toBe('onetimesecret.com');
+    });
+
+    it('clears domainContext when there is no offerable pool to reset to', async () => {
+      // On a branded host with no LINK_DOMAINS configured, the pool is
+      // canonical-only and canonical is dropped -- so the reset has nothing to
+      // select and '' is the honest answer (the server then anchors on
+      // whichever host served the page).
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'acme.example.com',
+        domain_strategy: 'custom',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { setContext, resetContext } = useDomainContext();
+
+      await waitForInit();
+
+      await setContext('acme.example.com');
+      expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
+
+      await resetContext();
       expect(mockSessionStorage.getItem('domainContext')).toBeNull();
     });
   });
@@ -1743,7 +1887,13 @@ describe('useDomainContext', () => {
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
     });
 
-    it('selecting canonical domain should NOT trigger backend sync POST', async () => {
+    // Selecting canonical persists like any other pool member. It used to be
+    // carved out on the reasoning that "absent sessionStorage IS canonical",
+    // which held only while nothing else remembered a selection --
+    // `sess['domain_context']` does, outlives sessionStorage, and has no clear
+    // endpoint. selectBestDomain reads the server half first, so the carve-out
+    // made switching back to canonical revert on the next reload.
+    it('selecting canonical domain syncs to the backend', async () => {
       setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -1762,11 +1912,13 @@ describe('useDomainContext', () => {
 
       await setContext('onetimesecret.com');
 
-      // No POST should have been made for canonical domain
-      expect(mockApiPost).not.toHaveBeenCalled();
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/account/update-domain-context',
+        { domain: 'onetimesecret.com' }
+      );
     });
 
-    it('selecting canonical domain should clear sessionStorage domainContext', async () => {
+    it('selecting canonical domain overwrites a stale sessionStorage domainContext', async () => {
       mockSessionStorage.setItem('domainContext', 'acme.example.com');
 
       setupBootstrapStore({
@@ -1784,8 +1936,39 @@ describe('useDomainContext', () => {
 
       await setContext('onetimesecret.com');
 
-      // Canonical is the default state -- session storage should be cleared
-      expect(mockSessionStorage.getItem('domainContext')).toBeNull();
+      expect(mockSessionStorage.getItem('domainContext')).toBe('onetimesecret.com');
+    });
+
+    // Regression, the bug the carve-out caused: a stale server-side
+    // domain_context must not survive an explicit switch back to canonical.
+    it('switching back to canonical survives a reload driven by the server context', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        domain_context: 'acme.example.com',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext, currentContext } = useDomainContext();
+
+      await waitForInit();
+
+      // The server preference wins on load...
+      expect(currentContext.value.domain).toBe('acme.example.com');
+
+      await setContext('onetimesecret.com');
+
+      // ...and the switch back must be written through to the server, not just
+      // dropped locally, or the next load restores 'acme.example.com'.
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/account/update-domain-context',
+        { domain: 'onetimesecret.com' }
+      );
+      expect(mockSessionStorage.getItem('domainContext')).toBe('onetimesecret.com');
     });
 
     it('selecting canonical domain updates currentContext correctly', async () => {

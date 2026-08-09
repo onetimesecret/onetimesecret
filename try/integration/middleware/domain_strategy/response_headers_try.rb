@@ -161,8 +161,7 @@ enable_domains_fully!
 disable_domain_context!
 env         = { Rack::DetectHost.result_field_name => @canonical_domain }
 _, headers, = middleware.call(env)
-headers['O-Domain-Strategy']
-env['onetime.domain_strategy'].to_s
+headers['O-Domain-Strategy'] == env['onetime.domain_strategy'].to_s
 #=> true
 
 ## O-Display-Domain header matches env['onetime.display_domain'].to_s
@@ -171,8 +170,7 @@ enable_domains_fully!
 disable_domain_context!
 env         = { Rack::DetectHost.result_field_name => @canonical_domain }
 _, headers, = middleware.call(env)
-headers['O-Display-Domain']
-env['onetime.display_domain'].to_s
+headers['O-Display-Domain'] == env['onetime.display_domain'].to_s
 #=> true
 
 ## Header/env consistency holds for subdomain requests
@@ -224,10 +222,11 @@ headers['O-Display-Domain']
 # -- Response status is passed through --
 
 ## Middleware does not alter the status code from the inner app
-middleware = @strategy_class.new(create_app)
+middleware  = @strategy_class.new(create_app)
 disable_runtime_domains!
-env        = {}
-middleware.call(env)
+env         = {}
+status,     = middleware.call(env)
+status
 #=> 200
 
 # Teardown

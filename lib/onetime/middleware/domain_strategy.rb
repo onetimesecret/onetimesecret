@@ -262,13 +262,22 @@ module Onetime
           # ## Exact-match set vs. sweep set (#4063)
           #
           # `canonical_domains` is the EXACT-match set: every canonical host,
-          # including features.domains.link_domains members.
+          # including features.domains.link_domains members. Matched with
+          # `exact_host?` (name equality), NOT `equal_to?` — the latter also
+          # accepts the `www.` variant of a host's registrable domain, which
+          # over a pool member silently widens the grant to a host the
+          # operator never blessed. With link_domains=['go.acme.com'], an
+          # `equal_to?` match here classified `www.acme.com` :canonical ahead
+          # of the known_custom_domain? lookup below, dropping that tenant's
+          # brand/signin config. The www tolerance is retained, scoped to the
+          # ANCHORS, by the second half of the same arm.
           #
-          # `anchor_domains` is the set the peer/parent and subdomain SWEEPS
-          # iterate, and it is deliberately narrower — the two ANCHOR hosts
-          # (site.host, features.domains.default). It defaults to
-          # `canonical_domains`, which is the pre-#4063 identity for any
-          # caller that has no pool (the two sets are then equal).
+          # `anchor_domains` is the set the www-variant tolerance and the
+          # peer/parent and subdomain SWEEPS iterate, and it is deliberately
+          # narrower — the two ANCHOR hosts (site.host,
+          # features.domains.default). It defaults to `canonical_domains`,
+          # which is the pre-#4063 identity for any caller that has no pool
+          # (the two sets are then equal).
           #
           # DO NOT "fix" the sweeps back onto the full set for consistency.
           # An operator blesses one specific link host, not its base domain.
@@ -303,7 +312,13 @@ module Onetime
 
             request_domain = Parser.parse(request_domain)
 
-            if canonical_domains.any? { |host| equal_to?(request_domain, host) }
+            # Exact match against the FULL canonical set (pool included), plus
+            # the `www.` variant tolerance against the ANCHORS only. Splitting
+            # the arm this way keeps the pre-#4063 behavior identical whenever
+            # the two sets are equal, while a pool member participates by exact
+            # match alone.
+            if canonical_domains.any? { |host| exact_host?(request_domain, host) } ||
+               sweep_domains.any? { |host| equal_to?(request_domain, host) }
               :canonical
             elsif known_custom_domain?(request_domain.name)
               :custom
@@ -364,6 +379,26 @@ module Onetime
             )
           end
 
+          # Strict host equality: the same name, nothing else. This is the ONLY
+          # predicate safe to run over the full canonical set, because that set
+          # includes features.domains.link_domains members (#4063) and an
+          # operator blesses one specific link host — never a sibling of it.
+          #
+          # @param left [PublicSuffix::Domain]
+          # @param right [PublicSuffix::Domain]
+          # @return [Boolean]
+          def exact_host?(left, right)
+            return false unless left.domain? && right.domain?
+
+            left.name.eql?(right.name)
+          end
+          # exact_host?('example.com', 'example.com')     # => true
+          # exact_host?('www.example.com', 'example.com') # => false (see equal_to?)
+
+          # Host equality WITH the `www.` variant tolerance. Only ever applied
+          # to ANCHOR hosts: over a pool member the second arm matches any
+          # `www.<registrable-domain>` sibling, which is a grant the operator
+          # did not make.
           def equal_to?(left, right)
             return false unless left.domain? && right.domain?
 
@@ -643,12 +678,23 @@ module Onetime
         # are taken from the parsed set, so the picker can compare them
         # directly against CustomDomain display_domain values.
         #
+        # An UNSET pool (link_hosts nil) resolves to [canonical_domain] — the
+        # pre-#4063 behavior, and the only case that may fall back. A pool the
+        # operator DID configure never falls back to the canonical host: doing
+        # so re-exposes the internal platform address in the picker, which is
+        # the precise outcome LINK_DOMAINS exists to prevent. A configured pool
+        # where nothing resolves is operator error, and
+        # Onetime::Config.validate_link_domains! already fails boot on it — the
+        # empty return here only covers callers that drive
+        # initialize_from_config directly (specs, console) and so never passed
+        # through that gate.
+        #
         # @param link_hosts [Array<String>, nil] features.domains.link_domains,
         #   already gated on domains_enabled by the caller
-        # @return [Array<String>] never empty when a canonical domain exists
+        # @return [Array<String>] [canonical_domain] when unset; otherwise the
+        #   resolved subset of the configured pool, possibly empty
         def resolve_link_domains(link_hosts)
-          fallback = [canonical_domain].compact
-          return fallback if link_hosts.nil?
+          return [canonical_domain].compact if link_hosts.nil?
 
           parsed_names = Array(canonical_domains_parsed).map(&:name)
           configured   = Onetime::Utils::CanonicalHosts.link_pool(link_hosts: link_hosts)
@@ -659,7 +705,40 @@ module Onetime
           end
           resolved.uniq!
 
-          resolved.empty? ? fallback : resolved
+          if resolved.empty?
+            OT.le '[middleware] DomainStrategy: features.domains.link_domains ' \
+                  "#{configured.inspect} named no parseable host; the link picker pool is empty. " \
+                  'Fix LINK_DOMAINS or unset it to offer the canonical domain.'
+          end
+
+          resolved
+        end
+
+        # Whether a host is a member of the resolved operator link pool
+        # (#4063), and therefore admissible as a share_domain.
+        #
+        # Single authority for that question, so the secret-creation logic
+        # (apps/api/v{1,2}/logic/secrets/base_secret_action.rb#link_pool_host?)
+        # can never admit a host the middleware would classify :invalid.
+        # Reading features.domains.link_domains out of config directly is what
+        # let that drift happen: it skipped BOTH gates applied here — the
+        # features.domains.enabled check, and membership in the PARSED
+        # canonical set — so with domains disabled, or with a typo'd entry,
+        # guests could anchor secrets on hosts the middleware never serves as
+        # canonical and the picker never offers.
+        #
+        # @param host [String, nil] Host to test (port/case-insensitive)
+        # @return [Boolean]
+        def link_pool_host?(host)
+          return false unless domains_enabled?
+
+          pool = link_domains
+          return false if pool.nil? || pool.empty?
+
+          normalized = Onetime::Utils::DomainParser.extract_hostname(host)
+          return false if normalized.nil?
+
+          pool.any? { |candidate| Onetime::Utils::DomainParser.extract_hostname(candidate) == normalized }
         end
 
         def reset!

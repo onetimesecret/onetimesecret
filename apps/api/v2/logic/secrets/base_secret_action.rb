@@ -601,9 +601,18 @@ module V2::Logic
       # branch wins — matching DomainStrategy, where the exact canonical
       # match outranks :custom. ConfigureDomains warns about that config.
       #
-      # Normalization mirrors CustomDomain.default_domain?: display_domain
-      # on the input, DomainParser on the configured hosts, so
-      # 'Short.Example.COM' matches a pool entry of 'short.example.com'.
+      # Membership is answered by Middleware::DomainStrategy.link_pool_host?,
+      # NOT by reading features.domains.link_domains out of config. The config
+      # read skipped both of the middleware's gates — features.domains.enabled,
+      # and membership in the parsed canonical set — so with domains disabled,
+      # or with an entry that does not parse, this admitted hosts the
+      # middleware classifies :invalid and the picker never offers. Admission
+      # here and classification there must answer from the same set.
+      #
+      # Normalization mirrors CustomDomain.default_domain?: display_domain on
+      # the input (which also rejects garbage, via the rescue below),
+      # DomainParser on the resolved pool, so 'Short.Example.COM' matches a
+      # pool entry of 'short.example.com'.
       #
       # Keep logically parallel with the V1 implementation (apps/api/v1/...);
       # logging differs because V1 has no structured secret_logger.
@@ -613,9 +622,7 @@ module V2::Logic
       def link_pool_host?(domain)
         input_display = Onetime::CustomDomain.display_domain(domain)
 
-        Onetime::Utils::CanonicalHosts.link_pool.any? do |host|
-          Onetime::Utils::DomainParser.extract_hostname(host) == input_display
-        end
+        Onetime::Middleware::DomainStrategy.link_pool_host?(input_display)
       rescue PublicSuffix::Error, Onetime::Problem => ex
         # Unparseable input is not a pool member. Fall through to the
         # CustomDomain lookup, which rejects it as an unknown domain.

@@ -82,6 +82,58 @@ RSpec.describe Onetime::Config, 'LINK_DOMAINS validation (#4063)' do
           .to raise_error(Onetime::ConfigError, /LINK_DOMAINS/)
       end
     end
+
+    # A typo'd pool is the same defect as a blank one — the operator asked for
+    # a pool and there is none — and it used to boot clean. DomainStrategy
+    # then fell back to [canonical_domain], so the picker offered the internal
+    # platform host: precisely the outcome LINK_DOMAINS exists to prevent.
+    # There is no safe fallback, so this must fail at boot.
+    context 'when LINK_DOMAINS names no parseable host' do
+      it 'raises for a private/internal hostname with no public suffix' do
+        expect { described_class.validate_link_domains!(['links.internal']) }
+          .to raise_error(Onetime::ConfigError, /LINK_DOMAINS/)
+      end
+
+      it 'raises for a bare hostname' do
+        expect { described_class.validate_link_domains!(['localhost']) }
+          .to raise_error(Onetime::ConfigError, /LINK_DOMAINS/)
+      end
+
+      it 'raises when no entry in a multi-entry list parses' do
+        expect { described_class.validate_link_domains!(%w[links.internal shortener]) }
+          .to raise_error(Onetime::ConfigError, /LINK_DOMAINS/)
+      end
+
+      it 'echoes the offending entries so the operator can spot the typo' do
+        expect { described_class.validate_link_domains!(['links.internal']) }
+          .to raise_error(Onetime::ConfigError, /links\.internal/)
+      end
+
+      it 'tells the operator how to resolve it' do
+        expect { described_class.validate_link_domains!(['links.internal']) }
+          .to raise_error(Onetime::ConfigError, /[Uu]nset LINK_DOMAINS/)
+      end
+    end
+
+    # Partial failure is NOT a boot error: DomainStrategy drops the bad entry
+    # and logs it, and the pool still has a host to offer. Only a pool with
+    # nothing usable in it is fatal.
+    context 'when LINK_DOMAINS mixes parseable and unparseable hosts' do
+      it 'accepts the list' do
+        expect { described_class.validate_link_domains!(%w[links.internal go.example.com]) }
+          .not_to raise_error
+      end
+    end
+
+    # Parseability is judged exactly as the middleware judges it, so a host
+    # that boots is a host DomainStrategy will serve. Ports are stripped
+    # before the public-suffix check on both sides.
+    context 'when a LINK_DOMAINS entry carries a port' do
+      it 'accepts it' do
+        expect { described_class.validate_link_domains!(['go.example.com:8443']) }
+          .not_to raise_error
+      end
+    end
   end
 
   # The helper is only useful if boot actually calls it. A spec that drives
@@ -117,6 +169,11 @@ RSpec.describe Onetime::Config, 'LINK_DOMAINS validation (#4063)' do
 
     it 'boots when LINK_DOMAINS names a host' do
       expect { described_class.raise_concerns(conf_with(['links.example.net'])) }.not_to raise_error
+    end
+
+    it 'aborts boot when LINK_DOMAINS names no parseable host' do
+      expect { described_class.raise_concerns(conf_with(['links.internal'])) }
+        .to raise_error(Onetime::ConfigError, /LINK_DOMAINS/)
     end
 
     # Deliberate: the operator explicitly wrote a blank LINK_DOMAINS, and
