@@ -175,7 +175,12 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       # otto 2.8 raises on trusted_proxy_depth + geo_header, so the translator
       # skips the setting under depth. Skipping silently left the operator with
       # a configured-looking header, no boot signal, and '**' on every request.
-      before { allow(OT).to receive(:lw) }
+      before do
+        allow(OT).to receive(:lw)
+        described_class.reset_warn_once!
+      end
+
+      after { described_class.reset_warn_once! }
 
       it 'does not pass geo_header to otto (would be a boot failure)' do
         stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'header' => 'X-Country')
@@ -200,15 +205,26 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       end
 
       it 'stays quiet in depth mode when a local geo DB is configured' do
-        stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'db_path' => '/nonexistent.mmdb')
-        # load_geo_database! raises on a bad path — that failure is the point
-        # (bad path fails at boot), so only assert no warning was emitted.
-        begin
-          config
-        rescue StandardError
-          nil
+        # Stub the otto-side load so this asserts the warning logic, not
+        # MaxMind file handling — the earlier version swallowed every
+        # exception, which would have passed even if the DB path were never
+        # honored at all.
+        # any_instance: the Otto::Privacy::Config is built inside
+        # Otto::Security::Config.new, so there is no seam to inject a double.
+        allow_any_instance_of(Otto::Privacy::Config).to receive(:load_geo_database!) # rubocop:disable RSpec/AnyInstance
+        stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'db_path' => '/geo.mmdb')
+        aggregate_failures do
+          expect(config.ip_privacy_config.geo_db_path).to eq('/geo.mmdb')
+          expect(OT).not_to have_received(:lw)
         end
-        expect(OT).not_to have_received(:lw)
+      end
+
+      it 'warns once per process, not once per Application subclass' do
+        # Seven Application subclasses each build a stack through this method;
+        # the operator should read the finding once.
+        stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'header' => 'X-Country')
+        3.times { described_class.ip_privacy_security_config }
+        expect(OT).to have_received(:lw).once
       end
 
       it 'passes geo_header through in filter mode without warning' do

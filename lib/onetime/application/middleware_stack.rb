@@ -280,20 +280,24 @@ module Onetime
             # Warn, don't raise: an inert setting is not a deploy blocker, and
             # passing geo_header through to otto would not be a fix — otto 2.8
             # raises on depth + geo_header, turning this into a boot failure.
-            if geo_header.empty?
-              if geo_db_path.empty?
-                OT.lw '[MiddlewareStack] trusted_proxy.mode=depth resolves country to ' \
-                      "'**' for all requests: geo headers are never trusted under depth. " \
-                      'Set site.network.geo.db_path (GEO_DB_PATH) for country data, or ' \
-                      'ignore this if you do not use geo.'
-              end
-            else
-              OT.lw "[MiddlewareStack] site.network.geo.header #{geo_header.inspect} " \
-                    '(GEO_HEADER) is IGNORED under trusted_proxy.mode=depth — geo headers ' \
-                    'are only trusted in filter mode, where a matched trusted-proxy CIDR ' \
-                    'proves the header came from the edge. Use site.network.geo.db_path ' \
-                    '(GEO_DB_PATH, a local MaxMind .mmdb — works in all modes) for ' \
-                    'depth-mode country data, or switch to filter mode.'
+            #
+            # warn_once: every Application subclass builds its own Rack stack
+            # and calls through here, so an unguarded warning repeats once per
+            # app (seven at present) and reads like seven distinct problems.
+            if !geo_header.empty?
+              warn_once :geo_header_under_depth,
+                "[MiddlewareStack] site.network.geo.header #{geo_header.inspect} " \
+                '(GEO_HEADER) is IGNORED under trusted_proxy.mode=depth — geo headers ' \
+                'are only trusted in filter mode, where a matched trusted-proxy CIDR ' \
+                'proves the header came from the edge. Use site.network.geo.db_path ' \
+                '(GEO_DB_PATH, a local MaxMind .mmdb — works in all modes) for ' \
+                'depth-mode country data, or switch to filter mode.'
+            elsif geo_db_path.empty?
+              warn_once :geo_inert_under_depth,
+                '[MiddlewareStack] trusted_proxy.mode=depth resolves country to ' \
+                "'**' for all requests: geo headers are never trusted under depth. " \
+                'Set site.network.geo.db_path (GEO_DB_PATH) for country data, or ' \
+                'ignore this if you do not use geo.'
             end
           else
             # filter / CIDR-walk: trust the private proxy ranges plus any
@@ -315,6 +319,31 @@ module Onetime
           end
 
           config
+        end
+
+        # Emit an operator warning at most once per process, keyed by +tag+.
+        # Boot-time config warnings are per-deployment facts, not per-app ones,
+        # but the stack is built once per Application subclass — without this
+        # the operator reads the same sentence seven times and learns to skip
+        # it. Reset with .reset_warn_once! in specs.
+        #
+        # @param tag [Symbol] dedupe key
+        # @param message [String] the warning
+        # @return [void]
+        def warn_once(tag, message)
+          @warned_once ||= {}
+          return if @warned_once[tag]
+
+          @warned_once[tag] = true
+          OT.lw message
+        end
+
+        # Clear the warn_once ledger. Specs only — a process that has booted
+        # has no reason to re-announce its config.
+        #
+        # @return [void]
+        def reset_warn_once!
+          @warned_once = {}
         end
 
         # Whether the deployment has declared a trusted reverse proxy in front

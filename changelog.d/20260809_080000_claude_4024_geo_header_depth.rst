@@ -14,9 +14,11 @@ Changed
   changed is that otto now says so loudly instead of accepting the pairing
   silently. Depth-mode deployments that want real country data must use
   ``GEO_DB_PATH`` (a local MaxMind ``.mmdb``, looked up on the already-masked
-  IP), which works in all modes. Note that ``GEO_HEADER`` set under depth is
-  still accepted and ignored without a warning — see the follow-up issue.
-  (#4024)
+  IP), which works in all modes. A ``GEO_HEADER`` set under depth now logs a
+  startup warning naming the ignored value instead of being silently dropped,
+  as does depth mode with no geo source at all (country resolves to ``**`` for
+  every request). Both warn once per process rather than once per mounted
+  application. (#4024, #4068)
 
 - **Operators:** with ``TRUSTED_PROXY_MODE=depth``, configuring a depth is
   now itself the trust assertion. otto records
