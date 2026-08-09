@@ -64,9 +64,12 @@ For each eligible locale that needs tasks generated, run `create --apply`
 `content/LOCALE` **plus** stale ones (translated, but en changed since) —
 already-translated, still-current reviewed strings are never requeued. A
 brand-new locale needs no extra flag: with no `content/LOCALE` every key is
-missing, so the result is the full key set anyway. Note that applying reopens
-any completed level that still has work, discarding its unexported
-translations — export before refreshing a queue you care about.
+missing, so the result is the full key set anyway. Applying reopens any
+completed level that still has work, discarding its translations; that is free
+for already-exported levels and **refused** (exit 3, nothing written) for levels
+whose translations were never exported. If you hit the refusal, run
+`tasks export LOCALE` to keep that work, or re-run with `--reopen` to discard it
+on purpose.
 
 ```bash
 python3 locales/scripts/i18n tasks create LOCALE --apply

@@ -676,15 +676,8 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
         self.assertRegex(proc.stdout, r"missing.*:\s*1")
         self.assertRegex(proc.stdout, r"current:\s*1")
 
-    def test_recreate_after_completion_reopens_the_level(self) -> None:
-        # Complete a translation against en hash H1, let en drift to H2 without
-        # exporting, then re-create. The completed row must be REOPENED — status
-        # back to pending, unexported translations discarded, snapshot advanced
-        # to H2 — not left completed with a refreshed key set it can't satisfy
-        # (stranded: `tasks next` never re-serves completed rows) and not
-        # exported with a watermark newer than the text (false-'current').
-        import sqlite3
-
+    def _complete_the_level(self) -> dict:
+        """create -> claim -> translate, leaving one completed unexported row."""
         self.assertOk(
             self.run_cli("tasks", "create", "de", "--missing-only", "--apply"),
             "create",
@@ -695,12 +688,168 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
             self.run_cli("tasks", "update", str(nxt["id"]), json.dumps(trans)),
             "complete",
         )
+        return nxt
 
-        # en drifts: tagline's content_hash moves aaaa1111 -> newhash1.
+    def _drift_en_tagline(self, new_hash: str) -> None:
+        """Move en's tagline content_hash so the level is re-emitted as stale."""
         en = self.content / "en" / "00.json"
         doc = json.loads(en.read_text("utf-8"))
-        doc["web.C.tagline"]["content_hash"] = "newhash1"
+        doc["web.C.tagline"]["content_hash"] = new_hash
         en.write_text(json.dumps(doc), "utf-8")
+
+    def _row(self, *columns: str) -> tuple:
+        import sqlite3
+
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        row = conn.execute(
+            f"SELECT {', '.join(columns)} FROM translation_tasks "
+            "WHERE locale='de'"
+        ).fetchone()
+        conn.close()
+        return row
+
+    def test_recreate_refuses_to_discard_unexported_work(self) -> None:
+        # The gate: completed + never exported means this DB row is the only
+        # copy, so create --apply must refuse the WHOLE run and leave it intact.
+        self._complete_the_level()
+        self._drift_en_tagline("newhash1")
+
+        proc = self.run_cli(
+            "tasks", "create", "de", "--missing-only", "--apply"
+        )
+        self.assertEqual(
+            proc.returncode, 3, f"expected refusal exit 3\n{proc.stderr}"
+        )
+        # Names the level at risk, so the operator can judge what's at stake.
+        self.assertIn("00.json:web.C", proc.stderr)
+        self.assertIn("never exported", proc.stderr)
+
+        status, translations = self._row("status", "translations_json")
+        self.assertEqual(
+            status, "completed", "refused run must not touch the row"
+        )
+        self.assertEqual(
+            json.loads(translations)["tagline"],
+            "T-tagline",
+            "refused run discarded the translations it refused to discard",
+        )
+
+    def test_reopen_flag_discards_unexported_work_deliberately(self) -> None:
+        self._complete_the_level()
+        self._drift_en_tagline("newhash1")
+
+        self.assertOk(
+            self.run_cli(
+                "tasks", "create", "de", "--apply", "--reopen"
+            ),
+            "create --reopen",
+        )
+        status, translations = self._row("status", "translations_json")
+        self.assertEqual(status, "pending")
+        self.assertIsNone(translations)
+
+    def test_export_then_recreate_needs_no_flag(self) -> None:
+        # The routine catch-up path must stay quiet: once the text is on disk,
+        # reopening costs nothing, so no gate, no flag, no prompt.
+        self._complete_the_level()
+        self.assertOk(self.run_cli("tasks", "export", "de"), "export")
+        self._drift_en_tagline("newhash1")
+        self.assertOk(
+            self.run_cli(
+                "tasks", "create", "de", "--missing-only", "--apply"
+            ),
+            "create after export must not be gated",
+        )
+
+    def test_export_stamps_the_receipt(self) -> None:
+        self._complete_the_level()
+        self.assertIsNone(
+            self._row("exported_at")[0],
+            "a completed-but-unexported row must have no receipt",
+        )
+        self.assertOk(self.run_cli("tasks", "export", "de"), "export")
+        self.assertIsNotNone(
+            self._row("exported_at")[0],
+            "export must stamp exported_at on the rows it wrote",
+        )
+
+    def test_revising_an_exported_level_reprotects_it(self) -> None:
+        # Export, then edit the translation in place without re-exporting. The
+        # receipt is now a lie (content/ holds the OLD text), so it must be
+        # cleared and the next create must be gated again.
+        nxt = self._complete_the_level()
+        self.assertOk(self.run_cli("tasks", "export", "de"), "export")
+        self.assertOk(
+            self.run_cli(
+                "tasks",
+                "update",
+                str(nxt["id"]),
+                json.dumps({leaf: f"REV-{leaf}" for leaf in nxt["keys"]}),
+            ),
+            "revise",
+        )
+        self.assertIsNone(
+            self._row("exported_at")[0],
+            "rewriting translations must invalidate the export receipt",
+        )
+        self._drift_en_tagline("newhash1")
+        proc = self.run_cli(
+            "tasks", "create", "de", "--missing-only", "--apply"
+        )
+        self.assertEqual(
+            proc.returncode, 3, "revised-but-unexported work was not protected"
+        )
+
+    def test_dry_run_previews_the_refusal(self) -> None:
+        self._complete_the_level()
+        self._drift_en_tagline("newhash1")
+        proc = self.run_cli("tasks", "create", "de")
+        self.assertOk(proc, "preview")
+        self.assertIn("WOULD BE REFUSED", proc.stdout)
+        self.assertIn("00.json:web.C", proc.stdout)
+
+    def test_reopen_without_apply_is_rejected(self) -> None:
+        proc = self.run_cli("tasks", "create", "de", "--reopen")
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("--apply", proc.stderr)
+
+    def test_completed_row_without_translations_does_not_wedge_create(
+        self,
+    ) -> None:
+        # A completed row with a NULL payload has nothing to lose, and export
+        # never picks it up to stamp a receipt — so gating on it would block
+        # create forever. It must upsert freely.
+        import sqlite3
+
+        self._complete_the_level()
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        conn.execute(
+            "UPDATE translation_tasks SET translations_json = NULL "
+            "WHERE locale='de'"
+        )
+        conn.commit()
+        conn.close()
+
+        self._drift_en_tagline("newhash1")
+        self.assertOk(
+            self.run_cli(
+                "tasks", "create", "de", "--missing-only", "--apply"
+            ),
+            "payload-less completed row must not gate create",
+        )
+
+    def test_recreate_after_completion_reopens_the_level(self) -> None:
+        # Complete a translation against en hash H1, EXPORT it, let en drift to
+        # H2, then re-create. Because the text is safely on disk, the completed
+        # row must be REOPENED without ceremony — status back to pending,
+        # translations cleared, snapshot advanced to H2 — not left completed
+        # with a refreshed key set it can't satisfy (stranded: `tasks next`
+        # never re-serves completed rows).
+        import sqlite3
+
+        self._complete_the_level()
+        self.assertOk(self.run_cli("tasks", "export", "de"), "export")
+        self._drift_en_tagline("newhash1")
 
         # Re-create hits the completed level row via ON CONFLICT.
         self.assertOk(
@@ -708,14 +857,19 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
             "re-create",
         )
         conn = sqlite3.connect(self.db_dir / "tasks.db")
-        (status, translations, snap) = conn.execute(
-            "SELECT status, translations_json, source_hashes_json "
+        (status, translations, snap, exported_at) = conn.execute(
+            "SELECT status, translations_json, source_hashes_json, exported_at "
             "FROM translation_tasks WHERE locale='de'"
         ).fetchone()
         conn.close()
         self.assertEqual(status, "pending", "completed row was not reopened")
         self.assertIsNone(
             translations, "reopened row kept its discarded translations"
+        )
+        self.assertIsNone(
+            exported_at,
+            "reopening must drop the export receipt, else the NEXT create "
+            "would read it as proof the re-translation is on disk",
         )
         self.assertEqual(
             json.loads(snap).get("tagline"),
@@ -725,14 +879,14 @@ class StaleKeysWatermarkTest(I18nCliTestCase):
         )
 
         # Nothing is completed anymore: export finds no rows (nonzero exit)
-        # and must not touch the stale key.
+        # and must not advance the watermark past the exported text.
         proc = self.run_cli("tasks", "export", "de")
         self.assertIn("No completed tasks", proc.stdout)
         de = json.loads((self.content / "de" / "00.json").read_text("utf-8"))
         self.assertEqual(
             de["web.C.tagline"]["source_hash"],
-            "deadbeef",
-            "export wrote a discarded translation's watermark",
+            "aaaa1111",
+            "export moved the watermark for text it did not write",
         )
 
     def test_stats_json_stays_flat_for_consumers(self) -> None:
@@ -782,6 +936,83 @@ class MigrateAddsColumnTest(I18nCliTestCase):
             )
         }
         self.assertIn("source_hashes_json", cols)
+
+    def test_migrate_backfills_exported_at_column(self) -> None:
+        import sqlite3
+
+        legacy = self._legacy_db()
+        env = {**self.env, "I18N_DB_FILE": str(legacy)}
+        self.assertOk(self.run_cli("db", "migrate", env=env), "migrate")
+        cols = {
+            r[1]
+            for r in sqlite3.connect(legacy).execute(
+                "PRAGMA table_info(translation_tasks)"
+            )
+        }
+        self.assertIn("exported_at", cols)
+
+    def test_migrate_leaves_existing_rows_unstamped(self) -> None:
+        # exported_at must NOT be backfilled. A pre-009 completed row's export
+        # state is unknowable, and guessing "exported" would silently disable
+        # the gate for the one case it exists to protect.
+        import sqlite3
+
+        legacy = self._legacy_db()
+        conn = sqlite3.connect(legacy)
+        conn.execute(
+            "INSERT INTO translation_tasks (file, level_path, locale, status, "
+            "keys_json, translations_json) VALUES "
+            "('00.json', 'web.C', 'de', 'completed', '{}', '{\"a\": \"b\"}')"
+        )
+        conn.commit()
+        conn.close()
+
+        env = {**self.env, "I18N_DB_FILE": str(legacy)}
+        self.assertOk(self.run_cli("db", "migrate", env=env), "migrate")
+        (stamp,) = (
+            sqlite3.connect(legacy)
+            .execute("SELECT exported_at FROM translation_tasks")
+            .fetchone()
+        )
+        self.assertIsNone(stamp)
+
+    def test_create_on_pre009_db_fails_loud(self) -> None:
+        # A DB with source_hashes_json but no exported_at would run the create
+        # path with the gate OFFLINE — silently restoring the clobber. Refuse.
+        import sqlite3
+
+        legacy = self._legacy_db()
+        conn = sqlite3.connect(legacy)
+        conn.execute(
+            "ALTER TABLE translation_tasks ADD COLUMN source_hashes_json TEXT"
+        )
+        conn.commit()
+        conn.close()
+
+        env = {**self.env, "I18N_DB_FILE": str(legacy)}
+        proc = self.run_cli("tasks", "create", "eo", "--apply", env=env)
+        self.assertNotEqual(proc.returncode, 0)
+        out = (proc.stdout + proc.stderr).lower()
+        self.assertIn("exported_at", out)
+        self.assertIn("migrate", out)
+
+    def _legacy_db(self) -> Path:
+        import sqlite3
+
+        legacy = self.db_dir / "legacy.db"
+        conn = sqlite3.connect(legacy)
+        conn.executescript(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY, "
+            "name TEXT, applied_at TEXT);\n"
+            "CREATE TABLE translation_tasks (id INTEGER PRIMARY KEY, file TEXT, "
+            "level_path TEXT, locale TEXT, status TEXT DEFAULT 'pending', "
+            "keys_json TEXT, translations_json TEXT, notes TEXT, "
+            "created_at TEXT, updated_at TEXT, "
+            "UNIQUE(file, level_path, locale));"
+        )
+        conn.commit()
+        conn.close()
+        return legacy
 
     def test_create_on_precolumn_db_fails_loud(self) -> None:
         # tasks create against an un-migrated pre-column DB must FAIL (non-zero +

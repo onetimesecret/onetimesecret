@@ -78,9 +78,12 @@ since — the target `source_hash` no longer matches en's `content_hash`), and
 never requeues already-translated, still-current reviewed strings. A brand-new
 locale needs no extra flag — with no `content/LOCALE` every key is missing, so
 you get the full key set regardless. Catch-up is the only mode; there is no
-target-blind re-queue. Applying reopens completed levels that still have work
-(their unexported translations are discarded), so export before re-initializing
-a locale mid-drain.
+target-blind re-queue. Applying reopens completed levels that still have work,
+discarding their translations — silently when the level was already exported,
+and never otherwise: a level holding never-exported translations makes the run
+exit 3 with nothing written. Run `tasks export LOCALE` to keep that work (then
+re-create), or `--reopen` to discard it deliberately. This is what makes
+re-initializing a locale mid-drain safe rather than merely discouraged.
 
 ```bash
 python3 locales/scripts/i18n tasks create LOCALE --apply

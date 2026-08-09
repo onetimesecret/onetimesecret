@@ -50,6 +50,7 @@ locales/scripts/review-locale-branches.sh validate         # deterministic check
 
 Two rules that bite:
 
+- **Export before you re-create.** `tasks create --apply` reopens a completed level that still has work, discarding its translations. That is free once the level was exported (the text is in `content/`), and refused outright when it wasn't — exit 3, nothing written, offending levels named. Clear it with `tasks export <locale>` to keep the work or `--reopen` to discard it on purpose. `create-all.sh` reports blocked locales at the end and exits non-zero rather than aborting the batch.
 - **`0 pending` proves nothing — neither current nor clean.** A drained queue can hide stale keys (English changed after translation): trust the `--stats` coverage line (current/stale/missing/skipped), not the queue. It can also hide bad writes (wrong key set, dropped placeholder, English left in place): `python3 locales/scripts/i18n tasks audit <locale> --strict` is the cleanliness signal, and it's the gate `export-all.sh` enforces.
 - **Never hand-author hashes.** New en keys are bare `{"text": "..."}`; `locales:hashes:apply` does the rest.
 

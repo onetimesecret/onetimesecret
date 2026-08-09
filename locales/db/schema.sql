@@ -22,6 +22,13 @@ CREATE TABLE IF NOT EXISTS translation_tasks (
                                       -- target key's source_hash so staleness (en moved after
                                       -- translation) is detectable. NULL for pre-column rows and
                                       -- for leaves whose en key has no content_hash yet.
+    exported_at TEXT,                 -- datetime('now') stamped by `tasks export` on every row it
+                                      -- actually wrote to content/<locale>. NULL means the row's
+                                      -- translations exist ONLY in this DB, so `tasks create
+                                      -- --apply` refuses to reopen it (the work would be lost);
+                                      -- non-NULL means the text is safely on disk and reopening
+                                      -- costs nothing. Cleared again whenever translations_json is
+                                      -- rewritten, so a re-translated level is protected afresh.
     notes TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),

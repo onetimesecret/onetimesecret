@@ -69,7 +69,19 @@ python3 locales/scripts/i18n tasks create eo --apply    # enqueue for real
 ```
 Without `--apply`, `create` is a preview: it prints what would be enqueued and writes nothing. This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes — it enqueues only the keys that still need work: **missing** (untranslated) plus **stale** (translated, but en changed since: the target `source_hash` no longer matches en's `content_hash`), never re-touching still-current reviewed strings. A brand-new locale needs no flag: with no `content/<locale>` yet, every key is missing. `tasks next <locale> --stats` prints a `current/stale/missing` coverage block so you can see drift even before enqueuing it.
 
-Applying is not free on a populated DB: a completed level that still has work is **reopened** — status back to `pending`, its translations discarded. That is the point (a stranded completed row would never be re-served), but it means running `create --apply` between completing tasks and `tasks export` throws away the unexported work. Export first, then refresh the queue.
+Applying is not a no-op on a populated DB: a completed level that still has work is **reopened** — status back to `pending`, its translations discarded. That is the point (a stranded completed row would never be re-served), and it is free once the level has been exported, because the text is already in `locales/content/<locale>/`.
+
+When it would *not* be free, `create --apply` refuses. A completed level whose translations were never exported exists only inside `tasks.db`, so the run stops before writing anything, names the levels at risk, and exits **3**:
+
+```
+Error: Refusing to write: 2 completed levels hold translations for 'de' that were never exported.
+  auth.json:web.LABELS  (14 keys, completed 2026-08-08 21:04:11)
+  ...
+```
+
+Resolve it one of two ways — `tasks export <locale>` to keep the work (then re-run `create`), or `create <locale> --apply --reopen` to discard it deliberately. The preview reports the same thing as `WOULD BE REFUSED`, so a dry run tells you whether the real run will be gated.
+
+The receipt behind this is the `exported_at` column: `tasks export` stamps it on every row it writes, and it is cleared again whenever a row is reopened or its translations are rewritten — so a level that is exported, revised in place, and then re-created is protected afresh rather than waved through on a stale receipt.
 
 Catch-up is the only mode. There is no target-blind switch that re-queues reviewed keys — it was removed, and `create` rejects the old `--all` rather than quietly ignoring it. To redo a locale wholesale, delete `locales/content/<locale>/` and re-run `create --apply`: every key is then missing, which is the same queue by a route that makes the intent visible in git.
 

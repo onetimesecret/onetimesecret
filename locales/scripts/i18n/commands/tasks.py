@@ -37,6 +37,44 @@ from ..tokens import extract_tokens, strip_tokens
 
 VALID_STATUSES = ("pending", "in_progress", "completed", "skipped")
 
+# `tasks create --apply` exit code when the run was refused because completed
+# levels hold translations that were never exported. Distinct from 1 (usage /
+# environment error) so export-all.sh and the drain orchestrators can tell
+# "you must export first" apart from "the tool broke".
+EXIT_UNEXPORTED_WORK = 3
+
+
+class UnexportedWorkError(RuntimeError):
+    """`create --apply` would have discarded translations that exist only in the DB.
+
+    Raised by :func:`insert_tasks` *before* it writes anything, so the run is
+    all-or-nothing: either every task is enqueued or the DB is untouched.
+    """
+
+    def __init__(self, locale: str, rows: list[dict]) -> None:
+        self.locale = locale
+        self.rows = rows
+        super().__init__(self._message())
+
+    def _message(self) -> str:
+        listing = "\n".join(
+            f"  {r['file']}:{r['level_path']}  "
+            f"({r['key_count']} keys, completed {r['updated_at']})"
+            for r in self.rows
+        )
+        n = len(self.rows)
+        subject = "level holds" if n == 1 else "levels hold"
+        return (
+            f"Refusing to write: {n} completed {subject} translations for "
+            f"'{self.locale}' that were never exported.\n"
+            f"{listing}\n\n"
+            f"Re-creating would reopen them and discard that work. Either:\n"
+            f"  python3 locales/scripts/i18n tasks export {self.locale}"
+            f"   # keep it — writes to content/, then re-run create\n"
+            f"  python3 locales/scripts/i18n tasks create {self.locale} "
+            f"--apply --reopen   # discard it deliberately"
+        )
+
 
 # ---------------------------------------------------------------------------
 # Registration
@@ -67,13 +105,19 @@ There is no target-blind mode: for a locale with no content/ directory yet
 every key is missing anyway, so a new language needs no flag.
 
 Without --apply this is a preview: it prints what would be enqueued and writes
-nothing. Writing is not idempotent for drained levels — a conflicting completed
-row is reopened (status back to pending, its translations_json discarded) — so
-the write is an explicit decision, not the default.
+nothing.
+
+Writing is not idempotent for drained levels: a conflicting completed row is
+reopened (status back to pending, its translations_json discarded). When that
+row was already exported the text is safe on disk and the reopen is silent;
+when it was NOT exported the run is REFUSED (exit 3) and names the levels, so
+unexported work is never lost to a routine catch-up. Export first to keep it,
+or pass --reopen to discard it on purpose.
 
 Examples:
     python3 locales/scripts/i18n tasks create fr_CA            # preview the catch-up (no writes)
     python3 locales/scripts/i18n tasks create eo --apply       # actually enqueue the tasks
+    python3 locales/scripts/i18n tasks create eo --apply --reopen   # ...discarding unexported work
         """,
     )
     c.add_argument(
@@ -85,9 +129,17 @@ Examples:
         action="store_true",
         help=(
             "Write the generated tasks to the DB. Without it, create only "
-            "previews. Reopens any conflicting completed level (status back to "
-            "pending, its unexported translations discarded), so export before "
-            "re-running create if you want that work kept."
+            "previews. Reopens any conflicting completed level that has "
+            "already been exported; refuses the run (exit 3) if one has not."
+        ),
+    )
+    c.add_argument(
+        "--reopen",
+        action="store_true",
+        help=(
+            "Reopen conflicting completed levels even when their translations "
+            "were never exported, discarding that work. Only meaningful with "
+            "--apply."
         ),
     )
     c.add_argument(
@@ -560,22 +612,79 @@ def generate_tasks(
     return tasks, stats
 
 
-def insert_tasks(tasks: list[TranslationTask]) -> int:
+def find_unexported_conflicts(
+    conn: sqlite3.Connection, tasks: list[TranslationTask]
+) -> list[dict]:
+    """Rows this ``create`` run would reopen whose translations are unsaved.
+
+    A row qualifies only when all three hold:
+
+    - it collides with a level about to be written (same file/level_path/locale);
+    - it is ``completed`` **with** a ``translations_json`` payload — a completed
+      row with no payload has nothing to lose, and gating on it would wedge
+      ``create`` forever, since ``export`` skips such rows and so never stamps
+      the receipt that would clear the gate;
+    - ``exported_at IS NULL`` — the payload was never written to
+      ``content/<locale>``, so this DB row is the only copy.
+
+    Everything else (pending, in_progress, skipped, or completed-and-exported)
+    is safe to upsert and is not reported here.
+    """
+    conflicts: list[dict] = []
+    cursor = conn.cursor()
+    for task in tasks:
+        cursor.execute(
+            """
+            SELECT file, level_path, translations_json, updated_at
+            FROM translation_tasks
+            WHERE file = ? AND level_path = ? AND locale = ?
+              AND status = 'completed'
+              AND translations_json IS NOT NULL
+              AND exported_at IS NULL
+            """,
+            (task.file, task.level_path, task.locale),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            continue
+        try:
+            key_count = len(json.loads(row["translations_json"]))
+        except (json.JSONDecodeError, TypeError):
+            # An unparseable payload is still somebody's work: report the row
+            # rather than let a malformed one slip through the gate.
+            key_count = 0
+        conflicts.append(
+            {
+                "file": row["file"],
+                "level_path": row["level_path"],
+                "key_count": key_count,
+                "updated_at": row["updated_at"],
+            }
+        )
+    return conflicts
+
+
+def insert_tasks(tasks: list[TranslationTask], reopen: bool = False) -> int:
     """Insert translation tasks into the database.
 
     Upserts on (file, level_path, locale): inserts new levels, refreshes
     keys_json + source_hashes_json + updated_at on ones that already exist.
 
-    A conflicting **completed** row is REOPENED: status back to ``pending`` and
-    ``translations_json`` cleared. ``generate_tasks`` only emits a level when it
+    A conflicting **completed** row is REOPENED: status back to ``pending``,
+    ``translations_json`` cleared, and the ``exported_at`` receipt dropped (the
+    row is unwritten work again). ``generate_tasks`` only emits a level when it
     has real work (missing/stale keys), so a conflict with a completed row
     always means that work must be redone — leaving the row
     completed would strand it: ``tasks next`` never re-serves it, and its old
-    translations no longer match the refreshed key set. The clobber window is
-    deliberate: a completed level whose translations were never exported loses
-    them and is re-queued, so export before re-running ``create`` (the CLI
-    defaults to a dry run and requires ``--apply`` to make this an explicit
-    decision).
+    translations no longer match the refreshed key set.
+
+    Reopening is silent only when it is **free**. If any conflicting completed
+    row was never exported (``exported_at IS NULL``), its translations exist
+    nowhere but this DB, and the entire run is refused with
+    :class:`UnexportedWorkError` before a single write; ``reopen=True`` is the
+    explicit "discard that work" override. Once a level is on disk, reopening
+    costs nothing and proceeds without ceremony — which is what keeps the
+    routine catch-up path (en edited, level re-emitted as stale) quiet.
 
     ``pending`` rows just get their keys/hashes refreshed; ``in_progress`` and
     ``skipped`` keep their status — an active claim isn't yanked, and a
@@ -583,6 +692,10 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
 
     Returns:
         Count of inserted/updated rows.
+
+    Raises:
+        UnexportedWorkError: a conflicting completed level holds unexported
+            translations and ``reopen`` is False. Nothing was written.
     """
     if not DB_FILE.exists():
         raise FileNotFoundError(
@@ -594,21 +707,34 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
     with get_connection() as conn:
         cursor = conn.cursor()
 
-        # Fail loud on a pre-schema-008 DB: the INSERT below names
-        # source_hashes_json, and the per-row `except` further down would
-        # otherwise swallow "no such column" on EVERY row and still exit 0 with
-        # an empty queue. A fresh `db init` has the column; an old local tasks.db
+        # Fail loud on a pre-schema-009 DB: the statements below name
+        # source_hashes_json and exported_at, and the per-row `except` further
+        # down would otherwise swallow "no such column" on EVERY row and still
+        # exit 0 with an empty queue. Worse for exported_at: a missing column
+        # would take the *gate* offline, silently restoring the clobber it
+        # exists to prevent. A fresh `db init` has both; an old local tasks.db
         # needs `db migrate`.
         columns = {
             row[1]
             for row in cursor.execute("PRAGMA table_info(translation_tasks)")
         }
-        if "source_hashes_json" not in columns:
+        absent = [
+            c for c in ("source_hashes_json", "exported_at") if c not in columns
+        ]
+        if absent:
             raise RuntimeError(
-                "translation_tasks is missing the 'source_hashes_json' column "
-                "(task DB predates schema 008). Run "
+                "translation_tasks is missing the "
+                f"{', '.join(repr(c) for c in absent)} column(s) "
+                "(task DB predates schema 009). Run "
                 "'python3 locales/scripts/i18n db migrate' first."
             )
+
+        # Preflight BEFORE the first INSERT, so a refusal leaves the DB exactly
+        # as it was: a half-enqueued run would be its own kind of damage.
+        if not reopen and tasks:
+            conflicts = find_unexported_conflicts(conn, tasks)
+            if conflicts:
+                raise UnexportedWorkError(tasks[0].locale, conflicts)
 
         for task in tasks:
             try:
@@ -629,6 +755,16 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
                             WHEN translation_tasks.status = 'completed'
                                 THEN NULL
                             ELSE translation_tasks.translations_json
+                        END,
+                        -- Drop the export receipt alongside the translations it
+                        -- vouched for. Without this, a reopened level would be
+                        -- re-translated, left unexported, and then clobbered by
+                        -- the NEXT create -- the gate would read the stale
+                        -- receipt as proof that the new work is on disk.
+                        exported_at = CASE
+                            WHEN translation_tasks.status = 'completed'
+                                THEN NULL
+                            ELSE translation_tasks.exported_at
                         END,
                         updated_at = datetime('now')
                     """,
@@ -664,6 +800,17 @@ def _create_handler(args) -> int:
         )
         return 1
 
+    # --reopen only decides what a WRITE does, so asking for it without --apply
+    # is a misunderstanding worth naming: silently previewing would let someone
+    # believe they had authorized a discard that never happened.
+    if args.reopen and not args.apply:
+        print(
+            "Error: --reopen has no meaning without --apply (create writes "
+            "nothing by default).",
+            file=sys.stderr,
+        )
+        return 1
+
     dry_run = not args.apply
     print(f"Generating translation tasks for '{args.locale}'")
     print()
@@ -683,6 +830,25 @@ def _create_handler(args) -> int:
     print(f"    stale (en changed since):   {stats['stale_keys']}")
 
     if dry_run:
+        # A preview that doesn't mention the gate isn't a preview of the run.
+        # Report what --apply would refuse, so the operator learns it here
+        # rather than from a failed write in a batch script.
+        blocked = _preview_unexported_conflicts(tasks)
+        if blocked:
+            print()
+            print(
+                f"WOULD BE REFUSED: {len(blocked)} completed level(s) hold "
+                f"unexported translations."
+            )
+            for row in blocked:
+                print(
+                    f"  {row['file']}:{row['level_path']}  "
+                    f"({row['key_count']} keys)"
+                )
+            print(
+                f"  Run 'tasks export {args.locale}' first to keep that work, "
+                f"or pass --reopen to discard it."
+            )
         print()
         print("Preview only - no changes made. Pass --apply to write.")
         return 0
@@ -694,13 +860,46 @@ def _create_handler(args) -> int:
 
     # Insert into database
     try:
-        count = insert_tasks(tasks)
+        count = insert_tasks(tasks, reopen=args.reopen)
+    except UnexportedWorkError as e:
+        # Ordered before RuntimeError (its base): this is a refusal to destroy
+        # work, not a tool failure, and gets its own exit code so callers can
+        # branch on it.
+        print(f"\nError: {e}", file=sys.stderr)
+        return EXIT_UNEXPORTED_WORK
     except (FileNotFoundError, RuntimeError) as e:
         print(f"\nError: {e}", file=sys.stderr)
         sys.exit(1)
 
+    if args.reopen:
+        print("\n--reopen: conflicting completed levels were reopened.")
     print(f"\nInserted/updated {count} tasks into {DB_FILE}")
     return 0
+
+
+def _preview_unexported_conflicts(tasks: list[TranslationTask]) -> list[dict]:
+    """Best-effort dry-run read of what :func:`insert_tasks` would refuse.
+
+    Advisory only, so every reason the real gate can't be consulted yet — no DB,
+    pre-009 schema, unreadable file — degrades to "nothing to report" instead of
+    failing a preview that writes nothing anyway. ``--apply`` still hits the
+    authoritative check.
+    """
+    if not tasks or not DB_FILE.exists():
+        return []
+    try:
+        with get_connection() as conn:
+            columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(translation_tasks)"
+                )
+            }
+            if "exported_at" not in columns:
+                return []
+            return find_unexported_conflicts(conn, tasks)
+    except sqlite3.Error:
+        return []
 
 
 # ---------------------------------------------------------------------------
@@ -1013,6 +1212,13 @@ def update_task(
             updates.append("translations_json = ?")
             params.append(translations_json)
 
+            # New text invalidates any prior export receipt: what's in
+            # content/<locale> is the OLD translation, so this row is once again
+            # the only copy of the current one and must be protected from
+            # `create`'s reopen. (Matters for a level exported, then revised
+            # in-place before the next export.)
+            updates.append("exported_at = NULL")
+
             # Auto-mark as completed if providing translations and no explicit status
             if status is None:
                 status = "completed"
@@ -1205,7 +1411,7 @@ def get_completed_tasks(
         cursor = conn.cursor()
 
         query = """
-            SELECT file, level_path, keys_json, translations_json,
+            SELECT id, file, level_path, keys_json, translations_json,
                    source_hashes_json
             FROM translation_tasks
             WHERE locale = ? AND status = 'completed' AND translations_json IS NOT NULL
@@ -1220,6 +1426,24 @@ def get_completed_tasks(
 
         cursor.execute(query, params)
         return [dict(row) for row in cursor.fetchall()]
+
+
+def mark_tasks_exported(task_ids: list[int]) -> None:
+    """Record that these rows' translations now exist in ``content/<locale>``.
+
+    The receipt `tasks create` reads to decide whether reopening a completed
+    level is free (text is on disk) or destructive (DB is the only copy).
+    Re-exporting an already-stamped row just refreshes the timestamp.
+    """
+    if not task_ids:
+        return
+    with get_connection() as conn:
+        conn.executemany(
+            "UPDATE translation_tasks SET exported_at = datetime('now') "
+            "WHERE id = ?",
+            [(tid,) for tid in task_ids],
+        )
+        conn.commit()
 
 
 def export_locale(
@@ -1337,6 +1561,13 @@ def export_locale(
                             print(f"  {task['level_path']}.{k}: {v[:40]}...")
         else:
             save_json_file(content_file, content)
+            # Stamp the export receipt only AFTER the content file is safely on
+            # disk, and only for the rows that went into THIS file. Ordering
+            # matters: a receipt written before a failed save would tell the
+            # create gate the work is durable when it isn't, which is the exact
+            # lie the column exists to prevent. Per-file (not once at the end)
+            # keeps earlier files' receipts truthful if a later save throws.
+            mark_tasks_exported([t["id"] for t in file_tasks])
             if not quiet:
                 print(f"{verb.capitalize()}d {file_name}: {key_count} keys")
 

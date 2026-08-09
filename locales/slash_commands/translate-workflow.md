@@ -59,8 +59,10 @@ Discover, do not assume. Run these yourself in the main loop first:
    queue before checking pending. `create --apply` on an existing locale
    enqueues only keys still untranslated in `content/<loc>` and never requeues
    already-translated, reviewed strings (bare `create` is a preview; applying
-   reopens completed levels that still have work, discarding unexported
-   translations — export first if any are in flight):
+   reopens completed levels that still have work. Already-exported levels
+   reopen silently; a level holding never-exported translations makes the run
+   exit 3 without writing — `tasks export <loc>` to keep it, `--reopen` to
+   discard it):
    ```bash
    i18n tasks create <loc> --apply             # per eligible target
    i18n tasks next <loc> --stats               # keep targets now showing pending > 0
