@@ -36,7 +36,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # Subclass that implements the required abstract method
   class V2ConfigTestAction < V2::Logic::Secrets::BaseSecretAction
     def process_secret
-      @kind = :test
+      @kind         = :test
       @secret_value = 'test_secret'
     end
   end
@@ -44,42 +44,48 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # Stub organization_instances with a non-empty array so CreateDefaultWorkspace
   # sees the customer already has an org and skips creation (these tests are
   # about TTL config, not workspace creation).
-  let(:customer) {
-    double('Customer',
+  subject { V2ConfigTestAction.new(strategy_result, base_params) }
+
+  let(:customer) do
+    double(
+      'Customer',
       anonymous?: false,
       custid: 'cust123',
       objid: 'obj123',
       planid: 'anonymous',
       email: 'cust123@example.com',
-      organization_instances: [:existing_org])
-  }
+      organization_instances: [:existing_org],
+    )
+  end
 
-  let(:session) {
-    double('Session',
+  let(:session) do
+    double(
+      'Session',
       anonymous?: false,
       custid: 'cust123',
-      identifier: 'sess123')
-  }
+      identifier: 'sess123',
+    )
+  end
 
   # V2 Logic::Base takes a strategy_result, not raw session/customer
-  let(:strategy_result) {
-    double('StrategyResult',
+  let(:strategy_result) do
+    double(
+      'StrategyResult',
       session: session,
       user: customer,
-      metadata: { organization_context: {} })
-  }
+      metadata: { organization_context: {} },
+    )
+  end
 
   # V2 uses nested params: params['secret'] contains the secret fields
-  let(:base_params) {
+  let(:base_params) do
     {
       'secret' => {
-        'recipient'    => [],
+        'recipient' => [],
         'share_domain' => '',
       },
     }
-  }
-
-  subject { V2ConfigTestAction.new(strategy_result, base_params) }
+  end
 
   before(:all) do
     OT.boot!(:test)
@@ -113,13 +119,13 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     it 'reads default_ttl from site.secret_options in config (43200), not the hardcoded fallback (604800)' do
       # Verify the config actually has the value we expect at the correct path
       configured_default_ttl = OT.conf.dig('site', 'secret_options', 'default_ttl')
-      expect(configured_default_ttl).to eq(43200), "Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200"
+      expect(configured_default_ttl).to eq(43_200), 'Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200'
 
       # Now test that process_ttl actually uses that config value when no TTL is provided
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
 
-      expect(subject.ttl).to eq(43200),
+      expect(subject.ttl).to eq(43_200),
         "Expected default_ttl=43200 from config, got #{subject.ttl}. " \
         "Bug: process_ttl reads OT.conf.fetch('secret_options') (root level) " \
         "instead of OT.conf.dig('site', 'secret_options')"
@@ -132,8 +138,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       # The hardcoded V2 fallback is [60, 3600, 86400, 604800]
       # So the arrays differ in both values and length.
       configured_options = OT.conf.dig('site', 'secret_options', 'ttl_options')
-      expect(configured_options).to be_an(Array), "Precondition: after_load should parse ttl_options string into an array"
-      expect(configured_options).to include(43200), "Precondition: ttl_options should include 43200"
+      expect(configured_options).to be_an(Array), 'Precondition: after_load should parse ttl_options string into an array'
+      expect(configured_options).to include(43_200), 'Precondition: ttl_options should include 43200'
 
       # The real differentiator: config min_ttl is 1800, but V2 hardcoded
       # fallback min is 60 (1.minute). A TTL of 120 (2 minutes) should be
@@ -143,27 +149,27 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       subject.send(:process_ttl)
 
       expect(subject.ttl).to eq(1800),
-        "Expected TTL=120 to be clamped to config min_ttl=1800, " \
+        'Expected TTL=120 to be clamped to config min_ttl=1800, ' \
         "got #{subject.ttl}. Bug: hardcoded fallback has min_ttl=60, " \
-        "so 120 passes through unclamped."
+        'so 120 passes through unclamped.'
     end
 
     it 'uses config default_ttl (43200) when TTL param is nil' do
       subject.instance_variable_set(:@payload, { 'ttl' => nil })
       subject.send(:process_ttl)
 
-      expect(subject.ttl).to eq(43200),
+      expect(subject.ttl).to eq(43_200),
         "Expected nil TTL to default to config's 43200, got #{subject.ttl}. " \
-        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
     end
 
     it 'uses config default_ttl (43200) when TTL key is absent from payload' do
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
 
-      expect(subject.ttl).to eq(43200),
+      expect(subject.ttl).to eq(43_200),
         "Expected absent TTL to default to config's 43200, got #{subject.ttl}. " \
-        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
     end
 
     it 'enforces config min_ttl (1800) not hardcoded min_ttl (60)' do
@@ -176,7 +182,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
       expect(subject.ttl).to eq(1800),
         "Expected TTL=300 to be clamped to config min=1800, got #{subject.ttl}. " \
-        "Bug: hardcoded fallback min is 60, so values between 60-1800 pass through."
+        'Bug: hardcoded fallback min is 60, so values between 60-1800 pass through.'
     end
   end
 
@@ -191,22 +197,26 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   describe '#validate_domain_permissions error_key plumbing' do
     let(:share_domain) { 'secrets.acme.com' }
     let(:authenticated_customer) do
-      double('Customer',
+      double(
+        'Customer',
         anonymous?: false,
         custid: 'cust123',
         objid: 'obj123',
         planid: 'anonymous',
         email: 'cust123@example.com',
-        organization_instances: [:existing_org])
+        organization_instances: [:existing_org],
+      )
     end
     let(:anonymous_customer) do
-      double('Customer',
+      double(
+        'Customer',
         anonymous?: true,
         custid: nil,
         objid: nil,
         planid: 'anonymous',
         email: nil,
-        organization_instances: [])
+        organization_instances: [],
+      )
     end
 
     # Stand-in for CustomDomain. accessible_by? and allow_public_secret_creation? are the
@@ -221,15 +231,15 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       action = V2ConfigTestAction.new(strategy_result, base_params)
       action.instance_variable_set(:@cust, cust)
       action.instance_variable_set(:@share_domain, share_domain)
-      allow(action).to receive(:custom_domain?).and_return(custom_domain)
       # secret_logger is noisy; the warn calls aren't under test here.
-      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      allow(action).to receive_messages(custom_domain?: custom_domain, secret_logger: double('Logger').as_null_object)
       action
     end
 
     context 'authenticated non-owner branch (line ~445)' do
-      let(:domain_record) { build_domain_record(owner: false) }
       subject { build_subject(cust: authenticated_customer, custom_domain: false) }
+
+      let(:domain_record) { build_domain_record(owner: false) }
 
       it 'raises Onetime::Forbidden' do
         expect { subject.send(:validate_domain_permissions, domain_record) }
@@ -271,8 +281,9 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'anonymous on custom domain with public sharing disabled (line ~459)' do
-      let(:domain_record) { build_domain_record(owner: false, allow_public_secret_creation: false) }
       subject { build_subject(cust: anonymous_customer, custom_domain: true) }
+
+      let(:domain_record) { build_domain_record(owner: false, allow_public_secret_creation: false) }
 
       it 'raises Onetime::Forbidden' do
         expect { subject.send(:validate_domain_permissions, domain_record) }
@@ -314,8 +325,9 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'anonymous on canonical attempting cross-domain (line ~470)' do
-      let(:domain_record) { build_domain_record(owner: false, allow_public_secret_creation: true) }
       subject { build_subject(cust: anonymous_customer, custom_domain: false) }
+
+      let(:domain_record) { build_domain_record(owner: false, allow_public_secret_creation: true) }
 
       it 'raises Onetime::Forbidden' do
         expect { subject.send(:validate_domain_permissions, domain_record) }
@@ -368,8 +380,9 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'domain owner (no raise)' do
-      let(:domain_record) { build_domain_record(owner: true) }
       subject { build_subject(cust: authenticated_customer, custom_domain: false) }
+
+      let(:domain_record) { build_domain_record(owner: true) }
 
       it 'returns without raising' do
         expect { subject.send(:validate_domain_permissions, domain_record) }.not_to raise_error
@@ -392,31 +405,34 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # ============================================================================
   describe 'HomepageConfig read count (issue #3631)' do
     let(:anonymous_customer) do
-      double('Customer',
+      double(
+        'Customer',
         anonymous?: true,
         custid: nil,
         objid: nil,
         planid: 'anonymous',
         email: nil,
-        organization_instances: [])
+        organization_instances: [],
+      )
     end
 
     # A domain record whose allow_public_secret_creation? we can count. It is a
     # non-owner public custom domain, so the anonymous branch consults the gate
     # and passes.
     def build_counting_domain_record(allow_public: true)
-      double('CustomDomain',
+      double(
+        'CustomDomain',
         accessible_by?: false,
         allow_public_secret_creation?: allow_public,
-        verified: 'true')
+        verified: 'true',
+      )
     end
 
     def build_access_subject(domain_record, share_domain: 'secrets.acme.com')
       action = V2ConfigTestAction.new(strategy_result, base_params)
       action.instance_variable_set(:@cust, anonymous_customer)
       action.instance_variable_set(:@share_domain, share_domain)
-      allow(action).to receive(:custom_domain?).and_return(true)
-      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      allow(action).to receive_messages(custom_domain?: true, secret_logger: double('Logger').as_null_object)
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(share_domain).and_return(domain_record)
       action
@@ -424,7 +440,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
     it 'reads allow_public_secret_creation? exactly once through validate_domain_access' do
       domain_record = build_counting_domain_record(allow_public: true)
-      subject = build_access_subject(domain_record)
+      subject       = build_access_subject(domain_record)
 
       subject.send(:validate_domain_access, 'secrets.acme.com')
 
@@ -433,7 +449,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
     it 'does not re-read the gate inside validate_domain_permissions when the resolved value is threaded in' do
       domain_record = build_counting_domain_record(allow_public: true)
-      subject = build_access_subject(domain_record)
+      subject       = build_access_subject(domain_record)
 
       # Simulate validate_domain_access having already resolved the gate: pass
       # the value directly. The permission check must trust it and not re-read.
@@ -446,7 +462,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       # Backward-compat path: a direct caller (spec/other logic) passes only the
       # record. The nil default triggers a single on-demand read.
       domain_record = build_counting_domain_record(allow_public: true)
-      subject = build_access_subject(domain_record)
+      subject       = build_access_subject(domain_record)
 
       subject.send(:validate_domain_permissions, domain_record)
 
@@ -472,8 +488,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       action = V2ConfigTestAction.new(strategy_result, base_params)
       action.instance_variable_set(:@payload, { 'share_domain' => payload_share_domain })
       if anonymous
-        action.instance_variable_set(:@cust,
-          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil))
+        action.instance_variable_set(
+          :@cust,
+          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil),
+        )
       end
       allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
       action
@@ -524,8 +542,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       subject { build_ingest_subject(payload_share_domain: 'onetimesecret.com') }
 
       before do
-        allow(Onetime::CustomDomain).to receive(:valid?).and_return(true)
-        allow(Onetime::CustomDomain).to receive(:default_domain?).and_return(true)
+        allow(Onetime::CustomDomain).to receive_messages(valid?: true, default_domain?: true)
       end
 
       it 'skips the canonical/default domain and leaves @share_domain nil' do
@@ -564,11 +581,12 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       action.instance_variable_set(:@share_domain, share_domain)
       action.instance_variable_set(:@display_domain, display_domain)
       if anonymous
-        action.instance_variable_set(:@cust,
-          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil))
+        action.instance_variable_set(
+          :@cust,
+          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil),
+        )
       end
-      allow(action).to receive(:custom_domain?).and_return(custom_domain)
-      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      allow(action).to receive_messages(custom_domain?: custom_domain, secret_logger: double('Logger').as_null_object)
       action
     end
 
@@ -775,11 +793,12 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       action.instance_variable_set(:@share_domain, requested)
       action.instance_variable_set(:@display_domain, display_domain)
       if anonymous
-        action.instance_variable_set(:@cust,
-          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil))
+        action.instance_variable_set(
+          :@cust,
+          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil),
+        )
       end
-      allow(action).to receive(:custom_domain?).and_return(custom_domain)
-      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      allow(action).to receive_messages(custom_domain?: custom_domain, secret_logger: double('Logger').as_null_object)
       action
     end
 
@@ -1054,10 +1073,12 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   describe '#validate_share_domain integration' do
     # Domain double that passes all permission and verification checks.
     def build_passing_domain_record(owner: true)
-      double('CustomDomain',
+      double(
+        'CustomDomain',
         accessible_by?: owner,
         allow_public_secret_creation?: true,
-        verified: 'true')
+        verified: 'true',
+      )
     end
 
     def build_integration_subject(cust:, share_domain:, display_domain:, custom_domain:)
@@ -1065,36 +1086,35 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       action.instance_variable_set(:@cust, cust)
       action.instance_variable_set(:@share_domain, share_domain)
       action.instance_variable_set(:@display_domain, display_domain)
-      allow(action).to receive(:custom_domain?).and_return(custom_domain)
-      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      allow(action).to receive_messages(custom_domain?: custom_domain, secret_logger: double('Logger').as_null_object)
       action
     end
 
     let(:authenticated_member) do
-      double('Customer',
+      double(
+        'Customer',
         anonymous?: false,
         custid: 'member1',
         objid: 'obj_member1',
         planid: 'identity',
         email: 'member@acme.com',
-        organization_instances: [:existing_org])
+        organization_instances: [:existing_org],
+      )
     end
 
     let(:anonymous_visitor) do
-      double('Customer',
+      double(
+        'Customer',
         anonymous?: true,
         custid: nil,
         objid: nil,
         planid: 'anonymous',
         email: nil,
-        organization_instances: [])
+        organization_instances: [],
+      )
     end
 
     context 'authenticated domain owner on custom domain, selects a different owned domain' do
-      let(:selected_domain) { 'secrets.acme.com' }
-      let(:host_domain)     { 'local-secrets.afb.pet' }
-      let(:domain_record)   { build_passing_domain_record(owner: true) }
-
       subject do
         build_integration_subject(
           cust: authenticated_member,
@@ -1103,6 +1123,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           custom_domain: true,
         )
       end
+
+      let(:selected_domain) { 'secrets.acme.com' }
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:domain_record)   { build_passing_domain_record(owner: true) }
 
       before do
         allow(Onetime::CustomDomain).to receive(:from_display_domain)
@@ -1121,21 +1145,23 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'authenticated non-owner on custom domain, selects a domain they do not own' do
-      let(:selected_domain) { 'secrets.other.com' }
-      let(:host_domain)     { 'local-secrets.afb.pet' }
-      let(:domain_record) do
-        double('CustomDomain',
-          accessible_by?: false,
-          allow_public_secret_creation?: false,
-          verified: 'true')
-      end
-
       subject do
         build_integration_subject(
           cust: authenticated_member,
           share_domain: selected_domain,
           display_domain: host_domain,
           custom_domain: true,
+        )
+      end
+
+      let(:selected_domain) { 'secrets.other.com' }
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:domain_record) do
+        double(
+          'CustomDomain',
+          accessible_by?: false,
+          allow_public_secret_creation?: false,
+          verified: 'true',
         )
       end
 
@@ -1151,9 +1177,6 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'authenticated domain owner on custom domain, no explicit selection' do
-      let(:host_domain)   { 'local-secrets.afb.pet' }
-      let(:domain_record) { build_passing_domain_record(owner: true) }
-
       subject do
         build_integration_subject(
           cust: authenticated_member,
@@ -1162,6 +1185,9 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           custom_domain: true,
         )
       end
+
+      let(:host_domain)   { 'local-secrets.afb.pet' }
+      let(:domain_record) { build_passing_domain_record(owner: true) }
 
       before do
         allow(Onetime::CustomDomain).to receive(:from_display_domain)
@@ -1180,20 +1206,22 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'anonymous user on custom domain, no explicit selection' do
-      let(:host_domain)   { 'local-secrets.afb.pet' }
-      let(:domain_record) do
-        double('CustomDomain',
-          accessible_by?: false,
-          allow_public_secret_creation?: true,
-          verified: 'true')
-      end
-
       subject do
         build_integration_subject(
           cust: anonymous_visitor,
           share_domain: nil,
           display_domain: host_domain,
           custom_domain: true,
+        )
+      end
+
+      let(:host_domain)   { 'local-secrets.afb.pet' }
+      let(:domain_record) do
+        double(
+          'CustomDomain',
+          accessible_by?: false,
+          allow_public_secret_creation?: true,
+          verified: 'true',
         )
       end
 
@@ -1212,9 +1240,6 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     # *different* public custom domain. validate_share_domain must reject it
     # outright, before any domain is resolved or looked up.
     context 'anonymous guest on custom domain, smuggles a DIFFERENT custom domain via share_domain' do
-      let(:host_domain)     { 'local-secrets.afb.pet' }
-      let(:smuggled_domain) { 'secrets.acme.com' }
-
       subject do
         build_integration_subject(
           cust: anonymous_visitor,
@@ -1223,6 +1248,9 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           custom_domain: true,
         )
       end
+
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:smuggled_domain) { 'secrets.acme.com' }
 
       before do
         # Any lookup at all would be a bug: the guard must raise before resolution.
@@ -1239,20 +1267,22 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     # creating a link for THAT same domain. The request carries the domain it is
     # served from, so it is allowed and the secret is pinned to that custom domain.
     context 'anonymous guest on custom domain, creates a link for that same domain' do
-      let(:host_domain) { 'secrets.acme.com' }
-      let(:host_record) do
-        double('CustomDomain',
-          accessible_by?: false,
-          allow_public_secret_creation?: true,
-          verified: 'true')
-      end
-
       subject do
         build_integration_subject(
           cust: anonymous_visitor,
           share_domain: host_domain,
           display_domain: host_domain,
           custom_domain: true,
+        )
+      end
+
+      let(:host_domain) { 'secrets.acme.com' }
+      let(:host_record) do
+        double(
+          'CustomDomain',
+          accessible_by?: false,
+          allow_public_secret_creation?: true,
+          verified: 'true',
         )
       end
 
@@ -1359,20 +1389,22 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       end
 
       context 'anonymous guest on a branded host naming a pool member' do
-        let(:host_domain) { 'secrets.acme.com' }
-        let(:host_record) do
-          double('CustomDomain',
-            accessible_by?: false,
-            allow_public_secret_creation?: true,
-            verified: 'true')
-        end
-
         subject do
           build_integration_subject(
             cust: anonymous_visitor,
             share_domain: 'go.acme.com',
             display_domain: host_domain,
             custom_domain: true,
+          )
+        end
+
+        let(:host_domain) { 'secrets.acme.com' }
+        let(:host_record) do
+          double(
+            'CustomDomain',
+            accessible_by?: false,
+            allow_public_secret_creation?: true,
+            verified: 'true',
           )
         end
 
@@ -1408,7 +1440,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     # A genuinely anonymous StrategyResult: user is nil, so anonymous_user? is
     # true from construction onward (process_params runs during initialize).
     let(:e2e_strategy_result) do
-      double('StrategyResult',
+      double(
+        'StrategyResult',
         session: e2e_session,
         user: nil,
         auth_method: :noauth,
@@ -1416,7 +1449,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           organization_context: {},
           domain_strategy: 'custom',
           display_domain: host_domain,
-        })
+        },
+      )
     end
 
     let(:host_record) do
@@ -1427,10 +1461,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     def e2e_params(share_domain)
       {
         'secret' => {
-          'secret'       => 'top secret value',
+          'secret' => 'top secret value',
           'share_domain' => share_domain,
-          'ttl'          => '3600',
-          'recipient'    => [],
+          'ttl' => '3600',
+          'recipient' => [],
         },
       }
     end
@@ -1444,10 +1478,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     before do
       # Any non-empty posted domain passes format/default validation, so the
       # requested value is recorded during process_params (real ingestion).
-      allow(Onetime::CustomDomain).to receive(:valid?).and_return(true)
-      allow(Onetime::CustomDomain).to receive(:default_domain?).and_return(false)
       # Default any lookup to nil; only the Host domain resolves to a record.
-      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      allow(Onetime::CustomDomain).to receive_messages(valid?: true, default_domain?: false, from_display_domain: nil)
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(host_domain).and_return(host_record)
     end
@@ -1593,6 +1625,12 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         metadata: { organization_context: {} },
       )
     end
+    # The hard product cap for anonymous secrets (7 days). Nothing an operator
+    # configures may raise an anonymous grant above it.
+    let(:anon_cap) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
+    # The authenticated free-tier ceiling (14 days): what the loud entitlement
+    # gate uses. Only referenced to prove anonymous stays at or below it.
+    let(:free_tier_ceiling) { Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL }
 
     def build_anon_subject(ttl:)
       action = V2ConfigTestAction.new(anon_strategy_result, base_params)
@@ -1620,18 +1658,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       )
     end
 
-    # The hard product cap for anonymous secrets (7 days). Nothing an operator
-    # configures may raise an anonymous grant above it.
-    let(:anon_cap) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
-
-    # The authenticated free-tier ceiling (14 days): what the loud entitlement
-    # gate uses. Only referenced to prove anonymous stays at or below it.
-    let(:free_tier_ceiling) { Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL }
-
     # Drive the real env var through parse_ttl_env instead of stubbing
     # free_tier_limits, so the memoized class-level read is exercised too.
     def with_ttl_max_anonymous(value)
-      previous = ENV.fetch('TTL_MAX_ANONYMOUS', nil)
+      previous                 = ENV.fetch('TTL_MAX_ANONYMOUS', nil)
       ENV['TTL_MAX_ANONYMOUS'] = value.to_s
       Onetime::Organization.reset_free_tier_limits!
       yield
@@ -1857,7 +1887,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # ============================================================================
   describe '#index_receipt_to_organization actor attribution (#3637)' do
     it "records 'created' with actor=creator and the full customer objid" do
-      org = Onetime::Organization.new(
+      org  = Onetime::Organization.new(
         display_name: 'Created Actor Org',
         contact_email: "created-actor-#{SecureRandom.hex(6)}@example.com",
       ).tap(&:save)

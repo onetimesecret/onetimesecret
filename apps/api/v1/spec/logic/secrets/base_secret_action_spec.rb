@@ -6,41 +6,43 @@ require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-
-
 RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
   using Familia::Refinements::TimeLiterals
 
   # Create test implementation class
   class TestSecretAction < V1::Logic::Secrets::BaseSecretAction
     def process_secret
-      @kind = :test
-      @secret_value = "test_secret"
+      @kind         = :test
+      @secret_value = 'test_secret'
     end
   end
 
-  let(:customer) {
-    double('Customer',
-    anonymous?: false,
-    custid: 'cust123',
-    planid: 'anonymous')
-  }
-
-  let(:session) {
-    double('Session',
-    anonymous?: false,
-    custid: 'cust123')
-  }
-
-  let(:base_params) {
-    {
-      'ttl'          => '7',
-      'recipient'    => ['test@example.com'],
-      'share_domain' => 'example.com'
-    }
-  }
-
   subject { TestSecretAction.new(session, customer, base_params) }
+
+  let(:customer) do
+    double(
+      'Customer',
+      anonymous?: false,
+      custid: 'cust123',
+      planid: 'anonymous',
+    )
+  end
+
+  let(:session) do
+    double(
+      'Session',
+      anonymous?: false,
+      custid: 'cust123',
+    )
+  end
+
+  let(:base_params) do
+    {
+      'ttl' => '7',
+      'recipient' => ['test@example.com'],
+      'share_domain' => 'example.com',
+    }
+  end
 
   before(:all) do
     OT.boot!(:test)
@@ -60,13 +62,13 @@ RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
     end
 
     it 'enforces minimum TTL' do
-      subject.instance_variable_set(:@payload, {ttl: '5'}) # 5 seconds
+      subject.instance_variable_set(:@payload, { ttl: '5' }) # 5 seconds
       subject.send(:process_ttl)
       expect(subject.default_expiration).to eq(30.minutes) # Set in config.test.yaml
     end
 
     it 'sets default TTL when provided as a string' do
-      subject.instance_variable_set(:@payload, {'ttl' => '30'}) # 30 seconds
+      subject.instance_variable_set(:@payload, { 'ttl' => '30' }) # 30 seconds
       subject.send(:process_ttl)
       expect(subject.default_expiration).to eq(7.days) # 7.days
     end
@@ -153,34 +155,38 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
   # Subclass that implements the required abstract method
   class V1ConfigTestAction < V1::Logic::Secrets::BaseSecretAction
     def process_secret
-      @kind = :test
+      @kind         = :test
       @secret_value = 'test_secret'
     end
   end
 
-  let(:customer) {
-    double('Customer',
+  subject { V1ConfigTestAction.new(session, customer, base_params) }
+
+  let(:customer) do
+    double(
+      'Customer',
       anonymous?: false,
       custid: 'cust123',
       objid: 'obj123',
-      planid: 'anonymous')
-  }
+      planid: 'anonymous',
+    )
+  end
 
-  let(:session) {
-    double('Session',
+  let(:session) do
+    double(
+      'Session',
       anonymous?: false,
-      custid: 'cust123')
-  }
+      custid: 'cust123',
+    )
+  end
 
   # Minimal params — no TTL so we can test defaults
-  let(:base_params) {
+  let(:base_params) do
     {
-      'recipient'    => [],
+      'recipient' => [],
       'share_domain' => '',
     }
-  }
-
-  subject { V1ConfigTestAction.new(session, customer, base_params) }
+  end
 
   before(:all) do
     OT.boot!(:test)
@@ -196,13 +202,13 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
     it 'reads default_ttl from site.secret_options in config (43200), not the hardcoded fallback (604800)' do
       # Verify the config actually has the value we expect at the correct path
       configured_default_ttl = OT.conf.dig('site', 'secret_options', 'default_ttl')
-      expect(configured_default_ttl).to eq(43200), "Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200"
+      expect(configured_default_ttl).to eq(43_200), 'Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200'
 
       # Now test that process_ttl actually uses that config value when no TTL is provided
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
 
-      expect(subject.default_expiration).to eq(43200),
+      expect(subject.default_expiration).to eq(43_200),
         "Expected default_ttl=43200 from config, got #{subject.default_expiration}. " \
         "Bug: process_ttl reads OT.conf.fetch('secret_options') (root level) " \
         "instead of OT.conf.dig('site', 'secret_options')"
@@ -215,8 +221,8 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       # The hardcoded V1 fallback is [1800, 7200, 86400, 604800]
       # So the arrays differ in both values and length.
       configured_options = OT.conf.dig('site', 'secret_options', 'ttl_options')
-      expect(configured_options).to be_an(Array), "Precondition: after_load should parse ttl_options string into an array"
-      expect(configured_options).to include(43200), "Precondition: ttl_options should include 43200"
+      expect(configured_options).to be_an(Array), 'Precondition: after_load should parse ttl_options string into an array'
+      expect(configured_options).to include(43_200), 'Precondition: ttl_options should include 43200'
 
       # process_ttl uses ttl_options to determine min_ttl. With the config
       # values [1800, 43200, 604800], min is 1800. With the hardcoded V1
@@ -231,8 +237,8 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       # which is the differentiating value. When TTL is nil, it uses default_ttl.
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
-      expect(subject.default_expiration).to eq(43200),
-        "Expected default from config ttl_options context (43200), " \
+      expect(subject.default_expiration).to eq(43_200),
+        'Expected default from config ttl_options context (43200), ' \
         "got #{subject.default_expiration}. This confirms the config path bug."
     end
 
@@ -240,18 +246,18 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       subject.instance_variable_set(:@payload, { 'ttl' => nil })
       subject.send(:process_ttl)
 
-      expect(subject.default_expiration).to eq(43200),
+      expect(subject.default_expiration).to eq(43_200),
         "Expected nil TTL to default to config's 43200, got #{subject.default_expiration}. " \
-        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
     end
 
     it 'uses config default_ttl (43200) when TTL key is absent from payload' do
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
 
-      expect(subject.default_expiration).to eq(43200),
+      expect(subject.default_expiration).to eq(43_200),
         "Expected absent TTL to default to config's 43200, got #{subject.default_expiration}. " \
-        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
     end
   end
 end
@@ -259,7 +265,7 @@ end
 # Minimal concrete subclass (process_secret is abstract in the base).
 class V1ShareDomainTestAction < V1::Logic::Secrets::BaseSecretAction
   def process_secret
-    @kind = :test
+    @kind         = :test
     @secret_value = 'test_secret'
   end
 end
@@ -306,11 +312,13 @@ RSpec.describe 'V1 BaseSecretAction process_share_domain' do
 
   # V1::Logic::Base takes (session, customer, params).
   def build_v1_ingest_subject(payload_share_domain:, anonymous: false)
-    cust = double('Customer',
+    cust = double(
+      'Customer',
       anonymous?: anonymous,
       custid: anonymous ? nil : 'cust123',
       objid: anonymous ? nil : 'obj123',
-      planid: 'anonymous')
+      planid: 'anonymous',
+    )
     sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
     V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => payload_share_domain, 'recipient' => [] })
   end
@@ -369,13 +377,15 @@ RSpec.describe 'V1 BaseSecretAction validate_anonymous_share_domain' do
   # Seed @share_domain (the requested domain), display_domain (Host header) and
   # domain_strategy (custom_domain? reads it), plus anonymity.
   def build_v1_guard_subject(requested:, display_domain:, custom_domain:, anonymous:)
-    cust = double('Customer',
+    cust                   = double(
+      'Customer',
       anonymous?: anonymous,
       custid: anonymous ? nil : 'cust123',
       objid: anonymous ? nil : 'obj123',
-      planid: 'anonymous')
-    sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
-    action = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+      planid: 'anonymous',
+    )
+    sess                   = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
+    action                 = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
     action.instance_variable_set(:@share_domain, requested)
     action.display_domain  = display_domain
     action.domain_strategy = custom_domain ? 'custom' : nil
@@ -522,13 +532,15 @@ RSpec.describe 'V1 BaseSecretAction link-pool domain access (#4063)' do
   end
 
   def build_v1_access_subject(share_domain:, display_domain:, custom_domain:, anonymous:)
-    cust = double('Customer',
+    cust                   = double(
+      'Customer',
       anonymous?: anonymous,
       custid: anonymous ? nil : 'cust123',
       objid: anonymous ? nil : 'obj123',
-      planid: 'anonymous')
-    sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
-    action = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+      planid: 'anonymous',
+    )
+    sess                   = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
+    action                 = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
     action.instance_variable_set(:@share_domain, share_domain)
     action.display_domain  = display_domain
     action.domain_strategy = custom_domain ? 'custom' : nil
@@ -595,18 +607,20 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
   # we can count. accessible_by? is false so the anonymous branch consults the
   # gate; verified 'true' clears validate_domain_verification.
   def build_counting_domain_record(allow_public: true)
-    double('CustomDomain',
+    double(
+      'CustomDomain',
       accessible_by?: false,
       allow_public_secret_creation?: allow_public,
-      verified: 'true')
+      verified: 'true',
+    )
   end
 
   # Anonymous guest on a custom domain, with @share_domain seeded and the domain
   # lookup stubbed to the counting record.
   def build_v1_access_subject(domain_record, share_domain: 'secrets.acme.com')
-    cust = double('Customer', anonymous?: true, custid: nil, objid: nil, planid: 'anonymous')
-    sess = double('Session', anonymous?: true, custid: nil)
-    action = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+    cust                   = double('Customer', anonymous?: true, custid: nil, objid: nil, planid: 'anonymous')
+    sess                   = double('Session', anonymous?: true, custid: nil)
+    action                 = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
     action.instance_variable_set(:@share_domain, share_domain)
     action.domain_strategy = 'custom'
     allow(Onetime::CustomDomain).to receive(:from_display_domain)
@@ -616,7 +630,7 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
 
   it 'reads allow_public_secret_creation? exactly once through validate_domain_access' do
     domain_record = build_counting_domain_record(allow_public: true)
-    subject = build_v1_access_subject(domain_record)
+    subject       = build_v1_access_subject(domain_record)
 
     subject.send(:validate_domain_access, 'secrets.acme.com')
 
@@ -625,7 +639,7 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
 
   it 'does not re-read the gate inside validate_domain_permissions when the resolved value is threaded in' do
     domain_record = build_counting_domain_record(allow_public: true)
-    subject = build_v1_access_subject(domain_record)
+    subject       = build_v1_access_subject(domain_record)
 
     subject.send(:validate_domain_permissions, domain_record, true)
 
@@ -634,7 +648,7 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
 
   it 'still resolves the gate on demand for direct callers that omit the argument' do
     domain_record = build_counting_domain_record(allow_public: true)
-    subject = build_v1_access_subject(domain_record)
+    subject       = build_v1_access_subject(domain_record)
 
     subject.send(:validate_domain_permissions, domain_record)
 

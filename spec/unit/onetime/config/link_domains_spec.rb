@@ -66,7 +66,7 @@ RSpec.describe Onetime::Config, 'LINK_DOMAINS validation (#4063)' do
       end
     end
 
-    context 'when LINK_DOMAINS is whitespace only (LINK_DOMAINS="  ")' do
+    context 'when LINK_DOMAINS is whitespace only (LINK_DOMAINS=" ")' do
       it "raises for [''] — the shape ERB renders for a blank value" do
         expect { described_class.validate_link_domains!(['']) }
           .to raise_error(Onetime::ConfigError, /LINK_DOMAINS/)
@@ -91,12 +91,12 @@ RSpec.describe Onetime::Config, 'LINK_DOMAINS validation (#4063)' do
     # The minimum conf that reaches the link_domains check: a global secret
     # (or the nil-secret escape hatch) and a truemail block.
     def conf_with(link_domains, domains_enabled: true)
-      domains = { 'enabled' => domains_enabled }
+      domains                 = { 'enabled' => domains_enabled }
       domains['link_domains'] = link_domains unless link_domains == :unset
 
       {
-        'site'     => { 'secret' => 'a-test-secret' },
-        'mail'     => { 'truemail' => {} },
+        'site' => { 'secret' => 'a-test-secret' },
+        'mail' => { 'truemail' => {} },
         'features' => { 'domains' => domains },
       }
     end
@@ -132,7 +132,7 @@ RSpec.describe Onetime::Config, 'LINK_DOMAINS validation (#4063)' do
     # member. "Anchor links on the canonical host but keep it out of the
     # picker" is the single-tenant ge-* install, and it is legitimate.
     it 'does not require features.domains.default to appear in the pool' do
-      conf = conf_with(['short.example.com'])
+      conf                                   = conf_with(['short.example.com'])
       conf['features']['domains']['default'] = 'links.example.net'
 
       expect { described_class.raise_concerns(conf) }.not_to raise_error

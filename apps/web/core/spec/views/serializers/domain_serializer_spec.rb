@@ -16,7 +16,7 @@ RSpec.describe Core::Views::DomainSerializer do
   let(:customer) do
     instance_double(
       Onetime::Customer,
-      custom_domains_list: []
+      custom_domains_list: [],
     )
   end
 
@@ -49,7 +49,7 @@ RSpec.describe Core::Views::DomainSerializer do
     end
 
     it 'includes all expected domain fields' do
-      template = described_class.output_template
+      template      = described_class.output_template
       expected_keys = %w[
         canonical_domain
         custom_domains
@@ -116,13 +116,13 @@ RSpec.describe Core::Views::DomainSerializer do
 
       it 'returns domain_context from session' do
         session['domain_context'] = 'custom.example.com'
-        result = described_class.serialize(view_vars)
+        result                    = described_class.serialize(view_vars)
         expect(result['domain_context']).to eq('custom.example.com')
       end
 
       it 'returns nil when domain_context is not set in session' do
         session['domain_context'] = nil
-        result = described_class.serialize(view_vars)
+        result                    = described_class.serialize(view_vars)
         expect(result['domain_context']).to be_nil
       end
     end
@@ -177,10 +177,8 @@ RSpec.describe Core::Views::DomainSerializer do
       # DomainStrategy holds its config in class instance variables; save and
       # restore all of them so this cannot leak into the rest of the suite.
       around do |example|
-        ivars = %i[
-          @canonical_domain @domains_enabled @canonical_domains
-          @canonical_domains_parsed @anchor_domains_parsed @link_domains
-          @domain_context_enabled
+        ivars = [
+          :@canonical_domain, :@domains_enabled, :@canonical_domains, :@canonical_domains_parsed, :@anchor_domains_parsed, :@link_domains, :@domain_context_enabled
         ]
         saved = ivars.to_h do |ivar|
           [ivar, Onetime::Middleware::DomainStrategy.instance_variable_get(ivar)]
@@ -202,10 +200,12 @@ RSpec.describe Core::Views::DomainSerializer do
       end
 
       def boot_domain_strategy(domains_config)
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => site_host },
-          'features' => { 'domains' => domains_config },
-        })
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => site_host },
+            'features' => { 'domains' => domains_config },
+          },
+        )
         Onetime::Middleware::DomainStrategy.initialize_from_config(domains_config)
       end
 
@@ -318,11 +318,11 @@ RSpec.describe Core::Views::DomainSerializer do
       end
 
       let(:brand_double) do
-        instance_double('Familia::Horreum::ClassMethods::Hashkey', hgetall: brand_hash_from_redis)
+        instance_double(Familia::Horreum::ClassMethods::Hashkey, hgetall: brand_hash_from_redis)
       end
 
       let(:logo_double) do
-        instance_double('Familia::Horreum::ClassMethods::Hashkey', :[] => nil)
+        instance_double(Familia::Horreum::ClassMethods::Hashkey, :[] => nil)
       end
 
       let(:custom_domain) do
@@ -333,7 +333,7 @@ RSpec.describe Core::Views::DomainSerializer do
           identifier: 'domain123',
           display_domain: custom_display_domain,
           brand: brand_double,
-          logo: logo_double
+          logo: logo_double,
         )
       end
 
@@ -364,7 +364,7 @@ RSpec.describe Core::Views::DomainSerializer do
         # which passes Redis strings directly without coercion.
 
         it 'returns button_text_light as a native boolean, not a string' do
-          result = described_class.serialize(custom_domain_view_vars)
+          result   = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
           expect(branding['button_text_light']).to be(true),
@@ -375,7 +375,7 @@ RSpec.describe Core::Views::DomainSerializer do
           # Post-#3026, HomepageConfig is the source of truth; legacy
           # brand[allow_public_homepage] is filtered to prevent the dual
           # source of truth from leaking through to the frontend.
-          result = described_class.serialize(custom_domain_view_vars)
+          result   = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
           expect(branding).not_to have_key('allow_public_homepage')
@@ -384,14 +384,14 @@ RSpec.describe Core::Views::DomainSerializer do
         it 'strips legacy allow_public_api from branding (#3026)' do
           # Post-#3026, ApiConfig is the source of truth; legacy
           # brand[allow_public_api] is filtered for the same reason.
-          result = described_class.serialize(custom_domain_view_vars)
+          result   = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
           expect(branding).not_to have_key('allow_public_api')
         end
 
         it 'returns passphrase_required as a native boolean, not a string' do
-          result = described_class.serialize(custom_domain_view_vars)
+          result   = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
           expect(branding['passphrase_required']).to be(false),
@@ -399,7 +399,7 @@ RSpec.describe Core::Views::DomainSerializer do
         end
 
         it 'returns notify_enabled as a native boolean, not a string' do
-          result = described_class.serialize(custom_domain_view_vars)
+          result   = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
           expect(branding['notify_enabled']).to be(true),
@@ -407,7 +407,7 @@ RSpec.describe Core::Views::DomainSerializer do
         end
 
         it 'preserves non-boolean fields as strings' do
-          result = described_class.serialize(custom_domain_view_vars)
+          result   = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
           # String fields should remain strings
@@ -482,7 +482,7 @@ RSpec.describe Core::Views::DomainSerializer do
           end
 
           it 'preserves native boolean values' do
-            result = described_class.serialize(custom_domain_view_vars)
+            result   = described_class.serialize(custom_domain_view_vars)
             branding = result['domain_branding']
 
             expect(branding['button_text_light']).to be(true)

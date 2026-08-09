@@ -48,35 +48,35 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   describe '.strategy_matches?' do
     context 'with a matching strategy class' do
       it 'returns true for OpenIDConnect strategy matched to :openid_connect' do
-        strategy = instance_double('OmniAuth::Strategies::OpenIDConnect')
+        strategy = instance_double(OmniAuth::Strategies::OpenIDConnect)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
 
         expect(helpers.strategy_matches?(strategy, :openid_connect)).to be true
       end
 
       it 'returns true for EntraId strategy matched to :entra_id' do
-        strategy = instance_double('OmniAuth::Strategies::EntraId')
+        strategy = instance_double(OmniAuth::Strategies::EntraId)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::EntraId')
 
         expect(helpers.strategy_matches?(strategy, :entra_id)).to be true
       end
 
       it 'returns true for AzureActivedirectoryV2 (legacy Entra alias)' do
-        strategy = instance_double('OmniAuth::Strategies::AzureActivedirectoryV2')
+        strategy = instance_double(OmniAuth::Strategies::AzureActivedirectoryV2)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::AzureActivedirectoryV2')
 
         expect(helpers.strategy_matches?(strategy, :entra_id)).to be true
       end
 
       it 'returns true for GoogleOauth2 strategy' do
-        strategy = instance_double('OmniAuth::Strategies::GoogleOauth2')
+        strategy = instance_double(OmniAuth::Strategies::GoogleOauth2)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::GoogleOauth2')
 
         expect(helpers.strategy_matches?(strategy, :google_oauth2)).to be true
       end
 
       it 'returns true for GitHub strategy' do
-        strategy = instance_double('OmniAuth::Strategies::GitHub')
+        strategy = instance_double(OmniAuth::Strategies::GitHub)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::GitHub')
 
         expect(helpers.strategy_matches?(strategy, :github)).to be true
@@ -85,14 +85,14 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
 
     context 'with a mismatched strategy class' do
       it 'returns false when Google credentials target an OIDC strategy' do
-        strategy = instance_double('OmniAuth::Strategies::OpenIDConnect')
+        strategy = instance_double(OmniAuth::Strategies::OpenIDConnect)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
 
         expect(helpers.strategy_matches?(strategy, :google_oauth2)).to be false
       end
 
       it 'returns false when Entra credentials target a GitHub strategy' do
-        strategy = instance_double('OmniAuth::Strategies::GitHub')
+        strategy = instance_double(OmniAuth::Strategies::GitHub)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::GitHub')
 
         expect(helpers.strategy_matches?(strategy, :entra_id)).to be false
@@ -105,7 +105,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       end
 
       it 'returns false when expected_type is nil' do
-        strategy = instance_double('OmniAuth::Strategies::OpenIDConnect')
+        strategy = instance_double(OmniAuth::Strategies::OpenIDConnect)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
 
         expect(helpers.strategy_matches?(strategy, nil)).to be false
@@ -116,7 +116,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       end
 
       it 'returns false for an unknown expected_type symbol' do
-        strategy = instance_double('OmniAuth::Strategies::OpenIDConnect')
+        strategy = instance_double(OmniAuth::Strategies::OpenIDConnect)
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
 
         expect(helpers.strategy_matches?(strategy, :saml)).to be false
@@ -142,13 +142,15 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       before do
         require 'onetime/middleware/domain_strategy'
 
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'api.example.com' },
-          'features' => { 'domains' => { 'enabled' => true, 'default' => 'secrets.example.com' } },
-        })
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'api.example.com' },
+            'features' => { 'domains' => { 'enabled' => true, 'default' => 'secrets.example.com' } },
+          },
+        )
         Onetime::Middleware::DomainStrategy.reset!
         Onetime::Middleware::DomainStrategy.initialize_from_config(
-          { 'enabled' => true, 'default' => 'secrets.example.com' }
+          { 'enabled' => true, 'default' => 'secrets.example.com' },
         )
       end
 
@@ -193,9 +195,12 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
 
     context 'with nested client_options' do
       it 'deep-merges client_options into strategy.options[:client_options]' do
-        helpers.merge_strategy_options(strategy, {
-          client_options: { identifier: 'my-client', secret: 'my-secret' },
-        })
+        helpers.merge_strategy_options(
+          strategy,
+          {
+            client_options: { identifier: 'my-client', secret: 'my-secret' },
+          },
+        )
 
         expect(options_hash[:client_options][:identifier]).to eq('my-client')
         expect(options_hash[:client_options][:secret]).to eq('my-secret')
@@ -204,9 +209,12 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       it 'preserves existing client_options keys not in the merge' do
         options_hash[:client_options] = { host: 'existing.example.com' }
 
-        helpers.merge_strategy_options(strategy, {
-          client_options: { identifier: 'new-client' },
-        })
+        helpers.merge_strategy_options(
+          strategy,
+          {
+            client_options: { identifier: 'new-client' },
+          },
+        )
 
         expect(options_hash[:client_options][:host]).to eq('existing.example.com')
         expect(options_hash[:client_options][:identifier]).to eq('new-client')
@@ -215,18 +223,24 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       it 'overwrites conflicting client_options keys' do
         options_hash[:client_options] = { identifier: 'old-client', secret: 'old-secret' }
 
-        helpers.merge_strategy_options(strategy, {
-          client_options: { identifier: 'new-client' },
-        })
+        helpers.merge_strategy_options(
+          strategy,
+          {
+            client_options: { identifier: 'new-client' },
+          },
+        )
 
         expect(options_hash[:client_options][:identifier]).to eq('new-client')
         expect(options_hash[:client_options][:secret]).to eq('old-secret')
       end
 
       it 'initializes client_options hash when it does not exist' do
-        helpers.merge_strategy_options(strategy, {
-          client_options: { identifier: 'first-client' },
-        })
+        helpers.merge_strategy_options(
+          strategy,
+          {
+            client_options: { identifier: 'first-client' },
+          },
+        )
 
         expect(options_hash[:client_options]).to be_a(Hash)
         expect(options_hash[:client_options][:identifier]).to eq('first-client')
@@ -235,11 +249,14 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
 
     context 'with mixed flat and nested options' do
       it 'handles both in a single call' do
-        helpers.merge_strategy_options(strategy, {
-          issuer: 'https://idp.example.com',
-          discovery: true,
-          client_options: { identifier: 'cid', secret: 'csecret' },
-        })
+        helpers.merge_strategy_options(
+          strategy,
+          {
+            issuer: 'https://idp.example.com',
+            discovery: true,
+            client_options: { identifier: 'cid', secret: 'csecret' },
+          },
+        )
 
         expect(options_hash[:issuer]).to eq('https://idp.example.com')
         expect(options_hash[:discovery]).to be true
@@ -280,7 +297,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
 
     context 'when strategy does not have discovery enabled' do
       let(:strategy) do
-        obj = Object.new
+        obj  = Object.new
         obj.instance_variable_set(:@config, { some: 'data' })
         obj.instance_variable_set(:@client, double('client'))
         opts = { discovery: false }
@@ -301,7 +318,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
 
     context 'when strategy has no memoized ivars' do
       let(:strategy) do
-        obj = Object.new
+        obj  = Object.new
         opts = { discovery: true }
         obj.define_singleton_method(:options) { opts }
         obj
@@ -351,7 +368,8 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     end
 
     let(:sso_config) do
-      double('Onetime::CustomDomain::SsoConfig',
+      double(
+        'Onetime::CustomDomain::SsoConfig',
         domain_id: 'dom_test_123',
         provider_type: 'oidc',
         to_omniauth_options: {
@@ -407,7 +425,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         expect(rodauth).to have_received(:throw_error_status).with(
           400,
           'provider_mismatch',
-          /SSO provider mismatch/
+          /SSO provider mismatch/,
         )
       end
     end

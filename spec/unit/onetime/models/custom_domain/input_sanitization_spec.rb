@@ -101,9 +101,9 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
     context 'with null byte (security finding)' do
       it 'rejects a domain containing a null byte' do
-        expect {
+        expect do
           described_class.display_domain("example\x00.com")
-        }.to raise_error(Onetime::Problem)
+        end.to raise_error(Onetime::Problem)
       end
     end
   end
@@ -133,9 +133,11 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
   describe '.overlaps_canonical_domain?' do
     before do
-      allow(OT).to receive(:conf).and_return({
-        'site' => { 'host' => 'example.com' }
-      })
+      allow(OT).to receive(:conf).and_return(
+        {
+          'site' => { 'host' => 'example.com' },
+        },
+      )
     end
 
     context 'with trailing dot variants of the canonical domain (regression guard)' do
@@ -177,10 +179,12 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     # canonical when set, so the guard must cover it too (#3841).
     context 'when features.domains.default differs from site.host' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'example.com' },
-          'features' => { 'domains' => { 'default' => 'branded-links.net' } },
-        })
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'example.com' },
+            'features' => { 'domains' => { 'default' => 'branded-links.net' } },
+          },
+        )
       end
 
       it 'detects the default link domain verbatim' do
@@ -221,15 +225,17 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     # loosening it replaces.
     context 'with an operator link pool configured (#4063)' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'app.example.net' },
-          'features' => {
-            'domains' => {
-              'default' => 'links.example.net',
-              'link_domains' => ['short.example.com', 'go.acme.com'],
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'app.example.net' },
+            'features' => {
+              'domains' => {
+                'default' => 'links.example.net',
+                'link_domains' => ['short.example.com', 'go.acme.com'],
+              },
             },
           },
-        })
+        )
       end
 
       it 'blocks registration of a pool member verbatim' do
@@ -271,9 +277,11 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
   describe '.default_domain?' do
     before do
-      allow(OT).to receive(:conf).and_return({
-        'site' => { 'host' => 'example.com' }
-      })
+      allow(OT).to receive(:conf).and_return(
+        {
+          'site' => { 'host' => 'example.com' },
+        },
+      )
     end
 
     context 'with only site.host configured' do
@@ -300,9 +308,11 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
     context 'when site.host carries a port' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'example.com:443' }
-        })
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'example.com:443' },
+          },
+        )
       end
 
       it 'strips the port before comparing' do
@@ -315,10 +325,12 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     # the DomainStrategy middleware, so both must be filtered here.
     context 'when features.domains.default differs from site.host' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'api.example.com' },
-          'features' => { 'domains' => { 'default' => 'secrets.example.com' } },
-        })
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'api.example.com' },
+            'features' => { 'domains' => { 'default' => 'secrets.example.com' } },
+          },
+        )
       end
 
       it 'matches the default link domain' do
@@ -340,10 +352,12 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
     context 'when features.domains.default is empty' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'example.com' },
-          'features' => { 'domains' => { 'default' => '' } },
-        })
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'example.com' },
+            'features' => { 'domains' => { 'default' => '' } },
+          },
+        )
       end
 
       it 'still matches the site host' do
@@ -379,15 +393,17 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     # ---------------------------------------------------------------- #
     context 'with an operator link pool configured (#4063)' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'app.example.net' },
-          'features' => {
-            'domains' => {
-              'default' => 'links.example.net',
-              'link_domains' => ['short.example.com', 'go.acme.com'],
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'app.example.net' },
+            'features' => {
+              'domains' => {
+                'default' => 'links.example.net',
+                'link_domains' => ['short.example.com', 'go.acme.com'],
+              },
             },
           },
-        })
+        )
       end
 
       it 'still matches DEFAULT_DOMAIN while it is absent from the pool' do
@@ -417,12 +433,14 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     # required to be a pool member.
     context 'when the pool excludes the default domain entirely (#4063)' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'ge-abcd123.eu.otshosted.com' },
-          'features' => {
-            'domains' => { 'link_domains' => ['short.example.com'] },
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'ge-abcd123.eu.otshosted.com' },
+            'features' => {
+              'domains' => { 'link_domains' => ['short.example.com'] },
+            },
           },
-        })
+        )
       end
 
       it 'still anchors on the canonical host' do
@@ -456,34 +474,36 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
   describe '.create! canonical backstop' do
     before do
-      allow(OT).to receive(:conf).and_return({
-        'site' => { 'host' => 'example.com' },
-      })
+      allow(OT).to receive(:conf).and_return(
+        {
+          'site' => { 'host' => 'example.com' },
+        },
+      )
 
       # Spy on the Redis-touching collaborators so we can prove the
       # guard raises before any of them run (mirrors the index spies in
       # update_display_domain_spec).
-      index_double = instance_double('Familia::UniqueIndex', hsetnx: 1)
+      index_double = instance_double(Familia::UniqueIndex, hsetnx: 1)
       allow(described_class).to receive(:display_domain_index).and_return(index_double)
       allow(described_class).to receive(:load_by_display_domain)
     end
 
     it 'rejects the canonical domain verbatim' do
-      expect {
+      expect do
         described_class.create!('example.com', 'org-test-001')
-      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+      end.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
     end
 
     it 'rejects a subdomain of the canonical domain' do
-      expect {
+      expect do
         described_class.create!('secrets.example.com', 'org-test-001')
-      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+      end.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
     end
 
     it 'raises before any Redis access' do
-      expect {
+      expect do
         described_class.create!('example.com', 'org-test-001')
-      }.to raise_error(Onetime::Problem)
+      end.to raise_error(Onetime::Problem)
 
       expect(described_class).not_to have_received(:load_by_display_domain)
       expect(described_class.display_domain_index).not_to have_received(:hsetnx)

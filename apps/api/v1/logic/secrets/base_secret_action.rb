@@ -4,7 +4,6 @@
 
 module V1::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     # V1 Secret Creation Logic [#2615]
@@ -63,8 +62,7 @@ module V1::Logic
       # multibyte content, so the byte measure is what actually bounds storage.
       V1_MAX_SECRET_SIZE = 10_000
 
-      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
-      attr_reader :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance
@@ -73,7 +71,7 @@ module V1::Logic
         # V1 uses flat query/form params: params['secret'], params['ttl'], etc.
         # (V2/V3 use a nested 'secret' namespace; V1 does not.)
         @payload = params || {}
-        raise_form_error "Incorrect payload format" if payload.is_a?(String)
+        raise_form_error 'Incorrect payload format' if payload.is_a?(String)
         process_ttl
         process_secret
         process_passphrase
@@ -82,7 +80,7 @@ module V1::Logic
       end
 
       def raise_concerns
-        raise_form_error "Unknown type of secret" if kind.nil?
+        raise_form_error 'Unknown type of secret' if kind.nil?
         validate_secret_size
         validate_recipient
         validate_share_domain
@@ -145,7 +143,7 @@ module V1::Logic
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
         }
-        default_ttl = secret_options['default_ttl']
+        default_ttl    = secret_options['default_ttl']
 
         # V1 uses its own TTL bounds, not the config's ttl_options min/max.
         # This preserves v0.23.4 behavior where 60s was the minimum.
@@ -156,7 +154,7 @@ module V1::Logic
         # Falls back to V1_MAX_TTL when billing is disabled (self-hosted).
         # V1::Logic::Base does not include OrganizationContext (no @strategy_result),
         # so auth_org is unavailable — guard with respond_to? before calling.
-        plan_max = if respond_to?(:auth_org) && auth_org&.respond_to?(:limit_for)
+        plan_max = if respond_to?(:auth_org) && auth_org.respond_to?(:limit_for)
                      org_limit = auth_org.limit_for('secret_lifetime')
                      org_limit.positive? ? org_limit : max_ttl
                    else
@@ -176,7 +174,7 @@ module V1::Logic
         # 30 days rather than rejected for missing entitlements.
         # plan_max may be lower than max_ttl, so use the stricter ceiling.
         effective_max_ttl = [max_ttl, plan_max].min
-        @ttl = ttl.clamp(min_ttl, effective_max_ttl)
+        @ttl              = ttl.clamp(min_ttl, effective_max_ttl)
 
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # Checked after clamping so the effective (clamped) value is evaluated.
@@ -203,7 +201,7 @@ module V1::Logic
       end
 
       def process_secret
-        raise NotImplementedError, "You must implement process_secret"
+        raise NotImplementedError, 'You must implement process_secret'
       end
 
       def process_passphrase
@@ -213,11 +211,12 @@ module V1::Logic
       # Sanitizes but does not validate as an email address.
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
-        @recipient = payload['recipient'].collect { |email_address|
+        @recipient           = payload['recipient'].collect do |email_address|
           next if email_address.to_s.empty?
-          sanitized_email = sanitize_email(email_address)
-        }.compact.uniq
-        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+
+          sanitize_email(email_address)
+        end.compact.uniq
+        @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
@@ -263,7 +262,8 @@ module V1::Logic
 
       def validate_recipient
         return if recipient.empty?
-        raise_form_error "An account is required to send emails." if cust.nil? || cust.anonymous?
+
+        raise_form_error 'An account is required to send emails.' if cust.nil? || cust.anonymous?
         recipient.each do |recip|
           # Use Truemail validation (same as rest of application) rather
           # than regex-only v1_valid_email?. This is a security improvement
@@ -357,7 +357,7 @@ module V1::Logic
 
         # Check if passphrase is required (defaults to false for V1 compat)
         if passphrase_config['required'] && passphrase.to_s.empty?
-          raise_form_error "A passphrase is required for all secrets"
+          raise_form_error 'A passphrase is required for all secrets'
         end
 
         # Skip further validation if no passphrase provided
@@ -423,7 +423,7 @@ module V1::Logic
 
         # Authenticated: look up customer's org for plan-based limit
         resolved_org = cust.organization_instances.to_a.first
-        if resolved_org&.respond_to?(:limit_for)
+        if resolved_org.respond_to?(:limit_for)
           org_limit = resolved_org.limit_for('secret_lifetime')
           return org_limit.positive? ? [org_limit, config_max].min : config_max
         end
@@ -431,8 +431,8 @@ module V1::Logic
         # No org found (edge case): fall back to free tier limit
         free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max']
         free_max.positive? ? free_max : config_max
-      rescue StandardError => e
-        OT.ld "[BaseSecretAction] TTL limit resolution failed: #{e.message}"
+      rescue StandardError => ex
+        OT.ld "[BaseSecretAction] TTL limit resolution failed: #{ex.message}"
         config_max
       end
 
@@ -451,7 +451,8 @@ module V1::Logic
       end
 
       def handle_success
-        return raise_form_error "Could not store your secret" unless greenlighted
+        return raise_form_error 'Could not store your secret' unless greenlighted
+
         update_stats
         send_email_to_recipient
       end
@@ -467,6 +468,7 @@ module V1::Logic
 
       def send_email_to_recipient
         return if recipient.nil? || recipient.empty?
+
         receipt.deliver_by_email cust, locale, secret, recipient.first
       end
 
@@ -476,6 +478,7 @@ module V1::Logic
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain
         return display_domain if custom_domain?
+
         share_domain
       end
 
@@ -610,6 +613,7 @@ module V1::Logic
           # is a valid pre-resolved value.
           allow_public = domain_record.allow_public_secret_creation? if allow_public.nil?
           return if allow_public
+
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 

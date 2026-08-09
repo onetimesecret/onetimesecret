@@ -10,12 +10,12 @@ require 'onetime/middleware/domain_strategy'
 # Setup
 OT.boot! :test, false
 
-@strategy_class = Onetime::Middleware::DomainStrategy
+@strategy_class   = Onetime::Middleware::DomainStrategy
 @canonical_domain = 'onetimesecret.com'
 
 # Helper to create a minimal Rack app
 def create_app
-  ->(env) { [200, {}, ['OK']] }
+  ->(_env) { [200, {}, ['OK']] }
 end
 
 # Helper to enable Runtime.features.domains? - the actual runtime flag
@@ -59,7 +59,7 @@ end
 # under test) and @domain_context_enabled must be set AFTER that call,
 # which recomputes it from the development config.
 def create_middleware_with_link_pool
-  middleware = @strategy_class.new(create_app)
+  middleware                                           = @strategy_class.new(create_app)
   @strategy_class.initialize_from_config(
     { 'enabled' => true, 'default' => 'example-links.net', 'link_domains' => ['go.acme.com'] },
   )
@@ -79,52 +79,49 @@ end
 
 ## detect_domain_override returns nil when feature is disabled
 middleware = create_middleware_with_override_disabled
-env = {}
+env        = {}
 middleware.detect_domain_override(env)
 #=> nil
 
 ## detect_domain_override returns env var when set
-middleware = create_middleware_with_override_enabled
+middleware            = create_middleware_with_override_enabled
 ENV['DOMAIN_CONTEXT'] = 'secrets.acme.com'
-env = {}
-result = middleware.detect_domain_override(env)
+env                   = {}
+middleware.detect_domain_override(env)
 ENV.delete('DOMAIN_CONTEXT')
-result
 #=> ['secrets.acme.com', :env_var]
 
 ## detect_domain_override returns header when set
 middleware = create_middleware_with_override_enabled
-env = { 'HTTP_O_DOMAIN_CONTEXT' => 'custom.example.org' }
+env        = { 'HTTP_O_DOMAIN_CONTEXT' => 'custom.example.org' }
 middleware.detect_domain_override(env)
 #=> ['custom.example.org', :header]
 
 ## detect_domain_override prefers env var over header
-middleware = create_middleware_with_override_enabled
+middleware            = create_middleware_with_override_enabled
 ENV['DOMAIN_CONTEXT'] = 'env-domain.com'
-env = { 'HTTP_O_DOMAIN_CONTEXT' => 'header-domain.com' }
-result = middleware.detect_domain_override(env)
+env                   = { 'HTTP_O_DOMAIN_CONTEXT' => 'header-domain.com' }
+middleware.detect_domain_override(env)
 ENV.delete('DOMAIN_CONTEXT')
-result
 #=> ['env-domain.com', :env_var]
 
 ## detect_domain_override ignores empty env var
-middleware = create_middleware_with_override_enabled
+middleware            = create_middleware_with_override_enabled
 ENV['DOMAIN_CONTEXT'] = ''
-env = { 'HTTP_O_DOMAIN_CONTEXT' => 'header-domain.com' }
-result = middleware.detect_domain_override(env)
+env                   = { 'HTTP_O_DOMAIN_CONTEXT' => 'header-domain.com' }
+middleware.detect_domain_override(env)
 ENV.delete('DOMAIN_CONTEXT')
-result
 #=> ['header-domain.com', :header]
 
 ## detect_domain_override returns nil tuple when no override found
 middleware = create_middleware_with_override_enabled
-env = { 'HTTP_O_DOMAIN_CONTEXT' => '' }
+env        = { 'HTTP_O_DOMAIN_CONTEXT' => '' }
 middleware.detect_domain_override(env)
 #=> [nil, nil]
 
 ## detect_domain_override returns implicit override for non-canonical host
 middleware = create_middleware_with_override_enabled
-env = { Rack::DetectHost.result_field_name => 'custom.example.org' }
+env        = { Rack::DetectHost.result_field_name => 'custom.example.org' }
 middleware.detect_domain_override(env)
 #=> ['custom.example.org', :detected_host]
 
@@ -145,26 +142,26 @@ middleware.detect_domain_override(env)
 
 ## Blessed link-pool host is NOT an implicit domain-context override
 middleware = create_middleware_with_link_pool
-env = { Rack::DetectHost.result_field_name => 'go.acme.com' }
+env        = { Rack::DetectHost.result_field_name => 'go.acme.com' }
 middleware.detect_domain_override(env)
 #=> [nil, nil]
 
 ## Control: an unblessed host is still an implicit override under the same config
 middleware = create_middleware_with_link_pool
-env = { Rack::DetectHost.result_field_name => 'unblessed.example.org' }
+env        = { Rack::DetectHost.result_field_name => 'unblessed.example.org' }
 middleware.detect_domain_override(env)
 #=> ['unblessed.example.org', :detected_host]
 
 ## A request to the blessed pool host serves :canonical end to end through call
 middleware = create_middleware_with_link_pool
-env = { Rack::DetectHost.result_field_name => 'go.acme.com' }
+env        = { Rack::DetectHost.result_field_name => 'go.acme.com' }
 middleware.call(env)
 [env['onetime.display_domain'], env['onetime.domain_strategy']]
 #=> ['go.acme.com', :canonical]
 
 ## An explicit header override still wins over pool membership
 middleware = create_middleware_with_link_pool
-env = {
+env        = {
   'HTTP_O_DOMAIN_CONTEXT' => 'go.acme.com',
   Rack::DetectHost.result_field_name => 'go.acme.com',
 }
@@ -175,7 +172,7 @@ middleware.detect_domain_override(env)
 
 ## call method uses override when enabled and header present
 middleware = create_middleware_with_override_enabled
-env = {
+env        = {
   'HTTP_O_DOMAIN_CONTEXT' => 'override.example.com',
   Rack::DetectHost.result_field_name => @canonical_domain,
 }
@@ -185,7 +182,7 @@ env['onetime.display_domain']
 
 ## call method uses :custom strategy for override domain
 middleware = create_middleware_with_override_enabled
-env = {
+env        = {
   'HTTP_O_DOMAIN_CONTEXT' => 'fictional.acme.com',
   Rack::DetectHost.result_field_name => @canonical_domain,
 }
@@ -199,7 +196,7 @@ env['onetime.domain_strategy']
 
 ## call method uses implicit override when detected host differs from canonical
 middleware = create_middleware_with_override_enabled
-env = {
+env        = {
   Rack::DetectHost.result_field_name => 'custom.example.org',
 }
 middleware.call(env)
@@ -209,7 +206,7 @@ middleware.call(env)
 ## call method returns canonical when domains feature is disabled
 middleware = @strategy_class.new(create_app)
 disable_domains!
-env = {
+env        = {
   Rack::DetectHost.result_field_name => 'custom.example.org',
 }
 middleware.call(env)

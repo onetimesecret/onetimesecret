@@ -11,8 +11,8 @@ require 'onetime/middleware/domain_strategy'
 OT.boot! :test, false
 
 @canonical_domain = 'onetimesecret.com'
-@parser = Onetime::Middleware::DomainStrategy::Parser
-@chooser = Onetime::Middleware::DomainStrategy::Chooserator
+@parser           = Onetime::Middleware::DomainStrategy::Parser
+@chooser          = Onetime::Middleware::DomainStrategy::Chooserator
 
 # Basic Configuration Tests
 
@@ -100,7 +100,7 @@ end
 #=> nil
 
 ## Handles extremely long subdomains
-long_subdomain = 'a' * 63 + '.onetimesecret.com'
+long_subdomain = ('a' * 63) + '.onetimesecret.com'
 @chooser.choose_strategy(long_subdomain, @canonical_domain)
 #=> :subdomain
 
@@ -119,11 +119,10 @@ Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.domains_enabled?
 #=> false
 
-
 ## DomainStrategy class method 'canonical_domain' returns the correct domain when domains enabled with default
 config_with_domains = {
   'enabled' => true,
-  'default' => 'example.com'
+  'default' => 'example.com',
 }
 Onetime::Middleware::DomainStrategy.reset!
 Onetime::Middleware::DomainStrategy.initialize_from_config(config_with_domains)

@@ -61,13 +61,12 @@ captured.empty?
 Onetime::CustomDomain.define_singleton_method(:resolve_domain_id) do |_fqdn|
   raise StandardError, 'redis unavailable'
 end
-result = begin
+begin
   @initializer.warn_if_default_shadows_custom_domain(@default_host, @site_host)
   :no_raise
 rescue StandardError
   :raised
 end
-result
 #=> :no_raise
 
 # Teardown

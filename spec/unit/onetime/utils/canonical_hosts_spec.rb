@@ -34,12 +34,12 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
   # never wrote LINK_DOMAINS gets. Pass nil to write an explicit null (the
   # shape the ERB template renders); both must behave identically.
   def stub_conf(site_host: nil, default_host: nil, link_domains: :unset)
-    domains = {}
+    domains                 = {}
     domains['default']      = default_host unless default_host.nil?
     domains['link_domains'] = link_domains unless link_domains == :unset
 
     allow(OT).to receive(:conf).and_return(
-      'site'     => { 'host' => site_host },
+      'site' => { 'host' => site_host },
       'features' => { 'domains' => domains },
     )
   end
@@ -168,8 +168,11 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
 
   describe '.primary' do
     it 'is the default link domain when one is configured' do
-      stub_conf(site_host: 'app.example.com', default_host: 'links.example.net',
-        link_domains: ['go.acme.com'])
+      stub_conf(
+        site_host: 'app.example.com',
+        default_host: 'links.example.net',
+        link_domains: ['go.acme.com'],
+      )
       expect(described_class.primary).to eq('links.example.net')
     end
 
@@ -285,8 +288,11 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
       end
 
       it 'answers the same for an explicit null as for an absent key' do
-        stub_conf(site_host: 'app.example.com', default_host: 'links.example.net',
-          link_domains: nil)
+        stub_conf(
+          site_host: 'app.example.com',
+          default_host: 'links.example.net',
+          link_domains: nil,
+        )
         expect(described_class.link_pool).to eq(['links.example.net'])
       end
 
@@ -319,8 +325,11 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
 
     context 'when link_domains is set but empty' do
       before do
-        stub_conf(site_host: 'app.example.com', default_host: 'links.example.net',
-          link_domains: [])
+        stub_conf(
+          site_host: 'app.example.com',
+          default_host: 'links.example.net',
+          link_domains: [],
+        )
       end
 
       it 'returns [] rather than silently rewriting to the canonical host' do
