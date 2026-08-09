@@ -362,7 +362,8 @@ cmd_dev() {
 # optional direnv lane switching.
 
 # True when something accepts TCP connections on 127.0.0.1:$1.
-# Same construct tests/lanes/run uses; bash 3.2 compatible.
+# /dev/tcp needs no extra tooling and parses under bash 3.2, which this
+# script still targets (DX-15) even though tests/lanes/run now requires 5.
 port_serving() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
 cmd_test() {
@@ -665,7 +666,12 @@ cmd_init() {
   warn "  With a Procfile runner:         foreman start -f Procfile.production"
   warn "  For development with Overmind:  bin/dev"
   warn "  Check environment health:       bin/setup --doctor --operator"
-  warn "  Support bundle for bug reports: bin/setup --doctor --bundle"
+  # --operator is not optional noise here: cmd_bundle collects whatever
+  # context doctor is given, and the default is dev. An operator who omits
+  # it ships a bundle full of contributor-toolchain failures (pnpm,
+  # node_modules, the bash 5+ floor the test-lane runner needs) that say
+  # nothing about their install. Keep this string in step with SUPPORT.md.
+  warn "  Support bundle for bug reports: bin/setup --doctor --operator --bundle"
 
   echo ""
   cmd_doctor --operator || true
@@ -779,6 +785,42 @@ doctor_toolchain() {
       doc_ok "node_modules present"
     else
       doc_warn "node_modules missing" "bin/setup"
+    fi
+
+    # tests/lanes/run hard-requires bash 5 (mapfile, plus 4.4+ empty-array
+    # expansion under set -u). Contributor-context only: this script and the
+    # operator paths stay 3.2-clean on purpose, so an operator has no reason
+    # to install a newer bash. What matters is the bash that `#!/usr/bin/env
+    # bash` will resolve on PATH, not the one interpreting this script — on
+    # macOS those differ, and checking the wrong one reports success right up
+    # until the first lane run fails.
+    local lane_bash lane_bash_major lane_bash_full bash_fix
+    lane_bash=$(command -v bash 2>/dev/null || true)
+    lane_bash_major=""
+    lane_bash_full=""
+    if [[ -n "$lane_bash" ]]; then
+      lane_bash_major=$("$lane_bash" -c 'echo "${BASH_VERSINFO[0]:-}"' 2>/dev/null || true)
+      lane_bash_full=$("$lane_bash" -c 'echo "${BASH_VERSION:-}"' 2>/dev/null || true)
+    fi
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+      bash_fix="brew install bash (Apple's /bin/bash is frozen at 3.2)"
+    else
+      bash_fix="install bash 5+ and put it ahead of any older bash on PATH"
+    fi
+    # The `=~` test gates the arithmetic one, and the order matters: `[[ ]]`
+    # short-circuits, and under `set -euo pipefail` an arithmetic comparison
+    # against a non-numeric string is a fatal "unbound variable" error, not a
+    # false result. Without the gate, a bash on PATH whose probe prints
+    # anything unexpected (a wrapper script's banner, a shell-init warning on
+    # stdout) would abort the whole --doctor run mid-report instead of failing
+    # this one check — and fresh-clone.yml asserts zero doctor failures, so
+    # that takes the job down with no usable report.
+    if [[ -z "$lane_bash_major" ]]; then
+      doc_fail "bash not found on PATH — tests/lanes/run cannot start" "$bash_fix"
+    elif [[ "$lane_bash_major" =~ ^[0-9]+$ && "$lane_bash_major" -ge 5 ]]; then
+      doc_ok "bash $lane_bash_full at $lane_bash (>= 5, required by tests/lanes/run)"
+    else
+      doc_fail "bash $lane_bash_full at $lane_bash — tests/lanes/run requires 5+" "$bash_fix"
     fi
     if [[ -x scripts/check-version-pins.sh ]]; then
       if scripts/check-version-pins.sh &>/dev/null; then

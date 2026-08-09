@@ -99,9 +99,22 @@ jobs:
         with:
           python-version: '3.14'
 
-      # /bin/bash is deliberate: the runner has a newer Homebrew bash on
-      # PATH, so a bare `bin/setup` (via env) would dodge the very thing
-      # this lane exists to test — execution under stock bash 3.2.
+      # /bin/bash is explicit, not an override: macos-15 ships bash 3.2.57
+      # and no Homebrew bash (the runner-image manifest lists exactly one
+      # bash), so `#!/usr/bin/env bash` already resolves to the same
+      # interpreter. Naming it pins the contract — if the image ever gains
+      # a newer bash on PATH, this lane keeps testing the thing it exists
+      # to test: execution under stock bash 3.2.
+      #
+      # That same 3.2 is why this job's log carries one bash-5 FAIL line.
+      # The dev lane of bin/setup ends in `cmd_doctor --dev || true`, and
+      # doctor's contributor context checks the PATH bash against the
+      # bash 5+ floor that tests/lanes/run requires — which this runner
+      # genuinely does not meet. Expected and non-blocking: the call is
+      # `|| true`, and this job runs no lanes. Do not suppress it by
+      # weakening the doctor check; the FAIL is a true statement about
+      # the runner, and only fresh-clone.yml asserts zero failures.
+      #
       # (Caveat, verified in the testing strategy: the runner image is a
       # poisoned well with preinstalled toolchains; this lane answers "does
       # the script's code run on macOS", not "does dependency discovery
