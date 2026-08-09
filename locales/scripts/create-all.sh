@@ -3,8 +3,12 @@
 # Populate the translation tasks DB for every current locale.
 #
 # "Current locales" = every directory under locales/content/ except the English
-# source (en). For each, runs `i18n tasks create LOCALE`, which mirrors the full
-# English level structure into the translation_tasks table (one task per level).
+# source (en). For each, runs `i18n tasks create LOCALE`, which enqueues one task
+# per English level — but only the keys that still need work: missing
+# (untranslated) plus stale (en changed after the translation was made).
+# Reviewed, still-current translations are never re-enqueued, so a locale that is
+# already caught up produces no tasks at all. Pass nothing to get that; `tasks
+# create --all` (target-blind, full re-translation) is deliberately not used here.
 #
 # Safe to re-run: `tasks create` upserts via ON CONFLICT(file, level_path, locale)
 # and only refreshes keys_json + updated_at — it never touches `status` or

@@ -56,14 +56,14 @@ Discover, do not assume. Run these yourself in the main loop first:
    jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "generated/i18n/.resolved/$loc.json" >/dev/null 2>&1 || echo "SKIP (not governed at pin): $loc"
    ```
 4. **Refresh each eligible target's queue, THEN filter on pending.** Build the
-   queue before checking pending. Use `--missing-only` so an existing locale
+   queue before checking pending. `create` takes no flags: an existing locale
    enqueues only keys still untranslated in `content/<loc>` and never requeues
    already-translated, reviewed strings:
    ```bash
-   i18n tasks create <loc> --missing-only      # per eligible target
+   i18n tasks create <loc>                     # per eligible target
    i18n tasks next <loc> --stats               # keep targets now showing pending > 0
    ```
-   `--missing-only` now enqueues both **missing** and **stale** keys (translated
+   The default enqueues both **missing** and **stale** keys (translated
    but `en` changed since — target `source_hash` ≠ en `content_hash`), so a
    refreshed queue reflects genuine drift too. `--stats` prints a content-truth
    `current/stale/missing` coverage block; use that, not just `pending`, to judge

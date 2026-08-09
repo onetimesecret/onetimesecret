@@ -66,7 +66,9 @@ Replace `[LOCALE]` with the target locale code (e.g., `eo`, `fr_CA`, `de`).
 ```bash
 python3 locales/scripts/i18n tasks create eo
 ```
-This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes. Add `--missing-only` to enqueue only the keys that still need work — **missing** (untranslated) plus **stale** (translated, but en changed since: the target `source_hash` no longer matches en's `content_hash`) — without re-touching still-current reviewed strings. `tasks next <locale> --stats` prints a `current/stale/missing` coverage block so you can see drift even before enqueuing it.
+This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes — it enqueues only the keys that still need work: **missing** (untranslated) plus **stale** (translated, but en changed since: the target `source_hash` no longer matches en's `content_hash`), never re-touching still-current reviewed strings. A brand-new locale needs no flag: with no `content/<locale>` yet, every key is missing. `tasks next <locale> --stats` prints a `current/stale/missing` coverage block so you can see drift even before enqueuing it.
+
+`--all` is the opposite and is rarely what you want: it is target-blind, queues every en key including reviewed ones, and `tasks export` then overwrites the reviewed content with the fresh output. Reach for it only to redo a locale wholesale.
 
 Tasks are grouped by parent path (e.g., all keys under `web.COMMON.buttons`). This keeps work productive by batching related strings together rather than handling thousands of individual keys. Translators get more context since messages at the same level are usually related.
 

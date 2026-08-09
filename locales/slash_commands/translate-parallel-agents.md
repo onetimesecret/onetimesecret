@@ -72,15 +72,16 @@ Only launch agents for `ELIGIBLE` locales.
 
 ### 1. Initialize Locales
 
-For each eligible locale, enqueue the keys that still need work with
-`--missing-only`: it queues both **untranslated** keys and **stale** ones
-(translated, but en changed since — the target `source_hash` no longer matches
-en's `content_hash`), and never requeues already-translated, still-current
-reviewed strings. Omit `--missing-only` only to bootstrap a brand-new, empty
-locale:
+For each eligible locale, run `create` with no flags: it queues both
+**untranslated** keys and **stale** ones (translated, but en changed since — the
+target `source_hash` no longer matches en's `content_hash`), and never requeues
+already-translated, still-current reviewed strings. A brand-new locale needs no
+flag either — with no `content/LOCALE` every key is missing, so you get the full
+key set regardless. Never pass `--all` here: it re-queues reviewed work for
+re-translation, and export overwrites the reviewed content with the new output.
 
 ```bash
-python3 locales/scripts/i18n tasks create LOCALE --missing-only
+python3 locales/scripts/i18n tasks create LOCALE
 ```
 
 The `create` summary breaks the enqueued keys into `missing` vs `stale`; a large

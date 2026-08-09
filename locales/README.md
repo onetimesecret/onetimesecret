@@ -23,7 +23,7 @@ pnpm run locales:hashes:apply     # writes hashes + seeds watermarks
 python3 locales/scripts/i18n db init      # no-op if DB exists
 python3 locales/scripts/i18n db migrate
 
-# 3. Drain all locales with parallel agents (creates tasks --missing-only,
+# 3. Drain all locales with parallel agents (creates tasks — missing + stale only,
 #    translates, verifies; agents report glossary candidates, they don't write them)
 /i18n:translate-parallel-agents        # installed from locales/slash_commands/
 
