@@ -84,11 +84,17 @@ middleware.detect_domain_override(env)
 #=> nil
 
 ## detect_domain_override returns env var when set
+# The `result` binding is load-bearing: ENV.delete has to run before the
+# block ends (it is this case's own cleanup), and a tryouts block asserts on
+# its LAST expression. Without the binding the assertion runs against
+# ENV.delete's return value — the deleted string — which can never match the
+# expected tuple. Same for the two cases below.
 middleware            = create_middleware_with_override_enabled
 ENV['DOMAIN_CONTEXT'] = 'secrets.acme.com'
 env                   = {}
-middleware.detect_domain_override(env)
+result                = middleware.detect_domain_override(env)
 ENV.delete('DOMAIN_CONTEXT')
+result
 #=> ['secrets.acme.com', :env_var]
 
 ## detect_domain_override returns header when set
@@ -101,16 +107,18 @@ middleware.detect_domain_override(env)
 middleware            = create_middleware_with_override_enabled
 ENV['DOMAIN_CONTEXT'] = 'env-domain.com'
 env                   = { 'HTTP_O_DOMAIN_CONTEXT' => 'header-domain.com' }
-middleware.detect_domain_override(env)
+result                = middleware.detect_domain_override(env)
 ENV.delete('DOMAIN_CONTEXT')
+result
 #=> ['env-domain.com', :env_var]
 
 ## detect_domain_override ignores empty env var
 middleware            = create_middleware_with_override_enabled
 ENV['DOMAIN_CONTEXT'] = ''
 env                   = { 'HTTP_O_DOMAIN_CONTEXT' => 'header-domain.com' }
-middleware.detect_domain_override(env)
+result                = middleware.detect_domain_override(env)
 ENV.delete('DOMAIN_CONTEXT')
+result
 #=> ['header-domain.com', :header]
 
 ## detect_domain_override returns nil tuple when no override found

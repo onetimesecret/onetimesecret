@@ -17,6 +17,7 @@ import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { normalizeDomainHost } from '@/shared/utils/domain-host';
 import type { AxiosInstance } from 'axios';
 import { computed, inject, ref, watch } from 'vue';
 
@@ -65,48 +66,80 @@ function getPermissions(): ReturnType<typeof useResourcePermissions> {
   return permissionsInstance;
 }
 
-/** Get config values from bootstrap store (reads current values) */
+/** Get config values from bootstrap store (reads current values, normalized) */
 function getConfig() {
   const store = getBootstrapStore();
   // canonical_domain is the canonical LINK domain (DEFAULT_DOMAIN, resolved
   // server-side as default||site.host). site_host is the app's own hostname
   // and may differ; fall back to it only for older bootstrap payloads.
-  const canonicalDomain = store.canonical_domain || store.site_host;
-  const pool = store.link_domains ?? [];
+  const canonicalDomain = normalizeDomainHost(store.canonical_domain || store.site_host);
+  const pool = (store.link_domains ?? []).map(normalizeDomainHost).filter(Boolean);
   return {
     domainsEnabled: store.domains_enabled,
     canonicalDomain,
     // Operator link pool (LINK_DOMAINS, #4063): the domains offered in the
     // picker. The server always resolves an unset LINK_DOMAINS to
-    // [canonical_domain], so an empty array here means exactly one thing --
-    // a stale pre-#4063 payload -- and only then do we re-derive the
-    // canonical entry ourselves. canonicalDomain is NOT guaranteed to be a
-    // member: the canonical host may be an internal platform address the
-    // operator deliberately hides from the picker.
+    // [canonical_domain] and fails boot when a configured pool names no
+    // parseable host (Onetime::Config.validate_link_domains!), so an empty
+    // array here means exactly one thing -- a stale pre-#4063 payload -- and
+    // only then do we re-derive the canonical entry ourselves. canonicalDomain
+    // is NOT guaranteed to be a member: the canonical host may be an internal
+    // platform address the operator deliberately hides from the picker.
     linkDomains: pool.length ? pool : [canonicalDomain].filter(Boolean),
-    displayDomain: store.display_domain,
-    serverDomainContext: store.domain_context,
-    domainStrategy: store.domain_strategy,
-    customDomains: store.custom_domains ?? [],
+    serverDomainContext: normalizeDomainHost(store.domain_context),
+    // Already display_domain values server-side; normalized anyway so the
+    // membership tests below cannot depend on which side produced a string.
+    customDomains: (store.custom_domains ?? []).map(normalizeDomainHost).filter(Boolean),
+    // True when this page is being served from a tenant-branded host. Read
+    // straight from domain_strategy, and NOT inferred from `display_domain !==
+    // canonical_domain` the way the pre-#4063 code did: on an operator
+    // link-pool host those two also differ, but the strategy is :canonical and
+    // none of the branded-host rules apply. (domain_strategy is not surfaced
+    // raw — this predicate is the only thing it is read for.)
+    onCustomDomain: store.domain_strategy === 'custom',
+    // The host actually serving this page. Only meaningful alongside
+    // onCustomDomain, where it names the branded host and is the domain the
+    // server anchors links on no matter what share_domain asks for.
+    displayDomain: normalizeDomainHost(store.display_domain),
   };
 }
 
 /**
- * Preferred fallback drawn from the link pool, for the paths that have no
- * user selection yet (currentContext before init, resetContext, and the
- * domains-disabled init branch).
+ * The link-pool entries actually offerable in the CURRENT browsing context.
  *
- * Canonical wins when it is a pool member -- that keeps the historical
- * "reset returns you to the canonical domain" behavior -- otherwise the pool
- * head. Both are guaranteed members of availableDomains (buildAvailableDomains
- * appends every pool entry), so setContext can round-trip the result. Returns
- * '' only when there is no pool at all, which is the one value the
- * availableDomains invariant explicitly permits.
+ * On a tenant-branded host the canonical domain is dropped. Selecting it there
+ * is silently ignored end-to-end: process_share_domain nils out anchor hosts,
+ * then determine_share_domain falls through to `display_domain if
+ * custom_domain?` and anchors the link on the branded host anyway. Offering a
+ * row whose selection the generated link contradicts is worse than not
+ * offering it. (Pool members are NOT dropped -- v2 honors an authenticated
+ * user's explicit pool selection from a branded host.)
+ */
+function getOfferableLinkDomains(): string[] {
+  const { linkDomains, canonicalDomain, onCustomDomain } = getConfig();
+  if (!onCustomDomain) return linkDomains;
+  return linkDomains.filter((domain) => domain !== canonicalDomain);
+}
+
+/**
+ * Preferred fallback drawn from the offerable link pool, for the paths that
+ * have no user selection yet (currentContext before init, resetContext, and
+ * the domains-disabled init branch).
+ *
+ * Canonical wins when it is offerable -- that keeps the historical "reset
+ * returns you to the canonical domain" behavior -- otherwise the pool head.
+ * Both are guaranteed members of availableDomains (buildAvailableDomains
+ * appends every offerable pool entry), so setContext can round-trip the
+ * result. Returns '' only when there is no offerable pool at all, which is the
+ * one value the availableDomains invariant explicitly permits: the server
+ * reads an empty share_domain as "no request" and anchors the link on
+ * whichever host served the page.
  */
 function getPoolFallbackDomain(): string {
-  const { linkDomains, canonicalDomain } = getConfig();
-  if (canonicalDomain && linkDomains.includes(canonicalDomain)) return canonicalDomain;
-  return linkDomains[0] ?? '';
+  const { canonicalDomain } = getConfig();
+  const offerable = getOfferableLinkDomains();
+  if (canonicalDomain && offerable.includes(canonicalDomain)) return canonicalDomain;
+  return offerable[0] ?? '';
 }
 
 /** Get display name for a given domain */
@@ -123,12 +156,13 @@ function getDomainDisplayName(domain: string): string {
 /** Build available domains list from store */
 function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>): string[] {
   // Ordering contract: the org's custom domains first (permissions order),
-  // then every link-pool entry not already listed (pool order). Every entry
-  // currentContext/resetContext/getPreferredDomain can produce must appear
-  // here, because setContext silently rejects anything that does not.
-  const { linkDomains } = getConfig();
-  const domainNames = storeDomains.map((d) => d.display_domain);
-  linkDomains.forEach((domain) => {
+  // then every OFFERABLE link-pool entry not already listed (pool order).
+  // Every entry currentContext/resetContext/getPreferredDomain can produce
+  // must appear here, because setContext silently rejects anything that does
+  // not -- and nothing may appear here that the server would then ignore, see
+  // getOfferableLinkDomains.
+  const domainNames = storeDomains.map((d) => normalizeDomainHost(d.display_domain));
+  getOfferableLinkDomains().forEach((domain) => {
     if (domain && !domainNames.includes(domain)) {
       domainNames.push(domain);
     }
@@ -139,11 +173,18 @@ function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>):
 /** Get the preferred default domain (custom domain preferred over link pool) */
 function getPreferredDomain(available: string[]): string {
   const { linkDomains } = getConfig();
-  // Prefer the first real custom domain; pool membership (not "!== canonical")
-  // is what distinguishes an operator-blessed entry from a customer's domain.
+  // Prefer the first entry the operator did NOT bless -- pool membership, not
+  // "!== canonical", is what separates an operator entry from a customer's own
+  // domain. The two sets can overlap (ConfigureDomains warns about, but does
+  // not prevent, listing a registered CustomDomain in LINK_DOMAINS), so this
+  // predicate is a sufficient test for "customer's domain" and not a necessary
+  // one: an overlapping host fails it and falls to the tail.
   const customDomain = available.find((d) => !linkDomains.includes(d));
-  // Tail is `available[0]` (the pool head, given the ordering above) or ''.
-  // Never a value absent from `available` -- setContext would drop it.
+  // The tail is not a coin flip. buildAvailableDomains puts the org's domains
+  // ahead of every pool entry, so `available[0]` is a customer domain whenever
+  // the org has any, and the pool head only when it has none -- which is the
+  // same answer the predicate would give. Never a value absent from
+  // `available` -- setContext would drop it.
   return customDomain || available[0] || '';
 }
 
@@ -152,7 +193,11 @@ function findExtidByDomain(
   storeDomains: Array<{ display_domain: string; extid: string }>,
   domain: string
 ): string | undefined {
-  return storeDomains.find((d) => d.display_domain === domain)?.extid;
+  // Both sides normalized: availableDomains entries have been through
+  // normalizeDomainHost, so a raw comparison would miss on any host the
+  // permissions API spelled differently (case, port).
+  const target = normalizeDomainHost(domain);
+  return storeDomains.find((d) => normalizeDomainHost(d.display_domain) === target)?.extid;
 }
 
 /** Find display_domain for a given extid from store domains */
@@ -160,7 +205,10 @@ function findDomainByExtid(
   storeDomains: Array<{ display_domain: string; extid: string }>,
   extid: string
 ): string | undefined {
-  return storeDomains.find((d) => d.extid === extid)?.display_domain;
+  const found = storeDomains.find((d) => d.extid === extid)?.display_domain;
+  // Normalized so the result round-trips through setContext, which tests
+  // membership against the normalized availableDomains list.
+  return found === undefined ? undefined : normalizeDomainHost(found);
 }
 
 /** Sync domain context to backend (fire-and-forget) */
@@ -180,7 +228,7 @@ async function syncDomainContextToServer(
  * Persist domain selection: registered custom domains and operator link-pool
  * entries sync to server + sessionStorage; everything else clears the session.
  *
- * The predicate is `custom_domains ∪ link_domains`, minus the canonical domain.
+ * The predicate is `custom_domains ∪ link_domains`, canonical domain INCLUDED.
  *
  * - Pool entries (LINK_DOMAINS, #4063) have no CustomDomain row and so are never
  *   in `custom_domains`. Gating on that list alone wrote nothing and synced
@@ -191,24 +239,86 @@ async function syncDomainContextToServer(
  *   canonical set, which every pool member joined -- or the customer's own
  *   custom domains. A peer/sibling of a pool member matches neither list here
  *   and would be rejected there, so we must not persist it.
- * - The canonical domain is carved out deliberately: absent sessionStorage IS
- *   the canonical/default state, so selecting it clears rather than writes. It
- *   is a pool member whenever LINK_DOMAINS is unset, which would otherwise
- *   invert that long-standing behavior.
+ * - The canonical domain used to be carved OUT of this set, on the reasoning
+ *   that absent sessionStorage is itself the canonical/default state. That
+ *   held only as long as nothing else remembered a selection. It does not:
+ *   `sess['domain_context']` outlives sessionStorage and there is no endpoint
+ *   that clears it, so selecting canonical dropped the local half of the
+ *   preference while leaving the server half pointing at the previously
+ *   selected custom domain -- and selectBestDomain reads the server half
+ *   FIRST, so the next reload silently reverted the switch. Writing the
+ *   canonical selection through both halves is what keeps them from diverging;
+ *   it needs no clear path because there is no longer a selection that
+ *   deliberately leaves one half stale.
  */
 async function persistDomainContext(
   $api: AxiosInstance | undefined,
   domain: string,
   skipBackendSync: boolean
 ): Promise<void> {
-  const { customDomains, linkDomains, canonicalDomain } = getConfig();
-  const isPoolMember = domain !== canonicalDomain && linkDomains.includes(domain);
-  if (customDomains.includes(domain) || isPoolMember) {
+  const { customDomains, linkDomains } = getConfig();
+  if (customDomains.includes(domain) || linkDomains.includes(domain)) {
     sessionStorage.setItem('domainContext', domain);
     if (!skipBackendSync) await syncDomainContextToServer($api, domain);
   } else {
+    // Unreachable from setContext (availableDomains gates it), and no longer
+    // reachable from resetContext either now that the reset lands on the
+    // served host. What is left is the pre-init tail with no domain at all,
+    // where clearing is the only honest move: '' cannot be synced (the
+    // endpoint rejects a blank domain outright), so writing it would leave the
+    // two halves disagreeing rather than agreeing on "nothing".
     sessionStorage.removeItem('domainContext');
   }
+}
+
+/**
+ * Resolve the active DomainContext from module state.
+ *
+ * Module-level rather than inline in the composable so the reactive read set
+ * is identical for every caller (all state it touches is module-level too).
+ */
+function buildCurrentContext(): DomainContext {
+  const { canonicalDomain } = getConfig();
+  // Pre-init / anonymous callers land here. The fallback must be offerable:
+  // SecretForm posts currentContext.domain as share_domain on every creation
+  // (the anonymous homepage included), and guests may only name pool members.
+  const domain = currentDomain.value || getPoolFallbackDomain();
+  const isCanonical = domain === canonicalDomain;
+  return {
+    domain,
+    extid: isCanonical ? undefined : findExtidByDomain(permissionsDomains.value, domain),
+    displayName: getDomainDisplayName(domain),
+    isCanonical,
+  };
+}
+
+/**
+ * Reset to the pool's preferred entry (canonical when it is offerable), never
+ * to a canonical host the operator excluded from the picker.
+ *
+ * Goes through persistDomainContext rather than only clearing sessionStorage:
+ * `sess['domain_context']` has no clear endpoint, so a local-only reset leaves
+ * the server still naming the old selection and selectBestDomain restores it
+ * on the next load. Writing the default through both halves IS the reset.
+ *
+ * On a branded host the pool fallback can be '' -- getOfferableLinkDomains
+ * drops the canonical entry there, and with LINK_DOMAINS unset that is the
+ * whole pool, which makes this the DEFAULT configuration rather than an edge
+ * case. '' is not a resettable value: the endpoint rejects a blank domain
+ * (UpdateDomainContext#field_specific_concerns), the rejection is swallowed by
+ * syncDomainContextToServer's catch, and the server half would keep naming the
+ * old selection for selectBestDomain to restore. So fall back to the host being
+ * browsed instead. It is a value both halves accept -- it is one of the
+ * customer's own custom domains, so valid_domain? admits it and it is already
+ * in availableDomains -- and it is where determine_share_domain anchors links
+ * from this host regardless of what share_domain asks for. "Reset to canonical"
+ * was always fiction on a branded host; this is what actually happens.
+ */
+async function resetDomainContext($api: AxiosInstance | undefined): Promise<void> {
+  const { onCustomDomain, displayDomain } = getConfig();
+  const domain = getPoolFallbackDomain() || (onCustomDomain ? displayDomain : '');
+  currentDomain.value = domain;
+  await persistDomainContext($api, domain, false);
 }
 
 /**
@@ -262,7 +372,9 @@ function createPermissionsFetcher(
  */
 function selectBestDomain(available: string[]): string {
   const { serverDomainContext } = getConfig();
-  const localContext = sessionStorage.getItem('domainContext');
+  // Normalized: a value stored by an older build (or by a server that kept the
+  // configured spelling) must still match the normalized `available` list.
+  const localContext = normalizeDomainHost(sessionStorage.getItem('domainContext'));
 
   if (serverDomainContext && available.includes(serverDomainContext)) {
     // Server-side preference takes priority
@@ -354,26 +466,15 @@ export function useDomainContext() {
     () => availableDomains.value
   );
 
-  const currentContext = computed<DomainContext>(() => {
-    const { canonicalDomain } = getConfig();
-    // Pre-init / anonymous callers land here. The fallback must be a pool
-    // member: SecretForm posts currentContext.domain as share_domain on every
-    // creation (including the anonymous homepage), and the server only admits
-    // pool members from guests.
-    const domain = currentDomain.value || getPoolFallbackDomain();
-    const isCanonical = domain === canonicalDomain;
-    return {
-      domain,
-      extid: isCanonical ? undefined : findExtidByDomain(permissionsDomains.value, domain),
-      displayName: getDomainDisplayName(domain),
-      isCanonical,
-    };
-  });
+  const currentContext = computed<DomainContext>(buildCurrentContext);
 
   const setContext = async (domain: string, skipBackendSync = false): Promise<void> => {
-    if (!availableDomains.value.includes(domain)) return;
-    currentDomain.value = domain;
-    await persistDomainContext($api, domain, skipBackendSync);
+    // Normalized first: availableDomains holds normalized hosts, so a raw host
+    // from a caller (route param, stored preference) would be silently rejected.
+    const selected = normalizeDomainHost(domain);
+    if (!availableDomains.value.includes(selected)) return;
+    currentDomain.value = selected;
+    await persistDomainContext($api, selected, skipBackendSync);
   };
 
   /** Reverse lookup: find display_domain for a given extid */
@@ -397,9 +498,7 @@ export function useDomainContext() {
     availableDomains,
     isLoadingDomains: computed(() => isLoadingDomains.value),
     setContext,
-    // Reset to the pool's preferred entry (canonical when it is a member),
-    // never to a canonical host the operator excluded from the picker.
-    resetContext: () => { currentDomain.value = getPoolFallbackDomain(); sessionStorage.removeItem('domainContext'); },
+    resetContext: () => resetDomainContext($api),
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
     getExtidByDomain: (domain: string) => findExtidByDomain(permissionsDomains.value, domain),
