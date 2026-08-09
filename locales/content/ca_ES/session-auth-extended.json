@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "sessions",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Identitats connectades",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Gestiona els proveïdors d'inici de sessió únic vinculats al teu compte.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Inici de sessió únic",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Proveïdors d'identitat que pots utilitzar per iniciar sessió en aquest compte",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Connecta un proveïdor",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Vincula un altre proveïdor d'inici de sessió únic que puguis utilitzar per iniciar sessió en aquest compte.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Connecta {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Emissor",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identificador",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Elimina",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Eliminar la identitat connectada",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Segur que vols eliminar aquesta identitat connectada? Ja no podràs iniciar sessió amb ella.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Identitat connectada eliminada",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Sense identitats connectades",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Encara no has vinculat cap proveïdor d'inici de sessió únic a aquest compte.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Inici de sessió únic",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Aquesta és la teva única manera d'iniciar sessió. Connecta un altre proveïdor primer, o estableix una contrasenya des de Configuració → Seguretat, perquè no et quedis bloquejat.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Aquesta és la teva única manera d'iniciar sessió. Connecta un altre proveïdor primer perquè no et quedis bloquejat.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Aquesta identitat connectada no s'ha pogut trobar. Pot ser que ja s'hagi eliminat.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "La teva sessió ha caducat. Torna a iniciar sessió.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "No hem pogut completar aquesta acció. Torna-ho a intentar.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Vincula el teu mètode d'inici de sessió",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Has iniciat sessió amb {provider}, que coincideix amb el compte existent {email}. Introdueix la contrasenya d'aquest compte per vincular {provider} i continuar.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Contrasenya",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "La teva contrasenya existent",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Vincula i continua",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Cancel·la",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Aquesta sol·licitud de vinculació ha caducat",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Per la teva seguretat, la sol·licitud per vincular aquest mètode d'inici de sessió ja no és vàlida. Inicia sessió amb la teva contrasenya existent, després connecta aquest proveïdor a Configuració de seguretat → Identitats connectades.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Continua per iniciar sessió",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Aquesta contrasenya no coincideix amb aquest compte. Torna-ho a intentar.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Aquesta sol·licitud de vinculació ha caducat o ja s'ha utilitzat. Inicia sessió amb la teva contrasenya existent, després connecta aquest proveïdor des de la configuració del teu compte.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "No hem pogut vincular aquest mètode d'inici de sessió. El teu compte pot haver canviat, o aquest proveïdor ja està vinculat a un altre compte. Inicia sessió amb la teva contrasenya existent, després gestiona les connexions a Configuració de seguretat → Identitats connectades.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Massa intents de contrasenya. Espera uns minuts, després torna-ho a intentar.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "No hem pogut processar aquesta sol·licitud de vinculació. Torna a iniciar sessió amb el teu proveïdor SSO.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "No hem pogut vincular el teu compte. Torna-ho a intentar.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Confirma la connexió del teu compte",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Has iniciat sessió amb {provider}, que coincideix amb el teu compte {email}. Confirma per connectar {provider} a aquest compte i acabar d'iniciar sessió.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Confirma i connecta",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Cancel·la",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Aquesta sol·licitud de vinculació no es pot completar",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Per la teva seguretat, aquesta sol·licitud per connectar el teu mètode d'inici de sessió ja no és vàlida. Inicia sessió amb el teu proveïdor de nou i t'enviarem un enllaç nou per correu electrònic.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Torna a l'inici de sessió",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Aquesta sol·licitud de vinculació ha caducat o ja s'ha utilitzat. Inicia sessió amb el teu proveïdor de nou i t'enviarem un enllaç nou per correu electrònic.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "No hem pogut connectar aquest mètode d'inici de sessió. El teu compte pot haver canviat, o aquest proveïdor ja està vinculat a un altre compte. Inicia sessió amb el teu proveïdor de nou per continuar.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Les credencials del teu compte han canviat després que s'enviés aquest enllaç, així que ja no és vàlid. Inicia sessió amb el teu proveïdor de nou i t'enviarem un enllaç nou per correu electrònic.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Alguna cosa ha anat malament per part nostra i no hem pogut verificar aquest enllaç. Inicia sessió amb el teu proveïdor de nou i t'enviarem un de nou per correu electrònic.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Massa intents des del teu dispositiu. Espera uns minuts, després obre l'enllaç enviat per correu electrònic de nou o inicia sessió amb el teu proveïdor per obtenir-ne un de nou.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "No hem pogut confirmar aquesta connexió. Torna a iniciar sessió amb el teu proveïdor.",
+    "source_hash": "076fa25a"
   }
 }
