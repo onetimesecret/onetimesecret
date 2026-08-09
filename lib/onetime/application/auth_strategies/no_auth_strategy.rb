@@ -9,22 +9,23 @@
 # Access: Everyone (including authenticated)
 # User: nil (anonymous) or authenticated Customer
 #
-# Exception — anonymous fallthrough refusal: on multi-strategy chains
-# (auth=basicauth,noauth) a request that PRESENTED credentials which a
-# credentialed strategy rejected must not degrade to anonymous. Otto's
-# RouteAuthWrapper treats the chain as OR logic, so without this guard a
-# request with invalid Basic credentials would succeed anonymously (silent
-# 200 with null owner) instead of returning 401. The rejecting strategy
-# records the failure in the Rack env (Helpers::CREDENTIALED_FAILURE_ENV_KEY)
-# and this strategy refuses, making the whole chain fail closed.
-# See docs/security/audits/2026-07-29-api.md item 1.
+# Fail-closed on rejected credentials is enforced by Otto, not here: a
+# credentialed strategy (BasicAuthStrategy et al.) that rejects an
+# explicitly-presented Authorization header returns a TERMINAL AuthFailure,
+# and Otto's RouteAuthWrapper halts the chain and fails closed (401)
+# regardless of strategy order — so a request with invalid Basic credentials
+# can no longer degrade to a silent anonymous 200 with a null owner. This
+# strategy does no cross-strategy coordination of its own; it only resolves
+# the session (or anonymous). See docs/security/audits/2026-07-29-api.md
+# item 1 and Otto::Security::Authentication::AuthFailure.
 #
-# The refusal is scoped to requests that would otherwise become ANONYMOUS.
-# A session that resolves an identity wins over a rejected Authorization
-# header, so a logged-in browser is never 401'd by a stale cached Basic
-# credential or by a reverse proxy forwarding its own htpasswd header.
-# That narrowing costs nothing: the audit hole was invalid credentials
-# becoming anonymous, and a session-authenticated request is not anonymous.
+# The one exception is deliberate: when the SAME request also resolves a valid
+# session identity, the credentialed strategy makes its failure NON-terminal
+# (Helpers#credentialed_failure), so the chain reaches this strategy and the
+# session wins. A logged-in browser is therefore never 401'd by a stale cached
+# Basic credential or a reverse-proxy-forwarded htpasswd header — the session
+# outranks the stray Authorization header, exactly as before terminal
+# AuthFailures replaced the env-marker guard.
 #
 # On noauth-ONLY routes no credentialed strategy runs, so an Authorization
 # header (any scheme) is ignored and the request stays anonymous — refusing
@@ -53,28 +54,11 @@ module Onetime
 
           # Try session first, then fall back to anonymous. Basic auth is
           # handled by a separate strategy in the route chain (routes.txt),
-          # not here - this strategy only checks session state.
+          # not here - this strategy only checks session state. A rejected
+          # Authorization header fails the chain closed via the credentialed
+          # strategy's terminal AuthFailure (Otto's RouteAuthWrapper), so this
+          # strategy never needs to refuse anonymous fallthrough itself.
           cust = load_user_from_session(session)
-
-          # Fail closed when this request presented credentials that a
-          # credentialed strategy earlier in the chain already rejected
-          # (auth=basicauth,noauth) AND the session resolved no identity of
-          # its own — i.e. the request would otherwise proceed anonymously.
-          # Echo the original failure reason so the resulting 401 tells the
-          # caller their credentials were invalid rather than inventing a new
-          # error.
-          #
-          # Checked AFTER load_user_from_session so a valid session cookie
-          # outranks a stray Authorization header (browser-cached Basic
-          # credentials, htpasswd-style reverse proxy forwarding its own
-          # header); otherwise a logged-in user would 401 mid-session on
-          # every basicauth,noauth route, including web-UI conceal.
-          # Session-cookie failures never set this marker, so a logged-out or
-          # stale session still degrades to anonymous rather than 401.
-          if cust.nil?
-            refused_reason = credentialed_failure_reason(env)
-            return failure(refused_reason) if refused_reason
-          end
 
           # Load organization context if user is authenticated
           org_context = if cust

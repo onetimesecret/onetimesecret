@@ -172,17 +172,20 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
     end
 
     # -----------------------------------------------------------------
-    # Anonymous fallthrough refusal (docs/security/audits/2026-07-29-api.md
-    # item 1). On auth=basicauth,noauth chains, Otto's RouteAuthWrapper OR
-    # logic runs basicauth first; when it rejects PRESENTED credentials it
-    # marks the env, and NoAuthStrategy must then refuse — so the whole
-    # chain fails (401) instead of silently succeeding anonymous.
+    # Fail-closed on rejected credentials is enforced by Otto's terminal
+    # AuthFailure, NOT by NoAuthStrategy (docs/security/audits/
+    # 2026-07-29-api.md item 1). A credentialed strategy that rejects an
+    # explicitly-presented Authorization header returns terminal: true, and
+    # Otto's RouteAuthWrapper halts the chain and fails closed regardless of
+    # strategy order. NoAuthStrategy itself does no cross-strategy
+    # coordination — run on its own it simply resolves the session or stays
+    # anonymous. The end-to-end 401 is asserted in
+    # spec/api/v2/basicauth_fallthrough_spec.rb.
     # -----------------------------------------------------------------
-    context 'anonymous fallthrough refusal' do
-      let(:marker_key) { Onetime::Application::AuthStrategies::Helpers::CREDENTIALED_FAILURE_ENV_KEY }
+    context 'fail-closed on rejected credentials (terminal AuthFailure)' do
       let(:basic_auth_strategy) { Onetime::Application::AuthStrategies::BasicAuthStrategy.new }
 
-      context 'after BasicAuthStrategy rejected invalid credentials (chain simulation)' do
+      context 'after BasicAuthStrategy rejected invalid credentials' do
         let(:env_invalid_basic) do
           encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
           {
@@ -193,44 +196,29 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
           }
         end
 
-        it 'refuses with an AuthFailure instead of anonymous success' do
-          # Same env object flows through the chain, exactly as
-          # RouteAuthWrapper#authenticate_and_authorize does.
+        it 'BasicAuthStrategy returns a terminal failure (what halts the chain)' do
           basic_result = basic_auth_strategy.authenticate(env_invalid_basic, nil)
           expect(basic_result).to be_a(Otto::Security::Authentication::AuthFailure)
-
-          noauth_result = no_auth_strategy.authenticate(env_invalid_basic, nil)
-          expect(noauth_result).to be_a(Otto::Security::Authentication::AuthFailure)
+          expect(basic_result.terminal?).to be true
+          expect(basic_result.failure_reason).to include('CREDENTIALS_INVALID')
         end
 
-        it 'echoes the underlying credential failure reason' do
-          basic_auth_strategy.authenticate(env_invalid_basic, nil)
+        it 'NoAuthStrategy run on its own stays anonymous (it does not refuse)' do
+          # NoAuthStrategy no longer reads a marker; the fail-closed decision
+          # belongs to Otto's RouteAuthWrapper, which never consults noauth
+          # after the terminal failure above.
           noauth_result = no_auth_strategy.authenticate(env_invalid_basic, nil)
-          expect(noauth_result.failure_reason).to include('CREDENTIALS_INVALID')
+          expect(noauth_result).to be_a(Otto::Security::Authentication::StrategyResult)
+          expect(noauth_result.user).to be_nil
+          expect(noauth_result.authenticated?).to be false
         end
       end
 
-      context 'after BasicAuthStrategy rejected a UUIDv7-as-username (real-world trigger)' do
-        it 'refuses with an AuthFailure instead of anonymous success' do
-          encoded = Base64.strict_encode64('0190b6f0-7d1a-7c3e-8f4a-2b9c1d0e5a6b:some_key')
-          env     = {
-            'rack.session' => {},
-            'REMOTE_ADDR' => '127.0.0.1',
-            'HTTP_USER_AGENT' => 'Test/1.0',
-            'HTTP_AUTHORIZATION' => "Basic #{encoded}",
-          }
-
-          basic_auth_strategy.authenticate(env, nil)
-          noauth_result = no_auth_strategy.authenticate(env, nil)
-          expect(noauth_result).to be_a(Otto::Security::Authentication::AuthFailure)
-          expect(noauth_result.failure_reason).to include('CREDENTIALS_INVALID')
-        end
-      end
-
-      context 'with no Authorization header (chain simulation)' do
-        it 'still degrades to anonymous after AUTH_HEADER_MISSING (unchanged behavior)' do
+      context 'with no Authorization header' do
+        it 'BasicAuthStrategy fails non-terminally and noauth degrades to anonymous' do
           basic_result = basic_auth_strategy.authenticate(env_anonymous, nil)
           expect(basic_result).to be_a(Otto::Security::Authentication::AuthFailure)
+          expect(basic_result.terminal?).to be false
           expect(basic_result.failure_reason).to include('AUTH_HEADER_MISSING')
 
           noauth_result = no_auth_strategy.authenticate(env_anonymous, nil)
@@ -261,21 +249,10 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
         end
       end
 
-      context 'with a pre-set marker (mechanism-level check)' do
-        it 'returns an AuthFailure carrying the recorded reason' do
-          env = env_anonymous.merge(marker_key => '[CREDENTIALS_INVALID] Invalid credentials')
-          result = no_auth_strategy.authenticate(env, nil)
-          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-          expect(result.failure_reason).to eq('[CREDENTIALS_INVALID] Invalid credentials')
-        end
-      end
-
-      # The refusal is scoped to requests that would otherwise become
-      # ANONYMOUS. A session that resolves an identity outranks a rejected
-      # Authorization header, so the marker is read only after session
-      # resolution — otherwise a logged-in browser re-sending cached Basic
-      # credentials, or any deployment behind an htpasswd reverse proxy that
-      # forwards its own header, would 401 on every basicauth,noauth route.
+      # A valid session outranks a rejected Authorization header. NoAuthStrategy
+      # resolves the session identity; the stray Basic header is irrelevant to
+      # it (browser-cached credentials, or an htpasswd reverse proxy forwarding
+      # its own header, must not 401 a logged-in user mid-session).
       context 'with an authenticated session AND a rejected Authorization header' do
         let(:env_session_plus_bad_basic) do
           encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
@@ -284,39 +261,18 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
           )
         end
 
-        it 'keeps the session identity instead of failing closed (chain simulation)' do
-          basic_result = basic_auth_strategy.authenticate(env_session_plus_bad_basic, nil)
-          expect(basic_result).to be_a(Otto::Security::Authentication::AuthFailure)
-          expect(env_session_plus_bad_basic).to have_key(marker_key)
-
+        it 'keeps the session identity' do
           noauth_result = no_auth_strategy.authenticate(env_session_plus_bad_basic, nil)
           expect(noauth_result).to be_a(Otto::Security::Authentication::StrategyResult)
           expect(noauth_result.authenticated?).to be true
           expect(noauth_result.user.custid).to eq(test_customer.custid)
-        end
-
-        it 'still fails closed when the session resolves no identity' do
-          # Same marker, but the session cannot produce a customer — the
-          # fallthrough hole must stay shut.
-          env = {
-            'rack.session' => {
-              'authenticated' => true,
-              'external_id' => 'nonexistent@example.com',
-            },
-            'REMOTE_ADDR' => '127.0.0.1',
-            'HTTP_USER_AGENT' => 'Test/1.0',
-            marker_key => '[CREDENTIALS_INVALID] Invalid credentials',
-          }
-          result = no_auth_strategy.authenticate(env, nil)
-          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-          expect(result.failure_reason).to eq('[CREDENTIALS_INVALID] Invalid credentials')
         end
       end
     end
 
     # -----------------------------------------------------------------
     # Always returns StrategyResult — never AuthFailure — for requests
-    # that did not present credentials (no credentialed-failure marker).
+    # that did not present credentials (nothing to fail closed on).
     # -----------------------------------------------------------------
     context 'across multiple env variations' do
       let(:envs) do

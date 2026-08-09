@@ -18,51 +18,44 @@ module Onetime
     module AuthStrategies
       # Shared helper methods for authentication strategies
       module Helpers
-        # Rack env key recording that THIS request presented explicit
-        # credentials (an Authorization header) that a credentialed strategy
-        # examined and rejected. Value is the failure reason string.
+        # Build an authentication failure for explicitly-presented credentials
+        # (an Authorization header) that were examined and rejected.
         #
-        # Set by BasicAuthStrategy (and subclasses) via #credentialed_failure;
-        # read by NoAuthStrategy to refuse anonymous fallthrough on
-        # multi-strategy chains (auth=basicauth,noauth). Without this guard,
-        # Otto's RouteAuthWrapper OR-logic lets a request with INVALID Basic
-        # credentials degrade to a successful anonymous request (silent 200
-        # with null owner) instead of a 401. See docs/security/audits/
-        # 2026-07-29-api.md item 1.
+        # The failure is TERMINAL — Otto's RouteAuthWrapper halts the strategy
+        # chain and fails closed (401) regardless of strategy order, so a later
+        # (or earlier) anonymous-capable strategy such as NoAuthStrategy cannot
+        # let invalid credentials degrade to a silent anonymous 200 with a null
+        # owner — EXCEPT when this same request already resolves a valid session
+        # identity. In that case the failure is NON-terminal so the chain
+        # continues to the session-resolving NoAuthStrategy: a valid session
+        # OUTRANKS a rejected Authorization header, so a logged-in browser is
+        # never 401'd mid-session by a stale cached Basic credential or by a
+        # reverse proxy forwarding its own htpasswd header. That carve-out is
+        # safe because the audit hole (item 1) was invalid credentials becoming
+        # *anonymous*, and a session-authenticated request is not anonymous.
         #
-        # Deliberately NOT set for ambient credentials (session cookies): an
-        # unauthenticated or stale session must keep degrading to anonymous
-        # on noauth-capable routes, or every logged-out browser request
-        # would 401. Only explicitly-presented credentials fail closed.
+        # This replaces the former env-marker guard
+        # (`onetime.auth.credentialed_failure`) that NoAuthStrategy had to read:
+        # the terminal/non-terminal decision now travels on the AuthFailure
+        # itself, with no cross-strategy env coupling and no dependence on
+        # credentialed strategies running BEFORE noauth in the chain. See
+        # docs/security/audits/2026-07-29-api.md item 1 and
+        # Otto::Security::Authentication::AuthFailure.
         #
-        # NOTE: this guard assumes credentialed strategies run BEFORE noauth
-        # in the route's auth= chain (all current routes comply:
-        # auth=basicauth,noauth). A gem-side enforcement in Otto's
-        # RouteAuthWrapper would remove that ordering assumption.
-        CREDENTIALED_FAILURE_ENV_KEY = 'onetime.auth.credentialed_failure'
-
-        # Record and return an authentication failure for explicitly
-        # presented credentials (Authorization header).
+        # Only use this for EXPLICITLY-presented credentials. Ambient
+        # credentials (session cookies) must fail non-terminally via #failure
+        # so an unauthenticated or stale session still degrades to anonymous
+        # on noauth-capable routes rather than 401ing every browser request.
         #
-        # Marks the Rack env so that a later anonymous-capable strategy in
-        # the same request (NoAuthStrategy) refuses to fall through to
-        # anonymous, producing a 401 instead of a silent anonymous success.
-        #
-        # @param env [Hash] Rack environment (shared across the strategy chain)
         # @param reason [String] failure reason, e.g. '[CREDENTIALS_INVALID] ...'
+        # @param env [Hash, nil] the Rack env, so the session carve-out can be
+        #   evaluated. Passing nil (bare unit-level strategy calls) keeps the
+        #   strict terminal behavior.
         # @return [Otto::Security::Authentication::AuthFailure]
-        def credentialed_failure(env, reason)
-          env[CREDENTIALED_FAILURE_ENV_KEY] = reason
-          failure(reason)
-        end
+        def credentialed_failure(reason, env = nil)
+          return failure(reason) if valid_session_identity?(env)
 
-        # The recorded credentialed-failure reason for this request, if any.
-        #
-        # @param env [Hash] Rack environment
-        # @return [String, nil] failure reason or nil when no credentialed
-        #   strategy rejected presented credentials in this request
-        def credentialed_failure_reason(env)
-          env[CREDENTIALED_FAILURE_ENV_KEY]
+          failure(reason, terminal: true)
         end
 
         # Loads customer from session if authenticated
@@ -137,6 +130,24 @@ module Onetime
         end
 
         private
+
+        # Whether THIS request already resolves a valid (non-stale) session
+        # identity. Used only by #credentialed_failure to decide whether a
+        # rejected Authorization header should fail the chain closed or defer to
+        # the session. A nil/non-Hash env (bare unit-level strategy invocations)
+        # or an anonymous/stale session yields false, preserving the strict
+        # terminal default. Reuses #load_user_from_session so the credential
+        # watermark staleness check (#3810) applies identically here — a session
+        # that predates the customer's last credential change does NOT count as a
+        # valid identity and cannot rescue a rejected Authorization header.
+        #
+        # @param env [Hash, nil] Rack environment
+        # @return [Boolean]
+        def valid_session_identity?(env)
+          return false unless env.is_a?(Hash)
+
+          !load_user_from_session(env['rack.session']).nil?
+        end
 
         # Resolve the client IP for auth metadata.
         #
