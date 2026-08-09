@@ -6,30 +6,63 @@
 
 Pipeline order (each step assumes the previous one ran):
 
-1. **Export** — drained DB -> `locales/content/` + shared tables via `export-all.sh`
-   (dry-run by default). Exports every locale with `pending: 0`, skips the rest, then
-   runs `i18n db export` once. Leaves uncommitted changes in the working tree;
-   everything below operates on those. See [README.md](README.md) step 4.
+1. **Export** — drained *and audit-clean* DB -> `locales/content/` + shared tables via
+   `export-all.sh` (dry-run by default). Exports a locale only when `pending: 0` **and**
+   `tasks audit <locale> --strict` is clean, skips the rest, then runs `i18n db export`
+   once. Leaves uncommitted changes in the working tree; everything below operates on
+   those. **It exits non-zero when any locale failed the audit, failed to export, or
+   landed dirty** — read the summary before moving on to step 2, because the set of
+   changed locales is then smaller than the set you asked for.
+   See [README.md](README.md) step 4.
 2. **Create branches** — one `i18n/update-<locale>` branch per changed locale (below).
 3. **Open PRs** — one PR per branch (below).
 4. **Rebase / respond to feedback / merge back** — the original sections that follow.
 
-### Exporting drained locales
+### Exporting drained and clean locales
 
-`export-all.sh` writes each fully drained locale's DB translations into `locales/content/`, then
-runs `i18n db export` once. Skips any locale with `pending > 0`. Dry-run is the default — pass
+`export-all.sh` writes each drained *and clean* locale's DB translations into
+`locales/content/`, then runs `i18n db export` once. Dry-run is the default — pass
 `--execute` to act.
 
+Two gates, both must pass, both reported per locale:
+
+- **drained** — skips any locale with `pending > 0`.
+- **audit-clean** — `i18n tasks audit <locale> --strict` must exit 0: no stranded
+  `in_progress` row, no key-set or blank-translation defect, no lost interpolation
+  token, and at least one completed row actually checked. `pending: 0` alone proves
+  only that the rows left the queue, not that what they wrote is correct. The audit's
+  `en_leak` check is advisory and never blocks an export.
+
+After a successful export the written content is re-checked in place with
+`validate variables` and (when the derived governance cache exists) the register lint.
+Failures are reported as **dirty**; nothing is reverted, because surfacing the problem
+while the content is still unstaged is the point.
+
 ```bash
-# preview: which locales are drained, what it would export
+# preview: which locales are drained + clean, what it would export
 locales/scripts/export-all.sh
 
-# do it: export every drained locale + shared db tables (once)
+# do it: export every gated locale + shared db tables (once)
 locales/scripts/export-all.sh --execute
 
 # or a specific subset
 locales/scripts/export-all.sh --execute de es fr_FR
 ```
+
+**Exit status is part of the output.** Non-zero means at least one locale failed the
+audit, failed to export, or landed dirty — the summary names each set:
+
+```
+Done: 27 locale(s) exported, 1 skipped, 1 failed audit, 0 failed export, 1 dirty
+Not drained (skipped): pl
+Failed audit (not exported): ja
+Exported but dirty (fix the content, it is unstaged): ru
+```
+
+A locale that is merely not drained is a normal state and does not affect the exit
+status. Fix audit findings with `tasks update <ID> --file ... --validate --strict`,
+re-audit, and re-run the export before continuing to **Creating the branches** —
+otherwise you will branch a locale set that silently omits the failures.
 
 Leaves uncommitted changes in the working tree for **Creating the branches** below.
 

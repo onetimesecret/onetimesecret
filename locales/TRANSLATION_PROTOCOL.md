@@ -100,12 +100,13 @@ python3 locales/scripts/i18n db query "INSERT INTO glossary (locale, term, trans
 
 ### 6. End session - export to content
 ```bash
+python3 locales/scripts/i18n tasks audit eo --strict
 python3 locales/scripts/i18n tasks export eo
 python3 locales/scripts/i18n db export
 ```
 The frontend auto-generates `generated/locales/` on startup from `locales/content/`.
 
-`tasks export` is per-locale — run it once for each finished locale, and only when fully drained (`tasks next <locale> --stats` shows `pending: 0`); a partial locale would write half-translated content. `db export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it.
+`tasks export` is per-locale — run it once for each finished locale, and only when the locale is both drained (`tasks next <locale> --stats` shows `pending: 0`) and audit-clean (`tasks audit <locale> --strict` exits 0, having found no stranded `in_progress` row, no key-set or blank-translation defect, and no lost interpolation token; the English-leak check is advisory and never gates). A partial locale would write half-translated content; a drained-but-dirty one would write broken content just as happily, which is why `pending: 0` is not the export condition — note that `pending: 0` does not even prove the locale is drained, since an abandoned `in_progress` claim is counted separately, which is why the audit checks for those too. Fix findings with `tasks update <ID> --validate --strict` and re-audit before exporting. `export-all.sh` applies both gates automatically across all locales. `db export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it.
 
 ### 7. Commit
 ```bash
