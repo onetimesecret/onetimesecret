@@ -23,6 +23,16 @@ require_relative '../spec_helper'
 # wrong type, so the reopen raises a TypeError ("Config is not a class") and boot
 # is marked permanently not-ready for every later spec in the process.
 require 'rodauth'
+
+# Load the OmniAuth strategy classes the verifying doubles below reference.
+# This spec deliberately skips the app boot, so nothing else in the process
+# pulls the provider gems in; without these requires every
+# `instance_double(OmniAuth::Strategies::X)` raises NameError.
+require 'omniauth_openid_connect'
+require 'omniauth-entra-id'
+require 'omniauth-github'
+require 'omniauth-google-oauth2'
+
 module Auth; end
 Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)

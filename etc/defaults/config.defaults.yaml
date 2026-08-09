@@ -790,6 +790,13 @@ features:
     #   set-but-empty  -> boot error naming LINK_DOMAINS
     #                     (Onetime::Config.validate_link_domains!)
     #
+    # A set list that names only UNPARSEABLE hosts is the same boot
+    # error: there is no safe fallback for it. Offering the canonical
+    # domain instead would contradict the request (hiding that host is
+    # the whole point), and offering nothing leaves the picker empty, so
+    # the typo has to fail loud. A list that mixes good and bad entries
+    # boots — the bad one is dropped and logged.
+    #
     # This is NOT a UI-only setting: every entry joins the canonical
     # host set, so requests to these hosts are classified :canonical and
     # serve the app instead of being rejected as :invalid.

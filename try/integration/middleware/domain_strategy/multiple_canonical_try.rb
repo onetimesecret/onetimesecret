@@ -301,6 +301,100 @@ config                  = { 'enabled' => true, 'default' => @default_host, 'link
  )]
 #=> [false, nil]
 
+# T17: the `www.` variant tolerance is ANCHOR-only
+#
+# equal_to? matches a host against `www.<registrable-domain>` as well as
+# against its own name. Run over the FULL canonical set that second arm
+# reaches straight past the pool member the operator blessed and onto any
+# `www.` sibling on the same base domain -- the same widening the
+# anchor-only sweeps exist to prevent, arriving through the exact-match
+# arm instead. Worse than the sweep case: this arm runs BEFORE
+# known_custom_domain?, so it takes the classification away from a tenant
+# who registered that host, silently dropping their brand/signin config.
+#
+# The fix splits the arm: exact_host? over the full set (pool included),
+# equal_to? over the anchors only.
+
+## T17: `www.` of a POOL member's base domain is not :canonical
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+config                  = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
+@strategy_class.initialize_from_config(config)
+@chooser.choose_strategy(
+  'www.acme.com',
+  @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed,
+)
+#=> nil
+
+## T17: and a tenant who REGISTERED that host keeps :custom
+# This is the consequence that matters. Under the old arm the www variant
+# classified :canonical ahead of the registration lookup, so the tenant's
+# per-domain configuration silently never applied.
+Onetime::CustomDomain.singleton_class.send(:alias_method, :www_orig_from_display_domain, :from_display_domain)
+Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
+  domain == 'www.acme.com' ? Object.new : nil
+end
+result = @chooser.choose_strategy(
+  'www.acme.com',
+  @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed,
+)
+Onetime::CustomDomain.singleton_class.send(:alias_method, :from_display_domain, :www_orig_from_display_domain)
+Onetime::CustomDomain.singleton_class.send(:remove_method, :www_orig_from_display_domain)
+result
+#=> :custom
+
+## T17 control: `www.` of an ANCHOR host is still :canonical
+# The tolerance itself is untouched -- it just no longer reaches the pool.
+@chooser.choose_strategy(
+  "www.#{@site_host}",
+  @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed,
+)
+#=> :canonical
+
+## T17 control: `www.` of the OTHER anchor is :canonical too
+@chooser.choose_strategy(
+  "www.#{@default_host}",
+  @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed,
+)
+#=> :canonical
+
+## T17: `www.` of the pool member itself gets nothing either
+# The operator blessed go.acme.com. www.go.acme.com is a different host.
+@chooser.choose_strategy(
+  "www.#{@pool_host}",
+  @strategy_class.canonical_domains_parsed,
+  anchor_domains: @strategy_class.anchor_domains_parsed,
+)
+#=> nil
+
+## T17 fence: with no pool the two sets are equal and nothing changes
+# anchor_domains defaults to the canonical set, so a caller with no pool
+# (every pre-#4063 call site) sees the exact pre-#4063 answers.
+@strategy_class.reset!
+OT.conf['site']['host'] = @site_host
+@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
+[@chooser.choose_strategy("www.#{@site_host}", @strategy_class.canonical_domains_parsed),
+ @chooser.choose_strategy("www.#{@default_host}", @strategy_class.canonical_domains_parsed)]
+#=> [:canonical, :canonical]
+
+## T17 wiring: the middleware call path rejects the pool-adjacent www host
+# Guards the real request path, not just Chooserator.
+middleware                                           = @strategy_class.new(create_app)
+@strategy_class.reset!
+OT.conf['site']['host']                              = @site_host
+@strategy_class.initialize_from_config(
+  { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
+)
+@strategy_class.class_eval { @domain_context_enabled = false }
+env                                                  = { Rack::DetectHost.result_field_name => 'www.acme.com' }
+with_runtime_domains { middleware.call(env) }
+env['onetime.domain_strategy']
+#=> :invalid
+
 # T16: exact-match set vs. sweep set
 #
 # Two sets come out of initialize_from_config. canonical_domains_parsed is
@@ -466,13 +560,14 @@ Onetime::CustomDomain.singleton_class.send(:alias_method, :sibling_orig_from_dis
 Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
   domain == 'sibling.acme.com' ? Object.new : nil
 end
-@chooser.choose_strategy(
+result = @chooser.choose_strategy(
   'sibling.acme.com',
   @strategy_class.canonical_domains_parsed,
   anchor_domains: @strategy_class.anchor_domains_parsed,
 )
 Onetime::CustomDomain.singleton_class.send(:alias_method, :from_display_domain, :sibling_orig_from_display_domain)
 Onetime::CustomDomain.singleton_class.send(:remove_method, :sibling_orig_from_display_domain)
+result
 #=> :custom
 
 ## AC7 control: a fully parseable pool logs no skip line (capture_le is discriminating)

@@ -28,6 +28,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { ScopeSwitcherItem } from '@/shared/components/navigation/scopeSwitcher';
 import ScopeSwitcher from '@/shared/components/navigation/ScopeSwitcher.vue';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
+import { normalizeDomainHost } from '@/shared/utils/domain-host';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
@@ -117,10 +118,15 @@ const canManageDomains = computed(() => {
 /**
  * The canonical link domain, for row copy only (never for identity).
  * Note it is NOT necessarily selectable: with LINK_DOMAINS (#4063) an operator
- * can keep the canonical host out of the picker entirely.
+ * can keep the canonical host out of the picker entirely, and on a branded
+ * host it is dropped from the pool outright.
+ *
+ * Normalized through the same helper useDomainContext applies to
+ * `availableDomains`, so a port-bearing `site.host` still matches the row it
+ * names (`localhost:3000` vs `localhost`).
  */
-const canonicalDomain = computed<string>(
-  () => bootstrapStore.canonical_domain || bootstrapStore.site_host || ''
+const canonicalDomain = computed<string>(() =>
+  normalizeDomainHost(bootstrapStore.canonical_domain || bootstrapStore.site_host)
 );
 
 /**
