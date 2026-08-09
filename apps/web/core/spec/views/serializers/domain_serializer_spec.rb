@@ -60,10 +60,26 @@ RSpec.describe Core::Views::DomainSerializer do
         domain_logo
         domain_context
         domain_strategy
+        link_domains
       ]
       expected_keys.each do |key|
         expect(template).to have_key(key), "Expected template to include '#{key}'"
       end
+    end
+
+    # The template entry is load-bearing and NOT covered by the .serialize
+    # specs below: serialize writes output['link_domains'] onto the template
+    # hash, so it is present there either way. SerializerRegistry.run strips
+    # every key the template does not declare, so losing this entry drops the
+    # field from the bootstrap payload with nothing else going red (#4063).
+    it 'declares link_domains so SerializerRegistry does not strip it' do
+      expect(described_class.output_template).to have_key('link_domains')
+    end
+
+    it 'defaults link_domains to [] rather than nil' do
+      # The frontend types this as z.array(z.string()).default([]), and a Zod
+      # default only fires for a MISSING key, never an explicit null.
+      expect(described_class.output_template['link_domains']).to eq([])
     end
   end
 
@@ -142,6 +158,132 @@ RSpec.describe Core::Views::DomainSerializer do
     it 'returns domain_strategy' do
       result = described_class.serialize(view_vars)
       expect(result['domain_strategy']).to eq(:canonical)
+    end
+
+    # ======================================================================
+    # link_domains — the resolved link-picker pool (#4063)
+    #
+    # Resolution happens SERVER-side: the payload always carries a concrete
+    # pool, and the frontend must never re-derive unset => [canonical]. These
+    # drive the real DomainStrategy through initialize_from_config rather than
+    # stubbing the reader, so what is pinned is the value the browser actually
+    # receives for a given operator config.
+    # ======================================================================
+    describe 'link_domains (#4063)' do
+      let(:site_host)   { 'app.example.net' }
+      let(:link_host)   { 'ge-abcd123.eu.otshosted.com' }
+      let(:pool_member) { 'short.example.com' }
+
+      # DomainStrategy holds its config in class instance variables; save and
+      # restore all of them so this cannot leak into the rest of the suite.
+      around do |example|
+        ivars = %i[
+          @canonical_domain @domains_enabled @canonical_domains
+          @canonical_domains_parsed @anchor_domains_parsed @link_domains
+          @domain_context_enabled
+        ]
+        saved = ivars.to_h do |ivar|
+          [ivar, Onetime::Middleware::DomainStrategy.instance_variable_get(ivar)]
+        end
+
+        begin
+          example.run
+        ensure
+          saved.each do |ivar, value|
+            Onetime::Middleware::DomainStrategy.instance_variable_set(ivar, value)
+          end
+        end
+      end
+
+      # The outer before stubs canonical_domain; here the real resolved value
+      # is the point of the assertion.
+      before do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_call_original
+      end
+
+      def boot_domain_strategy(domains_config)
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => site_host },
+          'features' => { 'domains' => domains_config },
+        })
+        Onetime::Middleware::DomainStrategy.initialize_from_config(domains_config)
+      end
+
+      context 'when LINK_DOMAINS is unset' do
+        before { boot_domain_strategy('enabled' => true, 'default' => link_host) }
+
+        it 'emits the canonical domain as the only pool member' do
+          result = described_class.serialize(view_vars)
+          expect(result['link_domains']).to eq([link_host])
+        end
+
+        it 'agrees with canonical_domain in the same payload' do
+          result = described_class.serialize(view_vars)
+          expect(result['link_domains']).to eq([result['canonical_domain']])
+        end
+      end
+
+      context 'when LINK_DOMAINS names hosts' do
+        before do
+          boot_domain_strategy(
+            'enabled' => true,
+            'default' => link_host,
+            'link_domains' => [pool_member, 'go.acme.com'],
+          )
+        end
+
+        it 'emits the configured pool verbatim, in order' do
+          result = described_class.serialize(view_vars)
+          expect(result['link_domains']).to eq([pool_member, 'go.acme.com'])
+        end
+
+        it 'leaves canonical_domain unchanged and out of the pool' do
+          # The whole feature: the internal platform host keeps serving and
+          # stays the CNAME target, but is not offered in the picker.
+          result = described_class.serialize(view_vars)
+          expect(result['canonical_domain']).to eq(link_host)
+          expect(result['link_domains']).not_to include(link_host)
+        end
+      end
+
+      context 'when features.domains.enabled is false' do
+        before { boot_domain_strategy('enabled' => false) }
+
+        it 'still emits the key — the picker needs a pool in every mode' do
+          result = described_class.serialize(view_vars)
+          expect(result).to have_key('link_domains')
+          expect(result['link_domains']).to eq([site_host])
+        end
+
+        it 'ignores a link pool configured while the feature is off' do
+          boot_domain_strategy('enabled' => false, 'link_domains' => [pool_member])
+
+          result = described_class.serialize(view_vars)
+          expect(result['link_domains']).to eq([site_host])
+        end
+      end
+
+      context 'before DomainStrategy has been configured (pre-boot / reset!)' do
+        before { Onetime::Middleware::DomainStrategy.reset! }
+
+        it 'emits an empty array rather than null' do
+          result = described_class.serialize(view_vars)
+          expect(result['link_domains']).to eq([])
+        end
+      end
+
+      # The registry is the real output boundary: it drops any key the
+      # serializer's output_template does not declare.
+      it 'survives the SerializerRegistry output-boundary strip' do
+        boot_domain_strategy(
+          'enabled' => true,
+          'default' => link_host,
+          'link_domains' => [pool_member],
+        )
+
+        result = Core::Views::SerializerRegistry.run([described_class], view_vars)
+        expect(result['link_domains']).to eq([pool_member])
+      end
     end
 
     context 'when domain_strategy is :custom' do

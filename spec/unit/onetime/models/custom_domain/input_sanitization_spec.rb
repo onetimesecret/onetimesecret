@@ -209,6 +209,56 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
         expect(described_class.overlaps_canonical_domain?('example.com')).to be false
       end
     end
+
+    # #4063 — the registration guard runs two arms with deliberately
+    # different reach once an operator link pool exists:
+    #   exact match       over the FULL canonical set (pool included)
+    #   base-domain sweep over the ANCHORS only
+    #
+    # Running the base-domain sweep over pool members instead would forbid
+    # every customer registration under that base domain forever, which for
+    # a link domain on a shared public suffix is far worse than the
+    # loosening it replaces.
+    context 'with an operator link pool configured (#4063)' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'app.example.net' },
+          'features' => {
+            'domains' => {
+              'default' => 'links.example.net',
+              'link_domains' => ['short.example.com', 'go.acme.com'],
+            },
+          },
+        })
+      end
+
+      it 'blocks registration of a pool member verbatim' do
+        expect(described_class.overlaps_canonical_domain?('short.example.com')).to be true
+      end
+
+      it 'blocks every pool member, not just the first' do
+        expect(described_class.overlaps_canonical_domain?('go.acme.com')).to be true
+      end
+
+      it 'normalizes case and trailing dots before the exact comparison' do
+        expect(described_class.overlaps_canonical_domain?('Short.Example.COM.')).to be true
+      end
+
+      # The accepted tradeoff, recorded so it is not "fixed" by a later
+      # consistency sweep: a customer MAY register a sibling of an operator
+      # link domain.
+      it 'permits a sibling of a pool member (no base-domain sweep over the pool)' do
+        expect(described_class.overlaps_canonical_domain?('other.example.com')).to be false
+      end
+
+      it 'permits a subdomain of a pool member' do
+        expect(described_class.overlaps_canonical_domain?('secrets.short.example.com')).to be false
+      end
+
+      it 'still runs the base-domain sweep over the anchors' do
+        expect(described_class.overlaps_canonical_domain?('secrets.example.net')).to be true
+      end
+    end
   end
 
   # ------------------------------------------------------------------ #
@@ -312,6 +362,75 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
       it 'returns false' do
         expect(described_class.default_domain?('example.com')).to be false
+      end
+    end
+
+    # ---------------------------------------------------------------- #
+    # AC6 (#4063) — the highest-value regression fence in the change.
+    #
+    # process_share_domain (apps/api/v{1,2}/logic/secrets/
+    # base_secret_action.rb) returns early WITHOUT setting @share_domain
+    # when default_domain? is true. If this predicate saw the operator
+    # link pool, every picker selection would be silently discarded and
+    # every generated link would re-anchor on the very host LINK_DOMAINS
+    # exists to hide. No exception, no log line — the picker looks right
+    # and each link is wrong. So: pool members must answer FALSE here
+    # while both anchors keep answering TRUE.
+    # ---------------------------------------------------------------- #
+    context 'with an operator link pool configured (#4063)' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'app.example.net' },
+          'features' => {
+            'domains' => {
+              'default' => 'links.example.net',
+              'link_domains' => ['short.example.com', 'go.acme.com'],
+            },
+          },
+        })
+      end
+
+      it 'still matches DEFAULT_DOMAIN while it is absent from the pool' do
+        expect(described_class.default_domain?('links.example.net')).to be true
+      end
+
+      it 'still matches site.host' do
+        expect(described_class.default_domain?('app.example.net')).to be true
+      end
+
+      it 'does NOT match a pool member (the selection must survive process_share_domain)' do
+        expect(described_class.default_domain?('short.example.com')).to be false
+      end
+
+      it 'does not match any pool member, not just the first' do
+        expect(described_class.default_domain?('go.acme.com')).to be false
+      end
+
+      it 'does not match a pool member in a different case either' do
+        expect(described_class.default_domain?('Short.Example.COM')).to be false
+      end
+    end
+
+    # The canonical-excluded single-tenant install: the operator hides
+    # ge-abcd123.eu.otshosted.com from the picker but still anchors links
+    # on it when nothing is selected. DEFAULT_DOMAIN is deliberately not
+    # required to be a pool member.
+    context 'when the pool excludes the default domain entirely (#4063)' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'host' => 'ge-abcd123.eu.otshosted.com' },
+          'features' => {
+            'domains' => { 'link_domains' => ['short.example.com'] },
+          },
+        })
+      end
+
+      it 'still anchors on the canonical host' do
+        expect(described_class.default_domain?('ge-abcd123.eu.otshosted.com')).to be true
+      end
+
+      it 'lets the pool member through as a real share domain' do
+        expect(described_class.default_domain?('short.example.com')).to be false
       end
     end
 

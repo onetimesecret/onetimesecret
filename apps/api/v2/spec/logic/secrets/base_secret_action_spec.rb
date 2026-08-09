@@ -91,6 +91,24 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     )
   end
 
+  # Sets features.domains.link_domains on the LIVE booted config for the
+  # duration of the block, restoring the previous state (including the key's
+  # absence) afterwards. OT.conf is not deep-frozen under test.
+  #
+  # Deliberately NOT a stub of Utils::CanonicalHosts.link_pool: the chain that
+  # actually broke is OT.conf -> CanonicalHosts.link_pool -> link_pool_host?,
+  # and stubbing the pool reader would skip the config layer under test.
+  def with_link_domains(pool)
+    domains  = OT.conf['features']['domains']
+    had_key  = domains.key?('link_domains')
+    previous = domains['link_domains']
+
+    domains['link_domains'] = pool
+    yield
+  ensure
+    had_key ? domains['link_domains'] = previous : domains.delete('link_domains')
+  end
+
   describe '#process_ttl config path' do
     it 'reads default_ttl from site.secret_options in config (43200), not the hardcoded fallback (604800)' do
       # Verify the config actually has the value we expect at the correct path
@@ -695,6 +713,47 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect(result).to eq('secrets.acme.com')
       end
     end
+
+    # --------------------------------------------------------------------------
+    # Operator link pool (#4063) — determine_share_domain is deliberately
+    # UNAWARE of the pool. The guest exemption added to
+    # validate_anonymous_share_domain admits a pool member; this method still
+    # pins a guest on a branded host to the Host header, so the exemption is
+    # inert there and a link created on a branded domain stays on it.
+    # --------------------------------------------------------------------------
+    context 'with an operator link pool configured (#4063)' do
+      around { |example| with_link_domains(%w[short.example.com go.acme.com]) { example.run } }
+
+      context 'anonymous guest on a branded host naming a pool member' do
+        subject do
+          build_domain_subject(
+            share_domain: 'short.example.com',
+            display_domain: 'local-secrets.afb.pet',
+            custom_domain: true,
+            anonymous: true,
+          )
+        end
+
+        it 'still pins the link to the Host header domain' do
+          expect(subject.send(:determine_share_domain)).to eq('local-secrets.afb.pet')
+        end
+      end
+
+      context 'anonymous guest on the canonical host naming a pool member' do
+        subject do
+          build_domain_subject(
+            share_domain: 'short.example.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+            anonymous: true,
+          )
+        end
+
+        it 'anchors the link on the pool member, not the canonical host' do
+          expect(subject.send(:determine_share_domain)).to eq('short.example.com')
+        end
+      end
+    end
   end
 
   # ============================================================================
@@ -816,6 +875,174 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
       it 'does not raise here (authenticated selection is governed by validate_domain_permissions)' do
         expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # Operator link-pool exemption (#4063)
+    #
+    # This guard runs BEFORE validate_domain_access, so without the exemption
+    # here that method's pool admission is unreachable for guests and every
+    # anonymous POST naming a pool member 403s — including the homepage form
+    # on a deployment that keeps its canonical host out of the picker.
+    #
+    # The exemption is scoped to hosts the deployment serves itself. It must
+    # not widen into the #3311 rule it sits beside: a tenant-branded
+    # CustomDomain is a phishing surface a guest could aim a link at, and a
+    # near-miss (a subdomain of a pool member) is not a pool member.
+    # ------------------------------------------------------------------------
+    context 'with an operator link pool configured (#4063)' do
+      around { |example| with_link_domains(%w[short.example.com go.acme.com]) { example.run } }
+
+      it 'is a precondition that the pool really is readable from config' do
+        expect(Onetime::Utils::CanonicalHosts.link_pool)
+          .to eq(%w[short.example.com go.acme.com])
+      end
+
+      context 'guest on the canonical domain naming a pool member' do
+        subject do
+          build_guard_subject(
+            requested: 'short.example.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+            anonymous: true,
+          )
+        end
+
+        it 'is allowed (the link anchors on the pool host)' do
+          expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+        end
+      end
+
+      # DECIDED: a guest may name ANY pool member, not only the operator's
+      # first entry. Every entry is operator-blessed and equivalent.
+      context 'guest on the canonical domain naming the SECOND pool member' do
+        subject do
+          build_guard_subject(
+            requested: 'go.acme.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+            anonymous: true,
+          )
+        end
+
+        it 'is allowed too' do
+          expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+        end
+      end
+
+      context 'guest naming a pool member in a different case' do
+        subject do
+          build_guard_subject(
+            requested: 'Short.Example.COM',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+            anonymous: true,
+          )
+        end
+
+        it 'is allowed (pool membership is normalized on both sides)' do
+          expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+        end
+      end
+
+      context 'guest on a branded custom domain naming a pool member' do
+        subject do
+          build_guard_subject(
+            requested: 'go.acme.com',
+            display_domain: 'secrets.acme.com',
+            custom_domain: true,
+            anonymous: true,
+          )
+        end
+
+        it 'is allowed here; determine_share_domain still pins the link to the Host' do
+          expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+        end
+      end
+
+      context 'guest on a branded custom domain smuggling a DIFFERENT tenant domain' do
+        subject do
+          build_guard_subject(
+            requested: 'victim.example.com',
+            display_domain: 'secrets.acme.com',
+            custom_domain: true,
+            anonymous: true,
+          )
+        end
+
+        it 'is still rejected — the exemption does not reopen #3311' do
+          expect { subject.send(:validate_anonymous_share_domain) }
+            .to raise_error(Onetime::Forbidden) do |error|
+              expect(error.error_key).to eq('api.secrets.errors.domain_permission_anonymous_cross_domain')
+            end
+        end
+      end
+
+      context 'guest on the canonical domain smuggling a tenant domain' do
+        subject do
+          build_guard_subject(
+            requested: 'victim.example.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+            anonymous: true,
+          )
+        end
+
+        it 'is still rejected' do
+          expect { subject.send(:validate_anonymous_share_domain) }
+            .to raise_error(Onetime::Forbidden)
+        end
+      end
+
+      context 'guest naming a near-miss subdomain of a pool member' do
+        subject do
+          build_guard_subject(
+            requested: 'evil.short.example.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+            anonymous: true,
+          )
+        end
+
+        it 'is rejected — pool membership is exact, never a base-domain grant' do
+          expect { subject.send(:validate_anonymous_share_domain) }
+            .to raise_error(Onetime::Forbidden)
+        end
+      end
+
+      context 'guest naming a sibling of a pool member' do
+        subject do
+          build_guard_subject(
+            requested: 'other.example.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+            anonymous: true,
+          )
+        end
+
+        it 'is rejected' do
+          expect { subject.send(:validate_anonymous_share_domain) }
+            .to raise_error(Onetime::Forbidden)
+        end
+      end
+    end
+
+    # With LINK_DOMAINS unset the pool resolves to the canonical host alone,
+    # so the exemption must not admit anything the pre-#4063 guard rejected.
+    context 'with no link pool configured' do
+      around { |example| with_link_domains(nil) { example.run } }
+
+      it 'still rejects a guest naming a tenant domain from the canonical host' do
+        subject = build_guard_subject(
+          requested: 'victim.example.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+          anonymous: true,
+        )
+
+        expect { subject.send(:validate_anonymous_share_domain) }
+          .to raise_error(Onetime::Forbidden)
       end
     end
   end
@@ -1037,6 +1264,127 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       it 'is allowed and pins the secret to that custom domain' do
         expect { subject.send(:validate_share_domain) }.not_to raise_error
         expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # Operator link pool (#4063) — end-to-end through all three stages.
+    #
+    # A pool member is blessed by CONFIG, not by a CustomDomain registration,
+    # and having NO CustomDomain row is the required state for one. Both walls
+    # therefore have to stand down: the guest guard (which runs first) and
+    # validate_domain_access (which would otherwise 422 'Unknown domain').
+    # The assertion that matters is where the link ANCHORS: on the pool host,
+    # not back on the canonical host the operator configured LINK_DOMAINS to
+    # hide.
+    # ------------------------------------------------------------------------
+    context 'with an operator link pool configured (#4063)' do
+      let(:pool_host) { 'short.example.com' }
+
+      around { |example| with_link_domains(%w[short.example.com go.acme.com]) { example.run } }
+
+      before do
+        # No CustomDomain row exists for a pool member, by design. Any lookup
+        # at all would mean the pool admission did not fire.
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      end
+
+      context 'anonymous guest on the canonical host selecting a pool member' do
+        subject do
+          build_integration_subject(
+            cust: anonymous_visitor,
+            share_domain: pool_host,
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+          )
+        end
+
+        it 'is allowed and anchors the link on the pool host' do
+          expect { subject.send(:validate_share_domain) }.not_to raise_error
+          expect(subject.share_domain).to eq(pool_host)
+        end
+
+        it 'never looks the pool host up as a custom domain' do
+          subject.send(:validate_share_domain)
+          expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+        end
+      end
+
+      context 'anonymous guest selecting the second pool member' do
+        subject do
+          build_integration_subject(
+            cust: anonymous_visitor,
+            share_domain: 'go.acme.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+          )
+        end
+
+        it 'anchors on that member (any pool entry is selectable)' do
+          expect { subject.send(:validate_share_domain) }.not_to raise_error
+          expect(subject.share_domain).to eq('go.acme.com')
+        end
+      end
+
+      context 'authenticated member selecting a pool member with no CustomDomain row' do
+        subject do
+          build_integration_subject(
+            cust: authenticated_member,
+            share_domain: pool_host,
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+          )
+        end
+
+        it 'is admitted without a per-domain permission check' do
+          expect { subject.send(:validate_share_domain) }.not_to raise_error
+          expect(subject.share_domain).to eq(pool_host)
+        end
+      end
+
+      context 'authenticated member naming a host that is neither pooled nor registered' do
+        subject do
+          build_integration_subject(
+            cust: authenticated_member,
+            share_domain: 'unknown.example.com',
+            display_domain: 'onetimesecret.com',
+            custom_domain: false,
+          )
+        end
+
+        it "still raises 'Unknown domain'" do
+          expect { subject.send(:validate_share_domain) }
+            .to raise_error(Onetime::FormError, /Unknown domain/)
+        end
+      end
+
+      context 'anonymous guest on a branded host naming a pool member' do
+        let(:host_domain) { 'secrets.acme.com' }
+        let(:host_record) do
+          double('CustomDomain',
+            accessible_by?: false,
+            allow_public_secret_creation?: true,
+            verified: 'true')
+        end
+
+        subject do
+          build_integration_subject(
+            cust: anonymous_visitor,
+            share_domain: 'go.acme.com',
+            display_domain: host_domain,
+            custom_domain: true,
+          )
+        end
+
+        before do
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
+            .with(host_domain).and_return(host_record)
+        end
+
+        it 'is allowed but the link stays on the branded Host domain' do
+          expect { subject.send(:validate_share_domain) }.not_to raise_error
+          expect(subject.share_domain).to eq(host_domain)
+        end
       end
     end
   end
