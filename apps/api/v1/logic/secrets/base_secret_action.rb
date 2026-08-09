@@ -285,18 +285,61 @@ module V1::Logic
         validate_domain_access(@share_domain)
       end
 
-      # Guests may create links only on the domain they are currently visiting.
+      # Guests may create links only on the domain they are currently visiting,
+      # or on an operator link-pool host (#4063).
       #
       # process_share_domain captured any requested domain in @share_domain. For
-      # an anonymous request the only legitimate value is the custom domain named
-      # by the Host header (display_domain) — a guest creating links for that same
-      # branded domain. Any other custom domain is a cross-domain smuggle: a guest
-      # on the canonical domain naming a custom domain, or a guest on one custom
-      # domain naming a different one (issue #3311). Those are rejected here,
-      # before determine_share_domain pins the resolved domain to the Host header.
+      # an anonymous request the legitimate values are the custom domain named by
+      # the Host header (display_domain) — a guest creating links for that same
+      # branded domain — and a link-pool member. Any other custom domain is a
+      # cross-domain smuggle: a guest on the canonical domain naming a custom
+      # domain, or a guest on one custom domain naming a different one (issue
+      # #3311). Those are rejected here, before determine_share_domain pins the
+      # resolved domain to the Host header.
+      #
+      #   Guest is on…    | POST body share_domain          | Result
+      #   ----------------+---------------------------------+--------------------------
+      #   custom domain X | X, omitted, canonical, or junk  | allowed — link on X
+      #   custom domain X | a different valid custom dom. Y | rejected (FormError)
+      #   custom domain X | a link-pool member (#4063)      | allowed — link still on X
+      #   canonical       | omitted, canonical, or junk     | allowed — link on canonical
+      #   canonical       | a link-pool member (#4063)      | allowed — link on that pool
+      #                   |                                 |   host, not on canonical
+      #   canonical       | any other valid custom domain   | rejected (FormError)
+      #
+      # Link-pool exemption (#4063) — why this does NOT reopen #3311. That rule
+      # (commit 18fa96e431) protects tenant-branded CustomDomain records: brand,
+      # logo, signin config, i.e. a phishing surface a guest could aim a link at.
+      # A LINK_DOMAINS member is categorically not that. It is an operator-blessed
+      # member of the canonical host set with NO CustomDomain record by design
+      # (see link_pool_host?), an exact canonical match outranks :custom in the
+      # Chooserator, and ConfigureDomains warns the operator at boot if they list
+      # a host that IS registered. The exemption grants guests exactly the
+      # treatment the canonical host already gets, on a host the deployment
+      # serves itself.
+      #
+      # The guard is required, not merely tidy: this method runs BEFORE
+      # validate_domain_access, so that method's pool admission is unreachable
+      # for guests without it and every anonymous POST naming a pool member is
+      # rejected. process_share_domain only nils out ANCHOR hosts, so a
+      # non-anchor pool member survives as a non-nil @share_domain — which is
+      # exactly what the homepage form posts once it falls back to the pool
+      # instead of canonical (the canonical-excluded case in #4063).
+      #
+      # DECIDED, do not "fix" this either way: a guest may name ANY pool member,
+      # not just the operator's first entry. Every pool entry is operator-blessed
+      # and equivalent, so free choice is the intended product behavior.
+      #
+      # On a branded host the exemption is inert: determine_share_domain returns
+      # display_domain whenever custom_domain?, so the link lands on the branded
+      # domain regardless of which pool member was named.
+      #
+      # Keep textually parallel with the V2 implementation
+      # (apps/api/v2/logic/secrets/base_secret_action.rb).
       def validate_anonymous_share_domain
         return unless cust.nil? || cust.anonymous?
         return if share_domain.nil?
+        return if link_pool_host?(share_domain)
         return if custom_domain? && share_domain.casecmp?(display_domain.to_s)
 
         OT.li "[validate_anonymous_share_domain]: #{share_domain} cross-domain from #{display_domain} [#{cust&.custid}]"
@@ -443,6 +486,11 @@ module V1::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
+        # Operator link-pool hosts are admitted here, BEFORE the
+        # CustomDomain lookup below rejects them (#4063). See
+        # link_pool_host? for why they have no record to look up.
+        return if link_pool_host?(domain)
+
         # e.g. dbkey -> customdomain:display_domain_index -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = Onetime::CustomDomain.from_display_domain(domain)
@@ -467,6 +515,48 @@ module V1::Logic
 
         validate_domain_permissions(domain_record, allow_public)
         validate_domain_verification(domain_record)
+      end
+
+      # Whether the requested domain is a member of the operator link pool
+      # (features.domains.link_domains, #4063).
+      #
+      # A pool member is blessed by CONFIG, not by a CustomDomain
+      # registration, and having NO CustomDomain row is the expected — in
+      # fact the required — state for one. That is the whole point of
+      # LINK_DOMAINS: an operator offers their own link hosts without
+      # creating tenant domain records for them, and no tenant can attach
+      # brand or signin configuration to one. Do NOT "fix" this by
+      # requiring a record or by auto-creating one; without this admission
+      # every host the domain-context picker offers 422s with
+      # 'Unknown domain' at secret creation.
+      #
+      # There is no per-domain permission to check either: pool members are
+      # canonical-set members (Utils::CanonicalHosts.hosts), i.e. hosts the
+      # deployment serves itself, so ownership/membership does not apply.
+      # If an operator lists a host that IS a registered CustomDomain, this
+      # branch wins — matching DomainStrategy, where the exact canonical
+      # match outranks :custom. ConfigureDomains warns about that config.
+      #
+      # Normalization mirrors CustomDomain.default_domain?: display_domain
+      # on the input, DomainParser on the configured hosts, so
+      # 'Short.Example.COM' matches a pool entry of 'short.example.com'.
+      #
+      # Keep textually parallel with the V2 implementation
+      # (apps/api/v2/logic/secrets/base_secret_action.rb).
+      #
+      # @param domain [String] The requested share domain
+      # @return [Boolean] true when the domain is an operator link-pool host
+      def link_pool_host?(domain)
+        input_display = Onetime::CustomDomain.display_domain(domain)
+
+        Onetime::Utils::CanonicalHosts.link_pool.any? do |host|
+          Onetime::Utils::DomainParser.extract_hostname(host) == input_display
+        end
+      rescue PublicSuffix::Error, Onetime::Problem => ex
+        # Unparseable input is not a pool member. Fall through to the
+        # CustomDomain lookup, which rejects it as an unknown domain.
+        OT.le "[link_pool_host?] #{ex.message} for `#{domain}`"
+        false
       end
 
       # Rejects secret creation against an unverified custom share_domain when
