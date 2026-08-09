@@ -830,20 +830,25 @@ module Onetime
                     !logo_path.match?(/\A[a-z][a-z0-9+.-]*:/i)
 
         brand[logo_key] = "/#{logo_path}"
+      end
 
-        # brand.logo_url is now the one install logo for every surface, but the
-        # surfaces differ: the web UI resolves a relative path fine, while mail
-        # rendering requires an absolute URL and silently degrades to a
-        # text-only header otherwise. Tell the operator at boot rather than
-        # letting them discover it in a delivered email. Deliberately always
-        # logged: this is an operational notice about mail rendering, not a
-        # deprecation, so compatibility.deprecated_config_mode does not apply.
+      # brand.logo_url is now the one install logo for every surface, but the
+      # surfaces differ: the web UI resolves a relative path fine, while mail
+      # rendering requires an absolute URL and silently degrades to a
+      # text-only header otherwise. Tell the operator at boot rather than
+      # letting them discover it in a delivered email. Deliberately always
+      # logged: this is an operational notice about mail rendering, not a
+      # deprecation, so compatibility.deprecated_config_mode does not apply.
+      # rubocop:disable Style/CombinableLoops -- the loop above skips
+      # already-root-relative paths; this one must still inspect them.
+      %w[logo_url logo_dark_url].each do |logo_key|
         logo_url = brand[logo_key]
         next unless logo_url && !logo_url.match?(%r{\Ahttps?://}i)
 
         OT.le "CONFIG NOTICE: brand.#{logo_key} '#{logo_url}' is not an absolute http(s) URL; " \
               'it will render in the web UI but is omitted from outbound emails.'
       end
+      # rubocop:enable Style/CombinableLoops
 
       # button_text_light: light text on brand-colored buttons. Default-on;
       # only an explicit 'false' (env or YAML) disables it. nil when unset.
