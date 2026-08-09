@@ -4,7 +4,7 @@
     "source_hash": "bfde7e68"
   },
   "web.admin.billing.description": {
-    "text": "Alleen-lezen weergave van geconfigureerde plannen en hun entitlements, en eventuele afwijkingen ten opzichte van de live Stripe-gesynchroniseerde catalogus.",
+    "text": "Alleen-lezen weergave van geconfigureerde plannen en hun entitlements, en eventuele afwijkingen ten opzichte van de live via Stripe gesynchroniseerde catalogus.",
     "source_hash": "05d5b332"
   },
   "web.admin.billing.retry": {
@@ -12,11 +12,11 @@
     "source_hash": "942087cc"
   },
   "web.admin.billing.loadError": {
-    "text": "Kon de facturatiecatalogus niet laden.",
+    "text": "De facturatiecatalogus kon niet worden geladen.",
     "source_hash": "c3110f77"
   },
   "web.admin.billing.localConfigWarning": {
-    "text": "De Stripe-gesynchroniseerde plancache is leeg, dus live plannen en afwijkingen kunnen niet worden geëvalueerd. Toont alleen de geconfigureerde catalogus (billing.yaml) — gebruikelijk in dev of wanneer Stripe niet is geconfigureerd.",
+    "text": "De cache met via Stripe gesynchroniseerde plannen is leeg, dus live plannen en afwijkingen kunnen niet worden beoordeeld. Alleen de geconfigureerde catalogus (billing.yaml) wordt getoond — gebruikelijk in dev of wanneer Stripe niet is geconfigureerd.",
     "source_hash": "905d95f8"
   },
   "web.admin.billing.inSync": {
@@ -28,7 +28,7 @@
     "source_hash": "166538f5"
   },
   "web.admin.billing.inSyncDetail": {
-    "text": "De geconfigureerde catalogus komt overeen met de live plannen. Geen afwijkingen gedetecteerd.",
+    "text": "De geconfigureerde catalogus komt overeen met de live plannen. Geen afwijkingen gevonden.",
     "source_hash": "57ab60a6"
   },
   "web.admin.billing.columns.planid": {
@@ -40,7 +40,7 @@
     "source_hash": "dcd1d522"
   },
   "web.admin.billing.columns.tier": {
-    "text": "Niveau",
+    "text": "Tier",
     "source_hash": "cb9e8664"
   },
   "web.admin.billing.columns.status": {
@@ -52,7 +52,7 @@
     "source_hash": "bc86e5f7"
   },
   "web.admin.billing.diff.subtitle": {
-    "text": "Geconfigureerde catalogus (billing.yaml) vs. live Stripe-gesynchroniseerd plan, naast elkaar.",
+    "text": "Geconfigureerde catalogus (billing.yaml) naast het live via Stripe gesynchroniseerde plan.",
     "source_hash": "d92e93ae"
   },
   "web.admin.billing.diff.config": {
@@ -64,11 +64,11 @@
     "source_hash": "4886945d"
   },
   "web.admin.billing.diff.absentConfig": {
-    "text": "Dit plan is niet aanwezig in de geconfigureerde catalogus.",
+    "text": "Dit plan staat niet in de geconfigureerde catalogus.",
     "source_hash": "0b594c88"
   },
   "web.admin.billing.diff.absentLive": {
-    "text": "Dit plan is niet aanwezig in de live Stripe-gesynchroniseerde cache.",
+    "text": "Dit plan staat niet in de live via Stripe gesynchroniseerde cache.",
     "source_hash": "c53f31c3"
   },
   "web.admin.billing.plans.title": {
@@ -112,7 +112,7 @@
     "source_hash": "5701958c"
   },
   "web.admin.billing.status.only_config": {
-    "text": "Alleen config",
+    "text": "Alleen configuratie",
     "source_hash": "15836cba"
   },
   "web.admin.billing.status.only_live": {
@@ -122,5 +122,85 @@
   "web.admin.billing.status.changed": {
     "text": "Gewijzigd",
     "source_hash": "2a6141e4"
+  },
+  "web.admin.billing.diff.backToCatalog": {
+    "text": "Terug naar facturatiecatalogus",
+    "source_hash": "8532b373"
+  },
+  "web.admin.billing.diff.driftedFields": {
+    "text": "Velden die verschillen:",
+    "source_hash": "9890c95b"
+  },
+  "web.admin.billing.diff.notFound": {
+    "text": "Plan niet in de catalogus",
+    "source_hash": "0253898b"
+  },
+  "web.admin.billing.diff.notFoundDescription": {
+    "text": "Er is geen plan met de id {planid} gevonden in de geconfigureerde catalogus of de live via Stripe gesynchroniseerde cache.",
+    "source_hash": "2e69551c"
+  },
+  "web.admin.billing.stripeOrgs.title": {
+    "text": "Stripe-klanten",
+    "source_hash": "0463ae27"
+  },
+  "web.admin.billing.stripeOrgs.description": {
+    "text": "Organisaties die aan een Stripe-klantrecord zijn gekoppeld.",
+    "source_hash": "2ab09aec"
+  },
+  "web.admin.billing.stripeOrgs.searchPlaceholder": {
+    "text": "Zoeken op Stripe-klant-ID",
+    "source_hash": "d5acf08f"
+  },
+  "web.admin.billing.stripeOrgs.empty": {
+    "text": "Geen enkele organisatie heeft een Stripe-klant-ID.",
+    "source_hash": "2e373537"
+  },
+  "web.admin.billing.stripeOrgs.emptySearch": {
+    "text": "Geen Stripe-klant-ID komt overeen met die zoekopdracht.",
+    "source_hash": "75011174"
+  },
+  "web.admin.billing.stripeOrgs.loadError": {
+    "text": "De lijst met Stripe-klanten kon niet worden geladen.",
+    "source_hash": "15e2d9a7"
+  },
+  "web.admin.billing.stripeOrgs.unavailable": {
+    "text": "De lijst met Stripe-klanten is op deze server nog niet beschikbaar.",
+    "source_hash": "aab6451a"
+  },
+  "web.admin.billing.stripeOrgs.none": {
+    "text": "Geen",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.billing.stripeOrgs.capped": {
+    "text": "De indexscan heeft zijn limiet bereikt, dus het totaal is een ondergrens — verfijn de zoekopdracht om de rest te zien.",
+    "source_hash": "20bcaa38"
+  },
+  "web.admin.billing.stripeOrgs.stale": {
+    "text": "{count} indexvermelding(en) op deze pagina verwijzen naar een organisatie die niet meer laadt en zijn overgeslagen.",
+    "source_hash": "51980f83"
+  },
+  "web.admin.billing.stripeOrgs.copyStripeId": {
+    "text": "Stripe-klant-ID kopiëren",
+    "source_hash": "a77d18b1"
+  },
+  "web.admin.billing.stripeOrgs.columns.organization": {
+    "text": "Organisatie",
+    "source_hash": "d764d425"
+  },
+  "web.admin.billing.stripeOrgs.columns.owner": {
+    "text": "Eigenaar",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.billing.stripeOrgs.columns.plan": {
+    "text": "Plan",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.billing.stripeOrgs.columns.subscription": {
+    "text": "Abonnement",
+    "source_hash": "4999c6c6"
+  },
+  "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
+    "text": "Stripe-klant-ID",
+    "source_hash": "7e1d8bbb"
   }
 }

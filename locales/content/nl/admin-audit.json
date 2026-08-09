@@ -4,7 +4,7 @@
     "source_hash": "47751f88"
   },
   "web.admin.audit.description": {
-    "text": "Elke muterende beheerdersactie, nieuwste eerst — wie deed wat met wie, en hoe het is verlopen.",
+    "text": "Elke wijzigende beheerdersactie, nieuwste eerst — wie deed wat bij wie, en hoe het afliep.",
     "source_hash": "2326a1a0"
   },
   "web.admin.audit.categories.customer": {
@@ -36,11 +36,11 @@
     "source_hash": "969ccbd3"
   },
   "web.admin.audit.categories.ratelimit": {
-    "text": "Snelheidslimieten",
+    "text": "Rate limits",
     "source_hash": "6ed021f7"
   },
   "web.admin.audit.categories.ip": {
-    "text": "IP-blokkades",
+    "text": "IP-blokkeringen",
     "source_hash": "48cdea49"
   },
   "web.admin.audit.columns.timestamp": {
@@ -48,7 +48,7 @@
     "source_hash": "115a2cc9"
   },
   "web.admin.audit.columns.actor": {
-    "text": "Uitvoerder",
+    "text": "Actor",
     "source_hash": "449995c4"
   },
   "web.admin.audit.columns.action": {
@@ -68,7 +68,7 @@
     "source_hash": "fb5f27d5"
   },
   "web.admin.audit.filters.actorPlaceholder": {
-    "text": "Filter op uitvoerder (extid of e-mail)",
+    "text": "Filter op actor (extid of e-mail)",
     "source_hash": "966aa580"
   },
   "web.admin.audit.filters.actionLabel": {
@@ -80,7 +80,7 @@
     "source_hash": "83140cf1"
   },
   "web.admin.audit.list.loadError": {
-    "text": "Kon het auditlogboek niet laden.",
+    "text": "Het auditlogboek kon niet worden geladen.",
     "source_hash": "acf244f4"
   },
   "web.admin.audit.list.retry": {
@@ -92,11 +92,47 @@
     "source_hash": "8fe0cac3"
   },
   "web.admin.audit.result.success": {
-    "text": "Geslaagd",
+    "text": "Gelukt",
     "source_hash": "c88a0b90"
   },
   "web.admin.audit.result.failure": {
     "text": "Mislukt",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Berichten",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Lidmaatschappen",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Entitlement-voorbeelden",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonel-aanmeldingen",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Actor",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Zoeken",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Typ een actor en druk op Enter of kies Zoeken om te zoeken. De lijst wordt niet bijgewerkt terwijl je typt.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Nog niet gezocht — druk op Enter of kies Zoeken om deze actor toe te passen.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "De server heeft geantwoord, maar de auditgegevens kwamen niet overeen met het verwachte formaat. Er kunnen geen gebeurtenissen worden getoond — dit is een rapportagefout, geen leeg logboek.",
+    "source_hash": "7f48137e"
   }
 }

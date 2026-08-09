@@ -28,11 +28,11 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Helpinhoud komt hier.",
+    "text": "Help-inhoud komt hier.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Ik lees elk stukje feedback dat hier binnenkomt. Zo bepaal ik waar ik mijn tijd aan besteed.",
+    "text": "Ik lees elk stuk feedback dat hier binnenkomt. Zo bepaal ik waar ik tijd aan besteed.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
@@ -56,15 +56,15 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Het lijkt erop dat je een ongeautoriseerde wijziging van het e-mailadres op je account meldt. Beschrijf wat er is gebeurd en we onderzoeken het direct.",
+    "text": "Het lijkt erop dat je een ongeautoriseerde e-mailwijziging op je account meldt. Beschrijf wat er is gebeurd en we zullen dit meteen onderzoeken.",
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "Let op: als je een reactie wilt, onderteken het bericht dan of vermeld een e-mailadres erin.",
+    "text": "Let op: als je een reactie wilt, onderteken dan of voeg een e-mailadres toe aan het bericht.",
     "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "Nog {count} tekens",
+    "text": "{count} tekens resterend",
     "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {

@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Merkrichtlijnen",
+    "text": "Brandinggids",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,7 +20,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Leer meer over onze beveiligingsmaatregelen",
+    "text": "Lees meer over onze beveiligingsmaatregelen",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
@@ -40,7 +40,7 @@
     "source_hash": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "Ondersteuning",
+    "text": "Support",
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
@@ -60,7 +60,7 @@
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Verken onze API-documentatie",
+    "text": "Ontdek onze API-documentatie",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -68,7 +68,7 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Bekijk onze documentatie",
+    "text": "Raadpleeg onze documentatie",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
@@ -76,7 +76,7 @@
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "Bronnen",
+    "text": "Resources",
     "source_hash": "e89b30aa"
   },
   "web.footer.blog": {
@@ -84,7 +84,7 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Lees onze laatste blogposts",
+    "text": "Lees onze nieuwste blogberichten",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
@@ -92,7 +92,7 @@
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Leer meer over ons bedrijf",
+    "text": "Lees meer over ons bedrijf",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -108,7 +108,7 @@
     "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
-    "text": "Facturering",
+    "text": "Facturatie",
     "source_hash": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
@@ -124,19 +124,19 @@
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "We maken {onetime-secret} beschikbaar in meerdere talen. Aangezien dit een nieuwe functie is, kun je vertaalfouten of onhandige formuleringen tegenkomen. Je feedback helpt ons te verbeteren - als je problemen opmerkt, {send-feedback}",
+    "text": "We maken {onetime-secret} in meerdere talen beschikbaar. Omdat dit een nieuwe functie is, kun je vertaalfouten of onhandige formuleringen tegenkomen. Jouw feedback helpt ons verbeteren - zie je iets dat niet klopt, {send-feedback}",
     "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "Vertalingen zijn nieuw. Een fout gespot? {send-feedback}",
+    "text": "Vertalingen zijn nieuw. Zie je een fout? {send-feedback}",
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "We hebben onlangs vertalingen toegevoegd. Een fout gezien? {send-feedback}",
+    "text": "We hebben onlangs vertalingen toegevoegd. Zie je een fout? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "Privacy en veiligheid moeten voor iedereen toegankelijk zijn, ongeacht taal. We voegen vertalingen toe om zowel onze gebruikers als hun berichtontvangers beter te laten begrijpen hoe ze veilig gebruik kunnen maken van en toegang kunnen krijgen tot beveiligde berichten en links. Aangezien dit een nieuwe functie is, kun je enkele vertaalfouten of onduidelijke instructies tegenkomen. Om ons te helpen de duidelijkheid en nauwkeurigheid van onze vertalingen te verbeteren, vooral voor kritieke beveiligingsgerelateerde inhoud, {send-feedback} als je problemen opmerkt.",
+    "text": "Privacy en beveiliging moeten voor iedereen toegankelijk zijn, ongeacht de taal. We voegen vertalingen toe zodat zowel onze gebruikers als hun ontvangers beter begrijpen hoe ze beveiligde berichten en links veilig gebruiken en openen. Omdat dit een nieuwe functie is, kun je vertaalfouten of onduidelijke instructies tegenkomen. Help ons de duidelijkheid en juistheid van onze vertalingen te verbeteren, vooral voor kritieke beveiligingsgerelateerde inhoud: {send-feedback} als je iets ziet dat niet klopt",
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
@@ -144,11 +144,11 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Waar kijk ik naar?",
+    "text": "Wat zie ik hier?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Je bekijkt een beveiligd bericht dat via {product_name} met je is gedeeld. Deze inhoud wordt maar één keer weergegeven en daarna permanent van onze servers verwijderd.",
+    "text": "Je bekijkt een beveiligd bericht dat via {product_name} met je is gedeeld. Deze inhoud wordt maar één keer getoond en daarna permanent van onze servers verwijderd.",
     "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -156,7 +156,7 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nee. Om veiligheidsredenen is dit bericht slechts één keer te bekijken. Na het sluiten van deze pagina wordt de inhoud permanent verwijderd en kan deze door niemand meer worden hersteld, ook niet door ons.",
+    "text": "Nee. Om veiligheidsredenen is dit bericht maar één keer te bekijken. Nadat je deze pagina hebt gesloten, wordt de inhoud permanent verwijderd en kan niemand die meer herstellen, ook wij niet.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,31 +164,31 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Gebruik de knop 'Kopiëren naar klembord' om het volledige bericht te kopiëren. Controleer bij langere berichten of je de volledige inhoud hebt gekopieerd voordat je deze pagina verlaat.",
+    "text": "Gebruik de knop 'Kopiëren naar klembord' om het hele bericht te kopiëren. Controleer bij langere berichten of je de volledige inhoud hebt gekopieerd voordat je deze pagina verlaat.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Wordt het bekijken van dit bericht gevolgd?",
+    "text": "Wordt bijgehouden dat ik dit bericht bekijk?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "De afzender wordt op de hoogte gebracht dat het bericht is bekeken, maar we volgen niet wie het heeft bekeken of vanaf welke locatie. Je privacy is beschermd.",
+    "text": "De afzender krijgt een melding dat het bericht is bekeken, maar we houden niet bij wie het heeft bekeken of vanaf welke locatie. Je privacy blijft beschermd.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Zodra je deze pagina verlaat of ververst, wordt dit bericht permanent verwijderd en kan het door niemand meer worden hersteld.",
+    "text": "Zodra je deze pagina verlaat of vernieuwt, wordt dit bericht permanent verwijderd en kan niemand het meer herstellen.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Terug naar vorige pagina",
+    "text": "Terug naar de vorige pagina",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Sitefoter",
+    "text": "Sitevoettekst",
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Donkere modus wisselen",
+    "text": "Donkere modus aan/uit",
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
@@ -220,15 +220,15 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Release-opmerkingen",
+    "text": "Releasenotities",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Instellingsinhoud laden...",
+    "text": "Instellingen worden geladen...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Instellingssecties",
+    "text": "Instellingensecties",
     "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
@@ -236,11 +236,11 @@
     "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Instellingssecties",
+    "text": "Instellingensecties",
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Pas je app-voorkeuren en instellingen aan",
+    "text": "Pas je app-voorkeuren en -instellingen aan",
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
@@ -248,7 +248,7 @@
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Terug naar homepagina",
+    "text": "Terug naar de homepage",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
@@ -324,11 +324,11 @@
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Overschakelen naar {0}-modus",
+    "text": "Overschakelen naar {0} modus",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0}-modus ingeschakeld",
+    "text": "{0} modus ingeschakeld",
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
