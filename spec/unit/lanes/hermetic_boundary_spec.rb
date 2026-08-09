@@ -42,11 +42,26 @@ module LaneHermeticProbe
   # boundary instead.
   RO_FN     = 'lane_selftest_readonly_fn'
   RO_VAR    = 'LANE_SELFTEST_READONLY_VAR'
+  # A function named after the tool the scrub itself used to shell out to.
+  # Bash resolves functions before commands, so this one *was* the filter
+  # that decided which functions got scrubbed.
+  TOOL_FN   = 'awk'
+  # Environment entries whose names are not valid shell identifiers. execve
+  # accepts them, `compgen -e` does not enumerate them, and `unset` cannot
+  # clear them — they can only leave at the exec boundary.
+  ODD_NAMES = ['FOO-BAR', 'ORGS.SSO'].freeze
 
   module_function
 
   def repo_root
     File.expand_path('../../..', __dir__)
+  end
+
+  # The floor the runner enforces, read from the same pin file it reads —
+  # a literal here would be a third copy of the number (runner, doctor,
+  # spec) and the first one to go stale silently skips this whole file.
+  def bash_floor
+    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
   end
 
   # The runner's shebang is `#!/usr/bin/env bash`, so the bash that matters
@@ -111,8 +126,18 @@ module LaneHermeticProbe
       # also readonly-exported, so it rides the same exec-boundary strip.
       # extdebug is the nastiest import — it changes function-return
       # semantics — which is exactly why the runner must shed it.
-      'BASHOPTS' => 'extdebug',
-    }
+      #
+      # nocasematch rides along because it silently rewrites the scrub's own
+      # logic: it makes the keep-list `case` match without regard to case, so
+      # the homograph names below (`ci`, `Path` — separate variables as far
+      # as bash is concerned) would be treated as keep-listed and delivered.
+      # `shopt -u` is the only way to shed either; `set +o` cannot see them.
+      'BASHOPTS' => 'extdebug:nocasematch',
+      'ci' => CANARY,
+      'Path' => CANARY,
+      'Home' => CANARY,
+      'Coverage' => CANARY,
+    }.merge(ODD_NAMES.to_h { |name| [name, CANARY] })
   end
 
   # Sourced by the runner's own shell at startup. Two exported functions
@@ -130,6 +155,8 @@ module LaneHermeticProbe
       readonly -f #{RO_FN}
       export #{RO_VAR}=#{CANARY}
       readonly #{RO_VAR}
+      #{TOOL_FN}() { :; }
+      export -f #{TOOL_FN}
     RC
   end
 
@@ -193,7 +220,8 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
 
   before do
     major = probe.path_bash_major
-    skip 'bash 5+ is not on PATH (macOS: brew install bash)' if major.nil? || major < 5
+    floor = probe.bash_floor
+    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
   end
 
   it 'runs the selftest lane without services' do
@@ -249,6 +277,40 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
     expect(result[:scrub_trace]).to include("[lane:scrub] strip-at-exec #{LaneHermeticProbe::RO_FN} (readonly function)")
     expect(env).not_to have_key(LaneHermeticProbe::RO_VAR)
     expect(result[:task_output]).not_to include(LaneHermeticProbe::RO_FN)
+  end
+
+  it 'scrubs the function the scrub itself used to shell out to' do
+    # `declare -F | awk ...` made the scrub's coverage a function of the
+    # caller's environment: an exported `awk` returned nothing, which reads
+    # as "no exported functions", and every other exported function — the
+    # `git`/`bundle`/`docker` shadowing this block exists to stop — rode
+    # through untouched. The trace lines are the positive half; the negatives
+    # in the example above are what they guard.
+    expect(result[:scrub_trace]).to include("[lane:scrub] unset -f #{LaneHermeticProbe::TOOL_FN}")
+    expect(result[:functions]).not_to include(LaneHermeticProbe::TOOL_FN)
+  end
+
+  it 'does not let a nocasematch caller reopen the keep-list' do
+    # An exported BASHOPTS is imported before line one, and `nocasematch`
+    # turns the keep-list `case` into a case-insensitive filter. `ci` and
+    # `Path` are distinct variables from `CI` and `PATH`; matched
+    # case-insensitively they look keep-listed and are delivered verbatim.
+    expect(env).not_to have_key('ci')
+    expect(env).not_to have_key('Path')
+    expect(env).not_to have_key('Home')
+    expect(env).not_to have_key('Coverage')
+    # And the real keep-list still works.
+    expect(env['CI']).to eq(LaneHermeticProbe::KEEPSAKE)
+  end
+
+  it 'strips environment entries whose names are not shell identifiers' do
+    # `env 'FOO-BAR=x' tests/lanes/run ...` is legal: execve has no opinion
+    # about names. Bash cannot enumerate or unset these, but it forwards
+    # them across both execs, and ENV['FOO-BAR'] reads them in the task
+    # process — so they leave at the exec boundary or not at all.
+    LaneHermeticProbe::ODD_NAMES.each do |name|
+      expect(result[:env_lines].grep(/\A#{Regexp.escape(name)}=/)).to be_empty
+    end
   end
 
   it 'survives an allexport caller and keeps its option state to itself' do
