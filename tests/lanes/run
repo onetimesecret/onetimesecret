@@ -121,8 +121,10 @@ unset ENABLE_ORGS REGIONS_ENABLED JOBS_ENABLED I18N_ENABLED \
 # Site identity: a dev shell exports HOST=dev.onetime.dev and SSL=true via
 # direnv. The suites assert against the shipped default (127.0.0.1:3000,
 # http), so these must not survive either. Same story for the domain and
-# jurisdiction identity vars.
-unset HOST SSL DEFAULT_DOMAIN JURISDICTION JURISDICTIONS SUPPORT_HOST
+# jurisdiction identity vars. LINK_DOMAINS has no DOMAINS_ prefix so the
+# glob above misses it; set, it joins the canonical host set AND changes
+# the link picker, and set-but-empty aborts boot outright.
+unset HOST SSL DEFAULT_DOMAIN LINK_DOMAINS JURISDICTION JURISDICTIONS SUPPORT_HOST
 
 # SSO provider credentials. AuthConfig#sso_providers registers a provider
 # purely from the presence of its required_vars (lib/onetime/auth_config.rb

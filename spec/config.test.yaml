@@ -100,6 +100,11 @@ features:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
     require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    # Three-way: unset -> nil (picker offers canonical), set -> verbatim,
+    # set-but-empty -> [] which raises at boot. The `&.` keeps unset and
+    # set-but-empty distinct; do not copy `default:`'s `|| nil`. Every
+    # entry also joins the canonical host set. See config.defaults.yaml.
+    link_domains: <%= ENV['LINK_DOMAINS']&.split(',')&.map(&:strip) %>
     validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>
     approximated:
       api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>

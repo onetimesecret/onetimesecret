@@ -133,6 +133,12 @@ module Onetime
             # creation is allowed regardless of the domain's verification
             # status. Canonical domains are unaffected.
             'require_verified' => false,
+            # NO 'link_domains' KEY HERE — deliberate, do not "complete" this
+            # block by adding one. deep_merge has an explicit `v2.nil? -> v1`
+            # arm, so a default would resolve unset LINK_DOMAINS back to that
+            # default and make the set-but-empty case (which must raise at
+            # boot, see validate_link_domains!) impossible to detect. Unset
+            # must stay nil. (#4063)
           },
           'incoming' => {
             'enabled' => false,
@@ -975,6 +981,44 @@ module Onetime
       unless conf['mail'].key?('truemail')
         raise OT::ConfigError, 'No TrueMail config found'
       end
+
+      # Fires regardless of features.domains.enabled: the operator explicitly
+      # wrote LINK_DOMAINS, so a blank value is a typo worth failing loud on,
+      # and this is the only placement that runs before any feature gating.
+      validate_link_domains!(conf.dig('features', 'domains', 'link_domains'))
+    end
+
+    # Rejects a LINK_DOMAINS that was set but names no host.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil          -> return (unset; the link picker offers the canonical
+    #                   domain, which is the pre-#4063 behavior)
+    #   ['a.com']    -> return
+    #   []           -> raise (LINK_DOMAINS="")
+    #   ['']         -> raise (LINK_DOMAINS="  ")
+    #
+    # NOTE: this is deliberately the OPPOSITE polarity from #4062's
+    # security.admin allowed_hosts, where an empty list means canonical-only.
+    # An empty admin-host allowlist failing closed to canonical is safe. An
+    # empty link pool silently becoming the canonical domain hides the
+    # operator's typo and produces exactly the outcome LINK_DOMAINS exists to
+    # prevent: the internal platform host offered in the customer-facing
+    # picker. Do not "fix" one of these to match the other.
+    #
+    # @param raw [Array<String>, nil] features.domains.link_domains as loaded
+    # @raise [Onetime::ConfigError] when set but empty after stripping blanks
+    # @return [void]
+    def validate_link_domains!(raw)
+      return if raw.nil?
+      return unless Array(raw).map { |host| host.to_s.strip }.reject(&:empty?).empty?
+
+      raise OT::ConfigError,
+        'LINK_DOMAINS (features.domains.link_domains) is set but names no host. ' \
+        'It lists the domains offered in the link picker and cannot be blank. ' \
+        'List at least one host (LINK_DOMAINS=links.example.com), or unset ' \
+        'LINK_DOMAINS entirely to offer the canonical domain.'
     end
 
     # True when this process can participate in the Vite dev-server workflow:

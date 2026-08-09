@@ -777,6 +777,31 @@ features:
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
 
+    # LINK_DOMAINS — comma-separated hosts offered in the link-domain
+    # picker. For installs whose canonical host is an internal platform
+    # address (e.g. ge-abcd123.eu.otshosted.com) that must keep serving
+    # the app but must never be offered to customers as a link domain.
+    #
+    # Three-way semantics — all deliberate:
+    #   unset          -> the picker offers the canonical domain
+    #                     (every pre-existing install is unchanged)
+    #   set            -> the picker offers exactly these hosts; the
+    #                     canonical domain appears only if listed
+    #   set-but-empty  -> boot error naming LINK_DOMAINS
+    #                     (Onetime::Config.validate_link_domains!)
+    #
+    # This is NOT a UI-only setting: every entry joins the canonical
+    # host set, so requests to these hosts are classified :canonical and
+    # serve the app instead of being rejected as :invalid.
+    #
+    # The `&.` chain is load-bearing — it is what keeps unset (nil) and
+    # set-but-empty ([]) distinguishable through ERB+YAML. Do NOT copy
+    # the `|| nil` idiom used by `default:` above; it collapses the two.
+    # `link_domains` is also deliberately absent from Config::DEFAULTS —
+    # deep_merge restores the default for any nil in loaded config,
+    # which would make set-but-empty undetectable.
+    link_domains: <%= ENV['LINK_DOMAINS']&.split(',')&.map(&:strip) %>
+
     # Domain validation and certificate management strategy
     # Options:
     #   - passthrough: No validation or cert management
