@@ -58,7 +58,7 @@
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Terminer la vérification MFA",
+    "text": "Effectuer la vérification MFA",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -78,7 +78,7 @@
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Code de récupération introuvable. Veuillez vérifier que vous l'avez saisi correctement.",
+    "text": "Code de récupération introuvable. Veuillez vérifier votre saisie.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
@@ -90,7 +90,7 @@
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Une erreur est survenue. Veuillez réessayer.",
+    "text": "Une erreur s'est produite. Veuillez réessayer.",
     "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
@@ -103,11 +103,11 @@
     "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "Biométrique",
+    "text": "Biométrie",
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "Se connecter avec l'e-mail",
+    "text": "Se connecter par e-mail",
     "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
@@ -115,7 +115,7 @@
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Saisissez votre e-mail",
+    "text": "Saisissez votre adresse e-mail",
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
@@ -123,7 +123,7 @@
     "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Vérifiez vos e-mails",
+    "text": "Consultez votre messagerie",
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
@@ -135,11 +135,11 @@
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Essayer un autre e-mail",
+    "text": "Essayer une autre adresse e-mail",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Aucun mot de passe nécessaire — cliquez simplement sur le lien dans votre e-mail",
+    "text": "Aucun mot de passe requis — il suffit de cliquer sur le lien reçu par e-mail",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -151,7 +151,7 @@
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Lien de connexion invalide ou manquant",
+    "text": "Lien de connexion non valide ou manquant",
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
@@ -167,7 +167,7 @@
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Veuillez patienter pendant que nous vérifions votre lien",
+    "text": "Veuillez patienter pendant la vérification de votre lien",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -187,11 +187,11 @@
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "L'authentification biométrique n'est pas prise en charge dans ce navigateur",
+    "text": "L'authentification biométrique n'est pas prise en charge par ce navigateur",
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Veuillez utiliser un navigateur moderne qui prend en charge WebAuthn (Chrome, Safari, Firefox ou Edge)",
+    "text": "Veuillez utiliser un navigateur récent prenant en charge WebAuthn (Chrome, Safari, Firefox ou Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -203,7 +203,7 @@
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "Le mot de passe est requis pour configurer une clé d'accès",
+    "text": "Un mot de passe est requis pour configurer une clé d'accès",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
@@ -215,11 +215,11 @@
     "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "Authentification en cours...",
+    "text": "Authentification...",
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Utilisez votre empreinte digitale, votre visage ou votre clé de sécurité pour vous connecter",
+    "text": "Utilisez votre empreinte, votre visage ou une clé de sécurité pour vous connecter",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
@@ -242,7 +242,7 @@
     "source_hash": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "Non configurée",
+    "text": "Non configuré",
     "context": "Status when no passkeys are registered",
     "source_hash": "dd1841d2"
   },
@@ -267,7 +267,7 @@
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Êtes-vous sûr de vouloir supprimer cette clé d'accès ? Vous ne pourrez plus vous connecter avec elle.",
+    "text": "Voulez-vous vraiment supprimer cette clé d'accès ? Vous ne pourrez plus l'utiliser pour vous connecter.",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
@@ -287,7 +287,7 @@
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Ajoutez une clé d'accès pour vous connecter plus facilement sans saisir de mot de passe",
+    "text": "Ajoutez une clé d'accès pour vous connecter plus sûrement sans saisir de mot de passe",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
@@ -302,7 +302,7 @@
     "source_hash": "d70b9e24"
   },
   "web.auth.passkeys.last_used": {
-    "text": "Dernière utilisation : {time}",
+    "text": "Dernière utilisation : {time}",
     "context": "Last used timestamp",
     "source_hash": "e1af94fe"
   },
@@ -312,17 +312,17 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Plus sécurisées que les mots de passe - résistantes aux attaques de phishing",
+    "text": "Plus sûres que les mots de passe - résistantes aux attaques par hameçonnage",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Rapide et facile - utilisez simplement votre empreinte digitale, votre visage ou une clé de sécurité",
+    "text": "Rapides et simples - utilisez votre empreinte, votre visage ou une clé de sécurité",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Synchronisées sur tous vos appareils lors de l'utilisation d'authentificateurs de plateforme",
+    "text": "Synchronisées entre vos appareils lorsque vous utilisez les authentificateurs de plateforme",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -332,11 +332,11 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Avertissement : {count} tentative(s) de connexion restante(s)",
+    "text": "Avertissement : {count} tentative(s) de connexion restante(s)",
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Compte verrouillé en raison de trop nombreuses tentatives de connexion échouées",
+    "text": "Compte verrouillé en raison d'un trop grand nombre de tentatives de connexion échouées",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -344,7 +344,7 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Contactez le support si vous avez besoin d'un accès immédiat",
+    "text": "Contactez l'assistance si vous avez besoin d'un accès immédiat",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
@@ -372,7 +372,7 @@
     "source_hash": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "Localisation",
+    "text": "Emplacement",
     "source_hash": "15b61974"
   },
   "web.auth.sessions.ip_address": {
@@ -384,7 +384,7 @@
     "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "Créé",
+    "text": "Créée",
     "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
@@ -396,11 +396,11 @@
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "Êtes-vous sûr de vouloir supprimer cette session ?",
+    "text": "Voulez-vous vraiment supprimer cette session ?",
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Cela vous déconnectera de tous les autres appareils. Êtes-vous sûr ?",
+    "text": "Cela vous déconnectera de tous les autres appareils. Voulez-vous continuer ?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -448,11 +448,11 @@
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Scanner le code QR",
+    "text": "1. Scannez le code QR",
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Vérifier la configuration",
+    "text": "2. Vérifiez la configuration",
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
@@ -468,7 +468,7 @@
     "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Saisir le code d'authentification",
+    "text": "Saisissez le code d'authentification",
     "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
@@ -480,11 +480,11 @@
     "source_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
-    "text": "Le code d'authentification est requis",
+    "text": "Le code d'authentification est obligatoire",
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Code invalide. Les codes expirent toutes les 30 secondes. Essayez le dernier code de votre application d'authentification.",
+    "text": "Code non valide. Les codes expirent toutes les 30 secondes. Essayez le dernier code de votre application d'authentification.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -508,7 +508,7 @@
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "Dernière utilisation : {time}",
+    "text": "Dernière utilisation : {time}",
     "source_hash": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
@@ -528,7 +528,7 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Annuler et retourner à la connexion",
+    "text": "Annuler et revenir à la connexion",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
@@ -536,7 +536,7 @@
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Chargement du statut MFA...",
+    "text": "Chargement de l'état MFA...",
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
@@ -552,7 +552,7 @@
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Fonctionne avec Google Authenticator, Authy et d'autres applications TOTP",
+    "text": "Compatible avec Google Authenticator, Authy et les autres applications TOTP",
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
@@ -580,7 +580,7 @@
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Continuer vers la vérification",
+    "text": "Passer à la vérification",
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
@@ -636,7 +636,7 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Conservez ces codes dans un endroit sûr. Chacun peut être utilisé une fois si vous perdez l'accès à votre authentificateur.",
+    "text": "Conservez ces codes en lieu sûr. Chacun peut être utilisé une fois si vous perdez l'accès à votre application d'authentification.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -692,11 +692,11 @@
     "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} sur {limit} codes de récupération restants",
+    "text": "{count} codes de récupération restants sur {limit}",
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Chaque code ne peut être utilisé qu'une seule fois. Régénérez les codes si vous en manquez.",
+    "text": "Chaque code ne peut être utilisé qu'une seule fois. Régénérez les codes s'il vous en reste peu.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "sessions",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Identités connectées",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Gérez les fournisseurs d'authentification unique liés à votre compte.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Authentification unique",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Fournisseurs d'identité que vous pouvez utiliser pour vous connecter à ce compte",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Connecter un fournisseur",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Liez un autre fournisseur d'authentification unique que vous pourrez utiliser pour vous connecter à ce compte.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Connecter {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Émetteur",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifiant",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Supprimer",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Supprimer l'identité connectée",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Voulez-vous vraiment supprimer cette identité connectée ? Vous ne pourrez plus vous en servir pour vous connecter.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Identité connectée supprimée",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Aucune identité connectée",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Vous n'avez encore lié aucun fournisseur d'authentification unique à ce compte.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Authentification unique",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "C'est votre seul moyen de vous connecter. Connectez d'abord un autre fournisseur, ou définissez un mot de passe dans Paramètres → Sécurité, afin de ne pas perdre l'accès.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "C'est votre seul moyen de vous connecter. Connectez d'abord un autre fournisseur afin de ne pas perdre l'accès.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Cette identité connectée est introuvable. Elle a peut-être déjà été supprimée.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Votre session a expiré. Veuillez vous reconnecter.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Nous n'avons pas pu effectuer cette action. Veuillez réessayer.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Liez votre méthode de connexion",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Vous vous êtes connecté avec {provider}, qui correspond au compte existant {email}. Saisissez le mot de passe de ce compte pour lier {provider} et continuer.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Mot de passe",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Votre mot de passe existant",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Lier et continuer",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Annuler",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Cette demande de liaison a expiré",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Pour votre sécurité, la demande de liaison de cette méthode de connexion n'est plus valide. Connectez-vous avec votre mot de passe existant, puis connectez ce fournisseur dans Paramètres de sécurité → Identités connectées.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Passer à la connexion",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Ce mot de passe ne correspond pas à ce compte. Veuillez réessayer.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Cette demande de liaison a expiré ou a déjà été utilisée. Connectez-vous avec votre mot de passe existant, puis connectez ce fournisseur depuis les paramètres de votre compte.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Nous n'avons pas pu lier cette méthode de connexion. Votre compte a peut-être changé, ou ce fournisseur est déjà lié à un autre compte. Connectez-vous avec votre mot de passe existant, puis gérez les connexions dans Paramètres de sécurité → Identités connectées.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Trop de tentatives de mot de passe. Veuillez patienter quelques minutes, puis réessayer.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Nous n'avons pas pu traiter cette demande de liaison. Veuillez vous reconnecter avec votre fournisseur SSO.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Nous n'avons pas pu lier votre compte. Veuillez réessayer.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Confirmez la connexion de votre compte",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Vous vous êtes connecté avec {provider}, qui correspond à votre compte {email}. Confirmez pour connecter {provider} à ce compte et finaliser la connexion.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Confirmer et connecter",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Annuler",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Cette demande de liaison ne peut pas être finalisée",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Pour votre sécurité, cette demande de connexion de votre méthode d'authentification n'est plus valide. Reconnectez-vous avec votre fournisseur et nous vous enverrons un nouveau lien par e-mail.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Revenir à la connexion",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Cette demande de liaison a expiré ou a déjà été utilisée. Reconnectez-vous avec votre fournisseur et nous vous enverrons un nouveau lien par e-mail.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Nous n'avons pas pu connecter cette méthode de connexion. Votre compte a peut-être changé, ou ce fournisseur est déjà lié à un autre compte. Reconnectez-vous avec votre fournisseur pour continuer.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Les identifiants de votre compte ont changé après l'envoi de ce lien ; il n'est donc plus valide. Reconnectez-vous avec votre fournisseur et nous vous enverrons un nouveau lien par e-mail.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Un problème est survenu de notre côté et nous n'avons pas pu vérifier ce lien. Reconnectez-vous avec votre fournisseur et nous vous en enverrons un nouveau par e-mail.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Trop de tentatives depuis votre appareil. Veuillez patienter quelques minutes, puis rouvrez le lien reçu par e-mail ou reconnectez-vous avec votre fournisseur pour en obtenir un nouveau.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Nous n'avons pas pu confirmer cette connexion. Veuillez vous reconnecter avec votre fournisseur.",
+    "source_hash": "076fa25a"
   }
 }

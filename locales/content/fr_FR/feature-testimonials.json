@@ -4,7 +4,7 @@
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Contenu généré par IA à des fins de démonstration. Ne provient pas d'une personne ou entreprise réelle.",
+    "text": "Contenu généré par IA à des fins de démonstration. Il ne provient ni d'une personne ni d'une entreprise réelles.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -16,15 +16,15 @@
     "source_hash": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "« {0} »",
+    "text": "\"{0}\"",
     "source_hash": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
-    "text": "{0} :",
+    "text": "{0} :",
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Ce que l'IA de pointe dit de nous",
+    "text": "Ce que les principales IA disent de nous",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
@@ -36,15 +36,15 @@
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
-    "text": "Elle est basée sur le contenu de la page et ne représente pas une personne ou une entreprise réelle.",
+    "text": "Elle s'appuie sur le contenu de la page et ne représente ni une personne ni une entreprise réelles.",
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Commentaire artificiel",
+    "text": "Commentaires artificiels",
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
-    "text": "Ce contenu est généré par l'IA sur la base du contenu de cette page et ne représente pas une personne ou une entreprise réelle.",
+    "text": "Ce contenu est généré par IA à partir du contenu de cette page et ne représente ni une personne ni une entreprise réelles.",
     "source_hash": "03c16436"
   }
 }
