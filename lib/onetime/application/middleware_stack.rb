@@ -249,6 +249,10 @@ module Onetime
           header = tp['header'].to_s.strip
           header = 'X-Forwarded-For' if header.empty?
 
+          # Read here rather than in the filter branch: depth mode needs it to
+          # tell the operator their setting is inert (below).
+          geo_header = OT.conf.dig('site', 'network', 'geo', 'header').to_s.strip
+
           # Which forwarded header depth mode counts hops from (otto#150). otto
           # honors this in depth mode only and reads the X-Forwarded-For family
           # in CIDR-walk; the setter canonicalizes and raises on an unrecognized
@@ -268,6 +272,29 @@ module Onetime
             # client. Mutually exclusive with add_trusted_proxy — do NOT also
             # register CIDRs (otto raises).
             config.trusted_proxy_depth = ots_depth
+
+            # Depth mode never satisfies otto's geo_headers_trusted?, so NO geo
+            # header is honored here — not the operator's, not the built-in
+            # vendor ones (CF-IPCountry et al.). Country resolves to otto's '**'
+            # unknown for every request unless a local MaxMind DB is configured.
+            # Warn, don't raise: an inert setting is not a deploy blocker, and
+            # passing geo_header through to otto would not be a fix — otto 2.8
+            # raises on depth + geo_header, turning this into a boot failure.
+            if geo_header.empty?
+              if geo_db_path.empty?
+                OT.lw '[MiddlewareStack] trusted_proxy.mode=depth resolves country to ' \
+                      "'**' for all requests: geo headers are never trusted under depth. " \
+                      'Set site.network.geo.db_path (GEO_DB_PATH) for country data, or ' \
+                      'ignore this if you do not use geo.'
+              end
+            else
+              OT.lw "[MiddlewareStack] site.network.geo.header #{geo_header.inspect} " \
+                    '(GEO_HEADER) is IGNORED under trusted_proxy.mode=depth — geo headers ' \
+                    'are only trusted in filter mode, where a matched trusted-proxy CIDR ' \
+                    'proves the header came from the edge. Use site.network.geo.db_path ' \
+                    '(GEO_DB_PATH, a local MaxMind .mmdb — works in all modes) for ' \
+                    'depth-mode country data, or switch to filter mode.'
+            end
           else
             # filter / CIDR-walk: trust the private proxy ranges plus any
             # operator-configured public CIDRs (e.g. a CDN's egress ranges).
@@ -282,8 +309,8 @@ module Onetime
             # CDN provider headers. Filter mode ONLY: geo headers are honored just
             # when geo_headers_trusted? passes (trusted_proxies configured — never
             # true in depth mode), and setting geo_header under depth would trip
-            # Otto's depth/geo_header boot conflict. Depth-mode geo uses geo.db_path.
-            geo_header = OT.conf.dig('site', 'network', 'geo', 'header').to_s.strip
+            # Otto's depth/geo_header boot conflict. Depth-mode geo uses geo.db_path
+            # and warns about this setting above.
             config.ip_privacy_config.geo_header = geo_header unless geo_header.empty?
           end
 
