@@ -192,7 +192,8 @@
     "content_hash": "59b8806e"
   },
   "web.domains.link_domain_no_settings": {
-    "text": "This domain has no settings page"
+    "text": "This domain has no settings page",
+    "content_hash": "8a8430fe"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "Please enter a {0} domain name",
