@@ -19,10 +19,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import operator
+import re
 import sqlite3
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
+from functools import reduce
 from pathlib import Path
 from typing import Optional
 
@@ -30,6 +33,7 @@ from ..config import CONTENT_DIR, DB_FILE, EN_DIR
 from ..console import render_table
 from ..db import get_connection
 from ..io import load_json_file, save_json_file, walk_keys
+from ..tokens import extract_tokens, strip_tokens
 
 VALID_STATUSES = ("pending", "in_progress", "completed", "skipped")
 
@@ -45,6 +49,7 @@ def register(subparsers) -> None:
     _register_next(gsub)
     _register_update(gsub)
     _register_export(gsub)
+    _register_audit(gsub)
 
 
 def _register_create(gsub) -> None:
@@ -201,6 +206,16 @@ Examples:
             "and re-run with the corrected key set if any appear."
         ),
     )
+    c.add_argument(
+        "--strict",
+        action="store_true",
+        help=(
+            "Turn --validate into a gate (implies --validate): on any key "
+            "mismatch, print the same warnings, write NOTHING to the DB, and "
+            "exit 1. Use this in scripted/agent loops where an unread warning "
+            "would otherwise be committed."
+        ),
+    )
     c.set_defaults(func=_update_handler)
 
 
@@ -244,6 +259,60 @@ Examples:
         help="Quiet output (only errors)",
     )
     c.set_defaults(func=_export_handler)
+
+
+def _register_audit(gsub) -> None:
+    c = gsub.add_parser(
+        "audit",
+        help="Audit a locale's completed tasks in the DB, before export",
+        description=(
+            "Audit a locale's translation_tasks rows, in the DB and BEFORE any "
+            "export writes content/<locale>. Checks: status (no stranded "
+            "in_progress rows), key_set (translation keys equal source keys "
+            "exactly, and none is blank), tokens (interpolation and markup "
+            "tokens preserved with the same set AND count, compared per plural "
+            "form), en_leak (translation left byte-identical to the English "
+            "source). Needed because 'tasks update --validate' is advisory: a "
+            "drained queue does not prove the writes are clean."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Severity: status/key_set/tokens are errors and gate --strict. en_leak is
+ADVISORY — it is reported but never affects the exit code, because an identical
+string is the correct translation for a large class of short UI labels
+("Status", "TTL", "Redis", "Amazon SES", "Canada"). It also does not flag brand
+names that must stay English (Onetime Secret, Identity Plus, Starlight), empty
+sources, strings with no letters, keys marked skip, or English target locales.
+
+--strict also fails when zero completed rows were checked: a gate that verified
+nothing must not read green (same rule as `validate glossary --strict`).
+
+Examples:
+    python3 locales/scripts/i18n tasks audit de             # advisory, exit 0
+    python3 locales/scripts/i18n tasks audit de --strict    # gate, exit 1 on errors
+    python3 locales/scripts/i18n tasks audit de --json      # machine-readable
+        """,
+    )
+    c.add_argument(
+        "locale",
+        help="Target locale code (e.g., 'eo', 'de')",
+    )
+    c.add_argument(
+        "--json",
+        "-j",
+        action="store_true",
+        help="Output as JSON",
+    )
+    c.add_argument(
+        "--strict",
+        action="store_true",
+        help=(
+            "Exit non-zero on any error finding, or when no completed row "
+            "could be checked (default: advisory, exit 0). Advisory findings "
+            "(en_leak) are reported either way and never gate."
+        ),
+    )
+    c.set_defaults(func=_audit_handler)
 
 
 # ---------------------------------------------------------------------------
@@ -948,6 +1017,22 @@ def update_task(
         return task
 
 
+def diff_key_sets(
+    source_map: dict, translation_map: dict
+) -> tuple[list[str], list[str]]:
+    """``(missing, extra)`` leaf names, sorted.
+
+    The one definition of "the key sets disagree", shared by ``tasks update
+    --validate/--strict`` and the ``key_set`` check of ``tasks audit``.
+    """
+    expected_keys = set(source_map.keys())
+    provided_keys = set(translation_map.keys())
+    return (
+        sorted(expected_keys - provided_keys),
+        sorted(provided_keys - expected_keys),
+    )
+
+
 def validate_translations(keys_json: str, translations_json: str) -> list[str]:
     """Validate that translations match expected keys."""
     warnings = []
@@ -958,18 +1043,12 @@ def validate_translations(keys_json: str, translations_json: str) -> list[str]:
     except json.JSONDecodeError:
         return ["Invalid JSON"]
 
-    expected_keys = set(keys.keys())
-    provided_keys = set(translations.keys())
-
-    missing = expected_keys - provided_keys
-    extra = provided_keys - expected_keys
+    missing, extra = diff_key_sets(keys, translations)
 
     if missing:
-        warnings.append(
-            f"Missing translations for: {', '.join(sorted(missing))}"
-        )
+        warnings.append(f"Missing translations for: {', '.join(missing)}")
     if extra:
-        warnings.append(f"Extra keys not in source: {', '.join(sorted(extra))}")
+        warnings.append(f"Extra keys not in source: {', '.join(extra)}")
 
     return warnings
 
@@ -1004,9 +1083,16 @@ def _update_handler(args) -> int:
         )
         return 1
 
+    # --strict is --validate plus a gate. Resolved here rather than via an
+    # argparse default so the advisory path stays byte-for-byte what it was.
+    validate = getattr(args, "validate", False) or getattr(
+        args, "strict", False
+    )
+    strict = getattr(args, "strict", False)
+
     try:
         # Validation if requested
-        if args.validate and translations_json:
+        if validate and translations_json:
             # Need to fetch the task first to get keys_json
             task = get_task_by_id(args.task_id)
             if not task:
@@ -1021,6 +1107,17 @@ def _update_handler(args) -> int:
                     print(f"Warning: {warning}", file=sys.stderr)
                 # Advisory only: we warn but still save (exit 0). Callers must
                 # read these warnings and re-submit with the correct keys.
+                if strict:
+                    # ...unless --strict, which refuses the write. Nothing has
+                    # touched the DB yet (update_task below is the only writer),
+                    # so returning here leaves the row exactly as it was.
+                    print(
+                        "Refusing to write task "
+                        f"{args.task_id}: key set does not match the source "
+                        "(--strict).",
+                        file=sys.stderr,
+                    )
+                    return 1
 
         # Update the task
         task = update_task(
@@ -1249,3 +1346,580 @@ def _export_handler(args) -> int:
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
+
+
+# ---------------------------------------------------------------------------
+# audit  (pre-export gate over the completed rows in the DB)
+# ---------------------------------------------------------------------------
+# `tasks update --validate` is advisory, so `pending: 0` does not prove the
+# writes are clean (AGENT_TRANSLATION_PROTOCOL.md "Audit stage"). This reads the
+# rows back out of SQLite -- before any export touches
+# locales/content/<locale> -- and runs four checks.
+#
+# Everything below the CHECKS banner is pure: (source_map, translation_map) in,
+# findings out. No I/O, no printing, no argparse. The handler is the only part
+# that knows about the DB or the console.
+
+AUDIT_CHECKS = ("status", "key_set", "tokens", "en_leak")
+
+# Two severities, because one of the checks cannot be a gate.
+#
+# ERROR   -- a defect the export would carry into locales/content, or silently
+#            drop. `--strict` fails on these; export-all.sh refuses the locale.
+# ADVISORY-- reported, never gates. `en_leak` lives here: a translation being
+#            byte-identical to English is the CORRECT answer for a large class
+#            of short UI strings ("Status", "Version", "TTL", "Redis", product
+#            names, region names). Measured against the shipped tree it fires on
+#            132 correct de strings, 133 nl, 107 fr_FR. As a gate that makes a
+#            correctly translated locale unexportable unless someone enters a
+#            WRONG translation, so it reports and stays out of the exit code.
+SEVERITY_ERROR = "error"
+SEVERITY_ADVISORY = "advisory"
+
+ADVISORY_CHECKS = ("en_leak",)
+
+# Brand names that MUST stay English (AGENT_TRANSLATION_PROTOCOL.md
+# "Translation rules"). A string made of nothing but these is not a leak.
+ENGLISH_BRANDS = ("Onetime Secret", "Identity Plus", "Starlight")
+
+# Any Unicode letter. Used to decide whether a string contains something a
+# human could actually have translated.
+_LETTER_RE = re.compile(r"[^\W\d_]", re.UNICODE)
+
+# Vue i18n plural separator. "{count} item | {count} items" is ONE message with
+# two forms, and the number of forms is a property of the target language (ja 1,
+# en 2, ru 3). Token checks therefore compare per form, never whole-string.
+PLURAL_SEPARATOR = "|"
+
+
+@dataclass(frozen=True)
+class TaskRef:
+    """Where a finding came from. Empty defaults keep the checks callable bare."""
+
+    locale: str = ""
+    task_id: Optional[int] = None
+    file: str = ""
+    level_path: str = ""
+
+
+@dataclass(frozen=True)
+class AuditFinding:
+    """One problem with one completed row.
+
+    The single record type behind both output paths: ``--json`` serializes
+    exactly what the human renderer prints, so the two can never disagree.
+    ``leaf`` is the name inside ``keys_json``; ``key`` is the dotted path an
+    operator can grep for (``level_path.leaf``). Row-level findings carry an
+    empty ``leaf``.
+    """
+
+    check: str
+    detail: str
+    leaf: str = ""
+    ref: TaskRef = TaskRef()
+    source: Optional[str] = None
+    translation: Optional[str] = None
+
+    @property
+    def severity(self) -> str:
+        """``error`` (gates ``--strict``) or ``advisory`` (reported only)."""
+        return (
+            SEVERITY_ADVISORY
+            if self.check in ADVISORY_CHECKS
+            else SEVERITY_ERROR
+        )
+
+    @property
+    def key(self) -> str:
+        if not self.leaf:
+            return self.ref.level_path
+        if not self.ref.level_path:
+            return self.leaf
+        return f"{self.ref.level_path}.{self.leaf}"
+
+    def to_dict(self) -> dict:
+        return {
+            "locale": self.ref.locale,
+            "task_id": self.ref.task_id,
+            "file": self.ref.file,
+            "level_path": self.ref.level_path,
+            "key": self.key,
+            "leaf": self.leaf,
+            "check": self.check,
+            "severity": self.severity,
+            "detail": self.detail,
+            "source": self.source,
+            "translation": self.translation,
+        }
+
+
+# ----- CHECKS (pure) -------------------------------------------------------
+
+
+def _exportable(value) -> bool:
+    """Would :func:`export_locale` actually write ``value``?
+
+    It skips anything failing ``isinstance(str) and .strip()``. The audit uses
+    the same predicate so the two cannot disagree about what "translated" means.
+    """
+    return isinstance(value, str) and bool(value.strip())
+
+
+def check_key_set(
+    source_map: dict, translation_map: dict, ref: TaskRef = TaskRef()
+) -> list[AuditFinding]:
+    """The row's translation keys must equal its source keys exactly.
+
+    "Present" means *exportable*, not merely a key in the dict: a blank
+    translation passes a naive key-set diff but ``export_locale`` drops it, so
+    the key would never reach ``content/<locale>`` while the audit read green.
+    That is exactly the "pending: 0 does not prove the writes are clean" hole
+    this command exists to close, so a blank value is a key_set finding.
+    """
+    missing, extra = diff_key_sets(source_map, translation_map)
+    findings = [
+        AuditFinding(
+            check="key_set",
+            detail="missing from translations",
+            leaf=leaf,
+            ref=ref,
+            source=source_map.get(leaf),
+        )
+        for leaf in missing
+    ]
+    findings.extend(
+        AuditFinding(
+            check="key_set",
+            detail="extra key not in source",
+            leaf=leaf,
+            ref=ref,
+            translation=translation_map.get(leaf),
+        )
+        for leaf in extra
+    )
+    for leaf in sorted(set(source_map) & set(translation_map)):
+        source_text = source_map[leaf]
+        # An empty source has nothing to translate; export skips both sides.
+        if not _exportable(source_text):
+            continue
+        if _exportable(translation_map[leaf]):
+            continue
+        findings.append(
+            AuditFinding(
+                check="key_set",
+                detail="translation is blank; export would skip this key",
+                leaf=leaf,
+                ref=ref,
+                source=source_text,
+                translation=(
+                    translation_map[leaf]
+                    if isinstance(translation_map[leaf], str)
+                    else None
+                ),
+            )
+        )
+    return findings
+
+
+def _format_token_counts(counts: Counter[str]) -> str:
+    return ", ".join(
+        f"{token}x{n}" if n > 1 else token for token, n in sorted(counts.items())
+    )
+
+
+def _token_forms(text) -> list[Counter[str]]:
+    """Token multiset per Vue-i18n plural form.
+
+    A message is split on ``|`` because the FORM COUNT is a property of the
+    target language, not of the source: en has 2 plural forms, ja 1, ru 3.
+    Counting tokens over the whole string makes a correct ``ja`` translation of
+    ``"{count} team | {count} teams"`` look like a dropped ``{count}`` and a
+    correct ``ru`` one look like an extra. Non-strings yield one empty form.
+    """
+    if not isinstance(text, str):
+        return [extract_tokens(text)]
+    return [extract_tokens(form) for form in text.split(PLURAL_SEPARATOR)]
+
+
+def _pair_plural_forms(
+    source_forms: list[Counter[str]], translation_forms: list[Counter[str]]
+) -> list[tuple[Counter[str], Counter[str]]]:
+    """``(expected, actual)`` per translation form.
+
+    Same number of forms on both sides -> compare positionally. Different
+    numbers (the normal case for ja/ru/zh) -> every translation form is measured
+    against the source's per-form multiset. All 16 plural messages in the
+    shipped en tree carry identical tokens in every form, so "the source's form"
+    is well defined; the union is only a fallback for a source whose forms
+    disagree, where refusing to guess would be worse than being lenient.
+    """
+    if len(source_forms) == len(translation_forms):
+        return list(zip(source_forms, translation_forms))
+
+    expected = source_forms[0]
+    if not all(form == expected for form in source_forms):
+        expected = reduce(operator.or_, source_forms)
+    return [(expected, actual) for actual in translation_forms]
+
+
+def check_tokens(
+    source_map: dict, translation_map: dict, ref: TaskRef = TaskRef()
+) -> list[AuditFinding]:
+    """Per key, the translation's token multiset must equal the source's.
+
+    Multiset, not set: dropping one of two ``{count}`` occurrences is a bug.
+    Compared per plural form (see :func:`_pair_plural_forms`) so a language with
+    a different number of forms is not flagged for having them. Token families
+    and their one definition live in :mod:`i18n.tokens`. Only keys present on
+    both sides are compared -- absences are ``key_set``'s job.
+    """
+    findings: list[AuditFinding] = []
+    for leaf in sorted(source_map):
+        if leaf not in translation_map:
+            continue
+        source_text = source_map[leaf]
+        translation = translation_map[leaf]
+        pairs = _pair_plural_forms(
+            _token_forms(source_text), _token_forms(translation)
+        )
+
+        details = []
+        for index, (expected, actual) in enumerate(pairs, start=1):
+            if expected == actual:
+                continue
+            dropped = expected - actual
+            added = actual - expected
+            parts = []
+            if dropped:
+                parts.append(f"missing {_format_token_counts(dropped)}")
+            if added:
+                parts.append(f"extra {_format_token_counts(added)}")
+            prefix = f"form {index}: " if len(pairs) > 1 else ""
+            details.append(prefix + "; ".join(parts))
+
+        if not details:
+            continue
+        findings.append(
+            AuditFinding(
+                check="tokens",
+                detail="; ".join(details),
+                leaf=leaf,
+                ref=ref,
+                source=source_text if isinstance(source_text, str) else None,
+                translation=(
+                    translation if isinstance(translation, str) else None
+                ),
+            )
+        )
+    return findings
+
+
+def _is_translatable_prose(source_text: str) -> bool:
+    """Would a real translation of ``source_text`` differ from the English?
+
+    False for the cases where an identical string is the CORRECT answer, so the
+    leak check never fires on them:
+
+    * empty / whitespace-only source;
+    * strings with no letters at all -- numbers, punctuation, symbols, and bare
+      placeholders like ``{count}`` or ``%s`` (tokens are stripped first);
+    * strings whose only letters belong to a brand that must stay English
+      (``Onetime Secret``, ``Identity Plus``, ``Starlight``).
+    """
+    if not isinstance(source_text, str) or not source_text.strip():
+        return False
+
+    residue = strip_tokens(source_text)
+    for brand in ENGLISH_BRANDS:
+        residue = re.sub(re.escape(brand), " ", residue, flags=re.IGNORECASE)
+    return bool(_LETTER_RE.search(residue))
+
+
+def check_en_leak(
+    source_map: dict, translation_map: dict, ref: TaskRef = TaskRef()
+) -> list[AuditFinding]:
+    """Flag translations left byte-identical to their English source.
+
+    ADVISORY, never a gate (see :data:`ADVISORY_CHECKS`). No amount of exclusion
+    tuning makes this safe to block on: "Status", "Version", "TTL", "Redis",
+    "Amazon SES", "Canada" and a long tail like them are correct German, and a
+    gate on them can only be satisfied by entering a wrong translation.
+
+    Still deliberately conservative, because it is read by humans. It fires only
+    on an exact byte match of a source that :func:`_is_translatable_prose` says
+    had something to translate, and never for an English target locale (``en``,
+    ``en_GB``, ...), where identical IS the translation. Keys marked ``skip`` in
+    the en source never reach ``keys_json`` at all (``io.walk_keys``), and
+    ``status='skipped'`` rows are outside the completed set the handler reads,
+    so both are excluded upstream.
+    """
+    # An English target (en, en_GB, ...) is identical to en by definition. An
+    # unset locale (bare TaskRef) is NOT treated as English -- the check must
+    # still run when called directly with two maps.
+    if (ref.locale or "").split("_")[0].lower() == "en":
+        return []
+
+    findings: list[AuditFinding] = []
+    for leaf in sorted(source_map):
+        if leaf not in translation_map:
+            continue
+        source_text = source_map[leaf]
+        translation = translation_map[leaf]
+        if not isinstance(translation, str) or translation != source_text:
+            continue
+        if not _is_translatable_prose(source_text):
+            continue
+        findings.append(
+            AuditFinding(
+                check="en_leak",
+                detail="translation is byte-identical to the English source",
+                leaf=leaf,
+                ref=ref,
+                source=source_text,
+                translation=translation,
+            )
+        )
+    return findings
+
+
+def audit_maps(
+    source_map: dict, translation_map: dict, ref: TaskRef = TaskRef()
+) -> list[AuditFinding]:
+    """Run all three checks over one row's key maps."""
+    return [
+        *check_key_set(source_map, translation_map, ref),
+        *check_tokens(source_map, translation_map, ref),
+        *check_en_leak(source_map, translation_map, ref),
+    ]
+
+
+def audit_row(row: dict) -> list[AuditFinding]:
+    """Audit one completed ``translation_tasks`` row (JSON columns still raw)."""
+    ref = TaskRef(
+        locale=row.get("locale") or "",
+        task_id=row.get("id"),
+        file=row.get("file") or "",
+        level_path=row.get("level_path") or "",
+    )
+
+    try:
+        source_map = json.loads(row["keys_json"]) if row.get("keys_json") else {}
+    except json.JSONDecodeError as e:
+        return [
+            AuditFinding(
+                check="key_set", detail=f"invalid keys_json: {e}", ref=ref
+            )
+        ]
+
+    # A completed row with no translations is itself a finding -- the export
+    # query hides these behind `translations_json IS NOT NULL`, so the audit is
+    # the only place it surfaces.
+    if not row.get("translations_json"):
+        return [
+            AuditFinding(
+                check="key_set",
+                detail=(
+                    f"completed row has no translations stored "
+                    f"({len(source_map)} source keys)"
+                ),
+                ref=ref,
+            )
+        ]
+
+    try:
+        translation_map = json.loads(row["translations_json"])
+    except json.JSONDecodeError as e:
+        return [
+            AuditFinding(
+                check="key_set",
+                detail=f"invalid translations_json: {e}",
+                ref=ref,
+            )
+        ]
+
+    if not isinstance(source_map, dict) or not isinstance(translation_map, dict):
+        return [
+            AuditFinding(
+                check="key_set",
+                detail="keys_json/translations_json are not JSON objects",
+                ref=ref,
+            )
+        ]
+
+    return audit_maps(source_map, translation_map, ref)
+
+
+# ----- DB + CLI ------------------------------------------------------------
+
+
+def _rows_for_audit(locale: str, status: str) -> list[dict]:
+    """Raw ``translation_tasks`` rows for ``locale`` in ``status``.
+
+    Separate from :func:`get_completed_tasks` on purpose: that one omits ``id``
+    (the audit reports it so an operator can re-run ``tasks update``) and
+    filters out NULL ``translations_json`` (load-bearing for export, but the
+    exact thing the audit must see).
+    """
+    if not DB_FILE.exists():
+        raise FileNotFoundError(f"Database not found: {DB_FILE}")
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, file, level_path, locale, status, keys_json,
+                   translations_json
+            FROM translation_tasks
+            WHERE locale = ? AND status = ?
+            ORDER BY file, level_path, id
+            """,
+            (locale, status),
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_completed_rows_for_audit(locale: str) -> list[dict]:
+    """Every ``status='completed'`` row for ``locale``, raw JSON columns."""
+    return _rows_for_audit(locale, "completed")
+
+
+def check_stranded_rows(rows: list[dict]) -> list[AuditFinding]:
+    """``in_progress`` rows: claimed, never finished, invisible to both gates.
+
+    ``tasks next --stats`` counts them separately from ``pending``, so a locale
+    with nothing but a stranded claim reports ``pending: 0`` and reads as
+    drained; the per-key checks only look at ``completed`` rows, so it reads as
+    clean too. The export then writes a silently truncated locale at exit 0 --
+    and ``tasks next`` never re-serves an ``in_progress`` row, so it strands
+    indefinitely. Recover with ``tasks update <ID> --status pending``.
+
+    ``pending`` is deliberately NOT reported here: that is the drained gate's
+    job, and duplicating it would make the audit shout about every locale that
+    has simply not been translated yet.
+    """
+    findings = []
+    for row in rows:
+        try:
+            key_count = len(json.loads(row["keys_json"] or "{}"))
+        except (json.JSONDecodeError, TypeError):
+            key_count = 0
+        findings.append(
+            AuditFinding(
+                check="status",
+                detail=(
+                    f"row is still in_progress; its {key_count} key(s) will "
+                    "not be exported (reset with `tasks update "
+                    f"{row.get('id')} --status pending`)"
+                ),
+                ref=TaskRef(
+                    locale=row.get("locale") or "",
+                    task_id=row.get("id"),
+                    file=row.get("file") or "",
+                    level_path=row.get("level_path") or "",
+                ),
+            )
+        )
+    return findings
+
+
+def audit_locale(locale: str) -> tuple[list[AuditFinding], int]:
+    """``(findings, rows_checked)`` for ``locale``.
+
+    ``rows_checked`` counts only the completed rows the per-key checks ran over;
+    stranded ``in_progress`` rows are findings, not checked rows.
+    """
+    rows = get_completed_rows_for_audit(locale)
+    findings: list[AuditFinding] = check_stranded_rows(
+        _rows_for_audit(locale, "in_progress")
+    )
+    for row in rows:
+        findings.extend(audit_row(row))
+    return findings, len(rows)
+
+
+def _print_audit_human(
+    locale: str, findings: list[AuditFinding], rows_checked: int
+) -> None:
+    by_task: dict[tuple, list[AuditFinding]] = defaultdict(list)
+    for finding in findings:
+        by_task[
+            (finding.ref.task_id, finding.ref.file, finding.ref.level_path)
+        ].append(finding)
+
+    for (task_id, file_name, level_path), group in by_task.items():
+        print(f"\ntask {task_id} · {file_name} · {level_path}")
+        for finding in group:
+            marker = "" if finding.severity == SEVERITY_ERROR else " (advisory)"
+            print(
+                f"  [{finding.check}]{marker} {finding.key}: {finding.detail}"
+            )
+            if finding.source is not None:
+                print(f'    en:       "{finding.source}"')
+            if finding.translation is not None:
+                print(f'    {locale}: "{finding.translation}"')
+
+    errors, advisories = _split_by_severity(findings)
+    if rows_checked == 0:
+        print(
+            f"\nNothing was verified for '{locale}': no completed rows in the "
+            "DB. This is not a clean locale, it is an unverified one."
+        )
+    # Always print the row count: a locale with zero completed rows produces
+    # zero findings, and "0 findings" alone would read green to export-all.sh.
+    print(
+        f"\nTOTAL: {len(findings)} finding(s) ({len(errors)} error, "
+        f"{len(advisories)} advisory) across {rows_checked} completed row(s) "
+        f"for '{locale}'"
+    )
+
+
+def _split_by_severity(
+    findings: list[AuditFinding],
+) -> tuple[list[AuditFinding], list[AuditFinding]]:
+    errors = [f for f in findings if f.severity == SEVERITY_ERROR]
+    advisories = [f for f in findings if f.severity != SEVERITY_ERROR]
+    return errors, advisories
+
+
+def _audit_handler(args) -> int:
+    try:
+        findings, rows_checked = audit_locale(args.locale)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except sqlite3.Error as e:
+        print(f"Database error: {e}", file=sys.stderr)
+        return 1
+
+    errors, advisories = _split_by_severity(findings)
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "locale": args.locale,
+                    "rows_checked": rows_checked,
+                    "findings_total": len(findings),
+                    "errors_total": len(errors),
+                    "advisories_total": len(advisories),
+                    "counts_by_check": {
+                        check: sum(1 for f in findings if f.check == check)
+                        for check in AUDIT_CHECKS
+                    },
+                    "findings": [f.to_dict() for f in findings],
+                },
+                indent=2,
+                default=str,
+            )
+        )
+    else:
+        _print_audit_human(args.locale, findings, rows_checked)
+
+    # Advisory by default (mirrors `validate glossary`): print and exit 0.
+    # --strict is the gate export-all.sh runs before it writes content, and it
+    # follows `validate glossary --strict` exactly: fail on an error finding,
+    # and ALSO fail when nothing could be checked — a gate that verifies nothing
+    # must not read green. `en_leak` findings are advisory and never gate.
+    if args.strict and (errors or rows_checked == 0):
+        return 1
+    return 0
