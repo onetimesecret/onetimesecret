@@ -1539,5 +1539,9 @@
   "web.TITLES.domain_dns": {
     "text": "Nastavitev DNS",
     "source_hash": "6c63df31"
+  },
+  "web.TITLES.connected_identities": {
+    "text": "Povezane identitete",
+    "source_hash": "e132c4d9"
   }
 }

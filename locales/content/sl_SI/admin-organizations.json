@@ -310,5 +310,333 @@
   "web.admin.organizations.list.loadError": {
     "text": "Organizacij ni bilo mogoče naložiti.",
     "source_hash": "130d5e70"
+  },
+  "web.admin.organizations.addMember.button": {
+    "text": "Dodaj obstoječi račun",
+    "source_hash": "45a3b757"
+  },
+  "web.admin.organizations.addMember.title": {
+    "text": "Dodaj obstoječi račun",
+    "source_hash": "2f676a94"
+  },
+  "web.admin.organizations.addMember.description": {
+    "text": "Dodajte nekoga, ki že ima račun, v {org}. Uporabite to, ko se je oseba registrirala sama in je ni mogoče povabiti, ker račun že obstaja.",
+    "source_hash": "bb41faa6"
+  },
+  "web.admin.organizations.addMember.searchLabel": {
+    "text": "E-poštni naslov ali ID računa",
+    "source_hash": "82b3040b"
+  },
+  "web.admin.organizations.addMember.searchPlaceholder": {
+    "text": "Iskanje po e-poštnem naslovu",
+    "source_hash": "b75cc66c"
+  },
+  "web.admin.organizations.addMember.searchHint": {
+    "text": "Ujema del e-poštnega naslova ali natančen ID računa.",
+    "source_hash": "84547a60"
+  },
+  "web.admin.organizations.addMember.searchError": {
+    "text": "Iskanja računov ni bilo mogoče izvesti. Preverite povezavo in poskusite znova.",
+    "source_hash": "4b6caa41"
+  },
+  "web.admin.organizations.addMember.searchParseError": {
+    "text": "Iskanje računov je vrnilo nepričakovan odgovor. Rezultati so morda nepopolni.",
+    "source_hash": "0c814231"
+  },
+  "web.admin.organizations.addMember.idle": {
+    "text": "Vnesite e-poštni naslov za iskanje računa.",
+    "source_hash": "f6340d35"
+  },
+  "web.admin.organizations.addMember.noResults": {
+    "text": "Noben račun ne ustreza »{term}«.",
+    "source_hash": "199b662a"
+  },
+  "web.admin.organizations.addMember.noResultsHint": {
+    "text": "Tukaj je mogoče dodati samo obstoječe račune. Če se oseba še nikoli ni registrirala, jo povabite.",
+    "source_hash": "ee90aeeb"
+  },
+  "web.admin.organizations.addMember.select": {
+    "text": "Izberi",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.organizations.addMember.selectedEyebrow": {
+    "text": "Izbrani račun",
+    "source_hash": "8b63d947"
+  },
+  "web.admin.organizations.addMember.change": {
+    "text": "Izberite drug račun",
+    "source_hash": "d4fe39ab"
+  },
+  "web.admin.organizations.addMember.createdOn": {
+    "text": "Registracija {date}",
+    "source_hash": "cfc0e19f"
+  },
+  "web.admin.organizations.addMember.organizationsUnavailable": {
+    "text": "Trenutnih organizacij tega računa ni bilo mogoče naložiti.",
+    "source_hash": "a35b6bfc"
+  },
+  "web.admin.organizations.addMember.defaultOrg": {
+    "text": "privzeto",
+    "source_hash": "37a8eec1"
+  },
+  "web.admin.organizations.addMember.roleLabel": {
+    "text": "Vloga v tej organizaciji",
+    "source_hash": "817475fa"
+  },
+  "web.admin.organizations.addMember.submit": {
+    "text": "Dodaj v organizacijo",
+    "source_hash": "0e0cb636"
+  },
+  "web.admin.organizations.addMember.success": {
+    "text": "{account} dodan/-a kot {role}.",
+    "source_hash": "533be0dc"
+  },
+  "web.admin.organizations.addMember.badges.verified": {
+    "text": "Preverjeno",
+    "source_hash": "4f783840"
+  },
+  "web.admin.organizations.addMember.badges.unverified": {
+    "text": "Ni preverjeno",
+    "source_hash": "15133907"
+  },
+  "web.admin.organizations.addMember.badges.suspended": {
+    "text": "Začasno onemogočeno",
+    "source_hash": "e392a389"
+  },
+  "web.admin.organizations.addMember.badges.alreadyMember": {
+    "text": "Že član",
+    "source_hash": "1739ed7c"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMember": {
+    "text": "Ta račun je že član te organizacije z vlogo {role}. Dodajanje ne spremeni obstoječe vloge — za to uporabite dejanje nastavi vlogo.",
+    "source_hash": "cb6a4774"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
+    "text": "Ta račun je že član te organizacije. Dodajanje ne spremeni obstoječe vloge.",
+    "source_hash": "035641ec"
+  },
+  "web.admin.organizations.addMember.errors.notFound": {
+    "text": "Ta račun ali organizacija ne obstaja več. Ponovno poiščite, da potrdite račun.",
+    "source_hash": "bd88db18"
+  },
+  "web.admin.organizations.addMember.errors.invalidRole": {
+    "text": "Ta vloga je bila zavrnjena. Izberite eno od navedenih vlog in poskusite znova.",
+    "source_hash": "eb696a8f"
+  },
+  "web.admin.organizations.addMember.errors.noSelection": {
+    "text": "Noben račun ni izbran.",
+    "source_hash": "dd15bb5b"
+  },
+  "web.admin.organizations.addMember.fields.created": {
+    "text": "Registracija",
+    "source_hash": "486b3fe0"
+  },
+  "web.admin.organizations.addMember.fields.verified": {
+    "text": "Preverjanje",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.organizations.addMember.fields.lastLogin": {
+    "text": "Zadnja prijava",
+    "source_hash": "0b70af7a"
+  },
+  "web.admin.organizations.addMember.fields.organizations": {
+    "text": "Trenutne organizacije",
+    "source_hash": "cbb5b92f"
+  },
+  "web.admin.organizations.addMember.roleHints.member": {
+    "text": "Vsakodnevni dostop do skrivnosti in domen organizacije.",
+    "source_hash": "d0c7439e"
+  },
+  "web.admin.organizations.addMember.roleHints.admin": {
+    "text": "Lahko upravlja člane, domene in nastavitve organizacije.",
+    "source_hash": "beaa50d7"
+  },
+  "web.admin.organizations.addMember.roleHints.owner": {
+    "text": "Popoln nadzor, vključno z obračunavanjem. To dodelite le, ko to zahtevajo.",
+    "source_hash": "614ace63"
+  },
+  "web.admin.organizations.addMember.roles.member": {
+    "text": "Član",
+    "source_hash": "7c968fb7"
+  },
+  "web.admin.organizations.addMember.roles.admin": {
+    "text": "Skrbnik",
+    "source_hash": "c1c224b0"
+  },
+  "web.admin.organizations.addMember.roles.owner": {
+    "text": "Lastnik",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.detail.members.openCustomer": {
+    "text": "Odpri zapis stranke",
+    "source_hash": "c057ca13"
+  },
+  "web.admin.organizations.detail.reconcile.memberships": {
+    "text": "Ponovno materializirana članstva:",
+    "source_hash": "fe7db10c"
+  },
+  "web.admin.organizations.detail.reconcile.membershipsFailed": {
+    "text": "spodletelo, zastarele pravice ostajajo:",
+    "source_hash": "cc4dae37"
+  },
+  "web.admin.organizations.entitlements.catalogWarning": {
+    "text": "»{entitlement}« ni v katalogu obračunavanja — preverite, če gre za napako. Vseeno nadaljujem: dodelitev pravice, ki bo na voljo v kasnejšem katalogu, je podprta in namerno ni blokirana.",
+    "source_hash": "cbde548a"
+  },
+  "web.admin.organizations.entitlements.matrix.caption": {
+    "text": "Matrika razrešitve pravic: načrt, dodelitve in preklici z nadomestitvami, razrešena množica in kar je materializirano.",
+    "source_hash": "9eac8999"
+  },
+  "web.admin.organizations.entitlements.matrix.yes": {
+    "text": "Da",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.matrix.no": {
+    "text": "Ne",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.matrix.empty": {
+    "text": "Ta organizacija nima pravic iz svojega načrta in nima nadomestitev.",
+    "source_hash": "f6cf2169"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.entitlement": {
+    "text": "Pravica",
+    "source_hash": "0d8f0b2d"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.inPlan": {
+    "text": "V načrtu",
+    "source_hash": "e2222361"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.granted": {
+    "text": "Dodeljeno",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.revoked": {
+    "text": "Preklicano",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.expected": {
+    "text": "Pričakovano",
+    "source_hash": "ca99b7f1"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.materialized": {
+    "text": "Materializirano",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.state": {
+    "text": "Stanje",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.formula": {
+    "text": "Razrešitev: pričakovano = (načrt ∪ dodelitve) − preklici. Materializirano je tisto, kar je dejansko shranjeno v organizaciji.",
+    "source_hash": "bc4bff2d"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.orphaned": {
+    "text": "Osirotelo — materializirano, a ne pričakovano, običajno ostane za preklicem, ki ni bil nikoli ponovno materializiran. Uskladitev to odstrani.",
+    "source_hash": "3a27a9af"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.missing": {
+    "text": "Manjka — pričakovano, a ne materializirano. To je dovoljenje, ki članom trenutno dejansko manjka.",
+    "source_hash": "485e44ad"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.revoked": {
+    "text": "Prečrtane vrstice so preklicane s skrbniško nadomestitvijo, ki jih odstrani iz pričakovanega nabora.",
+    "source_hash": "89a2e9b6"
+  },
+  "web.admin.organizations.entitlements.matrix.state.plan": {
+    "text": "Iz načrta",
+    "source_hash": "1d346b26"
+  },
+  "web.admin.organizations.entitlements.matrix.state.granted": {
+    "text": "Dodeljeno",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.state.revoked": {
+    "text": "Preklicano",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.state.orphaned": {
+    "text": "Osirotelo",
+    "source_hash": "8d827807"
+  },
+  "web.admin.organizations.entitlements.matrix.state.missing": {
+    "text": "Manjka",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.organizations.entitlements.picker.selectPlaceholder": {
+    "text": "Izberite pravico …",
+    "source_hash": "53af3be8"
+  },
+  "web.admin.organizations.entitlements.picker.other": {
+    "text": "Drugo — ni v katalogu …",
+    "source_hash": "f08bc3a3"
+  },
+  "web.admin.organizations.entitlements.picker.customLabel": {
+    "text": "Ime pravice (ni v katalogu)",
+    "source_hash": "52783229"
+  },
+  "web.admin.organizations.entitlements.picker.backToCatalog": {
+    "text": "Nazaj na katalog",
+    "source_hash": "9b727f40"
+  },
+  "web.admin.organizations.entitlements.picker.uncategorized": {
+    "text": "Nekategorizirano",
+    "source_hash": "8d40d123"
+  },
+  "web.admin.organizations.entitlements.picker.catalogUnavailable": {
+    "text": "Kataloga obračunavanja ni bilo mogoče prebrati, zato imena pravic tukaj niso preverjena.",
+    "source_hash": "724869ec"
+  },
+  "web.admin.organizations.entitlements.picker.tags.inPlan": {
+    "text": "v načrtu",
+    "source_hash": "5f2251bb"
+  },
+  "web.admin.organizations.entitlements.picker.tags.granted": {
+    "text": "dodeljeno",
+    "source_hash": "dd515d19"
+  },
+  "web.admin.organizations.entitlements.picker.tags.revoked": {
+    "text": "preklicano",
+    "source_hash": "4bb47f18"
+  },
+  "web.admin.organizations.entitlements.summary.sync": {
+    "text": "Sinhroniziraj",
+    "source_hash": "8d261a37"
+  },
+  "web.admin.organizations.entitlements.summary.materialized": {
+    "text": "Materializirano",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.summary.materializedAt": {
+    "text": "Nazadnje materializirano",
+    "source_hash": "9325dce9"
+  },
+  "web.admin.organizations.entitlements.summary.planDefinition": {
+    "text": "Definicija načrta",
+    "source_hash": "6b531454"
+  },
+  "web.admin.organizations.entitlements.summary.yes": {
+    "text": "Da",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.summary.no": {
+    "text": "Ne",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.summary.never": {
+    "text": "Nikoli",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.organizations.entitlements.summary.planStale": {
+    "text": "Spremenjeno po materializaciji",
+    "source_hash": "e682d8a4"
+  },
+  "web.admin.organizations.entitlements.summary.planCurrent": {
+    "text": "Trenutno",
+    "source_hash": "e0d1b682"
+  },
+  "web.admin.organizations.entitlements.summary.planUnknown": {
+    "text": "Neznano — primerjava ni možna",
+    "source_hash": "b607e540"
   }
 }
