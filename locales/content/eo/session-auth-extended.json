@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "seancoj",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Konektitaj Identecoj",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Administru la unufoj-ensalut-provizantojn ligitajn al via konto.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Unufoja ensaluto",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Idento-provizantoj kiujn vi povas uzi por ensaluti al ĉi tiu konto",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Konekti provizanton",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Ligu alian unufoj-ensalut-provizanton kiun vi povas uzi por ensaluti al ĉi tiu konto.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Konekti {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Eldonanto",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identigilo",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Forigi",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Forigi konektitan identecon",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Ĉu vi certas ke vi volas forigi ĉi tiun konektitan identecon? Vi ne plu povos ensaluti per ĝi.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Konektita identeco forigita",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Neniuj konektitaj identecoj",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Vi ankoraŭ ne ligis iujn unufoj-ensalut-provizantojn al ĉi tiu konto.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Unufoja ensaluto",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Ĉi tio estas via sola maniero ensaluti. Unue konektu alian provizanton, aŭ agordu pasvorton el Agordoj → Sekureco, por ke vi ne ekskluzivos vin.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Ĉi tio estas via sola maniero ensaluti. Unue konektu alian provizanton por ke vi ne ekskluzivos vin.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Tiu konektita identeco ne troveblis. Eble ĝi jam estis forigita.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Via seanco eksvalidiĝis. Bonvolu ensaluti denove.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Ni ne povis plenumi tiun agon. Bonvolu reprovi.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Ligu vian ensalut-metodon",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Vi ensalutis per {provider}, kiu kongruas kun la ekzistanta konto {email}. Enigu la pasvorton de tiu konto por ligi {provider} kaj daŭrigi.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Pasvorto",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Via ekzistanta pasvorto",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Ligi kaj daŭrigi",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Nuligi",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Ĉi tiu ligo-peto eksvalidiĝis",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Por via sekureco, la peto por ligi ĉi tiun ensalut-metodon ne plu validas. Ensalutu per via ekzistanta pasvorto, poste konektu ĉi tiun provizanton sub Sekureco-agordoj → Konektitaj identecoj.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Daŭrigi al ensaluto",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Tiu pasvorto ne kongruas kun ĉi tiu konto. Bonvolu reprovi.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Ĉi tiu ligo-peto eksvalidiĝis aŭ jam estis uzita. Ensalutu per via ekzistanta pasvorto, poste konektu ĉi tiun provizanton el viaj konto-agordoj.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Ni ne povis ligi ĉi tiun ensalut-metodon. Via konto eble ŝanĝiĝis, aŭ ĉi tiu provizanto jam estas ligita al alia konto. Ensalutu per via ekzistanta pasvorto, poste administru konektojn sub Sekureco-agordoj → Konektitaj identecoj.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Tro multaj pasvort-provoj. Bonvolu atendi kelkajn minutojn, poste reprovu.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Ni ne povis procezi ĉi tiun ligo-peton. Bonvolu ensaluti per via SSO-provizanto denove.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Ni ne povis ligi vian konton. Bonvolu reprovi.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Konfirmu konekti vian konton",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Vi ensalutis per {provider}, kiu kongruas kun via konto {email}. Konfirmu por konekti {provider} al ĉi tiu konto kaj fini ensaluti.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Konfirmi kaj konekti",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Nuligi",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Ĉi tiu ligo-peto ne plenumiĝas",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Por via sekureco, ĉi tiu peto por konekti vian ensalut-metodon ne plu validas. Ensalutu per via provizanto denove kaj ni retpoŝtos al vi freŝan ligilon.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Reveni al ensaluto",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Ĉi tiu ligo-peto eksvalidiĝis aŭ jam estis uzita. Ensalutu per via provizanto denove kaj ni retpoŝtos al vi freŝan ligilon.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Ni ne povis konekti ĉi tiun ensalut-metodon. Via konto eble ŝanĝiĝis, aŭ ĉi tiu provizanto jam estas ligita al alia konto. Ensalutu per via provizanto denove por daŭrigi.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Viaj konto-legitimiloj ŝanĝiĝis post kiam ĉi tiu ligilo estis sendita, do ĝi ne plu validas. Ensalutu per via provizanto denove kaj ni retpoŝtos al vi freŝan ligilon.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Io misfunkciis ĉe nia flanko kaj ni ne povis kontroli ĉi tiun ligilon. Ensalutu per via provizanto denove kaj ni retpoŝtos al vi freŝan.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Tro multaj provoj de via aparato. Bonvolu atendi kelkajn minutojn, poste malfermu la retpoŝtitan ligilon denove aŭ ensalutu per via provizanto por freŝa.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Ni ne povis konfirmi ĉi tiun konekton. Bonvolu ensaluti per via provizanto denove.",
+    "source_hash": "076fa25a"
   }
 }
