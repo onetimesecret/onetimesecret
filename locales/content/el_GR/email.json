@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Λάβατε αυτό το μήνυμα επειδή ο %{sender_email} χρησιμοποίησε το %{product_name} για να μοιραστεί ένα μυστικό μαζί σας. Αν δεν το περιμένατε, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Επιβεβαιώστε τη σύνδεση του %{provider} με τον λογαριασμό σας %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Επιβεβαιώστε τη σύνδεσή σας SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Κάποιος συνδέθηκε με %{provider} χρησιμοποιώντας το email %{email_address}. Για να ολοκληρώσετε τη σύνδεση του %{provider} με τον λογαριασμό σας %{product_name}, επιβεβαιώστε παρακάτω.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Επιβεβαίωση και σύνδεση %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Αυτός ο σύνδεσμος λήγει σε 15 λεπτά και μπορεί να χρησιμοποιηθεί μόνο μία φορά.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Αν δεν προσπαθήσατε να συνδεθείτε με %{provider}, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email — τίποτα δεν θα συνδεθεί με τον λογαριασμό σας.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Ομάδα υποστήριξης",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }
