@@ -5,7 +5,7 @@
 require 'date' # ensure Date/Time constants resolve for permitted_classes
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
-require_relative 'utils/admin_host_allowlist' # validate_admin_allowed_hosts! classifies ADMIN_ALLOWED_HOSTS at boot
+require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
 require_relative 'utils/config_resolver'
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
@@ -1004,9 +1004,10 @@ module Onetime
       validate_link_domains!(conf.dig('features', 'domains', 'link_domains'))
 
       # Fires regardless of whether the admin surfaces are otherwise reachable:
-      # an allowlist that names only unusable entries is a typo whose failure
-      # mode is silent over-exposure, so it must stop the boot.
-      validate_admin_allowed_hosts!(conf.dig('site', 'admin', 'allowed_hosts'))
+      # an allowlist that names only unusable entries is a typo the operator
+      # has to hear about at boot rather than on the first admin request.
+      # WARNs; it does not stop the boot — see the method.
+      check_admin_allowed_hosts(conf.dig('site', 'admin', 'allowed_hosts'))
     end
 
     # Rejects a LINK_DOMAINS that was set but yields no usable host.
@@ -1069,46 +1070,59 @@ module Onetime
         'links.example.com). Unset LINK_DOMAINS entirely to offer the canonical domain.'
     end
 
-    # Rejects a site.admin.allowed_hosts (ADMIN_ALLOWED_HOSTS, #4062) that was
-    # set but names nothing the host gate could ever match.
+    # WARNs about a site.admin.allowed_hosts (ADMIN_ALLOWED_HOSTS, #4062) that
+    # was set but names nothing the host gate could ever match.
     #
     # Takes the raw config value rather than reading OT.conf so it can be
     # driven directly by a spec without a booted config.
     #
-    #   nil / []           -> return (unset; the gate falls back to the
+    #   nil / []           -> silent (unset; the gate falls back to the
     #                         canonical anchors, and goes inert on a
     #                         localhost/bare-IP install)
-    #   ['*']              -> return (the documented escape hatch: host gate
+    #   ['*']              -> silent (the documented escape hatch: host gate
     #                         off, the middleware WARNs about it)
-    #   ['admin.ex.com']   -> return (enforceable)
-    #   ['*', 'admin.ex']  -> return (the `*` is dropped, 'admin.ex' enforced)
-    #   ['127.0.0.1']      -> RAISE
-    #   ['*.example.com']  -> RAISE
+    #   ['admin.ex.com']   -> silent (enforceable)
+    #   ['*', 'admin.ex']  -> silent (the `*` turns the gate off; the sibling
+    #                         is ignored and the middleware names it)
+    #   ['127.0.0.1']      -> WARN (and the middleware denies both surfaces)
+    #   ['*.example.com']  -> WARN (ditto)
     #
-    # NOTE: this is deliberately the OPPOSITE polarity from #4063's
-    # LINK_DOMAINS, where an empty list is the error. Here empty is the safe
-    # default (canonical-only) and NON-empty-but-unenforceable is the error.
-    # Both land on the same rule — an operator who typed something either gets
-    # what they meant or gets told — via opposite-looking checks. Do not
-    # "harmonize" one to match the other.
+    # WHY THIS WARNS AND validate_link_domains! RAISES — the asymmetry is
+    # deliberate, do not "harmonize" it:
     #
-    # Failing loud matters more here than it looks: every rejected-entry case
-    # is an operator writing an allowlist in order to RESTRICT the admin
-    # surfaces, and the pre-#4062 failure mode was to disable the gate and
-    # serve /colonel on every hostname. Silent over-exposure is the one outcome
-    # this must not have. `*` is how you ask for that on purpose.
-    def validate_admin_allowed_hosts!(raw)
+    #   LINK_DOMAINS has NO fail-closed runtime backstop. An empty or
+    #     unparseable pool silently becomes the canonical domain, i.e. the
+    #     picker offers the internal platform host LINK_DOMAINS exists to
+    #     hide. Nothing downstream can recover the operator's intent, so boot
+    #     has to stop.
+    #   ADMIN_ALLOWED_HOSTS HAS one. AdminNetworkIsolation#configured_host_gate
+    #     returns [[], true] for exactly this config — an ACTIVE gate with an
+    #     EMPTY allowlist, 404ing both admin surfaces — so the over-exposure
+    #     this check exists to prevent cannot happen whether or not the process
+    #     stops. Raising here would abort the PUBLIC site, the API and the
+    #     health endpoints over an admin-console-only typo (an
+    #     ADMIN_ALLOWED_HOSTS=10.0.0.0/8 mixup with the adjacent
+    #     ADMIN_ALLOWED_CIDRS key takes the whole deployment down). The blast
+    #     radius strictly exceeds the harm prevented.
+    #
+    # The diagnostic still fires at BOOT rather than only on the first admin
+    # request, which is the whole reason this check exists separately from the
+    # middleware: an operator who mistyped the allowlist learns it from the
+    # startup log, not from a 404 three days later.
+    #
+    # @param raw [Array<String>, nil] site.admin.allowed_hosts as loaded
+    # @return [void]
+    def check_admin_allowed_hosts(raw)
       classified = Onetime::Utils::AdminHostAllowlist.classify(raw)
       return unless classified.unenforceable?
 
       described = Onetime::Utils::AdminHostAllowlist.describe_rejections(classified.rejected).join('; ')
 
-      raise OT::ConfigError,
-        'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) names no hostname the admin host gate ' \
-        "could ever match, so /colonel and /api/colonel would be served on every hostname: #{described}. " \
-        'Set it to a routable hostname the deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), ' \
-        'unset it entirely to allow the canonical host only, or set it to * to disable the host gate ' \
-        'deliberately.'
+      OT.lw 'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) names no hostname the admin host gate ' \
+            "could ever match, so /colonel and /api/colonel return 404 to EVERY request: #{described}. " \
+            'Set it to a routable hostname the deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), ' \
+            'unset it entirely to allow the canonical host only, or set it to * to disable the host gate ' \
+            'deliberately.'
     end
 
     # Whether a configured link-pool host survives the same parse the

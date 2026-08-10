@@ -13,17 +13,17 @@ module Onetime
     #
     # Two call sites must agree exactly, so the judgment lives in neither:
     #
-    #   Onetime::Config.validate_admin_allowed_hosts! — refuses to boot when an
+    #   Onetime::Config.check_admin_allowed_hosts — WARNs at boot when an
     #     explicitly configured allowlist has nothing enforceable left in it.
-    #     The LOUD path; it owns the operator-facing error text.
+    #     The LOUD path; it owns the operator-facing diagnostic text.
     #   Onetime::Middleware::AdminNetworkIsolation — enforces the surviving
-    #     hosts, and DENIES both admin surfaces if it is ever constructed with
-    #     an explicit allowlist that has nothing enforceable. The backstop, for
-    #     an embedding that builds a Rack app without Config.raise_concerns.
+    #     hosts, and DENIES both admin surfaces when it is constructed with an
+    #     explicit allowlist that has nothing enforceable. The RUNTIME half of
+    #     the same judgment: the boot check explains, this denies.
     #
-    # If those two ever disagreed, the app would either boot into a config the
-    # middleware then refuses to serve, or refuse to boot on a config the
-    # middleware would have served. One classifier, one answer.
+    # If those two ever disagreed, the app would boot with a warning about a
+    # config the middleware then serves happily, or deny a config the boot
+    # check called fine. One classifier, one answer.
     #
     # ## What makes an entry unenforceable
     #
@@ -64,14 +64,25 @@ module Onetime
           hosts.empty? && rejected.empty? && !wildcard
         end
 
-        # `*` and nothing else: the documented escape hatch.
+        # `*` and nothing else: the documented escape hatch, written cleanly.
+        # Callers deciding whether the gate is OFF must ask #wildcard, not this
+        # — see #unenforceable?. This narrower predicate exists only to decide
+        # whether there are IGNORED SIBLINGS worth naming in a WARN.
         def wildcard_only?
           wildcard && hosts.empty? && rejected.empty?
         end
 
         # Configured, but no entry survives — the fail-loud case.
+        #
+        # AN EXPLICIT `*` ANYWHERE IN THE LIST MAKES THIS FALSE, whatever else
+        # is listed. `*` is the documented request for "host gate off"; it is
+        # not made ambiguous by a sibling entry, and the sibling is ignored
+        # either way. Reading `wildcard_only?` here instead (as this did before)
+        # classified `ADMIN_ALLOWED_HOSTS="*,10.0.0.5"` as unenforceable — total
+        # deny in the middleware, and formerly a boot abort — while the error
+        # text told the operator to do exactly what they had just done.
         def unenforceable?
-          !empty? && !wildcard_only? && hosts.empty?
+          !empty? && !wildcard && hosts.empty?
         end
       end
 
@@ -84,9 +95,10 @@ module Onetime
         # ADMIN_ALLOWED_HOSTS="   " classifies as empty?, which sends the gate
         # to the canonical-anchor fallback: the RESTRICTIVE default. There is no
         # over-exposure to fail loud about, so a benign typo does not earn a
-        # boot failure. The unenforceable cases are the opposite — an entry that
+        # diagnostic. The unenforceable cases are the opposite — an entry that
         # survives stripping but can never match would leave the operator's
-        # intent to restrict silently unfulfilled — and those DO raise.
+        # intent to restrict silently unfulfilled — and those DO warn loudly at
+        # boot and deny both surfaces at runtime.
         #
         # @param raw [Array<String>, String, nil]
         # @return [Classification]
