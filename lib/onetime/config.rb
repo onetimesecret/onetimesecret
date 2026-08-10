@@ -5,6 +5,7 @@
 require 'date' # ensure Date/Time constants resolve for permitted_classes
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
+require_relative 'utils/admin_host_allowlist' # validate_admin_allowed_hosts! classifies ADMIN_ALLOWED_HOSTS at boot
 require_relative 'utils/config_resolver'
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
@@ -116,13 +117,23 @@ module Onetime
             'autoverify' => false,
             'allowed_signup_domains' => [],
           },
-          # Colonel admin surfaces network posture. allowed_cidrs empty (default)
-          # = AdminNetworkIsolation middleware is a no-op; both /colonel and
-          # /api/colonel stay reachable, gated only by the two app-layer auth
-          # layers. Set to private CIDRs on cloud to require an in-network
-          # (VPN/private) origin as defense-in-depth. See
-          # lib/onetime/middleware/admin_network_isolation.rb.
+          # Colonel admin surfaces posture, two independent factors (#4062).
+          #
+          # allowed_hosts empty (default) = the host gate falls back to the
+          # canonical ANCHOR hosts (features.domains.default / site.host) and
+          # their www. variants, so the admin surfaces stop answering on tenant
+          # custom domains and link-pool domains. `*` disables it. The gate
+          # self-disables when no configured entry is a routable hostname (the
+          # stock localhost / bare-IP posture).
+          #
+          # allowed_cidrs empty (default) = the network gate is a no-op; both
+          # /colonel and /api/colonel stay reachable from any IP, gated only by
+          # the two app-layer auth layers. Set to private CIDRs on cloud to
+          # require an in-network (VPN/private) origin as defense-in-depth.
+          #
+          # See lib/onetime/middleware/admin_network_isolation.rb.
           'admin' => {
+            'allowed_hosts' => [],
             'allowed_cidrs' => [],
           },
         },
@@ -991,6 +1002,11 @@ module Onetime
       # wrote LINK_DOMAINS, so a blank value is a typo worth failing loud on,
       # and this is the only placement that runs before any feature gating.
       validate_link_domains!(conf.dig('features', 'domains', 'link_domains'))
+
+      # Fires regardless of whether the admin surfaces are otherwise reachable:
+      # an allowlist that names only unusable entries is a typo whose failure
+      # mode is silent over-exposure, so it must stop the boot.
+      validate_admin_allowed_hosts!(conf.dig('site', 'admin', 'allowed_hosts'))
     end
 
     # Rejects a LINK_DOMAINS that was set but yields no usable host.
@@ -1016,7 +1032,7 @@ module Onetime
     # entries, is the only honest option.
     #
     # NOTE: this is deliberately the OPPOSITE polarity from #4062's
-    # security.admin allowed_hosts, where an empty list means canonical-only.
+    # site.admin.allowed_hosts, where an empty list means canonical-only.
     # An empty admin-host allowlist failing closed to canonical is safe. An
     # empty link pool silently becoming the canonical domain hides the
     # operator's typo and produces exactly the outcome LINK_DOMAINS exists to
@@ -1051,6 +1067,48 @@ module Onetime
         'domain, so the link picker would have nothing to offer. Check for typos and ' \
         'private/internal hostnames (a host must have a public suffix, e.g. ' \
         'links.example.com). Unset LINK_DOMAINS entirely to offer the canonical domain.'
+    end
+
+    # Rejects a site.admin.allowed_hosts (ADMIN_ALLOWED_HOSTS, #4062) that was
+    # set but names nothing the host gate could ever match.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil / []           -> return (unset; the gate falls back to the
+    #                         canonical anchors, and goes inert on a
+    #                         localhost/bare-IP install)
+    #   ['*']              -> return (the documented escape hatch: host gate
+    #                         off, the middleware WARNs about it)
+    #   ['admin.ex.com']   -> return (enforceable)
+    #   ['*', 'admin.ex']  -> return (the `*` is dropped, 'admin.ex' enforced)
+    #   ['127.0.0.1']      -> RAISE
+    #   ['*.example.com']  -> RAISE
+    #
+    # NOTE: this is deliberately the OPPOSITE polarity from #4063's
+    # LINK_DOMAINS, where an empty list is the error. Here empty is the safe
+    # default (canonical-only) and NON-empty-but-unenforceable is the error.
+    # Both land on the same rule — an operator who typed something either gets
+    # what they meant or gets told — via opposite-looking checks. Do not
+    # "harmonize" one to match the other.
+    #
+    # Failing loud matters more here than it looks: every rejected-entry case
+    # is an operator writing an allowlist in order to RESTRICT the admin
+    # surfaces, and the pre-#4062 failure mode was to disable the gate and
+    # serve /colonel on every hostname. Silent over-exposure is the one outcome
+    # this must not have. `*` is how you ask for that on purpose.
+    def validate_admin_allowed_hosts!(raw)
+      classified = Onetime::Utils::AdminHostAllowlist.classify(raw)
+      return unless classified.unenforceable?
+
+      described = Onetime::Utils::AdminHostAllowlist.describe_rejections(classified.rejected).join('; ')
+
+      raise OT::ConfigError,
+        'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) names no hostname the admin host gate ' \
+        "could ever match, so /colonel and /api/colonel would be served on every hostname: #{described}. " \
+        'Set it to a routable hostname the deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), ' \
+        'unset it entirely to allow the canonical host only, or set it to * to disable the host gate ' \
+        'deliberately.'
     end
 
     # Whether a configured link-pool host survives the same parse the
