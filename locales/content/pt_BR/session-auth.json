@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "Seu e-mail foi verificado — agora você pode entrar.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Definir uma senha",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Sua conta ainda não tem uma senha. Enviaremos um link seguro por e-mail para você definir uma e também poder entrar diretamente.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Enviar link de configuração",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Um e-mail foi enviado a você com um link para definir uma senha para sua conta",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Já existe uma conta com este endereço de e-mail, mas ela não está vinculada a este método de início de sessão. Entre com seu método existente e depois vincule este provedor em Configurações de segurança → Identidades conectadas.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Não foi possível conectar esta identidade. A conexão pode ter sido iniciada no domínio errado ou sua sessão expirou. Entre novamente e depois conecte-a nas configurações da sua conta.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Não foi possível concluir sua adição à organização. Entre em contato com seu administrador.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Não foi possível vincular esse método de início de sessão. Entre com sua senha existente e depois conecte este provedor em Configurações de segurança → Identidades conectadas.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Verifique sua caixa de entrada — enviamos um link por e-mail para confirmar a conexão da sua conta. Abra-o para concluir o início de sessão.",
+    "source_hash": "b251c8f3"
   }
 }

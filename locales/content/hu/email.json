@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Azért kapta ezt az értesítést, mert %{sender_email} a(z) %{product_name} szolgáltatással osztott meg Önnel egy titkot. Ha nem számított rá, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Erősítse meg a(z) %{provider} összekapcsolását a(z) %{product_name} fiókjával",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Erősítse meg az SSO bejelentkezését",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Valaki bejelentkezett a(z) %{provider} szolgáltatással a(z) %{email_address} e-mail címmel. A(z) %{provider} és a(z) %{product_name} fiókja összekapcsolásának befejezéséhez erősítse meg alább.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Megerősítés és a(z) %{provider} összekapcsolása",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Ez a hivatkozás 15 perc múlva lejár, és csak egyszer használható.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Ha nem próbált bejelentkezni a(z) %{provider} szolgáltatással, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt — semmi nem lesz összekapcsolva a fiókjával.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Támogatási csapat",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "U.i. Ez az e-mail a(z) %{email_address} címre lett küldve.",
+    "source_hash": "8ab1dbea"
   }
 }

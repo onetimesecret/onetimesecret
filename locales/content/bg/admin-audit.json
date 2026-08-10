@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Неуспех",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Тайни",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Членства",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Прегледи на права",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Влизания в Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Участник",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Търсене",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Въведете участник, след това натиснете Enter или изберете Търсене, за да го изпълните. Списъкът не се актуализира, докато пишете.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Все още няма търсене — натиснете Enter или изберете Търсене, за да приложите този участник.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Сървърът отговори, но данните от одита не съответстват на очаквания формат. Не могат да бъдат показани събития — това е грешка в отчитането, а не празен журнал.",
+    "source_hash": "7f48137e"
   }
 }

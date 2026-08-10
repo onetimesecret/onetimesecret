@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Malsukceso",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Sekretoj",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Membreco",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Rajtantaŭrigardoj",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonel-ensalutoj",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Aganto",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Serĉi",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Tajpu aganton, poste premu Enigo aŭ elektu Serĉi por ruli ĝin. La listo ne ĝisdatiĝas dum vi tajpas.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Ankoraŭ ne serĉita — premu Enigo aŭ elektu Serĉi por apliki ĉi tiun aganton.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "La servilo respondis, sed la revizio-datumoj ne kongruis kun la atendata formato. Neniuj eventoj montreblas — ĉi tio estas raportad-eraro, ne malplena protokolo.",
+    "source_hash": "7f48137e"
   }
 }

@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "Kua manatokona tō īmēra — ka taea e koe te takiuru ināianei.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Whakatū Kupuhipa",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Kāore anō tō pūkete he kupuhipa. Ka tuku mātou he hononga haumaru ki tō īmēra hei whakatū i tētahi kia taea ai e koe te takiuru tika.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Tukuna Hononga Whakatū",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Kua tukuna he īmēra ki a koe me te hononga hei whakatū kupuhipa mō tō pūkete",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "He pūkete kua noho me tēnei wāhitau īmēra, engari kāore i hono ki tēnei tikanga takiuru. Takiurua mā tō tikanga kua noho, kātahi honoa tēnei kaiwhakarato i raro i ngā tautuhinga Haumarutanga → Ngā tuakiri hono.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Kāore i taea te hono i tēnei tuakiri. Tērā pea i tīmata te hononga i te rohe hē, kua pau rānei te wā o tō hōtaka. Takiurua anō, kātahi honoa mai i ō tautuhinga pūkete.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Kāore i taea te whakaoti i te tāpiri i a koe ki tō whakahaere. Whakapā ki tō kaiwhakahaere.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Kāore i taea te hono i taua tikanga takiuru. Takiurua mā tō kupuhipa kua noho, kātahi honoa tēnei kaiwhakarato i raro i ngā tautuhinga Haumarutanga → Ngā tuakiri hono.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Tirohia tō pouaka tae mai — i tuku mātou he hononga ki a koe hei whakaū i te hono i tō pūkete. Whakatuwherahia kia whakaoti ai i te takiuru.",
+    "source_hash": "b251c8f3"
   }
 }

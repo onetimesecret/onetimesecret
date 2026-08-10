@@ -504,11 +504,11 @@
     "source_hash": "8e37953d"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Recommended",
+    "text": "Recomendado",
     "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.",
+    "text": "Este registro é recomendado, mas não é obrigatório para a verificação. Uma política DMARC no domínio da sua organização pode já cobrir este subdomínio.",
     "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {

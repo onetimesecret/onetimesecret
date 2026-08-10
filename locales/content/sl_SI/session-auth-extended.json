@@ -730,5 +730,201 @@
   "web.auth.sessions.session_plural": {
     "text": "seje",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Povezane identitete",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Upravljajte ponudnike enkratne prijave, povezane z vašim računom.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Enkratna prijava",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Ponudniki identitete, ki jih lahko uporabite za prijavo v ta račun",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Poveži ponudnika",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Povežite drugega ponudnika enkratne prijave, ki ga lahko uporabite za prijavo v ta račun.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Poveži {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Izdajatelj",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifikator",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Odstrani",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Odstrani povezano identiteto",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Ali ste prepričani, da želite odstraniti to povezano identiteto? Z njo se ne boste več mogli prijaviti.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Povezana identiteta odstranjena",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Brez povezanih identitet",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Z vašim računom še niste povezali nobenega ponudnika enkratne prijave.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Enkratna prijava",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "To je vaš edini način prijave. Najprej povežite drugega ponudnika ali nastavite geslo v Nastavitve → Varnost, da se ne zaklenete.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "To je vaš edini način prijave. Najprej povežite drugega ponudnika, da se ne zaklenete.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Te povezane identitete ni bilo mogoče najti. Morda je bila že odstranjena.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Vaša seja je potekla. Prosimo, prijavite se znova.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Tega dejanja nismo mogli dokončati. Prosimo, poskusite znova.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Povežite svoj način prijave",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Prijavili ste se z {provider}, ki se ujema z obstoječim računom {email}. Vnesite geslo tega računa za povezavo {provider} in nadaljujte.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Geslo",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Vaše obstoječe geslo",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Poveži in nadaljuj",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Prekliči",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Ta zahteva za povezavo je potekla",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Za vašo varnost zahteva za povezavo tega načina prijave ni več veljavna. Prijavite se z obstoječim geslom, nato povežite tega ponudnika v Varnostne nastavitve → Povezane identitete.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Nadaljuj na prijavo",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "To geslo se ne ujema s tem računom. Prosimo, poskusite znova.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Ta zahteva za povezavo je potekla ali je bila že uporabljena. Prijavite se z obstoječim geslom, nato povežite tega ponudnika v nastavitvah računa.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Tega načina prijave nismo mogli povezati. Vaš račun se je morda spremenil ali pa je ta ponudnik že povezan z drugim računom. Prijavite se z obstoječim geslom, nato upravljajte povezave v Varnostne nastavitve → Povezane identitete.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Preveč poskusov z geslom. Prosimo, počakajte nekaj minut, nato poskusite znova.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Te zahteve za povezavo nismo mogli obdelati. Prosimo, prijavite se z vašim ponudnikom SSO znova.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Vašega računa nismo mogli povezati. Prosimo, poskusite znova.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Potrdite povezavo svojega računa",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Prijavili ste se z {provider}, ki se ujema z vašim računom {email}. Potrdite za povezavo {provider} s tem računom in dokončanje prijave.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Potrdi in poveži",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Prekliči",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Te zahteve za povezavo ni mogoče dokončati",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Za vašo varnost ta zahteva za povezavo vašega načina prijave ni več veljavna. Prijavite se z vašim ponudnikom znova in poslali vam bomo novo povezavo po e-pošti.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Vrnitev na prijavo",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Ta zahteva za povezavo je potekla ali je bila že uporabljena. Prijavite se z vašim ponudnikom znova in poslali vam bomo novo povezavo po e-pošti.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Tega načina prijave nismo mogli povezati. Vaš račun se je morda spremenil ali pa je ta ponudnik že povezan z drugim računom. Za nadaljevanje se prijavite z vašim ponudnikom znova.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Vaše poverilnice računa so se spremenile po pošiljanju te povezave, zato ni več veljavna. Prijavite se z vašim ponudnikom znova in poslali vam bomo novo povezavo po e-pošti.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Na naši strani je šlo nekaj narobe in te povezave nismo mogli preveriti. Prijavite se z vašim ponudnikom znova in poslali vam bomo novo.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Preveč poskusov z vaše naprave. Prosimo, počakajte nekaj minut, nato znova odprite povezavo iz e-pošte ali se prijavite z vašim ponudnikom za novo.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Te povezave nismo mogli potrditi. Prosimo, prijavite se z vašim ponudnikom znova.",
+    "source_hash": "076fa25a"
   }
 }

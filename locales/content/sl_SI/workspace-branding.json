@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "S telefonom skenirajte QR kodo",
-    "source_hash": "99ecf59f"
+    "text": "npr. Uporabite telefon za optično branje kode QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Za vprašanja se obrnite na uvajanje{'@'}primer.si",
-    "source_hash": "bee120a7"
+    "text": "npr. Za vprašanja se obrnite na onboarding{'@'}example.com",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Ta navodila bodo prikazana prejemnikom, preden razkrijejo vsebino skrivnosti",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "To je živi predogled — vaše spremembe obiskovalcem ne bodo vidne, dokler ne shranite.",
-    "source_hash": "cb4b82de"
+    "text": "To je predogled v živo — vaše spremembe ne bodo vidne obiskovalcem, dokler ne kliknete Posodobi.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Usmerite nas na svoje spletno mesto in prebrali bomo njegove barve in pisave, nato pa razliko odpravili z enim klikom.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Po razkritju",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Osveži favicon iz domene",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Znova pridobite favicon iz vaše domene. Nova ikona se prikaže kmalu.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Osveževanje favicona — nova ikona se bo prikazala kmalu.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Naložili ste favicon po meri, zato pridobljena ikona ne bo zamenjana.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Naloži favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Zamenjaj",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Odstrani favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG ali SVG. Nalaganje zamenja pridobljeno ikono.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Favicon domene",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Favicon domene",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG ali SVG. Do 256 KB. Zamenja samodejno pridobljeno ikono.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Shrani favicon",
+    "source_hash": "c8a1566c"
   }
 }

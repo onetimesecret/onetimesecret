@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "فشل",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "الأسرار",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "العضويات",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "معاينات الاستحقاقات",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "تسجيلات دخول Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "الفاعل",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "بحث",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "اكتب اسم الفاعل، ثم اضغط Enter أو اختر بحث لتنفيذه. لا تتحدث القائمة أثناء الكتابة.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "لم يتم البحث بعد — اضغط Enter أو اختر بحث لتطبيق هذا الفاعل.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "استجاب الخادم، لكن بيانات التدقيق لم تتطابق مع التنسيق المتوقع. لا يمكن عرض الأحداث — هذا خطأ في التقارير وليس سجلاً فارغاً.",
+    "source_hash": "7f48137e"
   }
 }

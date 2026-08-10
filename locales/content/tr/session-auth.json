@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "E-postanız doğrulandı — artık oturum açabilirsiniz.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Parola Belirle",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Hesabınızın henüz bir parolası yok. Doğrudan da oturum açabilmeniz için parola belirlemeniz için size güvenli bir bağlantı e-postası göndereceğiz.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Kurulum Bağlantısı Gönder",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Hesabınız için parola belirleme bağlantısı içeren bir e-posta gönderildi",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Bu e-posta adresiyle bir hesap zaten mevcut ancak bu oturum açma yöntemine bağlı değil. Mevcut yönteminizle oturum açın, ardından bu sağlayıcıyı Güvenlik ayarları -> Bağlı kimlikler altında bağlayın.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Bu kimlik bağlanamadı. Bağlantı yanlış alan adında başlatılmış olabilir veya oturumunuzun süresi dolmuş olabilir. Lütfen tekrar oturum açın, ardından hesap ayarlarınızdan bağlayın.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Sizi organizasyonunuza eklemeyi tamamlayamadık. Lütfen yöneticinizle iletişime geçin.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Bu oturum açma yöntemini bağlayamadık. Mevcut parolanızla oturum açın, ardından bu sağlayıcıyı Güvenlik ayarları -> Bağlı kimlikler altında bağlayın.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Gelen kutunuzu kontrol edin - hesabınızı bağlamayı onaylamak için size bir bağlantı e-postası gönderdik. Oturum açmayı tamamlamak için açın.",
+    "source_hash": "b251c8f3"
   }
 }

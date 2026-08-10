@@ -1,6 +1,6 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "招待が見つからないか、有効期限が切れています",
+    "text": "招待が見つからないか期限切れです",
     "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
@@ -8,7 +8,7 @@
     "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "組織は存在しなくなりました",
+    "text": "組織は存在しません",
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
@@ -16,7 +16,7 @@
     "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "招待の有効期限が切れています",
+    "text": "招待の期限が切れています",
     "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {

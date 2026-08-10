@@ -4,7 +4,7 @@
     "source_hash": "8d59829c"
   },
   "web.admin.usage.description": {
-    "text": "Exporter les métriques d'utilisation pour une plage de dates.",
+    "text": "Exportez les métriques d'utilisation pour une plage de dates.",
     "source_hash": "97bd3325"
   },
   "web.admin.usage.startDate": {

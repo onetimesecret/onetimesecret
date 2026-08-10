@@ -4,7 +4,7 @@
     "source_hash": "942087cc"
   },
   "web.admin.organizations.detail.backToList": {
-    "text": "組織に戻る",
+    "text": "組織一覧に戻る",
     "source_hash": "2257dc4a"
   },
   "web.admin.organizations.detail.notFound": {
@@ -24,7 +24,7 @@
     "source_hash": "bda05058"
   },
   "web.admin.organizations.detail.badges.default": {
-    "text": "デフォルトワークスペース",
+    "text": "既定のワークスペース",
     "source_hash": "6d67c6eb"
   },
   "web.admin.organizations.detail.badges.archived": {
@@ -40,7 +40,7 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.organizations.detail.domains.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.admin.organizations.detail.domains.ready": {
@@ -56,7 +56,7 @@
     "source_hash": "1b840c7e"
   },
   "web.admin.organizations.detail.entitlements.description": {
-    "text": "有効なエンタイトルメントは(プラン ∪ 付与)− 取り消しとして解決されます。上書きを行う前に内訳を確認してください。",
+    "text": "実効エンタイトルメントは (プラン ∪ 付与) − 取消 で決まります。上書き設定を行う前に内訳をご確認ください。",
     "source_hash": "23080475"
   },
   "web.admin.organizations.detail.entitlements.inSync": {
@@ -64,7 +64,7 @@
     "source_hash": "5701958c"
   },
   "web.admin.organizations.detail.entitlements.driftBadge": {
-    "text": "差分",
+    "text": "差異",
     "source_hash": "8b4c8240"
   },
   "web.admin.organizations.detail.entitlements.staleBadge": {
@@ -72,23 +72,23 @@
     "source_hash": "ffe63800"
   },
   "web.admin.organizations.detail.entitlements.driftWarning": {
-    "text": "実体化されたエンタイトルメントが期待される集合と一致しません。再実体化するには調整してください。",
+    "text": "実体化されたエンタイトルメントが期待される内容と一致しません。再調整して再度実体化してください。",
     "source_hash": "4859983a"
   },
   "web.admin.organizations.detail.entitlements.driftExtra": {
-    "text": "余分(実体化済み、期待外)",
+    "text": "余分 (実体化されているが期待されていない)",
     "source_hash": "08d60730"
   },
   "web.admin.organizations.detail.entitlements.driftMissing": {
-    "text": "不足(期待されるが未実体化)",
+    "text": "不足 (期待されているが実体化されていない)",
     "source_hash": "fe12c83a"
   },
   "web.admin.organizations.detail.entitlements.plan": {
-    "text": "プランから",
+    "text": "プラン由来",
     "source_hash": "1d346b26"
   },
   "web.admin.organizations.detail.entitlements.materialized": {
-    "text": "実体化済み(有効)",
+    "text": "実体化済み (実効)",
     "source_hash": "72ca5f45"
   },
   "web.admin.organizations.detail.members.email": {
@@ -116,31 +116,31 @@
     "source_hash": "b99c59dc"
   },
   "web.admin.organizations.detail.reconcile.button": {
-    "text": "調整",
+    "text": "整合",
     "source_hash": "b59be565"
   },
   "web.admin.organizations.detail.reconcile.confirmTitle": {
-    "text": "組織の請求を調整しますか?",
+    "text": "組織の請求情報を整合しますか？",
     "source_hash": "fc1a2762"
   },
   "web.admin.organizations.detail.reconcile.confirmDescription": {
-    "text": "これにより、Stripeを再取得し、{org}の請求状態とエンタイトルメントを書き換えます。確認のために組織IDを再入力してください。",
+    "text": "Stripeから再取得し、{org}の請求ステータスとエンタイトルメントを再書き込みします。確認のため、組織IDを再入力してください。",
     "source_hash": "b4ef0850"
   },
   "web.admin.organizations.detail.reconcile.success": {
-    "text": "組織を調整しました。",
+    "text": "組織が整合されました。",
     "source_hash": "caf87844"
   },
   "web.admin.organizations.detail.reconcile.resultTitle": {
-    "text": "調整結果",
+    "text": "整合結果",
     "source_hash": "11f4c6b8"
   },
   "web.admin.organizations.detail.reconcile.before": {
-    "text": "調整前",
+    "text": "変更前",
     "source_hash": "9bb72500"
   },
   "web.admin.organizations.detail.reconcile.after": {
-    "text": "調整後",
+    "text": "変更後",
     "source_hash": "7b68fe55"
   },
   "web.admin.organizations.detail.reconcile.materializedCount": {
@@ -168,11 +168,11 @@
     "source_hash": "ced67718"
   },
   "web.admin.organizations.detail.sections.investigate": {
-    "text": "調査と調整",
+    "text": "調査と整合",
     "source_hash": "b05aa349"
   },
   "web.admin.organizations.entitlements.section": {
-    "text": "エンタイトルメントの上書き",
+    "text": "エンタイトルメントのオーバーライド",
     "source_hash": "48812068"
   },
   "web.admin.organizations.entitlements.description": {
@@ -184,7 +184,7 @@
     "source_hash": "0d8f0b2d"
   },
   "web.admin.organizations.entitlements.placeholder": {
-    "text": "例:custom_domains",
+    "text": "例: custom_domains",
     "source_hash": "05346c68"
   },
   "web.admin.organizations.entitlements.grant": {
@@ -196,7 +196,7 @@
     "source_hash": "87e6d00b"
   },
   "web.admin.organizations.entitlements.clear": {
-    "text": "すべての上書きをクリア",
+    "text": "すべてのオーバーライドをクリア",
     "source_hash": "f0e485c3"
   },
   "web.admin.organizations.entitlements.effective": {
@@ -212,43 +212,43 @@
     "source_hash": "f0e69b17"
   },
   "web.admin.organizations.entitlements.noOverrides": {
-    "text": "この組織の現在の上書き状態を表示するには、操作を実行してください。",
+    "text": "この組織の現在のオーバーライド状態を表示するには、アクションを実行してください。",
     "source_hash": "98d2e30d"
   },
   "web.admin.organizations.entitlements.confirm.grantTitle": {
-    "text": "エンタイトルメントを付与しますか?",
+    "text": "エンタイトルメントを付与しますか？",
     "source_hash": "a4b2c57b"
   },
   "web.admin.organizations.entitlements.confirm.grantDescription": {
-    "text": "「{entitlement}」を{org}に付与します。これにより、組織の請求エンタイトルメントが変更されます。",
+    "text": "「{entitlement}」を{org}に付与します。これにより組織の請求エンタイトルメントが変更されます。",
     "source_hash": "542ce26a"
   },
   "web.admin.organizations.entitlements.confirm.revokeTitle": {
-    "text": "エンタイトルメントを取り消しますか?",
+    "text": "エンタイトルメントを取り消しますか？",
     "source_hash": "c93d520a"
   },
   "web.admin.organizations.entitlements.confirm.revokeDescription": {
-    "text": "「{entitlement}」を{org}から取り消します。これにより、組織の請求エンタイトルメントが変更されます。",
+    "text": "「{entitlement}」を{org}から取り消します。これにより組織の請求エンタイトルメントが変更されます。",
     "source_hash": "a5d2a8a6"
   },
   "web.admin.organizations.entitlements.confirm.clearTitle": {
-    "text": "すべてのエンタイトルメント上書きをクリアしますか?",
+    "text": "すべてのエンタイトルメントオーバーライドをクリアしますか？",
     "source_hash": "e36eb218"
   },
   "web.admin.organizations.entitlements.confirm.clearDescription": {
-    "text": "{org}のすべての付与および取り消しの上書きを削除し、プランのエンタイトルメントにリセットします。",
+    "text": "{org}のすべての付与および取り消しオーバーライドを削除し、プランのエンタイトルメントにリセットします。",
     "source_hash": "96bad079"
   },
   "web.admin.organizations.entitlements.success.granted": {
-    "text": "エンタイトルメント「{entitlement}」を付与しました。",
+    "text": "エンタイトルメント「{entitlement}」が付与されました。",
     "source_hash": "cf52fb0e"
   },
   "web.admin.organizations.entitlements.success.revoked": {
-    "text": "エンタイトルメント「{entitlement}」を取り消しました。",
+    "text": "エンタイトルメント「{entitlement}」が取り消されました。",
     "source_hash": "279d425d"
   },
   "web.admin.organizations.entitlements.success.cleared": {
-    "text": "すべてのエンタイトルメント上書きをクリアしました。",
+    "text": "すべてのエンタイトルメントオーバーライドがクリアされました。",
     "source_hash": "a482743b"
   },
   "web.admin.organizations.fields.contactEmail": {
@@ -264,15 +264,15 @@
     "source_hash": "fa8ed0bd"
   },
   "web.admin.organizations.fields.subscription": {
-    "text": "サブスクリプションのステータス",
+    "text": "サブスクリプション状態",
     "source_hash": "f0723c4e"
   },
   "web.admin.organizations.fields.periodEnd": {
-    "text": "期間終了日",
+    "text": "期間終了",
     "source_hash": "eeae9fdd"
   },
   "web.admin.organizations.fields.billingEmail": {
-    "text": "請求メール",
+    "text": "請求先メール",
     "source_hash": "8805b928"
   },
   "web.admin.organizations.fields.stripeCustomer": {
@@ -288,27 +288,355 @@
     "source_hash": "1f466322"
   },
   "web.admin.organizations.fields.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.admin.organizations.fields.updated": {
-    "text": "更新日",
+    "text": "更新日時",
     "source_hash": "3a5ecca1"
   },
   "web.admin.organizations.investigate.description": {
-    "text": "ローカルの請求状態を、公開中のStripeサブスクリプションと比較します。",
+    "text": "ローカルの請求状態とStripeサブスクリプションのライブ状態を比較します。",
     "source_hash": "d7bbe9ed"
   },
   "web.admin.organizations.investigate.rawPayload": {
-    "text": "調査の生ペイロード",
+    "text": "調査の生データペイロード",
     "source_hash": "29ca7df2"
   },
   "web.admin.organizations.investigate.parseError": {
-    "text": "調査のレスポンスが期待される形式と一致しませんでした。",
+    "text": "調査レスポンスが期待された形式と一致しませんでした。",
     "source_hash": "db59cab1"
   },
   "web.admin.organizations.list.loadError": {
     "text": "組織を読み込めませんでした。",
     "source_hash": "130d5e70"
+  },
+  "web.admin.organizations.addMember.button": {
+    "text": "既存のアカウントを追加",
+    "source_hash": "45a3b757"
+  },
+  "web.admin.organizations.addMember.title": {
+    "text": "既存のアカウントを追加",
+    "source_hash": "2f676a94"
+  },
+  "web.admin.organizations.addMember.description": {
+    "text": "すでにアカウントを持っている人を{org}に追加します。本人が自分で登録済みで、アカウントが存在するため招待できない場合にご利用ください。",
+    "source_hash": "bb41faa6"
+  },
+  "web.admin.organizations.addMember.searchLabel": {
+    "text": "メールアドレスまたはアカウントID",
+    "source_hash": "82b3040b"
+  },
+  "web.admin.organizations.addMember.searchPlaceholder": {
+    "text": "メールアドレスで検索",
+    "source_hash": "b75cc66c"
+  },
+  "web.admin.organizations.addMember.searchHint": {
+    "text": "メールアドレスの一部、または完全一致のアカウントIDで検索できます。",
+    "source_hash": "84547a60"
+  },
+  "web.admin.organizations.addMember.searchError": {
+    "text": "アカウントを検索できませんでした。接続を確認して、もう一度お試しください。",
+    "source_hash": "4b6caa41"
+  },
+  "web.admin.organizations.addMember.searchParseError": {
+    "text": "アカウント検索が想定外の応答を返しました。結果が不完全な可能性があります。",
+    "source_hash": "0c814231"
+  },
+  "web.admin.organizations.addMember.idle": {
+    "text": "アカウントを検索するにはメールアドレスを入力してください。",
+    "source_hash": "f6340d35"
+  },
+  "web.admin.organizations.addMember.noResults": {
+    "text": "「{term}」に一致するアカウントはありません。",
+    "source_hash": "199b662a"
+  },
+  "web.admin.organizations.addMember.noResultsHint": {
+    "text": "ここで追加できるのは既存のアカウントのみです。まだ登録していない場合は、招待してください。",
+    "source_hash": "ee90aeeb"
+  },
+  "web.admin.organizations.addMember.select": {
+    "text": "選択",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.organizations.addMember.selectedEyebrow": {
+    "text": "選択したアカウント",
+    "source_hash": "8b63d947"
+  },
+  "web.admin.organizations.addMember.change": {
+    "text": "別のアカウントを選択",
+    "source_hash": "d4fe39ab"
+  },
+  "web.admin.organizations.addMember.createdOn": {
+    "text": "登録日 {date}",
+    "source_hash": "cfc0e19f"
+  },
+  "web.admin.organizations.addMember.organizationsUnavailable": {
+    "text": "このアカウントの現在の組織を読み込めませんでした。",
+    "source_hash": "a35b6bfc"
+  },
+  "web.admin.organizations.addMember.defaultOrg": {
+    "text": "既定",
+    "source_hash": "37a8eec1"
+  },
+  "web.admin.organizations.addMember.roleLabel": {
+    "text": "この組織でのロール",
+    "source_hash": "817475fa"
+  },
+  "web.admin.organizations.addMember.submit": {
+    "text": "組織に追加",
+    "source_hash": "0e0cb636"
+  },
+  "web.admin.organizations.addMember.success": {
+    "text": "{account}を{role}として追加しました。",
+    "source_hash": "533be0dc"
+  },
+  "web.admin.organizations.addMember.badges.verified": {
+    "text": "認証済み",
+    "source_hash": "4f783840"
+  },
+  "web.admin.organizations.addMember.badges.unverified": {
+    "text": "未認証",
+    "source_hash": "15133907"
+  },
+  "web.admin.organizations.addMember.badges.suspended": {
+    "text": "停止中",
+    "source_hash": "e392a389"
+  },
+  "web.admin.organizations.addMember.badges.alreadyMember": {
+    "text": "すでにメンバーです",
+    "source_hash": "1739ed7c"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMember": {
+    "text": "このアカウントはすでにこの組織のメンバーで、ロールは{role}です。追加しても既存のロールは変更されません — 変更するにはロール設定の操作をご利用ください。",
+    "source_hash": "cb6a4774"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
+    "text": "このアカウントはすでにこの組織のメンバーです。追加しても既存のロールは変更されません。",
+    "source_hash": "035641ec"
+  },
+  "web.admin.organizations.addMember.errors.notFound": {
+    "text": "そのアカウントまたは組織はすでに存在しません。もう一度検索してアカウントをご確認ください。",
+    "source_hash": "bd88db18"
+  },
+  "web.admin.organizations.addMember.errors.invalidRole": {
+    "text": "そのロールは受け付けられませんでした。一覧にあるロールを選択して、もう一度お試しください。",
+    "source_hash": "eb696a8f"
+  },
+  "web.admin.organizations.addMember.errors.noSelection": {
+    "text": "アカウントが選択されていません。",
+    "source_hash": "dd15bb5b"
+  },
+  "web.admin.organizations.addMember.fields.created": {
+    "text": "登録日",
+    "source_hash": "486b3fe0"
+  },
+  "web.admin.organizations.addMember.fields.verified": {
+    "text": "認証",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.organizations.addMember.fields.lastLogin": {
+    "text": "最終ログイン",
+    "source_hash": "0b70af7a"
+  },
+  "web.admin.organizations.addMember.fields.organizations": {
+    "text": "現在の組織",
+    "source_hash": "cbb5b92f"
+  },
+  "web.admin.organizations.addMember.roleHints.member": {
+    "text": "組織のシークレットとドメインへの日常的なアクセス権。",
+    "source_hash": "d0c7439e"
+  },
+  "web.admin.organizations.addMember.roleHints.admin": {
+    "text": "メンバー、ドメイン、組織設定を管理できます。",
+    "source_hash": "beaa50d7"
+  },
+  "web.admin.organizations.addMember.roleHints.owner": {
+    "text": "請求を含むすべての権限。依頼があった場合のみ付与してください。",
+    "source_hash": "614ace63"
+  },
+  "web.admin.organizations.addMember.roles.member": {
+    "text": "メンバー",
+    "source_hash": "7c968fb7"
+  },
+  "web.admin.organizations.addMember.roles.admin": {
+    "text": "管理者",
+    "source_hash": "c1c224b0"
+  },
+  "web.admin.organizations.addMember.roles.owner": {
+    "text": "オーナー",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.detail.members.openCustomer": {
+    "text": "顧客レコードを開く",
+    "source_hash": "c057ca13"
+  },
+  "web.admin.organizations.detail.reconcile.memberships": {
+    "text": "再具体化されたメンバーシップ:",
+    "source_hash": "fe7db10c"
+  },
+  "web.admin.organizations.detail.reconcile.membershipsFailed": {
+    "text": "失敗、古いエンタイトルメントが残っています:",
+    "source_hash": "cc4dae37"
+  },
+  "web.admin.organizations.entitlements.catalogWarning": {
+    "text": "「{entitlement}」は請求カタログにありません。タイプミスがないか確認してください。続行します: 後のカタログで出荷されるエンタイトルメントの付与はサポートされており、意図的にブロックされていません。",
+    "source_hash": "cbde548a"
+  },
+  "web.admin.organizations.entitlements.matrix.caption": {
+    "text": "エンタイトルメント解決マトリックス: プラン、オーバーライドの付与と取り消し、解決済みセット、具体化されたもの。",
+    "source_hash": "9eac8999"
+  },
+  "web.admin.organizations.entitlements.matrix.yes": {
+    "text": "はい",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.matrix.no": {
+    "text": "いいえ",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.matrix.empty": {
+    "text": "この組織にはプランからのエンタイトルメントもオーバーライドもありません。",
+    "source_hash": "f6cf2169"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.entitlement": {
+    "text": "エンタイトルメント",
+    "source_hash": "0d8f0b2d"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.inPlan": {
+    "text": "プラン内",
+    "source_hash": "e2222361"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.granted": {
+    "text": "付与済み",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.revoked": {
+    "text": "取り消し済み",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.expected": {
+    "text": "期待値",
+    "source_hash": "ca99b7f1"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.materialized": {
+    "text": "具体化済み",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.state": {
+    "text": "状態",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.formula": {
+    "text": "解決: 期待値 = (プラン ∪ 付与) − 取り消し。具体化済みは組織に実際に保存されているものです。",
+    "source_hash": "bc4bff2d"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.orphaned": {
+    "text": "孤立 — 具体化されているが期待されていない、通常は再具体化されなかった取り消しによって残されたもの。整合で削除されます。",
+    "source_hash": "3a27a9af"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.missing": {
+    "text": "欠落 — 期待されているが具体化されていない。これは現在メンバーが実際に欠落している権限です。",
+    "source_hash": "485e44ad"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.revoked": {
+    "text": "取り消し線の行は管理者オーバーライドにより取り消されており、期待セットから削除されています。",
+    "source_hash": "89a2e9b6"
+  },
+  "web.admin.organizations.entitlements.matrix.state.plan": {
+    "text": "プランから",
+    "source_hash": "1d346b26"
+  },
+  "web.admin.organizations.entitlements.matrix.state.granted": {
+    "text": "付与済み",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.state.revoked": {
+    "text": "取り消し済み",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.state.orphaned": {
+    "text": "孤立",
+    "source_hash": "8d827807"
+  },
+  "web.admin.organizations.entitlements.matrix.state.missing": {
+    "text": "欠落",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.organizations.entitlements.picker.selectPlaceholder": {
+    "text": "エンタイトルメントを選択…",
+    "source_hash": "53af3be8"
+  },
+  "web.admin.organizations.entitlements.picker.other": {
+    "text": "その他 — カタログにないもの…",
+    "source_hash": "f08bc3a3"
+  },
+  "web.admin.organizations.entitlements.picker.customLabel": {
+    "text": "エンタイトルメント名（カタログにないもの）",
+    "source_hash": "52783229"
+  },
+  "web.admin.organizations.entitlements.picker.backToCatalog": {
+    "text": "カタログに戻る",
+    "source_hash": "9b727f40"
+  },
+  "web.admin.organizations.entitlements.picker.uncategorized": {
+    "text": "未分類",
+    "source_hash": "8d40d123"
+  },
+  "web.admin.organizations.entitlements.picker.catalogUnavailable": {
+    "text": "請求カタログを読み取れなかったため、ここではエンタイトルメント名はチェックされません。",
+    "source_hash": "724869ec"
+  },
+  "web.admin.organizations.entitlements.picker.tags.inPlan": {
+    "text": "プラン内",
+    "source_hash": "5f2251bb"
+  },
+  "web.admin.organizations.entitlements.picker.tags.granted": {
+    "text": "付与済み",
+    "source_hash": "dd515d19"
+  },
+  "web.admin.organizations.entitlements.picker.tags.revoked": {
+    "text": "取り消し済み",
+    "source_hash": "4bb47f18"
+  },
+  "web.admin.organizations.entitlements.summary.sync": {
+    "text": "同期",
+    "source_hash": "8d261a37"
+  },
+  "web.admin.organizations.entitlements.summary.materialized": {
+    "text": "具体化済み",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.summary.materializedAt": {
+    "text": "最終具体化日時",
+    "source_hash": "9325dce9"
+  },
+  "web.admin.organizations.entitlements.summary.planDefinition": {
+    "text": "プラン定義",
+    "source_hash": "6b531454"
+  },
+  "web.admin.organizations.entitlements.summary.yes": {
+    "text": "はい",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.summary.no": {
+    "text": "いいえ",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.summary.never": {
+    "text": "なし",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.organizations.entitlements.summary.planStale": {
+    "text": "具体化以降に変更あり",
+    "source_hash": "e682d8a4"
+  },
+  "web.admin.organizations.entitlements.summary.planCurrent": {
+    "text": "最新",
+    "source_hash": "e0d1b682"
+  },
+  "web.admin.organizations.entitlements.summary.planUnknown": {
+    "text": "不明 — 比較できませんでした",
+    "source_hash": "b607e540"
   }
 }

@@ -20,7 +20,7 @@
     "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "Configuration entrante introuvable pour le domaine : %{extid}",
+    "text": "Configuration des secrets entrants introuvable pour le domaine : %{extid}",
     "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
@@ -28,7 +28,7 @@
     "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "E-mail invalide : %{email}",
+    "text": "E-mail non valide : %{email}",
     "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
@@ -40,11 +40,11 @@
     "source_hash": "cf093a04"
   },
   "api.domains.errors.homepage_incoming_entitlement_required": {
-    "text": "Le mode Secrets entrants nécessite le droit incoming_secrets. Veuillez mettre à niveau votre forfait.",
+    "text": "Le mode secrets entrants nécessite le droit incoming_secrets. Veuillez mettre à niveau votre forfait.",
     "source_hash": "d68b13d8"
   },
   "api.domains.errors.homepage_incoming_not_ready": {
-    "text": "Les secrets entrants doivent être activés avec au moins un destinataire avant de pouvoir être utilisés comme page d'accueil.",
+    "text": "Les secrets entrants doivent être activés avec au moins un destinataire avant de pouvoir servir de page d'accueil.",
     "source_hash": "556da6e2"
   }
 }
