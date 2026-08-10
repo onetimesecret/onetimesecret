@@ -10,8 +10,8 @@
 # is missing a field, reuses a route name, or mixes up its env prefix
 # fails here before it can half-register at boot.
 #
-# RUN:
-#   bundle exec rspec spec/unit/onetime/config/sso_provider_registry_spec.rb
+# RUN (always via the lane runner — see AGENTS.md):
+#   tests/lanes/run unit
 
 require 'spec_helper'
 require 'climate_control'

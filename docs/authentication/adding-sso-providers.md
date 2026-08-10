@@ -30,12 +30,13 @@ provider appears on the login and signup pages with zero frontend changes.
    prefix consistent (`FOO_CLIENT_ID`, `FOO_ROUTE_NAME`, `FOO_DISPLAY_NAME`,
    `FOO_TRUST_EMAIL_FOR_LINKING`) — the registry spec enforces this.
 
-4. **Run the guard rails**:
+4. **Run the guard rails** — always through the lane runner (never `rspec`
+   directly; see AGENTS.md — the runner clears ambient env and provisions
+   isolated test services):
 
    ```bash
-   bundle exec rspec spec/unit/onetime/config/sso_provider_registry_spec.rb \
-     apps/web/auth/spec/config/features/omniauth_providers_spec.rb \
-     spec/unit/onetime/config/auth_config_spec.rb
+   tests/lanes/run unit       # registry shape + AuthConfig specs
+   tests/lanes/run full-pg    # auth app provider registration + integration
    ```
 
 5. **Set the env vars** for the deployment and verify the provider appears in

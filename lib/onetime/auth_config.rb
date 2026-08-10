@@ -389,6 +389,33 @@ module Onetime
       self
     end
 
+    # Provider definitions for sso_providers, email-linking trust, and CSP
+    # form-action origins. The data lives in Onetime::SsoProviderRegistry —
+    # the SAME registry the auth app's boot-time strategy registration
+    # consumes — so serializer gating, CSP origins, and registered strategies
+    # can never drift apart. Each entry defines the env vars that gate the
+    # provider and where to read its route/display names; see the registry
+    # for the full field reference.
+    #
+    # trust_var / trust_default gate the #3836 email-linking escape hatch:
+    # an explicit, per-provider operator declaration that the IdP is inside
+    # the trust boundary, so an SSO identity may auto-link to an account
+    # LOCATED by email. See #trust_email_for_linking?.
+    #
+    # The one dynamic overlay: OIDC's display default honors the operator's
+    # legacy sso_display_name before falling back to the registry's 'SSO'.
+    #
+    # Public: the auth app's boot registration reads it (via
+    # display_default_for) so its logs share the serializer's view.
+    def provider_definitions
+      SsoProviderRegistry::DEFINITIONS.map do |defn|
+        next defn unless defn[:key] == :oidc
+
+        legacy_display = sso_display_name
+        legacy_display ? defn.merge(display_default: legacy_display) : defn
+      end
+    end
+
     private
 
     # Whether the legacy sso.sso_only flag is set in config.
@@ -428,30 +455,6 @@ module Onetime
       return false unless full_enabled?
 
       features.fetch(key, default)
-    end
-
-    # Provider definitions for sso_providers, email-linking trust, and CSP
-    # form-action origins. The data lives in Onetime::SsoProviderRegistry —
-    # the SAME registry the auth app's boot-time strategy registration
-    # consumes — so serializer gating, CSP origins, and registered strategies
-    # can never drift apart. Each entry defines the env vars that gate the
-    # provider and where to read its route/display names; see the registry
-    # for the full field reference.
-    #
-    # trust_var / trust_default gate the #3836 email-linking escape hatch:
-    # an explicit, per-provider operator declaration that the IdP is inside
-    # the trust boundary, so an SSO identity may auto-link to an account
-    # LOCATED by email. See #trust_email_for_linking?.
-    #
-    # The one dynamic overlay: OIDC's display default honors the operator's
-    # legacy sso_display_name before falling back to the registry's 'SSO'.
-    def provider_definitions
-      SsoProviderRegistry::DEFINITIONS.map do |defn|
-        next defn unless defn[:key] == :oidc
-
-        legacy_display = sso_display_name
-        legacy_display ? defn.merge(display_default: legacy_display) : defn
-      end
     end
 
     # Apply the SSO_PROVIDER_ORDER override (comma/space-separated route

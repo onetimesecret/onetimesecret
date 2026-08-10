@@ -334,21 +334,26 @@ module Auth::Config::Features
     #     (the OmniAuthTenant hook injects tenant credentials at request time)
     #   - vars missing, org SSO off  -> log the missing vars and skip
     def self.configure_provider(auth, defn)
-      # Lazy per-definition require keeps the registry loadable without the
-      # omniauth gems (e.g. simple mode reading provider_definitions).
-      require defn[:gem_require]
-
       provider_name = ENV.fetch(defn[:route_var], defn[:route_default]).to_sym
-      display_name  = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
+      display_name  = ENV.fetch(defn[:display_var], nil) || display_default_for(defn)
 
       missing = missing_env_vars(defn[:required_vars])
+      if missing.any? && !Onetime.auth_config.orgs_sso_enabled?
+        # Skipped entirely — do NOT require the strategy gem, so a registry
+        # entry for an optionally-bundled gem cannot break boot on
+        # deployments that neither configure it nor enable org SSO.
+        OT.le "[OmniAuth] Missing #{defn[:label]} configuration: #{missing.join(', ')}"
+        return
+      end
+
+      # Lazy per-definition require: the gem loads only when the provider
+      # actually registers (real credentials or tenant-SSO placeholder), and
+      # the registry itself stays loadable without the omniauth gems.
+      require defn[:gem_require]
+
       if missing.any?
-        if Onetime.auth_config.orgs_sso_enabled?
-          OT.li "[OmniAuth] Registering #{defn[:label]} route '#{provider_name}' for tenant SSO (no platform credentials)"
-          auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:placeholder_options])
-        else
-          OT.le "[OmniAuth] Missing #{defn[:label]} configuration: #{missing.join(', ')}"
-        end
+        OT.li "[OmniAuth] Registering #{defn[:label]} route '#{provider_name}' for tenant SSO (no platform credentials)"
+        auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:placeholder_options])
         return
       end
 
@@ -357,6 +362,20 @@ module Auth::Config::Features
       OT.li "[OmniAuth] Configuring #{defn[:label]} provider '#{provider_name}' (#{display_name}), client_id: #{client_id.to_s[0..8]}..."
 
       auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:strategy_options].call)
+    end
+
+    # Display-name default for boot logs. Consults AuthConfig's overlaid
+    # provider_definitions so the OIDC log honors the operator's legacy
+    # sso_display_name exactly like the serializer does — guarded because
+    # standalone specs stub Onetime.auth_config with a minimal double.
+    def self.display_default_for(defn)
+      auth_config = Onetime.auth_config
+      if auth_config.respond_to?(:provider_definitions)
+        overlaid = auth_config.provider_definitions.find { |d| d[:key] == defn[:key] }
+        return overlaid[:display_default] if overlaid
+      end
+
+      defn[:display_default]
     end
 
     # Named per-provider entry points, kept as thin wrappers over the
