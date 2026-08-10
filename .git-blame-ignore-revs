@@ -1,0 +1,9 @@
+# Revisions that changed formatting only, and should not show up in git blame.
+#
+# Enable locally (one time):
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# GitHub honours this file automatically in its blame view.
+
+# style: apply Prettier across the tree and enforce it going forward
+99db211f5870c06babd27f0471ceb2d4ed2d5514
