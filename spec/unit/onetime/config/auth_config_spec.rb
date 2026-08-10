@@ -471,9 +471,9 @@ RSpec.describe Onetime::AuthConfig do
         .to eq(%w[github entra google])
     end
 
-    it 'derives definitions from the shared SsoProviderRegistry' do
+    it 'derives definitions from the shared SsoProvider::Registry' do
       config          = fresh_config
-      registry_routes = Onetime::SsoProviderRegistry::DEFINITIONS.map { |d| d[:route_default] }
+      registry_routes = Onetime::SsoProvider::Registry::DEFINITIONS.map { |d| d[:route_default] }
       expect(config.send(:provider_definitions).map { |d| d[:route_default] })
         .to eq(registry_routes)
     end
