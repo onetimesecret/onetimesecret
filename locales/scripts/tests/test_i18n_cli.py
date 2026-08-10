@@ -1150,6 +1150,160 @@ class ValidateVariablesTest(I18nCliTestCase):
         data = json.loads(proc.stdout)
         self.assertIn("summary", data)
 
+    def test_en_only_authoring_metadata_is_not_compared(self) -> None:
+        # `context`/`note` are en-only authoring metadata; `tasks export` never
+        # writes them to a locale. Comparing them made any en context that
+        # mentions a placeholder an unfixable mismatch in every locale.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}", '
+            '"context": "{provider} is the provider display name", '
+            '"note": "see {provider}", "content_hash": "abc123"}}',
+            "utf-8",
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "{provider} verbinden", '
+            '"source_hash": "abc123"}}',
+            "utf-8",
+        )
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertOk(
+            proc, "a faithful translation must report zero mismatches"
+        )
+        self.assertEqual(json.loads(proc.stdout)["summary"], {})
+
+    def test_dropped_variable_in_text_is_still_reported(self) -> None:
+        # Guard the exemption above from swallowing the real defect it
+        # neighbours.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "Verbinden"}}', "utf-8"
+        )
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        data = json.loads(proc.stdout)
+        self.assertEqual(data["blocking"], 1)
+        self.assertEqual(data["summary"]["de"]["variables"], 1)
+        issue = data["details"]["de"]["v.json"][0]
+        self.assertEqual(issue["key"], "web.x.a")
+        self.assertEqual(issue["category"], "variables")
+        self.assertEqual(issue["missing"], ["{provider}"])
+
+    def test_skip_marked_entry_is_not_a_mismatch(self) -> None:
+        # A locale that deliberately keeps the English string ("skip") has not
+        # dropped the placeholder — it kept it. The text-only view collapses
+        # skip / absent / empty into one "not there", which reported this as an
+        # [EMPTY] translation missing every variable the source carries.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}", "skip": true}}', "utf-8"
+        )
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertOk(proc, "a skip-marked entry is not a variable defect")
+        self.assertEqual(json.loads(proc.stdout)["summary"], {})
+
+    def test_untranslated_key_is_reported_but_not_blocking(self) -> None:
+        # An en key with placeholders that the locale has not translated yet is
+        # coverage, gated by `tasks next`. It is reported (so a reviewer sees
+        # it) but must not gate the post-export check, or a byte-perfect export
+        # reads dirty forever.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text('{"web.x.b": {"text": "Andere"}}', "utf-8")
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertOk(proc, "untranslated coverage must not gate")
+        data = json.loads(proc.stdout)
+        self.assertEqual(data["blocking"], 0)
+        self.assertEqual(data["summary"]["de"]["untranslated"], 1)
+        self.assertEqual(data["summary"]["de"]["variables"], 0)
+        issue = data["details"]["de"]["v.json"][0]
+        self.assertEqual(issue["category"], "untranslated")
+
+    def test_empty_text_counts_as_untranslated_not_a_mismatch(self) -> None:
+        # `text: ""` is the same coverage state as an absent key — the entry
+        # exists only because an earlier pass wrote the shell.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text('{"web.x.a": {"text": ""}}', "utf-8")
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertOk(proc, "empty text is coverage, not a placeholder defect")
+        self.assertEqual(
+            json.loads(proc.stdout)["summary"]["de"]["untranslated"], 1
+        )
+
+
+class ValidatePrEntryModelTest(I18nCliTestCase):
+    """``validate pr`` reads entries, not flattened fields.
+
+    The flattener it replaced made ``<key>.source_hash`` look like a key the
+    locale had invented, so every translated file produced an "Extra keys not
+    in English" structure warning. It was only a warning, so ``passed`` stayed
+    true and nobody noticed — the worst state for a gate to be in, and the same
+    root cause as #4080.
+    """
+
+    def test_metadata_fields_are_not_extra_keys(self) -> None:
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}", '
+            '"context": "{provider} is the provider name", '
+            '"content_hash": "abc123"}}',
+            "utf-8",
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "{provider} verbinden", '
+            '"source_hash": "abc123"}}',
+            "utf-8",
+        )
+        proc = self.run_cli(
+            "validate", "pr", "--files", "de/v.json", "--format", "json"
+        )
+        self.assertOk(proc, "validate pr")
+        issues = json.loads(proc.stdout)["issues"]
+        self.assertEqual(
+            [i for i in issues if i["category"] == "structure"],
+            [],
+            "authoring metadata must not read as locale-invented keys",
+        )
+
+    def test_unrecognized_entry_field_is_surfaced(self) -> None:
+        # The enforcement point for io.METADATA_FIELDS: a field nobody declared
+        # must not pass silently, or the next one added becomes translatable in
+        # whichever reader is field-blind.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "Verbinden", "reviewed_by": "someone"}}',
+            "utf-8",
+        )
+        proc = self.run_cli(
+            "validate", "pr", "--files", "de/v.json", "--format", "json"
+        )
+        messages = [i["message"] for i in json.loads(proc.stdout)["issues"]]
+        self.assertTrue(
+            any("reviewed_by" in m for m in messages),
+            f"expected an unrecognized-field warning, got {messages}",
+        )
+
 
 class ValidatePrGitDiffTest(I18nCliTestCase):
     """gap #1: default (non ``--files``) git-diff discovery + validation."""
