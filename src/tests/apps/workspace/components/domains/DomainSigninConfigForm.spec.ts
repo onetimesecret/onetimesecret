@@ -128,6 +128,8 @@ const COPY = {
   resetConfirm: t('web.domains.signin.reset_confirm'),
   resetAction: t('web.domains.signin.reset_action'),
   cancel: t('web.COMMON.word_cancel'),
+  connectionDisabledBadge: t('web.domains.sso.connection_disabled_badge'),
+  connectionDisabledHint: t('web.domains.sso.connection_disabled_hint'),
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -156,6 +158,12 @@ interface MountOptions {
   isConfigured?: boolean;
   workspaceDefault?: boolean;
   ssoConfigured?: boolean;
+  /**
+   * SsoConfig.enabled — the credential record's own operational flag (#4107),
+   * distinct from formState.sso_enabled (the SigninConfig policy toggle).
+   * Left undefined ⇒ the prop is omitted so the component default applies.
+   */
+  ssoCredentialsEnabled?: boolean;
   canManageSso?: boolean;
   globalAvailability?: { email_auth: boolean; webauthn: boolean };
   /** ORGS_SSO_ENABLED — tenant-SSO availability (bootstrap flag, not a prop). */
@@ -178,6 +186,11 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       // below flips this on.
       workspaceDefault: opts.workspaceDefault ?? false,
       ssoConfigured: opts.ssoConfigured ?? false,
+      // Omit (not default) when unset, so the component's own prop default
+      // stays observable — one #4107 test pins that default.
+      ...(opts.ssoCredentialsEnabled !== undefined
+        ? { ssoCredentialsEnabled: opts.ssoCredentialsEnabled }
+        : {}),
       canManageSso: opts.canManageSso ?? true,
       globalAvailability: opts.globalAvailability ?? allAvailable,
       savingField: opts.savingField ?? null,
@@ -1305,6 +1318,97 @@ describe('DomainSigninConfigForm', () => {
         canManageSso: true,
       });
       expect(wrapper.text()).toContain(COPY.editCredentials);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Dormant credentials indicator (#4107)
+  //
+  // SsoConfig.enabled is the credential record's own operational flag,
+  // distinct from this form's sso_enabled policy toggle. When credentials
+  // exist but that flag is off, the sign-in page can never offer SSO no
+  // matter what the policy toggle says, so the form surfaces "Connection
+  // disabled": a full amber row in Mode A, a compact badge on the SSO radio
+  // row in Mode B. Renders ONLY when ssoConfigured && !ssoCredentialsEnabled
+  // — with no credential record there is nothing dormant to warn about.
+  // -----------------------------------------------------------------------
+
+  describe('dormant credentials indicator (#4107)', () => {
+    const INDICATOR = '[data-testid="sso-connection-disabled-indicator"]';
+    const COMPACT = '[data-testid="sso-connection-disabled-indicator-compact"]';
+
+    it('renders in Mode A when credentials exist but the connection is off', () => {
+      wrapper = mountForm({ ssoConfigured: true, ssoCredentialsEnabled: false });
+      expect(wrapper.find(INDICATOR).exists()).toBe(true);
+    });
+
+    it('does not render when the connection is active', () => {
+      wrapper = mountForm({ ssoConfigured: true, ssoCredentialsEnabled: true });
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      expect(wrapper.find(COMPACT).exists()).toBe(false);
+    });
+
+    it('does not render when no credentials are configured, regardless of the flag', () => {
+      wrapper = mountForm({ ssoConfigured: false, ssoCredentialsEnabled: false });
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      expect(wrapper.find(COMPACT).exists()).toBe(false);
+      wrapper.unmount();
+
+      wrapper = mountForm({ ssoConfigured: false, ssoCredentialsEnabled: true });
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      expect(wrapper.find(COMPACT).exists()).toBe(false);
+    });
+
+    it('treats an omitted prop as connection-off (default false, matching the record default)', () => {
+      // ssoCredentialsEnabled deliberately NOT passed — the component's own
+      // prop default must fail toward "dormant", never silently hide the
+      // warning for parents that don't wire the prop.
+      wrapper = mountForm({ ssoConfigured: true });
+      expect(wrapper.find(INDICATOR).exists()).toBe(true);
+    });
+
+    it('renders the compact badge on the SSO radio row in Mode B under the same condition', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        ssoConfigured: true,
+        ssoCredentialsEnabled: false,
+      });
+      // Mode B shows the compact badge; the Mode A row (and its full
+      // indicator) is not in the tree at all.
+      expect(wrapper.find(COMPACT).exists()).toBe(true);
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+    });
+
+    it('does not render the compact badge in Mode B when the connection is active', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        ssoConfigured: true,
+        ssoCredentialsEnabled: true,
+      });
+      expect(wrapper.find(COMPACT).exists()).toBe(false);
+    });
+
+    it('renders the shipped badge + hint copy, not raw key paths', () => {
+      wrapper = mountForm({ ssoConfigured: true, ssoCredentialsEnabled: false });
+      const indicator = wrapper.find(INDICATOR);
+      expect(indicator.text()).toContain(COPY.connectionDisabledBadge);
+      expect(indicator.text()).toContain(COPY.connectionDisabledHint);
+      // COPY resolves through the same bundle, so toContain alone is
+      // tautological for a missing key (both collapse to the key path); this
+      // pins that the keys actually resolved.
+      expect(indicator.text()).not.toContain('web.domains.sso.connection_disabled');
+    });
+
+    it('compact badge carries the badge copy and the hint as its title', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        ssoConfigured: true,
+        ssoCredentialsEnabled: false,
+      });
+      const compact = wrapper.find(COMPACT);
+      expect(compact.text()).toContain(COPY.connectionDisabledBadge);
+      expect(compact.text()).not.toContain('web.domains.sso.connection_disabled');
+      expect(compact.attributes('title')).toBe(COPY.connectionDisabledHint);
     });
   });
 });

@@ -128,6 +128,7 @@ const {
   testResult,
   testError,
   isConfigured: ssoIsConfigured,
+  isEnabled: ssoIsEnabled,
   hasUnsavedChanges: ssoHasUnsavedChanges,
   clientSecretMasked,
   initialize: initializeSsoConfig,
@@ -310,6 +311,7 @@ watch(canFetchSsoConfig, async (allowed) => {
             :is-configured="isConfigured"
             :workspace-default="isWorkspaceDefault"
             :sso-configured="ssoIsConfigured"
+            :sso-credentials-enabled="ssoIsEnabled"
             :can-manage-sso="canManageSso"
             :global-availability="globalAvailability"
             :saving-field="savingField"
