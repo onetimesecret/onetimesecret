@@ -31,15 +31,20 @@ pnpm run test:tryouts:failures try/unit/models/v2/customer_try.rb:42
 ```
 
 Run tryouts through these scripts (or `tests/lanes/run`, which pins the locale
-itself), not a bare `bundle exec try`. The parser reads each file with
+itself), not a bare `bundle exec try`. The parser reads each file with plain
 `File.read`, so under a non-UTF-8 locale — `LANG`/`LC_ALL` unset, as in a plain
-`env -i` shell or some CI images — every file containing a non-ASCII character
-(an em-dash in a comment is enough, and ~165 of these files have one) fails to
-parse with `invalid byte sequence in US-ASCII`. Tryouts reports that file under
-`Syntax Errors` but still **exits 0** when the others pass, so the run reads as
-green with the file silently dropped; only the `files_under_test` count gives it
-away. `test:tryouts` pins `RUBYOPT=-EUTF-8` so the encoding no longer depends on
-the caller's environment.
+`env -i` shell or some CI images — the source is tagged US-ASCII and any
+non-ASCII byte the parser has to `strip` raises `invalid byte sequence in
+US-ASCII`, dropping the whole file. Indented comments and code lines are the
+ones that reach that path (a comment starting at column 0 does not); 22 of these
+files qualify.
+
+The run still exits non-zero, so CI cannot go green on it, but the report reads
+as if it had: `65 testcases passed, 0 failed in 3 files` with
+`files_under_test: 2` and a `Syntax Errors` block below the context, or `2 of 2
+files passed` in the default formatter. The dropped file's tests are counted
+nowhere. `test:tryouts` pins `RUBYOPT=-EUTF-8` so the encoding no longer depends
+on the caller's environment. Upstream: delano/tryouts#76.
 
 ## Writing Tests
 
