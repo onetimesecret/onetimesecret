@@ -85,6 +85,51 @@ class TestAdminNetworkIsolation < Onetime::Middleware::AdminNetworkIsolation
   def allowed_hosts
     @allowed_hosts
   end
+
+  # Swap a recorder in for the duration of the block and return the WARN lines
+  # it saw, as [message, payload] pairs.
+  #
+  # Installed AFTER construction on purpose: the boot lines already went to the
+  # real logger (and have their own announcement-ledger cases at the bottom of
+  # this file), so only PER-REQUEST denials land here.
+  def capture_warns
+    real     = @logger
+    recorder = WarnRecorder.new
+    @logger  = recorder
+    yield
+    recorder.warns
+  ensure
+    @logger = real
+  end
+end
+
+# Records the WARN lines one middleware instance emits.
+#
+# The three host refusals — unattributable forwarded host, unresolvable host,
+# allowlist miss — are the IDENTICAL 404 by design; indistinguishable-from-absent
+# is the whole point of the response side. That leaves the LOG LINE as the only
+# thing that tells an operator which one fired, which is why it is worth
+# asserting on and why these cases cannot go through status alone.
+class WarnRecorder
+  attr_reader :warns
+
+  def initialize
+    @warns = []
+  end
+
+  def warn(message, payload = nil)
+    @warns << [message, payload]
+    nil
+  end
+
+  # Every other level is swallowed: only the denial WARNs are under test.
+  def method_missing(_name, *_args)
+    nil
+  end
+
+  def respond_to_missing?(_name, _include_private = false)
+    true
+  end
 end
 
 @allowlist = Onetime::Utils::AdminHostAllowlist
@@ -171,6 +216,18 @@ def status_with(mw, detected_host, extra, http_host: nil, path_info: '/colonel',
     extra: extra,
   )
   mw.call(env).first
+end
+
+# One request's [status, WARN messages]. Same call shape as status_with, and
+# the only way to tell the three identical-404 host refusals apart.
+def denial_warns(mw, detected_host, extra = {}, http_host: nil, path_info: '/colonel', script_name: '')
+  status   = nil
+  recorded = mw.capture_warns do
+    status = status_with(mw, detected_host, extra,
+                         http_host: http_host, path_info: path_info, script_name: script_name)
+  end
+
+  [status, recorded.map(&:first)]
 end
 
 # Status of one admin-surface request. Defaults to the /colonel shell from a
@@ -560,6 +617,64 @@ both_surfaces(@hosts, nil)
 ## host_allowed? - nil and empty are rejected directly
 [@hosts.host_allowed?(nil), @hosts.host_allowed?('')]
 #=> [false, false]
+
+# --- ...and the denial says WHICH refusal it was (#4098) -----------------
+# The behaviour above must never change: no host means 404, fail closed. What
+# the review found was a DIAGNOSABILITY defect one layer over. All three host
+# refusals are the same 404, so the WARN is the operator's only diagnosis — and
+# "denied by host allowlist" with `host: nil` names a config key that was never
+# consulted and cannot be edited into working. The live shape: a single
+# container reached by bare IP whose operator set ADMIN_ALLOWED_HOSTS=10.0.0.5,
+# an entry Rack::DetectHost can never produce a match for.
+
+## nil detected host - the WARN names the unresolvable host, NOT the allowlist
+denial_warns(@hosts, nil)
+#=> [404, ['Admin surface access denied: no host could be detected for this request']]
+
+## absent detected-host key - same line (DetectHost never ran, same diagnosis)
+@absent_warns = @hosts.capture_warns { status_for(@hosts, :unset) }
+@absent_warns.map(&:first)
+#=> ['Admin surface access denied: no host could be detected for this request']
+
+## empty detected host - same line
+denial_warns(@hosts, '')
+#=> [404, ['Admin surface access denied: no host could be detected for this request']]
+
+## whitespace-only detected host - normalizes to nil, so same line
+denial_warns(@hosts, '   ')
+#=> [404, ['Admin surface access denied: no host could be detected for this request']]
+
+## the API surface is diagnosed identically
+denial_warns(@hosts, nil, {}, script_name: '/api/colonel', path_info: '/info')
+#=> [404, ['Admin surface access denied: no host could be detected for this request']]
+
+## a host that WAS judged and missed still gets the allowlist line - the two
+## refusals did not collapse into one
+denial_warns(@hosts, 'tenant.example.com')
+#=> [404, ['Admin surface access denied by host allowlist']]
+
+## an admitted host warns about nothing
+denial_warns(@hosts, 'admin.example.com')
+#=> [200, []]
+
+## the unresolvable-host payload carries the SAME key set as the other two
+## denials, so an operator's existing log query does not have to special-case it
+@nil_warn = @hosts.capture_warns { status_for(@hosts, nil) }.first
+[@nil_warn.last.keys.sort, @nil_warn.last[:host], @nil_warn.last[:path], @nil_warn.last[:method]]
+#=> [%i[host method note path], nil, '/colonel', 'GET']
+
+## the note names the real cause and the two remedies, and never blames the
+## allowlist for a rejection it did not make
+@nil_note = @nil_warn.last[:note]
+[@nil_note.include?('Rack::DetectHost emits no host'),
+ @nil_note.include?('never consulted'),
+ @nil_note.include?('routable hostname'),
+ @nil_note.include?('ADMIN_ALLOWED_HOSTS=*')]
+#=> [true, true, true, true]
+
+## the allowlist is still never echoed into the RESPONSE, only the log
+denial_triple(@hosts, nil, '203.0.113.9', '', '/colonel').last.include?('admin.example.com')
+#=> false
 
 # --- exact match only: no subdomain or suffix tolerance -----------------
 
@@ -1193,6 +1308,29 @@ status_with(@fwd, 'tenant.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.exam
 ## by HTTP_HOST — HTTP_HOST is never a source
 status_with(@fwd, nil, { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' }, http_host: 'admin.example.com')
 #=> 404
+
+## ...and the line it gets is the UNRESOLVABLE-HOST one, not the untrusted-peer
+## one. Nothing was overridden because nothing was produced: DetectHost declined
+## to emit a host at all, so there is no attribution question to answer. The
+## provenance line would send the operator to configure
+## site.network.trusted_proxy, which cannot conjure a host out of a request that
+## has none — the wrong remedy for the wrong cause.
+denial_warns(@fwd, nil, { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' }, http_host: 'admin.example.com')
+#=> [404, ['Admin surface access denied: no host could be detected for this request']]
+
+## control: a REAL detected host from an untrusted forwarded header still gets
+## the provenance line — the new line did not swallow it, and provenance is
+## still judged BEFORE membership
+denial_warns(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+             http_host: 'tenant.example.com')
+#=> [404, ['Admin surface access denied: forwarded host from an untrusted peer']]
+
+## control: an empty detected host with a trusted peer is STILL denied, with the
+## unresolvable line — trust widens what may be read, never what is admitted
+denial_warns(@fwd, nil,
+             { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com', 'otto.via_trusted_proxy' => true },
+             http_host: 'admin.example.com')
+#=> [404, ['Admin surface access denied: no host could be detected for this request']]
 
 ## provenance is a HOST-gate rule: with the host gate off, a forwarded header
 ## from an untrusted peer changes nothing

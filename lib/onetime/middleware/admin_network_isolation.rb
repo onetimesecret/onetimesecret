@@ -363,6 +363,13 @@ module Onetime
           return true
         end
 
+        # THERE IS NO HOST TO JUDGE — same 404, its own line. Routing this into
+        # the membership WARN below (what it did until the #4098 review) told
+        # the operator their host was rejected BY THE ALLOWLIST, when the
+        # allowlist was never consulted and `host` logged as nil. See
+        # #warn_unresolvable_host.
+        return warn_unresolvable_host(env, full_path, host) if host.nil? || host.empty?
+
         return false if host_allowed?(host)
 
         @logger.warn 'Admin surface access denied by host allowlist',
@@ -370,6 +377,36 @@ module Onetime
             host: host,
             path: full_path,
             method: env['REQUEST_METHOD'],
+          }
+
+        true
+      end
+
+      # The third refusal: the gate is ACTIVE and Rack::DetectHost emitted
+      # nothing to compare against the allowlist.
+      #
+      # The behavior is identical to the other two (404, fail closed); only the
+      # diagnosis differs, and the diagnosis is the entire reason this exists.
+      # The shape that produces it in the field: a single-container install
+      # reached by bare IP whose operator set ADMIN_ALLOWED_HOSTS=10.0.0.5 — an
+      # IP literal, which DetectHost never emits and AdminHostAllowlist
+      # therefore never admits. That list is unenforceable, so the gate is
+      # active with an empty allowlist, the detected host is nil on EVERY
+      # request, and both surfaces 404 forever. Reported as an allowlist
+      # rejection it points the operator at site.admin.allowed_hosts, where
+      # nothing they can write will help.
+      #
+      # @return [true] always; the caller returns it as the denial.
+      def warn_unresolvable_host(env, full_path, host)
+        @logger.warn 'Admin surface access denied: no host could be detected for this request',
+          {
+            host: host,
+            path: full_path,
+            method: env['REQUEST_METHOD'],
+            note: 'Rack::DetectHost emits no host for a bare-IP `Host:` header, for localhost forms, ' \
+                  'or for a malformed name, so site.admin.allowed_hosts was never consulted — no entry ' \
+                  'in it could have matched. Reach the admin surface on a routable hostname the ' \
+                  'allowlist names, or set ADMIN_ALLOWED_HOSTS=* to turn the host gate off',
           }
 
         true
@@ -389,9 +426,12 @@ module Onetime
         # `== true` — never `!= false` — is the grant-only read.
         return true if env[Rack::DetectHost::VIA_TRUSTED_PROXY_KEY] == true
 
-        # There is no host to attribute. Not a provenance question:
-        # #host_allowed? denies nil anyway, with the ordinary allowlist WARN,
-        # which is the more accurate line for an operator to read.
+        # There is no host to attribute, so there is nothing to distrust: a
+        # forwarded header that produced NO host overrode nothing. Not a
+        # provenance question, and deliberately not answered as one — the
+        # caller denies it immediately afterwards through
+        # #warn_unresolvable_host, whose line names the real cause (no host was
+        # detected) instead of blaming a proxy the operator may not have.
         return true if host.nil? || host.empty?
 
         # (b) Nothing that could have overridden the Host header is present.
