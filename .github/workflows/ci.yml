@@ -237,14 +237,21 @@ jobs:
         run: pnpm lint
 
   # Runs the pre-commit hygiene hooks (whitespace, EOF, private-key,
-  # merge-conflict, large-file) that no other CI job covers — a safety net for
-  # commits pushed with `--no-verify` or without hooks installed. Scoped to the
-  # PR diff (base..head), NOT --all-files, so pre-existing debt in untouched
-  # files never fails the job. ESLint/RuboCop are skipped here (the T1 lint jobs
-  # own them); no-commit-to-branch is a local-only guard.
+  # merge-conflict, large-file, Prettier) that no other CI job covers — a safety
+  # net for commits pushed with `--no-verify` or without hooks installed. Scoped
+  # to the PR diff (base..head), NOT --all-files, so pre-existing debt in
+  # untouched files never fails the job. ESLint/RuboCop are skipped here (the T1
+  # lint jobs own them); no-commit-to-branch is a local-only guard.
+  #
+  # Prettier deliberately runs HERE and not in T1 · TypeScript Lint: it also owns
+  # md/yaml/json/css, which the `typescript` path filter does not cover, so a
+  # docs-only PR would otherwise skip formatting entirely. That is why this job
+  # pays for a Node env — `.prettierrc` loads prettier-plugin-vue and
+  # prettier-plugin-tailwindcss from node_modules, so `pnpm exec prettier`
+  # needs a real install, not `dlx`.
   hygiene:
     name: T1 · Hygiene (pre-commit)
-    timeout-minutes: 3
+    timeout-minutes: 6
     runs-on: *runs-on
     # Hygiene isn't path-gated (applies to any file type), but needs a PR diff to
     # scope to — workflow_dispatch has none, so restrict to pull_request.
@@ -261,6 +268,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.14'
+
+      # Required by the prettier-staged hook (language: system → resolves pnpm
+      # from PATH and plugins from node_modules).
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Cache pre-commit environments
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
