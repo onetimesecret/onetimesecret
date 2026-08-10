@@ -237,6 +237,20 @@ Use **private ranges only**. Do not put a public CIDR in `allowed_cidrs`;
 network isolation is meant to limit the surface to a private/VPN network, and
 the app-layer auth layers remain the gate for anyone who is on that network.
 
+### CIDR entries finer than `/24` never match
+
+The gate compares against `env['otto.client_ip']`, and that value is
+**privacy-masked before any middleware sees it** — IP masking is on for every
+deployment, including direct-connect ones. IPv4 clients arrive with the last
+octet zeroed (an effective `/24`), IPv6 clients at an effective `/48`.
+
+So a single-host entry — `10.0.0.5/32` for your VPN host, a Tailscale node's
+`/128` — is accepted at boot, reported as `active`, and then **matches nothing**:
+you get the same silent 404 as an outside address. The inverse also holds, an
+entry whose host bits are already zero (`10.0.0.0/32`) matches every client in
+`10.0.0.0/24`. Keep entries at `/24` or coarser for IPv4 and `/48` or coarser
+for IPv6 — the ranges in the example above already are. Tracked as #3912.
+
 ## Behind a reverse proxy or load balancer — required for both gates
 
 Each gate reads an input a proxy can rewrite, and each resolves that input the
@@ -246,7 +260,10 @@ same way the rest of the stack does:
   same value used for ban checks, sessions and audit attribution, read from
   `env['otto.client_ip']`, which the universal IP-privacy middleware sets from
   `site.network.trusted_proxy`. A **raw `X-Forwarded-For` header cannot bypass
-  the allowlist** — that is the point.
+  the allowlist** — that is the point. **That value is also privacy-masked**:
+  IPv4 arrives zeroed to its `/24` and IPv6 to its `/48`, so an entry finer than
+  that never matches — see [CIDR entries finer than `/24` never
+  match](#cidr-entries-finer-than-24-never-match).
 - The **host** gate matches the host `Rack::DetectHost` validated, and applies
   one extra check of its own: a forwarded host header (`X-Forwarded-Host`,
   `Apx-Incoming-Host`, `X-Original-Host`, `Forwarded`) is accepted **only** when
