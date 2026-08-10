@@ -20,11 +20,11 @@
     "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "ID d'organisation requis",
+    "text": "ID de l'organisation requis",
     "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Le nom de l'organisation est requis",
+    "text": "Le nom de l'organisation est obligatoire",
     "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
@@ -52,11 +52,11 @@
     "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "L'e-mail est requis",
+    "text": "L'adresse e-mail est obligatoire",
     "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Format d'e-mail invalide",
+    "text": "Format d'adresse e-mail non valide",
     "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
@@ -72,7 +72,7 @@
     "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Une invitation est déjà en attente pour cet e-mail",
+    "text": "Une invitation est déjà en attente pour cette adresse e-mail",
     "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
@@ -104,7 +104,7 @@
     "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Rôle invalide. Doit être l'un des suivants : %{roles}",
+    "text": "Rôle non valide. Il doit s'agir de l'un des rôles suivants : %{roles}",
     "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
@@ -116,7 +116,7 @@
     "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Impossible de promouvoir au rang de propriétaire. Utilisez plutôt le transfert de propriété.",
+    "text": "Impossible de promouvoir en tant que propriétaire. Utilisez plutôt le transfert de propriété.",
     "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
@@ -128,7 +128,7 @@
     "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Impossible de vous retirer vous-même. Utilisez plutôt l'option de quitter l'organisation.",
+    "text": "Impossible de vous retirer vous-même. Utilisez plutôt l'option pour quitter l'organisation.",
     "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
@@ -136,7 +136,7 @@
     "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Vous n'avez pas la permission de retirer des membres",
+    "text": "Vous n'avez pas l'autorisation de retirer des membres",
     "source_hash": "b0ac7287"
   }
 }

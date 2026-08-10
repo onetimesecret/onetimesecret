@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Ошибка",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Секреты",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Членство",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Предпросмотры прав доступа",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Входы Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Субъект",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Поиск",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Введите субъекта, затем нажмите Enter или выберите «Поиск», чтобы выполнить запрос. Список не обновляется во время ввода.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Поиск ещё не выполнен — нажмите Enter или выберите «Поиск», чтобы применить этого субъекта.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Сервер ответил, но данные аудита не соответствуют ожидаемому формату. События показать невозможно — это сбой отчётности, а не пустой журнал.",
+    "source_hash": "7f48137e"
   }
 }

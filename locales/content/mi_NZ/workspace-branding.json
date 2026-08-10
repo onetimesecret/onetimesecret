@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Whakamahia tō waea hei matawai i te waehere QR",
-    "source_hash": "99ecf59f"
+    "text": "hei tauira: Whakamahia tō waea hei matawai i te waehere QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Whakapā atu ki onboarding{'@'}example.com mō ngā pātai",
-    "source_hash": "bee120a7"
+    "text": "hei tauira: Whakapā ki onboarding{'@'}example.com mēnā he pātai",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Ka whakaaturia ēnei tohutohu ki ngā kaiwhiwhi i mua i tā rātou whakaatu i te ihirangi karere huna",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "He arokite ora tēnei — kāore ō huringa e kitea e ngā manuhiri kia tiaki rā anō koe.",
-    "source_hash": "cb4b82de"
+    "text": "He arokite ora tēnei — kāore ō huringa e kitea e ngā manuhiri kia pāwhiria e koe Whakahou.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Tohua mai tō paetukutuku, ka pānui mātou i ōna tae me ōna momotuhi, kātahi ka kati i te āputa i te pāwhiri kotahi.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "I muri i te whakaatu",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Whakahou favicon mai i te rohe",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Tikina te favicon mai i tō rohe anō. Ka puta wawe te ata hou.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Kei te whakahou favicon — ka puta wawe te ata hou.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Kua tukuake koe i tētahi favicon ritenga, nā reira kāore te ata i tikina e whakakapi.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Tukuake favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Whakakapi",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Tangohia favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG, SVG rānei. Ka whakakapi te tukuake i te ata i tikina.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Favicon rohe",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Favicon rohe",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG, SVG rānei. Tae noa ki te 256KB. Ka whakakapi i te ata aunoa-tikina.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Tiaki favicon",
+    "source_hash": "c8a1566c"
   }
 }

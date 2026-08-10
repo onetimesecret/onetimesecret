@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "כישלון",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "סודות",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "חברויות",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "תצוגות מקדימות של זכויות",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "כניסות Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "פעיל",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "חיפוש",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "הקלד שם פעיל, ולאחר מכן לחץ Enter או בחר חיפוש להפעלה. הרשימה לא מתעדכנת בזמן ההקלדה.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "טרם בוצע חיפוש — לחץ Enter או בחר חיפוש להחלת פעיל זה.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "השרת הגיב, אך נתוני הביקורת לא תאמו את הפורמט הצפוי. לא ניתן להציג אירועים — זו תקלת דיווח, לא יומן ריק.",
+    "source_hash": "7f48137e"
   }
 }

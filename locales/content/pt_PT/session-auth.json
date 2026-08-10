@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "O teu e-mail foi verificado — já podes iniciar sessão.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Definir uma Palavra-passe",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "A tua conta ainda não tem uma palavra-passe. Enviar-te-emos um link seguro por e-mail para definires uma, para que também possas iniciar sessão diretamente.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Enviar Link de Configuração",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Foi-te enviado um e-mail com um link para definires uma palavra-passe para a tua conta",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Já existe uma conta com este endereço de e-mail mas não está ligada a este método de início de sessão. Inicia sessão com o teu método existente e depois liga este fornecedor em Definições de segurança → Identidades ligadas.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Esta identidade não pôde ser ligada. A ligação pode ter sido iniciada no domínio errado ou a tua sessão expirou. Por favor, inicia sessão novamente e depois liga-a nas definições da tua conta.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Não foi possível concluir a tua adição à organização. Por favor, contacta o teu administrador.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Não foi possível ligar esse método de início de sessão. Inicia sessão com a tua palavra-passe existente e depois liga este fornecedor em Definições de segurança → Identidades ligadas.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Verifica a tua caixa de entrada — enviámos-te um e-mail com um link para confirmar a ligação da tua conta. Abre-o para concluir o início de sessão.",
+    "source_hash": "b251c8f3"
   }
 }

@@ -8,7 +8,7 @@
     "source_hash": "cb7b24c6"
   },
   "web.admin.overview.feedback.total": {
-    "text": "過去30日間に{count}件",
+    "text": "過去30日間で{count}件",
     "source_hash": "b6b9147c"
   },
   "web.admin.overview.feedback.today": {
@@ -24,7 +24,7 @@
     "source_hash": "03281c88"
   },
   "web.admin.overview.feedback.empty": {
-    "text": "この期間のフィードバックはありません",
+    "text": "この期間にフィードバックはありません",
     "source_hash": "e09d594d"
   },
   "web.admin.overview.feedback.loadError": {
@@ -48,15 +48,15 @@
     "source_hash": "61ad9909"
   },
   "web.admin.overview.stats.receipts": {
-    "text": "受信確認",
+    "text": "受領証",
     "source_hash": "60a627df"
   },
   "web.admin.overview.stats.secretsCreated": {
-    "text": "作成されたシークレット(累計)",
+    "text": "作成されたシークレット（累計）",
     "source_hash": "bdb49794"
   },
   "web.admin.overview.stats.emailsSent": {
-    "text": "送信されたメール(累計)",
+    "text": "送信されたメール（累計）",
     "source_hash": "1c9a7518"
   },
   "web.admin.overview.stats.loadError": {
@@ -72,7 +72,7 @@
     "source_hash": "8db399dc"
   },
   "web.admin.overview.trends.secretsCreated": {
-    "text": "1日あたりのシークレット作成数",
+    "text": "1日あたりの作成シークレット数",
     "source_hash": "d6852656"
   },
   "web.admin.overview.trends.today": {
@@ -80,11 +80,11 @@
     "source_hash": "e0f4f767"
   },
   "web.admin.overview.trends.collectingNote": {
-    "text": "最初のデータポイントから収集しています。それ以前の日はゼロと表示されます。",
+    "text": "最初のデータポイント以降を収集 — それ以前の日はゼロと表示されます。",
     "source_hash": "269ee1eb"
   },
   "web.admin.overview.trends.sparklineAria": {
-    "text": "{label}:30日間のトレンド、今日{count}件",
+    "text": "{label}: 30日間のトレンド、今日は{count}",
     "source_hash": "eb57a7b2"
   },
   "web.admin.overview.trends.loadError": {

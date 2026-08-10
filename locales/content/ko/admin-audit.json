@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "실패",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "비밀 메시지",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "멤버십",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "권한 미리보기",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonel 로그인",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "사용자",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "검색",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "사용자를 입력한 후 Enter를 누르거나 검색을 선택하여 실행하세요. 입력하는 동안 목록이 업데이트되지 않습니다.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "아직 검색되지 않았습니다 — Enter를 누르거나 검색을 선택하여 이 사용자를 적용하세요.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "서버가 응답했지만 감사 데이터가 예상 형식과 일치하지 않습니다. 이벤트를 표시할 수 없습니다 — 빈 로그가 아니라 보고 오류입니다.",
+    "source_hash": "7f48137e"
   }
 }

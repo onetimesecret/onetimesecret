@@ -28,7 +28,7 @@
     "source_hash": "512acd7b"
   },
   "web.admin.bannedIps.ban.confirmDescription": {
-    "text": "Dit blokkeert {ip} aan de rand van de site. Typ het IP om te bevestigen.",
+    "text": "Hiermee wordt {ip} aan de rand van de site geblokkeerd. Typ het IP om te bevestigen.",
     "source_hash": "d8f6142e"
   },
   "web.admin.bannedIps.ban.button": {
@@ -80,7 +80,7 @@
     "source_hash": "f91a5285"
   },
   "web.admin.bannedIps.list.loadError": {
-    "text": "Kon geblokkeerde IP's niet laden.",
+    "text": "Geblokkeerde IP's konden niet worden geladen.",
     "source_hash": "539f2e34"
   },
   "web.admin.bannedIps.list.retry": {
@@ -96,11 +96,11 @@
     "source_hash": "41059c94"
   },
   "web.admin.bannedIps.unban.confirmTitle": {
-    "text": "Deze blokkade opheffen?",
+    "text": "Deze blokkering opheffen?",
     "source_hash": "88473e59"
   },
   "web.admin.bannedIps.unban.confirmDescription": {
-    "text": "Dit deblokkeert {ip}. Typ het IP om te bevestigen.",
+    "text": "Hiermee wordt {ip} gedeblokkeerd. Typ het IP om te bevestigen.",
     "source_hash": "6bec3191"
   },
   "web.admin.bannedIps.unban.button": {

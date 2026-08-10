@@ -1034,5 +1034,153 @@
   "web.organizations.create_workspace": {
     "text": "Tạo không gian làm việc",
     "source_hash": "c63c14cf"
+  },
+  "web.organizations.organization_id": {
+    "text": "ID tổ chức",
+    "source_hash": "1f466322"
+  },
+  "web.organizations.organization_id_hint": {
+    "text": "Sử dụng ID này khi liên hệ hỗ trợ hoặc xác định phạm vi yêu cầu API cho tổ chức này. Đây không phải là thông tin đăng nhập.",
+    "source_hash": "29549b3a"
+  },
+  "web.organizations.audit.title": {
+    "text": "Hoạt động bí mật",
+    "source_hash": "6d6d41f3"
+  },
+  "web.organizations.audit.description": {
+    "text": "Nhật ký kiểm tra các sự kiện tạo và truy cập bí mật được ghi lại cho tổ chức này.",
+    "source_hash": "553c564b"
+  },
+  "web.organizations.audit.country_unknown": {
+    "text": "Không xác định",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.empty_title": {
+    "text": "Chưa có hoạt động",
+    "source_hash": "0a12b92c"
+  },
+  "web.organizations.audit.empty_description": {
+    "text": "Các sự kiện tạo và truy cập bí mật sẽ xuất hiện ở đây khi nhóm của bạn chia sẻ bí mật.",
+    "source_hash": "62fb14c2"
+  },
+  "web.organizations.audit.capped_notice": {
+    "text": "Chỉ {max} sự kiện mới nhất được giữ lại; hoạt động cũ hơn đã bị cắt bỏ.",
+    "source_hash": "da7901e2"
+  },
+  "web.organizations.audit.collection_paused_notice": {
+    "text": "Thu thập sự kiện đang tạm dừng; hoạt động bí mật mới không được ghi lại.",
+    "source_hash": "cb09d147"
+  },
+  "web.organizations.audit.load_error": {
+    "text": "Không thể tải hoạt động bí mật.",
+    "source_hash": "52fde814"
+  },
+  "web.organizations.audit.contract_mismatch": {
+    "text": "Dữ liệu hoạt động được máy chủ trả về không thể đọc được. Nhật ký không trống — chỉ là không thể hiển thị ngay bây giờ.",
+    "source_hash": "db0d007a"
+  },
+  "web.organizations.audit.retry": {
+    "text": "Thử lại",
+    "source_hash": "d8b8392e"
+  },
+  "web.organizations.audit.showing_range": {
+    "text": "Hiển thị {from}–{to} của {total}",
+    "source_hash": "c329279d"
+  },
+  "web.organizations.audit.upgrade_prompt": {
+    "text": "Hoạt động bí mật yêu cầu gói có nhật ký kiểm tra. Nâng cấp để xem ai đã tạo, xem và tiết lộ bí mật trong tổ chức này.",
+    "source_hash": "453649ce"
+  },
+  "web.organizations.audit.role_required": {
+    "text": "Hoạt động bí mật có sẵn cho chủ sở hữu và quản trị viên tổ chức.",
+    "source_hash": "e066ec63"
+  },
+  "web.organizations.audit.actors.creator": {
+    "text": "Người tạo",
+    "source_hash": "88447b83"
+  },
+  "web.organizations.audit.actors.authenticated_other": {
+    "text": "Người dùng đã đăng nhập khác",
+    "source_hash": "ee45aa5a"
+  },
+  "web.organizations.audit.actors.anonymous": {
+    "text": "Ẩn danh",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.organizations.audit.actors.system": {
+    "text": "Hệ thống",
+    "source_hash": "6725e7bb"
+  },
+  "web.organizations.audit.actors.unknown": {
+    "text": "Không xác định",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.columns.event": {
+    "text": "Sự kiện",
+    "source_hash": "4e1f49a9"
+  },
+  "web.organizations.audit.columns.secret": {
+    "text": "Bí mật",
+    "source_hash": "7e32a729"
+  },
+  "web.organizations.audit.columns.actor": {
+    "text": "Người thực hiện",
+    "source_hash": "449995c4"
+  },
+  "web.organizations.audit.columns.country": {
+    "text": "Quốc gia",
+    "source_hash": "701d021d"
+  },
+  "web.organizations.audit.columns.when": {
+    "text": "Khi nào",
+    "source_hash": "cf9c7aa2"
+  },
+  "web.organizations.audit.kinds.created": {
+    "text": "Đã tạo bí mật",
+    "source_hash": "e4a1e1fd"
+  },
+  "web.organizations.audit.kinds.status_get": {
+    "text": "Đã kiểm tra trạng thái liên kết",
+    "source_hash": "0753f60e"
+  },
+  "web.organizations.audit.kinds.secret_get": {
+    "text": "Đã mở liên kết bí mật",
+    "source_hash": "e271e060"
+  },
+  "web.organizations.audit.kinds.previewed": {
+    "text": "Người tạo đã xem trước",
+    "source_hash": "639fc1e2"
+  },
+  "web.organizations.audit.kinds.creator_status_get": {
+    "text": "Người tạo đã kiểm tra trạng thái",
+    "source_hash": "7e4b5de5"
+  },
+  "web.organizations.audit.kinds.receipt_viewed": {
+    "text": "Đã xem biên nhận",
+    "source_hash": "a417ead4"
+  },
+  "web.organizations.audit.kinds.revealed": {
+    "text": "Đã tiết lộ bí mật",
+    "source_hash": "aff2c84d"
+  },
+  "web.organizations.audit.kinds.burned": {
+    "text": "Đã xóa vĩnh viễn bí mật",
+    "source_hash": "5ac68dc6"
+  },
+  "web.organizations.audit.kinds.expired": {
+    "text": "Bí mật đã hết hạn",
+    "source_hash": "c127dab6"
+  },
+  "web.organizations.audit.kinds.orphaned": {
+    "text": "Bí mật bị mồ côi",
+    "source_hash": "23fe1a47"
+  },
+  "web.organizations.audit.kinds.reveal_failed_undecryptable": {
+    "text": "Tiết lộ thất bại (không thể giải mã)",
+    "source_hash": "d5616abf"
+  },
+  "web.organizations.tabs.activity": {
+    "text": "Hoạt động",
+    "source_hash": "38da1505"
   }
 }

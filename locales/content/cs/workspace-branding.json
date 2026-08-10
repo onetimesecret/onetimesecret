@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Použij telefon k naskenování QR kódu",
-    "source_hash": "99ecf59f"
+    "text": "např. Použij svůj telefon k naskenování QR kódu",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "V případě dotazů kontaktuj onboarding{'@'}example.com",
-    "source_hash": "bee120a7"
+    "text": "např. S dotazy kontaktuj onboarding{'@'}example.com",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Tyto pokyny budou zobrazeny příjemcům před tím, než odhalí obsah tajemství",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Toto je živý náhled — tvé změny nebudou pro návštěvníky viditelné, dokud je neuložíš.",
-    "source_hash": "cb4b82de"
+    "text": "Toto je živý náhled — tvoje změny nebudou viditelné pro návštěvníky, dokud neklikneš na Aktualizovat.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Zadej svůj web a my z něj načteme barvy a písma a jedním kliknutím doladíme zbytek.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Po zobrazení",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Obnovit favicon z domény",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Znovu načti favicon z tvé domény. Nová ikona se brzy zobrazí.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Obnovuji favicon — nová ikona se brzy zobrazí.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Nahrál jsi vlastní favicon, takže načtená ikona ho nenahradí.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Nahrát favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Nahradit",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Odebrat favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG nebo SVG. Nahráním nahradíš načtenou ikonu.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Favicon domény",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Favicon domény",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG nebo SVG. Do 256 KB. Nahradí automaticky načtenou ikonu.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Uložit favicon",
+    "source_hash": "c8a1566c"
   }
 }

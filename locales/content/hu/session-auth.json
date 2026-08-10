@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "Az e-mail-címe ellenőrizve — most már bejelentkezhet.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Jelszó beállítása",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "A fiókjának még nincs jelszava. Küldünk egy biztonságos hivatkozást e-mailben a beállításához, hogy közvetlenül is bejelentkezhessen.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Beállítási hivatkozás küldése",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "E-mailt küldtünk Önnek egy hivatkozással a fiókja jelszavának beállításához",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Ezzel az e-mail címmel már létezik fiók, de nincs összekapcsolva ezzel a bejelentkezési módszerrel. Jelentkezzen be meglévő módszerével, majd kapcsolja össze ezt a szolgáltatót a Biztonsági beállítások → Összekapcsolt azonosítók menüpontban.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Ezt az azonosítót nem sikerült csatlakoztatni. A csatlakoztatás rossz domainen indulhatott, vagy a munkamenete lejárt. Jelentkezzen be újra, majd csatlakoztassa a fiókbeállításokból.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Nem sikerült befejezni a szervezethez való hozzáadását. Forduljon a rendszergazdához.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Nem sikerült összekapcsolni azt a bejelentkezési módszert. Jelentkezzen be meglévő jelszavával, majd csatlakoztassa ezt a szolgáltatót a Biztonsági beállítások → Összekapcsolt azonosítók menüpontban.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Ellenőrizze a postaládáját — e-mailt küldtünk egy hivatkozással a fiók csatlakoztatásának megerősítéséhez. Nyissa meg a bejelentkezés befejezéséhez.",
+    "source_hash": "b251c8f3"
   }
 }

@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "您收到此消息是因为 %{sender_email} 使用 %{product_name} 向您分享了机密内容。如果这不是您所预期的，您可以放心忽略此邮件。",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "确认将 %{provider} 关联到您的 %{product_name} 账户",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "确认您的 SSO 登录",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "有人使用邮箱 %{email_address} 通过 %{provider} 登录。要完成将 %{provider} 关联到您的 %{product_name} 账户，请在下方确认。",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "确认并关联 %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "或复制并粘贴此链接：",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "此链接将在 15 分钟后过期，且仅可使用一次。",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "如果您并未尝试通过 %{provider} 登录，可以放心忽略此邮件——不会有任何内容被关联到您的账户。",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "支持团队",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "附言：此邮件已发送至 %{email_address}。",
+    "source_hash": "8ab1dbea"
   }
 }

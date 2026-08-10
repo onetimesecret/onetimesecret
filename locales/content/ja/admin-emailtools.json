@@ -4,23 +4,23 @@
     "source_hash": "f9643d5a"
   },
   "web.admin.emailtools.description": {
-    "text": "メールテンプレートのプレビュー、配信テストの送信、到達性の監視ができます。これまでSSHが必要だった診断機能です。",
+    "text": "メールテンプレートのプレビュー、配信テストの送信、到達性の監視を行えます — 従来はSSHが必要だった診断です。",
     "source_hash": "be85c9e9"
   },
   "web.admin.emailtools.config.title": {
-    "text": "メーラー設定",
+    "text": "メーラーの構成",
     "source_hash": "d2a71028"
   },
   "web.admin.emailtools.config.description": {
-    "text": "起動時に解決された常設のメール設定です。認証情報は表示されず、設定されているかどうかのみが表示されます。",
+    "text": "起動時に解決された現在のメール構成です。認証情報は表示されず、設定の有無のみが示されます。",
     "source_hash": "f0e8a118"
   },
   "web.admin.emailtools.config.provider": {
-    "text": "トランスポートプロバイダー",
+    "text": "トランスポートのプロバイダー",
     "source_hash": "4f0e5025"
   },
   "web.admin.emailtools.config.senderProvider": {
-    "text": "送信元プロバイダー",
+    "text": "送信元のプロバイダー",
     "source_hash": "e881964f"
   },
   "web.admin.emailtools.config.senderDiffers": {
@@ -64,7 +64,7 @@
     "source_hash": "1ea442a1"
   },
   "web.admin.emailtools.config.loggerWarning": {
-    "text": "メールが配信されていません。トランスポートプロバイダーが無送信モード(logger、disabled、またはnone)に設定されているため、このサーバーからメールは送信されません。送信メッセージはアプリケーションログに記録されるか破棄されます。",
+    "text": "メールは配信されていません。トランスポートのプロバイダーが送信しないモード (logger、disabled、none) に設定されているため、このサーバーからメールは送信されません — 送信メッセージはアプリケーションログに記録されるか破棄されます。",
     "source_hash": "1883dfd5"
   },
   "web.admin.emailtools.deliverability.title": {
@@ -72,7 +72,7 @@
     "source_hash": "66b4d300"
   },
   "web.admin.emailtools.deliverability.description": {
-    "text": "送信後に返ってくる情報です。バウンス、苦情、そして送信者の評価を保護する抑制リストが含まれます。",
+    "text": "送信後に返ってくる情報です: バウンス、苦情、および送信者レピュテーションを保護する抑制リスト。",
     "source_hash": "e8363bb5"
   },
   "web.admin.emailtools.deliverability.retry": {
@@ -84,11 +84,11 @@
     "source_hash": "8ecce94d"
   },
   "web.admin.emailtools.deliverability.events.description": {
-    "text": "バウンスと苦情の生フィードを新しい順に表示します。",
+    "text": "バウンスと苦情の生のフィードを新しい順に表示します。",
     "source_hash": "0e7a533b"
   },
   "web.admin.emailtools.deliverability.events.empty": {
-    "text": "バウンスや苦情のデータはまだありません。POST /api/colonel/email/deliverability/events(colonel認証が必要 — レコード形式についてはエンドポイントのドキュメントを参照)経由でESPのフィードバックを送信してください。同期SMTPのハードバウンスは自動的に記録されます。",
+    "text": "バウンスや苦情のデータはまだありません。POST /api/colonel/email/deliverability/events 経由でESPのフィードバックを送信してください (Colonel認証が必要です — レコード形式はエンドポイントのドキュメントをご覧ください)。同期的なSMTPのハードバウンスは自動的に記録されます。",
     "source_hash": "a90f259c"
   },
   "web.admin.emailtools.deliverability.events.loadError": {
@@ -96,7 +96,7 @@
     "source_hash": "02244c61"
   },
   "web.admin.emailtools.deliverability.events.columns.time": {
-    "text": "時刻",
+    "text": "日時",
     "source_hash": "33b93476"
   },
   "web.admin.emailtools.deliverability.events.columns.kind": {
@@ -124,19 +124,19 @@
     "source_hash": "5d08b02d"
   },
   "web.admin.emailtools.deliverability.lookup.title": {
-    "text": "受信者検索",
+    "text": "受信者の照会",
     "source_hash": "7569985b"
   },
   "web.admin.emailtools.deliverability.lookup.description": {
-    "text": "アドレスが抑制されているかどうかを、ローカルストアとアクティブなメールプロバイダーの両方で確認します。どちらも同じ正規化されたアドレスをキーとしています。",
+    "text": "アドレスが抑制されているかどうかを、ローカルストアと現在のメールプロバイダーの両方で確認します。どちらも同じ正規化済みアドレスをキーとしています。",
     "source_hash": "c341d614"
   },
   "web.admin.emailtools.deliverability.lookup.addressLabel": {
-    "text": "受信者アドレス",
+    "text": "受信者のアドレス",
     "source_hash": "454d0391"
   },
   "web.admin.emailtools.deliverability.lookup.submit": {
-    "text": "検索",
+    "text": "照会",
     "source_hash": "504101bc"
   },
   "web.admin.emailtools.deliverability.lookup.local": {
@@ -164,7 +164,7 @@
     "source_hash": "0e570ca6"
   },
   "web.admin.emailtools.deliverability.lookup.unavailable": {
-    "text": "プロバイダーのライブ検索は利用できません。上記のローカルストアが正となります。",
+    "text": "プロバイダーへの照会は利用できません。上記のローカルストアが正となります。",
     "source_hash": "aebed0f2"
   },
   "web.admin.emailtools.deliverability.messages.title": {
@@ -172,7 +172,7 @@
     "source_hash": "522e089e"
   },
   "web.admin.emailtools.deliverability.messages.description": {
-    "text": "アクティブなメールプロバイダーが記録した最新のメッセージを新しい順に表示します。プロバイダーからライブで取得しており、ここには保存されません。",
+    "text": "現在のメールプロバイダーが記録した最新のメッセージを新しい順に表示します。プロバイダーから直接取得しており、ここには保存されません。",
     "source_hash": "9970fa0a"
   },
   "web.admin.emailtools.deliverability.messages.empty": {
@@ -180,7 +180,7 @@
     "source_hash": "a7ef4d79"
   },
   "web.admin.emailtools.deliverability.messages.notSupported": {
-    "text": "{provider}トランスポートでは送信ログを利用できません。メッセージごとのAPIが提供されていません。",
+    "text": "{provider}トランスポートにはメッセージ単位のAPIがないため、送信ログを利用できません。",
     "source_hash": "21e6b6f9"
   },
   "web.admin.emailtools.deliverability.messages.error": {
@@ -244,11 +244,11 @@
     "source_hash": "f63d5b6b"
   },
   "web.admin.emailtools.deliverability.messages.status.unsubscribed": {
-    "text": "購読解除済み",
+    "text": "配信停止済み",
     "source_hash": "621e1970"
   },
   "web.admin.emailtools.deliverability.summary.loadError": {
-    "text": "到達性の概要を読み込めませんでした。",
+    "text": "到達性のサマリーを読み込めませんでした。",
     "source_hash": "0c16ef96"
   },
   "web.admin.emailtools.deliverability.suppressions.title": {
@@ -256,11 +256,11 @@
     "source_hash": "9f3e322f"
   },
   "web.admin.emailtools.deliverability.suppressions.description": {
-    "text": "送信メールがスキップするアドレスです。エントリはESPフィードバックの取り込みまたは手動インポートに由来します。削除すると配信が再開されます。",
+    "text": "送信メールがスキップするアドレスです。エントリはESPのフィードバック取り込みまたは手動インポートで追加されます。削除すると配信が再開されます。",
     "source_hash": "3651887e"
   },
   "web.admin.emailtools.deliverability.suppressions.searchLabel": {
-    "text": "完全なアドレス",
+    "text": "完全一致のアドレス",
     "source_hash": "f4338ff8"
   },
   "web.admin.emailtools.deliverability.suppressions.searchPlaceholder": {
@@ -268,7 +268,7 @@
     "source_hash": "333f0f15"
   },
   "web.admin.emailtools.deliverability.suppressions.searchButton": {
-    "text": "検索",
+    "text": "照会",
     "source_hash": "504101bc"
   },
   "web.admin.emailtools.deliverability.suppressions.clearButton": {
@@ -292,7 +292,7 @@
     "source_hash": "8be5aa33"
   },
   "web.admin.emailtools.deliverability.suppressions.add.button": {
-    "text": "抑制",
+    "text": "抑制する",
     "source_hash": "60b19987"
   },
   "web.admin.emailtools.deliverability.suppressions.add.confirmTitle": {
@@ -300,7 +300,7 @@
     "source_hash": "40a0d2a6"
   },
   "web.admin.emailtools.deliverability.suppressions.add.confirmDescription": {
-    "text": "抑制が解除されるまで、{address}への送信メールはスキップされます。これは手動エントリとして記録されます。",
+    "text": "抑制が解除されるまで、{address}宛ての送信メールはスキップされます。手動エントリとして記録されます。",
     "source_hash": "e3d0d799"
   },
   "web.admin.emailtools.deliverability.suppressions.add.success": {
@@ -328,11 +328,11 @@
     "source_hash": "0e570ca6"
   },
   "web.admin.emailtools.deliverability.suppressions.columns.added": {
-    "text": "追加日",
+    "text": "追加日時",
     "source_hash": "6b02e0d3"
   },
   "web.admin.emailtools.deliverability.suppressions.columns.actions": {
-    "text": "アクション",
+    "text": "操作",
     "source_hash": "ff8059dc"
   },
   "web.admin.emailtools.deliverability.suppressions.remove.button": {
@@ -340,19 +340,19 @@
     "source_hash": "c3812fc4"
   },
   "web.admin.emailtools.deliverability.suppressions.remove.confirmTitle": {
-    "text": "この抑制を削除しますか?",
+    "text": "この抑制を解除しますか?",
     "source_hash": "0b0aec2e"
   },
   "web.admin.emailtools.deliverability.suppressions.remove.confirmDescription": {
-    "text": "{address}への送信メールが再開されます。このアドレスは以前バウンスまたは苦情がありました。再び配信可能だとわかっている場合のみ削除してください。",
+    "text": "{address}宛ての送信メールが再開されます。このアドレスは過去にバウンスまたは苦情がありました — 再び配信可能であることが確認できている場合のみ解除してください。",
     "source_hash": "09442f9c"
   },
   "web.admin.emailtools.deliverability.suppressions.remove.success": {
-    "text": "{address}の抑制を削除しました。",
+    "text": "{address}の抑制を解除しました。",
     "source_hash": "bfc0de36"
   },
   "web.admin.emailtools.deliverability.sync.title": {
-    "text": "フィードバック同期",
+    "text": "フィードバックの同期",
     "source_hash": "d4056915"
   },
   "web.admin.emailtools.deliverability.sync.lastSynced": {
@@ -360,11 +360,11 @@
     "source_hash": "5a99666b"
   },
   "web.admin.emailtools.deliverability.sync.imported": {
-    "text": "{count}件インポート",
+    "text": "{count}件を取り込み",
     "source_hash": "1bc18c45"
   },
   "web.admin.emailtools.deliverability.sync.neverRun": {
-    "text": "プロバイダーのフィードバック同期は一度も実行されていません。バウンスと苦情のデータは自動的にインポートされていません。プロバイダー同期を設定するか、イベントエンドポイント経由でフィードバックを取り込んでください。",
+    "text": "プロバイダーのフィードバック同期は一度も実行されていません。バウンスや苦情のデータは自動的に取り込まれていません — プロバイダー同期を設定するか、イベントのエンドポイント経由でフィードバックを取り込んでください。",
     "source_hash": "d19f5755"
   },
   "web.admin.emailtools.deliverability.sync.button": {
@@ -372,11 +372,11 @@
     "source_hash": "885e8f48"
   },
   "web.admin.emailtools.deliverability.sync.success": {
-    "text": "{provider}の同期が完了しました:{accepted}件インポート、{rejected}件拒否({fetched}件取得)。",
+    "text": "{provider}の同期が完了しました: {accepted}件を取り込み、{rejected}件を却下 ({fetched}件を取得)。",
     "source_hash": "d36f5578"
   },
   "web.admin.emailtools.deliverability.sync.hint": {
-    "text": "手動同期です。自動インポートには、スケジュールされた`ots email sync-feedback` cronが引き続き必要です。",
+    "text": "これは手動同期です — 自動取り込みには`ots email sync-feedback`のcron設定が必要です。",
     "source_hash": "7a509b75"
   },
   "web.admin.emailtools.deliverability.tiles.suppressed": {
@@ -384,11 +384,11 @@
     "source_hash": "b31a245e"
   },
   "web.admin.emailtools.deliverability.tiles.bounces": {
-    "text": "バウンス({days}日)",
+    "text": "バウンス ({days}日間)",
     "source_hash": "3a4d0f09"
   },
   "web.admin.emailtools.deliverability.tiles.complaints": {
-    "text": "苦情({days}日)",
+    "text": "苦情 ({days}日間)",
     "source_hash": "16ad856f"
   },
   "web.admin.emailtools.deliverability.tiles.skipped": {
@@ -396,11 +396,11 @@
     "source_hash": "391467f9"
   },
   "web.admin.emailtools.preview.title": {
-    "text": "テンプレートプレビュー",
+    "text": "テンプレートのプレビュー",
     "source_hash": "df89bd92"
   },
   "web.admin.emailtools.preview.description": {
-    "text": "サンプルデータを使ってテンプレートをレンダリングします。プレビューには副作用がなく、メールは送信されません。",
+    "text": "サンプルデータでテンプレートを表示します。プレビューに副作用はなく、メールは送信されません。",
     "source_hash": "9b0e40f3"
   },
   "web.admin.emailtools.preview.templateLabel": {
@@ -424,11 +424,11 @@
     "source_hash": "231b7f03"
   },
   "web.admin.emailtools.providerStatus.rateUnavailable": {
-    "text": "このプロバイダーは数値でのバウンス率や苦情率を公開していません。上記の評価ティアは、適用ステータスと送信クォータのみから導き出されています。",
+    "text": "このプロバイダーはバウンス率や苦情率の数値を公開していません。上記のレピュテーション区分は、強制ステータスと送信クォータのみから導出されています。",
     "source_hash": "1e6b82e9"
   },
   "web.admin.emailtools.providerStatus.complaintsUnavailable": {
-    "text": "Lettermintは統計APIで苦情を報告しないため、苦情率はゼロではなく「—」(未報告)と表示されます。上記のバウンス率は完全です。",
+    "text": "Lettermintは統計APIで苦情を報告しないため、苦情率はゼロではなく「—」(未報告) と表示されます。上記のバウンス率は完全な値です。",
     "source_hash": "72aaa845"
   },
   "web.admin.emailtools.providerStatus.unavailable": {
@@ -436,7 +436,7 @@
     "source_hash": "8e69ff29"
   },
   "web.admin.emailtools.providerStatus.notSupported": {
-    "text": "{provider}トランスポートではプロバイダーのライブステータスを利用できません。",
+    "text": "{provider}トランスポートではプロバイダーの最新ステータスを利用できません。",
     "source_hash": "125ed6eb"
   },
   "web.admin.emailtools.providerStatus.error": {
@@ -448,11 +448,11 @@
     "source_hash": "e5ea4c3d"
   },
   "web.admin.emailtools.providerStatus.quota.sent24h": {
-    "text": "送信済み(過去24時間)",
+    "text": "送信数 (過去24時間)",
     "source_hash": "d0c4fe45"
   },
   "web.admin.emailtools.providerStatus.quota.maxRate": {
-    "text": "最大送信レート(毎秒)",
+    "text": "最大送信レート (毎秒)",
     "source_hash": "59e76cf8"
   },
   "web.admin.emailtools.providerStatus.rate.bounce": {
@@ -464,7 +464,7 @@
     "source_hash": "430a23a9"
   },
   "web.admin.emailtools.providerStatus.stats.sent": {
-    "text": "送信済み({days}日)",
+    "text": "送信数 ({days}日間)",
     "source_hash": "e553b7e1"
   },
   "web.admin.emailtools.providerStatus.stats.delivered": {
@@ -488,7 +488,7 @@
     "source_hash": "9e8a3b64"
   },
   "web.admin.emailtools.providerStatus.tier.shutdown": {
-    "text": "送信一時停止",
+    "text": "送信停止中",
     "source_hash": "52e6757c"
   },
   "web.admin.emailtools.test.title": {
@@ -496,7 +496,7 @@
     "source_hash": "5fab5d67"
   },
   "web.admin.emailtools.test.description": {
-    "text": "配信の接続性を確認するため、プレーンテキストの診断メールを送信します。まずプレビューし、その後確認すると実際のメールが送信されます。",
+    "text": "配信の疎通を確認するため、プレーンテキストの診断メールを送信します。まずプレビューし、その後確認して実際のメールを送信してください。",
     "source_hash": "4130741c"
   },
   "web.admin.emailtools.test.toLabel": {
@@ -512,7 +512,7 @@
     "source_hash": "97897017"
   },
   "web.admin.emailtools.test.previewButton": {
-    "text": "プレビュー(送信なし)",
+    "text": "プレビュー (送信しません)",
     "source_hash": "747ced83"
   },
   "web.admin.emailtools.test.sendButton": {
@@ -540,7 +540,7 @@
     "source_hash": "64a16b62"
   },
   "web.admin.emailtools.test.confirmDescription": {
-    "text": "これにより、設定済みのメーラーを通じて{to}へライブメールが送信されます。",
+    "text": "設定済みのメーラーを通じて、{to}宛てに実際のメールを送信します。",
     "source_hash": "10114929"
   },
   "web.admin.emailtools.test.success": {

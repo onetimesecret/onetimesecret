@@ -730,5 +730,204 @@
   "web.auth.sessions.session_plural": {
     "text": "sesje",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Połączone tożsamości",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Zarządzaj dostawcami jednokrotnego logowania połączonymi z Twoim kontem.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Jednokrotne logowanie",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Dostawcy tożsamości, których możesz użyć do zalogowania się na to konto",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Połącz dostawcę",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Połącz kolejnego dostawcę jednokrotnego logowania, którego możesz użyć do zalogowania się na to konto.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Połącz {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Wystawca",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identyfikator",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Usuń",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Usuń połączoną tożsamość",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Czy na pewno chcesz usunąć tę połączoną tożsamość? Nie będziesz już mógł się za jej pomocą zalogować.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Połączona tożsamość została usunięta",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Brak połączonych tożsamości",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Nie połączyłeś jeszcze z tym kontem żadnego dostawcy jednokrotnego logowania.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Jednokrotne logowanie",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "To jedyny sposób, w jaki możesz się zalogować. Najpierw połącz innego dostawcę lub ustaw hasło w Ustawienia → Zabezpieczenia, aby nie stracić dostępu.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "To jedyny sposób, w jaki możesz się zalogować. Najpierw połącz innego dostawcę, aby nie stracić dostępu.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Nie znaleziono tej połączonej tożsamości. Mogła zostać już usunięta.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Twoja sesja wygasła. Zaloguj się ponownie.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Nie udało się wykonać tego działania. Spróbuj ponownie.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Powiąż swoją metodę logowania",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Zalogowałeś się za pomocą {provider}, co odpowiada istniejącemu kontu {email}. Wprowadź hasło tego konta, aby powiązać {provider} i kontynuować.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Hasło",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Twoje dotychczasowe hasło",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Powiąż i kontynuuj",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Anuluj",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "To żądanie powiązania wygasło",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Ze względów bezpieczeństwa żądanie powiązania tej metody logowania nie jest już ważne. Zaloguj się dotychczasowym hasłem, a następnie połącz tego dostawcę w Ustawieniach zabezpieczeń → Połączone tożsamości.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Przejdź do logowania",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "To hasło nie pasuje do tego konta. Spróbuj ponownie.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "To żądanie powiązania wygasło lub zostało już użyte. Zaloguj się dotychczasowym hasłem, a następnie połącz tego dostawcę w ustawieniach konta.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Nie udało się powiązać tej metody logowania. Twoje konto mogło ulec zmianie lub ten dostawca jest już powiązany z innym kontem. Zaloguj się dotychczasowym hasłem, a następnie zarządzaj połączeniami w Ustawieniach zabezpieczeń → Połączone tożsamości.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Zbyt wiele prób podania hasła. Odczekaj kilka minut i spróbuj ponownie.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Nie udało się przetworzyć tego żądania powiązania. Zaloguj się ponownie u swojego dostawcy SSO.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Nie udało się powiązać Twojego konta. Spróbuj ponownie.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Potwierdź połączenie konta",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Zalogowałeś się za pomocą {provider}, co odpowiada Twojemu kontu {email}. Potwierdź, aby połączyć {provider} z tym kontem i dokończyć logowanie.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Potwierdź i połącz",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Anuluj",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Nie można ukończyć tego żądania powiązania",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Ze względów bezpieczeństwa to żądanie połączenia metody logowania nie jest już ważne. Zaloguj się ponownie u swojego dostawcy, a wyślemy Ci e-mailem nowy link.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Wróć do logowania",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "To żądanie powiązania wygasło lub zostało już użyte. Zaloguj się ponownie u swojego dostawcy, a wyślemy Ci e-mailem nowy link.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Nie udało się połączyć tej metody logowania. Twoje konto mogło ulec zmianie lub ten dostawca jest już powiązany z innym kontem. Zaloguj się ponownie u swojego dostawcy, aby kontynuować.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Dane logowania do Twojego konta zmieniły się po wysłaniu tego linku, więc nie jest on już ważny. Zaloguj się ponownie u swojego dostawcy, a wyślemy Ci e-mailem nowy link.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Coś poszło nie tak po naszej stronie i nie udało się zweryfikować tego linku. Zaloguj się ponownie u swojego dostawcy, a wyślemy Ci e-mailem nowy.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Zbyt wiele prób z Twojego urządzenia. Odczekaj kilka minut, a następnie otwórz ponownie link z wiadomości e-mail lub zaloguj się u swojego dostawcy, aby otrzymać nowy.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Nie udało się potwierdzić tego połączenia. Zaloguj się ponownie u swojego dostawcy.",
+    "source_hash": "076fa25a"
   }
 }

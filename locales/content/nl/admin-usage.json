@@ -20,7 +20,7 @@
     "source_hash": "429532fe"
   },
   "web.admin.usage.loadError": {
-    "text": "Kan gebruiksgegevens niet laden.",
+    "text": "Kon gebruiksgegevens niet laden.",
     "source_hash": "ffb557d7"
   },
   "web.admin.usage.retry": {
@@ -60,7 +60,7 @@
     "source_hash": "37bac495"
   },
   "web.admin.usage.stats.totalSecrets": {
-    "text": "Totaal aantal berichten",
+    "text": "Totaal berichten",
     "source_hash": "e17a5459"
   },
   "web.admin.usage.stats.newUsers": {

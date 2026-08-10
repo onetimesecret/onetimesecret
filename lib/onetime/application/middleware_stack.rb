@@ -401,19 +401,37 @@ module Onetime
           logger.debug 'Setting up Health Access Control middleware'
           builder.use Onetime::Middleware::HealthAccessControl
 
-          # Admin network isolation - optional CIDR allowlist for the Colonel
-          # surfaces (/colonel + /api/colonel). No-op unless
-          # site.admin.allowed_cidrs is configured; then a request from outside
-          # the allowlist gets a 404 (indistinguishable-from-absent). Runs after
-          # IP privacy so it can use the trusted-proxy-resolved client IP.
-          logger.debug 'Setting up Admin Network Isolation middleware'
-          builder.use Onetime::Middleware::AdminNetworkIsolation
-
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
 
           # Host detection and identity resolution (common to all apps)
           builder.use Rack::DetectHost, logger: Onetime.http_logger
+
+          # Admin surface isolation - host allowlist (site.admin.allowed_hosts,
+          # active by default, canonical anchors when unset) plus the optional
+          # CIDR allowlist (site.admin.allowed_cidrs) for the Colonel surfaces
+          # (/colonel + /api/colonel). Failing either ACTIVE gate returns a 404
+          # (indistinguishable-from-absent); a strict no-op when both are
+          # inactive.
+          #
+          # POSITION IS LOAD-BEARING — it sits between two upstream dependencies
+          # and one downstream cost:
+          #
+          #   - BELOW IPPrivacyMiddleware, which sets env['otto.client_ip']:
+          #     the CIDR gate must read the trusted-proxy-resolved client IP,
+          #     never a raw forwarding header.
+          #   - BELOW Rack::DetectHost, which sets
+          #     env[Rack::DetectHost.result_field_name]: the host gate reads the
+          #     already-validated detected host. Mounted above DetectHost (where
+          #     this was until #4062) the key is unset and the gate would deny
+          #     every request it is asked to judge.
+          #   - ABOVE Onetime::Session (and CSRF/Security below it), so a denied
+          #     admin request costs no session write or CSRF work.
+          #
+          # One consequence of running below StartupReadiness: during boot
+          # /colonel now returns 503 rather than 404.
+          logger.debug 'Setting up Admin Network Isolation middleware'
+          builder.use Onetime::Middleware::AdminNetworkIsolation
 
           # Adds env['HTTP_X_REQUEST_ID']
           require 'middleware/request_id'

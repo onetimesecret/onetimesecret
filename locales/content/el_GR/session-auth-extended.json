@@ -730,5 +730,204 @@
   "web.auth.sessions.session_plural": {
     "text": "συνεδρίες",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Συνδεδεμένες ταυτότητες",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Διαχειριστείτε τους παρόχους ενιαίας σύνδεσης που είναι συνδεδεμένοι με τον λογαριασμό σας.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Ενιαία σύνδεση",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Πάροχοι ταυτότητας που μπορείτε να χρησιμοποιήσετε για να συνδεθείτε σε αυτόν τον λογαριασμό",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Σύνδεση παρόχου",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Συνδέστε έναν άλλο πάροχο ενιαίας σύνδεσης που μπορείτε να χρησιμοποιήσετε για να συνδεθείτε σε αυτόν τον λογαριασμό.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Σύνδεση {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Εκδότης",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Αναγνωριστικό",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Αφαίρεση",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Αφαίρεση συνδεδεμένης ταυτότητας",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Είστε βέβαιοι ότι θέλετε να αφαιρέσετε αυτή τη συνδεδεμένη ταυτότητα; Δεν θα μπορείτε πλέον να συνδεθείτε με αυτήν.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Η συνδεδεμένη ταυτότητα αφαιρέθηκε",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Χωρίς συνδεδεμένες ταυτότητες",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Δεν έχετε συνδέσει ακόμη κανέναν πάροχο ενιαίας σύνδεσης σε αυτόν τον λογαριασμό.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Ενιαία σύνδεση",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Αυτός είναι ο μόνος τρόπος σύνδεσής σας. Συνδέστε πρώτα έναν άλλο πάροχο ή ορίστε έναν κωδικό πρόσβασης από τις Ρυθμίσεις → Ασφάλεια, ώστε να μην κλειδωθείτε έξω.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Αυτός είναι ο μόνος τρόπος σύνδεσής σας. Συνδέστε πρώτα έναν άλλο πάροχο ώστε να μην κλειδωθείτε έξω.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Αυτή η συνδεδεμένη ταυτότητα δεν βρέθηκε. Μπορεί να έχει ήδη αφαιρεθεί.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Η συνεδρία σας έληξε. Παρακαλώ συνδεθείτε ξανά.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Δεν μπορέσαμε να ολοκληρώσουμε αυτή την ενέργεια. Παρακαλώ δοκιμάστε ξανά.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Συνδέστε τη μέθοδο σύνδεσής σας",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Συνδεθήκατε με {provider}, που ταιριάζει με τον υπάρχοντα λογαριασμό {email}. Εισάγετε τον κωδικό πρόσβασης αυτού του λογαριασμού για να συνδέσετε το {provider} και να συνεχίσετε.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Κωδικός πρόσβασης",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Ο υπάρχων κωδικός πρόσβασής σας",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Σύνδεση και συνέχεια",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Ακύρωση",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Αυτό το αίτημα σύνδεσης έληξε",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Για την ασφάλειά σας, το αίτημα σύνδεσης αυτής της μεθόδου σύνδεσης δεν είναι πλέον έγκυρο. Συνδεθείτε με τον υπάρχοντα κωδικό πρόσβασής σας και στη συνέχεια συνδέστε αυτόν τον πάροχο στις Ρυθμίσεις ασφαλείας → Συνδεδεμένες ταυτότητες.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Συνέχεια στη σύνδεση",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Αυτός ο κωδικός πρόσβασης δεν ταιριάζει με αυτόν τον λογαριασμό. Παρακαλώ δοκιμάστε ξανά.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Αυτό το αίτημα σύνδεσης έληξε ή χρησιμοποιήθηκε ήδη. Συνδεθείτε με τον υπάρχοντα κωδικό πρόσβασής σας και στη συνέχεια συνδέστε αυτόν τον πάροχο από τις ρυθμίσεις του λογαριασμού σας.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Δεν μπορέσαμε να συνδέσουμε αυτή τη μέθοδο σύνδεσης. Ο λογαριασμός σας μπορεί να έχει αλλάξει ή αυτός ο πάροχος είναι ήδη συνδεδεμένος με άλλον λογαριασμό. Συνδεθείτε με τον υπάρχοντα κωδικό πρόσβασής σας και στη συνέχεια διαχειριστείτε τις συνδέσεις στις Ρυθμίσεις ασφαλείας → Συνδεδεμένες ταυτότητες.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Πάρα πολλές προσπάθειες κωδικού πρόσβασης. Παρακαλώ περιμένετε λίγα λεπτά και δοκιμάστε ξανά.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Δεν μπορέσαμε να επεξεργαστούμε αυτό το αίτημα σύνδεσης. Παρακαλώ συνδεθείτε ξανά με τον πάροχο SSO σας.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Δεν μπορέσαμε να συνδέσουμε τον λογαριασμό σας. Παρακαλώ δοκιμάστε ξανά.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Επιβεβαιώστε τη σύνδεση του λογαριασμού σας",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Συνδεθήκατε με {provider}, που ταιριάζει με τον λογαριασμό σας {email}. Επιβεβαιώστε για να συνδέσετε το {provider} με αυτόν τον λογαριασμό και να ολοκληρώσετε τη σύνδεση.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Επιβεβαίωση και σύνδεση",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Ακύρωση",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Αυτό το αίτημα σύνδεσης δεν μπορεί να ολοκληρωθεί",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Για την ασφάλειά σας, αυτό το αίτημα σύνδεσης της μεθόδου σύνδεσής σας δεν είναι πλέον έγκυρο. Συνδεθείτε ξανά με τον πάροχό σας και θα σας στείλουμε νέο σύνδεσμο με email.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Επιστροφή στη σύνδεση",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Αυτό το αίτημα σύνδεσης έληξε ή χρησιμοποιήθηκε ήδη. Συνδεθείτε ξανά με τον πάροχό σας και θα σας στείλουμε νέο σύνδεσμο με email.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Δεν μπορέσαμε να συνδέσουμε αυτή τη μέθοδο σύνδεσης. Ο λογαριασμός σας μπορεί να έχει αλλάξει ή αυτός ο πάροχος είναι ήδη συνδεδεμένος με άλλον λογαριασμό. Συνδεθείτε ξανά με τον πάροχό σας για να συνεχίσετε.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Τα διαπιστευτήρια του λογαριασμού σας άλλαξαν μετά την αποστολή αυτού του συνδέσμου, επομένως δεν είναι πλέον έγκυρος. Συνδεθείτε ξανά με τον πάροχό σας και θα σας στείλουμε νέο σύνδεσμο με email.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Κάτι πήγε στραβά από την πλευρά μας και δεν μπορέσαμε να επαληθεύσουμε αυτόν τον σύνδεσμο. Συνδεθείτε ξανά με τον πάροχό σας και θα σας στείλουμε νέο.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Πάρα πολλές προσπάθειες από τη συσκευή σας. Παρακαλώ περιμένετε λίγα λεπτά και στη συνέχεια ανοίξτε ξανά τον σύνδεσμο που στάλθηκε με email ή συνδεθείτε με τον πάροχό σας για νέο.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Δεν μπορέσαμε να επιβεβαιώσουμε αυτή τη σύνδεση. Παρακαλώ συνδεθείτε ξανά με τον πάροχό σας.",
+    "source_hash": "076fa25a"
   }
 }
