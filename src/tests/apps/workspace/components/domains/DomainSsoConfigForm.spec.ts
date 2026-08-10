@@ -605,25 +605,6 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Enforce SSO — moved to signin settings (#3383)
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  describe('Enforce SSO notice', () => {
-    it('shows a notice linking to signin settings instead of an inline toggle', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const notice = wrapper.find('[aria-hidden="true"]');
-      expect(notice.exists()).toBe(true);
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(false);
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────────
   // Grant org scope toggle (#3384) — hidden pending testing (post-v0.26.0)
   //
   // The toggle is withheld from the UI (showGrantOrgScope === false) so the
@@ -639,8 +620,10 @@ describe('DomainSsoConfigForm', () => {
         isConfigured: true,
       });
 
-      // It was the form's only role="switch"; hidden now.
-      expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+      // The connection-enabled toggle (#4107) is always present, so target by
+      // testid rather than asserting on the form's only role="switch".
+      expect(wrapper.find('[data-testid="grant-org-scope-toggle"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-connection-enabled-toggle"]').exists()).toBe(true);
     });
 
     it('does not emit update:formState for grant_org_scope on mount (no control to flip)', async () => {
@@ -662,7 +645,7 @@ describe('DomainSsoConfigForm', () => {
         isConfigured: true,
       });
 
-      const toggle = wrapper.find('[role="switch"]');
+      const toggle = wrapper.find('[data-testid="grant-org-scope-toggle"]');
       expect(toggle.exists()).toBe(true);
       expect(toggle.attributes('aria-checked')).toBe('true');
     });
@@ -673,7 +656,7 @@ describe('DomainSsoConfigForm', () => {
         isConfigured: true,
       });
 
-      await wrapper.find('[role="switch"]').trigger('click');
+      await wrapper.find('[data-testid="grant-org-scope-toggle"]').trigger('click');
 
       const emitted = wrapper.emitted('update:formState');
       expect(emitted).toBeTruthy();
@@ -694,7 +677,7 @@ describe('DomainSsoConfigForm', () => {
         isConfigured: true,
       });
 
-      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="grant-org-scope-toggle"]').exists()).toBe(true);
 
       // Admin navigates to Domain B (same instance) whose config does NOT grant
       // org scope. The latch must reset so the withheld toggle is gone.
@@ -703,7 +686,7 @@ describe('DomainSsoConfigForm', () => {
         formState: { ...mockExistingFormState, grant_org_scope: false },
       });
 
-      expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="grant-org-scope-toggle"]').exists()).toBe(false);
     });
 
     // The whole reason the control latches (rather than tracking grant_org_scope
@@ -717,14 +700,65 @@ describe('DomainSsoConfigForm', () => {
         isConfigured: true,
       });
 
-      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="grant-org-scope-toggle"]').exists()).toBe(true);
 
       // Same domainExtId; admin flips the grant off (only formState changes).
       await wrapper.setProps({
         formState: { ...mockExistingFormState, grant_org_scope: false },
       });
 
-      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="grant-org-scope-toggle"]').exists()).toBe(true);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Connection enabled toggle (#4107) — restores the only UI writer of
+  // SsoConfig.enabled (dropped in 7326689cdc, which orphaned the field).
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Connection enabled toggle (#4107)', () => {
+    const TOGGLE = '[data-testid="sso-connection-enabled-toggle"]';
+
+    // A sibling toggle in this exact template region (grant_org_scope) was
+    // silently lost once in a main→develop merge — no test pinned its
+    // existence, so the deletion shipped without a red (restored in
+    // 61dc7b9cdc). Presence-in-DEFAULT-render is asserted on its own, with no
+    // other setup, so this control can never vanish quietly the same way.
+    it('connection toggle must exist — regression guard for #4107 / silent merge loss', async () => {
+      wrapper = await mountComponent(); // default mount: unconfigured, fresh form
+      expect(wrapper.find(TOGGLE).exists()).toBe(true);
+    });
+
+    it('reflects formState.enabled in aria-checked (props-controlled, both states)', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: true },
+        isConfigured: true,
+      });
+      expect(wrapper.find(TOGGLE).attributes('aria-checked')).toBe('true');
+
+      // Prop-controlled: the parent owns the state, the toggle just renders it.
+      await wrapper.setProps({
+        formState: { ...mockExistingFormState, enabled: false },
+      });
+      expect(wrapper.find(TOGGLE).attributes('aria-checked')).toBe('false');
+    });
+
+    it('emits update:formState with enabled flipped when toggled', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        isConfigured: true,
+      });
+
+      const toggle = wrapper.find('[data-testid="sso-connection-enabled-toggle"]');
+      expect(toggle.exists()).toBe(true);
+      expect(toggle.attributes('aria-checked')).toBe('false');
+
+      await toggle.trigger('click');
+
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      const lastEmit = emitted![emitted!.length - 1][0] as SsoConfigFormState;
+      expect(lastEmit.enabled).toBe(true);
     });
   });
 

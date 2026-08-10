@@ -719,6 +719,31 @@ aria-hidden="true">*</span>
         </p>
       </div>
 
+      <!-- Connection Enabled Toggle (#4107) — writes SsoConfig.enabled, the
+           credential record's own operational flag. Deliberately independent of
+           the SigninConfig sso_enabled policy toggle on Sign-in Settings: the
+           availability ladder requires BOTH before the sign-in page offers SSO.
+           This was the field's only UI writer; dropping it (7326689cdc) left
+           every saved config stuck at enabled=false. -->
+      <div
+        class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ t('web.organizations.sso.connection_enabled') }}
+          </p>
+          <p
+            id="domain-connection-enabled-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.connection_enabled_hint') }}
+          </p>
+        </div>
+        <ToggleWithIcon
+          data-testid="sso-connection-enabled-toggle"
+          :enabled="formState.enabled"
+          :disabled="isSaving"
+          @update:enabled="updateField('enabled', $event)" />
+      </div>
+
       <!-- Grant Org Scope Toggle (withheld pending testing unless already
            granted, so an existing grant stays revocable — see showGrantOrgScope) -->
       <div
@@ -735,6 +760,7 @@ aria-hidden="true">*</span>
           </p>
         </div>
         <ToggleWithIcon
+          data-testid="grant-org-scope-toggle"
           :enabled="formState.grant_org_scope"
           :disabled="isSaving"
           @update:enabled="updateField('grant_org_scope', $event)" />
