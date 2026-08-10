@@ -86,16 +86,31 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 }));
 
 const mockBillingEnabled = ref(false);
-const mockBootstrapStore = reactive({ billing_enabled: mockBillingEnabled });
+// canonical_domain drives row COPY only (the disabled-row tooltip), never row
+// identity. With LINK_DOMAINS (#4063) it is not necessarily even selectable.
+const mockCanonicalDomain = ref('canonical.example.com');
+const mockSiteHost = ref('canonical.example.com');
+const mockBootstrapStore = reactive({
+  billing_enabled: mockBillingEnabled,
+  canonical_domain: mockCanonicalDomain,
+  site_host: mockSiteHost,
+});
 vi.mock('@/shared/stores/bootstrapStore', () => ({
   useBootstrapStore: () => mockBootstrapStore,
 }));
 
 // --- domain context ----------------------------------------------------------
 const mockAvailableDomains = ref<string[]>(['canonical.example.com']);
-const mockGetExtidByDomain = vi.fn((domain: string) =>
-  domain === 'acme.example.com' ? 'cd1' : undefined
-);
+
+/**
+ * Which domains carry an extid, i.e. which are registered custom domains.
+ * Held as data rather than baked into the mock's implementation so a test can
+ * vary it without leaving a mockImplementation behind for the next test
+ * (vi.clearAllMocks clears calls, not implementations).
+ */
+const DEFAULT_EXTIDS: Record<string, string> = { 'acme.example.com': 'cd1' };
+let mockExtids: Record<string, string> = { ...DEFAULT_EXTIDS };
+const mockGetExtidByDomain = vi.fn((domain: string) => mockExtids[domain]);
 const mockCurrentContext = ref({
   domain: 'canonical.example.com',
   displayName: 'canonical.example.com',
@@ -103,18 +118,40 @@ const mockCurrentContext = ref({
   extid: undefined as string | undefined,
 });
 const mockIsContextActive = ref(true);
+const mockSetContext = vi.fn();
 vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: () => ({
     currentContext: mockCurrentContext,
     availableDomains: mockAvailableDomains,
     isContextActive: mockIsContextActive,
-    setContext: vi.fn(),
+    setContext: mockSetContext,
     getDomainDisplayName: (domain: string) => domain,
     getExtidByDomain: mockGetExtidByDomain,
     setContextByExtid: vi.fn(),
     initialized: Promise.resolve(),
   }),
 }));
+
+/** Restore every shared mock ref to its default. Called by each suite's beforeEach. */
+function resetSwitcherMocks() {
+  vi.clearAllMocks();
+  mockRoute.meta = {};
+  mockRoute.params = {};
+  mockRoute.matched = [];
+  mockCurrentOrganization.value = { current_user_role: 'owner', extid: 'org1' };
+  mockBillingEnabled.value = false;
+  mockCanonicalDomain.value = 'canonical.example.com';
+  mockSiteHost.value = 'canonical.example.com';
+  mockExtids = { ...DEFAULT_EXTIDS };
+  mockAvailableDomains.value = ['canonical.example.com'];
+  mockIsContextActive.value = true;
+  mockCurrentContext.value = {
+    domain: 'canonical.example.com',
+    displayName: 'canonical.example.com',
+    isCanonical: true,
+    extid: undefined,
+  };
+}
 
 const addLink = (w: VueWrapper) => w.find('[data-testid="domain-context-add-link"]');
 const addIcon = (w: VueWrapper) => w.find('[data-testid="domain-context-add-icon"]');
@@ -124,14 +161,7 @@ describe('DomainContextSwitcher add/manage call-to-action', () => {
   let wrapper: VueWrapper;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockRoute.meta = {};
-    mockRoute.params = {};
-    mockRoute.matched = [];
-    mockCurrentOrganization.value = { current_user_role: 'owner', extid: 'org1' };
-    mockBillingEnabled.value = false;
-    mockAvailableDomains.value = ['canonical.example.com'];
-    mockIsContextActive.value = true;
+    resetSwitcherMocks();
   });
 
   afterEach(() => {
@@ -205,14 +235,8 @@ describe('DomainContextSwitcher closes on navigation', () => {
     w.find(`[data-testid="domain-menu-item-${extid}"]`);
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockRoute.meta = {};
-    mockRoute.params = {};
-    mockRoute.matched = [];
-    mockCurrentOrganization.value = { current_user_role: 'owner', extid: 'org1' };
-    mockBillingEnabled.value = false;
+    resetSwitcherMocks();
     mockAvailableDomains.value = ['acme.example.com', 'canonical.example.com'];
-    mockIsContextActive.value = true;
   });
 
   afterEach(() => {
@@ -261,5 +285,131 @@ describe('DomainContextSwitcher closes on navigation', () => {
     await addLink(wrapper).trigger('click');
 
     expect(mockClose).toHaveBeenCalled();
+  });
+});
+
+/**
+ * Operator link pool rows (LINK_DOMAINS, #4063).
+ *
+ * Before #4063 exactly one row could lack an extid -- the canonical domain --
+ * so the switcher keyed every extid-less row on a single 'canonical' sentinel.
+ * An operator pool makes every offered domain extid-less, so that sentinel
+ * collapsed the whole pool onto one id: `domainForId` resolved by search and
+ * always returned the first, selecting any later pool row silently selected
+ * the first, and the ScopeSwitcher `:key` went with it.
+ *
+ * Two id spaces now: custom domains by extid, everything else by
+ * `link:${domain}`. And "has no extid" no longer implies "is canonical", which
+ * is why the disabled-row tooltip had to split.
+ */
+describe('DomainContextSwitcher operator link pool rows', () => {
+  let wrapper: VueWrapper;
+
+  /** The install's own host: serves the app, kept out of the picker. */
+  const INTERNAL_HOST = 'ge-abcd123.eu.otshosted.com';
+
+  const rowFor = (w: VueWrapper, id: string) => w.find(`[data-testid="domain-menu-item-${id}"]`);
+
+  beforeEach(() => {
+    resetSwitcherMocks();
+    // Canonical host excluded from the pool: the picker offers operator
+    // domains only, none of which carries an extid.
+    mockCanonicalDomain.value = INTERNAL_HOST;
+    mockSiteHost.value = INTERNAL_HOST;
+    mockExtids = {};
+    mockAvailableDomains.value = ['a.example.com', 'b.example.com'];
+    mockCurrentContext.value = {
+      domain: 'a.example.com',
+      displayName: 'a.example.com',
+      isCanonical: false,
+      extid: undefined,
+    };
+  });
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount();
+  });
+
+  it('gives each extid-less pool row its own id', () => {
+    wrapper = mount(DomainContextSwitcher);
+
+    const rows = wrapper.findAll('[data-testid^="domain-menu-item-"]');
+    const ids = rows.map((r) => r.attributes('data-testid'));
+
+    expect(ids).toEqual([
+      'domain-menu-item-link:a.example.com',
+      'domain-menu-item-link:b.example.com',
+    ]);
+    expect(new Set(ids).size).toBe(rows.length);
+  });
+
+  it('selects the pool row that was clicked, not the first extid-less row', async () => {
+    wrapper = mount(DomainContextSwitcher);
+
+    await rowFor(wrapper, 'link:b.example.com').trigger('click');
+
+    expect(mockSetContext).toHaveBeenCalledTimes(1);
+    expect(mockSetContext).toHaveBeenCalledWith('b.example.com');
+  });
+
+  it('marks exactly one pool row as current', () => {
+    mockCurrentContext.value = {
+      domain: 'b.example.com',
+      displayName: 'b.example.com',
+      isCanonical: false,
+      extid: undefined,
+    };
+
+    wrapper = mount(DomainContextSwitcher);
+
+    // The checkmark renders only for item.isCurrent.
+    const checks = wrapper.findAll('[data-icon="check-20-solid"]');
+    expect(checks).toHaveLength(1);
+    expect(rowFor(wrapper, 'link:b.example.com').find('[data-icon="check-20-solid"]').exists()).toBe(
+      true
+    );
+    expect(rowFor(wrapper, 'link:a.example.com').find('[data-icon="check-20-solid"]').exists()).toBe(
+      false
+    );
+  });
+
+  it('explains a disabled pool row as a link domain, and the canonical row as the default', () => {
+    // onDomainSwitch needs an :extid to navigate with, so every extid-less row
+    // is disabled and renders its reason as the row title.
+    mockRoute.meta = { scopesAvailable: { onDomainSwitch: 'same' } };
+    mockCanonicalDomain.value = 'canonical.example.com';
+    mockAvailableDomains.value = ['canonical.example.com', 'b.example.com'];
+
+    wrapper = mount(DomainContextSwitcher);
+
+    const canonicalRow = rowFor(wrapper, 'link:canonical.example.com');
+    const poolRow = rowFor(wrapper, 'link:b.example.com');
+
+    expect(canonicalRow.attributes('aria-disabled')).toBe('true');
+    expect(poolRow.attributes('aria-disabled')).toBe('true');
+    expect(canonicalRow.attributes('title')).toBe('web.domains.canonical_no_settings');
+    // An operator link domain is not the default domain and must not say so.
+    expect(poolRow.attributes('title')).toBe('web.domains.link_domain_no_settings');
+  });
+
+  it('keeps a pool domain that is also a registered custom domain on its extid id', async () => {
+    // The operator listed a host a customer has also registered. The composable
+    // lists it once, in its custom slot; the switcher must key it by extid so
+    // it keeps its settings gear and stays navigable (not disabled).
+    mockRoute.meta = { scopesAvailable: { onDomainSwitch: 'same' } };
+    mockExtids = { 'acme.example.com': 'cd1' };
+    mockAvailableDomains.value = ['acme.example.com', 'b.example.com'];
+
+    wrapper = mount(DomainContextSwitcher);
+
+    const shadowedRow = rowFor(wrapper, 'cd1');
+    expect(shadowedRow.exists()).toBe(true);
+    expect(rowFor(wrapper, 'link:acme.example.com').exists()).toBe(false);
+    expect(shadowedRow.attributes('aria-disabled')).toBeUndefined();
+    // Gear = hasSettings, which is extid presence for an owner.
+    expect(shadowedRow.find('[aria-label="web.domains.domain_settings"]').exists()).toBe(true);
+
+    await shadowedRow.trigger('click');
+    expect(mockSetContext).toHaveBeenCalledWith('acme.example.com');
   });
 });

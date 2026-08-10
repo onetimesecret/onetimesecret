@@ -8,9 +8,9 @@ RSpec.describe Onetime::Application::MiddlewareStack do
   describe '.ip_privacy_security_config' do
     subject(:config) { described_class.ip_privacy_security_config }
 
-    def stub_conf(trusted_proxy)
+    def stub_conf(trusted_proxy, geo = {})
       allow(OT).to receive(:conf).and_return(
-        'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
+        'site' => { 'network' => { 'trusted_proxy' => trusted_proxy, 'geo' => geo } },
       )
     end
 
@@ -168,6 +168,72 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       it 'treats an absent depth as the minimum (1)' do
         stub_conf('enabled' => true, 'mode' => 'depth')
         expect(config.trusted_proxy_depth).to eq(1) # nil.to_i => 0, clamp => 1
+      end
+    end
+
+    context 'when geo.header meets depth mode (#4068)' do
+      # otto 2.8 raises on trusted_proxy_depth + geo_header, so the translator
+      # skips the setting under depth. Skipping silently left the operator with
+      # a configured-looking header, no boot signal, and '**' on every request.
+      before do
+        allow(OT).to receive(:lw)
+        described_class.reset_warn_once!
+      end
+
+      after { described_class.reset_warn_once! }
+
+      it 'does not pass geo_header to otto (would be a boot failure)' do
+        stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'header' => 'X-Country')
+        aggregate_failures do
+          expect { config }.not_to raise_error
+          expect(config.ip_privacy_config.geo_header).to be_nil
+        end
+      end
+
+      it 'warns that the configured header is ignored, naming it and the alternative' do
+        stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'header' => 'X-Country')
+        config
+        expect(OT).to have_received(:lw).with(/X-Country.*IGNORED.*db_path/m)
+      end
+
+      it 'warns that country resolves to ** when depth mode has no geo source at all' do
+        # No operator header AND no local DB: the built-in vendor headers are
+        # equally inert under depth, so geo is on but resolves nothing.
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1)
+        config
+        expect(OT).to have_received(:lw).with(/depth.*db_path/m)
+      end
+
+      it 'stays quiet in depth mode when a local geo DB is configured' do
+        # Stub the otto-side load so this asserts the warning logic, not
+        # MaxMind file handling — the earlier version swallowed every
+        # exception, which would have passed even if the DB path were never
+        # honored at all.
+        # any_instance: the Otto::Privacy::Config is built inside
+        # Otto::Security::Config.new, so there is no seam to inject a double.
+        allow_any_instance_of(Otto::Privacy::Config).to receive(:load_geo_database!) # rubocop:disable RSpec/AnyInstance
+        stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'db_path' => '/geo.mmdb')
+        aggregate_failures do
+          expect(config.ip_privacy_config.geo_db_path).to eq('/geo.mmdb')
+          expect(OT).not_to have_received(:lw)
+        end
+      end
+
+      it 'warns once per process, not once per Application subclass' do
+        # Seven Application subclasses each build a stack through this method;
+        # the operator should read the finding once.
+        stub_conf({ 'enabled' => true, 'mode' => 'depth', 'depth' => 1 }, 'header' => 'X-Country')
+        3.times { described_class.ip_privacy_security_config }
+        expect(OT).to have_received(:lw).once
+      end
+
+      it 'passes geo_header through in filter mode without warning' do
+        stub_conf({ 'enabled' => true, 'mode' => 'filter' }, 'header' => 'X-Country')
+        aggregate_failures do
+          # otto normalizes the setting to its rack env key on assignment.
+          expect(config.ip_privacy_config.geo_header).to eq('HTTP_X_COUNTRY')
+          expect(OT).not_to have_received(:lw)
+        end
       end
     end
 

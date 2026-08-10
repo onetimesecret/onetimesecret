@@ -30,6 +30,15 @@ module Core
         output['domain_strategy']  = view_vars['domain_strategy']
         output['canonical_domain'] = Onetime::Middleware::DomainStrategy.canonical_domain
         output['display_domain']   = view_vars['display_domain']
+        # Resolved link-picker pool (#4063). Emitted unconditionally beside
+        # canonical_domain — NOT gated on features.domains.enabled the way
+        # custom_domains is, because the picker needs a pool in every mode.
+        # The value is already resolved server-side (unset LINK_DOMAINS =>
+        # [canonical_domain]); the frontend must never re-derive that. The
+        # `|| []` mirrors the instance delegator and only covers the
+        # pre-boot / reset! window, where the class reader is still nil —
+        # the payload contract is Array<String>, never null.
+        output['link_domains']     = Onetime::Middleware::DomainStrategy.link_domains || []
 
         OT.ld "[DomainSerializer] domain_strategy=#{view_vars['domain_strategy'].inspect}, display_domain=#{view_vars['display_domain'].inspect}"
 
@@ -57,6 +66,11 @@ module Core
             'domain_context' => nil,
             'domain_strategy' => nil,
             'homepage_config' => nil,
+            # Array<String>, never null: the frontend schema types this as
+            # z.array(z.string()).default([]), and a default only fires for a
+            # missing key, not an explicit null. Defaults to [] rather than
+            # nil for that reason.
+            'link_domains' => [],
           }
         end
 

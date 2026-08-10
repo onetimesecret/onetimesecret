@@ -4,7 +4,9 @@
 
 require 'date' # ensure Date/Time constants resolve for permitted_classes
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
+require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
 require_relative 'utils/config_resolver'
+require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
 
 module Onetime
@@ -133,6 +135,12 @@ module Onetime
             # creation is allowed regardless of the domain's verification
             # status. Canonical domains are unaffected.
             'require_verified' => false,
+            # NO 'link_domains' KEY HERE — deliberate, do not "complete" this
+            # block by adding one. deep_merge has an explicit `v2.nil? -> v1`
+            # arm, so a default would resolve unset LINK_DOMAINS back to that
+            # default and make the set-but-empty case (which must raise at
+            # boot, see validate_link_domains!) impossible to detect. Unset
+            # must stay nil. (#4063)
           },
           'incoming' => {
             'enabled' => false,
@@ -833,6 +841,8 @@ module Onetime
       # letting them discover it in a delivered email. Deliberately always
       # logged: this is an operational notice about mail rendering, not a
       # deprecation, so compatibility.deprecated_config_mode does not apply.
+      # rubocop:disable Style/CombinableLoops -- the loop above skips
+      # already-root-relative paths; this one must still inspect them.
       %w[logo_url logo_dark_url].each do |logo_key|
         logo_url = brand[logo_key]
         next unless logo_url && !logo_url.match?(%r{\Ahttps?://}i)
@@ -840,6 +850,7 @@ module Onetime
         OT.le "CONFIG NOTICE: brand.#{logo_key} '#{logo_url}' is not an absolute http(s) URL; " \
               'it will render in the web UI but is omitted from outbound emails.'
       end
+      # rubocop:enable Style/CombinableLoops
 
       # button_text_light: light text on brand-colored buttons. Default-on;
       # only an explicit 'false' (env or YAML) disables it. nil when unset.
@@ -975,6 +986,87 @@ module Onetime
       unless conf['mail'].key?('truemail')
         raise OT::ConfigError, 'No TrueMail config found'
       end
+
+      # Fires regardless of features.domains.enabled: the operator explicitly
+      # wrote LINK_DOMAINS, so a blank value is a typo worth failing loud on,
+      # and this is the only placement that runs before any feature gating.
+      validate_link_domains!(conf.dig('features', 'domains', 'link_domains'))
+    end
+
+    # Rejects a LINK_DOMAINS that was set but yields no usable host.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil                -> return (unset; the link picker offers the
+    #                         canonical domain, the pre-#4063 behavior)
+    #   ['a.com']          -> return
+    #   ['a.com', 'oops']  -> return (partial failure; DomainStrategy drops
+    #                         'oops' and logs it — the pool still has a host)
+    #   []                 -> raise (LINK_DOMAINS="")
+    #   ['']               -> raise (LINK_DOMAINS="  ")
+    #   ['links.internal'] -> raise (nothing parses: no usable pool)
+    #
+    # Both raising cases are the same defect wearing different clothes — the
+    # operator asked for a pool and there is none — and both must fail at boot
+    # rather than resolve to something. There is no safe fallback: offering
+    # the canonical domain contradicts the request (that internal platform
+    # host is exactly what LINK_DOMAINS exists to hide from the picker), and
+    # offering nothing leaves the picker empty. Failing loud, naming the
+    # entries, is the only honest option.
+    #
+    # NOTE: this is deliberately the OPPOSITE polarity from #4062's
+    # security.admin allowed_hosts, where an empty list means canonical-only.
+    # An empty admin-host allowlist failing closed to canonical is safe. An
+    # empty link pool silently becoming the canonical domain hides the
+    # operator's typo and produces exactly the outcome LINK_DOMAINS exists to
+    # prevent: the internal platform host offered in the customer-facing
+    # picker. Do not "fix" one of these to match the other.
+    #
+    # Parseability is judged exactly as Middleware::DomainStrategy judges it
+    # (DomainParser.extract_hostname, then PublicSuffix with default_rule:
+    # nil), so a host that boots here is a host the middleware will serve. Keep
+    # the two in step.
+    #
+    # @param raw [Array<String>, nil] features.domains.link_domains as loaded
+    # @raise [Onetime::ConfigError] when set but blank, or set with no
+    #   parseable host
+    # @return [void]
+    def validate_link_domains!(raw)
+      return if raw.nil?
+
+      listed = Array(raw).map { |host| host.to_s.strip }.reject(&:empty?)
+      if listed.empty?
+        raise OT::ConfigError,
+          'LINK_DOMAINS (features.domains.link_domains) is set but names no host. ' \
+          'It lists the domains offered in the link picker and cannot be blank. ' \
+          'List at least one host (LINK_DOMAINS=links.example.com), or unset ' \
+          'LINK_DOMAINS entirely to offer the canonical domain.'
+      end
+
+      return if listed.any? { |host| parseable_link_domain?(host) }
+
+      raise OT::ConfigError,
+        "LINK_DOMAINS (features.domains.link_domains) #{listed.inspect} names no parseable " \
+        'domain, so the link picker would have nothing to offer. Check for typos and ' \
+        'private/internal hostnames (a host must have a public suffix, e.g. ' \
+        'links.example.com). Unset LINK_DOMAINS entirely to offer the canonical domain.'
+    end
+
+    # Whether a configured link-pool host survives the same parse the
+    # DomainStrategy middleware applies. Any parse failure is a rejection —
+    # this runs at boot, where a raised exception would be reported as an
+    # unrelated crash rather than the config error it is.
+    #
+    # @param host [String]
+    # @return [Boolean]
+    def parseable_link_domain?(host)
+      hostname = Onetime::Utils::DomainParser.extract_hostname(host)
+      return false if hostname.nil?
+
+      PublicSuffix.valid?(hostname, default_rule: nil)
+    rescue StandardError
+      false
     end
 
     # True when this process can participate in the Vite dev-server workflow:

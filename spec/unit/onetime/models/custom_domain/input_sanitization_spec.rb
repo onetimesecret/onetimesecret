@@ -101,9 +101,9 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
     context 'with null byte (security finding)' do
       it 'rejects a domain containing a null byte' do
-        expect {
+        expect do
           described_class.display_domain("example\x00.com")
-        }.to raise_error(Onetime::Problem)
+        end.to raise_error(Onetime::Problem)
       end
     end
   end
@@ -133,9 +133,11 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
   describe '.overlaps_canonical_domain?' do
     before do
-      allow(OT).to receive(:conf).and_return({
-        'site' => { 'host' => 'example.com' }
-      })
+      allow(OT).to receive(:conf).and_return(
+        {
+          'site' => { 'host' => 'example.com' },
+        },
+      )
     end
 
     context 'with trailing dot variants of the canonical domain (regression guard)' do
@@ -177,10 +179,12 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     # canonical when set, so the guard must cover it too (#3841).
     context 'when features.domains.default differs from site.host' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'host' => 'example.com' },
-          'features' => { 'domains' => { 'default' => 'branded-links.net' } },
-        })
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'example.com' },
+            'features' => { 'domains' => { 'default' => 'branded-links.net' } },
+          },
+        )
       end
 
       it 'detects the default link domain verbatim' do
@@ -209,6 +213,257 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
         expect(described_class.overlaps_canonical_domain?('example.com')).to be false
       end
     end
+
+    # #4063 — the registration guard runs two arms with deliberately
+    # different reach once an operator link pool exists:
+    #   exact match       over the FULL canonical set (pool included)
+    #   base-domain sweep over the ANCHORS only
+    #
+    # Running the base-domain sweep over pool members instead would forbid
+    # every customer registration under that base domain forever, which for
+    # a link domain on a shared public suffix is far worse than the
+    # loosening it replaces.
+    context 'with an operator link pool configured (#4063)' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'app.example.net' },
+            'features' => {
+              'domains' => {
+                'default' => 'links.example.net',
+                'link_domains' => ['short.example.com', 'go.acme.com'],
+              },
+            },
+          },
+        )
+      end
+
+      it 'blocks registration of a pool member verbatim' do
+        expect(described_class.overlaps_canonical_domain?('short.example.com')).to be true
+      end
+
+      it 'blocks every pool member, not just the first' do
+        expect(described_class.overlaps_canonical_domain?('go.acme.com')).to be true
+      end
+
+      it 'normalizes case and trailing dots before the exact comparison' do
+        expect(described_class.overlaps_canonical_domain?('Short.Example.COM.')).to be true
+      end
+
+      # The accepted tradeoff, recorded so it is not "fixed" by a later
+      # consistency sweep: a customer MAY register a sibling of an operator
+      # link domain.
+      it 'permits a sibling of a pool member (no base-domain sweep over the pool)' do
+        expect(described_class.overlaps_canonical_domain?('other.example.com')).to be false
+      end
+
+      it 'permits a subdomain of a pool member' do
+        expect(described_class.overlaps_canonical_domain?('secrets.short.example.com')).to be false
+      end
+
+      it 'still runs the base-domain sweep over the anchors' do
+        expect(described_class.overlaps_canonical_domain?('secrets.example.net')).to be true
+      end
+    end
+  end
+
+  # ------------------------------------------------------------------ #
+  # default_domain? — exact-match filter used by share_domain handling.
+  # Covers BOTH canonical hosts (site.host and features.domains.default)
+  # so a split deployment filters its default link domain the same way
+  # the DomainStrategy middleware classifies it, while staying narrower
+  # than overlaps_canonical_domain? (no base-domain overlap).
+  # ------------------------------------------------------------------ #
+
+  describe '.default_domain?' do
+    before do
+      allow(OT).to receive(:conf).and_return(
+        {
+          'site' => { 'host' => 'example.com' },
+        },
+      )
+    end
+
+    context 'with only site.host configured' do
+      it 'matches the site host exactly' do
+        expect(described_class.default_domain?('example.com')).to be true
+      end
+
+      it 'normalizes casing' do
+        expect(described_class.default_domain?('EXAMPLE.COM')).to be true
+      end
+
+      it 'normalizes a trailing dot' do
+        expect(described_class.default_domain?('example.com.')).to be true
+      end
+
+      it 'does not match a subdomain of the site host (exact match only)' do
+        expect(described_class.default_domain?('sub.example.com')).to be false
+      end
+
+      it 'does not match an unrelated domain' do
+        expect(described_class.default_domain?('other-site.org')).to be false
+      end
+    end
+
+    context 'when site.host carries a port' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'example.com:443' },
+          },
+        )
+      end
+
+      it 'strips the port before comparing' do
+        expect(described_class.default_domain?('example.com')).to be true
+      end
+    end
+
+    # Split deployment: the site host serves the app while a distinct
+    # default link domain serves secret links. Both are canonical for
+    # the DomainStrategy middleware, so both must be filtered here.
+    context 'when features.domains.default differs from site.host' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'api.example.com' },
+            'features' => { 'domains' => { 'default' => 'secrets.example.com' } },
+          },
+        )
+      end
+
+      it 'matches the default link domain' do
+        expect(described_class.default_domain?('secrets.example.com')).to be true
+      end
+
+      it 'still matches the site host' do
+        expect(described_class.default_domain?('api.example.com')).to be true
+      end
+
+      it 'does not match a sibling subdomain (no base-domain overlap)' do
+        expect(described_class.default_domain?('other.example.com')).to be false
+      end
+
+      it 'does not match the shared base domain' do
+        expect(described_class.default_domain?('example.com')).to be false
+      end
+    end
+
+    context 'when features.domains.default is empty' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'example.com' },
+            'features' => { 'domains' => { 'default' => '' } },
+          },
+        )
+      end
+
+      it 'still matches the site host' do
+        expect(described_class.default_domain?('example.com')).to be true
+      end
+
+      it 'does not match an unrelated domain' do
+        expect(described_class.default_domain?('other-site.org')).to be false
+      end
+    end
+
+    context 'when no canonical hosts are configured' do
+      before do
+        allow(OT).to receive(:conf).and_return({})
+      end
+
+      it 'returns false' do
+        expect(described_class.default_domain?('example.com')).to be false
+      end
+    end
+
+    # ---------------------------------------------------------------- #
+    # AC6 (#4063) — the highest-value regression fence in the change.
+    #
+    # process_share_domain (apps/api/v{1,2}/logic/secrets/
+    # base_secret_action.rb) returns early WITHOUT setting @share_domain
+    # when default_domain? is true. If this predicate saw the operator
+    # link pool, every picker selection would be silently discarded and
+    # every generated link would re-anchor on the very host LINK_DOMAINS
+    # exists to hide. No exception, no log line — the picker looks right
+    # and each link is wrong. So: pool members must answer FALSE here
+    # while both anchors keep answering TRUE.
+    # ---------------------------------------------------------------- #
+    context 'with an operator link pool configured (#4063)' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'app.example.net' },
+            'features' => {
+              'domains' => {
+                'default' => 'links.example.net',
+                'link_domains' => ['short.example.com', 'go.acme.com'],
+              },
+            },
+          },
+        )
+      end
+
+      it 'still matches DEFAULT_DOMAIN while it is absent from the pool' do
+        expect(described_class.default_domain?('links.example.net')).to be true
+      end
+
+      it 'still matches site.host' do
+        expect(described_class.default_domain?('app.example.net')).to be true
+      end
+
+      it 'does NOT match a pool member (the selection must survive process_share_domain)' do
+        expect(described_class.default_domain?('short.example.com')).to be false
+      end
+
+      it 'does not match any pool member, not just the first' do
+        expect(described_class.default_domain?('go.acme.com')).to be false
+      end
+
+      it 'does not match a pool member in a different case either' do
+        expect(described_class.default_domain?('Short.Example.COM')).to be false
+      end
+    end
+
+    # The canonical-excluded single-tenant install: the operator hides
+    # ge-abcd123.eu.otshosted.com from the picker but still anchors links
+    # on it when nothing is selected. DEFAULT_DOMAIN is deliberately not
+    # required to be a pool member.
+    context 'when the pool excludes the default domain entirely (#4063)' do
+      before do
+        allow(OT).to receive(:conf).and_return(
+          {
+            'site' => { 'host' => 'ge-abcd123.eu.otshosted.com' },
+            'features' => {
+              'domains' => { 'link_domains' => ['short.example.com'] },
+            },
+          },
+        )
+      end
+
+      it 'still anchors on the canonical host' do
+        expect(described_class.default_domain?('ge-abcd123.eu.otshosted.com')).to be true
+      end
+
+      it 'lets the pool member through as a real share domain' do
+        expect(described_class.default_domain?('short.example.com')).to be false
+      end
+    end
+
+    # Invalid input raises Onetime::Problem out of display_domain (control
+    # chars directly, PublicSuffix errors converted); the filter must treat
+    # it as "not the default domain", mirroring overlaps_canonical_domain?.
+    context 'with invalid input' do
+      it 'returns false for input containing control characters' do
+        expect(described_class.default_domain?("exam\x00ple.com")).to be false
+      end
+
+      it 'returns false for a host without a valid public suffix' do
+        expect(described_class.default_domain?('localhost')).to be false
+      end
+    end
   end
 
   # ------------------------------------------------------------------ #
@@ -219,34 +474,40 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
   describe '.create! canonical backstop' do
     before do
-      allow(OT).to receive(:conf).and_return({
-        'site' => { 'host' => 'example.com' },
-      })
+      allow(OT).to receive(:conf).and_return(
+        {
+          'site' => { 'host' => 'example.com' },
+        },
+      )
 
       # Spy on the Redis-touching collaborators so we can prove the
       # guard raises before any of them run (mirrors the index spies in
       # update_display_domain_spec).
+      # rubocop:disable RSpec/VerifiedDoubleReference -- Familia::UniqueIndex
+      # is not a real constant in familia 2.12; the string form (matching
+      # update_display_domain_spec) intentionally skips verification.
       index_double = instance_double('Familia::UniqueIndex', hsetnx: 1)
+      # rubocop:enable RSpec/VerifiedDoubleReference
       allow(described_class).to receive(:display_domain_index).and_return(index_double)
       allow(described_class).to receive(:load_by_display_domain)
     end
 
     it 'rejects the canonical domain verbatim' do
-      expect {
+      expect do
         described_class.create!('example.com', 'org-test-001')
-      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+      end.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
     end
 
     it 'rejects a subdomain of the canonical domain' do
-      expect {
+      expect do
         described_class.create!('secrets.example.com', 'org-test-001')
-      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+      end.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
     end
 
     it 'raises before any Redis access' do
-      expect {
+      expect do
         described_class.create!('example.com', 'org-test-001')
-      }.to raise_error(Onetime::Problem)
+      end.to raise_error(Onetime::Problem)
 
       expect(described_class).not_to have_received(:load_by_display_domain)
       expect(described_class.display_domain_index).not_to have_received(:hsetnx)

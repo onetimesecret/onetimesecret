@@ -286,22 +286,20 @@ module Auth::Config::Hooks
       nil
     end
 
-    # Check if host is the platform's canonical domain.
+    # Check if host is one of the platform's canonical hosts.
     #
-    # Platform-level requests (on the canonical domain) should not be subject
-    # to tenant fallback policy - they are not tenant requests at all.
+    # Platform-level requests (on any canonical host — site.host or
+    # features.domains.default) should not be subject to tenant fallback
+    # policy - they are not tenant requests at all. Uses the middleware's
+    # set-backed predicate so auth and request classification can never
+    # disagree about which hosts are canonical (split deployments).
     #
     # @param host [String] Request hostname (from request.host, excludes port)
-    # @return [Boolean] true if host matches canonical domain
+    # @return [Boolean] true if host is in the canonical host set
     def self.canonical_domain?(host)
       return false if host.to_s.empty?
 
-      canonical = Onetime::Middleware::DomainStrategy.canonical_domain
-      return false if canonical.nil?
-
-      # Normalize comparison: strip port from canonical (request.host excludes port)
-      canonical_host = canonical.to_s.split(':').first
-      host.to_s.downcase == canonical_host.to_s.downcase
+      Onetime::Middleware::DomainStrategy.canonical_host?(host)
     end
 
     # Handle requests where no tenant SSO config is available.
