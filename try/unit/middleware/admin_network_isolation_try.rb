@@ -577,6 +577,33 @@ status_for(@blanks, 'tenant.example.com')
 build_mw(hosts: ['admin.example.com', 'ADMIN.example.com:443']).allowed_hosts
 #=> ['admin.example.com']
 
+## REGRESSION: the wildcard test reads the NORMALIZED host, not the raw entry.
+## A URL with a globbed path names one enforceable hostname; rejecting it made
+## a sole such entry an active-but-empty allowlist that 404s both surfaces,
+## under a WARN saying "wildcard patterns are not supported" about a hostname
+## that holds no wildcard.
+@globbed_path = build_mw(hosts: ['https://admin.example.com/*'])
+[@globbed_path.allowed_hosts, both_surfaces(@globbed_path, 'admin.example.com')]
+#=> [['admin.example.com'], [200, 200]]
+
+## a globbed QUERY on a scheme-bearing entry is the same story
+build_mw(hosts: ['https://admin.example.com/?q=*']).allowed_hosts
+#=> ['admin.example.com']
+
+## that entry is not merely tolerated - it is classified enforceable
+@allowlist.rejection_reason('https://admin.example.com/*')
+#=> nil
+
+## a pattern in the HOST survives normalization, so it is still rejected -
+## and still as :wildcard_pattern, not some downstream reason
+@allowlist.rejection_reason('*.example.com')
+#=> :wildcard_pattern
+
+## schemeless, the glob is not a path the parser can strip: it stays part of
+## the host and is rejected
+@allowlist.rejection_reason('admin.example.com/*')
+#=> :wildcard_pattern
+
 ## normalize_host - ONE function for both sides, and it lives in the shared
 ## classifier so the boot validator cannot drift from it
 @allowlist.normalize_host('HTTPS://Admin.Example.COM:8443/path')

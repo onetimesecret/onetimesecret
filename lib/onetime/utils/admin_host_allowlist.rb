@@ -131,14 +131,24 @@ module Onetime
 
         # Why this entry cannot match, or nil when it can.
         #
+        # THE WILDCARD TEST READS THE NORMALIZED HOST, NOT THE RAW ENTRY. A
+        # scheme, port, path and trailing slash are all accepted shapes here
+        # (see #normalize_host), so scanning the raw string for `*` rejected
+        # `https://admin.example.com/*` — an entry whose HOSTNAME is perfectly
+        # enforceable — and told the operator "wildcard patterns are not
+        # supported" about a hostname containing no wildcard. A pattern in the
+        # host itself (`*.example.com`) survives normalization unchanged and is
+        # still rejected here; a bare `*` never reaches this method at all,
+        # having been taken as the escape hatch in #classify.
+        #
         # @param entry [String] a stripped, non-empty configured entry
         # @return [Symbol, nil] a key of REJECTION_REASONS
         def rejection_reason(entry)
-          return :wildcard_pattern if entry.include?(WILDCARD)
           return :non_ascii unless entry.ascii_only?
 
           host = normalize_host(entry)
           return :unparseable if host.nil?
+          return :wildcard_pattern if host.include?(WILDCARD)
           return :not_routable unless Rack::DetectHost.valid_domain_name?(host)
 
           nil
