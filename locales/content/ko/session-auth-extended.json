@@ -736,11 +736,11 @@
     "source_hash": "e132c4d9"
   },
   "web.auth.connections.description": {
-    "text": "계정에 연결된 싱글 사인온 제공자를 관리합니다.",
+    "text": "계정에 연결된 Single Sign-On 제공자를 관리합니다.",
     "source_hash": "42c6d148"
   },
   "web.auth.connections.section_title": {
-    "text": "싱글 사인온",
+    "text": "Single Sign-On",
     "source_hash": "3bc44ac2"
   },
   "web.auth.connections.section_subtitle": {
@@ -752,11 +752,12 @@
     "source_hash": "a002b3f3"
   },
   "web.auth.connections.connect_description": {
-    "text": "이 계정에 로그인하는 데 사용할 수 있는 다른 싱글 사인온 제공자를 연결합니다.",
+    "text": "이 계정에 로그인하는 데 사용할 수 있는 다른 Single Sign-On 제공자를 연결합니다.",
     "source_hash": "32895a5a"
   },
   "web.auth.connections.connect_action": {
     "text": "{provider} 연결",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
     "source_hash": "c77540af"
   },
   "web.auth.connections.issuer": {
@@ -788,11 +789,11 @@
     "source_hash": "5254048e"
   },
   "web.auth.connections.no_identities_description": {
-    "text": "아직 이 계정에 싱글 사인온 제공자를 연결하지 않았습니다.",
+    "text": "아직 이 계정에 Single Sign-On 제공자를 연결하지 않았습니다.",
     "source_hash": "0f58d5d0"
   },
   "web.auth.connections.overview_status": {
-    "text": "싱글 사인온",
+    "text": "Single Sign-On",
     "source_hash": "3bc44ac2"
   },
   "web.auth.connections.errors.last_credential": {
@@ -821,6 +822,7 @@
   },
   "web.link_sso.prompt": {
     "text": "{provider}(으)로 로그인했으며, 이는 기존 계정 {email}과(와) 일치합니다. {provider}을(를) 연결하고 계속하려면 해당 계정의 비밀번호를 입력하세요.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
     "source_hash": "59da1c08"
   },
   "web.link_sso.password_label": {
@@ -881,6 +883,7 @@
   },
   "web.sso_link_confirm.prompt": {
     "text": "{provider}(으)로 로그인했으며, 이는 계정 {email}과(와) 일치합니다. {provider}을(를) 이 계정에 연결하고 로그인을 완료하려면 확인하세요.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
     "source_hash": "6ff0d6cc"
   },
   "web.sso_link_confirm.submit": {
