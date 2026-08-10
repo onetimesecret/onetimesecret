@@ -376,7 +376,7 @@ GEM
       tilt (~> 2)
     roda (3.106.0)
       rack
-    rodauth (2.44.0)
+    rodauth (2.45.0)
       roda (>= 2.6.0)
       sequel (>= 4)
     rodauth-omniauth (0.6.2)
