@@ -1,0 +1,159 @@
+# lib/onetime/utils/admin_host_allowlist.rb
+#
+# frozen_string_literal: true
+
+require_relative '../../middleware/detect_host'
+require_relative 'domain_parser'
+
+module Onetime
+  module Utils
+    # Shared judgment for `site.admin.allowed_hosts` (#4062): which configured
+    # entries can EVER match a request's detected host, and why the others
+    # cannot.
+    #
+    # Two call sites must agree exactly, so the judgment lives in neither:
+    #
+    #   Onetime::Config.validate_admin_allowed_hosts! — refuses to boot when an
+    #     explicitly configured allowlist has nothing enforceable left in it.
+    #     The LOUD path; it owns the operator-facing error text.
+    #   Onetime::Middleware::AdminNetworkIsolation — enforces the surviving
+    #     hosts, and DENIES both admin surfaces if it is ever constructed with
+    #     an explicit allowlist that has nothing enforceable. The backstop, for
+    #     an embedding that builds a Rack app without Config.raise_concerns.
+    #
+    # If those two ever disagreed, the app would either boot into a config the
+    # middleware then refuses to serve, or refuse to boot on a config the
+    # middleware would have served. One classifier, one answer.
+    #
+    # ## What makes an entry unenforceable
+    #
+    # Matching is exact, ASCII-only, against the host Rack::DetectHost
+    # validated. So an entry is rejected when it is a pattern (`*.example.com`
+    # matches nothing — there is no glob matching here), when it is non-ASCII
+    # (this project ships no IDN library; DomainParser.basically_valid? rejects
+    # U-labels, so DetectHost can never emit one), when it does not parse as a
+    # hostname at all, or when it is a host DetectHost would never emit —
+    # `localhost`, `localhost.localdomain`, and every IP literal.
+    #
+    # Routability is judged with DetectHost's OWN predicate (public via its
+    # `extend ClassMethods`) rather than a local copy, so the two cannot drift.
+    module AdminHostAllowlist
+      # Disables the host gate — honored only as the sole entry.
+      WILDCARD = '*'
+
+      # Why an entry was rejected, in the words shown to the operator. Used by
+      # both the boot WARN and the ConfigError: one judgment, one vocabulary.
+      REJECTION_REASONS = {
+        wildcard_pattern: 'wildcard patterns are not supported — list each hostname explicitly',
+        non_ascii: 'non-ASCII — supply the punycode (xn--) form',
+        unparseable: 'not a hostname',
+        not_routable: 'not a routable hostname — localhost forms and IP literals are never detected as a host',
+      }.freeze
+
+      # The outcome of classifying one configured list.
+      #
+      # @!attribute hosts
+      #   @return [Array<String>] normalized entries that can match
+      # @!attribute rejected
+      #   @return [Array<Array(String, Symbol)>] [entry, reason] pairs
+      # @!attribute wildcard
+      #   @return [Boolean] whether a bare `*` was listed
+      Classification = Data.define(:hosts, :rejected, :wildcard) do
+        # Nothing was configured at all (as opposed to configured badly).
+        def empty?
+          hosts.empty? && rejected.empty? && !wildcard
+        end
+
+        # `*` and nothing else: the documented escape hatch.
+        def wildcard_only?
+          wildcard && hosts.empty? && rejected.empty?
+        end
+
+        # Configured, but no entry survives — the fail-loud case.
+        def unenforceable?
+          !empty? && !wildcard_only? && hosts.empty?
+        end
+      end
+
+      class << self
+        # Classify a raw allowlist. Side-effect free: no logging, no raising —
+        # each caller decides what its posture does with the result.
+        #
+        # BLANK ENTRIES ARE SKIPPED, NOT REJECTED — a DELIBERATE asymmetry with
+        # #4063's LINK_DOMAINS, where `LINK_DOMAINS="  "` is a boot error.
+        # ADMIN_ALLOWED_HOSTS="   " classifies as empty?, which sends the gate
+        # to the canonical-anchor fallback: the RESTRICTIVE default. There is no
+        # over-exposure to fail loud about, so a benign typo does not earn a
+        # boot failure. The unenforceable cases are the opposite — an entry that
+        # survives stripping but can never match would leave the operator's
+        # intent to restrict silently unfulfilled — and those DO raise.
+        #
+        # @param raw [Array<String>, String, nil]
+        # @return [Classification]
+        def classify(raw)
+          wildcard = false
+          hosts    = []
+          rejected = []
+
+          Array(raw).each do |value|
+            entry = value.to_s.strip
+            next if entry.empty?
+
+            if entry == WILDCARD
+              wildcard = true
+              next
+            end
+
+            reason = rejection_reason(entry)
+            if reason
+              rejected << [entry, reason]
+            else
+              hosts << normalize_host(entry)
+            end
+          end
+
+          Classification.new(hosts: hosts.uniq, rejected: rejected.uniq, wildcard: wildcard)
+        end
+
+        # Why this entry cannot match, or nil when it can.
+        #
+        # @param entry [String] a stripped, non-empty configured entry
+        # @return [Symbol, nil] a key of REJECTION_REASONS
+        def rejection_reason(entry)
+          return :wildcard_pattern if entry.include?(WILDCARD)
+          return :non_ascii unless entry.ascii_only?
+
+          host = normalize_host(entry)
+          return :unparseable if host.nil?
+          return :not_routable unless Rack::DetectHost.valid_domain_name?(host)
+
+          nil
+        end
+
+        # The single normalization applied to BOTH sides of the comparison:
+        # downcase, strip a `:port` and any scheme (DomainParser), strip a
+        # trailing root dot (ours — `example.com.` is a legal client-supplied
+        # FQDN that DetectHost passes through untouched, and it must match a
+        # configured `example.com`).
+        #
+        # @param value [String, URI, nil]
+        # @return [String, nil]
+        def normalize_host(value)
+          host = DomainParser.extract_hostname(value)
+          return nil if host.nil?
+
+          host = host.sub(/\.+\z/, '')
+          host.empty? ? nil : host
+        end
+
+        # Human-readable "entry: reason" lines for an operator-facing message.
+        #
+        # @param rejected [Array<Array(String, Symbol)>]
+        # @return [Array<String>]
+        def describe_rejections(rejected)
+          rejected.map { |entry, reason| "#{entry.inspect}: #{REJECTION_REASONS.fetch(reason, reason)}" }
+        end
+      end
+    end
+  end
+end
