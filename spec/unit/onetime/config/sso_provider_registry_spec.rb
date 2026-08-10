@@ -76,6 +76,19 @@ RSpec.describe Onetime::SsoProviderRegistry do
     end
   end
 
+  it 'requires any idp_origin_from var to be in required_vars' do
+    # The CSP origin gate and the sso_providers gate share required_vars; an
+    # idp_origin_from var outside that list could emit a CSP origin for a
+    # provider whose serializer gating never checks the same var.
+    definitions.each do |defn|
+      next unless defn[:idp_origin_from]
+
+      expect(defn[:required_vars]).to include(defn[:idp_origin_from]),
+        "definition #{defn[:key].inspect}: idp_origin_from #{defn[:idp_origin_from].inspect} " \
+        'must be one of its required_vars'
+    end
+  end
+
   it 'never uses real-looking credentials in placeholder_options' do
     definitions.each do |defn|
       defn[:placeholder_options].each do |opt, value|

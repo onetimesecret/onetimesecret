@@ -53,6 +53,16 @@ provider appears on the login and signup pages with zero frontend changes.
    names) reorders the buttons; unlisted providers keep registry order after
    the listed ones.
 
+## Known limitations
+
+Strategy registration is a **boot-time snapshot**: `configure_provider` reads
+the env vars and `orgs_sso_enabled?` once, when the auth app boots. Adding or
+removing a provider, changing its credentials, or toggling org-level SSO
+requires a restart — a runtime config reload does not re-register strategies.
+(The serializer-side values — button order via `SSO_PROVIDER_ORDER`, display
+names — are read per request, but a provider that didn't register at boot
+can't appear regardless.)
+
 ## The issuer decision (read before adding anything)
 
 The identity table is keyed `(provider, issuer, uid)`. Issuer scoping is what
