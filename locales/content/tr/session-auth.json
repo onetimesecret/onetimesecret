@@ -489,35 +489,35 @@
     "source_hash": "11b6978b"
   },
   "web.auth.password_setup_request.description": {
-    "text": "Hesabinizin henuz bir parolasi yok. Dogrudan da oturum acabilmeniz icin parola belirlemeniz icin size guvenli bir baglanti e-postasi gonderecegiz.",
+    "text": "Hesabınızın henüz bir parolası yok. Doğrudan da oturum açabilmeniz için parola belirlemeniz için size güvenli bir bağlantı e-postası göndereceğiz.",
     "source_hash": "dc0b561f"
   },
   "web.auth.password_setup_request.button": {
-    "text": "Kurulum Baglantisi Gonder",
+    "text": "Kurulum Bağlantısı Gönder",
     "source_hash": "22807292"
   },
   "web.auth.password_setup_request.emailSent": {
-    "text": "Hesabiniz icin parola belirleme baglantisi iceren bir e-posta gonderildi",
+    "text": "Hesabınız için parola belirleme bağlantısı içeren bir e-posta gönderildi",
     "source_hash": "82b686c7"
   },
   "web.login.errors.account_exists_link_required": {
-    "text": "Bu e-posta adresiyle bir hesap zaten mevcut ancak bu oturum acma yontemine bagli degil. Mevcut yonteminizle oturum acin, ardindan bu saglayiciyi Guvenlik ayarlari -> Bagli kimlikler altinda baglayin.",
+    "text": "Bu e-posta adresiyle bir hesap zaten mevcut ancak bu oturum açma yöntemine bağlı değil. Mevcut yönteminizle oturum açın, ardından bu sağlayıcıyı Güvenlik ayarları -> Bağlı kimlikler altında bağlayın.",
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Bu kimlik baglanamadiI. Baglanti yanlis alan adinda baslatilmis olabilir veya oturumunuzun suresi dolmus olabilir. Lutfen tekrar oturum acin, ardindan hesap ayarlarinizdan baglayin.",
+    "text": "Bu kimlik bağlanamadı. Bağlantı yanlış alan adında başlatılmış olabilir veya oturumunuzun süresi dolmuş olabilir. Lütfen tekrar oturum açın, ardından hesap ayarlarınızdan bağlayın.",
     "source_hash": "4238bbf2"
   },
   "web.login.errors.org_join_failed": {
-    "text": "Sizi organizasyonunuza eklemeyi tamamlayamadik. Lutfen yoneticinizle iletisime gecin.",
+    "text": "Sizi organizasyonunuza eklemeyi tamamlayamadık. Lütfen yöneticinizle iletişime geçin.",
     "source_hash": "155e71bb"
   },
   "web.login.errors.link_sso_failed": {
-    "text": "Bu oturum acma yontemini baglayamadik. Mevcut parolanizla oturum acin, ardindan bu saglayiciyi Guvenlik ayarlari -> Bagli kimlikler altinda baglayin.",
+    "text": "Bu oturum açma yöntemini bağlayamadık. Mevcut parolanızla oturum açın, ardından bu sağlayıcıyı Güvenlik ayarları -> Bağlı kimlikler altında bağlayın.",
     "source_hash": "49954127"
   },
   "web.login.notices.link_verification_sent": {
-    "text": "Gelen kutunuzu kontrol edin - hesabinizi baglamayi onaylamak icin size bir baglanti e-postasi gonderdik. Oturum acmayi tamamlamak icin acin.",
+    "text": "Gelen kutunuzu kontrol edin - hesabınızı bağlamayı onaylamak için size bir bağlantı e-postası gönderdik. Oturum açmayı tamamlamak için açın.",
     "source_hash": "b251c8f3"
   }
 }

@@ -56,11 +56,11 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "orn. QR kodunu taramak icin telefonunuzu kullanin",
+    "text": "örn. QR kodunu taramak için telefonunuzu kullanın",
     "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "orn. Sorulariniz icin onboarding{'@'}example.com adresine ulassin",
+    "text": "örn. Sorularınız için onboarding{'@'}example.com adresine ulaşın",
     "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -320,7 +320,7 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Bu canli bir onizleme - Guncelle'ye tiklayana kadar degisiklikleriniz ziyaretcilere gorunmez.",
+    "text": "Bu canlı bir önizleme - Güncelle'ye tıklayana kadar değişiklikleriniz ziyaretçilere görünmez.",
     "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
@@ -412,47 +412,47 @@
     "source_hash": "42955289"
   },
   "web.branding.refresh_favicon": {
-    "text": "Favicon'u alan adindan yenile",
+    "text": "Favicon'u alan adından yenile",
     "source_hash": "7cc3d5dc"
   },
   "web.branding.refresh_favicon_hint": {
-    "text": "Favicon'u alan adinizdan tekrar cek. Yeni simge kisa surede gorunur.",
+    "text": "Favicon'u alan adınızdan tekrar çek. Yeni simge kısa sürede görünür.",
     "source_hash": "ee007e44"
   },
   "web.branding.refresh_favicon_queued": {
-    "text": "Favicon yenileniyor - yeni simge kisa surede gorunecek.",
+    "text": "Favicon yenileniyor - yeni simge kısa sürede görünecek.",
     "source_hash": "6bf38e6e"
   },
   "web.branding.refresh_favicon_user_upload_hint": {
-    "text": "Ozel bir favicon yuklediniz, bu nedenle cekilmis simge onu degistirmeyecek.",
+    "text": "Özel bir favicon yüklediniz, bu nedenle çekilmiş simge onu değiştirmeyecek.",
     "source_hash": "c22e1ed6"
   },
   "web.branding.upload_favicon": {
-    "text": "Favicon yukle",
+    "text": "Favicon yükle",
     "source_hash": "ceda39cb"
   },
   "web.branding.replace_favicon": {
-    "text": "Degistir",
+    "text": "Değiştir",
     "source_hash": "95e15439"
   },
   "web.branding.remove_favicon": {
-    "text": "Favicon'u kaldir",
+    "text": "Favicon'u kaldır",
     "source_hash": "03693698"
   },
   "web.branding.favicon_field_hint": {
-    "text": "ICO, PNG veya SVG. Yukleme, cekilmis simgenin yerini alir.",
+    "text": "ICO, PNG veya SVG. Yükleme, çekilmiş simgenin yerini alır.",
     "source_hash": "dfa0bfcb"
   },
   "web.branding.favicon_preview_alt": {
-    "text": "Alan adi favicon'u",
+    "text": "Alan adı favicon'u",
     "source_hash": "db7dca40"
   },
   "web.branding.favicon_modal_title": {
-    "text": "Alan adi favicon'u",
+    "text": "Alan adı favicon'u",
     "source_hash": "db7dca40"
   },
   "web.branding.favicon_modal_hint": {
-    "text": "ICO, PNG veya SVG. En fazla 256KB. Otomatik cekilmis simgenin yerini alir.",
+    "text": "ICO, PNG veya SVG. En fazla 256KB. Otomatik çekilmiş simgenin yerini alır.",
     "source_hash": "c9eafc83"
   },
   "web.branding.favicon_modal_save": {

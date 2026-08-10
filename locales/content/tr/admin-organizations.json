@@ -320,51 +320,51 @@
     "source_hash": "2f676a94"
   },
   "web.admin.organizations.addMember.description": {
-    "text": "Zaten bir hesabi olan birini {org} organizasyonuna ekleyin. Bunu, bir kisi kendi basina kaydoldugunda ve hesap zaten var oldugu icin davet edilemediginde kullanin.",
+    "text": "Zaten bir hesabı olan birini {org} organizasyonuna ekleyin. Bunu, bir kişi kendi başına kaydolduğunda ve hesap zaten var olduğu için davet edilemediğinde kullanın.",
     "source_hash": "bb41faa6"
   },
   "web.admin.organizations.addMember.searchLabel": {
-    "text": "E-posta adresi veya hesap kimligi",
+    "text": "E-posta adresi veya hesap kimliği",
     "source_hash": "82b3040b"
   },
   "web.admin.organizations.addMember.searchPlaceholder": {
-    "text": "E-posta adresine gore ara",
+    "text": "E-posta adresine göre ara",
     "source_hash": "b75cc66c"
   },
   "web.admin.organizations.addMember.searchHint": {
-    "text": "E-posta adresinin bir kismiyla veya tam hesap kimligiyle eslesir.",
+    "text": "E-posta adresinin bir kısmıyla veya tam hesap kimliğiyle eşleşir.",
     "source_hash": "84547a60"
   },
   "web.admin.organizations.addMember.searchError": {
-    "text": "Hesaplar aranamadi. Baglantiyi kontrol edip yeniden deneyin.",
+    "text": "Hesaplar aranamadı. Bağlantıyı kontrol edip yeniden deneyin.",
     "source_hash": "4b6caa41"
   },
   "web.admin.organizations.addMember.searchParseError": {
-    "text": "Hesap aramasi beklenmedik bir yanit dondurdu. Sonuclar eksik olabilir.",
+    "text": "Hesap araması beklenmedik bir yanıt döndürdü. Sonuçlar eksik olabilir.",
     "source_hash": "0c814231"
   },
   "web.admin.organizations.addMember.idle": {
-    "text": "Hesabi bulmak icin bir e-posta adresi girin.",
+    "text": "Hesabı bulmak için bir e-posta adresi girin.",
     "source_hash": "f6340d35"
   },
   "web.admin.organizations.addMember.noResults": {
-    "text": "\"{term}\" ile eslesen hesap yok.",
+    "text": "\"{term}\" ile eşleşen hesap yok.",
     "source_hash": "199b662a"
   },
   "web.admin.organizations.addMember.noResultsHint": {
-    "text": "Buraya yalnizca mevcut hesaplar eklenebilir. Kisi hic kaydolmadiysa, bunun yerine davet edin.",
+    "text": "Buraya yalnızca mevcut hesaplar eklenebilir. Kişi hiç kaydolmadıysa, bunun yerine davet edin.",
     "source_hash": "ee90aeeb"
   },
   "web.admin.organizations.addMember.select": {
-    "text": "Sec",
+    "text": "Seç",
     "source_hash": "2a78025d"
   },
   "web.admin.organizations.addMember.selectedEyebrow": {
-    "text": "Secilen hesap",
+    "text": "Seçilen hesap",
     "source_hash": "8b63d947"
   },
   "web.admin.organizations.addMember.change": {
-    "text": "Farkli bir hesap sec",
+    "text": "Farklı bir hesap seç",
     "source_hash": "d4fe39ab"
   },
   "web.admin.organizations.addMember.createdOn": {
@@ -372,11 +372,11 @@
     "source_hash": "cfc0e19f"
   },
   "web.admin.organizations.addMember.organizationsUnavailable": {
-    "text": "Bu hesabin mevcut organizasyonlari yuklenemedi.",
+    "text": "Bu hesabın mevcut organizasyonları yüklenemedi.",
     "source_hash": "a35b6bfc"
   },
   "web.admin.organizations.addMember.defaultOrg": {
-    "text": "varsayilan",
+    "text": "varsayılan",
     "source_hash": "37a8eec1"
   },
   "web.admin.organizations.addMember.roleLabel": {
@@ -392,51 +392,51 @@
     "source_hash": "533be0dc"
   },
   "web.admin.organizations.addMember.badges.verified": {
-    "text": "Dogrulanmis",
+    "text": "Doğrulanmış",
     "source_hash": "4f783840"
   },
   "web.admin.organizations.addMember.badges.unverified": {
-    "text": "Dogrulanmamis",
+    "text": "Doğrulanmamış",
     "source_hash": "15133907"
   },
   "web.admin.organizations.addMember.badges.suspended": {
-    "text": "Askiya alinmis",
+    "text": "Askıya alınmış",
     "source_hash": "e392a389"
   },
   "web.admin.organizations.addMember.badges.alreadyMember": {
-    "text": "Zaten uye",
+    "text": "Zaten üye",
     "source_hash": "1739ed7c"
   },
   "web.admin.organizations.addMember.errors.alreadyMember": {
-    "text": "Bu hesap zaten bu organizasyonun bir uyesi, rolu {role}. Ekleme mevcut rolu degistirmez - bunun icin rol ayarla islemini kullanin.",
+    "text": "Bu hesap zaten bu organizasyonun bir üyesi, rolü {role}. Ekleme mevcut rolü değiştirmez - bunun için rol ayarla işlemini kullanın.",
     "source_hash": "cb6a4774"
   },
   "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
-    "text": "Bu hesap zaten bu organizasyonun bir uyesi. Ekleme mevcut rolu degistirmez.",
+    "text": "Bu hesap zaten bu organizasyonun bir üyesi. Ekleme mevcut rolü değiştirmez.",
     "source_hash": "035641ec"
   },
   "web.admin.organizations.addMember.errors.notFound": {
-    "text": "O hesap veya organizasyon artik mevcut degil. Hesabi onaylamak icin tekrar arayin.",
+    "text": "O hesap veya organizasyon artık mevcut değil. Hesabı onaylamak için tekrar arayın.",
     "source_hash": "bd88db18"
   },
   "web.admin.organizations.addMember.errors.invalidRole": {
-    "text": "O rol reddedildi. Listelenen rollerden birini secip tekrar deneyin.",
+    "text": "O rol reddedildi. Listelenen rollerden birini seçip tekrar deneyin.",
     "source_hash": "eb696a8f"
   },
   "web.admin.organizations.addMember.errors.noSelection": {
-    "text": "Hesap secilmedi.",
+    "text": "Hesap seçilmedi.",
     "source_hash": "dd15bb5b"
   },
   "web.admin.organizations.addMember.fields.created": {
-    "text": "Kayit tarihi",
+    "text": "Kayıt tarihi",
     "source_hash": "486b3fe0"
   },
   "web.admin.organizations.addMember.fields.verified": {
-    "text": "Dogrulama",
+    "text": "Doğrulama",
     "source_hash": "7140f4f1"
   },
   "web.admin.organizations.addMember.fields.lastLogin": {
-    "text": "Son oturum acma",
+    "text": "Son oturum açma",
     "source_hash": "0b70af7a"
   },
   "web.admin.organizations.addMember.fields.organizations": {
@@ -444,23 +444,23 @@
     "source_hash": "cbb5b92f"
   },
   "web.admin.organizations.addMember.roleHints.member": {
-    "text": "Organizasyonun gizli mesajlarina ve alan adlarina gunluk erisim.",
+    "text": "Organizasyonun gizli mesajlarına ve alan adlarına günlük erişim.",
     "source_hash": "d0c7439e"
   },
   "web.admin.organizations.addMember.roleHints.admin": {
-    "text": "Uyeleri, alan adlarini ve organizasyon ayarlarini yonetebilir.",
+    "text": "Üyeleri, alan adlarını ve organizasyon ayarlarını yönetebilir.",
     "source_hash": "beaa50d7"
   },
   "web.admin.organizations.addMember.roleHints.owner": {
-    "text": "Faturalandirma dahil tam kontrol. Bunu yalnizca istendiginde verin.",
+    "text": "Faturalandırma dahil tam kontrol. Bunu yalnızca istendiğinde verin.",
     "source_hash": "614ace63"
   },
   "web.admin.organizations.addMember.roles.member": {
-    "text": "Uye",
+    "text": "Üye",
     "source_hash": "7c968fb7"
   },
   "web.admin.organizations.addMember.roles.admin": {
-    "text": "Yonetici",
+    "text": "Yönetici",
     "source_hash": "c1c224b0"
   },
   "web.admin.organizations.addMember.roles.owner": {
@@ -468,23 +468,23 @@
     "source_hash": "4b1b8aa3"
   },
   "web.admin.organizations.detail.members.openCustomer": {
-    "text": "Musteri kaydini ac",
+    "text": "Müşteri kaydını aç",
     "source_hash": "c057ca13"
   },
   "web.admin.organizations.detail.reconcile.memberships": {
-    "text": "Uyelikler yeniden olusturuldu:",
+    "text": "Üyelikler yeniden oluşturuldu:",
     "source_hash": "fe7db10c"
   },
   "web.admin.organizations.detail.reconcile.membershipsFailed": {
-    "text": "basarisiz, eski yetkilendirmeler kaliyor:",
+    "text": "başarısız, eski yetkilendirmeler kalıyor:",
     "source_hash": "cc4dae37"
   },
   "web.admin.organizations.entitlements.catalogWarning": {
-    "text": "\"{entitlement}\" faturalandirma katalogunda yok - yazim hatasi olup olmadigini kontrol edin. Yine de devam ediliyor: sonraki bir katalogda yer alacak bir yetkilendirme vermek desteklenir ve kasitli olarak engellenmez.",
+    "text": "\"{entitlement}\" faturalandırma katalogunda yok - yazım hatası olup olmadığını kontrol edin. Yine de devam ediliyor: sonraki bir katalogda yer alacak bir yetkilendirme vermek desteklenir ve kasıtlı olarak engellenmez.",
     "source_hash": "cbde548a"
   },
   "web.admin.organizations.entitlements.matrix.caption": {
-    "text": "Yetkilendirme cozumleme matrisi: plan, gecersiz kilma vermeleri ve iptalleri, cozumlenmis kume ve somutlastirilan.",
+    "text": "Yetkilendirme çözümleme matrisi: plan, geçersiz kılma vermeleri ve iptalleri, çözümlenmiş küme ve somutlaştırılan.",
     "source_hash": "9eac8999"
   },
   "web.admin.organizations.entitlements.matrix.yes": {
@@ -492,11 +492,11 @@
     "source_hash": "85a39ab3"
   },
   "web.admin.organizations.entitlements.matrix.no": {
-    "text": "Hayir",
+    "text": "Hayır",
     "source_hash": "1ea442a1"
   },
   "web.admin.organizations.entitlements.matrix.empty": {
-    "text": "Bu organizasyonun planindan yetkilendirmesi ve gecersiz kilmasi yok.",
+    "text": "Bu organizasyonun planından yetkilendirmesi ve geçersiz kılması yok.",
     "source_hash": "f6cf2169"
   },
   "web.admin.organizations.entitlements.matrix.columns.entitlement": {
@@ -512,7 +512,7 @@
     "source_hash": "62026a42"
   },
   "web.admin.organizations.entitlements.matrix.columns.revoked": {
-    "text": "Iptal edildi",
+    "text": "İptal edildi",
     "source_hash": "f6f738d0"
   },
   "web.admin.organizations.entitlements.matrix.columns.expected": {
@@ -520,7 +520,7 @@
     "source_hash": "ca99b7f1"
   },
   "web.admin.organizations.entitlements.matrix.columns.materialized": {
-    "text": "Somutlastirilan",
+    "text": "Somutlaştırılan",
     "source_hash": "1298eb6e"
   },
   "web.admin.organizations.entitlements.matrix.columns.state": {
@@ -528,19 +528,19 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.organizations.entitlements.matrix.legend.formula": {
-    "text": "Cozumleme: beklenen = (plan ∪ vermeler) − iptaller. Somutlastirilan, organizasyonda gercekte depolanan seydir.",
+    "text": "Çözümleme: beklenen = (plan ∪ vermeler) − iptaller. Somutlaştırılan, organizasyonda gerçekte depolanan şeydir.",
     "source_hash": "bc4bff2d"
   },
   "web.admin.organizations.entitlements.matrix.legend.orphaned": {
-    "text": "Yetim - somutlastirilmis ama beklenmemis, genellikle hic yeniden somutlastirilmamis bir iptal tarafindan birakilan. Uzlastirma bunu kaldirir.",
+    "text": "Yetim - somutlaştırılmış ama beklenmemiş, genellikle hiç yeniden somutlaştırılmamış bir iptal tarafından bırakılan. Uzlaştırma bunu kaldırır.",
     "source_hash": "3a27a9af"
   },
   "web.admin.organizations.entitlements.matrix.legend.missing": {
-    "text": "Eksik - beklenen ama somutlastirilmamis. Bu, uyelerin su anda gercekten eksik oldugu izindir.",
+    "text": "Eksik - beklenen ama somutlaştırılmamış. Bu, üyelerin şu anda gerçekten eksik olduğu izindir.",
     "source_hash": "485e44ad"
   },
   "web.admin.organizations.entitlements.matrix.legend.revoked": {
-    "text": "Ustu cizili satirlar bir yonetici gecersiz kilmasi tarafindan iptal edilmistir, bu da onlari beklenen kumeden kaldirir.",
+    "text": "Üstü çizili satırlar bir yönetici geçersiz kılması tarafından iptal edilmiştir, bu da onları beklenen kümeden kaldırır.",
     "source_hash": "89a2e9b6"
   },
   "web.admin.organizations.entitlements.matrix.state.plan": {
@@ -552,7 +552,7 @@
     "source_hash": "62026a42"
   },
   "web.admin.organizations.entitlements.matrix.state.revoked": {
-    "text": "Iptal edildi",
+    "text": "İptal edildi",
     "source_hash": "f6f738d0"
   },
   "web.admin.organizations.entitlements.matrix.state.orphaned": {
@@ -564,19 +564,19 @@
     "source_hash": "6be36ca4"
   },
   "web.admin.organizations.entitlements.picker.selectPlaceholder": {
-    "text": "Bir yetkilendirme secin...",
+    "text": "Bir yetkilendirme seçin...",
     "source_hash": "53af3be8"
   },
   "web.admin.organizations.entitlements.picker.other": {
-    "text": "Diger - katalogda yok...",
+    "text": "Diğer - katalogda yok...",
     "source_hash": "f08bc3a3"
   },
   "web.admin.organizations.entitlements.picker.customLabel": {
-    "text": "Yetkilendirme adi (katalogda degil)",
+    "text": "Yetkilendirme adı (katalogda değil)",
     "source_hash": "52783229"
   },
   "web.admin.organizations.entitlements.picker.backToCatalog": {
-    "text": "Kataloga geri don",
+    "text": "Kataloga geri dön",
     "source_hash": "9b727f40"
   },
   "web.admin.organizations.entitlements.picker.uncategorized": {
@@ -584,7 +584,7 @@
     "source_hash": "8d40d123"
   },
   "web.admin.organizations.entitlements.picker.catalogUnavailable": {
-    "text": "Faturalandirma katalogu okunamadi, bu nedenle yetkilendirme adlari burada kontrol edilmiyor.",
+    "text": "Faturalandırma kataloğu okunamadı, bu nedenle yetkilendirme adları burada kontrol edilmiyor.",
     "source_hash": "724869ec"
   },
   "web.admin.organizations.entitlements.picker.tags.inPlan": {
@@ -604,15 +604,15 @@
     "source_hash": "8d261a37"
   },
   "web.admin.organizations.entitlements.summary.materialized": {
-    "text": "Somutlastirilmis",
+    "text": "Somutlaştırılmış",
     "source_hash": "1298eb6e"
   },
   "web.admin.organizations.entitlements.summary.materializedAt": {
-    "text": "Son somutlastirma",
+    "text": "Son somutlaştırma",
     "source_hash": "9325dce9"
   },
   "web.admin.organizations.entitlements.summary.planDefinition": {
-    "text": "Plan tanimi",
+    "text": "Plan tanımı",
     "source_hash": "6b531454"
   },
   "web.admin.organizations.entitlements.summary.yes": {
@@ -620,23 +620,23 @@
     "source_hash": "85a39ab3"
   },
   "web.admin.organizations.entitlements.summary.no": {
-    "text": "Hayir",
+    "text": "Hayır",
     "source_hash": "1ea442a1"
   },
   "web.admin.organizations.entitlements.summary.never": {
-    "text": "Hicbir zaman",
+    "text": "Hiçbir zaman",
     "source_hash": "6300ef80"
   },
   "web.admin.organizations.entitlements.summary.planStale": {
-    "text": "Somutlastirmadan beri degisti",
+    "text": "Somutlaştırmadan beri değişti",
     "source_hash": "e682d8a4"
   },
   "web.admin.organizations.entitlements.summary.planCurrent": {
-    "text": "Guncel",
+    "text": "Güncel",
     "source_hash": "e0d1b682"
   },
   "web.admin.organizations.entitlements.summary.planUnknown": {
-    "text": "Bilinmiyor - karsilastirilamadi",
+    "text": "Bilinmiyor - karşılaştırılamadı",
     "source_hash": "b607e540"
   }
 }
