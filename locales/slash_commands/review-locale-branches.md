@@ -19,6 +19,9 @@ For each branch it runs `python3 locales/scripts/i18n validate variables --json
 mismatch count > 0. It always exits 0 — it's a report, not a gate.
 
 Output is deterministic: a locale only appears if it has `N > 0` errors to fix.
+The count is the report's `blocking` field — placeholder and format defects in
+translated text. Untranslated keys appear in `summary.<locale>.untranslated` and
+in `details`, but do not count as errors; they are coverage, not defects.
 View details with `jq . /tmp/i18n-validate-{locale}.json`.
 
 **Why `--json`:** The `--summary` flag outputs bare numbers that are easy to misinterpret. JSON output is unambiguous and includes full issue details for fixing.

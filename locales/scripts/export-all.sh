@@ -17,9 +17,9 @@
 #
 # After a successful export the content is re-checked in the working tree:
 #   - `i18n validate variables --locale <locale> --json` (placeholder parity),
-#     counting only keys the export can influence — en-only authoring metadata
-#     (`.context`, `.note`, `.source_hash`) is excluded, since `tasks export`
-#     writes `text` and nothing else
+#     gated on the report's own `blocking` count. Only each entry's `text` is
+#     compared (authoring metadata is metadata), and untranslated keys are
+#     reported but not blocking — coverage is gate 1's job, above
 #   - the register lint, when .translation-rules/ and generated/i18n/.resolved/
 #     exist (run locales/scripts/derive-governance.sh); skipped otherwise, and a
 #     skip never fails the run
@@ -126,16 +126,17 @@ audit_locale() {
 # also the "locale not found"/crash path, which prints no JSON). Decide on the
 # parsed report, treating an unparseable one as dirty — never as clean.
 #
-# `validate variables` is entry-aware (it compares only each entry's `text`), so
-# the reported count already excludes en-only authoring metadata — `context`,
-# `note`, `source_hash` — that `tasks export` never writes. Read `summary`
-# directly; no post-filtering is needed.
+# The report categorizes its own findings and publishes `blocking` — every
+# non-advisory category, summed across locales. Read that number and nothing
+# else: a gate that post-filters the report has to re-derive the policy (which
+# key shapes are metadata, which findings are coverage rather than defects) and
+# will eventually re-derive it wrong. That is how #4080 got its shell-side
+# METADATA_FIELDS list. A missing `blocking` raises here, which the caller
+# treats as an unparseable report — dirty, never clean.
 VALIDATE_VARIABLES_COUNT_PY='
 import sys, json
 
-data = json.load(sys.stdin)
-summary = data.get("summary", {})
-print(sum(int(n) for n in summary.values()))
+print(json.load(sys.stdin)["blocking"])
 '
 
 validate_variables() {

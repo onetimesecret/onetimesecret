@@ -204,7 +204,11 @@ validation_count() {
   local locale="$1" file="$RESULTS_DIR/i18n-validate-$1.json"
   $HAVE_VALIDATION || { echo ""; return; }
   [[ -f "$file" ]] || { echo ""; return; }
-  jq --arg l "$locale" '(.summary[$l] // (.summary | to_entries | map(.value) | add) // 0)' \
+  # `.blocking` is the report's own gate count (untranslated keys are reported
+  # but advisory). The per-locale fallbacks keep reports written by a branch
+  # whose CLI predates that field readable.
+  jq --arg l "$locale" \
+    '(.blocking // .summary[$l] // (.summary | to_entries | map(.value) | add) // 0)' \
     "$file" 2>/dev/null || echo ""
 }
 
