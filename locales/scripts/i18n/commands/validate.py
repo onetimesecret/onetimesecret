@@ -1211,9 +1211,7 @@ def _glossary_handler(args) -> int:
             file=sys.stderr,
         )
 
-    print(
-        f"\nTOTAL: {total} possible glossary divergence(s) across {checked} locale(s)"
-    )
+    print(f"\nTOTAL: {total} possible glossary divergence(s) across {checked} locale(s)")
     # Advisory by default (heuristic → false positives). --strict gates for CI:
     # fail on any divergence, and also fail when NOTHING could be checked (no
     # resolved governance) — a gate that verifies nothing must not read green.
@@ -1239,9 +1237,7 @@ def _hashes_handler(args) -> int:
     from .content import _hashes_compute_hash
 
     source_dir = CONTENT_DIR / SOURCE_LOCALE
-    mismatched: list[
-        tuple[str, str, str, str]
-    ] = []  # file, key, stored, computed
+    mismatched: list[tuple[str, str, str, str]] = []  # file, key, stored, computed
     missing: list[tuple[str, str, str]] = []  # file, key, computed
     checked = 0
 
@@ -1262,13 +1258,9 @@ def _hashes_handler(args) -> int:
                 mismatched.append((json_file.name, key_path, stored, computed))
 
     for file_name, key, stored, computed in mismatched:
-        print(
-            f"STALE   {file_name} · {key}: stored {stored} != computed {computed}"
-        )
+        print(f"STALE   {file_name} · {key}: stored {stored} != computed {computed}")
     for file_name, key, computed in missing:
-        print(
-            f"MISSING {file_name} · {key}: no content_hash (computed {computed})"
-        )
+        print(f"MISSING {file_name} · {key}: no content_hash (computed {computed})")
 
     print(
         f"\nChecked {checked} en source key(s): "
