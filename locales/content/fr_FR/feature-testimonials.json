@@ -16,7 +16,7 @@
     "source_hash": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "\"{0}\"",
+    "text": "« {0} »",
     "source_hash": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
