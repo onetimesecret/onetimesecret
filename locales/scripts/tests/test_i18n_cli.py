@@ -1187,10 +1187,64 @@ class ValidateVariablesTest(I18nCliTestCase):
         proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
         self.assertEqual(proc.returncode, 1, proc.stdout)
         data = json.loads(proc.stdout)
-        self.assertEqual(data["summary"], {"de": 1})
+        self.assertEqual(data["blocking"], 1)
+        self.assertEqual(data["summary"]["de"]["variables"], 1)
         issue = data["details"]["de"]["v.json"][0]
         self.assertEqual(issue["key"], "web.x.a")
+        self.assertEqual(issue["category"], "variables")
         self.assertEqual(issue["missing"], ["{provider}"])
+
+    def test_skip_marked_entry_is_not_a_mismatch(self) -> None:
+        # A locale that deliberately keeps the English string ("skip") has not
+        # dropped the placeholder — it kept it. The text-only view collapses
+        # skip / absent / empty into one "not there", which reported this as an
+        # [EMPTY] translation missing every variable the source carries.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}", "skip": true}}', "utf-8"
+        )
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertOk(proc, "a skip-marked entry is not a variable defect")
+        self.assertEqual(json.loads(proc.stdout)["summary"], {})
+
+    def test_untranslated_key_is_reported_but_not_blocking(self) -> None:
+        # An en key with placeholders that the locale has not translated yet is
+        # coverage, gated by `tasks next`. It is reported (so a reviewer sees
+        # it) but must not gate the post-export check, or a byte-perfect export
+        # reads dirty forever.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text('{"web.x.b": {"text": "Andere"}}', "utf-8")
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertOk(proc, "untranslated coverage must not gate")
+        data = json.loads(proc.stdout)
+        self.assertEqual(data["blocking"], 0)
+        self.assertEqual(data["summary"]["de"]["untranslated"], 1)
+        self.assertEqual(data["summary"]["de"]["variables"], 0)
+        issue = data["details"]["de"]["v.json"][0]
+        self.assertEqual(issue["category"], "untranslated")
+
+    def test_empty_text_counts_as_untranslated_not_a_mismatch(self) -> None:
+        # `text: ""` is the same coverage state as an absent key — the entry
+        # exists only because an earlier pass wrote the shell.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text('{"web.x.a": {"text": ""}}', "utf-8")
+        proc = self.run_cli("validate", "variables", "--locale", "de", "--json")
+        self.assertOk(proc, "empty text is coverage, not a placeholder defect")
+        self.assertEqual(
+            json.loads(proc.stdout)["summary"]["de"]["untranslated"], 1
+        )
 
 
 class ValidatePrEntryModelTest(I18nCliTestCase):
