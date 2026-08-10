@@ -870,7 +870,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.sso_link_verification.postscript": {
-    "text": "R.M. I tukuna tēnei īmēra ki %{email_address}.",
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}.",
     "source_hash": "8ab1dbea"
   }
 }
