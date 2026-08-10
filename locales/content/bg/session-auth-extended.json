@@ -736,11 +736,11 @@
     "source_hash": "e132c4d9"
   },
   "web.auth.connections.description": {
-    "text": "Управлявайте доставчиците на еднократно влизане, свързани с вашия акаунт.",
+    "text": "Управлявайте доставчиците на единично влизане (SSO), свързани с вашия акаунт.",
     "source_hash": "42c6d148"
   },
   "web.auth.connections.section_title": {
-    "text": "Еднократно влизане",
+    "text": "Единично влизане (SSO)",
     "source_hash": "3bc44ac2"
   },
   "web.auth.connections.section_subtitle": {
@@ -752,7 +752,7 @@
     "source_hash": "a002b3f3"
   },
   "web.auth.connections.connect_description": {
-    "text": "Свържете друг доставчик на еднократно влизане, който можете да използвате за влизане в този акаунт.",
+    "text": "Свържете друг доставчик на единично влизане (SSO), който можете да използвате за влизане в този акаунт.",
     "source_hash": "32895a5a"
   },
   "web.auth.connections.connect_action": {
@@ -788,11 +788,11 @@
     "source_hash": "5254048e"
   },
   "web.auth.connections.no_identities_description": {
-    "text": "Все още не сте свързали доставчици на еднократно влизане с този акаунт.",
+    "text": "Все още не сте свързали доставчици на единично влизане (SSO) с този акаунт.",
     "source_hash": "0f58d5d0"
   },
   "web.auth.connections.overview_status": {
-    "text": "Еднократно влизане",
+    "text": "Единично влизане (SSO)",
     "source_hash": "3bc44ac2"
   },
   "web.auth.connections.errors.last_credential": {

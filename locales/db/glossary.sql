@@ -1,6 +1,6 @@
 -- Exported from glossary table
--- 634 rows
--- Generated: 2026-07-13T19:50:10.613222+00:00
+-- 635 rows
+-- Generated: 2026-08-10T03:41:24.348431+00:00
 
 DELETE FROM glossary;
 
@@ -638,3 +638,4 @@ INSERT INTO glossary (id, locale, term, translation, context, alternatives, note
 INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (632, 'nl', 'broadcast banner', 'uitzendbanner', NULL, NULL, 'recovered from DB — admin console', '2026-07-13 16:36:08', '2026-07-13 16:36:08');
 INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (633, 'nl', 'ciphertext', 'cijfertekst', NULL, NULL, 'recovered from DB — admin console', '2026-07-13 16:36:09', '2026-07-13 16:36:09');
 INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (634, 'nl', 'sender reputation', 'afzenderreputatie', NULL, NULL, 'recovered from DB — admin console', '2026-07-13 16:36:09', '2026-07-13 16:36:09');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (635, 'bg', 'Single Sign-On (SSO)', 'Единично влизане (SSO)', 'auth', 'SSO', 'Do NOT use еднократно (= one-time/single-occurrence): it is a false friend here and collides with the one-time secret branding. Единично = single/sole. Bare SSO is acceptable in badges and short labels; the rest of the bg locale already uses SSO.', '2026-08-10 03:39:45', '2026-08-10 03:39:45');

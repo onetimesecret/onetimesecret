@@ -532,7 +532,7 @@
     "source_hash": "bc4bff2d"
   },
   "web.admin.organizations.entitlements.matrix.legend.orphaned": {
-    "text": "Осиротяло — материализирано, но не очаквано, обикновено оставено след отмяна, която никога не е била ремаериализирана. Съгласуването го премахва.",
+    "text": "Осиротяло — материализирано, но не очаквано, обикновено оставено след отмяна, която никога не е била рематериализирана. Съгласуването го премахва.",
     "source_hash": "3a27a9af"
   },
   "web.admin.organizations.entitlements.matrix.legend.missing": {
