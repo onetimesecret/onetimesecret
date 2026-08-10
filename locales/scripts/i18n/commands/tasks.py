@@ -32,7 +32,14 @@ from typing import Optional
 from ..config import CONTENT_DIR, DB_FILE, EN_DIR
 from ..console import render_table
 from ..db import get_connection
-from ..io import load_json_file, save_json_file, walk_keys
+from ..io import (
+    Entry,
+    classify_entry,
+    load_json_file,
+    read_entries,
+    save_json_file,
+    walk_keys,
+)
 from ..tokens import extract_tokens, strip_tokens
 
 VALID_STATUSES = ("pending", "in_progress", "completed", "skipped")
@@ -458,59 +465,30 @@ def get_source_hashes_from_file(file_path: Path) -> dict[str, str]:
     without a ``content_hash`` (bare, not-yet-hashed source strings) are omitted
     — they carry no watermark to snapshot or compare against.
     """
-    out: dict[str, str] = {}
-    for full_key, entry in load_json_file(file_path).items():
-        if any(part.startswith("_") for part in full_key.split(".")) or not isinstance(
-            entry, dict
-        ):
-            continue
-        if entry.get("skip"):
-            continue
-        content_hash = entry.get("content_hash")
-        if isinstance(content_hash, str) and content_hash:
-            out[full_key] = content_hash
-    return out
+    return {
+        key: entry.content_hash
+        for key, entry in read_entries(load_json_file(file_path)).items()
+        if not entry.skip and entry.content_hash
+    }
 
 
-def get_target_entries(locale: str, file_name: str) -> dict[str, dict]:
-    """Full key path -> entry dict for ``locale``'s copy of ``file_name``.
+def get_target_entries(locale: str, file_name: str) -> dict[str, Entry]:
+    """Full key path -> :class:`~i18n.io.Entry` for ``locale``'s ``file_name``.
 
-    Empty when the target file does not exist yet. Non-dict values are dropped
-    so callers can read ``text``/``skip``/``source_hash`` without re-checking.
+    Empty when the target file does not exist yet. No policy is applied here —
+    :func:`classify_key` decides what each entry's state means.
     """
     target = CONTENT_DIR / locale / file_name
     if not target.exists():
         return {}
-    return {
-        k: v
-        for k, v in load_json_file(target).items()
-        if isinstance(v, dict)
-    }
+    return read_entries(load_json_file(target))
 
 
-def classify_key(entry: Optional[dict], en_hash: Optional[str]) -> str:
-    """Classify one en key's state in a target locale.
-
-    ``entry`` is the target's entry for the key (None if absent); ``en_hash`` is
-    the key's current en ``content_hash`` (None if the source is unhashed).
-
-    Returns one of:
-      - ``"skipped"``  — target marked it skip (an intentional non-translation).
-      - ``"missing"``  — absent, or empty text without a skip flag.
-      - ``"stale"``    — translated, but its ``source_hash`` watermark no longer
-                         matches en (English moved after translation). Requires a
-                         present watermark AND a present en hash: an absent
-                         watermark can't prove drift, so it reads as ``current``.
-      - ``"current"``  — translated and the watermark still matches en.
-    """
-    if entry is not None and entry.get("skip"):
-        return "skipped"
-    if not (isinstance(entry, dict) and entry.get("text", "") != ""):
-        return "missing"
-    prev = entry.get("source_hash")
-    if en_hash and isinstance(prev, str) and prev and prev != en_hash:
-        return "stale"
-    return "current"
+# The one classifier. Kept under its historical name (and imported by name
+# elsewhere) but implemented once in :mod:`i18n.io`, next to the entry model it
+# reads — see the note there on why a second, divergent view of "what is a key"
+# is how #4080 happened.
+classify_key = classify_entry
 
 
 def generate_tasks(
