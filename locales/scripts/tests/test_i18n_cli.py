@@ -256,6 +256,106 @@ class ContentHashesTest(I18nCliTestCase):
         )
 
 
+class ContentRemoveKeyTest(I18nCliTestCase):
+    """Deleting whole keys, and deriving that set from the source locale."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        # A translated locale mirroring en, plus the residue of a source-side
+        # rename: a stale key, and a live sibling whose name contains it.
+        self.target = sorted((self.content / "en").glob("*.json"))[0]
+        en = json.loads(self.target.read_text("utf-8"))
+        en["web.TEST.status_enabled"] = {"text": "Enabled"}
+        self.target.write_text(
+            json.dumps(en, ensure_ascii=False, indent=2) + "\n", "utf-8"
+        )
+
+        self.de = self.content / "de"
+        self.de.mkdir(parents=True)
+        self.de_file = self.de / self.target.name
+        translated = dict(en)
+        translated["web.TEST.enabled"] = {"text": "Aktiviert"}
+        self.de_file.write_text(
+            json.dumps(translated, ensure_ascii=False, indent=2) + "\n", "utf-8"
+        )
+
+    def _de_keys(self) -> set[str]:
+        return set(json.loads(self.de_file.read_text("utf-8")))
+
+    def test_requires_a_key_selector(self) -> None:
+        proc = self.run_cli("content", "remove-key", str(self.de_file))
+        self.assertNotEqual(
+            proc.returncode, 0, "remove-key with no selector should fail"
+        )
+
+    def test_dry_run_is_the_default(self) -> None:
+        before = self.de_file.read_bytes()
+        self.assertOk(
+            self.run_cli(
+                "content",
+                "remove-key",
+                "--key",
+                "web.TEST.enabled",
+                str(self.de_file),
+            ),
+            "remove-key dry run",
+        )
+        self.assertEqual(
+            before, self.de_file.read_bytes(), "dry run wrote to the file"
+        )
+
+    def test_named_key_removal_is_exact(self) -> None:
+        self.assertOk(
+            self.run_cli(
+                "content",
+                "remove-key",
+                "--apply",
+                "--key",
+                "web.TEST.enabled",
+                str(self.de_file),
+            ),
+            "remove-key --apply",
+        )
+        keys = self._de_keys()
+        self.assertNotIn("web.TEST.enabled", keys)
+        self.assertIn(
+            "web.TEST.status_enabled",
+            keys,
+            "substring-matching key was collaterally deleted",
+        )
+
+    def test_orphans_derives_the_set_from_the_source_locale(self) -> None:
+        self.assertOk(
+            self.run_cli(
+                "content", "remove-key", "--orphans", "--apply", str(self.de_file)
+            ),
+            "remove-key --orphans",
+        )
+        self.assertEqual(
+            self._de_keys(),
+            set(json.loads(self.target.read_text("utf-8"))),
+            "--orphans did not converge the locale onto the source key set",
+        )
+
+    def test_orphans_skips_files_with_no_source_counterpart(self) -> None:
+        stray = self.de / "no-such-source-file.json"
+        stray.write_text(
+            json.dumps({"web.TEST.only_here": {"text": "x"}}, indent=2) + "\n",
+            "utf-8",
+        )
+        self.assertOk(
+            self.run_cli(
+                "content", "remove-key", "--orphans", "--apply", str(stray)
+            ),
+            "remove-key --orphans on a sourceless file",
+        )
+        self.assertEqual(
+            set(json.loads(stray.read_text("utf-8"))),
+            {"web.TEST.only_here"},
+            "a missing source file emptied the locale file",
+        )
+
+
 class DbRoundTripTest(I18nCliTestCase):
     def setUp(self) -> None:
         super().setUp()
