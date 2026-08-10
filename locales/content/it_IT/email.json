@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Hai ricevuto questo messaggio perché %{sender_email} ha usato %{product_name} per condividere un segreto con te. Se non te lo aspettavi, puoi ignorare questa email senza problemi.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Conferma il collegamento di %{provider} al tuo account %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Conferma il tuo accesso SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Qualcuno ha effettuato l'accesso con %{provider} usando l'email %{email_address}. Per completare il collegamento di %{provider} al tuo account %{product_name}, conferma qui sotto.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Conferma e collega %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Oppure copia e incolla questo link:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Questo link scade tra 15 minuti e può essere usato una sola volta.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Se non hai provato ad accedere con %{provider}, puoi ignorare tranquillamente questa email: nulla verrà collegato al tuo account.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Team di supporto",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. Questa email è stata inviata a %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

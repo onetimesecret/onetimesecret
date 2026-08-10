@@ -730,5 +730,204 @@
   "web.auth.sessions.session_plural": {
     "text": "сессии",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Связанные учётные записи",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Управляйте поставщиками единого входа (SSO), связанными с Вашим аккаунтом.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Единый вход (SSO)",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Поставщики идентификации, с помощью которых Вы можете входить в этот аккаунт",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Подключить поставщика",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Свяжите ещё одного поставщика единого входа (SSO), с помощью которого Вы сможете входить в этот аккаунт.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Подключить {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Издатель",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Идентификатор",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Удалить",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Удалить связанную учётную запись",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Вы уверены, что хотите удалить эту связанную учётную запись? Вы больше не сможете входить с её помощью.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Связанная учётная запись удалена",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Нет связанных учётных записей",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Вы ещё не связали ни одного поставщика единого входа (SSO) с этим аккаунтом.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Единый вход (SSO)",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Это Ваш единственный способ входа. Сначала подключите другого поставщика или задайте пароль в разделе «Настройки → Безопасность», чтобы не потерять доступ.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Это Ваш единственный способ входа. Сначала подключите другого поставщика, чтобы не потерять доступ.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Эта связанная учётная запись не найдена. Возможно, она уже удалена.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Срок действия Вашей сессии истёк. Пожалуйста, войдите снова.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Не удалось выполнить это действие. Пожалуйста, повторите попытку.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Свяжите способ входа",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Вы вошли через {provider}, что соответствует существующему аккаунту {email}. Введите пароль этого аккаунта, чтобы связать {provider} и продолжить.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Пароль",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Ваш существующий пароль",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Связать и продолжить",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Отмена",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Срок действия этого запроса на связывание истёк",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "В целях Вашей безопасности запрос на связывание этого способа входа больше не действителен. Войдите с существующим паролем, а затем подключите этого поставщика в разделе «Настройки безопасности → Связанные учётные записи».",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Перейти ко входу",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Этот пароль не подходит к данному аккаунту. Пожалуйста, повторите попытку.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Срок действия этого запроса на связывание истёк, или он уже был использован. Войдите с существующим паролем, а затем подключите этого поставщика в настройках аккаунта.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Не удалось связать этот способ входа. Возможно, Ваш аккаунт изменился или этот поставщик уже связан с другим аккаунтом. Войдите с существующим паролем, а затем управляйте подключениями в разделе «Настройки безопасности → Связанные учётные записи».",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Слишком много попыток ввода пароля. Пожалуйста, подождите несколько минут и повторите попытку.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Не удалось обработать этот запрос на связывание. Пожалуйста, войдите через своего поставщика SSO ещё раз.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Не удалось связать Ваш аккаунт. Пожалуйста, повторите попытку.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Подтвердите подключение аккаунта",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Вы вошли через {provider}, что соответствует Вашему аккаунту {email}. Подтвердите, чтобы подключить {provider} к этому аккаунту и завершить вход.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Подтвердить и подключить",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Отмена",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Этот запрос на связывание невозможно завершить",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "В целях Вашей безопасности этот запрос на подключение способа входа больше не действителен. Войдите через своего поставщика ещё раз, и мы отправим Вам новую ссылку по электронной почте.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Вернуться ко входу",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Срок действия этого запроса на связывание истёк, или он уже был использован. Войдите через своего поставщика ещё раз, и мы отправим Вам новую ссылку по электронной почте.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Не удалось подключить этот способ входа. Возможно, Ваш аккаунт изменился или этот поставщик уже связан с другим аккаунтом. Войдите через своего поставщика ещё раз, чтобы продолжить.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Учётные данные Вашего аккаунта изменились после отправки этой ссылки, поэтому она больше не действительна. Войдите через своего поставщика ещё раз, и мы отправим Вам новую ссылку по электронной почте.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "На нашей стороне произошла ошибка, и мы не смогли проверить эту ссылку. Войдите через своего поставщика ещё раз, и мы отправим Вам новую по электронной почте.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Слишком много попыток с Вашего устройства. Пожалуйста, подождите несколько минут, а затем снова откройте ссылку из письма или войдите через своего поставщика, чтобы получить новую.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Не удалось подтвердить это подключение. Пожалуйста, войдите через своего поставщика ещё раз.",
+    "source_hash": "076fa25a"
   }
 }

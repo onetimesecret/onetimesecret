@@ -838,5 +838,37 @@
   "web.colonel.nav.groups.communications": {
     "text": "Comunicacions",
     "source_hash": "919a9253"
+  },
+  "web.colonel.organizations.sameAsContact": {
+    "text": "Igual que el contacte",
+    "source_hash": "ed18ff43"
+  },
+  "web.colonel.organizations.refresh": {
+    "text": "Actualitza",
+    "source_hash": "0e916101"
+  },
+  "web.colonel.organizations.updatedAgo": {
+    "text": "Actualitzat fa {ago}",
+    "source_hash": "cda30b9c"
+  },
+  "web.colonel.organizations.columns.name": {
+    "text": "Nom",
+    "source_hash": "dcd1d522"
+  },
+  "web.colonel.organizations.columns.contactEmail": {
+    "text": "Correu electrònic de contacte",
+    "source_hash": "6d7fce11"
+  },
+  "web.colonel.organizations.columns.billingEmail": {
+    "text": "Correu electrònic de facturació",
+    "source_hash": "8805b928"
+  },
+  "web.colonel.organizations.columns.planSubscription": {
+    "text": "Pla i subscripció",
+    "source_hash": "b396caac"
+  },
+  "web.colonel.organizations.filters.searchPlaceholder": {
+    "text": "Cerca per identificador, nom o correu electrònic",
+    "source_hash": "6fe16473"
   }
 }

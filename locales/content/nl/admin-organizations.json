@@ -12,7 +12,7 @@
     "source_hash": "00c50f7a"
   },
   "web.admin.organizations.detail.notFoundDescription": {
-    "text": "Deze organisatie is mogelijk verwijderd, of de id is onjuist.",
+    "text": "Deze organisatie is mogelijk verwijderd of de id is onjuist.",
     "source_hash": "e5459ef5"
   },
   "web.admin.organizations.detail.loadError": {
@@ -48,7 +48,7 @@
     "source_hash": "5fa7aac5"
   },
   "web.admin.organizations.detail.domains.resolving": {
-    "text": "Bezig met oplossen",
+    "text": "Verifiëren",
     "source_hash": "3287a034"
   },
   "web.admin.organizations.detail.domains.empty": {
@@ -56,7 +56,7 @@
     "source_hash": "1b840c7e"
   },
   "web.admin.organizations.detail.entitlements.description": {
-    "text": "Effectieve entitlements worden opgelost tot (plan ∪ toekenningen) − intrekkingen. Bekijk de uitsplitsing voordat je een override maakt.",
+    "text": "Effectieve rechten worden opgelost als (plan ∪ toekenningen) − intrekkingen. Bekijk de uitsplitsing voordat je een overschrijving maakt.",
     "source_hash": "23080475"
   },
   "web.admin.organizations.detail.entitlements.inSync": {
@@ -72,7 +72,7 @@
     "source_hash": "ffe63800"
   },
   "web.admin.organizations.detail.entitlements.driftWarning": {
-    "text": "Gematerialiseerde entitlements komen niet overeen met de verwachte set. Stem af om opnieuw te materialiseren.",
+    "text": "Gematerialiseerde rechten komen niet overeen met de verwachte set. Verzoen om opnieuw te materialiseren.",
     "source_hash": "4859983a"
   },
   "web.admin.organizations.detail.entitlements.driftExtra": {
@@ -104,7 +104,7 @@
     "source_hash": "920e413c"
   },
   "web.admin.organizations.detail.members.joined": {
-    "text": "Lid geworden",
+    "text": "Toegetreden",
     "source_hash": "69318b0c"
   },
   "web.admin.organizations.detail.members.owner": {
@@ -116,23 +116,23 @@
     "source_hash": "b99c59dc"
   },
   "web.admin.organizations.detail.reconcile.button": {
-    "text": "Afstemmen",
+    "text": "Verzoenen",
     "source_hash": "b59be565"
   },
   "web.admin.organizations.detail.reconcile.confirmTitle": {
-    "text": "Organisatiefacturatie afstemmen?",
+    "text": "Organisatiefacturering verzoenen?",
     "source_hash": "fc1a2762"
   },
   "web.admin.organizations.detail.reconcile.confirmDescription": {
-    "text": "Dit haalt Stripe opnieuw op en herschrijft de facturatiestatus en entitlements voor {org}. Typ de organisatie-id opnieuw om te bevestigen.",
+    "text": "Dit haalt Stripe opnieuw op en herschrijft de factureringsstatus en rechten voor {org}. Typ de organisatie-id opnieuw om te bevestigen.",
     "source_hash": "b4ef0850"
   },
   "web.admin.organizations.detail.reconcile.success": {
-    "text": "Organisatie afgestemd.",
+    "text": "Organisatie verzoend.",
     "source_hash": "caf87844"
   },
   "web.admin.organizations.detail.reconcile.resultTitle": {
-    "text": "Afstemresultaat",
+    "text": "Verzoeningsresultaat",
     "source_hash": "11f4c6b8"
   },
   "web.admin.organizations.detail.reconcile.before": {
@@ -144,7 +144,7 @@
     "source_hash": "7b68fe55"
   },
   "web.admin.organizations.detail.reconcile.materializedCount": {
-    "text": "Aantal entitlements",
+    "text": "Aantal rechten",
     "source_hash": "59cede5c"
   },
   "web.admin.organizations.detail.reconcile.mode.stripe_sync": {
@@ -152,11 +152,11 @@
     "source_hash": "02f9546c"
   },
   "web.admin.organizations.detail.reconcile.mode.entitlements_only": {
-    "text": "Alleen entitlements",
+    "text": "Alleen rechten",
     "source_hash": "8cf49a5d"
   },
   "web.admin.organizations.detail.sections.billing": {
-    "text": "Facturatie",
+    "text": "Facturering",
     "source_hash": "3ac8bbca"
   },
   "web.admin.organizations.detail.sections.members": {
@@ -168,19 +168,19 @@
     "source_hash": "ced67718"
   },
   "web.admin.organizations.detail.sections.investigate": {
-    "text": "Onderzoeken & afstemmen",
+    "text": "Onderzoeken en verzoenen",
     "source_hash": "b05aa349"
   },
   "web.admin.organizations.entitlements.section": {
-    "text": "Entitlement-overrides",
+    "text": "Rechtenoverschrijvingen",
     "source_hash": "48812068"
   },
   "web.admin.organizations.entitlements.description": {
-    "text": "Ken entitlements toe of trek ze in onafhankelijk van het plan. Effectief = planentitlements + toekenningen - intrekkingen.",
+    "text": "Ken rechten toe of trek ze in onafhankelijk van het plan. Effectief = planrechten + toekenningen - intrekkingen.",
     "source_hash": "4c38425b"
   },
   "web.admin.organizations.entitlements.inputLabel": {
-    "text": "Entitlement",
+    "text": "Recht",
     "source_hash": "0d8f0b2d"
   },
   "web.admin.organizations.entitlements.placeholder": {
@@ -196,11 +196,11 @@
     "source_hash": "87e6d00b"
   },
   "web.admin.organizations.entitlements.clear": {
-    "text": "Alle overrides wissen",
+    "text": "Alle overschrijvingen wissen",
     "source_hash": "f0e485c3"
   },
   "web.admin.organizations.entitlements.effective": {
-    "text": "Effectieve entitlements",
+    "text": "Effectieve rechten",
     "source_hash": "b840f8c8"
   },
   "web.admin.organizations.entitlements.grants": {
@@ -212,43 +212,43 @@
     "source_hash": "f0e69b17"
   },
   "web.admin.organizations.entitlements.noOverrides": {
-    "text": "Voer een actie uit om de huidige overridestatus van deze organisatie te bekijken.",
+    "text": "Voer een actie uit om de huidige overschrijvingsstatus van deze organisatie te bekijken.",
     "source_hash": "98d2e30d"
   },
   "web.admin.organizations.entitlements.confirm.grantTitle": {
-    "text": "Entitlement toekennen?",
+    "text": "Recht toekennen?",
     "source_hash": "a4b2c57b"
   },
   "web.admin.organizations.entitlements.confirm.grantDescription": {
-    "text": "Ken “{entitlement}” toe aan {org}. Dit wijzigt de facturatie-entitlements van de organisatie.",
+    "text": "Ken \"{entitlement}\" toe aan {org}. Dit wijzigt de factureringsrechten van de organisatie.",
     "source_hash": "542ce26a"
   },
   "web.admin.organizations.entitlements.confirm.revokeTitle": {
-    "text": "Entitlement intrekken?",
+    "text": "Recht intrekken?",
     "source_hash": "c93d520a"
   },
   "web.admin.organizations.entitlements.confirm.revokeDescription": {
-    "text": "Trek “{entitlement}” in bij {org}. Dit wijzigt de facturatie-entitlements van de organisatie.",
+    "text": "Trek \"{entitlement}\" in van {org}. Dit wijzigt de factureringsrechten van de organisatie.",
     "source_hash": "a5d2a8a6"
   },
   "web.admin.organizations.entitlements.confirm.clearTitle": {
-    "text": "Alle entitlement-overrides wissen?",
+    "text": "Alle rechtenoverschrijvingen wissen?",
     "source_hash": "e36eb218"
   },
   "web.admin.organizations.entitlements.confirm.clearDescription": {
-    "text": "Verwijder elke toekennings- en intrekkingsoverride voor {org} en zet deze terug naar de planentitlements.",
+    "text": "Verwijder elke toekennings- en intrekkingsoverschrijving voor {org}, en reset naar de planrechten.",
     "source_hash": "96bad079"
   },
   "web.admin.organizations.entitlements.success.granted": {
-    "text": "Entitlement “{entitlement}” toegekend.",
+    "text": "Recht \"{entitlement}\" toegekend.",
     "source_hash": "cf52fb0e"
   },
   "web.admin.organizations.entitlements.success.revoked": {
-    "text": "Entitlement “{entitlement}” ingetrokken.",
+    "text": "Recht \"{entitlement}\" ingetrokken.",
     "source_hash": "279d425d"
   },
   "web.admin.organizations.entitlements.success.cleared": {
-    "text": "Alle entitlement-overrides gewist.",
+    "text": "Alle rechtenoverschrijvingen gewist.",
     "source_hash": "a482743b"
   },
   "web.admin.organizations.fields.contactEmail": {
@@ -268,11 +268,11 @@
     "source_hash": "f0723c4e"
   },
   "web.admin.organizations.fields.periodEnd": {
-    "text": "Einde periode",
+    "text": "Periodeeinde",
     "source_hash": "eeae9fdd"
   },
   "web.admin.organizations.fields.billingEmail": {
-    "text": "Facturatie-e-mail",
+    "text": "Facturerings-e-mail",
     "source_hash": "8805b928"
   },
   "web.admin.organizations.fields.stripeCustomer": {
@@ -296,7 +296,7 @@
     "source_hash": "3a5ecca1"
   },
   "web.admin.organizations.investigate.description": {
-    "text": "Vergelijk de lokale facturatiestatus met het live Stripe-abonnement.",
+    "text": "Vergelijk de lokale factureringsstatus met het live Stripe-abonnement.",
     "source_hash": "d7bbe9ed"
   },
   "web.admin.organizations.investigate.rawPayload": {
@@ -304,11 +304,339 @@
     "source_hash": "29ca7df2"
   },
   "web.admin.organizations.investigate.parseError": {
-    "text": "De onderzoeksrespons kwam niet overeen met het verwachte formaat.",
+    "text": "Het onderzoeksantwoord kwam niet overeen met het verwachte formaat.",
     "source_hash": "db59cab1"
   },
   "web.admin.organizations.list.loadError": {
     "text": "Kon organisaties niet laden.",
     "source_hash": "130d5e70"
+  },
+  "web.admin.organizations.addMember.button": {
+    "text": "Bestaand account toevoegen",
+    "source_hash": "45a3b757"
+  },
+  "web.admin.organizations.addMember.title": {
+    "text": "Een bestaand account toevoegen",
+    "source_hash": "2f676a94"
+  },
+  "web.admin.organizations.addMember.description": {
+    "text": "Voeg iemand die al een account heeft toe aan {org}. Gebruik dit wanneer iemand zelf is aangemeld en niet kan worden uitgenodigd omdat het account al bestaat.",
+    "source_hash": "bb41faa6"
+  },
+  "web.admin.organizations.addMember.searchLabel": {
+    "text": "E-mailadres of account-id",
+    "source_hash": "82b3040b"
+  },
+  "web.admin.organizations.addMember.searchPlaceholder": {
+    "text": "Zoeken op e-mailadres",
+    "source_hash": "b75cc66c"
+  },
+  "web.admin.organizations.addMember.searchHint": {
+    "text": "Komt overeen met een deel van een e-mailadres of een exact account-id.",
+    "source_hash": "84547a60"
+  },
+  "web.admin.organizations.addMember.searchError": {
+    "text": "Kon accounts niet doorzoeken. Controleer de verbinding en probeer opnieuw.",
+    "source_hash": "4b6caa41"
+  },
+  "web.admin.organizations.addMember.searchParseError": {
+    "text": "Het zoeken naar accounts gaf een onverwacht antwoord. Resultaten kunnen onvolledig zijn.",
+    "source_hash": "0c814231"
+  },
+  "web.admin.organizations.addMember.idle": {
+    "text": "Voer een e-mailadres in om het account te vinden.",
+    "source_hash": "f6340d35"
+  },
+  "web.admin.organizations.addMember.noResults": {
+    "text": "Geen account komt overeen met \"{term}\".",
+    "source_hash": "199b662a"
+  },
+  "web.admin.organizations.addMember.noResultsHint": {
+    "text": "Alleen bestaande accounts kunnen hier worden toegevoegd. Als de persoon zich nog nooit heeft aangemeld, nodig deze dan uit.",
+    "source_hash": "ee90aeeb"
+  },
+  "web.admin.organizations.addMember.select": {
+    "text": "Selecteren",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.organizations.addMember.selectedEyebrow": {
+    "text": "Geselecteerd account",
+    "source_hash": "8b63d947"
+  },
+  "web.admin.organizations.addMember.change": {
+    "text": "Kies een ander account",
+    "source_hash": "d4fe39ab"
+  },
+  "web.admin.organizations.addMember.createdOn": {
+    "text": "Aangemeld op {date}",
+    "source_hash": "cfc0e19f"
+  },
+  "web.admin.organizations.addMember.organizationsUnavailable": {
+    "text": "Kon de huidige organisaties van dit account niet laden.",
+    "source_hash": "a35b6bfc"
+  },
+  "web.admin.organizations.addMember.defaultOrg": {
+    "text": "standaard",
+    "source_hash": "37a8eec1"
+  },
+  "web.admin.organizations.addMember.roleLabel": {
+    "text": "Rol in deze organisatie",
+    "source_hash": "817475fa"
+  },
+  "web.admin.organizations.addMember.submit": {
+    "text": "Toevoegen aan organisatie",
+    "source_hash": "0e0cb636"
+  },
+  "web.admin.organizations.addMember.success": {
+    "text": "{account} toegevoegd als {role}.",
+    "source_hash": "533be0dc"
+  },
+  "web.admin.organizations.addMember.badges.verified": {
+    "text": "Geverifieerd",
+    "source_hash": "4f783840"
+  },
+  "web.admin.organizations.addMember.badges.unverified": {
+    "text": "Niet geverifieerd",
+    "source_hash": "15133907"
+  },
+  "web.admin.organizations.addMember.badges.suspended": {
+    "text": "Opgeschort",
+    "source_hash": "e392a389"
+  },
+  "web.admin.organizations.addMember.badges.alreadyMember": {
+    "text": "Al een lid",
+    "source_hash": "1739ed7c"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMember": {
+    "text": "Dit account is al lid van deze organisatie met de rol {role}. Toevoegen wijzigt geen bestaande rol — gebruik daarvoor de rol-wijzigen-actie.",
+    "source_hash": "cb6a4774"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
+    "text": "Dit account is al lid van deze organisatie. Toevoegen wijzigt geen bestaande rol.",
+    "source_hash": "035641ec"
+  },
+  "web.admin.organizations.addMember.errors.notFound": {
+    "text": "Dat account of die organisatie bestaat niet meer. Zoek opnieuw om het account te bevestigen.",
+    "source_hash": "bd88db18"
+  },
+  "web.admin.organizations.addMember.errors.invalidRole": {
+    "text": "Die rol werd afgewezen. Kies een van de vermelde rollen en probeer opnieuw.",
+    "source_hash": "eb696a8f"
+  },
+  "web.admin.organizations.addMember.errors.noSelection": {
+    "text": "Geen account geselecteerd.",
+    "source_hash": "dd15bb5b"
+  },
+  "web.admin.organizations.addMember.fields.created": {
+    "text": "Aangemeld",
+    "source_hash": "486b3fe0"
+  },
+  "web.admin.organizations.addMember.fields.verified": {
+    "text": "Verificatie",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.organizations.addMember.fields.lastLogin": {
+    "text": "Laatste inloggen",
+    "source_hash": "0b70af7a"
+  },
+  "web.admin.organizations.addMember.fields.organizations": {
+    "text": "Huidige organisaties",
+    "source_hash": "cbb5b92f"
+  },
+  "web.admin.organizations.addMember.roleHints.member": {
+    "text": "Dagelijkse toegang tot de berichten en domeinen van de organisatie.",
+    "source_hash": "d0c7439e"
+  },
+  "web.admin.organizations.addMember.roleHints.admin": {
+    "text": "Kan leden, domeinen en organisatie-instellingen beheren.",
+    "source_hash": "beaa50d7"
+  },
+  "web.admin.organizations.addMember.roleHints.owner": {
+    "text": "Volledige controle, inclusief facturering. Ken dit alleen toe op verzoek.",
+    "source_hash": "614ace63"
+  },
+  "web.admin.organizations.addMember.roles.member": {
+    "text": "Lid",
+    "source_hash": "7c968fb7"
+  },
+  "web.admin.organizations.addMember.roles.admin": {
+    "text": "Beheerder",
+    "source_hash": "c1c224b0"
+  },
+  "web.admin.organizations.addMember.roles.owner": {
+    "text": "Eigenaar",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.detail.members.openCustomer": {
+    "text": "Klantrecord openen",
+    "source_hash": "c057ca13"
+  },
+  "web.admin.organizations.detail.reconcile.memberships": {
+    "text": "Lidmaatschappen opnieuw gematerialiseerd:",
+    "source_hash": "fe7db10c"
+  },
+  "web.admin.organizations.detail.reconcile.membershipsFailed": {
+    "text": "mislukt, verouderde rechten blijven:",
+    "source_hash": "cc4dae37"
+  },
+  "web.admin.organizations.entitlements.catalogWarning": {
+    "text": "\"{entitlement}\" staat niet in de factureringscatalogus — controleer op een typfout. Doorgaan: het toekennen van een recht dat in een latere catalogus komt, wordt ondersteund en niet geblokkeerd.",
+    "source_hash": "cbde548a"
+  },
+  "web.admin.organizations.entitlements.matrix.caption": {
+    "text": "Rechtenresolutiematrix: plan, overschrijvingstoekenningen en -intrekkingen, de opgeloste set en wat gematerialiseerd is.",
+    "source_hash": "9eac8999"
+  },
+  "web.admin.organizations.entitlements.matrix.yes": {
+    "text": "Ja",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.matrix.no": {
+    "text": "Nee",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.matrix.empty": {
+    "text": "Deze organisatie heeft geen rechten van het plan en geen overschrijvingen.",
+    "source_hash": "f6cf2169"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.entitlement": {
+    "text": "Recht",
+    "source_hash": "0d8f0b2d"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.inPlan": {
+    "text": "In plan",
+    "source_hash": "e2222361"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.granted": {
+    "text": "Toegekend",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.revoked": {
+    "text": "Ingetrokken",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.expected": {
+    "text": "Verwacht",
+    "source_hash": "ca99b7f1"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.materialized": {
+    "text": "Gematerialiseerd",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.state": {
+    "text": "Status",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.formula": {
+    "text": "Resolutie: verwacht = (plan ∪ toekenningen) − intrekkingen. Gematerialiseerd is wat daadwerkelijk is opgeslagen op de organisatie.",
+    "source_hash": "bc4bff2d"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.orphaned": {
+    "text": "Verweesd — gematerialiseerd maar niet verwacht, meestal achtergelaten door een intrekking die nooit opnieuw is gematerialiseerd. Verzoenen verwijdert het.",
+    "source_hash": "3a27a9af"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.missing": {
+    "text": "Ontbrekend — verwacht maar niet gematerialiseerd. Dit is de toestemming die leden nu daadwerkelijk missen.",
+    "source_hash": "485e44ad"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.revoked": {
+    "text": "Doorgestreepte rijen zijn ingetrokken door een beheerdersoverschrijving, die ze verwijdert uit de verwachte set.",
+    "source_hash": "89a2e9b6"
+  },
+  "web.admin.organizations.entitlements.matrix.state.plan": {
+    "text": "Van plan",
+    "source_hash": "1d346b26"
+  },
+  "web.admin.organizations.entitlements.matrix.state.granted": {
+    "text": "Toegekend",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.state.revoked": {
+    "text": "Ingetrokken",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.state.orphaned": {
+    "text": "Verweesd",
+    "source_hash": "8d827807"
+  },
+  "web.admin.organizations.entitlements.matrix.state.missing": {
+    "text": "Ontbrekend",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.organizations.entitlements.picker.selectPlaceholder": {
+    "text": "Selecteer een recht…",
+    "source_hash": "53af3be8"
+  },
+  "web.admin.organizations.entitlements.picker.other": {
+    "text": "Anders — niet in de catalogus…",
+    "source_hash": "f08bc3a3"
+  },
+  "web.admin.organizations.entitlements.picker.customLabel": {
+    "text": "Rechtnaam (niet in de catalogus)",
+    "source_hash": "52783229"
+  },
+  "web.admin.organizations.entitlements.picker.backToCatalog": {
+    "text": "Terug naar de catalogus",
+    "source_hash": "9b727f40"
+  },
+  "web.admin.organizations.entitlements.picker.uncategorized": {
+    "text": "Niet gecategoriseerd",
+    "source_hash": "8d40d123"
+  },
+  "web.admin.organizations.entitlements.picker.catalogUnavailable": {
+    "text": "De factureringscatalogus kon niet worden gelezen, dus rechtnamen worden hier niet gecontroleerd.",
+    "source_hash": "724869ec"
+  },
+  "web.admin.organizations.entitlements.picker.tags.inPlan": {
+    "text": "in plan",
+    "source_hash": "5f2251bb"
+  },
+  "web.admin.organizations.entitlements.picker.tags.granted": {
+    "text": "toegekend",
+    "source_hash": "dd515d19"
+  },
+  "web.admin.organizations.entitlements.picker.tags.revoked": {
+    "text": "ingetrokken",
+    "source_hash": "4bb47f18"
+  },
+  "web.admin.organizations.entitlements.summary.sync": {
+    "text": "Synchroniseren",
+    "source_hash": "8d261a37"
+  },
+  "web.admin.organizations.entitlements.summary.materialized": {
+    "text": "Gematerialiseerd",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.summary.materializedAt": {
+    "text": "Laatst gematerialiseerd",
+    "source_hash": "9325dce9"
+  },
+  "web.admin.organizations.entitlements.summary.planDefinition": {
+    "text": "Plandefinitie",
+    "source_hash": "6b531454"
+  },
+  "web.admin.organizations.entitlements.summary.yes": {
+    "text": "Ja",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.summary.no": {
+    "text": "Nee",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.summary.never": {
+    "text": "Nooit",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.organizations.entitlements.summary.planStale": {
+    "text": "Gewijzigd sinds materialisatie",
+    "source_hash": "e682d8a4"
+  },
+  "web.admin.organizations.entitlements.summary.planCurrent": {
+    "text": "Actueel",
+    "source_hash": "e0d1b682"
+  },
+  "web.admin.organizations.entitlements.summary.planUnknown": {
+    "text": "Onbekend — kon niet vergelijken",
+    "source_hash": "b607e540"
   }
 }

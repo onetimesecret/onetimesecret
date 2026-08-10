@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Use seu celular para escanear o código QR",
-    "source_hash": "99ecf59f"
+    "text": "ex. Use seu celular para escanear o QR code",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Entre em contato com onboarding{'@'}example.com para qualquer dúvida",
-    "source_hash": "bee120a7"
+    "text": "ex. Entre em contato com onboarding{'@'}example.com em caso de dúvidas",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Estas instruções serão mostradas aos destinatários antes de revelarem o conteúdo confidencial",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Esta é uma visualização ao vivo — suas alterações não ficarão visíveis para os visitantes até você salvar.",
-    "source_hash": "cb4b82de"
+    "text": "Esta é uma prévia ao vivo — suas alterações não ficarão visíveis para os visitantes até você clicar em Atualizar.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Indique seu site e leremos suas cores e fontes, depois preencheremos a diferença em um clique.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Depois da revelação",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Atualizar favicon a partir do domínio",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Buscar novamente o favicon do seu domínio. O novo ícone aparece em instantes.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Atualizando o favicon — o novo ícone aparecerá em instantes.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Você enviou um favicon personalizado, então um ícone buscado automaticamente não o substituirá.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Enviar favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Substituir",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Remover favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG ou SVG. O envio substitui o ícone buscado automaticamente.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Favicon do domínio",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Favicon do domínio",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG ou SVG. Até 256KB. Substitui o ícone buscado automaticamente.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Salvar favicon",
+    "source_hash": "c8a1566c"
   }
 }

@@ -4,7 +4,7 @@
     "source_hash": "6fa3cbf4"
   },
   "web.admin.sessions.description": {
-    "text": "Inspecter, rechercher et révoquer les sessions actives pour la réponse aux incidents.",
+    "text": "Inspectez, recherchez et révoquez les sessions actives lors de la réponse à incident.",
     "source_hash": "784a3a44"
   },
   "web.admin.sessions.anonymous": {
@@ -16,7 +16,7 @@
     "source_hash": "cb9ac5c5"
   },
   "web.admin.sessions.columns.authenticated": {
-    "text": "Auth",
+    "text": "Authentification",
     "source_hash": "8eb3ea9b"
   },
   "web.admin.sessions.columns.email": {
@@ -32,7 +32,7 @@
     "source_hash": "3c3de0c9"
   },
   "web.admin.sessions.columns.created": {
-    "text": "Authentifié le",
+    "text": "Authentifiée le",
     "source_hash": "8d6c9b01"
   },
   "web.admin.sessions.columns.actions": {
@@ -60,11 +60,11 @@
     "source_hash": "b764cdc0"
   },
   "web.admin.sessions.detail.noExpiry": {
-    "text": "Sans expiration",
+    "text": "Aucune expiration",
     "source_hash": "fe06351d"
   },
   "web.admin.sessions.detail.expired": {
-    "text": "Expiré",
+    "text": "Expirée",
     "source_hash": "424a2551"
   },
   "web.admin.sessions.detail.ttlSeconds": {
@@ -80,7 +80,7 @@
     "source_hash": "0969eab8"
   },
   "web.admin.sessions.drawer.notFoundDescription": {
-    "text": "Cette session n'existe plus dans Redis. Elle a peut-être expiré ou déjà été révoquée.",
+    "text": "Cette session n'existe plus dans Redis. Elle a peut-être expiré ou été déjà révoquée.",
     "source_hash": "11e3ef05"
   },
   "web.admin.sessions.drawer.loadError": {
@@ -104,7 +104,7 @@
     "source_hash": "76f6014f"
   },
   "web.admin.sessions.fields.authenticated": {
-    "text": "Authentifié",
+    "text": "Authentifiée",
     "source_hash": "6ab694cf"
   },
   "web.admin.sessions.fields.email": {
@@ -116,7 +116,7 @@
     "source_hash": "69da56ba"
   },
   "web.admin.sessions.fields.accountId": {
-    "text": "ID de compte",
+    "text": "ID du compte",
     "source_hash": "919bb4cb"
   },
   "web.admin.sessions.fields.role": {
@@ -132,11 +132,11 @@
     "source_hash": "3c3de0c9"
   },
   "web.admin.sessions.fields.authenticatedAt": {
-    "text": "Authentifié le",
+    "text": "Authentifiée le",
     "source_hash": "8d6c9b01"
   },
   "web.admin.sessions.fields.authenticatedBy": {
-    "text": "Authentifié par",
+    "text": "Authentifiée par",
     "source_hash": "3ebbabfe"
   },
   "web.admin.sessions.fields.activeSessionId": {
@@ -148,7 +148,7 @@
     "source_hash": "62e01345"
   },
   "web.admin.sessions.fields.orgContext": {
-    "text": "Contexte d'organisation",
+    "text": "Contexte de l'organisation",
     "source_hash": "a596d9f2"
   },
   "web.admin.sessions.list.loadError": {
@@ -184,7 +184,7 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Analyse limitée aux {scanned} premières clés — les sessions authentifiées au-delà de cette fenêtre ne sont pas répertoriées. Inspectez une session spécifique par ID pour y accéder.",
+    "text": "Analyse limitée aux {scanned} premières clés — les sessions authentifiées au-delà de cette fenêtre ne sont pas listées. Inspectez une session précise par son ID pour l'atteindre.",
     "source_hash": "fa418b4e"
   },
   "web.admin.sessions.search.placeholder": {
@@ -196,11 +196,11 @@
     "source_hash": "6959b415"
   },
   "web.admin.sessions.sections.raw": {
-    "text": "Données de session brutes",
+    "text": "Données brutes de la session",
     "source_hash": "c9f11eb4"
   },
   "web.admin.sessions.status.authenticated": {
-    "text": "Authentifié",
+    "text": "Authentifiée",
     "source_hash": "6ab694cf"
   },
   "web.admin.sessions.status.anonymous": {

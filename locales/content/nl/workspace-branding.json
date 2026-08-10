@@ -24,15 +24,15 @@
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Voorbeeld van de geheime linkpagina voor ontvangers",
+    "text": "Voorbeeld van de weergave voor ontvangers bij het openen van je beveiligde link",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Aanpassen en voorbeeld",
+    "text": "Aanpassen & voorvertonen",
     "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Overschakelen naar Safari-browserweergave",
+    "text": "Schakel naar Safari-browserweergave",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -48,7 +48,7 @@
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Overschakelen naar Edge-browserweergave",
+    "text": "Schakel naar Edge-browserweergave",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -56,19 +56,19 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Gebruik je telefoon om de QR-code te scannen",
-    "source_hash": "99ecf59f"
+    "text": "bijv. Gebruik je telefoon om de QR-code te scannen",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Neem contact op met onboarding{'@'}voorbeeld.com met eventuele vragen",
-    "source_hash": "bee120a7"
+    "text": "bijv. Neem contact op met onboarding{'@'}example.com met vragen",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Deze instructies worden aan ontvangers getoond voordat ze de geheime inhoud bekijken",
+    "text": "Deze instructies worden aan ontvangers getoond voordat ze de inhoud van het bericht onthullen",
     "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Deze instructies worden aan ontvangers getoond nadat ze het geheim hebben onthuld",
+    "text": "Deze instructies worden aan ontvangers getoond nadat ze het bericht hebben onthuld",
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
@@ -88,7 +88,7 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Klik om je logo te beheren. Aanbevolen formaat: 128x128 pixels. Maximale bestandsgrootte: 1 MB. Ondersteunde formaten: PNG, JPG, SVG",
+    "text": "Klik om je logo te beheren. Aanbevolen grootte: 128x128 pixels. Maximale bestandsgrootte: 1MB. Ondersteunde formaten: PNG, JPG, SVG",
     "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
@@ -100,27 +100,27 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Bekijk hoe ontvangers je berichten zullen zien door de knop \"Bericht bekijken\" te testen",
+    "text": "Bekijk een voorbeeld van hoe ontvangers je berichten zien door de knop \"Bericht bekijken\" te testen",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Oogpictogram",
+    "text": "Oogicoon",
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Klik op de voorbeeldafbeelding hieronder om je logo bij te werken (minimaal 128x128 pixels aanbevolen, 1MB max)",
+    "text": "Klik op de voorbeeldafbeelding hieronder om je logo bij te werken (minimaal 128x128 pixels aanbevolen, max 1MB)",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Afbeeldingspictogram",
+    "text": "Afbeeldingsicoon",
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Gebruik de besturingselementen hierboven om merkkleur, stijlen en instructies voor ontvangers aan te passen",
+    "text": "Gebruik de bediening hierboven om merkkleur, stijlen en ontvangstinstructies aan te passen",
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Aanpassingspictogram",
+    "text": "Aanpassingsicoon",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
@@ -132,15 +132,15 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zullen zien. Je kunt: - Kleuren en lettertypen aanpassen met de bedieningselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, max 1MB) - Het voorbeeld testen met de \"Bericht bekijken\"-knop",
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zien. Je kunt: - Kleuren en lettertypen aanpassen met de bediening hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, max 1MB) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zullen zien. Je kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zien. Je kunt: - Kleuren en lettertypen aanpassen met de bediening hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, max 1MB) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japans kanji '秘' (himitsu) wat 'geheim' of 'vertrouwelijk' betekent",
+    "text": "Japans kanji '秘' (himitsu) betekent 'geheim' of 'vertrouwelijk'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -164,7 +164,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Overschakelen naar Edge-voorbeeld",
+    "text": "Schakel naar Edge-voorbeeld",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -172,19 +172,19 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Overschakelen naar Safari-voorbeeld",
+    "text": "Schakel naar Safari-voorbeeld",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Upgrade je plan om de branding voor dit domein aan te passen.",
+    "text": "Upgrade je plan om branding voor dit domein aan te passen.",
     "source_hash": "9077bf79"
   },
   "web.branding.saved_successfully": {
-    "text": "Brandinginstellingen succesvol opgeslagen",
+    "text": "Merkinstellingen succesvol opgeslagen",
     "source_hash": "9960c252"
   },
   "web.branding.keyhole_logo_icon": {
-    "text": "Sleutelgatpictogram dat beveiligd, privé delen voorstelt",
+    "text": "Sleutelgaticoon voor beveiligd, privé delen",
     "source_hash": "c868ac60"
   },
   "web.branding.secondary_color": {
@@ -228,7 +228,7 @@
     "source_hash": "5260dda5"
   },
   "web.branding.logo_modal_hint": {
-    "text": "PNG, JPG of SVG. Aanbevolen 128x128px, tot 1 MB.",
+    "text": "PNG, JPG of SVG. Aanbevolen 128x128px, tot 1MB.",
     "source_hash": "75d00802"
   },
   "web.branding.logo_modal_save": {
@@ -248,7 +248,7 @@
     "source_hash": "6613b73c"
   },
   "web.branding.image_invalid_type": {
-    "text": "Dat bestandstype wordt niet ondersteund. Kies een afbeelding.",
+    "text": "Dit bestandstype wordt niet ondersteund. Kies een afbeelding.",
     "source_hash": "50e18866"
   },
   "web.branding.image_too_large": {
@@ -260,7 +260,7 @@
     "source_hash": "d94fa99a"
   },
   "web.branding.image_upload_failed": {
-    "text": "Er is iets misgegaan. Probeer het opnieuw.",
+    "text": "Er ging iets mis. Probeer het opnieuw.",
     "source_hash": "3ccd9d65"
   },
   "web.branding.undo": {
@@ -268,7 +268,7 @@
     "source_hash": "a8283ade"
   },
   "web.branding.low_contrast_text_bg_warning": {
-    "text": "Laag contrast tussen tekst en achtergrond",
+    "text": "Laag tekst/achtergrond contrast",
     "source_hash": "1c676370"
   },
   "web.branding.path_simple": {
@@ -276,7 +276,7 @@
     "source_hash": "3fee95da"
   },
   "web.branding.path_match": {
-    "text": "Overeenkomen met mijn site",
+    "text": "Match mijn site",
     "source_hash": "776679cf"
   },
   "web.branding.path_advanced": {
@@ -284,7 +284,7 @@
     "source_hash": "9f088dbe"
   },
   "web.branding.path_simple_tag": {
-    "text": "De basis van je merk.",
+    "text": "Je merkessentials.",
     "source_hash": "7c9c0cca"
   },
   "web.branding.path_match_tag": {
@@ -292,7 +292,7 @@
     "source_hash": "e4b0d1cd"
   },
   "web.branding.path_advanced_tag": {
-    "text": "Schrijf je eigen Tailwind v4-CSS.",
+    "text": "Maak je eigen Tailwind v4 CSS.",
     "source_hash": "2405bb6d"
   },
   "web.branding.badge_default": {
@@ -320,15 +320,15 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Dit is een live voorbeeld — je wijzigingen zijn pas zichtbaar voor bezoekers nadat je hebt opgeslagen.",
-    "source_hash": "cb4b82de"
+    "text": "Dit is een live voorbeeld — je wijzigingen zijn pas zichtbaar voor bezoekers als je op Bijwerken klikt.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
-    "text": "Wijs ons naar je website en we lezen de kleuren en lettertypen, en dichten het gat met één klik.",
+    "text": "Verwijs ons naar je website en we lezen de kleuren en lettertypen, en passen alles in één klik aan.",
     "source_hash": "42c34cc1"
   },
   "web.branding.coming_soon_advanced_blurb": {
-    "text": "Bewerk de Tailwind v4 {'@'}theme-tokens rechtstreeks, of plak je eigen stylesheet.",
+    "text": "Bewerk de Tailwind v4 {'@'}theme tokens direct, of plak je eigen stylesheet.",
     "source_hash": "5a8473f5"
   },
   "web.branding.preview_recipient_page": {
@@ -340,11 +340,11 @@
     "source_hash": "324b134f"
   },
   "web.branding.preview_homepage_enabled": {
-    "text": "Homepage · ingeschakeld",
+    "text": "Startpagina · ingeschakeld",
     "source_hash": "2edd85f1"
   },
   "web.branding.preview_homepage_disabled": {
-    "text": "Homepage · uitgeschakeld",
+    "text": "Startpagina · uitgeschakeld",
     "source_hash": "15d87050"
   },
   "web.branding.preview_live": {
@@ -356,11 +356,11 @@
     "source_hash": "5384461b"
   },
   "web.branding.tile_create_link": {
-    "text": "Beveiligde link aanmaken",
+    "text": "Maak berichtlink aan",
     "source_hash": "610fd42e"
   },
   "web.branding.tile_delivery_only": {
-    "text": "Alleen bezorging van beveiligde berichten",
+    "text": "Alleen beveiligde berichtbezorging",
     "source_hash": "dc24dec2"
   },
   "web.branding.tile_no_create": {
@@ -368,11 +368,11 @@
     "source_hash": "17361d81"
   },
   "web.branding.recipient_page_content": {
-    "text": "Inhoud ontvangerspagina",
+    "text": "Ontvangerspagina-inhoud",
     "source_hash": "937733bd"
   },
   "web.branding.recipient_page_content_hint": {
-    "text": "Taal en onthulinstructies die aan ontvangers op dit domein worden getoond.",
+    "text": "Taal en onthullingsinstructies getoond aan ontvangers op dit domein.",
     "source_hash": "04162b70"
   },
   "web.branding.tab_brand": {
@@ -392,7 +392,7 @@
     "source_hash": "bfbc5599"
   },
   "web.branding.delivery_reveal_instructions": {
-    "text": "Onthulinstructies",
+    "text": "Onthullingsinstructies",
     "source_hash": "7e1331f7"
   },
   "web.branding.delivery_reveal_instructions_hint": {
@@ -400,11 +400,63 @@
     "source_hash": "51b9811d"
   },
   "web.branding.delivery_before_reveal": {
-    "text": "Vóór onthulling",
+    "text": "Vóór onthullen",
     "source_hash": "5ce82b01"
   },
   "web.branding.delivery_after_reveal": {
-    "text": "Na onthulling",
+    "text": "Na onthullen",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Favicon vernieuwen van domein",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Haal de favicon opnieuw op van je domein. Het nieuwe icoon verschijnt binnenkort.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Favicon vernieuwen — het nieuwe icoon verschijnt binnenkort.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Je hebt een aangepaste favicon geüpload, dus een opgehaald icoon vervangt deze niet.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Favicon uploaden",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Vervangen",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Favicon verwijderen",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG of SVG. Uploaden vervangt het opgehaalde icoon.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Domeinfavicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Domeinfavicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG of SVG. Tot 256KB. Vervangt het automatisch opgehaalde icoon.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Favicon opslaan",
+    "source_hash": "c8a1566c"
   }
 }

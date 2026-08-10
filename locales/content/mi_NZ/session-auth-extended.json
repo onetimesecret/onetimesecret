@@ -730,5 +730,204 @@
   "web.auth.sessions.session_plural": {
     "text": "ngā wātū",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Ngā Tuakiri Hono",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Whakahaerea ngā kaiwhakarato takiuru-kotahi kua hono ki tō pūkete.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Takiuru-kotahi",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Ngā kaiwhakarato tuakiri ka taea e koe te whakamahi hei takiuru ki tēnei pūkete",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Hono he kaiwhakarato",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Honoa he kaiwhakarato takiuru-kotahi anō ka taea e koe te whakamahi hei takiuru ki tēnei pūkete.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Honoa {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Kaiwhakaputa",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Tuakiri",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Tangohia",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Tangohia te tuakiri hono",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Kei te tino hiahia koe ki te tango i tēnei tuakiri hono? Kāore e taea e koe te takiuru mā tēnei.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Kua tangohia te tuakiri hono",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Kāore he tuakiri hono",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Kāore anō koe i hono i tētahi kaiwhakarato takiuru-kotahi ki tēnei pūkete.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Takiuru-kotahi",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Ko tēnei tō huarahi takiuru anake. Honoa he kaiwhakarato kē i te tuatahi, whakatūria rānei he kupuhipa mai i Tautuhinga → Haumarutanga, kia kore ai koe e rakaina ki waho.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Ko tēnei tō huarahi takiuru anake. Honoa he kaiwhakarato kē i te tuatahi kia kore ai koe e rakaina ki waho.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Kāore i kitea taua tuakiri hono. Tērā pea kua tangohia kē.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Kua pau te wā o tō hōtaka. Takiurua anō.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Kāore i taea te whakaoti i taua mahi. Ngana anō.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Honoa tō tikanga takiuru",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "I takiuru koe mā {provider}, e ōrite ana ki te pūkete {email} kua noho. Whakauru te kupuhipa o taua pūkete hei hono i a {provider}, ka haere tonu.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Kupuhipa",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Tō kupuhipa kua noho",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Honoa, haere tonu",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Whakakore",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Kua pau te wā o tēnei tono hono",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Mō tō haumarutanga, kāore kē te tono hono i tēnei tikanga takiuru e whaimana ana. Takiurua mā tō kupuhipa kua noho, kātahi honoa tēnei kaiwhakarato i raro i ngā tautuhinga Haumarutanga → Ngā tuakiri hono.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Haere tonu ki te takiuru",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Kāore taua kupuhipa e ōrite ana ki tēnei pūkete. Ngana anō.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Kua pau te wā o tēnei tono hono, kua whakamahia kē rānei. Takiurua mā tō kupuhipa kua noho, kātahi honoa tēnei kaiwhakarato mai i ō tautuhinga pūkete.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Kāore i taea te hono i tēnei tikanga takiuru. Tērā pea kua huri tō pūkete, kua hono kē rānei tēnei kaiwhakarato ki tētahi pūkete kē. Takiurua mā tō kupuhipa kua noho, kātahi whakahaerea ngā hononga i raro i ngā tautuhinga Haumarutanga → Ngā tuakiri hono.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "He nui rawa ngā ngana kupuhipa. Tatari mō ētahi meneti, kātahi ngana anō.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Kāore i taea te whakahaere i tēnei tono hono. Takiurua mā tō kaiwhakarato SSO anō.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Kāore i taea te hono i tō pūkete. Ngana anō.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Whakaūngia te hono i tō pūkete",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "I takiuru koe mā {provider}, e ōrite ana ki tō pūkete {email}. Whakaūngia kia hono i a {provider} ki tēnei pūkete, ka whakaoti i te takiuru.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Whakaū, honoa",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Whakakore",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Kāore e taea te whakaoti i tēnei tono hono",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Mō tō haumarutanga, kāore kē tēnei tono hono i tō tikanga takiuru e whaimana ana. Takiurua mā tō kaiwhakarato anō, ka tuku mātou he hononga hou ki tō īmēra.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Hoki ki te takiuru",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Kua pau te wā o tēnei tono hono, kua whakamahia kē rānei. Takiurua mā tō kaiwhakarato anō, ka tuku mātou he hononga hou ki tō īmēra.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Kāore i taea te hono i tēnei tikanga takiuru. Tērā pea kua huri tō pūkete, kua hono kē rānei tēnei kaiwhakarato ki tētahi pūkete kē. Takiurua mā tō kaiwhakarato anō kia haere tonu.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "I huri ō taipitopito pūkete i muri i te tukutanga o tēnei hononga, nā reira kāore kē e whaimana ana. Takiurua mā tō kaiwhakarato anō, ka tuku mātou he hononga hou ki tō īmēra.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "I hē tētahi mea i tō mātou taha, kāore i taea te whakaū i tēnei hononga. Takiurua mā tō kaiwhakarato anō, ka tuku mātou he mea hou ki tō īmēra.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "He nui rawa ngā ngana mai i tō pūrere. Tatari mō ētahi meneti, kātahi whakatuwherahia anō te hononga i īmēratia, takiurua rānei mā tō kaiwhakarato mō tētahi mea hou.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Kāore i taea te whakaū i tēnei hononga. Takiurua mā tō kaiwhakarato anō.",
+    "source_hash": "076fa25a"
   }
 }

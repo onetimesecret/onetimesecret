@@ -190,5 +190,657 @@
   "web.admin.domains.verify.success.done": {
     "text": "{domain}에 대한 검증이 완료되었습니다.",
     "source_hash": "ed67e22d"
+  },
+  "web.admin.domains.actions.preview": {
+    "text": "미리보기",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domains.actions.probe.button": {
+    "text": "검사",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domains.actions.remove.button": {
+    "text": "도메인 제거",
+    "source_hash": "5ce43507"
+  },
+  "web.admin.domains.actions.remove.previewButton": {
+    "text": "제거 미리보기",
+    "source_hash": "6b81bd92"
+  },
+  "web.admin.domains.actions.remove.previewStatus": {
+    "text": "상태:",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.remove.previewOrg": {
+    "text": "조직:",
+    "source_hash": "5300e286"
+  },
+  "web.admin.domains.actions.remove.reassertsSurvivor": {
+    "text": "다른 레코드가 동일한 도메인 이름을 주장하며 조회 인덱스를 대신합니다.",
+    "source_hash": "902838f4"
+  },
+  "web.admin.domains.actions.remove.confirmTitle": {
+    "text": "도메인을 제거하시겠습니까?",
+    "source_hash": "716dfac9"
+  },
+  "web.admin.domains.actions.remove.confirmDescription": {
+    "text": "{domain} 및 브랜딩, DNS, 구성 레코드를 영구적으로 삭제합니다. 되돌릴 수 없습니다. 계속하려면 도메인의 공개 ID를 다시 입력하세요.",
+    "source_hash": "d0b67b47"
+  },
+  "web.admin.domains.actions.remove.success": {
+    "text": "도메인이 제거되었습니다.",
+    "source_hash": "2ccaa6d3"
+  },
+  "web.admin.domains.actions.remove.notApplied": {
+    "text": "서버가 적용 대신 제거를 미리보기했습니다 — 도메인이 제거되지 않았습니다. 다시 시도하고, 문제가 지속되면 보고하세요.",
+    "source_hash": "dc6d70ae"
+  },
+  "web.admin.domains.actions.repair.title": {
+    "text": "조직 연결 복구",
+    "source_hash": "82b40352"
+  },
+  "web.admin.domains.actions.repair.description": {
+    "text": "이 도메인과 조직 간의 끊어진 연결을 찾아 수정합니다. 변경 사항을 확인하려면 먼저 미리보기하세요.",
+    "source_hash": "531ed287"
+  },
+  "web.admin.domains.actions.repair.orgIdLabel": {
+    "text": "조직 ID (고아 도메인만 해당)",
+    "source_hash": "0d3010eb"
+  },
+  "web.admin.domains.actions.repair.orgIdPlaceholder": {
+    "text": "도메인에 소유자가 없는 경우에만 입력",
+    "source_hash": "118b7132"
+  },
+  "web.admin.domains.actions.repair.statusLabel": {
+    "text": "상태:",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.repair.noIssues": {
+    "text": "문제를 찾을 수 없습니다 — 복구할 것이 없습니다.",
+    "source_hash": "17735887"
+  },
+  "web.admin.domains.actions.repair.button": {
+    "text": "복구 적용",
+    "source_hash": "4d0ab2d4"
+  },
+  "web.admin.domains.actions.repair.confirmTitle": {
+    "text": "복구를 적용하시겠습니까?",
+    "source_hash": "ef0ffae5"
+  },
+  "web.admin.domains.actions.repair.confirmDescription": {
+    "text": "{domain}의 조직 연결을 다시 작성합니다. 계속하려면 도메인의 공개 ID를 다시 입력하세요.",
+    "source_hash": "a9f2702f"
+  },
+  "web.admin.domains.actions.repair.success": {
+    "text": "복구가 적용되었습니다.",
+    "source_hash": "850bd784"
+  },
+  "web.admin.domains.actions.transfer.title": {
+    "text": "다른 조직으로 이전",
+    "source_hash": "1b0b0655"
+  },
+  "web.admin.domains.actions.transfer.description": {
+    "text": "이 도메인을 다른 조직으로 이동합니다. 이동의 양측을 확인하려면 먼저 미리보기하세요.",
+    "source_hash": "457e852d"
+  },
+  "web.admin.domains.actions.transfer.toOrgLabel": {
+    "text": "대상 조직 ID",
+    "source_hash": "1a3f05c4"
+  },
+  "web.admin.domains.actions.transfer.fromOrgLabel": {
+    "text": "예상 현재 조직 ID (선택사항)",
+    "source_hash": "f6e75729"
+  },
+  "web.admin.domains.actions.transfer.fromOrgPlaceholder": {
+    "text": "이동 전 현재 소유자 확인",
+    "source_hash": "1ac6c59b"
+  },
+  "web.admin.domains.actions.transfer.from": {
+    "text": "출발",
+    "source_hash": "21819769"
+  },
+  "web.admin.domains.actions.transfer.to": {
+    "text": "도착",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domains.actions.transfer.orphaned": {
+    "text": "조직 없음 (고아)",
+    "source_hash": "6f4c745c"
+  },
+  "web.admin.domains.actions.transfer.button": {
+    "text": "이전 적용",
+    "source_hash": "fb546c5c"
+  },
+  "web.admin.domains.actions.transfer.confirmTitle": {
+    "text": "도메인을 이전하시겠습니까?",
+    "source_hash": "801eb986"
+  },
+  "web.admin.domains.actions.transfer.confirmDescription": {
+    "text": "{domain}을(를) 조직 {org}(으)로 이동합니다. 계속하려면 도메인의 공개 ID를 다시 입력하세요.",
+    "source_hash": "52c8808d"
+  },
+  "web.admin.domains.actions.transfer.success": {
+    "text": "도메인이 이전되었습니다.",
+    "source_hash": "91e681ae"
+  },
+  "web.admin.domains.columns.domain": {
+    "text": "도메인",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.columns.organization": {
+    "text": "조직",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.columns.state": {
+    "text": "인증",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.domains.columns.tls": {
+    "text": "TLS",
+    "source_hash": "d1c18ec0"
+  },
+  "web.admin.domains.columns.created": {
+    "text": "생성일",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.columns.actions": {
+    "text": "작업",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.configs.title": {
+    "text": "도메인 구성",
+    "source_hash": "d46aa480"
+  },
+  "web.admin.domains.configs.description": {
+    "text": "로그인, 가입, 홈페이지 비밀 메시지, API 접근, 수신 비밀 메시지, 테넌트 SSO 및 메일 발송을 제어하는 도메인별 구성 레코드입니다. 처음 다섯 개의 경우 레코드가 없으면 차단됩니다.",
+    "source_hash": "1df99789"
+  },
+  "web.admin.domains.configs.loadError": {
+    "text": "도메인 구성 레코드를 불러올 수 없습니다.",
+    "source_hash": "9417d718"
+  },
+  "web.admin.domains.configs.retry": {
+    "text": "재시도",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.configs.degraded": {
+    "text": "구성 응답이 예상 계약과 일치하지 않습니다. 새로고침하고, 문제가 지속되면 보고하세요.",
+    "source_hash": "b5d890c0"
+  },
+  "web.admin.domains.configs.notFoundNote": {
+    "text": "이 도메인은 더 이상 존재하지 않으므로 구성 레코드를 불러올 수 없습니다.",
+    "source_hash": "2d88a392"
+  },
+  "web.admin.domains.configs.detailsToggle": {
+    "text": "세부정보",
+    "source_hash": "45989de4"
+  },
+  "web.admin.domains.configs.notEditable": {
+    "text": "워크스페이스 도메인 설정에서 관리됩니다.",
+    "source_hash": "54fe891f"
+  },
+  "web.admin.domains.configs.delete.button": {
+    "text": "삭제",
+    "source_hash": "e2d0a549"
+  },
+  "web.admin.domains.configs.delete.confirmTitle": {
+    "text": "{kind} 구성을 삭제하시겠습니까?",
+    "source_hash": "98e672db"
+  },
+  "web.admin.domains.configs.delete.confirmDescription": {
+    "text": "{domain}의 {kind} 구성 레코드를 영구적으로 삭제합니다. 도메인은 레코드 없음 동작으로 되돌아갑니다. 계속하려면 종류를 다시 입력하세요.",
+    "source_hash": "8272c40c"
+  },
+  "web.admin.domains.configs.delete.success": {
+    "text": "구성이 삭제되었습니다.",
+    "source_hash": "a0184b66"
+  },
+  "web.admin.domains.configs.edit.button": {
+    "text": "편집",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.domains.configs.edit.createButton": {
+    "text": "생성",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.configs.edit.title": {
+    "text": "{kind} 구성",
+    "source_hash": "8592148f"
+  },
+  "web.admin.domains.configs.edit.submit": {
+    "text": "저장",
+    "source_hash": "1509f561"
+  },
+  "web.admin.domains.configs.edit.success": {
+    "text": "구성이 저장되었습니다.",
+    "source_hash": "6b5b3c69"
+  },
+  "web.admin.domains.configs.edit.unsetOption": {
+    "text": "설정되지 않음",
+    "source_hash": "4895f731"
+  },
+  "web.admin.domains.configs.edit.domainsHint": {
+    "text": "한 줄에 하나의 도메인.",
+    "source_hash": "6c03f4f7"
+  },
+  "web.admin.domains.configs.ensure.button": {
+    "text": "누락된 구성 생성",
+    "source_hash": "77991b75"
+  },
+  "web.admin.domains.configs.ensure.confirmTitle": {
+    "text": "누락된 구성 레코드를 생성하시겠습니까?",
+    "source_hash": "3f41dec2"
+  },
+  "web.admin.domains.configs.ensure.confirmDescription": {
+    "text": "{domain}에 다음에 대한 비활성화된 레코드를 생성합니다: {kinds}. 모든 것이 비활성화된 상태로 시작되므로 레코드가 활성화될 때까지 동작이 변경되지 않습니다.",
+    "source_hash": "fed66221"
+  },
+  "web.admin.domains.configs.ensure.applyButton": {
+    "text": "레코드 생성",
+    "source_hash": "4bcbef42"
+  },
+  "web.admin.domains.configs.ensure.success": {
+    "text": "누락된 구성 레코드가 생성되었습니다.",
+    "source_hash": "3b6ead80"
+  },
+  "web.admin.domains.configs.ensure.nothingMissing": {
+    "text": "생성할 것이 없습니다 — 모든 구성 레코드가 이미 존재합니다. 목록이 새로고침되었습니다.",
+    "source_hash": "ad0df0ae"
+  },
+  "web.admin.domains.configs.ensure.notApplied": {
+    "text": "서버가 적용 대신 변경을 미리보기했습니다 — 레코드가 생성되지 않았습니다. 다시 시도하고, 문제가 지속되면 보고하세요.",
+    "source_hash": "09d26379"
+  },
+  "web.admin.domains.configs.fields.enabled": {
+    "text": "활성화됨",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.fields.signin_enabled": {
+    "text": "로그인 활성화됨",
+    "source_hash": "cabe4898"
+  },
+  "web.admin.domains.configs.fields.email_auth_enabled": {
+    "text": "이메일 인증 활성화됨",
+    "source_hash": "4a762960"
+  },
+  "web.admin.domains.configs.fields.sso_enabled": {
+    "text": "SSO 활성화됨",
+    "source_hash": "6e77e673"
+  },
+  "web.admin.domains.configs.fields.restrict_to": {
+    "text": "제한 대상",
+    "source_hash": "a0bdf50a"
+  },
+  "web.admin.domains.configs.fields.signup_enabled": {
+    "text": "가입 활성화됨",
+    "source_hash": "2637d0b2"
+  },
+  "web.admin.domains.configs.fields.autoverify": {
+    "text": "자동 확인",
+    "source_hash": "7e02211c"
+  },
+  "web.admin.domains.configs.fields.validation_strategy": {
+    "text": "유효성 검사 전략",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.configs.fields.allowed_signup_domains": {
+    "text": "허용된 가입 도메인",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.admin.domains.configs.fields.secrets_mode": {
+    "text": "비밀 메시지 모드",
+    "source_hash": "8d4349d6"
+  },
+  "web.admin.domains.configs.fields.disabled_homepage_variant": {
+    "text": "비활성화된 홈페이지 변형",
+    "source_hash": "4695633b"
+  },
+  "web.admin.domains.configs.fields.ready": {
+    "text": "준비됨",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.configs.fields.recipients": {
+    "text": "수신자",
+    "source_hash": "1e8568a8"
+  },
+  "web.admin.domains.configs.fields.provider_type": {
+    "text": "제공자 유형",
+    "source_hash": "8c0f6d3e"
+  },
+  "web.admin.domains.configs.fields.display_name": {
+    "text": "표시 이름",
+    "source_hash": "2b7f6a84"
+  },
+  "web.admin.domains.configs.fields.issuer": {
+    "text": "발급자",
+    "source_hash": "39e02c46"
+  },
+  "web.admin.domains.configs.fields.tenant_id": {
+    "text": "테넌트 ID",
+    "source_hash": "de1f5fff"
+  },
+  "web.admin.domains.configs.fields.has_client_id": {
+    "text": "클라이언트 ID 설정됨",
+    "source_hash": "04a9fa3d"
+  },
+  "web.admin.domains.configs.fields.has_client_secret": {
+    "text": "클라이언트 시크릿 설정됨",
+    "source_hash": "6ee1c9e6"
+  },
+  "web.admin.domains.configs.fields.allowed_domains": {
+    "text": "허용된 도메인",
+    "source_hash": "bcd60db0"
+  },
+  "web.admin.domains.configs.fields.enforce_sso_only": {
+    "text": "SSO만 적용",
+    "source_hash": "b3a3f694"
+  },
+  "web.admin.domains.configs.fields.grant_org_scope": {
+    "text": "조직 범위 부여",
+    "source_hash": "698ea5de"
+  },
+  "web.admin.domains.configs.fields.provider": {
+    "text": "제공자",
+    "source_hash": "472590ae"
+  },
+  "web.admin.domains.configs.fields.from_name": {
+    "text": "발신자 이름",
+    "source_hash": "b28f93ea"
+  },
+  "web.admin.domains.configs.fields.from_address": {
+    "text": "발신자 주소",
+    "source_hash": "d465bcfa"
+  },
+  "web.admin.domains.configs.fields.reply_to": {
+    "text": "회신 주소",
+    "source_hash": "6b9c49b7"
+  },
+  "web.admin.domains.configs.fields.sending_mode": {
+    "text": "발송 모드",
+    "source_hash": "e2d6bcf7"
+  },
+  "web.admin.domains.configs.fields.verification_status": {
+    "text": "확인 상태",
+    "source_hash": "aedfff7e"
+  },
+  "web.admin.domains.configs.fields.dns_verified": {
+    "text": "DNS 확인됨",
+    "source_hash": "8b2128c8"
+  },
+  "web.admin.domains.configs.fields.provider_verified": {
+    "text": "제공자 확인됨",
+    "source_hash": "6f4d9cc4"
+  },
+  "web.admin.domains.configs.fields.has_api_key": {
+    "text": "API 키 설정됨",
+    "source_hash": "d5115386"
+  },
+  "web.admin.domains.configs.fields.created": {
+    "text": "생성됨",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.configs.fields.updated": {
+    "text": "업데이트됨",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.configs.kinds.signin": {
+    "text": "로그인",
+    "source_hash": "5bbbe531"
+  },
+  "web.admin.domains.configs.kinds.signup": {
+    "text": "가입",
+    "source_hash": "3cc08ebe"
+  },
+  "web.admin.domains.configs.kinds.homepage": {
+    "text": "홈페이지",
+    "source_hash": "9e3391e9"
+  },
+  "web.admin.domains.configs.kinds.api": {
+    "text": "API",
+    "source_hash": "c8e5998f"
+  },
+  "web.admin.domains.configs.kinds.incoming": {
+    "text": "수신",
+    "source_hash": "e301820a"
+  },
+  "web.admin.domains.configs.kinds.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.admin.domains.configs.kinds.mailer": {
+    "text": "메일러",
+    "source_hash": "6c07ba63"
+  },
+  "web.admin.domains.configs.missingNotes.signin": {
+    "text": "레코드 없음: 테넌트 SSO가 활성화되지 않으면 이 도메인에서 로그인이 비활성화됩니다.",
+    "source_hash": "17dd6099"
+  },
+  "web.admin.domains.configs.missingNotes.signup": {
+    "text": "레코드 없음: 이 도메인에서 가입이 비활성화됩니다.",
+    "source_hash": "c3c98956"
+  },
+  "web.admin.domains.configs.missingNotes.homepage": {
+    "text": "레코드 없음: 홈페이지 비밀 메시지가 비활성화됩니다(차단되고 오류가 기록됩니다).",
+    "source_hash": "9a258a88"
+  },
+  "web.admin.domains.configs.missingNotes.api": {
+    "text": "레코드 없음: 공개 API가 비활성화됩니다(차단되고 오류가 기록됩니다).",
+    "source_hash": "fed99f73"
+  },
+  "web.admin.domains.configs.missingNotes.incoming": {
+    "text": "레코드 없음: 수신 비밀 메시지가 비활성화됩니다.",
+    "source_hash": "b957fbe8"
+  },
+  "web.admin.domains.configs.missingNotes.sso": {
+    "text": "레코드 없음: 테넌트 SSO를 사용할 수 없습니다. 플랫폼 SSO 대체 정책이 적용됩니다.",
+    "source_hash": "7b05ade8"
+  },
+  "web.admin.domains.configs.missingNotes.mailer": {
+    "text": "레코드 없음: 플랫폼 메일러가 사용됩니다.",
+    "source_hash": "e027cc99"
+  },
+  "web.admin.domains.configs.status.missing": {
+    "text": "누락됨",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.domains.configs.status.disabled": {
+    "text": "비활성화됨",
+    "source_hash": "75081b59"
+  },
+  "web.admin.domains.configs.status.enabled": {
+    "text": "활성화됨",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.status.enabledNotReady": {
+    "text": "활성화됨, 준비되지 않음",
+    "source_hash": "cb806ba4"
+  },
+  "web.admin.domains.detail.openFullPage": {
+    "text": "전체 페이지 열기",
+    "source_hash": "a467911c"
+  },
+  "web.admin.domains.detail.backToList": {
+    "text": "도메인 목록으로 돌아가기",
+    "source_hash": "22fd50fe"
+  },
+  "web.admin.domains.detail.notFound": {
+    "text": "도메인을 찾을 수 없습니다",
+    "source_hash": "7b8fc0e6"
+  },
+  "web.admin.domains.detail.notFoundDescription": {
+    "text": "이 도메인이 존재하지 않거나 이미 제거되었습니다.",
+    "source_hash": "e0f0b987"
+  },
+  "web.admin.domains.detail.loadError": {
+    "text": "이 도메인을 불러올 수 없습니다.",
+    "source_hash": "39e9c657"
+  },
+  "web.admin.domains.detail.retry": {
+    "text": "재시도",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.detail.never": {
+    "text": "없음",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.domains.detail.none": {
+    "text": "없음",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.domains.detail.yes": {
+    "text": "예",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.domains.detail.no": {
+    "text": "아니요",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.domains.detail.organization.open": {
+    "text": "조직 열기",
+    "source_hash": "54a43621"
+  },
+  "web.admin.domains.detail.organization.unknown": {
+    "text": "소유 조직이 이 응답에 포함되어 있지 않습니다. 도메인 목록에서 이 도메인을 열어 확인하세요.",
+    "source_hash": "bb5bdc9c"
+  },
+  "web.admin.domains.detail.sections.overview": {
+    "text": "개요",
+    "source_hash": "d4b1ea57"
+  },
+  "web.admin.domains.detail.sections.actions": {
+    "text": "작업",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.detail.sections.organization": {
+    "text": "소유 조직",
+    "source_hash": "39ad6d9c"
+  },
+  "web.admin.domains.detail.sections.dns": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.admin.domains.detail.sections.diagnostics": {
+    "text": "진단",
+    "source_hash": "268f14bb"
+  },
+  "web.admin.domains.detail.sections.operations": {
+    "text": "소유권 작업",
+    "source_hash": "eb9a8cbc"
+  },
+  "web.admin.domains.detail.sections.operationsHint": {
+    "text": "각 작업은 먼저 미리보기됩니다. 적용 단계를 확인하기 전까지는 아무것도 기록되지 않습니다.",
+    "source_hash": "f09bf7bd"
+  },
+  "web.admin.domains.fields.publicId": {
+    "text": "공개 ID",
+    "source_hash": "3705b64f"
+  },
+  "web.admin.domains.fields.domainId": {
+    "text": "내부 ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.domains.fields.organization": {
+    "text": "조직",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.fields.baseDomain": {
+    "text": "기본 도메인",
+    "source_hash": "33295d5b"
+  },
+  "web.admin.domains.fields.subdomain": {
+    "text": "서브도메인",
+    "source_hash": "ba4520ab"
+  },
+  "web.admin.domains.fields.apex": {
+    "text": "Apex 도메인",
+    "source_hash": "0a8a42fa"
+  },
+  "web.admin.domains.fields.status": {
+    "text": "상태",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domains.fields.created": {
+    "text": "생성됨",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.fields.updated": {
+    "text": "업데이트됨",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.fields.verified": {
+    "text": "확인됨",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.fields.resolving": {
+    "text": "확인 중",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.fields.ready": {
+    "text": "준비됨",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.list.searchPlaceholder": {
+    "text": "도메인 이름 또는 ID로 검색",
+    "source_hash": "aecdd873"
+  },
+  "web.admin.domains.list.stateFilter": {
+    "text": "상태",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domains.list.emptyFilter": {
+    "text": "현재 필터와 일치하는 도메인이 없습니다.",
+    "source_hash": "be4d64ec"
+  },
+  "web.admin.domains.probe.healthLabel": {
+    "text": "상태",
+    "source_hash": "55898449"
+  },
+  "web.admin.domains.probe.certInvalid": {
+    "text": "인증서를 사용할 수 없습니다",
+    "source_hash": "5535f4d4"
+  },
+  "web.admin.domains.probe.noCertificate": {
+    "text": "인증서가 반환되지 않았습니다 — TLS 전에 연결이 실패했습니다.",
+    "source_hash": "8ffd63be"
+  },
+  "web.admin.domains.probe.fields.httpStatus": {
+    "text": "HTTP 상태",
+    "source_hash": "0f7cf91f"
+  },
+  "web.admin.domains.probe.fields.httpError": {
+    "text": "HTTP 오류",
+    "source_hash": "5c6896d4"
+  },
+  "web.admin.domains.probe.fields.sslError": {
+    "text": "TLS 오류",
+    "source_hash": "7b827515"
+  },
+  "web.admin.domains.probe.fields.issuer": {
+    "text": "인증서 발급자",
+    "source_hash": "2912559a"
+  },
+  "web.admin.domains.probe.fields.subject": {
+    "text": "인증서 주체",
+    "source_hash": "d7816b16"
+  },
+  "web.admin.domains.probe.fields.notAfter": {
+    "text": "인증서 만료일",
+    "source_hash": "1e73119d"
+  },
+  "web.admin.domains.probe.fields.expiresIn": {
+    "text": "{date} ({days}일)",
+    "source_hash": "a71a6e81"
+  },
+  "web.admin.domains.tls.serving": {
+    "text": "제공 중",
+    "source_hash": "f55e53f9"
+  },
+  "web.admin.domains.tls.resolving": {
+    "text": "확인 중",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.tls.none": {
+    "text": "제공되지 않음",
+    "source_hash": "da8a5ab9"
   }
 }

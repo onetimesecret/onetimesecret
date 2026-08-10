@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Niepowodzenie",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Sekrety",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Członkostwa",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Podglądy uprawnień",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Logowania Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Wykonawca",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Szukaj",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Wpisz wykonawcę, a następnie naciśnij Enter lub wybierz Szukaj, aby uruchomić wyszukiwanie. Lista nie aktualizuje się podczas pisania.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Jeszcze nie wyszukano — naciśnij Enter lub wybierz Szukaj, aby zastosować tego wykonawcę.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Serwer odpowiedział, ale dane audytu nie pasują do oczekiwanego formatu. Nie można wyświetlić żadnych zdarzeń — to błąd raportowania, a nie pusty dziennik.",
+    "source_hash": "7f48137e"
   }
 }

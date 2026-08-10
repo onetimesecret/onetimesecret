@@ -694,5 +694,33 @@
   "web.settings.api.api_disabled_notice": {
     "text": "Kua monokia te API mō tēnei taupānga.",
     "source_hash": "66d12d6b"
+  },
+  "web.settings.api.api_username": {
+    "text": "Ingoa Kaiwhakamahi API",
+    "source_hash": "0b3e483e"
+  },
+  "web.settings.api.api_username_description": {
+    "text": "Tō ingoa kaiwhakamahi mō te motuhēhē HTTP Basic",
+    "source_hash": "f3e65de3"
+  },
+  "web.settings.api.basic_auth_hint": {
+    "text": "Mō te motuhēhē HTTP Basic, whakamahia tō īmēra pūkete, tēnei tuakiri rānei hei ingoa kaiwhakamahi, me tō tōkena API hei kupuhipa.",
+    "source_hash": "cfa3806d"
+  },
+  "web.settings.security.set": {
+    "text": "Kua whakatūria",
+    "source_hash": "b6f6f3ad"
+  },
+  "web.settings.security.not_set": {
+    "text": "Kāore i whakatūria",
+    "source_hash": "4895f731"
+  },
+  "web.settings.security.set_password_title": {
+    "text": "Whakatū kupuhipa",
+    "source_hash": "4e411687"
+  },
+  "web.settings.security.set_password_description": {
+    "text": "Tāpiri kupuhipa ki tō pūkete kia taea ai e koe te takiuru kāore he kaiwhakarato tuakiri",
+    "source_hash": "a6970402"
   }
 }

@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Използвайте телефона си, за да сканирате QR кода",
-    "source_hash": "99ecf59f"
+    "text": "напр. Използвайте телефона си, за да сканирате QR кода",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Свържете се с onboarding{'@'}example.com при въпроси",
-    "source_hash": "bee120a7"
+    "text": "напр. Свържете се с onboarding{'@'}example.com при въпроси",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Тези инструкции ще бъдат показани на получателите, преди да разкрият тайното съдържание",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Това е преглед на живо — промените ви няма да са видими за посетителите, докато не запазите.",
-    "source_hash": "cb4b82de"
+    "text": "Това е преглед на живо — вашите промени няма да бъдат видими за посетителите, докато не щракнете Актуализиране.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Насочете ни към уебсайта си и ние ще прочетем неговите цветове и шрифтове, след което ще запълним разликата с едно щракване.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "След разкриване",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Икона",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Опресняване на икона от домейна",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Извличане на иконата от вашия домейн отново. Новата икона ще се появи скоро.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Опресняване на иконата — новата икона ще се появи скоро.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Качили сте персонализирана икона, така че извлечена икона няма да я замени.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Качване на икона",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Замяна",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Премахване на икона",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG или SVG. Качването замества извлечената икона.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Икона на домейн",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Икона на домейн",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG или SVG. До 256KB. Замества автоматично извлечената икона.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Запазване на икона",
+    "source_hash": "c8a1566c"
   }
 }

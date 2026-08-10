@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "휴대폰으로 QR 코드를 스캔하세요",
-    "source_hash": "99ecf59f"
+    "text": "예: 휴대폰으로 QR 코드를 스캔하세요",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "질문이 있으시면 onboarding{'@'}example.com으로 연락해 주세요",
-    "source_hash": "bee120a7"
+    "text": "예: 질문이 있으시면 onboarding{'@'}example.com으로 연락하세요",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "이 지침은 수신자가 비밀 내용을 확인하기 전에 표시됩니다",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "실시간 미리 보기입니다 — 변경 사항은 저장하기 전까지 방문자에게 표시되지 않습니다.",
-    "source_hash": "cb4b82de"
+    "text": "이것은 실시간 미리보기입니다 — 업데이트를 클릭하기 전까지 변경 사항이 방문자에게 표시되지 않습니다.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "웹사이트를 알려주시면 색상과 글꼴을 읽어들여 한 번의 클릭으로 격차를 좁혀 드립니다.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "표시 후",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "파비콘",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "도메인에서 파비콘 새로고침",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "도메인에서 파비콘을 다시 가져옵니다. 새 아이콘이 곧 나타납니다.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "파비콘 새로고침 중 — 새 아이콘이 곧 나타납니다.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "사용자 지정 파비콘을 업로드했으므로 가져온 아이콘이 대체되지 않습니다.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "파비콘 업로드",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "교체",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "파비콘 제거",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG 또는 SVG. 업로드하면 가져온 아이콘이 대체됩니다.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "도메인 파비콘",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "도메인 파비콘",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG 또는 SVG. 최대 256KB. 자동으로 가져온 아이콘을 대체합니다.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "파비콘 저장",
+    "source_hash": "c8a1566c"
   }
 }

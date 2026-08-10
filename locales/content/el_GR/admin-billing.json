@@ -122,5 +122,85 @@
   "web.admin.billing.status.changed": {
     "text": "Άλλαξε",
     "source_hash": "2a6141e4"
+  },
+  "web.admin.billing.diff.backToCatalog": {
+    "text": "Επιστροφή στον κατάλογο χρεώσεων",
+    "source_hash": "8532b373"
+  },
+  "web.admin.billing.diff.driftedFields": {
+    "text": "Πεδία που διαφέρουν:",
+    "source_hash": "9890c95b"
+  },
+  "web.admin.billing.diff.notFound": {
+    "text": "Το πλάνο δεν βρίσκεται στον κατάλογο",
+    "source_hash": "0253898b"
+  },
+  "web.admin.billing.diff.notFoundDescription": {
+    "text": "Δεν βρέθηκε πλάνο με αναγνωριστικό {planid} στον διαμορφωμένο κατάλογο ή στην ενεργή κρυφή μνήμη συγχρονισμού Stripe.",
+    "source_hash": "2e69551c"
+  },
+  "web.admin.billing.stripeOrgs.title": {
+    "text": "Πελάτες Stripe",
+    "source_hash": "0463ae27"
+  },
+  "web.admin.billing.stripeOrgs.description": {
+    "text": "Οργανισμοί συνδεδεμένοι με εγγραφή πελάτη Stripe.",
+    "source_hash": "2ab09aec"
+  },
+  "web.admin.billing.stripeOrgs.searchPlaceholder": {
+    "text": "Αναζήτηση με αναγνωριστικό πελάτη Stripe",
+    "source_hash": "d5acf08f"
+  },
+  "web.admin.billing.stripeOrgs.empty": {
+    "text": "Κανένας οργανισμός δεν έχει αναγνωριστικό πελάτη Stripe.",
+    "source_hash": "2e373537"
+  },
+  "web.admin.billing.stripeOrgs.emptySearch": {
+    "text": "Κανένα αναγνωριστικό πελάτη Stripe δεν ταιριάζει με αυτή την αναζήτηση.",
+    "source_hash": "75011174"
+  },
+  "web.admin.billing.stripeOrgs.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση της λίστας πελατών Stripe.",
+    "source_hash": "15e2d9a7"
+  },
+  "web.admin.billing.stripeOrgs.unavailable": {
+    "text": "Η λίστα πελατών Stripe δεν είναι ακόμη διαθέσιμη σε αυτόν τον διακομιστή.",
+    "source_hash": "aab6451a"
+  },
+  "web.admin.billing.stripeOrgs.none": {
+    "text": "Κανένα",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.billing.stripeOrgs.capped": {
+    "text": "Η σάρωση ευρετηρίου έφτασε το όριό της, επομένως το σύνολο είναι κατώτατο όριο — περιορίστε την αναζήτηση για να δείτε τα υπόλοιπα.",
+    "source_hash": "20bcaa38"
+  },
+  "web.admin.billing.stripeOrgs.stale": {
+    "text": "{count} καταχώρηση/καταχωρήσεις ευρετηρίου σε αυτή τη σελίδα οδηγούν σε οργανισμό που δεν φορτώνεται πλέον και παραλείφθηκαν.",
+    "source_hash": "51980f83"
+  },
+  "web.admin.billing.stripeOrgs.copyStripeId": {
+    "text": "Αντιγραφή αναγνωριστικού πελάτη Stripe",
+    "source_hash": "a77d18b1"
+  },
+  "web.admin.billing.stripeOrgs.columns.organization": {
+    "text": "Οργανισμός",
+    "source_hash": "d764d425"
+  },
+  "web.admin.billing.stripeOrgs.columns.owner": {
+    "text": "Ιδιοκτήτης",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.billing.stripeOrgs.columns.plan": {
+    "text": "Πλάνο",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.billing.stripeOrgs.columns.subscription": {
+    "text": "Συνδρομή",
+    "source_hash": "4999c6c6"
+  },
+  "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
+    "text": "Αναγνωριστικό πελάτη Stripe",
+    "source_hash": "7e1d8bbb"
   }
 }

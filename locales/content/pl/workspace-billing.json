@@ -1044,5 +1044,21 @@
   "web.billing.plans.reactivate": {
     "text": "Reaktywuj",
     "source_hash": "2dc7478f"
+  },
+  "web.billing.currency_migration.refund_failed_warning": {
+    "text": "Twój poprzedni plan został anulowany, ale nie udało się automatycznie zrealizować zwrotu za niewykorzystany czas. Skontaktuj się z pomocą techniczną, aby otrzymać zwrot. Aby aktywować nowy plan, nadal musisz dokończyć płatność.",
+    "source_hash": "a390c498"
+  },
+  "web.billing.currency_migration.refund_failed_continue": {
+    "text": "Przejdź do płatności",
+    "source_hash": "eccdb8aa"
+  },
+  "web.billing.plans.per_year": {
+    "text": "/rok",
+    "source_hash": "a2d5f1bc"
+  },
+  "web.billing.plans.billing_interval": {
+    "text": "Okres rozliczeniowy",
+    "source_hash": "3ce28209"
   }
 }

@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Brug din telefon til at scanne QR-koden",
-    "source_hash": "99ecf59f"
+    "text": "f.eks. Brug din telefon til at scanne QR-koden",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontakt onboarding{'@'}example.com med eventuelle spørgsmål",
-    "source_hash": "bee120a7"
+    "text": "f.eks. Kontakt onboarding{'@'}example.com med eventuelle spørgsmål",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Disse instruktioner vil blive vist til modtagerne, før de afslører det hemmelige indhold",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Dette er en live-forhåndsvisning — dine ændringer bliver ikke synlige for besøgende, før du gemmer.",
-    "source_hash": "cb4b82de"
+    "text": "Dette er en live forhåndsvisning — dine ændringer vil ikke være synlige for besøgende, før du klikker på Opdater.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Peg os mod dit websted, så læser vi dets farver og skrifttyper og lukker derefter hullet med et enkelt klik.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Efter visning",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Opdater favicon fra domæne",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Hent favicon fra dit domæne igen. Det nye ikon vises om kort tid.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Opdaterer favicon — det nye ikon vises om kort tid.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Du har uploadet et brugerdefineret favicon, så et hentet ikon erstatter det ikke.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Upload favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Erstat",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Fjern favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG eller SVG. Upload erstatter det hentede ikon.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Domæne-favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Domæne-favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG eller SVG. Op til 256KB. Erstatter det automatisk hentede ikon.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Gem favicon",
+    "source_hash": "c8a1566c"
   }
 }

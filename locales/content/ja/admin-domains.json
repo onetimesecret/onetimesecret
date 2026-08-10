@@ -36,11 +36,11 @@
     "source_hash": "2263ec6a"
   },
   "web.admin.domains.addDomain.strategy.approximated": {
-    "text": "Approximated — DNS所有権チェック、プロキシなし。",
+    "text": "Approximated — DNSによる所有権の確認のみで、プロキシは行いません。",
     "source_hash": "79a7245c"
   },
   "web.admin.domains.addDomain.strategy.passthrough": {
-    "text": "Passthrough — DNSをこのデプロイのプロキシに向けます。",
+    "text": "Passthrough — このデプロイのプロキシにDNSを向けます。",
     "source_hash": "9702d758"
   },
   "web.admin.domains.addDomain.strategy.external": {
@@ -48,23 +48,23 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddyオンデマンド — 初回リクエスト時に証明書が自動的に発行されます。",
+    "text": "Caddy on-demand — 最初のリクエスト時に証明書が自動発行されます。",
     "source_hash": "deb90ae6"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — 初回リクエスト時に証明書が自動的に発行されます。",
+    "text": "Caddy — 最初のリクエスト時に証明書が自動発行されます。",
     "source_hash": "a0f3c2dc"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
-    "text": "デプロイ全体の検証方法。",
+    "text": "デプロイ全体の検証方法です。",
     "source_hash": "4587f9cf"
   },
   "web.admin.domains.attach.cta": {
-    "text": "ドメインを組織に紐付け",
+    "text": "ドメインを組織に紐付ける",
     "source_hash": "736d74ce"
   },
   "web.admin.domains.attach.recordEyebrow": {
-    "text": "作業レコード",
+    "text": "作業中のレコード",
     "source_hash": "2fadf983"
   },
   "web.admin.domains.attach.rosterError": {
@@ -84,11 +84,11 @@
     "source_hash": "e4efbe2b"
   },
   "web.admin.domains.dns.txtStep": {
-    "text": "1. 所有権を証明するためにTXTレコードを追加します。",
+    "text": "1. 所有権を証明するTXTレコードを追加します。",
     "source_hash": "fdcfcfb0"
   },
   "web.admin.domains.dns.aStep": {
-    "text": "2. apexをプロキシに向けるAレコードを追加します。",
+    "text": "2. Apexドメインをプロキシに向けるAレコードを追加します。",
     "source_hash": "aedbf197"
   },
   "web.admin.domains.dns.cnameStep": {
@@ -96,7 +96,7 @@
     "source_hash": "5c626f53"
   },
   "web.admin.domains.dns.propagationNote": {
-    "text": "DNSの変更が反映され、検証が成功するまでに数分かかる場合があります。",
+    "text": "DNSの変更が反映され検証が成功するまでに、数分かかる場合があります。",
     "source_hash": "7caf70a7"
   },
   "web.admin.domains.dns.toggle": {
@@ -120,11 +120,11 @@
     "source_hash": "d764d425"
   },
   "web.admin.domains.orgPicker.searchPlaceholder": {
-    "text": "オブジェクトID、外部ID、またはメール",
+    "text": "オブジェクトID、外部ID、またはメールアドレス",
     "source_hash": "bb5d0055"
   },
   "web.admin.domains.orgPicker.searchHint": {
-    "text": "objid、extid、またはメンバーのメールアドレスで検索します。",
+    "text": "objid、extid、またはメンバーのメールアドレスで検索できます。",
     "source_hash": "fdef7332"
   },
   "web.admin.domains.orgPicker.loadError": {
@@ -132,7 +132,7 @@
     "source_hash": "b9e45dcf"
   },
   "web.admin.domains.orgPicker.parseError": {
-    "text": "組織の結果を読み取れませんでした。",
+    "text": "組織の検索結果を読み取れませんでした。",
     "source_hash": "44e1b9fd"
   },
   "web.admin.domains.orgPicker.idle": {
@@ -144,11 +144,11 @@
     "source_hash": "761db594"
   },
   "web.admin.domains.orgPicker.unnamedOrg": {
-    "text": "名前のない組織",
+    "text": "名称未設定の組織",
     "source_hash": "f218dc9d"
   },
   "web.admin.domains.orgPicker.domainCount": {
-    "text": "{count}件のドメイン",
+    "text": "ドメイン{count}件",
     "source_hash": "cf548c8c"
   },
   "web.admin.domains.orgPicker.select": {
@@ -164,7 +164,7 @@
     "source_hash": "07c4dc4f"
   },
   "web.admin.domains.verify.confirmDescription": {
-    "text": "{domain}のDNSおよびSSL検証チェックを実行します。",
+    "text": "{domain}のDNSおよびSSLの検証チェックを実行します。",
     "source_hash": "06797824"
   },
   "web.admin.domains.verify.failed": {
@@ -172,15 +172,15 @@
     "source_hash": "3c8432b0"
   },
   "web.admin.domains.verify.success.verified": {
-    "text": "{domain}は検証されました。",
+    "text": "{domain}は検証済みです。",
     "source_hash": "802b5d1e"
   },
   "web.admin.domains.verify.success.resolving": {
-    "text": "{domain}は名前解決されていますが、まだ検証されていません。",
+    "text": "{domain}は名前解決中ですが、まだ検証されていません。",
     "source_hash": "bc8aecad"
   },
   "web.admin.domains.verify.success.pending": {
-    "text": "{domain}は保留中です。DNSがまだ名前解決されていません。",
+    "text": "{domain}は保留中です — DNSがまだ名前解決されていません。",
     "source_hash": "0d9f66d5"
   },
   "web.admin.domains.verify.success.unverified": {
@@ -190,5 +190,657 @@
   "web.admin.domains.verify.success.done": {
     "text": "{domain}の検証が完了しました。",
     "source_hash": "ed67e22d"
+  },
+  "web.admin.domains.actions.preview": {
+    "text": "プレビュー",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domains.actions.probe.button": {
+    "text": "検査",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domains.actions.remove.button": {
+    "text": "ドメインを削除",
+    "source_hash": "5ce43507"
+  },
+  "web.admin.domains.actions.remove.previewButton": {
+    "text": "削除をプレビュー",
+    "source_hash": "6b81bd92"
+  },
+  "web.admin.domains.actions.remove.previewStatus": {
+    "text": "ステータス:",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.remove.previewOrg": {
+    "text": "組織:",
+    "source_hash": "5300e286"
+  },
+  "web.admin.domains.actions.remove.reassertsSurvivor": {
+    "text": "別のレコードが同じドメイン名を要求しており、ルックアップインデックスを引き継ぎます。",
+    "source_hash": "902838f4"
+  },
+  "web.admin.domains.actions.remove.confirmTitle": {
+    "text": "ドメインを削除しますか?",
+    "source_hash": "716dfac9"
+  },
+  "web.admin.domains.actions.remove.confirmDescription": {
+    "text": "{domain}とそのブランディング、DNS、構成の各レコードを完全に削除します。この操作は元に戻せません。続行するにはドメインの公開IDを入力してください。",
+    "source_hash": "d0b67b47"
+  },
+  "web.admin.domains.actions.remove.success": {
+    "text": "ドメインを削除しました。",
+    "source_hash": "2ccaa6d3"
+  },
+  "web.admin.domains.actions.remove.notApplied": {
+    "text": "サーバーは削除を適用せずにプレビューしました — ドメインは削除されていません。再試行し、解消しない場合はご報告ください。",
+    "source_hash": "dc6d70ae"
+  },
+  "web.admin.domains.actions.repair.title": {
+    "text": "組織との紐付けを修復",
+    "source_hash": "82b40352"
+  },
+  "web.admin.domains.actions.repair.description": {
+    "text": "このドメインと組織の間の壊れた紐付けを検出して修復します。まずプレビューで変更内容をご確認ください。",
+    "source_hash": "531ed287"
+  },
+  "web.admin.domains.actions.repair.orgIdLabel": {
+    "text": "組織ID (所有者のないドメインのみ)",
+    "source_hash": "0d3010eb"
+  },
+  "web.admin.domains.actions.repair.orgIdPlaceholder": {
+    "text": "ドメインに所有者がない場合を除き、空欄にしてください",
+    "source_hash": "118b7132"
+  },
+  "web.admin.domains.actions.repair.statusLabel": {
+    "text": "ステータス:",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.repair.noIssues": {
+    "text": "問題は見つかりませんでした — 修復は不要です。",
+    "source_hash": "17735887"
+  },
+  "web.admin.domains.actions.repair.button": {
+    "text": "修復を適用",
+    "source_hash": "4d0ab2d4"
+  },
+  "web.admin.domains.actions.repair.confirmTitle": {
+    "text": "修復を適用しますか?",
+    "source_hash": "ef0ffae5"
+  },
+  "web.admin.domains.actions.repair.confirmDescription": {
+    "text": "{domain}の組織との紐付けを書き換えます。続行するにはドメインの公開IDを入力してください。",
+    "source_hash": "a9f2702f"
+  },
+  "web.admin.domains.actions.repair.success": {
+    "text": "修復を適用しました。",
+    "source_hash": "850bd784"
+  },
+  "web.admin.domains.actions.transfer.title": {
+    "text": "別の組織に移管",
+    "source_hash": "1b0b0655"
+  },
+  "web.admin.domains.actions.transfer.description": {
+    "text": "このドメインを別の組織に移動します。まずプレビューで移動元と移動先をご確認ください。",
+    "source_hash": "457e852d"
+  },
+  "web.admin.domains.actions.transfer.toOrgLabel": {
+    "text": "移動先の組織ID",
+    "source_hash": "1a3f05c4"
+  },
+  "web.admin.domains.actions.transfer.fromOrgLabel": {
+    "text": "現在の組織ID (任意)",
+    "source_hash": "f6e75729"
+  },
+  "web.admin.domains.actions.transfer.fromOrgPlaceholder": {
+    "text": "移動前に現在の所有者を確認します",
+    "source_hash": "1ac6c59b"
+  },
+  "web.admin.domains.actions.transfer.from": {
+    "text": "移動元",
+    "source_hash": "21819769"
+  },
+  "web.admin.domains.actions.transfer.to": {
+    "text": "移動先",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domains.actions.transfer.orphaned": {
+    "text": "組織なし (孤立)",
+    "source_hash": "6f4c745c"
+  },
+  "web.admin.domains.actions.transfer.button": {
+    "text": "移管を適用",
+    "source_hash": "fb546c5c"
+  },
+  "web.admin.domains.actions.transfer.confirmTitle": {
+    "text": "ドメインを移管しますか?",
+    "source_hash": "801eb986"
+  },
+  "web.admin.domains.actions.transfer.confirmDescription": {
+    "text": "{domain}を組織{org}に移動します。続行するにはドメインの公開IDを入力してください。",
+    "source_hash": "52c8808d"
+  },
+  "web.admin.domains.actions.transfer.success": {
+    "text": "ドメインを移管しました。",
+    "source_hash": "91e681ae"
+  },
+  "web.admin.domains.columns.domain": {
+    "text": "ドメイン",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.columns.organization": {
+    "text": "組織",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.columns.state": {
+    "text": "検証",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.domains.columns.tls": {
+    "text": "TLS",
+    "source_hash": "d1c18ec0"
+  },
+  "web.admin.domains.columns.created": {
+    "text": "作成日時",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.columns.actions": {
+    "text": "操作",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.configs.title": {
+    "text": "ドメインの構成",
+    "source_hash": "d46aa480"
+  },
+  "web.admin.domains.configs.description": {
+    "text": "ログイン、登録、ホームページのシークレット、APIアクセス、受信シークレット、テナントSSO、メール送信を制御するドメインごとの構成レコードです。レコードがない場合、最初の5つは無効側 (フェイルクローズ) になります。",
+    "source_hash": "1df99789"
+  },
+  "web.admin.domains.configs.loadError": {
+    "text": "ドメインの構成レコードを読み込めませんでした。",
+    "source_hash": "9417d718"
+  },
+  "web.admin.domains.configs.retry": {
+    "text": "再試行",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.configs.degraded": {
+    "text": "構成の応答が想定された契約と一致しませんでした。再読み込みし、解消しない場合はご報告ください。",
+    "source_hash": "b5d890c0"
+  },
+  "web.admin.domains.configs.notFoundNote": {
+    "text": "このドメインはすでに存在しないため、構成レコードを読み込めません。",
+    "source_hash": "2d88a392"
+  },
+  "web.admin.domains.configs.detailsToggle": {
+    "text": "詳細",
+    "source_hash": "45989de4"
+  },
+  "web.admin.domains.configs.notEditable": {
+    "text": "ワークスペースのドメイン設定で管理されます。",
+    "source_hash": "54fe891f"
+  },
+  "web.admin.domains.configs.delete.button": {
+    "text": "削除",
+    "source_hash": "e2d0a549"
+  },
+  "web.admin.domains.configs.delete.confirmTitle": {
+    "text": "{kind}の構成を削除しますか?",
+    "source_hash": "98e672db"
+  },
+  "web.admin.domains.configs.delete.confirmDescription": {
+    "text": "{domain}の{kind}構成レコードを完全に削除します。ドメインはレコードがない場合の動作に戻ります。続行するには種別を入力してください。",
+    "source_hash": "8272c40c"
+  },
+  "web.admin.domains.configs.delete.success": {
+    "text": "構成を削除しました。",
+    "source_hash": "a0184b66"
+  },
+  "web.admin.domains.configs.edit.button": {
+    "text": "編集",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.domains.configs.edit.createButton": {
+    "text": "作成",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.configs.edit.title": {
+    "text": "{kind}を設定",
+    "source_hash": "8592148f"
+  },
+  "web.admin.domains.configs.edit.submit": {
+    "text": "保存",
+    "source_hash": "1509f561"
+  },
+  "web.admin.domains.configs.edit.success": {
+    "text": "構成を保存しました。",
+    "source_hash": "6b5b3c69"
+  },
+  "web.admin.domains.configs.edit.unsetOption": {
+    "text": "未設定",
+    "source_hash": "4895f731"
+  },
+  "web.admin.domains.configs.edit.domainsHint": {
+    "text": "1行につき1つのドメインを入力してください。",
+    "source_hash": "6c03f4f7"
+  },
+  "web.admin.domains.configs.ensure.button": {
+    "text": "不足している構成を作成",
+    "source_hash": "77991b75"
+  },
+  "web.admin.domains.configs.ensure.confirmTitle": {
+    "text": "不足している構成レコードを作成しますか?",
+    "source_hash": "3f41dec2"
+  },
+  "web.admin.domains.configs.ensure.confirmDescription": {
+    "text": "{domain}に次の無効状態のレコードを作成します: {kinds}。すべて無効の状態で作成されるため、レコードを有効にするまで動作は変わりません。",
+    "source_hash": "fed66221"
+  },
+  "web.admin.domains.configs.ensure.applyButton": {
+    "text": "レコードを作成",
+    "source_hash": "4bcbef42"
+  },
+  "web.admin.domains.configs.ensure.success": {
+    "text": "不足していた構成レコードを作成しました。",
+    "source_hash": "3b6ead80"
+  },
+  "web.admin.domains.configs.ensure.nothingMissing": {
+    "text": "作成するものはありません — すべての構成レコードがすでに存在します。一覧を更新しました。",
+    "source_hash": "ad0df0ae"
+  },
+  "web.admin.domains.configs.ensure.notApplied": {
+    "text": "サーバーは変更を適用せずにプレビューしました — レコードは作成されていません。再試行し、解消しない場合はご報告ください。",
+    "source_hash": "09d26379"
+  },
+  "web.admin.domains.configs.fields.enabled": {
+    "text": "有効",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.fields.signin_enabled": {
+    "text": "ログインを有効化",
+    "source_hash": "cabe4898"
+  },
+  "web.admin.domains.configs.fields.email_auth_enabled": {
+    "text": "メール認証を有効化",
+    "source_hash": "4a762960"
+  },
+  "web.admin.domains.configs.fields.sso_enabled": {
+    "text": "SSOを有効化",
+    "source_hash": "6e77e673"
+  },
+  "web.admin.domains.configs.fields.restrict_to": {
+    "text": "制限対象",
+    "source_hash": "a0bdf50a"
+  },
+  "web.admin.domains.configs.fields.signup_enabled": {
+    "text": "登録を有効化",
+    "source_hash": "2637d0b2"
+  },
+  "web.admin.domains.configs.fields.autoverify": {
+    "text": "自動認証",
+    "source_hash": "7e02211c"
+  },
+  "web.admin.domains.configs.fields.validation_strategy": {
+    "text": "検証方法",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.configs.fields.allowed_signup_domains": {
+    "text": "登録を許可するドメイン",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.admin.domains.configs.fields.secrets_mode": {
+    "text": "シークレットのモード",
+    "source_hash": "8d4349d6"
+  },
+  "web.admin.domains.configs.fields.disabled_homepage_variant": {
+    "text": "無効時のホームページの表示",
+    "source_hash": "4695633b"
+  },
+  "web.admin.domains.configs.fields.ready": {
+    "text": "準備完了",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.configs.fields.recipients": {
+    "text": "受信者",
+    "source_hash": "1e8568a8"
+  },
+  "web.admin.domains.configs.fields.provider_type": {
+    "text": "プロバイダーの種類",
+    "source_hash": "8c0f6d3e"
+  },
+  "web.admin.domains.configs.fields.display_name": {
+    "text": "表示名",
+    "source_hash": "2b7f6a84"
+  },
+  "web.admin.domains.configs.fields.issuer": {
+    "text": "発行者",
+    "source_hash": "39e02c46"
+  },
+  "web.admin.domains.configs.fields.tenant_id": {
+    "text": "テナントID",
+    "source_hash": "de1f5fff"
+  },
+  "web.admin.domains.configs.fields.has_client_id": {
+    "text": "クライアントID設定済み",
+    "source_hash": "04a9fa3d"
+  },
+  "web.admin.domains.configs.fields.has_client_secret": {
+    "text": "クライアントシークレット設定済み",
+    "source_hash": "6ee1c9e6"
+  },
+  "web.admin.domains.configs.fields.allowed_domains": {
+    "text": "許可するドメイン",
+    "source_hash": "bcd60db0"
+  },
+  "web.admin.domains.configs.fields.enforce_sso_only": {
+    "text": "SSO専用を強制",
+    "source_hash": "b3a3f694"
+  },
+  "web.admin.domains.configs.fields.grant_org_scope": {
+    "text": "組織スコープを付与",
+    "source_hash": "698ea5de"
+  },
+  "web.admin.domains.configs.fields.provider": {
+    "text": "プロバイダー",
+    "source_hash": "472590ae"
+  },
+  "web.admin.domains.configs.fields.from_name": {
+    "text": "送信者名",
+    "source_hash": "b28f93ea"
+  },
+  "web.admin.domains.configs.fields.from_address": {
+    "text": "送信元アドレス",
+    "source_hash": "d465bcfa"
+  },
+  "web.admin.domains.configs.fields.reply_to": {
+    "text": "返信先",
+    "source_hash": "6b9c49b7"
+  },
+  "web.admin.domains.configs.fields.sending_mode": {
+    "text": "送信モード",
+    "source_hash": "e2d6bcf7"
+  },
+  "web.admin.domains.configs.fields.verification_status": {
+    "text": "検証ステータス",
+    "source_hash": "aedfff7e"
+  },
+  "web.admin.domains.configs.fields.dns_verified": {
+    "text": "DNS検証済み",
+    "source_hash": "8b2128c8"
+  },
+  "web.admin.domains.configs.fields.provider_verified": {
+    "text": "プロバイダー検証済み",
+    "source_hash": "6f4d9cc4"
+  },
+  "web.admin.domains.configs.fields.has_api_key": {
+    "text": "APIキー設定済み",
+    "source_hash": "d5115386"
+  },
+  "web.admin.domains.configs.fields.created": {
+    "text": "作成日時",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.configs.fields.updated": {
+    "text": "更新日時",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.configs.kinds.signin": {
+    "text": "ログイン",
+    "source_hash": "5bbbe531"
+  },
+  "web.admin.domains.configs.kinds.signup": {
+    "text": "登録",
+    "source_hash": "3cc08ebe"
+  },
+  "web.admin.domains.configs.kinds.homepage": {
+    "text": "ホームページ",
+    "source_hash": "9e3391e9"
+  },
+  "web.admin.domains.configs.kinds.api": {
+    "text": "API",
+    "source_hash": "c8e5998f"
+  },
+  "web.admin.domains.configs.kinds.incoming": {
+    "text": "受信",
+    "source_hash": "e301820a"
+  },
+  "web.admin.domains.configs.kinds.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.admin.domains.configs.kinds.mailer": {
+    "text": "メーラー",
+    "source_hash": "6c07ba63"
+  },
+  "web.admin.domains.configs.missingNotes.signin": {
+    "text": "レコードなし: テナントSSOが有効でない限り、このドメインではログインが無効です。",
+    "source_hash": "17dd6099"
+  },
+  "web.admin.domains.configs.missingNotes.signup": {
+    "text": "レコードなし: このドメインでは登録が無効です。",
+    "source_hash": "c3c98956"
+  },
+  "web.admin.domains.configs.missingNotes.homepage": {
+    "text": "レコードなし: ホームページのシークレットは無効です (フェイルクローズし、エラーを記録します)。",
+    "source_hash": "9a258a88"
+  },
+  "web.admin.domains.configs.missingNotes.api": {
+    "text": "レコードなし: 公開APIは無効です (フェイルクローズし、エラーを記録します)。",
+    "source_hash": "fed99f73"
+  },
+  "web.admin.domains.configs.missingNotes.incoming": {
+    "text": "レコードなし: 受信シークレットは無効です。",
+    "source_hash": "b957fbe8"
+  },
+  "web.admin.domains.configs.missingNotes.sso": {
+    "text": "レコードなし: テナントSSOは利用できません。プラットフォームのSSOフォールバックポリシーが適用されます。",
+    "source_hash": "7b05ade8"
+  },
+  "web.admin.domains.configs.missingNotes.mailer": {
+    "text": "レコードなし: プラットフォームのメーラーが使用されます。",
+    "source_hash": "e027cc99"
+  },
+  "web.admin.domains.configs.status.missing": {
+    "text": "なし",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.domains.configs.status.disabled": {
+    "text": "無効",
+    "source_hash": "75081b59"
+  },
+  "web.admin.domains.configs.status.enabled": {
+    "text": "有効",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.status.enabledNotReady": {
+    "text": "有効 (準備未完了)",
+    "source_hash": "cb806ba4"
+  },
+  "web.admin.domains.detail.openFullPage": {
+    "text": "全画面で開く",
+    "source_hash": "a467911c"
+  },
+  "web.admin.domains.detail.backToList": {
+    "text": "ドメイン一覧に戻る",
+    "source_hash": "22fd50fe"
+  },
+  "web.admin.domains.detail.notFound": {
+    "text": "ドメインが見つかりません",
+    "source_hash": "7b8fc0e6"
+  },
+  "web.admin.domains.detail.notFoundDescription": {
+    "text": "このドメインは存在しないか、すでに削除されています。",
+    "source_hash": "e0f0b987"
+  },
+  "web.admin.domains.detail.loadError": {
+    "text": "このドメインを読み込めませんでした。",
+    "source_hash": "39e9c657"
+  },
+  "web.admin.domains.detail.retry": {
+    "text": "再試行",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.detail.never": {
+    "text": "なし",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.domains.detail.none": {
+    "text": "なし",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.domains.detail.yes": {
+    "text": "はい",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.domains.detail.no": {
+    "text": "いいえ",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.domains.detail.organization.open": {
+    "text": "組織を開く",
+    "source_hash": "54a43621"
+  },
+  "web.admin.domains.detail.organization.unknown": {
+    "text": "所有する組織はこの応答に含まれていません。ドメイン一覧からこのドメインを開くと確認できます。",
+    "source_hash": "bb5bdc9c"
+  },
+  "web.admin.domains.detail.sections.overview": {
+    "text": "概要",
+    "source_hash": "d4b1ea57"
+  },
+  "web.admin.domains.detail.sections.actions": {
+    "text": "操作",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.detail.sections.organization": {
+    "text": "所有する組織",
+    "source_hash": "39ad6d9c"
+  },
+  "web.admin.domains.detail.sections.dns": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.admin.domains.detail.sections.diagnostics": {
+    "text": "診断",
+    "source_hash": "268f14bb"
+  },
+  "web.admin.domains.detail.sections.operations": {
+    "text": "所有権に関する操作",
+    "source_hash": "eb9a8cbc"
+  },
+  "web.admin.domains.detail.sections.operationsHint": {
+    "text": "各操作はまずプレビューされます。適用の確認を行うまで、何も書き込まれません。",
+    "source_hash": "f09bf7bd"
+  },
+  "web.admin.domains.fields.publicId": {
+    "text": "公開ID",
+    "source_hash": "3705b64f"
+  },
+  "web.admin.domains.fields.domainId": {
+    "text": "内部ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.domains.fields.organization": {
+    "text": "組織",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.fields.baseDomain": {
+    "text": "ベースドメイン",
+    "source_hash": "33295d5b"
+  },
+  "web.admin.domains.fields.subdomain": {
+    "text": "サブドメイン",
+    "source_hash": "ba4520ab"
+  },
+  "web.admin.domains.fields.apex": {
+    "text": "Apexドメイン",
+    "source_hash": "0a8a42fa"
+  },
+  "web.admin.domains.fields.status": {
+    "text": "ステータス",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domains.fields.created": {
+    "text": "作成日時",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.fields.updated": {
+    "text": "更新日時",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.fields.verified": {
+    "text": "検証済み",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.fields.resolving": {
+    "text": "名前解決中",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.fields.ready": {
+    "text": "準備完了",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.list.searchPlaceholder": {
+    "text": "ドメイン名またはIDで検索",
+    "source_hash": "aecdd873"
+  },
+  "web.admin.domains.list.stateFilter": {
+    "text": "状態",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domains.list.emptyFilter": {
+    "text": "現在の絞り込み条件に一致するドメインはありません。",
+    "source_hash": "be4d64ec"
+  },
+  "web.admin.domains.probe.healthLabel": {
+    "text": "健全性",
+    "source_hash": "55898449"
+  },
+  "web.admin.domains.probe.certInvalid": {
+    "text": "証明書を使用できません",
+    "source_hash": "5535f4d4"
+  },
+  "web.admin.domains.probe.noCertificate": {
+    "text": "証明書が返されませんでした — TLSの前に接続が失敗しました。",
+    "source_hash": "8ffd63be"
+  },
+  "web.admin.domains.probe.fields.httpStatus": {
+    "text": "HTTPステータス",
+    "source_hash": "0f7cf91f"
+  },
+  "web.admin.domains.probe.fields.httpError": {
+    "text": "HTTPエラー",
+    "source_hash": "5c6896d4"
+  },
+  "web.admin.domains.probe.fields.sslError": {
+    "text": "TLSエラー",
+    "source_hash": "7b827515"
+  },
+  "web.admin.domains.probe.fields.issuer": {
+    "text": "証明書の発行者",
+    "source_hash": "2912559a"
+  },
+  "web.admin.domains.probe.fields.subject": {
+    "text": "証明書のサブジェクト",
+    "source_hash": "d7816b16"
+  },
+  "web.admin.domains.probe.fields.notAfter": {
+    "text": "証明書の有効期限",
+    "source_hash": "1e73119d"
+  },
+  "web.admin.domains.probe.fields.expiresIn": {
+    "text": "{date} (あと{days}日)",
+    "source_hash": "a71a6e81"
+  },
+  "web.admin.domains.tls.serving": {
+    "text": "配信中",
+    "source_hash": "f55e53f9"
+  },
+  "web.admin.domains.tls.resolving": {
+    "text": "名前解決中",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.tls.none": {
+    "text": "配信していません",
+    "source_hash": "da8a5ab9"
   }
 }

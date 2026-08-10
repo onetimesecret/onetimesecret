@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "이메일이 인증되었습니다 — 이제 로그인할 수 있습니다.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "비밀번호 설정",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "계정에 아직 비밀번호가 없습니다. 직접 로그인할 수 있도록 비밀번호를 설정하는 안전한 링크를 이메일로 보내드립니다.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "설정 링크 보내기",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "계정 비밀번호를 설정하는 링크가 포함된 이메일이 발송되었습니다",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "이 이메일 주소로 된 계정이 이미 존재하지만 이 로그인 방법에 연결되어 있지 않습니다. 기존 방법으로 로그인한 다음 보안 설정 → 연결된 계정에서 이 제공자를 연결하세요.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "이 계정을 연결할 수 없습니다. 잘못된 도메인에서 연결을 시작했거나 세션이 만료되었을 수 있습니다. 다시 로그인한 다음 계정 설정에서 연결하세요.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "조직에 추가를 완료할 수 없습니다. 관리자에게 문의하세요.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "해당 로그인 방법을 연결할 수 없습니다. 기존 비밀번호로 로그인한 다음 보안 설정 → 연결된 계정에서 이 제공자를 연결하세요.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "받은 편지함을 확인하세요 — 계정 연결을 확인하는 링크를 이메일로 보냈습니다. 로그인을 완료하려면 링크를 열어주세요.",
+    "source_hash": "b251c8f3"
   }
 }

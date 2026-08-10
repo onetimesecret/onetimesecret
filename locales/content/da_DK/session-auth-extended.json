@@ -730,5 +730,204 @@
   "web.auth.sessions.session_plural": {
     "text": "sessioner",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Forbundne identiteter",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Administrer single sign-on-udbydere, der er knyttet til din konto.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Single sign-on",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Identitetsudbydere, du kan bruge til at logge ind på denne konto",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Tilslut en udbyder",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Link en anden single sign-on-udbyder, du kan bruge til at logge ind på denne konto.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Tilslut {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Udsteder",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifikator",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Fjern",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Fjern forbundet identitet",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Er du sikker på, at du vil fjerne denne forbundne identitet? Du vil ikke længere kunne logge ind med den.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Forbundet identitet fjernet",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Ingen forbundne identiteter",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Du har endnu ikke knyttet nogen single sign-on-udbydere til denne konto.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Single sign-on",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Dette er din eneste måde at logge ind på. Tilslut først en anden udbyder, eller angiv en adgangskode fra Indstillinger → Sikkerhed, så du ikke bliver låst ude.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Dette er din eneste måde at logge ind på. Tilslut først en anden udbyder, så du ikke bliver låst ude.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Den forbundne identitet kunne ikke findes. Den er muligvis allerede blevet fjernet.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Din session er udløbet. Log venligst ind igen.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Vi kunne ikke fuldføre denne handling. Prøv venligst igen.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Link din login-metode",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Du loggede ind med {provider}, som matcher den eksisterende konto {email}. Indtast den kontos adgangskode for at linke {provider} og fortsætte.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Adgangskode",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Din eksisterende adgangskode",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Link og fortsæt",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Annuller",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Denne linkanmodning er udløbet",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "For din sikkerhed er anmodningen om at linke denne login-metode ikke længere gyldig. Log ind med din eksisterende adgangskode, og tilslut derefter denne udbyder under Sikkerhedsindstillinger → Forbundne identiteter.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Fortsæt til login",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Adgangskoden matcher ikke denne konto. Prøv venligst igen.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Denne linkanmodning er udløbet eller allerede brugt. Log ind med din eksisterende adgangskode, og tilslut derefter denne udbyder fra dine kontoindstillinger.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Vi kunne ikke linke denne login-metode. Din konto er muligvis ændret, eller denne udbyder er allerede linket til en anden konto. Log ind med din eksisterende adgangskode, og administrer forbindelser under Sikkerhedsindstillinger → Forbundne identiteter.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "For mange adgangskodeforsøg. Vent venligst et par minutter, og prøv derefter igen.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Vi kunne ikke behandle denne linkanmodning. Log venligst ind med din SSO-udbyder igen.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Vi kunne ikke linke din konto. Prøv venligst igen.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Bekræft forbindelse af din konto",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Du loggede ind med {provider}, som matcher din konto {email}. Bekræft for at forbinde {provider} til denne konto og færdiggøre login.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Bekræft og forbind",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Annuller",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Denne linkanmodning kan ikke fuldføres",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "For din sikkerhed er denne anmodning om at forbinde din login-metode ikke længere gyldig. Log ind med din udbyder igen, så sender vi dig et nyt link via e-mail.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Tilbage til login",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Denne linkanmodning er udløbet eller allerede brugt. Log ind med din udbyder igen, så sender vi dig et nyt link via e-mail.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Vi kunne ikke forbinde denne login-metode. Din konto er muligvis ændret, eller denne udbyder er allerede linket til en anden konto. Log ind med din udbyder igen for at fortsætte.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Dine kontooplysninger blev ændret, efter dette link blev sendt, så det er ikke længere gyldigt. Log ind med din udbyder igen, så sender vi dig et nyt link via e-mail.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Noget gik galt på vores side, og vi kunne ikke verificere dette link. Log ind med din udbyder igen, så sender vi dig et nyt.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "For mange forsøg fra din enhed. Vent venligst et par minutter, og åbn derefter det mailede link igen, eller log ind med din udbyder for at få et nyt.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Vi kunne ikke bekræfte denne forbindelse. Log venligst ind med din udbyder igen.",
+    "source_hash": "076fa25a"
   }
 }

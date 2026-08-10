@@ -4,7 +4,7 @@
     "source_hash": "6725e7bb"
   },
   "web.admin.system.description": {
-    "text": "Status van database, wachtrij en infrastructuur.",
+    "text": "Database-, wachtrij- en infrastructuurstatus.",
     "source_hash": "0115f495"
   },
   "web.admin.system.retry": {
@@ -16,7 +16,7 @@
     "source_hash": "1391230b"
   },
   "web.admin.system.database.loadError": {
-    "text": "Kan databasestatistieken niet laden.",
+    "text": "Kon databasestatistieken niet laden.",
     "source_hash": "905055c6"
   },
   "web.admin.system.database.server": {
@@ -56,7 +56,7 @@
     "source_hash": "6634251d"
   },
   "web.admin.system.database.fields.totalCommands": {
-    "text": "Totaal aantal opdrachten",
+    "text": "Totaal commando's",
     "source_hash": "c5ce5aaf"
   },
   "web.admin.system.database.fields.usedMemory": {
@@ -72,7 +72,7 @@
     "source_hash": "9d44afa6"
   },
   "web.admin.system.database.fields.fragmentation": {
-    "text": "Fragmentatieratio",
+    "text": "Fragmentatieverhouding",
     "source_hash": "721494dd"
   },
   "web.admin.system.database.stats.customers": {
@@ -88,7 +88,7 @@
     "source_hash": "60a627df"
   },
   "web.admin.system.database.stats.totalKeys": {
-    "text": "Totaal aantal sleutels",
+    "text": "Totaal sleutels",
     "source_hash": "4e0d27f5"
   },
   "web.admin.system.queue.title": {
@@ -96,7 +96,7 @@
     "source_hash": "3b2fe03e"
   },
   "web.admin.system.queue.loadError": {
-    "text": "Kan wachtrijstatistieken niet laden.",
+    "text": "Kon wachtrijstatistieken niet laden.",
     "source_hash": "715bdc88"
   },
   "web.admin.system.queue.empty": {
@@ -132,7 +132,7 @@
     "source_hash": "7f1e323b"
   },
   "web.admin.system.queue.health.degraded": {
-    "text": "Verminderd",
+    "text": "Verslechterd",
     "source_hash": "a8494c12"
   },
   "web.admin.system.queue.health.unhealthy": {
@@ -148,11 +148,139 @@
     "source_hash": "e762bd3c"
   },
   "web.admin.system.redis.loadError": {
-    "text": "Kan Redis-statistieken niet laden.",
+    "text": "Kon Redis-statistieken niet laden.",
     "source_hash": "ca5945d6"
   },
   "web.admin.system.redis.captured": {
     "text": "Vastgelegd {at}",
     "source_hash": "57b40c0f"
+  },
+  "web.admin.system.brand.title": {
+    "text": "Merkdiagnostiek",
+    "source_hash": "1cf9abd5"
+  },
+  "web.admin.system.brand.description": {
+    "text": "Welk merkpakket de draaiende instantie op schijf heeft opgelost — toont waarom een regio neutrale branding kan serveren.",
+    "source_hash": "be29e282"
+  },
+  "web.admin.system.brand.loadError": {
+    "text": "Kon merkdiagnostiek niet laden.",
+    "source_hash": "80607303"
+  },
+  "web.admin.system.brand.none": {
+    "text": "(geen)",
+    "source_hash": "552e4230"
+  },
+  "web.admin.system.brand.resolution": {
+    "text": "Resolutie",
+    "source_hash": "d4055faf"
+  },
+  "web.admin.system.brand.envVsConfig": {
+    "text": "Omgeving vs Configuratie",
+    "source_hash": "bee3debb"
+  },
+  "web.admin.system.brand.absorbed": {
+    "text": "Geabsorbeerde sleutels",
+    "source_hash": "9784e110"
+  },
+  "web.admin.system.brand.operatorKeys": {
+    "text": "Operatorsleutels",
+    "source_hash": "434e8248"
+  },
+  "web.admin.system.brand.overlayAssets": {
+    "text": "Overlay-assets",
+    "source_hash": "c87de1f9"
+  },
+  "web.admin.system.brand.exists.yes": {
+    "text": "Aanwezig",
+    "source_hash": "43f9b89c"
+  },
+  "web.admin.system.brand.exists.no": {
+    "text": "Ontbreekt",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.system.brand.fields.resolvedDir": {
+    "text": "Opgeloste map",
+    "source_hash": "0623b983"
+  },
+  "web.admin.system.brand.fields.home": {
+    "text": "Home",
+    "source_hash": "3a786953"
+  },
+  "web.admin.system.brand.fields.envPack": {
+    "text": "ENV-merkpakket",
+    "source_hash": "940aeb5c"
+  },
+  "web.admin.system.brand.fields.configPack": {
+    "text": "Config-merkpakket",
+    "source_hash": "761b9550"
+  },
+  "web.admin.system.brand.fields.envAssetsDir": {
+    "text": "ENV-merkassetsmap",
+    "source_hash": "05854f1f"
+  },
+  "web.admin.system.brand.fields.configAssetsDir": {
+    "text": "Config-merkassetsmap",
+    "source_hash": "e91e5c46"
+  },
+  "web.admin.system.brand.flags.fellBack.danger": {
+    "text": "Teruggevallen op standaardpakket",
+    "source_hash": "7bf7ba2f"
+  },
+  "web.admin.system.brand.flags.fellBack.ok": {
+    "text": "Merkpakket opgelost",
+    "source_hash": "1ab3162f"
+  },
+  "web.admin.system.brand.flags.mismatch.danger": {
+    "text": "Boot / live mismatch",
+    "source_hash": "0a022192"
+  },
+  "web.admin.system.brand.flags.mismatch.ok": {
+    "text": "Boot komt overeen met live",
+    "source_hash": "d4792c09"
+  },
+  "web.admin.system.brand.manifest.title": {
+    "text": "Manifest",
+    "source_hash": "3c99f1f3"
+  },
+  "web.admin.system.brand.manifest.path": {
+    "text": "Pad",
+    "source_hash": "62fa5a5b"
+  },
+  "web.admin.system.brand.manifest.exists": {
+    "text": "Bestaat",
+    "source_hash": "fefd8ba5"
+  },
+  "web.admin.system.brand.manifest.keysOnDisk": {
+    "text": "Sleutels op schijf",
+    "source_hash": "52439c03"
+  },
+  "web.admin.system.brand.roots.title": {
+    "text": "Zoekwortels",
+    "source_hash": "d8696f2b"
+  },
+  "web.admin.system.brand.roots.empty": {
+    "text": "Geen zoekwortels",
+    "source_hash": "867a471c"
+  },
+  "web.admin.system.brand.roots.columns.path": {
+    "text": "Pad",
+    "source_hash": "62fa5a5b"
+  },
+  "web.admin.system.brand.roots.columns.exists": {
+    "text": "Bestaat",
+    "source_hash": "fefd8ba5"
+  },
+  "web.admin.system.brand.stats.brandPack": {
+    "text": "Merkpakket",
+    "source_hash": "884437d0"
+  },
+  "web.admin.system.brand.stats.overlayAssets": {
+    "text": "Overlay-assets",
+    "source_hash": "c87de1f9"
+  },
+  "web.admin.system.brand.stats.manifestKeys": {
+    "text": "Manifestsleutels",
+    "source_hash": "c4267198"
   }
 }

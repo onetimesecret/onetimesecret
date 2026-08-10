@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Ви отримали цей лист, оскільки %{sender_email} скористався %{product_name}, щоб поділитися з Вами таємницею. Якщо Ви цього не очікували, Ви можете спокійно проігнорувати цей лист.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Підтвердіть підключення %{provider} до Вашого облікового запису %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Підтвердіть Ваш вхід через SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Хтось увійшов через %{provider}, використовуючи електронну адресу %{email_address}. Щоб завершити підключення %{provider} до Вашого облікового запису %{product_name}, підтвердіть нижче.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Підтвердити та підключити %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Або скопіюйте та вставте це посилання:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Це посилання дійсне протягом 15 хвилин і може бути використано лише один раз.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Якщо Ви не намагалися увійти через %{provider}, можете спокійно проігнорувати цей лист — нічого не буде підключено до Вашого облікового запису.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Команда підтримки",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. Цей лист надіслано на адресу %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

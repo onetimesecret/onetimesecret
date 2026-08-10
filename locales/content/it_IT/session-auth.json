@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "La tua email è stata verificata — ora puoi accedere.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Imposta una password",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Il tuo account non ha ancora una password. Ti invieremo via email un link sicuro per impostarne una, così potrai accedere anche direttamente.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Invia il link di configurazione",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Ti è stata inviata un'email con un link per impostare una password per il tuo account",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Esiste già un account con questo indirizzo email, ma non è collegato a questo metodo di accesso. Accedi con il tuo metodo esistente, poi collega questo provider in Impostazioni di sicurezza → Identità collegate.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Non è stato possibile collegare questa identità. Il collegamento potrebbe essere stato avviato sul dominio sbagliato oppure la tua sessione è scaduta. Accedi di nuovo, poi collegala dalle impostazioni del tuo account.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Non è stato possibile completare la tua aggiunta all'organizzazione. Contatta il tuo amministratore.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Non è stato possibile collegare quel metodo di accesso. Accedi con la tua password esistente, poi collega questo provider in Impostazioni di sicurezza → Identità collegate.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Controlla la tua casella di posta: ti abbiamo inviato via email un link per confermare il collegamento del tuo account. Aprilo per completare l'accesso.",
+    "source_hash": "b251c8f3"
   }
 }
