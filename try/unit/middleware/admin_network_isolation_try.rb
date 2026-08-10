@@ -86,49 +86,71 @@ class TestAdminNetworkIsolation < Onetime::Middleware::AdminNetworkIsolation
     @allowed_hosts
   end
 
-  # Swap a recorder in for the duration of the block and return the WARN lines
-  # it saw, as [message, payload] pairs.
+  # Records the log lines one middleware instance emits.
+  #
+  # The three host refusals — unattributable forwarded host, unresolvable host,
+  # allowlist miss — are the IDENTICAL 404 by design; indistinguishable-from-absent
+  # is the whole point of the response side. That leaves the LOG LINE as the only
+  # thing that tells an operator which one fired, which is why it is worth
+  # asserting on and why these cases cannot go through status alone.
+  #
+  # EVERY level is recorded, not just #warn. The earlier version answered #warn
+  # and swallowed the rest through method_missing, which turned "this denial
+  # moved to ERROR" into "this request logged nothing at all" — the one outcome
+  # these cases must never confuse with an undiagnosed denial. A level not
+  # listed here raises NoMethodError rather than being absorbed, for the same
+  # reason. It is nested because the constant would otherwise be a bare
+  # top-level name in the single process `rake try:unit` runs all ~295 files in.
+  class LogRecorder
+    LEVELS = %i[debug info warn error fatal unknown].freeze
+
+    Entry = Struct.new(:level, :message, :payload)
+
+    attr_reader :entries
+
+    def initialize
+      @entries = []
+    end
+
+    LEVELS.each do |level|
+      define_method(level) do |message, payload = nil|
+        @entries << Entry.new(level, message, payload)
+        nil
+      end
+    end
+
+    def lines
+      @entries.map { |entry| [entry.message, entry.payload] }
+    end
+
+    def levels
+      @entries.map(&:level)
+    end
+  end
+
+  # Swap a recorder in for the duration of the block and return it.
   #
   # Installed AFTER construction on purpose: the boot lines already went to the
   # real logger (and have their own announcement-ledger cases at the bottom of
   # this file), so only PER-REQUEST denials land here.
-  def capture_warns
+  def with_log_recorder
     real     = @logger
-    recorder = WarnRecorder.new
+    recorder = LogRecorder.new
     @logger  = recorder
     yield
-    recorder.warns
+    recorder
   ensure
     @logger = real
   end
-end
 
-# Records the WARN lines one middleware instance emits.
-#
-# The three host refusals — unattributable forwarded host, unresolvable host,
-# allowlist miss — are the IDENTICAL 404 by design; indistinguishable-from-absent
-# is the whole point of the response side. That leaves the LOG LINE as the only
-# thing that tells an operator which one fired, which is why it is worth
-# asserting on and why these cases cannot go through status alone.
-class WarnRecorder
-  attr_reader :warns
-
-  def initialize
-    @warns = []
+  # The log lines one block produced, as [message, payload] pairs.
+  def capture_logs(&block)
+    with_log_recorder(&block).lines
   end
 
-  def warn(message, payload = nil)
-    @warns << [message, payload]
-    nil
-  end
-
-  # Every other level is swallowed: only the denial WARNs are under test.
-  def method_missing(_name, *_args)
-    nil
-  end
-
-  def respond_to_missing?(_name, _include_private = false)
-    true
+  # The levels those same lines came in at.
+  def capture_levels(&block)
+    with_log_recorder(&block).levels
   end
 end
 
@@ -222,7 +244,7 @@ end
 # the only way to tell the three identical-404 host refusals apart.
 def denial_warns(mw, detected_host, extra = {}, http_host: nil, path_info: '/colonel', script_name: '')
   status   = nil
-  recorded = mw.capture_warns do
+  recorded = mw.capture_logs do
     status = status_with(mw, detected_host, extra,
                          http_host: http_host, path_info: path_info, script_name: script_name)
   end
@@ -632,7 +654,7 @@ denial_warns(@hosts, nil)
 #=> [404, ['Admin surface access denied: no host could be detected for this request']]
 
 ## absent detected-host key - same line (DetectHost never ran, same diagnosis)
-@absent_warns = @hosts.capture_warns { status_for(@hosts, :unset) }
+@absent_warns = @hosts.capture_logs { status_for(@hosts, :unset) }
 @absent_warns.map(&:first)
 #=> ['Admin surface access denied: no host could be detected for this request']
 
@@ -657,17 +679,26 @@ denial_warns(@hosts, 'tenant.example.com')
 denial_warns(@hosts, 'admin.example.com')
 #=> [200, []]
 
+## the LEVEL each denial arrives at, not only its message. The level is what an
+## operator's log filter is tuned to, and a recorder that swallowed every level
+## but #warn reported a promotion to ERROR as silence instead of as a change.
+## Both host refusals log at WARN; an admitted request logs nothing
+[@hosts.capture_levels { status_for(@hosts, nil) },
+ @hosts.capture_levels { status_for(@hosts, 'tenant.example.com') },
+ @hosts.capture_levels { status_for(@hosts, 'admin.example.com') }]
+#=> [[:warn], [:warn], []]
+
 ## every host denial carries the same host/path/method triple, so an operator's
 ## existing log query does not have to special-case the new line. `note` rides
 ## alongside it on the two refusals that have a remedy to name
-@nil_warn = @hosts.capture_warns { status_for(@hosts, nil) }.first
+@nil_warn = @hosts.capture_logs { status_for(@hosts, nil) }.first
 [@nil_warn.last.keys.sort, @nil_warn.last[:host], @nil_warn.last[:path], @nil_warn.last[:method]]
 #=> [%i[host method note path], nil, '/colonel', 'GET']
 
 ## the allowlist miss for contrast: same triple, and no note - the host it
 ## names IS the diagnosis, and the remedy is the config key already in the
 ## message
-@miss_warn = @hosts.capture_warns { status_for(@hosts, 'tenant.example.com') }.first
+@miss_warn = @hosts.capture_logs { status_for(@hosts, 'tenant.example.com') }.first
 [@miss_warn.last.keys.sort, @miss_warn.last[:host], @miss_warn.last[:path], @miss_warn.last[:method]]
 #=> [%i[host method path], 'tenant.example.com', '/colonel', 'GET']
 
