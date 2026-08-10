@@ -657,11 +657,19 @@ denial_warns(@hosts, 'tenant.example.com')
 denial_warns(@hosts, 'admin.example.com')
 #=> [200, []]
 
-## the unresolvable-host payload carries the SAME key set as the other two
-## denials, so an operator's existing log query does not have to special-case it
+## every host denial carries the same host/path/method triple, so an operator's
+## existing log query does not have to special-case the new line. `note` rides
+## alongside it on the two refusals that have a remedy to name
 @nil_warn = @hosts.capture_warns { status_for(@hosts, nil) }.first
 [@nil_warn.last.keys.sort, @nil_warn.last[:host], @nil_warn.last[:path], @nil_warn.last[:method]]
 #=> [%i[host method note path], nil, '/colonel', 'GET']
+
+## the allowlist miss for contrast: same triple, and no note - the host it
+## names IS the diagnosis, and the remedy is the config key already in the
+## message
+@miss_warn = @hosts.capture_warns { status_for(@hosts, 'tenant.example.com') }.first
+[@miss_warn.last.keys.sort, @miss_warn.last[:host], @miss_warn.last[:path], @miss_warn.last[:method]]
+#=> [%i[host method path], 'tenant.example.com', '/colonel', 'GET']
 
 ## the note names the real cause and the two remedies, and never blames the
 ## allowlist for a rejection it did not make
