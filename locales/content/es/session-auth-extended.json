@@ -757,6 +757,7 @@
   },
   "web.auth.connections.connect_action": {
     "text": "Conectar {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
     "source_hash": "c77540af"
   },
   "web.auth.connections.issuer": {
@@ -821,6 +822,7 @@
   },
   "web.link_sso.prompt": {
     "text": "Has iniciado sesión con {provider}, que coincide con la cuenta existente {email}. Introduce la contraseña de esa cuenta para vincular {provider} y continuar.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
     "source_hash": "59da1c08"
   },
   "web.link_sso.password_label": {
@@ -881,6 +883,7 @@
   },
   "web.sso_link_confirm.prompt": {
     "text": "Has iniciado sesión con {provider}, que coincide con tu cuenta {email}. Confirma para conectar {provider} a esta cuenta y terminar de iniciar sesión.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
     "source_hash": "6ff0d6cc"
   },
   "web.sso_link_confirm.submit": {
