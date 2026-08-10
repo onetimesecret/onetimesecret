@@ -38,7 +38,9 @@ module Onetime
     # Routability is judged with DetectHost's OWN predicate (public via its
     # `extend ClassMethods`) rather than a local copy, so the two cannot drift.
     module AdminHostAllowlist
-      # Disables the host gate — honored only as the sole entry.
+      # Disables the host gate. Honored ANYWHERE in the list, not only as the
+      # sole entry — see Classification#unenforceable? for why a sibling entry
+      # does not make it ambiguous.
       WILDCARD = '*'
 
       # Why an entry was rejected, in the words shown to the operator. Used by

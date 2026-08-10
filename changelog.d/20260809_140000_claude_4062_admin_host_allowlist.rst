@@ -25,9 +25,9 @@ Changed
   unchanged, while tenant custom domains and ``LINK_DOMAINS`` link-pool hosts
   stop serving the admin console. If you reach ``/colonel`` on any other
   hostname, set ``ADMIN_ALLOWED_HOSTS`` to that hostname before upgrading or it
-  will 404. Rollback is one variable: ``ADMIN_ALLOWED_HOSTS=*`` as the sole
-  entry disables the host gate (logged at WARN on boot) and leaves the CIDR
-  gate untouched. (#4062)
+  will 404. Rollback is one variable: ``ADMIN_ALLOWED_HOSTS=*`` disables the
+  host gate (logged at WARN on boot) and leaves the CIDR gate untouched — a
+  ``*`` anywhere in the list is honoured, not only as the sole entry. (#4062)
 
 - **Operators:** an ``ADMIN_ALLOWED_HOSTS`` that names nothing the gate could
   ever match — ``=127.0.0.1``, ``=localhost``, ``=*.example.com``, or a
