@@ -681,12 +681,18 @@ def audit_locale(
         if not locale_file.exists():
             continue
 
+        # Entry-aware (walk_keys reads only `text`, drops skip/metadata), so
+        # keys are the real dotted paths -- not flatten_json's `<key>.text` /
+        # `<key>.context` / `<key>.source_hash` sub-fields. `context` and `note`
+        # are en-only authoring metadata that no translation carries, so
+        # comparing them reported a permanent, unfixable mismatch for every
+        # locale whenever an en `context` mentioned a placeholder.
         try:
             with open(en_file, "r", encoding="utf-8") as f:
-                en_data = flatten_json(json.load(f))
+                en_data = dict(walk_keys(json.load(f)))
             with open(locale_file, "r", encoding="utf-8") as f:
-                locale_data = flatten_json(json.load(f))
-        except (json.JSONDecodeError, IOError) as e:
+                locale_data = dict(walk_keys(json.load(f)))
+        except (OSError, json.JSONDecodeError) as e:
             issues[en_file.name].append(
                 {
                     "key": "_file_error",
@@ -964,6 +970,7 @@ def _variables_handler(args) -> int:
 # Subcommand: validate glossary (bound-glossary divergence, advisory)
 # ===========================================================================
 
+
 # What counts as "the term appears" in the English source. A glossary term is an
 # English word (secret, burn, email); match it whole-word, case-insensitive, so
 # "secret" does not fire on "secretary".
@@ -1127,7 +1134,9 @@ def _glossary_handler(args) -> int:
             file=sys.stderr,
         )
 
-    print(f"\nTOTAL: {total} possible glossary divergence(s) across {checked} locale(s)")
+    print(
+        f"\nTOTAL: {total} possible glossary divergence(s) across {checked} locale(s)"
+    )
     # Advisory by default (heuristic → false positives). --strict gates for CI:
     # fail on any divergence, and also fail when NOTHING could be checked (no
     # resolved governance) — a gate that verifies nothing must not read green.
@@ -1153,7 +1162,9 @@ def _hashes_handler(args) -> int:
     from .content import _hashes_compute_hash
 
     source_dir = CONTENT_DIR / SOURCE_LOCALE
-    mismatched: list[tuple[str, str, str, str]] = []  # file, key, stored, computed
+    mismatched: list[
+        tuple[str, str, str, str]
+    ] = []  # file, key, stored, computed
     missing: list[tuple[str, str, str]] = []  # file, key, computed
     checked = 0
 
@@ -1174,9 +1185,13 @@ def _hashes_handler(args) -> int:
                 mismatched.append((json_file.name, key_path, stored, computed))
 
     for file_name, key, stored, computed in mismatched:
-        print(f"STALE   {file_name} · {key}: stored {stored} != computed {computed}")
+        print(
+            f"STALE   {file_name} · {key}: stored {stored} != computed {computed}"
+        )
     for file_name, key, computed in missing:
-        print(f"MISSING {file_name} · {key}: no content_hash (computed {computed})")
+        print(
+            f"MISSING {file_name} · {key}: no content_hash (computed {computed})"
+        )
 
     print(
         f"\nChecked {checked} en source key(s): "

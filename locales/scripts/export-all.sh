@@ -126,29 +126,16 @@ audit_locale() {
 # also the "locale not found"/crash path, which prints no JSON). Decide on the
 # parsed report, treating an unparseable one as dirty — never as clean.
 #
-# Counted from `details`, not `summary`, so en-only authoring metadata can be
-# excluded: `validate variables` flattens each content entry, so `<key>.context`
-# is compared as if it were translatable, while `tasks export` writes only
-# `{"text": ...}`. Three en keys carry {provider}/{email} inside their `context`
-# and are absent from all 29 locales, so a summary-based gate reports >=3
-# mismatches for every locale after even a byte-perfect export — permanently
-# non-zero, and therefore ignored. Only keys the export can actually influence
-# are counted.
+# `validate variables` is entry-aware (it compares only each entry's `text`), so
+# the reported count already excludes en-only authoring metadata — `context`,
+# `note`, `source_hash` — that `tasks export` never writes. Read `summary`
+# directly; no post-filtering is needed.
 VALIDATE_VARIABLES_COUNT_PY='
 import sys, json
 
-METADATA_FIELDS = ("context", "note", "source_hash")
-
 data = json.load(sys.stdin)
-count = 0
-for files in data.get("details", {}).values():
-    for issues in files.values():
-        for issue in issues:
-            key = str(issue.get("key", ""))
-            if key.rsplit(".", 1)[-1] in METADATA_FIELDS:
-                continue
-            count += 1
-print(count)
+summary = data.get("summary", {})
+print(sum(int(n) for n in summary.values()))
 '
 
 validate_variables() {
