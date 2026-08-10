@@ -10,7 +10,7 @@ require 'uri'
 require 'singleton'
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
-require_relative 'sso_provider_registry'
+require_relative 'sso_provider/registry'
 
 module Onetime
   class AuthConfig
@@ -390,7 +390,7 @@ module Onetime
     end
 
     # Provider definitions for sso_providers, email-linking trust, and CSP
-    # form-action origins. The data lives in Onetime::SsoProviderRegistry —
+    # form-action origins. The data lives in Onetime::SsoProvider::Registry —
     # the SAME registry the auth app's boot-time strategy registration
     # consumes — so serializer gating, CSP origins, and registered strategies
     # can never drift apart. Each entry defines the env vars that gate the
@@ -408,7 +408,7 @@ module Onetime
     # Public: the auth app's boot registration reads it (via
     # display_default_for) so its logs share the serializer's view.
     def provider_definitions
-      SsoProviderRegistry::DEFINITIONS.map do |defn|
+      SsoProvider::Registry::DEFINITIONS.map do |defn|
         next defn unless defn[:key] == :oidc
 
         legacy_display = sso_display_name

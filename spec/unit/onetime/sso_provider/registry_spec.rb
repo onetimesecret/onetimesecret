@@ -1,8 +1,8 @@
-# spec/unit/onetime/config/sso_provider_registry_spec.rb
+# spec/unit/onetime/sso_provider/registry_spec.rb
 #
 # frozen_string_literal: true
 
-# Shape validation for Onetime::SsoProviderRegistry — the single source of
+# Shape validation for Onetime::SsoProvider::Registry — the single source of
 # truth for SSO provider wiring (serializer gating, CSP origins, and
 # boot-time strategy registration all read it).
 #
@@ -15,9 +15,9 @@
 
 require 'spec_helper'
 require 'climate_control'
-require_relative '../../../../lib/onetime/sso_provider_registry'
+require_relative '../../../../lib/onetime/sso_provider/registry'
 
-RSpec.describe Onetime::SsoProviderRegistry do
+RSpec.describe Onetime::SsoProvider::Registry do
   let(:definitions) { described_class::DEFINITIONS }
 
   REQUIRED_FIELDS = [

@@ -1,8 +1,10 @@
 # Adding an SSO Provider
 
-All SSO provider wiring is data in one place:
-`lib/onetime/sso_provider_registry.rb` (`Onetime::SsoProviderRegistry::DEFINITIONS`).
-Both consumers read it, so they cannot drift:
+All SSO provider wiring is data in one place: one definition file per
+provider under `lib/onetime/sso_provider/`, collected in order by
+`lib/onetime/sso_provider/registry.rb`
+(`Onetime::SsoProvider::Registry::DEFINITIONS`).
+Both consumers read the registry, so they cannot drift:
 
 - `Onetime::AuthConfig#provider_definitions` — serializer gating
   (`sso_providers`), per-provider email-linking trust flags, and the CSP
@@ -23,12 +25,15 @@ provider appears on the login and signup pages with zero frontend changes.
 2. **Decide the issuer question first** (see below). Prefer OIDC-capable
    providers.
 
-3. **Add one entry to `DEFINITIONS`** in
-   `lib/onetime/sso_provider_registry.rb`. Copy an existing entry of the
-   same shape (issuer-capable: copy `:entra` or `:oidc`; plain OAuth2: copy
-   `:github`). Every field is documented in the file header. Keep the env
-   prefix consistent (`FOO_CLIENT_ID`, `FOO_ROUTE_NAME`, `FOO_DISPLAY_NAME`,
-   `FOO_TRUST_EMAIL_FOR_LINKING`) — the registry spec enforces this.
+3. **Add one definition file** under `lib/onetime/sso_provider/`
+   (e.g. `lib/onetime/sso_provider/gitlab.rb`), then require it and append
+   its `DEFINITION` to `DEFINITIONS` in
+   `lib/onetime/sso_provider/registry.rb`. Copy an existing file of the
+   same shape (issuer-capable: copy `entra.rb` or `oidc.rb`; plain OAuth2:
+   copy `github.rb`). Every field is documented in the registry header.
+   Keep the env prefix consistent (`FOO_CLIENT_ID`, `FOO_ROUTE_NAME`,
+   `FOO_DISPLAY_NAME`, `FOO_TRUST_EMAIL_FOR_LINKING`) — the registry spec
+   enforces this.
 
 4. **Run the guard rails** — always through the lane runner (never `rspec`
    directly; see AGENTS.md — the runner clears ambient env and provisions

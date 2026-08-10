@@ -16,10 +16,10 @@
 #
 
 # Provider wiring (strategy, gem, env vars, placeholder/real options) is
-# data in Onetime::SsoProviderRegistry — the same registry AuthConfig's
+# data in Onetime::SsoProvider::Registry — the same registry AuthConfig's
 # serializer gating and CSP origins read. The strategy gems themselves are
 # required lazily, per definition, in configure_provider.
-require_relative '../../../../../lib/onetime/sso_provider_registry'
+require_relative '../../../../../lib/onetime/sso_provider/registry'
 
 module Auth::Config::Features
   module OmniAuth
@@ -51,7 +51,7 @@ module Auth::Config::Features
       # available, placeholder routes for tenant SSO when orgs_sso_enabled.
       # Adding a provider is a Gemfile line plus a registry entry; see
       # docs/authentication/adding-sso-providers.md.
-      Onetime::SsoProviderRegistry::DEFINITIONS.each do |defn|
+      Onetime::SsoProvider::Registry::DEFINITIONS.each do |defn|
         configure_provider(auth, defn)
       end
 
@@ -319,7 +319,7 @@ module Auth::Config::Features
       end
     end
 
-    # Register one provider from its Onetime::SsoProviderRegistry definition.
+    # Register one provider from its Onetime::SsoProvider::Registry definition.
     #
     # NOTE: The route name (name: option) controls both the URL route segment
     # AND the provider value stored in account_identities.provider and
@@ -387,19 +387,19 @@ module Auth::Config::Features
     # them). New providers do NOT need one — the configure loop registers
     # every registry definition.
     def self.configure_oidc_provider(auth)
-      configure_provider(auth, Onetime::SsoProviderRegistry.fetch(:oidc))
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:oidc))
     end
 
     def self.configure_entra_id_provider(auth)
-      configure_provider(auth, Onetime::SsoProviderRegistry.fetch(:entra))
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:entra))
     end
 
     def self.configure_github_provider(auth)
-      configure_provider(auth, Onetime::SsoProviderRegistry.fetch(:github))
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:github))
     end
 
     def self.configure_google_provider(auth)
-      configure_provider(auth, Onetime::SsoProviderRegistry.fetch(:google))
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:google))
     end
   end
 end
