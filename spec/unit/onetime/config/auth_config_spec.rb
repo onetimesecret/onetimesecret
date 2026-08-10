@@ -59,6 +59,10 @@ RSpec.describe Onetime::AuthConfig do
       AUTH_SSO_ENABLED AUTH_SSO_ONLY
       AUTH_PASSWORD_ONLY AUTH_EMAIL_AUTH_ONLY AUTH_WEBAUTHN_ONLY
       OIDC_ISSUER OIDC_CLIENT_ID
+      ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
+      GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
+      GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
@@ -66,9 +70,9 @@ RSpec.describe Onetime::AuthConfig do
     ]
   end
 
-  before(:each) do
+  before do
     # Save existing env
-    @saved_env = env_vars.map { |k| [k, ENV[k]] }.to_h
+    @saved_env = env_vars.to_h { |k| [k, ENV.fetch(k, nil)] }
 
     # Clear env vars to start with a clean slate (CI may set AUTHENTICATION_MODE=simple)
     env_vars.each { |k| ENV.delete(k) }
@@ -81,7 +85,7 @@ RSpec.describe Onetime::AuthConfig do
       .with('auth').and_return(config_path)
   end
 
-  after(:each) do
+  after do
     # Restore env
     @saved_env.each do |k, v|
       if v.nil?
@@ -157,10 +161,12 @@ RSpec.describe Onetime::AuthConfig do
   end
 
   describe 'feature toggles (default-OFF pattern)' do
-    { 'mfa' => 'AUTH_MFA_ENABLED',
+    {
+      'mfa' => 'AUTH_MFA_ENABLED',
       'email_auth' => 'AUTH_EMAIL_AUTH_ENABLED',
       'webauthn' => 'AUTH_WEBAUTHN_ENABLED',
-      'sso' => 'AUTH_SSO_ENABLED' }.each do |feature, env_key|
+      'sso' => 'AUTH_SSO_ENABLED',
+    }.each do |feature, env_key|
       describe "##{feature}_enabled?" do
         it "returns false when #{env_key} is unset (default OFF)" do
           ENV.delete(env_key)
@@ -320,7 +326,7 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          other = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
+          other  = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
           config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
         end
@@ -429,10 +435,54 @@ RSpec.describe Onetime::AuthConfig do
 
   # ── RESTRICT_TO_VALUES constant ────────────────────────────────────
 
+  # ── sso_providers: registry delegation and ordering ────────────────
+
+  describe '#sso_providers' do
+    # Enable SSO and give three providers their required env vars.
+    def config_with_three_providers(**extra_env)
+      fresh_config(
+        AUTH_SSO_ENABLED: 'true',
+        GOOGLE_CLIENT_ID: 'gid',
+        GOOGLE_CLIENT_SECRET: 'gs',
+        GITHUB_CLIENT_ID: 'hid',
+        GITHUB_CLIENT_SECRET: 'hs',
+        ENTRA_TENANT_ID: 'tid',
+        ENTRA_CLIENT_ID: 'eid',
+        ENTRA_CLIENT_SECRET: 'es',
+        **extra_env,
+      )
+    end
+
+    it 'lists active providers in registry order by default' do
+      config = config_with_three_providers
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[entra google github])
+    end
+
+    it 'honors SSO_PROVIDER_ORDER for listed providers' do
+      config = config_with_three_providers(SSO_PROVIDER_ORDER: 'github, google')
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[github google entra])
+    end
+
+    it 'ignores unknown route names in SSO_PROVIDER_ORDER' do
+      config = config_with_three_providers(SSO_PROVIDER_ORDER: 'okta github')
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[github entra google])
+    end
+
+    it 'derives definitions from the shared SsoProviderRegistry' do
+      config          = fresh_config
+      registry_routes = Onetime::SsoProviderRegistry::DEFINITIONS.map { |d| d[:route_default] }
+      expect(config.send(:provider_definitions).map { |d| d[:route_default] })
+        .to eq(registry_routes)
+    end
+  end
+
   describe 'RESTRICT_TO_VALUES' do
     it 'contains the four valid restriction values' do
       expect(described_class::RESTRICT_TO_VALUES).to eq(
-        %w[password email_auth webauthn sso]
+        %w[password email_auth webauthn sso],
       )
     end
 
@@ -444,13 +494,13 @@ RSpec.describe Onetime::AuthConfig do
   # ── Missing config file (graceful degradation) ─────────────────────
 
   describe 'when config file is missing' do
+    subject(:config) { described_class.instance }
+
     before do
       allow(Onetime::Utils::ConfigResolver).to receive(:resolve)
         .with('auth').and_return('/nonexistent/auth.yaml')
       described_class.instance_variable_set(:@singleton__instance__, nil)
     end
-
-    subject(:config) { described_class.instance }
 
     it 'does not raise on instantiation' do
       expect { config }.not_to raise_error
