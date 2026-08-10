@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "%{sender_email}님이 %{product_name}을(를) 사용하여 비밀 메시지를 공유했기 때문에 이 메시지를 받으셨습니다. 예상하지 못한 메시지라면 이 이메일을 무시하셔도 안전합니다.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "%{product_name} 계정에 %{provider} 연결 확인",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "SSO 로그인 확인",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "누군가 %{email_address} 이메일을 사용하여 %{provider}(으)로 로그인했습니다. %{provider}을(를) %{product_name} 계정에 연결하려면 아래에서 확인하세요.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "확인 및 %{provider} 연결",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "또는 이 링크를 복사하여 붙여넣으세요:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "이 링크는 15분 후에 만료되며 한 번만 사용할 수 있습니다.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "%{provider}(으)로 로그인하려고 하지 않았다면 이 이메일을 무시해도 됩니다 — 계정에 아무것도 연결되지 않습니다.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "지원팀",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "추신: 이 이메일은 %{email_address}(으)로 발송되었습니다.",
+    "source_hash": "8ab1dbea"
   }
 }

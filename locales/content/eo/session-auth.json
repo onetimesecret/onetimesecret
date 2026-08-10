@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "Via retpoŝto estis konfirmita — vi nun povas ensaluti.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Agordi Pasvorton",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Via konto ankoraŭ ne havas pasvorton. Ni retpoŝtos al vi sekuran ligilon por agordi unu por ke vi ankaŭ povu ensaluti rekte.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Sendi Agordan Ligilon",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Retpoŝto estis sendita al vi kun ligilo por agordi pasvorton por via konto",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Konto kun ĉi tiu retpoŝtadreso jam ekzistas sed ne estas ligita al ĉi tiu ensalut-metodo. Ensalutu per via ekzistanta metodo, poste ligu ĉi tiun provizanton sub Sekureco-agordoj → Konektitaj identecoj.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Ĉi tiu identeco ne konekteblis. La konekto eble estis komencita sur la malĝusta domajno, aŭ via seanco eksvalidiĝis. Bonvolu ensaluti denove, poste konektu ĝin el viaj konto-agordoj.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Ni ne povis fini aldoni vin al via organizo. Bonvolu kontakti vian administranton.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Ni ne povis ligi tiun ensalut-metodon. Ensalutu per via ekzistanta pasvorto, poste konektu ĉi tiun provizanton sub Sekureco-agordoj → Konektitaj identecoj.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Kontrolu vian retpoŝtskatolon — ni retpoŝtis al vi ligilon por konfirmi konekti vian konton. Malfermu ĝin por fini ensaluti.",
+    "source_hash": "b251c8f3"
   }
 }

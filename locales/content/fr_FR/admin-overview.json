@@ -4,7 +4,7 @@
     "source_hash": "942087cc"
   },
   "web.admin.overview.feedback.title": {
-    "text": "Retours des utilisateurs",
+    "text": "Commentaires des utilisateurs",
     "source_hash": "cb7b24c6"
   },
   "web.admin.overview.feedback.total": {
@@ -24,11 +24,11 @@
     "source_hash": "03281c88"
   },
   "web.admin.overview.feedback.empty": {
-    "text": "Aucun retour sur cette période",
+    "text": "Aucun commentaire sur cette période",
     "source_hash": "e09d594d"
   },
   "web.admin.overview.feedback.loadError": {
-    "text": "Impossible de charger les retours.",
+    "text": "Impossible de charger les commentaires.",
     "source_hash": "4011c408"
   },
   "web.admin.overview.stats.heading": {

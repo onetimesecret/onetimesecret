@@ -122,5 +122,85 @@
   "web.admin.billing.status.changed": {
     "text": "Změněno",
     "source_hash": "2a6141e4"
+  },
+  "web.admin.billing.diff.backToCatalog": {
+    "text": "Zpět na katalog fakturace",
+    "source_hash": "8532b373"
+  },
+  "web.admin.billing.diff.driftedFields": {
+    "text": "Pole, která se liší:",
+    "source_hash": "9890c95b"
+  },
+  "web.admin.billing.diff.notFound": {
+    "text": "Plán není v katalogu",
+    "source_hash": "0253898b"
+  },
+  "web.admin.billing.diff.notFoundDescription": {
+    "text": "V nakonfigurovaném katalogu ani v živé mezipaměti synchronizované se Stripe nebyl nalezen žádný plán s id {planid}.",
+    "source_hash": "2e69551c"
+  },
+  "web.admin.billing.stripeOrgs.title": {
+    "text": "Zákazníci Stripe",
+    "source_hash": "0463ae27"
+  },
+  "web.admin.billing.stripeOrgs.description": {
+    "text": "Organizace propojené se záznamy zákazníků Stripe.",
+    "source_hash": "2ab09aec"
+  },
+  "web.admin.billing.stripeOrgs.searchPlaceholder": {
+    "text": "Hledat podle ID zákazníka Stripe",
+    "source_hash": "d5acf08f"
+  },
+  "web.admin.billing.stripeOrgs.empty": {
+    "text": "Žádné organizace nemají ID zákazníka Stripe.",
+    "source_hash": "2e373537"
+  },
+  "web.admin.billing.stripeOrgs.emptySearch": {
+    "text": "Tomuto hledání neodpovídá žádné ID zákazníka Stripe.",
+    "source_hash": "75011174"
+  },
+  "web.admin.billing.stripeOrgs.loadError": {
+    "text": "Nepodařilo se načíst seznam zákazníků Stripe.",
+    "source_hash": "15e2d9a7"
+  },
+  "web.admin.billing.stripeOrgs.unavailable": {
+    "text": "Seznam zákazníků Stripe zatím není na tomto serveru dostupný.",
+    "source_hash": "aab6451a"
+  },
+  "web.admin.billing.stripeOrgs.none": {
+    "text": "Žádný",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.billing.stripeOrgs.capped": {
+    "text": "Prohledávání indexu dosáhlo limitu, takže celkový počet je spodní hranice — upřesni hledání pro zobrazení zbytku.",
+    "source_hash": "20bcaa38"
+  },
+  "web.admin.billing.stripeOrgs.stale": {
+    "text": "{count} záznam indexu na této stránce odkazuje na organizaci, která se již nenačítá, a byl přeskočen.|{count} záznamy indexu na této stránce odkazují na organizaci, která se již nenačítá, a byly přeskočeny.|{count} záznamů indexu na této stránce odkazuje na organizaci, která se již nenačítá, a bylo přeskočeno.",
+    "source_hash": "51980f83"
+  },
+  "web.admin.billing.stripeOrgs.copyStripeId": {
+    "text": "Kopírovat ID zákazníka Stripe",
+    "source_hash": "a77d18b1"
+  },
+  "web.admin.billing.stripeOrgs.columns.organization": {
+    "text": "Organizace",
+    "source_hash": "d764d425"
+  },
+  "web.admin.billing.stripeOrgs.columns.owner": {
+    "text": "Vlastník",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.billing.stripeOrgs.columns.plan": {
+    "text": "Plán",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.billing.stripeOrgs.columns.subscription": {
+    "text": "Předplatné",
+    "source_hash": "4999c6c6"
+  },
+  "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
+    "text": "ID zákazníka Stripe",
+    "source_hash": "7e1d8bbb"
   }
 }

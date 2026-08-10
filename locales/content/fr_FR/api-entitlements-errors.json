@@ -1,6 +1,6 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "Impossible de vérifier les droits (contexte d'organisation indisponible)",
+    "text": "Impossible de vérifier les droits (contexte de l'organisation indisponible)",
     "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
@@ -8,11 +8,11 @@
     "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "Les paramètres de confidentialité par défaut personnalisés nécessitent une mise à niveau du forfait",
+    "text": "Les paramètres de confidentialité personnalisés par défaut nécessitent une mise à niveau du forfait",
     "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "L'expiration par défaut prolongée nécessite une mise à niveau du forfait",
+    "text": "L'expiration par défaut étendue nécessite une mise à niveau du forfait",
     "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
@@ -20,11 +20,11 @@
     "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "L'image de marque personnalisée nécessite une mise à niveau du forfait",
+    "text": "La personnalisation graphique nécessite une mise à niveau du forfait",
     "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "Les secrets de la page d'accueil nécessitent une mise à niveau du forfait",
+    "text": "Les secrets sur la page d'accueil nécessitent une mise à niveau du forfait",
     "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
@@ -32,11 +32,11 @@
     "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "L'expéditeur d'e-mail personnalisé nécessite une mise à niveau du forfait",
+    "text": "Un expéditeur d'e-mail personnalisé nécessite une mise à niveau du forfait",
     "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "Le domaine d'expéditeur flexible nécessite une mise à niveau du forfait",
+    "text": "Le domaine d'expédition flexible nécessite une mise à niveau du forfait",
     "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
@@ -68,7 +68,7 @@
     "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "L'affichage des reçus nécessite une mise à niveau du forfait",
+    "text": "La consultation des reçus nécessite une mise à niveau du forfait",
     "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
@@ -76,11 +76,11 @@
     "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "L'image de marque de l'espace de travail nécessite une mise à niveau du forfait",
+    "text": "La personnalisation de l'espace de travail nécessite une mise à niveau du forfait",
     "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "Les règles d'accès IP nécessitent une mise à niveau du forfait",
+    "text": "Les règles d'accès par IP nécessitent une mise à niveau du forfait",
     "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {

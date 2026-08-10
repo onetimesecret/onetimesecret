@@ -36,11 +36,11 @@
     "source_hash": "2263ec6a"
   },
   "web.admin.domains.addDomain.strategy.approximated": {
-    "text": "Approximated — vérification de propriété DNS, sans proxy.",
+    "text": "Approximated — vérification de la propriété DNS, sans proxy.",
     "source_hash": "79a7245c"
   },
   "web.admin.domains.addDomain.strategy.passthrough": {
-    "text": "Passthrough — vous pointez le DNS vers le proxy de ce déploiement.",
+    "text": "Passthrough — vous dirigez le DNS vers le proxy de ce déploiement.",
     "source_hash": "9702d758"
   },
   "web.admin.domains.addDomain.strategy.external": {
@@ -48,7 +48,7 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certificats émis automatiquement à la première requête.",
+    "text": "Caddy à la demande — certificats émis automatiquement à la première requête.",
     "source_hash": "deb90ae6"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
@@ -56,11 +56,11 @@
     "source_hash": "a0f3c2dc"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
-    "text": "Stratégie de validation à l'échelle du déploiement.",
+    "text": "Stratégie de validation applicable à l'ensemble du déploiement.",
     "source_hash": "4587f9cf"
   },
   "web.admin.domains.attach.cta": {
-    "text": "Rattacher le domaine à l'organisation",
+    "text": "Rattacher le domaine à une organisation",
     "source_hash": "736d74ce"
   },
   "web.admin.domains.attach.recordEyebrow": {
@@ -96,7 +96,7 @@
     "source_hash": "5c626f53"
   },
   "web.admin.domains.dns.propagationNote": {
-    "text": "Les modifications DNS peuvent prendre quelques minutes à se propager avant que la vérification n'aboutisse.",
+    "text": "La propagation des modifications DNS peut prendre quelques minutes avant que la vérification n'aboutisse.",
     "source_hash": "7caf70a7"
   },
   "web.admin.domains.dns.toggle": {
@@ -124,7 +124,7 @@
     "source_hash": "bb5d0055"
   },
   "web.admin.domains.orgPicker.searchHint": {
-    "text": "Rechercher par objid, extid ou l'adresse e-mail d'un membre.",
+    "text": "Recherchez par objid, extid ou l'adresse e-mail d'un membre.",
     "source_hash": "fdef7332"
   },
   "web.admin.domains.orgPicker.loadError": {
@@ -140,7 +140,7 @@
     "source_hash": "0352e6e6"
   },
   "web.admin.domains.orgPicker.noResults": {
-    "text": "Aucune organisation ne correspond à « {term} ».",
+    "text": "Aucune organisation ne correspond à « {term} ».",
     "source_hash": "761db594"
   },
   "web.admin.domains.orgPicker.unnamedOrg": {
@@ -168,7 +168,7 @@
     "source_hash": "06797824"
   },
   "web.admin.domains.verify.failed": {
-    "text": "La vérification a échoué. Veuillez réessayer.",
+    "text": "Échec de la vérification. Veuillez réessayer.",
     "source_hash": "3c8432b0"
   },
   "web.admin.domains.verify.success.verified": {
@@ -176,7 +176,7 @@
     "source_hash": "802b5d1e"
   },
   "web.admin.domains.verify.success.resolving": {
-    "text": "{domain} se résout mais n'est pas encore vérifié.",
+    "text": "{domain} se résout, mais n'est pas encore vérifié.",
     "source_hash": "bc8aecad"
   },
   "web.admin.domains.verify.success.pending": {
@@ -190,5 +190,657 @@
   "web.admin.domains.verify.success.done": {
     "text": "Vérification terminée pour {domain}.",
     "source_hash": "ed67e22d"
+  },
+  "web.admin.domains.actions.preview": {
+    "text": "Aperçu",
+    "source_hash": "324b134f"
+  },
+  "web.admin.domains.actions.probe.button": {
+    "text": "Sonder",
+    "source_hash": "3bd51ab9"
+  },
+  "web.admin.domains.actions.remove.button": {
+    "text": "Supprimer le domaine",
+    "source_hash": "5ce43507"
+  },
+  "web.admin.domains.actions.remove.previewButton": {
+    "text": "Prévisualiser la suppression",
+    "source_hash": "6b81bd92"
+  },
+  "web.admin.domains.actions.remove.previewStatus": {
+    "text": "État :",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.remove.previewOrg": {
+    "text": "Organisation :",
+    "source_hash": "5300e286"
+  },
+  "web.admin.domains.actions.remove.reassertsSurvivor": {
+    "text": "Un autre enregistrement revendique le même nom de domaine et prendra le contrôle de l'index de recherche.",
+    "source_hash": "902838f4"
+  },
+  "web.admin.domains.actions.remove.confirmTitle": {
+    "text": "Supprimer le domaine ?",
+    "source_hash": "716dfac9"
+  },
+  "web.admin.domains.actions.remove.confirmDescription": {
+    "text": "Cela supprime définitivement {domain} ainsi que ses enregistrements de personnalisation, DNS et de configuration. Cette action est irréversible. Ressaisissez l'ID public du domaine pour continuer.",
+    "source_hash": "d0b67b47"
+  },
+  "web.admin.domains.actions.remove.success": {
+    "text": "Domaine supprimé.",
+    "source_hash": "2ccaa6d3"
+  },
+  "web.admin.domains.actions.remove.notApplied": {
+    "text": "Le serveur a prévisualisé la suppression au lieu de l'appliquer — le domaine n'a PAS été supprimé. Réessayez et signalez le problème s'il persiste.",
+    "source_hash": "dc6d70ae"
+  },
+  "web.admin.domains.actions.repair.title": {
+    "text": "Réparer le lien avec l'organisation",
+    "source_hash": "82b40352"
+  },
+  "web.admin.domains.actions.repair.description": {
+    "text": "Détectez et corrigez les liens rompus entre ce domaine et son organisation. Prévisualisez d'abord pour voir ce qui changerait.",
+    "source_hash": "531ed287"
+  },
+  "web.admin.domains.actions.repair.orgIdLabel": {
+    "text": "ID de l'organisation (domaines orphelins uniquement)",
+    "source_hash": "0d3010eb"
+  },
+  "web.admin.domains.actions.repair.orgIdPlaceholder": {
+    "text": "Laissez vide sauf si le domaine n'a pas de propriétaire",
+    "source_hash": "118b7132"
+  },
+  "web.admin.domains.actions.repair.statusLabel": {
+    "text": "État :",
+    "source_hash": "755c8b2a"
+  },
+  "web.admin.domains.actions.repair.noIssues": {
+    "text": "Aucun problème détecté — rien à réparer.",
+    "source_hash": "17735887"
+  },
+  "web.admin.domains.actions.repair.button": {
+    "text": "Appliquer la réparation",
+    "source_hash": "4d0ab2d4"
+  },
+  "web.admin.domains.actions.repair.confirmTitle": {
+    "text": "Appliquer la réparation ?",
+    "source_hash": "ef0ffae5"
+  },
+  "web.admin.domains.actions.repair.confirmDescription": {
+    "text": "Cela réécrit le lien avec l'organisation pour {domain}. Ressaisissez l'ID public du domaine pour continuer.",
+    "source_hash": "a9f2702f"
+  },
+  "web.admin.domains.actions.repair.success": {
+    "text": "Réparation appliquée.",
+    "source_hash": "850bd784"
+  },
+  "web.admin.domains.actions.transfer.title": {
+    "text": "Transférer vers une autre organisation",
+    "source_hash": "1b0b0655"
+  },
+  "web.admin.domains.actions.transfer.description": {
+    "text": "Déplacez ce domaine vers une autre organisation. Prévisualisez d'abord pour confirmer les deux côtés du transfert.",
+    "source_hash": "457e852d"
+  },
+  "web.admin.domains.actions.transfer.toOrgLabel": {
+    "text": "ID de l'organisation de destination",
+    "source_hash": "1a3f05c4"
+  },
+  "web.admin.domains.actions.transfer.fromOrgLabel": {
+    "text": "ID de l'organisation actuelle attendue (facultatif)",
+    "source_hash": "f6e75729"
+  },
+  "web.admin.domains.actions.transfer.fromOrgPlaceholder": {
+    "text": "Confirmez le propriétaire actuel avant le transfert",
+    "source_hash": "1ac6c59b"
+  },
+  "web.admin.domains.actions.transfer.from": {
+    "text": "De",
+    "source_hash": "21819769"
+  },
+  "web.admin.domains.actions.transfer.to": {
+    "text": "Vers",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.domains.actions.transfer.orphaned": {
+    "text": "Aucune organisation (orphelin)",
+    "source_hash": "6f4c745c"
+  },
+  "web.admin.domains.actions.transfer.button": {
+    "text": "Appliquer le transfert",
+    "source_hash": "fb546c5c"
+  },
+  "web.admin.domains.actions.transfer.confirmTitle": {
+    "text": "Transférer le domaine ?",
+    "source_hash": "801eb986"
+  },
+  "web.admin.domains.actions.transfer.confirmDescription": {
+    "text": "Cela déplace {domain} vers l'organisation {org}. Ressaisissez l'ID public du domaine pour continuer.",
+    "source_hash": "52c8808d"
+  },
+  "web.admin.domains.actions.transfer.success": {
+    "text": "Domaine transféré.",
+    "source_hash": "91e681ae"
+  },
+  "web.admin.domains.columns.domain": {
+    "text": "Domaine",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.columns.organization": {
+    "text": "Organisation",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.columns.state": {
+    "text": "Vérification",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.domains.columns.tls": {
+    "text": "TLS",
+    "source_hash": "d1c18ec0"
+  },
+  "web.admin.domains.columns.created": {
+    "text": "Créé",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.columns.actions": {
+    "text": "Actions",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.configs.title": {
+    "text": "Configuration du domaine",
+    "source_hash": "d46aa480"
+  },
+  "web.admin.domains.configs.description": {
+    "text": "Enregistrements de configuration par domaine régissant la connexion, l'inscription, les secrets de la page d'accueil, l'accès à l'API, les secrets entrants, le SSO du locataire et l'envoi d'e-mails. Un enregistrement manquant bloque par défaut les cinq premiers.",
+    "source_hash": "1df99789"
+  },
+  "web.admin.domains.configs.loadError": {
+    "text": "Impossible de charger les enregistrements de configuration du domaine.",
+    "source_hash": "9417d718"
+  },
+  "web.admin.domains.configs.retry": {
+    "text": "Réessayer",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.configs.degraded": {
+    "text": "La réponse de configuration ne correspond pas au contrat attendu. Actualisez, et signalez le problème s'il persiste.",
+    "source_hash": "b5d890c0"
+  },
+  "web.admin.domains.configs.notFoundNote": {
+    "text": "Ce domaine n'existe plus ; ses enregistrements de configuration ne peuvent donc pas être chargés.",
+    "source_hash": "2d88a392"
+  },
+  "web.admin.domains.configs.detailsToggle": {
+    "text": "Détails",
+    "source_hash": "45989de4"
+  },
+  "web.admin.domains.configs.notEditable": {
+    "text": "Géré dans les paramètres de domaine de l'espace de travail.",
+    "source_hash": "54fe891f"
+  },
+  "web.admin.domains.configs.delete.button": {
+    "text": "Supprimer",
+    "source_hash": "e2d0a549"
+  },
+  "web.admin.domains.configs.delete.confirmTitle": {
+    "text": "Supprimer la configuration {kind} ?",
+    "source_hash": "98e672db"
+  },
+  "web.admin.domains.configs.delete.confirmDescription": {
+    "text": "Cela supprime définitivement l'enregistrement de configuration {kind} pour {domain}. Le domaine revient au comportement appliqué en l'absence d'enregistrement. Ressaisissez le type pour continuer.",
+    "source_hash": "8272c40c"
+  },
+  "web.admin.domains.configs.delete.success": {
+    "text": "Configuration supprimée.",
+    "source_hash": "a0184b66"
+  },
+  "web.admin.domains.configs.edit.button": {
+    "text": "Modifier",
+    "source_hash": "464c4ffd"
+  },
+  "web.admin.domains.configs.edit.createButton": {
+    "text": "Créer",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.configs.edit.title": {
+    "text": "Configurer {kind}",
+    "source_hash": "8592148f"
+  },
+  "web.admin.domains.configs.edit.submit": {
+    "text": "Enregistrer",
+    "source_hash": "1509f561"
+  },
+  "web.admin.domains.configs.edit.success": {
+    "text": "Configuration enregistrée.",
+    "source_hash": "6b5b3c69"
+  },
+  "web.admin.domains.configs.edit.unsetOption": {
+    "text": "Non défini",
+    "source_hash": "4895f731"
+  },
+  "web.admin.domains.configs.edit.domainsHint": {
+    "text": "Un domaine par ligne.",
+    "source_hash": "6c03f4f7"
+  },
+  "web.admin.domains.configs.ensure.button": {
+    "text": "Créer les configurations manquantes",
+    "source_hash": "77991b75"
+  },
+  "web.admin.domains.configs.ensure.confirmTitle": {
+    "text": "Créer les enregistrements de configuration manquants ?",
+    "source_hash": "3f41dec2"
+  },
+  "web.admin.domains.configs.ensure.confirmDescription": {
+    "text": "Crée des enregistrements désactivés sur {domain} pour : {kinds}. Tout démarre à l'état désactivé, le comportement ne change donc pas tant qu'un enregistrement n'est pas activé.",
+    "source_hash": "fed66221"
+  },
+  "web.admin.domains.configs.ensure.applyButton": {
+    "text": "Créer les enregistrements",
+    "source_hash": "4bcbef42"
+  },
+  "web.admin.domains.configs.ensure.success": {
+    "text": "Enregistrements de configuration manquants créés.",
+    "source_hash": "3b6ead80"
+  },
+  "web.admin.domains.configs.ensure.nothingMissing": {
+    "text": "Rien à créer — tous les enregistrements de configuration existent déjà. La liste a été actualisée.",
+    "source_hash": "ad0df0ae"
+  },
+  "web.admin.domains.configs.ensure.notApplied": {
+    "text": "Le serveur a prévisualisé la modification au lieu de l'appliquer — aucun enregistrement n'a été créé. Réessayez et signalez le problème s'il persiste.",
+    "source_hash": "09d26379"
+  },
+  "web.admin.domains.configs.fields.enabled": {
+    "text": "Activé",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.fields.signin_enabled": {
+    "text": "Connexion activée",
+    "source_hash": "cabe4898"
+  },
+  "web.admin.domains.configs.fields.email_auth_enabled": {
+    "text": "Authentification par e-mail activée",
+    "source_hash": "4a762960"
+  },
+  "web.admin.domains.configs.fields.sso_enabled": {
+    "text": "SSO activé",
+    "source_hash": "6e77e673"
+  },
+  "web.admin.domains.configs.fields.restrict_to": {
+    "text": "Restreindre à",
+    "source_hash": "a0bdf50a"
+  },
+  "web.admin.domains.configs.fields.signup_enabled": {
+    "text": "Inscription activée",
+    "source_hash": "2637d0b2"
+  },
+  "web.admin.domains.configs.fields.autoverify": {
+    "text": "Vérification automatique",
+    "source_hash": "7e02211c"
+  },
+  "web.admin.domains.configs.fields.validation_strategy": {
+    "text": "Stratégie de validation",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.configs.fields.allowed_signup_domains": {
+    "text": "Domaines d'inscription autorisés",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.admin.domains.configs.fields.secrets_mode": {
+    "text": "Mode des secrets",
+    "source_hash": "8d4349d6"
+  },
+  "web.admin.domains.configs.fields.disabled_homepage_variant": {
+    "text": "Variante de page d'accueil désactivée",
+    "source_hash": "4695633b"
+  },
+  "web.admin.domains.configs.fields.ready": {
+    "text": "Prêt",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.configs.fields.recipients": {
+    "text": "Destinataires",
+    "source_hash": "1e8568a8"
+  },
+  "web.admin.domains.configs.fields.provider_type": {
+    "text": "Type de fournisseur",
+    "source_hash": "8c0f6d3e"
+  },
+  "web.admin.domains.configs.fields.display_name": {
+    "text": "Nom d'affichage",
+    "source_hash": "2b7f6a84"
+  },
+  "web.admin.domains.configs.fields.issuer": {
+    "text": "Émetteur",
+    "source_hash": "39e02c46"
+  },
+  "web.admin.domains.configs.fields.tenant_id": {
+    "text": "ID du locataire",
+    "source_hash": "de1f5fff"
+  },
+  "web.admin.domains.configs.fields.has_client_id": {
+    "text": "ID client défini",
+    "source_hash": "04a9fa3d"
+  },
+  "web.admin.domains.configs.fields.has_client_secret": {
+    "text": "Secret client défini",
+    "source_hash": "6ee1c9e6"
+  },
+  "web.admin.domains.configs.fields.allowed_domains": {
+    "text": "Domaines autorisés",
+    "source_hash": "bcd60db0"
+  },
+  "web.admin.domains.configs.fields.enforce_sso_only": {
+    "text": "Imposer le SSO uniquement",
+    "source_hash": "b3a3f694"
+  },
+  "web.admin.domains.configs.fields.grant_org_scope": {
+    "text": "Accorder la portée organisation",
+    "source_hash": "698ea5de"
+  },
+  "web.admin.domains.configs.fields.provider": {
+    "text": "Fournisseur",
+    "source_hash": "472590ae"
+  },
+  "web.admin.domains.configs.fields.from_name": {
+    "text": "Nom de l'expéditeur",
+    "source_hash": "b28f93ea"
+  },
+  "web.admin.domains.configs.fields.from_address": {
+    "text": "Adresse de l'expéditeur",
+    "source_hash": "d465bcfa"
+  },
+  "web.admin.domains.configs.fields.reply_to": {
+    "text": "Répondre à",
+    "source_hash": "6b9c49b7"
+  },
+  "web.admin.domains.configs.fields.sending_mode": {
+    "text": "Mode d'envoi",
+    "source_hash": "e2d6bcf7"
+  },
+  "web.admin.domains.configs.fields.verification_status": {
+    "text": "État de la vérification",
+    "source_hash": "aedfff7e"
+  },
+  "web.admin.domains.configs.fields.dns_verified": {
+    "text": "DNS vérifié",
+    "source_hash": "8b2128c8"
+  },
+  "web.admin.domains.configs.fields.provider_verified": {
+    "text": "Fournisseur vérifié",
+    "source_hash": "6f4d9cc4"
+  },
+  "web.admin.domains.configs.fields.has_api_key": {
+    "text": "Clé d'API définie",
+    "source_hash": "d5115386"
+  },
+  "web.admin.domains.configs.fields.created": {
+    "text": "Créé",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.configs.fields.updated": {
+    "text": "Mis à jour",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.configs.kinds.signin": {
+    "text": "Connexion",
+    "source_hash": "5bbbe531"
+  },
+  "web.admin.domains.configs.kinds.signup": {
+    "text": "Inscription",
+    "source_hash": "3cc08ebe"
+  },
+  "web.admin.domains.configs.kinds.homepage": {
+    "text": "Page d'accueil",
+    "source_hash": "9e3391e9"
+  },
+  "web.admin.domains.configs.kinds.api": {
+    "text": "API",
+    "source_hash": "c8e5998f"
+  },
+  "web.admin.domains.configs.kinds.incoming": {
+    "text": "Secrets entrants",
+    "source_hash": "e301820a"
+  },
+  "web.admin.domains.configs.kinds.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.admin.domains.configs.kinds.mailer": {
+    "text": "Service d'e-mail",
+    "source_hash": "6c07ba63"
+  },
+  "web.admin.domains.configs.missingNotes.signin": {
+    "text": "Aucun enregistrement : la connexion est désactivée sur ce domaine, sauf si le SSO du locataire est actif.",
+    "source_hash": "17dd6099"
+  },
+  "web.admin.domains.configs.missingNotes.signup": {
+    "text": "Aucun enregistrement : l'inscription est désactivée sur ce domaine.",
+    "source_hash": "c3c98956"
+  },
+  "web.admin.domains.configs.missingNotes.homepage": {
+    "text": "Aucun enregistrement : les secrets de la page d'accueil sont désactivés (blocage par défaut et journalisation d'une erreur).",
+    "source_hash": "9a258a88"
+  },
+  "web.admin.domains.configs.missingNotes.api": {
+    "text": "Aucun enregistrement : l'API publique est désactivée (blocage par défaut et journalisation d'une erreur).",
+    "source_hash": "fed99f73"
+  },
+  "web.admin.domains.configs.missingNotes.incoming": {
+    "text": "Aucun enregistrement : les secrets entrants sont désactivés.",
+    "source_hash": "b957fbe8"
+  },
+  "web.admin.domains.configs.missingNotes.sso": {
+    "text": "Aucun enregistrement : le SSO du locataire est indisponible ; la politique de repli du SSO de la plateforme s'applique.",
+    "source_hash": "7b05ade8"
+  },
+  "web.admin.domains.configs.missingNotes.mailer": {
+    "text": "Aucun enregistrement : le service d'e-mail de la plateforme est utilisé.",
+    "source_hash": "e027cc99"
+  },
+  "web.admin.domains.configs.status.missing": {
+    "text": "Manquant",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.domains.configs.status.disabled": {
+    "text": "Désactivé",
+    "source_hash": "75081b59"
+  },
+  "web.admin.domains.configs.status.enabled": {
+    "text": "Activé",
+    "source_hash": "92c1cdfd"
+  },
+  "web.admin.domains.configs.status.enabledNotReady": {
+    "text": "Activé, non prêt",
+    "source_hash": "cb806ba4"
+  },
+  "web.admin.domains.detail.openFullPage": {
+    "text": "Ouvrir en pleine page",
+    "source_hash": "a467911c"
+  },
+  "web.admin.domains.detail.backToList": {
+    "text": "Retour aux domaines",
+    "source_hash": "22fd50fe"
+  },
+  "web.admin.domains.detail.notFound": {
+    "text": "Domaine introuvable",
+    "source_hash": "7b8fc0e6"
+  },
+  "web.admin.domains.detail.notFoundDescription": {
+    "text": "Ce domaine n'existe pas ou a déjà été supprimé.",
+    "source_hash": "e0f0b987"
+  },
+  "web.admin.domains.detail.loadError": {
+    "text": "Impossible de charger ce domaine.",
+    "source_hash": "39e9c657"
+  },
+  "web.admin.domains.detail.retry": {
+    "text": "Réessayer",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.detail.never": {
+    "text": "Jamais",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.domains.detail.none": {
+    "text": "Aucun",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.domains.detail.yes": {
+    "text": "Oui",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.domains.detail.no": {
+    "text": "Non",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.domains.detail.organization.open": {
+    "text": "Ouvrir l'organisation",
+    "source_hash": "54a43621"
+  },
+  "web.admin.domains.detail.organization.unknown": {
+    "text": "L'organisation propriétaire n'est pas incluse dans cette réponse. Ouvrez ce domaine depuis la liste des domaines pour la voir.",
+    "source_hash": "bb5bdc9c"
+  },
+  "web.admin.domains.detail.sections.overview": {
+    "text": "Vue d'ensemble",
+    "source_hash": "d4b1ea57"
+  },
+  "web.admin.domains.detail.sections.actions": {
+    "text": "Actions",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.domains.detail.sections.organization": {
+    "text": "Organisation propriétaire",
+    "source_hash": "39ad6d9c"
+  },
+  "web.admin.domains.detail.sections.dns": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.admin.domains.detail.sections.diagnostics": {
+    "text": "Diagnostics",
+    "source_hash": "268f14bb"
+  },
+  "web.admin.domains.detail.sections.operations": {
+    "text": "Opérations de propriété",
+    "source_hash": "eb9a8cbc"
+  },
+  "web.admin.domains.detail.sections.operationsHint": {
+    "text": "Chaque opération est d'abord prévisualisée. Rien n'est écrit tant que vous n'avez pas confirmé l'étape d'application.",
+    "source_hash": "f09bf7bd"
+  },
+  "web.admin.domains.fields.publicId": {
+    "text": "ID public",
+    "source_hash": "3705b64f"
+  },
+  "web.admin.domains.fields.domainId": {
+    "text": "ID interne",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.domains.fields.organization": {
+    "text": "Organisation",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.fields.baseDomain": {
+    "text": "Domaine de base",
+    "source_hash": "33295d5b"
+  },
+  "web.admin.domains.fields.subdomain": {
+    "text": "Sous-domaine",
+    "source_hash": "ba4520ab"
+  },
+  "web.admin.domains.fields.apex": {
+    "text": "Domaine apex",
+    "source_hash": "0a8a42fa"
+  },
+  "web.admin.domains.fields.status": {
+    "text": "État",
+    "source_hash": "920e413c"
+  },
+  "web.admin.domains.fields.created": {
+    "text": "Créé",
+    "source_hash": "d70b9e24"
+  },
+  "web.admin.domains.fields.updated": {
+    "text": "Mis à jour",
+    "source_hash": "3a5ecca1"
+  },
+  "web.admin.domains.fields.verified": {
+    "text": "Vérifié",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.fields.resolving": {
+    "text": "Résolution",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.fields.ready": {
+    "text": "Prêt",
+    "source_hash": "5fa7aac5"
+  },
+  "web.admin.domains.list.searchPlaceholder": {
+    "text": "Rechercher par nom de domaine ou ID",
+    "source_hash": "aecdd873"
+  },
+  "web.admin.domains.list.stateFilter": {
+    "text": "État",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.domains.list.emptyFilter": {
+    "text": "Aucun domaine ne correspond aux filtres actuels.",
+    "source_hash": "be4d64ec"
+  },
+  "web.admin.domains.probe.healthLabel": {
+    "text": "Santé",
+    "source_hash": "55898449"
+  },
+  "web.admin.domains.probe.certInvalid": {
+    "text": "Certificat inutilisable",
+    "source_hash": "5535f4d4"
+  },
+  "web.admin.domains.probe.noCertificate": {
+    "text": "Aucun certificat n'a été renvoyé — la connexion a échoué avant TLS.",
+    "source_hash": "8ffd63be"
+  },
+  "web.admin.domains.probe.fields.httpStatus": {
+    "text": "État HTTP",
+    "source_hash": "0f7cf91f"
+  },
+  "web.admin.domains.probe.fields.httpError": {
+    "text": "Erreur HTTP",
+    "source_hash": "5c6896d4"
+  },
+  "web.admin.domains.probe.fields.sslError": {
+    "text": "Erreur TLS",
+    "source_hash": "7b827515"
+  },
+  "web.admin.domains.probe.fields.issuer": {
+    "text": "Émetteur du certificat",
+    "source_hash": "2912559a"
+  },
+  "web.admin.domains.probe.fields.subject": {
+    "text": "Sujet du certificat",
+    "source_hash": "d7816b16"
+  },
+  "web.admin.domains.probe.fields.notAfter": {
+    "text": "Expiration du certificat",
+    "source_hash": "1e73119d"
+  },
+  "web.admin.domains.probe.fields.expiresIn": {
+    "text": "{date} ({days} jours)",
+    "source_hash": "a71a6e81"
+  },
+  "web.admin.domains.tls.serving": {
+    "text": "En service",
+    "source_hash": "f55e53f9"
+  },
+  "web.admin.domains.tls.resolving": {
+    "text": "Résolution",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.tls.none": {
+    "text": "Hors service",
+    "source_hash": "da8a5ab9"
   }
 }

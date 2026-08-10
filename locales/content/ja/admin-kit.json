@@ -4,7 +4,7 @@
     "source_hash": "282445b6"
   },
   "web.admin.kit.confirmDialog.inputLabel": {
-    "text": "確認テキスト",
+    "text": "確認用テキスト",
     "source_hash": "8edc1113"
   },
   "web.admin.kit.confirmDialog.mismatchHint": {
@@ -12,7 +12,7 @@
     "source_hash": "f0cc7389"
   },
   "web.admin.kit.dataTable.empty": {
-    "text": "レコードが見つかりません",
+    "text": "レコードが見つかりませんでした",
     "source_hash": "6e2ea637"
   },
   "web.admin.kit.dataTable.sortBy": {
@@ -28,7 +28,7 @@
     "source_hash": "7336265a"
   },
   "web.admin.kit.filterBar.clearFilters": {
-    "text": "フィルターをクリア",
+    "text": "絞り込みをクリア",
     "source_hash": "7179ea00"
   },
   "web.admin.kit.filterBar.all": {
@@ -44,7 +44,7 @@
     "source_hash": "25f7b372"
   },
   "web.admin.kit.jsonViewer.empty": {
-    "text": "データなし",
+    "text": "データがありません",
     "source_hash": "3b41ba9c"
   },
   "web.admin.kit.jsonViewer.copyLabel": {

@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Fallo",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Secretos",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Membresías",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Vistas previas de derechos",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Inicios de sesión de Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Actor",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Buscar",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Escribe un actor y luego pulsa Intro o elige Buscar para ejecutarlo. La lista no se actualiza mientras escribes.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Aún no se ha buscado: pulsa Intro o elige Buscar para aplicar este actor.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "El servidor respondió, pero los datos de auditoría no coincidían con el formato esperado. No se puede mostrar ningún evento: es un fallo de generación de informes, no un registro vacío.",
+    "source_hash": "7f48137e"
   }
 }

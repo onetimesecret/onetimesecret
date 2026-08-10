@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Bạn nhận được email này vì %{sender_email} đã sử dụng %{product_name} để chia sẻ một bí mật với bạn. Nếu bạn không mong đợi điều này, bạn có thể yên tâm bỏ qua email này.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Xác nhận liên kết %{provider} với tài khoản %{product_name} của bạn",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Xác nhận đăng nhập SSO của bạn",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Ai đó đã đăng nhập bằng %{provider} sử dụng email %{email_address}. Để hoàn tất kết nối %{provider} với tài khoản %{product_name} của bạn, xác nhận bên dưới.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Xác nhận và liên kết %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Hoặc sao chép và dán liên kết này:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Liên kết này hết hạn sau 15 phút và chỉ có thể sử dụng một lần.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Nếu bạn không cố gắng đăng nhập bằng %{provider}, bạn có thể bỏ qua email này một cách an toàn — không có gì sẽ được kết nối với tài khoản của bạn.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Đội ngũ hỗ trợ",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "Tái bút: Email này được gửi đến %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

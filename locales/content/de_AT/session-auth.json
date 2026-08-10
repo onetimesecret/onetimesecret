@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "Ihre E-Mail-Adresse wurde verifiziert — Sie können sich jetzt eintragen.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Passwort festlegen",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Ihr Konto hat noch kein Passwort. Wir senden Ihnen einen sicheren Link per E-Mail, um eines festzulegen, sodass Sie sich auch direkt anmelden können.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Einrichtungslink senden",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Eine E-Mail mit einem Link zum Festlegen eines Passworts für Ihr Konto wurde an Sie gesendet",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Ein Konto mit dieser E-Mail-Adresse existiert bereits, ist aber nicht mit dieser Anmeldemethode verknüpft. Melden Sie sich mit Ihrer bestehenden Methode an und verknüpfen Sie diesen Anbieter dann unter Sicherheitseinstellungen → Verknüpfte Identitäten.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Diese Identität konnte nicht verbunden werden. Die Verbindung wurde möglicherweise auf der falschen Domain gestartet oder Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an und verbinden Sie sie dann in Ihren Kontoeinstellungen.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Das Hinzufügen zu Ihrer Organisation konnte nicht abgeschlossen werden. Bitte kontaktieren Sie Ihren Administrator.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Diese Anmeldemethode konnte nicht verknüpft werden. Melden Sie sich mit Ihrem bestehenden Passwort an und verbinden Sie diesen Anbieter dann unter Sicherheitseinstellungen → Verknüpfte Identitäten.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Überprüfen Sie Ihren Posteingang — wir haben Ihnen einen Link per E-Mail gesendet, um die Verbindung Ihres Kontos zu bestätigen. Öffnen Sie ihn, um die Anmeldung abzuschließen.",
+    "source_hash": "b251c8f3"
   }
 }

@@ -4,7 +4,7 @@
     "source_hash": "bfde7e68"
   },
   "web.admin.billing.description": {
-    "text": "Vue en lecture seule des forfaits configurés et de leurs droits, ainsi que tout écart par rapport au catalogue synchronisé en direct avec Stripe.",
+    "text": "Vue en lecture seule des forfaits configurés et de leurs droits, ainsi que des écarts avec le catalogue synchronisé avec Stripe.",
     "source_hash": "05d5b332"
   },
   "web.admin.billing.retry": {
@@ -16,7 +16,7 @@
     "source_hash": "c3110f77"
   },
   "web.admin.billing.localConfigWarning": {
-    "text": "Le cache des forfaits synchronisés avec Stripe est vide ; les forfaits en direct et les écarts ne peuvent donc pas être évalués. Seul le catalogue configuré (billing.yaml) est affiché — ce qui est habituel en développement ou lorsque Stripe n'est pas configuré.",
+    "text": "Le cache des forfaits synchronisés avec Stripe est vide ; les forfaits actifs et les écarts ne peuvent donc pas être évalués. Seul le catalogue configuré (billing.yaml) est affiché — situation courante en développement ou lorsque Stripe n'est pas configuré.",
     "source_hash": "905d95f8"
   },
   "web.admin.billing.inSync": {
@@ -28,7 +28,7 @@
     "source_hash": "166538f5"
   },
   "web.admin.billing.inSyncDetail": {
-    "text": "Le catalogue configuré correspond aux forfaits en direct. Aucun écart détecté.",
+    "text": "Le catalogue configuré correspond aux forfaits actifs. Aucun écart détecté.",
     "source_hash": "57ab60a6"
   },
   "web.admin.billing.columns.planid": {
@@ -44,7 +44,7 @@
     "source_hash": "cb9e8664"
   },
   "web.admin.billing.columns.status": {
-    "text": "Statut",
+    "text": "État",
     "source_hash": "920e413c"
   },
   "web.admin.billing.diff.title": {
@@ -52,7 +52,7 @@
     "source_hash": "bc86e5f7"
   },
   "web.admin.billing.diff.subtitle": {
-    "text": "Catalogue configuré (billing.yaml) et forfait synchronisé en direct avec Stripe, côte à côte.",
+    "text": "Catalogue configuré (billing.yaml) et forfait actif synchronisé avec Stripe, côte à côte.",
     "source_hash": "d92e93ae"
   },
   "web.admin.billing.diff.config": {
@@ -60,7 +60,7 @@
     "source_hash": "6bf2ff04"
   },
   "web.admin.billing.diff.live": {
-    "text": "En direct (cache Stripe)",
+    "text": "Actif (cache Stripe)",
     "source_hash": "4886945d"
   },
   "web.admin.billing.diff.absentConfig": {
@@ -68,7 +68,7 @@
     "source_hash": "0b594c88"
   },
   "web.admin.billing.diff.absentLive": {
-    "text": "Ce forfait n'est pas présent dans le cache synchronisé en direct avec Stripe.",
+    "text": "Ce forfait n'est pas présent dans le cache actif synchronisé avec Stripe.",
     "source_hash": "c53f31c3"
   },
   "web.admin.billing.plans.title": {
@@ -80,7 +80,7 @@
     "source_hash": "39db3c13"
   },
   "web.admin.billing.plans.viewDiff": {
-    "text": "Afficher les différences",
+    "text": "Voir les différences",
     "source_hash": "0e5d6873"
   },
   "web.admin.billing.source.stripe": {
@@ -96,7 +96,7 @@
     "source_hash": "4fda4796"
   },
   "web.admin.billing.stats.live": {
-    "text": "Forfaits en direct",
+    "text": "Forfaits actifs",
     "source_hash": "faaa88d9"
   },
   "web.admin.billing.stats.source": {
@@ -116,11 +116,91 @@
     "source_hash": "15836cba"
   },
   "web.admin.billing.status.only_live": {
-    "text": "En direct uniquement",
+    "text": "Actif uniquement",
     "source_hash": "8f4ed495"
   },
   "web.admin.billing.status.changed": {
     "text": "Modifié",
     "source_hash": "2a6141e4"
+  },
+  "web.admin.billing.diff.backToCatalog": {
+    "text": "Retour au catalogue de facturation",
+    "source_hash": "8532b373"
+  },
+  "web.admin.billing.diff.driftedFields": {
+    "text": "Champs qui diffèrent :",
+    "source_hash": "9890c95b"
+  },
+  "web.admin.billing.diff.notFound": {
+    "text": "Forfait absent du catalogue",
+    "source_hash": "0253898b"
+  },
+  "web.admin.billing.diff.notFoundDescription": {
+    "text": "Aucun forfait portant l'identifiant {planid} n'a été trouvé dans le catalogue configuré ni dans le cache actif synchronisé avec Stripe.",
+    "source_hash": "2e69551c"
+  },
+  "web.admin.billing.stripeOrgs.title": {
+    "text": "Clients Stripe",
+    "source_hash": "0463ae27"
+  },
+  "web.admin.billing.stripeOrgs.description": {
+    "text": "Organisations liées à une fiche client Stripe.",
+    "source_hash": "2ab09aec"
+  },
+  "web.admin.billing.stripeOrgs.searchPlaceholder": {
+    "text": "Rechercher par ID client Stripe",
+    "source_hash": "d5acf08f"
+  },
+  "web.admin.billing.stripeOrgs.empty": {
+    "text": "Aucune organisation ne possède d'ID client Stripe.",
+    "source_hash": "2e373537"
+  },
+  "web.admin.billing.stripeOrgs.emptySearch": {
+    "text": "Aucun ID client Stripe ne correspond à cette recherche.",
+    "source_hash": "75011174"
+  },
+  "web.admin.billing.stripeOrgs.loadError": {
+    "text": "Impossible de charger la liste des clients Stripe.",
+    "source_hash": "15e2d9a7"
+  },
+  "web.admin.billing.stripeOrgs.unavailable": {
+    "text": "La liste des clients Stripe n'est pas encore disponible sur ce serveur.",
+    "source_hash": "aab6451a"
+  },
+  "web.admin.billing.stripeOrgs.none": {
+    "text": "Aucun",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.billing.stripeOrgs.capped": {
+    "text": "L'analyse de l'index a atteint sa limite ; le total est donc une valeur minimale — affinez la recherche pour voir le reste.",
+    "source_hash": "20bcaa38"
+  },
+  "web.admin.billing.stripeOrgs.stale": {
+    "text": "{count} entrée(s) d'index sur cette page pointent vers une organisation qui ne se charge plus et ont été ignorées.",
+    "source_hash": "51980f83"
+  },
+  "web.admin.billing.stripeOrgs.copyStripeId": {
+    "text": "Copier l'ID client Stripe",
+    "source_hash": "a77d18b1"
+  },
+  "web.admin.billing.stripeOrgs.columns.organization": {
+    "text": "Organisation",
+    "source_hash": "d764d425"
+  },
+  "web.admin.billing.stripeOrgs.columns.owner": {
+    "text": "Propriétaire",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.billing.stripeOrgs.columns.plan": {
+    "text": "Forfait",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.billing.stripeOrgs.columns.subscription": {
+    "text": "Abonnement",
+    "source_hash": "4999c6c6"
+  },
+  "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
+    "text": "ID client Stripe",
+    "source_hash": "7e1d8bbb"
   }
 }

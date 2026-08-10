@@ -730,5 +730,204 @@
   "web.auth.sessions.session_plural": {
     "text": "세션",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "연결된 계정",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "계정에 연결된 Single Sign-On 제공자를 관리합니다.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Single Sign-On",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "이 계정에 로그인하는 데 사용할 수 있는 ID 제공자",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "제공자 연결",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "이 계정에 로그인하는 데 사용할 수 있는 다른 Single Sign-On 제공자를 연결합니다.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "{provider} 연결",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "발급자",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "식별자",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "제거",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "연결된 계정 제거",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "이 연결된 계정을 제거하시겠습니까? 더 이상 이 계정으로 로그인할 수 없습니다.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "연결된 계정이 제거되었습니다",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "연결된 계정 없음",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "아직 이 계정에 Single Sign-On 제공자를 연결하지 않았습니다.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Single Sign-On",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "이것이 유일한 로그인 방법입니다. 잠기지 않도록 먼저 다른 제공자를 연결하거나 설정 → 보안에서 비밀번호를 설정하세요.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "이것이 유일한 로그인 방법입니다. 잠기지 않도록 먼저 다른 제공자를 연결하세요.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "해당 연결된 계정을 찾을 수 없습니다. 이미 제거되었을 수 있습니다.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "세션이 만료되었습니다. 다시 로그인하세요.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "해당 작업을 완료할 수 없습니다. 다시 시도하세요.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "로그인 방법 연결",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "{provider}(으)로 로그인했으며, 이는 기존 계정 {email}과(와) 일치합니다. {provider}을(를) 연결하고 계속하려면 해당 계정의 비밀번호를 입력하세요.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "비밀번호",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "기존 비밀번호",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "연결하고 계속",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "취소",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "이 연결 요청이 만료되었습니다",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "보안을 위해 이 로그인 방법을 연결하는 요청이 더 이상 유효하지 않습니다. 기존 비밀번호로 로그인한 다음 보안 설정 → 연결된 계정에서 이 제공자를 연결하세요.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "로그인 계속",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "비밀번호가 이 계정과 일치하지 않습니다. 다시 시도하세요.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "이 연결 요청이 만료되었거나 이미 사용되었습니다. 기존 비밀번호로 로그인한 다음 계정 설정에서 이 제공자를 연결하세요.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "이 로그인 방법을 연결할 수 없습니다. 계정이 변경되었거나 이 제공자가 이미 다른 계정에 연결되어 있을 수 있습니다. 기존 비밀번호로 로그인한 다음 보안 설정 → 연결된 계정에서 연결을 관리하세요.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "비밀번호 시도가 너무 많습니다. 몇 분 후에 다시 시도하세요.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "이 연결 요청을 처리할 수 없습니다. SSO 제공자로 다시 로그인하세요.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "계정을 연결할 수 없습니다. 다시 시도하세요.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "계정 연결 확인",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "{provider}(으)로 로그인했으며, 이는 계정 {email}과(와) 일치합니다. {provider}을(를) 이 계정에 연결하고 로그인을 완료하려면 확인하세요.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "확인하고 연결",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "취소",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "이 연결 요청을 완료할 수 없습니다",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "보안을 위해 로그인 방법을 연결하는 이 요청은 더 이상 유효하지 않습니다. 제공자로 다시 로그인하면 새 링크를 이메일로 보내드립니다.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "로그인으로 돌아가기",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "이 연결 요청이 만료되었거나 이미 사용되었습니다. 제공자로 다시 로그인하면 새 링크를 이메일로 보내드립니다.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "이 로그인 방법을 연결할 수 없습니다. 계정이 변경되었거나 이 제공자가 이미 다른 계정에 연결되어 있을 수 있습니다. 계속하려면 제공자로 다시 로그인하세요.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "이 링크가 발송된 후 계정 자격 증명이 변경되어 더 이상 유효하지 않습니다. 제공자로 다시 로그인하면 새 링크를 이메일로 보내드립니다.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "저희 측에서 문제가 발생하여 이 링크를 확인할 수 없습니다. 제공자로 다시 로그인하면 새 링크를 이메일로 보내드립니다.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "기기에서 시도가 너무 많습니다. 몇 분 후에 이메일로 받은 링크를 다시 열거나 제공자로 로그인하여 새 링크를 받으세요.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "이 연결을 확인할 수 없습니다. 제공자로 다시 로그인하세요.",
+    "source_hash": "076fa25a"
   }
 }

@@ -4,7 +4,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "システム設定を編集します。変更は保存後すぐに適用されます。",
+    "text": "システム構成の設定を編集します。変更は保存後すぐに適用されます。",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -12,7 +12,7 @@
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
-    "text": "バリデーションエラー",
+    "text": "検証エラー",
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
@@ -24,7 +24,7 @@
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "設定を正常に保存しました",
+    "text": "設定を保存しました",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
@@ -32,11 +32,11 @@
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "複数のセクションにバリデーションエラーがあります: {sections}",
+    "text": "複数のセクションに検証エラーがあります: {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section}にバリデーションエラーがあります: {error}",
+    "text": "{section}に検証エラーがあります: {error}",
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
@@ -56,15 +56,15 @@
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "スキーマバリデーションエラー: {message} ({path})",
+    "text": "スキーマ検証エラー: {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "不明なバリデーションエラー: {error}",
+    "text": "不明な検証エラー: {error}",
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section}セクションに設定値がありません",
+    "text": "{section}セクションには設定された値がありません",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -72,7 +72,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "管理者",
+    "text": "管理",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -88,7 +88,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "ユーザーアカウントと権限を管理",
+    "text": "ユーザーアカウントと権限を管理します",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -112,7 +112,7 @@
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
-    "text": "クイックアクション",
+    "text": "クイック操作",
     "source_hash": "2cc2b6f7"
   },
   "web.colonel.recentActivity": {
@@ -124,39 +124,39 @@
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "アクティビティデータがここに表示されます",
+    "text": "ここにアクティビティのデータが表示されます",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "シークレット総数",
+    "text": "シークレットの合計数",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "アクティブユーザー",
+    "text": "アクティブユーザー数",
     "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "本日のシークレット",
+    "text": "本日のシークレット数",
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "作成されたシークレット",
+    "text": "作成されたシークレット数",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "共有されたシークレット",
+    "text": "共有されたシークレット数",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "総ユーザー数",
+    "text": "ユーザーの合計数",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "送信メール数",
+    "text": "送信されたメール数",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "システム状態",
+    "text": "システムの健全性",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
@@ -168,7 +168,7 @@
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "システムアクティビティと使用状況を監視",
+    "text": "システムのアクティビティと利用状況を監視します",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
@@ -176,7 +176,7 @@
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "ユーザーアカウント管理",
+    "text": "ユーザーアカウントの管理",
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
@@ -184,7 +184,7 @@
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "ドメインとDNS設定",
+    "text": "ドメインとDNSの設定",
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
@@ -192,7 +192,7 @@
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "アプリケーション設定",
+    "text": "アプリケーションの構成",
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
@@ -200,7 +200,7 @@
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
-    "text": "キューステータス",
+    "text": "キューのステータス",
     "source_hash": "3421ffa8"
   },
   "web.colonel.queueName": {
@@ -216,7 +216,7 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "処理速度/秒",
+    "text": "件/秒",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
@@ -228,19 +228,19 @@
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "アクティブワーカー",
+    "text": "稼働中のワーカー",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
-    "text": "キューデータがありません",
+    "text": "キューのデータがありません",
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "キューデータを読み込み中...",
+    "text": "キューのデータを読み込んでいます...",
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "テストプランモード",
+    "text": "プランのテストモード",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -256,7 +256,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "実際のプランにリセット",
+    "text": "実際のプランに戻す",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -268,7 +268,7 @@
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
-    "text": "テストモードを有効化",
+    "text": "テストモードを有効にする",
     "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
@@ -276,11 +276,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "異なるプランのエンタイトルメントでアプリケーションをテストします。変更は一時的で、あなたのセッションのみに影響します。",
+    "text": "異なるプランのエンタイトルメントでアプリケーションをテストします。変更は一時的で、ご自身のセッションにのみ影響します。",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "{planName}のエンタイトルメントでテスト中です(一時的なセッションオーバーライド)。",
+    "text": "{planName}のエンタイトルメントでテスト中です (一時的なセッションの上書き設定)。",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -288,11 +288,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "組織の請求同期状態を監視",
+    "text": "組織の請求同期の健全性を監視します",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "請求状態モニター",
+    "text": "請求ヘルスモニター",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -300,15 +300,15 @@
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count}件要対応",
+    "text": "要対応 {count}件",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
-    "text": "{count}件不明",
+    "text": "不明 {count}件",
     "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
-    "text": "組織が見つかりません",
+    "text": "組織が見つかりませんでした",
     "source_hash": "538995db"
   },
   "web.colonel.organizations.filters.syncStatus": {
@@ -344,7 +344,7 @@
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "期限超過",
+    "text": "支払い期限超過",
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
@@ -364,11 +364,11 @@
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.columns.usage": {
-    "text": "使用量",
+    "text": "使用状況",
     "source_hash": "8d59829c"
   },
   "web.colonel.organizations.columns.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.colonel.organizations.columns.details": {
@@ -396,7 +396,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "デフォルトワークスペース",
+    "text": "既定のワークスペース",
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
@@ -404,15 +404,15 @@
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "組織請求管理",
+    "text": "組織の請求管理",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "組織の管理と請求同期状態の監視 (合計{total}件)",
+    "text": "組織を管理し、請求同期の健全性を監視します (合計{total}件)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
-    "text": "組織が見つかりません",
+    "text": "組織が見つかりませんでした",
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
@@ -460,19 +460,19 @@
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "同期を確認",
+    "text": "同期を確認済み",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "不一致を検出",
+    "text": "不一致が見つかりました",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "比較不可",
+    "text": "比較できません",
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Stripeサブスクリプション詳細",
+    "text": "Stripeサブスクリプションの詳細",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -484,7 +484,7 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "解決済みプラン",
+    "text": "解決されたプラン",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
@@ -500,11 +500,11 @@
     "source_hash": "961a6062"
   },
   "web.colonel.organizations.usage.members": {
-    "text": "{count}人のメンバー",
+    "text": "メンバー{count}名",
     "source_hash": "201eb3d9"
   },
   "web.colonel.organizations.usage.domains": {
-    "text": "{count}件のドメイン",
+    "text": "ドメイン{count}件",
     "source_hash": "cf548c8c"
   },
   "web.colonel.secrets.title": {
@@ -512,23 +512,23 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "すべてのシークレットを表示・管理",
+    "text": "すべてのシークレットを表示・管理します",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "禁止IP",
+    "text": "禁止されたIP",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "IP禁止リストを管理",
+    "text": "IPの禁止リストを管理します",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
-    "text": "使用量エクスポート",
+    "text": "使用状況のエクスポート",
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "使用量データと統計をエクスポート",
+    "text": "使用状況のデータと統計をエクスポートします",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -536,7 +536,7 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.systemSettings.description": {
-    "text": "システム設定、データベース、および構成",
+    "text": "システム設定、データベース、構成",
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
@@ -544,7 +544,7 @@
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "カスタムドメインとブランディングを管理",
+    "text": "カスタムドメインとブランディングを管理します",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
@@ -580,11 +580,11 @@
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
-    "text": "禁止IP",
+    "text": "禁止されたIP",
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
-    "text": "使用量エクスポート",
+    "text": "使用状況のエクスポート",
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
@@ -600,23 +600,23 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "フィードバックを送信すると、以下の情報が送信されます:",
+    "text": "フィードバックを送信すると、当社では次の情報を確認します:",
     "source_hash": "fe77172e"
   },
   "web.colonel.previewPlanMode": {
-    "text": "プランプレビューモード",
+    "text": "プランのプレビューモード",
     "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "別のプランの顧客に表示されるアプリケーションをプレビューします。これはあなたの表示にのみ影響し、組織の実際のプランは変更されません。",
+    "text": "別のプランを利用している顧客に表示される画面をプレビューします。これは表示にのみ影響し、組織の実際のプランは変更されません。",
     "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "プレビュー有効",
+    "text": "プレビュー中",
     "source_hash": "a558d603"
   },
   "web.colonel.bannedIps.empty": {
-    "text": "禁止されたIPはありません",
+    "text": "禁止されているIPはありません",
     "source_hash": "bd101143"
   },
   "web.colonel.bannedIps.currentIp": {
@@ -624,7 +624,7 @@
     "source_hash": "72f9fefe"
   },
   "web.colonel.bannedIps.confirmUnban": {
-    "text": "{ip}の禁止を解除しますか？",
+    "text": "{ip}の禁止を解除しますか?",
     "source_hash": "ff009b1c"
   },
   "web.colonel.bannedIps.actions.ban": {
@@ -656,7 +656,7 @@
     "source_hash": "dfbd120e"
   },
   "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "禁止者",
+    "text": "実行者",
     "source_hash": "9f47db0e"
   },
   "web.colonel.bannedIps.error.banFailed": {
@@ -680,19 +680,19 @@
     "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "理由（任意）",
+    "text": "理由 (任意)",
     "source_hash": "956688a5"
   },
   "web.colonel.bannedIps.success.banned": {
-    "text": "IPアドレス {ip} を禁止しました",
+    "text": "IPアドレス{ip}を禁止しました",
     "source_hash": "b6f861d5"
   },
   "web.colonel.bannedIps.success.unbanned": {
-    "text": "IPアドレス {ip} の禁止を解除しました",
+    "text": "IPアドレス{ip}の禁止を解除しました",
     "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
-    "text": "カスタムドメインが設定されていません",
+    "text": "設定されているカスタムドメインはありません",
     "source_hash": "e10b39f7"
   },
   "web.colonel.customDomains.noLogo": {
@@ -708,11 +708,11 @@
     "source_hash": "69da56ba"
   },
   "web.colonel.customDomains.labels.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.colonel.customDomains.labels.updated": {
-    "text": "更新日",
+    "text": "更新日時",
     "source_hash": "3a5ecca1"
   },
   "web.colonel.customDomains.labels.favicon": {
@@ -724,7 +724,7 @@
     "source_hash": "4f783840"
   },
   "web.colonel.customDomains.status.resolving": {
-    "text": "解決中",
+    "text": "名前解決中",
     "source_hash": "3287a034"
   },
   "web.colonel.customDomains.status.ready": {
@@ -744,7 +744,7 @@
     "source_hash": "331551b0"
   },
   "web.colonel.pagination.showing": {
-    "text": "{total}件中 {start}–{end}件を表示",
+    "text": "{total}件中{start}〜{end}件を表示",
     "source_hash": "64af6de2"
   },
   "web.colonel.pagination.itemsPerPage": {
@@ -760,7 +760,7 @@
     "source_hash": "f0df6412"
   },
   "web.colonel.secrets.empty": {
-    "text": "シークレットが見つかりません",
+    "text": "シークレットが見つかりませんでした",
     "source_hash": "28647b3b"
   },
   "web.colonel.secrets.never": {
@@ -776,7 +776,7 @@
     "source_hash": "a3b50c47"
   },
   "web.colonel.secrets.columns.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.colonel.secrets.columns.expiration": {
@@ -784,7 +784,7 @@
     "source_hash": "f38d6e0e"
   },
   "web.colonel.secrets.columns.age": {
-    "text": "経過日数（日）",
+    "text": "経過日数",
     "source_hash": "52ae64c6"
   },
   "web.colonel.secrets.state.new": {
@@ -812,7 +812,7 @@
     "source_hash": "920e413c"
   },
   "web.colonel.customDomains.labels.actions": {
-    "text": "アクション",
+    "text": "操作",
     "source_hash": "ff8059dc"
   },
   "web.colonel.nav.consoleTag": {
@@ -838,5 +838,37 @@
   "web.colonel.nav.groups.communications": {
     "text": "コミュニケーション",
     "source_hash": "919a9253"
+  },
+  "web.colonel.organizations.sameAsContact": {
+    "text": "連絡先と同じ",
+    "source_hash": "ed18ff43"
+  },
+  "web.colonel.organizations.refresh": {
+    "text": "更新",
+    "source_hash": "0e916101"
+  },
+  "web.colonel.organizations.updatedAgo": {
+    "text": "{ago}に更新",
+    "source_hash": "cda30b9c"
+  },
+  "web.colonel.organizations.columns.name": {
+    "text": "名称",
+    "source_hash": "dcd1d522"
+  },
+  "web.colonel.organizations.columns.contactEmail": {
+    "text": "連絡先メールアドレス",
+    "source_hash": "6d7fce11"
+  },
+  "web.colonel.organizations.columns.billingEmail": {
+    "text": "請求先メールアドレス",
+    "source_hash": "8805b928"
+  },
+  "web.colonel.organizations.columns.planSubscription": {
+    "text": "プランとサブスクリプション",
+    "source_hash": "b396caac"
+  },
+  "web.colonel.organizations.filters.searchPlaceholder": {
+    "text": "ID、名称、またはメールアドレスで検索",
+    "source_hash": "6fe16473"
   }
 }

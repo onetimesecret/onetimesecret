@@ -4,7 +4,7 @@
     "source_hash": "47751f88"
   },
   "web.admin.audit.description": {
-    "text": "変更を伴うすべての管理者操作を新しい順に表示します。誰が誰に対して何を行い、その結果どうなったかを確認できます。",
+    "text": "変更を伴うすべての管理操作を新しい順に表示します — 誰が誰に対して何を行い、結果はどうだったか。",
     "source_hash": "2326a1a0"
   },
   "web.admin.audit.categories.customer": {
@@ -52,7 +52,7 @@
     "source_hash": "449995c4"
   },
   "web.admin.audit.columns.action": {
-    "text": "アクション",
+    "text": "操作",
     "source_hash": "64cff131"
   },
   "web.admin.audit.columns.target": {
@@ -68,15 +68,15 @@
     "source_hash": "fb5f27d5"
   },
   "web.admin.audit.filters.actorPlaceholder": {
-    "text": "実行者で絞り込む(extidまたはメール)",
+    "text": "実行者で絞り込み (extidまたはメールアドレス)",
     "source_hash": "966aa580"
   },
   "web.admin.audit.filters.actionLabel": {
-    "text": "アクション",
+    "text": "操作",
     "source_hash": "64cff131"
   },
   "web.admin.audit.filters.allActions": {
-    "text": "すべてのアクション",
+    "text": "すべての操作",
     "source_hash": "83140cf1"
   },
   "web.admin.audit.list.loadError": {
@@ -88,7 +88,7 @@
     "source_hash": "942087cc"
   },
   "web.admin.audit.list.empty": {
-    "text": "監査イベントはまだ記録されていません",
+    "text": "記録された監査イベントはまだありません",
     "source_hash": "8fe0cac3"
   },
   "web.admin.audit.result.success": {
@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "失敗",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "シークレット",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "メンバーシップ",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "エンタイトルメントのプレビュー",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonelのログイン",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "実行者",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "検索",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "実行者を入力し、Enterキーを押すか「検索」を選択して実行してください。入力中は一覧は更新されません。",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "まだ検索されていません — Enterキーを押すか「検索」を選択して、この実行者を適用してください。",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "サーバーは応答しましたが、監査データが想定された形式と一致しませんでした。イベントを表示できません — これはログが空なのではなく、レポート処理の不具合です。",
+    "source_hash": "7f48137e"
   }
 }

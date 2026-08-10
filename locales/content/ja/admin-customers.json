@@ -4,8 +4,8 @@
     "source_hash": "aabe76f1"
   },
   "web.admin.customers.description": {
-    "text": "SSHを使わずに顧客を検索し、サポート問題を解決します。",
-    "source_hash": "c8487e68"
+    "text": "顧客を検索し、サポートの問題を解決します。",
+    "source_hash": "00961ea3"
   },
   "web.admin.customers.actions.plan.label": {
     "text": "プラン",
@@ -20,7 +20,7 @@
     "source_hash": "910a4de9"
   },
   "web.admin.customers.actions.plan.confirmDescription": {
-    "text": "{email}を{plan}プランに変更します。",
+    "text": "{email}のプランを{plan}に変更します。",
     "source_hash": "83fb4158"
   },
   "web.admin.customers.actions.plan.success": {
@@ -28,23 +28,23 @@
     "source_hash": "ebe8d40c"
   },
   "web.admin.customers.actions.plan.localConfigWarning": {
-    "text": "プランはローカル設定から読み込まれました。Stripeが未設定か、到達できません。",
+    "text": "プランはローカル設定から読み込まれました — Stripeが未設定か、接続できません。",
     "source_hash": "df83e326"
   },
   "web.admin.customers.actions.purge.button": {
-    "text": "顧客を完全削除",
+    "text": "顧客を完全に削除",
     "source_hash": "ff658f69"
   },
   "web.admin.customers.actions.purge.confirmTitle": {
-    "text": "顧客を完全削除しますか?",
+    "text": "顧客を完全に削除しますか?",
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "これにより、{email}とそのすべてのデータが完全に削除されます。この操作は元に戻せません。",
+    "text": "{email}とそのすべてのデータを完全に削除します。この操作は元に戻せません。",
     "source_hash": "a74dd5d1"
   },
   "web.admin.customers.actions.purge.success": {
-    "text": "顧客を完全削除しました。",
+    "text": "顧客を完全に削除しました。",
     "source_hash": "6145e5c8"
   },
   "web.admin.customers.actions.role.label": {
@@ -60,7 +60,7 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "{email}を{role}ロールに変更します。",
+    "text": "{email}のロールを{role}に変更します。",
     "source_hash": "9ba063c6"
   },
   "web.admin.customers.actions.role.success": {
@@ -72,11 +72,11 @@
     "source_hash": "95a04f27"
   },
   "web.admin.customers.actions.suspend.reasonLabel": {
-    "text": "理由(任意)",
+    "text": "理由 (任意)",
     "source_hash": "0f7d4664"
   },
   "web.admin.customers.actions.suspend.reasonPlaceholder": {
-    "text": "このアカウントを停止する理由は?",
+    "text": "このアカウントを停止する理由は何ですか?",
     "source_hash": "8eca975e"
   },
   "web.admin.customers.actions.suspend.confirmTitle": {
@@ -84,7 +84,7 @@
     "source_hash": "cbfa275b"
   },
   "web.admin.customers.actions.suspend.confirmDescription": {
-    "text": "{email}のログインをブロックし、アクティブなセッションを取り消します。データは削除されません。この操作は元に戻せます。",
+    "text": "{email}のログインをブロックし、有効なセッションを無効化します。データは削除されません — この操作は元に戻せます。",
     "source_hash": "e5d046bc"
   },
   "web.admin.customers.actions.suspend.success": {
@@ -100,7 +100,7 @@
     "source_hash": "6fd78a72"
   },
   "web.admin.customers.actions.unsuspend.confirmDescription": {
-    "text": "{email}のログインを復元します。",
+    "text": "{email}のログインを再び有効にします。",
     "source_hash": "cb2bb4e0"
   },
   "web.admin.customers.actions.unsuspend.success": {
@@ -108,39 +108,39 @@
     "source_hash": "c5b4377f"
   },
   "web.admin.customers.actions.unverify.button": {
-    "text": "検証を解除",
+    "text": "未認証にする",
     "source_hash": "b0dee41f"
   },
   "web.admin.customers.actions.unverify.confirmTitle": {
-    "text": "顧客の検証を解除しますか?",
+    "text": "顧客を未認証にしますか?",
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "{email}を未検証としてマークします。",
+    "text": "{email}を未認証としてマークします。",
     "source_hash": "592ffd27"
   },
   "web.admin.customers.actions.unverify.success": {
-    "text": "顧客の検証を解除しました。",
+    "text": "顧客を未認証にしました。",
     "source_hash": "a9b7bbac"
   },
   "web.admin.customers.actions.verify.button": {
-    "text": "検証",
+    "text": "認証する",
     "source_hash": "eea2745e"
   },
   "web.admin.customers.actions.verify.confirmTitle": {
-    "text": "顧客を検証しますか?",
+    "text": "顧客を認証しますか?",
     "source_hash": "43037ce1"
   },
   "web.admin.customers.actions.verify.confirmDescription": {
-    "text": "{email}を検証済みとしてマークします。",
+    "text": "{email}を認証済みとしてマークします。",
     "source_hash": "7052d79d"
   },
   "web.admin.customers.actions.verify.success": {
-    "text": "顧客を検証しました。",
+    "text": "顧客を認証しました。",
     "source_hash": "19e382dc"
   },
   "web.admin.customers.columns.email": {
-    "text": "メール",
+    "text": "メールアドレス",
     "source_hash": "969ccbd3"
   },
   "web.admin.customers.columns.role": {
@@ -148,7 +148,7 @@
     "source_hash": "14736a2e"
   },
   "web.admin.customers.columns.verified": {
-    "text": "検証済み",
+    "text": "認証済み",
     "source_hash": "4f783840"
   },
   "web.admin.customers.columns.plan": {
@@ -160,7 +160,7 @@
     "source_hash": "d8707d41"
   },
   "web.admin.customers.columns.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.columns.lastLogin": {
@@ -168,7 +168,7 @@
     "source_hash": "0d39602d"
   },
   "web.admin.customers.detail.backToList": {
-    "text": "顧客に戻る",
+    "text": "顧客一覧に戻る",
     "source_hash": "077807fb"
   },
   "web.admin.customers.detail.openFullPage": {
@@ -180,7 +180,7 @@
     "source_hash": "5e3f5824"
   },
   "web.admin.customers.detail.notFoundDescription": {
-    "text": "この識別子に一致する顧客はいません。完全削除された可能性があります。",
+    "text": "この識別子に一致する顧客はありません。完全に削除された可能性があります。",
     "source_hash": "82b04725"
   },
   "web.admin.customers.detail.loadError": {
@@ -212,7 +212,7 @@
     "source_hash": "fa8ed0bd"
   },
   "web.admin.customers.detail.billing.organization": {
-    "text": "請求組織",
+    "text": "請求先の組織",
     "source_hash": "90c94ee1"
   },
   "web.admin.customers.detail.billing.subscriptionStatus": {
@@ -236,7 +236,7 @@
     "source_hash": "dfa7c41d"
   },
   "web.admin.customers.detail.billing.unavailable": {
-    "text": "Stripeのデータを利用できません:{reason}",
+    "text": "Stripeのデータを利用できません: {reason}",
     "source_hash": "9fe08e49"
   },
   "web.admin.customers.detail.billing.notConfigured": {
@@ -244,7 +244,7 @@
     "source_hash": "6e90375e"
   },
   "web.admin.customers.detail.fields.email": {
-    "text": "メール",
+    "text": "メールアドレス",
     "source_hash": "969ccbd3"
   },
   "web.admin.customers.detail.fields.publicId": {
@@ -256,7 +256,7 @@
     "source_hash": "14736a2e"
   },
   "web.admin.customers.detail.fields.verified": {
-    "text": "検証済み",
+    "text": "認証済み",
     "source_hash": "4f783840"
   },
   "web.admin.customers.detail.fields.plan": {
@@ -268,11 +268,11 @@
     "source_hash": "ca3dc612"
   },
   "web.admin.customers.detail.fields.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.detail.fields.updated": {
-    "text": "更新日",
+    "text": "更新日時",
     "source_hash": "3a5ecca1"
   },
   "web.admin.customers.detail.fields.lastLogin": {
@@ -288,7 +288,7 @@
     "source_hash": "e0830524"
   },
   "web.admin.customers.detail.fields.suspendedReason": {
-    "text": "停止理由",
+    "text": "停止の理由",
     "source_hash": "d6b08d8e"
   },
   "web.admin.customers.detail.organizations.empty": {
@@ -296,7 +296,7 @@
     "source_hash": "c256efdc"
   },
   "web.admin.customers.detail.organizations.default": {
-    "text": "デフォルト",
+    "text": "既定",
     "source_hash": "21b111cb"
   },
   "web.admin.customers.detail.receiptColumns.shortId": {
@@ -308,7 +308,7 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.customers.detail.receiptColumns.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.detail.receipts.empty": {
@@ -324,7 +324,7 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.customers.detail.secretColumns.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.admin.customers.detail.secretColumns.expiration": {
@@ -352,7 +352,7 @@
     "source_hash": "2730183d"
   },
   "web.admin.customers.detail.sections.actions": {
-    "text": "アクション",
+    "text": "操作",
     "source_hash": "ff8059dc"
   },
   "web.admin.customers.detail.sections.billing": {
@@ -392,55 +392,55 @@
     "source_hash": "bc4ea262"
   },
   "web.admin.customers.detail.sessions.columns.actions": {
-    "text": "アクション",
+    "text": "操作",
     "source_hash": "ff8059dc"
   },
   "web.admin.customers.detail.sessions.revoke.button": {
-    "text": "取り消し",
+    "text": "無効化",
     "source_hash": "87e6d00b"
   },
   "web.admin.customers.detail.sessions.revoke.confirmTitle": {
-    "text": "セッションを取り消しますか?",
+    "text": "セッションを無効化しますか?",
     "source_hash": "7735d1ef"
   },
   "web.admin.customers.detail.sessions.revoke.confirmDescription": {
-    "text": "これにより、このセッションからユーザーが直ちにログアウトされます。ユーザーは再度ログインする必要があります。",
+    "text": "このセッションからユーザーを直ちにログアウトさせます。ユーザーは再度ログインする必要があります。",
     "source_hash": "b4291af0"
   },
   "web.admin.customers.detail.sessions.revoke.success": {
-    "text": "セッションを取り消しました。",
+    "text": "セッションを無効化しました。",
     "source_hash": "5e4762e5"
   },
   "web.admin.customers.detail.sessions.revokeAll.button": {
-    "text": "すべて取り消し",
+    "text": "すべて無効化",
     "source_hash": "c6847a4b"
   },
   "web.admin.customers.detail.sessions.revokeAll.confirmTitle": {
-    "text": "すべてのセッションを取り消しますか?",
+    "text": "すべてのセッションを無効化しますか?",
     "source_hash": "a4fa4c65"
   },
   "web.admin.customers.detail.sessions.revokeAll.confirmDescription": {
-    "text": "これにより、このリストに表示されていないセッションを含むすべてのデバイスとブラウザからユーザーがログアウトされ、認証されたルートへのアクセスが直ちにロックされます。オフボーディングやアカウント乗っ取りの疑いがある場合に使用してください。確認のためにユーザーのIDを入力してください。",
+    "text": "この一覧に表示されていないセッションを含め、すべてのデバイスとブラウザーからユーザーをログアウトさせ、認証が必要なルートへのアクセスを直ちに遮断します。退職手続きやアカウント乗っ取りが疑われる場合にご利用ください。確認のためユーザーのIDを入力してください。",
     "source_hash": "483cdd88"
   },
   "web.admin.customers.detail.sessions.revokeAll.success": {
-    "text": "すべてのセッションを取り消しました({count}件を終了)。",
+    "text": "すべてのセッションを無効化しました ({count}件を終了)。",
     "source_hash": "4e1cce55"
   },
   "web.admin.customers.detail.sessions.revokeAll.capped": {
-    "text": "{count}件のセッションを終了しましたが、追跡されていないセッションのスイープが途中で打ち切られました。古いセッションが残っている可能性があります。確実にするには再実行してください。",
+    "text": "{count}件のセッションを終了しましたが、追跡されていないセッションの掃引が途中で打ち切られました — 古いセッションが残っている可能性があります。念のため再実行してください。",
     "source_hash": "e3d295a6"
   },
   "web.admin.customers.detail.stats.secretsCreated": {
-    "text": "作成されたシークレット",
+    "text": "作成されたシークレット数",
     "source_hash": "7d17719e"
   },
   "web.admin.customers.detail.stats.secretsShared": {
-    "text": "共有されたシークレット",
+    "text": "共有されたシークレット数",
     "source_hash": "ba85b265"
   },
   "web.admin.customers.detail.stats.emailsSent": {
-    "text": "送信されたメール",
+    "text": "送信されたメール数",
     "source_hash": "be604792"
   },
   "web.admin.customers.list.roleFilter": {
@@ -448,7 +448,7 @@
     "source_hash": "14736a2e"
   },
   "web.admin.customers.list.empty": {
-    "text": "顧客が見つかりません",
+    "text": "顧客が見つかりませんでした",
     "source_hash": "dc754ec0"
   },
   "web.admin.customers.list.loadError": {
@@ -456,11 +456,11 @@
     "source_hash": "81783303"
   },
   "web.admin.customers.list.searchPlaceholder": {
-    "text": "メール、extid、またはobjidで検索",
+    "text": "メールアドレス、extid、またはobjidで検索",
     "source_hash": "c06d5a3b"
   },
   "web.admin.customers.list.emptySearch": {
-    "text": "この検索に一致する顧客はいません",
+    "text": "検索条件に一致する顧客はありません",
     "source_hash": "ea7e7012"
   },
   "web.admin.customers.roles.colonel": {
@@ -482,5 +482,213 @@
   "web.admin.customers.suspended.badge": {
     "text": "停止中",
     "source_hash": "e392a389"
+  },
+  "web.admin.customers.actions.checkoutLink.button": {
+    "text": "チェックアウトリンクを作成",
+    "source_hash": "9c5082cb"
+  },
+  "web.admin.customers.actions.checkoutLink.modalTitle": {
+    "text": "チェックアウトリンクを作成",
+    "source_hash": "9c5082cb"
+  },
+  "web.admin.customers.actions.checkoutLink.planLabel": {
+    "text": "プラン",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.customers.actions.checkoutLink.planPlaceholder": {
+    "text": "プランファミリーID (例: identity_plus_v1)",
+    "source_hash": "12eba027"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleLabel": {
+    "text": "請求サイクル",
+    "source_hash": "d69f731e"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleMonthly": {
+    "text": "月額",
+    "source_hash": "9b11f6b7"
+  },
+  "web.admin.customers.actions.checkoutLink.cycleYearly": {
+    "text": "年額",
+    "source_hash": "6e69b59e"
+  },
+  "web.admin.customers.actions.checkoutLink.allowPromo": {
+    "text": "プロモーションコードを許可する",
+    "source_hash": "ebe7bc8b"
+  },
+  "web.admin.customers.actions.checkoutLink.submit": {
+    "text": "リンクを作成",
+    "source_hash": "e6b850cf"
+  },
+  "web.admin.customers.actions.checkoutLink.resultLead": {
+    "text": "チェックアウトリンクを作成しました。顧客に共有してください — 一度だけ使用でき、期限があります。",
+    "source_hash": "6ff1fb0e"
+  },
+  "web.admin.customers.actions.checkoutLink.copy": {
+    "text": "チェックアウトリンクをコピー",
+    "source_hash": "f1e51ca7"
+  },
+  "web.admin.customers.actions.checkoutLink.expiry": {
+    "text": "約{hours}時間後に期限切れになります ({date})。",
+    "source_hash": "4c878a15"
+  },
+  "web.admin.customers.actions.checkoutLink.regionLabel": {
+    "text": "リージョン",
+    "source_hash": "d3a008ef"
+  },
+  "web.admin.customers.actions.checkoutLink.parseError": {
+    "text": "サーバーはリクエストを受け付けましたが、応答を解釈できなかったためリンクを表示できません。再試行する前にStripeをご確認ください。",
+    "source_hash": "e7e08290"
+  },
+  "web.admin.customers.actions.checkoutLink.done": {
+    "text": "完了",
+    "source_hash": "11a6767d"
+  },
+  "web.admin.customers.actions.purge.typePrompt": {
+    "text": "確認のため、下にアカウントのメールアドレス{token}を入力してください",
+    "source_hash": "8b2a1819"
+  },
+  "web.admin.customers.actions.purge.unavailable": {
+    "text": "完全削除は利用できません: このアカウントには確認用に入力するメールアドレスがありません。",
+    "source_hash": "5f20f7e5"
+  },
+  "web.admin.customers.columns.actions": {
+    "text": "操作",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.customers.detail.diagnostics.title": {
+    "text": "アカウント診断",
+    "source_hash": "5574ece8"
+  },
+  "web.admin.customers.detail.diagnostics.loading": {
+    "text": "診断を実行しています…",
+    "source_hash": "062c83d5"
+  },
+  "web.admin.customers.detail.diagnostics.loadError": {
+    "text": "診断を読み込めません。",
+    "source_hash": "69e69f49"
+  },
+  "web.admin.customers.detail.diagnostics.healthy": {
+    "text": "ブロック要因は見つかりませんでした。認証の状態は正常です — クライアント側の問題 (Cookie、カスタムドメインのログイン設定) やリージョンの誤りが疑われます。",
+    "source_hash": "f6d5f8d1"
+  },
+  "web.admin.customers.detail.diagnostics.authUnavailable": {
+    "text": "認証データベースを利用できません (シンプル認証モード) — SQL側のチェックはスキップされました。",
+    "source_hash": "d668907c"
+  },
+  "web.admin.customers.detail.diagnostics.authFailed": {
+    "text": "認証データベースから応答がなかったため、SQL側のチェックを実行できませんでした: {reason}",
+    "source_hash": "46d047c0"
+  },
+  "web.admin.customers.detail.diagnostics.unknown": {
+    "text": "不明",
+    "source_hash": "b764cdc0"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.title": {
+    "text": "認証ログ",
+    "source_hash": "48ad8ba8"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.empty": {
+    "text": "記録された認証イベントはありません。",
+    "source_hash": "d2332558"
+  },
+  "web.admin.customers.detail.diagnostics.auditLog.unavailable": {
+    "text": "認証ログを読み取れませんでした: {reason}",
+    "source_hash": "ab18af57"
+  },
+  "web.admin.customers.detail.diagnostics.facts.authStatus": {
+    "text": "認証ステータス",
+    "source_hash": "34def169"
+  },
+  "web.admin.customers.detail.diagnostics.facts.noAccount": {
+    "text": "認証アカウントなし",
+    "source_hash": "a9968e9e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.password": {
+    "text": "パスワード",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordSet": {
+    "text": "設定済み",
+    "source_hash": "b6f6f3ad"
+  },
+  "web.admin.customers.detail.diagnostics.facts.passwordNone": {
+    "text": "なし",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfa": {
+    "text": "多要素認証",
+    "source_hash": "d39ce053"
+  },
+  "web.admin.customers.detail.diagnostics.facts.mfaNone": {
+    "text": "なし",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.diagnostics.facts.loginFailures": {
+    "text": "失敗した試行回数",
+    "source_hash": "63e7f0a8"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lockedBadge": {
+    "text": "ロックアウト中",
+    "source_hash": "ace29f74"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiter": {
+    "text": "レートリミッター",
+    "source_hash": "32892404"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged": {
+    "text": "作動中",
+    "source_hash": "1b0d851e"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterClear": {
+    "text": "解除済み",
+    "source_hash": "83b12c22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verification": {
+    "text": "確認メール",
+    "source_hash": "23fac8fb"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationPending": {
+    "text": "保留中 — 最終送信 {date}",
+    "source_hash": "9ab8d1b6"
+  },
+  "web.admin.customers.detail.diagnostics.facts.verificationNone": {
+    "text": "保留中のものはありません",
+    "source_hash": "a4d4cc22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.sessions": {
+    "text": "アクティブなセッション",
+    "source_hash": "61ad9909"
+  },
+  "web.admin.customers.detail.diagnostics.facts.lastLogin": {
+    "text": "最終ログイン (認証)",
+    "source_hash": "373e7fb1"
+  },
+  "web.admin.customers.detail.receipts.partial": {
+    "text": "一部のみの一覧です — 最新の{count}件を表示しています。この顧客には表示件数より多くの受信確認があります。",
+    "source_hash": "127fd4db"
+  },
+  "web.admin.customers.detail.secrets.partial": {
+    "text": "一部のみの一覧です — 最新の{count}件を表示しています。この顧客は表示件数より多くのシークレットを所有しています。",
+    "source_hash": "a537c8f3"
+  },
+  "web.admin.customers.detail.sessions.columns.country": {
+    "text": "国",
+    "source_hash": "701d021d"
+  },
+  "web.admin.customers.detail.sessions.current.badge": {
+    "text": "このセッション",
+    "source_hash": "6da6530a"
+  },
+  "web.admin.customers.detail.sessions.current.tooltip": {
+    "text": "現在の管理セッションです。ここで無効化しても効果はありません — このリクエストの残りの処理のために再作成されます。",
+    "source_hash": "ef097ab1"
+  },
+  "web.admin.customers.verification.verified": {
+    "text": "認証済み",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.verification.unverified": {
+    "text": "未認証",
+    "source_hash": "15133907"
   }
 }

@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Başarısız",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Gizli Mesajlar",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Üyelikler",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Yetkilendirme önizlemeleri",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonel oturum açmaları",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Aktör",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Ara",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Bir aktör yazın, ardından Enter tuşuna basın veya çalıştırmak için Ara seçeneğini seçin. Liste siz yazarken güncellenmez.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Henüz aranmadı — bu aktörü uygulamak için Enter tuşuna basın veya Ara seçeneğini seçin.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Sunucu yanıt verdi, ancak denetim verileri beklenen biçimle eşleşmedi. Hiçbir olay gösterilemiyor — bu bir raporlama hatası, boş bir günlük değil.",
+    "source_hash": "7f48137e"
   }
 }

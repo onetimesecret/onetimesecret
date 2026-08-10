@@ -483,5 +483,41 @@
   "web.login.verified_notice": {
     "text": "您的邮箱已验证——现在您可以登录了。",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "设置密码",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "您的账户尚未设置密码。我们会向您发送一个安全链接以便设置密码，之后您也可以直接登录。",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "发送设置链接",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "已向您发送邮件，其中包含用于为您的账户设置密码的链接",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "使用此邮箱地址的账户已存在，但尚未关联此登录方式。请使用您现有的方式登录，然后在「安全设置 → 已关联的身份」中关联此提供商。",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "无法关联此身份。关联流程可能是在错误的域名上发起的，或者您的会话已过期。请重新登录，然后在账户设置中进行关联。",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "我们无法完成将您加入组织的操作。请联系您的管理员。",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "我们无法关联该登录方式。请使用您的现有密码登录，然后在「安全设置 → 已关联的身份」中关联此提供商。",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "请查收邮箱——我们已向您发送用于确认关联账户的链接。打开该链接即可完成登录。",
+    "source_hash": "b251c8f3"
   }
 }

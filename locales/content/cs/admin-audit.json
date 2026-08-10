@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Selhání",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Tajemství",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Členství",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Náhledy oprávnění",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Přihlášení Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Aktér",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Hledat",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Zadej aktéra, pak stiskni Enter nebo vyber Hledat. Seznam se neaktualizuje, dokud píšeš.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Zatím nevyhledáno — stiskni Enter nebo vyber Hledat pro použití tohoto aktéra.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Server odpověděl, ale data auditu neodpovídala očekávanému formátu. Nelze zobrazit žádné události — jde o chybu hlášení, ne o prázdný protokol.",
+    "source_hash": "7f48137e"
   }
 }

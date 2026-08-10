@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "To sporočilo ste prejeli, ker je %{sender_email} prek storitve %{product_name} z vami delil skrivnost. Če tega niste pričakovali, lahko to e-poštno sporočilo mirno prezrete.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Potrdite povezovanje %{provider} z vašim računom %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Potrdite svojo prijavo SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Nekdo se je prijavil z %{provider} z uporabo e-pošte %{email_address}. Za dokončanje povezave %{provider} z vašim računom %{product_name} potrdite spodaj.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Potrdi in poveži %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Ali kopirajte in prilepite to povezavo:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Ta povezava poteče čez 15 minut in se lahko uporabi samo enkrat.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Če se niste poskušali prijaviti z %{provider}, lahko to e-pošto mirno prezrete — z vašim računom ne bo nič povezano.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Ekipa za podporo",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P. S. Ta e-pošta je bila poslana na %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }
