@@ -642,15 +642,50 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
 
       expect(last_response.status).to eq(403)
     end
+
+    # #4062 review, F5: `*` beside anything else is still `*`. The operator who
+    # follows the diagnostic ("set it to *") without deleting the entry that
+    # produced it gets the gate they asked for, not a blanket 404 — and the
+    # process still boots (Onetime::Config.check_admin_allowed_hosts stays
+    # silent for it, see spec/unit/onetime/config/admin_allowed_hosts_spec.rb).
+    context 'with `*` beside an unenforceable entry' do
+      before do
+        configure_admin!(
+          allowed_hosts: ['*', '10.0.0.5'],
+          default_domain: 'example.com',
+          site_host: 'example.com',
+        )
+      end
+
+      it 'serves a colonel on a non-canonical host' do
+        signed_in_as(colonel)
+        get_api('tenant.example.com')
+
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'serves the shell too' do
+        signed_in_as(colonel)
+        get_shell('tenant.example.com')
+
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'still refuses an anonymous caller at the role gate' do
+        anonymous!
+        get_api('tenant.example.com')
+
+        expect(last_response.status).to eq(401)
+      end
+    end
   end
 
   # ===========================================================================
-  # 8. The fail-closed backstop: an explicit list with nothing enforceable
+  # 8. The fail-closed enforcement: an explicit list with nothing enforceable
   # ===========================================================================
-  # Onetime::Config.validate_admin_allowed_hosts! normally refuses this config
-  # at boot (spec/unit/onetime/config/admin_allowed_hosts_spec.rb). Reaching
-  # the middleware with it means that validation did not run — an embedding
-  # that builds a Rack app without Config.raise_concerns. It must DENY, not
+  # Onetime::Config.check_admin_allowed_hosts WARNs about this config at boot
+  # (spec/unit/onetime/config/admin_allowed_hosts_spec.rb) but does not stop the
+  # process — the denial below is what makes that safe. It must DENY, not
   # disable itself: the operator's plain intent was to restrict.
   describe 'with an explicit allowed_hosts that names nothing enforceable' do
     before do
@@ -732,9 +767,74 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       end
     end
 
+    # A PERCENT-ENCODED admin path is still an admin path. The Otto router
+    # dispatches on Otto::Utils.normalize_path, which decodes first, so a gate
+    # that matched the raw SCRIPT_NAME+PATH_INFO would skip both gates and then
+    # hand the request to the admin console anyway (#4062 review, F1).
+    describe 'percent-encoded spellings of the admin paths' do
+      before { configure_admin!(default_domain: 'example.com', site_host: 'example.com') }
+
+      it '404s /%63olonel on a denied host' do
+        signed_in_as(colonel)
+        header 'Host', 'tenant.example.com'
+        get '/%63olonel'
+
+        expect(last_response.status).to eq(404)
+      end
+
+      it '404s /colonel%2Fsettings on a denied host' do
+        signed_in_as(colonel)
+        header 'Host', 'tenant.example.com'
+        get '/colonel%2Fsettings'
+
+        expect(last_response.status).to eq(404)
+      end
+
+      it '404s an encoded admin API path on a denied host' do
+        signed_in_as(colonel)
+        header 'Host', 'tenant.example.com'
+        get '/api/colonel/%69nfo'
+
+        expect(last_response.status).to eq(404)
+      end
+
+      it '404s an encoded admin path from outside the CIDR allowlist' do
+        configure_admin!(
+          allowed_hosts: ['*'],
+          allowed_cidrs: ['10.0.0.0/8'],
+          default_domain: 'example.com',
+          site_host: 'example.com',
+        )
+        signed_in_as(colonel)
+        header 'Host', 'example.com'
+        get '/%63olonel', {}, 'REMOTE_ADDR' => '203.0.113.9'
+
+        expect(last_response.status).to eq(404)
+      end
+
+      # Control: the encoded spelling really does reach the admin console once
+      # the gate is off — otherwise the 404s above would only prove that the
+      # router does not serve it either.
+      it 'serves the encoded path on an allowlisted host (control)' do
+        signed_in_as(colonel)
+        header 'Host', 'example.com'
+        header 'Accept', 'application/json'
+        get '/api/colonel/%69nfo'
+
+        expect(last_response.status).to eq(200)
+        expect(json_body).to have_key('details')
+      end
+    end
+
     describe 'forwarded host headers from an untrusted peer' do
+      # Neither of these is a TRUSTED peer for the admin gate. Loopback is what
+      # Rack::DetectHost's legacy heuristic trusts when site.network.trusted_proxy
+      # is unset — which is every containerised install, and is exactly the
+      # weakness (#4024) the gate refuses to rely on. Genuine trust is otto's
+      # tri-state key, below.
       let(:untrusted_peer) { { 'REMOTE_ADDR' => '203.0.113.9' } }
-      let(:trusted_peer)   { { 'REMOTE_ADDR' => '127.0.0.1' } }
+      let(:heuristic_peer) { { 'REMOTE_ADDR' => '127.0.0.1' } }
+      let(:trusted_peer)   { { 'REMOTE_ADDR' => '127.0.0.1', 'otto.via_trusted_proxy' => true } }
 
       before { configure_admin!(default_domain: 'example.com', site_host: 'example.com') }
 
@@ -773,21 +873,70 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         expect(gate_html_denial?).to be true
       end
 
-      # Control: the SAME header from a trusted (loopback) peer IS honoured by
-      # Rack::DetectHost. Without this the tests above could pass simply
-      # because forwarded host headers are inert in this stack.
-      it 'DOES honour X-Forwarded-Host from a trusted peer (control)' do
+      # THE #4062-review case (F2). Rack::DetectHost DOES honour this header
+      # from a loopback peer with no trusted_proxy configured — the control two
+      # examples down proves it — so before the fix this served the admin
+      # console to anything that could open a connection from a private address
+      # while claiming to be the canonical host.
+      it 'ignores X-Forwarded-Host from a loopback peer when no proxy trust is configured' do
+        signed_in_as(colonel)
+        get_api('tenant.example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+
+        expect(last_response.status).to eq(404)
+      end
+
+      it 'ignores Apx-Incoming-Host from a loopback peer when no proxy trust is configured' do
+        signed_in_as(colonel)
+        get_api('tenant.example.com', heuristic_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
+
+        expect(last_response.status).to eq(404)
+      end
+
+      # Control: the header IS live in this stack — Rack::DetectHost really
+      # does read it from a loopback peer with no trusted_proxy configured, and
+      # DomainStrategy classifies the request by what it read. Without this the
+      # two examples above could pass simply because forwarded host headers do
+      # nothing here, which would be evidence about the stack, not the gate.
+      it 'is genuinely honoured by Rack::DetectHost from a loopback peer (control)' do
+        configure_admin!(default_domain: 'example.com', site_host: 'example.com', domains_enabled: true)
+        anonymous!
+        header 'Host', 'tenant.example.com'
+        get NON_ADMIN_PATH, {}, heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com')
+
+        expect(last_response.status).to eq(200)
+        # :canonical is only reachable here if the forwarded header replaced
+        # the tenant Host header.
+        expect(last_response.headers['O-Domain-Strategy']).to eq('canonical')
+      end
+
+      # Control: with otto's trust key set — the operator configured
+      # site.network.trusted_proxy and this peer passed it — the forwarded host
+      # IS accepted. Trust widens what may be read.
+      it 'DOES honour X-Forwarded-Host from a peer otto vouched for (control)' do
         signed_in_as(colonel)
         get_api('tenant.example.com', trusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
 
         expect(last_response.status).to eq(200)
       end
 
-      it 'DOES honour Apx-Incoming-Host from a trusted peer (control)' do
+      it 'DOES honour Apx-Incoming-Host from a peer otto vouched for (control)' do
         signed_in_as(colonel)
         get_api('tenant.example.com', trusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
 
         expect(last_response.status).to eq(200)
+      end
+
+      # otto.via_trusted_proxy is tri-state: present-and-false means trust IS
+      # configured and this peer FAILED it — strictly worse than absent.
+      it 'refuses a forwarded host when otto explicitly distrusted the peer' do
+        signed_in_as(colonel)
+        get_api(
+          'tenant.example.com',
+          { 'REMOTE_ADDR' => '127.0.0.1', 'otto.via_trusted_proxy' => false,
+            'HTTP_X_FORWARDED_HOST' => 'example.com' },
+        )
+
+        expect(last_response.status).to eq(404)
       end
 
       # The mirror image of the control: a trusted peer forwarding a
@@ -798,6 +947,16 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         get_api('example.com', trusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'tenant.example.com'))
 
         expect(last_response.status).to eq(404)
+      end
+
+      # A forwarded header that AGREES with the Host header changed nothing, so
+      # there is nothing to distrust — the ordinary `proxy_set_header Host $host`
+      # topology keeps working with no trusted_proxy configured.
+      it 'admits a loopback peer whose forwarded header agrees with the Host header' do
+        signed_in_as(colonel)
+        get_api('example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+
+        expect(last_response.status).to eq(200)
       end
 
       # And the inverse control: an untrusted peer on an ALLOWLISTED Host still

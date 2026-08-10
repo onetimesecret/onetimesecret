@@ -33,11 +33,13 @@
 #     single-container install).
 #   allowed_hosts SET to unenforceable values -> gate ACTIVE with an EMPTY
 #     allowlist, i.e. DENY BOTH SURFACES. Onetime::Config
-#     .validate_admin_allowed_hosts! normally refuses that config at boot; this
-#     is the middleware's backstop for an embedding that builds a Rack app
-#     without Config.raise_concerns. Going inert there would serve the admin
+#     .check_admin_allowed_hosts says so at boot (WARN, not a boot abort — the
+#     denial here is the enforcement). Going inert instead would serve the admin
 #     console on every host from a config whose plain intent was to restrict
 #     it — failing open on a typo.
+#
+#   UNREADABLE config (OT.conf raised) -> same as the case above, never the
+#     unset one. "Unset" and "unreadable" are different facts.
 #
 # Test categories:
 #   1. Path matching (colonel_shell? / colonel_api?), full-path reconstruction
@@ -50,6 +52,12 @@
 #   8. Host gate: the inert rule (anchors) vs the fail-closed backstop (explicit)
 #   9. Host input provenance: detected host only, not HTTP_HOST / domain_strategy
 #  10. Both gates together, and the identical shape of the two denials
+#  11. Path NORMALIZATION: percent-encoded spellings reach the gates (the router
+#      decodes before dispatch, so raw matching was a two-character bypass)
+#  12. Forwarded-host provenance: a forwarded header only counts from a peer
+#      otto vouched for (env['otto.via_trusted_proxy'] == true)
+#  13. Unreadable config, and a CIDR list with nothing parseable: both DENY
+#  14. Boot logging is once per process, not once per mounted app
 
 require_relative '../../support/test_helpers'
 
@@ -65,7 +73,7 @@ require_relative '../../../lib/onetime/middleware/admin_network_isolation'
 #
 # `normalize_host` is a thin private DELEGATOR to
 # Onetime::Utils::AdminHostAllowlist (which is also what
-# Onetime::Config.validate_admin_allowed_hosts! uses, so the two cannot
+# Onetime::Config.check_admin_allowed_hosts uses, so the two cannot
 # drift). It is exposed here because #detected_host calls it on EVERY request
 # an active host gate judges: when it briefly went missing during the #4062
 # refactor, both admin surfaces raised NoMethodError instead of answering, and
@@ -132,8 +140,13 @@ end
 # detected_host: :unset leaves the env key ABSENT (a request that never passed
 # through Rack::DetectHost); nil writes an explicit nil (DetectHost ran and
 # found no valid host). Both must fail closed, and they are different envs.
+#
+# `extra` is merged LAST and is how the forwarded-host provenance cases below
+# write raw header keys (HTTP_X_FORWARDED_HOST, HTTP_APX_INCOMING_HOST) and
+# otto's tri-state trust key ('otto.via_trusted_proxy'). Those cases care about
+# the PRESENCE of a header, not its value: the middleware never reads it.
 def admin_env(script_name:, path_info:, client_ip: nil, xff: nil, detected_host: :unset, http_host: nil,
-              domain_strategy: nil)
+              domain_strategy: nil, extra: {})
   env = Rack::MockRequest.env_for("http://example.com#{script_name}#{path_info}")
   env['SCRIPT_NAME'] = script_name
   env['PATH_INFO'] = path_info
@@ -142,7 +155,22 @@ def admin_env(script_name:, path_info:, client_ip: nil, xff: nil, detected_host:
   env['HTTP_HOST'] = http_host if http_host
   env['onetime.domain_strategy'] = domain_strategy if domain_strategy
   env[Rack::DetectHost.result_field_name] = detected_host unless detected_host == :unset
+  env.merge!(extra)
   env
+end
+
+# Status of one /colonel request carrying raw header state. The host gate cases
+# above go through status_for; these need the env keys env_for does not model.
+def status_with(mw, detected_host, extra, http_host: nil, path_info: '/colonel', script_name: '')
+  env = admin_env(
+    script_name: script_name,
+    path_info: path_info,
+    client_ip: '203.0.113.9',
+    detected_host: detected_host,
+    http_host: http_host,
+    extra: extra,
+  )
+  mw.call(env).first
 end
 
 # Status of one admin-surface request. Defaults to the /colonel shell from a
@@ -609,18 +637,46 @@ build_mw(hosts: ['', '*']).host_gate_active?
  status_for(@wild_cidr, 'anything.example.test', client_ip: '203.0.113.9')]
 #=> [false, true, 200, 404]
 
-## `*` mixed with named hosts - the wildcard is DROPPED, names are enforced
+## `*` mixed with named hosts - the `*` WINS and the gate is off (#4062 review
+## F5). An explicit `*` is the documented request for "no host gate"; a sibling
+## entry does not make it ambiguous, it makes the sibling inert. Reading it the
+## other way made `ADMIN_ALLOWED_HOSTS="*,10.0.0.5"` a total deny — while the
+## diagnostic told the operator to set exactly `*`.
 @mixed = build_mw(hosts: ['*', 'admin.example.com'])
 [@mixed.allowed_hosts, @mixed.host_gate_active?]
-#=> [['admin.example.com'], true]
+#=> [[], false]
 
-## `*` mixed - the named host is admitted
+## `*` mixed - the named host is admitted (the gate is off, not open)
 status_for(@mixed, 'admin.example.com')
 #=> 200
 
-## `*` mixed - everything else is still denied (fail closed on ambiguity)
+## `*` mixed - so is everything else
 status_for(@mixed, 'tenant.example.com')
-#=> 404
+#=> 200
+
+## `*` beside an UNENFORCEABLE sibling boots to gate-off, not to total deny.
+## This is the exact config from the F5 finding: the operator followed the
+## remedy the error message named, and got a blanket 404 for it.
+@wild_junk = build_mw(hosts: ['*', '10.0.0.5'])
+[@wild_junk.allowed_hosts, @wild_junk.host_gate_active?, both_surfaces(@wild_junk, 'anything.example.test')]
+#=> [[], false, [200, 200]]
+
+## `*` beside junk is not classified unenforceable, so boot has nothing to warn
+## about (the classifier is what Onetime::Config reads too)
+@allowlist.classify(['*', '10.0.0.5']).unenforceable?
+#=> false
+
+## `*` beside a wildcard PATTERN is still gate-off
+build_mw(hosts: ['*.example.com', '*']).host_gate_active?
+#=> false
+
+## order does not matter: `*` last is the same as `*` first
+build_mw(hosts: ['admin.example.com', '*']).host_gate_active?
+#=> false
+
+## a wildcard PATTERN alone is NOT the escape hatch (only a bare `*` is)
+@allowlist.classify(['*.example.com']).wildcard
+#=> false
 
 # =================================================================
 # HOST GATE — canonical ANCHOR fallback (allowed_hosts empty)
@@ -772,9 +828,9 @@ build_mw(default_domain: 'example.com', site_host: '127.0.0.1:3000').host_gate_a
 # The opposite of the inert rule, and deliberately so. An operator who writes
 # ADMIN_ALLOWED_HOSTS=127.0.0.1 asked to RESTRICT the admin surfaces; going
 # inert would serve them on every hostname instead — failing open on a typo.
-# Onetime::Config.validate_admin_allowed_hosts! normally refuses this config at
-# boot (see spec/unit/onetime/config/admin_allowed_hosts_spec.rb); the
-# middleware still denies if it is ever constructed with one.
+# Onetime::Config.check_admin_allowed_hosts WARNs about this config at boot (see
+# spec/unit/onetime/config/admin_allowed_hosts_spec.rb) and the denial below is
+# what makes that warning safe to be only a warning.
 
 ## IP-literal list - ACTIVE gate with an EMPTY allowlist
 @ip_only = build_mw(hosts: ['127.0.0.1'])
@@ -977,6 +1033,296 @@ denial_triple(@ip_only, 'anything.example.test', '203.0.113.9', '', '/colonel') 
   denial_triple(@host_only, 'tenant.example.com', '203.0.113.9', '', '/colonel')
 #=> true
 
+# =================================================================
+# PATH NORMALIZATION — percent-encoded spellings reach the gates
+# =================================================================
+# The Otto router dispatches on Otto::Utils.normalize_path, which
+# percent-DECODES. Matching the raw SCRIPT_NAME+PATH_INFO here (as this did
+# until the #4062 review) meant `GET /%63olonel` missed colonel_shell?, skipped
+# BOTH gates, and was then routed to /colonel by the router — a complete
+# bypass of the feature with a two-character change to the URL.
+
+## request_path - a percent-encoded `c` normalizes to the admin surface
+@mw.request_path('SCRIPT_NAME' => '', 'PATH_INFO' => '/%63olonel')
+#=> '/colonel'
+
+## request_path - an encoded slash normalizes to a /colonel SUBPATH
+@mw.request_path('SCRIPT_NAME' => '', 'PATH_INFO' => '/colonel%2Fsettings')
+#=> '/colonel/settings'
+
+## request_path - a trailing slash is stripped, matching the router
+@mw.request_path('SCRIPT_NAME' => '', 'PATH_INFO' => '/colonel/')
+#=> '/colonel'
+
+## request_path - the API surface too, across the SCRIPT_NAME boundary
+@mw.request_path('SCRIPT_NAME' => '/api/colonel', 'PATH_INFO' => '/%73tats')
+#=> '/api/colonel/stats'
+
+## HOST gate - /%63olonel is denied on a non-allowlisted host
+@encoded = build_mw(hosts: ['admin.example.com'])
+status_for(@encoded, 'tenant.example.com', path_info: '/%63olonel')
+#=> 404
+
+## HOST gate - /colonel%2Fsettings is denied too
+status_for(@encoded, 'tenant.example.com', path_info: '/colonel%2Fsettings')
+#=> 404
+
+## HOST gate - a fully encoded /colonel is denied
+status_for(@encoded, 'tenant.example.com', path_info: '/%63%6f%6c%6f%6e%65%6c')
+#=> 404
+
+## HOST gate - the encoded API surface is denied
+status_for(@encoded, 'tenant.example.com', script_name: '/api/colonel', path_info: '/%69nfo')
+#=> 404
+
+## HOST gate - control: the same encoded paths are SERVED on an allowlisted
+## host, so the 404s above are the gate and not the encoding
+[status_for(@encoded, 'admin.example.com', path_info: '/%63olonel'),
+ status_for(@encoded, 'admin.example.com', path_info: '/colonel%2Fsettings')]
+#=> [200, 200]
+
+## CIDR gate - /%63olonel is denied from an outside IP
+@encoded_cidr = set_allowlist(['10.0.0.0/8'])
+@encoded_cidr.call(admin_env(script_name: '', path_info: '/%63olonel', client_ip: '203.0.113.9')).first
+#=> 404
+
+## CIDR gate - /colonel%2Fsettings is denied from an outside IP
+@encoded_cidr.call(admin_env(script_name: '', path_info: '/colonel%2Fsettings', client_ip: '203.0.113.9')).first
+#=> 404
+
+## CIDR gate - control: served from an inside IP
+@encoded_cidr.call(admin_env(script_name: '', path_info: '/%63olonel', client_ip: '10.0.0.5')).first
+#=> 200
+
+## a NON-admin path that merely decodes to something else is still untouched
+status_for(@encoded, 'tenant.example.com', path_info: '/%64ashboard')
+#=> 200
+
+## `/colonels` does not become an admin surface via encoding either
+status_for(@encoded, 'tenant.example.com', path_info: '/%63olonels')
+#=> 200
+
+# =================================================================
+# HOST PROVENANCE — a forwarded host from an untrusted peer (#4024)
+# =================================================================
+# With site.network.trusted_proxy unset (the shipped default) Rack::DetectHost
+# honors X-Forwarded-Host / Apx-Incoming-Host / X-Original-Host / Forwarded from
+# ANY peer on a private or loopback address — i.e. from every containerised
+# reverse-proxy install. The admin gate declines to rely on that: a detected
+# host that a forwarded header produced is accepted only when
+# env['otto.via_trusted_proxy'] is true, otherwise it must AGREE with the host
+# the `Host:` header alone would have given.
+#
+# HTTP_HOST is a corroborator here, never a source — see the HOST PROVENANCE
+# section above, which pins that HTTP_HOST cannot admit or evict anything.
+
+## forwarded header + untrusted peer + a host the Host header did NOT name:
+## DENIED, even though the detected host IS on the allowlist
+@fwd = build_mw(hosts: ['admin.example.com'])
+status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+            http_host: 'tenant.example.com')
+#=> 404
+
+## the same request from a peer otto vouched for is SERVED (control: the header
+## is not inert, it is untrusted)
+status_with(@fwd, 'admin.example.com',
+            { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com', 'otto.via_trusted_proxy' => true },
+            http_host: 'tenant.example.com')
+#=> 200
+
+## otto.via_trusted_proxy=false means trust IS configured and this peer FAILED
+## it — strictly worse than absent, so the forwarded host is still refused
+status_with(@fwd, 'admin.example.com',
+            { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com', 'otto.via_trusted_proxy' => false },
+            http_host: 'tenant.example.com')
+#=> 404
+
+## a present-but-non-boolean trust key is treated as untrusted (presence implies
+## the tri-state contract; a future otto surprise must not widen the gate)
+status_with(@fwd, 'admin.example.com',
+            { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com', 'otto.via_trusted_proxy' => 'true' },
+            http_host: 'tenant.example.com')
+#=> 404
+
+## Apx-Incoming-Host — the Approximated custom-domain ingress header — is
+## judged the same way. This is the live attack shape: a request to a tenant
+## custom domain claiming to be the canonical admin host.
+status_with(@fwd, 'admin.example.com', { 'HTTP_APX_INCOMING_HOST' => 'admin.example.com' },
+            http_host: 'secrets.tenant.test')
+#=> 404
+
+## X-Original-Host too
+status_with(@fwd, 'admin.example.com', { 'HTTP_X_ORIGINAL_HOST' => 'admin.example.com' },
+            http_host: 'secrets.tenant.test')
+#=> 404
+
+## and the RFC 7239 Forwarded header
+status_with(@fwd, 'admin.example.com', { 'HTTP_FORWARDED' => 'host=admin.example.com' },
+            http_host: 'secrets.tenant.test')
+#=> 404
+
+## the API surface is judged identically
+status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+            http_host: 'tenant.example.com', script_name: '/api/colonel', path_info: '/info')
+#=> 404
+
+## a forwarded header that did NOT change the answer is fine: the detected host
+## equals what `Host:` alone would have produced. This is the ordinary
+## nginx/Caddy `proxy_set_header Host $host` topology.
+status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+            http_host: 'admin.example.com')
+#=> 200
+
+## agreement is judged after normalization, not byte-for-byte
+status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+            http_host: 'ADMIN.Example.COM:8443')
+#=> 200
+
+## no forwarded header at all: nothing could have overridden Host, so the
+## detected host stands on its own (this is every case elsewhere in this file)
+status_with(@fwd, 'admin.example.com', {}, http_host: 'tenant.example.com')
+#=> 200
+
+## an untrusted forwarded header cannot DENY an otherwise-good request either,
+## as long as it agrees — trust widens what is read, never what is admitted
+status_with(@fwd, 'tenant.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+            http_host: 'tenant.example.com')
+#=> 404
+
+## a nil detected host with a forwarded header present is denied, not rescued
+## by HTTP_HOST — HTTP_HOST is never a source
+status_with(@fwd, nil, { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' }, http_host: 'admin.example.com')
+#=> 404
+
+## provenance is a HOST-gate rule: with the host gate off, a forwarded header
+## from an untrusted peer changes nothing
+@fwd_off = build_mw(hosts: ['*'])
+status_with(@fwd_off, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+            http_host: 'tenant.example.com')
+#=> 200
+
+## and it never touches a non-admin path
+status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
+            http_host: 'tenant.example.com', path_info: '/dashboard')
+#=> 200
+
+# =================================================================
+# UNREADABLE CONFIG — denies, never deactivates
+# =================================================================
+# OT.conf.dig raising is NOT the same fact as "the operator left it unset", and
+# returning nil for both let a raising config degrade a configured gate to the
+# anchor fallback and from there to INACTIVE — admin served on every hostname,
+# with a boot WARN blaming site.host.
+
+## an unreadable site.admin block leaves BOTH gates active and denying
+@unreadable = begin
+  OT.conf['site']['admin'] = Object.new # Hash#dig raises TypeError on this
+  TestAdminNetworkIsolation.new(@mock_app)
+end
+[@unreadable.host_gate_active?, @unreadable.network_gate_active?, @unreadable.allowed_hosts]
+#=> [true, true, []]
+
+## unreadable config - both surfaces 404, on every host
+both_surfaces(@unreadable, 'example.com')
+#=> [404, 404]
+
+## unreadable config - a routable canonical anchor does not rescue it
+status_for(@unreadable, 'anything.example.test')
+#=> 404
+
+## unreadable config - non-admin paths are untouched (not a blanket outage)
+status_for(@unreadable, 'example.com', path_info: '/dashboard')
+#=> 200
+
+## unreadable config - restored, and the next instance reads config normally
+@restored = begin
+  OT.conf['site']['admin'] = { 'allowed_hosts' => [], 'allowed_cidrs' => [] }
+  build_mw(hosts: ['admin.example.com'])
+end
+[@restored.allowed_hosts, @restored.network_gate_active?]
+#=> [['admin.example.com'], false]
+
+# =================================================================
+# CIDR GATE — a configured list with nothing parseable DENIES
+# =================================================================
+# Symmetric with the host gate: a list an operator wrote is never silently
+# disabled. Before the #4062 review every entry was WARNed away individually and
+# the empty result read as "no network gate" — the admin surfaces became
+# reachable from anywhere while the operator believed a VPN restriction held.
+
+## every entry malformed - the gate stays ACTIVE with no ranges
+@bad_cidrs = build_mw(cidrs: ['100.64.0.0\10', 'not-a-cidr'])
+[@bad_cidrs.network_gate_active?, @bad_cidrs.allowed?('100.64.7.7')]
+#=> [true, false]
+
+## every entry malformed - denied from inside the range the operator MEANT
+@bad_cidrs.call(admin_env(script_name: '', path_info: '/colonel', client_ip: '100.64.7.7')).first
+#=> 404
+
+## every entry malformed - denied from a public IP too, on both surfaces
+both_surfaces(@bad_cidrs, nil)
+#=> [404, 404]
+
+## every entry malformed - non-admin paths untouched
+status_for(@bad_cidrs, nil, path_info: '/dashboard')
+#=> 200
+
+## ONE parseable entry among malformed ones enforces normally (partial failure
+## is still a WARN, not a deny)
+@one_cidr = build_mw(cidrs: ['garbage', '10.0.0.0/8'])
+[@one_cidr.network_gate_active?,
+ status_for(@one_cidr, nil, client_ip: '10.0.0.5'),
+ status_for(@one_cidr, nil, client_ip: '203.0.113.9')]
+#=> [true, 200, 404]
+
+## an EMPTY list still means "no network gate" - unchanged, and the whole
+## reason the malformed case has to be told apart from it
+@no_cidrs = build_mw(cidrs: [])
+[@no_cidrs.network_gate_active?, status_for(@no_cidrs, nil, client_ip: '203.0.113.9')]
+#=> [false, 200]
+
+## a list of BLANK entries is "empty", not "unusable"
+build_mw(cidrs: ['', '   ']).network_gate_active?
+#=> false
+
+# =================================================================
+# BOOT LOGGING — once per process, not once per mounted app
+# =================================================================
+# MiddlewareStack.configure runs for each of the 13 registered applications, all
+# from one config. Without a ledger every boot prints 13 identical posture lines
+# and 13 copies of each WARN, which reads like 13 separate misconfigurations.
+
+## an identical posture built twice announces once
+@log_counts = begin
+  Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
+  build_mw(hosts: ['admin.example.com'])
+  first = Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
+  12.times { build_mw(hosts: ['admin.example.com']) }
+  [first, Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count]
+end
+#=> [1, 1]
+
+## a DIFFERENT posture still announces - dedupe is per posture, not a mute
+build_mw(hosts: ['other.example.com'])
+Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
+#=> 2
+
+## the wildcard WARN and the posture line are separate announcements
+@wild_counts = begin
+  Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
+  build_mw(hosts: ['*'])
+  Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
+end
+#=> 2
+
+## the `*`-with-siblings case adds the ignored-siblings WARN
+@sibling_counts = begin
+  Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
+  build_mw(hosts: ['*', 'admin.example.com'])
+  Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
+end
+#=> 3
+
 # Restore every global this file mutated: both admin lists, site.host, the
 # features.domains block, and the DetectHost result field. `rake try:unit` runs
 # all unit tryouts in one process — a leak here changes what later files see.
@@ -984,3 +1330,4 @@ OT.conf['site']['admin'] = @orig_admin if @orig_admin
 OT.conf['site']['host'] = @orig_site_host
 OT.conf['features']['domains'] = @orig_domains if @orig_domains
 Rack::DetectHost.result_field_name = @orig_detected_field
+Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!

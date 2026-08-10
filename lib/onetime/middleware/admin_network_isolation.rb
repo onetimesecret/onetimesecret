@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'otto/utils'
+
 require_relative '../../middleware/detect_host'
 require_relative '../utils/admin_host_allowlist'
 require_relative '../utils/canonical_hosts'
@@ -23,14 +25,17 @@ module Onetime
     #      so a stock canonical deployment sees no behavior change while a
     #      tenant custom domain (or any other vhost the app answers on) stops
     #      serving the admin console. `*` is the explicit escape hatch. An
-    #      explicit list with nothing enforceable in it does not reach here —
-    #      Onetime::Config.validate_admin_allowed_hosts! refuses to boot.
+    #      explicit list with nothing enforceable in it DENIES both surfaces
+    #      here; Onetime::Config.check_admin_allowed_hosts says so at boot.
     #
     #   2. NETWORK — `site.admin.allowed_cidrs`. WHICH CLIENT IPs may reach the
     #      surfaces. OPT-IN: empty/unset (the self-hosted single-container
     #      default) means this gate is not consulted at all. Set it on cloud to
     #      the private ranges the surfaces should be reachable from (e.g.
     #      Tailscale CGNAT 100.64.0.0/10, an office VPN CIDR, or RFC1918).
+    #      A CONFIGURED list with no parseable range in it denies, by the same
+    #      rule as the host gate: a list an operator wrote is never silently
+    #      disabled.
     #
     # A request that fails EITHER active gate gets a 404 on `/colonel` and
     # `/api/colonel` — indistinguishable-from-absent, NOT a 403, so the admin
@@ -46,8 +51,7 @@ module Onetime
     # ## Host resolution
     #
     # The host is read from env[Rack::DetectHost.result_field_name] — the host
-    # Rack::DetectHost already validated, and which only honors a forwarded
-    # header when the peer was trusted. Three things it deliberately is NOT:
+    # Rack::DetectHost already validated. Three things it deliberately is NOT:
     #
     #   - NOT env['onetime.domain_strategy']. DomainStrategy honors an
     #     `O-Domain-Context` REQUEST HEADER override when
@@ -66,6 +70,50 @@ module Onetime
     # Onetime::Utils::AdminHostAllowlist, which also decides which configured
     # entries can ever match. Matching is exact and ASCII/A-label only.
     #
+    # ## Forwarded-host provenance (the extra trust check DetectHost does not
+    # ## make, and cannot make for us)
+    #
+    # DetectHost honors a forwarded host header (X-Forwarded-Host,
+    # Apx-Incoming-Host, X-Original-Host, Forwarded) when EITHER the operator
+    # configured proxy trust and this peer passed it (otto writes
+    # env['otto.via_trusted_proxy'] = true) OR — with no proxy trust configured
+    # at all, the SHIPPED DEFAULT — a legacy heuristic: any peer whose
+    # REMOTE_ADDR is private or loopback may name the host. That heuristic keeps
+    # single-container installs behind a local proxy working, and it is fine for
+    # DISPLAY decisions. It is not fine for deciding admin reachability: on every
+    # containerised install (and anywhere with SSRF egress) a client that can
+    # open a connection from a private address chooses the host this gate reads,
+    # so `X-Forwarded-Host: canonical.example.com` sent to a tenant custom domain
+    # would open the admin console. That weakness is project-wide (#4024) and is
+    # not fixable here; this gate declines to rely on it.
+    #
+    # THE RULE (#host_provenance_trusted?): a detected host is accepted only when
+    #
+    #   a. env['otto.via_trusted_proxy'] == true — the operator configured proxy
+    #      trust and this peer passed it. Forwarded headers are then a fact about
+    #      the operator's own proxy tier; OR
+    #   b. no forwarded host header is present at all, so nothing could have
+    #      overridden the Host header; OR
+    #   c. one is present but the detected host EQUALS the host the Host header
+    #      alone would have produced — the forwarded header did not change the
+    #      answer, so there is nothing to distrust.
+    #
+    # Otherwise the request is DENIED. It is not silently downgraded to the
+    # HTTP_HOST-derived host: in the topology this defends (Approximated-style
+    # ingress with trusted_proxy unset) `Host` is the ORIGIN's own hostname —
+    # the canonical one, which IS on the allowlist — while the tenant domain
+    # rides in Apx-Incoming-Host. Falling back to Host would therefore ADMIT
+    # every tenant-domain request, the exact inverse of this feature. Denying is
+    # the only reading that fails closed. The tryout at
+    # "HTTP_HOST naming a DENIED host does not evict an allowed detected host"
+    # pins the other half: HTTP_HOST is never an input, only a corroborator.
+    #
+    # Cost, stated plainly: a deployment behind a proxy that rewrites the Host
+    # header to an internal name AND forwards the public one in a header, with
+    # site.network.trusted_proxy unset, now 404s both admin surfaces. The two
+    # remedies are in the WARN — configure site.network.trusted_proxy (correct
+    # for every other gate in the stack too), or ADMIN_ALLOWED_HOSTS=*.
+    #
     # ## Configured badly vs not configured — the asymmetry
     #
     # Rack::DetectHost never emits `localhost`, `localhost.localdomain`,
@@ -80,11 +128,17 @@ module Onetime
     #     the network gate was carefully designed never to do.
     #
     #   AN OPERATOR CONFIGURED SOMETHING UNENFORCEABLE (allowed_hosts set, no
-    #     entry survives): Onetime::Config.validate_admin_allowed_hosts! raises
-    #     at boot, and if that validation was somehow bypassed this middleware
-    #     DENIES both surfaces. Going inert here would serve the admin console
-    #     on every host from a config whose plain intent was to restrict it —
-    #     failing open on a typo. `*` remains the way to turn the gate off.
+    #     entry survives): this middleware DENIES both surfaces, and
+    #     Onetime::Config.check_admin_allowed_hosts explains why at boot. Going
+    #     inert here would serve the admin console on every host from a config
+    #     whose plain intent was to restrict it — failing open on a typo. `*`
+    #     remains the way to turn the gate off.
+    #
+    #   THE CONFIG COULD NOT BE READ AT ALL (OT.conf raised): treated as the
+    #     second case, never the first. "Unset" and "unreadable" are different
+    #     facts and collapsing them would degrade a configured gate to the
+    #     anchor fallback and then to INACTIVE — admin on every hostname,
+    #     announced by a boot WARN blaming site.host.
     #
     # ## Client IP resolution
     #
@@ -107,42 +161,156 @@ module Onetime
     # `/api/colonel` (PATH_INFO becomes `/info`, `/stats`, …) and the core web
     # app at `/` (PATH_INFO stays `/colonel`). We reconstruct the full request
     # path from SCRIPT_NAME + PATH_INFO so both surfaces match regardless of
-    # which app is handling the request.
+    # which app is handling the request, and NORMALIZE it exactly the way the
+    # Otto router does before dispatch (Otto::Utils.normalize_path) — see
+    # #request_path.
     #
+    # The HTML denial body, kept OUTSIDE the class it belongs to only because a
+    # 37-line literal inside it eats a third of the Metrics/ClassLength budget
+    # that the gate's reasoning needs. Deliberately plain and generic: it must
+    # look like an ordinary not-found page, never like a guard announcing
+    # itself. Rendered once at load (the file is frozen_string_literal).
+    ADMIN_NOT_FOUND_HTML = <<~HTML
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>404 Not Found</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background-color: #f9fafb;
+              color: #374151;
+              margin: 0;
+              padding: 40px 20px;
+              text-align: center;
+            }
+            .container {
+              max-width: 400px;
+              margin: 0 auto;
+            }
+            h1 {
+              font-size: 1.5rem;
+              margin-bottom: 0.5rem;
+            }
+            p {
+              color: #6b7280;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>404 Not Found</h1>
+            <p>The requested resource was not found.</p>
+          </div>
+        </body>
+      </html>
+    HTML
+
     class AdminNetworkIsolation
       # The surfaces this middleware guards. Named in every boot log so an
       # operator can grep for what is (and is not) gated.
       SURFACES = %w[/colonel /api/colonel].freeze
 
-      # Sole-entry escape hatch that disables the HOST gate. The network gate
-      # is unaffected by it. Needed by self-hosted installs reached by bare IP
-      # or by a hostname that is not the configured canonical domain.
+      # @see Onetime::Middleware::ADMIN_NOT_FOUND_HTML
+      NOT_FOUND_HTML = ADMIN_NOT_FOUND_HTML
+
+      # Escape hatch that disables the HOST gate. The network gate is
+      # unaffected by it. Needed by self-hosted installs reached by bare IP or
+      # by a hostname that is not the configured canonical domain.
       HOST_WILDCARD = Onetime::Utils::AdminHostAllowlist::WILDCARD
 
+      # Returned by #site_admin_list when the config could not be READ, as
+      # opposed to having been left unset. A Symbol, so it can never collide
+      # with a value that came out of YAML or ENV. See #site_admin_list.
+      CONFIG_UNREADABLE = :__admin_config_unreadable__
+
+      # Rack env keys for the host headers Rack::DetectHost will honor from a
+      # trusted peer. Derived from ITS list, never a local copy: a header added
+      # there is a header this gate must distrust from an untrusted peer.
+      FORWARDED_HOST_ENV_KEYS = Rack::DetectHost::FORWARDED_HEADERS.map do |header|
+        "HTTP_#{header.tr('-', '_').upcase}"
+      end.freeze
+
+      # Path used when the request path cannot be normalized at all. Fails
+      # CLOSED: an unparseable path is judged as an admin surface, so a
+      # normalization failure can never be a way past the gates.
+      UNPARSEABLE_PATH = '/colonel'
+
+      class << self
+        # Boot logging is per-DEPLOYMENT, but this middleware is constructed
+        # once per mounted application (13 of them). Without a ledger every
+        # boot prints 13 identical posture lines — and 13 copies of any WARN
+        # saying the admin surfaces are unprotected or dark, which reads like
+        # 13 separate misconfigurations.
+        #
+        # Keyed by [tag, payload] rather than tag alone: the 13 mounts share
+        # one config and collapse to one line, while a genuinely DIFFERENT
+        # posture (a second Rack app built from other config, which only
+        # happens in tests and embeddings) still gets its own line instead of
+        # being silently swallowed. Sibling of
+        # Onetime::Application::MiddlewareStack.warn_once, which cannot be
+        # reused here: it takes a String and these carry structured payloads
+        # the operator docs quote field by field.
+        #
+        # @param tag [Symbol] dedupe key
+        # @param payload [Hash] structured log payload, part of the key
+        # @return [void]
+        def log_once(tag, payload)
+          @announced ||= {}
+          key          = [tag, payload]
+          return if @announced.key?(key)
+
+          @announced[key] = true
+          yield
+        end
+
+        # Clear the ledger. Specs only — a process that has booted has no
+        # reason to re-announce its posture.
+        #
+        # @return [void]
+        def reset_boot_announcements!
+          @announced = {}
+        end
+
+        # How many distinct boot announcements this process has emitted.
+        # Specs only; the dedupe is otherwise invisible.
+        #
+        # @return [Integer]
+        def boot_announcement_count
+          (@announced || {}).size
+        end
+      end
+
       def initialize(app)
-        @app             = app
-        @logger          = Onetime.get_logger('AdminNetworkIsolation')
+        @app                = app
+        @logger             = Onetime.get_logger('AdminNetworkIsolation')
+        @config_read_errors = {}
 
         # Both allowlists are resolved ONCE, here — the process has booted and
-        # nothing re-reads config per request. The host gate carries its own
-        # active flag rather than deriving one from emptiness: an ACTIVE gate
-        # with an EMPTY allowlist is the fail-closed backstop, and "inactive"
-        # must not be reachable by accident.
-        @allowed_ranges              = parse_allowed_cidrs(configured_cidrs)
-        @allowed_hosts, @host_gate   = resolve_host_gate
+        # nothing re-reads config per request. EACH gate carries its own active
+        # flag rather than deriving one from emptiness: an ACTIVE gate with an
+        # EMPTY allowlist is the fail-closed backstop for a list that was
+        # configured but yielded nothing, and "inactive" must not be reachable
+        # by accident.
+        @allowed_ranges, @network_gate = resolve_network_gate
+        @allowed_hosts,  @host_gate    = resolve_host_gate
 
         log_boot_posture
       end
 
       def call(env)
-        # Cheapest discriminator first: any path that is not an admin surface
-        # leaves this middleware untouched, whatever the gates are set to.
+        # Cheapest discriminator first, and it is this one: with both gates
+        # inactive — the pre-#4062 self-hosted default — the middleware is a
+        # strict NO-OP that allocates nothing, and the two app-layer auth
+        # layers are the sole gate. Reconstructing the path first would put a
+        # String allocation on every request of every mounted app to answer a
+        # question two already-computed booleans settle.
+        return @app.call(env) unless host_gate_active? || network_gate_active?
+
         full_path = request_path(env)
         return @app.call(env) unless admin_surface?(full_path)
-
-        # Both gates inactive — the pre-#4062 self-hosted default. Strict
-        # NO-OP: the two app-layer auth layers are the sole gate.
-        return @app.call(env) unless host_gate_active? || network_gate_active?
 
         # Each gate is consulted INDEPENDENTLY and only while active; either
         # denial produces the identical 404, so a host denial, a network
@@ -162,18 +330,39 @@ module Onetime
       end
 
       def network_gate_active?
-        !@allowed_ranges.empty?
+        @network_gate
       end
 
-      # Host gate. Fails closed: an active gate with an unresolvable (nil or
-      # empty) detected host denies, mirroring the nil-IP path in #allowed?.
-      # The denial WARN is distinct from the network one so operators can tell
-      # the two factors apart in logs; the allowlist is never echoed into the
-      # response, only into the log.
+      # Host gate. Fails closed twice over: an active gate with an unresolvable
+      # (nil or empty) detected host denies, mirroring the nil-IP path in
+      # #allowed?, and so does one whose detected host cannot be attributed to
+      # a trusted peer (see #host_provenance_trusted?).
+      #
+      # The denial WARNs are distinct from the network one, and from each
+      # other, so operators can tell the three refusals apart in logs; the
+      # allowlist is never echoed into the response, only into the log.
       def host_denied?(env, full_path)
         return false unless host_gate_active?
 
         host = detected_host(env)
+
+        # Provenance BEFORE membership: a host we cannot attribute is denied
+        # even when it is on the allowlist — being on the allowlist is exactly
+        # what an attacker who can set a forwarded header would arrange.
+        unless host_provenance_trusted?(env, host)
+          @logger.warn 'Admin surface access denied: forwarded host from an untrusted peer',
+            {
+              host: host,
+              path: full_path,
+              method: env['REQUEST_METHOD'],
+              note: 'a forwarded host header changed the detected host, but the peer is not a ' \
+                    'configured trusted proxy (site.network.trusted_proxy). Configure it, or set ' \
+                    'ADMIN_ALLOWED_HOSTS=* to turn the host gate off',
+            }
+
+          return true
+        end
+
         return false if host_allowed?(host)
 
         @logger.warn 'Admin surface access denied by host allowlist',
@@ -186,7 +375,53 @@ module Onetime
         true
       end
 
-      # Network (CIDR) gate. Unchanged semantics from before #4062.
+      # Whether the detected host can be attributed to something better than a
+      # client-supplied forwarded header. See the class doc ("Forwarded-host
+      # provenance") for the threat this closes and why the answer is DENY
+      # rather than a fall back to HTTP_HOST.
+      #
+      # @param env [Hash] the Rack env
+      # @param host [String, nil] the normalized detected host
+      # @return [Boolean]
+      def host_provenance_trusted?(env, host)
+        # (a) Operator-configured proxy trust, and this peer passed it. The key
+        # is TRI-STATE (otto#228): written only when trust is configured, so
+        # `== true` — never `!= false` — is the grant-only read.
+        return true if env[Rack::DetectHost::VIA_TRUSTED_PROXY_KEY] == true
+
+        # There is no host to attribute. Not a provenance question:
+        # #host_allowed? denies nil anyway, with the ordinary allowlist WARN,
+        # which is the more accurate line for an operator to read.
+        return true if host.nil? || host.empty?
+
+        # (b) Nothing that could have overridden the Host header is present.
+        return true unless forwarded_host_header?(env)
+
+        # (c) A forwarded header is present but did not change the answer: the
+        # detected host is what the Host header alone would have produced.
+        # Both sides go through DetectHost's OWN extraction before ours, so
+        # this compares what DetectHost compared.
+        host == host_header_host(env)
+      end
+
+      # Whether the request carries any host header DetectHost would honor from
+      # a trusted peer. Presence only — the VALUE is never read here.
+      def forwarded_host_header?(env)
+        FORWARDED_HOST_ENV_KEYS.any? { |key| env.key?(key) }
+      end
+
+      # The host the `Host:` header alone would have produced, normalized
+      # identically to the detected host. A CORROBORATOR, never an input: it is
+      # only ever compared against the detected host, never matched against the
+      # allowlist. See the tryout "HTTP_HOST alone (no detected host at all)
+      # fails closed".
+      def host_header_host(env)
+        normalize_host(Rack::DetectHost.normalize_host(env['HTTP_HOST']))
+      end
+
+      # Network (CIDR) gate. Per-request semantics are unchanged from before
+      # #4062; what changed is when the gate counts as ACTIVE — see
+      # #resolve_network_gate.
       def network_denied?(env, full_path)
         return false unless network_gate_active?
 
@@ -203,11 +438,31 @@ module Onetime
         true
       end
 
-      # Full request path independent of where the app is mounted. Rack::URLMap
+      # Full request path independent of where the app is mounted, canonicalized
+      # the way the Otto router canonicalizes before dispatch. Rack::URLMap
       # moves the mount prefix into SCRIPT_NAME, so PATH_INFO alone would be
       # `/info` inside the colonel API app (mounted at /api/colonel).
+      #
+      # NORMALIZATION IS SECURITY-LOAD-BEARING, not tidiness. The router
+      # dispatches on Otto::Utils.normalize_path, which percent-decodes: it
+      # serves `GET /%63olonel` and `/colonel%2Fsettings` as the admin routes.
+      # Matching the RAW string here (as this did until the #4062 review) let
+      # both spellings miss #colonel_shell?, skip BOTH gates, and then be routed
+      # to the admin console anyway. Same idiom, and the same reasoning, as
+      # HealthAccessControl#health_endpoint? and SessionSkip#skip?.
+      #
+      # Otto::Utils.normalize_path documents that it does not raise (it catches
+      # ArgumentError from Rack::Utils.unescape and scrubs invalid bytes) and
+      # always returns a String. The rescue is for a future in which that stops
+      # being true: a path we cannot canonicalize is treated as an admin
+      # surface, so the failure mode is a denial, never a bypass.
       def request_path(env)
-        "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}"
+        Otto::Utils.normalize_path("#{env['SCRIPT_NAME']}#{env['PATH_INFO']}")
+      rescue StandardError => ex
+        @logger.warn 'Admin surface path normalization failed; judging it as an admin surface',
+          { error: "#{ex.class}: #{ex.message}" }
+
+        UNPARSEABLE_PATH
       end
 
       def admin_surface?(path)
@@ -280,10 +535,83 @@ module Onetime
       # One reader for both site.admin.* lists. Config may be entirely absent
       # (partial boot, specs); an unreadable config must never raise out of
       # this middleware's constructor.
+      #
+      # RETURNS A SENTINEL, NOT nil, ON FAILURE. nil is indistinguishable from
+      # "the operator did not configure this", and that collision is a security
+      # bug: a raising or not-yet-populated OT.conf would silently degrade a
+      # CONFIGURED host gate to the canonical-anchor fallback, and from there to
+      # INACTIVE on any install whose anchors are unroutable — admin served on
+      # every hostname, announced by a boot WARN blaming site.host. The
+      # exception is kept so the eventual log names the real cause instead of
+      # the innocent bystander.
       def site_admin_list(key)
         OT.conf.dig('site', 'admin', key)
-      rescue StandardError
-        nil
+      rescue StandardError => ex
+        @config_read_errors[key] = "#{ex.class}: #{ex.message}"
+        CONFIG_UNREADABLE
+      end
+
+      def unreadable?(value)
+        value.equal?(CONFIG_UNREADABLE)
+      end
+
+      # Resolve the NETWORK gate once at construction.
+      #
+      # @return [Array(Array<IPAddr>, Boolean)] the ranges, and whether the gate
+      #   is active. Empty/unset config leaves it INACTIVE (the self-hosted
+      #   default, unchanged). A configured list that yields no usable range is
+      #   ACTIVE and denying — see #unusable_network_gate.
+      def resolve_network_gate
+        configured = configured_cidrs
+        return unreadable_network_gate if unreadable?(configured)
+
+        entries = Array(configured).map { |cidr| cidr.to_s.strip }.reject(&:empty?)
+        return [[], false] if entries.empty?
+
+        ranges = parse_allowed_cidrs(entries)
+        return [ranges, true] if ranges.any?
+
+        unusable_network_gate(entries)
+      end
+
+      # An operator wrote a CIDR list and not one entry parsed (`100.64.0.0\10`,
+      # a comma that survived splitting, a hostname). Before #4062's review this
+      # deactivated the gate: every WARNed-away entry left the range set empty,
+      # emptiness meant "inactive", and the admin surfaces silently became
+      # reachable from anywhere while the operator believed a VPN restriction
+      # was in force. Same rule as the host gate now — a list an operator wrote
+      # is never silently disabled — and the same deliberate asymmetry with an
+      # EMPTY list, which still means "no network gate".
+      def unusable_network_gate(entries)
+        log_once(:cidrs_unusable, { entries: entries }) do
+          @logger.error 'Admin CIDR allowlist has no usable range; denying both admin surfaces',
+            {
+              entries: entries,
+              surfaces: SURFACES,
+              note: '/colonel and /api/colonel are returning 404 to EVERY request because no entry in ' \
+                    'site.admin.allowed_cidrs parses as a CIDR range. Fix the entries ' \
+                    '(ADMIN_ALLOWED_CIDRS=100.64.0.0/10,10.0.0.0/8) or unset it entirely to leave the ' \
+                    'network gate off',
+            }
+        end
+
+        [[], true]
+      end
+
+      # OT.conf raised while reading site.admin.allowed_cidrs. ACTIVE and
+      # denying: see #site_admin_list for why this is not treated as "unset".
+      def unreadable_network_gate
+        log_once(:cidrs_unreadable, { error: @config_read_errors['allowed_cidrs'] }) do
+          @logger.error 'Cannot read site.admin.allowed_cidrs; denying both admin surfaces',
+            {
+              error: @config_read_errors['allowed_cidrs'],
+              surfaces: SURFACES,
+              note: 'the config could not be READ (this is not an unset value), so both admin gates ' \
+                    'fail closed and /colonel and /api/colonel return 404 to EVERY request',
+            }
+        end
+
+        [[], true]
       end
 
       def parse_allowed_cidrs(value)
@@ -292,7 +620,9 @@ module Onetime
 
           IPAddr.new(cidr.to_s.strip)
         rescue IPAddr::InvalidAddressError
-          @logger.warn "Invalid CIDR in site.admin.allowed_cidrs, skipping: #{cidr}"
+          log_once(:cidr_invalid, { cidr: cidr.to_s }) do
+            @logger.warn "Invalid CIDR in site.admin.allowed_cidrs, skipping: #{cidr}"
+          end
           nil
         end
       end
@@ -305,54 +635,101 @@ module Onetime
       #   gate is active. ACTIVE with an EMPTY allowlist denies everything;
       #   that is the backstop, not an accident.
       def resolve_host_gate
-        configured = Onetime::Utils::AdminHostAllowlist.classify(configured_hosts)
+        raw = configured_hosts
+        return unreadable_host_gate if unreadable?(raw)
+
+        configured = Onetime::Utils::AdminHostAllowlist.classify(raw)
 
         return anchor_host_gate if configured.empty?
-        return wildcard_host_gate if configured.wildcard_only?
+
+        # `*` ANYWHERE in the list turns the gate off, not just as the sole
+        # entry. It is the documented escape hatch and the remedy every
+        # diagnostic in this file recommends; a sibling entry does not make it
+        # ambiguous, it just makes the sibling inert (and named in a WARN).
+        return wildcard_host_gate(configured) if configured.wildcard
 
         configured_host_gate(configured)
       end
 
-      # An operator wrote a list. Enforce whatever survived classification.
-      def configured_host_gate(classified)
-        warn_dropped_wildcard if classified.wildcard
-        warn_rejected_entries(classified.rejected)
-
-        return [classified.hosts, true] if classified.hosts.any?
-
-        # BACKSTOP — normally unreachable: Onetime::Config
-        # .validate_admin_allowed_hosts! refuses this config at boot with a
-        # message naming every rejected entry. Reaching it means that
-        # validation did not run (an embedding that builds a Rack app without
-        # Config.raise_concerns). An explicit allowlist with nothing
-        # enforceable must DENY, never disable itself: the operator's plain
-        # intent was to restrict, and `*` is how you ask for the opposite.
-        # An operator reading this line is debugging an outage, not auditing an
-        # invariant: lead with what is happening to the surfaces, then the
-        # cause, then the remedy.
-        @logger.warn 'Admin host allowlist has no enforceable entry; denying both admin surfaces',
-          {
-            entries: classified.rejected.map(&:first),
-            surfaces: SURFACES,
-            note: '/colonel and /api/colonel are returning 404 to EVERY request because no entry in ' \
-                  'site.admin.allowed_hosts can match a detected host. This config is normally ' \
-                  'rejected at boot, so boot-time validation did not run here. Set ' \
-                  'ADMIN_ALLOWED_HOSTS to a routable hostname, unset it to allow the canonical ' \
-                  'host only, or set it to * to disable the host gate',
-          }
+      # OT.conf raised while reading site.admin.allowed_hosts. ACTIVE and
+      # denying: see #site_admin_list for why this is not treated as "unset".
+      def unreadable_host_gate
+        log_once(:hosts_unreadable, { error: @config_read_errors['allowed_hosts'] }) do
+          @logger.error 'Cannot read site.admin.allowed_hosts; denying both admin surfaces',
+            {
+              error: @config_read_errors['allowed_hosts'],
+              surfaces: SURFACES,
+              note: 'the config could not be READ (this is not an unset value), so the host gate fails ' \
+                    'closed and /colonel and /api/colonel return 404 to EVERY request',
+            }
+        end
 
         [[], true]
       end
 
-      # `*` as the sole entry: the documented escape hatch.
-      def wildcard_host_gate
-        @logger.warn 'Admin host allowlist DISABLED by `*`',
-          {
-            surfaces: SURFACES,
-            note: 'both admin surfaces answer on every hostname the app serves; the CIDR gate is unaffected',
-          }
+      # An operator wrote a list. Enforce whatever survived classification.
+      def configured_host_gate(classified)
+        warn_rejected_entries(classified.rejected)
+
+        return [classified.hosts, true] if classified.hosts.any?
+
+        # THE RUNTIME HALF of the same judgment Onetime::Config
+        # .check_admin_allowed_hosts warns about at boot. An explicit allowlist
+        # with nothing enforceable must DENY, never disable itself: the
+        # operator's plain intent was to restrict, and `*` is how you ask for
+        # the opposite. This is also why that boot check does not have to abort
+        # the process (see it) — the over-exposure it exists to prevent is
+        # already impossible by the time a request arrives.
+        #
+        # An operator reading this line is debugging an outage, not auditing an
+        # invariant: lead with what is happening to the surfaces, then the
+        # cause, then the remedy.
+        log_once(:hosts_unenforceable, { entries: classified.rejected.map(&:first) }) do
+          @logger.warn 'Admin host allowlist has no enforceable entry; denying both admin surfaces',
+            {
+              entries: classified.rejected.map(&:first),
+              surfaces: SURFACES,
+              note: '/colonel and /api/colonel are returning 404 to EVERY request because no entry in ' \
+                    'site.admin.allowed_hosts can match a detected host. Set ADMIN_ALLOWED_HOSTS to a ' \
+                    'routable hostname, unset it to allow the canonical host only, or set it to * to ' \
+                    'disable the host gate',
+            }
+        end
+
+        [[], true]
+      end
+
+      # `*` is listed: the documented escape hatch. Anything beside it is inert
+      # and gets named, so an operator who wrote `*,admin.example.com` learns
+      # the second entry did nothing — without the gate second-guessing the
+      # explicit `*`.
+      def wildcard_host_gate(classified)
+        log_once(:hosts_wildcard, { surfaces: SURFACES }) do
+          @logger.warn 'Admin host allowlist DISABLED by `*`',
+            {
+              surfaces: SURFACES,
+              note: 'both admin surfaces answer on every hostname the app serves; the CIDR gate is unaffected',
+            }
+        end
+
+        warn_ignored_wildcard_siblings(classified) unless classified.wildcard_only?
 
         [[], false]
+      end
+
+      # States only what `*` did to the OTHER entries. Whether those entries
+      # were themselves usable is beside the point: `*` turned the gate off, so
+      # nothing is enforced either way.
+      def warn_ignored_wildcard_siblings(classified)
+        ignored = classified.hosts + classified.rejected.map(&:first)
+
+        log_once(:hosts_wildcard_siblings, { entries: ignored }) do
+          @logger.warn 'Ignoring every other entry in site.admin.allowed_hosts: `*` disables the host gate',
+            {
+              entries: ignored,
+              note: 'remove the `*` to enforce the named hosts',
+            }
+        end
       end
 
       # Nobody configured anything: fall back to the canonical anchors, plus
@@ -371,26 +748,18 @@ module Onetime
         anchors = Onetime::Utils::AdminHostAllowlist.classify(canonical_anchor_hosts)
         return [with_www_variants(anchors.hosts), true] if anchors.hosts.any?
 
-        @logger.warn 'Admin host allowlist INACTIVE: no routable hostname configured',
-          {
-            source: 'canonical anchors',
-            hosts: canonical_anchor_hosts,
-            surfaces: SURFACES,
-            note: 'localhost and bare-IP hosts are never detected as a host; set ADMIN_ALLOWED_HOSTS ' \
-                  '(or site.host / DEFAULT_DOMAIN) to a routable hostname to enable the host gate',
-          }
+        log_once(:hosts_inactive, { hosts: canonical_anchor_hosts }) do
+          @logger.warn 'Admin host allowlist INACTIVE: no routable hostname configured',
+            {
+              source: 'canonical anchors',
+              hosts: canonical_anchor_hosts,
+              surfaces: SURFACES,
+              note: 'localhost and bare-IP hosts are never detected as a host; set ADMIN_ALLOWED_HOSTS ' \
+                    '(or site.host / DEFAULT_DOMAIN) to a routable hostname to enable the host gate',
+            }
+        end
 
         [[], false]
-      end
-
-      # States only what this check decided. Whether anything is left to
-      # enforce is the next check's business — and its answer may be "nothing",
-      # which is why this must not promise that named hosts are enforced.
-      def warn_dropped_wildcard
-        @logger.warn 'Dropped `*` from site.admin.allowed_hosts: it is only honored as the sole entry',
-          {
-            note: 'list `*` alone to disable the host gate',
-          }
       end
 
       # Entries that can never match are dropped, not fatal, as long as
@@ -399,10 +768,14 @@ module Onetime
       def warn_rejected_entries(rejected)
         return if rejected.empty?
 
-        @logger.warn 'Ignoring unusable entries in site.admin.allowed_hosts',
-          {
-            entries: Onetime::Utils::AdminHostAllowlist.describe_rejections(rejected),
-          }
+        described = Onetime::Utils::AdminHostAllowlist.describe_rejections(rejected)
+
+        log_once(:hosts_rejected, { entries: described }) do
+          @logger.warn 'Ignoring unusable entries in site.admin.allowed_hosts',
+            {
+              entries: described,
+            }
+        end
       end
 
       # The fallback allowlist source: the deployment's ANCHOR hosts only —
@@ -418,9 +791,21 @@ module Onetime
         Onetime::Utils::CanonicalHosts.normalized_anchor_hosts
       end
 
-      # Admit the `www.` sibling of each anchor, matching the tolerance
-      # DomainStrategy::Chooserator.equal_to? applies to anchors (and only to
-      # anchors). Neither CanonicalHosts nor DomainParser synthesizes it.
+      # Admit the `www.` SIBLING of each anchor, in both directions: a bare
+      # anchor also admits `www.<anchor>`, and a `www.` anchor also admits the
+      # name with the prefix removed. Neither CanonicalHosts nor DomainParser
+      # synthesizes either form, so it is done here.
+      #
+      # THIS IS NOT DomainStrategy::Chooserator.equal_to? AND MUST NOT BE
+      # "ALIGNED" WITH IT (an earlier version of this comment claimed it was).
+      # That predicate resolves the REGISTRABLE DOMAIN first, so for an anchor
+      # `app.example.com` it admits `www.example.com` — a different site — and
+      # never admits an apex when the anchor is a www host. This method is
+      # purely lexical: `app.example.com` yields `www.app.example.com`, and
+      # `www.example.com` yields `example.com`. Substituting one for the other
+      # silently changes WHICH HOSTS SERVE /colonel in both directions. The
+      # behavior here is pinned by tryouts on purpose; change the tryouts first
+      # if it should ever differ.
       def with_www_variants(hosts)
         expanded = hosts.flat_map do |host|
           if host.start_with?('www.')
@@ -433,9 +818,27 @@ module Onetime
         expanded.uniq
       end
 
+      # Emit a boot log line at most once per process for a given [tag,
+      # payload]. Delegates to the class-level ledger; see .log_once for why
+      # this middleware needs one at all (13 mounted apps, one deployment).
+      #
+      # Names the class EXPLICITLY rather than going through `self.class`: a
+      # subclass (try/unit/middleware's TestAdminNetworkIsolation, or any
+      # embedding that wraps this) would otherwise get a ledger of its own and
+      # the guarantee would silently become once-per-CLASS.
+      def log_once(tag, payload, &)
+        AdminNetworkIsolation.log_once(tag, payload, &)
+      end
+
       # One INFO line per process describing the effective posture of BOTH
       # factors, including when a gate is off — so "off" is distinguishable
       # from "misconfigured" without diffing config against source.
+      #
+      # ONCE PER PROCESS, NOT ONCE PER MOUNT. MiddlewareStack.configure runs for
+      # each of the 13 registered applications, all from the same config; before
+      # the #4062 review this line (and every WARN above it) appeared 13 times
+      # per boot, which reads like 13 separate deployments' worth of
+      # misconfiguration.
       #
       # `trusted_proxy` is on this line, and deliberately not on one of its own:
       # it qualifies the two gate states beside it. Both gates judge inputs that
@@ -443,15 +846,18 @@ module Onetime
       # `host_gate: active` correlated with `trusted_proxy: disabled` is the
       # whole point — see #trusted_proxy_posture.
       def log_boot_posture
-        @logger.info 'Admin surface isolation posture',
-          {
-            host_gate: host_gate_active? ? 'active' : 'inactive',
-            allowed_hosts: @allowed_hosts,
-            network_gate: network_gate_active? ? 'active' : 'inactive',
-            allowed_cidrs: effective_cidrs,
-            trusted_proxy: trusted_proxy_posture,
-            surfaces: SURFACES,
-          }
+        posture = {
+          host_gate: host_gate_active? ? 'active' : 'inactive',
+          allowed_hosts: @allowed_hosts,
+          network_gate: network_gate_active? ? 'active' : 'inactive',
+          allowed_cidrs: effective_cidrs,
+          trusted_proxy: trusted_proxy_posture,
+          surfaces: SURFACES,
+        }
+
+        log_once(:posture, posture) do
+          @logger.info 'Admin surface isolation posture', posture
+        end
       end
 
       # The parsed ranges as an operator would have written them. IPAddr#to_s
@@ -521,49 +927,9 @@ module Onetime
           [
             404,
             { 'Content-Type' => 'text/html; charset=utf-8' },
-            [html_body],
+            [NOT_FOUND_HTML],
           ]
         end
-      end
-
-      def html_body
-        <<~HTML
-          <!DOCTYPE html>
-          <html lang="en">
-            <head>
-              <meta charset="utf-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1">
-              <title>404 Not Found</title>
-              <style>
-                body {
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                  background-color: #f9fafb;
-                  color: #374151;
-                  margin: 0;
-                  padding: 40px 20px;
-                  text-align: center;
-                }
-                .container {
-                  max-width: 400px;
-                  margin: 0 auto;
-                }
-                h1 {
-                  font-size: 1.5rem;
-                  margin-bottom: 0.5rem;
-                }
-                p {
-                  color: #6b7280;
-                }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>404 Not Found</h1>
-                <p>The requested resource was not found.</p>
-              </div>
-            </body>
-          </html>
-        HTML
       end
     end
   end
