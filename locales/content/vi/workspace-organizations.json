@@ -903,14 +903,6 @@
     "text": "Xóa {domain}",
     "source_hash": "ae708a1d"
   },
-  "web.organizations.sso.enabled": {
-    "text": "Bật SSO",
-    "source_hash": "d10d0801"
-  },
-  "web.organizations.sso.enabled_hint": {
-    "text": "Khi được bật, các thành viên tổ chức có thể đăng nhập bằng nhà cung cấp SSO này",
-    "source_hash": "d7da2fa2"
-  },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Bắt buộc chỉ SSO",
     "source_hash": "b3a3f694"
