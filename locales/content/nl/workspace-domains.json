@@ -148,7 +148,7 @@
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "& Status",
+    "text": "en status",
     "source_hash": "fe871d2c"
   },
   "web.domains.domain": {
@@ -268,7 +268,7 @@
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.example.com",
+    "text": "secrets.voorbeeld.com",
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
@@ -1080,7 +1080,7 @@
     "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Single Sign-On",
+    "text": "Single sign-on",
     "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
@@ -1176,7 +1176,7 @@
     "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Single Sign-On",
+    "text": "Single sign-on",
     "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {

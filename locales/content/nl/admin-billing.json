@@ -40,7 +40,7 @@
     "source_hash": "dcd1d522"
   },
   "web.admin.billing.columns.tier": {
-    "text": "Tier",
+    "text": "Niveau",
     "source_hash": "cb9e8664"
   },
   "web.admin.billing.columns.status": {
